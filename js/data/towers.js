@@ -721,10 +721,11 @@
       Object.assign(s, l.x || {});
     }
     s.attack = def.attack;
-    /* Any ranged tower learns to lead an airborne target by level 2. Towers
-       that list `flying` earlier keep that head start; grounded styles never
-       gain it. */
-    if (level >= 2 && !GROUNDED[def.attack]) s.flying = true;
+    /* Any ranged tower that actually shoots learns to lead an airborne target
+       by level 2. Towers listing `flying` earlier keep that head start;
+       grounded styles never gain it, and neither do farms, auras and spawners
+       that deal no damage themselves — their units carry their own flags. */
+    if (level >= 2 && s.dmg > 0 && !GROUNDED[def.attack]) s.flying = true;
     return s;
   }
   function totalCost(def, level) {

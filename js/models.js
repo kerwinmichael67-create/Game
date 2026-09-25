@@ -115,7 +115,8 @@
     const arms = [];
     for (let i = 0; i < 2; i++) {
       const p = new T.Group();
-      p.position.set(i ? 1.0 + armW / 2 : -(1.0 + armW / 2), 3.9, 0);
+      // torso-local: the shoulder sits just below the top of the chest
+      p.position.set(i ? 1.0 + armW / 2 : -(1.0 + armW / 2), 1.9, 0);
       if (o.minimal) {
         p.add(box(armW, 2.0, armW, o.sleeve != null ? o.sleeve : o.shirt, 0, -1.0, 0));
       } else {
@@ -125,7 +126,8 @@
       torso.add(p); arms.push(p);
     }
     // head
-    const head = new T.Group(); head.position.y = 4.05;
+    // torso-local too: arms and head ride the torso's walk bob
+    const head = new T.Group(); head.position.y = 2.05;
     const skull = box(1.28, 1.28, 1.28, o.skin, 0, 0.64, 0);
     head.add(skull);
     if (o.face) {
