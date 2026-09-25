@@ -111,6 +111,12 @@ Difficulty sets the wave count, enemy health, starting cash, base HP and payout:
 Every mode ends on a boss wave, and the harder modes mix extra enemy types into the
 ordinary waves.
 
+### Your character in battle
+The same blocky character you walk around the lobby with is on the battlefield too,
+and you can walk it around while the towers fight. It is purely your avatar — enemies
+ignore it, it blocks nothing, and it never touches the simulation. Walking makes the
+camera follow you; the arrow keys, a middle-drag or `C` hand the camera back.
+
 ### Progression
 Matches pay out coins and XP. Coins unlock towers in the shop; some towers also need
 a player level, and the Gilded ones cost gems (earned by clearing Forsaken and
@@ -134,7 +140,9 @@ drag to look · wheel to zoom
 | `Q` | upgrade selected · `X` sell (65% refund) |
 | `T` | cycle targeting: First / Last / Strongest / Weakest / Closest |
 | `F` | use the selected tower's ability |
-| `Space` | start the next wave early for a cash bonus |
+| `W A S D` | walk your character · `Space` jump · `Shift` sprint |
+| `C` | toggle whether the camera follows your character |
+| `Enter` | start the next wave early for a cash bonus |
 | `P` | pause · the HUD button cycles 1× / 2× / 3× speed |
 | Right-drag | rotate camera · wheel zoom · arrows or middle-drag to pan |
 | `Esc` | cancel placement / deselect |

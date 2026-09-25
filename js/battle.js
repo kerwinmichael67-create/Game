@@ -16,6 +16,7 @@
     placing: null, ghost: null, rangeRing: null, stats: null,
     cam: { tx: 0, tz: 0, yaw: 0.7, pitch: 0.82, dist: 78 },
     keys: {}, mouse: { x: 0, y: 0 }, hoverPoint: null,
+    player: null, camFollow: false,
     globalBuff: { rate: 0, dmg: 0, until: 0 }
   };
 
@@ -173,6 +174,9 @@
     disc.rotation.x = -Math.PI / 2; disc.position.y = 0.03;
     this.rangeDisc = disc; disc.visible = false; scene.add(disc);
 
+    /* ---- the player's character, free to walk the map during a match ---- */
+    this.buildPlayer();
+
     /* ---- camera ---- */
     this.camera = new T.PerspectiveCamera(52, 1, 0.5, 600);
     let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9;
@@ -183,14 +187,134 @@
     this.cam.tx = (x0 + x1) / 2; this.cam.tz = (z0 + z1) / 2;
     this.cam.dist = TD.clamp(Math.max(x1 - x0, (z1 - z0) * 1.8) * 1.02, 70, 160);
     this.cam.yaw = Math.PI; this.cam.pitch = 0.95;
+    this.cam.wantDist = this.cam.dist; this.cam.freeDist = this.cam.dist;
     this.updateCamera(0, true);
+  };
+
+  /* ====================================================================
+     THE PLAYER'S CHARACTER
+     Purely the viewer's avatar: enemies ignore it, it blocks nothing and it
+     never affects the simulation. It exists so you can walk your defence
+     while it fights.
+     ==================================================================== */
+  B.buildPlayer = function () {
+    const d = TD.Save.data;
+    const h = TD.makeAvatar(d.name, TD.levelFromXp(d.xp).level);
+    const spot = this.playerSpawn();
+    h.group.position.set(spot.x, 0, spot.z);
+    this.scene.add(h.group);
+    this.player = {
+      model: h, x: spot.x, z: spot.z, y: 0,
+      dir: Math.PI, vx: 0, vz: 0, vy: 0, grounded: true, t: 0, stepT: 0
+    };
+    this.camFollow = false;
+  };
+
+  /* Somewhere clear beside the base to start from. */
+  B.playerSpawn = function () {
+    const map = this.map, bx = map.base[0], bz = map.base[1];
+    for (let r = 10; r <= 40; r += 4) {
+      for (let a = 0; a < 12; a++) {
+        const ang = a / 12 * Math.PI * 2;
+        const x = bx + Math.cos(ang) * r, z = bz + Math.sin(ang) * r;
+        if (Math.abs(x) > 80 || Math.abs(z) > 80) continue;
+        if (TD.distToPath(map, x, z) < map.pathWidth / 2 + 3) continue;
+        if (this.blockers.some(b => TD.dist(x, z, b.x, b.z) < b.r + 2)) continue;
+        return { x: x, z: z };
+      }
+    }
+    return { x: bx, z: bz + 14 };
+  };
+
+  /* Runs on real time, not simulation time — the speed multiplier should
+     not make you sprint three times faster. */
+  B.updatePlayer = function (dt) {
+    const p = this.player;
+    if (!p) return;
+    p.t += dt;
+
+    let ix = 0, iz = 0;
+    const k = this.keys;
+    if (k['w']) iz -= 1;
+    if (k['s']) iz += 1;
+    if (k['a']) ix -= 1;
+    if (k['d']) ix += 1;
+    const mag = Math.hypot(ix, iz);
+    if (mag > 1) { ix /= mag; iz /= mag; }
+    if (mag > 0) this.setFollow(true);       // walking re-engages the camera
+
+    const sprint = k['shift'] ? 1.8 : 1;
+    const speed = 16 * sprint;
+    const cos = Math.cos(this.cam.yaw), sin = Math.sin(this.cam.yaw);
+    const wx = -(ix * cos + iz * sin);
+    const wz = ix * sin - iz * cos;
+
+    p.vx += (wx * speed - p.vx) * Math.min(1, 12 * dt);
+    p.vz += (wz * speed - p.vz) * Math.min(1, 12 * dt);
+
+    let nx = p.x + p.vx * dt, nz = p.z + p.vz * dt;
+
+    /* Push out of water, lava and towers; the path itself is walkable.
+       Dead centre has no direction to push along, so pick one rather than
+       skipping — otherwise the exact centre is a spot you can never leave. */
+    const shove = (cx, cz, r) => {
+      const d = TD.dist(nx, nz, cx, cz);
+      if (d >= r) return;
+      if (d < 0.001) { nx = cx + r; return; }
+      const push = r - d;
+      nx += (nx - cx) / d * push;
+      nz += (nz - cz) / d * push;
+    };
+    this.blockers.forEach(b => shove(b.x, b.z, b.r + 1.2));
+    for (let i = 0; i < this.towers.length; i++) shove(this.towers[i].x, this.towers[i].z, 2.6);
+    nx = TD.clamp(nx, -88, 88); nz = TD.clamp(nz, -88, 88);
+    p.x = nx; p.z = nz;
+
+    if (k[' '] && p.grounded) { p.vy = 13; p.grounded = false; TD.Audio.jump(); }
+    p.vy -= 38 * dt;
+    p.y += p.vy * dt;
+    if (p.y <= 0) { p.y = 0; p.vy = 0; p.grounded = true; }
+
+    const moving = Math.hypot(p.vx, p.vz) > 0.6;
+    if (moving) p.dir = TD.angleLerp(p.dir, Math.atan2(p.vx, p.vz), Math.min(1, 14 * dt));
+    p.model.group.position.set(p.x, p.y, p.z);
+    p.model.group.rotation.y = p.dir;
+    const amt = TD.clamp(Math.hypot(p.vx, p.vz) / 12, 0, 1.3);
+    p.model.anim(p.t, p.grounded ? amt : 0.2, { speed: 9 * sprint });
+    if (!p.grounded) { p.model.arms[0].rotation.x = -2.2; p.model.arms[1].rotation.x = -2.2; }
+    if (moving && p.grounded) {
+      p.stepT -= dt * (0.9 + amt) * sprint;
+      if (p.stepT <= 0) { p.stepT = 0.33; TD.Audio.step(); }
+    }
+    TD.billboard(p.model.tag, this.camera);
   };
 
   /* ====================================================================
      CAMERA
      ==================================================================== */
+  /* Following from map-fit distance would leave the character a speck, so
+     entering follow pulls in and leaving restores whatever the player had. */
+  const FOLLOW_DIST = 46;
+  B.setFollow = function (on) {
+    if (this.camFollow === on) return;
+    this.camFollow = on;
+    const c = this.cam;
+    if (on) {
+      c.freeDist = c.wantDist;
+      c.wantDist = Math.min(c.wantDist, FOLLOW_DIST);
+    } else if (c.freeDist != null) {
+      c.wantDist = c.freeDist;
+    }
+  };
+
   B.updateCamera = function (dt, snap) {
     const c = this.cam;
+    if (c.wantDist == null) c.wantDist = c.dist;
+    c.dist += (c.wantDist - c.dist) * (snap ? 1 : Math.min(1, dt * 4));
+    if (this.camFollow && this.player) {
+      c.tx += (this.player.x - c.tx) * Math.min(1, dt * 3.5);
+      c.tz += (this.player.z - c.tz) * Math.min(1, dt * 3.5);
+    }
     const cx = c.tx - Math.sin(c.yaw) * Math.cos(c.pitch) * c.dist;
     const cy = Math.sin(c.pitch) * c.dist;
     const cz = c.tz - Math.cos(c.yaw) * Math.cos(c.pitch) * c.dist;
@@ -532,9 +656,9 @@
       face: false, minimal: true, scale: (cfg.scale || 1) * 0.9
     });
     if (!cfg.thrall) {
-      const w = TD.WEAPONS[cfg.ranged ? 'rifle' : 'sword'](0x39405a);
-      h.rightArm.add(w); w.position.set(0, -1.6, 0.15);
-      h.aimPose(!!cfg.ranged, -1.3);
+      const ranged = cfg.ranged > 4;
+      TD.attachWeapon(h, ranged ? 'rifle' : 'sword', 0x39405a, 0.85);
+      if (ranged) h.aimPose(true, 0.12); else h.meleePose(false);
     }
     const u = {
       owner: owner, model: h, group: h.group, pd: pd, pathIdx: pathIdx,
@@ -577,9 +701,13 @@
   const STEP = 0.05;
   B.update = function (rawDt) {
     if (!this.active) return;
-    if (this.paused || this.phase === 'over') { this.updateCamera(rawDt); this.panKeys(rawDt); return; }
+    if (this.paused || this.phase === 'over') {
+      this.panKeys(rawDt); this.updatePlayer(rawDt); this.updateCamera(rawDt);
+      return;
+    }
 
     this.panKeys(rawDt);
+    this.updatePlayer(rawDt);
     let remaining = Math.min(0.05, rawDt) * this.speed;
     let guard = 0;
     while (remaining > 1e-4 && guard++ < 8) {
@@ -629,11 +757,12 @@
   B.panKeys = function (dt) {
     const k = this.keys, c = this.cam;
     let px = 0, pz = 0;
-    if (k['arrowup'] || k['w']) pz -= 1;
-    if (k['arrowdown'] || k['s']) pz += 1;
-    if (k['arrowleft'] || k['a']) px -= 1;
-    if (k['arrowright'] || k['d']) px += 1;
+    if (k['arrowup']) pz -= 1;
+    if (k['arrowdown']) pz += 1;
+    if (k['arrowleft']) px -= 1;
+    if (k['arrowright']) px += 1;
     if (px || pz) {
+      this.setFollow(false);
       const sp = 60 * dt * (c.dist / 80);
       const cos = Math.cos(c.yaw), sin = Math.sin(c.yaw);
       c.tx += -(px * cos + pz * sin) * sp;
@@ -1615,7 +1744,7 @@
       downX = e.clientX; downY = e.clientY; downBtn = e.button;
       lx = e.clientX; ly = e.clientY;
       if (e.button === 2) rotating = true;
-      if (e.button === 1) { panning = true; e.preventDefault(); }
+      if (e.button === 1) { panning = true; self.setFollow(false); e.preventDefault(); }
       dom.setPointerCapture(e.pointerId);
     });
     dom.addEventListener('pointermove', e => {
@@ -1646,7 +1775,9 @@
     dom.addEventListener('pointercancel', () => { rotating = panning = false; });
     dom.addEventListener('wheel', e => {
       if (!self.active) return;
-      self.cam.dist = TD.clamp(self.cam.dist + Math.sign(e.deltaY) * 6, 26, 150);
+      const c = self.cam;
+      c.wantDist = TD.clamp((c.wantDist == null ? c.dist : c.wantDist) + Math.sign(e.deltaY) * 6, 22, 150);
+      if (!self.camFollow) c.freeDist = c.wantDist;
     }, { passive: true });
 
     window.addEventListener('keydown', e => {
@@ -1662,7 +1793,9 @@
       if (k === 'x' && self.selected) self.sell(self.selected);
       if (k === 't' && self.selected) { self.selected.mode = (self.selected.mode + 1) % 5; TD.UI.showTower(self.selected); }
       if (k === 'f' && self.selected) self.useAbility(self.selected);
-      if (k === ' ') { e.preventDefault(); if (self.phase === 'prep' && self.wave < self.diff.waves) self.startWave(true); }
+      if (k === ' ') e.preventDefault();               // jump; handled in updatePlayer
+      if (k === 'enter') { if (self.phase === 'prep' && self.wave < self.diff.waves) self.startWave(true); }
+      if (k === 'c') TD.UI.toggleFollow();
       if (k === 'p') TD.UI.togglePause();
     });
     window.addEventListener('keyup', e => { self.keys[e.key.toLowerCase()] = false; });

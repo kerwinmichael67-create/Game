@@ -112,7 +112,7 @@
     g.add(torso);
 
     // arms (pivot at shoulder)
-    const arms = [];
+    const arms = [], hands = [];
     for (let i = 0; i < 2; i++) {
       const p = new T.Group();
       // torso-local: the shoulder sits just below the top of the chest
@@ -123,6 +123,10 @@
         p.add(box(armW, 1.25, armW, o.sleeve != null ? o.sleeve : o.shirt, 0, -0.62, 0));
         p.add(box(armW, 0.78, armW, o.skin, 0, -1.63, 0));
       }
+      // anchor at the fist — everything held goes in here, never on the arm
+      const hand = new T.Group();
+      hand.position.set(0, -1.75, 0);
+      p.add(hand); hands.push(hand);
       torso.add(p); arms.push(p);
     }
     // head
@@ -136,14 +140,25 @@
       head.add(box(0.5, 0.08, 0.06, 0x14161f, 0, 0.42, 0.66));
     }
     if (o.hair) head.add(box(1.36, 0.36, 1.36, o.hair, 0, 1.26, 0));
-    if (o.hat) head.add(TD.makeHat(o.hat, o.hatColor || 0x222838, o.hatColor2));
+    if (o.hat) {
+      const hat = TD.makeHat(o.hat, o.hatColor || 0x222838, o.hatColor2);
+      hat.userData.isHat = true;
+      head.add(hat);
+    }
     torso.add(head);
 
     g.scale.setScalar(o.scale);
 
+    /* Once something is in the hands, the walk cycle must stop swinging the
+       arms or it would wrestle the weapon out of its firing pose every frame.
+       Legs and torso keep animating. */
+    let armed = false;
+
     const api = {
-      group: g, torso: torso, head: head, arms: arms, legs: legs,
+      group: g, torso: torso, head: head, arms: arms, legs: legs, hands: hands,
       rightArm: arms[1], leftArm: arms[0],
+      rightHand: hands[1], leftHand: hands[0],
+      setArmed: function (v) { armed = v; },
       /* walk cycle. move 0..1 blends between idle and walking */
       anim: function (t, move, opts) {
         opts = opts || {};
@@ -151,7 +166,7 @@
         const m = move == null ? 1 : move;
         legs[0].rotation.x = sw * 0.62 * m;
         legs[1].rotation.x = -sw * 0.62 * m;
-        if (!opts.freezeArms) {
+        if (!opts.freezeArms && !armed) {
           arms[0].rotation.x = -sw * 0.5 * m + (opts.armBase || 0);
           arms[1].rotation.x = sw * 0.5 * m + (opts.armBase || 0);
           arms[0].rotation.z = 0.06 + (1 - m) * 0.04;
@@ -160,14 +175,73 @@
         torso.position.y = 2.0 + Math.abs(sw) * 0.10 * m;
         head.rotation.z = sw * 0.035 * m;
       },
-      /* both arms forward, holding a weapon */
+      /* Shoulder the weapon and point it forward. The arm swings down to
+         horizontal, and because a held weapon is aligned with the arm, the
+         barrel ends up pointing where the figure faces. */
       aimPose: function (twoHanded, lift) {
-        const a = lift == null ? -1.45 : lift;
-        arms[1].rotation.x = a; arms[1].rotation.z = -0.18;
-        if (twoHanded) { arms[0].rotation.x = a; arms[0].rotation.z = 0.34; }
+        const a = -Math.PI / 2 + (lift || 0);
+        arms[1].rotation.x = a; arms[1].rotation.z = -0.10;
+        if (twoHanded) { arms[0].rotation.x = a + 0.22; arms[0].rotation.z = 0.30; }
+        else { arms[0].rotation.x = 0.10; arms[0].rotation.z = 0.08; }
+      },
+      /* Blade or hammer raised, ready to swing. */
+      meleePose: function (twoHanded) {
+        arms[1].rotation.x = 0.30; arms[1].rotation.z = -0.22;
+        if (twoHanded) { arms[0].rotation.x = 0.30; arms[0].rotation.z = 0.22; }
+      },
+      /* Standard-bearer: arm relaxed at the side, pole upright. */
+      polePose: function () {
+        arms[1].rotation.x = 0.12; arms[1].rotation.z = -0.20;
+        arms[0].rotation.x = 0.08; arms[0].rotation.z = 0.10;
+      },
+      /* Carried in front with both hands (boombox and the like). */
+      holdPose: function () {
+        arms[1].rotation.x = -0.95; arms[1].rotation.z = -0.28;
+        arms[0].rotation.x = -0.95; arms[0].rotation.z = 0.28;
       }
     };
     return api;
+  };
+
+  /* ----------------------------------------------------------------------
+     How each weapon is gripped.
+       'barrel' — modelled pointing +z; rotated so it runs along the arm, so
+                  raising the arm to horizontal aims it forward.
+       'blade'  — modelled pointing +y; left alone so it rises out of the
+                  fist, and nudged clear of the forearm.
+       'held'   — sits in the hand exactly as modelled (gloves, boomboxes).
+     ---------------------------------------------------------------------- */
+  const GRIP = {
+    staff: 'pole', flag: 'pole',
+    sword: 'blade', scythe: 'blade', hammer: 'blade', axe: 'blade', wrench: 'blade',
+    fist: 'held', boombox: 'held', none: 'held'
+  };
+  TD.weaponGrip = k => GRIP[k] || 'barrel';
+
+  /* Put a weapon in a humanoid's right hand, oriented so it reads as held.
+     Everything is nudged clear of the torso — a pole or blade rising straight
+     out of the fist would otherwise pass through the shoulder. */
+  TD.attachWeapon = function (h, kind, color, scale) {
+    const make = WEAPONS[kind];
+    if (!h || !make) return null;
+    const w = make(color == null ? 0x2c3247 : color);
+    w.scale.setScalar(scale || 1);
+    switch (TD.weaponGrip(kind)) {
+      case 'barrel':                      // +z model axis -> along the arm
+        w.rotation.x = Math.PI / 2;
+        w.position.set(0, 0, 0.12);
+        break;
+      case 'blade':                       // rises out of the fist, tilted out
+        w.rotation.x = -0.22; w.rotation.z = -0.16;
+        w.position.set(0.34, 0.05, 0.26);
+        break;
+      case 'pole':                        // carried upright beside the figure
+        w.position.set(0.46, -0.10, 0.18);
+        break;
+    }
+    h.rightHand.add(w);
+    h.setArmed(true);
+    return w;
   };
 
   TD.makeHat = function (kind, c1, c2) {
@@ -244,6 +318,25 @@
     m.castShadow = false; m.receiveShadow = false;
     m.userData.isText = true;
     return m;
+  };
+
+  /* ----------------------------------------------------------------------
+     The player's own character. Built the same way for the lobby and for a
+     match so the two can never drift apart. Returns the humanoid api with a
+     `tag` (the floating nametag, which the caller must billboard).
+     ---------------------------------------------------------------------- */
+  TD.playerHat = lvl => lvl >= 20 ? 'crown' : lvl >= 12 ? 'helmet' : lvl >= 6 ? 'cowboy' : 'cap';
+
+  TD.makeAvatar = function (name, level) {
+    const h = TD.makeHumanoid({
+      shirt: 0x4f8cff, pants: 0x27304d, skin: 0xe0ac69,
+      hat: TD.playerHat(level), hatColor: level >= 20 ? 0xffc63d : 0x2f5fb8, hatColor2: 0xff5d6c
+    });
+    const tag = TD.textPlane(name, { color: '#6ee7ff', height: 1.3, size: 64, bg: 'rgba(8,11,22,0.7)' });
+    tag.position.y = 6.6;
+    h.group.add(tag);
+    h.tag = tag;
+    return h;
   };
 
   /* Orient a mesh to face the camera, accounting for any rotated parent. */
@@ -526,13 +619,12 @@
       g.add(h.group);
       const wk = (m.weaponByLevel && m.weaponByLevel[Math.min(lv, m.weaponByLevel.length - 1)]) || m.weapon;
       if (wk && WEAPONS[wk]) {
-        const w = WEAPONS[wk](m.weaponColor || 0x2c3247);
-        w.scale.setScalar(m.weaponScale || 1);
-        h.rightArm.add(w);
-        w.position.set(0, -1.6, 0.2);
-        if (m.twoHanded !== false) h.aimPose(m.twoHanded !== false ? true : false, m.armLift);
-        else h.aimPose(false, m.armLift);
-        g.userData.weapon = w;
+        g.userData.weapon = TD.attachWeapon(h, wk, m.weaponColor, m.weaponScale);
+        const grip = TD.weaponGrip(wk);
+        if (grip === 'blade') h.meleePose(m.twoHanded !== false);
+        else if (grip === 'pole') h.polePose();
+        else if (grip === 'held') h.holdPose();
+        else h.aimPose(m.twoHanded !== false, m.armLift);
       } else {
         h.anim(0, 0);
       }
@@ -587,9 +679,11 @@
       g.add(s);
     }
     if (m.weapon && WEAPONS[m.weapon]) {
-      const w = WEAPONS[m.weapon](m.weaponColor || 0x39405a);
-      h.rightArm.add(w); w.position.set(0, -1.6, 0.1);
-      w.scale.setScalar(m.weaponScale || 1);
+      TD.attachWeapon(h, m.weapon, m.weaponColor == null ? 0x39405a : m.weaponColor, m.weaponScale);
+      const eg = TD.weaponGrip(m.weapon);
+      if (eg === 'blade') h.meleePose(false);
+      else if (eg === 'pole') h.polePose();
+      else h.aimPose(false, -0.35);
     }
     if (m.aura) {
       const r = TD.ring(1.9, 0.12, m.aura, 0.75);

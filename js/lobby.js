@@ -64,9 +64,9 @@
     statue.add(TD.cyl(5.2, 6.0, 1.6, 0x2a3457, 0, 0.8, 0, 10));
     statue.add(TD.cyl(3.4, 4.2, 2.2, 0x394777, 0, 2.6, 0, 10));
     const hero = TD.makeHumanoid({ shirt: 0xffc63d, pants: 0xd8a33a, skin: 0xffd98a, hat: 'helmet', hatColor: 0xffd45e, hatColor2: 0xb88a20, scale: 1.6 });
-    hero.group.position.y = 3.7; hero.aimPose(true, -0.4);
-    const wpn = TD.WEAPONS.rifle(0xb88a20); wpn.scale.setScalar(1.5);
-    hero.rightArm.add(wpn); wpn.position.set(0, -1.6, 0.2);
+    hero.group.position.y = 3.7;
+    TD.attachWeapon(hero, 'rifle', 0xb88a20, 1.3);
+    hero.aimPose(true, 0.35);
     statue.add(hero.group);
     statue.position.set(0, 0, 0);
     scene.add(statue);
@@ -138,18 +138,16 @@
       this.npcs.push({ h: h, a: a, r: r, spd: TD.rand(0.12, 0.3) * (i % 2 ? 1 : -1), phase: Math.random() * 10 });
     }
 
-    /* ---- the player ---- */
-    const p = TD.makeHumanoid({
-      shirt: 0x4f8cff, pants: 0x27304d, skin: 0xe0ac69, scale: 1.0
-    });
+    /* ---- the player (same builder the battle uses) ---- */
+    const lvl0 = TD.levelFromXp(TD.Save.data.xp).level;
+    const p = TD.makeAvatar(TD.Save.data.name, lvl0);
     p.group.position.set(0, 0, 24);
     scene.add(p.group);
     this.player = { model: p, x: 0, z: 24, y: 0, dir: Math.PI };
-
-    const tag = TD.textPlane(TD.Save.data.name, { color: '#6ee7ff', height: 1.3, size: 64, bg: 'rgba(8,11,22,0.7)' });
-    tag.position.y = 6.6; this.billboards.push(tag);
-    p.group.add(tag);
-    this.nameTag = tag;
+    this.nameTag = p.tag;
+    this.billboards.push(p.tag);
+    this._hatKind = TD.playerHat(lvl0);
+    this._tagName = TD.Save.data.name;
 
     this.camera = new T.PerspectiveCamera(58, 1, 0.5, 400);
     this.updateCamera(0, true);
@@ -357,7 +355,7 @@
     }
     const lvl = TD.levelFromXp(TD.Save.data.xp).level;
     // higher levels get a fancier hat, a tiny bit of progression flavour
-    const want = lvl >= 20 ? 'crown' : lvl >= 12 ? 'helmet' : lvl >= 6 ? 'cowboy' : 'cap';
+    const want = TD.playerHat(lvl);
     if (this._hatKind === want) return;
     this._hatKind = want;
     const head = this.player.model.head;

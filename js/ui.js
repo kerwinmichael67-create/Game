@@ -420,8 +420,14 @@
         'Hold <kbd>Shift</kbd> while placing to keep building the same tower.<br><br>' +
         'Click a built tower to open its panel: <kbd>Q</kbd> upgrades, <kbd>X</kbd> sells for 65%, ' +
         '<kbd>T</kbd> cycles targeting, <kbd>F</kbd> triggers its ability.<br><br>' +
-        '<kbd>Space</kbd> starts the next wave early for a cash bonus. <kbd>P</kbd> pauses. ' +
-        'Right-drag to rotate the camera, wheel to zoom, arrow keys to pan.</p>' +
+        '<kbd>Enter</kbd> starts the next wave early for a cash bonus. <kbd>P</kbd> pauses.</p>' +
+        '<h4 style="margin-top:14px">Your character</h4><p style="min-height:0">' +
+        'You are on the map during the battle. <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> walks, ' +
+        '<kbd>Space</kbd> jumps, <kbd>Shift</kbd> sprints. Enemies ignore you and you block nothing — ' +
+        'you are there to watch your defence from ground level.<br><br>' +
+        'Walking makes the camera follow you; the arrow keys or a middle-drag let it go again, ' +
+        'and <kbd>C</kbd> (or the ◎ button) toggles follow on and off. ' +
+        'Right-drag rotates, the wheel zooms.</p>' +
         '<h4 style="margin-top:14px">Things that will kill you</h4><p style="min-height:0">' +
         '<b>Hidden</b> enemies can only be hit by towers with detection (or a Marshal nearby).<br>' +
         '<b>Flying</b> enemies need anti-air. <b>Armoured</b> enemies shrug off weak, fast shots — ' +
@@ -532,6 +538,7 @@
     N.hp = $('#b-hp'); N.wave = $('#b-wave'); N.cash = $('#b-cash');
     N.skip = $('#b-skip'); N.skipBonus = $('#b-skip-bonus');
     N.auto = $('#b-autostart'); N.autoNum = N.auto.querySelector('b');
+    N.follow = $('#b-follow');
     return N;
   }
 
@@ -558,6 +565,7 @@
     } else { n.skip.classList.add('hidden'); n.auto.classList.add('hidden'); }
 
     if (UI.panelTower) UI.tickTowerPanel();
+    if (n.follow) n.follow.classList.toggle('on', B.camFollow);
   };
 
   UI.waveBanner = function (text, sub) {
@@ -646,6 +654,15 @@
     $('#tower-panel').classList.add('hidden');
   };
 
+  UI.toggleFollow = function () {
+    const B = UI.battle; if (!B) return;
+    B.setFollow(!B.camFollow);
+    const btn = $('#b-follow');
+    if (btn) { btn.classList.toggle('on', B.camFollow); btn.title = B.camFollow ? 'Camera follows you (C)' : 'Free camera (C)'; }
+    TD.toast(B.camFollow ? 'Camera following your character' : 'Free camera');
+    TD.Audio.ui();
+  };
+
   UI.togglePause = function () {
     const B = UI.battle; if (!B) return;
     B.paused = !B.paused;
@@ -703,6 +720,7 @@
     };
 
     $('#b-pause').onclick = () => UI.togglePause();
+    $('#b-follow').onclick = () => UI.toggleFollow();
     $('#b-speed').onclick = () => {
       const B = UI.battle; if (!B) return;
       B.speed = B.speed === 1 ? 2 : B.speed === 2 ? 3 : 1;

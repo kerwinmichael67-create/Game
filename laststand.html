@@ -96,6 +96,7 @@ kbd{
   transition:.12s; font-family:inherit; font-weight:700;
 }
 .ghost-btn:hover{background:var(--panel-2); transform:translateY(-1px)}
+.ghost-btn.on{background:#1f4d7a; border-color:#3d86c9; color:#bfe3ff}
 
 /* ---------- Lobby ---------- */
 .lobby-buttons{
@@ -358,7 +359,8 @@ kbd{
   background:rgba(8,11,22,.78); border:1px solid var(--line); border-radius:99px;
   padding:6px 16px; font-size:12px; color:var(--dim); white-space:nowrap;
 }
-.cam-hint{bottom:auto; top:14px; left:auto; right:180px; transform:none; opacity:.5; font-size:11px}
+.cam-hint{top:64px; bottom:auto; left:14px; right:auto; transform:none; opacity:.58; font-size:11px; line-height:1.9}
+.cam-hint kbd{font-size:10px; padding:0 4px}
 
 .toasts{position:absolute; left:50%; bottom:200px; transform:translateX(-50%); display:flex; flex-direction:column; gap:7px; align-items:center}
 .toast{
@@ -518,6 +520,7 @@ kbd{
     <div class="pill wave"><span class="ico">≋</span><span id="b-wave">0 / 0</span></div>
     <div class="pill map-name" id="b-map">—</div>
     <div class="spacer"></div>
+    <button class="ghost-btn" id="b-follow" title="Free camera (C)">◎</button>
     <button class="ghost-btn" id="b-speed" title="Game speed">1×</button>
     <button class="ghost-btn" id="b-pause" title="Pause">❚❚</button>
     <button class="ghost-btn" id="b-quit" title="Leave">⏻</button>
@@ -554,7 +557,7 @@ kbd{
 
   <!-- placement helper -->
   <div class="place-hint hidden" id="place-hint">Click to place · <kbd>R</kbd> rotate · <kbd>Esc</kbd> cancel</div>
-  <div class="cam-hint">Right-drag rotate · Wheel zoom · Arrows/MMB pan</div>
+  <div class="cam-hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> walk · <kbd>Space</kbd> jump · <kbd>Enter</kbd> next wave · <kbd>C</kbd> follow cam · Right-drag rotate · Arrows pan</div>
   <div class="toasts" id="toasts"></div>
 </div>
 
@@ -874,7 +877,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     g.add(torso);
 
     // arms (pivot at shoulder)
-    const arms = [];
+    const arms = [], hands = [];
     for (let i = 0; i < 2; i++) {
       const p = new T.Group();
       // torso-local: the shoulder sits just below the top of the chest
@@ -885,6 +888,10 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
         p.add(box(armW, 1.25, armW, o.sleeve != null ? o.sleeve : o.shirt, 0, -0.62, 0));
         p.add(box(armW, 0.78, armW, o.skin, 0, -1.63, 0));
       }
+      // anchor at the fist — everything held goes in here, never on the arm
+      const hand = new T.Group();
+      hand.position.set(0, -1.75, 0);
+      p.add(hand); hands.push(hand);
       torso.add(p); arms.push(p);
     }
     // head
@@ -898,14 +905,25 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
       head.add(box(0.5, 0.08, 0.06, 0x14161f, 0, 0.42, 0.66));
     }
     if (o.hair) head.add(box(1.36, 0.36, 1.36, o.hair, 0, 1.26, 0));
-    if (o.hat) head.add(TD.makeHat(o.hat, o.hatColor || 0x222838, o.hatColor2));
+    if (o.hat) {
+      const hat = TD.makeHat(o.hat, o.hatColor || 0x222838, o.hatColor2);
+      hat.userData.isHat = true;
+      head.add(hat);
+    }
     torso.add(head);
 
     g.scale.setScalar(o.scale);
 
+    /* Once something is in the hands, the walk cycle must stop swinging the
+       arms or it would wrestle the weapon out of its firing pose every frame.
+       Legs and torso keep animating. */
+    let armed = false;
+
     const api = {
-      group: g, torso: torso, head: head, arms: arms, legs: legs,
+      group: g, torso: torso, head: head, arms: arms, legs: legs, hands: hands,
       rightArm: arms[1], leftArm: arms[0],
+      rightHand: hands[1], leftHand: hands[0],
+      setArmed: function (v) { armed = v; },
       /* walk cycle. move 0..1 blends between idle and walking */
       anim: function (t, move, opts) {
         opts = opts || {};
@@ -913,7 +931,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
         const m = move == null ? 1 : move;
         legs[0].rotation.x = sw * 0.62 * m;
         legs[1].rotation.x = -sw * 0.62 * m;
-        if (!opts.freezeArms) {
+        if (!opts.freezeArms && !armed) {
           arms[0].rotation.x = -sw * 0.5 * m + (opts.armBase || 0);
           arms[1].rotation.x = sw * 0.5 * m + (opts.armBase || 0);
           arms[0].rotation.z = 0.06 + (1 - m) * 0.04;
@@ -922,14 +940,73 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
         torso.position.y = 2.0 + Math.abs(sw) * 0.10 * m;
         head.rotation.z = sw * 0.035 * m;
       },
-      /* both arms forward, holding a weapon */
+      /* Shoulder the weapon and point it forward. The arm swings down to
+         horizontal, and because a held weapon is aligned with the arm, the
+         barrel ends up pointing where the figure faces. */
       aimPose: function (twoHanded, lift) {
-        const a = lift == null ? -1.45 : lift;
-        arms[1].rotation.x = a; arms[1].rotation.z = -0.18;
-        if (twoHanded) { arms[0].rotation.x = a; arms[0].rotation.z = 0.34; }
+        const a = -Math.PI / 2 + (lift || 0);
+        arms[1].rotation.x = a; arms[1].rotation.z = -0.10;
+        if (twoHanded) { arms[0].rotation.x = a + 0.22; arms[0].rotation.z = 0.30; }
+        else { arms[0].rotation.x = 0.10; arms[0].rotation.z = 0.08; }
+      },
+      /* Blade or hammer raised, ready to swing. */
+      meleePose: function (twoHanded) {
+        arms[1].rotation.x = 0.30; arms[1].rotation.z = -0.22;
+        if (twoHanded) { arms[0].rotation.x = 0.30; arms[0].rotation.z = 0.22; }
+      },
+      /* Standard-bearer: arm relaxed at the side, pole upright. */
+      polePose: function () {
+        arms[1].rotation.x = 0.12; arms[1].rotation.z = -0.20;
+        arms[0].rotation.x = 0.08; arms[0].rotation.z = 0.10;
+      },
+      /* Carried in front with both hands (boombox and the like). */
+      holdPose: function () {
+        arms[1].rotation.x = -0.95; arms[1].rotation.z = -0.28;
+        arms[0].rotation.x = -0.95; arms[0].rotation.z = 0.28;
       }
     };
     return api;
+  };
+
+  /* ----------------------------------------------------------------------
+     How each weapon is gripped.
+       'barrel' — modelled pointing +z; rotated so it runs along the arm, so
+                  raising the arm to horizontal aims it forward.
+       'blade'  — modelled pointing +y; left alone so it rises out of the
+                  fist, and nudged clear of the forearm.
+       'held'   — sits in the hand exactly as modelled (gloves, boomboxes).
+     ---------------------------------------------------------------------- */
+  const GRIP = {
+    staff: 'pole', flag: 'pole',
+    sword: 'blade', scythe: 'blade', hammer: 'blade', axe: 'blade', wrench: 'blade',
+    fist: 'held', boombox: 'held', none: 'held'
+  };
+  TD.weaponGrip = k => GRIP[k] || 'barrel';
+
+  /* Put a weapon in a humanoid's right hand, oriented so it reads as held.
+     Everything is nudged clear of the torso — a pole or blade rising straight
+     out of the fist would otherwise pass through the shoulder. */
+  TD.attachWeapon = function (h, kind, color, scale) {
+    const make = WEAPONS[kind];
+    if (!h || !make) return null;
+    const w = make(color == null ? 0x2c3247 : color);
+    w.scale.setScalar(scale || 1);
+    switch (TD.weaponGrip(kind)) {
+      case 'barrel':                      // +z model axis -> along the arm
+        w.rotation.x = Math.PI / 2;
+        w.position.set(0, 0, 0.12);
+        break;
+      case 'blade':                       // rises out of the fist, tilted out
+        w.rotation.x = -0.22; w.rotation.z = -0.16;
+        w.position.set(0.34, 0.05, 0.26);
+        break;
+      case 'pole':                        // carried upright beside the figure
+        w.position.set(0.46, -0.10, 0.18);
+        break;
+    }
+    h.rightHand.add(w);
+    h.setArmed(true);
+    return w;
   };
 
   TD.makeHat = function (kind, c1, c2) {
@@ -1006,6 +1083,25 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     m.castShadow = false; m.receiveShadow = false;
     m.userData.isText = true;
     return m;
+  };
+
+  /* ----------------------------------------------------------------------
+     The player's own character. Built the same way for the lobby and for a
+     match so the two can never drift apart. Returns the humanoid api with a
+     `tag` (the floating nametag, which the caller must billboard).
+     ---------------------------------------------------------------------- */
+  TD.playerHat = lvl => lvl >= 20 ? 'crown' : lvl >= 12 ? 'helmet' : lvl >= 6 ? 'cowboy' : 'cap';
+
+  TD.makeAvatar = function (name, level) {
+    const h = TD.makeHumanoid({
+      shirt: 0x4f8cff, pants: 0x27304d, skin: 0xe0ac69,
+      hat: TD.playerHat(level), hatColor: level >= 20 ? 0xffc63d : 0x2f5fb8, hatColor2: 0xff5d6c
+    });
+    const tag = TD.textPlane(name, { color: '#6ee7ff', height: 1.3, size: 64, bg: 'rgba(8,11,22,0.7)' });
+    tag.position.y = 6.6;
+    h.group.add(tag);
+    h.tag = tag;
+    return h;
   };
 
   /* Orient a mesh to face the camera, accounting for any rotated parent. */
@@ -1288,13 +1384,12 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
       g.add(h.group);
       const wk = (m.weaponByLevel && m.weaponByLevel[Math.min(lv, m.weaponByLevel.length - 1)]) || m.weapon;
       if (wk && WEAPONS[wk]) {
-        const w = WEAPONS[wk](m.weaponColor || 0x2c3247);
-        w.scale.setScalar(m.weaponScale || 1);
-        h.rightArm.add(w);
-        w.position.set(0, -1.6, 0.2);
-        if (m.twoHanded !== false) h.aimPose(m.twoHanded !== false ? true : false, m.armLift);
-        else h.aimPose(false, m.armLift);
-        g.userData.weapon = w;
+        g.userData.weapon = TD.attachWeapon(h, wk, m.weaponColor, m.weaponScale);
+        const grip = TD.weaponGrip(wk);
+        if (grip === 'blade') h.meleePose(m.twoHanded !== false);
+        else if (grip === 'pole') h.polePose();
+        else if (grip === 'held') h.holdPose();
+        else h.aimPose(m.twoHanded !== false, m.armLift);
       } else {
         h.anim(0, 0);
       }
@@ -1349,9 +1444,11 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
       g.add(s);
     }
     if (m.weapon && WEAPONS[m.weapon]) {
-      const w = WEAPONS[m.weapon](m.weaponColor || 0x39405a);
-      h.rightArm.add(w); w.position.set(0, -1.6, 0.1);
-      w.scale.setScalar(m.weaponScale || 1);
+      TD.attachWeapon(h, m.weapon, m.weaponColor == null ? 0x39405a : m.weaponColor, m.weaponScale);
+      const eg = TD.weaponGrip(m.weapon);
+      if (eg === 'blade') h.meleePose(false);
+      else if (eg === 'pole') h.polePose();
+      else h.aimPose(false, -0.35);
     }
     if (m.aura) {
       const r = TD.ring(1.9, 0.12, m.aura, 0.75);
@@ -2828,9 +2925,9 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     statue.add(TD.cyl(5.2, 6.0, 1.6, 0x2a3457, 0, 0.8, 0, 10));
     statue.add(TD.cyl(3.4, 4.2, 2.2, 0x394777, 0, 2.6, 0, 10));
     const hero = TD.makeHumanoid({ shirt: 0xffc63d, pants: 0xd8a33a, skin: 0xffd98a, hat: 'helmet', hatColor: 0xffd45e, hatColor2: 0xb88a20, scale: 1.6 });
-    hero.group.position.y = 3.7; hero.aimPose(true, -0.4);
-    const wpn = TD.WEAPONS.rifle(0xb88a20); wpn.scale.setScalar(1.5);
-    hero.rightArm.add(wpn); wpn.position.set(0, -1.6, 0.2);
+    hero.group.position.y = 3.7;
+    TD.attachWeapon(hero, 'rifle', 0xb88a20, 1.3);
+    hero.aimPose(true, 0.35);
     statue.add(hero.group);
     statue.position.set(0, 0, 0);
     scene.add(statue);
@@ -2902,18 +2999,16 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
       this.npcs.push({ h: h, a: a, r: r, spd: TD.rand(0.12, 0.3) * (i % 2 ? 1 : -1), phase: Math.random() * 10 });
     }
 
-    /* ---- the player ---- */
-    const p = TD.makeHumanoid({
-      shirt: 0x4f8cff, pants: 0x27304d, skin: 0xe0ac69, scale: 1.0
-    });
+    /* ---- the player (same builder the battle uses) ---- */
+    const lvl0 = TD.levelFromXp(TD.Save.data.xp).level;
+    const p = TD.makeAvatar(TD.Save.data.name, lvl0);
     p.group.position.set(0, 0, 24);
     scene.add(p.group);
     this.player = { model: p, x: 0, z: 24, y: 0, dir: Math.PI };
-
-    const tag = TD.textPlane(TD.Save.data.name, { color: '#6ee7ff', height: 1.3, size: 64, bg: 'rgba(8,11,22,0.7)' });
-    tag.position.y = 6.6; this.billboards.push(tag);
-    p.group.add(tag);
-    this.nameTag = tag;
+    this.nameTag = p.tag;
+    this.billboards.push(p.tag);
+    this._hatKind = TD.playerHat(lvl0);
+    this._tagName = TD.Save.data.name;
 
     this.camera = new T.PerspectiveCamera(58, 1, 0.5, 400);
     this.updateCamera(0, true);
@@ -3121,7 +3216,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     }
     const lvl = TD.levelFromXp(TD.Save.data.xp).level;
     // higher levels get a fancier hat, a tiny bit of progression flavour
-    const want = lvl >= 20 ? 'crown' : lvl >= 12 ? 'helmet' : lvl >= 6 ? 'cowboy' : 'cap';
+    const want = TD.playerHat(lvl);
     if (this._hatKind === want) return;
     this._hatKind = want;
     const head = this.player.model.head;
@@ -3154,6 +3249,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     placing: null, ghost: null, rangeRing: null, stats: null,
     cam: { tx: 0, tz: 0, yaw: 0.7, pitch: 0.82, dist: 78 },
     keys: {}, mouse: { x: 0, y: 0 }, hoverPoint: null,
+    player: null, camFollow: false,
     globalBuff: { rate: 0, dmg: 0, until: 0 }
   };
 
@@ -3311,6 +3407,9 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     disc.rotation.x = -Math.PI / 2; disc.position.y = 0.03;
     this.rangeDisc = disc; disc.visible = false; scene.add(disc);
 
+    /* ---- the player's character, free to walk the map during a match ---- */
+    this.buildPlayer();
+
     /* ---- camera ---- */
     this.camera = new T.PerspectiveCamera(52, 1, 0.5, 600);
     let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9;
@@ -3321,14 +3420,134 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     this.cam.tx = (x0 + x1) / 2; this.cam.tz = (z0 + z1) / 2;
     this.cam.dist = TD.clamp(Math.max(x1 - x0, (z1 - z0) * 1.8) * 1.02, 70, 160);
     this.cam.yaw = Math.PI; this.cam.pitch = 0.95;
+    this.cam.wantDist = this.cam.dist; this.cam.freeDist = this.cam.dist;
     this.updateCamera(0, true);
+  };
+
+  /* ====================================================================
+     THE PLAYER'S CHARACTER
+     Purely the viewer's avatar: enemies ignore it, it blocks nothing and it
+     never affects the simulation. It exists so you can walk your defence
+     while it fights.
+     ==================================================================== */
+  B.buildPlayer = function () {
+    const d = TD.Save.data;
+    const h = TD.makeAvatar(d.name, TD.levelFromXp(d.xp).level);
+    const spot = this.playerSpawn();
+    h.group.position.set(spot.x, 0, spot.z);
+    this.scene.add(h.group);
+    this.player = {
+      model: h, x: spot.x, z: spot.z, y: 0,
+      dir: Math.PI, vx: 0, vz: 0, vy: 0, grounded: true, t: 0, stepT: 0
+    };
+    this.camFollow = false;
+  };
+
+  /* Somewhere clear beside the base to start from. */
+  B.playerSpawn = function () {
+    const map = this.map, bx = map.base[0], bz = map.base[1];
+    for (let r = 10; r <= 40; r += 4) {
+      for (let a = 0; a < 12; a++) {
+        const ang = a / 12 * Math.PI * 2;
+        const x = bx + Math.cos(ang) * r, z = bz + Math.sin(ang) * r;
+        if (Math.abs(x) > 80 || Math.abs(z) > 80) continue;
+        if (TD.distToPath(map, x, z) < map.pathWidth / 2 + 3) continue;
+        if (this.blockers.some(b => TD.dist(x, z, b.x, b.z) < b.r + 2)) continue;
+        return { x: x, z: z };
+      }
+    }
+    return { x: bx, z: bz + 14 };
+  };
+
+  /* Runs on real time, not simulation time — the speed multiplier should
+     not make you sprint three times faster. */
+  B.updatePlayer = function (dt) {
+    const p = this.player;
+    if (!p) return;
+    p.t += dt;
+
+    let ix = 0, iz = 0;
+    const k = this.keys;
+    if (k['w']) iz -= 1;
+    if (k['s']) iz += 1;
+    if (k['a']) ix -= 1;
+    if (k['d']) ix += 1;
+    const mag = Math.hypot(ix, iz);
+    if (mag > 1) { ix /= mag; iz /= mag; }
+    if (mag > 0) this.setFollow(true);       // walking re-engages the camera
+
+    const sprint = k['shift'] ? 1.8 : 1;
+    const speed = 16 * sprint;
+    const cos = Math.cos(this.cam.yaw), sin = Math.sin(this.cam.yaw);
+    const wx = -(ix * cos + iz * sin);
+    const wz = ix * sin - iz * cos;
+
+    p.vx += (wx * speed - p.vx) * Math.min(1, 12 * dt);
+    p.vz += (wz * speed - p.vz) * Math.min(1, 12 * dt);
+
+    let nx = p.x + p.vx * dt, nz = p.z + p.vz * dt;
+
+    /* Push out of water, lava and towers; the path itself is walkable.
+       Dead centre has no direction to push along, so pick one rather than
+       skipping — otherwise the exact centre is a spot you can never leave. */
+    const shove = (cx, cz, r) => {
+      const d = TD.dist(nx, nz, cx, cz);
+      if (d >= r) return;
+      if (d < 0.001) { nx = cx + r; return; }
+      const push = r - d;
+      nx += (nx - cx) / d * push;
+      nz += (nz - cz) / d * push;
+    };
+    this.blockers.forEach(b => shove(b.x, b.z, b.r + 1.2));
+    for (let i = 0; i < this.towers.length; i++) shove(this.towers[i].x, this.towers[i].z, 2.6);
+    nx = TD.clamp(nx, -88, 88); nz = TD.clamp(nz, -88, 88);
+    p.x = nx; p.z = nz;
+
+    if (k[' '] && p.grounded) { p.vy = 13; p.grounded = false; TD.Audio.jump(); }
+    p.vy -= 38 * dt;
+    p.y += p.vy * dt;
+    if (p.y <= 0) { p.y = 0; p.vy = 0; p.grounded = true; }
+
+    const moving = Math.hypot(p.vx, p.vz) > 0.6;
+    if (moving) p.dir = TD.angleLerp(p.dir, Math.atan2(p.vx, p.vz), Math.min(1, 14 * dt));
+    p.model.group.position.set(p.x, p.y, p.z);
+    p.model.group.rotation.y = p.dir;
+    const amt = TD.clamp(Math.hypot(p.vx, p.vz) / 12, 0, 1.3);
+    p.model.anim(p.t, p.grounded ? amt : 0.2, { speed: 9 * sprint });
+    if (!p.grounded) { p.model.arms[0].rotation.x = -2.2; p.model.arms[1].rotation.x = -2.2; }
+    if (moving && p.grounded) {
+      p.stepT -= dt * (0.9 + amt) * sprint;
+      if (p.stepT <= 0) { p.stepT = 0.33; TD.Audio.step(); }
+    }
+    TD.billboard(p.model.tag, this.camera);
   };
 
   /* ====================================================================
      CAMERA
      ==================================================================== */
+  /* Following from map-fit distance would leave the character a speck, so
+     entering follow pulls in and leaving restores whatever the player had. */
+  const FOLLOW_DIST = 46;
+  B.setFollow = function (on) {
+    if (this.camFollow === on) return;
+    this.camFollow = on;
+    const c = this.cam;
+    if (on) {
+      c.freeDist = c.wantDist;
+      c.wantDist = Math.min(c.wantDist, FOLLOW_DIST);
+    } else if (c.freeDist != null) {
+      c.wantDist = c.freeDist;
+    }
+  };
+
   B.updateCamera = function (dt, snap) {
     const c = this.cam;
+    if (c.wantDist == null) c.wantDist = c.dist;
+    c.dist += (c.wantDist - c.dist) * (snap ? 1 : Math.min(1, dt * 4));
+    if (this.camFollow && this.player) {
+      c.tx += (this.player.x - c.tx) * Math.min(1, dt * 3.5);
+      c.tz += (this.player.z - c.tz) * Math.min(1, dt * 3.5);
+    }
     const cx = c.tx - Math.sin(c.yaw) * Math.cos(c.pitch) * c.dist;
     const cy = Math.sin(c.pitch) * c.dist;
     const cz = c.tz - Math.cos(c.yaw) * Math.cos(c.pitch) * c.dist;
@@ -3670,9 +3889,9 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
       face: false, minimal: true, scale: (cfg.scale || 1) * 0.9
     });
     if (!cfg.thrall) {
-      const w = TD.WEAPONS[cfg.ranged ? 'rifle' : 'sword'](0x39405a);
-      h.rightArm.add(w); w.position.set(0, -1.6, 0.15);
-      h.aimPose(!!cfg.ranged, -1.3);
+      const ranged = cfg.ranged > 4;
+      TD.attachWeapon(h, ranged ? 'rifle' : 'sword', 0x39405a, 0.85);
+      if (ranged) h.aimPose(true, 0.12); else h.meleePose(false);
     }
     const u = {
       owner: owner, model: h, group: h.group, pd: pd, pathIdx: pathIdx,
@@ -3715,9 +3934,13 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   const STEP = 0.05;
   B.update = function (rawDt) {
     if (!this.active) return;
-    if (this.paused || this.phase === 'over') { this.updateCamera(rawDt); this.panKeys(rawDt); return; }
+    if (this.paused || this.phase === 'over') {
+      this.panKeys(rawDt); this.updatePlayer(rawDt); this.updateCamera(rawDt);
+      return;
+    }
 
     this.panKeys(rawDt);
+    this.updatePlayer(rawDt);
     let remaining = Math.min(0.05, rawDt) * this.speed;
     let guard = 0;
     while (remaining > 1e-4 && guard++ < 8) {
@@ -3767,11 +3990,12 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   B.panKeys = function (dt) {
     const k = this.keys, c = this.cam;
     let px = 0, pz = 0;
-    if (k['arrowup'] || k['w']) pz -= 1;
-    if (k['arrowdown'] || k['s']) pz += 1;
-    if (k['arrowleft'] || k['a']) px -= 1;
-    if (k['arrowright'] || k['d']) px += 1;
+    if (k['arrowup']) pz -= 1;
+    if (k['arrowdown']) pz += 1;
+    if (k['arrowleft']) px -= 1;
+    if (k['arrowright']) px += 1;
     if (px || pz) {
+      this.setFollow(false);
       const sp = 60 * dt * (c.dist / 80);
       const cos = Math.cos(c.yaw), sin = Math.sin(c.yaw);
       c.tx += -(px * cos + pz * sin) * sp;
@@ -4753,7 +4977,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
       downX = e.clientX; downY = e.clientY; downBtn = e.button;
       lx = e.clientX; ly = e.clientY;
       if (e.button === 2) rotating = true;
-      if (e.button === 1) { panning = true; e.preventDefault(); }
+      if (e.button === 1) { panning = true; self.setFollow(false); e.preventDefault(); }
       dom.setPointerCapture(e.pointerId);
     });
     dom.addEventListener('pointermove', e => {
@@ -4784,7 +5008,9 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     dom.addEventListener('pointercancel', () => { rotating = panning = false; });
     dom.addEventListener('wheel', e => {
       if (!self.active) return;
-      self.cam.dist = TD.clamp(self.cam.dist + Math.sign(e.deltaY) * 6, 26, 150);
+      const c = self.cam;
+      c.wantDist = TD.clamp((c.wantDist == null ? c.dist : c.wantDist) + Math.sign(e.deltaY) * 6, 22, 150);
+      if (!self.camFollow) c.freeDist = c.wantDist;
     }, { passive: true });
 
     window.addEventListener('keydown', e => {
@@ -4800,7 +5026,9 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
       if (k === 'x' && self.selected) self.sell(self.selected);
       if (k === 't' && self.selected) { self.selected.mode = (self.selected.mode + 1) % 5; TD.UI.showTower(self.selected); }
       if (k === 'f' && self.selected) self.useAbility(self.selected);
-      if (k === ' ') { e.preventDefault(); if (self.phase === 'prep' && self.wave < self.diff.waves) self.startWave(true); }
+      if (k === ' ') e.preventDefault();               // jump; handled in updatePlayer
+      if (k === 'enter') { if (self.phase === 'prep' && self.wave < self.diff.waves) self.startWave(true); }
+      if (k === 'c') TD.UI.toggleFollow();
       if (k === 'p') TD.UI.togglePause();
     });
     window.addEventListener('keyup', e => { self.keys[e.key.toLowerCase()] = false; });
@@ -5297,8 +5525,14 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
         'Hold <kbd>Shift</kbd> while placing to keep building the same tower.<br><br>' +
         'Click a built tower to open its panel: <kbd>Q</kbd> upgrades, <kbd>X</kbd> sells for 65%, ' +
         '<kbd>T</kbd> cycles targeting, <kbd>F</kbd> triggers its ability.<br><br>' +
-        '<kbd>Space</kbd> starts the next wave early for a cash bonus. <kbd>P</kbd> pauses. ' +
-        'Right-drag to rotate the camera, wheel to zoom, arrow keys to pan.</p>' +
+        '<kbd>Enter</kbd> starts the next wave early for a cash bonus. <kbd>P</kbd> pauses.</p>' +
+        '<h4 style="margin-top:14px">Your character</h4><p style="min-height:0">' +
+        'You are on the map during the battle. <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> walks, ' +
+        '<kbd>Space</kbd> jumps, <kbd>Shift</kbd> sprints. Enemies ignore you and you block nothing — ' +
+        'you are there to watch your defence from ground level.<br><br>' +
+        'Walking makes the camera follow you; the arrow keys or a middle-drag let it go again, ' +
+        'and <kbd>C</kbd> (or the ◎ button) toggles follow on and off. ' +
+        'Right-drag rotates, the wheel zooms.</p>' +
         '<h4 style="margin-top:14px">Things that will kill you</h4><p style="min-height:0">' +
         '<b>Hidden</b> enemies can only be hit by towers with detection (or a Marshal nearby).<br>' +
         '<b>Flying</b> enemies need anti-air. <b>Armoured</b> enemies shrug off weak, fast shots — ' +
@@ -5409,6 +5643,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     N.hp = $('#b-hp'); N.wave = $('#b-wave'); N.cash = $('#b-cash');
     N.skip = $('#b-skip'); N.skipBonus = $('#b-skip-bonus');
     N.auto = $('#b-autostart'); N.autoNum = N.auto.querySelector('b');
+    N.follow = $('#b-follow');
     return N;
   }
 
@@ -5435,6 +5670,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     } else { n.skip.classList.add('hidden'); n.auto.classList.add('hidden'); }
 
     if (UI.panelTower) UI.tickTowerPanel();
+    if (n.follow) n.follow.classList.toggle('on', B.camFollow);
   };
 
   UI.waveBanner = function (text, sub) {
@@ -5523,6 +5759,15 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     $('#tower-panel').classList.add('hidden');
   };
 
+  UI.toggleFollow = function () {
+    const B = UI.battle; if (!B) return;
+    B.setFollow(!B.camFollow);
+    const btn = $('#b-follow');
+    if (btn) { btn.classList.toggle('on', B.camFollow); btn.title = B.camFollow ? 'Camera follows you (C)' : 'Free camera (C)'; }
+    TD.toast(B.camFollow ? 'Camera following your character' : 'Free camera');
+    TD.Audio.ui();
+  };
+
   UI.togglePause = function () {
     const B = UI.battle; if (!B) return;
     B.paused = !B.paused;
@@ -5580,6 +5825,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     };
 
     $('#b-pause').onclick = () => UI.togglePause();
+    $('#b-follow').onclick = () => UI.toggleFollow();
     $('#b-speed').onclick = () => {
       const B = UI.battle; if (!B) return;
       B.speed = B.speed === 1 ? 2 : B.speed === 2 ? 3 : 1;
