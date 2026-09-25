@@ -5695,10 +5695,15 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     const s = t.stats;
     const st = $('#tp-stats'); st.innerHTML = '';
     function row(k, v) { st.appendChild(el('div', null, '<span>' + k + '</span><b>' + v + '</b>')); }
-    if (s.dmg) row('Damage', TD.fmt(Math.round(s.dmg * (1 + t.buff.dmg))));
-    if (s.cd) row('Rate', (1 / (s.cd / (1 + t.buff.rate))).toFixed(2) + '/s');
+    /* Damage, cooldown and DPS all show what this tower is doing right now,
+       auras and accumulated bonuses included, so the three agree with each
+       other. */
+    const dmgMul = (1 + t.buff.dmg) *
+      (s.harvest ? 1 + Math.min(s.harvest.max, t.harvestKills * s.harvest.per) : 1);
+    if (s.dmg) row('Damage', TD.fmt(Math.round(s.dmg * dmgMul)));
+    if (s.cd) row('Cooldown', (s.cd / (1 + t.buff.rate)).toFixed(2) + 's');
     if (s.range) row('Range', Math.round(s.range * (1 + t.buff.range)));
-    if (s.dmg && s.cd) row('DPS', TD.fmt(TD.towerDps(t.def, t.level)));
+    if (s.dmg && s.cd) row('DPS', TD.fmt(Math.round(TD.towerDps(t.def, t.level) * dmgMul * (1 + t.buff.rate))));
     if (s.income) row('Income', '$' + TD.fmt(s.income));
     if (s.heal) row('Heal', s.heal + ' HP');
     if (s.buff) row('Aura', (s.buff.rate ? '+' + Math.round(s.buff.rate * 100) + '% rate ' : '') + (s.buff.dmg ? '+' + Math.round(s.buff.dmg * 100) + '% dmg ' : '') + (s.buff.range ? '+' + Math.round(s.buff.range * 100) + '% rng' : ''));
