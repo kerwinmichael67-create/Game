@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tower Defense: Last Stand</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1020">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ============================== BOOT ============================== -->
+<div id="boot" class="overlay">
+  <div class="boot-card">
+    <div class="logo">
+      <span class="logo-1">LAST</span><span class="logo-2">STAND</span>
+      <div class="logo-sub">TOWER DEFENSE</div>
+    </div>
+    <div class="boot-bar"><i id="boot-fill"></i></div>
+    <div id="boot-msg">Loading…</div>
+  </div>
+</div>
+
+<!-- ============================== 3D CANVAS ============================== -->
+<div id="stage"></div>
+
+<!-- ============================== LOBBY HUD ============================== -->
+<div id="lobby-hud" class="hud hidden">
+  <div class="topbar">
+    <div class="pill player-pill">
+      <div class="avatar" id="hud-avatar"></div>
+      <div class="pcol">
+        <div class="pname" id="hud-name">Defender</div>
+        <div class="xpwrap"><div class="xpbar"><i id="hud-xp"></i></div><span id="hud-lvl">Lv 1</span></div>
+      </div>
+    </div>
+    <div class="pill coins"><span class="ico">◆</span><span id="hud-coins">0</span></div>
+    <div class="pill gems"><span class="ico">✦</span><span id="hud-gems">0</span></div>
+    <div class="spacer"></div>
+    <button class="ghost-btn" id="btn-settings" title="Settings">⚙</button>
+  </div>
+
+  <div class="lobby-buttons">
+    <button class="big-btn play" id="btn-play"><b>PLAY</b><small>Choose a map</small></button>
+    <button class="big-btn shop" id="btn-shop"><b>SHOP</b><small>Buy towers</small></button>
+    <button class="big-btn loadout" id="btn-loadout"><b>LOADOUT</b><small>Pick 5 towers</small></button>
+    <button class="big-btn book" id="btn-codex"><b>CODEX</b><small>Enemies &amp; info</small></button>
+  </div>
+
+  <div class="lobby-hint">
+    <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move · <kbd>Space</kbd> jump · <kbd>Shift</kbd> sprint · <kbd>E</kbd> use kiosk · drag to look
+  </div>
+  <div id="prompt" class="prompt hidden"><kbd>E</kbd> <span id="prompt-text"></span></div>
+  <div id="touch-pad" class="touch-pad hidden"><div id="touch-nub"></div></div>
+</div>
+
+<!-- ============================== SHOP ============================== -->
+<div id="shop-modal" class="overlay hidden">
+  <div class="modal wide">
+    <header>
+      <h2>Tower Shop</h2>
+      <div class="modal-coins"><span class="ico">◆</span><span class="m-coins">0</span> &nbsp;<span class="ico">✦</span><span class="m-gems">0</span></div>
+      <button class="x" data-close>✕</button>
+    </header>
+    <div class="filters" id="shop-filters"></div>
+    <div class="grid" id="shop-grid"></div>
+  </div>
+</div>
+
+<!-- ============================== LOADOUT ============================== -->
+<div id="loadout-modal" class="overlay hidden">
+  <div class="modal wide">
+    <header>
+      <h2>Loadout</h2>
+      <div class="sub">Select up to 5 towers to bring into battle</div>
+      <button class="x" data-close>✕</button>
+    </header>
+    <div class="slots" id="loadout-slots"></div>
+    <div class="grid" id="loadout-grid"></div>
+  </div>
+</div>
+
+<!-- ============================== MAP SELECT ============================== -->
+<div id="map-modal" class="overlay hidden">
+  <div class="modal wide">
+    <header>
+      <h2>Select a Map</h2>
+      <button class="x" data-close>✕</button>
+    </header>
+    <div class="grid maps" id="map-grid"></div>
+    <div class="diff-row">
+      <div class="diff-label">Difficulty</div>
+      <div id="diff-list" class="diff-list"></div>
+    </div>
+    <div class="modal-foot">
+      <div id="map-summary" class="map-summary"></div>
+      <button class="cta" id="btn-start">DEPLOY</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================== CODEX ============================== -->
+<div id="codex-modal" class="overlay hidden">
+  <div class="modal wide">
+    <header>
+      <h2>Codex</h2>
+      <button class="x" data-close>✕</button>
+    </header>
+    <div class="filters" id="codex-tabs"></div>
+    <div class="grid" id="codex-grid"></div>
+  </div>
+</div>
+
+<!-- ============================== SETTINGS ============================== -->
+<div id="settings-modal" class="overlay hidden">
+  <div class="modal">
+    <header><h2>Settings</h2><button class="x" data-close>✕</button></header>
+    <div class="settings" id="settings-body"></div>
+    <div class="modal-foot end">
+      <button class="danger" id="btn-reset">Reset save data</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================== BATTLE HUD ============================== -->
+<div id="battle-hud" class="hud hidden">
+  <div class="topbar battle">
+    <div class="pill hp"><span class="ico">♥</span><span id="b-hp">100</span></div>
+    <div class="pill cash"><span class="ico">$</span><span id="b-cash">0</span></div>
+    <div class="pill wave"><span class="ico">≋</span><span id="b-wave">0 / 0</span></div>
+    <div class="pill map-name" id="b-map">—</div>
+    <div class="spacer"></div>
+    <button class="ghost-btn" id="b-follow" title="Free camera (C)">◎</button>
+    <button class="ghost-btn" id="b-speed" title="Game speed">1×</button>
+    <button class="ghost-btn" id="b-pause" title="Pause">❚❚</button>
+    <button class="ghost-btn" id="b-quit" title="Leave">⏻</button>
+  </div>
+
+  <div class="wave-banner hidden" id="wave-banner"></div>
+
+  <div class="skip-wrap">
+    <button class="skip-btn hidden" id="b-skip">START WAVE <small id="b-skip-bonus"></small></button>
+    <div class="autostart hidden" id="b-autostart">Next wave in <b>0</b>s</div>
+  </div>
+
+  <!-- Tower build bar -->
+  <div class="buildbar" id="buildbar"></div>
+
+  <!-- Selected tower panel -->
+  <div class="tower-panel hidden" id="tower-panel">
+    <header>
+      <div class="tp-icon" id="tp-icon"></div>
+      <div>
+        <div class="tp-name" id="tp-name">Tower</div>
+        <div class="tp-lvl" id="tp-lvl">Level 1</div>
+      </div>
+      <button class="x small" id="tp-close">✕</button>
+    </header>
+    <div class="tp-stats" id="tp-stats"></div>
+    <div class="tp-upgrade" id="tp-upgrade"></div>
+    <div class="tp-abilities" id="tp-abilities"></div>
+    <div class="tp-row">
+      <button class="tp-target" id="tp-target">Target: First</button>
+      <button class="tp-sell" id="tp-sell">Sell $0</button>
+    </div>
+  </div>
+
+  <!-- placement helper -->
+  <div class="place-hint hidden" id="place-hint">Click to place · <kbd>R</kbd> rotate · <kbd>Esc</kbd> cancel</div>
+  <div class="cam-hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> walk · <kbd>Space</kbd> jump · <kbd>Enter</kbd> next wave · <kbd>C</kbd> follow cam · Right-drag rotate · Arrows pan</div>
+  <div class="toasts" id="toasts"></div>
+</div>
+
+<!-- ============================== RESULTS ============================== -->
+<div id="result-modal" class="overlay hidden">
+  <div class="modal result">
+    <div class="res-title" id="res-title">VICTORY</div>
+    <div class="res-sub" id="res-sub"></div>
+    <div class="res-stats" id="res-stats"></div>
+    <div class="res-rewards" id="res-rewards"></div>
+    <div class="modal-foot end">
+      <button class="cta ghost" id="btn-again">RETRY</button>
+      <button class="cta" id="btn-lobby">LOBBY</button>
+    </div>
+  </div>
+</div>
+
+<script src="vendor/three.min.js"></script>
+<script src="js/util.js"></script>
+<script src="js/models.js"></script>
+<script src="js/data/towers.js"></script>
+<script src="js/data/enemies.js"></script>
+<script src="js/data/maps.js"></script>
+<script src="js/data/waves.js"></script>
+<script src="js/lobby.js"></script>
+<script src="js/battle.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
