@@ -21,6 +21,20 @@ npx http-server -p 8080 -c-1 .
 Any modern desktop browser with WebGL works (Chrome, Edge, Firefox, Safari). It also
 runs on a phone or tablet — an on-screen joystick appears in the lobby.
 
+### One-file version
+
+`laststand.html` is the whole game — stylesheet, three.js and every script — inlined
+into a single 907 KB file with no external references of any kind. Email it, drop it
+on a USB stick, or open it straight off the desktop; it works with the network
+switched off.
+
+It is generated, not hand-written. Edit the sources and regenerate:
+
+```
+node build-single.js              # -> laststand.html
+node build-single.js out.html     # -> somewhere else
+```
+
 ---
 
 ## What's in it
@@ -143,6 +157,9 @@ js/lobby.js         the plaza, the player controller, kiosks
 js/battle.js        the match: placement, towers, enemies, units, waves
 js/ui.js            menus, shop, loadout, codex, battle HUD
 js/main.js          renderer, game loop, scene switching
+
+build-single.js     bundles all of the above into laststand.html
+laststand.html      generated single-file build — don't edit by hand
 ```
 
 There are no art or audio assets. Every model is assembled from boxes, cylinders,
