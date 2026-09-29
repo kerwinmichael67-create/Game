@@ -1,0 +1,16 @@
+{
+  "name": "bumper-crop-online",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Bumper Crop, online: four plots per server, server switching and chat",
+  "main": "bumper-crop/server.js",
+  "scripts": {
+    "start": "node bumper-crop/server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}
