@@ -117,6 +117,30 @@ and you can walk it around while the towers fight. It is purely your avatar — 
 ignore it, it blocks nothing, and it never touches the simulation. Walking makes the
 camera follow you; the arrow keys, a middle-drag or `C` hand the camera back.
 
+### Online co-op
+Up to six players can defend the same map together. One player hosts, the others
+join with a four-letter room code, and everybody sees each other's characters
+walking around the battlefield with their name over their head.
+
+Each player has **their own wallet** and **their own towers** — you spend your own
+money, and only you can upgrade, sell or trigger the ability on a tower you built.
+The base HP is shared, because the base is. Kills pay whoever owns the tower that
+got them; the wave bonus pays everyone. Anyone can start the next wave early. `Y`
+opens the chat box.
+
+Co-op needs a transport, and the game picks one at startup:
+
+* On the **published claude.ai page**, it uses that page's `room` capability, so
+  anyone you have shared the page with can join your room from their own machine.
+  They need at least *Contributor* access — the platform will not let a view-only
+  visitor send anything, so they can watch but not build (the game says so if it
+  happens).
+* Anywhere else — a local file, GitHub Pages — it falls back to `BroadcastChannel`,
+  which reaches **other tabs of the same browser only**. Useful for trying it out;
+  not actually online.
+
+The co-op panel tells you which of the two you are on before you host.
+
 ### Progression
 Matches pay out coins and XP. Coins unlock towers in the shop; some towers also need
 a player level, and the Gilded ones cost gems (earned by clearing Forsaken and
@@ -146,6 +170,7 @@ drag to look · wheel to zoom
 | `P` | pause · the HUD button cycles 1× / 2× / 3× speed |
 | Right-drag | rotate camera · wheel zoom · arrows or middle-drag to pan |
 | `Esc` | cancel placement / deselect |
+| `Y` | chat (co-op only) |
 
 ---
 
@@ -161,8 +186,10 @@ js/data/towers.js   the 51 tower definitions
 js/data/enemies.js  the 33 enemy definitions
 js/data/maps.js     maps, themes, difficulties, path maths
 js/data/waves.js    the 45-wave script and the scaling rules
+js/net.js           co-op transport: the artifact room, or BroadcastChannel
 js/lobby.js         the plaza, the player controller, kiosks
 js/battle.js        the match: placement, towers, enemies, units, waves
+js/coop.js          co-op session: roster, snapshots, commands, chat
 js/ui.js            menus, shop, loadout, codex, battle HUD
 js/main.js          renderer, game loop, scene switching
 
@@ -186,6 +213,19 @@ A few implementation notes worth knowing if you plan to change things:
   and cached as data URLs, so hundreds of cards cost one context.
 * Shadows, scenery density and damage numbers can be turned down in Options if a
   machine struggles.
+* Co-op is host-authoritative. The host runs the ordinary simulation and publishes a
+  packed snapshot of it; clients simulate nothing and send what their player did as a
+  command, which the host re-checks against its own world before applying. Nothing
+  arriving from the room is trusted.
+* That snapshot travels in room *presence*, which is capped at 4 KiB, so the world is
+  packed as fixed-width base36 records rather than JSON: 11 characters per enemy, 10
+  per tower. An enemy is sent as a distance along its path, and the client places it
+  with the same `pathPoint` the host used, so the two agree exactly; between snapshots
+  the client advances each enemy at its own speed and eases onto the next one. Measured
+  drift is under half a unit.
+* When a wave is big enough to overflow the budget, the enemies nearest the base are
+  packed first and the tail is dropped — at 545 enemies the payload settles around
+  3.4 KiB and clients render the leading ~290.
 
 ## Licence
 

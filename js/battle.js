@@ -17,7 +17,35 @@
     cam: { tx: 0, tz: 0, yaw: 0.7, pitch: 0.82, dist: 78 },
     keys: {}, mouse: { x: 0, y: 0 }, hoverPoint: null,
     player: null, camFollow: false,
-    globalBuff: { rate: 0, dmg: 0, until: 0 }
+    globalBuff: { rate: 0, dmg: 0, until: 0 },
+
+    /* --- online co-op ------------------------------------------------
+       `me` keys the local player's wallet; in a solo match it is 'solo'
+       and nothing else here is used.  `remote` marks a client, which
+       renders the host's world instead of simulating one. */
+    net: null, remote: false, me: 'solo', wallets: { solo: 0 },
+    slots: ['solo'], avatars: {}, nidSeq: 1
+  };
+
+  /* `cash` is the LOCAL player's wallet.  Making it an accessor keeps every
+     existing `this.cash` read and write correct in both solo and co-op,
+     where each player spends their own money. */
+  Object.defineProperty(B, 'cash', {
+    enumerable: true, configurable: true,
+    get() { const v = this.wallets[this.me]; return v === undefined ? 0 : v; },
+    set(v) { this.wallets[this.me] = v; }
+  });
+
+  /* Pay a specific player — the owner of the tower that earned it. */
+  B.credit = function (key, amount) {
+    if (!(amount > 0)) return;
+    if (this.wallets[key] === undefined) key = this.me;
+    this.wallets[key] += amount;
+    if (key === this.me) this.stats.cashEarned += amount;
+  };
+  B.slotOf = function (key) {
+    const i = this.slots.indexOf(key);
+    return i < 0 ? 0 : i;
   };
 
   /* A repeating two-tone checkerboard, built once per colour pair. */
@@ -47,12 +75,25 @@
   /* ====================================================================
      SETUP
      ==================================================================== */
-  B.start = function (mapId, diffId, loadout) {
+  B.start = function (mapId, diffId, loadout, opts) {
+    opts = opts || {};
     this.map = TD.mapById(mapId);
     this.diff = TD.diffById(diffId);
     this.loadout = loadout.filter(Boolean);
     this.towers = []; this.enemies = []; this.shots = []; this.units = []; this.fx = [];
-    this.cash = this.diff.cash;
+
+    /* Who is playing.  Solo is just the one-player case of the same thing. */
+    this.net = opts.net || null;
+    this.remote = !!(this.net && this.net.role === 'client');
+    this.me = opts.me || 'solo';
+    this.slots = (opts.slots && opts.slots.length ? opts.slots.slice() : [this.me]);
+    this.wallets = {};
+    this.slots.forEach(k => { this.wallets[k] = this.diff.cash; });
+    if (this.wallets[this.me] === undefined) this.wallets[this.me] = this.diff.cash;
+    this.avatars = {}; this.nidSeq = 1;
+    this.netEnemies = new Map(); this.netTowers = new Map();
+    this.snap = null; this.snapAt = 0;
+
     this.hp = this.diff.baseHp;
     this.maxHp = this.diff.baseHp;
     this.wave = 0; this.phase = 'prep'; this.prepT = 14; this.time = 0;
@@ -68,6 +109,10 @@
     this.active = false;
     if (this.scene) disposeScene(this.scene);
     this.scene = null;
+    this.avatars = {};
+    if (this.netEnemies) this.netEnemies.clear();
+    if (this.netTowers) this.netTowers.clear();
+    this.remote = false; this.net = null;
     TD.DamageText.clear();
   };
 
@@ -382,6 +427,17 @@
     if (!p.ok) { TD.Audio.error(); return; }
     const def = p.def, cost = def.lv[0].c;
     if (this.cash < cost) { TD.Audio.error(); TD.toast('Not enough cash', 'bad'); return; }
+
+    /* A client asks; the host decides.  The tower arrives in the next
+       snapshot, which is also what corrects the wallet. */
+    if (this.remote) {
+      this.net.send({ k: 'place', d: def.id, x: x, z: z });
+      const keep = !!this.keys['shift'];
+      this.cancelPlace();
+      if (keep) this.beginPlace(def.id);
+      return;
+    }
+
     this.cash -= cost;
     const t = this.makeTower(def, x, z);
     this.towers.push(t);
@@ -394,11 +450,35 @@
     else this.select(t);
   };
 
-  B.makeTower = function (def, x, z) {
+  /* The host applying a teammate's placement: every check the local path
+     makes, against their wallet instead of ours. */
+  B.placeFor = function (actor, def, x, z) {
+    if (!def || this.wallets[actor] === undefined) return null;
+    const cost = def.lv[0].c;
+    if (this.wallets[actor] < cost) return null;
+    if (this.towers.filter(t => t.def.id === def.id).length >= def.limit) return null;
+    if (this.towers.length >= this.map.maxTowers) return null;
+    if (!this.validSpot(def, x, z)) return null;
+    this.wallets[actor] -= cost;
+    const t = this.makeTower(def, x, z, actor);
+    this.towers.push(t);
+    this.stats.placed++;
+    spawnRipple(this, x, z, 0x6ee7ff, 4);
+    return t;
+  };
+
+  B.towerByNid = function (n) {
+    for (let i = 0; i < this.towers.length; i++) if (this.towers[i].nid === n) return this.towers[i];
+    return null;
+  };
+
+  B.makeTower = function (def, x, z, owner) {
     const group = TD.buildTower(def, 0);
     group.position.set(x, 0, z);
     this.scene.add(group);
+    owner = owner || this.me;
     const t = {
+      owner: owner, slot: this.slotOf(owner), nid: this.nidSeq++ & 1295,
       def: def, level: 0, x: x, z: z, group: group,
       cd: 0, target: null, mode: 0, kills: 0, dealt: 0,
       spent: def.lv[0].c, jam: 0, abilityCd: 0, ramp: 0, harvestKills: 0,
@@ -419,11 +499,17 @@
     if (a === 'drones') this.syncDrones(t);
   };
 
-  B.upgrade = function (t) {
+  /* `actor` is who is paying.  Omitted it is the local player; the host
+     passes a teammate's key when applying their command. */
+  B.upgrade = function (t, actor) {
+    const mine = !actor || actor === this.me;
+    actor = actor || this.me;
     if (t.level >= t.def.lv.length - 1) return;
+    if (!this.owns(t, actor)) { if (mine) { TD.Audio.error(); TD.toast('That is not your tower', 'bad'); } return; }
     const next = t.def.lv[t.level + 1];
-    if (this.cash < next.c) { TD.Audio.error(); TD.toast('Not enough cash', 'bad'); return; }
-    this.cash -= next.c; t.spent += next.c; t.level++;
+    if ((this.wallets[actor] || 0) < next.c) { if (mine) { TD.Audio.error(); TD.toast('Not enough cash', 'bad'); } return; }
+    if (this.remote && mine) { this.net.send({ k: 'up', n: t.nid }); return; }
+    this.wallets[actor] -= next.c; t.spent += next.c; t.level++;
     t.stats = TD.statsAt(t.def, t.level);
     this.scene.remove(t.group);
     t.group = TD.buildTower(t.def, t.level);
@@ -436,12 +522,27 @@
     if (this.selected === t) TD.UI.showTower(t);
   };
 
-  B.sell = function (t) {
+  B.sell = function (t, actor) {
+    const mine = !actor || actor === this.me;
+    actor = actor || this.me;
+    if (!this.owns(t, actor)) { if (mine) { TD.Audio.error(); TD.toast('That is not your tower', 'bad'); } return; }
+    if (this.remote && mine) { this.net.send({ k: 'sell', n: t.nid }); this.select(null); return; }
     const refund = Math.floor(t.spent * 0.65);
-    this.cash += refund;
+    this.credit(actor, refund);
     this.removeTower(t);
     TD.Audio.sell();
-    TD.toast('Sold for $' + TD.fmt(refund), 'good');
+    if (mine) TD.toast('Sold for $' + TD.fmt(refund), 'good');
+  };
+
+  /* In a solo match every tower is yours. */
+  B.owns = function (t, actor) { return !this.net || t.owner === (actor || this.me); };
+
+  B.setMode = function (t, m) {
+    if (!this.owns(t)) { TD.Audio.error(); return; }
+    t.mode = m;
+    if (this.remote) this.net.send({ k: 'mode', n: t.nid, m: m });
+    TD.Audio.ui();
+    TD.UI.showTower(t);
   };
 
   B.removeTower = function (t) {
@@ -468,9 +569,10 @@
      ==================================================================== */
   B.startWave = function (fromSkip) {
     if (this.phase !== 'prep') return;
+    if (this.remote) { this.net.send({ k: 'wave' }); return; }
     if (fromSkip) {
       const bonus = TD.skipBonus(this.diff, this.wave + 1, this.prepT);
-      this.cash += bonus; this.stats.cashEarned += bonus;
+      this.slots.forEach(k => this.credit(k, bonus));
       TD.toast('Skip bonus +$' + bonus, 'good');
     }
     this.wave++;
@@ -485,14 +587,16 @@
   B.endWave = function () {
     this.phase = 'prep';
     this.prepT = this.wave >= this.diff.waves ? 0 : 13;
-    let income = TD.waveBonus(this.diff, this.wave);
+    const base = TD.waveBonus(this.diff, this.wave);
+    let income = base;
     let heal = 0;
+    /* The wave bonus is paid to everyone; a farm pays the player who built it. */
+    this.slots.forEach(k => this.credit(k, base));
     this.towers.forEach(t => {
       const s = t.stats;
-      if (s.income) income += s.income;
+      if (s.income) { this.credit(t.owner, s.income); if (t.owner === this.me) income += s.income; }
       if (s.heal) heal += s.heal;
     });
-    this.cash += income; this.stats.cashEarned += income;
     if (heal) { this.hp = Math.min(this.maxHp, this.hp + heal); }
     TD.Audio.coin();
     TD.toast('Wave ' + this.wave + ' cleared  +$' + TD.fmt(income) + (heal ? '  +' + heal + ' HP' : ''), 'good');
@@ -502,6 +606,8 @@
   B.finish = function (won) {
     if (this.phase === 'over') return;
     this.phase = 'over';
+    this.wonMatch = !!won;
+    if (TD.Coop && TD.Coop.active) TD.Coop.matchEnded();
     won ? TD.Audio.win() : TD.Audio.lose();
     const d = TD.Save.data;
     const mul = this.diff.reward * (1 + this.map.tier * 0.12);
@@ -528,6 +634,7 @@
     const scale = TD.hpScale(this.diff, this.wave);
     const hp = Math.round(def.hp * (def.boss ? TD.bossScale(this.diff, this.wave) : scale));
     const e = {
+      nid: this.nidSeq++ % 46656,
       def: def, model: model, group: model.group, pd: pd, pathIdx: pathIdx,
       d: spawnD || 0, hp: hp, maxHp: hp, baseSpd: def.spd * this.diff.spdMul,
       slow: 0, slowT: 0, freezeT: 0, burn: 0, burnT: 0, poison: 0, poisonT: 0,
@@ -603,7 +710,8 @@
     }
     e.dead = true;
     const cash = Math.round(e.def.cash * TD.cashScale(this.diff, this.wave));
-    this.cash += cash; this.stats.cashEarned += cash; this.stats.kills++;
+    this.credit(source ? source.owner : this.me, cash);
+    this.stats.kills++;
     if (source) { source.kills++; if (source.stats.harvest) source.harvestKills++; }
     TD.Audio.hit();
 
@@ -701,8 +809,10 @@
   const STEP = 0.05;
   B.update = function (rawDt) {
     if (!this.active) return;
+    if (this.remote) return this.updateRemote(rawDt);
     if (this.paused || this.phase === 'over') {
       this.panKeys(rawDt); this.updatePlayer(rawDt); this.updateCamera(rawDt);
+      this.updateAvatars(rawDt);
       return;
     }
 
@@ -719,6 +829,7 @@
 
     this.updateGhost();
     this.updateCamera(rawDt);
+    this.updateAvatars(rawDt);
     if (this.baseModel) {
       this.baseModel.userData.core.position.y = 5.2 + Math.sin(this.time * 1.6) * 0.25;
       this.baseModel.userData.ring.rotation.z += rawDt * 0.8;
@@ -1120,7 +1231,7 @@
         break;
       }
     }
-    if (s.cash) { this.cash += s.cash; this.stats.cashEarned += s.cash; }
+    if (s.cash) this.credit(t.owner, s.cash);
     muzzleFlash(this, t, muzzle);
   };
 
@@ -1437,7 +1548,7 @@
 
       if (target && u.t <= 0) {
         u.t = u.cd;
-        this.damageEnemy(target, u.dmg, { source: null, silent: true });
+        this.damageEnemy(target, u.dmg, { source: u.owner || null, silent: true });
         if (u.poison) this.applyStatus(target, { poison: u.poison }, null);
         if (u.splash) this.splashDamage(null, target.group.position.x, target.group.position.z, u.splash, u.dmg * 0.5, { skip: target });
         if (u.ranged > 4) spawnTracer(this, { x: u.group.position.x, y: 3, z: u.group.position.z }, target.group.position, 0x9fe8ff);
@@ -1683,9 +1794,13 @@
   };
 
   /* ------------------------------ abilities -------------------------- */
-  B.useAbility = function (t) {
+  B.useAbility = function (t, actor) {
+    const mine = !actor || actor === this.me;
+    actor = actor || this.me;
     const ab = t.def.ability;
-    if (!ab || t.level < ab.level || t.abilityCd > 0) { TD.Audio.error(); return; }
+    if (!ab || t.level < ab.level || t.abilityCd > 0) { if (mine) TD.Audio.error(); return; }
+    if (!this.owns(t, actor)) { if (mine) { TD.Audio.error(); TD.toast('That is not your tower', 'bad'); } return; }
+    if (this.remote && mine) { this.net.send({ k: 'ability', n: t.nid }); return; }
     t.abilityCd = ab.cd;
     TD.Audio.ability();
     switch (ab.id) {
@@ -1782,6 +1897,9 @@
 
     window.addEventListener('keydown', e => {
       if (!self.active) return;
+      /* Never steal keys from a text field — the co-op chat box uses one. */
+      const tag = e.target && e.target.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target && e.target.isContentEditable)) return;
       const k = e.key.toLowerCase();
       self.keys[k] = true;
       if (k === 'escape') { if (self.placing) self.cancelPlace(); else self.select(null); }
@@ -1791,12 +1909,13 @@
       }
       if (k === 'q' && self.selected) self.upgrade(self.selected);
       if (k === 'x' && self.selected) self.sell(self.selected);
-      if (k === 't' && self.selected) { self.selected.mode = (self.selected.mode + 1) % 5; TD.UI.showTower(self.selected); }
+      if (k === 't' && self.selected) self.setMode(self.selected, (self.selected.mode + 1) % 5);
       if (k === 'f' && self.selected) self.useAbility(self.selected);
       if (k === ' ') e.preventDefault();               // jump; handled in updatePlayer
       if (k === 'enter') { if (self.phase === 'prep' && self.wave < self.diff.waves) self.startWave(true); }
       if (k === 'c') TD.UI.toggleFollow();
       if (k === 'p') TD.UI.togglePause();
+      if (k === 'y' && TD.Coop && TD.Coop.active) { e.preventDefault(); TD.UI.focusChat(); }
     });
     window.addEventListener('keyup', e => { self.keys[e.key.toLowerCase()] = false; });
     window.addEventListener('blur', () => { self.keys = {}; });
@@ -1865,5 +1984,238 @@
     }
     return { push: push, update: update, clear: clear };
   })();
+
+  /* ====================================================================
+     THE CLIENT SIDE OF CO-OP
+
+     A client never simulates.  It receives the host's packed world about
+     fifteen times a second and rebuilds it: enemies are placed by the same
+     `pathPoint` the host uses, from the same path data, so the only thing
+     that can differ is the fraction of a second since the last snapshot —
+     which is covered by advancing each enemy at its own known speed and
+     easing onto the next snapshot when it lands.
+
+     Towers still fire here, but only for show: the muzzle flashes and the
+     aiming are local decoration, and every number on screen comes from the
+     host.
+     ==================================================================== */
+
+  const PLAYER_COLORS = [0x4f8cff, 0xff8b3a, 0x51d88a, 0xa678ff, 0xffc63d, 0xff5d6c];
+  const PLAYER_TAGS = ['#6ee7ff', '#ffb27a', '#8ce8b4', '#c9a9ff', '#ffdd8a', '#ff9aa4'];
+  B.playerColor = i => PLAYER_COLORS[i % PLAYER_COLORS.length];
+  B.playerTag = i => PLAYER_TAGS[i % PLAYER_TAGS.length];
+
+  /* One decoded snapshot from the host. */
+  B.applySnapshot = function (s) {
+    if (!this.active || !this.remote) return;
+    this.snap = s;
+    this.hp = s.hp; this.maxHp = s.mhp || this.maxHp;
+    if (s.w > this.wave && s.w > 0) {
+      TD.UI.waveBanner('WAVE ' + s.w, TD.wavePreview(this.diff, s.w));
+      TD.Audio.wave();
+    }
+    this.wave = s.w; this.prepT = s.pt; this.speed = s.sp || 1;
+    if (s.slots) this.slots = s.slots;
+    if (s.wallets) {
+      this.slots.forEach((k, i) => { this.wallets[k] = s.wallets[i] || 0; });
+      if (this.wallets[this.me] === undefined) this.wallets[this.me] = 0;
+    }
+    const wasPhase = this.phase;
+    this.phase = s.st;
+    if (wasPhase !== 'over' && s.st === 'over') this.remoteFinish(s.won);
+
+    this.syncRemoteTowers(TD.Net.unpackTowers(s.T));
+    this.syncRemoteEnemies(TD.Net.unpackEnemies(s.E));
+  };
+
+  B.syncRemoteEnemies = function (recs) {
+    const live = this.netEnemies, seen = new Set();
+    for (let i = 0; i < recs.length; i++) {
+      const r = recs[i];
+      seen.add(r.nid);
+      let e = live.get(r.nid);
+      if (!e) {
+        const def = TD.ENEMIES[r.type];
+        if (!def) continue;
+        const model = TD.buildEnemy(def);
+        e = {
+          nid: r.nid, def: def, model: model, group: model.group,
+          pd: this.map.pathData[r.pathIdx % this.map.pathData.length],
+          pathIdx: r.pathIdx, d: r.d, td: r.d, hp: r.hp, phase: Math.random() * 6,
+          bar: makeBar(def.boss), flags: r.flags
+        };
+        e.group.add(e.bar.group);
+        e.bar.group.position.y = def.boss ? 8.4 : 6.6;
+        e.bar.group.visible = !!def.boss;
+        if (def.flying) e.group.position.y = 6;
+        this.scene.add(e.group);
+        live.set(r.nid, e);
+      } else {
+        /* A drop in health is worth a hit spark even though we did not
+           compute the damage. */
+        if (r.hp < e.hp - 0.02) spawnRipple(this, e.group.position.x, e.group.position.z, 0xffe08a, 1.6);
+        e.hp = r.hp; e.td = r.d; e.flags = r.flags;
+      }
+    }
+    live.forEach((e, nid) => {
+      if (seen.has(nid)) return;
+      /* Gone from the host's world: killed, or it leaked. */
+      spawnPuff(this, e.group.position, (e.def.model && e.def.model.shirt) || 0xffffff, e.def.boss ? 22 : 8);
+      this.scene.remove(e.group);
+      live.delete(nid);
+    });
+  };
+
+  B.syncRemoteTowers = function (recs) {
+    const live = this.netTowers, seen = new Set();
+    for (let i = 0; i < recs.length; i++) {
+      const r = recs[i];
+      const def = TD.TOWERS[r.type];
+      if (!def) continue;
+      seen.add(r.nid);
+      let t = live.get(r.nid);
+      if (t && t.level !== r.level) { this.removeTower(t); live.delete(r.nid); t = null; }
+      if (!t) {
+        t = this.makeTower(def, r.x, r.z, this.slots[r.slot] || this.me);
+        t.nid = r.nid; t.slot = r.slot; t.level = r.level;
+        t.stats = TD.statsAt(def, r.level);
+        t.spent = def.lv.slice(0, r.level + 1).reduce((a, l) => a + l.c, 0);
+        if (r.level > 0) {
+          this.scene.remove(t.group);
+          t.group = TD.buildTower(def, r.level);
+          t.group.position.set(r.x, 0, r.z);
+          this.scene.add(t.group);
+          this.initSpecial(t);
+        }
+        this.towers.push(t);
+        live.set(r.nid, t);
+      }
+    }
+    live.forEach((t, nid) => {
+      if (seen.has(nid)) return;
+      this.removeTower(t);
+      live.delete(nid);
+    });
+  };
+
+  B.remoteFinish = function (won) {
+    TD.Audio[won ? 'win' : 'lose']();
+    this.stats.kills = this.stats.kills || 0;
+    TD.UI.showResults(!!won, this, 0, 0);
+  };
+
+  /* Per-frame work on a client: everything local (your character, the
+     camera, the placement ghost) plus dead reckoning for the world. */
+  B.updateRemote = function (rawDt) {
+    this.time += rawDt;
+    this.panKeys(rawDt);
+    this.updatePlayer(rawDt);
+    this.stepRemoteEnemies(rawDt);
+    this.aimRemoteTowers(rawDt);
+    this.updateFx(rawDt);
+    this.updateGhost();
+    this.updateCamera(rawDt);
+    this.updateAvatars(rawDt);
+    if (this.baseModel) {
+      this.baseModel.userData.core.position.y = 5.2 + Math.sin(this.time * 1.6) * 0.25;
+      this.baseModel.userData.ring.rotation.z += rawDt * 0.8;
+    }
+    this.portals.forEach((p, i) => { p.userData.ring.rotation.z += rawDt * (1 + i * 0.3); });
+    TD.UI.tick(this);
+    TD.DamageText.update(rawDt, this.camera);
+  };
+
+  B.stepRemoteEnemies = function (dt) {
+    const ease = TD.clamp(dt * 10, 0, 1);
+    this.netEnemies.forEach(e => {
+      /* Predict with what the flags tell us; the next snapshot corrects it. */
+      let spd = e.def.spd * this.diff.spdMul * this.speed;
+      if (e.flags & 1) spd = 0;             // frozen
+      else if (e.flags & 16) spd = 0;       // held by a blocker
+      else if (e.flags & 2) spd *= 0.55;    // slowed
+      e.td += spd * dt;
+      e.d += (e.td - e.d) * ease + spd * dt * (1 - ease);
+
+      const p = TD.pathPoint(e.pd, e.d);
+      const y = e.def.flying ? 6 + Math.sin(this.time * 2 + e.phase) * 0.5 : 0;
+      e.group.position.set(p.x, y, p.z);
+      if (spd > 0.01 || !e.def.flying) e.group.rotation.y = Math.atan2(p.dx, p.dz);
+
+      const mv = spd > 0.05 ? TD.clamp(spd / 5, 0.4, 1.4) : ((e.flags & 16) ? 1.1 : 0);
+      if (e.model.human) e.model.human.anim(this.time + e.phase, mv, { speed: 7 });
+      if (e.model.blob) {
+        const s = 1 + Math.sin(this.time * 7 + e.phase) * 0.09;
+        e.model.blob.scale.set(s, 2 - s, s);
+      }
+      if (e.model.wings) e.model.wings.userData.flap(this.time + e.phase);
+      if (e.model.aura) e.model.aura.rotation.z += dt * 2;
+
+      e.bar.fill.scale.x = Math.max(0.001, e.bar.w * e.hp);
+      e.bar.fill.position.x = -(e.bar.w * (1 - e.hp)) / 2;
+      TD.billboard(e.bar.group, this.camera);
+    });
+  };
+
+  /* Cosmetic only — turn each tower towards something plausible so the
+     board does not look frozen between snapshots. */
+  B.aimRemoteTowers = function (dt) {
+    for (let i = 0; i < this.towers.length; i++) {
+      const t = this.towers[i];
+      let best = null, bestD = (t.stats.range || 0) + 1;
+      this.netEnemies.forEach(e => {
+        const d = TD.dist(t.x, t.z, e.group.position.x, e.group.position.z);
+        if (d < bestD) { bestD = d; best = e; }
+      });
+      if (best) {
+        const want = Math.atan2(best.group.position.x - t.x, best.group.position.z - t.z);
+        t.aim = TD.angleLerp(t.aim, want, Math.min(1, dt * 9));
+        aimAnim(t, this.time);
+      } else {
+        idleAnim(t, this.time);
+      }
+    }
+  };
+
+  /* ---------------------------------------------------------------
+     Other players' characters, driven by their own presence.
+     --------------------------------------------------------------- */
+  B.syncAvatars = function (list) {
+    if (!this.active || !this.scene) return;
+    const seen = new Set();
+    list.forEach(p => {
+      if (p.key === this.me) return;
+      seen.add(p.key);
+      let a = this.avatars[p.key];
+      if (!a) {
+        const slot = Math.max(0, this.slots.indexOf(p.key));
+        const h = TD.makeAvatar(p.name || 'Player', p.level || 1,
+          { shirt: B.playerColor(slot), tag: B.playerTag(slot) });
+        this.scene.add(h.group);
+        a = this.avatars[p.key] = { model: h, x: p.x, z: p.z, tx: p.x, tz: p.z, dir: p.ry || 0, t: 0 };
+      }
+      a.tx = p.x; a.tz = p.z; a.dir = p.ry || 0;
+    });
+    Object.keys(this.avatars).forEach(k => {
+      if (seen.has(k)) return;
+      this.scene.remove(this.avatars[k].model.group);
+      delete this.avatars[k];
+    });
+  };
+
+  B.updateAvatars = function (dt) {
+    const keys = Object.keys(this.avatars);
+    for (let i = 0; i < keys.length; i++) {
+      const a = this.avatars[keys[i]];
+      const dx = a.tx - a.x, dz = a.tz - a.z;
+      const dist = Math.sqrt(dx * dx + dz * dz);
+      const ease = TD.clamp(dt * 9, 0, 1);
+      a.x += dx * ease; a.z += dz * ease;
+      a.t += dt;
+      a.model.group.position.set(a.x, 0, a.z);
+      a.model.group.rotation.y = a.dir;
+      a.model.anim(a.t, TD.clamp(dist * 1.4, 0, 1.3), { speed: 9 });
+      if (a.model.tag) TD.billboard(a.model.tag, this.camera);
+    }
+  };
 
 })();

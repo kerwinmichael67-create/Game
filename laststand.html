@@ -395,6 +395,71 @@ kbd{
   .tbtn{width:78px}
   .logo-1,.logo-2{font-size:40px}
 }
+
+/* ===========================================================
+   ONLINE CO-OP
+   =========================================================== */
+.big-btn.coop b{color:#8ce8b4}
+.big-btn.coop{background:linear-gradient(160deg,#16342a,#101c26)}
+
+.coop-body{padding:6px 20px 10px}
+.coop-note{font-size:13px;line-height:1.5;color:var(--dim);background:#0f1526;border:1px solid var(--line);
+  border-radius:10px;padding:11px 13px;margin-bottom:16px}
+.coop-note b.ok{color:#51d88a}
+.coop-note b.warn{color:#ffc63d}
+.coop-note b.bad{color:#ff5d6c}
+
+.coop-actions{display:flex;flex-direction:column;align-items:center;gap:12px;padding:6px 0 10px}
+.coop-or{font-size:12px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase}
+.coop-joinrow{display:flex;gap:8px}
+.coop-joinrow input{width:130px;background:#0d1322;border:1px solid var(--line);border-radius:9px;color:var(--ink);
+  font:700 18px/1 ui-monospace,monospace;letter-spacing:.22em;text-align:center;text-transform:uppercase;padding:0 10px}
+.coop-joinrow input:focus{outline:none;border-color:#3d86c9}
+
+.coop-code-box{text-align:center;background:#0f1526;border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
+.ccb-label{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+.ccb-code{font:800 40px/1.2 ui-monospace,monospace;letter-spacing:.3em;color:#6ee7ff;text-indent:.3em}
+.ccb-hint{font-size:12px;color:var(--dim)}
+
+.coop-players{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.cp-row{display:flex;align-items:center;gap:10px;background:#111829;border:1px solid var(--line);
+  border-radius:9px;padding:8px 11px;font-size:14px}
+.cp-row.me{border-color:#3d86c9;background:#12203a}
+.cp-dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
+.cp-name{flex:1;font-weight:600}
+.cp-lvl{font-size:12px;color:var(--dim)}
+.cp-role{font-size:10px;letter-spacing:.12em;color:#ffc63d;min-width:32px;text-align:right}
+
+.coop-map{font-size:13px;color:var(--dim);text-align:center}
+.coop-map b{color:var(--ink)}
+.cm-label{text-transform:uppercase;letter-spacing:.14em;font-size:11px;margin-right:7px}
+.cm-sep{margin:0 7px}
+.coop-foot-note{flex:1;font-size:12px;color:var(--dim)}
+
+/* in-battle roster */
+.coop-hud{position:absolute;top:64px;right:14px;display:flex;flex-direction:column;gap:5px;pointer-events:none}
+.ch-row{display:flex;align-items:center;gap:8px;background:rgba(12,17,30,.82);border:1px solid var(--line);
+  border-radius:8px;padding:5px 9px;font-size:12px;min-width:172px}
+.ch-row.me{border-color:#3d86c9}
+.ch-name{flex:1;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:88px}
+.ch-cash{color:#51d88a;font-variant-numeric:tabular-nums}
+.ch-towers{color:var(--dim);font-size:11px}
+
+/* chat */
+.chat{position:absolute;left:14px;bottom:128px;width:270px;display:flex;flex-direction:column;gap:5px}
+.chat-log{display:flex;flex-direction:column;gap:2px;max-height:132px;overflow-y:auto;font-size:12px;line-height:1.45}
+.chat-row{background:rgba(12,17,30,.78);border-radius:7px;padding:3px 8px;word-break:break-word}
+.chat-row b{color:#6ee7ff}
+.chat-row.mine b{color:#8ce8b4}
+.chat input{background:rgba(12,17,30,.82);border:1px solid var(--line);border-radius:8px;color:var(--ink);
+  font:400 12px/1 inherit;padding:7px 9px}
+.chat input:focus{outline:none;border-color:#3d86c9}
+
+@media (max-width:720px){
+  .coop-hud{top:56px;right:8px}
+  .ch-row{min-width:0}
+  .chat{width:min(60vw,240px);bottom:150px}
+}
 </style>
 </head>
 <body>
@@ -435,6 +500,7 @@ kbd{
     <button class="big-btn shop" id="btn-shop"><b>SHOP</b><small>Buy towers</small></button>
     <button class="big-btn loadout" id="btn-loadout"><b>LOADOUT</b><small>Pick 5 towers</small></button>
     <button class="big-btn book" id="btn-codex"><b>CODEX</b><small>Enemies &amp; info</small></button>
+    <button class="big-btn coop" id="btn-coop"><b>CO-OP</b><small>Play online</small></button>
   </div>
 
   <div class="lobby-hint">
@@ -501,6 +567,47 @@ kbd{
   </div>
 </div>
 
+<!-- ============================== CO-OP ============================== -->
+<div id="coop-modal" class="overlay hidden">
+  <div class="modal">
+    <header>
+      <h2>Online Co-op</h2>
+      <div class="sub" id="coop-sub">Defend together — up to six players</div>
+      <button class="x" data-close>&#10005;</button>
+    </header>
+
+    <div class="coop-body">
+      <div id="coop-entry">
+        <div class="coop-note" id="coop-status">Checking for a connection&hellip;</div>
+        <div class="coop-actions">
+          <button class="cta" id="coop-host">HOST A GAME</button>
+          <div class="coop-or">or</div>
+          <div class="coop-joinrow">
+            <input id="coop-code" type="text" maxlength="8" placeholder="CODE" autocomplete="off" spellcheck="false">
+            <button class="cta ghost" id="coop-join">JOIN</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="coop-room" class="hidden">
+        <div class="coop-code-box">
+          <div class="ccb-label">Room code</div>
+          <div class="ccb-code" id="coop-code-out">----</div>
+          <div class="ccb-hint" id="coop-share">Share this code with your friends</div>
+        </div>
+        <div class="coop-players" id="coop-players"></div>
+        <div class="coop-map" id="coop-map"></div>
+      </div>
+    </div>
+
+    <div class="modal-foot" id="coop-foot">
+      <div class="coop-foot-note" id="coop-foot-note"></div>
+      <button class="cta ghost hidden" id="coop-leave">LEAVE ROOM</button>
+      <button class="cta hidden" id="coop-deploy">CHOOSE MAP</button>
+    </div>
+  </div>
+</div>
+
 <!-- ============================== SETTINGS ============================== -->
 <div id="settings-modal" class="overlay hidden">
   <div class="modal">
@@ -559,6 +666,13 @@ kbd{
   <div class="place-hint hidden" id="place-hint">Click to place · <kbd>R</kbd> rotate · <kbd>Esc</kbd> cancel</div>
   <div class="cam-hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> walk · <kbd>Space</kbd> jump · <kbd>Enter</kbd> next wave · <kbd>C</kbd> follow cam · Right-drag rotate · Arrows pan</div>
   <div class="toasts" id="toasts"></div>
+
+  <!-- co-op only -->
+  <div class="coop-hud hidden" id="coop-hud"></div>
+  <div class="chat hidden" id="chat">
+    <div class="chat-log" id="chat-log"></div>
+    <input id="chat-input" type="text" maxlength="120" placeholder="Press Y to chat&hellip;" autocomplete="off">
+  </div>
 </div>
 
 <!-- ============================== RESULTS ============================== -->
@@ -1092,12 +1206,14 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
      ---------------------------------------------------------------------- */
   TD.playerHat = lvl => lvl >= 20 ? 'crown' : lvl >= 12 ? 'helmet' : lvl >= 6 ? 'cowboy' : 'cap';
 
-  TD.makeAvatar = function (name, level) {
+  /* `opts` lets co-op give each player their own colour; solo passes none. */
+  TD.makeAvatar = function (name, level, opts) {
+    opts = opts || {};
     const h = TD.makeHumanoid({
-      shirt: 0x4f8cff, pants: 0x27304d, skin: 0xe0ac69,
+      shirt: opts.shirt || 0x4f8cff, pants: 0x27304d, skin: 0xe0ac69,
       hat: TD.playerHat(level), hatColor: level >= 20 ? 0xffc63d : 0x2f5fb8, hatColor2: 0xff5d6c
     });
-    const tag = TD.textPlane(name, { color: '#6ee7ff', height: 1.3, size: 64, bg: 'rgba(8,11,22,0.7)' });
+    const tag = TD.textPlane(name, { color: opts.tag || '#6ee7ff', height: 1.3, size: 64, bg: 'rgba(8,11,22,0.7)' });
     tag.position.y = 6.6;
     h.group.add(tag);
     h.tag = tag;
@@ -2858,6 +2974,337 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
 })();
 </script>
 <script>
+/* ---- js/net.js ---- */
+/* =========================================================================
+   net.js — transport for online co-op.
+
+   Two interchangeable backends behind one tiny interface:
+
+     "room"    the claude.ai artifact `room` capability.  Real online play:
+               everyone who has the published page open can reach each other.
+     "channel" BroadcastChannel.  Same browser, other tab.  Used when the
+               room capability is absent (plain file://, GitHub Pages) and by
+               the automated tests, which drive two pages at once.
+
+   The interface is deliberately the shape `room` already has, so the room
+   backend is nearly a pass-through and the fallback is the one doing work:
+
+     connect()              -> 'room' | 'channel' | null
+     join(code)             -> Promise<Session>
+     Session.emit(topic, data)
+     Session.on(topic, fn)  -> unsubscribe
+     Session.presence(patch)
+     Session.peers()        -> [{peer, isMe, presence, ...}]
+     Session.onPeers(fn)    -> unsubscribe
+     Session.connected()
+     Session.leave()
+
+   Everything a peer sends is untrusted: `data` is what some other page
+   claims, never an instruction and never HTML.  The host validates every
+   command against its own simulation before acting on it.
+   ========================================================================= */
+(function () {
+  const Net = TD.Net = {
+    backend: null,      // 'room' | 'channel' | null
+    session: null,      // the joined Session, if any
+    code: null,         // the room code we are in
+    peer: null          // our own peer label
+  };
+
+  /* Room codes: 4 characters, no vowels and no look-alikes, so nobody has to
+     spell "0 or O" down a call.  Matches the platform's name grammar. */
+  const ALPHABET = '23456789bcdfghjkmnpqrstvwxz';
+  Net.makeCode = function () {
+    let s = '';
+    for (let i = 0; i < 4; i++) s += ALPHABET[Math.floor(Math.random() * ALPHABET.length)];
+    return s;
+  };
+  Net.validCode = c => typeof c === 'string' && /^[a-z0-9]{4,8}$/.test(c.toLowerCase());
+
+  /* ====================================================================
+     Backend 1 — the artifact `room` capability
+     ==================================================================== */
+  function roomSession(named) {
+    return {
+      kind: 'room',
+      emit: (topic, data) => named.emit(topic, data).catch(e => {
+        if (e && e.code === 'not_permitted') Net.onDenied && Net.onDenied(topic);
+        return null;
+      }),
+      on: (topic, fn) => named.on(topic, fn, () => {}),
+      presence: patch => named.presence(patch).catch(() => null),
+      peers: () => named.peers(),
+      onPeers: fn => named.onPeers(fn, () => {}),
+      connected: () => named.connected(),
+      leave: () => named.leave().catch(() => null)
+    };
+  }
+
+  /* ====================================================================
+     Backend 2 — BroadcastChannel
+
+     Presence is not a transport primitive here, so we rebuild it: every
+     page re-broadcasts its whole presence object on change and on a
+     keepalive, and peers that go quiet for PEER_TTL are dropped.  Same
+     contract as the real thing: absolute state, newcomers get everything,
+     nothing persists.
+     ==================================================================== */
+  const KEEPALIVE = 900;
+  const PEER_TTL = 3000;
+
+  function channelSession(code) {
+    const ch = new BroadcastChannel('td-coop-' + code);
+    const me = Math.random().toString(36).slice(2, 10);
+    const mine = { peer: me, isMe: true, sameTab: true, kind: 'viewer', guest: false, by: null, presence: {}, updatedAt: Date.now() };
+    const others = new Map();                       // peer -> record
+    const topicSubs = new Map();                    // topic -> Set<fn>
+    const peerSubs = new Set();
+    let snapshot = [mine];
+    let alive = true;
+
+    const rebuild = () => { snapshot = [mine].concat(Array.from(others.values())); };
+    const firePeers = change => {
+      rebuild();
+      change.peers = snapshot;
+      peerSubs.forEach(fn => { try { fn(change); } catch (e) { /* a listener must not break the room */ } });
+    };
+
+    const post = m => { try { ch.postMessage(m); } catch (e) { /* channel closed */ } };
+
+    ch.onmessage = ev => {
+      const m = ev.data;
+      if (!m || !alive || m.peer === me) return;
+      if (m.t === 'pres') {
+        let rec = others.get(m.peer);
+        const joined = !rec;
+        if (!rec) {
+          rec = { peer: m.peer, isMe: false, sameTab: false, kind: 'viewer', guest: false, by: null, presence: {}, updatedAt: 0 };
+          others.set(m.peer, rec);
+        }
+        rec.presence = m.presence || {};
+        rec.updatedAt = Date.now();
+        rec.seen = Date.now();
+        firePeers(joined ? { joined: [rec], left: [], updated: [] } : { joined: [], left: [], updated: [rec] });
+        if (joined) post({ t: 'pres', peer: me, presence: mine.presence });   // answer a newcomer
+      } else if (m.t === 'bye') {
+        const rec = others.get(m.peer);
+        if (rec) { others.delete(m.peer); firePeers({ joined: [], left: [rec], updated: [] }); }
+      } else if (m.t === 'msg') {
+        const subs = topicSubs.get(m.topic);
+        if (!subs) return;
+        const msg = { topic: m.topic, data: m.data, peer: m.peer, by: null, isMe: false, sameTab: false, kind: 'viewer', guest: false };
+        subs.forEach(fn => { try { fn(msg); } catch (e) { /* ditto */ } });
+      }
+    };
+
+    const beat = setInterval(() => {
+      if (!alive) return;
+      post({ t: 'pres', peer: me, presence: mine.presence });
+      const now = Date.now();
+      const gone = [];
+      others.forEach(r => { if (now - (r.seen || 0) > PEER_TTL) gone.push(r); });
+      if (gone.length) { gone.forEach(r => others.delete(r.peer)); firePeers({ joined: [], left: gone, updated: [] }); }
+    }, KEEPALIVE);
+
+    const bye = () => post({ t: 'bye', peer: me });
+    window.addEventListener('pagehide', bye);
+
+    post({ t: 'pres', peer: me, presence: {} });
+    setTimeout(() => firePeers({ joined: [mine], left: [], updated: [] }), 0);
+
+    return {
+      kind: 'channel',
+      emit: (topic, data) => { post({ t: 'msg', peer: me, topic: topic, data: data }); return Promise.resolve(); },
+      on: (topic, fn) => {
+        if (!topicSubs.has(topic)) topicSubs.set(topic, new Set());
+        topicSubs.get(topic).add(fn);
+        return () => { const s = topicSubs.get(topic); if (s) s.delete(fn); };
+      },
+      presence: patch => {
+        const next = Object.assign({}, mine.presence);
+        Object.keys(patch).forEach(k => { if (patch[k] === null) delete next[k]; else next[k] = patch[k]; });
+        mine.presence = next; mine.updatedAt = Date.now();
+        post({ t: 'pres', peer: me, presence: next });
+        firePeers({ joined: [], left: [], updated: [mine] });
+        return Promise.resolve();
+      },
+      peers: () => snapshot,
+      onPeers: fn => { peerSubs.add(fn); return () => peerSubs.delete(fn); },
+      connected: () => alive,
+      leave: () => {
+        alive = false; clearInterval(beat); bye();
+        window.removeEventListener('pagehide', bye);
+        try { ch.close(); } catch (e) { /* already closed */ }
+        return Promise.resolve();
+      },
+      myPeer: me
+    };
+  }
+
+  /* ====================================================================
+     Connecting
+     ==================================================================== */
+  let roomNs = null;
+  let probe = null;
+
+  /* Resolves the backend name once.  `claude.use` may take a moment (and
+     resolves null when this view cannot connect), so everything that needs
+     the answer awaits this rather than reading a flag. */
+  Net.connect = function () {
+    if (probe) return probe;
+    probe = (async () => {
+      try {
+        if (window.claude && typeof window.claude.use === 'function') {
+          roomNs = await window.claude.use('room');
+          if (roomNs) return (Net.backend = 'room');
+        }
+      } catch (e) { /* fall through to the local backend */ }
+      if (typeof BroadcastChannel === 'function') return (Net.backend = 'channel');
+      return (Net.backend = null);
+    })();
+    return probe;
+  };
+
+  Net.join = async function (code) {
+    code = String(code || '').toLowerCase();
+    if (!Net.validCode(code)) throw new Error('bad code');
+    await Net.connect();
+    if (Net.session) await Net.leave();
+
+    if (Net.backend === 'room') {
+      const named = await roomNs.join('td-' + code);
+      Net.session = roomSession(named);
+    } else if (Net.backend === 'channel') {
+      Net.session = channelSession(code);
+    } else {
+      throw new Error('no transport');
+    }
+    Net.code = code;
+    Net.peer = Net.session.myPeer || null;
+    return Net.session;
+  };
+
+  Net.leave = async function () {
+    const s = Net.session;
+    Net.session = null; Net.code = null; Net.peer = null;
+    if (s) await s.leave();
+  };
+
+  /* Where our own peer label comes from: the room backend only tells us
+     through a delivered message, so we read it off the peer marked isMe. */
+  Net.selfPeer = function () {
+    if (Net.peer) return Net.peer;
+    const s = Net.session; if (!s) return null;
+    const me = s.peers().find(p => p.isMe && p.sameTab);
+    if (me) Net.peer = me.peer;
+    return Net.peer;
+  };
+
+  /* ====================================================================
+     Packing — presence is 4 KiB, so the world goes over as fixed-width
+     base36 records rather than JSON objects.
+     ==================================================================== */
+  const PAD = '0000000';
+  function b36(n, w) {
+    n = Math.round(n);
+    if (!(n >= 0)) n = 0;
+    const max = Math.pow(36, w) - 1;
+    if (n > max) n = max;
+    const s = n.toString(36);
+    return s.length >= w ? s : PAD.slice(0, w - s.length) + s;
+  }
+  const un = (s, a, b) => parseInt(s.slice(a, b), 36);
+  Net.b36 = b36;
+
+  /* Stable indexes so a type travels as two characters. */
+  let ENEMY_IDS = null, TOWER_IDS = null;
+  function enemyIds() { return ENEMY_IDS || (ENEMY_IDS = Object.keys(TD.ENEMIES).sort()); }
+  function towerIds() { return TOWER_IDS || (TOWER_IDS = Object.keys(TD.TOWERS).sort()); }
+  Net.enemyIndex = id => enemyIds().indexOf(id);
+  Net.enemyAt = i => enemyIds()[i];
+  Net.towerIndex = id => towerIds().indexOf(id);
+  Net.towerAt = i => towerIds()[i];
+
+  /* One enemy = 11 chars: id(3) type(2) path(1) dist(3) hp(1) flags(1).
+     Distance carries 1/8 of a unit, which is finer than the eye can read at
+     the camera's distance, and position is derived from it exactly the way
+     the host derives it — same path data, same function. */
+  const D_SCALE = 8;
+  Net.packEnemies = function (list, cap) {
+    const out = [];
+    const n = Math.min(list.length, cap || 220);
+    for (let i = 0; i < n; i++) {
+      const e = list[i];
+      let fl = 0;
+      if (e.freezeT > 0) fl |= 1;
+      if (e.slow > 0) fl |= 2;
+      if (e.burnT > 0) fl |= 4;
+      if (e.poisonT > 0) fl |= 8;
+      if (e.blocked) fl |= 16;
+      out.push(
+        b36(e.nid, 3) +
+        b36(Net.enemyIndex(e.def.id), 2) +
+        b36(e.pathIdx, 1) +
+        b36(e.d * D_SCALE, 3) +
+        b36(TD.clamp(e.hp / e.maxHp, 0, 1) * 35, 1) +
+        b36(fl, 1));
+    }
+    return out.join('');
+  };
+  Net.unpackEnemies = function (s) {
+    const out = [];
+    if (!s) return out;
+    for (let i = 0; i + 11 <= s.length; i += 11) {
+      const r = s.slice(i, i + 11);
+      out.push({
+        nid: un(r, 0, 3),
+        type: Net.enemyAt(un(r, 3, 5)),
+        pathIdx: un(r, 5, 6),
+        d: un(r, 6, 9) / D_SCALE,
+        hp: un(r, 9, 10) / 35,
+        flags: un(r, 10, 11)
+      });
+    }
+    return out;
+  };
+
+  /* One tower = 10 chars: id(2) def(2) level(1) x(2) z(2) owner(1).
+     Towers snap to a 2-unit grid, so x*6 is an integer and survives the
+     round trip exactly. */
+  const XY_OFF = 95, XY_SCALE = 6;
+  Net.packTowers = function (list) {
+    const out = [];
+    for (let i = 0; i < list.length && i < 80; i++) {
+      const t = list[i];
+      out.push(
+        b36(t.nid, 2) +
+        b36(Net.towerIndex(t.def.id), 2) +
+        b36(t.level, 1) +
+        b36((t.x + XY_OFF) * XY_SCALE, 2) +
+        b36((t.z + XY_OFF) * XY_SCALE, 2) +
+        b36(t.slot, 1));
+    }
+    return out.join('');
+  };
+  Net.unpackTowers = function (s) {
+    const out = [];
+    if (!s) return out;
+    for (let i = 0; i + 10 <= s.length; i += 10) {
+      const r = s.slice(i, i + 10);
+      out.push({
+        nid: un(r, 0, 2),
+        type: Net.towerAt(un(r, 2, 4)),
+        level: un(r, 4, 5),
+        x: un(r, 5, 7) / XY_SCALE - XY_OFF,
+        z: un(r, 7, 9) / XY_SCALE - XY_OFF,
+        slot: un(r, 9, 10)
+      });
+    }
+    return out;
+  };
+})();
+</script>
+<script>
 /* ---- js/lobby.js ---- */
 /* =========================================================================
    lobby.js — the 3D menu world: a plaza you walk around with kiosks that
@@ -3250,7 +3697,35 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     cam: { tx: 0, tz: 0, yaw: 0.7, pitch: 0.82, dist: 78 },
     keys: {}, mouse: { x: 0, y: 0 }, hoverPoint: null,
     player: null, camFollow: false,
-    globalBuff: { rate: 0, dmg: 0, until: 0 }
+    globalBuff: { rate: 0, dmg: 0, until: 0 },
+
+    /* --- online co-op ------------------------------------------------
+       `me` keys the local player's wallet; in a solo match it is 'solo'
+       and nothing else here is used.  `remote` marks a client, which
+       renders the host's world instead of simulating one. */
+    net: null, remote: false, me: 'solo', wallets: { solo: 0 },
+    slots: ['solo'], avatars: {}, nidSeq: 1
+  };
+
+  /* `cash` is the LOCAL player's wallet.  Making it an accessor keeps every
+     existing `this.cash` read and write correct in both solo and co-op,
+     where each player spends their own money. */
+  Object.defineProperty(B, 'cash', {
+    enumerable: true, configurable: true,
+    get() { const v = this.wallets[this.me]; return v === undefined ? 0 : v; },
+    set(v) { this.wallets[this.me] = v; }
+  });
+
+  /* Pay a specific player — the owner of the tower that earned it. */
+  B.credit = function (key, amount) {
+    if (!(amount > 0)) return;
+    if (this.wallets[key] === undefined) key = this.me;
+    this.wallets[key] += amount;
+    if (key === this.me) this.stats.cashEarned += amount;
+  };
+  B.slotOf = function (key) {
+    const i = this.slots.indexOf(key);
+    return i < 0 ? 0 : i;
   };
 
   /* A repeating two-tone checkerboard, built once per colour pair. */
@@ -3280,12 +3755,25 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   /* ====================================================================
      SETUP
      ==================================================================== */
-  B.start = function (mapId, diffId, loadout) {
+  B.start = function (mapId, diffId, loadout, opts) {
+    opts = opts || {};
     this.map = TD.mapById(mapId);
     this.diff = TD.diffById(diffId);
     this.loadout = loadout.filter(Boolean);
     this.towers = []; this.enemies = []; this.shots = []; this.units = []; this.fx = [];
-    this.cash = this.diff.cash;
+
+    /* Who is playing.  Solo is just the one-player case of the same thing. */
+    this.net = opts.net || null;
+    this.remote = !!(this.net && this.net.role === 'client');
+    this.me = opts.me || 'solo';
+    this.slots = (opts.slots && opts.slots.length ? opts.slots.slice() : [this.me]);
+    this.wallets = {};
+    this.slots.forEach(k => { this.wallets[k] = this.diff.cash; });
+    if (this.wallets[this.me] === undefined) this.wallets[this.me] = this.diff.cash;
+    this.avatars = {}; this.nidSeq = 1;
+    this.netEnemies = new Map(); this.netTowers = new Map();
+    this.snap = null; this.snapAt = 0;
+
     this.hp = this.diff.baseHp;
     this.maxHp = this.diff.baseHp;
     this.wave = 0; this.phase = 'prep'; this.prepT = 14; this.time = 0;
@@ -3301,6 +3789,10 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     this.active = false;
     if (this.scene) disposeScene(this.scene);
     this.scene = null;
+    this.avatars = {};
+    if (this.netEnemies) this.netEnemies.clear();
+    if (this.netTowers) this.netTowers.clear();
+    this.remote = false; this.net = null;
     TD.DamageText.clear();
   };
 
@@ -3615,6 +4107,17 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     if (!p.ok) { TD.Audio.error(); return; }
     const def = p.def, cost = def.lv[0].c;
     if (this.cash < cost) { TD.Audio.error(); TD.toast('Not enough cash', 'bad'); return; }
+
+    /* A client asks; the host decides.  The tower arrives in the next
+       snapshot, which is also what corrects the wallet. */
+    if (this.remote) {
+      this.net.send({ k: 'place', d: def.id, x: x, z: z });
+      const keep = !!this.keys['shift'];
+      this.cancelPlace();
+      if (keep) this.beginPlace(def.id);
+      return;
+    }
+
     this.cash -= cost;
     const t = this.makeTower(def, x, z);
     this.towers.push(t);
@@ -3627,11 +4130,35 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     else this.select(t);
   };
 
-  B.makeTower = function (def, x, z) {
+  /* The host applying a teammate's placement: every check the local path
+     makes, against their wallet instead of ours. */
+  B.placeFor = function (actor, def, x, z) {
+    if (!def || this.wallets[actor] === undefined) return null;
+    const cost = def.lv[0].c;
+    if (this.wallets[actor] < cost) return null;
+    if (this.towers.filter(t => t.def.id === def.id).length >= def.limit) return null;
+    if (this.towers.length >= this.map.maxTowers) return null;
+    if (!this.validSpot(def, x, z)) return null;
+    this.wallets[actor] -= cost;
+    const t = this.makeTower(def, x, z, actor);
+    this.towers.push(t);
+    this.stats.placed++;
+    spawnRipple(this, x, z, 0x6ee7ff, 4);
+    return t;
+  };
+
+  B.towerByNid = function (n) {
+    for (let i = 0; i < this.towers.length; i++) if (this.towers[i].nid === n) return this.towers[i];
+    return null;
+  };
+
+  B.makeTower = function (def, x, z, owner) {
     const group = TD.buildTower(def, 0);
     group.position.set(x, 0, z);
     this.scene.add(group);
+    owner = owner || this.me;
     const t = {
+      owner: owner, slot: this.slotOf(owner), nid: this.nidSeq++ & 1295,
       def: def, level: 0, x: x, z: z, group: group,
       cd: 0, target: null, mode: 0, kills: 0, dealt: 0,
       spent: def.lv[0].c, jam: 0, abilityCd: 0, ramp: 0, harvestKills: 0,
@@ -3652,11 +4179,17 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     if (a === 'drones') this.syncDrones(t);
   };
 
-  B.upgrade = function (t) {
+  /* `actor` is who is paying.  Omitted it is the local player; the host
+     passes a teammate's key when applying their command. */
+  B.upgrade = function (t, actor) {
+    const mine = !actor || actor === this.me;
+    actor = actor || this.me;
     if (t.level >= t.def.lv.length - 1) return;
+    if (!this.owns(t, actor)) { if (mine) { TD.Audio.error(); TD.toast('That is not your tower', 'bad'); } return; }
     const next = t.def.lv[t.level + 1];
-    if (this.cash < next.c) { TD.Audio.error(); TD.toast('Not enough cash', 'bad'); return; }
-    this.cash -= next.c; t.spent += next.c; t.level++;
+    if ((this.wallets[actor] || 0) < next.c) { if (mine) { TD.Audio.error(); TD.toast('Not enough cash', 'bad'); } return; }
+    if (this.remote && mine) { this.net.send({ k: 'up', n: t.nid }); return; }
+    this.wallets[actor] -= next.c; t.spent += next.c; t.level++;
     t.stats = TD.statsAt(t.def, t.level);
     this.scene.remove(t.group);
     t.group = TD.buildTower(t.def, t.level);
@@ -3669,12 +4202,27 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     if (this.selected === t) TD.UI.showTower(t);
   };
 
-  B.sell = function (t) {
+  B.sell = function (t, actor) {
+    const mine = !actor || actor === this.me;
+    actor = actor || this.me;
+    if (!this.owns(t, actor)) { if (mine) { TD.Audio.error(); TD.toast('That is not your tower', 'bad'); } return; }
+    if (this.remote && mine) { this.net.send({ k: 'sell', n: t.nid }); this.select(null); return; }
     const refund = Math.floor(t.spent * 0.65);
-    this.cash += refund;
+    this.credit(actor, refund);
     this.removeTower(t);
     TD.Audio.sell();
-    TD.toast('Sold for $' + TD.fmt(refund), 'good');
+    if (mine) TD.toast('Sold for $' + TD.fmt(refund), 'good');
+  };
+
+  /* In a solo match every tower is yours. */
+  B.owns = function (t, actor) { return !this.net || t.owner === (actor || this.me); };
+
+  B.setMode = function (t, m) {
+    if (!this.owns(t)) { TD.Audio.error(); return; }
+    t.mode = m;
+    if (this.remote) this.net.send({ k: 'mode', n: t.nid, m: m });
+    TD.Audio.ui();
+    TD.UI.showTower(t);
   };
 
   B.removeTower = function (t) {
@@ -3701,9 +4249,10 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
      ==================================================================== */
   B.startWave = function (fromSkip) {
     if (this.phase !== 'prep') return;
+    if (this.remote) { this.net.send({ k: 'wave' }); return; }
     if (fromSkip) {
       const bonus = TD.skipBonus(this.diff, this.wave + 1, this.prepT);
-      this.cash += bonus; this.stats.cashEarned += bonus;
+      this.slots.forEach(k => this.credit(k, bonus));
       TD.toast('Skip bonus +$' + bonus, 'good');
     }
     this.wave++;
@@ -3718,14 +4267,16 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   B.endWave = function () {
     this.phase = 'prep';
     this.prepT = this.wave >= this.diff.waves ? 0 : 13;
-    let income = TD.waveBonus(this.diff, this.wave);
+    const base = TD.waveBonus(this.diff, this.wave);
+    let income = base;
     let heal = 0;
+    /* The wave bonus is paid to everyone; a farm pays the player who built it. */
+    this.slots.forEach(k => this.credit(k, base));
     this.towers.forEach(t => {
       const s = t.stats;
-      if (s.income) income += s.income;
+      if (s.income) { this.credit(t.owner, s.income); if (t.owner === this.me) income += s.income; }
       if (s.heal) heal += s.heal;
     });
-    this.cash += income; this.stats.cashEarned += income;
     if (heal) { this.hp = Math.min(this.maxHp, this.hp + heal); }
     TD.Audio.coin();
     TD.toast('Wave ' + this.wave + ' cleared  +$' + TD.fmt(income) + (heal ? '  +' + heal + ' HP' : ''), 'good');
@@ -3735,6 +4286,8 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   B.finish = function (won) {
     if (this.phase === 'over') return;
     this.phase = 'over';
+    this.wonMatch = !!won;
+    if (TD.Coop && TD.Coop.active) TD.Coop.matchEnded();
     won ? TD.Audio.win() : TD.Audio.lose();
     const d = TD.Save.data;
     const mul = this.diff.reward * (1 + this.map.tier * 0.12);
@@ -3761,6 +4314,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     const scale = TD.hpScale(this.diff, this.wave);
     const hp = Math.round(def.hp * (def.boss ? TD.bossScale(this.diff, this.wave) : scale));
     const e = {
+      nid: this.nidSeq++ % 46656,
       def: def, model: model, group: model.group, pd: pd, pathIdx: pathIdx,
       d: spawnD || 0, hp: hp, maxHp: hp, baseSpd: def.spd * this.diff.spdMul,
       slow: 0, slowT: 0, freezeT: 0, burn: 0, burnT: 0, poison: 0, poisonT: 0,
@@ -3836,7 +4390,8 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     }
     e.dead = true;
     const cash = Math.round(e.def.cash * TD.cashScale(this.diff, this.wave));
-    this.cash += cash; this.stats.cashEarned += cash; this.stats.kills++;
+    this.credit(source ? source.owner : this.me, cash);
+    this.stats.kills++;
     if (source) { source.kills++; if (source.stats.harvest) source.harvestKills++; }
     TD.Audio.hit();
 
@@ -3934,8 +4489,10 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   const STEP = 0.05;
   B.update = function (rawDt) {
     if (!this.active) return;
+    if (this.remote) return this.updateRemote(rawDt);
     if (this.paused || this.phase === 'over') {
       this.panKeys(rawDt); this.updatePlayer(rawDt); this.updateCamera(rawDt);
+      this.updateAvatars(rawDt);
       return;
     }
 
@@ -3952,6 +4509,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
 
     this.updateGhost();
     this.updateCamera(rawDt);
+    this.updateAvatars(rawDt);
     if (this.baseModel) {
       this.baseModel.userData.core.position.y = 5.2 + Math.sin(this.time * 1.6) * 0.25;
       this.baseModel.userData.ring.rotation.z += rawDt * 0.8;
@@ -4353,7 +4911,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
         break;
       }
     }
-    if (s.cash) { this.cash += s.cash; this.stats.cashEarned += s.cash; }
+    if (s.cash) this.credit(t.owner, s.cash);
     muzzleFlash(this, t, muzzle);
   };
 
@@ -4670,7 +5228,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
 
       if (target && u.t <= 0) {
         u.t = u.cd;
-        this.damageEnemy(target, u.dmg, { source: null, silent: true });
+        this.damageEnemy(target, u.dmg, { source: u.owner || null, silent: true });
         if (u.poison) this.applyStatus(target, { poison: u.poison }, null);
         if (u.splash) this.splashDamage(null, target.group.position.x, target.group.position.z, u.splash, u.dmg * 0.5, { skip: target });
         if (u.ranged > 4) spawnTracer(this, { x: u.group.position.x, y: 3, z: u.group.position.z }, target.group.position, 0x9fe8ff);
@@ -4916,9 +5474,13 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   };
 
   /* ------------------------------ abilities -------------------------- */
-  B.useAbility = function (t) {
+  B.useAbility = function (t, actor) {
+    const mine = !actor || actor === this.me;
+    actor = actor || this.me;
     const ab = t.def.ability;
-    if (!ab || t.level < ab.level || t.abilityCd > 0) { TD.Audio.error(); return; }
+    if (!ab || t.level < ab.level || t.abilityCd > 0) { if (mine) TD.Audio.error(); return; }
+    if (!this.owns(t, actor)) { if (mine) { TD.Audio.error(); TD.toast('That is not your tower', 'bad'); } return; }
+    if (this.remote && mine) { this.net.send({ k: 'ability', n: t.nid }); return; }
     t.abilityCd = ab.cd;
     TD.Audio.ability();
     switch (ab.id) {
@@ -5015,6 +5577,9 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
 
     window.addEventListener('keydown', e => {
       if (!self.active) return;
+      /* Never steal keys from a text field — the co-op chat box uses one. */
+      const tag = e.target && e.target.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target && e.target.isContentEditable)) return;
       const k = e.key.toLowerCase();
       self.keys[k] = true;
       if (k === 'escape') { if (self.placing) self.cancelPlace(); else self.select(null); }
@@ -5024,12 +5589,13 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
       }
       if (k === 'q' && self.selected) self.upgrade(self.selected);
       if (k === 'x' && self.selected) self.sell(self.selected);
-      if (k === 't' && self.selected) { self.selected.mode = (self.selected.mode + 1) % 5; TD.UI.showTower(self.selected); }
+      if (k === 't' && self.selected) self.setMode(self.selected, (self.selected.mode + 1) % 5);
       if (k === 'f' && self.selected) self.useAbility(self.selected);
       if (k === ' ') e.preventDefault();               // jump; handled in updatePlayer
       if (k === 'enter') { if (self.phase === 'prep' && self.wave < self.diff.waves) self.startWave(true); }
       if (k === 'c') TD.UI.toggleFollow();
       if (k === 'p') TD.UI.togglePause();
+      if (k === 'y' && TD.Coop && TD.Coop.active) { e.preventDefault(); TD.UI.focusChat(); }
     });
     window.addEventListener('keyup', e => { self.keys[e.key.toLowerCase()] = false; });
     window.addEventListener('blur', () => { self.keys = {}; });
@@ -5099,6 +5665,610 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     return { push: push, update: update, clear: clear };
   })();
 
+  /* ====================================================================
+     THE CLIENT SIDE OF CO-OP
+
+     A client never simulates.  It receives the host's packed world about
+     fifteen times a second and rebuilds it: enemies are placed by the same
+     `pathPoint` the host uses, from the same path data, so the only thing
+     that can differ is the fraction of a second since the last snapshot —
+     which is covered by advancing each enemy at its own known speed and
+     easing onto the next snapshot when it lands.
+
+     Towers still fire here, but only for show: the muzzle flashes and the
+     aiming are local decoration, and every number on screen comes from the
+     host.
+     ==================================================================== */
+
+  const PLAYER_COLORS = [0x4f8cff, 0xff8b3a, 0x51d88a, 0xa678ff, 0xffc63d, 0xff5d6c];
+  const PLAYER_TAGS = ['#6ee7ff', '#ffb27a', '#8ce8b4', '#c9a9ff', '#ffdd8a', '#ff9aa4'];
+  B.playerColor = i => PLAYER_COLORS[i % PLAYER_COLORS.length];
+  B.playerTag = i => PLAYER_TAGS[i % PLAYER_TAGS.length];
+
+  /* One decoded snapshot from the host. */
+  B.applySnapshot = function (s) {
+    if (!this.active || !this.remote) return;
+    this.snap = s;
+    this.hp = s.hp; this.maxHp = s.mhp || this.maxHp;
+    if (s.w > this.wave && s.w > 0) {
+      TD.UI.waveBanner('WAVE ' + s.w, TD.wavePreview(this.diff, s.w));
+      TD.Audio.wave();
+    }
+    this.wave = s.w; this.prepT = s.pt; this.speed = s.sp || 1;
+    if (s.slots) this.slots = s.slots;
+    if (s.wallets) {
+      this.slots.forEach((k, i) => { this.wallets[k] = s.wallets[i] || 0; });
+      if (this.wallets[this.me] === undefined) this.wallets[this.me] = 0;
+    }
+    const wasPhase = this.phase;
+    this.phase = s.st;
+    if (wasPhase !== 'over' && s.st === 'over') this.remoteFinish(s.won);
+
+    this.syncRemoteTowers(TD.Net.unpackTowers(s.T));
+    this.syncRemoteEnemies(TD.Net.unpackEnemies(s.E));
+  };
+
+  B.syncRemoteEnemies = function (recs) {
+    const live = this.netEnemies, seen = new Set();
+    for (let i = 0; i < recs.length; i++) {
+      const r = recs[i];
+      seen.add(r.nid);
+      let e = live.get(r.nid);
+      if (!e) {
+        const def = TD.ENEMIES[r.type];
+        if (!def) continue;
+        const model = TD.buildEnemy(def);
+        e = {
+          nid: r.nid, def: def, model: model, group: model.group,
+          pd: this.map.pathData[r.pathIdx % this.map.pathData.length],
+          pathIdx: r.pathIdx, d: r.d, td: r.d, hp: r.hp, phase: Math.random() * 6,
+          bar: makeBar(def.boss), flags: r.flags
+        };
+        e.group.add(e.bar.group);
+        e.bar.group.position.y = def.boss ? 8.4 : 6.6;
+        e.bar.group.visible = !!def.boss;
+        if (def.flying) e.group.position.y = 6;
+        this.scene.add(e.group);
+        live.set(r.nid, e);
+      } else {
+        /* A drop in health is worth a hit spark even though we did not
+           compute the damage. */
+        if (r.hp < e.hp - 0.02) spawnRipple(this, e.group.position.x, e.group.position.z, 0xffe08a, 1.6);
+        e.hp = r.hp; e.td = r.d; e.flags = r.flags;
+      }
+    }
+    live.forEach((e, nid) => {
+      if (seen.has(nid)) return;
+      /* Gone from the host's world: killed, or it leaked. */
+      spawnPuff(this, e.group.position, (e.def.model && e.def.model.shirt) || 0xffffff, e.def.boss ? 22 : 8);
+      this.scene.remove(e.group);
+      live.delete(nid);
+    });
+  };
+
+  B.syncRemoteTowers = function (recs) {
+    const live = this.netTowers, seen = new Set();
+    for (let i = 0; i < recs.length; i++) {
+      const r = recs[i];
+      const def = TD.TOWERS[r.type];
+      if (!def) continue;
+      seen.add(r.nid);
+      let t = live.get(r.nid);
+      if (t && t.level !== r.level) { this.removeTower(t); live.delete(r.nid); t = null; }
+      if (!t) {
+        t = this.makeTower(def, r.x, r.z, this.slots[r.slot] || this.me);
+        t.nid = r.nid; t.slot = r.slot; t.level = r.level;
+        t.stats = TD.statsAt(def, r.level);
+        t.spent = def.lv.slice(0, r.level + 1).reduce((a, l) => a + l.c, 0);
+        if (r.level > 0) {
+          this.scene.remove(t.group);
+          t.group = TD.buildTower(def, r.level);
+          t.group.position.set(r.x, 0, r.z);
+          this.scene.add(t.group);
+          this.initSpecial(t);
+        }
+        this.towers.push(t);
+        live.set(r.nid, t);
+      }
+    }
+    live.forEach((t, nid) => {
+      if (seen.has(nid)) return;
+      this.removeTower(t);
+      live.delete(nid);
+    });
+  };
+
+  B.remoteFinish = function (won) {
+    TD.Audio[won ? 'win' : 'lose']();
+    this.stats.kills = this.stats.kills || 0;
+    TD.UI.showResults(!!won, this, 0, 0);
+  };
+
+  /* Per-frame work on a client: everything local (your character, the
+     camera, the placement ghost) plus dead reckoning for the world. */
+  B.updateRemote = function (rawDt) {
+    this.time += rawDt;
+    this.panKeys(rawDt);
+    this.updatePlayer(rawDt);
+    this.stepRemoteEnemies(rawDt);
+    this.aimRemoteTowers(rawDt);
+    this.updateFx(rawDt);
+    this.updateGhost();
+    this.updateCamera(rawDt);
+    this.updateAvatars(rawDt);
+    if (this.baseModel) {
+      this.baseModel.userData.core.position.y = 5.2 + Math.sin(this.time * 1.6) * 0.25;
+      this.baseModel.userData.ring.rotation.z += rawDt * 0.8;
+    }
+    this.portals.forEach((p, i) => { p.userData.ring.rotation.z += rawDt * (1 + i * 0.3); });
+    TD.UI.tick(this);
+    TD.DamageText.update(rawDt, this.camera);
+  };
+
+  B.stepRemoteEnemies = function (dt) {
+    const ease = TD.clamp(dt * 10, 0, 1);
+    this.netEnemies.forEach(e => {
+      /* Predict with what the flags tell us; the next snapshot corrects it. */
+      let spd = e.def.spd * this.diff.spdMul * this.speed;
+      if (e.flags & 1) spd = 0;             // frozen
+      else if (e.flags & 16) spd = 0;       // held by a blocker
+      else if (e.flags & 2) spd *= 0.55;    // slowed
+      e.td += spd * dt;
+      e.d += (e.td - e.d) * ease + spd * dt * (1 - ease);
+
+      const p = TD.pathPoint(e.pd, e.d);
+      const y = e.def.flying ? 6 + Math.sin(this.time * 2 + e.phase) * 0.5 : 0;
+      e.group.position.set(p.x, y, p.z);
+      if (spd > 0.01 || !e.def.flying) e.group.rotation.y = Math.atan2(p.dx, p.dz);
+
+      const mv = spd > 0.05 ? TD.clamp(spd / 5, 0.4, 1.4) : ((e.flags & 16) ? 1.1 : 0);
+      if (e.model.human) e.model.human.anim(this.time + e.phase, mv, { speed: 7 });
+      if (e.model.blob) {
+        const s = 1 + Math.sin(this.time * 7 + e.phase) * 0.09;
+        e.model.blob.scale.set(s, 2 - s, s);
+      }
+      if (e.model.wings) e.model.wings.userData.flap(this.time + e.phase);
+      if (e.model.aura) e.model.aura.rotation.z += dt * 2;
+
+      e.bar.fill.scale.x = Math.max(0.001, e.bar.w * e.hp);
+      e.bar.fill.position.x = -(e.bar.w * (1 - e.hp)) / 2;
+      TD.billboard(e.bar.group, this.camera);
+    });
+  };
+
+  /* Cosmetic only — turn each tower towards something plausible so the
+     board does not look frozen between snapshots. */
+  B.aimRemoteTowers = function (dt) {
+    for (let i = 0; i < this.towers.length; i++) {
+      const t = this.towers[i];
+      let best = null, bestD = (t.stats.range || 0) + 1;
+      this.netEnemies.forEach(e => {
+        const d = TD.dist(t.x, t.z, e.group.position.x, e.group.position.z);
+        if (d < bestD) { bestD = d; best = e; }
+      });
+      if (best) {
+        const want = Math.atan2(best.group.position.x - t.x, best.group.position.z - t.z);
+        t.aim = TD.angleLerp(t.aim, want, Math.min(1, dt * 9));
+        aimAnim(t, this.time);
+      } else {
+        idleAnim(t, this.time);
+      }
+    }
+  };
+
+  /* ---------------------------------------------------------------
+     Other players' characters, driven by their own presence.
+     --------------------------------------------------------------- */
+  B.syncAvatars = function (list) {
+    if (!this.active || !this.scene) return;
+    const seen = new Set();
+    list.forEach(p => {
+      if (p.key === this.me) return;
+      seen.add(p.key);
+      let a = this.avatars[p.key];
+      if (!a) {
+        const slot = Math.max(0, this.slots.indexOf(p.key));
+        const h = TD.makeAvatar(p.name || 'Player', p.level || 1,
+          { shirt: B.playerColor(slot), tag: B.playerTag(slot) });
+        this.scene.add(h.group);
+        a = this.avatars[p.key] = { model: h, x: p.x, z: p.z, tx: p.x, tz: p.z, dir: p.ry || 0, t: 0 };
+      }
+      a.tx = p.x; a.tz = p.z; a.dir = p.ry || 0;
+    });
+    Object.keys(this.avatars).forEach(k => {
+      if (seen.has(k)) return;
+      this.scene.remove(this.avatars[k].model.group);
+      delete this.avatars[k];
+    });
+  };
+
+  B.updateAvatars = function (dt) {
+    const keys = Object.keys(this.avatars);
+    for (let i = 0; i < keys.length; i++) {
+      const a = this.avatars[keys[i]];
+      const dx = a.tx - a.x, dz = a.tz - a.z;
+      const dist = Math.sqrt(dx * dx + dz * dz);
+      const ease = TD.clamp(dt * 9, 0, 1);
+      a.x += dx * ease; a.z += dz * ease;
+      a.t += dt;
+      a.model.group.position.set(a.x, 0, a.z);
+      a.model.group.rotation.y = a.dir;
+      a.model.anim(a.t, TD.clamp(dist * 1.4, 0, 1.3), { speed: 9 });
+      if (a.model.tag) TD.billboard(a.model.tag, this.camera);
+    }
+  };
+
+})();
+</script>
+<script>
+/* ---- js/coop.js ---- */
+/* =========================================================================
+   coop.js — online co-op: the room, the roster, and keeping one host's
+   world in front of everybody else.
+
+   Shape of it:
+
+     * Whoever opens the room is the HOST.  The host runs the ordinary
+       simulation — the same code a solo match runs — and publishes a
+       packed snapshot of it through room presence, which the platform
+       coalesces and hands to newcomers by itself.
+     * Everyone else is a CLIENT.  A client simulates nothing.  It renders
+       the host's snapshot and sends what its player did as a command.
+     * Each player has their own wallet and their own towers.  The base HP
+       is shared, because the base is.
+
+   Nothing arriving from the room is trusted: a command is a request, and
+   the host re-checks it against its own world before acting.
+   ========================================================================= */
+(function () {
+  const Coop = TD.Coop = {
+    active: false,          // in a room
+    role: null,             // 'host' | 'client'
+    code: null,
+    me: null,               // our own peer label
+    hostPeer: null,
+    players: [],            // roster, host first
+    slots: [],              // peer labels by slot index
+    map: 'greenway', diff: 'standard',
+    phase: 'lobby',         // 'lobby' | in-match phase reported by the host
+    lastSnapAt: 0,
+    error: null
+  };
+
+  const TICK = 1000 / 15;               // world updates per second
+  const MAX_PRESENCE = 3600;            // leave room under the platform's 4 KiB
+  let session = null;
+  let unsubs = [];
+  let timer = null;
+  let lastRosterKey = '';
+
+  const me = () => cleanName(TD.Save.data.name);
+  const myLevel = () => TD.levelFromXp(TD.Save.data.xp).level;
+
+  /* ====================================================================
+     Joining and leaving
+     ==================================================================== */
+  Coop.backend = async function () { return await TD.Net.connect(); };
+
+  /* The platform refuses sends from view-only members.  Say so once rather
+     than letting their clicks quietly do nothing. */
+  let deniedOnce = false;
+  TD.Net.onDenied = function () {
+    if (deniedOnce) return;
+    deniedOnce = true;
+    TD.toast('You have view-only access to this page, so you can watch but not build', 'bad');
+  };
+
+  Coop.open = async function (code, asHost) {
+    Coop.error = null;
+    const backend = await TD.Net.connect();
+    if (!backend) { Coop.error = 'This browser cannot open a co-op room.'; return false; }
+    try {
+      session = await TD.Net.join(code);
+    } catch (e) {
+      Coop.error = 'Could not open room ' + String(code).toUpperCase() + '.';
+      return false;
+    }
+    Coop.active = true;
+    Coop.code = code;
+    Coop.role = asHost ? 'host' : 'client';
+    Coop.phase = 'lobby';
+    Coop.hostPeer = null;
+    Coop.me = TD.Net.selfPeer();
+
+    unsubs.push(session.on('act', onAct));
+    unsubs.push(session.on('ev', onEvent));
+    unsubs.push(session.on('chat', onChat));
+    unsubs.push(session.onPeers(onPeers));
+
+    pushPresence(true);
+    timer = setInterval(tick, TICK);
+    return true;
+  };
+
+  Coop.host = function () { return Coop.open(TD.Net.makeCode(), true); };
+  Coop.joinCode = function (code) { return Coop.open(String(code).toLowerCase(), false); };
+
+  Coop.leave = async function () {
+    if (timer) { clearInterval(timer); timer = null; }
+    unsubs.forEach(u => { try { u(); } catch (e) { /* already gone */ } });
+    unsubs = [];
+    Coop.active = false; Coop.role = null; Coop.code = null;
+    Coop.players = []; Coop.slots = []; Coop.hostPeer = null; Coop.phase = 'lobby';
+    session = null;
+    await TD.Net.leave();
+    TD.UI.renderCoop && TD.UI.renderCoop();
+  };
+
+  Coop.isHost = () => Coop.active && Coop.role === 'host';
+  Coop.count = () => Coop.players.length;
+
+  /* ====================================================================
+     Roster
+
+     Everyone publishes their own name and position; the host publishes the
+     slot order so tower ownership can travel as a single character.
+     ==================================================================== */
+  function onPeers() {
+    if (!session) return;
+    const peers = session.peers();
+    if (!Coop.me) Coop.me = TD.Net.selfPeer();
+
+    /* Exactly one host.  If two pages both think they are it — both opened
+       the same code at once — the lower peer label keeps it. */
+    const claims = peers.filter(p => p.presence && p.presence.r === 'h').map(p => p.peer).sort();
+    const host = claims[0] || null;
+    Coop.hostPeer = host;
+    if (Coop.role === 'host' && host && host !== Coop.me) {
+      Coop.role = 'client';                       // we lost the tie; stand down
+      pushPresence(true);
+    }
+    if (Coop.role === 'client' && !host && peers.length) {
+      /* The host left.  Nobody inherits a running match: it ends. */
+      if (TD.Battle.active && TD.Battle.remote) {
+        TD.toast('The host left the match', 'bad');
+        TD.Game.toLobby();
+      }
+    }
+
+    const list = peers.map(p => {
+      const pr = p.presence || {};
+      return {
+        key: p.peer,
+        isMe: !!p.isMe && !!p.sameTab,
+        host: p.peer === host,
+        name: cleanName(pr.n),
+        level: Math.max(1, Math.min(999, Number(pr.lv) || 1)),
+        x: Number(pr.x) || 0, z: Number(pr.z) || 0, ry: Number(pr.ry) || 0
+      };
+    }).filter(p => p.key);
+    list.sort((a, b) => (b.host ? 1 : 0) - (a.host ? 1 : 0) || (a.key < b.key ? -1 : 1));
+    Coop.players = list;
+
+    if (Coop.isHost()) Coop.slots = list.map(p => p.key);
+
+    const hp = peers.find(p => p.peer === host);
+    if (hp && hp.presence) readHostPresence(hp.presence);
+
+    const key = list.map(p => p.key + p.name + (p.host ? 'h' : '')).join('|') + Coop.role;
+    if (key !== lastRosterKey) { lastRosterKey = key; TD.UI.renderCoop && TD.UI.renderCoop(); }
+
+    if (TD.Battle.active) TD.Battle.syncAvatars(list.map(p => ({
+      key: p.key, name: p.name, level: p.level, x: p.x, z: p.z, ry: p.ry
+    })));
+  }
+
+  /* Another page chose this string; show it, never trust it. */
+  function cleanName(v) {
+    let s = typeof v === 'string' ? v : '';
+    s = s.replace(/[\u0000-\u001f\u007f-\u009f]/g, '').trim().slice(0, 16);
+    return s || 'Player';
+  }
+
+  /* ====================================================================
+     What the host publishes, and what a client does with it
+     ==================================================================== */
+  function readHostPresence(pr) {
+    if (Coop.role === 'host') return;
+    if (typeof pr.mp === 'string') Coop.map = pr.mp;
+    if (typeof pr.df === 'string') Coop.diff = pr.df;
+    if (typeof pr.S === 'string' && pr.S) Coop.slots = pr.S.split('.');
+    const st = typeof pr.st === 'string' ? pr.st : 'lobby';
+    const was = Coop.phase;
+    Coop.phase = st;
+
+    if (st === 'lobby') {
+      if (was !== 'lobby' && TD.Battle.active && TD.Battle.remote) TD.Game.toLobby();
+      return;
+    }
+    /* The host is in a match.  Join it. */
+    if (TD.Battle.active && TD.Battle.remote && TD.Battle.map.id !== Coop.map) {
+      TD.Game.toLobby();                       // they moved on to another map
+    }
+    if (!TD.Battle.active || !TD.Battle.remote) {
+      if (!TD.mapById(Coop.map) || !TD.diffById(Coop.diff)) return;
+      enterAsClient();
+    }
+    if (TD.Battle.active && TD.Battle.remote) {
+      Coop.lastSnapAt = performance.now();
+      TD.Battle.applySnapshot({
+        st: st,
+        hp: Number(pr.hp) || 0,
+        mhp: Number(pr.mhp) || 100,
+        w: Number(pr.w) || 0,
+        pt: Number(pr.pt) || 0,
+        sp: Number(pr.sp) || 1,
+        won: !!pr.won,
+        slots: typeof pr.S === 'string' && pr.S ? pr.S.split('.') : Coop.slots,
+        wallets: typeof pr.W === 'string' && pr.W ? pr.W.split('.').map(Number) : null,
+        E: typeof pr.E === 'string' ? pr.E : '',
+        T: typeof pr.T === 'string' ? pr.T : ''
+      });
+      if (typeof pr.S === 'string' && pr.S) Coop.slots = pr.S.split('.');
+    }
+  }
+
+  function enterAsClient() {
+    Coop.me = Coop.me || TD.Net.selfPeer() || 'me';
+    const load = TD.Save.data.loadout.filter(Boolean);
+    TD.Game.startMatch(Coop.map, Coop.diff, load.length ? load : ['recruit'], {
+      net: netHandle(), me: Coop.me, slots: Coop.slots.length ? Coop.slots : [Coop.me]
+    });
+  }
+
+  function netHandle() {
+    return {
+      role: Coop.role,
+      send: cmd => { if (session) session.emit('act', cmd); }
+    };
+  }
+
+  /* ====================================================================
+     The heartbeat: our own presence, and the world if we are the host
+     ==================================================================== */
+  function pushPresence(full) {
+    if (!session) return;
+    const B = TD.Battle;
+    const patch = {
+      r: Coop.role === 'host' ? 'h' : 'c',
+      n: me(), lv: myLevel()
+    };
+    if (B.active && B.player) {
+      patch.x = Math.round(B.player.x * 10) / 10;
+      patch.z = Math.round(B.player.z * 10) / 10;
+      patch.ry = Math.round(B.player.dir * 100) / 100;
+    }
+    if (Coop.role === 'host') Object.assign(patch, hostFields());
+    else if (full) { patch.st = null; patch.E = null; patch.T = null; patch.W = null; patch.S = null; }
+    session.presence(patch);
+  }
+
+  function hostFields() {
+    const B = TD.Battle;
+    const f = { mp: Coop.map, df: Coop.diff, S: Coop.slots.join('.') };
+    if (!B.active || B.remote) { f.st = 'lobby'; f.E = ''; f.T = ''; f.W = ''; return f; }
+    f.st = B.phase;
+    f.hp = Math.ceil(B.hp);
+    f.mhp = B.maxHp;
+    f.w = B.wave;
+    f.pt = Math.round(B.prepT * 10) / 10;
+    f.sp = B.speed;
+    f.W = Coop.slots.map(k => Math.floor(B.wallets[k] || 0)).join('.');
+    f.T = TD.Net.packTowers(B.towers);
+    if (B.phase === 'over') f.won = B.wonMatch ? 1 : 0;
+
+    /* Enemies are what can overflow presence, so the ones nearest the base
+       — the ones that matter — are packed first and the tail is dropped. */
+    const sorted = B.enemies.slice().sort((a, b) => b.d - a.d);
+    let cap = sorted.length;
+    f.E = TD.Net.packEnemies(sorted, cap);
+    while (cap > 0 && JSON.stringify(f).length > MAX_PRESENCE) {
+      cap = Math.max(0, cap - Math.max(8, Math.ceil(cap * 0.15)));
+      f.E = TD.Net.packEnemies(sorted, cap);
+    }
+    return f;
+  }
+
+  function tick() {
+    if (!Coop.active || !session) return;
+    pushPresence(false);
+    /* A client that has heard nothing for a while has lost the host. */
+    if (Coop.role === 'client' && TD.Battle.active && TD.Battle.remote &&
+      Coop.lastSnapAt && performance.now() - Coop.lastSnapAt > 8000) {
+      TD.toast('Lost the host', 'bad');
+      TD.Game.toLobby();
+      Coop.lastSnapAt = 0;
+    }
+  }
+
+  /* ====================================================================
+     Commands from clients — host only
+     ==================================================================== */
+  function onAct(msg) {
+    if (msg.isMe && msg.sameTab) return;
+    if (!Coop.isHost()) return;
+    const B = TD.Battle;
+    if (!B.active || B.remote || B.phase === 'over') return;
+    const key = msg.peer, c = msg.data;
+    if (!key || !c || typeof c !== 'object') return;
+    if (B.wallets[key] === undefined) return;          // not a player in this match
+
+    switch (c.k) {
+      case 'place': {
+        const def = TD.TOWERS[String(c.d)];
+        const x = Number(c.x), z = Number(c.z);
+        if (!def || !isFinite(x) || !isFinite(z)) return;
+        B.placeFor(key, def, Math.round(x / 2) * 2, Math.round(z / 2) * 2);
+        break;
+      }
+      case 'up': { const t = B.towerByNid(Number(c.n)); if (t) B.upgrade(t, key); break; }
+      case 'sell': { const t = B.towerByNid(Number(c.n)); if (t) B.sell(t, key); break; }
+      case 'ability': { const t = B.towerByNid(Number(c.n)); if (t) B.useAbility(t, key); break; }
+      case 'mode': {
+        const t = B.towerByNid(Number(c.n));
+        if (t && t.owner === key) t.mode = Math.max(0, Math.min(5, Number(c.m) | 0));
+        break;
+      }
+      case 'wave': if (B.phase === 'prep') B.startWave(true); break;
+      default: break;
+    }
+  }
+
+  /* ====================================================================
+     Announcements — rare, so an event topic is the right place
+     ==================================================================== */
+  function onEvent(msg) {
+    const d = msg.data || {};
+    if (msg.isMe && msg.sameTab) return;
+    if (d.k === 'wave' && TD.Battle.active) TD.UI.waveBanner('WAVE ' + (Number(d.n) || 0), String(d.s || '').slice(0, 80));
+    if (d.k === 'start') Coop.lastSnapAt = performance.now();
+  }
+
+  Coop.announce = function (data) { if (session) session.emit('ev', data); };
+
+  function onChat(msg) {
+    if (msg.isMe && msg.sameTab) return;      // our own line is already on screen
+    const d = msg.data || {};
+    const text = String(d.t || '').replace(/[\u0000-\u001f]/g, '').slice(0, 120);
+    if (!text) return;
+    const who = cleanName(d.n);
+    TD.UI.chatLine(who, text, !!(msg.isMe && msg.sameTab));
+  }
+
+  Coop.say = function (text) {
+    text = String(text || '').trim().slice(0, 120);
+    if (!text || !session) return;
+    session.emit('chat', { n: me(), t: text });
+    TD.UI.chatLine(me(), text, true);
+  };
+
+  /* ====================================================================
+     Starting the match
+     ==================================================================== */
+  Coop.setMap = function (mapId, diffId) {
+    if (!Coop.isHost()) return;
+    Coop.map = mapId; Coop.diff = diffId;
+    pushPresence(true);
+    TD.UI.renderCoop && TD.UI.renderCoop();
+  };
+
+  Coop.start = function () {
+    if (!Coop.isHost()) return;
+    const load = TD.Save.data.loadout.filter(Boolean);
+    if (!load.length) { TD.Audio.error(); TD.toast('Pick at least one tower in Loadout', 'bad'); return; }
+    Coop.me = Coop.me || TD.Net.selfPeer() || 'me';
+    Coop.slots = Coop.players.map(p => p.key);
+    TD.Game.startMatch(Coop.map, Coop.diff, load, {
+      net: netHandle(), me: Coop.me, slots: Coop.slots
+    });
+    Coop.announce({ k: 'start' });
+    pushPresence(true);
+  };
+
+  /* The host's own match ending or being left behind. */
+  Coop.matchEnded = function () {
+    if (Coop.isHost()) pushPresence(true);
+  };
 })();
 </script>
 <script>
@@ -5204,7 +6374,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   /* ---------------------------------------------------------------- */
   /*  modal plumbing                                                   */
   /* ---------------------------------------------------------------- */
-  const MODALS = { shop: '#shop-modal', loadout: '#loadout-modal', play: '#map-modal', codex: '#codex-modal', settings: '#settings-modal' };
+  const MODALS = { shop: '#shop-modal', loadout: '#loadout-modal', play: '#map-modal', codex: '#codex-modal', settings: '#settings-modal', coop: '#coop-modal' };
 
   UI.open = function (id) {
     UI.close();
@@ -5214,6 +6384,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     if (id === 'play') UI.buildMaps();
     if (id === 'codex') UI.buildCodex();
     if (id === 'settings') UI.buildSettings();
+    if (id === 'coop') UI.renderCoop();
     UI.refreshHud();
     $(sel).classList.remove('hidden');
     UI.openModal = sel;
@@ -5611,6 +6782,8 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   UI.exitBattle = function () {
     $('#battle-hud').classList.add('hidden');
     $('#lobby-hud').classList.remove('hidden');
+    $('#coop-hud').classList.add('hidden');
+    $('#chat').classList.add('hidden');
     UI.battle = null;
   };
 
@@ -5671,6 +6844,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
 
     if (UI.panelTower) UI.tickTowerPanel();
     if (n.follow) n.follow.classList.toggle('on', B.camFollow);
+    UI.tickCoop(B);
   };
 
   UI.waveBanner = function (text, sub) {
@@ -5821,6 +6995,12 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
       const load = TD.Save.data.loadout.filter(Boolean);
       if (!load.length) { TD.Audio.error(); TD.toast('Pick at least one tower in Loadout', 'bad'); return; }
       TD.Audio.ui();
+      /* Hosting a room? DEPLOY starts the match for everybody in it. */
+      if (TD.Coop.isHost()) {
+        TD.Coop.setMap(UI.selMap, UI.selDiff);
+        TD.Coop.start();
+        return;
+      }
       TD.Game.startMatch(UI.selMap, UI.selDiff, load);
     };
     $('#btn-reset').onclick = () => {
@@ -5845,8 +7025,8 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     $('#b-skip').onclick = () => { const B = UI.battle; if (B) B.startWave(true); };
     $('#tp-close').onclick = () => { if (UI.battle) UI.battle.select(null); };
     $('#tp-target').onclick = () => {
-      const t = UI.panelTower; if (!t) return;
-      t.mode = (t.mode + 1) % MODES.length; TD.Audio.ui(); UI.showTower(t);
+      const t = UI.panelTower; if (!t || !UI.battle) return;
+      UI.battle.setMode(t, (t.mode + 1) % MODES.length);
     };
     $('#tp-sell').onclick = () => { const t = UI.panelTower; if (t && UI.battle) UI.battle.sell(t); };
 
@@ -5854,8 +7034,160 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     $('#btn-again').onclick = () => {
       $('#result-modal').classList.add('hidden');
       const B = UI.battle;
+      if (B && B.remote) { TD.Game.toLobby(); return; }   // only the host can restart
       TD.Game.startMatch(B.map.id, B.diff.id, TD.Save.data.loadout.filter(Boolean));
     };
+
+    UI.initCoop();
+  };
+
+  /* ====================================================================
+     CO-OP
+     ==================================================================== */
+  UI.initCoop = function () {
+    $('#btn-coop').onclick = () => { TD.Audio.ui(); UI.open('coop'); };
+
+    $('#coop-host').onclick = async () => {
+      TD.Audio.ui();
+      $('#coop-host').disabled = true;
+      const ok = await TD.Coop.host();
+      $('#coop-host').disabled = false;
+      if (!ok) TD.toast(TD.Coop.error || 'Could not host', 'bad');
+      UI.renderCoop();
+    };
+
+    const doJoin = async () => {
+      const raw = ($('#coop-code').value || '').trim().toLowerCase();
+      if (!TD.Net.validCode(raw)) { TD.Audio.error(); TD.toast('Enter the 4-letter room code', 'bad'); return; }
+      TD.Audio.ui();
+      $('#coop-join').disabled = true;
+      const ok = await TD.Coop.joinCode(raw);
+      $('#coop-join').disabled = false;
+      if (!ok) TD.toast(TD.Coop.error || 'Could not join', 'bad');
+      UI.renderCoop();
+    };
+    $('#coop-join').onclick = doJoin;
+    $('#coop-code').addEventListener('keydown', e => { if (e.key === 'Enter') doJoin(); });
+
+    $('#coop-leave').onclick = async () => { TD.Audio.ui(); await TD.Coop.leave(); UI.renderCoop(); };
+    $('#coop-deploy').onclick = () => {
+      if (!TD.Coop.isHost()) return;
+      TD.Audio.ui();
+      UI.open('play');
+    };
+
+    /* Chat */
+    const ci = $('#chat-input');
+    ci.addEventListener('keydown', e => {
+      e.stopPropagation();
+      if (e.key === 'Enter') { TD.Coop.say(ci.value); ci.value = ''; ci.blur(); }
+      if (e.key === 'Escape') { ci.value = ''; ci.blur(); }
+    });
+  };
+
+  UI.focusChat = function () { const ci = $('#chat-input'); if (ci) ci.focus(); };
+
+  UI.chatLine = function (who, text, mine) {
+    const log = $('#chat-log'); if (!log) return;
+    const row = el('div', 'chat-row' + (mine ? ' mine' : ''));
+    row.appendChild(el('b', '', who + ': '));
+    row.appendChild(document.createTextNode(text));   // never innerHTML: this came off the wire
+    log.appendChild(row);
+    while (log.children.length > 40) log.removeChild(log.firstChild);
+    log.scrollTop = log.scrollHeight;
+    $('#chat').classList.remove('hidden');
+  };
+
+  UI.renderCoop = async function () {
+    const C = TD.Coop;
+    const entry = $('#coop-entry'), room = $('#coop-room');
+    if (!entry) return;
+
+    if (!C.active) {
+      entry.classList.remove('hidden'); room.classList.add('hidden');
+      $('#coop-leave').classList.add('hidden');
+      $('#coop-deploy').classList.add('hidden');
+      const backend = await TD.Net.connect();
+      const st = $('#coop-status');
+      if (backend === 'room') {
+        st.innerHTML = '<b class="ok">Online.</b> Anyone you share this page with can join your room.';
+      } else if (backend === 'channel') {
+        st.innerHTML = '<b class="warn">Local only.</b> This copy of the game is not hosted on claude.ai, ' +
+          'so a room reaches other tabs of this browser but not other people. Open the published page to play online.';
+      } else {
+        st.innerHTML = '<b class="bad">Unavailable.</b> This browser cannot open a co-op room.';
+      }
+      $('#coop-foot-note').textContent = '';
+      return;
+    }
+
+    entry.classList.add('hidden'); room.classList.remove('hidden');
+    $('#coop-leave').classList.remove('hidden');
+    $('#coop-code-out').textContent = (C.code || '').toUpperCase();
+    $('#coop-share').textContent = TD.Net.backend === 'room'
+      ? 'Share this code — and the page link — with your friends'
+      : 'Open this same page in another tab and join with this code';
+
+    const list = $('#coop-players');
+    list.innerHTML = '';
+    C.players.forEach((p, i) => {
+      const row = el('div', 'cp-row' + (p.isMe ? ' me' : ''));
+      const dot = el('span', 'cp-dot');
+      dot.style.background = '#' + TD.Battle.playerColor(i).toString(16).padStart(6, '0');
+      row.appendChild(dot);
+      row.appendChild(el('span', 'cp-name', p.name + (p.isMe ? ' (you)' : '')));
+      row.appendChild(el('span', 'cp-lvl', 'Lv ' + p.level));
+      row.appendChild(el('span', 'cp-role', p.host ? 'HOST' : ''));
+      list.appendChild(row);
+    });
+
+    const mp = TD.mapById(C.map), df = TD.diffById(C.diff);
+    $('#coop-map').innerHTML = '<span class="cm-label">Map</span><b>' + (mp ? mp.name : '—') +
+      '</b><span class="cm-sep">·</span><b>' + (df ? df.name : '—') + '</b>';
+
+    const deploy = $('#coop-deploy');
+    if (C.isHost()) {
+      deploy.classList.remove('hidden');
+      deploy.textContent = 'CHOOSE MAP & DEPLOY';
+      $('#coop-foot-note').textContent = C.players.length < 2
+        ? 'Waiting for players — you can start alone too.'
+        : C.players.length + ' players ready';
+    } else {
+      deploy.classList.add('hidden');
+      $('#coop-foot-note').textContent = 'Waiting for the host to start…';
+    }
+  };
+
+  /* The in-battle roster: who is playing, and what they have to spend. */
+  let coopHudKey = '';
+  UI.tickCoop = function (B) {
+    const hud = $('#coop-hud');
+    if (!hud) return;
+    if (!TD.Coop.active || !B.net) {
+      if (!hud.classList.contains('hidden')) { hud.classList.add('hidden'); $('#chat').classList.add('hidden'); }
+      return;
+    }
+    hud.classList.remove('hidden');
+    $('#chat').classList.remove('hidden');
+    const rows = B.slots.map((key, i) => {
+      const p = TD.Coop.players.find(q => q.key === key);
+      const towers = B.towers.filter(t => t.owner === key).length;
+      return { key: key, name: p ? p.name : 'Player', slot: i, cash: Math.floor(B.wallets[key] || 0), towers: towers, me: key === B.me };
+    });
+    const key = rows.map(r => r.name + r.cash + r.towers).join('|');
+    if (key === coopHudKey) return;
+    coopHudKey = key;
+    hud.innerHTML = '';
+    rows.forEach(r => {
+      const row = el('div', 'ch-row' + (r.me ? ' me' : ''));
+      const dot = el('span', 'cp-dot');
+      dot.style.background = '#' + TD.Battle.playerColor(r.slot).toString(16).padStart(6, '0');
+      row.appendChild(dot);
+      row.appendChild(el('span', 'ch-name', r.name));
+      row.appendChild(el('span', 'ch-cash', '$' + TD.fmt(r.cash)));
+      row.appendChild(el('span', 'ch-towers', r.towers + 'T'));
+      hud.appendChild(row);
+    });
   };
 })();
 </script>
@@ -5897,6 +7229,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     TD.Lobby.build();
     TD.Lobby.bindInput(renderer.domElement);
     TD.Battle.bindInput(renderer.domElement);
+    TD.Net.connect();
 
     step(65, 'Wiring the interface…');
     TD.UI.init();
@@ -5940,6 +7273,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
 
   Game.toLobby = function () {
     if (TD.Battle.active) TD.Battle.stop();
+    if (TD.Coop && TD.Coop.active) TD.Coop.matchEnded();
     TD.UI.exitBattle();
     TD.UI.refreshHud();
     this.mode = 'lobby';
@@ -5947,11 +7281,11 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     TD.Audio.setMusicVolume(0.12);
   };
 
-  Game.startMatch = function (mapId, diffId, loadout) {
+  Game.startMatch = function (mapId, diffId, loadout, opts) {
     TD.UI.close();
     TD.Lobby.exit();
     this.mode = 'battle';
-    TD.Battle.start(mapId, diffId, loadout);
+    TD.Battle.start(mapId, diffId, loadout, opts);
     TD.Battle.resize(window.innerWidth, window.innerHeight);
     TD.Audio.setMusicVolume(0.06);
   };

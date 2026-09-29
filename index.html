@@ -45,6 +45,7 @@
     <button class="big-btn shop" id="btn-shop"><b>SHOP</b><small>Buy towers</small></button>
     <button class="big-btn loadout" id="btn-loadout"><b>LOADOUT</b><small>Pick 5 towers</small></button>
     <button class="big-btn book" id="btn-codex"><b>CODEX</b><small>Enemies &amp; info</small></button>
+    <button class="big-btn coop" id="btn-coop"><b>CO-OP</b><small>Play online</small></button>
   </div>
 
   <div class="lobby-hint">
@@ -111,6 +112,47 @@
   </div>
 </div>
 
+<!-- ============================== CO-OP ============================== -->
+<div id="coop-modal" class="overlay hidden">
+  <div class="modal">
+    <header>
+      <h2>Online Co-op</h2>
+      <div class="sub" id="coop-sub">Defend together — up to six players</div>
+      <button class="x" data-close>&#10005;</button>
+    </header>
+
+    <div class="coop-body">
+      <div id="coop-entry">
+        <div class="coop-note" id="coop-status">Checking for a connection&hellip;</div>
+        <div class="coop-actions">
+          <button class="cta" id="coop-host">HOST A GAME</button>
+          <div class="coop-or">or</div>
+          <div class="coop-joinrow">
+            <input id="coop-code" type="text" maxlength="8" placeholder="CODE" autocomplete="off" spellcheck="false">
+            <button class="cta ghost" id="coop-join">JOIN</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="coop-room" class="hidden">
+        <div class="coop-code-box">
+          <div class="ccb-label">Room code</div>
+          <div class="ccb-code" id="coop-code-out">----</div>
+          <div class="ccb-hint" id="coop-share">Share this code with your friends</div>
+        </div>
+        <div class="coop-players" id="coop-players"></div>
+        <div class="coop-map" id="coop-map"></div>
+      </div>
+    </div>
+
+    <div class="modal-foot" id="coop-foot">
+      <div class="coop-foot-note" id="coop-foot-note"></div>
+      <button class="cta ghost hidden" id="coop-leave">LEAVE ROOM</button>
+      <button class="cta hidden" id="coop-deploy">CHOOSE MAP</button>
+    </div>
+  </div>
+</div>
+
 <!-- ============================== SETTINGS ============================== -->
 <div id="settings-modal" class="overlay hidden">
   <div class="modal">
@@ -169,6 +211,13 @@
   <div class="place-hint hidden" id="place-hint">Click to place · <kbd>R</kbd> rotate · <kbd>Esc</kbd> cancel</div>
   <div class="cam-hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> walk · <kbd>Space</kbd> jump · <kbd>Enter</kbd> next wave · <kbd>C</kbd> follow cam · Right-drag rotate · Arrows pan</div>
   <div class="toasts" id="toasts"></div>
+
+  <!-- co-op only -->
+  <div class="coop-hud hidden" id="coop-hud"></div>
+  <div class="chat hidden" id="chat">
+    <div class="chat-log" id="chat-log"></div>
+    <input id="chat-input" type="text" maxlength="120" placeholder="Press Y to chat&hellip;" autocomplete="off">
+  </div>
 </div>
 
 <!-- ============================== RESULTS ============================== -->
@@ -192,8 +241,10 @@
 <script src="js/data/enemies.js"></script>
 <script src="js/data/maps.js"></script>
 <script src="js/data/waves.js"></script>
+<script src="js/net.js"></script>
 <script src="js/lobby.js"></script>
 <script src="js/battle.js"></script>
+<script src="js/coop.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/main.js"></script>
 </body>

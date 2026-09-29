@@ -34,6 +34,7 @@
     TD.Lobby.build();
     TD.Lobby.bindInput(renderer.domElement);
     TD.Battle.bindInput(renderer.domElement);
+    TD.Net.connect();
 
     step(65, 'Wiring the interface…');
     TD.UI.init();
@@ -77,6 +78,7 @@
 
   Game.toLobby = function () {
     if (TD.Battle.active) TD.Battle.stop();
+    if (TD.Coop && TD.Coop.active) TD.Coop.matchEnded();
     TD.UI.exitBattle();
     TD.UI.refreshHud();
     this.mode = 'lobby';
@@ -84,11 +86,11 @@
     TD.Audio.setMusicVolume(0.12);
   };
 
-  Game.startMatch = function (mapId, diffId, loadout) {
+  Game.startMatch = function (mapId, diffId, loadout, opts) {
     TD.UI.close();
     TD.Lobby.exit();
     this.mode = 'battle';
-    TD.Battle.start(mapId, diffId, loadout);
+    TD.Battle.start(mapId, diffId, loadout, opts);
     TD.Battle.resize(window.innerWidth, window.innerHeight);
     TD.Audio.setMusicVolume(0.06);
   };

@@ -327,12 +327,14 @@
      ---------------------------------------------------------------------- */
   TD.playerHat = lvl => lvl >= 20 ? 'crown' : lvl >= 12 ? 'helmet' : lvl >= 6 ? 'cowboy' : 'cap';
 
-  TD.makeAvatar = function (name, level) {
+  /* `opts` lets co-op give each player their own colour; solo passes none. */
+  TD.makeAvatar = function (name, level, opts) {
+    opts = opts || {};
     const h = TD.makeHumanoid({
-      shirt: 0x4f8cff, pants: 0x27304d, skin: 0xe0ac69,
+      shirt: opts.shirt || 0x4f8cff, pants: 0x27304d, skin: 0xe0ac69,
       hat: TD.playerHat(level), hatColor: level >= 20 ? 0xffc63d : 0x2f5fb8, hatColor2: 0xff5d6c
     });
-    const tag = TD.textPlane(name, { color: '#6ee7ff', height: 1.3, size: 64, bg: 'rgba(8,11,22,0.7)' });
+    const tag = TD.textPlane(name, { color: opts.tag || '#6ee7ff', height: 1.3, size: 64, bg: 'rgba(8,11,22,0.7)' });
     tag.position.y = 6.6;
     h.group.add(tag);
     h.tag = tag;

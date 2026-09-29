@@ -99,7 +99,7 @@
   /* ---------------------------------------------------------------- */
   /*  modal plumbing                                                   */
   /* ---------------------------------------------------------------- */
-  const MODALS = { shop: '#shop-modal', loadout: '#loadout-modal', play: '#map-modal', codex: '#codex-modal', settings: '#settings-modal' };
+  const MODALS = { shop: '#shop-modal', loadout: '#loadout-modal', play: '#map-modal', codex: '#codex-modal', settings: '#settings-modal', coop: '#coop-modal' };
 
   UI.open = function (id) {
     UI.close();
@@ -109,6 +109,7 @@
     if (id === 'play') UI.buildMaps();
     if (id === 'codex') UI.buildCodex();
     if (id === 'settings') UI.buildSettings();
+    if (id === 'coop') UI.renderCoop();
     UI.refreshHud();
     $(sel).classList.remove('hidden');
     UI.openModal = sel;
@@ -506,6 +507,8 @@
   UI.exitBattle = function () {
     $('#battle-hud').classList.add('hidden');
     $('#lobby-hud').classList.remove('hidden');
+    $('#coop-hud').classList.add('hidden');
+    $('#chat').classList.add('hidden');
     UI.battle = null;
   };
 
@@ -566,6 +569,7 @@
 
     if (UI.panelTower) UI.tickTowerPanel();
     if (n.follow) n.follow.classList.toggle('on', B.camFollow);
+    UI.tickCoop(B);
   };
 
   UI.waveBanner = function (text, sub) {
@@ -716,6 +720,12 @@
       const load = TD.Save.data.loadout.filter(Boolean);
       if (!load.length) { TD.Audio.error(); TD.toast('Pick at least one tower in Loadout', 'bad'); return; }
       TD.Audio.ui();
+      /* Hosting a room? DEPLOY starts the match for everybody in it. */
+      if (TD.Coop.isHost()) {
+        TD.Coop.setMap(UI.selMap, UI.selDiff);
+        TD.Coop.start();
+        return;
+      }
       TD.Game.startMatch(UI.selMap, UI.selDiff, load);
     };
     $('#btn-reset').onclick = () => {
@@ -740,8 +750,8 @@
     $('#b-skip').onclick = () => { const B = UI.battle; if (B) B.startWave(true); };
     $('#tp-close').onclick = () => { if (UI.battle) UI.battle.select(null); };
     $('#tp-target').onclick = () => {
-      const t = UI.panelTower; if (!t) return;
-      t.mode = (t.mode + 1) % MODES.length; TD.Audio.ui(); UI.showTower(t);
+      const t = UI.panelTower; if (!t || !UI.battle) return;
+      UI.battle.setMode(t, (t.mode + 1) % MODES.length);
     };
     $('#tp-sell').onclick = () => { const t = UI.panelTower; if (t && UI.battle) UI.battle.sell(t); };
 
@@ -749,7 +759,159 @@
     $('#btn-again').onclick = () => {
       $('#result-modal').classList.add('hidden');
       const B = UI.battle;
+      if (B && B.remote) { TD.Game.toLobby(); return; }   // only the host can restart
       TD.Game.startMatch(B.map.id, B.diff.id, TD.Save.data.loadout.filter(Boolean));
     };
+
+    UI.initCoop();
+  };
+
+  /* ====================================================================
+     CO-OP
+     ==================================================================== */
+  UI.initCoop = function () {
+    $('#btn-coop').onclick = () => { TD.Audio.ui(); UI.open('coop'); };
+
+    $('#coop-host').onclick = async () => {
+      TD.Audio.ui();
+      $('#coop-host').disabled = true;
+      const ok = await TD.Coop.host();
+      $('#coop-host').disabled = false;
+      if (!ok) TD.toast(TD.Coop.error || 'Could not host', 'bad');
+      UI.renderCoop();
+    };
+
+    const doJoin = async () => {
+      const raw = ($('#coop-code').value || '').trim().toLowerCase();
+      if (!TD.Net.validCode(raw)) { TD.Audio.error(); TD.toast('Enter the 4-letter room code', 'bad'); return; }
+      TD.Audio.ui();
+      $('#coop-join').disabled = true;
+      const ok = await TD.Coop.joinCode(raw);
+      $('#coop-join').disabled = false;
+      if (!ok) TD.toast(TD.Coop.error || 'Could not join', 'bad');
+      UI.renderCoop();
+    };
+    $('#coop-join').onclick = doJoin;
+    $('#coop-code').addEventListener('keydown', e => { if (e.key === 'Enter') doJoin(); });
+
+    $('#coop-leave').onclick = async () => { TD.Audio.ui(); await TD.Coop.leave(); UI.renderCoop(); };
+    $('#coop-deploy').onclick = () => {
+      if (!TD.Coop.isHost()) return;
+      TD.Audio.ui();
+      UI.open('play');
+    };
+
+    /* Chat */
+    const ci = $('#chat-input');
+    ci.addEventListener('keydown', e => {
+      e.stopPropagation();
+      if (e.key === 'Enter') { TD.Coop.say(ci.value); ci.value = ''; ci.blur(); }
+      if (e.key === 'Escape') { ci.value = ''; ci.blur(); }
+    });
+  };
+
+  UI.focusChat = function () { const ci = $('#chat-input'); if (ci) ci.focus(); };
+
+  UI.chatLine = function (who, text, mine) {
+    const log = $('#chat-log'); if (!log) return;
+    const row = el('div', 'chat-row' + (mine ? ' mine' : ''));
+    row.appendChild(el('b', '', who + ': '));
+    row.appendChild(document.createTextNode(text));   // never innerHTML: this came off the wire
+    log.appendChild(row);
+    while (log.children.length > 40) log.removeChild(log.firstChild);
+    log.scrollTop = log.scrollHeight;
+    $('#chat').classList.remove('hidden');
+  };
+
+  UI.renderCoop = async function () {
+    const C = TD.Coop;
+    const entry = $('#coop-entry'), room = $('#coop-room');
+    if (!entry) return;
+
+    if (!C.active) {
+      entry.classList.remove('hidden'); room.classList.add('hidden');
+      $('#coop-leave').classList.add('hidden');
+      $('#coop-deploy').classList.add('hidden');
+      const backend = await TD.Net.connect();
+      const st = $('#coop-status');
+      if (backend === 'room') {
+        st.innerHTML = '<b class="ok">Online.</b> Anyone you share this page with can join your room.';
+      } else if (backend === 'channel') {
+        st.innerHTML = '<b class="warn">Local only.</b> This copy of the game is not hosted on claude.ai, ' +
+          'so a room reaches other tabs of this browser but not other people. Open the published page to play online.';
+      } else {
+        st.innerHTML = '<b class="bad">Unavailable.</b> This browser cannot open a co-op room.';
+      }
+      $('#coop-foot-note').textContent = '';
+      return;
+    }
+
+    entry.classList.add('hidden'); room.classList.remove('hidden');
+    $('#coop-leave').classList.remove('hidden');
+    $('#coop-code-out').textContent = (C.code || '').toUpperCase();
+    $('#coop-share').textContent = TD.Net.backend === 'room'
+      ? 'Share this code — and the page link — with your friends'
+      : 'Open this same page in another tab and join with this code';
+
+    const list = $('#coop-players');
+    list.innerHTML = '';
+    C.players.forEach((p, i) => {
+      const row = el('div', 'cp-row' + (p.isMe ? ' me' : ''));
+      const dot = el('span', 'cp-dot');
+      dot.style.background = '#' + TD.Battle.playerColor(i).toString(16).padStart(6, '0');
+      row.appendChild(dot);
+      row.appendChild(el('span', 'cp-name', p.name + (p.isMe ? ' (you)' : '')));
+      row.appendChild(el('span', 'cp-lvl', 'Lv ' + p.level));
+      row.appendChild(el('span', 'cp-role', p.host ? 'HOST' : ''));
+      list.appendChild(row);
+    });
+
+    const mp = TD.mapById(C.map), df = TD.diffById(C.diff);
+    $('#coop-map').innerHTML = '<span class="cm-label">Map</span><b>' + (mp ? mp.name : '—') +
+      '</b><span class="cm-sep">·</span><b>' + (df ? df.name : '—') + '</b>';
+
+    const deploy = $('#coop-deploy');
+    if (C.isHost()) {
+      deploy.classList.remove('hidden');
+      deploy.textContent = 'CHOOSE MAP & DEPLOY';
+      $('#coop-foot-note').textContent = C.players.length < 2
+        ? 'Waiting for players — you can start alone too.'
+        : C.players.length + ' players ready';
+    } else {
+      deploy.classList.add('hidden');
+      $('#coop-foot-note').textContent = 'Waiting for the host to start…';
+    }
+  };
+
+  /* The in-battle roster: who is playing, and what they have to spend. */
+  let coopHudKey = '';
+  UI.tickCoop = function (B) {
+    const hud = $('#coop-hud');
+    if (!hud) return;
+    if (!TD.Coop.active || !B.net) {
+      if (!hud.classList.contains('hidden')) { hud.classList.add('hidden'); $('#chat').classList.add('hidden'); }
+      return;
+    }
+    hud.classList.remove('hidden');
+    $('#chat').classList.remove('hidden');
+    const rows = B.slots.map((key, i) => {
+      const p = TD.Coop.players.find(q => q.key === key);
+      const towers = B.towers.filter(t => t.owner === key).length;
+      return { key: key, name: p ? p.name : 'Player', slot: i, cash: Math.floor(B.wallets[key] || 0), towers: towers, me: key === B.me };
+    });
+    const key = rows.map(r => r.name + r.cash + r.towers).join('|');
+    if (key === coopHudKey) return;
+    coopHudKey = key;
+    hud.innerHTML = '';
+    rows.forEach(r => {
+      const row = el('div', 'ch-row' + (r.me ? ' me' : ''));
+      const dot = el('span', 'cp-dot');
+      dot.style.background = '#' + TD.Battle.playerColor(r.slot).toString(16).padStart(6, '0');
+      row.appendChild(dot);
+      row.appendChild(el('span', 'ch-name', r.name));
+      row.appendChild(el('span', 'ch-cash', '$' + TD.fmt(r.cash)));
+      row.appendChild(el('span', 'ch-towers', r.towers + 'T'));
+      hud.appendChild(row);
+    });
   };
 })();
