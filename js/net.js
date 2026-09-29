@@ -78,7 +78,7 @@
   const KEEPALIVE = 900;
   /* Generous, because a page busy rendering can be late with a keepalive
      and a peer blinking out of the roster looks like a disconnect. */
-  const PEER_TTL = 6500;
+  const PEER_TTL = 12000;
 
   function channelSession(code) {
     const ch = new BroadcastChannel('td-coop-' + code);
@@ -118,6 +118,8 @@
         const rec = others.get(m.peer);
         if (rec) { others.delete(m.peer); firePeers({ joined: [], left: [rec], updated: [] }); }
       } else if (m.t === 'msg') {
+        const rec0 = others.get(m.peer);
+        if (rec0) rec0.seen = Date.now();
         const subs = topicSubs.get(m.topic);
         if (!subs) return;
         const msg = { topic: m.topic, data: m.data, peer: m.peer, by: null, isMe: false, sameTab: false, kind: 'viewer', guest: false };

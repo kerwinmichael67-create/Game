@@ -23,18 +23,29 @@
   /* ------------------------------------------------------------------ */
   Lobby.build = function () {
     const scene = this.scene = new T.Scene();
-    scene.background = new T.Color(0x44579b);
-    scene.fog = new T.Fog(0x44579b, 100, 230);
+    const hi = TD.Save.data.settings.quality >= 1;
+    scene.fog = new T.Fog(0x46589c, 150, 330);
+    scene.background = new T.Color(0x46589c);
 
-    const hemi = new T.HemisphereLight(0xc3d4ff, 0x3a4468, 1.15); scene.add(hemi);
-    const sun = new T.DirectionalLight(0xfff4e2, 1.05);
-    sun.position.set(34, 58, 26); sun.castShadow = true;
-    sun.shadow.mapSize.set(1024, 1024);
+    /* Dusk over the plaza: warm low sun, cool sky. */
+    scene.add(TD.makeSky(0x21306b, 0x6079c4, 0x2c3560, 300));
+    TD.applyEnv(scene, TD.Game.renderer, 0x21306b, 0x6079c4, 0x2c3560);
+
+    scene.add(new T.HemisphereLight(0xa8c0ff, 0x35406a, 0.42));
+    const sun = new T.DirectionalLight(0xffe9c4, 2.3);
+    sun.position.set(40, 62, 30); sun.castShadow = true;
+    sun.shadow.mapSize.set(hi ? 2048 : 1024, hi ? 2048 : 1024);
     sun.shadow.camera.left = -70; sun.shadow.camera.right = 70;
     sun.shadow.camera.top = 70; sun.shadow.camera.bottom = -70;
-    sun.shadow.camera.far = 170;
+    sun.shadow.camera.far = 180;
+    sun.shadow.bias = -0.0006;
+    sun.shadow.normalBias = 0.035;
+    sun.shadow.radius = 2.4;
     scene.add(sun);
-    scene.add(new T.DirectionalLight(0x5a6ec0, 0.35).translateX(-40).translateY(30).translateZ(-40));
+    const fill = new T.DirectionalLight(0x6d85d8, 0.3);
+    fill.position.set(-40, 30, -40); scene.add(fill);
+    const rim = new T.DirectionalLight(0x9fc4ff, 0.5);
+    rim.position.set(-24, 20, -60); scene.add(rim);
 
     /* ---- ground ---- */
     const grass = new T.Mesh(new T.CircleGeometry(110, 40), TD.mat(0x3f7a44));
@@ -370,9 +381,14 @@
         if (i >= 0) this.billboards[i] = a.model.tag;
       }
     });
+    /* Hold a character for a moment after its presence stops arriving:
+       one missed update is a hiccup, not someone leaving. */
+    const now = Date.now();
     Object.keys(this.avatars).forEach(k => {
-      if (seen[k]) return;
       const a = this.avatars[k];
+      if (seen[k]) { a.gone = 0; return; }
+      if (!a.gone) { a.gone = now; return; }
+      if (now - a.gone < 2500) return;
       const i = this.billboards.indexOf(a.model.tag);
       if (i >= 0) this.billboards.splice(i, 1);
       this.scene.remove(a.model.group);

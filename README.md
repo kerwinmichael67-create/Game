@@ -194,6 +194,35 @@ a player level, and the Gilded ones cost gems (earned by clearing Forsaken and
 Nightmare). Everything is saved to `localStorage`, with an in-memory fallback if the
 browser blocks it. Options → *Reset save data* wipes the profile you are on.
 
+### How it looks
+Still not a single texture file or model on disk — the whole look is shading.
+
+* **Rounded geometry.** Every box in the game comes from one shared unit cube whose
+  corners and edges are chamfered: start from a box with an edge loop per side, clamp
+  each vertex into the inner box, push it back out by the radius. Four times the
+  triangles of a plain box, no extra draw calls, and because the entire game is built
+  out of `TD.box()` it softens everything at once.
+* **PBR materials with a sky probe.** Materials are `MeshStandardMaterial`, and each
+  scene prefilters its own gradient sky into an environment probe, so surfaces pick up
+  colour from above instead of reading as flat painted card. The probe is built off the
+  critical path — it costs a few hundred milliseconds on a slow machine and the scene
+  looks fine for the frame before it lands.
+* **A three-light rig**: a warm key that casts (2k shadow map, soft radius, normal
+  bias), a cool sky fill, and a rim from behind to lift silhouettes off the background.
+* **Bloom and filmic colour.** three.js only ships `EffectComposer` as an ES module, so
+  the post chain here is written against the core API: render to a half-float target in
+  linear light, bright-pass with a soft knee, two separable Gaussian blurs at half
+  resolution, then one composite that adds the glow, applies the ACES curve, vignettes
+  and encodes to sRGB — exactly one colour-space conversion, at the end. Working in
+  linear all the way there is the point; bloom applied after tone mapping blooms the
+  wrong things.
+* **A gradient sky dome** per theme rather than a flat clear colour, sized to sit
+  inside the camera's far plane.
+
+If the frame rate cannot carry it, the game measures three and a half seconds of real
+frames once and turns the post chain off by itself, with a toast saying so. Options →
+*Bloom & filmic colour* turns it back on, and off for good.
+
 ---
 
 ## Controls
@@ -233,6 +262,7 @@ js/data/towers.js   the 51 tower definitions
 js/data/enemies.js  the 33 enemy definitions
 js/data/maps.js     maps, themes, difficulties, path maths
 js/data/waves.js    the 45-wave script and the scaling rules
+js/visuals.js       sky, environment probe, and the bloom/ACES post chain
 js/account.js       profiles on this browser, and the real claude.ai identity
 js/net.js           co-op transport: the artifact room, or BroadcastChannel
 js/lobby.js         the plaza, the player controller, kiosks

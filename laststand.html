@@ -891,7 +891,7 @@ TD.Save = (function () {
     loadout: ['recruit', 'rifleman', 'splatter', 'homestead', null],
     wins: 0, losses: 0, bestWave: 0, kills: 0,
     mapsBeaten: {},
-    settings: { sound: true, music: true, shadows: true, dmgNumbers: true, sens: 1, quality: 1, server: 1 }
+    settings: { sound: true, music: true, shadows: true, dmgNumbers: true, sens: 1, quality: 1, server: 1, bloom: true }
   };
   let mem = null, usable = true;
   try { localStorage.getItem(BASE); } catch (e) { usable = false; }
@@ -1222,6 +1222,359 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
 })();
 </script>
 <script>
+/* ---- js/visuals.js ---- */
+/* =========================================================================
+   visuals.js — the look: sky, environment lighting, and post-processing.
+
+   three.js ships EffectComposer and UnrealBloomPass only as ES modules
+   under examples/jsm, and this game is deliberately classic <script> tags
+   so it runs from file://.  So the passes here are written against the
+   core API: render targets, a fullscreen quad and a few small shaders.
+
+   The chain, when post is on:
+
+     scene ──► rtScene (half-float, LINEAR)        no tone mapping yet
+                 │
+                 ├─ bright pass ──► half-res ──► blur H ──► blur V ─┐
+                 │                                                   │
+                 └───────────────────────────────────────────────────┴─► composite
+                                                                          ACES → vignette
+                                                                          → sRGB → canvas
+
+   Working in linear light all the way to the composite is the whole point:
+   bloom on already-tone-mapped pixels blooms the wrong things, and the
+   colour-space conversion has to happen exactly once, at the end.
+   ========================================================================= */
+(function () {
+  const T = THREE;
+
+  /* ------------------------------------------------------------------
+     Shared shader pieces
+     ------------------------------------------------------------------ */
+  const QUAD_VERT = `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = vec4(position.xy, 0.0, 1.0);
+    }`;
+
+  /* Narkowicz's fit of the ACES filmic curve — cheap, and it rolls
+     highlights off instead of clipping them to white. */
+  const ACES = `
+    vec3 aces(vec3 x) {
+      const float a = 2.51, b = 0.03, c = 2.43, d = 0.59, e = 0.14;
+      return clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0.0, 1.0);
+    }`;
+
+  const SRGB = `
+    vec3 toSRGB(vec3 c) {
+      return mix(c * 12.92, 1.055 * pow(max(c, vec3(0.0)), vec3(1.0 / 2.4)) - 0.055,
+                 step(vec3(0.0031308), c));
+    }`;
+
+  /* ==================================================================
+     POST
+     ================================================================== */
+  const Post = TD.Post = {
+    ready: false,
+    enabled: false,
+    strength: 0.55,
+    threshold: 0.75,
+    exposure: 1.0,
+    vignette: 0.26
+  };
+
+  let renderer = null, quad = null, quadCam = null, quadScene = null;
+  let rtScene = null, rtA = null, rtB = null;
+  let matBright = null, matBlur = null, matComp = null;
+  let sizeW = 0, sizeH = 0;
+
+  function makeTarget(w, h, float) {
+    const rt = new T.WebGLRenderTarget(Math.max(1, w), Math.max(1, h), {
+      minFilter: T.LinearFilter,
+      magFilter: T.LinearFilter,
+      type: float ? T.HalfFloatType : T.UnsignedByteType,
+      depthBuffer: !!float,
+      stencilBuffer: false
+    });
+    rt.texture.colorSpace = T.LinearSRGBColorSpace;
+    rt.texture.generateMipmaps = false;
+    return rt;
+  }
+
+  Post.init = function (r) {
+    if (Post.ready) return Post.enabled;
+    renderer = r;
+    try {
+      /* Half-float targets are what make a bloom worth having; without
+         them the bright pass has nothing above 1.0 to work with. */
+      const caps = renderer.capabilities;
+      if (!caps.isWebGL2 && !renderer.extensions.get('OES_texture_half_float')) return false;
+
+      quadScene = new T.Scene();
+      quadCam = new T.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+
+      matBright = new T.ShaderMaterial({
+        uniforms: { tDiffuse: { value: null }, threshold: { value: Post.threshold } },
+        vertexShader: QUAD_VERT,
+        fragmentShader: `
+          uniform sampler2D tDiffuse;
+          uniform float threshold;
+          varying vec2 vUv;
+          void main() {
+            vec3 c = texture2D(tDiffuse, vUv).rgb;
+            float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
+            /* soft knee, so a light does not pop into bloom all at once */
+            float k = smoothstep(threshold, threshold + 0.45, l);
+            gl_FragColor = vec4(c * k, 1.0);
+          }`,
+        depthTest: false, depthWrite: false
+      });
+
+      matBlur = new T.ShaderMaterial({
+        uniforms: {
+          tDiffuse: { value: null },
+          direction: { value: new T.Vector2(1, 0) },
+          texel: { value: new T.Vector2(1 / 512, 1 / 512) }
+        },
+        vertexShader: QUAD_VERT,
+        fragmentShader: `
+          uniform sampler2D tDiffuse;
+          uniform vec2 direction;
+          uniform vec2 texel;
+          varying vec2 vUv;
+          void main() {
+            vec2 o = direction * texel;
+            vec3 s = texture2D(tDiffuse, vUv).rgb * 0.227027;
+            s += texture2D(tDiffuse, vUv + o * 1.3846).rgb * 0.316216;
+            s += texture2D(tDiffuse, vUv - o * 1.3846).rgb * 0.316216;
+            s += texture2D(tDiffuse, vUv + o * 3.2308).rgb * 0.070270;
+            s += texture2D(tDiffuse, vUv - o * 3.2308).rgb * 0.070270;
+            gl_FragColor = vec4(s, 1.0);
+          }`,
+        depthTest: false, depthWrite: false
+      });
+
+      matComp = new T.ShaderMaterial({
+        uniforms: {
+          tScene: { value: null },
+          tBloom: { value: null },
+          strength: { value: Post.strength },
+          exposure: { value: Post.exposure },
+          vignette: { value: Post.vignette }
+        },
+        vertexShader: QUAD_VERT,
+        fragmentShader: `
+          uniform sampler2D tScene;
+          uniform sampler2D tBloom;
+          uniform float strength;
+          uniform float exposure;
+          uniform float vignette;
+          varying vec2 vUv;
+          ${ACES}
+          ${SRGB}
+          void main() {
+            vec3 c = texture2D(tScene, vUv).rgb;
+            c += texture2D(tBloom, vUv).rgb * strength;
+            c *= exposure;
+            c = aces(c);
+            /* a gentle lift in the shadows keeps the darks from going flat */
+            c = mix(c, c * c * (3.0 - 2.0 * c), -0.12);
+            vec2 d = vUv - 0.5;
+            c *= 1.0 - vignette * dot(d, d) * 1.9;
+            gl_FragColor = vec4(toSRGB(c), 1.0);
+          }`,
+        depthTest: false, depthWrite: false
+      });
+
+      quad = new T.Mesh(new T.PlaneGeometry(2, 2), matComp);
+      quad.frustumCulled = false;
+      quadScene.add(quad);
+
+      Post.ready = true;
+      Post.enabled = true;
+      return true;
+    } catch (e) {
+      Post.ready = false; Post.enabled = false;
+      return false;
+    }
+  };
+
+  Post.resize = function (w, h, pixelRatio) {
+    if (!Post.ready) return;
+    const pr = Math.min(pixelRatio || 1, 2);
+    sizeW = Math.max(1, Math.floor(w * pr));
+    sizeH = Math.max(1, Math.floor(h * pr));
+    const bw = Math.max(1, sizeW >> 1), bh = Math.max(1, sizeH >> 1);
+    if (rtScene) rtScene.dispose();
+    if (rtA) rtA.dispose();
+    if (rtB) rtB.dispose();
+    rtScene = makeTarget(sizeW, sizeH, true);
+    rtA = makeTarget(bw, bh, true);
+    rtB = makeTarget(bw, bh, true);
+    matBlur.uniforms.texel.value.set(1 / bw, 1 / bh);
+  };
+
+  function blit(material, target) {
+    quad.material = material;
+    renderer.setRenderTarget(target || null);
+    renderer.clear();
+    renderer.render(quadScene, quadCam);
+  }
+
+  /* Draw one frame.  Falls back to a plain render whenever post is off. */
+  Post.render = function (scene, camera) {
+    if (!Post.ready || !Post.enabled || !rtScene) {
+      renderer.toneMapping = T.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = Post.exposure;
+      renderer.setRenderTarget(null);
+      renderer.render(scene, camera);
+      return;
+    }
+    /* linear all the way through; the composite tone maps at the end */
+    renderer.toneMapping = T.NoToneMapping;
+    renderer.setRenderTarget(rtScene);
+    renderer.clear();
+    renderer.render(scene, camera);
+
+    matBright.uniforms.tDiffuse.value = rtScene.texture;
+    matBright.uniforms.threshold.value = Post.threshold;
+    blit(matBright, rtA);
+
+    matBlur.uniforms.tDiffuse.value = rtA.texture;
+    matBlur.uniforms.direction.value.set(1, 0);
+    blit(matBlur, rtB);
+    matBlur.uniforms.tDiffuse.value = rtB.texture;
+    matBlur.uniforms.direction.value.set(0, 1);
+    blit(matBlur, rtA);
+    /* a second, wider pass so the glow reaches instead of ringing */
+    matBlur.uniforms.tDiffuse.value = rtA.texture;
+    matBlur.uniforms.direction.value.set(2, 0);
+    blit(matBlur, rtB);
+    matBlur.uniforms.tDiffuse.value = rtB.texture;
+    matBlur.uniforms.direction.value.set(0, 2);
+    blit(matBlur, rtA);
+
+    matComp.uniforms.tScene.value = rtScene.texture;
+    matComp.uniforms.tBloom.value = rtA.texture;
+    matComp.uniforms.strength.value = Post.strength;
+    matComp.uniforms.exposure.value = Post.exposure;
+    matComp.uniforms.vignette.value = Post.vignette;
+    blit(matComp, null);
+  };
+
+  /* ==================================================================
+     SKY — a gradient dome, so the horizon is not one flat colour
+     ================================================================== */
+  TD.makeSky = function (top, horizon, ground, radius) {
+    const m = new T.ShaderMaterial({
+      side: T.BackSide,
+      depthWrite: false,
+      fog: false,
+      uniforms: {
+        cTop: { value: new T.Color(top) },
+        cMid: { value: new T.Color(horizon) },
+        cBot: { value: new T.Color(ground) }
+      },
+      vertexShader: `
+        varying vec3 vPos;
+        void main() {
+          vPos = position;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }`,
+      fragmentShader: `
+        uniform vec3 cTop; uniform vec3 cMid; uniform vec3 cBot;
+        varying vec3 vPos;
+        void main() {
+          float h = normalize(vPos).y;
+          vec3 c = mix(cMid, cTop, smoothstep(0.0, 0.55, h));
+          c = mix(cBot, c, smoothstep(-0.30, 0.02, h));
+          gl_FragColor = vec4(c, 1.0);
+        }`
+    });
+    const r = radius || 330;                 // must stay inside the camera's far plane
+    const sky = new T.Mesh(new T.SphereGeometry(r, 24, 16), m);
+    sky.geometry.__shared = true;
+    sky.frustumCulled = false;
+    sky.renderOrder = -1000;
+    return sky;
+  };
+
+  /* ==================================================================
+     ENVIRONMENT — a prefiltered probe so metal has something to reflect
+     ================================================================== */
+  let envCache = new Map();
+  function buildEnv(renderer2, top, horizon, ground) {
+    const key = top + '/' + horizon + '/' + ground;
+    if (envCache.has(key)) return envCache.get(key);
+    let tex = null;
+    try {
+      const pmrem = new T.PMREMGenerator(renderer2);
+      pmrem.compileEquirectangularShader();
+      const s = new T.Scene();
+      s.add(TD.makeSky(top, horizon, ground, 50));
+      const rt = pmrem.fromScene(s, 0, 0.1, 1000);
+      tex = rt.texture;
+      pmrem.dispose();
+    } catch (e) {
+      tex = null;                 // no probe: the lights still carry the scene
+    }
+    envCache.set(key, tex);
+    return tex;
+  }
+
+  /* Prefiltering a probe costs a few hundred milliseconds the first time
+     on a slow machine, and the scene looks perfectly fine for the frame
+     or two before it lands — so never block the first paint on it. */
+  TD.applyEnv = function (scene, renderer2, top, horizon, ground) {
+    const key = top + '/' + horizon + '/' + ground;
+    if (envCache.has(key)) { scene.environment = envCache.get(key); return; }
+    setTimeout(() => {
+      const tex = buildEnv(renderer2, top, horizon, ground);
+      if (tex && scene) scene.environment = tex;
+    }, 0);
+  };
+
+  /* ==================================================================
+     A soft contact shadow, for grounding things the shadow map is too
+     coarse to catch.
+     ================================================================== */
+  let blobTex = null;
+  function blobTexture() {
+    if (blobTex) return blobTex;
+    const cv = document.createElement('canvas');
+    cv.width = cv.height = 64;
+    const g = cv.getContext('2d');
+    const grd = g.createRadialGradient(32, 32, 2, 32, 32, 30);
+    grd.addColorStop(0, 'rgba(0,0,0,0.55)');
+    grd.addColorStop(0.55, 'rgba(0,0,0,0.22)');
+    grd.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = grd;
+    g.fillRect(0, 0, 64, 64);
+    blobTex = new T.CanvasTexture(cv);
+    return blobTex;
+  }
+
+  let blobGeo = null, blobMat = null;
+  TD.blobShadow = function (radius) {
+    if (!blobGeo) { blobGeo = new T.PlaneGeometry(1, 1); blobGeo.__shared = true; }
+    if (!blobMat) {
+      blobMat = new T.MeshBasicMaterial({
+        map: blobTexture(), transparent: true, depthWrite: false,
+        opacity: 0.85, fog: true
+      });
+    }
+    const m = new T.Mesh(blobGeo, blobMat);
+    m.rotation.x = -Math.PI / 2;
+    m.position.y = 0.04;
+    m.scale.set(radius * 2, radius * 2, 1);
+    m.renderOrder = -1;
+    m.matrixAutoUpdate = true;
+    return m;
+  };
+})();
+</script>
+<script>
 /* ---- js/models.js ---- */
 /* =========================================================================
    models.js — procedural blocky models (characters, towers, enemies, props)
@@ -1231,26 +1584,64 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   const T = THREE;
   const matCache = new Map();
 
-  /* Shared, cached Lambert material. */
+  /* Shared, cached material.  Standard rather than Lambert: it takes the
+     scene's environment probe, so metal reads as metal and everything
+     picks up a little colour from the sky instead of looking like flat
+     painted card. */
   const mat = TD.mat = function (color, opts) {
     opts = opts || {};
-    const key = color + '|' + (opts.transparent ? 't' + opts.opacity : '') + (opts.emissive || '') + (opts.flat ? 'f' : '');
+    const key = color + '|' + (opts.transparent ? 't' + opts.opacity : '') + (opts.emissive || '') +
+      (opts.flat ? 'f' : '') + '|' + (opts.rough == null ? '' : opts.rough) + '|' + (opts.metal == null ? '' : opts.metal);
     if (matCache.has(key)) return matCache.get(key);
-    const m = new T.MeshLambertMaterial({
+    const m = new T.MeshStandardMaterial({
       color: color,
+      roughness: opts.rough != null ? opts.rough : 0.72,
+      metalness: opts.metal != null ? opts.metal : 0.06,
       transparent: !!opts.transparent,
       opacity: opts.opacity != null ? opts.opacity : 1,
       emissive: opts.emissive != null ? opts.emissive : 0x000000,
       emissiveIntensity: opts.emissiveIntensity != null ? opts.emissiveIntensity : 1,
       side: opts.side || T.FrontSide,
+      envMapIntensity: 0.38,
       depthWrite: opts.transparent ? false : true
     });
     matCache.set(key, m);
     return m;
   };
 
-  const GEOM = { box: new T.BoxGeometry(1, 1, 1) };
+  /* A box whose corners and edges are rounded off.  Start from a box with
+     an edge loop per side, then for every vertex: clamp it into the inner
+     box and push it back out by the radius.  Corners and edges move, face
+     centres do not — which is exactly a chamfer, for four times the
+     triangles of a plain box and no extra draw calls.  Since the whole
+     game is built out of TD.box(), this one function softens everything. */
+  function roundedBoxGeometry(r, seg) {
+    const g = new T.BoxGeometry(1, 1, 1, seg, seg, seg);
+    const pos = g.attributes.position;
+    const half = 0.5 - r;
+    const v = new T.Vector3();
+    for (let i = 0; i < pos.count; i++) {
+      v.fromBufferAttribute(pos, i);
+      const ix = Math.max(-half, Math.min(half, v.x));
+      const iy = Math.max(-half, Math.min(half, v.y));
+      const iz = Math.max(-half, Math.min(half, v.z));
+      const dx = v.x - ix, dy = v.y - iy, dz = v.z - iz;
+      const len = Math.sqrt(dx * dx + dy * dy + dz * dz);
+      if (len > 1e-6) {
+        const k = r / len;
+        pos.setXYZ(i, ix + dx * k, iy + dy * k, iz + dz * k);
+      }
+    }
+    g.computeVertexNormals();
+    return g;
+  }
+
+  const GEOM = { box: roundedBoxGeometry(0.055, 2) };
   GEOM.box.__shared = true;
+  /* Still available where a hard edge is wanted (ground plates, bars). */
+  GEOM.sharpBox = new T.BoxGeometry(1, 1, 1);
+  GEOM.sharpBox.__shared = true;
+  TD.sharpBoxGeometry = GEOM.sharpBox;
   /* Cached geometries are reused everywhere, so effect cleanup must never
      dispose them. remember(): tag + store in one step. */
   function remember(key, geo) { geo.__shared = true; GEOM[key] = geo; return geo; }
@@ -1277,7 +1668,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
 
   /* box(width,height,depth,color,x,y,z) -> Mesh */
   const box = TD.box = function (w, h, d, color, x, y, z, opts) {
-    const m = new T.Mesh(GEOM.box, mat(color, opts));
+    const m = new T.Mesh((opts && opts.sharp) ? GEOM.sharpBox : GEOM.box, mat(color, opts));
     m.scale.set(w, h, d);
     m.position.set(x || 0, y || 0, z || 0);
     m.castShadow = true; m.receiveShadow = true;
@@ -2000,9 +2391,18 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
       const g = new T.Group();
       g.add(cylinder(0.16, 0.22, 5.0, 0x39405a, 0, 2.5, 0, 8));
       g.add(box(0.7, 0.4, 0.7, 0x39405a, 0, 5.1, 0));
-      const bulb = box(0.5, 0.3, 0.5, c || 0xffe08a, 0, 4.85, 0);
-      bulb.material = mat(c || 0xffe08a, { emissive: c || 0xffe08a, emissiveIntensity: 0.6 });
+      const bulb = box(0.62, 0.34, 0.62, c || 0xffe08a, 0, 4.85, 0);
+      bulb.material = mat(c || 0xffe08a, { emissive: c || 0xffe08a, emissiveIntensity: 5.2 });
+      bulb.castShadow = false;
       g.add(bulb);
+      /* a small pool of light on the ground under it */
+      const pool = TD.blobShadow(3.2);
+      pool.material = new T.MeshBasicMaterial({
+        map: pool.material.map, transparent: true, depthWrite: false,
+        color: c || 0xffe08a, opacity: 0.22, blending: T.AdditiveBlending
+      });
+      pool.position.y = 0.05;
+      g.add(pool);
       return g;
     },
     sandbag: (c) => {
@@ -2019,8 +2419,11 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
       for (let i = 0; i < 2; i++) g.add(cylinder(0.12, 0.12, 3.4, 0x39405a, i ? 1.5 : -1.5, 1.7, 0.95, 6));
       const sign = box(3.6, 1.4, 0.2, c2 || 0xffc63d, 0, 4.7, 0);
       g.add(sign);
-      g.add(box(3.0, 1.6, 0.12, 0x101626, 0, 2.3, 0.85));
+      const screen = box(3.0, 1.6, 0.12, 0x101626, 0, 2.3, 0.85);
+      screen.material = mat(0x1d3a66, { emissive: c2 || 0x4f8cff, emissiveIntensity: 1.5 });
+      g.add(screen);
       g.userData.sign = sign;
+      g.userData.screen = screen;
       return g;
     },
     fence: (len, c) => {
@@ -3102,13 +3505,13 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
 
   /* ------------------------------ themes ----------------------------- */
   const THEMES = {
-    grass: { ground: 0x4f8f4a, ground2: 0x43803f, path: 0x9b8a63, edge: 0x7d6e4d, sky: 0x86bdf5, fog: 0xa8cfff, light: 0xfff4e0, amb: 0x6f86b8, prop: 'tree', propC: [0x2f8f4a, 0x5a4028] },
-    beach: { ground: 0xd8cb9a, ground2: 0xc9ba88, path: 0xa08f6a, edge: 0x8a7a55, sky: 0x8fd0ff, fog: 0xcfe9ff, light: 0xfff0d0, amb: 0x7d95c4, prop: 'palm', propC: [0x3fae5c, 0x8a6a3a], water: 0x2f7fb8 },
-    pine: { ground: 0x3f855a, ground2: 0x35734d, path: 0x7d6b46, edge: 0x64543a, sky: 0x74a3cf, fog: 0x93b4d2, light: 0xf2f7ff, amb: 0x6d82a8, prop: 'tree', propC: [0x247a42, 0x4a3524] },
-    jungle: { ground: 0x5f7a46, ground2: 0x52693c, path: 0x8f8672, edge: 0x6f6858, sky: 0x9fc9a8, fog: 0xa9cbb2, light: 0xfff3dc, amb: 0x6d8a74, prop: 'tree', propC: [0x2f7a3f, 0x5a4028] },
-    snow: { ground: 0xdfe9f6, ground2: 0xcedcec, path: 0xaebdd0, edge: 0x92a3ba, sky: 0xbcd6f0, fog: 0xd8e7f8, light: 0xffffff, amb: 0x8ea4c4, prop: 'tree', propC: [0x2f6b4f, 0x4a3524] },
-    volcano: { ground: 0x6b4f42, ground2: 0x5c4338, path: 0x936b50, edge: 0xb35a30, sky: 0x8f3f22, fog: 0xb35a30, light: 0xffdcb8, amb: 0xc06a48, prop: 'rock', propC: [0x8a6a5c, 0x4a352c], lava: 0xff6a24 },
-    void: { ground: 0x4a4180, ground2: 0x3f376e, path: 0x7a66c0, edge: 0x9b7ae8, sky: 0x2a2150, fog: 0x4a3a84, light: 0xeee4ff, amb: 0x8a72d4, prop: 'crystal', propC: [0xc39bff, 0x7a5ac0] }
+    grass: { ground: 0x4f8f4a, ground2: 0x43803f, path: 0x9b8a63, edge: 0x7d6e4d, sky: 0x86bdf5, skyTop: 0x2f6fc4, rim: 0xbfd8ff, fog: 0xa8cfff, light: 0xfff4e0, amb: 0x6f86b8, prop: 'tree', propC: [0x2f8f4a, 0x5a4028] },
+    beach: { ground: 0xd8cb9a, ground2: 0xc9ba88, path: 0xa08f6a, edge: 0x8a7a55, sky: 0x8fd0ff, skyTop: 0x2f86d8, rim: 0xcfe9ff, fog: 0xcfe9ff, light: 0xfff0d0, amb: 0x7d95c4, prop: 'palm', propC: [0x3fae5c, 0x8a6a3a], water: 0x2f7fb8 },
+    pine: { ground: 0x3f855a, ground2: 0x35734d, path: 0x7d6b46, edge: 0x64543a, sky: 0x74a3cf, skyTop: 0x33587f, rim: 0xa8c6e4, fog: 0x93b4d2, light: 0xf2f7ff, amb: 0x6d82a8, prop: 'tree', propC: [0x247a42, 0x4a3524] },
+    jungle: { ground: 0x5f7a46, ground2: 0x52693c, path: 0x8f8672, edge: 0x6f6858, sky: 0x9fc9a8, skyTop: 0x3f7f62, rim: 0xc4e4cc, fog: 0xa9cbb2, light: 0xfff3dc, amb: 0x6d8a74, prop: 'tree', propC: [0x2f7a3f, 0x5a4028] },
+    snow: { ground: 0xdfe9f6, ground2: 0xcedcec, path: 0xaebdd0, edge: 0x92a3ba, sky: 0xbcd6f0, skyTop: 0x6f9cd0, rim: 0xe4f0ff, fog: 0xd8e7f8, light: 0xffffff, amb: 0x8ea4c4, prop: 'tree', propC: [0x2f6b4f, 0x4a3524] },
+    volcano: { ground: 0x6b4f42, ground2: 0x5c4338, path: 0x936b50, edge: 0xb35a30, sky: 0x8f3f22, skyTop: 0x2a1410, rim: 0xff9a5a, fog: 0xb35a30, light: 0xffdcb8, amb: 0xc06a48, prop: 'rock', propC: [0x8a6a5c, 0x4a352c], lava: 0xff6a24 },
+    void: { ground: 0x4a4180, ground2: 0x3f376e, path: 0x7a66c0, edge: 0x9b7ae8, sky: 0x2a2150, skyTop: 0x120c2c, rim: 0xc39bff, fog: 0x4a3a84, light: 0xeee4ff, amb: 0x8a72d4, prop: 'crystal', propC: [0xc39bff, 0x7a5ac0] }
   };
   TD.THEMES = THEMES;
 
@@ -3416,7 +3819,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   const KEEPALIVE = 900;
   /* Generous, because a page busy rendering can be late with a keepalive
      and a peer blinking out of the roster looks like a disconnect. */
-  const PEER_TTL = 6500;
+  const PEER_TTL = 12000;
 
   function channelSession(code) {
     const ch = new BroadcastChannel('td-coop-' + code);
@@ -3456,6 +3859,8 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
         const rec = others.get(m.peer);
         if (rec) { others.delete(m.peer); firePeers({ joined: [], left: [rec], updated: [] }); }
       } else if (m.t === 'msg') {
+        const rec0 = others.get(m.peer);
+        if (rec0) rec0.seen = Date.now();
         const subs = topicSubs.get(m.topic);
         if (!subs) return;
         const msg = { topic: m.topic, data: m.data, peer: m.peer, by: null, isMe: false, sameTab: false, kind: 'viewer', guest: false };
@@ -3699,18 +4104,29 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   /* ------------------------------------------------------------------ */
   Lobby.build = function () {
     const scene = this.scene = new T.Scene();
-    scene.background = new T.Color(0x44579b);
-    scene.fog = new T.Fog(0x44579b, 100, 230);
+    const hi = TD.Save.data.settings.quality >= 1;
+    scene.fog = new T.Fog(0x46589c, 150, 330);
+    scene.background = new T.Color(0x46589c);
 
-    const hemi = new T.HemisphereLight(0xc3d4ff, 0x3a4468, 1.15); scene.add(hemi);
-    const sun = new T.DirectionalLight(0xfff4e2, 1.05);
-    sun.position.set(34, 58, 26); sun.castShadow = true;
-    sun.shadow.mapSize.set(1024, 1024);
+    /* Dusk over the plaza: warm low sun, cool sky. */
+    scene.add(TD.makeSky(0x21306b, 0x6079c4, 0x2c3560, 300));
+    TD.applyEnv(scene, TD.Game.renderer, 0x21306b, 0x6079c4, 0x2c3560);
+
+    scene.add(new T.HemisphereLight(0xa8c0ff, 0x35406a, 0.42));
+    const sun = new T.DirectionalLight(0xffe9c4, 2.3);
+    sun.position.set(40, 62, 30); sun.castShadow = true;
+    sun.shadow.mapSize.set(hi ? 2048 : 1024, hi ? 2048 : 1024);
     sun.shadow.camera.left = -70; sun.shadow.camera.right = 70;
     sun.shadow.camera.top = 70; sun.shadow.camera.bottom = -70;
-    sun.shadow.camera.far = 170;
+    sun.shadow.camera.far = 180;
+    sun.shadow.bias = -0.0006;
+    sun.shadow.normalBias = 0.035;
+    sun.shadow.radius = 2.4;
     scene.add(sun);
-    scene.add(new T.DirectionalLight(0x5a6ec0, 0.35).translateX(-40).translateY(30).translateZ(-40));
+    const fill = new T.DirectionalLight(0x6d85d8, 0.3);
+    fill.position.set(-40, 30, -40); scene.add(fill);
+    const rim = new T.DirectionalLight(0x9fc4ff, 0.5);
+    rim.position.set(-24, 20, -60); scene.add(rim);
 
     /* ---- ground ---- */
     const grass = new T.Mesh(new T.CircleGeometry(110, 40), TD.mat(0x3f7a44));
@@ -4046,9 +4462,14 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
         if (i >= 0) this.billboards[i] = a.model.tag;
       }
     });
+    /* Hold a character for a moment after its presence stops arriving:
+       one missed update is a hiccup, not someone leaving. */
+    const now = Date.now();
     Object.keys(this.avatars).forEach(k => {
-      if (seen[k]) return;
       const a = this.avatars[k];
+      if (seen[k]) { a.gone = 0; return; }
+      if (!a.gone) { a.gone = now; return; }
+      if (now - a.gone < 2500) return;
       const i = this.billboards.indexOf(a.model.tag);
       if (i >= 0) this.billboards.splice(i, 1);
       this.scene.remove(a.model.group);
@@ -4161,19 +4582,33 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
 
   /* A repeating two-tone checkerboard, built once per colour pair. */
   const checkerCache = new Map();
+  /* Two tones of ground with a little grain and a soft seam, rather than
+     four hard pixels: up close the old version was a flat checkerboard,
+     and at a distance it aliased. */
   function checkerTex(c1, c2) {
     const key = c1 + '/' + c2;
     if (checkerCache.has(key)) return checkerCache.get(key);
+    const N = 128, H = N / 2;
     const cv = document.createElement('canvas');
-    cv.width = cv.height = 2;
+    cv.width = cv.height = N;
     const g = cv.getContext('2d');
     const hex = n => '#' + n.toString(16).padStart(6, '0');
-    g.fillStyle = hex(c1); g.fillRect(0, 0, 1, 1); g.fillRect(1, 1, 1, 1);
-    g.fillStyle = hex(c2); g.fillRect(1, 0, 1, 1); g.fillRect(0, 1, 1, 1);
+    g.fillStyle = hex(c1); g.fillRect(0, 0, N, N);
+    g.fillStyle = hex(c2); g.fillRect(H, 0, H, H); g.fillRect(0, H, H, H);
+    /* grain */
+    const img = g.getImageData(0, 0, N, N), d = img.data;
+    for (let i = 0; i < d.length; i += 4) {
+      const n = (Math.random() - 0.5) * 13;
+      d[i] += n; d[i + 1] += n; d[i + 2] += n;
+    }
+    g.putImageData(img, 0, 0);
+    /* a faint darkening along the seams reads as a groove */
+    g.strokeStyle = 'rgba(0,0,0,0.10)'; g.lineWidth = 2;
+    g.strokeRect(0, 0, H, H); g.strokeRect(H, H, H, H);
     const t = new T.CanvasTexture(cv);
-    t.magFilter = T.NearestFilter; t.minFilter = T.NearestFilter;
     t.wrapS = t.wrapT = T.RepeatWrapping;
     t.repeat.set(23, 23);
+    t.anisotropy = 8;
     if (t.colorSpace !== undefined) t.colorSpace = T.SRGBColorSpace;
     checkerCache.set(key, t);
     return t;
@@ -4237,28 +4672,43 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
 
   B.buildWorld = function () {
     const map = this.map, th = TD.THEMES[map.theme];
+    const hi = TD.Save.data.settings.quality >= 1;
     const scene = this.scene = new T.Scene();
-    scene.background = new T.Color(th.sky);
-    scene.fog = new T.Fog(th.fog, 120, 260);
+    /* Light fog: enough to give the far edge some depth, not enough to
+       drain the colour out of the board you are looking at. */
+    scene.fog = new T.Fog(th.fog, 190, 460);
+    scene.background = new T.Color(th.fog);
 
-    scene.add(new T.HemisphereLight(th.fog, th.amb, 0.95));
-    const sun = new T.DirectionalLight(th.light, 0.9);
-    sun.position.set(48, 78, 36);
+    /* A gradient dome rather than a flat clear colour, and a probe built
+       from that same sky so every surface picks up light from it. */
+    const skyTop = th.skyTop || th.sky;
+    scene.add(TD.makeSky(skyTop, th.fog, th.ground2, 420));
+    TD.applyEnv(scene, TD.Game.renderer, skyTop, th.fog, th.ground2);
+
+    /* Three lights, doing three jobs: a warm key that casts, a cool sky
+       fill, and a rim from behind to pull silhouettes off the background. */
+    scene.add(new T.HemisphereLight(th.fog, th.amb, 0.32));
+    const sun = new T.DirectionalLight(th.light, 2.3);
+    sun.position.set(58, 92, 44);
     if (TD.Save.data.settings.shadows) {
       sun.castShadow = true;
-      sun.shadow.mapSize.set(TD.Save.data.settings.quality >= 1 ? 1024 : 512, TD.Save.data.settings.quality >= 1 ? 1024 : 512);
+      sun.shadow.mapSize.set(hi ? 2048 : 1024, hi ? 2048 : 1024);
       sun.shadow.camera.left = -95; sun.shadow.camera.right = 95;
       sun.shadow.camera.top = 95; sun.shadow.camera.bottom = -95;
-      sun.shadow.camera.far = 220;
-      sun.shadow.bias = -0.0009;
+      sun.shadow.camera.far = 240;
+      sun.shadow.bias = -0.0006;
+      sun.shadow.normalBias = 0.035;
+      sun.shadow.radius = 2.4;
     }
     scene.add(sun);
-    const fill = new T.DirectionalLight(th.amb, 0.35);
-    fill.position.set(-40, 35, -40); scene.add(fill);
+    const fill = new T.DirectionalLight(th.amb, 0.30);
+    fill.position.set(-46, 40, -38); scene.add(fill);
+    const rim = new T.DirectionalLight(th.rim || 0xbfd8ff, 0.45);
+    rim.position.set(-30, 26, -72); scene.add(rim);
 
     /* ---- ground: one textured plane instead of hundreds of patches ---- */
     const g = new T.Mesh(new T.PlaneGeometry(460, 460, 1, 1),
-      new T.MeshLambertMaterial({ map: checkerTex(th.ground, th.ground2) }));
+      new T.MeshStandardMaterial({ map: checkerTex(th.ground, th.ground2), roughness: 0.96, metalness: 0 }));
     g.rotation.x = -Math.PI / 2; g.receiveShadow = true; scene.add(g);
 
     /* ---- water / lava ---- */
@@ -6331,9 +6781,13 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
       a.tx = p.x; a.tz = p.z; a.dir = p.ry || 0;
       if (p.name && p.name !== a.name) { a.name = p.name; a.model.setName(p.name); }
     });
+    const now = Date.now();
     Object.keys(this.avatars).forEach(k => {
-      if (seen.has(k)) return;
-      this.scene.remove(this.avatars[k].model.group);
+      const a = this.avatars[k];
+      if (seen.has(k)) { a.gone = 0; return; }
+      if (!a.gone) { a.gone = now; return; }
+      if (now - a.gone < 2500) return;
+      this.scene.remove(a.model.group);
       delete this.avatars[k];
     });
   };
@@ -7701,6 +8155,19 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     toggle('sound', 'Sound effects');
     toggle('music', 'Background music');
     toggle('shadows', 'Shadows', 'Turn off for more performance (applies next match)');
+
+    const brow = el('div', 'srow');
+    brow.appendChild(el('label', null, 'Bloom &amp; filmic colour<small>' +
+      (TD.Post.ready ? 'Glow around lights, richer contrast' : 'Not supported by this browser') + '</small>'));
+    const bsw = el('div', 'switch' + (TD.Post.enabled ? ' on' : ''), '<i></i>');
+    bsw.onclick = () => {
+      if (!TD.Post.ready) { TD.Audio.error(); return; }
+      s.bloom = !TD.Post.enabled;
+      TD.Post.enabled = s.bloom;
+      TD.Save.save(); TD.Audio.ui();
+      bsw.classList.toggle('on', TD.Post.enabled);
+    };
+    brow.appendChild(bsw); host.appendChild(brow);
     toggle('dmgNumbers', 'Floating damage numbers');
 
     const qrow = el('div', 'srow');
@@ -7841,7 +8308,8 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     p.classList.remove('hidden');
     $('#tp-icon').style.cssText = 'background-image:url(' + towerThumb(t.def.id, t.level) + ');background-size:contain;background-repeat:no-repeat;background-position:center';
     $('#tp-name').textContent = t.def.name;
-    $('#tp-lvl').textContent = 'LEVEL ' + t.level + ' — ' + t.def.lv[t.level].n;
+    /* Levels are 0-based internally; players count from one. */
+    $('#tp-lvl').textContent = 'LEVEL ' + (t.level + 1) + '/' + t.def.lv.length + ' — ' + t.def.lv[t.level].n;
 
     const s = t.stats;
     const st = $('#tp-stats'); st.innerHTML = '';
@@ -8219,8 +8687,14 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = T.PCFSoftShadowMap;
     if (renderer.outputColorSpace !== undefined) renderer.outputColorSpace = T.SRGBColorSpace;
+    renderer.toneMapping = T.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
     stage.appendChild(renderer.domElement);
     Game.renderer = renderer;
+
+    /* Bloom and the filmic curve, when the machine and the settings allow. */
+    TD.Post.init(renderer);
+    TD.Post.enabled = TD.Post.ready && TD.Save.data.settings.bloom !== false;
 
     /* Profiles first: the plaza is built from whoever is signed in. */
     TD.Account.init();
@@ -8270,7 +8744,10 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
 
   function onResize() {
     const w = window.innerWidth, h = window.innerHeight;
-    if (Game.renderer) Game.renderer.setSize(w, h);
+    if (Game.renderer) {
+      Game.renderer.setSize(w, h);
+      TD.Post.resize(w, h, Game.renderer.getPixelRatio());
+    }
     TD.Lobby.resize(w, h);
     TD.Battle.resize(w, h);
   }
@@ -8294,17 +8771,36 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     TD.Audio.setMusicVolume(0.06);
   };
 
+  /* If the machine cannot carry the post chain, drop it rather than let
+     the game crawl.  Measured over a couple of seconds of real frames,
+     once, and never re-enabled behind the player's back. */
+  let fpsFrames = 0, fpsSince = 0, fpsChecked = false;
+  function watchFps(now) {
+    if (fpsChecked || !TD.Post.enabled) return;
+    if (!fpsSince) { fpsSince = now; fpsFrames = 0; return; }
+    fpsFrames++;
+    const secs = (now - fpsSince) / 1000;
+    if (secs < 3.5) return;
+    fpsChecked = true;
+    const fps = fpsFrames / secs;
+    if (fps < 24) {
+      TD.Post.enabled = false;
+      TD.toast('Effects turned down to keep the frame rate up — Options to re-enable', 'bad');
+    }
+  }
+
   function loop(now) {
     requestAnimationFrame(loop);
     const dt = Math.min(0.1, (now - Game.last) / 1000);
     Game.last = now;
+    watchFps(now);
 
     if (Game.mode === 'lobby') {
       TD.Lobby.update(dt);
-      if (TD.Lobby.scene) Game.renderer.render(TD.Lobby.scene, TD.Lobby.camera);
+      if (TD.Lobby.scene) TD.Post.render(TD.Lobby.scene, TD.Lobby.camera);
     } else if (Game.mode === 'battle') {
       TD.Battle.update(dt);
-      if (TD.Battle.scene) Game.renderer.render(TD.Battle.scene, TD.Battle.camera);
+      if (TD.Battle.scene) TD.Post.render(TD.Battle.scene, TD.Battle.camera);
     }
   }
 

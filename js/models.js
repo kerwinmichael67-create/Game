@@ -6,26 +6,64 @@
   const T = THREE;
   const matCache = new Map();
 
-  /* Shared, cached Lambert material. */
+  /* Shared, cached material.  Standard rather than Lambert: it takes the
+     scene's environment probe, so metal reads as metal and everything
+     picks up a little colour from the sky instead of looking like flat
+     painted card. */
   const mat = TD.mat = function (color, opts) {
     opts = opts || {};
-    const key = color + '|' + (opts.transparent ? 't' + opts.opacity : '') + (opts.emissive || '') + (opts.flat ? 'f' : '');
+    const key = color + '|' + (opts.transparent ? 't' + opts.opacity : '') + (opts.emissive || '') +
+      (opts.flat ? 'f' : '') + '|' + (opts.rough == null ? '' : opts.rough) + '|' + (opts.metal == null ? '' : opts.metal);
     if (matCache.has(key)) return matCache.get(key);
-    const m = new T.MeshLambertMaterial({
+    const m = new T.MeshStandardMaterial({
       color: color,
+      roughness: opts.rough != null ? opts.rough : 0.72,
+      metalness: opts.metal != null ? opts.metal : 0.06,
       transparent: !!opts.transparent,
       opacity: opts.opacity != null ? opts.opacity : 1,
       emissive: opts.emissive != null ? opts.emissive : 0x000000,
       emissiveIntensity: opts.emissiveIntensity != null ? opts.emissiveIntensity : 1,
       side: opts.side || T.FrontSide,
+      envMapIntensity: 0.38,
       depthWrite: opts.transparent ? false : true
     });
     matCache.set(key, m);
     return m;
   };
 
-  const GEOM = { box: new T.BoxGeometry(1, 1, 1) };
+  /* A box whose corners and edges are rounded off.  Start from a box with
+     an edge loop per side, then for every vertex: clamp it into the inner
+     box and push it back out by the radius.  Corners and edges move, face
+     centres do not — which is exactly a chamfer, for four times the
+     triangles of a plain box and no extra draw calls.  Since the whole
+     game is built out of TD.box(), this one function softens everything. */
+  function roundedBoxGeometry(r, seg) {
+    const g = new T.BoxGeometry(1, 1, 1, seg, seg, seg);
+    const pos = g.attributes.position;
+    const half = 0.5 - r;
+    const v = new T.Vector3();
+    for (let i = 0; i < pos.count; i++) {
+      v.fromBufferAttribute(pos, i);
+      const ix = Math.max(-half, Math.min(half, v.x));
+      const iy = Math.max(-half, Math.min(half, v.y));
+      const iz = Math.max(-half, Math.min(half, v.z));
+      const dx = v.x - ix, dy = v.y - iy, dz = v.z - iz;
+      const len = Math.sqrt(dx * dx + dy * dy + dz * dz);
+      if (len > 1e-6) {
+        const k = r / len;
+        pos.setXYZ(i, ix + dx * k, iy + dy * k, iz + dz * k);
+      }
+    }
+    g.computeVertexNormals();
+    return g;
+  }
+
+  const GEOM = { box: roundedBoxGeometry(0.055, 2) };
   GEOM.box.__shared = true;
+  /* Still available where a hard edge is wanted (ground plates, bars). */
+  GEOM.sharpBox = new T.BoxGeometry(1, 1, 1);
+  GEOM.sharpBox.__shared = true;
+  TD.sharpBoxGeometry = GEOM.sharpBox;
   /* Cached geometries are reused everywhere, so effect cleanup must never
      dispose them. remember(): tag + store in one step. */
   function remember(key, geo) { geo.__shared = true; GEOM[key] = geo; return geo; }
@@ -52,7 +90,7 @@
 
   /* box(width,height,depth,color,x,y,z) -> Mesh */
   const box = TD.box = function (w, h, d, color, x, y, z, opts) {
-    const m = new T.Mesh(GEOM.box, mat(color, opts));
+    const m = new T.Mesh((opts && opts.sharp) ? GEOM.sharpBox : GEOM.box, mat(color, opts));
     m.scale.set(w, h, d);
     m.position.set(x || 0, y || 0, z || 0);
     m.castShadow = true; m.receiveShadow = true;
@@ -775,9 +813,18 @@
       const g = new T.Group();
       g.add(cylinder(0.16, 0.22, 5.0, 0x39405a, 0, 2.5, 0, 8));
       g.add(box(0.7, 0.4, 0.7, 0x39405a, 0, 5.1, 0));
-      const bulb = box(0.5, 0.3, 0.5, c || 0xffe08a, 0, 4.85, 0);
-      bulb.material = mat(c || 0xffe08a, { emissive: c || 0xffe08a, emissiveIntensity: 0.6 });
+      const bulb = box(0.62, 0.34, 0.62, c || 0xffe08a, 0, 4.85, 0);
+      bulb.material = mat(c || 0xffe08a, { emissive: c || 0xffe08a, emissiveIntensity: 5.2 });
+      bulb.castShadow = false;
       g.add(bulb);
+      /* a small pool of light on the ground under it */
+      const pool = TD.blobShadow(3.2);
+      pool.material = new T.MeshBasicMaterial({
+        map: pool.material.map, transparent: true, depthWrite: false,
+        color: c || 0xffe08a, opacity: 0.22, blending: T.AdditiveBlending
+      });
+      pool.position.y = 0.05;
+      g.add(pool);
       return g;
     },
     sandbag: (c) => {
@@ -794,8 +841,11 @@
       for (let i = 0; i < 2; i++) g.add(cylinder(0.12, 0.12, 3.4, 0x39405a, i ? 1.5 : -1.5, 1.7, 0.95, 6));
       const sign = box(3.6, 1.4, 0.2, c2 || 0xffc63d, 0, 4.7, 0);
       g.add(sign);
-      g.add(box(3.0, 1.6, 0.12, 0x101626, 0, 2.3, 0.85));
+      const screen = box(3.0, 1.6, 0.12, 0x101626, 0, 2.3, 0.85);
+      screen.material = mat(0x1d3a66, { emissive: c2 || 0x4f8cff, emissiveIntensity: 1.5 });
+      g.add(screen);
       g.userData.sign = sign;
+      g.userData.screen = screen;
       return g;
     },
     fence: (len, c) => {

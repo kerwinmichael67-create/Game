@@ -50,19 +50,33 @@
 
   /* A repeating two-tone checkerboard, built once per colour pair. */
   const checkerCache = new Map();
+  /* Two tones of ground with a little grain and a soft seam, rather than
+     four hard pixels: up close the old version was a flat checkerboard,
+     and at a distance it aliased. */
   function checkerTex(c1, c2) {
     const key = c1 + '/' + c2;
     if (checkerCache.has(key)) return checkerCache.get(key);
+    const N = 128, H = N / 2;
     const cv = document.createElement('canvas');
-    cv.width = cv.height = 2;
+    cv.width = cv.height = N;
     const g = cv.getContext('2d');
     const hex = n => '#' + n.toString(16).padStart(6, '0');
-    g.fillStyle = hex(c1); g.fillRect(0, 0, 1, 1); g.fillRect(1, 1, 1, 1);
-    g.fillStyle = hex(c2); g.fillRect(1, 0, 1, 1); g.fillRect(0, 1, 1, 1);
+    g.fillStyle = hex(c1); g.fillRect(0, 0, N, N);
+    g.fillStyle = hex(c2); g.fillRect(H, 0, H, H); g.fillRect(0, H, H, H);
+    /* grain */
+    const img = g.getImageData(0, 0, N, N), d = img.data;
+    for (let i = 0; i < d.length; i += 4) {
+      const n = (Math.random() - 0.5) * 13;
+      d[i] += n; d[i + 1] += n; d[i + 2] += n;
+    }
+    g.putImageData(img, 0, 0);
+    /* a faint darkening along the seams reads as a groove */
+    g.strokeStyle = 'rgba(0,0,0,0.10)'; g.lineWidth = 2;
+    g.strokeRect(0, 0, H, H); g.strokeRect(H, H, H, H);
     const t = new T.CanvasTexture(cv);
-    t.magFilter = T.NearestFilter; t.minFilter = T.NearestFilter;
     t.wrapS = t.wrapT = T.RepeatWrapping;
     t.repeat.set(23, 23);
+    t.anisotropy = 8;
     if (t.colorSpace !== undefined) t.colorSpace = T.SRGBColorSpace;
     checkerCache.set(key, t);
     return t;
@@ -126,28 +140,43 @@
 
   B.buildWorld = function () {
     const map = this.map, th = TD.THEMES[map.theme];
+    const hi = TD.Save.data.settings.quality >= 1;
     const scene = this.scene = new T.Scene();
-    scene.background = new T.Color(th.sky);
-    scene.fog = new T.Fog(th.fog, 120, 260);
+    /* Light fog: enough to give the far edge some depth, not enough to
+       drain the colour out of the board you are looking at. */
+    scene.fog = new T.Fog(th.fog, 190, 460);
+    scene.background = new T.Color(th.fog);
 
-    scene.add(new T.HemisphereLight(th.fog, th.amb, 0.95));
-    const sun = new T.DirectionalLight(th.light, 0.9);
-    sun.position.set(48, 78, 36);
+    /* A gradient dome rather than a flat clear colour, and a probe built
+       from that same sky so every surface picks up light from it. */
+    const skyTop = th.skyTop || th.sky;
+    scene.add(TD.makeSky(skyTop, th.fog, th.ground2, 420));
+    TD.applyEnv(scene, TD.Game.renderer, skyTop, th.fog, th.ground2);
+
+    /* Three lights, doing three jobs: a warm key that casts, a cool sky
+       fill, and a rim from behind to pull silhouettes off the background. */
+    scene.add(new T.HemisphereLight(th.fog, th.amb, 0.32));
+    const sun = new T.DirectionalLight(th.light, 2.3);
+    sun.position.set(58, 92, 44);
     if (TD.Save.data.settings.shadows) {
       sun.castShadow = true;
-      sun.shadow.mapSize.set(TD.Save.data.settings.quality >= 1 ? 1024 : 512, TD.Save.data.settings.quality >= 1 ? 1024 : 512);
+      sun.shadow.mapSize.set(hi ? 2048 : 1024, hi ? 2048 : 1024);
       sun.shadow.camera.left = -95; sun.shadow.camera.right = 95;
       sun.shadow.camera.top = 95; sun.shadow.camera.bottom = -95;
-      sun.shadow.camera.far = 220;
-      sun.shadow.bias = -0.0009;
+      sun.shadow.camera.far = 240;
+      sun.shadow.bias = -0.0006;
+      sun.shadow.normalBias = 0.035;
+      sun.shadow.radius = 2.4;
     }
     scene.add(sun);
-    const fill = new T.DirectionalLight(th.amb, 0.35);
-    fill.position.set(-40, 35, -40); scene.add(fill);
+    const fill = new T.DirectionalLight(th.amb, 0.30);
+    fill.position.set(-46, 40, -38); scene.add(fill);
+    const rim = new T.DirectionalLight(th.rim || 0xbfd8ff, 0.45);
+    rim.position.set(-30, 26, -72); scene.add(rim);
 
     /* ---- ground: one textured plane instead of hundreds of patches ---- */
     const g = new T.Mesh(new T.PlaneGeometry(460, 460, 1, 1),
-      new T.MeshLambertMaterial({ map: checkerTex(th.ground, th.ground2) }));
+      new T.MeshStandardMaterial({ map: checkerTex(th.ground, th.ground2), roughness: 0.96, metalness: 0 }));
     g.rotation.x = -Math.PI / 2; g.receiveShadow = true; scene.add(g);
 
     /* ---- water / lava ---- */
@@ -2220,9 +2249,13 @@
       a.tx = p.x; a.tz = p.z; a.dir = p.ry || 0;
       if (p.name && p.name !== a.name) { a.name = p.name; a.model.setName(p.name); }
     });
+    const now = Date.now();
     Object.keys(this.avatars).forEach(k => {
-      if (seen.has(k)) return;
-      this.scene.remove(this.avatars[k].model.group);
+      const a = this.avatars[k];
+      if (seen.has(k)) { a.gone = 0; return; }
+      if (!a.gone) { a.gone = now; return; }
+      if (now - a.gone < 2500) return;
+      this.scene.remove(a.model.group);
       delete this.avatars[k];
     });
   };

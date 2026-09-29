@@ -613,6 +613,19 @@
     toggle('sound', 'Sound effects');
     toggle('music', 'Background music');
     toggle('shadows', 'Shadows', 'Turn off for more performance (applies next match)');
+
+    const brow = el('div', 'srow');
+    brow.appendChild(el('label', null, 'Bloom &amp; filmic colour<small>' +
+      (TD.Post.ready ? 'Glow around lights, richer contrast' : 'Not supported by this browser') + '</small>'));
+    const bsw = el('div', 'switch' + (TD.Post.enabled ? ' on' : ''), '<i></i>');
+    bsw.onclick = () => {
+      if (!TD.Post.ready) { TD.Audio.error(); return; }
+      s.bloom = !TD.Post.enabled;
+      TD.Post.enabled = s.bloom;
+      TD.Save.save(); TD.Audio.ui();
+      bsw.classList.toggle('on', TD.Post.enabled);
+    };
+    brow.appendChild(bsw); host.appendChild(brow);
     toggle('dmgNumbers', 'Floating damage numbers');
 
     const qrow = el('div', 'srow');
@@ -753,7 +766,8 @@
     p.classList.remove('hidden');
     $('#tp-icon').style.cssText = 'background-image:url(' + towerThumb(t.def.id, t.level) + ');background-size:contain;background-repeat:no-repeat;background-position:center';
     $('#tp-name').textContent = t.def.name;
-    $('#tp-lvl').textContent = 'LEVEL ' + t.level + ' — ' + t.def.lv[t.level].n;
+    /* Levels are 0-based internally; players count from one. */
+    $('#tp-lvl').textContent = 'LEVEL ' + (t.level + 1) + '/' + t.def.lv.length + ' — ' + t.def.lv[t.level].n;
 
     const s = t.stats;
     const st = $('#tp-stats'); st.innerHTML = '';

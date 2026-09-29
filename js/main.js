@@ -27,8 +27,14 @@
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = T.PCFSoftShadowMap;
     if (renderer.outputColorSpace !== undefined) renderer.outputColorSpace = T.SRGBColorSpace;
+    renderer.toneMapping = T.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
     stage.appendChild(renderer.domElement);
     Game.renderer = renderer;
+
+    /* Bloom and the filmic curve, when the machine and the settings allow. */
+    TD.Post.init(renderer);
+    TD.Post.enabled = TD.Post.ready && TD.Save.data.settings.bloom !== false;
 
     /* Profiles first: the plaza is built from whoever is signed in. */
     TD.Account.init();
@@ -78,7 +84,10 @@
 
   function onResize() {
     const w = window.innerWidth, h = window.innerHeight;
-    if (Game.renderer) Game.renderer.setSize(w, h);
+    if (Game.renderer) {
+      Game.renderer.setSize(w, h);
+      TD.Post.resize(w, h, Game.renderer.getPixelRatio());
+    }
     TD.Lobby.resize(w, h);
     TD.Battle.resize(w, h);
   }
@@ -102,17 +111,36 @@
     TD.Audio.setMusicVolume(0.06);
   };
 
+  /* If the machine cannot carry the post chain, drop it rather than let
+     the game crawl.  Measured over a couple of seconds of real frames,
+     once, and never re-enabled behind the player's back. */
+  let fpsFrames = 0, fpsSince = 0, fpsChecked = false;
+  function watchFps(now) {
+    if (fpsChecked || !TD.Post.enabled) return;
+    if (!fpsSince) { fpsSince = now; fpsFrames = 0; return; }
+    fpsFrames++;
+    const secs = (now - fpsSince) / 1000;
+    if (secs < 3.5) return;
+    fpsChecked = true;
+    const fps = fpsFrames / secs;
+    if (fps < 24) {
+      TD.Post.enabled = false;
+      TD.toast('Effects turned down to keep the frame rate up — Options to re-enable', 'bad');
+    }
+  }
+
   function loop(now) {
     requestAnimationFrame(loop);
     const dt = Math.min(0.1, (now - Game.last) / 1000);
     Game.last = now;
+    watchFps(now);
 
     if (Game.mode === 'lobby') {
       TD.Lobby.update(dt);
-      if (TD.Lobby.scene) Game.renderer.render(TD.Lobby.scene, TD.Lobby.camera);
+      if (TD.Lobby.scene) TD.Post.render(TD.Lobby.scene, TD.Lobby.camera);
     } else if (Game.mode === 'battle') {
       TD.Battle.update(dt);
-      if (TD.Battle.scene) Game.renderer.render(TD.Battle.scene, TD.Battle.camera);
+      if (TD.Battle.scene) TD.Post.render(TD.Battle.scene, TD.Battle.camera);
     }
   }
 
