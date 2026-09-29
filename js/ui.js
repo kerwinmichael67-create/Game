@@ -83,6 +83,17 @@
   /* ---------------------------------------------------------------- */
   /*  lobby HUD                                                        */
   /* ---------------------------------------------------------------- */
+  UI.tickRoomPill = function () {
+    const pill = document.getElementById('lobby-room');
+    if (!pill) return;
+    const C = TD.Coop;
+    if (!C || !C.active) { pill.classList.add('hidden'); return; }
+    pill.classList.remove('hidden');
+    const n = C.players.length;
+    pill.textContent = 'ROOM ' + String(C.code || '').toUpperCase() + ' · ' +
+      n + (n === 1 ? ' player' : ' players') + (C.isHost() ? ' · you are the host' : '');
+  };
+
   UI.refreshHud = function () {
     const d = TD.Save.data;
     const lv = TD.levelFromXp(d.xp);
@@ -443,9 +454,144 @@
   /* ---------------------------------------------------------------- */
   /*  SETTINGS                                                         */
   /* ---------------------------------------------------------------- */
+  /* ====================================================================
+     ACCOUNT — profiles on this browser, plus the real claude.ai identity
+     ==================================================================== */
+  UI.accountView = 'main';        // 'main' | 'switch' | 'create' | 'pin'
+
+  UI.buildAccount = function (host) {
+    const box = el('div', 'acct');
+    const cur = TD.Account.current();
+    const lvl = TD.levelFromXp(TD.Save.data.xp);
+
+    /* who you are right now */
+    const head = el('div', 'acct-head');
+    const av = el('div', 'acct-av');
+    av.textContent = (cur.name || '?').slice(0, 1).toUpperCase();
+    head.appendChild(av);
+    const who = el('div', 'acct-who');
+    who.appendChild(el('div', 'acct-name', cur.name || 'Defender'));
+    who.appendChild(el('div', 'acct-sub',
+      (cur.guest ? 'Guest profile' : 'Signed in' + (cur.locked ? ' · passcode set' : '')) +
+      ' · Lv ' + lvl.level + ' · ' + TD.fmt(TD.Save.data.coins) + ' coins'));
+    head.appendChild(who);
+    box.appendChild(head);
+
+    /* the identity the platform vouches for, when there is one */
+    const cl = el('div', 'acct-claude');
+    if (TD.Account.claudeState === 'signed-in' && TD.Account.claude) {
+      const n = TD.Account.claude.name;
+      cl.appendChild(el('span', 'ok', '● '));
+      cl.appendChild(document.createTextNode('Claude account: '));
+      const b = el('b'); b.textContent = n || 'signed in'; cl.appendChild(b);
+      if (n && n !== cur.name) {
+        const use = el('button', 'acct-mini', 'Use this name');
+        use.onclick = () => { TD.Account.adoptClaudeName(); UI.refreshHud(); UI.buildSettings(); TD.Audio.ui(); };
+        cl.appendChild(use);
+      }
+    } else {
+      cl.appendChild(el('span', 'dim', '○ '));
+      cl.appendChild(document.createTextNode('Not signed in to a Claude account here — profiles below are stored in this browser only.'));
+    }
+    box.appendChild(cl);
+
+    const msg = el('div', 'acct-msg');
+    const say = t => { msg.textContent = t || ''; };
+
+    /* ---- the panel body swaps between four small views ---- */
+    const body = el('div', 'acct-body');
+
+    if (UI.accountView === 'switch') {
+      if (!TD.Account.users.length) body.appendChild(el('div', 'acct-empty', 'No profiles yet — create one.'));
+      TD.Account.users.forEach(u => {
+        const row = el('div', 'acct-row' + (u.id === TD.Account.activeId ? ' on' : ''));
+        row.appendChild(el('span', 'acct-rn', u.name));
+        if (u.pin) row.appendChild(el('span', 'acct-lock', '🔒'));
+        const go = el('button', 'acct-mini', u.id === TD.Account.activeId ? 'Current' : 'Sign in');
+        go.disabled = u.id === TD.Account.activeId;
+        go.onclick = () => {
+          if (u.pin) {
+            const pin = prompt('Passcode for ' + u.name);
+            if (pin === null) return;
+            const r = TD.Account.signIn(u.id, pin);
+            if (!r.ok) { TD.Audio.error(); say(r.why); return; }
+          } else {
+            TD.Account.signIn(u.id, '');
+          }
+          TD.Audio.ui(); UI.accountView = 'main'; UI.afterProfileChange();
+        };
+        row.appendChild(go);
+        const del = el('button', 'acct-mini danger', '✕');
+        del.title = 'Delete this profile and its save';
+        del.onclick = () => {
+          if (!confirm('Delete the profile "' + u.name + '" and everything it has unlocked?')) return;
+          TD.Account.remove(u.id); TD.Audio.ui(); UI.afterProfileChange();
+        };
+        row.appendChild(del);
+        body.appendChild(row);
+      });
+      const guest = el('button', 'acct-mini wide', 'Continue as guest');
+      guest.onclick = () => { TD.Account.signOut(); TD.Audio.ui(); UI.accountView = 'main'; UI.afterProfileChange(); };
+      body.appendChild(guest);
+
+    } else if (UI.accountView === 'create') {
+      const nm = el('input'); nm.type = 'text'; nm.maxLength = 16; nm.placeholder = 'Profile name'; nm.className = 'acct-in';
+      const pn = el('input'); pn.type = 'password'; pn.maxLength = 8; pn.placeholder = 'Passcode (optional)'; pn.className = 'acct-in';
+      body.appendChild(nm); body.appendChild(pn);
+      const go = el('button', 'acct-mini wide', 'Create and sign in');
+      go.onclick = () => {
+        const r = TD.Account.create(nm.value, pn.value);
+        if (!r.ok) { TD.Audio.error(); say(r.why); return; }
+        TD.Audio.ui(); UI.accountView = 'main'; UI.afterProfileChange();
+      };
+      nm.addEventListener('keydown', e => { if (e.key === 'Enter') go.click(); });
+      pn.addEventListener('keydown', e => { if (e.key === 'Enter') go.click(); });
+      body.appendChild(go);
+
+    } else if (UI.accountView === 'pin') {
+      const pn = el('input'); pn.type = 'password'; pn.maxLength = 8; pn.placeholder = 'New passcode (blank to clear)'; pn.className = 'acct-in';
+      body.appendChild(pn);
+      const go = el('button', 'acct-mini wide', 'Save passcode');
+      go.onclick = () => {
+        TD.Account.setPin(pn.value);
+        TD.Audio.ui(); UI.accountView = 'main'; UI.buildSettings();
+      };
+      body.appendChild(go);
+      body.appendChild(el('div', 'acct-warn',
+        'A passcode keeps other people on this computer out of your save by accident. It is not security — the save lives in this browser.'));
+    }
+
+    box.appendChild(body);
+
+    /* ---- the always-present buttons ---- */
+    const acts = el('div', 'acct-acts');
+    const btn = (label, view, fn) => {
+      const b = el('button', 'acct-btn' + (UI.accountView === view ? ' on' : ''), label);
+      b.onclick = fn || (() => { UI.accountView = UI.accountView === view ? 'main' : view; TD.Audio.ui(); UI.buildSettings(); });
+      acts.appendChild(b);
+    };
+    btn('Switch profile', 'switch');
+    btn('New profile', 'create');
+    if (!cur.guest) btn('Passcode', 'pin');
+    if (!cur.guest) btn('Sign out', null, () => { TD.Account.signOut(); TD.Audio.ui(); UI.afterProfileChange(); });
+    box.appendChild(acts);
+    box.appendChild(msg);
+
+    host.appendChild(box);
+  };
+
+  /* Switching profiles changes everything the HUD shows. */
+  UI.afterProfileChange = function () {
+    UI.refreshHud();
+    UI.buildSettings();
+    if (TD.Lobby && TD.Lobby.refreshPlayer) TD.Lobby.refreshPlayer();
+    if (TD.Coop && TD.Coop.active) TD.Coop.refreshIdentity();
+  };
+
   UI.buildSettings = function () {
     const s = TD.Save.data.settings;
     const host = $('#settings-body'); host.innerHTML = '';
+    UI.buildAccount(host);
     function toggle(key, label, sub) {
       const row = el('div', 'srow');
       row.appendChild(el('label', null, label + (sub ? '<small>' + sub + '</small>' : '')));
@@ -475,10 +621,15 @@
     row.appendChild(r); host.appendChild(row);
 
     const nrow = el('div', 'srow');
-    nrow.appendChild(el('label', null, 'Display name'));
+    nrow.appendChild(el('label', null, 'Display name<small>What other players see in co-op</small>'));
     const inp = el('input'); inp.type = 'text'; inp.maxLength = 16; inp.value = TD.Save.data.name;
     inp.style.cssText = 'background:#1a2138;border:1px solid #2c3757;border-radius:8px;color:#e8ecf8;padding:7px 10px;font-family:inherit;width:150px';
-    inp.onchange = () => { TD.Save.data.name = inp.value.slice(0, 16) || 'Defender'; TD.Save.save(); UI.refreshHud(); };
+    inp.onchange = () => {
+      TD.Account.rename(inp.value) || (TD.Save.data.name = 'Defender');
+      TD.Save.save(); UI.refreshHud();
+      if (TD.Lobby.refreshPlayer) TD.Lobby.refreshPlayer();
+      if (TD.Coop.active) TD.Coop.refreshIdentity();
+    };
     nrow.appendChild(inp); host.appendChild(nrow);
 
     const stats = el('div');
@@ -571,6 +722,10 @@
 
     if (UI.panelTower) UI.tickTowerPanel();
     if (n.follow) n.follow.classList.toggle('on', B.camFollow);
+    if (B.remote) {
+      const sp = B.paused ? 'II' : B.speed + '×';
+      if (UI.lastRemoteSpeed !== sp) { UI.lastRemoteSpeed = sp; $('#b-speed').textContent = sp; }
+    }
     UI.tickCoop(B);
   };
 
@@ -736,10 +891,14 @@
       TD.toast('Save data reset');
     };
 
-    $('#b-pause').onclick = () => UI.togglePause();
+    $('#b-pause').onclick = () => {
+      if (UI.battle && UI.battle.remote) { TD.Audio.error(); TD.toast('Only the host controls pause', 'bad'); return; }
+      UI.togglePause();
+    };
     $('#b-follow').onclick = () => UI.toggleFollow();
     $('#b-speed').onclick = () => {
       const B = UI.battle; if (!B) return;
+      if (B.remote) { TD.Audio.error(); TD.toast('Only the host controls game speed', 'bad'); return; }
       B.speed = B.speed === 1 ? 2 : B.speed === 2 ? 3 : 1;
       $('#b-speed').textContent = B.speed + '×';
       TD.Audio.ui();
@@ -864,7 +1023,7 @@
       deploy.textContent = 'CHOOSE MAP & DEPLOY';
       $('#coop-foot-note').textContent = C.players.length < 2
         ? 'Waiting for players — you can start alone too.'
-        : C.players.length + ' players ready';
+        : C.players.length + ' players in the room';
     } else {
       deploy.classList.add('hidden');
       $('#coop-foot-note').textContent = 'Waiting for the host to start…';

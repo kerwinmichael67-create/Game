@@ -610,6 +610,9 @@
     this.wonMatch = !!won;
     if (TD.Coop && TD.Coop.active) {
       TD.Chat.system(won ? 'Victory — the base held' : 'Defeat — the base fell');
+      if (!this.remote) TD.Coop.announce({
+        k: 'end', kills: this.stats.kills, leaked: this.stats.leaked, dmg: Math.round(this.stats.damage)
+      });
       TD.Coop.matchEnded();
     }
     won ? TD.Audio.win() : TD.Audio.lose();
@@ -2021,6 +2024,7 @@
       TD.Audio.wave();
     }
     this.wave = s.w; this.prepT = s.pt; this.speed = s.sp || 1;
+    this.paused = !!s.paused;
     if (s.slots) this.slots = s.slots;
     if (s.wallets) {
       this.slots.forEach((k, i) => { this.wallets[k] = s.wallets[i] || 0; });
@@ -2104,11 +2108,23 @@
     });
   };
 
+  /* A client earns from the match too — same formula the host uses, run on
+     its own save, because only this page knows what this player has. */
   B.remoteFinish = function (won) {
     TD.Audio[won ? 'win' : 'lose']();
     TD.Chat.system(won ? 'Victory — the base held' : 'Defeat — the base fell');
-    this.stats.kills = this.stats.kills || 0;
-    TD.UI.showResults(!!won, this, 0, 0);
+    const d = TD.Save.data;
+    const mul = this.diff.reward * (1 + this.map.tier * 0.12);
+    const coins = Math.round((won ? 260 : 60) * mul + this.wave * 11 * mul);
+    const xp = Math.round((won ? 200 : 45) * mul + this.wave * 9 * mul);
+    d.coins += coins; d.xp += xp;
+    if (this.wave > d.bestWave) d.bestWave = this.wave;
+    if (won) {
+      d.wins++;
+      d.mapsBeaten[this.map.id] = Math.max(d.mapsBeaten[this.map.id] || 0, TD.DIFFICULTIES.indexOf(this.diff) + 1);
+    } else d.losses++;
+    TD.Save.save();
+    TD.UI.showResults(!!won, this, coins, xp);
   };
 
   /* Per-frame work on a client: everything local (your character, the
@@ -2133,6 +2149,7 @@
   };
 
   B.stepRemoteEnemies = function (dt) {
+    if (this.paused) dt = 0;                  // the host has the world on hold
     const ease = TD.clamp(dt * 10, 0, 1);
     this.netEnemies.forEach(e => {
       /* Predict with what the flags tell us; the next snapshot corrects it. */

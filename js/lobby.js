@@ -9,7 +9,7 @@
     scene: null, camera: null, player: null, active: false,
     keys: {}, yaw: Math.PI, pitch: 0.42, zoom: 34,
     vel: { x: 0, z: 0 }, vy: 0, grounded: true,
-    t: 0, near: null, npcs: [], solids: [], stepT: 0, billboards: [],
+    t: 0, near: null, npcs: [], solids: [], stepT: 0, billboards: [], avatars: {},
     touch: { active: false, x: 0, y: 0, id: null }
   };
 
@@ -251,6 +251,7 @@
     this.kiosks.forEach(kk => {
       if (kk.label3d) kk.label3d.position.y = 7.4 + Math.sin(this.t * 1.7 + kk.x) * 0.25;
     });
+    this.updateAvatars(dt);
     this.billboards.forEach(b => TD.billboard(b, this.camera));
 
     /* kiosk proximity */
@@ -342,6 +343,62 @@
   };
 
   /* Reflect saved cosmetics / name on the player. */
+  /* ------------------------------------------------------------------
+     Everyone else in the co-op room, walking the same plaza.
+     ------------------------------------------------------------------ */
+  Lobby.syncAvatars = function (list) {
+    if (!this.scene) return;
+    const seen = {};
+    list.forEach(p => {
+      if (p.isMe) return;
+      seen[p.key] = 1;
+      let a = this.avatars[p.key];
+      if (!a) {
+        const slot = Math.max(0, p.slot | 0);
+        const h = TD.makeAvatar(p.name || 'Player', p.level || 1,
+          { shirt: TD.Battle.playerColor(slot), tag: TD.Battle.playerTag(slot) });
+        h.group.position.set(p.x || 0, 0, p.z || 24);
+        this.scene.add(h.group);
+        this.billboards.push(h.tag);
+        a = this.avatars[p.key] = { model: h, x: p.x || 0, z: p.z || 24, tx: p.x || 0, tz: p.z || 24, dir: 0, t: 0, name: p.name };
+      }
+      a.tx = p.x; a.tz = p.z; a.dir = p.ry || 0;
+    });
+    Object.keys(this.avatars).forEach(k => {
+      if (seen[k]) return;
+      const a = this.avatars[k];
+      const i = this.billboards.indexOf(a.model.tag);
+      if (i >= 0) this.billboards.splice(i, 1);
+      this.scene.remove(a.model.group);
+      delete this.avatars[k];
+    });
+  };
+
+  Lobby.updateAvatars = function (dt) {
+    const keys = Object.keys(this.avatars);
+    for (let i = 0; i < keys.length; i++) {
+      const a = this.avatars[keys[i]];
+      const dx = a.tx - a.x, dz = a.tz - a.z;
+      const dist = Math.sqrt(dx * dx + dz * dz);
+      const ease = TD.clamp(dt * 9, 0, 1);
+      a.x += dx * ease; a.z += dz * ease;
+      a.t += dt;
+      a.model.group.position.set(a.x, 0, a.z);
+      a.model.group.rotation.y = a.dir;
+      a.model.anim(a.t, TD.clamp(dist * 1.4, 0, 1.3), { speed: 9 });
+    }
+  };
+
+  Lobby.clearAvatars = function () {
+    Object.keys(this.avatars).forEach(k => {
+      const a = this.avatars[k];
+      const i = this.billboards.indexOf(a.model.tag);
+      if (i >= 0) this.billboards.splice(i, 1);
+      if (this.scene) this.scene.remove(a.model.group);
+    });
+    this.avatars = {};
+  };
+
   Lobby.refreshPlayer = function () {
     if (!this.player) return;
     if (this.nameTag && this._tagName !== TD.Save.data.name) {

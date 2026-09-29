@@ -484,3 +484,57 @@ kbd{
   .chat{width:min(74vw,268px);bottom:150px}
   .chat-log{height:118px}
 }
+
+/* ===========================================================
+   ACCOUNT / PROFILES
+   =========================================================== */
+.acct{background:#0f1526;border:1px solid var(--line);border-radius:12px;padding:13px;margin-bottom:6px}
+.acct-head{display:flex;align-items:center;gap:11px}
+.acct-av{width:38px;height:38px;border-radius:10px;background:linear-gradient(150deg,#2f5fb8,#1b2a4a);
+  display:flex;align-items:center;justify-content:center;font:800 17px/1 inherit;color:#cfe3ff;flex:0 0 auto}
+.acct-who{min-width:0}
+.acct-name{font-weight:700;font-size:15px}
+.acct-sub{font-size:11.5px;color:var(--dim)}
+.acct-claude{margin-top:11px;font-size:12px;color:var(--dim);line-height:1.5}
+.acct-claude b{color:var(--ink)}
+.acct-claude .ok{color:#51d88a}
+.acct-claude .dim{color:#59657f}
+
+.acct-body{display:flex;flex-direction:column;gap:6px;margin-top:11px}
+.acct-body:empty{display:none}
+.acct-row{display:flex;align-items:center;gap:8px;background:#141b2e;border:1px solid var(--line);
+  border-radius:8px;padding:6px 9px;font-size:13px}
+.acct-row.on{border-color:#3d86c9}
+.acct-rn{flex:1;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acct-lock{font-size:11px;opacity:.75}
+.acct-empty{font-size:12px;color:var(--dim);padding:4px 2px}
+.acct-in{background:#0d1322;border:1px solid var(--line);border-radius:8px;color:var(--ink);
+  font:400 13px/1 inherit;padding:8px 10px;width:100%}
+.acct-in:focus{outline:none;border-color:#3d86c9}
+.acct-warn{font-size:11px;color:#8f9bc0;line-height:1.5;background:#131a2c;border-radius:7px;padding:8px 9px}
+
+.acct-acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.acct-btn{background:#1a2338;border:1px solid var(--line);color:var(--ink);border-radius:8px;
+  padding:7px 11px;font-size:12px;cursor:pointer}
+.acct-btn:hover{background:#24304d;border-color:#3d86c9}
+.acct-btn.on{background:#1f4d7a;border-color:#3d86c9;color:#bfe3ff}
+.acct-mini{background:#1a2338;border:1px solid var(--line);color:var(--ink);border-radius:7px;
+  padding:5px 10px;font-size:11.5px;cursor:pointer;margin-left:auto}
+.acct-mini:hover{background:#24304d;border-color:#3d86c9}
+.acct-mini:disabled{opacity:.45;cursor:default}
+.acct-mini.wide{margin-left:0;width:100%;padding:8px}
+.acct-mini.danger{margin-left:0;color:#ff9aa4}
+.acct-claude .acct-mini{margin-left:8px}
+.acct-msg{font-size:12px;color:#ff9aa4;margin-top:8px;min-height:0}
+.acct-msg:empty{display:none}
+
+/* the room banner in the plaza */
+.room-pill{position:absolute;top:64px;left:50%;transform:translateX(-50%);
+  background:rgba(12,17,30,.86);border:1px solid #3d86c9;border-radius:999px;
+  padding:6px 16px;font-size:12px;letter-spacing:.1em;color:#bfe3ff;text-transform:uppercase}
+.room-pill.hidden{display:none}
+
+/* the co-op footer was squeezing its buttons onto two lines */
+#coop-foot{flex-wrap:wrap;gap:8px}
+#coop-foot .cta{white-space:nowrap;padding-left:18px;padding-right:18px}
+.coop-foot-note{min-width:110px}

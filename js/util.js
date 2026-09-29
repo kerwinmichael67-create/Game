@@ -26,7 +26,11 @@ TD.fmt = n => {
 
 /* -------------------------------- save data ------------------------------ */
 TD.Save = (function () {
-  const KEY = 'laststand.save.v1';
+  const BASE = 'laststand.save.v1';
+  /* Each signed-in profile keeps its own save under a suffixed key; the
+     bare key stays the guest save, so an existing player loses nothing. */
+  let profile = null;
+  const KEY = () => (profile ? BASE + '::' + profile : BASE);
   const DEFAULT = {
     name: 'Defender',
     coins: 1200,
@@ -39,12 +43,12 @@ TD.Save = (function () {
     settings: { sound: true, music: true, shadows: true, dmgNumbers: true, sens: 1, quality: 1 }
   };
   let mem = null, usable = true;
-  try { localStorage.getItem(KEY); } catch (e) { usable = false; }
+  try { localStorage.getItem(BASE); } catch (e) { usable = false; }
 
   function load() {
     if (mem) return mem;
     let raw = null;
-    if (usable) { try { raw = localStorage.getItem(KEY); } catch (e) { } }
+    if (usable) { try { raw = localStorage.getItem(KEY()); } catch (e) { } }
     let d;
     try { d = raw ? JSON.parse(raw) : null; } catch (e) { d = null; }
     mem = Object.assign(JSON.parse(JSON.stringify(DEFAULT)), d || {});
@@ -56,10 +60,22 @@ TD.Save = (function () {
   }
   function save() {
     if (!usable) return;
-    try { localStorage.setItem(KEY, JSON.stringify(load())); } catch (e) { }
+    try { localStorage.setItem(KEY(), JSON.stringify(load())); } catch (e) { }
   }
   function reset() { mem = JSON.parse(JSON.stringify(DEFAULT)); save(); return mem; }
-  return { load, save, reset, get data() { return load(); } };
+  /* Switch profiles: drop the cached save and read the other one. */
+  function use(id, defaultName) {
+    profile = id || null;
+    mem = null;
+    const d = load();
+    if (defaultName && d.name === DEFAULT.name) d.name = defaultName;
+    return d;
+  }
+  return {
+    load, save, reset, use,
+    get profile() { return profile; },
+    get data() { return load(); }
+  };
 })();
 
 /* XP curve: level n needs 120 * n^1.35 cumulative-ish; simple and readable. */

@@ -30,6 +30,10 @@
     stage.appendChild(renderer.domElement);
     Game.renderer = renderer;
 
+    /* Profiles first: the plaza is built from whoever is signed in. */
+    TD.Account.init();
+    TD.Account.askClaude();
+
     step(35, 'Building the plaza…');
     TD.Lobby.build();
     TD.Lobby.bindInput(renderer.domElement);

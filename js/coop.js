@@ -37,6 +37,8 @@
   let unsubs = [];
   let timer = null;
   let lastRosterKey = '';
+  let hostGoneSince = 0;
+  const knownNames = new Map();
 
   const me = () => cleanName(TD.Save.data.name);
   const myLevel = () => TD.levelFromXp(TD.Save.data.xp).level;
@@ -93,10 +95,13 @@
     Coop.active = false; Coop.role = null; Coop.code = null; Coop.announced = false;
     Coop.players = []; Coop.slots = []; Coop.hostPeer = null; Coop.phase = 'lobby';
     session = null;
+    knownNames.clear();
+    TD.Lobby.clearAvatars();
     TD.Chat.show(false);
     TD.Chat.clear();
     await TD.Net.leave();
     TD.UI.renderCoop && TD.UI.renderCoop();
+    TD.UI.tickRoomPill && TD.UI.tickRoomPill();
   };
 
   Coop.isHost = () => Coop.active && Coop.role === 'host';
@@ -123,6 +128,19 @@
       pushPresence(true);
     }
     if (Coop.role === 'client' && !host && peers.length) {
+      /* Nobody is hosting. The lowest peer label picks it up so the room
+         does not become unusable. */
+      hostGoneSince = hostGoneSince || Date.now();
+      if (Date.now() - hostGoneSince > 2500) {
+        const lowest = peers.map(p => p.peer).sort()[0];
+        if (lowest === Coop.me) {
+          Coop.role = 'host';
+          hostGoneSince = 0;
+          Coop.slots = Coop.players.map(p => p.key);
+          TD.Chat.system('You are the host now');
+          pushPresence(true);
+        }
+      }
       /* The host left.  Nobody inherits a running match: it ends. */
       if (TD.Battle.active && TD.Battle.remote) {
         TD.toast('The host left the match', 'bad');
@@ -139,34 +157,51 @@
         host: p.peer === host,
         name: cleanName(pr.n),
         level: Math.max(1, Math.min(999, Number(pr.lv) || 1)),
-        x: Number(pr.x) || 0, z: Number(pr.z) || 0, ry: Number(pr.ry) || 0
+        x: Number(pr.x) || 0, z: Number(pr.z) || 0, ry: Number(pr.ry) || 0,
+        scene: pr.sc === 'b' ? 'b' : (pr.sc === 'l' ? 'l' : ''),
+        named: typeof pr.n === 'string'
       };
     }).filter(p => p.key);
     list.sort((a, b) => (b.host ? 1 : 0) - (a.host ? 1 : 0) || (a.key < b.key ? -1 : 1));
 
     /* Joins and leaves are announced by every page from what it already
        sees, so they cost no traffic and nobody can forge one. */
-    if (Coop.announced) {
-      const before = new Map(Coop.players.map(p => [p.key, p.name]));
-      const after = new Map(list.map(p => [p.key, p.name]));
-      after.forEach((n, k) => { if (!before.has(k)) TD.Chat.system(n + ' joined'); });
-      before.forEach((n, k) => { if (!after.has(k)) TD.Chat.system(n + ' left'); });
-    } else if (list.length) {
-      Coop.announced = true;
-    }
+    list.forEach(p => {
+      if (!p.named || p.isMe) return;              // wait until their name has arrived
+      if (knownNames.has(p.key)) { knownNames.set(p.key, p.name); return; }
+      knownNames.set(p.key, p.name);
+      if (Coop.announced) TD.Chat.system(p.name + ' joined');
+    });
+    const here = new Set(list.map(p => p.key));
+    knownNames.forEach((n, k) => {
+      if (here.has(k)) return;
+      knownNames.delete(k);
+      if (Coop.announced) TD.Chat.system(n + ' left');
+    });
+    if (!Coop.announced && list.length) Coop.announced = true;
     Coop.players = list;
 
     if (Coop.isHost()) Coop.slots = list.map(p => p.key);
 
+    if (host) hostGoneSince = 0;
     const hp = peers.find(p => p.peer === host);
     if (hp && hp.presence) readHostPresence(hp.presence);
 
     const key = list.map(p => p.key + p.name + (p.host ? 'h' : '')).join('|') + Coop.role;
     if (key !== lastRosterKey) { lastRosterKey = key; TD.UI.renderCoop && TD.UI.renderCoop(); }
+    TD.UI.tickRoomPill && TD.UI.tickRoomPill();
 
-    if (TD.Battle.active) TD.Battle.syncAvatars(list.map(p => ({
-      key: p.key, name: p.name, level: p.level, x: p.x, z: p.z, ry: p.ry
-    })));
+    const av = list.map(p => ({
+      key: p.key, name: p.name, level: p.level, x: p.x, z: p.z, ry: p.ry,
+      isMe: p.isMe, scene: p.scene, slot: Math.max(0, list.indexOf(p))
+    }));
+    if (TD.Battle.active) {
+      TD.Battle.syncAvatars(av.filter(p => p.scene !== 'l'));
+      TD.Lobby.clearAvatars();
+    } else if (TD.Lobby.active) {
+      /* Only the people who are also standing in the plaza. */
+      TD.Lobby.syncAvatars(av.filter(p => p.scene !== 'b'));
+    }
   }
 
   /* Another page chose this string; show it, never trust it. */
@@ -209,6 +244,7 @@
         w: Number(pr.w) || 0,
         pt: Number(pr.pt) || 0,
         sp: Number(pr.sp) || 1,
+        paused: !!pr.pa,
         won: !!pr.won,
         slots: typeof pr.S === 'string' && pr.S ? pr.S.split('.') : Coop.slots,
         wallets: typeof pr.W === 'string' && pr.W ? pr.W.split('.').map(Number) : null,
@@ -244,10 +280,12 @@
       r: Coop.role === 'host' ? 'h' : 'c',
       n: me(), lv: myLevel()
     };
-    if (B.active && B.player) {
-      patch.x = Math.round(B.player.x * 10) / 10;
-      patch.z = Math.round(B.player.z * 10) / 10;
-      patch.ry = Math.round(B.player.dir * 100) / 100;
+    const who = (B.active && B.player) ? B.player : (TD.Lobby.active && TD.Lobby.player ? TD.Lobby.player : null);
+    if (who) {
+      patch.x = Math.round(who.x * 10) / 10;
+      patch.z = Math.round(who.z * 10) / 10;
+      patch.ry = Math.round(who.dir * 100) / 100;
+      patch.sc = B.active ? 'b' : 'l';         // which scene we are standing in
     }
     if (Coop.role === 'host') Object.assign(patch, hostFields());
     else if (full) { patch.st = null; patch.E = null; patch.T = null; patch.W = null; patch.S = null; }
@@ -264,6 +302,7 @@
     f.w = B.wave;
     f.pt = Math.round(B.prepT * 10) / 10;
     f.sp = B.speed;
+    f.pa = B.paused ? 1 : 0;
     f.W = Coop.slots.map(k => Math.floor(B.wallets[k] || 0)).join('.');
     f.T = TD.Net.packTowers(B.towers);
     if (B.phase === 'over') f.won = B.wonMatch ? 1 : 0;
@@ -333,6 +372,12 @@
     if (msg.isMe && msg.sameTab) return;
     if (d.k === 'wave' && TD.Battle.active) TD.UI.waveBanner('WAVE ' + (Number(d.n) || 0), String(d.s || '').slice(0, 80));
     if (d.k === 'start') Coop.lastSnapAt = performance.now();
+    if (d.k === 'end' && TD.Battle.active && TD.Battle.remote) {
+      const st = TD.Battle.stats;
+      st.kills = Math.max(0, Number(d.kills) || 0);
+      st.leaked = Math.max(0, Number(d.leaked) || 0);
+      st.damage = Math.max(0, Number(d.dmg) || 0);
+    }
   }
 
   Coop.announce = function (data) { if (session) session.emit('ev', data); };
@@ -352,10 +397,20 @@
   Coop.say = function (text) { TD.Chat.say(text); };
 
   Coop.myName = function () { return me(); };
+  Coop.refreshIdentity = function () { if (session) pushPresence(true); };
+  /* Everyone derives a player's colour from the same ordering — the roster
+     order in a room, the match's slot order once one is running — so your
+     colour is the same on every screen. */
+  Coop.slotOf = function (peer) {
+    if (TD.Battle.active && TD.Battle.slots.length) {
+      const i = TD.Battle.slots.indexOf(peer);
+      if (i >= 0) return i;
+    }
+    const j = Coop.players.findIndex(p => p.key === peer);
+    return j >= 0 ? j : 0;
+  };
   Coop.colorOf = function (peer) {
-    const i = Coop.slots.indexOf(peer);
-    const j = i >= 0 ? i : Math.max(0, Coop.players.findIndex(p => p.key === peer));
-    return '#' + TD.Battle.playerColor(j).toString(16).padStart(6, '0');
+    return '#' + TD.Battle.playerColor(Coop.slotOf(peer)).toString(16).padStart(6, '0');
   };
   Coop.myColor = function () { return Coop.colorOf(Coop.me); };
 

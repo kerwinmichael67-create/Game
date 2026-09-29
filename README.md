@@ -125,8 +125,27 @@ walking around the battlefield with their name over their head.
 Each player has **their own wallet** and **their own towers** — you spend your own
 money, and only you can upgrade, sell or trigger the ability on a tower you built.
 The base HP is shared, because the base is. Kills pay whoever owns the tower that
-got them; the wave bonus pays everyone. Anyone can start the next wave early. `Y`
-opens the chat box.
+got them; the wave bonus pays everyone, and everyone is paid coins and XP when the
+match ends. Anyone can start the next wave early; pause and game speed belong to the
+host, since they move the world everybody is looking at.
+
+**The plaza is shared too.** Once you are in a room you do not have to start a match
+to be together — close the panel and everyone in the room is walking around the same
+lobby, each with their name and colour. A banner across the top says which room you
+are in and who is hosting. If the host leaves, whoever has been there longest picks
+it up so the room keeps working.
+
+### Team chat
+A chat panel sits inside the co-op room before the match and floats over the
+battlefield during it; collapse it and it keeps an unread count. `Y` focuses the
+input, `Z` opens a strip of quick phrases ("Need cash", "Watch the air", …).
+
+Joins, leaves, waves and the result appear as system lines. Those are worked out
+locally by every page from what it already knows, so they cost no network traffic
+and nobody can forge one. Quick chat travels as an index into a fixed table rather
+than as text, so what arrives is a number and the wording comes from the receiving
+page. Both ends are rate limited — the room's send budget is shared with the
+commands that actually run the match.
 
 Co-op needs a transport, and the game picks one at startup:
 
@@ -141,11 +160,29 @@ Co-op needs a transport, and the game picks one at startup:
 
 The co-op panel tells you which of the two you are on before you host.
 
+### Profiles and signing in
+Settings → the card at the top. Two different things live there, and they are not
+the same thing:
+
+* **Profiles.** Several people sharing one browser can each have their own coins,
+  unlocks and stats. Create one, switch between them, give one a passcode. The
+  passcode stops a sibling opening your save by accident — it is **not security**:
+  the save lives in this browser, the check runs in this browser, and anyone who
+  opens the devtools walks straight past it. The panel says so.
+* **Your Claude account.** On the published page the viewer is already signed in to
+  claude.ai, and the game asks the platform who they are through the `user`
+  capability. That identity is real, because the platform vouches for it rather than
+  the page. The card shows it, and one click adopts that name as your display name
+  for co-op.
+
+Everything without a profile stays in the original "guest" save, so a player who had
+progress before any of this keeps it.
+
 ### Progression
 Matches pay out coins and XP. Coins unlock towers in the shop; some towers also need
 a player level, and the Gilded ones cost gems (earned by clearing Forsaken and
 Nightmare). Everything is saved to `localStorage`, with an in-memory fallback if the
-browser blocks it. Options → *Reset save data* wipes it.
+browser blocks it. Options → *Reset save data* wipes the profile you are on.
 
 ---
 
@@ -186,10 +223,12 @@ js/data/towers.js   the 51 tower definitions
 js/data/enemies.js  the 33 enemy definitions
 js/data/maps.js     maps, themes, difficulties, path maths
 js/data/waves.js    the 45-wave script and the scaling rules
+js/account.js       profiles on this browser, and the real claude.ai identity
 js/net.js           co-op transport: the artifact room, or BroadcastChannel
 js/lobby.js         the plaza, the player controller, kiosks
 js/battle.js        the match: placement, towers, enemies, units, waves
-js/coop.js          co-op session: roster, snapshots, commands, chat
+js/coop.js          co-op session: roster, snapshots, commands
+js/chat.js          the team chat panel, quick chat and system lines
 js/ui.js            menus, shop, loadout, codex, battle HUD
 js/main.js          renderer, game loop, scene switching
 

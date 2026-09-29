@@ -501,6 +501,60 @@ kbd{
   .chat{width:min(74vw,268px);bottom:150px}
   .chat-log{height:118px}
 }
+
+/* ===========================================================
+   ACCOUNT / PROFILES
+   =========================================================== */
+.acct{background:#0f1526;border:1px solid var(--line);border-radius:12px;padding:13px;margin-bottom:6px}
+.acct-head{display:flex;align-items:center;gap:11px}
+.acct-av{width:38px;height:38px;border-radius:10px;background:linear-gradient(150deg,#2f5fb8,#1b2a4a);
+  display:flex;align-items:center;justify-content:center;font:800 17px/1 inherit;color:#cfe3ff;flex:0 0 auto}
+.acct-who{min-width:0}
+.acct-name{font-weight:700;font-size:15px}
+.acct-sub{font-size:11.5px;color:var(--dim)}
+.acct-claude{margin-top:11px;font-size:12px;color:var(--dim);line-height:1.5}
+.acct-claude b{color:var(--ink)}
+.acct-claude .ok{color:#51d88a}
+.acct-claude .dim{color:#59657f}
+
+.acct-body{display:flex;flex-direction:column;gap:6px;margin-top:11px}
+.acct-body:empty{display:none}
+.acct-row{display:flex;align-items:center;gap:8px;background:#141b2e;border:1px solid var(--line);
+  border-radius:8px;padding:6px 9px;font-size:13px}
+.acct-row.on{border-color:#3d86c9}
+.acct-rn{flex:1;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acct-lock{font-size:11px;opacity:.75}
+.acct-empty{font-size:12px;color:var(--dim);padding:4px 2px}
+.acct-in{background:#0d1322;border:1px solid var(--line);border-radius:8px;color:var(--ink);
+  font:400 13px/1 inherit;padding:8px 10px;width:100%}
+.acct-in:focus{outline:none;border-color:#3d86c9}
+.acct-warn{font-size:11px;color:#8f9bc0;line-height:1.5;background:#131a2c;border-radius:7px;padding:8px 9px}
+
+.acct-acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.acct-btn{background:#1a2338;border:1px solid var(--line);color:var(--ink);border-radius:8px;
+  padding:7px 11px;font-size:12px;cursor:pointer}
+.acct-btn:hover{background:#24304d;border-color:#3d86c9}
+.acct-btn.on{background:#1f4d7a;border-color:#3d86c9;color:#bfe3ff}
+.acct-mini{background:#1a2338;border:1px solid var(--line);color:var(--ink);border-radius:7px;
+  padding:5px 10px;font-size:11.5px;cursor:pointer;margin-left:auto}
+.acct-mini:hover{background:#24304d;border-color:#3d86c9}
+.acct-mini:disabled{opacity:.45;cursor:default}
+.acct-mini.wide{margin-left:0;width:100%;padding:8px}
+.acct-mini.danger{margin-left:0;color:#ff9aa4}
+.acct-claude .acct-mini{margin-left:8px}
+.acct-msg{font-size:12px;color:#ff9aa4;margin-top:8px;min-height:0}
+.acct-msg:empty{display:none}
+
+/* the room banner in the plaza */
+.room-pill{position:absolute;top:64px;left:50%;transform:translateX(-50%);
+  background:rgba(12,17,30,.86);border:1px solid #3d86c9;border-radius:999px;
+  padding:6px 16px;font-size:12px;letter-spacing:.1em;color:#bfe3ff;text-transform:uppercase}
+.room-pill.hidden{display:none}
+
+/* the co-op footer was squeezing its buttons onto two lines */
+#coop-foot{flex-wrap:wrap;gap:8px}
+#coop-foot .cta{white-space:nowrap;padding-left:18px;padding-right:18px}
+.coop-foot-note{min-width:110px}
 </style>
 </head>
 <body>
@@ -543,6 +597,8 @@ kbd{
     <button class="big-btn book" id="btn-codex"><b>CODEX</b><small>Enemies &amp; info</small></button>
     <button class="big-btn coop" id="btn-coop"><b>CO-OP</b><small>Play online</small></button>
   </div>
+
+  <div id="lobby-room" class="room-pill hidden"></div>
 
   <div class="lobby-hint">
     <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move · <kbd>Space</kbd> jump · <kbd>Shift</kbd> sprint · <kbd>E</kbd> use kiosk · drag to look
@@ -783,7 +839,11 @@ TD.fmt = n => {
 
 /* -------------------------------- save data ------------------------------ */
 TD.Save = (function () {
-  const KEY = 'laststand.save.v1';
+  const BASE = 'laststand.save.v1';
+  /* Each signed-in profile keeps its own save under a suffixed key; the
+     bare key stays the guest save, so an existing player loses nothing. */
+  let profile = null;
+  const KEY = () => (profile ? BASE + '::' + profile : BASE);
   const DEFAULT = {
     name: 'Defender',
     coins: 1200,
@@ -796,12 +856,12 @@ TD.Save = (function () {
     settings: { sound: true, music: true, shadows: true, dmgNumbers: true, sens: 1, quality: 1 }
   };
   let mem = null, usable = true;
-  try { localStorage.getItem(KEY); } catch (e) { usable = false; }
+  try { localStorage.getItem(BASE); } catch (e) { usable = false; }
 
   function load() {
     if (mem) return mem;
     let raw = null;
-    if (usable) { try { raw = localStorage.getItem(KEY); } catch (e) { } }
+    if (usable) { try { raw = localStorage.getItem(KEY()); } catch (e) { } }
     let d;
     try { d = raw ? JSON.parse(raw) : null; } catch (e) { d = null; }
     mem = Object.assign(JSON.parse(JSON.stringify(DEFAULT)), d || {});
@@ -813,10 +873,22 @@ TD.Save = (function () {
   }
   function save() {
     if (!usable) return;
-    try { localStorage.setItem(KEY, JSON.stringify(load())); } catch (e) { }
+    try { localStorage.setItem(KEY(), JSON.stringify(load())); } catch (e) { }
   }
   function reset() { mem = JSON.parse(JSON.stringify(DEFAULT)); save(); return mem; }
-  return { load, save, reset, get data() { return load(); } };
+  /* Switch profiles: drop the cached save and read the other one. */
+  function use(id, defaultName) {
+    profile = id || null;
+    mem = null;
+    const d = load();
+    if (defaultName && d.name === DEFAULT.name) d.name = defaultName;
+    return d;
+  }
+  return {
+    load, save, reset, use,
+    get profile() { return profile; },
+    get data() { return load(); }
+  };
 })();
 
 /* XP curve: level n needs 120 * n^1.35 cumulative-ish; simple and readable. */
@@ -928,6 +1000,188 @@ TD.el = function (tag, cls, html) {
 };
 TD.$ = sel => document.querySelector(sel);
 TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
+</script>
+<script>
+/* ---- js/account.js ---- */
+/* =========================================================================
+   account.js — profiles and sign-in.
+
+   Two separate things wear the word "login" here, and they are not the same:
+
+   1. PROFILES.  Several people share one browser, each with their own
+      coins, unlocks and stats.  A profile may carry a passcode, which stops
+      a sibling opening your save by accident.  It is NOT security: the data
+      lives in this browser, the check runs in this browser, and anyone who
+      can open the devtools can walk straight past it.  The UI says so.
+
+   2. YOUR CLAUDE ACCOUNT.  On the published page the viewer is already
+      signed in to claude.ai, and the `user` capability will tell us who
+      they are.  That identity is real — the platform vouches for it, not
+      the page — so co-op uses it for names when it is available, and a
+      profile can adopt it with one click.
+
+   Profiles are stored as an index; each profile's save sits under its own
+   key, handled by TD.Save.use().
+   ========================================================================= */
+(function () {
+  const IDX = 'laststand.accounts.v1';
+
+  const Account = TD.Account = {
+    users: [],          // [{id, name, pin, created, seen}]
+    activeId: null,     // null = the guest profile
+    claude: null,       // {id, name, avatarUrl} once the platform answers
+    claudeState: 'unknown'   // 'unknown' | 'none' | 'signed-in'
+  };
+
+  let usable = true;
+  try { localStorage.getItem(IDX); } catch (e) { usable = false; }
+
+  function readIndex() {
+    if (!usable) return { active: null, users: [] };
+    let raw = null;
+    try { raw = localStorage.getItem(IDX); } catch (e) { }
+    let d = null;
+    try { d = raw ? JSON.parse(raw) : null; } catch (e) { d = null; }
+    if (!d || !Array.isArray(d.users)) return { active: null, users: [] };
+    return { active: d.active || null, users: d.users.filter(u => u && u.id) };
+  }
+  function writeIndex() {
+    if (!usable) return;
+    try {
+      localStorage.setItem(IDX, JSON.stringify({ active: Account.activeId, users: Account.users }));
+    } catch (e) { /* storage full or blocked — the session still works */ }
+  }
+
+  /* Not a password hash and not pretending to be one: it keeps a passcode
+     out of plain sight in localStorage, nothing more. */
+  function scramble(pin) {
+    const s = String(pin || '');
+    if (!s) return '';
+    let h = 5381;
+    for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
+    return h.toString(36);
+  }
+
+  const cleanName = n => String(n || '').replace(/[\u0000-\u001f\u007f-\u009f]/g, '').trim().slice(0, 16);
+
+  Account.init = function () {
+    const idx = readIndex();
+    Account.users = idx.users;
+    Account.activeId = idx.active;
+    /* A profile that has been deleted elsewhere must not strand us. */
+    if (Account.activeId && !Account.users.some(u => u.id === Account.activeId)) Account.activeId = null;
+    TD.Save.use(Account.activeId, Account.nameOf(Account.activeId));
+  };
+
+  Account.nameOf = function (id) {
+    if (!id) return null;
+    const u = Account.users.find(x => x.id === id);
+    return u ? u.name : null;
+  };
+
+  Account.current = function () {
+    if (!Account.activeId) return { id: null, name: TD.Save.data.name, guest: true, locked: false };
+    const u = Account.users.find(x => x.id === Account.activeId);
+    if (!u) return { id: null, name: TD.Save.data.name, guest: true, locked: false };
+    return { id: u.id, name: u.name, guest: false, locked: !!u.pin };
+  };
+
+  Account.hasPin = id => { const u = Account.users.find(x => x.id === id); return !!(u && u.pin); };
+
+  /* ------------------------------------------------------------------ */
+  Account.create = function (name, pin) {
+    name = cleanName(name);
+    if (!name) return { ok: false, why: 'Pick a name.' };
+    if (Account.users.length >= 8) return { ok: false, why: 'That is eight profiles already.' };
+    if (Account.users.some(u => u.name.toLowerCase() === name.toLowerCase()))
+      return { ok: false, why: 'A profile with that name already exists.' };
+    const id = 'u' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    Account.users.push({ id: id, name: name, pin: scramble(pin), created: Date.now(), seen: Date.now() });
+    Account.activeId = id;
+    writeIndex();
+    TD.Save.use(id, name);
+    TD.Save.data.name = name;
+    TD.Save.save();
+    return { ok: true, id: id };
+  };
+
+  Account.signIn = function (id, pin) {
+    const u = Account.users.find(x => x.id === id);
+    if (!u) return { ok: false, why: 'No such profile.' };
+    if (u.pin && scramble(pin) !== u.pin) return { ok: false, why: 'Wrong passcode.' };
+    u.seen = Date.now();
+    Account.activeId = id;
+    writeIndex();
+    TD.Save.use(id, u.name);
+    TD.Save.data.name = u.name;
+    TD.Save.save();
+    return { ok: true };
+  };
+
+  Account.signOut = function () {
+    Account.activeId = null;
+    writeIndex();
+    TD.Save.use(null);
+    if (TD.Coop && TD.Coop.active) TD.Coop.leave();
+  };
+
+  Account.rename = function (name) {
+    name = cleanName(name);
+    if (!name) return false;
+    const u = Account.users.find(x => x.id === Account.activeId);
+    if (u) { u.name = name; writeIndex(); }
+    TD.Save.data.name = name;
+    TD.Save.save();
+    return true;
+  };
+
+  Account.setPin = function (pin) {
+    const u = Account.users.find(x => x.id === Account.activeId);
+    if (!u) return false;
+    u.pin = scramble(pin);
+    writeIndex();
+    return true;
+  };
+
+  Account.remove = function (id) {
+    const i = Account.users.findIndex(x => x.id === id);
+    if (i < 0) return false;
+    Account.users.splice(i, 1);
+    if (usable) { try { localStorage.removeItem('laststand.save.v1::' + id); } catch (e) { } }
+    if (Account.activeId === id) { Account.activeId = null; TD.Save.use(null); }
+    writeIndex();
+    return true;
+  };
+
+  /* ------------------------------------------------------------------
+     The real one: who claude.ai says is viewing this page.
+     ------------------------------------------------------------------ */
+  let asked = null;
+  Account.askClaude = function () {
+    if (asked) return asked;
+    asked = (async () => {
+      try {
+        if (!window.claude || typeof window.claude.use !== 'function') { Account.claudeState = 'none'; return null; }
+        const u = await window.claude.use('user');
+        if (!u) { Account.claudeState = 'none'; return null; }
+        const me = await u.me();                       // never rejects, never null
+        Account.claude = { id: me.id || null, name: me.name || '', avatarUrl: me.avatarUrl || null };
+        Account.claudeState = (me.id || me.name) ? 'signed-in' : 'none';
+        return Account.claude;
+      } catch (e) {
+        Account.claudeState = 'none';
+        return null;
+      }
+    })();
+    return asked;
+  };
+
+  /* Take the claude.ai display name as this profile's name. */
+  Account.adoptClaudeName = function () {
+    if (!Account.claude || !Account.claude.name) return false;
+    return Account.rename(Account.claude.name);
+  };
+})();
 </script>
 <script>
 /* ---- js/models.js ---- */
@@ -3371,7 +3625,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     scene: null, camera: null, player: null, active: false,
     keys: {}, yaw: Math.PI, pitch: 0.42, zoom: 34,
     vel: { x: 0, z: 0 }, vy: 0, grounded: true,
-    t: 0, near: null, npcs: [], solids: [], stepT: 0, billboards: [],
+    t: 0, near: null, npcs: [], solids: [], stepT: 0, billboards: [], avatars: {},
     touch: { active: false, x: 0, y: 0, id: null }
   };
 
@@ -3613,6 +3867,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     this.kiosks.forEach(kk => {
       if (kk.label3d) kk.label3d.position.y = 7.4 + Math.sin(this.t * 1.7 + kk.x) * 0.25;
     });
+    this.updateAvatars(dt);
     this.billboards.forEach(b => TD.billboard(b, this.camera));
 
     /* kiosk proximity */
@@ -3704,6 +3959,62 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   };
 
   /* Reflect saved cosmetics / name on the player. */
+  /* ------------------------------------------------------------------
+     Everyone else in the co-op room, walking the same plaza.
+     ------------------------------------------------------------------ */
+  Lobby.syncAvatars = function (list) {
+    if (!this.scene) return;
+    const seen = {};
+    list.forEach(p => {
+      if (p.isMe) return;
+      seen[p.key] = 1;
+      let a = this.avatars[p.key];
+      if (!a) {
+        const slot = Math.max(0, p.slot | 0);
+        const h = TD.makeAvatar(p.name || 'Player', p.level || 1,
+          { shirt: TD.Battle.playerColor(slot), tag: TD.Battle.playerTag(slot) });
+        h.group.position.set(p.x || 0, 0, p.z || 24);
+        this.scene.add(h.group);
+        this.billboards.push(h.tag);
+        a = this.avatars[p.key] = { model: h, x: p.x || 0, z: p.z || 24, tx: p.x || 0, tz: p.z || 24, dir: 0, t: 0, name: p.name };
+      }
+      a.tx = p.x; a.tz = p.z; a.dir = p.ry || 0;
+    });
+    Object.keys(this.avatars).forEach(k => {
+      if (seen[k]) return;
+      const a = this.avatars[k];
+      const i = this.billboards.indexOf(a.model.tag);
+      if (i >= 0) this.billboards.splice(i, 1);
+      this.scene.remove(a.model.group);
+      delete this.avatars[k];
+    });
+  };
+
+  Lobby.updateAvatars = function (dt) {
+    const keys = Object.keys(this.avatars);
+    for (let i = 0; i < keys.length; i++) {
+      const a = this.avatars[keys[i]];
+      const dx = a.tx - a.x, dz = a.tz - a.z;
+      const dist = Math.sqrt(dx * dx + dz * dz);
+      const ease = TD.clamp(dt * 9, 0, 1);
+      a.x += dx * ease; a.z += dz * ease;
+      a.t += dt;
+      a.model.group.position.set(a.x, 0, a.z);
+      a.model.group.rotation.y = a.dir;
+      a.model.anim(a.t, TD.clamp(dist * 1.4, 0, 1.3), { speed: 9 });
+    }
+  };
+
+  Lobby.clearAvatars = function () {
+    Object.keys(this.avatars).forEach(k => {
+      const a = this.avatars[k];
+      const i = this.billboards.indexOf(a.model.tag);
+      if (i >= 0) this.billboards.splice(i, 1);
+      if (this.scene) this.scene.remove(a.model.group);
+    });
+    this.avatars = {};
+  };
+
   Lobby.refreshPlayer = function () {
     if (!this.player) return;
     if (this.nameTag && this._tagName !== TD.Save.data.name) {
@@ -4344,6 +4655,9 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     this.wonMatch = !!won;
     if (TD.Coop && TD.Coop.active) {
       TD.Chat.system(won ? 'Victory — the base held' : 'Defeat — the base fell');
+      if (!this.remote) TD.Coop.announce({
+        k: 'end', kills: this.stats.kills, leaked: this.stats.leaked, dmg: Math.round(this.stats.damage)
+      });
       TD.Coop.matchEnded();
     }
     won ? TD.Audio.win() : TD.Audio.lose();
@@ -5755,6 +6069,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
       TD.Audio.wave();
     }
     this.wave = s.w; this.prepT = s.pt; this.speed = s.sp || 1;
+    this.paused = !!s.paused;
     if (s.slots) this.slots = s.slots;
     if (s.wallets) {
       this.slots.forEach((k, i) => { this.wallets[k] = s.wallets[i] || 0; });
@@ -5838,11 +6153,23 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     });
   };
 
+  /* A client earns from the match too — same formula the host uses, run on
+     its own save, because only this page knows what this player has. */
   B.remoteFinish = function (won) {
     TD.Audio[won ? 'win' : 'lose']();
     TD.Chat.system(won ? 'Victory — the base held' : 'Defeat — the base fell');
-    this.stats.kills = this.stats.kills || 0;
-    TD.UI.showResults(!!won, this, 0, 0);
+    const d = TD.Save.data;
+    const mul = this.diff.reward * (1 + this.map.tier * 0.12);
+    const coins = Math.round((won ? 260 : 60) * mul + this.wave * 11 * mul);
+    const xp = Math.round((won ? 200 : 45) * mul + this.wave * 9 * mul);
+    d.coins += coins; d.xp += xp;
+    if (this.wave > d.bestWave) d.bestWave = this.wave;
+    if (won) {
+      d.wins++;
+      d.mapsBeaten[this.map.id] = Math.max(d.mapsBeaten[this.map.id] || 0, TD.DIFFICULTIES.indexOf(this.diff) + 1);
+    } else d.losses++;
+    TD.Save.save();
+    TD.UI.showResults(!!won, this, coins, xp);
   };
 
   /* Per-frame work on a client: everything local (your character, the
@@ -5867,6 +6194,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   };
 
   B.stepRemoteEnemies = function (dt) {
+    if (this.paused) dt = 0;                  // the host has the world on hold
     const ease = TD.clamp(dt * 10, 0, 1);
     this.netEnemies.forEach(e => {
       /* Predict with what the flags tell us; the next snapshot corrects it. */
@@ -6002,6 +6330,8 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   let unsubs = [];
   let timer = null;
   let lastRosterKey = '';
+  let hostGoneSince = 0;
+  const knownNames = new Map();
 
   const me = () => cleanName(TD.Save.data.name);
   const myLevel = () => TD.levelFromXp(TD.Save.data.xp).level;
@@ -6058,10 +6388,13 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     Coop.active = false; Coop.role = null; Coop.code = null; Coop.announced = false;
     Coop.players = []; Coop.slots = []; Coop.hostPeer = null; Coop.phase = 'lobby';
     session = null;
+    knownNames.clear();
+    TD.Lobby.clearAvatars();
     TD.Chat.show(false);
     TD.Chat.clear();
     await TD.Net.leave();
     TD.UI.renderCoop && TD.UI.renderCoop();
+    TD.UI.tickRoomPill && TD.UI.tickRoomPill();
   };
 
   Coop.isHost = () => Coop.active && Coop.role === 'host';
@@ -6088,6 +6421,19 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
       pushPresence(true);
     }
     if (Coop.role === 'client' && !host && peers.length) {
+      /* Nobody is hosting. The lowest peer label picks it up so the room
+         does not become unusable. */
+      hostGoneSince = hostGoneSince || Date.now();
+      if (Date.now() - hostGoneSince > 2500) {
+        const lowest = peers.map(p => p.peer).sort()[0];
+        if (lowest === Coop.me) {
+          Coop.role = 'host';
+          hostGoneSince = 0;
+          Coop.slots = Coop.players.map(p => p.key);
+          TD.Chat.system('You are the host now');
+          pushPresence(true);
+        }
+      }
       /* The host left.  Nobody inherits a running match: it ends. */
       if (TD.Battle.active && TD.Battle.remote) {
         TD.toast('The host left the match', 'bad');
@@ -6104,34 +6450,51 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
         host: p.peer === host,
         name: cleanName(pr.n),
         level: Math.max(1, Math.min(999, Number(pr.lv) || 1)),
-        x: Number(pr.x) || 0, z: Number(pr.z) || 0, ry: Number(pr.ry) || 0
+        x: Number(pr.x) || 0, z: Number(pr.z) || 0, ry: Number(pr.ry) || 0,
+        scene: pr.sc === 'b' ? 'b' : (pr.sc === 'l' ? 'l' : ''),
+        named: typeof pr.n === 'string'
       };
     }).filter(p => p.key);
     list.sort((a, b) => (b.host ? 1 : 0) - (a.host ? 1 : 0) || (a.key < b.key ? -1 : 1));
 
     /* Joins and leaves are announced by every page from what it already
        sees, so they cost no traffic and nobody can forge one. */
-    if (Coop.announced) {
-      const before = new Map(Coop.players.map(p => [p.key, p.name]));
-      const after = new Map(list.map(p => [p.key, p.name]));
-      after.forEach((n, k) => { if (!before.has(k)) TD.Chat.system(n + ' joined'); });
-      before.forEach((n, k) => { if (!after.has(k)) TD.Chat.system(n + ' left'); });
-    } else if (list.length) {
-      Coop.announced = true;
-    }
+    list.forEach(p => {
+      if (!p.named || p.isMe) return;              // wait until their name has arrived
+      if (knownNames.has(p.key)) { knownNames.set(p.key, p.name); return; }
+      knownNames.set(p.key, p.name);
+      if (Coop.announced) TD.Chat.system(p.name + ' joined');
+    });
+    const here = new Set(list.map(p => p.key));
+    knownNames.forEach((n, k) => {
+      if (here.has(k)) return;
+      knownNames.delete(k);
+      if (Coop.announced) TD.Chat.system(n + ' left');
+    });
+    if (!Coop.announced && list.length) Coop.announced = true;
     Coop.players = list;
 
     if (Coop.isHost()) Coop.slots = list.map(p => p.key);
 
+    if (host) hostGoneSince = 0;
     const hp = peers.find(p => p.peer === host);
     if (hp && hp.presence) readHostPresence(hp.presence);
 
     const key = list.map(p => p.key + p.name + (p.host ? 'h' : '')).join('|') + Coop.role;
     if (key !== lastRosterKey) { lastRosterKey = key; TD.UI.renderCoop && TD.UI.renderCoop(); }
+    TD.UI.tickRoomPill && TD.UI.tickRoomPill();
 
-    if (TD.Battle.active) TD.Battle.syncAvatars(list.map(p => ({
-      key: p.key, name: p.name, level: p.level, x: p.x, z: p.z, ry: p.ry
-    })));
+    const av = list.map(p => ({
+      key: p.key, name: p.name, level: p.level, x: p.x, z: p.z, ry: p.ry,
+      isMe: p.isMe, scene: p.scene, slot: Math.max(0, list.indexOf(p))
+    }));
+    if (TD.Battle.active) {
+      TD.Battle.syncAvatars(av.filter(p => p.scene !== 'l'));
+      TD.Lobby.clearAvatars();
+    } else if (TD.Lobby.active) {
+      /* Only the people who are also standing in the plaza. */
+      TD.Lobby.syncAvatars(av.filter(p => p.scene !== 'b'));
+    }
   }
 
   /* Another page chose this string; show it, never trust it. */
@@ -6174,6 +6537,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
         w: Number(pr.w) || 0,
         pt: Number(pr.pt) || 0,
         sp: Number(pr.sp) || 1,
+        paused: !!pr.pa,
         won: !!pr.won,
         slots: typeof pr.S === 'string' && pr.S ? pr.S.split('.') : Coop.slots,
         wallets: typeof pr.W === 'string' && pr.W ? pr.W.split('.').map(Number) : null,
@@ -6209,10 +6573,12 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
       r: Coop.role === 'host' ? 'h' : 'c',
       n: me(), lv: myLevel()
     };
-    if (B.active && B.player) {
-      patch.x = Math.round(B.player.x * 10) / 10;
-      patch.z = Math.round(B.player.z * 10) / 10;
-      patch.ry = Math.round(B.player.dir * 100) / 100;
+    const who = (B.active && B.player) ? B.player : (TD.Lobby.active && TD.Lobby.player ? TD.Lobby.player : null);
+    if (who) {
+      patch.x = Math.round(who.x * 10) / 10;
+      patch.z = Math.round(who.z * 10) / 10;
+      patch.ry = Math.round(who.dir * 100) / 100;
+      patch.sc = B.active ? 'b' : 'l';         // which scene we are standing in
     }
     if (Coop.role === 'host') Object.assign(patch, hostFields());
     else if (full) { patch.st = null; patch.E = null; patch.T = null; patch.W = null; patch.S = null; }
@@ -6229,6 +6595,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     f.w = B.wave;
     f.pt = Math.round(B.prepT * 10) / 10;
     f.sp = B.speed;
+    f.pa = B.paused ? 1 : 0;
     f.W = Coop.slots.map(k => Math.floor(B.wallets[k] || 0)).join('.');
     f.T = TD.Net.packTowers(B.towers);
     if (B.phase === 'over') f.won = B.wonMatch ? 1 : 0;
@@ -6298,6 +6665,12 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     if (msg.isMe && msg.sameTab) return;
     if (d.k === 'wave' && TD.Battle.active) TD.UI.waveBanner('WAVE ' + (Number(d.n) || 0), String(d.s || '').slice(0, 80));
     if (d.k === 'start') Coop.lastSnapAt = performance.now();
+    if (d.k === 'end' && TD.Battle.active && TD.Battle.remote) {
+      const st = TD.Battle.stats;
+      st.kills = Math.max(0, Number(d.kills) || 0);
+      st.leaked = Math.max(0, Number(d.leaked) || 0);
+      st.damage = Math.max(0, Number(d.dmg) || 0);
+    }
   }
 
   Coop.announce = function (data) { if (session) session.emit('ev', data); };
@@ -6317,10 +6690,20 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   Coop.say = function (text) { TD.Chat.say(text); };
 
   Coop.myName = function () { return me(); };
+  Coop.refreshIdentity = function () { if (session) pushPresence(true); };
+  /* Everyone derives a player's colour from the same ordering — the roster
+     order in a room, the match's slot order once one is running — so your
+     colour is the same on every screen. */
+  Coop.slotOf = function (peer) {
+    if (TD.Battle.active && TD.Battle.slots.length) {
+      const i = TD.Battle.slots.indexOf(peer);
+      if (i >= 0) return i;
+    }
+    const j = Coop.players.findIndex(p => p.key === peer);
+    return j >= 0 ? j : 0;
+  };
   Coop.colorOf = function (peer) {
-    const i = Coop.slots.indexOf(peer);
-    const j = i >= 0 ? i : Math.max(0, Coop.players.findIndex(p => p.key === peer));
-    return '#' + TD.Battle.playerColor(j).toString(16).padStart(6, '0');
+    return '#' + TD.Battle.playerColor(Coop.slotOf(peer)).toString(16).padStart(6, '0');
   };
   Coop.myColor = function () { return Coop.colorOf(Coop.me); };
 
@@ -6677,6 +7060,17 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   /* ---------------------------------------------------------------- */
   /*  lobby HUD                                                        */
   /* ---------------------------------------------------------------- */
+  UI.tickRoomPill = function () {
+    const pill = document.getElementById('lobby-room');
+    if (!pill) return;
+    const C = TD.Coop;
+    if (!C || !C.active) { pill.classList.add('hidden'); return; }
+    pill.classList.remove('hidden');
+    const n = C.players.length;
+    pill.textContent = 'ROOM ' + String(C.code || '').toUpperCase() + ' · ' +
+      n + (n === 1 ? ' player' : ' players') + (C.isHost() ? ' · you are the host' : '');
+  };
+
   UI.refreshHud = function () {
     const d = TD.Save.data;
     const lv = TD.levelFromXp(d.xp);
@@ -7037,9 +7431,144 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   /* ---------------------------------------------------------------- */
   /*  SETTINGS                                                         */
   /* ---------------------------------------------------------------- */
+  /* ====================================================================
+     ACCOUNT — profiles on this browser, plus the real claude.ai identity
+     ==================================================================== */
+  UI.accountView = 'main';        // 'main' | 'switch' | 'create' | 'pin'
+
+  UI.buildAccount = function (host) {
+    const box = el('div', 'acct');
+    const cur = TD.Account.current();
+    const lvl = TD.levelFromXp(TD.Save.data.xp);
+
+    /* who you are right now */
+    const head = el('div', 'acct-head');
+    const av = el('div', 'acct-av');
+    av.textContent = (cur.name || '?').slice(0, 1).toUpperCase();
+    head.appendChild(av);
+    const who = el('div', 'acct-who');
+    who.appendChild(el('div', 'acct-name', cur.name || 'Defender'));
+    who.appendChild(el('div', 'acct-sub',
+      (cur.guest ? 'Guest profile' : 'Signed in' + (cur.locked ? ' · passcode set' : '')) +
+      ' · Lv ' + lvl.level + ' · ' + TD.fmt(TD.Save.data.coins) + ' coins'));
+    head.appendChild(who);
+    box.appendChild(head);
+
+    /* the identity the platform vouches for, when there is one */
+    const cl = el('div', 'acct-claude');
+    if (TD.Account.claudeState === 'signed-in' && TD.Account.claude) {
+      const n = TD.Account.claude.name;
+      cl.appendChild(el('span', 'ok', '● '));
+      cl.appendChild(document.createTextNode('Claude account: '));
+      const b = el('b'); b.textContent = n || 'signed in'; cl.appendChild(b);
+      if (n && n !== cur.name) {
+        const use = el('button', 'acct-mini', 'Use this name');
+        use.onclick = () => { TD.Account.adoptClaudeName(); UI.refreshHud(); UI.buildSettings(); TD.Audio.ui(); };
+        cl.appendChild(use);
+      }
+    } else {
+      cl.appendChild(el('span', 'dim', '○ '));
+      cl.appendChild(document.createTextNode('Not signed in to a Claude account here — profiles below are stored in this browser only.'));
+    }
+    box.appendChild(cl);
+
+    const msg = el('div', 'acct-msg');
+    const say = t => { msg.textContent = t || ''; };
+
+    /* ---- the panel body swaps between four small views ---- */
+    const body = el('div', 'acct-body');
+
+    if (UI.accountView === 'switch') {
+      if (!TD.Account.users.length) body.appendChild(el('div', 'acct-empty', 'No profiles yet — create one.'));
+      TD.Account.users.forEach(u => {
+        const row = el('div', 'acct-row' + (u.id === TD.Account.activeId ? ' on' : ''));
+        row.appendChild(el('span', 'acct-rn', u.name));
+        if (u.pin) row.appendChild(el('span', 'acct-lock', '🔒'));
+        const go = el('button', 'acct-mini', u.id === TD.Account.activeId ? 'Current' : 'Sign in');
+        go.disabled = u.id === TD.Account.activeId;
+        go.onclick = () => {
+          if (u.pin) {
+            const pin = prompt('Passcode for ' + u.name);
+            if (pin === null) return;
+            const r = TD.Account.signIn(u.id, pin);
+            if (!r.ok) { TD.Audio.error(); say(r.why); return; }
+          } else {
+            TD.Account.signIn(u.id, '');
+          }
+          TD.Audio.ui(); UI.accountView = 'main'; UI.afterProfileChange();
+        };
+        row.appendChild(go);
+        const del = el('button', 'acct-mini danger', '✕');
+        del.title = 'Delete this profile and its save';
+        del.onclick = () => {
+          if (!confirm('Delete the profile "' + u.name + '" and everything it has unlocked?')) return;
+          TD.Account.remove(u.id); TD.Audio.ui(); UI.afterProfileChange();
+        };
+        row.appendChild(del);
+        body.appendChild(row);
+      });
+      const guest = el('button', 'acct-mini wide', 'Continue as guest');
+      guest.onclick = () => { TD.Account.signOut(); TD.Audio.ui(); UI.accountView = 'main'; UI.afterProfileChange(); };
+      body.appendChild(guest);
+
+    } else if (UI.accountView === 'create') {
+      const nm = el('input'); nm.type = 'text'; nm.maxLength = 16; nm.placeholder = 'Profile name'; nm.className = 'acct-in';
+      const pn = el('input'); pn.type = 'password'; pn.maxLength = 8; pn.placeholder = 'Passcode (optional)'; pn.className = 'acct-in';
+      body.appendChild(nm); body.appendChild(pn);
+      const go = el('button', 'acct-mini wide', 'Create and sign in');
+      go.onclick = () => {
+        const r = TD.Account.create(nm.value, pn.value);
+        if (!r.ok) { TD.Audio.error(); say(r.why); return; }
+        TD.Audio.ui(); UI.accountView = 'main'; UI.afterProfileChange();
+      };
+      nm.addEventListener('keydown', e => { if (e.key === 'Enter') go.click(); });
+      pn.addEventListener('keydown', e => { if (e.key === 'Enter') go.click(); });
+      body.appendChild(go);
+
+    } else if (UI.accountView === 'pin') {
+      const pn = el('input'); pn.type = 'password'; pn.maxLength = 8; pn.placeholder = 'New passcode (blank to clear)'; pn.className = 'acct-in';
+      body.appendChild(pn);
+      const go = el('button', 'acct-mini wide', 'Save passcode');
+      go.onclick = () => {
+        TD.Account.setPin(pn.value);
+        TD.Audio.ui(); UI.accountView = 'main'; UI.buildSettings();
+      };
+      body.appendChild(go);
+      body.appendChild(el('div', 'acct-warn',
+        'A passcode keeps other people on this computer out of your save by accident. It is not security — the save lives in this browser.'));
+    }
+
+    box.appendChild(body);
+
+    /* ---- the always-present buttons ---- */
+    const acts = el('div', 'acct-acts');
+    const btn = (label, view, fn) => {
+      const b = el('button', 'acct-btn' + (UI.accountView === view ? ' on' : ''), label);
+      b.onclick = fn || (() => { UI.accountView = UI.accountView === view ? 'main' : view; TD.Audio.ui(); UI.buildSettings(); });
+      acts.appendChild(b);
+    };
+    btn('Switch profile', 'switch');
+    btn('New profile', 'create');
+    if (!cur.guest) btn('Passcode', 'pin');
+    if (!cur.guest) btn('Sign out', null, () => { TD.Account.signOut(); TD.Audio.ui(); UI.afterProfileChange(); });
+    box.appendChild(acts);
+    box.appendChild(msg);
+
+    host.appendChild(box);
+  };
+
+  /* Switching profiles changes everything the HUD shows. */
+  UI.afterProfileChange = function () {
+    UI.refreshHud();
+    UI.buildSettings();
+    if (TD.Lobby && TD.Lobby.refreshPlayer) TD.Lobby.refreshPlayer();
+    if (TD.Coop && TD.Coop.active) TD.Coop.refreshIdentity();
+  };
+
   UI.buildSettings = function () {
     const s = TD.Save.data.settings;
     const host = $('#settings-body'); host.innerHTML = '';
+    UI.buildAccount(host);
     function toggle(key, label, sub) {
       const row = el('div', 'srow');
       row.appendChild(el('label', null, label + (sub ? '<small>' + sub + '</small>' : '')));
@@ -7069,10 +7598,15 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     row.appendChild(r); host.appendChild(row);
 
     const nrow = el('div', 'srow');
-    nrow.appendChild(el('label', null, 'Display name'));
+    nrow.appendChild(el('label', null, 'Display name<small>What other players see in co-op</small>'));
     const inp = el('input'); inp.type = 'text'; inp.maxLength = 16; inp.value = TD.Save.data.name;
     inp.style.cssText = 'background:#1a2138;border:1px solid #2c3757;border-radius:8px;color:#e8ecf8;padding:7px 10px;font-family:inherit;width:150px';
-    inp.onchange = () => { TD.Save.data.name = inp.value.slice(0, 16) || 'Defender'; TD.Save.save(); UI.refreshHud(); };
+    inp.onchange = () => {
+      TD.Account.rename(inp.value) || (TD.Save.data.name = 'Defender');
+      TD.Save.save(); UI.refreshHud();
+      if (TD.Lobby.refreshPlayer) TD.Lobby.refreshPlayer();
+      if (TD.Coop.active) TD.Coop.refreshIdentity();
+    };
     nrow.appendChild(inp); host.appendChild(nrow);
 
     const stats = el('div');
@@ -7165,6 +7699,10 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
 
     if (UI.panelTower) UI.tickTowerPanel();
     if (n.follow) n.follow.classList.toggle('on', B.camFollow);
+    if (B.remote) {
+      const sp = B.paused ? 'II' : B.speed + '×';
+      if (UI.lastRemoteSpeed !== sp) { UI.lastRemoteSpeed = sp; $('#b-speed').textContent = sp; }
+    }
     UI.tickCoop(B);
   };
 
@@ -7330,10 +7868,14 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
       TD.toast('Save data reset');
     };
 
-    $('#b-pause').onclick = () => UI.togglePause();
+    $('#b-pause').onclick = () => {
+      if (UI.battle && UI.battle.remote) { TD.Audio.error(); TD.toast('Only the host controls pause', 'bad'); return; }
+      UI.togglePause();
+    };
     $('#b-follow').onclick = () => UI.toggleFollow();
     $('#b-speed').onclick = () => {
       const B = UI.battle; if (!B) return;
+      if (B.remote) { TD.Audio.error(); TD.toast('Only the host controls game speed', 'bad'); return; }
       B.speed = B.speed === 1 ? 2 : B.speed === 2 ? 3 : 1;
       $('#b-speed').textContent = B.speed + '×';
       TD.Audio.ui();
@@ -7458,7 +8000,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
       deploy.textContent = 'CHOOSE MAP & DEPLOY';
       $('#coop-foot-note').textContent = C.players.length < 2
         ? 'Waiting for players — you can start alone too.'
-        : C.players.length + ' players ready';
+        : C.players.length + ' players in the room';
     } else {
       deploy.classList.add('hidden');
       $('#coop-foot-note').textContent = 'Waiting for the host to start…';
@@ -7531,6 +8073,10 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     if (renderer.outputColorSpace !== undefined) renderer.outputColorSpace = T.SRGBColorSpace;
     stage.appendChild(renderer.domElement);
     Game.renderer = renderer;
+
+    /* Profiles first: the plaza is built from whoever is signed in. */
+    TD.Account.init();
+    TD.Account.askClaude();
 
     step(35, 'Building the plaza…');
     TD.Lobby.build();
