@@ -66,6 +66,7 @@
       return false;
     }
     Coop.active = true;
+    Coop.announced = false;
     Coop.code = code;
     Coop.role = asHost ? 'host' : 'client';
     Coop.phase = 'lobby';
@@ -89,9 +90,11 @@
     if (timer) { clearInterval(timer); timer = null; }
     unsubs.forEach(u => { try { u(); } catch (e) { /* already gone */ } });
     unsubs = [];
-    Coop.active = false; Coop.role = null; Coop.code = null;
+    Coop.active = false; Coop.role = null; Coop.code = null; Coop.announced = false;
     Coop.players = []; Coop.slots = []; Coop.hostPeer = null; Coop.phase = 'lobby';
     session = null;
+    TD.Chat.show(false);
+    TD.Chat.clear();
     await TD.Net.leave();
     TD.UI.renderCoop && TD.UI.renderCoop();
   };
@@ -123,6 +126,7 @@
       /* The host left.  Nobody inherits a running match: it ends. */
       if (TD.Battle.active && TD.Battle.remote) {
         TD.toast('The host left the match', 'bad');
+        TD.Chat.system('The host left the match');
         TD.Game.toLobby();
       }
     }
@@ -139,6 +143,17 @@
       };
     }).filter(p => p.key);
     list.sort((a, b) => (b.host ? 1 : 0) - (a.host ? 1 : 0) || (a.key < b.key ? -1 : 1));
+
+    /* Joins and leaves are announced by every page from what it already
+       sees, so they cost no traffic and nobody can forge one. */
+    if (Coop.announced) {
+      const before = new Map(Coop.players.map(p => [p.key, p.name]));
+      const after = new Map(list.map(p => [p.key, p.name]));
+      after.forEach((n, k) => { if (!before.has(k)) TD.Chat.system(n + ' joined'); });
+      before.forEach((n, k) => { if (!after.has(k)) TD.Chat.system(n + ' left'); });
+    } else if (list.length) {
+      Coop.announced = true;
+    }
     Coop.players = list;
 
     if (Coop.isHost()) Coop.slots = list.map(p => p.key);
@@ -325,18 +340,24 @@
   function onChat(msg) {
     if (msg.isMe && msg.sameTab) return;      // our own line is already on screen
     const d = msg.data || {};
-    const text = String(d.t || '').replace(/[\u0000-\u001f]/g, '').slice(0, 120);
-    if (!text) return;
-    const who = cleanName(d.n);
-    TD.UI.chatLine(who, text, !!(msg.isMe && msg.sameTab));
+    const p = Coop.players.find(q => q.key === msg.peer);
+    TD.Chat.receive(msg.peer, p ? p.name : cleanName(d.n), Coop.colorOf(msg.peer), d);
   }
 
-  Coop.say = function (text) {
-    text = String(text || '').trim().slice(0, 120);
-    if (!text || !session) return;
-    session.emit('chat', { n: me(), t: text });
-    TD.UI.chatLine(me(), text, true);
+  /* Chat owns the wording and the rate limiting; we only carry it. */
+  Coop.emitChat = function (data) {
+    if (!session) return;
+    session.emit('chat', Object.assign({ n: me() }, data));
   };
+  Coop.say = function (text) { TD.Chat.say(text); };
+
+  Coop.myName = function () { return me(); };
+  Coop.colorOf = function (peer) {
+    const i = Coop.slots.indexOf(peer);
+    const j = i >= 0 ? i : Math.max(0, Coop.players.findIndex(p => p.key === peer));
+    return '#' + TD.Battle.playerColor(j).toString(16).padStart(6, '0');
+  };
+  Coop.myColor = function () { return Coop.colorOf(Coop.me); };
 
   /* ====================================================================
      Starting the match
@@ -358,6 +379,7 @@
       net: netHandle(), me: Coop.me, slots: Coop.slots
     });
     Coop.announce({ k: 'start' });
+    TD.Chat.system('Match started — ' + (TD.mapById(Coop.map) || {}).name);
     pushPresence(true);
   };
 

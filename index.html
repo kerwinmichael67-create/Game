@@ -142,6 +142,7 @@
         </div>
         <div class="coop-players" id="coop-players"></div>
         <div class="coop-map" id="coop-map"></div>
+        <div class="coop-chat-slot" id="coop-chat-slot"></div>
       </div>
     </div>
 
@@ -214,9 +215,21 @@
 
   <!-- co-op only -->
   <div class="coop-hud hidden" id="coop-hud"></div>
-  <div class="chat hidden" id="chat">
-    <div class="chat-log" id="chat-log"></div>
-    <input id="chat-input" type="text" maxlength="120" placeholder="Press Y to chat&hellip;" autocomplete="off">
+</div>
+
+<!-- ============================== TEAM CHAT ============================== -->
+<div class="chat hidden" id="chat">
+  <div class="chat-head">
+    <span class="chat-title" id="chat-title">Team Chat</span>
+    <span class="chat-badge hidden" id="chat-badge">0</span>
+    <button class="chat-btn" id="chat-quick-btn" title="Quick chat (Z)">&#9776;</button>
+    <button class="chat-btn" id="chat-toggle" title="Collapse">&ndash;</button>
+  </div>
+  <div class="chat-log" id="chat-log"></div>
+  <div class="chat-quick" id="chat-quick"></div>
+  <div class="chat-entry">
+    <input id="chat-input" type="text" maxlength="120" placeholder="Press Y to chat&hellip;" autocomplete="off" spellcheck="false">
+    <button class="chat-btn send" id="chat-send" title="Send">&#10148;</button>
   </div>
 </div>
 
@@ -245,6 +258,7 @@
 <script src="js/lobby.js"></script>
 <script src="js/battle.js"></script>
 <script src="js/coop.js"></script>
+<script src="js/chat.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/main.js"></script>
 </body>

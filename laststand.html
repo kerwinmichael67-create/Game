@@ -445,20 +445,61 @@ kbd{
 .ch-cash{color:#51d88a;font-variant-numeric:tabular-nums}
 .ch-towers{color:var(--dim);font-size:11px}
 
-/* chat */
-.chat{position:absolute;left:14px;bottom:128px;width:270px;display:flex;flex-direction:column;gap:5px}
-.chat-log{display:flex;flex-direction:column;gap:2px;max-height:132px;overflow-y:auto;font-size:12px;line-height:1.45}
-.chat-row{background:rgba(12,17,30,.78);border-radius:7px;padding:3px 8px;word-break:break-word}
-.chat-row b{color:#6ee7ff}
-.chat-row.mine b{color:#8ce8b4}
-.chat input{background:rgba(12,17,30,.82);border:1px solid var(--line);border-radius:8px;color:var(--ink);
-  font:400 12px/1 inherit;padding:7px 9px}
-.chat input:focus{outline:none;border-color:#3d86c9}
+/* ===========================================================
+   TEAM CHAT
+   =========================================================== */
+.chat{position:absolute;left:14px;bottom:124px;width:296px;z-index:6;
+  display:flex;flex-direction:column;background:rgba(10,15,27,.9);
+  border:1px solid var(--line);border-radius:12px;overflow:hidden;
+  box-shadow:0 8px 26px rgba(0,0,0,.42)}
+.chat.hidden{display:none}
+
+.chat-head{display:flex;align-items:center;gap:7px;padding:7px 8px 7px 11px;
+  background:#131a2c;border-bottom:1px solid var(--line)}
+.chat-title{flex:1;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.chat-badge{background:#ff5d6c;color:#fff;font-size:10px;font-weight:700;
+  border-radius:9px;padding:1px 6px;min-width:17px;text-align:center}
+.chat-badge.hidden{display:none}
+.chat-btn{background:#1a2338;border:1px solid var(--line);color:var(--dim);
+  border-radius:6px;width:23px;height:23px;line-height:1;cursor:pointer;font-size:12px;padding:0}
+.chat-btn:hover{color:var(--ink);border-color:#3d86c9}
+.chat-btn.on{background:#1f4d7a;border-color:#3d86c9;color:#bfe3ff}
+.chat-btn.send{width:29px}
+
+.chat-log{display:flex;flex-direction:column;gap:3px;height:158px;overflow-y:auto;
+  padding:9px 11px;font-size:12px;line-height:1.5}
+.chat-row-line{word-break:break-word}
+.chat-row-line .ct{color:#59657f;font-size:10px;margin-right:5px;font-variant-numeric:tabular-nums}
+.chat-row-line b{color:#6ee7ff;margin-right:2px}
+.chat-row-line.system{color:#8f9bc0;font-style:italic;font-size:11px}
+.chat-row-line.quick{color:#bfe3ff}
+.chat-row-line.mine b{color:#8ce8b4}
+
+.chat-quick{display:none;flex-wrap:wrap;gap:5px;padding:8px 11px;border-top:1px solid var(--line);
+  background:#0e1424}
+.chat-quick.shown{display:flex}
+.cq{background:#1a2338;border:1px solid var(--line);color:var(--ink);border-radius:13px;
+  padding:4px 10px;font-size:11px;cursor:pointer}
+.cq:hover{background:#24304d;border-color:#3d86c9}
+
+.chat-entry{display:flex;gap:6px;padding:8px;border-top:1px solid var(--line)}
+.chat-entry input{flex:1;min-width:0;background:#0d1322;border:1px solid var(--line);border-radius:7px;
+  color:var(--ink);font:400 12px/1 inherit;padding:7px 9px}
+.chat-entry input:focus{outline:none;border-color:#3d86c9}
+
+.chat.collapsed .chat-log,
+.chat.collapsed .chat-quick,
+.chat.collapsed .chat-entry{display:none}
+
+/* docked inside the co-op room panel */
+.chat.docked{position:static;width:auto;bottom:auto;left:auto;margin-top:12px;box-shadow:none}
+.chat.docked .chat-log{height:128px}
 
 @media (max-width:720px){
   .coop-hud{top:56px;right:8px}
   .ch-row{min-width:0}
-  .chat{width:min(60vw,240px);bottom:150px}
+  .chat{width:min(74vw,268px);bottom:150px}
+  .chat-log{height:118px}
 }
 </style>
 </head>
@@ -597,6 +638,7 @@ kbd{
         </div>
         <div class="coop-players" id="coop-players"></div>
         <div class="coop-map" id="coop-map"></div>
+        <div class="coop-chat-slot" id="coop-chat-slot"></div>
       </div>
     </div>
 
@@ -669,9 +711,21 @@ kbd{
 
   <!-- co-op only -->
   <div class="coop-hud hidden" id="coop-hud"></div>
-  <div class="chat hidden" id="chat">
-    <div class="chat-log" id="chat-log"></div>
-    <input id="chat-input" type="text" maxlength="120" placeholder="Press Y to chat&hellip;" autocomplete="off">
+</div>
+
+<!-- ============================== TEAM CHAT ============================== -->
+<div class="chat hidden" id="chat">
+  <div class="chat-head">
+    <span class="chat-title" id="chat-title">Team Chat</span>
+    <span class="chat-badge hidden" id="chat-badge">0</span>
+    <button class="chat-btn" id="chat-quick-btn" title="Quick chat (Z)">&#9776;</button>
+    <button class="chat-btn" id="chat-toggle" title="Collapse">&ndash;</button>
+  </div>
+  <div class="chat-log" id="chat-log"></div>
+  <div class="chat-quick" id="chat-quick"></div>
+  <div class="chat-entry">
+    <input id="chat-input" type="text" maxlength="120" placeholder="Press Y to chat&hellip;" autocomplete="off" spellcheck="false">
+    <button class="chat-btn send" id="chat-send" title="Send">&#10148;</button>
   </div>
 </div>
 
@@ -4261,6 +4315,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     this.spawnT = 0;
     this.phase = 'wave';
     TD.UI.waveBanner('WAVE ' + this.wave, TD.wavePreview(this.diff, this.wave));
+    if (TD.Coop.active) TD.Chat.system('Wave ' + this.wave + (w.boss ? ' — BOSS' : '') + ' incoming');
     if (w.boss) TD.Audio.boss(); else TD.Audio.wave();
   };
 
@@ -4287,7 +4342,10 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     if (this.phase === 'over') return;
     this.phase = 'over';
     this.wonMatch = !!won;
-    if (TD.Coop && TD.Coop.active) TD.Coop.matchEnded();
+    if (TD.Coop && TD.Coop.active) {
+      TD.Chat.system(won ? 'Victory — the base held' : 'Defeat — the base fell');
+      TD.Coop.matchEnded();
+    }
     won ? TD.Audio.win() : TD.Audio.lose();
     const d = TD.Save.data;
     const mul = this.diff.reward * (1 + this.map.tier * 0.12);
@@ -5595,7 +5653,8 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
       if (k === 'enter') { if (self.phase === 'prep' && self.wave < self.diff.waves) self.startWave(true); }
       if (k === 'c') TD.UI.toggleFollow();
       if (k === 'p') TD.UI.togglePause();
-      if (k === 'y' && TD.Coop && TD.Coop.active) { e.preventDefault(); TD.UI.focusChat(); }
+      if (k === 'y' && TD.Coop && TD.Coop.active) { e.preventDefault(); TD.Chat.focus(); }
+      if (k === 'z' && TD.Coop && TD.Coop.active) { e.preventDefault(); TD.UI.toggleQuickChat(); }
     });
     window.addEventListener('keyup', e => { self.keys[e.key.toLowerCase()] = false; });
     window.addEventListener('blur', () => { self.keys = {}; });
@@ -5692,6 +5751,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     this.hp = s.hp; this.maxHp = s.mhp || this.maxHp;
     if (s.w > this.wave && s.w > 0) {
       TD.UI.waveBanner('WAVE ' + s.w, TD.wavePreview(this.diff, s.w));
+      TD.Chat.system('Wave ' + s.w + ' incoming');
       TD.Audio.wave();
     }
     this.wave = s.w; this.prepT = s.pt; this.speed = s.sp || 1;
@@ -5780,6 +5840,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
 
   B.remoteFinish = function (won) {
     TD.Audio[won ? 'win' : 'lose']();
+    TD.Chat.system(won ? 'Victory — the base held' : 'Defeat — the base fell');
     this.stats.kills = this.stats.kills || 0;
     TD.UI.showResults(!!won, this, 0, 0);
   };
@@ -5970,6 +6031,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
       return false;
     }
     Coop.active = true;
+    Coop.announced = false;
     Coop.code = code;
     Coop.role = asHost ? 'host' : 'client';
     Coop.phase = 'lobby';
@@ -5993,9 +6055,11 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     if (timer) { clearInterval(timer); timer = null; }
     unsubs.forEach(u => { try { u(); } catch (e) { /* already gone */ } });
     unsubs = [];
-    Coop.active = false; Coop.role = null; Coop.code = null;
+    Coop.active = false; Coop.role = null; Coop.code = null; Coop.announced = false;
     Coop.players = []; Coop.slots = []; Coop.hostPeer = null; Coop.phase = 'lobby';
     session = null;
+    TD.Chat.show(false);
+    TD.Chat.clear();
     await TD.Net.leave();
     TD.UI.renderCoop && TD.UI.renderCoop();
   };
@@ -6027,6 +6091,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
       /* The host left.  Nobody inherits a running match: it ends. */
       if (TD.Battle.active && TD.Battle.remote) {
         TD.toast('The host left the match', 'bad');
+        TD.Chat.system('The host left the match');
         TD.Game.toLobby();
       }
     }
@@ -6043,6 +6108,17 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
       };
     }).filter(p => p.key);
     list.sort((a, b) => (b.host ? 1 : 0) - (a.host ? 1 : 0) || (a.key < b.key ? -1 : 1));
+
+    /* Joins and leaves are announced by every page from what it already
+       sees, so they cost no traffic and nobody can forge one. */
+    if (Coop.announced) {
+      const before = new Map(Coop.players.map(p => [p.key, p.name]));
+      const after = new Map(list.map(p => [p.key, p.name]));
+      after.forEach((n, k) => { if (!before.has(k)) TD.Chat.system(n + ' joined'); });
+      before.forEach((n, k) => { if (!after.has(k)) TD.Chat.system(n + ' left'); });
+    } else if (list.length) {
+      Coop.announced = true;
+    }
     Coop.players = list;
 
     if (Coop.isHost()) Coop.slots = list.map(p => p.key);
@@ -6229,18 +6305,24 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   function onChat(msg) {
     if (msg.isMe && msg.sameTab) return;      // our own line is already on screen
     const d = msg.data || {};
-    const text = String(d.t || '').replace(/[\u0000-\u001f]/g, '').slice(0, 120);
-    if (!text) return;
-    const who = cleanName(d.n);
-    TD.UI.chatLine(who, text, !!(msg.isMe && msg.sameTab));
+    const p = Coop.players.find(q => q.key === msg.peer);
+    TD.Chat.receive(msg.peer, p ? p.name : cleanName(d.n), Coop.colorOf(msg.peer), d);
   }
 
-  Coop.say = function (text) {
-    text = String(text || '').trim().slice(0, 120);
-    if (!text || !session) return;
-    session.emit('chat', { n: me(), t: text });
-    TD.UI.chatLine(me(), text, true);
+  /* Chat owns the wording and the rate limiting; we only carry it. */
+  Coop.emitChat = function (data) {
+    if (!session) return;
+    session.emit('chat', Object.assign({ n: me() }, data));
   };
+  Coop.say = function (text) { TD.Chat.say(text); };
+
+  Coop.myName = function () { return me(); };
+  Coop.colorOf = function (peer) {
+    const i = Coop.slots.indexOf(peer);
+    const j = i >= 0 ? i : Math.max(0, Coop.players.findIndex(p => p.key === peer));
+    return '#' + TD.Battle.playerColor(j).toString(16).padStart(6, '0');
+  };
+  Coop.myColor = function () { return Coop.colorOf(Coop.me); };
 
   /* ====================================================================
      Starting the match
@@ -6262,12 +6344,249 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
       net: netHandle(), me: Coop.me, slots: Coop.slots
     });
     Coop.announce({ k: 'start' });
+    TD.Chat.system('Match started — ' + (TD.mapById(Coop.map) || {}).name);
     pushPresence(true);
   };
 
   /* The host's own match ending or being left behind. */
   Coop.matchEnded = function () {
     if (Coop.isHost()) pushPresence(true);
+  };
+})();
+</script>
+<script>
+/* ---- js/chat.js ---- */
+/* =========================================================================
+   chat.js — team chat.
+
+   One panel, two homes: it docks inside the co-op room panel before the
+   match so people can sort out who is bringing what, and floats over the
+   battlefield once the match starts.  Collapsing it keeps an unread count.
+
+   Three kinds of line:
+
+     say      something a player typed
+     quick    one of the canned phrases, sent as an index rather than text,
+              so what arrives is a number and the phrase is drawn from this
+              page's own table
+     system   joins, leaves, waves, results — worked out locally by every
+              page from what it already knows, so they cost no traffic
+
+   Text from other players is inserted with textContent, never innerHTML,
+   and both ends are rate limited: the room's send budget is shared with
+   the commands that actually run the match, so chat must not crowd them
+   out.
+   ========================================================================= */
+(function () {
+  const Chat = TD.Chat = {
+    lines: [],
+    open: true,
+    unread: 0,
+    ready: false
+  };
+
+  const MAX_LINES = 120;              // kept in memory
+  const MAX_LEN = 120;                // per message
+  const SEND_GAP = 800;               // ms between our own messages
+  const BURST_N = 5, BURST_MS = 8000; // our own burst allowance
+  const PEER_N = 6, PEER_MS = 5000;   // what we accept from one peer
+
+  /* Canned phrases.  Sent as an index; never as text. */
+  const QUICK = Chat.QUICK = [
+    'Hello!', 'Nice one!', 'Thanks!', 'Sorry!',
+    'Need cash', 'Watch the air', 'Start the wave', 'Wait for me',
+    'Defend the front', 'Good game'
+  ];
+
+  let elRoot, elLog, elInput, elBadge, elQuick, elTitle;
+  let myTimes = [], lastSend = 0;
+  const peerTimes = new Map();
+
+  const $ = s => document.querySelector(s);
+
+  /* ------------------------------------------------------------------ */
+  Chat.init = function () {
+    elRoot = $('#chat');
+    if (!elRoot) return;
+    elLog = $('#chat-log');
+    elInput = $('#chat-input');
+    elBadge = $('#chat-badge');
+    elQuick = $('#chat-quick');
+    elTitle = $('#chat-title');
+
+    QUICK.forEach((phrase, i) => {
+      const b = document.createElement('button');
+      b.className = 'cq';
+      b.textContent = phrase;
+      b.onclick = () => { Chat.sendQuick(i); elInput.blur(); };
+      elQuick.appendChild(b);
+    });
+
+    $('#chat-toggle').onclick = () => Chat.setOpen(!Chat.open);
+    $('#chat-send').onclick = () => Chat.submit();
+    $('#chat-quick-btn').onclick = () => {
+      elQuick.classList.toggle('shown');
+      $('#chat-quick-btn').classList.toggle('on', elQuick.classList.contains('shown'));
+    };
+
+    elInput.addEventListener('keydown', e => {
+      e.stopPropagation();                       // the battle owns these keys otherwise
+      if (e.key === 'Enter') Chat.submit();
+      if (e.key === 'Escape') { elInput.value = ''; elInput.blur(); }
+    });
+    elInput.addEventListener('focus', () => { Chat.setOpen(true); });
+
+    Chat.ready = true;
+    Chat.render();
+  };
+
+  /* Where the panel lives right now.  `null` floats it over the battle. */
+  Chat.dock = function (parent) {
+    if (!elRoot) return;
+    const host = parent || document.getElementById('battle-hud');
+    if (host && elRoot.parentNode !== host) host.appendChild(elRoot);
+    elRoot.classList.toggle('docked', !!parent);
+    if (parent) Chat.setOpen(true);
+    Chat.scroll();
+  };
+
+  Chat.show = function (on) {
+    if (!elRoot) return;
+    elRoot.classList.toggle('hidden', !on);
+    if (on) Chat.scroll();
+  };
+
+  Chat.setOpen = function (on) {
+    Chat.open = !!on;
+    if (!elRoot) return;
+    elRoot.classList.toggle('collapsed', !Chat.open);
+    $('#chat-toggle').textContent = Chat.open ? '–' : '+';
+    if (Chat.open) { Chat.unread = 0; Chat.badge(); Chat.scroll(); }
+  };
+
+  Chat.badge = function () {
+    if (!elBadge) return;
+    elBadge.textContent = Chat.unread > 9 ? '9+' : String(Chat.unread);
+    elBadge.classList.toggle('hidden', Chat.unread === 0);
+  };
+
+  Chat.focus = function () {
+    if (!elInput) return;
+    Chat.setOpen(true);
+    elInput.focus();
+  };
+
+  Chat.clear = function () {
+    Chat.lines = []; Chat.unread = 0;
+    peerTimes.clear();
+    Chat.badge(); Chat.render();
+  };
+
+  /* ------------------------------------------------------------------
+     Adding lines
+     ------------------------------------------------------------------ */
+  function stamp() {
+    const d = new Date();
+    return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  }
+
+  Chat.push = function (line) {
+    line.at = stamp();
+    Chat.lines.push(line);
+    while (Chat.lines.length > MAX_LINES) Chat.lines.shift();
+    if (!Chat.open && line.kind !== 'system') { Chat.unread++; Chat.badge(); }
+    Chat.render();
+    if (line.kind !== 'system' && !line.mine) TD.Audio.ui();
+  };
+
+  /* A local note nobody sent: joins, waves, results. */
+  Chat.system = function (text) {
+    Chat.push({ kind: 'system', text: String(text).slice(0, 90) });
+  };
+
+  Chat.render = function () {
+    if (!elLog) return;
+    elLog.innerHTML = '';
+    const from = Math.max(0, Chat.lines.length - 60);
+    for (let i = from; i < Chat.lines.length; i++) {
+      const l = Chat.lines[i];
+      const row = document.createElement('div');
+      row.className = 'chat-row-line ' + l.kind + (l.mine ? ' mine' : '');
+      if (l.kind === 'system') {
+        row.textContent = l.text;                          // never from the wire verbatim
+      } else {
+        const t = document.createElement('span');
+        t.className = 'ct'; t.textContent = l.at;
+        const b = document.createElement('b');
+        b.textContent = l.who + ':';
+        if (l.color) b.style.color = l.color;
+        row.appendChild(t); row.appendChild(b);
+        row.appendChild(document.createTextNode(' ' + l.text));   // text, never markup
+      }
+      elLog.appendChild(row);
+    }
+    Chat.scroll();
+  };
+
+  Chat.scroll = function () { if (elLog) elLog.scrollTop = elLog.scrollHeight; };
+
+  /* ------------------------------------------------------------------
+     Sending
+     ------------------------------------------------------------------ */
+  function maySend() {
+    const now = Date.now();
+    if (now - lastSend < SEND_GAP) return false;
+    myTimes = myTimes.filter(t => now - t < BURST_MS);
+    if (myTimes.length >= BURST_N) { TD.toast('Easy on the chat', 'bad'); return false; }
+    lastSend = now; myTimes.push(now);
+    return true;
+  }
+
+  Chat.submit = function () {
+    if (!elInput) return;
+    const text = elInput.value.trim();
+    elInput.value = '';
+    if (!text) return;
+    Chat.say(text);
+  };
+
+  Chat.say = function (text) {
+    text = String(text || '').replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, MAX_LEN);
+    if (!text) return;
+    if (!TD.Coop || !TD.Coop.active) { Chat.system('Chat needs a co-op room.'); return; }
+    if (!maySend()) return;
+    TD.Coop.emitChat({ t: text });
+    Chat.push({ kind: 'say', who: TD.Coop.myName(), text: text, mine: true, color: TD.Coop.myColor() });
+  };
+
+  Chat.sendQuick = function (i) {
+    i = i | 0;
+    if (!QUICK[i]) return;
+    if (!TD.Coop || !TD.Coop.active) { Chat.system('Chat needs a co-op room.'); return; }
+    if (!maySend()) return;
+    TD.Coop.emitChat({ q: i });
+    Chat.push({ kind: 'quick', who: TD.Coop.myName(), text: QUICK[i], mine: true, color: TD.Coop.myColor() });
+  };
+
+  /* ------------------------------------------------------------------
+     Receiving — everything here is untrusted
+     ------------------------------------------------------------------ */
+  Chat.receive = function (peer, name, color, data) {
+    const now = Date.now();
+    const times = (peerTimes.get(peer) || []).filter(t => now - t < PEER_MS);
+    if (times.length >= PEER_N) { peerTimes.set(peer, times); return; }   // flooding: drop it
+    times.push(now);
+    peerTimes.set(peer, times);
+
+    if (data && typeof data.q === 'number') {
+      const phrase = QUICK[data.q | 0];
+      if (!phrase) return;
+      Chat.push({ kind: 'quick', who: name, text: phrase, color: color });
+      return;
+    }
+    const text = String((data && data.t) || '').replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, MAX_LEN);
+    if (!text) return;
+    Chat.push({ kind: 'say', who: name, text: text, color: color });
   };
 })();
 </script>
@@ -6391,6 +6710,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   };
   UI.close = function () {
     if (!UI.openModal) return;
+    if (UI.openModal === '#coop-modal' && !TD.Battle.active && TD.Coop.active) TD.Chat.show(false);
     $(UI.openModal).classList.add('hidden');
     UI.openModal = null;
   };
@@ -6783,7 +7103,8 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     $('#battle-hud').classList.add('hidden');
     $('#lobby-hud').classList.remove('hidden');
     $('#coop-hud').classList.add('hidden');
-    $('#chat').classList.add('hidden');
+    UI.chatInBattle = false;
+    if (TD.Coop.active) TD.Chat.dock($('#coop-chat-slot')); else TD.Chat.show(false);
     UI.battle = null;
   };
 
@@ -7076,27 +7397,12 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
       UI.open('play');
     };
 
-    /* Chat */
-    const ci = $('#chat-input');
-    ci.addEventListener('keydown', e => {
-      e.stopPropagation();
-      if (e.key === 'Enter') { TD.Coop.say(ci.value); ci.value = ''; ci.blur(); }
-      if (e.key === 'Escape') { ci.value = ''; ci.blur(); }
-    });
+    TD.Chat.init();
   };
 
-  UI.focusChat = function () { const ci = $('#chat-input'); if (ci) ci.focus(); };
-
-  UI.chatLine = function (who, text, mine) {
-    const log = $('#chat-log'); if (!log) return;
-    const row = el('div', 'chat-row' + (mine ? ' mine' : ''));
-    row.appendChild(el('b', '', who + ': '));
-    row.appendChild(document.createTextNode(text));   // never innerHTML: this came off the wire
-    log.appendChild(row);
-    while (log.children.length > 40) log.removeChild(log.firstChild);
-    log.scrollTop = log.scrollHeight;
-    $('#chat').classList.remove('hidden');
-  };
+  UI.focusChat = function () { TD.Chat.focus(); };
+  UI.toggleQuickChat = function () { const b = document.querySelector('#chat-quick-btn'); if (b) b.click(); };
+  UI.chatLine = function (who, text, mine) { TD.Chat.push({ kind: 'say', who: who, text: text, mine: !!mine }); };
 
   UI.renderCoop = async function () {
     const C = TD.Coop;
@@ -7123,6 +7429,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
 
     entry.classList.add('hidden'); room.classList.remove('hidden');
     $('#coop-leave').classList.remove('hidden');
+    if (!TD.Battle.active) { TD.Chat.show(true); TD.Chat.dock($('#coop-chat-slot')); }
     $('#coop-code-out').textContent = (C.code || '').toUpperCase();
     $('#coop-share').textContent = TD.Net.backend === 'room'
       ? 'Share this code — and the page link — with your friends'
@@ -7164,11 +7471,11 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     const hud = $('#coop-hud');
     if (!hud) return;
     if (!TD.Coop.active || !B.net) {
-      if (!hud.classList.contains('hidden')) { hud.classList.add('hidden'); $('#chat').classList.add('hidden'); }
+      if (!hud.classList.contains('hidden')) { hud.classList.add('hidden'); TD.Chat.show(false); }
       return;
     }
     hud.classList.remove('hidden');
-    $('#chat').classList.remove('hidden');
+    if (!UI.chatInBattle) { UI.chatInBattle = true; TD.Chat.dock(null); TD.Chat.show(true); }
     const rows = B.slots.map((key, i) => {
       const p = TD.Coop.players.find(q => q.key === key);
       const towers = B.towers.filter(t => t.owner === key).length;

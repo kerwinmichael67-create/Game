@@ -581,6 +581,7 @@
     this.spawnT = 0;
     this.phase = 'wave';
     TD.UI.waveBanner('WAVE ' + this.wave, TD.wavePreview(this.diff, this.wave));
+    if (TD.Coop.active) TD.Chat.system('Wave ' + this.wave + (w.boss ? ' — BOSS' : '') + ' incoming');
     if (w.boss) TD.Audio.boss(); else TD.Audio.wave();
   };
 
@@ -607,7 +608,10 @@
     if (this.phase === 'over') return;
     this.phase = 'over';
     this.wonMatch = !!won;
-    if (TD.Coop && TD.Coop.active) TD.Coop.matchEnded();
+    if (TD.Coop && TD.Coop.active) {
+      TD.Chat.system(won ? 'Victory — the base held' : 'Defeat — the base fell');
+      TD.Coop.matchEnded();
+    }
     won ? TD.Audio.win() : TD.Audio.lose();
     const d = TD.Save.data;
     const mul = this.diff.reward * (1 + this.map.tier * 0.12);
@@ -1915,7 +1919,8 @@
       if (k === 'enter') { if (self.phase === 'prep' && self.wave < self.diff.waves) self.startWave(true); }
       if (k === 'c') TD.UI.toggleFollow();
       if (k === 'p') TD.UI.togglePause();
-      if (k === 'y' && TD.Coop && TD.Coop.active) { e.preventDefault(); TD.UI.focusChat(); }
+      if (k === 'y' && TD.Coop && TD.Coop.active) { e.preventDefault(); TD.Chat.focus(); }
+      if (k === 'z' && TD.Coop && TD.Coop.active) { e.preventDefault(); TD.UI.toggleQuickChat(); }
     });
     window.addEventListener('keyup', e => { self.keys[e.key.toLowerCase()] = false; });
     window.addEventListener('blur', () => { self.keys = {}; });
@@ -2012,6 +2017,7 @@
     this.hp = s.hp; this.maxHp = s.mhp || this.maxHp;
     if (s.w > this.wave && s.w > 0) {
       TD.UI.waveBanner('WAVE ' + s.w, TD.wavePreview(this.diff, s.w));
+      TD.Chat.system('Wave ' + s.w + ' incoming');
       TD.Audio.wave();
     }
     this.wave = s.w; this.prepT = s.pt; this.speed = s.sp || 1;
@@ -2100,6 +2106,7 @@
 
   B.remoteFinish = function (won) {
     TD.Audio[won ? 'win' : 'lose']();
+    TD.Chat.system(won ? 'Victory — the base held' : 'Defeat — the base fell');
     this.stats.kills = this.stats.kills || 0;
     TD.UI.showResults(!!won, this, 0, 0);
   };

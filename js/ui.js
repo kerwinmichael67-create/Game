@@ -116,6 +116,7 @@
   };
   UI.close = function () {
     if (!UI.openModal) return;
+    if (UI.openModal === '#coop-modal' && !TD.Battle.active && TD.Coop.active) TD.Chat.show(false);
     $(UI.openModal).classList.add('hidden');
     UI.openModal = null;
   };
@@ -508,7 +509,8 @@
     $('#battle-hud').classList.add('hidden');
     $('#lobby-hud').classList.remove('hidden');
     $('#coop-hud').classList.add('hidden');
-    $('#chat').classList.add('hidden');
+    UI.chatInBattle = false;
+    if (TD.Coop.active) TD.Chat.dock($('#coop-chat-slot')); else TD.Chat.show(false);
     UI.battle = null;
   };
 
@@ -801,27 +803,12 @@
       UI.open('play');
     };
 
-    /* Chat */
-    const ci = $('#chat-input');
-    ci.addEventListener('keydown', e => {
-      e.stopPropagation();
-      if (e.key === 'Enter') { TD.Coop.say(ci.value); ci.value = ''; ci.blur(); }
-      if (e.key === 'Escape') { ci.value = ''; ci.blur(); }
-    });
+    TD.Chat.init();
   };
 
-  UI.focusChat = function () { const ci = $('#chat-input'); if (ci) ci.focus(); };
-
-  UI.chatLine = function (who, text, mine) {
-    const log = $('#chat-log'); if (!log) return;
-    const row = el('div', 'chat-row' + (mine ? ' mine' : ''));
-    row.appendChild(el('b', '', who + ': '));
-    row.appendChild(document.createTextNode(text));   // never innerHTML: this came off the wire
-    log.appendChild(row);
-    while (log.children.length > 40) log.removeChild(log.firstChild);
-    log.scrollTop = log.scrollHeight;
-    $('#chat').classList.remove('hidden');
-  };
+  UI.focusChat = function () { TD.Chat.focus(); };
+  UI.toggleQuickChat = function () { const b = document.querySelector('#chat-quick-btn'); if (b) b.click(); };
+  UI.chatLine = function (who, text, mine) { TD.Chat.push({ kind: 'say', who: who, text: text, mine: !!mine }); };
 
   UI.renderCoop = async function () {
     const C = TD.Coop;
@@ -848,6 +835,7 @@
 
     entry.classList.add('hidden'); room.classList.remove('hidden');
     $('#coop-leave').classList.remove('hidden');
+    if (!TD.Battle.active) { TD.Chat.show(true); TD.Chat.dock($('#coop-chat-slot')); }
     $('#coop-code-out').textContent = (C.code || '').toUpperCase();
     $('#coop-share').textContent = TD.Net.backend === 'room'
       ? 'Share this code — and the page link — with your friends'
@@ -889,11 +877,11 @@
     const hud = $('#coop-hud');
     if (!hud) return;
     if (!TD.Coop.active || !B.net) {
-      if (!hud.classList.contains('hidden')) { hud.classList.add('hidden'); $('#chat').classList.add('hidden'); }
+      if (!hud.classList.contains('hidden')) { hud.classList.add('hidden'); TD.Chat.show(false); }
       return;
     }
     hud.classList.remove('hidden');
-    $('#chat').classList.remove('hidden');
+    if (!UI.chatInBattle) { UI.chatInBattle = true; TD.Chat.dock(null); TD.Chat.show(true); }
     const rows = B.slots.map((key, i) => {
       const p = TD.Coop.players.find(q => q.key === key);
       const towers = B.towers.filter(t => t.owner === key).length;
