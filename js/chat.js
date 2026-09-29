@@ -85,11 +85,18 @@
   /* Where the panel lives right now.  `null` floats it over the battle. */
   Chat.dock = function (parent) {
     if (!elRoot) return;
-    const host = parent || document.getElementById('battle-hud');
-    if (host && elRoot.parentNode !== host) host.appendChild(elRoot);
+    const host = parent || document.body;
+    if (elRoot.parentNode !== host) host.appendChild(elRoot);
     elRoot.classList.toggle('docked', !!parent);
     if (parent) Chat.setOpen(true);
     Chat.scroll();
+  };
+
+  /* The plaza's buttons live bottom-left, the battle's build bar bottom-
+     centre, so the panel moves out of whichever is in the way. */
+  Chat.side = function (which) {
+    if (!elRoot) return;
+    elRoot.classList.toggle('right', which === 'right');
   };
 
   Chat.show = function (on) {
@@ -195,7 +202,7 @@
   Chat.say = function (text) {
     text = String(text || '').replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, MAX_LEN);
     if (!text) return;
-    if (!TD.Coop || !TD.Coop.active) { Chat.system('Chat needs a co-op room.'); return; }
+    if (!TD.Coop || !TD.Coop.active) { Chat.system('Not connected to a server.'); return; }
     if (!maySend()) return;
     TD.Coop.emitChat({ t: text });
     Chat.push({ kind: 'say', who: TD.Coop.myName(), text: text, mine: true, color: TD.Coop.myColor() });
@@ -204,7 +211,7 @@
   Chat.sendQuick = function (i) {
     i = i | 0;
     if (!QUICK[i]) return;
-    if (!TD.Coop || !TD.Coop.active) { Chat.system('Chat needs a co-op room.'); return; }
+    if (!TD.Coop || !TD.Coop.active) { Chat.system('Not connected to a server.'); return; }
     if (!maySend()) return;
     TD.Coop.emitChat({ q: i });
     Chat.push({ kind: 'quick', who: TD.Coop.myName(), text: QUICK[i], mine: true, color: TD.Coop.myColor() });

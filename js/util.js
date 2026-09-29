@@ -40,7 +40,7 @@ TD.Save = (function () {
     loadout: ['recruit', 'rifleman', 'splatter', 'homestead', null],
     wins: 0, losses: 0, bestWave: 0, kills: 0,
     mapsBeaten: {},
-    settings: { sound: true, music: true, shadows: true, dmgNumbers: true, sens: 1, quality: 1 }
+    settings: { sound: true, music: true, shadows: true, dmgNumbers: true, sens: 1, quality: 1, server: 1 }
   };
   let mem = null, usable = true;
   try { localStorage.getItem(BASE); } catch (e) { usable = false; }

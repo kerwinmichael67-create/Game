@@ -448,7 +448,7 @@ kbd{
 /* ===========================================================
    TEAM CHAT
    =========================================================== */
-.chat{position:absolute;left:14px;bottom:124px;width:296px;z-index:6;
+.chat{position:fixed;left:14px;bottom:124px;width:296px;z-index:6;
   display:flex;flex-direction:column;background:rgba(10,15,27,.9);
   border:1px solid var(--line);border-radius:12px;overflow:hidden;
   box-shadow:0 8px 26px rgba(0,0,0,.42)}
@@ -555,6 +555,43 @@ kbd{
 #coop-foot{flex-wrap:wrap;gap:8px}
 #coop-foot .cta{white-space:nowrap;padding-left:18px;padding-right:18px}
 .coop-foot-note{min-width:110px}
+
+
+/* ===========================================================
+   SERVERS
+   =========================================================== */
+.srv-label{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);
+  margin:14px 0 7px}
+.srv-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+.srv{background:#141b2e;border:1px solid var(--line);color:var(--ink);border-radius:8px;
+  padding:9px 0;font:700 13px/1 inherit;cursor:pointer}
+.srv:hover{background:#24304d;border-color:#3d86c9}
+.srv.on{background:#1f4d7a;border-color:#3d86c9;color:#bfe3ff}
+
+.srv-private{display:flex;gap:6px;margin-top:10px}
+.srv-private input{flex:1;min-width:0;background:#0d1322;border:1px solid var(--line);border-radius:8px;
+  color:var(--ink);font:700 14px/1 ui-monospace,monospace;letter-spacing:.18em;text-align:center;
+  text-transform:uppercase;padding:8px 6px}
+.srv-private input:focus{outline:none;border-color:#3d86c9}
+.srv-private .acct-mini{margin-left:0;white-space:nowrap}
+
+.room-pill{cursor:pointer}
+.room-pill:hover{border-color:#6ee7ff;color:#e8ecf8}
+.room-pill.off{border-color:#7a3d46;color:#ff9aa4}
+
+/* the plaza chat should not sit under the build bar in battle */
+#battle-hud:not(.hidden) ~ .chat, .chat{bottom:124px}
+@media (max-width:720px){ .srv-grid{grid-template-columns:repeat(4,1fr)} }
+
+
+/* the chat moves aside for whichever HUD is showing */
+.chat.right{left:auto;right:14px;bottom:96px}
+.chat.docked.right{right:auto}
+
+/* a tall panel must scroll rather than run off the screen */
+#coop-modal .modal{max-height:92vh;display:flex;flex-direction:column}
+#coop-modal .coop-body{overflow-y:auto;flex:1;min-height:0}
+@media (max-width:720px){ .chat.right{right:8px;bottom:88px} }
 </style>
 </head>
 <body>
@@ -595,7 +632,7 @@ kbd{
     <button class="big-btn shop" id="btn-shop"><b>SHOP</b><small>Buy towers</small></button>
     <button class="big-btn loadout" id="btn-loadout"><b>LOADOUT</b><small>Pick 5 towers</small></button>
     <button class="big-btn book" id="btn-codex"><b>CODEX</b><small>Enemies &amp; info</small></button>
-    <button class="big-btn coop" id="btn-coop"><b>CO-OP</b><small>Play online</small></button>
+    <button class="big-btn coop" id="btn-coop"><b>SERVERS</b><small>Play online</small></button>
   </div>
 
   <div id="lobby-room" class="room-pill hidden"></div>
@@ -669,29 +706,30 @@ kbd{
   <div class="modal">
     <header>
       <h2>Online Co-op</h2>
-      <div class="sub" id="coop-sub">Defend together — up to six players</div>
+      <div class="sub" id="coop-sub">Everyone on a server shares the plaza</div>
       <button class="x" data-close>&#10005;</button>
     </header>
 
     <div class="coop-body">
-      <div id="coop-entry">
-        <div class="coop-note" id="coop-status">Checking for a connection&hellip;</div>
-        <div class="coop-actions">
-          <button class="cta" id="coop-host">HOST A GAME</button>
-          <div class="coop-or">or</div>
-          <div class="coop-joinrow">
-            <input id="coop-code" type="text" maxlength="8" placeholder="CODE" autocomplete="off" spellcheck="false">
-            <button class="cta ghost" id="coop-join">JOIN</button>
-          </div>
-        </div>
-      </div>
+      <div class="coop-note" id="coop-status">Connecting&hellip;</div>
 
       <div id="coop-room" class="hidden">
         <div class="coop-code-box">
-          <div class="ccb-label">Room code</div>
-          <div class="ccb-code" id="coop-code-out">----</div>
-          <div class="ccb-hint" id="coop-share">Share this code with your friends</div>
+          <div class="ccb-label">You are on</div>
+          <div class="ccb-code" id="coop-code-out">SERVER 1</div>
+          <div class="ccb-hint" id="coop-share">Anyone else on this server is in your plaza</div>
         </div>
+
+        <div class="srv-label">Switch server</div>
+        <div class="srv-grid" id="srv-grid"></div>
+
+        <div class="srv-private">
+          <input id="coop-code" type="text" maxlength="8" placeholder="CODE" autocomplete="off" spellcheck="false">
+          <button class="acct-mini" id="coop-join">Join private</button>
+          <button class="acct-mini" id="coop-new">New private</button>
+        </div>
+
+        <div class="srv-label">Players here</div>
         <div class="coop-players" id="coop-players"></div>
         <div class="coop-map" id="coop-map"></div>
         <div class="coop-chat-slot" id="coop-chat-slot"></div>
@@ -700,7 +738,7 @@ kbd{
 
     <div class="modal-foot" id="coop-foot">
       <div class="coop-foot-note" id="coop-foot-note"></div>
-      <button class="cta ghost hidden" id="coop-leave">LEAVE ROOM</button>
+      <button class="cta ghost hidden" id="coop-leave">RECONNECT</button>
       <button class="cta hidden" id="coop-deploy">CHOOSE MAP</button>
     </div>
   </div>
@@ -853,7 +891,7 @@ TD.Save = (function () {
     loadout: ['recruit', 'rifleman', 'splatter', 'homestead', null],
     wins: 0, losses: 0, bestWave: 0, kills: 0,
     mapsBeaten: {},
-    settings: { sound: true, music: true, shadows: true, dmgNumbers: true, sens: 1, quality: 1 }
+    settings: { sound: true, music: true, shadows: true, dmgNumbers: true, sens: 1, quality: 1, server: 1 }
   };
   let mem = null, usable = true;
   try { localStorage.getItem(BASE); } catch (e) { usable = false; }
@@ -1525,6 +1563,21 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     tag.position.y = 6.6;
     h.group.add(tag);
     h.tag = tag;
+    h.tagName = name;
+    h.tagColor = opts.tag || '#6ee7ff';
+    /* Names arrive after the avatar does, and people rename themselves. */
+    h.setName = function (next) {
+      next = String(next || '');
+      if (next === h.tagName) return;
+      h.tagName = next;
+      const fresh = TD.textPlane(next, { color: h.tagColor, height: 1.3, size: 64, bg: 'rgba(8,11,22,0.7)' });
+      fresh.position.y = h.tag.position.y;
+      h.group.add(fresh);
+      h.group.remove(h.tag);
+      const old = h.tag;
+      h.tag = fresh;
+      return old;                       // so the caller can fix its billboard list
+    };
     return h;
   };
 
@@ -3328,6 +3381,9 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     return s;
   };
   Net.validCode = c => typeof c === 'string' && /^[a-z0-9]{4,8}$/.test(c.toLowerCase());
+  /* A room name as the platform spells them: a server ("plaza-3") or a
+     private code's room ("td-ab12"). */
+  Net.validRoom = n => typeof n === 'string' && /^[a-z0-9][a-z0-9_.-]{0,47}$/.test(n);
 
   /* ====================================================================
      Backend 1 — the artifact `room` capability
@@ -3358,7 +3414,9 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
      nothing persists.
      ==================================================================== */
   const KEEPALIVE = 900;
-  const PEER_TTL = 3000;
+  /* Generous, because a page busy rendering can be late with a keepalive
+     and a peer blinking out of the roster looks like a disconnect. */
+  const PEER_TTL = 6500;
 
   function channelSession(code) {
     const ch = new BroadcastChannel('td-coop-' + code);
@@ -3473,21 +3531,23 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     return probe;
   };
 
-  Net.join = async function (code) {
-    code = String(code || '').toLowerCase();
-    if (!Net.validCode(code)) throw new Error('bad code');
+  /* `room` is the full room name — the caller names it, because the game
+     has more than one kind (a server, a private code). */
+  Net.join = async function (room) {
+    room = String(room || '').toLowerCase();
+    if (!Net.validRoom(room)) throw new Error('bad room name');
     await Net.connect();
     if (Net.session) await Net.leave();
 
     if (Net.backend === 'room') {
-      const named = await roomNs.join('td-' + code);
+      const named = await roomNs.join(room);
       Net.session = roomSession(named);
     } else if (Net.backend === 'channel') {
-      Net.session = channelSession(code);
+      Net.session = channelSession(room);
     } else {
       throw new Error('no transport');
     }
-    Net.code = code;
+    Net.code = room;
     Net.peer = Net.session.myPeer || null;
     return Net.session;
   };
@@ -3979,6 +4039,12 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
         a = this.avatars[p.key] = { model: h, x: p.x || 0, z: p.z || 24, tx: p.x || 0, tz: p.z || 24, dir: 0, t: 0, name: p.name };
       }
       a.tx = p.x; a.tz = p.z; a.dir = p.ry || 0;
+      if (p.name && p.name !== a.name) {
+        a.name = p.name;
+        const old = a.model.setName(p.name);
+        const i = old ? this.billboards.indexOf(old) : -1;
+        if (i >= 0) this.billboards[i] = a.model.tag;
+      }
     });
     Object.keys(this.avatars).forEach(k => {
       if (seen[k]) return;
@@ -6260,9 +6326,10 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
         const h = TD.makeAvatar(p.name || 'Player', p.level || 1,
           { shirt: B.playerColor(slot), tag: B.playerTag(slot) });
         this.scene.add(h.group);
-        a = this.avatars[p.key] = { model: h, x: p.x, z: p.z, tx: p.x, tz: p.z, dir: p.ry || 0, t: 0 };
+        a = this.avatars[p.key] = { model: h, x: p.x, z: p.z, tx: p.x, tz: p.z, dir: p.ry || 0, t: 0, name: p.name };
       }
       a.tx = p.x; a.tz = p.z; a.dir = p.ry || 0;
+      if (p.name && p.name !== a.name) { a.name = p.name; a.model.setName(p.name); }
     });
     Object.keys(this.avatars).forEach(k => {
       if (seen.has(k)) return;
@@ -6292,15 +6359,23 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
 <script>
 /* ---- js/coop.js ---- */
 /* =========================================================================
-   coop.js — online co-op: the room, the roster, and keeping one host's
-   world in front of everybody else.
+   coop.js — servers, the roster, and keeping one host's world in front of
+   everybody else.
+
+   A SERVER is just a named room, and the game joins one by itself at
+   startup — Server 1 unless you switched — so two people who each open the
+   page are standing in the same plaza without arranging anything.  Servers
+   2-8 are there to move to, and a private room behind a code is the same
+   thing under a name only your friends know.
+
+   Nobody is the host of a plaza.  A host exists only while a match runs:
+   whoever pressed Deploy claims the seat and gives it up at the end.
 
    Shape of it:
 
-     * Whoever opens the room is the HOST.  The host runs the ordinary
-       simulation — the same code a solo match runs — and publishes a
-       packed snapshot of it through room presence, which the platform
-       coalesces and hands to newcomers by itself.
+     * The HOST runs the ordinary simulation — the same code a solo match
+       runs — and publishes a packed snapshot of it through room presence,
+       which the platform coalesces and hands to newcomers by itself.
      * Everyone else is a CLIENT.  A client simulates nothing.  It renders
        the host's snapshot and sends what its player did as a command.
      * Each player has their own wallet and their own towers.  The base HP
@@ -6311,9 +6386,10 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
    ========================================================================= */
 (function () {
   const Coop = TD.Coop = {
-    active: false,          // in a room
-    role: null,             // 'host' | 'client'
-    code: null,
+    active: false,          // in a server
+    role: null,             // 'host' while a match runs, else 'client'
+    code: null,             // the room name we are in
+    server: null,           // {kind:'public', n} | {kind:'private', code}
     me: null,               // our own peer label
     hostPeer: null,
     players: [],            // roster, host first
@@ -6330,7 +6406,6 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   let unsubs = [];
   let timer = null;
   let lastRosterKey = '';
-  let hostGoneSince = 0;
   const knownNames = new Map();
 
   const me = () => cleanName(TD.Save.data.name);
@@ -6350,20 +6425,31 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     TD.toast('You have view-only access to this page, so you can watch but not build', 'bad');
   };
 
-  Coop.open = async function (code, asHost) {
+  Coop.SERVERS = 8;
+  Coop.serverName = function (sv) {
+    sv = sv || Coop.server;
+    if (!sv) return '—';
+    return sv.kind === 'private' ? 'Private ' + sv.code.toUpperCase() : 'Server ' + sv.n;
+  };
+  const roomFor = sv => sv.kind === 'private' ? 'td-' + sv.code : 'plaza-' + sv.n;
+
+  /* Join a server.  Nobody is host here; the seat is claimed on Deploy. */
+  Coop.open = async function (sv) {
     Coop.error = null;
     const backend = await TD.Net.connect();
-    if (!backend) { Coop.error = 'This browser cannot open a co-op room.'; return false; }
+    if (!backend) { Coop.error = 'This browser cannot reach other players.'; return false; }
+    const room = roomFor(sv);
     try {
-      session = await TD.Net.join(code);
+      session = await TD.Net.join(room);
     } catch (e) {
-      Coop.error = 'Could not open room ' + String(code).toUpperCase() + '.';
+      Coop.error = 'Could not reach ' + Coop.serverName(sv) + '.';
       return false;
     }
     Coop.active = true;
     Coop.announced = false;
-    Coop.code = code;
-    Coop.role = asHost ? 'host' : 'client';
+    Coop.server = sv;
+    Coop.code = room;
+    Coop.role = 'client';
     Coop.phase = 'lobby';
     Coop.hostPeer = null;
     Coop.me = TD.Net.selfPeer();
@@ -6378,14 +6464,40 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     return true;
   };
 
-  Coop.host = function () { return Coop.open(TD.Net.makeCode(), true); };
-  Coop.joinCode = function (code) { return Coop.open(String(code).toLowerCase(), false); };
+  /* What the game does by itself at startup. */
+  Coop.autoJoin = async function () {
+    if (Coop.active) return true;
+    const want = TD.Save.data.settings.server;
+    const n = (typeof want === 'number' && want >= 1 && want <= Coop.SERVERS) ? want : 1;
+    const ok = await Coop.open({ kind: 'public', n: n });
+    if (ok) TD.Chat.system('Joined ' + Coop.serverName());
+    TD.UI.afterServerChange && TD.UI.afterServerChange();
+    return ok;
+  };
+
+  Coop.switchTo = async function (sv) {
+    if (TD.Battle.active) { TD.Audio.error(); TD.toast('Leave the match first', 'bad'); return false; }
+    if (Coop.server && roomFor(Coop.server) === roomFor(sv)) return true;
+    await Coop.leave();
+    const ok = await Coop.open(sv);
+    if (ok) {
+      if (sv.kind === 'public') { TD.Save.data.settings.server = sv.n; TD.Save.save(); }
+      TD.Chat.system('Moved to ' + Coop.serverName());
+    }
+    TD.UI.afterServerChange && TD.UI.afterServerChange();
+    return ok;
+  };
+
+  Coop.joinServer = n => Coop.switchTo({ kind: 'public', n: n });
+  Coop.joinPrivate = code => Coop.switchTo({ kind: 'private', code: String(code).toLowerCase() });
+  Coop.newPrivate = () => Coop.switchTo({ kind: 'private', code: TD.Net.makeCode() });
 
   Coop.leave = async function () {
     if (timer) { clearInterval(timer); timer = null; }
     unsubs.forEach(u => { try { u(); } catch (e) { /* already gone */ } });
     unsubs = [];
     Coop.active = false; Coop.role = null; Coop.code = null; Coop.announced = false;
+    Coop.server = null;
     Coop.players = []; Coop.slots = []; Coop.hostPeer = null; Coop.phase = 'lobby';
     session = null;
     knownNames.clear();
@@ -6420,26 +6532,12 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
       Coop.role = 'client';                       // we lost the tie; stand down
       pushPresence(true);
     }
-    if (Coop.role === 'client' && !host && peers.length) {
-      /* Nobody is hosting. The lowest peer label picks it up so the room
-         does not become unusable. */
-      hostGoneSince = hostGoneSince || Date.now();
-      if (Date.now() - hostGoneSince > 2500) {
-        const lowest = peers.map(p => p.peer).sort()[0];
-        if (lowest === Coop.me) {
-          Coop.role = 'host';
-          hostGoneSince = 0;
-          Coop.slots = Coop.players.map(p => p.key);
-          TD.Chat.system('You are the host now');
-          pushPresence(true);
-        }
-      }
-      /* The host left.  Nobody inherits a running match: it ends. */
-      if (TD.Battle.active && TD.Battle.remote) {
-        TD.toast('The host left the match', 'bad');
-        TD.Chat.system('The host left the match');
-        TD.Game.toLobby();
-      }
+    /* A plaza has no host at all — one exists only while a match runs, and
+       nobody inherits a running match: if the host goes, it ends. */
+    if (Coop.role === 'client' && !host && TD.Battle.active && TD.Battle.remote) {
+      TD.toast('The host left the match', 'bad');
+      TD.Chat.system('The host left the match');
+      TD.Game.toLobby();
     }
 
     const list = peers.map(p => {
@@ -6474,9 +6572,12 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     if (!Coop.announced && list.length) Coop.announced = true;
     Coop.players = list;
 
-    if (Coop.isHost()) Coop.slots = list.map(p => p.key);
+    /* Slot order is fixed for the length of a match: it is what tower
+       ownership and the wallet list are indexed by, and claiming the host
+       seat reorders the roster (host first), which would otherwise shift
+       every slot under the clients' feet. */
+    if (Coop.isHost() && !TD.Battle.active) Coop.slots = list.map(p => p.key);
 
-    if (host) hostGoneSince = 0;
     const hp = peers.find(p => p.peer === host);
     if (hp && hp.presence) readHostPresence(hp.presence);
 
@@ -6711,14 +6812,15 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
      Starting the match
      ==================================================================== */
   Coop.setMap = function (mapId, diffId) {
-    if (!Coop.isHost()) return;
+    if (!Coop.active) return;
     Coop.map = mapId; Coop.diff = diffId;
     pushPresence(true);
     TD.UI.renderCoop && TD.UI.renderCoop();
   };
 
   Coop.start = function () {
-    if (!Coop.isHost()) return;
+    if (!Coop.active) return;
+    Coop.role = 'host';                        // claimed for the match's length
     const load = TD.Save.data.loadout.filter(Boolean);
     if (!load.length) { TD.Audio.error(); TD.toast('Pick at least one tower in Loadout', 'bad'); return; }
     Coop.me = Coop.me || TD.Net.selfPeer() || 'me';
@@ -6731,9 +6833,11 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     pushPresence(true);
   };
 
-  /* The host's own match ending or being left behind. */
+  /* Back in the plaza: give the host seat up so the server has none again. */
   Coop.matchEnded = function () {
-    if (Coop.isHost()) pushPresence(true);
+    if (!Coop.active) return;
+    if (Coop.role === 'host' && !TD.Battle.active) Coop.role = 'client';
+    pushPresence(true);
   };
 })();
 </script>
@@ -6826,11 +6930,18 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   /* Where the panel lives right now.  `null` floats it over the battle. */
   Chat.dock = function (parent) {
     if (!elRoot) return;
-    const host = parent || document.getElementById('battle-hud');
-    if (host && elRoot.parentNode !== host) host.appendChild(elRoot);
+    const host = parent || document.body;
+    if (elRoot.parentNode !== host) host.appendChild(elRoot);
     elRoot.classList.toggle('docked', !!parent);
     if (parent) Chat.setOpen(true);
     Chat.scroll();
+  };
+
+  /* The plaza's buttons live bottom-left, the battle's build bar bottom-
+     centre, so the panel moves out of whichever is in the way. */
+  Chat.side = function (which) {
+    if (!elRoot) return;
+    elRoot.classList.toggle('right', which === 'right');
   };
 
   Chat.show = function (on) {
@@ -6936,7 +7047,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   Chat.say = function (text) {
     text = String(text || '').replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, MAX_LEN);
     if (!text) return;
-    if (!TD.Coop || !TD.Coop.active) { Chat.system('Chat needs a co-op room.'); return; }
+    if (!TD.Coop || !TD.Coop.active) { Chat.system('Not connected to a server.'); return; }
     if (!maySend()) return;
     TD.Coop.emitChat({ t: text });
     Chat.push({ kind: 'say', who: TD.Coop.myName(), text: text, mine: true, color: TD.Coop.myColor() });
@@ -6945,7 +7056,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   Chat.sendQuick = function (i) {
     i = i | 0;
     if (!QUICK[i]) return;
-    if (!TD.Coop || !TD.Coop.active) { Chat.system('Chat needs a co-op room.'); return; }
+    if (!TD.Coop || !TD.Coop.active) { Chat.system('Not connected to a server.'); return; }
     if (!maySend()) return;
     TD.Coop.emitChat({ q: i });
     Chat.push({ kind: 'quick', who: TD.Coop.myName(), text: QUICK[i], mine: true, color: TD.Coop.myColor() });
@@ -7064,11 +7175,17 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     const pill = document.getElementById('lobby-room');
     if (!pill) return;
     const C = TD.Coop;
-    if (!C || !C.active) { pill.classList.add('hidden'); return; }
-    pill.classList.remove('hidden');
+    if (!C || !C.active) {
+      pill.textContent = 'OFFLINE — CLICK TO RECONNECT';
+      pill.classList.remove('hidden');
+      pill.classList.add('off');
+      pill.onclick = () => { TD.Audio.ui(); UI.open('coop'); };
+      return;
+    }
+    pill.classList.remove('hidden', 'off');
     const n = C.players.length;
-    pill.textContent = 'ROOM ' + String(C.code || '').toUpperCase() + ' · ' +
-      n + (n === 1 ? ' player' : ' players') + (C.isHost() ? ' · you are the host' : '');
+    pill.textContent = C.serverName().toUpperCase() + ' · ' + n + (n === 1 ? ' player' : ' players') + ' · SWITCH';
+    pill.onclick = () => { TD.Audio.ui(); UI.open('coop'); };
   };
 
   UI.refreshHud = function () {
@@ -7104,9 +7221,10 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   };
   UI.close = function () {
     if (!UI.openModal) return;
-    if (UI.openModal === '#coop-modal' && !TD.Battle.active && TD.Coop.active) TD.Chat.show(false);
+    const was = UI.openModal;
     $(UI.openModal).classList.add('hidden');
     UI.openModal = null;
+    if (was === '#coop-modal') UI.placeChat();
   };
 
   /* ---------------------------------------------------------------- */
@@ -7638,8 +7756,8 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     $('#lobby-hud').classList.remove('hidden');
     $('#coop-hud').classList.add('hidden');
     UI.chatInBattle = false;
-    if (TD.Coop.active) TD.Chat.dock($('#coop-chat-slot')); else TD.Chat.show(false);
     UI.battle = null;
+    UI.placeChat();
   };
 
   UI.buildBar = function (B) {
@@ -7854,8 +7972,8 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
       const load = TD.Save.data.loadout.filter(Boolean);
       if (!load.length) { TD.Audio.error(); TD.toast('Pick at least one tower in Loadout', 'bad'); return; }
       TD.Audio.ui();
-      /* Hosting a room? DEPLOY starts the match for everybody in it. */
-      if (TD.Coop.isHost()) {
+      /* On a server, DEPLOY takes everyone standing in the plaza with you. */
+      if (TD.Coop.active && TD.Coop.players.length > 1) {
         TD.Coop.setMap(UI.selMap, UI.selDiff);
         TD.Coop.start();
         return;
@@ -7910,31 +8028,31 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   UI.initCoop = function () {
     $('#btn-coop').onclick = () => { TD.Audio.ui(); UI.open('coop'); };
 
-    $('#coop-host').onclick = async () => {
-      TD.Audio.ui();
-      $('#coop-host').disabled = true;
-      const ok = await TD.Coop.host();
-      $('#coop-host').disabled = false;
-      if (!ok) TD.toast(TD.Coop.error || 'Could not host', 'bad');
-      UI.renderCoop();
-    };
-
     const doJoin = async () => {
       const raw = ($('#coop-code').value || '').trim().toLowerCase();
-      if (!TD.Net.validCode(raw)) { TD.Audio.error(); TD.toast('Enter the 4-letter room code', 'bad'); return; }
+      if (!TD.Net.validCode(raw)) { TD.Audio.error(); TD.toast('Enter the 4-letter code', 'bad'); return; }
       TD.Audio.ui();
       $('#coop-join').disabled = true;
-      const ok = await TD.Coop.joinCode(raw);
+      const ok = await TD.Coop.joinPrivate(raw);
       $('#coop-join').disabled = false;
       if (!ok) TD.toast(TD.Coop.error || 'Could not join', 'bad');
-      UI.renderCoop();
     };
     $('#coop-join').onclick = doJoin;
+    $('#coop-new').onclick = async () => { TD.Audio.ui(); await TD.Coop.newPrivate(); };
     $('#coop-code').addEventListener('keydown', e => { if (e.key === 'Enter') doJoin(); });
 
-    $('#coop-leave').onclick = async () => { TD.Audio.ui(); await TD.Coop.leave(); UI.renderCoop(); };
+    /* Reconnect, for when the transport dropped out. */
+    $('#coop-leave').onclick = async () => {
+      TD.Audio.ui();
+      const sv = TD.Coop.server;
+      await TD.Coop.leave();
+      await (sv ? TD.Coop.open(sv) : TD.Coop.autoJoin());
+      UI.afterServerChange();
+    };
+    /* Anyone on a server may start a match; pressing Deploy is what makes
+       you its host. */
     $('#coop-deploy').onclick = () => {
-      if (!TD.Coop.isHost()) return;
+      if (!TD.Coop.active) return;
       TD.Audio.ui();
       UI.open('play');
     };
@@ -7946,47 +8064,79 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   UI.toggleQuickChat = function () { const b = document.querySelector('#chat-quick-btn'); if (b) b.click(); };
   UI.chatLine = function (who, text, mine) { TD.Chat.push({ kind: 'say', who: who, text: text, mine: !!mine }); };
 
+  UI.afterServerChange = function () {
+    UI.renderCoop();
+    UI.tickRoomPill();
+    UI.placeChat();
+  };
+
+  /* Chat lives wherever the player is looking: inside the servers panel
+     while it is open, over the plaza or the battlefield otherwise. */
+  UI.placeChat = function () {
+    if (!TD.Chat.ready) return;
+    if (!TD.Coop.active) { TD.Chat.show(false); return; }
+    TD.Chat.show(true);
+    const inPanel = UI.openModal === '#coop-modal' && !TD.Battle.active;
+    TD.Chat.dock(inPanel ? $('#coop-chat-slot') : null);
+    TD.Chat.side(!inPanel && !TD.Battle.active ? 'right' : 'left');
+  };
+
   UI.renderCoop = async function () {
     const C = TD.Coop;
-    const entry = $('#coop-entry'), room = $('#coop-room');
-    if (!entry) return;
+    const room = $('#coop-room');
+    if (!room) return;
+    const st = $('#coop-status');
 
+    const backend = await TD.Net.connect();
     if (!C.active) {
-      entry.classList.remove('hidden'); room.classList.add('hidden');
-      $('#coop-leave').classList.add('hidden');
+      room.classList.add('hidden');
+      $('#coop-leave').classList.remove('hidden');
       $('#coop-deploy').classList.add('hidden');
-      const backend = await TD.Net.connect();
-      const st = $('#coop-status');
-      if (backend === 'room') {
-        st.innerHTML = '<b class="ok">Online.</b> Anyone you share this page with can join your room.';
-      } else if (backend === 'channel') {
-        st.innerHTML = '<b class="warn">Local only.</b> This copy of the game is not hosted on claude.ai, ' +
-          'so a room reaches other tabs of this browser but not other people. Open the published page to play online.';
-      } else {
-        st.innerHTML = '<b class="bad">Unavailable.</b> This browser cannot open a co-op room.';
-      }
+      st.classList.remove('hidden');
+      st.innerHTML = backend
+        ? '<b class="bad">Not connected.</b> ' + (C.error ? C.error + ' ' : '') + 'Try Reconnect.'
+        : '<b class="bad">Unavailable.</b> This browser cannot reach other players.';
       $('#coop-foot-note').textContent = '';
       return;
     }
 
-    entry.classList.add('hidden'); room.classList.remove('hidden');
-    $('#coop-leave').classList.remove('hidden');
-    if (!TD.Battle.active) { TD.Chat.show(true); TD.Chat.dock($('#coop-chat-slot')); }
-    $('#coop-code-out').textContent = (C.code || '').toUpperCase();
-    $('#coop-share').textContent = TD.Net.backend === 'room'
-      ? 'Share this code — and the page link — with your friends'
-      : 'Open this same page in another tab and join with this code';
+    room.classList.remove('hidden');
+    $('#coop-leave').classList.add('hidden');
+    st.classList.remove('hidden');
+    if (backend === 'room') {
+      st.innerHTML = '<b class="ok">Online.</b> Everyone who opens this page lands on a server and shares its plaza.';
+    } else {
+      st.innerHTML = '<b class="warn">Local only.</b> This copy is not hosted on claude.ai, so a server reaches ' +
+        'other tabs of this browser but not other people. Open the published page to play with friends.';
+    }
 
+    $('#coop-code-out').textContent = C.serverName().toUpperCase();
+    $('#coop-share').textContent = C.server && C.server.kind === 'private'
+      ? 'Give this code to your friends so they land here too'
+      : 'Anyone else on this server is in your plaza';
+
+    /* the server buttons */
+    const grid = $('#srv-grid');
+    grid.innerHTML = '';
+    for (let n = 1; n <= C.SERVERS; n++) {
+      const here = C.server && C.server.kind === 'public' && C.server.n === n;
+      const b = el('button', 'srv' + (here ? ' on' : ''), String(n));
+      b.title = 'Server ' + n;
+      b.onclick = () => { TD.Audio.ui(); TD.Coop.joinServer(n); };
+      grid.appendChild(b);
+    }
+
+    /* who is here */
     const list = $('#coop-players');
     list.innerHTML = '';
-    C.players.forEach((p, i) => {
+    C.players.forEach(p => {
       const row = el('div', 'cp-row' + (p.isMe ? ' me' : ''));
       const dot = el('span', 'cp-dot');
-      dot.style.background = '#' + TD.Battle.playerColor(i).toString(16).padStart(6, '0');
+      dot.style.background = TD.Coop.colorOf(p.key);
       row.appendChild(dot);
       row.appendChild(el('span', 'cp-name', p.name + (p.isMe ? ' (you)' : '')));
       row.appendChild(el('span', 'cp-lvl', 'Lv ' + p.level));
-      row.appendChild(el('span', 'cp-role', p.host ? 'HOST' : ''));
+      row.appendChild(el('span', 'cp-role', p.host ? 'HOST' : (p.scene === 'b' ? 'IN MATCH' : '')));
       list.appendChild(row);
     });
 
@@ -7995,16 +8145,14 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
       '</b><span class="cm-sep">·</span><b>' + (df ? df.name : '—') + '</b>';
 
     const deploy = $('#coop-deploy');
-    if (C.isHost()) {
-      deploy.classList.remove('hidden');
-      deploy.textContent = 'CHOOSE MAP & DEPLOY';
-      $('#coop-foot-note').textContent = C.players.length < 2
-        ? 'Waiting for players — you can start alone too.'
-        : C.players.length + ' players in the room';
-    } else {
-      deploy.classList.add('hidden');
-      $('#coop-foot-note').textContent = 'Waiting for the host to start…';
-    }
+    deploy.classList.remove('hidden');
+    deploy.textContent = 'CHOOSE MAP & DEPLOY';
+    const n = C.players.length;
+    $('#coop-foot-note').textContent = n < 2
+      ? 'Alone on this server — start anyway, or switch to another.'
+      : n + ' players here · Deploy takes everyone in';
+
+    UI.placeChat();
   };
 
   /* The in-battle roster: who is playing, and what they have to spend. */
@@ -8013,11 +8161,11 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     const hud = $('#coop-hud');
     if (!hud) return;
     if (!TD.Coop.active || !B.net) {
-      if (!hud.classList.contains('hidden')) { hud.classList.add('hidden'); TD.Chat.show(false); }
+      if (!hud.classList.contains('hidden')) hud.classList.add('hidden');
       return;
     }
     hud.classList.remove('hidden');
-    if (!UI.chatInBattle) { UI.chatInBattle = true; TD.Chat.dock(null); TD.Chat.show(true); }
+    if (!UI.chatInBattle) { UI.chatInBattle = true; UI.placeChat(); }
     const rows = B.slots.map((key, i) => {
       const p = TD.Coop.players.find(q => q.key === key);
       const towers = B.towers.filter(t => t.owner === key).length;
@@ -8096,6 +8244,9 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
 
     window.addEventListener('resize', onResize);
     onResize();
+
+    /* Land on a server straight away: the plaza is shared by default. */
+    TD.Coop.autoJoin();
 
     step(100, 'Ready');
     setTimeout(() => {

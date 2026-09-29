@@ -338,6 +338,21 @@
     tag.position.y = 6.6;
     h.group.add(tag);
     h.tag = tag;
+    h.tagName = name;
+    h.tagColor = opts.tag || '#6ee7ff';
+    /* Names arrive after the avatar does, and people rename themselves. */
+    h.setName = function (next) {
+      next = String(next || '');
+      if (next === h.tagName) return;
+      h.tagName = next;
+      const fresh = TD.textPlane(next, { color: h.tagColor, height: 1.3, size: 64, bg: 'rgba(8,11,22,0.7)' });
+      fresh.position.y = h.tag.position.y;
+      h.group.add(fresh);
+      h.group.remove(h.tag);
+      const old = h.tag;
+      h.tag = fresh;
+      return old;                       // so the caller can fix its billboard list
+    };
     return h;
   };
 

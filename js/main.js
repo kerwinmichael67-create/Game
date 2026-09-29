@@ -53,6 +53,9 @@
     window.addEventListener('resize', onResize);
     onResize();
 
+    /* Land on a server straight away: the plaza is shared by default. */
+    TD.Coop.autoJoin();
+
     step(100, 'Ready');
     setTimeout(() => {
       document.getElementById('boot').classList.add('hidden');

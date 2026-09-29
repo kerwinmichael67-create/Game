@@ -431,7 +431,7 @@ kbd{
 /* ===========================================================
    TEAM CHAT
    =========================================================== */
-.chat{position:absolute;left:14px;bottom:124px;width:296px;z-index:6;
+.chat{position:fixed;left:14px;bottom:124px;width:296px;z-index:6;
   display:flex;flex-direction:column;background:rgba(10,15,27,.9);
   border:1px solid var(--line);border-radius:12px;overflow:hidden;
   box-shadow:0 8px 26px rgba(0,0,0,.42)}
@@ -538,3 +538,40 @@ kbd{
 #coop-foot{flex-wrap:wrap;gap:8px}
 #coop-foot .cta{white-space:nowrap;padding-left:18px;padding-right:18px}
 .coop-foot-note{min-width:110px}
+
+
+/* ===========================================================
+   SERVERS
+   =========================================================== */
+.srv-label{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);
+  margin:14px 0 7px}
+.srv-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+.srv{background:#141b2e;border:1px solid var(--line);color:var(--ink);border-radius:8px;
+  padding:9px 0;font:700 13px/1 inherit;cursor:pointer}
+.srv:hover{background:#24304d;border-color:#3d86c9}
+.srv.on{background:#1f4d7a;border-color:#3d86c9;color:#bfe3ff}
+
+.srv-private{display:flex;gap:6px;margin-top:10px}
+.srv-private input{flex:1;min-width:0;background:#0d1322;border:1px solid var(--line);border-radius:8px;
+  color:var(--ink);font:700 14px/1 ui-monospace,monospace;letter-spacing:.18em;text-align:center;
+  text-transform:uppercase;padding:8px 6px}
+.srv-private input:focus{outline:none;border-color:#3d86c9}
+.srv-private .acct-mini{margin-left:0;white-space:nowrap}
+
+.room-pill{cursor:pointer}
+.room-pill:hover{border-color:#6ee7ff;color:#e8ecf8}
+.room-pill.off{border-color:#7a3d46;color:#ff9aa4}
+
+/* the plaza chat should not sit under the build bar in battle */
+#battle-hud:not(.hidden) ~ .chat, .chat{bottom:124px}
+@media (max-width:720px){ .srv-grid{grid-template-columns:repeat(4,1fr)} }
+
+
+/* the chat moves aside for whichever HUD is showing */
+.chat.right{left:auto;right:14px;bottom:96px}
+.chat.docked.right{right:auto}
+
+/* a tall panel must scroll rather than run off the screen */
+#coop-modal .modal{max-height:92vh;display:flex;flex-direction:column}
+#coop-modal .coop-body{overflow-y:auto;flex:1;min-height:0}
+@media (max-width:720px){ .chat.right{right:8px;bottom:88px} }

@@ -1,13 +1,21 @@
 /* =========================================================================
-   coop.js — online co-op: the room, the roster, and keeping one host's
-   world in front of everybody else.
+   coop.js — servers, the roster, and keeping one host's world in front of
+   everybody else.
+
+   A SERVER is just a named room, and the game joins one by itself at
+   startup — Server 1 unless you switched — so two people who each open the
+   page are standing in the same plaza without arranging anything.  Servers
+   2-8 are there to move to, and a private room behind a code is the same
+   thing under a name only your friends know.
+
+   Nobody is the host of a plaza.  A host exists only while a match runs:
+   whoever pressed Deploy claims the seat and gives it up at the end.
 
    Shape of it:
 
-     * Whoever opens the room is the HOST.  The host runs the ordinary
-       simulation — the same code a solo match runs — and publishes a
-       packed snapshot of it through room presence, which the platform
-       coalesces and hands to newcomers by itself.
+     * The HOST runs the ordinary simulation — the same code a solo match
+       runs — and publishes a packed snapshot of it through room presence,
+       which the platform coalesces and hands to newcomers by itself.
      * Everyone else is a CLIENT.  A client simulates nothing.  It renders
        the host's snapshot and sends what its player did as a command.
      * Each player has their own wallet and their own towers.  The base HP
@@ -18,9 +26,10 @@
    ========================================================================= */
 (function () {
   const Coop = TD.Coop = {
-    active: false,          // in a room
-    role: null,             // 'host' | 'client'
-    code: null,
+    active: false,          // in a server
+    role: null,             // 'host' while a match runs, else 'client'
+    code: null,             // the room name we are in
+    server: null,           // {kind:'public', n} | {kind:'private', code}
     me: null,               // our own peer label
     hostPeer: null,
     players: [],            // roster, host first
@@ -37,7 +46,6 @@
   let unsubs = [];
   let timer = null;
   let lastRosterKey = '';
-  let hostGoneSince = 0;
   const knownNames = new Map();
 
   const me = () => cleanName(TD.Save.data.name);
@@ -57,20 +65,31 @@
     TD.toast('You have view-only access to this page, so you can watch but not build', 'bad');
   };
 
-  Coop.open = async function (code, asHost) {
+  Coop.SERVERS = 8;
+  Coop.serverName = function (sv) {
+    sv = sv || Coop.server;
+    if (!sv) return '—';
+    return sv.kind === 'private' ? 'Private ' + sv.code.toUpperCase() : 'Server ' + sv.n;
+  };
+  const roomFor = sv => sv.kind === 'private' ? 'td-' + sv.code : 'plaza-' + sv.n;
+
+  /* Join a server.  Nobody is host here; the seat is claimed on Deploy. */
+  Coop.open = async function (sv) {
     Coop.error = null;
     const backend = await TD.Net.connect();
-    if (!backend) { Coop.error = 'This browser cannot open a co-op room.'; return false; }
+    if (!backend) { Coop.error = 'This browser cannot reach other players.'; return false; }
+    const room = roomFor(sv);
     try {
-      session = await TD.Net.join(code);
+      session = await TD.Net.join(room);
     } catch (e) {
-      Coop.error = 'Could not open room ' + String(code).toUpperCase() + '.';
+      Coop.error = 'Could not reach ' + Coop.serverName(sv) + '.';
       return false;
     }
     Coop.active = true;
     Coop.announced = false;
-    Coop.code = code;
-    Coop.role = asHost ? 'host' : 'client';
+    Coop.server = sv;
+    Coop.code = room;
+    Coop.role = 'client';
     Coop.phase = 'lobby';
     Coop.hostPeer = null;
     Coop.me = TD.Net.selfPeer();
@@ -85,14 +104,40 @@
     return true;
   };
 
-  Coop.host = function () { return Coop.open(TD.Net.makeCode(), true); };
-  Coop.joinCode = function (code) { return Coop.open(String(code).toLowerCase(), false); };
+  /* What the game does by itself at startup. */
+  Coop.autoJoin = async function () {
+    if (Coop.active) return true;
+    const want = TD.Save.data.settings.server;
+    const n = (typeof want === 'number' && want >= 1 && want <= Coop.SERVERS) ? want : 1;
+    const ok = await Coop.open({ kind: 'public', n: n });
+    if (ok) TD.Chat.system('Joined ' + Coop.serverName());
+    TD.UI.afterServerChange && TD.UI.afterServerChange();
+    return ok;
+  };
+
+  Coop.switchTo = async function (sv) {
+    if (TD.Battle.active) { TD.Audio.error(); TD.toast('Leave the match first', 'bad'); return false; }
+    if (Coop.server && roomFor(Coop.server) === roomFor(sv)) return true;
+    await Coop.leave();
+    const ok = await Coop.open(sv);
+    if (ok) {
+      if (sv.kind === 'public') { TD.Save.data.settings.server = sv.n; TD.Save.save(); }
+      TD.Chat.system('Moved to ' + Coop.serverName());
+    }
+    TD.UI.afterServerChange && TD.UI.afterServerChange();
+    return ok;
+  };
+
+  Coop.joinServer = n => Coop.switchTo({ kind: 'public', n: n });
+  Coop.joinPrivate = code => Coop.switchTo({ kind: 'private', code: String(code).toLowerCase() });
+  Coop.newPrivate = () => Coop.switchTo({ kind: 'private', code: TD.Net.makeCode() });
 
   Coop.leave = async function () {
     if (timer) { clearInterval(timer); timer = null; }
     unsubs.forEach(u => { try { u(); } catch (e) { /* already gone */ } });
     unsubs = [];
     Coop.active = false; Coop.role = null; Coop.code = null; Coop.announced = false;
+    Coop.server = null;
     Coop.players = []; Coop.slots = []; Coop.hostPeer = null; Coop.phase = 'lobby';
     session = null;
     knownNames.clear();
@@ -127,26 +172,12 @@
       Coop.role = 'client';                       // we lost the tie; stand down
       pushPresence(true);
     }
-    if (Coop.role === 'client' && !host && peers.length) {
-      /* Nobody is hosting. The lowest peer label picks it up so the room
-         does not become unusable. */
-      hostGoneSince = hostGoneSince || Date.now();
-      if (Date.now() - hostGoneSince > 2500) {
-        const lowest = peers.map(p => p.peer).sort()[0];
-        if (lowest === Coop.me) {
-          Coop.role = 'host';
-          hostGoneSince = 0;
-          Coop.slots = Coop.players.map(p => p.key);
-          TD.Chat.system('You are the host now');
-          pushPresence(true);
-        }
-      }
-      /* The host left.  Nobody inherits a running match: it ends. */
-      if (TD.Battle.active && TD.Battle.remote) {
-        TD.toast('The host left the match', 'bad');
-        TD.Chat.system('The host left the match');
-        TD.Game.toLobby();
-      }
+    /* A plaza has no host at all — one exists only while a match runs, and
+       nobody inherits a running match: if the host goes, it ends. */
+    if (Coop.role === 'client' && !host && TD.Battle.active && TD.Battle.remote) {
+      TD.toast('The host left the match', 'bad');
+      TD.Chat.system('The host left the match');
+      TD.Game.toLobby();
     }
 
     const list = peers.map(p => {
@@ -181,9 +212,12 @@
     if (!Coop.announced && list.length) Coop.announced = true;
     Coop.players = list;
 
-    if (Coop.isHost()) Coop.slots = list.map(p => p.key);
+    /* Slot order is fixed for the length of a match: it is what tower
+       ownership and the wallet list are indexed by, and claiming the host
+       seat reorders the roster (host first), which would otherwise shift
+       every slot under the clients' feet. */
+    if (Coop.isHost() && !TD.Battle.active) Coop.slots = list.map(p => p.key);
 
-    if (host) hostGoneSince = 0;
     const hp = peers.find(p => p.peer === host);
     if (hp && hp.presence) readHostPresence(hp.presence);
 
@@ -418,14 +452,15 @@
      Starting the match
      ==================================================================== */
   Coop.setMap = function (mapId, diffId) {
-    if (!Coop.isHost()) return;
+    if (!Coop.active) return;
     Coop.map = mapId; Coop.diff = diffId;
     pushPresence(true);
     TD.UI.renderCoop && TD.UI.renderCoop();
   };
 
   Coop.start = function () {
-    if (!Coop.isHost()) return;
+    if (!Coop.active) return;
+    Coop.role = 'host';                        // claimed for the match's length
     const load = TD.Save.data.loadout.filter(Boolean);
     if (!load.length) { TD.Audio.error(); TD.toast('Pick at least one tower in Loadout', 'bad'); return; }
     Coop.me = Coop.me || TD.Net.selfPeer() || 'me';
@@ -438,8 +473,10 @@
     pushPresence(true);
   };
 
-  /* The host's own match ending or being left behind. */
+  /* Back in the plaza: give the host seat up so the server has none again. */
   Coop.matchEnded = function () {
-    if (Coop.isHost()) pushPresence(true);
+    if (!Coop.active) return;
+    if (Coop.role === 'host' && !TD.Battle.active) Coop.role = 'client';
+    pushPresence(true);
   };
 })();

@@ -2215,9 +2215,10 @@
         const h = TD.makeAvatar(p.name || 'Player', p.level || 1,
           { shirt: B.playerColor(slot), tag: B.playerTag(slot) });
         this.scene.add(h.group);
-        a = this.avatars[p.key] = { model: h, x: p.x, z: p.z, tx: p.x, tz: p.z, dir: p.ry || 0, t: 0 };
+        a = this.avatars[p.key] = { model: h, x: p.x, z: p.z, tx: p.x, tz: p.z, dir: p.ry || 0, t: 0, name: p.name };
       }
       a.tx = p.x; a.tz = p.z; a.dir = p.ry || 0;
+      if (p.name && p.name !== a.name) { a.name = p.name; a.model.setName(p.name); }
     });
     Object.keys(this.avatars).forEach(k => {
       if (seen.has(k)) return;

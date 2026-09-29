@@ -117,10 +117,20 @@ and you can walk it around while the towers fight. It is purely your avatar — 
 ignore it, it blocks nothing, and it never touches the simulation. Walking makes the
 camera follow you; the arrow keys, a middle-drag or `C` hand the camera back.
 
-### Online co-op
-Up to six players can defend the same map together. One player hosts, the others
-join with a four-letter room code, and everybody sees each other's characters
-walking around the battlefield with their name over their head.
+### Servers and online co-op
+**You do not arrange anything.** The game joins a server as it starts — Server 1
+unless you moved — and everyone on that server is standing in the same plaza,
+walking around with their name and colour over their head. Open the page on two
+machines and you are together; nothing to type, no code to swap.
+
+The banner across the top of the plaza names your server and its headcount; click
+it, or the SERVERS button, to move. There are eight public servers, and a private
+room behind a four-letter code for when you want just your friends — same thing,
+under a name only they know. Your choice is remembered for next time.
+
+A plaza has **no host**. Pressing *Choose map & deploy* claims the host seat for
+the length of that match and takes everybody on the server in with you; when the
+match ends the seat is given up again. Up to six players.
 
 Each player has **their own wallet** and **their own towers** — you spend your own
 money, and only you can upgrade, sell or trigger the ability on a tower you built.
@@ -129,16 +139,16 @@ got them; the wave bonus pays everyone, and everyone is paid coins and XP when t
 match ends. Anyone can start the next wave early; pause and game speed belong to the
 host, since they move the world everybody is looking at.
 
-**The plaza is shared too.** Once you are in a room you do not have to start a match
-to be together — close the panel and everyone in the room is walking around the same
-lobby, each with their name and colour. A banner across the top says which room you
-are in and who is hosting. If the host leaves, whoever has been there longest picks
-it up so the room keeps working.
+If the host leaves mid-match the match ends for everyone — nobody inherits a
+half-finished world. A player who arrives after a match has started watches rather
+than plays; they join the next one.
 
 ### Team chat
-A chat panel sits inside the co-op room before the match and floats over the
-battlefield during it; collapse it and it keeps an unread count. `Y` focuses the
-input, `Z` opens a strip of quick phrases ("Need cash", "Watch the air", …).
+Chat is always there, because you are always on a server: it sits at the edge of
+the plaza, moves aside for the build bar during a match, and docks inside the
+servers panel while that is open. Collapse it and it keeps an unread count. `Y`
+focuses the input, `Z` opens a strip of quick phrases ("Need cash", "Watch the
+air", …).
 
 Joins, leaves, waves and the result appear as system lines. Those are worked out
 locally by every page from what it already knows, so they cost no network traffic

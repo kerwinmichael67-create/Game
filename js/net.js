@@ -43,6 +43,9 @@
     return s;
   };
   Net.validCode = c => typeof c === 'string' && /^[a-z0-9]{4,8}$/.test(c.toLowerCase());
+  /* A room name as the platform spells them: a server ("plaza-3") or a
+     private code's room ("td-ab12"). */
+  Net.validRoom = n => typeof n === 'string' && /^[a-z0-9][a-z0-9_.-]{0,47}$/.test(n);
 
   /* ====================================================================
      Backend 1 — the artifact `room` capability
@@ -73,7 +76,9 @@
      nothing persists.
      ==================================================================== */
   const KEEPALIVE = 900;
-  const PEER_TTL = 3000;
+  /* Generous, because a page busy rendering can be late with a keepalive
+     and a peer blinking out of the roster looks like a disconnect. */
+  const PEER_TTL = 6500;
 
   function channelSession(code) {
     const ch = new BroadcastChannel('td-coop-' + code);
@@ -188,21 +193,23 @@
     return probe;
   };
 
-  Net.join = async function (code) {
-    code = String(code || '').toLowerCase();
-    if (!Net.validCode(code)) throw new Error('bad code');
+  /* `room` is the full room name — the caller names it, because the game
+     has more than one kind (a server, a private code). */
+  Net.join = async function (room) {
+    room = String(room || '').toLowerCase();
+    if (!Net.validRoom(room)) throw new Error('bad room name');
     await Net.connect();
     if (Net.session) await Net.leave();
 
     if (Net.backend === 'room') {
-      const named = await roomNs.join('td-' + code);
+      const named = await roomNs.join(room);
       Net.session = roomSession(named);
     } else if (Net.backend === 'channel') {
-      Net.session = channelSession(code);
+      Net.session = channelSession(room);
     } else {
       throw new Error('no transport');
     }
-    Net.code = code;
+    Net.code = room;
     Net.peer = Net.session.myPeer || null;
     return Net.session;
   };

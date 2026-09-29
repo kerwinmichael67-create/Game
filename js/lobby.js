@@ -363,6 +363,12 @@
         a = this.avatars[p.key] = { model: h, x: p.x || 0, z: p.z || 24, tx: p.x || 0, tz: p.z || 24, dir: 0, t: 0, name: p.name };
       }
       a.tx = p.x; a.tz = p.z; a.dir = p.ry || 0;
+      if (p.name && p.name !== a.name) {
+        a.name = p.name;
+        const old = a.model.setName(p.name);
+        const i = old ? this.billboards.indexOf(old) : -1;
+        if (i >= 0) this.billboards[i] = a.model.tag;
+      }
     });
     Object.keys(this.avatars).forEach(k => {
       if (seen[k]) return;
