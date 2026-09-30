@@ -71,7 +71,7 @@ const presence = (u) => (isConnected(u) ? db.users[u].status : 'offline');
 function publicUser(u) {
   const x = db.users[u];
   return {
-    username: x.username, name: x.name, bio: x.bio, avatar: x.avatar, favorites: x.favorites,
+    username: x.username, handle: x.username, name: x.name, bio: x.bio, avatar: x.avatar, favorites: x.favorites,
     presence: presence(u), stats: x.stats, inGame: userGame.has(u) ? sessions.get(userGame.get(u)).type : null,
   };
 }

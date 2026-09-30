@@ -31,7 +31,26 @@
   --mono: 'JetBrains Mono', ui-monospace, monospace;
   color-scheme: light;
 }
-body[data-theme="dark"] {
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b0c14;
+    --surface: #141625;
+    --surface-2: #1b1e31;
+    --surface-3: #25293f;
+    --line: #262a42;
+    --line-strong: #353a58;
+    --text: #eef0ff;
+    --muted: #9399bd;
+    --accent: #8b7dff;
+    --accent-soft: rgba(139, 125, 255, .16);
+    --bubble: #1f2236;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, .4);
+    --shadow: 0 10px 30px -12px rgba(0, 0, 0, .7);
+    --shadow-lg: 0 30px 70px -20px rgba(0, 0, 0, .8);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"], body[data-theme="dark"] {
   --bg: #0b0c14;
   --surface: #141625;
   --surface-2: #1b1e31;
@@ -48,12 +67,43 @@ body[data-theme="dark"] {
   --shadow-lg: 0 30px 70px -20px rgba(0, 0, 0, .8);
   color-scheme: dark;
 }
+body[data-theme="light"] {
+  --bg: #eef0f8;
+  --surface: #ffffff;
+  --surface-2: #f4f5fb;
+  --surface-3: #e9ebf5;
+  --line: #e2e5f0;
+  --line-strong: #cfd3e3;
+  --text: #14172a;
+  --muted: #6a7091;
+  --accent: #6d5dfc;
+  --accent-2: #22c3ee;
+  --accent-soft: rgba(109, 93, 252, .12);
+  --accent-text: #ffffff;
+  --grad: linear-gradient(135deg, #6d5dfc 0%, #a855f7 55%, #ec4899 100%);
+  --danger: #ef4444;
+  --online: #22c55e;
+  --offline: #ef4444;
+  --idle: #a855f7;
+  --bubble-me: linear-gradient(135deg, #6d5dfc, #8b5cf6);
+  --bubble: #f1f2f9;
+  --shadow-sm: 0 1px 2px rgba(20, 23, 42, .06), 0 1px 3px rgba(20, 23, 42, .06);
+  --shadow: 0 10px 30px -12px rgba(20, 23, 42, .25), 0 2px 6px rgba(20, 23, 42, .06);
+  --shadow-lg: 0 30px 70px -20px rgba(20, 23, 42, .45);
+  --radius-sm: 10px;
+  --radius: 14px;
+  --radius-lg: 20px;
+  --font: 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+  color-scheme: light;
+}
 
 /* ============================================================
    Base
    ============================================================ */
 * { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 body {
   background: var(--bg);
   color: var(--text);
@@ -331,7 +381,7 @@ body[data-theme="dark"] .fav-btn.on { color: #c9c2ff; }
 .game-card.sel { border-color: var(--accent); background: var(--accent-soft); }
 
 /* toasts */
-.toasts { position: fixed; right: 18px; bottom: 18px; display: grid; gap: 10px; z-index: 60; max-width: calc(100vw - 36px); width: 360px; }
+.toasts { position: fixed; right: 18px; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 10px; z-index: 60; max-width: calc(100vw - 36px); width: 360px; }
 .toast {
   background: var(--surface); border-radius: var(--radius); padding: 12px 14px; box-shadow: var(--shadow-lg);
   font-size: 14px; display: grid; gap: 10px; border-left: 4px solid var(--accent-2); animation: slide .3s cubic-bezier(.2, .9, .3, 1.2);
@@ -425,7 +475,7 @@ body[data-theme="dark"] .fav-btn.on { color: #c9c2ff; }
   .auth { grid-template-columns: 1fr; padding: 32px 16px; }
   .auth-hero { text-align: center; }
   .auth-hero p, .auth-tiles { margin-left: auto; margin-right: auto; justify-content: center; }
-  .game-dock { position: fixed; inset: 0; z-index: 30; border: 0; }
+  .game-dock { position: fixed; inset: 0; z-index: 30; border: 0; padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 0px); }
   .game-dock.min { inset: auto 0 0 0; border-top: 1px solid var(--line); box-shadow: var(--shadow-lg); }
 }
 @media (max-width: 720px) {

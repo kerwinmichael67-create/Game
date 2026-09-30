@@ -42,6 +42,14 @@ Real-time games also have on-screen buttons for phones and tablets.
 
 On the free plan, the site goes to sleep after about 15 minutes with nobody on it, and the first visit after that takes around 30 seconds to wake it up. Saved data (accounts and chat history) is reset whenever the site restarts or redeploys. To keep data, upgrade to a paid plan, add a persistent disk mounted at `/data`, and set the `DATA_DIR=/data` environment variable.
 
+## Play on claude.ai (no server needed)
+
+The same app also runs as a claude.ai artifact. There, chats and profiles are stored in the artifact's shared database, and live presence and game state travel over the artifact's live rooms. In each game, the challenger's browser runs the game for both players.
+
+- Rebuild it with `node scripts/build-artifact.js`, which writes `dist/game-chat.html`.
+- Everyone who uses it needs a claude.ai account. The owner invites each friend by email from the artifact's **Share** menu, as an **Editor**. That's the access level that lets people post, save their profile and play.
+- The code lives in `artifact/backend.js`. It stands in for `server.js` and speaks the same message protocol, so the web client runs unchanged.
+
 ## Run it
 
 You need [Node.js](https://nodejs.org) 18 or newer.

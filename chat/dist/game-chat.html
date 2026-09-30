@@ -1,0 +1,2951 @@
+<title>Game Chat</title>
+<meta name="theme-color" content="#6d5dfc">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap">
+<style>
+/* ============================================================
+   Game Chat — theme tokens
+   ============================================================ */
+:root {
+  --bg: #eef0f8;
+  --surface: #ffffff;
+  --surface-2: #f4f5fb;
+  --surface-3: #e9ebf5;
+  --line: #e2e5f0;
+  --line-strong: #cfd3e3;
+  --text: #14172a;
+  --muted: #6a7091;
+  --accent: #6d5dfc;
+  --accent-2: #22c3ee;
+  --accent-soft: rgba(109, 93, 252, .12);
+  --accent-text: #ffffff;
+  --grad: linear-gradient(135deg, #6d5dfc 0%, #a855f7 55%, #ec4899 100%);
+  --danger: #ef4444;
+  --online: #22c55e;
+  --offline: #ef4444;
+  --idle: #a855f7;
+  --bubble-me: linear-gradient(135deg, #6d5dfc, #8b5cf6);
+  --bubble: #f1f2f9;
+  --shadow-sm: 0 1px 2px rgba(20, 23, 42, .06), 0 1px 3px rgba(20, 23, 42, .06);
+  --shadow: 0 10px 30px -12px rgba(20, 23, 42, .25), 0 2px 6px rgba(20, 23, 42, .06);
+  --shadow-lg: 0 30px 70px -20px rgba(20, 23, 42, .45);
+  --radius-sm: 10px;
+  --radius: 14px;
+  --radius-lg: 20px;
+  --font: 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b0c14;
+    --surface: #141625;
+    --surface-2: #1b1e31;
+    --surface-3: #25293f;
+    --line: #262a42;
+    --line-strong: #353a58;
+    --text: #eef0ff;
+    --muted: #9399bd;
+    --accent: #8b7dff;
+    --accent-soft: rgba(139, 125, 255, .16);
+    --bubble: #1f2236;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, .4);
+    --shadow: 0 10px 30px -12px rgba(0, 0, 0, .7);
+    --shadow-lg: 0 30px 70px -20px rgba(0, 0, 0, .8);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"], body[data-theme="dark"] {
+  --bg: #0b0c14;
+  --surface: #141625;
+  --surface-2: #1b1e31;
+  --surface-3: #25293f;
+  --line: #262a42;
+  --line-strong: #353a58;
+  --text: #eef0ff;
+  --muted: #9399bd;
+  --accent: #8b7dff;
+  --accent-soft: rgba(139, 125, 255, .16);
+  --bubble: #1f2236;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .4);
+  --shadow: 0 10px 30px -12px rgba(0, 0, 0, .7);
+  --shadow-lg: 0 30px 70px -20px rgba(0, 0, 0, .8);
+  color-scheme: dark;
+}
+body[data-theme="light"] {
+  --bg: #eef0f8;
+  --surface: #ffffff;
+  --surface-2: #f4f5fb;
+  --surface-3: #e9ebf5;
+  --line: #e2e5f0;
+  --line-strong: #cfd3e3;
+  --text: #14172a;
+  --muted: #6a7091;
+  --accent: #6d5dfc;
+  --accent-2: #22c3ee;
+  --accent-soft: rgba(109, 93, 252, .12);
+  --accent-text: #ffffff;
+  --grad: linear-gradient(135deg, #6d5dfc 0%, #a855f7 55%, #ec4899 100%);
+  --danger: #ef4444;
+  --online: #22c55e;
+  --offline: #ef4444;
+  --idle: #a855f7;
+  --bubble-me: linear-gradient(135deg, #6d5dfc, #8b5cf6);
+  --bubble: #f1f2f9;
+  --shadow-sm: 0 1px 2px rgba(20, 23, 42, .06), 0 1px 3px rgba(20, 23, 42, .06);
+  --shadow: 0 10px 30px -12px rgba(20, 23, 42, .25), 0 2px 6px rgba(20, 23, 42, .06);
+  --shadow-lg: 0 30px 70px -20px rgba(20, 23, 42, .45);
+  --radius-sm: 10px;
+  --radius: 14px;
+  --radius-lg: 20px;
+  --font: 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+  color-scheme: light;
+}
+
+/* ============================================================
+   Base
+   ============================================================ */
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.45 var(--font);
+  -webkit-font-smoothing: antialiased;
+  transition: background .3s;
+}
+.hidden { display: none !important; }
+.muted { color: var(--muted); }
+button { font: inherit; color: inherit; }
+::selection { background: var(--accent-soft); }
+input, textarea, select {
+  font: inherit; color: var(--text); background: var(--surface-2);
+  border: 1.5px solid var(--line); border-radius: var(--radius-sm);
+  padding: 10px 12px; width: 100%; transition: border-color .15s, box-shadow .15s, background .15s;
+}
+input::placeholder, textarea::placeholder { color: var(--muted); }
+input:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); background: var(--surface); }
+input:disabled { opacity: .7; cursor: not-allowed; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 10px; border: 3px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* ============================================================
+   Buttons, dots, avatars
+   ============================================================ */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  background: var(--surface); border: 1.5px solid var(--line); border-radius: var(--radius-sm);
+  padding: 8px 14px; cursor: pointer; white-space: nowrap; font-weight: 500;
+  transition: background .15s, border-color .15s, transform .1s, box-shadow .15s;
+}
+.btn:hover { background: var(--surface-2); border-color: var(--line-strong); }
+.btn:active { transform: translateY(1px); }
+.btn:focus-visible { outline: none; box-shadow: 0 0 0 4px var(--accent-soft); border-color: var(--accent); }
+.btn.primary { background: var(--grad); color: #fff; border-color: transparent; box-shadow: 0 6px 18px -6px rgba(109, 93, 252, .7); }
+.btn.primary:hover { filter: brightness(1.08); box-shadow: 0 8px 22px -6px rgba(109, 93, 252, .85); }
+.btn.danger { background: var(--danger); color: #fff; border-color: transparent; }
+.btn.danger:hover { filter: brightness(1.08); }
+.btn.ghost { background: transparent; border-color: transparent; }
+.btn.ghost:hover { background: var(--surface-2); }
+.btn.small { font-size: 13px; padding: 6px 10px; }
+.btn.block { display: flex; width: 100%; justify-content: flex-start; }
+.btn.icon { padding: 8px 10px; }
+.btn[disabled] { opacity: .45; cursor: default; box-shadow: none; }
+
+.dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--offline); vertical-align: middle; flex: none; }
+.dot.online { background: var(--online); box-shadow: 0 0 0 3px rgba(34, 197, 94, .2); }
+.dot.idle { background: var(--idle); }
+.dot.offline { background: var(--offline); }
+
+.avatar {
+  flex: none; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center;
+  color: #fff; font-weight: 700; position: relative; font-size: 15px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .35);
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .15), 0 0 0 2px var(--surface);
+}
+.avatar.big { width: 76px; height: 76px; font-size: 32px; }
+.avatar .dot { position: absolute; right: -2px; bottom: -2px; border: 2.5px solid var(--surface); width: 13px; height: 13px; box-shadow: none; }
+.avatar.big .dot { width: 20px; height: 20px; border-width: 3px; }
+
+/* ============================================================
+   Sign in
+   ============================================================ */
+.auth {
+  min-height: 100%; display: grid; grid-template-columns: 1.1fr 1fr; align-items: center; gap: 40px;
+  padding: 40px max(24px, 6vw); position: relative; overflow: hidden;
+  background:
+    radial-gradient(900px 500px at 10% 10%, rgba(109, 93, 252, .35), transparent 60%),
+    radial-gradient(700px 500px at 90% 90%, rgba(236, 72, 153, .28), transparent 60%),
+    radial-gradient(600px 400px at 80% 10%, rgba(34, 195, 238, .22), transparent 60%),
+    #0b0c14;
+  color: #eef0ff;
+}
+.auth-hero h1 { font-size: clamp(40px, 6vw, 72px); line-height: 1; margin: 0 0 16px; font-weight: 800; letter-spacing: -.03em; }
+.auth-hero h1 span { background: linear-gradient(90deg, #a78bfa, #f0abfc, #67e8f9); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.auth-hero p { font-size: 18px; color: #b6bbdd; max-width: 460px; margin: 0 0 28px; }
+.auth-tiles { display: flex; flex-wrap: wrap; gap: 10px; max-width: 520px; }
+.auth-tiles span {
+  display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 999px;
+  background: rgba(255, 255, 255, .07); border: 1px solid rgba(255, 255, 255, .12); font-size: 14px;
+  backdrop-filter: blur(6px); animation: float 6s ease-in-out infinite;
+}
+.auth-tiles span:nth-child(2n) { animation-delay: -2s; }
+.auth-tiles span:nth-child(3n) { animation-delay: -4s; }
+@keyframes float { 50% { transform: translateY(-6px); } }
+.auth-card {
+  width: 100%; max-width: 420px; justify-self: center; background: var(--surface); color: var(--text);
+  border-radius: 24px; padding: 30px; display: grid; gap: 14px; box-shadow: var(--shadow-lg);
+  animation: rise .5s cubic-bezier(.2, .9, .3, 1.2);
+}
+.auth-card h2 { margin: 0; font-size: 24px; font-weight: 700; }
+.auth-card p { margin: -8px 0 4px; }
+.auth-card label { display: grid; gap: 6px; font-size: 14px; font-weight: 500; }
+.tabs { display: flex; gap: 4px; background: var(--surface-2); padding: 4px; border-radius: 12px; }
+.tab { flex: 1; background: none; border: 0; padding: 9px; border-radius: 9px; cursor: pointer; font-weight: 600; color: var(--muted); transition: all .15s; }
+.tab.active { background: var(--surface); color: var(--text); box-shadow: var(--shadow-sm); }
+.auth-card .btn.primary { padding: 12px; font-size: 16px; justify-content: center; }
+.error { color: var(--danger); font-size: 14px; min-height: 1em; }
+
+/* ============================================================
+   App layout
+   ============================================================ */
+.app { display: flex; height: 100%; padding: 14px; gap: 14px; }
+.sidebar {
+  width: 272px; flex: none; background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.brand { display: flex; align-items: center; gap: 10px; padding: 18px 18px 8px; font-weight: 800; font-size: 20px; letter-spacing: -.02em; }
+.brand .logo { width: 36px; height: 36px; border-radius: 11px; background: var(--grad); display: grid; place-items: center; font-size: 19px; box-shadow: 0 6px 16px -6px rgba(109, 93, 252, .8); }
+.side-scroll { flex: 1; overflow-y: auto; padding: 8px 12px 12px; display: flex; flex-direction: column; gap: 18px; }
+.side-section h4 { margin: 0 0 6px 6px; font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.list li {
+  display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--radius-sm);
+  cursor: pointer; min-width: 0; transition: background .12s;
+}
+.list li:hover { background: var(--surface-2); }
+.list li.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+body[data-theme="dark"] .list li.active { color: #c9c2ff; }
+.list li .grow { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.list li small { color: var(--muted); font-size: 12px; font-weight: 400; }
+.list li.empty { color: var(--muted); cursor: default; font-size: 13px; border: 1.5px dashed var(--line); }
+.list li.empty:hover { background: none; }
+.list .avatar { width: 30px; height: 30px; font-size: 13px; }
+.list .avatar .dot { width: 11px; height: 11px; border-width: 2px; }
+.room-icon { width: 30px; height: 30px; border-radius: 9px; background: var(--surface-3); display: grid; place-items: center; flex: none; font-size: 14px; }
+.list li.active .room-icon { background: var(--grad); color: #fff; }
+.badge { background: var(--grad); color: #fff; border-radius: 10px; font-size: 11px; padding: 2px 7px; font-weight: 700; }
+.new-chat { margin: 6px 12px 4px; width: calc(100% - 24px) !important; justify-content: center !important; padding: 11px !important; }
+
+.me-card {
+  display: flex; align-items: center; gap: 10px; margin: 0 10px 10px; padding: 10px 12px; border-radius: var(--radius);
+  background: var(--surface-2); cursor: pointer; transition: background .15s;
+}
+.me-card:hover { background: var(--surface-3); }
+.me-card .grow { flex: 1; min-width: 0; line-height: 1.2; }
+.me-card b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.me-card small { color: var(--muted); font-size: 12px; }
+
+.main { flex: 1; min-width: 0; display: flex; flex-direction: column; background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow); overflow: hidden; }
+.topbar { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.room-title { flex: 1; min-width: 120px; text-align: center; overflow: hidden; line-height: 1.25; }
+.room-title span { font-weight: 700; font-size: 17px; }
+.room-title small { display: block; font-size: 12px; }
+#onlineBtn { font-variant-numeric: tabular-nums; }
+.content { flex: 1; display: flex; min-height: 0; }
+.chat { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+/* ============================================================
+   Messages
+   ============================================================ */
+.messages { flex: 1; overflow-y: auto; padding: 18px 18px 8px; display: flex; flex-direction: column; gap: 2px; }
+.msg { display: flex; gap: 10px; align-items: flex-end; margin-top: 10px; max-width: 100%; animation: pop .22s ease-out; }
+.msg.cont { margin-top: 0; }
+.msg.cont .av-slot { visibility: hidden; height: 0; }
+.msg .av-slot { width: 32px; flex: none; cursor: pointer; }
+.msg .avatar { width: 32px; height: 32px; font-size: 13px; }
+.msg .body { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; max-width: min(620px, 78%); }
+.msg .meta { display: flex; align-items: baseline; gap: 8px; margin: 0 4px 3px; }
+.msg.cont .meta { display: none; }
+.msg .who { font-size: 13px; cursor: pointer; font-weight: 600; background: none; border: 0; padding: 0; }
+.msg .who:hover { text-decoration: underline; }
+.msg .time { font: 11px var(--mono); color: var(--muted); }
+.msg .text {
+  font-size: 15px; white-space: pre-wrap; word-break: break-word; padding: 8px 13px;
+  background: var(--bubble); border-radius: 18px 18px 18px 6px;
+}
+.msg.cont .text { border-radius: 6px 18px 18px 6px; }
+.msg.me { flex-direction: row-reverse; }
+.msg.me .body { align-items: flex-end; }
+.msg.me .meta { flex-direction: row-reverse; }
+.msg.me .text { background: var(--bubble-me); color: #fff; border-radius: 18px 18px 6px 18px; }
+.msg.me.cont .text { border-radius: 18px 6px 6px 18px; }
+.msg.me .av-slot { display: none; }
+.sysmsg {
+  align-self: center; text-align: center; font-size: 13px; color: var(--muted); margin: 10px 0 4px;
+  background: var(--surface-2); padding: 5px 14px; border-radius: 999px; max-width: 90%;
+}
+.day { align-self: center; font: 600 11px var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: .1em; margin: 14px 0 2px; }
+.empty-chat { margin: auto; text-align: center; color: var(--muted); display: grid; gap: 6px; justify-items: center; }
+.empty-chat .big-emoji { font-size: 52px; animation: float 3s ease-in-out infinite; }
+.typing { font-size: 12px; color: var(--muted); padding: 0 20px; height: 18px; display: flex; align-items: center; gap: 6px; }
+.typing:not(:empty)::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: blink 1s infinite; }
+@keyframes blink { 50% { opacity: .2; } }
+.composer { display: flex; gap: 10px; padding: 10px 14px 14px; }
+.composer input { border-radius: 999px; padding: 12px 18px; }
+.composer .btn { border-radius: 999px; width: 48px; height: 48px; padding: 0; flex: none; }
+.composer .btn svg { width: 20px; height: 20px; }
+
+.banner { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); background: var(--danger); color: #fff; padding: 8px 18px; border-radius: 999px; font-size: 13px; font-weight: 600; z-index: 50; box-shadow: var(--shadow); }
+
+/* ============================================================
+   Modals
+   ============================================================ */
+.modal { position: fixed; inset: 0; background: rgba(8, 9, 18, .55); backdrop-filter: blur(6px); display: grid; place-items: center; padding: 16px; z-index: 40; animation: fade .15s; }
+.modal-card {
+  background: var(--surface); border-radius: var(--radius-lg); width: 100%; max-width: 500px;
+  max-height: calc(100vh - 32px); overflow-y: auto; padding: 22px; display: grid; gap: 14px;
+  box-shadow: var(--shadow-lg); animation: rise .25s cubic-bezier(.2, .9, .3, 1.15);
+}
+.modal-card.wide { max-width: 980px; }
+.modal-card h2 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -.01em; }
+.modal-card > b { font-size: 14px; }
+.modal-head { display: flex; align-items: center; gap: 12px; }
+.modal-head h2 { flex: 1; }
+.close-x {
+  background: var(--surface-2); color: var(--muted); border: 0; width: 34px; height: 34px; border-radius: 10px;
+  cursor: pointer; font-weight: 700; font-size: 14px; transition: all .15s; flex: none;
+}
+.close-x:hover { background: var(--danger); color: #fff; }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.row.end { justify-content: flex-end; }
+.check-list { display: grid; gap: 2px; max-height: 240px; overflow-y: auto; border: 1.5px solid var(--line); border-radius: var(--radius); padding: 6px; }
+.check-list label { display: flex; gap: 10px; align-items: center; padding: 6px 8px; cursor: pointer; border-radius: 8px; }
+.check-list label:hover { background: var(--surface-2); }
+.check-list input { width: 18px; height: 18px; accent-color: var(--accent); }
+.check-list .avatar { width: 28px; height: 28px; font-size: 12px; }
+label.row input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--accent); }
+
+/* settings — three columns like the mockup */
+.settings-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 22px; }
+.settings-grid section { display: grid; gap: 14px; align-content: start; }
+.field { display: grid; gap: 6px; }
+.field > span { font-size: 14px; font-weight: 600; }
+.boxed-title { font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: .1em; color: var(--muted); padding-top: 4px; }
+.status-opt { display: flex; align-items: center; gap: 10px; background: var(--surface-2); border: 1.5px solid transparent; cursor: pointer; padding: 9px 12px; font-size: 15px; text-align: left; width: 100%; border-radius: var(--radius-sm); margin-bottom: 6px; transition: all .15s; }
+.status-opt:hover { border-color: var(--line-strong); }
+.status-opt .sq { width: 14px; height: 14px; border-radius: 50%; flex: none; }
+.status-opt .arrow { display: none; }
+.status-opt.sel { border-color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+.bg-opt { display: flex; gap: 8px; align-items: center; }
+.bg-opt .arrow { display: none; }
+.bg-opt .btn { flex: 1; justify-content: center; }
+.bg-opt.sel .btn { box-shadow: 0 0 0 3px var(--accent); }
+.bg-opt .btn.white { background: #fff; color: #111; border-color: #d4d4d8; }
+.bg-opt .btn.black { background: #0b0c14; color: #fff; border-color: #0b0c14; }
+.bg-opt input[type="color"] { width: 56px; flex: none; }
+.swatches { display: flex; gap: 8px; flex-wrap: wrap; }
+.swatch { width: 30px; height: 30px; border: 0; border-radius: 50%; cursor: pointer; padding: 0; transition: transform .12s; box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .15); }
+.swatch:hover { transform: scale(1.12); }
+.swatch.sel { box-shadow: 0 0 0 3px var(--surface), 0 0 0 5px var(--accent); }
+input[type="color"] { padding: 3px; height: 40px; cursor: pointer; }
+.bio-box { border-radius: var(--radius); background: var(--surface-2); padding: 14px; display: grid; gap: 8px; }
+.bio-box textarea { min-height: 150px; resize: vertical; background: var(--surface); }
+.friends-box { border-radius: var(--radius); background: var(--surface-2); padding: 14px; display: grid; gap: 8px; font-size: 14px; }
+.friends-box .row { padding: 4px 6px; border-radius: 8px; }
+.friends-box .row:hover { background: var(--surface-3); }
+.fav-btn { justify-content: flex-start !important; font-size: 14px; }
+.fav-btn.on { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); font-weight: 600; }
+body[data-theme="dark"] .fav-btn.on { color: #c9c2ff; }
+.record { display: flex; gap: 8px; }
+.record div { flex: 1; background: var(--surface-2); border-radius: var(--radius-sm); padding: 10px; text-align: center; }
+.record b { display: block; font-size: 22px; font-family: var(--mono); }
+.record small { color: var(--muted); font-size: 12px; }
+
+/* profile */
+.profile-top { display: flex; gap: 16px; align-items: center; }
+.profile-top h2 { margin: 0; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { border-radius: 999px; padding: 4px 12px; font-size: 13px; background: var(--surface-2); font-weight: 500; }
+
+/* game picker */
+.game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.game-card {
+  border: 2px solid transparent; background: var(--surface-2); border-radius: var(--radius); padding: 14px;
+  cursor: pointer; text-align: left; display: grid; gap: 4px; position: relative; overflow: hidden;
+  transition: transform .15s, border-color .15s, box-shadow .15s;
+}
+.game-card::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--g, var(--grad)); }
+.game-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.game-card .emoji { font-size: 30px; width: 50px; height: 50px; border-radius: 14px; display: grid; place-items: center; background: var(--g, var(--grad)); margin-bottom: 4px; box-shadow: inset 0 -4px 0 rgba(0, 0, 0, .15); }
+.game-card b { font-size: 15px; }
+.game-card small { color: var(--muted); font-size: 12px; line-height: 1.35; }
+.game-card.sel { border-color: var(--accent); background: var(--accent-soft); }
+
+/* toasts */
+.toasts { position: fixed; right: 18px; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 10px; z-index: 60; max-width: calc(100vw - 36px); width: 360px; }
+.toast {
+  background: var(--surface); border-radius: var(--radius); padding: 12px 14px; box-shadow: var(--shadow-lg);
+  font-size: 14px; display: grid; gap: 10px; border-left: 4px solid var(--accent-2); animation: slide .3s cubic-bezier(.2, .9, .3, 1.2);
+}
+.toast.err { border-left-color: var(--danger); }
+.toast.invite { border-left-color: var(--accent); }
+.toast.invite .row:first-child { flex-wrap: nowrap; }
+
+@keyframes rise { from { opacity: 0; transform: translateY(14px) scale(.98); } }
+@keyframes fade { from { opacity: 0; } }
+@keyframes pop { from { opacity: 0; transform: translateY(6px); } }
+@keyframes slide { from { opacity: 0; transform: translateX(30px); } }
+
+/* ============================================================
+   Game dock
+   ============================================================ */
+.game-dock { flex: 0 0 min(62%, 780px); border-left: 1px solid var(--line); display: flex; flex-direction: column; min-width: 0; overflow-y: auto; background: var(--surface-2); animation: fade .2s; }
+.game-head { display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: var(--surface); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.game-head .title { font-weight: 700; font-size: 16px; flex: 1; }
+.game-status { padding: 10px 14px; font-size: 14px; min-height: 40px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; font-variant-numeric: tabular-nums; }
+.game-status > * { background: var(--surface); padding: 3px 10px; border-radius: 999px; box-shadow: var(--shadow-sm); }
+.game-stage { padding: 6px 14px 16px; display: grid; justify-items: center; gap: 12px; position: relative; flex: 1; align-content: start; }
+.game-stage canvas { max-width: 100%; height: auto; border-radius: var(--radius); background: #0d0d12; touch-action: none; box-shadow: var(--shadow); }
+.game-dock.min .game-status, .game-dock.min .game-stage { display: none; }
+.game-dock.min { flex-basis: auto; }
+.controls-help { font: 12px var(--mono); color: var(--muted); text-align: center; max-width: 560px; }
+.touchpad { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; user-select: none; -webkit-user-select: none; }
+.touchpad button { min-width: 52px; height: 48px; border: 0; background: var(--surface); border-radius: 12px; font-size: 17px; touch-action: none; box-shadow: var(--shadow-sm), inset 0 -3px 0 var(--line); cursor: pointer; }
+.touchpad button.on { background: var(--accent); color: #fff; box-shadow: inset 0 2px 0 rgba(0, 0, 0, .2); }
+.players-line { display: flex; gap: 8px; align-items: center; font-size: 14px; }
+.pchip { display: inline-flex; align-items: center; gap: 6px; font-weight: 500; }
+.pchip i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+
+.game-over { position: absolute; inset: 0; background: rgba(8, 9, 18, .55); backdrop-filter: blur(3px); display: grid; place-items: center; z-index: 5; animation: fade .25s; }
+.game-over .box { background: var(--surface); border-radius: var(--radius-lg); padding: 26px 32px; text-align: center; display: grid; gap: 10px; box-shadow: var(--shadow-lg); animation: rise .35s cubic-bezier(.2, .9, .3, 1.3); }
+.game-over h3 { margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -.02em; }
+
+/* boards */
+.board { display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr); width: min(100%, 500px); aspect-ratio: 1; border-radius: var(--radius); overflow: hidden; user-select: none; box-shadow: var(--shadow); }
+.board .sq { display: grid; place-items: center; min-height: 0; min-width: 0; overflow: hidden; cursor: pointer; position: relative; font-size: clamp(22px, 6.5vw, 46px); line-height: 1; border: 0; padding: 0; }
+.board .light { background: #ebecd0; }
+.board .darksq { background: #779556; }
+.board.checkers .light { background: #f0d9b5; }
+.board.checkers .darksq { background: #a4693a; }
+.board .sq.last { box-shadow: inset 0 0 0 100px rgba(255, 235, 59, .38); }
+.board .sq.sel { box-shadow: inset 0 0 0 100px rgba(109, 93, 252, .45); }
+.board .sq.check { box-shadow: inset 0 0 0 100px rgba(239, 68, 68, .65); }
+.board .sq.target::after { content: ''; position: absolute; width: 30%; height: 30%; border-radius: 50%; background: rgba(0, 0, 0, .22); }
+.board .sq.target.capture::after { width: 88%; height: 88%; background: transparent; border: 5px solid rgba(0, 0, 0, .22); }
+.pw { color: #fff; text-shadow: 0 0 2px #000, 0 0 2px #000, 0 2px 3px rgba(0, 0, 0, .5); }
+.pb { color: #16161d; text-shadow: 0 0 2px rgba(255, 255, 255, .7), 0 2px 3px rgba(0, 0, 0, .3); }
+.coord { position: absolute; font: 600 10px var(--mono); left: 3px; top: 2px; color: rgba(0, 0, 0, .45); }
+.ck-piece { width: 78%; height: 78%; border-radius: 50%; display: grid; place-items: center; font-size: 60%; box-shadow: inset 0 -5px 0 rgba(0, 0, 0, .3), 0 3px 5px rgba(0, 0, 0, .4); }
+.ck-piece.red { background: radial-gradient(circle at 35% 30%, #f87171, #b91c1c); color: #fde68a; }
+.ck-piece.black { background: radial-gradient(circle at 35% 30%, #52525b, #111114); color: #fde68a; }
+.captured { font-size: 22px; min-height: 26px; letter-spacing: -2px; }
+.promo { display: flex; gap: 8px; align-items: center; background: var(--surface); padding: 8px 12px; border-radius: var(--radius); box-shadow: var(--shadow); }
+.promo button { font-size: 34px; width: 56px; height: 56px; background: var(--surface-2); border: 0; border-radius: 12px; cursor: pointer; }
+.promo button:hover { background: var(--accent-soft); }
+
+.c4 { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; background: linear-gradient(160deg, #3b5bfd, #1e3aa8); padding: 12px; border-radius: 18px; width: min(100%, 480px); box-shadow: var(--shadow), inset 0 -6px 0 rgba(0, 0, 0, .2); }
+.c4 button { aspect-ratio: 1; border-radius: 50%; border: 0; background: rgba(8, 12, 40, .55); cursor: pointer; padding: 0; box-shadow: inset 0 4px 6px rgba(0, 0, 0, .4); transition: transform .1s; }
+.c4 button:hover { transform: scale(1.05); }
+.c4 button.p0 { background: radial-gradient(circle at 35% 30%, #fca5a5, #dc2626); box-shadow: inset 0 -4px 0 rgba(0, 0, 0, .2); }
+.c4 button.p1 { background: radial-gradient(circle at 35% 30%, #fef08a, #eab308); box-shadow: inset 0 -4px 0 rgba(0, 0, 0, .2); }
+.c4 button.win { box-shadow: 0 0 0 4px #fff, 0 0 18px #fff; }
+.c4 button.last { animation: drop .3s ease-in; }
+@keyframes drop { from { transform: translateY(-120px); } }
+.ttt { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: min(100%, 340px); }
+.ttt button { aspect-ratio: 1; font-size: 60px; font-weight: 800; background: var(--surface); border: 0; border-radius: 18px; cursor: pointer; box-shadow: var(--shadow-sm), inset 0 -4px 0 var(--line); transition: transform .1s; }
+.ttt button:hover { transform: translateY(-2px); }
+.ttt button.win { background: #bbf7d0; }
+.tetris-wrap { display: flex; gap: 14px; align-items: flex-start; flex-wrap: wrap; justify-content: center; }
+.tetris-side { display: grid; gap: 6px; font-size: 13px; background: var(--surface); padding: 12px; border-radius: var(--radius); box-shadow: var(--shadow-sm); }
+.tetris-side > span { font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.tetris-side canvas { border-radius: 10px; box-shadow: none; }
+.tetris-side b { font: 700 22px var(--mono); }
+.garbage-meter { height: 8px; background: var(--surface-3); border-radius: 4px; overflow: hidden; }
+.garbage-meter i { display: block; height: 100%; background: var(--danger); width: 0; transition: width .2s; }
+
+.scrim { display: none; }
+.mobile-only { display: none; }
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+@media (max-width: 1100px) {
+  .settings-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 900px) {
+  .auth { grid-template-columns: 1fr; padding: 32px 16px; }
+  .auth-hero { text-align: center; }
+  .auth-hero p, .auth-tiles { margin-left: auto; margin-right: auto; justify-content: center; }
+  .game-dock { position: fixed; inset: 0; z-index: 30; border: 0; padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 0px); }
+  .game-dock.min { inset: auto 0 0 0; border-top: 1px solid var(--line); box-shadow: var(--shadow-lg); }
+}
+@media (max-width: 720px) {
+  .mobile-only { display: inline-flex; }
+  .app { padding: 0; gap: 0; }
+  .sidebar { position: fixed; inset: 0 auto 0 0; z-index: 35; transform: translateX(-105%); transition: transform .25s cubic-bezier(.2, .9, .3, 1); width: 286px; border-radius: 0 var(--radius-lg) var(--radius-lg) 0; }
+  .app.menu-open .sidebar { transform: none; }
+  .app.menu-open .scrim { display: block; position: fixed; inset: 0; background: rgba(8, 9, 18, .5); backdrop-filter: blur(2px); z-index: 34; }
+  .main { border-radius: 0; box-shadow: none; }
+  .topbar { gap: 6px; padding: 10px; }
+  .topbar .btn { padding: 7px 10px; font-size: 13px; }
+  .room-title { order: -1; flex-basis: calc(100% - 60px); text-align: left; }
+  #menuBtn { order: -2; }
+  .settings-grid { grid-template-columns: 1fr; }
+  .msg .body { max-width: 85%; }
+  .auth-hero h1 { font-size: 44px; }
+  .auth-tiles { display: none; }
+}
+
+</style>
+<!-- Sign in / create account -->
+<div id="auth" class="auth">
+  <div class="auth-hero">
+    <h1>Chat. Challenge.<br><span>Play together.</span></h1>
+    <p>Talk with whoever's online, start your own group chats, and jump straight into head-to-head games.</p>
+    <div class="auth-tiles">
+      <span>🐍 Snake PvP</span><span>♟️ Chess</span><span>⛀ Checkers</span><span>🧱 Tetris Battle</span>
+      <span>🥊 Street Fighter</span><span>🏓 Pong</span><span>🔴 Connect Four</span><span>❌ Tic-Tac-Toe</span>
+    </div>
+  </div>
+  <div id="authForm" class="auth-card">
+    <h2>Connecting…</h2>
+    <p class="muted">Loading your chats and who’s online. If your browser asks, allow Game Chat to use your Claude profile.</p>
+  </div>
+</div>
+
+<!-- Main app -->
+<div id="app" class="app hidden">
+  <aside id="sidebar" class="sidebar">
+    <div class="brand"><span class="logo">🎮</span> Game Chat</div>
+    <button id="newChatBtn" class="btn primary new-chat"><b>＋</b> New chat</button>
+    <div class="side-scroll">
+      <div class="side-section">
+        <h4>Chats</h4>
+        <ul id="roomList" class="list"></ul>
+      </div>
+      <div class="side-section">
+        <h4>Online now</h4>
+        <ul id="onlineList" class="list"></ul>
+      </div>
+      <div class="side-section">
+        <h4>Friends</h4>
+        <ul id="friendList" class="list"></ul>
+      </div>
+    </div>
+    <div id="meCard" class="me-card" title="Settings"></div>
+  </aside>
+  <div id="scrim" class="scrim"></div>
+
+  <main class="main">
+    <header class="topbar">
+      <button id="menuBtn" class="btn icon ghost mobile-only" title="Chats">☰</button>
+      <button id="onlineBtn" class="btn"><span id="onlineCount">0 Online</span> <i class="dot online"></i></button>
+      <button id="settingsBtn" class="btn">Settings</button>
+      <button id="signOutBtn" class="btn ghost">Sign out</button>
+      <div class="room-title">
+        <span id="roomName">Global chat</span>
+        <small id="roomMeta" class="muted"></small>
+      </div>
+      <button id="membersBtn" class="btn">Members</button>
+      <button id="requestGameBtn" class="btn primary">🎮 Request a game</button>
+    </header>
+
+    <div class="content">
+      <section class="chat">
+        <div id="messages" class="messages"></div>
+        <div id="typing" class="typing"></div>
+        <form id="composer" class="composer">
+          <input id="msgInput" placeholder="Say hello" maxlength="1000" autocomplete="off">
+          <button class="btn primary" title="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg></button>
+        </form>
+      </section>
+      <section id="gameDock" class="game-dock hidden"></section>
+    </div>
+  </main>
+</div>
+
+<div id="banner" class="banner hidden">Reconnecting…</div>
+<div id="modal" class="modal hidden"><div id="modalCard" class="modal-card"></div></div>
+<div id="toasts" class="toasts"></div>
+<script>
+// Turn-based game rules shared by the server (validation) and the browser (move hints).
+// Every game exposes: init() -> state, legal(state) -> moves, move(state, playerIdx, mv) -> {state} | {error}
+// state.turn is the player index (0 or 1) whose move it is; state.result is null or {winner: 0|1|-1, reason}.
+(function (root) {
+  const Rules = {};
+  const clone = (o) => JSON.parse(JSON.stringify(o));
+
+  // ---------------------------------------------------------------- CHESS
+  // Board: 64 squares, index = row*8 + col, row 0 = rank 8 (black's back rank).
+  // Uppercase = white (player 0), lowercase = black (player 1), '' = empty.
+  const chess = {};
+  const colorOf = (p) => (p ? (p === p.toUpperCase() ? 'w' : 'b') : null);
+  const on = (r, c) => r >= 0 && r < 8 && c >= 0 && c < 8;
+  const KNIGHT = [[1, 2], [2, 1], [-1, 2], [-2, 1], [1, -2], [2, -1], [-1, -2], [-2, -1]];
+  const KING = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
+  const ORTHO = KING.slice(0, 4);
+  const DIAG = KING.slice(4);
+
+  chess.init = function () {
+    const back = 'rnbqkbnr';
+    const b = new Array(64).fill('');
+    for (let c = 0; c < 8; c++) {
+      b[c] = back[c];
+      b[8 + c] = 'p';
+      b[48 + c] = 'P';
+      b[56 + c] = back[c].toUpperCase();
+    }
+    return { board: b, turn: 0, castling: 'KQkq', ep: -1, last: null, check: false, half: 0, captured: [[], []], result: null };
+  };
+
+  function attacked(b, sq, by) {
+    const r = sq >> 3, c = sq & 7;
+    const P = by === 'w' ? 'P' : 'p', N = by === 'w' ? 'N' : 'n', K = by === 'w' ? 'K' : 'k';
+    const R = by === 'w' ? 'R' : 'r', B = by === 'w' ? 'B' : 'b', Q = by === 'w' ? 'Q' : 'q';
+    const pr = by === 'w' ? r + 1 : r - 1;
+    for (const dc of [-1, 1]) if (on(pr, c + dc) && b[pr * 8 + c + dc] === P) return true;
+    for (const [dr, dc] of KNIGHT) if (on(r + dr, c + dc) && b[(r + dr) * 8 + c + dc] === N) return true;
+    for (const [dr, dc] of KING) if (on(r + dr, c + dc) && b[(r + dr) * 8 + c + dc] === K) return true;
+    const slide = (dirs, a, q) => {
+      for (const [dr, dc] of dirs) {
+        let rr = r + dr, cc = c + dc;
+        while (on(rr, cc)) {
+          const p = b[rr * 8 + cc];
+          if (p) { if (p === a || p === q) return true; break; }
+          rr += dr; cc += dc;
+        }
+      }
+      return false;
+    };
+    return slide(ORTHO, R, Q) || slide(DIAG, B, Q);
+  }
+
+  function pseudo(s) {
+    const b = s.board, me = s.turn === 0 ? 'w' : 'b', opp = me === 'w' ? 'b' : 'w', out = [];
+    const add = (from, to, extra) => out.push(Object.assign({ from, to }, extra));
+    for (let i = 0; i < 64; i++) {
+      const p = b[i];
+      if (!p || colorOf(p) !== me) continue;
+      const r = i >> 3, c = i & 7, t = p.toLowerCase();
+      if (t === 'p') {
+        const dir = me === 'w' ? -1 : 1, start = me === 'w' ? 6 : 1, last = me === 'w' ? 0 : 7;
+        const push = (to, extra) => {
+          if (to >> 3 === last) for (const pr of ['q', 'r', 'b', 'n']) add(i, to, Object.assign({ promo: pr }, extra));
+          else add(i, to, extra);
+        };
+        if (on(r + dir, c) && !b[(r + dir) * 8 + c]) {
+          push((r + dir) * 8 + c);
+          if (r === start && !b[(r + 2 * dir) * 8 + c]) add(i, (r + 2 * dir) * 8 + c, { double: true });
+        }
+        for (const dc of [-1, 1]) {
+          if (!on(r + dir, c + dc)) continue;
+          const to = (r + dir) * 8 + c + dc;
+          if (b[to] && colorOf(b[to]) === opp) push(to);
+          else if (to === s.ep) add(i, to, { ep: true });
+        }
+      } else if (t === 'n' || t === 'k') {
+        for (const [dr, dc] of t === 'n' ? KNIGHT : KING) {
+          if (!on(r + dr, c + dc)) continue;
+          const to = (r + dr) * 8 + c + dc;
+          if (!b[to] || colorOf(b[to]) === opp) add(i, to);
+        }
+        if (t === 'k') {
+          const home = me === 'w' ? 60 : 4;
+          const [KS, QS, rook] = me === 'w' ? ['K', 'Q', 'R'] : ['k', 'q', 'r'];
+          if (i === home && !attacked(b, home, opp)) {
+            if (s.castling.includes(KS) && !b[home + 1] && !b[home + 2] && b[home + 3] === rook &&
+                !attacked(b, home + 1, opp) && !attacked(b, home + 2, opp)) add(i, home + 2, { castle: true });
+            if (s.castling.includes(QS) && !b[home - 1] && !b[home - 2] && !b[home - 3] && b[home - 4] === rook &&
+                !attacked(b, home - 1, opp) && !attacked(b, home - 2, opp)) add(i, home - 2, { castle: true });
+          }
+        }
+      } else {
+        const dirs = t === 'r' ? ORTHO : t === 'b' ? DIAG : KING;
+        for (const [dr, dc] of dirs) {
+          let rr = r + dr, cc = c + dc;
+          while (on(rr, cc)) {
+            const to = rr * 8 + cc;
+            if (b[to]) { if (colorOf(b[to]) === opp) add(i, to); break; }
+            add(i, to);
+            rr += dr; cc += dc;
+          }
+        }
+      }
+    }
+    return out;
+  }
+
+  function applyChess(s, m) {
+    const b = s.board.slice(), me = s.turn === 0 ? 'w' : 'b', p = b[m.from];
+    let captured = b[m.to];
+    b[m.to] = m.promo ? (me === 'w' ? m.promo.toUpperCase() : m.promo) : p;
+    b[m.from] = '';
+    if (m.ep) {
+      const sq = m.to + (me === 'w' ? 8 : -8);
+      captured = b[sq];
+      b[sq] = '';
+    }
+    if (m.castle) {
+      if (m.to === 62) { b[61] = b[63]; b[63] = ''; }
+      if (m.to === 58) { b[59] = b[56]; b[56] = ''; }
+      if (m.to === 6) { b[5] = b[7]; b[7] = ''; }
+      if (m.to === 2) { b[3] = b[0]; b[0] = ''; }
+    }
+    let cs = s.castling;
+    if (p === 'K') cs = cs.replace('K', '').replace('Q', '');
+    if (p === 'k') cs = cs.replace('k', '').replace('q', '');
+    for (const [sq, flag] of [[63, 'K'], [56, 'Q'], [7, 'k'], [0, 'q']]) if (m.from === sq || m.to === sq) cs = cs.replace(flag, '');
+    const cap = [s.captured[0].slice(), s.captured[1].slice()];
+    if (captured) cap[s.turn].push(captured);
+    return {
+      board: b, turn: 1 - s.turn, castling: cs, ep: m.double ? (m.from + m.to) / 2 : -1, last: [m.from, m.to],
+      check: false, half: captured || p.toLowerCase() === 'p' ? 0 : s.half + 1, captured: cap, result: null,
+    };
+  }
+
+  const kingSq = (b, color) => b.indexOf(color === 'w' ? 'K' : 'k');
+
+  chess.legal = function (s) {
+    const me = s.turn === 0 ? 'w' : 'b', opp = me === 'w' ? 'b' : 'w';
+    return pseudo(s).filter((m) => {
+      const ns = applyChess(s, m);
+      return !attacked(ns.board, kingSq(ns.board, me), opp);
+    });
+  };
+
+  function insufficient(b) {
+    const rest = b.filter((p) => p && p.toLowerCase() !== 'k');
+    if (rest.length === 0) return true;
+    return rest.length === 1 && 'nb'.includes(rest[0].toLowerCase());
+  }
+
+  chess.move = function (s, idx, mv) {
+    if (s.result) return { error: 'Game is over' };
+    if (s.turn !== idx) return { error: 'Not your turn' };
+    const promo = (mv && mv.promo) || 'q';
+    const m = chess.legal(s).find((x) => x.from === mv.from && x.to === mv.to && (!x.promo || x.promo === promo));
+    if (!m) return { error: 'Illegal move' };
+    const ns = applyChess(s, m);
+    const color = ns.turn === 0 ? 'w' : 'b';
+    ns.check = attacked(ns.board, kingSq(ns.board, color), color === 'w' ? 'b' : 'w');
+    const replies = chess.legal(ns).length;
+    if (!replies) ns.result = ns.check ? { winner: idx, reason: 'checkmate' } : { winner: -1, reason: 'stalemate' };
+    else if (insufficient(ns.board)) ns.result = { winner: -1, reason: 'insufficient material' };
+    else if (ns.half >= 100) ns.result = { winner: -1, reason: '50-move rule' };
+    return { state: ns };
+  };
+  Rules.chess = chess;
+
+  // ---------------------------------------------------------------- CHECKERS
+  // Player 0 = red ('r', king 'R') starts at the bottom and moves up.
+  // Player 1 = black ('b', king 'B') starts at the top and moves down. Captures are mandatory.
+  const checkers = {};
+  checkers.init = function () {
+    const b = new Array(64).fill('');
+    for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
+      if ((r + c) % 2 !== 1) continue;
+      if (r < 3) b[r * 8 + c] = 'b';
+      if (r > 4) b[r * 8 + c] = 'r';
+    }
+    return { board: b, turn: 0, chain: -1, last: null, result: null };
+  };
+  const ckOwner = (p) => (p ? (p.toLowerCase() === 'r' ? 0 : 1) : -1);
+  function ckMovesFrom(b, i, jumpsOnly) {
+    const p = b[i], me = ckOwner(p), r = i >> 3, c = i & 7;
+    const dirs = p === p.toUpperCase() ? [[-1, -1], [-1, 1], [1, -1], [1, 1]] : me === 0 ? [[-1, -1], [-1, 1]] : [[1, -1], [1, 1]];
+    const steps = [], jumps = [];
+    for (const [dr, dc] of dirs) {
+      const r1 = r + dr, c1 = c + dc, r2 = r + 2 * dr, c2 = c + 2 * dc;
+      if (!on(r1, c1)) continue;
+      const mid = b[r1 * 8 + c1];
+      if (!mid) { if (!jumpsOnly) steps.push({ from: i, to: r1 * 8 + c1 }); }
+      else if (ckOwner(mid) !== me && on(r2, c2) && !b[r2 * 8 + c2]) jumps.push({ from: i, to: r2 * 8 + c2, cap: r1 * 8 + c1 });
+    }
+    return { steps, jumps };
+  }
+  checkers.legal = function (s) {
+    if (s.result) return [];
+    if (s.chain >= 0) return ckMovesFrom(s.board, s.chain, true).jumps;
+    let steps = [], jumps = [];
+    for (let i = 0; i < 64; i++) {
+      if (ckOwner(s.board[i]) !== s.turn) continue;
+      const m = ckMovesFrom(s.board, i, false);
+      steps = steps.concat(m.steps);
+      jumps = jumps.concat(m.jumps);
+    }
+    return jumps.length ? jumps : steps;
+  };
+  checkers.move = function (s, idx, mv) {
+    if (s.result) return { error: 'Game is over' };
+    if (s.turn !== idx) return { error: 'Not your turn' };
+    const m = checkers.legal(s).find((x) => x.from === mv.from && x.to === mv.to);
+    if (!m) return { error: 'Illegal move' };
+    const ns = clone(s);
+    const b = ns.board;
+    let p = b[m.from];
+    b[m.from] = '';
+    if (m.cap !== undefined) b[m.cap] = '';
+    const row = m.to >> 3;
+    let crowned = false;
+    if (p === 'r' && row === 0) { p = 'R'; crowned = true; }
+    if (p === 'b' && row === 7) { p = 'B'; crowned = true; }
+    b[m.to] = p;
+    ns.last = [m.from, m.to];
+    ns.chain = -1;
+    if (m.cap !== undefined && !crowned && ckMovesFrom(b, m.to, true).jumps.length) ns.chain = m.to;
+    else ns.turn = 1 - idx;
+    if (ns.chain < 0 && !checkers.legal(ns).length) ns.result = { winner: idx, reason: 'no moves left' };
+    return { state: ns };
+  };
+  Rules.checkers = checkers;
+
+  // ---------------------------------------------------------------- CONNECT FOUR
+  const connect4 = { COLS: 7, ROWS: 6 };
+  connect4.init = () => ({ grid: new Array(42).fill(-1), turn: 0, last: -1, line: null, result: null });
+  connect4.legal = (s) => (s.result ? [] : [0, 1, 2, 3, 4, 5, 6].filter((c) => s.grid[c] === -1).map((col) => ({ col })));
+  connect4.move = function (s, idx, mv) {
+    if (s.result) return { error: 'Game is over' };
+    if (s.turn !== idx) return { error: 'Not your turn' };
+    const col = mv && mv.col;
+    if (!Number.isInteger(col) || col < 0 || col > 6 || s.grid[col] !== -1) return { error: 'Column is full' };
+    const ns = clone(s);
+    let r = 5;
+    while (ns.grid[r * 7 + col] !== -1) r--;
+    ns.grid[r * 7 + col] = idx;
+    ns.last = r * 7 + col;
+    for (const [dr, dc] of [[0, 1], [1, 0], [1, 1], [1, -1]]) {
+      const line = [r * 7 + col];
+      for (const sgn of [1, -1]) {
+        let rr = r + dr * sgn, cc = col + dc * sgn;
+        while (rr >= 0 && rr < 6 && cc >= 0 && cc < 7 && ns.grid[rr * 7 + cc] === idx) { line.push(rr * 7 + cc); rr += dr * sgn; cc += dc * sgn; }
+      }
+      if (line.length >= 4) { ns.line = line; ns.result = { winner: idx, reason: 'four in a row' }; break; }
+    }
+    if (!ns.result && ns.grid.every((v) => v !== -1)) ns.result = { winner: -1, reason: 'board full' };
+    ns.turn = 1 - idx;
+    return { state: ns };
+  };
+  Rules.connect4 = connect4;
+
+  // ---------------------------------------------------------------- TIC-TAC-TOE
+  const tictactoe = {};
+  const LINES = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
+  tictactoe.init = () => ({ cells: new Array(9).fill(-1), turn: 0, line: null, result: null });
+  tictactoe.legal = (s) => (s.result ? [] : s.cells.map((v, i) => (v === -1 ? { cell: i } : null)).filter(Boolean));
+  tictactoe.move = function (s, idx, mv) {
+    if (s.result) return { error: 'Game is over' };
+    if (s.turn !== idx) return { error: 'Not your turn' };
+    const cell = mv && mv.cell;
+    if (!Number.isInteger(cell) || cell < 0 || cell > 8 || s.cells[cell] !== -1) return { error: 'Square taken' };
+    const ns = clone(s);
+    ns.cells[cell] = idx;
+    const line = LINES.find((l) => l.every((i) => ns.cells[i] === idx));
+    if (line) { ns.line = line; ns.result = { winner: idx, reason: 'three in a row' }; }
+    else if (ns.cells.every((v) => v !== -1)) ns.result = { winner: -1, reason: 'board full' };
+    ns.turn = 1 - idx;
+    return { state: ns };
+  };
+  Rules.tictactoe = tictactoe;
+
+  if (typeof module !== 'undefined' && module.exports) module.exports = Rules;
+  else root.Rules = Rules;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+// Server-authoritative real-time games. Each game exposes:
+//   tickMs, init() -> state, input(state, playerIdx, input), tick(state) -> null | {winner: 0|1|-1, reason}
+const rnd = (n) => Math.floor(Math.random() * n);
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+// ---------------------------------------------------------------- SNAKE PvP
+// 90 second round. Dying respawns you small after a short delay. Longest snake at the end wins.
+const DIRS = { U: [0, -1], D: [0, 1], L: [-1, 0], R: [1, 0] };
+const OPP = { U: 'D', D: 'U', L: 'R', R: 'L' };
+
+function makeSnake(x, y, dir) {
+  const [dx, dy] = DIRS[dir];
+  return { body: [[x, y], [x - dx, y - dy], [x - 2 * dx, y - 2 * dy]], dir, queue: [], grow: 0, alive: true, respawn: 0, best: 3, deaths: 0 };
+}
+function occupied(s, x, y) {
+  return s.snakes.some((sn) => sn.body.some((p) => p[0] === x && p[1] === y)) || s.food.some((f) => f[0] === x && f[1] === y);
+}
+function addFood(s, x, y) {
+  if (s.food.length >= 40) return;
+  if (x === undefined) {
+    for (let tries = 0; tries < 200; tries++) {
+      x = rnd(s.W); y = rnd(s.H);
+      if (!occupied(s, x, y)) break;
+    }
+  }
+  s.food.push([x, y, Math.random() < 0.1 ? 1 : 0]);
+}
+
+const snake = {
+  tickMs: 100,
+  init() {
+    const s = { W: 40, H: 28, ticks: 900, snakes: [makeSnake(6, 8, 'R'), makeSnake(33, 19, 'L')], food: [] };
+    for (let i = 0; i < 6; i++) addFood(s);
+    return s;
+  },
+  input(s, i, inp) {
+    const sn = s.snakes[i], d = inp && inp.dir;
+    if (!sn.alive || !DIRS[d]) return;
+    const last = sn.queue.length ? sn.queue[sn.queue.length - 1] : sn.dir;
+    if (d === last || OPP[d] === last || sn.queue.length >= 3) return;
+    sn.queue.push(d);
+  },
+  tick(s) {
+    s.ticks--;
+    for (const sn of s.snakes) {
+      if (!sn.alive) {
+        if (--sn.respawn <= 0) respawnSnake(s, sn);
+        continue;
+      }
+      if (sn.queue.length) sn.dir = sn.queue.shift();
+      const [dx, dy] = DIRS[sn.dir];
+      const h = sn.body[0], nh = [h[0] + dx, h[1] + dy];
+      sn.body.unshift(nh);
+      const fi = s.food.findIndex((f) => f[0] === nh[0] && f[1] === nh[1]);
+      if (fi >= 0) {
+        sn.grow += s.food[fi][2] ? 3 : 1;
+        s.food.splice(fi, 1);
+        addFood(s);
+      }
+      if (sn.grow > 0) sn.grow--;
+      else sn.body.pop();
+    }
+    const dead = s.snakes.map((sn, i) => {
+      if (!sn.alive) return false;
+      const h = sn.body[0];
+      if (h[0] < 0 || h[1] < 0 || h[0] >= s.W || h[1] >= s.H) return true;
+      return s.snakes.some((o, j) => o.alive && o.body.some((p, k) => !(i === j && k === 0) && p[0] === h[0] && p[1] === h[1]));
+    });
+    s.snakes.forEach((sn, i) => {
+      if (dead[i]) {
+        const body = sn.body.slice(1);
+        sn.alive = false; sn.respawn = 15; sn.deaths++; sn.body = []; sn.queue = [];
+        body.forEach((p, k) => { if (k % 3 === 0 && p[0] >= 0 && p[1] >= 0 && p[0] < s.W && p[1] < s.H) addFood(s, p[0], p[1]); });
+      } else if (sn.alive) sn.best = Math.max(sn.best, sn.body.length);
+    });
+    if (s.ticks > 0) return null;
+    const [a, b] = s.snakes.map((sn) => sn.body.length);
+    if (a === b) return { winner: -1, reason: `tied at length ${a}` };
+    return { winner: a > b ? 0 : 1, reason: `longest snake (${Math.max(a, b)} vs ${Math.min(a, b)})` };
+  },
+};
+function respawnSnake(s, sn) {
+  for (let tries = 0; tries < 200; tries++) {
+    const x = 5 + rnd(s.W - 10), y = 3 + rnd(s.H - 6), dir = x < s.W / 2 ? 'R' : 'L';
+    const cand = makeSnake(x, y, dir);
+    if (cand.body.some((p) => occupied(s, p[0], p[1]))) continue;
+    Object.assign(sn, cand, { best: sn.best, deaths: sn.deaths });
+    return;
+  }
+  sn.respawn = 5;
+}
+
+// ---------------------------------------------------------------- PONG
+const pong = {
+  tickMs: 20,
+  init() {
+    return { W: 800, H: 500, ph: 90, p: [{ y: 205, up: false, down: false }, { y: 205, up: false, down: false }], ball: { x: 400, y: 250, vx: 0, vy: 0 }, score: [0, 0], serve: 75, server: rnd(2), to: 7 };
+  },
+  input(s, i, inp) {
+    s.p[i].up = !!(inp && inp.up);
+    s.p[i].down = !!(inp && inp.down);
+  },
+  tick(s) {
+    for (const p of s.p) p.y = clamp(p.y + (p.down ? 9 : 0) - (p.up ? 9 : 0), 0, s.H - s.ph);
+    const b = s.ball;
+    if (s.serve > 0) {
+      s.serve--;
+      b.x = s.W / 2; b.y = s.H / 2;
+      if (s.serve === 0) { b.vx = s.server === 0 ? 6 : -6; b.vy = Math.random() * 6 - 3; }
+      return null;
+    }
+    b.x += b.vx; b.y += b.vy;
+    if (b.y < 8) { b.y = 8; b.vy = Math.abs(b.vy); }
+    if (b.y > s.H - 8) { b.y = s.H - 8; b.vy = -Math.abs(b.vy); }
+    const hit = (py) => b.y > py - 8 && b.y < py + s.ph + 8;
+    if (b.vx < 0 && b.x - 8 <= 42 && b.x > 20 && hit(s.p[0].y)) {
+      b.x = 50; b.vx = Math.min(-b.vx * 1.06, 17); b.vy = clamp(b.vy + (b.y - (s.p[0].y + s.ph / 2)) * 0.12, -11, 11);
+    }
+    if (b.vx > 0 && b.x + 8 >= s.W - 42 && b.x < s.W - 20 && hit(s.p[1].y)) {
+      b.x = s.W - 50; b.vx = -Math.min(b.vx * 1.06, 17); b.vy = clamp(b.vy + (b.y - (s.p[1].y + s.ph / 2)) * 0.12, -11, 11);
+    }
+    if (b.x < -10 || b.x > s.W + 10) {
+      const scorer = b.x < 0 ? 1 : 0;
+      s.score[scorer]++;
+      s.server = 1 - scorer;
+      s.serve = 60; b.vx = 0; b.vy = 0;
+      if (s.score[scorer] >= s.to) return { winner: scorer, reason: `${s.score[0]} - ${s.score[1]}` };
+    }
+    return null;
+  },
+};
+
+// ---------------------------------------------------------------- STREET FIGHTER style brawler
+// Best of 3 rounds, 60 seconds each. Punch, kick, block, jump and a fireball special that costs energy.
+const GROUND = 400;
+const ATTACKS = {
+  punch: { dur: 16, a0: 4, a1: 8, range: 78, dmg: 6, kb: 4, stun: 14 },
+  kick: { dur: 24, a0: 8, a1: 13, range: 102, dmg: 10, kb: 8, stun: 20 },
+  special: { dur: 26 },
+};
+function makeFighter(x, face) {
+  return { x, y: GROUND, vx: 0, vy: 0, face, hp: 100, en: 20, act: 'idle', t: 0, hitDone: false, stun: 0, block: false, flash: 0, in: {}, prev: {} };
+}
+function damage(s, o, attacker, dmg, kb, stun) {
+  const facingAttacker = o.face * (attacker.x - o.x) > 0;
+  if (o.block && facingAttacker) {
+    o.hp -= dmg * 0.2;
+    o.vx = kb * 0.6;
+    o.flash = 3;
+  } else {
+    o.hp -= dmg;
+    o.stun = stun;
+    o.act = 'hurt';
+    o.t = 0;
+    o.block = false;
+    o.vx = kb;
+    if (o.y < GROUND) o.vy = -5;
+    o.en = Math.min(100, o.en + 6);
+    o.flash = 8;
+  }
+  o.hp = Math.max(0, Math.round(o.hp * 10) / 10);
+}
+const fighter = {
+  tickMs: 20,
+  init() {
+    const s = { W: 900, G: GROUND, f: [], proj: [], round: 0, wins: [0, 0], timer: 0, phase: 'intro', pause: 0, msg: '' };
+    startRound(s);
+    return s;
+  },
+  input(s, i, inp) {
+    inp = inp || {};
+    s.f[i].in = { l: !!inp.l, r: !!inp.r, u: !!inp.u, d: !!inp.d, p: !!inp.p, k: !!inp.k, s: !!inp.s };
+  },
+  tick(s) {
+    const [f0, f1] = s.f;
+    if (s.phase === 'intro') {
+      s.pause--;
+      if (s.pause === 35) s.msg = 'FIGHT!';
+      if (s.pause <= 0) { s.phase = 'fight'; s.msg = ''; }
+    } else if (s.phase === 'fight') {
+      s.timer--;
+      s.f.forEach((f, i) => updateFighter(s, f, s.f[1 - i], i));
+      updateProjectiles(s);
+      if (f0.hp <= 0 || f1.hp <= 0 || s.timer <= 0) {
+        const ko = f0.hp <= 0 || f1.hp <= 0;
+        let w = -1;
+        if (f0.hp !== f1.hp) w = f0.hp > f1.hp ? 0 : 1;
+        if (w >= 0) s.wins[w]++;
+        s.f.forEach((f) => { if (f.hp <= 0) f.act = 'ko'; });
+        s.msg = ko ? 'K.O.!' : w < 0 ? 'DRAW' : 'TIME!';
+        s.roundWinner = w;
+        s.phase = 'ko'; s.pause = 120; s.proj = [];
+      }
+    } else if (s.phase === 'ko') {
+      s.pause--;
+      if (s.pause === 60 && s.roundWinner >= 0) s.msg = `P${s.roundWinner + 1} WINS ROUND`;
+      if (s.pause <= 0) {
+        if (s.wins[0] >= 2 || s.wins[1] >= 2 || s.round >= 5) {
+          if (s.wins[0] === s.wins[1]) return { winner: -1, reason: `${s.wins[0]} - ${s.wins[1]} in rounds` };
+          const w = s.wins[0] > s.wins[1] ? 0 : 1;
+          return { winner: w, reason: `${s.wins[w]} - ${s.wins[1 - w]} in rounds` };
+        }
+        startRound(s);
+      }
+    }
+    for (const f of s.f) physics(s, f);
+    // keep the fighters from overlapping
+    const dx = f1.x - f0.x;
+    if (Math.abs(dx) < 52 && Math.abs(f0.y - f1.y) < 90) {
+      const push = (52 - Math.abs(dx)) / 2, sg = dx >= 0 ? 1 : -1;
+      f0.x = clamp(f0.x - push * sg, 30, s.W - 30);
+      f1.x = clamp(f1.x + push * sg, 30, s.W - 30);
+    }
+    return null;
+  },
+};
+function startRound(s) {
+  s.round++;
+  s.f = [makeFighter(260, 1), makeFighter(640, -1)];
+  s.proj = [];
+  s.timer = 60 * 50;
+  s.phase = 'intro'; s.pause = 100; s.msg = `ROUND ${s.round}`;
+}
+function updateFighter(s, f, o, i) {
+  const inp = f.in || {}, pr = f.prev || {};
+  const pressed = (k) => inp[k] && !pr[k];
+  f.prev = Object.assign({}, inp);
+  const onGround = f.y >= GROUND;
+  f.en = Math.min(100, f.en + 0.04);
+  if (f.flash > 0) f.flash--;
+  if (f.stun > 0) {
+    f.stun--;
+    if (f.stun === 0) f.act = 'idle';
+    return;
+  }
+  const atk = ATTACKS[f.act];
+  if (atk) {
+    f.t++;
+    if (f.act === 'special' && f.t === 10) {
+      s.proj.push({ x: f.x + f.face * 55, y: f.y - 75, vx: f.face * 11, owner: i });
+    } else if (f.act !== 'special' && !f.hitDone && f.t >= atk.a0 && f.t <= atk.a1) {
+      const reach = (o.x - f.x) * f.face;
+      if (reach > 0 && reach < atk.range && Math.abs(o.y - f.y) < 100) {
+        f.hitDone = true;
+        damage(s, o, f, atk.dmg * (onGround ? 1 : 1.2), atk.kb * f.face, atk.stun);
+        f.en = Math.min(100, f.en + 10);
+      }
+    }
+    if (f.t >= atk.dur) { f.act = onGround ? 'idle' : 'jump'; f.t = 0; }
+    return;
+  }
+  const start = (act) => { f.act = act; f.t = 0; f.hitDone = false; f.block = false; if (onGround) f.vx = 0; };
+  f.block = !!inp.d && onGround;
+  if (pressed('p')) return start('punch');
+  if (pressed('k')) return start('kick');
+  if (pressed('s') && f.en >= 50 && onGround) { f.en -= 50; return start('special'); }
+  if (onGround) f.face = o.x > f.x ? 1 : -1;
+  if (f.block) { f.act = 'block'; return; }
+  if (onGround) {
+    f.vx = ((inp.r ? 1 : 0) - (inp.l ? 1 : 0)) * 5;
+    if (inp.u) { f.vy = -17; f.act = 'jump'; return; }
+    f.act = f.vx ? 'walk' : 'idle';
+  } else f.act = 'jump';
+}
+function physics(s, f) {
+  f.x = clamp(f.x + f.vx, 30, s.W - 30);
+  f.vy += 0.9;
+  f.y += f.vy;
+  if (f.y >= GROUND) {
+    f.y = GROUND; f.vy = 0;
+    if (f.act !== 'walk') f.vx *= 0.75;
+    if (f.act === 'jump') f.act = 'idle';
+  }
+}
+function updateProjectiles(s) {
+  for (const p of s.proj) {
+    p.x += p.vx;
+    const o = s.f[1 - p.owner];
+    if (!p.dead && Math.abs(p.x - o.x) < 34 && p.y > o.y - 130 && p.y < o.y + 5) {
+      p.dead = true;
+      damage(s, o, s.f[p.owner], 14, Math.sign(p.vx) * 7, 22);
+    }
+  }
+  const [a, b] = [s.proj.find((p) => p.owner === 0 && !p.dead), s.proj.find((p) => p.owner === 1 && !p.dead)];
+  if (a && b && Math.abs(a.x - b.x) < 24) a.dead = b.dead = true;
+  s.proj = s.proj.filter((p) => !p.dead && p.x > -40 && p.x < s.W + 40);
+}
+
+const Realtime = { snake, pong, fighter };
+if (typeof module !== 'undefined' && module.exports) module.exports = Realtime;
+else globalThis.Realtime = Realtime;
+
+</script>
+<script>
+// Game dock: renders whichever multiplayer game you're in next to the chat.
+(() => {
+  const META = {
+    snake: { color: 'linear-gradient(135deg,#22c55e,#15803d)', emoji: '🐍', name: 'Snake PvP', desc: 'Eat & grow. Longest snake after 90s wins.', help: 'Arrow keys / WASD (or swipe)' },
+    chess: { color: 'linear-gradient(135deg,#a3a38a,#4d6b35)', emoji: '♟️', name: 'Chess', desc: 'Classic chess with full rules.', help: 'Click a piece, then click where to move it' },
+    checkers: { color: 'linear-gradient(135deg,#f97316,#b91c1c)', emoji: '⛀', name: 'Checkers', desc: 'Jumps are mandatory. Reach the end to king.', help: 'Click a piece, then click where to move it' },
+    tetris: { color: 'linear-gradient(135deg,#22d3ee,#6366f1)', emoji: '🧱', name: 'Tetris Battle', desc: 'Clear lines to send junk. Last one standing wins.', help: '←→ move · ↑/X rotate · Z rotate back · ↓ soft drop · Space hard drop · C hold' },
+    fighter: { color: 'linear-gradient(135deg,#f59e0b,#dc2626)', emoji: '🥊', name: 'Street Fighter', desc: 'Best of 3 rounds. Punch, kick, block, fireball.', help: 'A/D or ←→ move · W/↑ jump · S/↓ block · J punch · K kick · L fireball (needs 50 energy)' },
+    pong: { color: 'linear-gradient(135deg,#64748b,#0f172a)', emoji: '🏓', name: 'Pong', desc: 'First to 7 points wins.', help: 'W/S or ↑/↓ to move your paddle' },
+    connect4: { color: 'linear-gradient(135deg,#3b82f6,#1e3a8a)', emoji: '🔴', name: 'Connect Four', desc: 'Get four in a row.', help: 'Click a column to drop a disc' },
+    tictactoe: { color: 'linear-gradient(135deg,#ec4899,#8b5cf6)', emoji: '❌', name: 'Tic-Tac-Toe', desc: 'Three in a row. Quick game!', help: 'Click a square' },
+  };
+
+  function h(tag, attrs, ...kids) {
+    const el = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs || {})) {
+      if (v === null || v === undefined || v === false) continue;
+      if (k === 'class') el.className = v;
+      else if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+      else el.setAttribute(k, v === true ? '' : v);
+    }
+    for (const kid of kids.flat()) if (kid !== null && kid !== undefined && kid !== false) el.append(kid instanceof Node ? kid : String(kid));
+    return el;
+  }
+  const isTyping = () => {
+    const a = document.activeElement;
+    return a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.isContentEditable);
+  };
+  function canvas(w, hgt) {
+    const c = h('canvas', { width: w, height: hgt });
+    return [c, c.getContext('2d')];
+  }
+  // Two distinct colors for the two players (their profile colors when those differ enough).
+  function playerColors(players) {
+    const fix = (c) => (c.toLowerCase() === '#111111' || c.toLowerCase() === '#000000' ? '#9ca3af' : c);
+    const a = fix(players[0].avatar), b = fix(players[1].avatar);
+    return [a, a.toLowerCase() === b.toLowerCase() ? (a.toLowerCase() === '#3b82f6' ? '#f97316' : '#3b82f6') : b];
+  }
+
+  // Tracks held keys (ignoring keys while typing in chat) and on-screen touch buttons.
+  function heldKeys(map, onChange) {
+    const held = {};
+    const setA = (a, v) => { if (!!held[a] === v) return; held[a] = v; onChange(held, a, v); };
+    const down = (e) => {
+      const a = map[e.code];
+      if (!a || isTyping()) return;
+      e.preventDefault();
+      setA(a, true);
+    };
+    const up = (e) => { const a = map[e.code]; if (a) setA(a, false); };
+    const blur = () => Object.keys(held).forEach((a) => setA(a, false));
+    addEventListener('keydown', down);
+    addEventListener('keyup', up);
+    addEventListener('blur', blur);
+    return { press: setA, destroy() { removeEventListener('keydown', down); removeEventListener('keyup', up); removeEventListener('blur', blur); } };
+  }
+  function touchPad(buttons, press) {
+    return h('div', { class: 'touchpad' }, buttons.map(([label, action]) => {
+      const b = h('button', { type: 'button' }, label);
+      const set = (v) => (e) => { e.preventDefault(); b.classList.toggle('on', v); press(action, v); };
+      b.addEventListener('pointerdown', set(true));
+      b.addEventListener('pointerup', set(false));
+      b.addEventListener('pointerleave', set(false));
+      b.addEventListener('pointercancel', set(false));
+      return b;
+    }));
+  }
+
+  // ---------------------------------------------------------------- SNAKE
+  function snakeGame(stage, api) {
+    const CELL = 16;
+    const [cv, ctx] = canvas(40 * CELL, 28 * CELL);
+    const colors = playerColors(api.players);
+    stage.append(cv, touchPad([['◀', 'L'], ['▲', 'U'], ['▼', 'D'], ['▶', 'R']], (a, v) => v && api.send({ dir: a })),
+      h('div', { class: 'controls-help' }, META.snake.help));
+    const keys = heldKeys({ ArrowUp: 'U', KeyW: 'U', ArrowDown: 'D', KeyS: 'D', ArrowLeft: 'L', KeyA: 'L', ArrowRight: 'R', KeyD: 'R' },
+      (held, a, v) => v && api.send({ dir: a }));
+    let sx = 0, sy = 0;
+    cv.addEventListener('pointerdown', (e) => { sx = e.clientX; sy = e.clientY; });
+    cv.addEventListener('pointerup', (e) => {
+      const dx = e.clientX - sx, dy = e.clientY - sy;
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < 20) return;
+      api.send({ dir: Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'R' : 'L') : dy > 0 ? 'D' : 'U' });
+    });
+    return {
+      update(s) {
+        ctx.fillStyle = '#0d0d12';
+        ctx.fillRect(0, 0, cv.width, cv.height);
+        ctx.fillStyle = '#16161e';
+        for (let x = 0; x < s.W; x++) for (let y = 0; y < s.H; y++) if ((x + y) % 2) ctx.fillRect(x * CELL, y * CELL, CELL, CELL);
+        for (const [x, y, g] of s.food) {
+          ctx.fillStyle = g ? '#fbbf24' : '#ef4444';
+          ctx.beginPath();
+          ctx.arc(x * CELL + CELL / 2, y * CELL + CELL / 2, g ? 7 : 5, 0, 7);
+          ctx.fill();
+        }
+        s.snakes.forEach((sn, i) => {
+          sn.body.forEach(([x, y], k) => {
+            ctx.fillStyle = colors[i];
+            ctx.globalAlpha = k === 0 ? 1 : 0.85 - Math.min(0.4, k / 80);
+            ctx.fillRect(x * CELL + 1, y * CELL + 1, CELL - 2, CELL - 2);
+          });
+          ctx.globalAlpha = 1;
+          if (sn.body.length) {
+            const [x, y] = sn.body[0];
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(x * CELL + 4, y * CELL + 4, 3, 3);
+            ctx.fillRect(x * CELL + 9, y * CELL + 4, 3, 3);
+            if (i === api.you) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(x * CELL, y * CELL, CELL, CELL); }
+          }
+        });
+        const me = s.snakes[api.you], them = s.snakes[1 - api.you];
+        api.status(h('span', {}, `⏱ ${Math.ceil(s.ticks / 10)}s`),
+          h('span', { style: `color:${colors[api.you]};font-weight:bold` }, `You: ${me.body.length}`), me.alive ? '' : ' (respawning…)',
+          h('span', { style: `color:${colors[1 - api.you]};font-weight:bold` }, `${api.players[1 - api.you].name}: ${them.body.length}`),
+          h('small', { class: 'muted' }, `best ${me.best} vs ${them.best}`));
+      },
+      destroy() { keys.destroy(); },
+    };
+  }
+
+  // ---------------------------------------------------------------- PONG
+  function pongGame(stage, api) {
+    const [cv, ctx] = canvas(800, 500);
+    const colors = playerColors(api.players);
+    const held = { up: false, down: false };
+    const keys = heldKeys({ ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down' }, (k) => api.send({ up: !!k.up, down: !!k.down }));
+    stage.append(cv, touchPad([['▲', 'up'], ['▼', 'down']], (a, v) => { held[a] = v; api.send(held); }),
+      h('div', { class: 'controls-help' }, `You are the ${api.you === 0 ? 'LEFT' : 'RIGHT'} paddle · ${META.pong.help}`));
+    return {
+      update(s) {
+        ctx.fillStyle = '#0d0d12';
+        ctx.fillRect(0, 0, 800, 500);
+        ctx.fillStyle = '#333';
+        for (let y = 0; y < 500; y += 30) ctx.fillRect(398, y, 4, 18);
+        ctx.font = 'bold 56px Outfit, Arial';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = colors[0]; ctx.fillText(s.score[0], 320, 70);
+        ctx.fillStyle = colors[1]; ctx.fillText(s.score[1], 480, 70);
+        ctx.fillStyle = colors[0]; ctx.fillRect(30, s.p[0].y, 12, s.ph);
+        ctx.fillStyle = colors[1]; ctx.fillRect(758, s.p[1].y, 12, s.ph);
+        ctx.fillStyle = '#fff';
+        ctx.beginPath(); ctx.arc(s.ball.x, s.ball.y, 8, 0, 7); ctx.fill();
+        if (s.serve > 0) { ctx.font = '20px Outfit, Arial'; ctx.fillText('Get ready…', 400, 300); }
+        api.status(`First to ${s.to}`, h('b', {}, `${s.score[api.you]} – ${s.score[1 - api.you]}`));
+      },
+      destroy() { keys.destroy(); },
+    };
+  }
+
+  // ---------------------------------------------------------------- STREET FIGHTER
+  function fighterGame(stage, api) {
+    const [cv, ctx] = canvas(900, 480);
+    const colors = playerColors(api.players);
+    const held = {};
+    const map = { KeyA: 'l', ArrowLeft: 'l', KeyD: 'r', ArrowRight: 'r', KeyW: 'u', ArrowUp: 'u', KeyS: 'd', ArrowDown: 'd', KeyJ: 'p', KeyK: 'k', KeyL: 's', KeyZ: 'p', KeyX: 'k', KeyC: 's' };
+    const keys = heldKeys(map, (k) => api.send(k));
+    stage.append(cv, touchPad([['◀', 'l'], ['▲', 'u'], ['▼', 'd'], ['▶', 'r'], ['👊', 'p'], ['🦵', 'k'], ['🔥', 's']], (a, v) => { held[a] = v; api.send(held); }),
+      h('div', { class: 'controls-help' }, META.fighter.help));
+    const line = (pts) => { ctx.beginPath(); ctx.moveTo(...pts[0]); pts.slice(1).forEach((p) => ctx.lineTo(...p)); ctx.stroke(); };
+    function drawFighter(f, color) {
+      const { x, y } = f, d = f.face;
+      ctx.lineWidth = 7; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      ctx.strokeStyle = f.flash % 2 ? '#fff' : color;
+      ctx.fillStyle = ctx.strokeStyle;
+      if (f.act === 'ko') {
+        line([[x - 60, y - 6], [x + 30, y - 6]]);
+        ctx.beginPath(); ctx.arc(x + 48, y - 10, 14, 0, 7); ctx.fill();
+        line([[x - 60, y - 6], [x - 85, y - 2]]); line([[x - 60, y - 6], [x - 82, y - 14]]);
+        return;
+      }
+      const low = f.act === 'block' ? 12 : 0;
+      const hip = [x, y - 52 + low], neck = [x, y - 100 + low], sh = [x, y - 92 + low];
+      ctx.beginPath(); ctx.arc(x, y - 117 + low, 15, 0, 7); ctx.fill();
+      line([neck, hip]);
+      // legs
+      const sw = f.act === 'walk' ? Math.sin(x / 9) * 16 : 0;
+      if (f.act === 'kick' && f.t > 4 && f.t < 18) {
+        line([hip, [x + d * 45, y - 60], [x + d * 92, y - 70]]);
+        line([hip, [x - d * 10, y - 26], [x - d * 18, y]]);
+      } else if (f.act === 'jump' || y < 400) {
+        line([hip, [x - 16, y - 30], [x - 8, y - 6]]);
+        line([hip, [x + 18, y - 30], [x + 12, y - 4]]);
+      } else {
+        line([hip, [x - 8 + sw / 2, y - 26], [x - 16 + sw, y]]);
+        line([hip, [x + 8 - sw / 2, y - 26], [x + 16 - sw, y]]);
+      }
+      // arms
+      if (f.act === 'punch' && f.t > 2 && f.t < 11) {
+        line([sh, [x + d * 40, sh[1] - 2], [x + d * 76, sh[1] - 4]]);
+        line([sh, [x + d * 8, sh[1] + 22], [x + d * 22, sh[1] + 6]]);
+      } else if (f.act === 'block') {
+        line([sh, [x + d * 20, sh[1] + 12], [x + d * 26, sh[1] - 22]]);
+        line([sh, [x + d * 14, sh[1] + 16], [x + d * 20, sh[1] - 16]]);
+      } else if (f.act === 'special') {
+        line([sh, [x + d * 30, sh[1] + 8], [x + d * 58, sh[1] + 10]]);
+        line([sh, [x + d * 28, sh[1] + 14], [x + d * 56, sh[1] + 18]]);
+      } else if (f.act === 'hurt') {
+        line([sh, [x - d * 20, sh[1] - 10], [x - d * 34, sh[1] - 26]]);
+        line([sh, [x - d * 14, sh[1] + 12], [x - d * 30, sh[1] + 4]]);
+      } else {
+        line([sh, [x + d * 16, sh[1] + 18], [x + d * 30, sh[1] - 2]]);
+        line([sh, [x + d * 6, sh[1] + 22], [x + d * 20, sh[1] + 2]]);
+      }
+    }
+    function bar(x, w, frac, color, right) {
+      ctx.fillStyle = '#333'; ctx.fillRect(x, 20, w, 18);
+      ctx.fillStyle = color;
+      const fw = w * Math.max(0, frac);
+      ctx.fillRect(right ? x + w - fw : x, 20, fw, 18);
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(x, 20, w, 18);
+    }
+    return {
+      update(s) {
+        const g = ctx.createLinearGradient(0, 0, 0, 480);
+        g.addColorStop(0, '#1e1b4b'); g.addColorStop(1, '#7c2d12');
+        ctx.fillStyle = g; ctx.fillRect(0, 0, 900, 480);
+        ctx.fillStyle = '#292524'; ctx.fillRect(0, 400, 900, 80);
+        ctx.fillStyle = '#44403c'; for (let x = 0; x < 900; x += 60) ctx.fillRect(x, 400, 30, 4);
+        s.f.forEach((f, i) => drawFighter(f, colors[i]));
+        for (const p of s.proj) {
+          ctx.fillStyle = colors[p.owner];
+          ctx.shadowColor = colors[p.owner]; ctx.shadowBlur = 20;
+          ctx.beginPath(); ctx.arc(p.x, p.y, 14, 0, 7); ctx.fill();
+          ctx.shadowBlur = 0;
+          ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(p.x, p.y, 6, 0, 7); ctx.fill();
+        }
+        // HUD
+        bar(20, 360, s.f[0].hp / 100, colors[0], true);
+        bar(520, 360, s.f[1].hp / 100, colors[1], false);
+        ctx.fillStyle = '#facc15';
+        ctx.fillRect(20 + 360 - 200 * s.f[0].en / 100, 42, 200 * s.f[0].en / 100, 6);
+        ctx.fillRect(520, 42, 200 * s.f[1].en / 100, 6);
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 15px Outfit, Arial';
+        ctx.textAlign = 'left'; ctx.fillText(api.players[0].name + (api.you === 0 ? ' (you)' : ''), 20, 66);
+        ctx.textAlign = 'right'; ctx.fillText(api.players[1].name + (api.you === 1 ? ' (you)' : ''), 880, 66);
+        ctx.textAlign = 'center'; ctx.font = 'bold 30px Outfit, Arial';
+        ctx.fillText(Math.ceil(s.timer / 50), 450, 42);
+        for (let i = 0; i < 2; i++) {
+          ctx.fillStyle = s.wins[0] > i ? '#facc15' : '#555'; ctx.beginPath(); ctx.arc(360 - i * 18, 76, 6, 0, 7); ctx.fill();
+          ctx.fillStyle = s.wins[1] > i ? '#facc15' : '#555'; ctx.beginPath(); ctx.arc(540 + i * 18, 76, 6, 0, 7); ctx.fill();
+        }
+        if (s.msg) {
+          ctx.font = 'bold 64px Outfit, Arial'; ctx.lineWidth = 6; ctx.strokeStyle = '#000'; ctx.fillStyle = '#facc15';
+          const msg = s.msg.replace(/^P([12]) WINS ROUND$/, (_, n) => `${api.players[n - 1].name} wins round`.toUpperCase());
+          ctx.strokeText(msg, 450, 230); ctx.fillText(msg, 450, 230);
+        }
+        api.status(`Round ${s.round}`, h('b', {}, `Rounds ${s.wins[api.you]} – ${s.wins[1 - api.you]}`), `Energy ${Math.floor(s.f[api.you].en)}`);
+      },
+      destroy() { keys.destroy(); },
+    };
+  }
+
+  // ---------------------------------------------------------------- TETRIS BATTLE
+  const TETRO = {
+    I: [[0, 0, 0, 0], [1, 1, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]],
+    O: [[1, 1], [1, 1]],
+    T: [[0, 1, 0], [1, 1, 1], [0, 0, 0]],
+    S: [[0, 1, 1], [1, 1, 0], [0, 0, 0]],
+    Z: [[1, 1, 0], [0, 1, 1], [0, 0, 0]],
+    J: [[1, 0, 0], [1, 1, 1], [0, 0, 0]],
+    L: [[0, 0, 1], [1, 1, 1], [0, 0, 0]],
+  };
+  const TKEYS = Object.keys(TETRO);
+  const TCOLORS = ['#000', '#06b6d4', '#eab308', '#a855f7', '#22c55e', '#ef4444', '#3b82f6', '#f97316', '#6b7280'];
+  function tetrisGame(stage, api) {
+    const COLS = 10, ROWS = 20, CELL = 26;
+    const [cv, ctx] = canvas(COLS * CELL, ROWS * CELL);
+    const [nextCv, nctx] = canvas(96, 230);
+    const [holdCv, hctx] = canvas(96, 80);
+    const [oppCv, octx] = canvas(COLS * 13, ROWS * 13);
+    const scoreEl = h('b', {}, '0'), linesEl = h('span', {}, '0'), levelEl = h('span', {}, '1'), oppEl = h('span', {}, '0');
+    const meter = h('i', {});
+    stage.append(h('div', { class: 'tetris-wrap' },
+      h('div', { class: 'tetris-side' }, h('span', {}, 'Hold (C)'), holdCv, h('span', {}, 'Score'), scoreEl, h('span', {}, 'Lines ', linesEl), h('span', {}, 'Level ', levelEl),
+        h('span', {}, 'Incoming'), h('div', { class: 'garbage-meter' }, meter)),
+      cv,
+      h('div', { class: 'tetris-side' }, h('span', {}, 'Next'), nextCv, h('span', {}, api.players[1 - api.you].name), oppCv, h('span', {}, 'Score ', oppEl))),
+    touchPad([['◀', 'left'], ['▶', 'right'], ['⟳', 'rot'], ['▼', 'soft'], ['⤓', 'drop'], ['Hold', 'hold']], (a, v) => v && act(a)),
+    h('div', { class: 'controls-help' }, META.tetris.help));
+
+    let board = new Array(COLS * ROWS).fill(0), bag = [], queue = [], cur = null, hold = null, canHold = true;
+    let score = 0, lines = 0, pending = 0, dead = false, stopped = false, acc = 0, lockDelay = 0, last = performance.now();
+    const level = () => 1 + Math.floor(lines / 10);
+    const dropMs = () => Math.max(70, 800 - (level() - 1) * 75);
+    const nextType = () => {
+      if (!bag.length) bag = TKEYS.slice().sort(() => Math.random() - 0.5);
+      return bag.pop();
+    };
+    const spawnPiece = (type) => ({ type, m: TETRO[type].map((r) => r.slice()), x: Math.floor((COLS - TETRO[type][0].length) / 2), y: type === 'I' ? -1 : 0 });
+    const fits = (m, px, py) => m.every((row, r) => row.every((v, c) => {
+      if (!v) return true;
+      const x = px + c, y = py + r;
+      return x >= 0 && x < COLS && y < ROWS && (y < 0 || !board[y * COLS + x]);
+    }));
+    const rotate = (m, dir) => (dir > 0
+      ? m[0].map((_, c) => m.map((row) => row[c]).reverse())
+      : m[0].map((_, c) => m.map((row) => row[row.length - 1 - c])));
+    function spawn() {
+      while (queue.length < 4) queue.push(nextType());
+      cur = spawnPiece(queue.shift());
+      canHold = true;
+      lockDelay = 0;
+      if (!fits(cur.m, cur.x, cur.y)) die();
+    }
+    function die() {
+      if (dead) return;
+      dead = true;
+      api.send({ kind: 'dead' });
+    }
+    function sendBoard() {
+      api.send({ kind: 'board', board: board.join(''), score, lines });
+    }
+    function lock() {
+      cur.m.forEach((row, r) => row.forEach((v, c) => {
+        if (!v) return;
+        const y = cur.y + r;
+        if (y < 0) { die(); return; }
+        board[y * COLS + cur.x + c] = TKEYS.indexOf(cur.type) + 1;
+      }));
+      if (dead) return;
+      let cleared = 0;
+      for (let y = ROWS - 1; y >= 0; y--) {
+        if (board.slice(y * COLS, y * COLS + COLS).every(Boolean)) {
+          board.splice(y * COLS, COLS);
+          board.unshift(...new Array(COLS).fill(0));
+          cleared++;
+          y++;
+        }
+      }
+      score += [0, 100, 300, 500, 800][cleared] * level();
+      lines += cleared;
+      let attack = [0, 0, 1, 2, 4][cleared];
+      const cancel = Math.min(attack, pending);
+      pending -= cancel; attack -= cancel;
+      if (attack > 0) api.send({ kind: 'garbage', n: attack });
+      if (!cleared && pending > 0) {
+        const n = Math.min(pending, 10), hole = Math.floor(Math.random() * COLS);
+        pending -= n;
+        for (let i = 0; i < n; i++) {
+          if (board.slice(0, COLS).some(Boolean)) { die(); return; }
+          board.splice(0, COLS);
+          board.push(...new Array(COLS).fill(8).map((v, c) => (c === hole ? 0 : v)));
+        }
+      }
+      sendBoard();
+      spawn();
+    }
+    function tryMove(dx, dy) {
+      if (fits(cur.m, cur.x + dx, cur.y + dy)) { cur.x += dx; cur.y += dy; if (dy === 0) lockDelay = 0; return true; }
+      return false;
+    }
+    function tryRotate(dir) {
+      const m = rotate(cur.m, dir);
+      for (const [kx, ky] of [[0, 0], [-1, 0], [1, 0], [0, -1], [-2, 0], [2, 0], [0, -2]]) {
+        if (fits(m, cur.x + kx, cur.y + ky)) { cur.m = m; cur.x += kx; cur.y += ky; lockDelay = 0; return; }
+      }
+    }
+    function act(a) {
+      if (dead || stopped || !cur) return;
+      if (a === 'left') tryMove(-1, 0);
+      else if (a === 'right') tryMove(1, 0);
+      else if (a === 'rot') tryRotate(1);
+      else if (a === 'rotl') tryRotate(-1);
+      else if (a === 'soft') { if (tryMove(0, 1)) score += 1; acc = 0; }
+      else if (a === 'drop') { while (tryMove(0, 1)) score += 2; lock(); }
+      else if (a === 'hold' && canHold) {
+        const t = cur.type;
+        if (hold) cur = spawnPiece(hold); else spawn();
+        hold = t; canHold = false;
+      }
+      draw();
+    }
+    const KEYMAP = { ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', ArrowUp: 'rot', KeyX: 'rot', KeyW: 'rot', KeyZ: 'rotl', ArrowDown: 'soft', KeyS: 'soft', Space: 'drop', KeyC: 'hold', ShiftLeft: 'hold', ShiftRight: 'hold' };
+    const onKey = (e) => {
+      const a = KEYMAP[e.code];
+      if (!a || isTyping()) return;
+      e.preventDefault();
+      if (e.repeat && (a === 'rot' || a === 'rotl' || a === 'drop' || a === 'hold')) return;
+      act(a);
+    };
+    addEventListener('keydown', onKey);
+
+    function cellDraw(c, x, y, v, size, alpha) {
+      c.globalAlpha = alpha || 1;
+      c.fillStyle = TCOLORS[v];
+      c.fillRect(x * size + 1, y * size + 1, size - 2, size - 2);
+      c.globalAlpha = 1;
+    }
+    function drawMini(c, type, w) {
+      if (!type) return;
+      const m = TETRO[type], size = 20;
+      const offX = (w - m[0].length * size) / 2 / size;
+      m.forEach((row, r) => row.forEach((v, cc) => v && cellDraw(c, cc + offX, r, TKEYS.indexOf(type) + 1, size)));
+    }
+    function draw() {
+      ctx.fillStyle = '#0d0d12'; ctx.fillRect(0, 0, cv.width, cv.height);
+      ctx.strokeStyle = '#1c1c26';
+      for (let x = 1; x < COLS; x++) { ctx.beginPath(); ctx.moveTo(x * CELL, 0); ctx.lineTo(x * CELL, cv.height); ctx.stroke(); }
+      board.forEach((v, i) => v && cellDraw(ctx, i % COLS, Math.floor(i / COLS), v, CELL));
+      if (cur && !dead) {
+        let gy = cur.y;
+        while (fits(cur.m, cur.x, gy + 1)) gy++;
+        const v = TKEYS.indexOf(cur.type) + 1;
+        cur.m.forEach((row, r) => row.forEach((x, c) => { if (x && gy + r >= 0) cellDraw(ctx, cur.x + c, gy + r, v, CELL, 0.25); }));
+        cur.m.forEach((row, r) => row.forEach((x, c) => { if (x && cur.y + r >= 0) cellDraw(ctx, cur.x + c, cur.y + r, v, CELL); }));
+      }
+      nctx.fillStyle = '#0d0d12'; nctx.fillRect(0, 0, 96, 230);
+      queue.slice(0, 3).forEach((t, i) => { nctx.save(); nctx.translate(0, i * 75 + 10); drawMini(nctx, t, 96); nctx.restore(); });
+      hctx.fillStyle = '#0d0d12'; hctx.fillRect(0, 0, 96, 80);
+      hctx.save(); hctx.translate(0, 18); hctx.globalAlpha = canHold ? 1 : 0.4; drawMini(hctx, hold, 96); hctx.restore();
+      scoreEl.textContent = score; linesEl.textContent = lines; levelEl.textContent = level();
+      meter.style.width = Math.min(100, pending * 10) + '%';
+    }
+    function loop(now) {
+      if (stopped) return;
+      const dt = now - last;
+      last = now;
+      if (!dead && cur) {
+        acc += dt;
+        if (!fits(cur.m, cur.x, cur.y + 1)) {
+          lockDelay += dt;
+          if (lockDelay > 500) lock();
+        } else if (acc >= dropMs()) { acc = 0; tryMove(0, 1); }
+      }
+      draw();
+      requestAnimationFrame(loop);
+    }
+    spawn();
+    sendBoard();
+    requestAnimationFrame(loop);
+    return {
+      update(s) {
+        const ob = s.boards[1 - api.you];
+        octx.fillStyle = '#0d0d12'; octx.fillRect(0, 0, oppCv.width, oppCv.height);
+        if (ob) for (let i = 0; i < ob.length; i++) if (ob[i] !== '0') cellDraw(octx, i % COLS, Math.floor(i / COLS), +ob[i], 13);
+        oppEl.textContent = s.scores[1 - api.you];
+        api.status(h('b', {}, dead ? 'You topped out!' : 'Survive!'), `Junk sent: ${s.sent[api.you]}`, `Junk received: ${s.sent[1 - api.you]}`);
+      },
+      event(ev) { if (ev.garbage) { pending += ev.garbage; draw(); } },
+      stop() { stopped = true; },
+      destroy() { stopped = true; removeEventListener('keydown', onKey); },
+    };
+  }
+
+  // ---------------------------------------------------------------- CHESS
+  const GLYPH = { k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟' };
+  function chessGame(stage, api) {
+    const board = h('div', { class: 'board' });
+    const capTop = h('div', { class: 'captured' }), capBottom = h('div', { class: 'captured' });
+    const promoBox = h('div', { class: 'promo hidden' });
+    stage.append(capTop, board, capBottom, promoBox, h('div', { class: 'controls-help' }, `You are ${api.you === 0 ? 'White' : 'Black'} · ${META.chess.help}`));
+    let state = null, sel = -1;
+    const flip = api.you === 1;
+    const mine = (p) => p && (api.you === 0 ? p === p.toUpperCase() : p === p.toLowerCase());
+    const pieceEl = (p) => h('span', { class: p === p.toUpperCase() ? 'pw' : 'pb' }, GLYPH[p.toLowerCase()]);
+    function render() {
+      const s = state;
+      const legal = s.turn === api.you && !s.result ? Rules.chess.legal(s) : [];
+      const targets = sel >= 0 ? legal.filter((m) => m.from === sel) : [];
+      const kingIdx = s.check ? s.board.indexOf(s.turn === 0 ? 'K' : 'k') : -1;
+      board.replaceChildren();
+      for (let v = 0; v < 64; v++) {
+        const i = flip ? 63 - v : v, r = i >> 3, c = i & 7, p = s.board[i];
+        const t = targets.find((m) => m.to === i);
+        const cls = ['sq', (r + c) % 2 ? 'darksq' : 'light', s.last && s.last.includes(i) ? 'last' : '', i === sel ? 'sel' : '', i === kingIdx ? 'check' : '', t ? 'target' : '', t && p ? 'capture' : ''].join(' ');
+        board.append(h('button', { class: cls, onclick: () => click(i, legal) },
+          (flip ? c === 7 : c === 0) ? h('span', { class: 'coord' }, 8 - r) : null, p ? pieceEl(p) : null));
+      }
+      const capBy = (idx) => s.captured[idx].map((p) => GLYPH[p.toLowerCase()]).join('');
+      capBottom.textContent = capBy(api.you);
+      capTop.textContent = capBy(1 - api.you);
+      if (s.result) api.status('Game over');
+      else if (s.turn === api.you) api.status(h('b', {}, s.check ? 'Check! Your move' : 'Your move'));
+      else api.status(`Waiting for ${api.players[1 - api.you].name}…`, s.check ? h('b', {}, 'Check!') : '');
+    }
+    function click(i, legal) {
+      if (state.turn !== api.you || state.result) return;
+      if (mine(state.board[i])) { sel = sel === i ? -1 : i; promoBox.classList.add('hidden'); return render(); }
+      if (sel < 0) return;
+      const moves = legal.filter((m) => m.from === sel && m.to === i);
+      if (!moves.length) { sel = -1; return render(); }
+      if (moves[0].promo) {
+        const from = sel;
+        promoBox.replaceChildren(h('span', {}, 'Promote to:'), ...['q', 'r', 'b', 'n'].map((pr) =>
+          h('button', { onclick: () => { promoBox.classList.add('hidden'); api.send({ from, to: i, promo: pr }); } },
+            pieceEl(api.you === 0 ? pr.toUpperCase() : pr))));
+        promoBox.classList.remove('hidden');
+        return;
+      }
+      api.send({ from: sel, to: i });
+      sel = -1;
+    }
+    return { update(s) { state = s; sel = -1; render(); } };
+  }
+
+  // ---------------------------------------------------------------- CHECKERS
+  function checkersGame(stage, api) {
+    const board = h('div', { class: 'board checkers' });
+    stage.append(board, h('div', { class: 'controls-help' }, `You are ${api.you === 0 ? 'Red (moving up)' : 'Black (moving up)'} · ${META.checkers.help}`));
+    let state = null, sel = -1;
+    const flip = api.you === 1;
+    const owner = (p) => (p ? (p.toLowerCase() === 'r' ? 0 : 1) : -1);
+    function render() {
+      const s = state;
+      const legal = s.turn === api.you && !s.result ? Rules.checkers.legal(s) : [];
+      if (s.chain >= 0 && s.turn === api.you) sel = s.chain;
+      const movable = new Set(legal.map((m) => m.from));
+      const targets = legal.filter((m) => m.from === sel);
+      board.replaceChildren();
+      for (let v = 0; v < 64; v++) {
+        const i = flip ? 63 - v : v, r = i >> 3, c = i & 7, p = s.board[i];
+        const cls = ['sq', (r + c) % 2 ? 'darksq' : 'light', s.last && s.last.includes(i) ? 'last' : '', i === sel ? 'sel' : '', targets.some((m) => m.to === i) ? 'target' : ''].join(' ');
+        board.append(h('button', { class: cls, onclick: () => click(i, legal) },
+          p ? h('div', { class: 'ck-piece ' + (owner(p) === 0 ? 'red' : 'black'), style: movable.has(i) && sel < 0 ? 'outline:3px solid #facc15' : '' }, p === p.toUpperCase() ? '♛' : '') : null));
+      }
+      const count = (o) => s.board.filter((p) => owner(p) === o).length;
+      if (s.result) api.status('Game over');
+      else if (s.turn === api.you) api.status(h('b', {}, s.chain >= 0 ? 'Keep jumping!' : legal.some((m) => m.cap !== undefined) ? 'You must capture!' : 'Your move'), `Pieces ${count(api.you)} vs ${count(1 - api.you)}`);
+      else api.status(`Waiting for ${api.players[1 - api.you].name}…`, `Pieces ${count(api.you)} vs ${count(1 - api.you)}`);
+    }
+    function click(i, legal) {
+      if (state.turn !== api.you || state.result) return;
+      if (state.chain < 0 && owner(state.board[i]) === api.you) { sel = sel === i ? -1 : i; return render(); }
+      const m = legal.find((x) => x.from === sel && x.to === i);
+      if (m) api.send({ from: m.from, to: m.to });
+    }
+    return { update(s) { state = s; sel = -1; render(); } };
+  }
+
+  // ---------------------------------------------------------------- CONNECT FOUR
+  function connect4Game(stage, api) {
+    const grid = h('div', { class: 'c4' });
+    stage.append(grid, h('div', { class: 'controls-help' }, `You are ${api.you === 0 ? '🔴 Red' : '🟡 Yellow'} · ${META.connect4.help}`));
+    return {
+      update(s) {
+        grid.replaceChildren(...s.grid.map((v, i) => h('button', {
+          class: [v >= 0 ? 'p' + v : '', s.line && s.line.includes(i) ? 'win' : '', i === s.last ? 'last' : ''].join(' '),
+          onclick: () => s.turn === api.you && !s.result && api.send({ col: i % 7 }),
+        })));
+        if (!s.result) api.status(s.turn === api.you ? h('b', {}, 'Your move') : `Waiting for ${api.players[1 - api.you].name}…`);
+      },
+    };
+  }
+
+  // ---------------------------------------------------------------- TIC-TAC-TOE
+  function tictactoeGame(stage, api) {
+    const grid = h('div', { class: 'ttt' });
+    stage.append(grid, h('div', { class: 'controls-help' }, `You are ${api.you === 0 ? 'X' : 'O'}`));
+    return {
+      update(s) {
+        grid.replaceChildren(...s.cells.map((v, i) => h('button', {
+          class: s.line && s.line.includes(i) ? 'win' : '',
+          style: v >= 0 ? `color:${v === 0 ? '#ef4444' : '#2563eb'}` : '',
+          onclick: () => s.turn === api.you && !s.result && v < 0 && api.send({ cell: i }),
+        }, v === 0 ? 'X' : v === 1 ? 'O' : '')));
+        if (!s.result) api.status(s.turn === api.you ? h('b', {}, 'Your move') : `Waiting for ${api.players[1 - api.you].name}…`);
+      },
+    };
+  }
+
+  const FACTORY = { snake: snakeGame, pong: pongGame, fighter: fighterGame, tetris: tetrisGame, chess: chessGame, checkers: checkersGame, connect4: connect4Game, tictactoe: tictactoeGame };
+
+  // ---------------------------------------------------------------- dock
+  let host = null, cur = null;
+  const dock = () => document.getElementById('gameDock');
+
+  function close() {
+    if (cur && cur.inst.destroy) cur.inst.destroy();
+    cur = null;
+    dock().classList.add('hidden');
+    dock().classList.remove('min');
+    dock().replaceChildren();
+  }
+  function start(m) {
+    if (cur && cur.id === m.id) { cur.inst.update(m.state); return; }
+    close();
+    const meta = META[m.game], d = dock();
+    const colors = playerColors(m.players);
+    const statusEl = h('div', { class: 'game-status' });
+    const stage = h('div', { class: 'game-stage' });
+    const leaveBtn = h('button', { class: 'btn danger small', onclick: () => {
+      if (!cur) return;
+      if (cur.over) close();
+      else {
+        const id = cur.id;
+        window.uiConfirm('Forfeit this game?', 'Forfeit', () => host.leave(id));
+      }
+    } }, 'Forfeit');
+    d.replaceChildren(
+      h('div', { class: 'game-head' },
+        h('span', { class: 'title' }, `${meta.emoji} ${meta.name}`),
+        h('span', { class: 'players-line' }, ...m.players.map((p, i) => h('span', { class: 'pchip' }, h('i', { style: `background:${colors[i]}` }), p.name + (i === m.you ? ' (you)' : ''))).reduce((a, el, i) => (i ? a.concat(' vs ', el) : [el]), [])),
+        h('button', { class: 'btn small', title: 'Minimize', onclick: () => d.classList.toggle('min') }, '▁'),
+        leaveBtn),
+      statusEl, stage);
+    d.classList.remove('hidden', 'min');
+    const api = {
+      you: m.you,
+      players: m.players,
+      send: (input) => cur && !cur.over && host.send(cur.id, input),
+      status: (...parts) => statusEl.replaceChildren(...parts.flat().filter((x) => x !== '' && x !== null).map((x) => (x instanceof Node ? x : h('span', {}, x)))),
+    };
+    cur = { id: m.id, game: m.game, players: m.players, you: m.you, over: false, stage, statusEl, leaveBtn, inst: FACTORY[m.game](stage, api) };
+    cur.inst.update(m.state);
+    if (document.activeElement && document.activeElement.id === 'msgInput') document.activeElement.blur();
+  }
+  function over(m) {
+    if (!cur || cur.id !== m.id) return;
+    cur.inst.update(m.state);
+    cur.over = true;
+    if (cur.inst.stop) cur.inst.stop();
+    cur.leaveBtn.textContent = 'Close';
+    const r = m.result, win = r.winner === cur.you, draw = r.winner === -1;
+    const opp = cur.players[1 - cur.you];
+    const { game } = cur;
+    cur.statusEl.replaceChildren(h('b', {}, draw ? 'Draw' : win ? 'You won! 🏆' : `${opp.name} won`), h('span', { class: 'muted' }, r.reason));
+    cur.stage.append(h('div', { class: 'game-over' }, h('div', { class: 'box' },
+      h('div', { style: 'font-size:44px' }, draw ? '🤝' : win ? '🏆' : '😵'),
+      h('h3', {}, draw ? 'Draw!' : win ? 'You win!' : 'You lose'),
+      h('div', { class: 'muted' }, r.reason),
+      h('div', { class: 'row', style: 'justify-content:center' },
+        h('button', { class: 'btn', onclick: close }, 'Close'),
+        h('button', { class: 'btn primary', onclick: () => { host.rematch(game, opp.username); close(); } }, `Rematch ${opp.name}`)))));
+  }
+
+  window.GameDock = {
+    META,
+    init(h2) { host = h2; },
+    start,
+    close,
+    over,
+    state(m) { if (cur && cur.id === m.id) cur.inst.update(m.state); },
+    event(m) { if (cur && cur.id === m.id && cur.inst.event) cur.inst.event(m.ev); },
+  };
+})();
+
+</script>
+<script>
+// claude.ai artifact backend. Stands in for server.js inside a published artifact and speaks the
+// same message protocol, so app.js and games.js run unchanged:
+//   - profiles, chats and messages live in the artifact's shared `db`
+//   - who's online, typing, game invites and live game state travel over `room` presence
+//   - in a game, the challenger's browser is the host: it runs the simulation / validates moves
+//     (shared/rules.js, realtime.js) and publishes the state in its presence for the opponent.
+(() => {
+  const GAMES = {
+    snake: { name: 'Snake PvP', kind: 'realtime' },
+    chess: { name: 'Chess', kind: 'turn' },
+    checkers: { name: 'Checkers', kind: 'turn' },
+    tetris: { name: 'Tetris Battle', kind: 'relay' },
+    fighter: { name: 'Street Fighter', kind: 'realtime' },
+    pong: { name: 'Pong', kind: 'realtime' },
+    connect4: { name: 'Connect Four', kind: 'turn' },
+    tictactoe: { name: 'Tic-Tac-Toe', kind: 'turn' },
+  };
+  const MSG_WINDOW = 100; // messages loaded per chat
+  const MSG_KEEP = 200; // older messages are pruned
+  const MAX_ROOM_SUBS = 50; // db allows 64 live subscriptions per view
+  const NAMED_REASONS = ['forfeited', 'disconnected', 'topped out'];
+
+  const rid = (n = 10) => Array.from(crypto.getRandomValues(new Uint8Array(n)), (b) => (b % 36).toString(36)).join('');
+  const msgId = () => Date.now().toString(36).padStart(9, '0') + rid(5);
+  const str = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
+  const copy = (o) => JSON.parse(JSON.stringify(o)); // presence may freeze what it's given; the host keeps mutating its state
+  const isColor = (v) => typeof v === 'string' && /^#[0-9a-fA-F]{6}$/.test(v);
+  const ids = (v) => (Array.isArray(v) ? v.filter((x) => typeof x === 'string').slice(0, 100) : []);
+  function hash(s) {
+    let h = 2166136261;
+    for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return (h >>> 0).toString(36);
+  }
+
+  window.ChatTransport = function ChatTransport(emit) {
+    let db = null, room = null, user = null, myId = null, myColor = '#6d5dfc';
+    let ready = false, profilesLoaded = false, roomsLoaded = false, creatingProfile = false, readOnly = false;
+    const profiles = {}; // id -> profile doc
+    const platform = {}; // id -> { name, color } as this viewer's claude.ai sees them
+    const rooms = {}; // id -> room doc (not including the built-in global chat)
+    const rawMsgs = {}; // room id -> [{ id, ...doc }] oldest first
+    const msgSubs = {}; // room id -> unsubscribe
+    const sentUser = {}; // id -> JSON of the last user view sent to the UI
+    const sentRoom = {}; // room id -> JSON of the last room meta sent
+    let sentMe = '';
+    let lobbyPeers = [];
+    const myPresence = {};
+    const typingSeen = {}; // peer -> typingAt
+    const invitesIn = {}; // invite id -> invite
+    let myInvite = null, myInviteTimer = null;
+    const answered = new Set();
+    const seenInvites = new Set(); // every invite id shown once, so an accepted one never pops up again
+    let pendingOpen = null;
+    let game = null;
+    const recent = [];
+
+    const GLOBAL = { id: 'global', name: 'Global chat', public: true, dm: false, members: [], owner: null };
+
+    // ------------------------------------------------------------ people
+    const pidOf = (p) => p.by || (p.presence && typeof p.presence.uid === 'string' ? p.presence.uid : null);
+    const displayName = (id) => (profiles[id] && profiles[id].name) || (platform[id] && platform[id].name) || 'Someone';
+    const avatarOf = (id) => (profiles[id] && isColor(profiles[id].avatar) ? profiles[id].avatar : (platform[id] && platform[id].color) || '#6d5dfc');
+    function peersOf(id) { return lobbyPeers.filter((p) => pidOf(p) === id); }
+    function presenceOf(id) {
+      const p = profiles[id];
+      if (id === myId) return (p && p.status) || 'online';
+      const peers = peersOf(id);
+      if (!peers.length) return 'offline';
+      const st = peers.map((x) => x.presence.status).find((s) => ['online', 'offline', 'idle'].includes(s));
+      return st || (p && p.status) || 'online';
+    }
+    function inGameOf(id) {
+      if (id === myId) return game ? game.type : null;
+      const g = peersOf(id).map((x) => x.presence.inGame).find((v) => typeof v === 'string' && GAMES[v]);
+      return g || null;
+    }
+    function publicUser(id) {
+      const p = profiles[id] || {};
+      const st = p.stats || {};
+      return {
+        username: id, handle: (platform[id] && platform[id].name) || '', name: displayName(id), bio: str(p.bio, 300),
+        avatar: avatarOf(id), favorites: ids(p.favorites).filter((g) => GAMES[g]), presence: presenceOf(id),
+        stats: { w: +st.w || 0, l: +st.l || 0, d: +st.d || 0 }, inGame: inGameOf(id),
+      };
+    }
+    function privateUser() {
+      const p = profiles[myId] || {};
+      return Object.assign(publicUser(myId), {
+        status: ['online', 'offline', 'idle'].includes(p.status) ? p.status : 'online',
+        bg: ['auto', 'white', 'black', 'custom'].includes(p.bg) ? p.bg : 'auto',
+        bgCustom: isColor(p.bgCustom) ? p.bgCustom : '#dbeafe', friends: ids(p.friends),
+      });
+    }
+    function pushUsers() {
+      if (!ready) return;
+      for (const id of Object.keys(profiles)) {
+        const u = publicUser(id), j = JSON.stringify(u);
+        if (sentUser[id] !== j) { sentUser[id] = j; emit({ t: 'user', user: u }); }
+      }
+      const me = privateUser(), j = JSON.stringify(me);
+      if (j !== sentMe) { sentMe = j; emit({ t: 'me', me }); }
+    }
+    async function resolveNames() {
+      const all = Object.keys(profiles);
+      if (!all.includes(myId)) all.push(myId);
+      const ps = await user.profiles(all);
+      for (const id of all) if (ps[id]) platform[id] = { name: ps[id].name, color: ps[id].color };
+    }
+
+    // ------------------------------------------------------------ rooms + messages
+    const visible = (r) => r.id === 'global' || r.public || ids(r.members).includes(myId);
+    function roomMeta(id) {
+      const r = id === 'global' ? GLOBAL : rooms[id];
+      return { id, name: str(r.name, 40) || 'Chat', public: !!r.public, dm: !!r.dm, members: ids(r.members), owner: r.owner || null };
+    }
+    function sysText(d) {
+      const n = displayName, g = (GAMES[d.game] || { name: 'a game' }).name;
+      const reason = NAMED_REASONS.includes(d.reason) && d.loser ? `${n(d.loser)} ${d.reason}` : str(d.reason, 80);
+      switch (d.sys) {
+        case 'created': return `${n(d.by)} created “${str(d.name, 40)}”`;
+        case 'challenge': return `🎮 ${n(d.a)} challenged ${n(d.b)} to ${g}`;
+        case 'result': return d.winner ? `🏆 ${n(d.winner)} beat ${n(d.loser)} at ${g} (${reason})` : `🤝 ${n(d.a)} and ${n(d.b)} drew at ${g} (${reason})`;
+        case 'added': return `${n(d.by)} added ${ids(d.ids).map(n).join(', ')}`;
+        case 'left': return `${n(d.by)} left the chat`;
+        default: return '';
+      }
+    }
+    function toMsg(d) {
+      if (d.sys) return { id: d.id, ts: +d.ts || 0, from: null, sys: true, text: sysText(d), game: d.game };
+      return { id: d.id, ts: +d.ts || 0, from: typeof d.from === 'string' ? d.from : null, text: str(d.text, 1000) };
+    }
+    const roomView = (id) => Object.assign(roomMeta(id), { messages: (rawMsgs[id] || []).map(toMsg) });
+    function subscribeMsgs(id) {
+      if (msgSubs[id] || Object.keys(msgSubs).length >= MAX_ROOM_SUBS) return;
+      msgSubs[id] = db.collection(`rooms/${id}/msgs`).orderBy('ts', 'desc').limit(MSG_WINDOW).onSnapshot((snap) => {
+        const had = rawMsgs[id];
+        const list = snap.docs.map((d) => Object.assign({ id: d.id }, d.data())).reverse();
+        rawMsgs[id] = list;
+        if (!ready || !(id === 'global' || rooms[id])) return;
+        if (!had) { emit({ t: 'room', room: roomView(id) }); return; }
+        const old = new Set(had.map((m) => m.id));
+        for (const m of list) if (!old.has(m.id)) emit({ t: 'msg', room: id, msg: toMsg(m) });
+      }, dbError);
+    }
+    function onRooms(snap) {
+      const next = {};
+      for (const d of snap.docs) if (d.id !== 'global') next[d.id] = Object.assign({ id: d.id }, d.data());
+      for (const id of Object.keys(rooms)) {
+        if (!next[id] || !visible(next[id])) {
+          if (msgSubs[id]) { msgSubs[id](); delete msgSubs[id]; delete rawMsgs[id]; }
+          if (ready && sentRoom[id]) { delete sentRoom[id]; emit({ t: 'roomRemoved', id }); }
+        }
+        delete rooms[id];
+      }
+      for (const [id, r] of Object.entries(next)) if (visible(r)) { rooms[id] = r; subscribeMsgs(id); }
+      roomsLoaded = true;
+      maybeHello();
+      if (!ready) return;
+      for (const id of Object.keys(rooms)) {
+        const j = JSON.stringify(roomMeta(id));
+        if (sentRoom[id] !== j) { sentRoom[id] = j; emit({ t: 'room', room: roomView(id) }); }
+      }
+      if (pendingOpen && rooms[pendingOpen]) { emit({ t: 'openRoom', id: pendingOpen }); pendingOpen = null; }
+    }
+    function post(roomId, data) {
+      const coll = db.collection(`rooms/${roomId}/msgs`);
+      coll.doc(msgId()).set(Object.assign({}, data, { ts: Date.now() })).catch(writeError);
+      if (Math.random() < 0.1) prune(coll);
+    }
+    async function prune(coll) {
+      try {
+        const snap = await coll.orderBy('ts', 'desc').limit(MSG_KEEP + 50).get();
+        for (const d of snap.docs.slice(MSG_KEEP)) await coll.doc(d.id).delete();
+      } catch { /* pruning is best-effort */ }
+    }
+
+    // ------------------------------------------------------------ profiles
+    function onProfiles(snap) {
+      for (const ch of snap.docChanges()) if (ch.type === 'removed') delete profiles[ch.doc.id];
+      for (const d of snap.docs) profiles[d.id] = d.data();
+      if (!profiles[myId] && !snap.metadata.fromCache && !creatingProfile) {
+        creatingProfile = true;
+        const fresh = { name: '', bio: '', status: 'online', bg: 'auto', bgCustom: '#dbeafe', avatar: null, favorites: [], friends: [], stats: { w: 0, l: 0, d: 0 }, created: Date.now() };
+        db.doc('profiles/' + myId).set(fresh).catch((e) => {
+          readOnly = true;
+          profiles[myId] = fresh;
+          writeError(e);
+          finishProfiles();
+        });
+        return;
+      }
+      if (profiles[myId]) finishProfiles();
+    }
+    function finishProfiles() {
+      resolveNames().then(() => {
+        const first = !profilesLoaded;
+        profilesLoaded = true;
+        const status = privateUser().status;
+        if (myPresence.status !== status) setPresence({ status });
+        maybeHello();
+        pushUsers();
+        // messages that arrived before names resolved get redrawn with real names once
+        if (first && ready) for (const id of Object.keys(rawMsgs)) emit({ t: 'room', room: roomView(id) });
+      });
+    }
+    function updateMe(patch) {
+      if (readOnly) return emit({ t: 'error', text: 'You can look around, but saving needs Editor access. Ask the owner to invite you as an Editor.' });
+      profiles[myId] = Object.assign({}, profiles[myId], patch); // snapshots are frozen: replace, never mutate
+      pushUsers();
+      db.doc('profiles/' + myId).update(patch).catch(writeError);
+    }
+
+    function maybeHello() {
+      if (ready || !profilesLoaded || !roomsLoaded || !profiles[myId]) return;
+      ready = true;
+      const roomIds = ['global'].concat(Object.keys(rooms));
+      roomIds.forEach((id) => { if (id !== 'global') sentRoom[id] = JSON.stringify(roomMeta(id)); });
+      const users = Object.keys(profiles).map(publicUser);
+      users.forEach((u) => { sentUser[u.username] = JSON.stringify(u); });
+      const me = privateUser();
+      sentMe = JSON.stringify(me);
+      emit({ t: 'hello', me, users, rooms: roomIds.map(roomView), games: GAMES });
+    }
+
+    function dbError(e) {
+      if (e && (e.code === 'revoked' || e.code === 'not_granted')) emit({ t: 'fatal', title: 'Access changed', text: 'Your access to this page changed. Reload it to keep chatting.' });
+    }
+    function writeError(e) {
+      if (!e) return;
+      if (e.code === 'invalid_argument') {
+        readOnly = true;
+        emit({ t: 'error', text: 'You can look around, but posting needs Editor access. Ask the owner to invite you as an Editor.' });
+      } else if (e.code === 'quota_exceeded') emit({ t: 'error', text: 'This chat is out of storage. Ask the owner to delete old chats.' });
+      else if (e.code === 'resource_exhausted') emit({ t: 'error', text: 'Too many actions at once. Wait a moment and try again.' });
+      else emit({ t: 'error', text: 'That didn’t save. Check your connection and try again.' });
+    }
+
+    // ------------------------------------------------------------ lobby presence
+    function setPresence(patch) {
+      Object.assign(myPresence, patch);
+      if (room) room.presence(patch).catch(() => {});
+    }
+    function onLobby(change) {
+      lobbyPeers = change.peers;
+      for (const p of change.peers) {
+        if (p.isMe) continue;
+        const pr = p.presence || {}, from = pidOf(p);
+        if (!from) continue;
+        if (typeof pr.typing === 'string' && pr.typingAt && typingSeen[p.peer] !== pr.typingAt) {
+          typingSeen[p.peer] = pr.typingAt;
+          if (Date.now() - p.updatedAt < 4000) emit({ t: 'typing', room: pr.typing, from });
+        }
+        const inv = pr.invite;
+        if (inv && typeof inv === 'object' && inv.to === myId && typeof inv.id === 'string' && GAMES[inv.game] && !seenInvites.has(inv.id)) {
+          seenInvites.add(inv.id);
+          invitesIn[inv.id] = { id: inv.id, from, to: myId, game: inv.game, room: typeof inv.room === 'string' ? inv.room : 'global', expires: Date.now() + 60000 };
+          if (ready) emit({ t: 'invite', invite: invitesIn[inv.id] });
+        }
+        const rep = pr.reply;
+        if (myInvite && from === myInvite.to && rep && rep.id === myInvite.id && !answered.has(rep.id)) {
+          answered.add(rep.id);
+          const inv2 = myInvite;
+          clearInvite();
+          if (rep.accept) startGame({ id: inv2.id, type: inv2.game, players: [myId, inv2.to], you: 0, room: inv2.room });
+          else emit({ t: 'notice', text: `${displayName(from)} declined your ${GAMES[inv2.game].name} challenge` });
+        }
+      }
+      pushUsers();
+    }
+    function clearInvite() {
+      myInvite = null;
+      clearTimeout(myInviteTimer);
+      setPresence({ invite: null });
+    }
+
+    // ------------------------------------------------------------ games
+    const playersView = (g) => g.players.map((id) => ({ username: id, name: displayName(id), avatar: avatarOf(id) }));
+    function freshState(type) {
+      if (GAMES[type].kind === 'turn') return Rules[type].init();
+      if (GAMES[type].kind === 'realtime') return Realtime[type].init();
+      return { boards: [null, null], scores: [0, 0], lines: [0, 0], sent: [0, 0] };
+    }
+    async function startGame(opts) {
+      if (game) return;
+      if (!room) return emit({ t: 'error', text: 'Live games aren’t available in this view.' });
+      const g = game = Object.assign({ kind: GAMES[opts.type].kind, over: false, n: 0, lastN: -1, v: 0, lastV: -1, seenSent: 0, mySent: 0, oppSeen: false }, opts);
+      g.state = freshState(g.type);
+      g.opp = g.players[1 - g.you];
+      setPresence({ inGame: g.type, invite: null });
+      emit({ t: 'gameStart', id: g.id, game: g.type, players: playersView(g), you: g.you, state: g.state });
+      try {
+        g.named = await room.join('g-' + g.id);
+      } catch {
+        return finish(g, { winner: -1, reason: 'couldn’t connect' }, { noStats: true });
+      }
+      if (g.over) { g.named.leave().catch(() => {}); return; }
+      g.named.onPeers((ch) => onGamePeers(g, ch), () => { if (!g.over) finish(g, { winner: -1, reason: 'connection lost' }, { noStats: true }); });
+      g.named.presence(Object.assign({ uid: myId }, g.you === 0 ? { s: copy(g.state), v: 0 } : {})).catch(() => {});
+      g.joinTimer = setTimeout(() => { if (!g.oppSeen) finish(g, { winner: -1, reason: 'opponent never joined' }, { noStats: true }); }, 30000);
+    }
+    function onGamePeers(g, ch) {
+      if (g.over) return;
+      const opp = ch.peers.find((p) => !p.isMe && pidOf(p) === g.opp);
+      if (!opp) {
+        if (g.oppSeen && !g.dcTimer) g.dcTimer = setTimeout(() => finish(g, { winner: g.you, reason: 'disconnected' }, { post: true }), 20000);
+        return;
+      }
+      g.oppSeen = true;
+      clearTimeout(g.dcTimer); g.dcTimer = null;
+      clearTimeout(g.joinTimer);
+      if (g.you === 0 && g.kind === 'realtime' && !g.timer) startTicking(g);
+      onOpponent(g, opp.presence || {});
+    }
+    function startTicking(g) {
+      const sim = Realtime[g.type];
+      g.timer = setInterval(() => {
+        const res = sim.tick(g.state);
+        g.v++;
+        g.named.presence({ s: copy(g.state), v: g.v }).catch(() => {});
+        emit({ t: 'gameState', id: g.id, state: g.state });
+        if (res) finish(g, res, { post: true });
+      }, sim.tickMs);
+    }
+    function publish(g) {
+      g.v++;
+      g.named.presence({ s: copy(g.state), v: g.v }).catch(() => {});
+      emit({ t: 'gameState', id: g.id, state: g.state });
+      if (g.state.result) finish(g, g.state.result, { post: true });
+    }
+    function onOpponent(g, pr) {
+      if (pr.result && typeof pr.result === 'object' && g.you === 1) {
+        if (pr.s) { g.state = copy(pr.s); emit({ t: 'gameState', id: g.id, state: g.state }); }
+        return finish(g, { winner: pr.result.winner, reason: str(pr.result.reason, 80) }, {});
+      }
+      if (pr.forfeit) return finish(g, { winner: g.you, reason: 'forfeited' }, { post: true });
+      if (g.kind === 'relay') {
+        const o = 1 - g.you;
+        if (typeof pr.board === 'string' && /^[0-8]{200}$/.test(pr.board)) g.state.boards[o] = pr.board;
+        g.state.scores[o] = Math.max(0, +pr.score || 0);
+        g.state.lines[o] = Math.max(0, +pr.lines || 0);
+        const sent = Math.max(0, Math.floor(+pr.sent || 0));
+        if (sent > g.seenSent) {
+          emit({ t: 'gameEvent', id: g.id, ev: { garbage: Math.min(10, sent - g.seenSent) } });
+          g.seenSent = sent;
+        }
+        g.state.sent[o] = sent;
+        emit({ t: 'gameState', id: g.id, state: g.state });
+        if (pr.dead) finish(g, { winner: g.you, reason: 'topped out' }, { post: g.you === 0 });
+        return;
+      }
+      if (g.you === 1) {
+        if (pr.s && typeof pr.v === 'number' && pr.v !== g.lastV) {
+          g.lastV = pr.v;
+          g.state = copy(pr.s);
+          emit({ t: 'gameState', id: g.id, state: g.state });
+        }
+        return;
+      }
+      // host: apply the guest's latest input
+      if (g.kind === 'turn') {
+        if (pr.mv && typeof pr.n === 'number' && pr.n > g.lastN) {
+          g.lastN = pr.n;
+          const r = Rules[g.type].move(g.state, 1, pr.mv);
+          if (!r.error) { g.state = r.state; publish(g); }
+        }
+      } else if (g.type === 'snake') {
+        if (pr.dir && typeof pr.n === 'number' && pr.n > g.lastN) { g.lastN = pr.n; Realtime.snake.input(g.state, 1, { dir: pr.dir }); }
+      } else if (pr.in && typeof pr.in === 'object') {
+        Realtime[g.type].input(g.state, 1, pr.in);
+      }
+    }
+    function gameInput(g, input) {
+      input = input || {};
+      if (g.kind === 'relay') {
+        if (input.kind === 'board' && typeof input.board === 'string') {
+          g.state.boards[g.you] = input.board;
+          g.state.scores[g.you] = +input.score || 0;
+          g.state.lines[g.you] = +input.lines || 0;
+          g.named && g.named.presence({ board: input.board, score: g.state.scores[g.you], lines: g.state.lines[g.you], sent: g.mySent }).catch(() => {});
+          emit({ t: 'gameState', id: g.id, state: g.state });
+        } else if (input.kind === 'garbage') {
+          g.mySent += Math.max(1, Math.min(4, Math.floor(+input.n || 0)));
+          g.state.sent[g.you] = g.mySent;
+          g.named && g.named.presence({ sent: g.mySent }).catch(() => {});
+        } else if (input.kind === 'dead') {
+          g.named && g.named.presence({ dead: true }).catch(() => {});
+          finish(g, { winner: 1 - g.you, reason: 'topped out' }, { post: g.you === 0 });
+        }
+        return;
+      }
+      if (g.kind === 'turn') {
+        const r = Rules[g.type].move(g.state, g.you, input);
+        if (r.error) return emit({ t: 'gameError', id: g.id, text: r.error });
+        if (g.you === 0) { g.state = r.state; publish(g); }
+        else g.named && g.named.presence({ mv: input, n: ++g.n }).catch(() => {});
+        return;
+      }
+      if (g.you === 0) Realtime[g.type].input(g.state, 0, input);
+      else if (g.type === 'snake') g.named && g.named.presence({ dir: input.dir, n: ++g.n }).catch(() => {});
+      else g.named && g.named.presence({ in: input }).catch(() => {});
+    }
+    function finish(g, result, opts) {
+      if (g.over) return;
+      g.over = true;
+      clearInterval(g.timer);
+      clearTimeout(g.dcTimer);
+      clearTimeout(g.joinTimer);
+      const winnerId = result.winner === 0 || result.winner === 1 ? g.players[result.winner] : null;
+      const loserId = winnerId ? g.players[1 - result.winner] : null;
+      if (g.you === 0 && g.named) g.named.presence({ result: { winner: winnerId ? result.winner : -1, reason: result.reason }, s: g.kind === 'relay' ? null : copy(g.state), v: ++g.v }).catch(() => {});
+      const reason = NAMED_REASONS.includes(result.reason) && loserId ? `${displayName(loserId)} ${result.reason}` : result.reason;
+      emit({ t: 'gameOver', id: g.id, result: { winner: winnerId ? result.winner : -1, reason }, state: g.state });
+      if (!opts.noStats && profiles[myId] && !readOnly) {
+        const st = Object.assign({ w: 0, l: 0, d: 0 }, profiles[myId].stats);
+        if (!winnerId) st.d++; else if (winnerId === myId) st.w++; else st.l++;
+        updateMe({ stats: st });
+      }
+      if (opts.post && !readOnly) post(g.room, { sys: 'result', game: g.type, a: g.players[0], b: g.players[1], winner: winnerId, loser: loserId, reason: result.reason });
+      if (game === g) game = null;
+      setPresence({ inGame: null });
+      pushUsers();
+      setTimeout(() => { if (g.named) g.named.leave().catch(() => {}); }, 4000);
+    }
+
+    // ------------------------------------------------------------ requests from the UI
+    function busyReason(id) {
+      if (presenceOf(id) === 'offline') return `${displayName(id)} is offline`;
+      if (inGameOf(id)) return `${displayName(id)} is already in a game`;
+      if (presenceOf(id) === 'idle') return `${displayName(id)} is set to do not disturb`;
+      return null;
+    }
+    const handlers = {
+      msg(m) {
+        const text = str(m.text, 1000), r = m.room === 'global' ? GLOBAL : rooms[m.room];
+        if (!r || !text) return;
+        if (readOnly) return writeError({ code: 'invalid_argument' });
+        const now = Date.now();
+        while (recent.length && now - recent[0] > 4000) recent.shift();
+        if (recent.length >= 8) return emit({ t: 'error', text: 'Slow down a little!' });
+        recent.push(now);
+        if (r.public && r.id !== 'global' && !ids(r.members).includes(myId)) db.doc('rooms/' + r.id).update({ members: ids(r.members).concat(myId) }).catch(() => {});
+        post(r.id, { from: myId, text });
+      },
+      typing(m) { setPresence({ typing: String(m.room).slice(0, 40), typingAt: Date.now() }); },
+      createRoom(m) {
+        const name = str(m.name, 40);
+        if (!name) return emit({ t: 'error', text: 'Give your chat a name' });
+        if (readOnly) return writeError({ code: 'invalid_argument' });
+        const id = rid(10);
+        const members = [myId].concat(ids(m.members).filter((x) => profiles[x] && x !== myId)).slice(0, 50);
+        pendingOpen = id;
+        db.doc('rooms/' + id).set({ name, public: !!m.public, dm: false, members, owner: myId, created: Date.now() }).catch(writeError);
+        post(id, { sys: 'created', by: myId, name });
+      },
+      dm(m) {
+        const other = m.with;
+        if (!profiles[other] || other === myId) return;
+        const id = 'dm-' + hash([myId, other].sort().join('|'));
+        if (rooms[id]) return emit({ t: 'openRoom', id });
+        if (readOnly) return writeError({ code: 'invalid_argument' });
+        pendingOpen = id;
+        db.doc('rooms/' + id).set({ name: '', public: false, dm: true, members: [myId, other].sort(), owner: null, created: Date.now() }).catch(writeError);
+      },
+      addMembers(m) {
+        const r = rooms[m.room];
+        if (!r || r.dm || !ids(r.members).includes(myId)) return;
+        const added = ids(m.members).filter((x) => profiles[x] && !ids(r.members).includes(x));
+        if (!added.length) return;
+        db.doc('rooms/' + r.id).update({ members: ids(r.members).concat(added) }).catch(writeError);
+        post(r.id, { sys: 'added', by: myId, ids: added });
+      },
+      leaveRoom(m) {
+        const r = rooms[m.room];
+        if (!r || r.dm || !ids(r.members).includes(myId)) return;
+        const left = ids(r.members).filter((x) => x !== myId);
+        if (!left.length) db.doc('rooms/' + r.id).delete().catch(writeError);
+        else {
+          db.doc('rooms/' + r.id).update({ members: left }).catch(writeError);
+          post(r.id, { sys: 'left', by: myId });
+        }
+      },
+      profile(m) {
+        const d = m.data || {}, patch = {};
+        if (typeof d.name === 'string' && str(d.name, 30)) patch.name = str(d.name, 30);
+        if (typeof d.bio === 'string') patch.bio = str(d.bio, 300);
+        if (['online', 'offline', 'idle'].includes(d.status)) { patch.status = d.status; setPresence({ status: d.status }); }
+        if (['auto', 'white', 'black', 'custom'].includes(d.bg)) patch.bg = d.bg;
+        if (isColor(d.bgCustom)) patch.bgCustom = d.bgCustom;
+        if (isColor(d.avatar)) patch.avatar = d.avatar;
+        if (Array.isArray(d.favorites)) patch.favorites = d.favorites.filter((g) => GAMES[g]).slice(0, 8);
+        if (Object.keys(patch).length) updateMe(patch);
+      },
+      friend(m) {
+        if (!profiles[m.username] || m.username === myId) return;
+        const list = ids(profiles[myId].friends).filter((f) => f !== m.username);
+        if (m.add) list.push(m.username);
+        updateMe({ friends: list });
+      },
+      gameInvite(m) {
+        if (!room) return emit({ t: 'error', text: 'Live games aren’t available in this view.' });
+        if (!GAMES[m.game]) return emit({ t: 'error', text: 'Unknown game' });
+        if (!profiles[m.to] || m.to === myId) return emit({ t: 'error', text: 'Pick someone to play with' });
+        if (game) return emit({ t: 'error', text: 'You are already in a game' });
+        const busy = busyReason(m.to);
+        if (busy) return emit({ t: 'error', text: busy });
+        const roomId = m.room === 'global' || rooms[m.room] ? m.room : 'global';
+        myInvite = { id: rid(10), to: m.to, game: m.game, room: roomId };
+        setPresence({ invite: myInvite, reply: null });
+        clearTimeout(myInviteTimer);
+        const mine = myInvite;
+        myInviteTimer = setTimeout(() => { if (myInvite === mine) clearInvite(); }, 60000);
+        if (!readOnly) post(roomId, { sys: 'challenge', a: myId, b: m.to, game: m.game });
+        emit({ t: 'notice', text: `Challenge sent to ${displayName(m.to)}` });
+      },
+      gameRespond(m) {
+        const inv = invitesIn[m.id];
+        const still = inv && peersOf(inv.from).some((p) => p.presence.invite && p.presence.invite.id === inv.id);
+        if (!inv || !still || Date.now() > inv.expires) return emit({ t: 'error', text: 'That challenge has expired' });
+        delete invitesIn[m.id];
+        if (m.accept && game) return emit({ t: 'error', text: 'You are already in a game' });
+        setPresence({ reply: { id: inv.id, accept: !!m.accept } });
+        if (m.accept) startGame({ id: inv.id, type: inv.game, players: [inv.from, myId], you: 1, room: inv.room });
+      },
+      gameInput(m) { if (game && game.id === m.id && !game.over) gameInput(game, m.input); },
+      gameLeave(m) {
+        const g = game;
+        if (!g || g.id !== m.id || g.over) return;
+        if (g.you === 1 && g.named) g.named.presence({ forfeit: true }).catch(() => {});
+        finish(g, { winner: 1 - g.you, reason: 'forfeited' }, { post: g.you === 0 });
+      },
+    };
+
+    // ------------------------------------------------------------ boot
+    (async () => {
+      const api = window.claude && typeof window.claude.use === 'function' ? window.claude : null;
+      if (!api) return emit({ t: 'fatal', title: 'Open this on claude.ai', text: 'Game Chat runs inside claude.ai. Open the artifact link while signed in.' });
+      [db, room, user] = await Promise.all(['db', 'room', 'user'].map((n) => api.use(n).catch(() => null)));
+      if (!db || !user) return emit({ t: 'fatal', title: 'Sign in to chat', text: 'Open this page while signed in to claude.ai. If someone shared it with you, ask them to invite you by email as an Editor.' });
+      const me = await user.me();
+      myId = me.id;
+      myColor = me.color || myColor;
+      if (!myId) return emit({ t: 'fatal', title: 'Sign in to chat', text: 'Open this page while signed in to claude.ai. If someone shared it with you, ask them to invite you by email as an Editor.' });
+      platform[myId] = { name: me.name, color: myColor };
+      setPresence({ uid: myId, status: 'online', inGame: null, invite: null, reply: null });
+      db.collection('profiles').onSnapshot(onProfiles, dbError);
+      db.collection('rooms').onSnapshot(onRooms, dbError);
+      subscribeMsgs('global');
+      if (room) room.onPeers(onLobby, () => { lobbyPeers = []; pushUsers(); });
+      setInterval(() => {
+        const now = Date.now();
+        for (const [id, inv] of Object.entries(invitesIn)) if (now > inv.expires) delete invitesIn[id];
+      }, 10000);
+    })().catch(() => emit({ t: 'fatal', title: 'Can’t connect', text: 'Something went wrong loading the chat. Reload the page to try again.' }));
+
+    return {
+      send(m) {
+        if (!m || !handlers[m.t] || !myId) return;
+        try { handlers[m.t](m); } catch (e) { console.error(e); emit({ t: 'error', text: 'Something went wrong' }); }
+      },
+    };
+  };
+})();
+
+</script>
+<script>
+// Chat client: sign in, rooms, presence, settings, and game challenges.
+(() => {
+  const $ = (sel, el = document) => el.querySelector(sel);
+  function h(tag, attrs, ...kids) {
+    const el = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs || {})) {
+      if (v === null || v === undefined || v === false) continue;
+      if (k === 'class') el.className = v;
+      else if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+      else if (k === 'value') el.value = v;
+      else el.setAttribute(k, v === true ? '' : v);
+    }
+    for (const kid of kids.flat()) if (kid !== null && kid !== undefined && kid !== false) el.append(kid instanceof Node ? kid : String(kid));
+    return el;
+  }
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+    set(k, v) { try { v === null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch {} },
+  };
+
+  const S = {
+    ws: null, me: null, users: {}, rooms: {}, games: {}, current: store.get('chatRoom') || 'global',
+    unread: {}, typing: {}, token: store.get('chatToken'), signedOut: false, retry: 0, authMode: 'login', queue: [],
+  };
+  // In the claude.ai artifact build, a ChatTransport replaces the WebSocket server.
+  const ARTIFACT = typeof window.ChatTransport === 'function';
+  const PRESENCE_LABEL = { online: 'Online', offline: 'Offline', idle: 'Do not disturb' };
+  const AVATARS = ['#22c55e', '#111111', '#ef4444', '#facc15', '#d946ef'];
+
+  // ---------------------------------------------------------------- connection
+  let transport = null;
+  function send(obj) {
+    if (transport) return transport.send(obj);
+    if (S.ws && S.ws.readyState === 1) S.ws.send(JSON.stringify(obj));
+    else S.queue.push(obj);
+  }
+  function connect() {
+    if (ARTIFACT) {
+      transport = window.ChatTransport((m) => (on[m.t] || (() => {}))(m));
+      return;
+    }
+    const ws = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws');
+    S.ws = ws;
+    ws.onopen = () => {
+      S.retry = 0;
+      $('#banner').classList.add('hidden');
+      if (S.token) ws.send(JSON.stringify({ t: 'resume', token: S.token }));
+      else showAuth();
+      const q = S.queue.splice(0);
+      q.forEach((m) => ws.send(JSON.stringify(m)));
+    };
+    ws.onmessage = (e) => {
+      let m;
+      try { m = JSON.parse(e.data); } catch { return; }
+      (on[m.t] || (() => {}))(m);
+    };
+    ws.onclose = () => {
+      if (S.signedOut) { S.signedOut = false; connect(); return; }
+      if (S.me) $('#banner').classList.remove('hidden');
+      S.retry = Math.min(S.retry + 1, 6);
+      setTimeout(connect, 500 * S.retry);
+    };
+  }
+
+  const on = {
+    hello(m) {
+      S.token = m.token;
+      store.set('chatToken', m.token);
+      S.me = m.me;
+      S.games = m.games;
+      S.users = {};
+      m.users.forEach((u) => { S.users[u.username] = u; });
+      S.rooms = {};
+      m.rooms.forEach((r) => { S.rooms[r.id] = r; });
+      if (!S.rooms[S.current]) S.current = 'global';
+      $('#auth').classList.add('hidden');
+      $('#app').classList.remove('hidden');
+      applyTheme();
+      renderAll();
+    },
+    authFailed() {
+      S.token = null;
+      store.set('chatToken', null);
+      showAuth();
+    },
+    user(m) {
+      S.users[m.user.username] = m.user;
+      if (S.me && m.user.username === S.me.username) Object.assign(S.me, m.user);
+      renderPeople();
+      renderRooms();
+      renderHeader();
+      refreshOpenModal();
+    },
+    me(m) {
+      S.me = m.me;
+      S.users[m.me.username] = Object.assign(S.users[m.me.username] || {}, m.me);
+      applyTheme();
+      renderPeople();
+      refreshOpenModal();
+    },
+    room(m) {
+      const old = S.rooms[m.room.id];
+      const lastId = (r) => (r && r.messages.length ? r.messages[r.messages.length - 1].id : null);
+      S.rooms[m.room.id] = m.room;
+      if (old && old.messages.length > m.room.messages.length) m.room.messages = old.messages;
+      renderRooms();
+      if (m.room.id === S.current) {
+        renderHeader();
+        if (lastId(old) !== lastId(m.room)) renderMessages();
+      }
+    },
+    roomRemoved(m) {
+      delete S.rooms[m.id];
+      if (S.current === m.id) selectRoom('global');
+      else renderRooms();
+    },
+    openRoom(m) {
+      if (S.rooms[m.id]) selectRoom(m.id);
+      closeModal();
+    },
+    msg(m) {
+      const room = S.rooms[m.room];
+      if (!room) return;
+      room.messages.push(m.msg);
+      if (S.typing[m.room]) delete S.typing[m.room][m.msg.from];
+      if (m.room === S.current) {
+        appendMessage(m.msg, room.messages[room.messages.length - 2]);
+        renderTyping();
+      }
+      if ((m.room !== S.current || document.hidden) && m.msg.from && m.msg.from !== S.me.username) {
+        S.unread[m.room] = (S.unread[m.room] || 0) + 1;
+      }
+      renderRooms();
+      updateTitle();
+    },
+    typing(m) {
+      (S.typing[m.room] = S.typing[m.room] || {})[m.from] = Date.now();
+      if (m.room === S.current) renderTyping();
+    },
+    error(m) {
+      if (!S.me) { $('#authError').textContent = m.text; return; }
+      toast(m.text, 'err');
+    },
+    notice(m) { toast(m.text); },
+    fatal(m) {
+      $('#app').classList.add('hidden');
+      $('#auth').classList.remove('hidden');
+      $('#authForm').replaceChildren(h('h2', {}, m.title || 'Can’t connect'), h('p', { class: 'muted' }, m.text));
+    },
+    invite(m) { showInvite(m.invite); },
+    gameStart(m) { closeModal(); GameDock.start(m); renderPeople(); },
+    gameState(m) { GameDock.state(m); },
+    gameEvent(m) { GameDock.event(m); },
+    gameOver(m) { GameDock.over(m); },
+    gameError(m) { toast(m.text, 'err'); },
+  };
+
+  // ---------------------------------------------------------------- auth
+  function showAuth() {
+    S.me = null;
+    $('#app').classList.add('hidden');
+    $('#auth').classList.remove('hidden');
+    document.body.dataset.theme = 'dark';
+    document.body.style.removeProperty('--bg');
+  }
+  document.querySelectorAll('.tab').forEach((tab) => tab.addEventListener('click', () => {
+    S.authMode = tab.dataset.mode;
+    document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', t === tab));
+    $('#authNameRow').classList.toggle('hidden', S.authMode !== 'register');
+    $('#authSubmit').textContent = S.authMode === 'register' ? 'Create account' : 'Sign in';
+    $('#authPass').autocomplete = S.authMode === 'register' ? 'new-password' : 'current-password';
+    $('#authError').textContent = '';
+  }));
+  $('#authForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    $('#authError').textContent = '';
+    send({ t: S.authMode, username: $('#authUser').value.trim(), password: $('#authPass').value, name: $('#authName').value.trim() });
+  });
+  function signOut() {
+    send({ t: 'logout', token: S.token });
+    store.set('chatToken', null);
+    S.token = null;
+    S.signedOut = true;
+    GameDock.close();
+    closeModal();
+    showAuth();
+  }
+
+  // ---------------------------------------------------------------- helpers
+  const userOf = (u) => S.users[u] || { username: u, name: u, avatar: '#999', presence: 'offline', favorites: [], stats: { w: 0, l: 0, d: 0 } };
+  const nameOf = (u) => userOf(u).name;
+  const handleText = (u) => (ARTIFACT ? u.handle || '' : '@' + (u.handle || u.username));
+  const onlineUsers = () => Object.values(S.users).filter((u) => u.presence !== 'offline');
+  function avatar(u, big) {
+    const x = userOf(u);
+    return h('div', { class: 'avatar' + (big ? ' big' : ''), style: `background:${x.avatar}`, title: x.name },
+      (x.name || '?')[0].toUpperCase(), h('i', { class: 'dot ' + x.presence }));
+  }
+  function roomLabel(r) {
+    if (r.dm) return nameOf(r.members.find((m) => m !== S.me.username) || S.me.username);
+    return r.name;
+  }
+  function roomActive(r) {
+    const ppl = r.public ? onlineUsers() : r.members.map(userOf).filter((u) => u.presence !== 'offline');
+    return ppl.length;
+  }
+  const lastTs = (r) => (r.messages.length ? r.messages[r.messages.length - 1].ts : 0);
+  function fmtTime(ts) {
+    return new Date(ts).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  }
+  function fmtDay(ts) {
+    const d = new Date(ts), today = new Date();
+    if (d.toDateString() === today.toDateString()) return 'Today';
+    const y = new Date(today - 864e5);
+    if (d.toDateString() === y.toDateString()) return 'Yesterday';
+    return d.toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' });
+  }
+  function toast(text, kind, ms = 4000) {
+    const el = h('div', { class: 'toast' + (kind ? ' ' + kind : '') }, text);
+    $('#toasts').append(el);
+    setTimeout(() => el.remove(), ms);
+    return el;
+  }
+  function updateTitle() {
+    const n = Object.values(S.unread).reduce((a, b) => a + b, 0);
+    document.title = (n ? `(${n}) ` : '') + 'Game Chat';
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && S.unread[S.current]) { delete S.unread[S.current]; renderRooms(); updateTitle(); }
+  });
+
+  function systemDark() {
+    const t = document.documentElement.dataset.theme;
+    if (t === 'dark' || t === 'light') return t === 'dark';
+    return matchMedia('(prefers-color-scheme: dark)').matches;
+  }
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => S.me && applyTheme());
+  new MutationObserver(() => S.me && applyTheme()).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  function applyTheme() {
+    const me = S.me, body = document.body;
+    body.style.removeProperty('--bg');
+    if (me.bg === 'auto') body.dataset.theme = systemDark() ? 'dark' : 'light';
+    else if (me.bg === 'black') body.dataset.theme = 'dark';
+    else if (me.bg === 'custom') {
+      const c = me.bgCustom, n = parseInt(c.slice(1), 16);
+      const lum = (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
+      body.dataset.theme = lum < 0.5 ? 'dark' : 'light';
+      body.style.setProperty('--bg', c);
+    } else body.dataset.theme = 'light';
+  }
+
+  // ---------------------------------------------------------------- rendering
+  function renderAll() {
+    renderRooms();
+    renderPeople();
+    renderHeader();
+    renderMessages();
+  }
+  function renderRooms() {
+    if (!S.me) return;
+    const list = $('#roomList');
+    list.replaceChildren();
+    const rooms = Object.values(S.rooms).sort((a, b) => (a.id === 'global' ? -1 : b.id === 'global' ? 1 : lastTs(b) - lastTs(a)));
+    for (const r of rooms) {
+      const n = S.unread[r.id];
+      const other = r.dm && r.members.find((m) => m !== S.me.username);
+      list.append(h('li', { class: r.id === S.current ? 'active' : '', onclick: () => selectRoom(r.id) },
+        r.dm ? avatar(other || S.me.username) : h('span', { class: 'room-icon' }, r.id === 'global' ? '🌐' : r.public ? '#' : '🔒'),
+        h('span', { class: 'grow' }, roomLabel(r), ' ', r.dm ? null : h('small', {}, `${roomActive(r)} active`)),
+        n ? h('span', { class: 'badge' }, n) : null));
+    }
+  }
+  function personRow(u) {
+    const x = userOf(u);
+    return h('li', { onclick: () => showProfile(u) }, avatar(u),
+      h('span', { class: 'grow' }, x.name, u === S.me.username ? h('small', {}, ' (you)') : null, ' ',
+        x.inGame ? h('small', {}, `🎮 ${gameName(x.inGame)}`) : h('small', {}, PRESENCE_LABEL[x.presence])));
+  }
+  function renderPeople() {
+    if (!S.me) return;
+    const online = onlineUsers().sort((a, b) => (a.username === S.me.username ? -1 : b.username === S.me.username ? 1 : a.name.localeCompare(b.name)));
+    $('#onlineList').replaceChildren(...(online.length ? online.map((u) => personRow(u.username)) : [h('li', { class: 'empty' }, 'Nobody else is online')]));
+    const friends = (S.me.friends || []).filter((f) => S.users[f]);
+    $('#friendList').replaceChildren(...(friends.length ? friends.map(personRow) : [h('li', { class: 'empty' }, 'Click someone to add them as a friend')]));
+    const n = online.length;
+    $('#onlineCount').textContent = `${n} Online`;
+    const me = userOf(S.me.username);
+    $('#meCard').replaceChildren(avatar(S.me.username),
+      h('div', { class: 'grow' }, h('b', {}, me.name), h('small', {}, `${ARTIFACT ? '' : handleText(me) + ' · '}${PRESENCE_LABEL[me.presence]}`)),
+      h('span', { class: 'muted', style: 'font-size:18px' }, '⚙'));
+  }
+  function renderHeader() {
+    const r = S.rooms[S.current];
+    if (!r || !S.me) return;
+    $('#roomName').textContent = r.dm ? `💬 ${roomLabel(r)}` : roomLabel(r);
+    let meta;
+    if (r.dm) {
+      const other = userOf(r.members.find((m) => m !== S.me.username) || S.me.username);
+      meta = PRESENCE_LABEL[other.presence];
+    } else meta = r.public ? `Public · ${roomActive(r)} active` : `Private · ${r.members.length} members · ${roomActive(r)} active`;
+    $('#roomMeta').textContent = meta;
+    $('#msgInput').placeholder = r.dm ? `Message ${roomLabel(r)}` : 'Say hello';
+  }
+  function renderMessages() {
+    const box = $('#messages'), r = S.rooms[S.current];
+    box.replaceChildren();
+    if (!r) return;
+    if (!r.messages.length) box.append(h('div', { class: 'empty-chat' }, h('div', { class: 'big-emoji' }, '👋'), h('b', {}, 'No messages yet'), 'Say hello to get things going!'));
+    r.messages.forEach((m, i) => appendMessage(m, r.messages[i - 1], true));
+    box.scrollTop = box.scrollHeight;
+    renderTyping();
+  }
+  function appendMessage(m, prev, bulk) {
+    const box = $('#messages');
+    const empty = $('.empty-chat', box);
+    if (empty) empty.remove();
+    const stick = box.scrollHeight - box.scrollTop - box.clientHeight < 80;
+    if (!prev || fmtDay(prev.ts) !== fmtDay(m.ts)) box.append(h('div', { class: 'day' }, fmtDay(m.ts)));
+    if (m.sys) {
+      box.append(h('div', { class: 'sysmsg' }, m.text));
+    } else {
+      const mine = m.from === S.me.username;
+      const cont = prev && !prev.sys && prev.from === m.from && m.ts - prev.ts < 5 * 60e3 && fmtDay(prev.ts) === fmtDay(m.ts);
+      box.append(h('div', { class: 'msg' + (mine ? ' me' : '') + (cont ? ' cont' : '') },
+        h('div', { class: 'av-slot', onclick: () => showProfile(m.from) }, avatar(m.from)),
+        h('div', { class: 'body' },
+          h('div', { class: 'meta' },
+            h('button', { class: 'who', onclick: () => showProfile(m.from) }, mine ? 'You' : nameOf(m.from)),
+            h('span', { class: 'time' }, fmtTime(m.ts))),
+          h('div', { class: 'text', title: fmtTime(m.ts) }, m.text))));
+    }
+    if (!bulk && (stick || m.from === S.me.username)) box.scrollTop = box.scrollHeight;
+  }
+  function renderTyping() {
+    const t = S.typing[S.current] || {}, now = Date.now();
+    const who = Object.keys(t).filter((u) => now - t[u] < 3500).map(nameOf);
+    $('#typing').textContent = who.length ? `${who.join(', ')} ${who.length > 1 ? 'are' : 'is'} typing…` : '';
+  }
+  setInterval(() => { if (S.me) renderTyping(); }, 1000);
+
+  function selectRoom(id) {
+    if (!S.rooms[id]) return;
+    S.current = id;
+    store.set('chatRoom', id);
+    delete S.unread[id];
+    $('#app').classList.remove('menu-open');
+    renderRooms();
+    renderHeader();
+    renderMessages();
+    updateTitle();
+    if (matchMedia('(min-width: 721px)').matches) $('#msgInput').focus();
+  }
+
+  // ---------------------------------------------------------------- composer
+  let lastTyping = 0;
+  $('#msgInput').addEventListener('input', () => {
+    if (Date.now() - lastTyping > 2000) { lastTyping = Date.now(); send({ t: 'typing', room: S.current }); }
+  });
+  $('#composer').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const input = $('#msgInput'), text = input.value.trim();
+    if (!text) return;
+    send({ t: 'msg', room: S.current, text });
+    input.value = '';
+    lastTyping = 0;
+  });
+
+  // ---------------------------------------------------------------- modals
+  let modalRefresh = null;
+  function openModal(build, wide) {
+    const card = $('#modalCard');
+    card.className = 'modal-card' + (wide ? ' wide' : '');
+    card.replaceChildren(...[].concat(build()));
+    modalRefresh = build.refresh || null;
+    $('#modal').classList.remove('hidden');
+  }
+  function uiConfirm(text, okLabel, onOk) {
+    openModal(() => [h('h2', {}, text),
+      h('div', { class: 'row end' },
+        h('button', { class: 'btn', onclick: closeModal }, 'Cancel'),
+        h('button', { class: 'btn danger', onclick: () => { closeModal(); onOk(); } }, okLabel))]);
+  }
+  window.uiConfirm = uiConfirm;
+  function closeModal() {
+    $('#modal').classList.add('hidden');
+    $('#modalCard').replaceChildren();
+    modalRefresh = null;
+  }
+  function refreshOpenModal() { if (modalRefresh) modalRefresh(); }
+  $('#modal').addEventListener('mousedown', (e) => { if (e.target.id === 'modal') closeModal(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('#modal').classList.contains('hidden')) closeModal(); });
+  const modalHead = (title) => h('div', { class: 'modal-head' }, h('h2', {}, title), h('button', { class: 'close-x', onclick: closeModal, title: 'Close' }, 'X'));
+
+  function userChecklist(users, checked) {
+    const box = h('div', { class: 'check-list' });
+    if (!users.length) box.append(h('div', { class: 'muted' }, 'Nobody to add yet.'));
+    users.sort((a, b) => (a.presence === 'offline') - (b.presence === 'offline') || a.name.localeCompare(b.name)).forEach((u) => {
+      box.append(h('label', {}, h('input', { type: 'checkbox', value: u.username, checked: checked && checked.includes(u.username) }),
+        avatar(u.username), u.name, u.handle && u.handle !== u.name ? h('small', { class: 'muted' }, ` ${handleText(u)}`) : null));
+    });
+    box.values = () => [...box.querySelectorAll('input:checked')].map((i) => i.value);
+    return box;
+  }
+
+  function newChatModal() {
+    openModal(() => {
+      const name = h('input', { placeholder: 'Chat name, e.g. Game night', maxlength: 40 });
+      const pub = h('input', { type: 'checkbox', style: 'width:auto' });
+      const people = userChecklist(Object.values(S.users).filter((u) => u.username !== S.me.username));
+      setTimeout(() => name.focus());
+      return [modalHead('New chat'),
+        h('label', { class: 'field' }, h('span', {}, 'Name'), name),
+        h('label', { class: 'row' }, pub, 'Public — anyone can see and join this chat'),
+        h('div', { class: 'field' }, h('span', {}, 'Add people'), people),
+        h('div', { class: 'row end' },
+          h('button', { class: 'btn', onclick: closeModal }, 'Cancel'),
+          h('button', { class: 'btn primary', onclick: () => {
+            if (!name.value.trim()) { name.focus(); return; }
+            send({ t: 'createRoom', name: name.value, public: pub.checked, members: people.values() });
+          } }, 'Create chat'))];
+    });
+  }
+
+  function membersModal() {
+    const r = S.rooms[S.current];
+    const build = () => {
+      const list = r.public ? onlineUsers().map((u) => u.username) : r.members;
+      const kids = [modalHead(r.public ? `${roomLabel(r)} — online now` : `${roomLabel(r)} — members`),
+        h('ul', { class: 'list' }, list.length ? list.map(personRow) : h('li', { class: 'empty' }, 'Nobody here'))];
+      if (!r.dm && r.id !== 'global' && r.members.includes(S.me.username)) {
+        const others = Object.values(S.users).filter((u) => !r.members.includes(u.username));
+        const add = userChecklist(others);
+        kids.push(h('div', { class: 'field' }, h('span', {}, 'Add people'), add),
+          h('div', { class: 'row end' },
+            h('button', { class: 'btn danger', onclick: () => uiConfirm(`Leave “${r.name}”?`, 'Leave chat', () => send({ t: 'leaveRoom', room: r.id })) }, 'Leave chat'),
+            h('button', { class: 'btn primary', onclick: () => { send({ t: 'addMembers', room: r.id, members: add.values() }); closeModal(); } }, 'Add')));
+      }
+      return kids;
+    };
+    openModal(build);
+  }
+
+  function showProfile(u) {
+    const build = () => {
+      const x = userOf(u), mine = u === S.me.username, friend = (S.me.friends || []).includes(u);
+      const favs = (x.favorites || []).map(gameName);
+      return [
+        h('div', { class: 'modal-head' }, h('div', { class: 'profile-top', style: 'flex:1' }, avatar(u, true),
+          h('div', {}, h('h2', {}, x.name), h('div', { class: 'muted' }, handleText(x)),
+            h('div', {}, h('i', { class: 'dot ' + x.presence }), ' ', PRESENCE_LABEL[x.presence], x.inGame ? ` · playing ${gameName(x.inGame)}` : ''))),
+        h('button', { class: 'close-x', onclick: closeModal }, 'X')),
+        h('div', { class: 'bio-box' }, h('b', {}, 'Bio'), h('div', { style: 'white-space:pre-wrap' }, x.bio || h('span', { class: 'muted' }, 'No bio yet.'))),
+        h('div', { class: 'field' }, h('b', {}, 'Favorite games'),
+          h('div', { class: 'chips' }, favs.length ? favs.map((g) => h('span', { class: 'chip' }, g)) : h('span', { class: 'muted' }, 'None picked'))),
+        record(x.stats),
+        mine ? h('div', { class: 'row end' }, h('button', { class: 'btn primary', onclick: settingsModal }, 'Edit in Settings'))
+          : h('div', { class: 'row end' },
+            h('button', { class: 'btn', onclick: () => send({ t: 'friend', username: u, add: !friend }) }, friend ? 'Remove friend' : '＋ Add friend'),
+            h('button', { class: 'btn', onclick: () => send({ t: 'dm', with: u }) }, 'Message'),
+            h('button', { class: 'btn primary', onclick: () => gameModal(u) }, 'Challenge')),
+      ];
+    };
+    build.refresh = () => $('#modalCard').replaceChildren(...build());
+    openModal(build);
+  }
+
+  const record = (st) => h('div', { class: 'record' },
+    h('div', {}, h('b', {}, st.w), h('small', {}, 'Wins')), h('div', {}, h('b', {}, st.l), h('small', {}, 'Losses')), h('div', {}, h('b', {}, st.d), h('small', {}, 'Draws')));
+  const gameName = (g) => (GameDock.META[g] || {}).name || g;
+  function gameModal(opponent, preselect) {
+    let game = preselect || (S.me.favorites && S.me.favorites[0]) || 'snake';
+    let target = opponent || null;
+    const build = () => {
+      const r = S.rooms[S.current];
+      const pool = onlineUsers().filter((u) => u.username !== S.me.username)
+        .sort((a, b) => (r && r.members.includes(b.username)) - (r && r.members.includes(a.username)) || a.name.localeCompare(b.name));
+      if (!target && pool.length) target = (r && r.dm && r.members.find((m) => m !== S.me.username && userOf(m).presence !== 'offline')) || pool[0].username;
+      const grid = h('div', { class: 'game-grid' }, Object.entries(GameDock.META).map(([id, g]) =>
+        h('button', { class: 'game-card' + (id === game ? ' sel' : ''), style: `--g:${g.color}`, onclick: () => { game = id; rebuild(); } },
+          h('span', { class: 'emoji' }, g.emoji), h('b', {}, g.name), h('small', {}, g.desc))));
+      const people = h('ul', { class: 'list' }, pool.length ? pool.map((u) => h('li', {
+        class: u.username === target ? 'active' : '', onclick: () => { target = u.username; rebuild(); } },
+      avatar(u.username), h('span', { class: 'grow' }, u.name, ' ', h('small', {}, u.inGame ? `🎮 in a game` : PRESENCE_LABEL[u.presence]))))
+        : h('li', { class: 'empty' }, 'Nobody else is online right now. Invite a friend to open this page!'));
+      return [modalHead('Request a game'), h('b', {}, '1. Pick a game'), grid, h('b', {}, '2. Pick who to play'), people,
+        h('div', { class: 'row end' }, h('button', { class: 'btn', onclick: closeModal }, 'Cancel'),
+          h('button', { class: 'btn primary', disabled: !target || !pool.some((u) => u.username === target), onclick: () => {
+            send({ t: 'gameInvite', game, to: target, room: S.current });
+            closeModal();
+          } }, `Challenge${target ? ' ' + nameOf(target) : ''}`))];
+    };
+    const rebuild = () => $('#modalCard').replaceChildren(...build());
+    build.refresh = rebuild;
+    openModal(build, true);
+  }
+
+  function showInvite(inv) {
+    const g = GameDock.META[inv.game];
+    let left = Math.max(1, Math.round((inv.expires - Date.now()) / 1000));
+    const count = h('small', { class: 'muted' });
+    const el = h('div', { class: 'toast invite' },
+      h('div', { class: 'row' }, avatar(inv.from), h('div', { style: 'flex:1' }, h('b', {}, nameOf(inv.from)), ` challenged you to ${g.emoji} ${g.name}!`)),
+      h('div', { class: 'row end' }, count,
+        h('button', { class: 'btn', onclick: () => { send({ t: 'gameRespond', id: inv.id, accept: false }); done(); } }, 'Decline'),
+        h('button', { class: 'btn primary', onclick: () => { send({ t: 'gameRespond', id: inv.id, accept: true }); done(); } }, 'Accept')));
+    const tick = () => { count.textContent = `${left}s`; if (left-- <= 0) done(); };
+    const timer = setInterval(tick, 1000);
+    function done() { clearInterval(timer); el.remove(); }
+    tick();
+    $('#toasts').append(el);
+  }
+
+  // settings — laid out like the mockup
+  function settingsModal() {
+    const set = (data) => send({ t: 'profile', data });
+    let me = S.me;
+    const statusOpt = (val, color, label) => h('button', { class: 'status-opt' + (me.status === val ? ' sel' : ''), onclick: () => { set({ status: val }); } },
+      h('span', { class: 'arrow' }, me.status === val ? '➡' : ''), h('span', { class: 'sq', style: `background:${color}` }), label);
+    const bgOpt = (val, cls, label, extra) => h('div', { class: 'bg-opt' + (me.bg === val ? ' sel' : '') }, h('span', { class: 'arrow' }, me.bg === val ? '➡' : ''),
+      h('button', { class: 'btn ' + cls, onclick: () => set({ bg: val }) }, label), extra || null);
+    const build = () => {
+      me = S.me;
+      const name = h('input', { value: me.name, maxlength: 30, onchange: (e) => e.target.value.trim() && set({ name: e.target.value }) });
+      const oldPw = h('input', { type: 'password', placeholder: 'Current password', autocomplete: 'current-password' });
+      const newPw = h('input', { type: 'password', placeholder: 'New password', autocomplete: 'new-password' });
+      const bgColor = h('input', { type: 'color', value: me.bgCustom, title: 'Pick a background color', oninput: (e) => { me.bgCustom = e.target.value; me.bg = 'custom'; applyTheme(); }, onchange: (e) => set({ bg: 'custom', bgCustom: e.target.value }) });
+      const avColor = h('input', { type: 'color', value: me.avatar, oninput: (e) => { $('#settingsAvatar').style.background = e.target.value; }, onchange: (e) => set({ avatar: e.target.value }) });
+      const bio = h('textarea', { maxlength: 300, placeholder: 'Tell people about yourself', onchange: (e) => set({ bio: e.target.value }) });
+      bio.value = me.bio || '';
+      const friends = (me.friends || []).filter((f) => S.users[f]);
+      return [
+        h('div', { class: 'modal-head' }, h('button', { class: 'close-x', onclick: closeModal, title: 'Close' }, 'X'),
+          h('h2', {}, 'Settings'), ARTIFACT ? null : h('button', { class: 'btn danger', onclick: signOut }, 'Sign out')),
+        h('div', { class: 'settings-grid' },
+          h('section', {},
+            h('label', { class: 'field' }, h('span', {}, 'Name'), name),
+            ARTIFACT ? null : h('div', { class: 'field' }, h('span', {}, 'Password'), oldPw, newPw,
+              h('button', { class: 'btn', onclick: () => { send({ t: 'password', old: oldPw.value, new: newPw.value }); oldPw.value = newPw.value = ''; } }, 'Change password')),
+            h('label', { class: 'field' }, h('span', {}, ARTIFACT ? 'Claude account' : 'Username'), h('input', { value: me.handle || me.username, disabled: true, title: ARTIFACT ? 'You’re signed in with your Claude account' : 'Usernames can’t be changed' })),
+            h('div', { class: 'field' }, h('div', { class: 'boxed-title' }, 'Profile picture color'),
+              h('div', { class: 'row' }, h('div', { id: 'settingsAvatar', class: 'avatar big', style: `background:${me.avatar}` }, me.name[0].toUpperCase()),
+                h('div', { class: 'swatches' }, AVATARS.map((c) => h('button', { class: 'swatch' + (me.avatar.toLowerCase() === c ? ' sel' : ''), style: `background:${c}`, title: c, onclick: () => set({ avatar: c }) })))),
+              h('label', { class: 'field' }, h('small', {}, 'Color selector'), avColor))),
+          h('section', {},
+            h('div', { class: 'boxed-title' }, 'Status'),
+            h('div', {}, statusOpt('online', 'var(--online)', 'Online'), statusOpt('offline', 'var(--offline)', 'Offline (appear offline)'), statusOpt('idle', 'var(--idle)', 'Idle / do not disturb')),
+            h('div', { class: 'boxed-title' }, 'Background color'),
+            ARTIFACT ? bgOpt('auto', '', 'Match Claude') : null, bgOpt('white', 'white', 'White'), bgOpt('black', 'black', 'Black'),
+            bgOpt('custom', '', 'Color selection', bgColor),
+            h('div', { class: 'boxed-title' }, 'Favorite games'),
+            h('div', { class: 'game-grid', style: 'grid-template-columns:1fr 1fr' }, Object.entries(GameDock.META).map(([id, g]) => {
+              const onFav = (me.favorites || []).includes(id);
+              return h('button', { class: 'btn fav-btn' + (onFav ? ' on' : ''), onclick: () => set({ favorites: onFav ? me.favorites.filter((f) => f !== id) : (me.favorites || []).concat(id) }) }, `${g.emoji} ${g.name}`);
+            }))),
+          h('section', {},
+            h('div', { class: 'bio-box' }, h('b', {}, 'Bio'), bio),
+            h('div', { class: 'friends-box' }, h('b', {}, 'Friends list'),
+              friends.length ? friends.map((f) => h('div', { class: 'row', style: 'cursor:pointer', onclick: () => showProfile(f) }, h('i', { class: 'dot ' + userOf(f).presence }), nameOf(f), h('small', { class: 'muted' }, PRESENCE_LABEL[userOf(f).presence])))
+                : h('span', { class: 'muted' }, 'No friends yet — click someone’s name and press “Add friend”.')),
+            h('div', { class: 'boxed-title' }, 'Your record'), record(me.stats))),
+      ];
+    };
+    // Re-render on updates, but never while the user is typing in a field.
+    build.refresh = () => {
+      const a = document.activeElement;
+      if (a && $('#modalCard').contains(a) && (a.tagName === 'TEXTAREA' || (a.tagName === 'INPUT' && a.type !== 'color'))) return;
+      $('#modalCard').replaceChildren(...build());
+    };
+    openModal(build, true);
+  }
+
+  // ---------------------------------------------------------------- wire up
+  $('#newChatBtn').addEventListener('click', newChatModal);
+  $('#settingsBtn').addEventListener('click', settingsModal);
+  $('#meCard').addEventListener('click', settingsModal);
+  $('#signOutBtn').addEventListener('click', signOut);
+  if (ARTIFACT) $('#signOutBtn').classList.add('hidden');
+  $('#membersBtn').addEventListener('click', membersModal);
+  $('#requestGameBtn').addEventListener('click', () => gameModal());
+  $('#onlineBtn').addEventListener('click', () => openModal(() => [modalHead(`${onlineUsers().length} Online`),
+    h('ul', { class: 'list' }, onlineUsers().map((u) => personRow(u.username)))]));
+  $('#menuBtn').addEventListener('click', () => $('#app').classList.toggle('menu-open'));
+  $('#scrim').addEventListener('click', () => $('#app').classList.remove('menu-open'));
+
+  GameDock.init({
+    send: (id, input) => send({ t: 'gameInput', id, input }),
+    leave: (id) => send({ t: 'gameLeave', id }),
+    rematch: (game, opponent) => send({ t: 'gameInvite', game, to: opponent, room: S.current }),
+    me: () => S.me,
+  });
+
+  connect();
+})();
+
+</script>

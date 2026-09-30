@@ -582,7 +582,10 @@
     const leaveBtn = h('button', { class: 'btn danger small', onclick: () => {
       if (!cur) return;
       if (cur.over) close();
-      else if (confirm('Forfeit this game?')) host.leave(cur.id);
+      else {
+        const id = cur.id;
+        window.uiConfirm('Forfeit this game?', 'Forfeit', () => host.leave(id));
+      }
     } }, 'Forfeit');
     d.replaceChildren(
       h('div', { class: 'game-head' },

@@ -286,4 +286,6 @@ function updateProjectiles(s) {
   s.proj = s.proj.filter((p) => !p.dead && p.x > -40 && p.x < s.W + 40);
 }
 
-module.exports = { snake, pong, fighter };
+const Realtime = { snake, pong, fighter };
+if (typeof module !== 'undefined' && module.exports) module.exports = Realtime;
+else globalThis.Realtime = Realtime;

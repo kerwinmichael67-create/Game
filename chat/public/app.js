@@ -22,15 +22,23 @@
     ws: null, me: null, users: {}, rooms: {}, games: {}, current: store.get('chatRoom') || 'global',
     unread: {}, typing: {}, token: store.get('chatToken'), signedOut: false, retry: 0, authMode: 'login', queue: [],
   };
+  // In the claude.ai artifact build, a ChatTransport replaces the WebSocket server.
+  const ARTIFACT = typeof window.ChatTransport === 'function';
   const PRESENCE_LABEL = { online: 'Online', offline: 'Offline', idle: 'Do not disturb' };
   const AVATARS = ['#22c55e', '#111111', '#ef4444', '#facc15', '#d946ef'];
 
   // ---------------------------------------------------------------- connection
+  let transport = null;
   function send(obj) {
+    if (transport) return transport.send(obj);
     if (S.ws && S.ws.readyState === 1) S.ws.send(JSON.stringify(obj));
     else S.queue.push(obj);
   }
   function connect() {
+    if (ARTIFACT) {
+      transport = window.ChatTransport((m) => (on[m.t] || (() => {}))(m));
+      return;
+    }
     const ws = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws');
     S.ws = ws;
     ws.onopen = () => {
@@ -92,10 +100,14 @@
     },
     room(m) {
       const old = S.rooms[m.room.id];
+      const lastId = (r) => (r && r.messages.length ? r.messages[r.messages.length - 1].id : null);
       S.rooms[m.room.id] = m.room;
       if (old && old.messages.length > m.room.messages.length) m.room.messages = old.messages;
       renderRooms();
-      if (m.room.id === S.current) renderHeader();
+      if (m.room.id === S.current) {
+        renderHeader();
+        if (lastId(old) !== lastId(m.room)) renderMessages();
+      }
     },
     roomRemoved(m) {
       delete S.rooms[m.id];
@@ -130,6 +142,11 @@
       toast(m.text, 'err');
     },
     notice(m) { toast(m.text); },
+    fatal(m) {
+      $('#app').classList.add('hidden');
+      $('#auth').classList.remove('hidden');
+      $('#authForm').replaceChildren(h('h2', {}, m.title || 'Can’t connect'), h('p', { class: 'muted' }, m.text));
+    },
     invite(m) { showInvite(m.invite); },
     gameStart(m) { closeModal(); GameDock.start(m); renderPeople(); },
     gameState(m) { GameDock.state(m); },
@@ -172,6 +189,7 @@
   // ---------------------------------------------------------------- helpers
   const userOf = (u) => S.users[u] || { username: u, name: u, avatar: '#999', presence: 'offline', favorites: [], stats: { w: 0, l: 0, d: 0 } };
   const nameOf = (u) => userOf(u).name;
+  const handleText = (u) => (ARTIFACT ? u.handle || '' : '@' + (u.handle || u.username));
   const onlineUsers = () => Object.values(S.users).filter((u) => u.presence !== 'offline');
   function avatar(u, big) {
     const x = userOf(u);
@@ -211,10 +229,18 @@
     if (!document.hidden && S.unread[S.current]) { delete S.unread[S.current]; renderRooms(); updateTitle(); }
   });
 
+  function systemDark() {
+    const t = document.documentElement.dataset.theme;
+    if (t === 'dark' || t === 'light') return t === 'dark';
+    return matchMedia('(prefers-color-scheme: dark)').matches;
+  }
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => S.me && applyTheme());
+  new MutationObserver(() => S.me && applyTheme()).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
   function applyTheme() {
     const me = S.me, body = document.body;
     body.style.removeProperty('--bg');
-    if (me.bg === 'black') body.dataset.theme = 'dark';
+    if (me.bg === 'auto') body.dataset.theme = systemDark() ? 'dark' : 'light';
+    else if (me.bg === 'black') body.dataset.theme = 'dark';
     else if (me.bg === 'custom') {
       const c = me.bgCustom, n = parseInt(c.slice(1), 16);
       const lum = (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
@@ -260,7 +286,7 @@
     $('#onlineCount').textContent = `${n} Online`;
     const me = userOf(S.me.username);
     $('#meCard').replaceChildren(avatar(S.me.username),
-      h('div', { class: 'grow' }, h('b', {}, me.name), h('small', {}, `@${S.me.username} · ${PRESENCE_LABEL[me.presence]}`)),
+      h('div', { class: 'grow' }, h('b', {}, me.name), h('small', {}, `${ARTIFACT ? '' : handleText(me) + ' · '}${PRESENCE_LABEL[me.presence]}`)),
       h('span', { class: 'muted', style: 'font-size:18px' }, '⚙'));
   }
   function renderHeader() {
@@ -348,6 +374,13 @@
     modalRefresh = build.refresh || null;
     $('#modal').classList.remove('hidden');
   }
+  function uiConfirm(text, okLabel, onOk) {
+    openModal(() => [h('h2', {}, text),
+      h('div', { class: 'row end' },
+        h('button', { class: 'btn', onclick: closeModal }, 'Cancel'),
+        h('button', { class: 'btn danger', onclick: () => { closeModal(); onOk(); } }, okLabel))]);
+  }
+  window.uiConfirm = uiConfirm;
   function closeModal() {
     $('#modal').classList.add('hidden');
     $('#modalCard').replaceChildren();
@@ -363,7 +396,7 @@
     if (!users.length) box.append(h('div', { class: 'muted' }, 'Nobody to add yet.'));
     users.sort((a, b) => (a.presence === 'offline') - (b.presence === 'offline') || a.name.localeCompare(b.name)).forEach((u) => {
       box.append(h('label', {}, h('input', { type: 'checkbox', value: u.username, checked: checked && checked.includes(u.username) }),
-        avatar(u.username), u.name, h('small', { class: 'muted' }, ` @${u.username}`)));
+        avatar(u.username), u.name, u.handle && u.handle !== u.name ? h('small', { class: 'muted' }, ` ${handleText(u)}`) : null));
     });
     box.values = () => [...box.querySelectorAll('input:checked')].map((i) => i.value);
     return box;
@@ -399,7 +432,7 @@
         const add = userChecklist(others);
         kids.push(h('div', { class: 'field' }, h('span', {}, 'Add people'), add),
           h('div', { class: 'row end' },
-            h('button', { class: 'btn danger', onclick: () => { if (confirm(`Leave “${r.name}”?`)) { send({ t: 'leaveRoom', room: r.id }); closeModal(); } } }, 'Leave chat'),
+            h('button', { class: 'btn danger', onclick: () => uiConfirm(`Leave “${r.name}”?`, 'Leave chat', () => send({ t: 'leaveRoom', room: r.id })) }, 'Leave chat'),
             h('button', { class: 'btn primary', onclick: () => { send({ t: 'addMembers', room: r.id, members: add.values() }); closeModal(); } }, 'Add')));
       }
       return kids;
@@ -413,7 +446,7 @@
       const favs = (x.favorites || []).map(gameName);
       return [
         h('div', { class: 'modal-head' }, h('div', { class: 'profile-top', style: 'flex:1' }, avatar(u, true),
-          h('div', {}, h('h2', {}, x.name), h('div', { class: 'muted' }, '@' + x.username),
+          h('div', {}, h('h2', {}, x.name), h('div', { class: 'muted' }, handleText(x)),
             h('div', {}, h('i', { class: 'dot ' + x.presence }), ' ', PRESENCE_LABEL[x.presence], x.inGame ? ` · playing ${gameName(x.inGame)}` : ''))),
         h('button', { class: 'close-x', onclick: closeModal }, 'X')),
         h('div', { class: 'bio-box' }, h('b', {}, 'Bio'), h('div', { style: 'white-space:pre-wrap' }, x.bio || h('span', { class: 'muted' }, 'No bio yet.'))),
@@ -497,13 +530,13 @@
       const friends = (me.friends || []).filter((f) => S.users[f]);
       return [
         h('div', { class: 'modal-head' }, h('button', { class: 'close-x', onclick: closeModal, title: 'Close' }, 'X'),
-          h('h2', {}, 'Settings'), h('button', { class: 'btn danger', onclick: signOut }, 'Sign out')),
+          h('h2', {}, 'Settings'), ARTIFACT ? null : h('button', { class: 'btn danger', onclick: signOut }, 'Sign out')),
         h('div', { class: 'settings-grid' },
           h('section', {},
             h('label', { class: 'field' }, h('span', {}, 'Name'), name),
-            h('div', { class: 'field' }, h('span', {}, 'Password'), oldPw, newPw,
+            ARTIFACT ? null : h('div', { class: 'field' }, h('span', {}, 'Password'), oldPw, newPw,
               h('button', { class: 'btn', onclick: () => { send({ t: 'password', old: oldPw.value, new: newPw.value }); oldPw.value = newPw.value = ''; } }, 'Change password')),
-            h('label', { class: 'field' }, h('span', {}, 'Username'), h('input', { value: me.username, disabled: true, title: 'Usernames can’t be changed' })),
+            h('label', { class: 'field' }, h('span', {}, ARTIFACT ? 'Claude account' : 'Username'), h('input', { value: me.handle || me.username, disabled: true, title: ARTIFACT ? 'You’re signed in with your Claude account' : 'Usernames can’t be changed' })),
             h('div', { class: 'field' }, h('div', { class: 'boxed-title' }, 'Profile picture color'),
               h('div', { class: 'row' }, h('div', { id: 'settingsAvatar', class: 'avatar big', style: `background:${me.avatar}` }, me.name[0].toUpperCase()),
                 h('div', { class: 'swatches' }, AVATARS.map((c) => h('button', { class: 'swatch' + (me.avatar.toLowerCase() === c ? ' sel' : ''), style: `background:${c}`, title: c, onclick: () => set({ avatar: c }) })))),
@@ -512,7 +545,7 @@
             h('div', { class: 'boxed-title' }, 'Status'),
             h('div', {}, statusOpt('online', 'var(--online)', 'Online'), statusOpt('offline', 'var(--offline)', 'Offline (appear offline)'), statusOpt('idle', 'var(--idle)', 'Idle / do not disturb')),
             h('div', { class: 'boxed-title' }, 'Background color'),
-            bgOpt('white', 'white', 'White'), bgOpt('black', 'black', 'Black'),
+            ARTIFACT ? bgOpt('auto', '', 'Match Claude') : null, bgOpt('white', 'white', 'White'), bgOpt('black', 'black', 'Black'),
             bgOpt('custom', '', 'Color selection', bgColor),
             h('div', { class: 'boxed-title' }, 'Favorite games'),
             h('div', { class: 'game-grid', style: 'grid-template-columns:1fr 1fr' }, Object.entries(GameDock.META).map(([id, g]) => {
@@ -541,6 +574,7 @@
   $('#settingsBtn').addEventListener('click', settingsModal);
   $('#meCard').addEventListener('click', settingsModal);
   $('#signOutBtn').addEventListener('click', signOut);
+  if (ARTIFACT) $('#signOutBtn').classList.add('hidden');
   $('#membersBtn').addEventListener('click', membersModal);
   $('#requestGameBtn').addEventListener('click', () => gameModal());
   $('#onlineBtn').addEventListener('click', () => openModal(() => [modalHead(`${onlineUsers().length} Online`),
