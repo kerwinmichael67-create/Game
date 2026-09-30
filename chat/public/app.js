@@ -64,8 +64,10 @@
 
   const on = {
     hello(m) {
-      S.token = m.token;
-      store.set('chatToken', m.token);
+      if (!ARTIFACT) {
+        S.token = m.token;
+        store.set('chatToken', m.token);
+      }
       S.me = m.me;
       S.games = m.games;
       S.users = {};
@@ -77,6 +79,7 @@
       $('#app').classList.remove('hidden');
       applyTheme();
       renderAll();
+      if (ARTIFACT && store.get('chatSignedOut')) { send({ t: 'logout' }); showSignedOut(); }
     },
     authFailed() {
       S.token = null;
@@ -176,7 +179,32 @@
     $('#authError').textContent = '';
     send({ t: S.authMode, username: $('#authUser').value.trim(), password: $('#authPass').value, name: $('#authName').value.trim() });
   });
+  // On claude.ai you stay signed in to your Claude account; signing out leaves the chat
+  // (you show as offline and can't be challenged) until you sign back in on this browser.
+  function showSignedOut() {
+    $('#app').classList.add('hidden');
+    $('#auth').classList.remove('hidden');
+    $('#authForm').replaceChildren(
+      h('h2', {}, 'You’re signed out'),
+      h('p', { class: 'muted' }, 'Other people see you as offline and can’t challenge you to games.'),
+      h('button', { class: 'btn primary block', onclick: () => {
+        store.set('chatSignedOut', null);
+        send({ t: 'login' });
+        $('#auth').classList.add('hidden');
+        $('#app').classList.remove('hidden');
+        applyTheme();
+        renderAll();
+      } }, 'Sign back in'));
+  }
   function signOut() {
+    if (ARTIFACT) {
+      send({ t: 'logout' });
+      store.set('chatSignedOut', '1');
+      GameDock.close();
+      closeModal();
+      showSignedOut();
+      return;
+    }
     send({ t: 'logout', token: S.token });
     store.set('chatToken', null);
     S.token = null;
@@ -530,7 +558,7 @@
       const friends = (me.friends || []).filter((f) => S.users[f]);
       return [
         h('div', { class: 'modal-head' }, h('button', { class: 'close-x', onclick: closeModal, title: 'Close' }, 'X'),
-          h('h2', {}, 'Settings'), ARTIFACT ? null : h('button', { class: 'btn danger', onclick: signOut }, 'Sign out')),
+          h('h2', {}, 'Settings'), h('button', { class: 'btn danger', onclick: signOut }, 'Sign out')),
         h('div', { class: 'settings-grid' },
           h('section', {},
             h('label', { class: 'field' }, h('span', {}, 'Name'), name),
@@ -574,7 +602,6 @@
   $('#settingsBtn').addEventListener('click', settingsModal);
   $('#meCard').addEventListener('click', settingsModal);
   $('#signOutBtn').addEventListener('click', signOut);
-  if (ARTIFACT) $('#signOutBtn').classList.add('hidden');
   $('#membersBtn').addEventListener('click', membersModal);
   $('#requestGameBtn').addEventListener('click', () => gameModal());
   $('#onlineBtn').addEventListener('click', () => openModal(() => [modalHead(`${onlineUsers().length} Online`),

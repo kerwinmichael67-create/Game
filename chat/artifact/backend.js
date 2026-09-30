@@ -51,6 +51,7 @@
     const answered = new Set();
     const seenInvites = new Set(); // every invite id shown once, so an accepted one never pops up again
     let pendingOpen = null;
+    let signedOut = false; // left the chat: shown offline, no invites
     let game = null;
     const recent = [];
 
@@ -196,7 +197,7 @@
         const first = !profilesLoaded;
         profilesLoaded = true;
         const status = privateUser().status;
-        if (myPresence.status !== status) setPresence({ status });
+        if (!signedOut && myPresence.status !== status) setPresence({ status });
         maybeHello();
         pushUsers();
         // messages that arrived before names resolved get redrawn with real names once
@@ -251,7 +252,7 @@
           if (Date.now() - p.updatedAt < 4000) emit({ t: 'typing', room: pr.typing, from });
         }
         const inv = pr.invite;
-        if (inv && typeof inv === 'object' && inv.to === myId && typeof inv.id === 'string' && GAMES[inv.game] && !seenInvites.has(inv.id)) {
+        if (!signedOut && inv && typeof inv === 'object' && inv.to === myId && typeof inv.id === 'string' && GAMES[inv.game] && !seenInvites.has(inv.id)) {
           seenInvites.add(inv.id);
           invitesIn[inv.id] = { id: inv.id, from, to: myId, game: inv.game, room: typeof inv.room === 'string' ? inv.room : 'global', expires: Date.now() + 60000 };
           if (ready) emit({ t: 'invite', invite: invitesIn[inv.id] });
@@ -441,7 +442,17 @@
         if (r.public && r.id !== 'global' && !ids(r.members).includes(myId)) db.doc('rooms/' + r.id).update({ members: ids(r.members).concat(myId) }).catch(() => {});
         post(r.id, { from: myId, text });
       },
-      typing(m) { setPresence({ typing: String(m.room).slice(0, 40), typingAt: Date.now() }); },
+      logout() {
+        if (game && !game.over) handlers.gameLeave({ id: game.id });
+        if (myInvite) clearInvite();
+        signedOut = true;
+        setPresence({ status: 'offline', typing: null, reply: null });
+      },
+      login() {
+        signedOut = false;
+        setPresence({ status: privateUser().status });
+      },
+      typing(m) { if (signedOut) return; setPresence({ typing: String(m.room).slice(0, 40), typingAt: Date.now() }); },
       createRoom(m) {
         const name = str(m.name, 40);
         if (!name) return emit({ t: 'error', text: 'Give your chat a name' });
@@ -483,7 +494,7 @@
         const d = m.data || {}, patch = {};
         if (typeof d.name === 'string' && str(d.name, 30)) patch.name = str(d.name, 30);
         if (typeof d.bio === 'string') patch.bio = str(d.bio, 300);
-        if (['online', 'offline', 'idle'].includes(d.status)) { patch.status = d.status; setPresence({ status: d.status }); }
+        if (['online', 'offline', 'idle'].includes(d.status)) { patch.status = d.status; if (!signedOut) setPresence({ status: d.status }); }
         if (['auto', 'white', 'black', 'custom'].includes(d.bg)) patch.bg = d.bg;
         if (isColor(d.bgCustom)) patch.bgCustom = d.bgCustom;
         if (isColor(d.avatar)) patch.avatar = d.avatar;
