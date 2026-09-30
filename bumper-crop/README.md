@@ -9,6 +9,10 @@ Bumper Crop with online multiplayer.
 
 Your farm is saved in your browser. If the game server can't be reached, the game still works offline and keeps trying to reconnect.
 
+## Play from a link (no server needed)
+
+The game is published on claude.ai at https://claude.ai/artifact/EbZ9Hs3pRP6S6FCa8mQTWu. There, it uses claude.ai's live room instead of this Node server: each server is a room, and players' names, plots, positions, a packed copy of their farm and their chat all travel as live "presence". Everyone who opens the link while signed in to claude.ai (and has been given access through the page's Share menu) plays together. In this mode, chat history isn't kept, so people who join later won't see earlier messages, and other players' crops show approximate sizes.
+
 ## Run it
 
 You need Node.js 18 or newer.

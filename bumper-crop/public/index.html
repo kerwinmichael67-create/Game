@@ -6253,8 +6253,14 @@ const wxSeed = () => (Net.wxRoom ? 'srv:' + Net.wxRoom : String(state.created % 
 function peerBySlot(k) { for (const r of Net.peers.values()) if (r.slot === k) return r; return null; }
 function netBrag(what, a, b) { if (Net.room) Net.send({ t: 'brag', what, a, b }); }
 
-function netStart() { Net.started = true; Net.retryAt = 0; if (!Net.ws) netConnect(); }
+async function netStart() {
+  Net.started = true; Net.retryAt = 0;
+  if (!Net.mode) { Net.mode = 'picking'; Net.mode = await pickNetMode(); }
+  if (Net.mode !== 'picking' && !Net.ws) netConnect();
+}
 function netConnect() {
+  if (Net.mode === 'picking') return;
+  if (Net.mode === 'room') { if (Net.ws) return; return roomConnect(); }
   if (Net.ws) { const old = Net.ws; Net.ws = null; try { old.close(); } catch (e) { /* already gone */ } }
   Net.addr = Net.addr || defaultAddr();
   let ws;
@@ -6331,8 +6337,7 @@ function netJoined(m) {
   setMySlot(m.slot);
   for (const p of m.players || []) addPeer(p);
   buildBeds(); refreshPlotSigns();
-  chatClear();
-  for (const e of m.chat || []) chatAdd(e, true);
+  if (m.chat) { chatClear(); for (const e of m.chat) chatAdd(e, true); }
   chatAdd({ k: 'sys', text: `Welcome to ${m.room.name}! You farm plot ${m.slot + 1}. Press Enter to chat.` });
   if (Net.wxRoom !== Net.room) { Net.wxRoom = Net.room; weather.slot = -1; syncWeather(first); }
   Net.farmDirty = true; Net.farmAt = -1e9; Net.lastPos = '';
@@ -6487,6 +6492,205 @@ function netTick(nowP) {
     Net.farmDirty = false; Net.farmAt = nowP;
     Net.send({ t: 'farm', f: netFarm() });
   }
+}
+
+/* ---- the same game without a game server: claude.ai's live room carries it ----
+   Each server is a named room. Everything travels in presence (your name, plot,
+   position, a packed copy of your farm and your last chat line), so it works
+   for every viewer, and it pretends to be the WebSocket server for the code above. */
+const ROOM_SERVERS = [['s1', 'Sunny Meadow'], ['s2', 'Clover Hill'], ['s3', 'Maple Hollow'], ['s4', 'Willow Creek'], ['s5', 'Pumpkin Patch'], ['s6', 'Berry Bend']];
+const RoomNet = { room: null, lobbyOn: false, named: null, unsub: null, srv: null, slot: -1, j: 0, known: new Map(), ready: false, me: '', dead: false, sn: 0, bn: 0, chatTimes: [], farm: '' };
+const b36 = (n, w) => clamp(Math.floor(n) || 0, 0, Math.pow(36, w) - 1).toString(36).padStart(w, '0');
+// your farm in about ten characters a plant: tile, seed, age, crops ready, best mutation, seconds to the next crop
+function farmToText(f) {
+  const tiles = (f.p || []).map(([i, t, relP, cs]) => {
+    const k = SEEDS.findIndex(d => d.id === t);
+    if (k < 0) return '';
+    const ready = cs.filter(c => c[0] <= 0), waiting = cs.filter(c => c[0] > 0).map(c => c[0]);
+    const mut = ready.reduce((a, c) => (MUT[MUT_IDS[c[2]] || 'none'].mult > MUT[MUT_IDS[a] || 'none'].mult ? c[2] : a), 0);
+    return b36(i, 2) + b36(k, 1) + b36(-relP / 10, 3) + b36(ready.length, 1) + b36(mut, 1) + b36(waiting.length ? Math.min.apply(null, waiting) / 10 : 0, 3);
+  }).join('');
+  const pets = (f.pt || []).map(([k, w]) => k + ':' + w).join(',');
+  return f.f + '|' + tiles + '|' + pets;
+}
+function textToFarm(txt) {
+  const [size, tiles, pets] = String(txt || '').split('|');
+  const p = [];
+  for (let o = 0; tiles && o + 11 <= tiles.length; o += 11) {
+    const i = parseInt(tiles.substr(o, 2), 36), def = SEEDS[parseInt(tiles[o + 2], 36)];
+    if (!def || !(i >= 0 && i < TILES)) continue;
+    const age = parseInt(tiles.substr(o + 3, 3), 36), ready = parseInt(tiles[o + 6], 36), mut = parseInt(tiles[o + 7], 36), next = parseInt(tiles.substr(o + 8, 3), 36);
+    const cs = [];
+    for (let n = 0; n < def.crops; n++) {
+      const isReady = n < ready;
+      cs.push([isReady ? -10 : next * 10 + (n - ready) * def.ripen * 10, Math.round(def.kg * 1000), isReady ? mut : 0]);
+    }
+    p.push([i, def.id, -age * 10, cs]);
+  }
+  const pt = (pets || '').split(',').filter(Boolean).map(x => { const [k, w] = x.split(':'); return [k, +w || 1]; });
+  return { f: +size || 8, p, pt };
+}
+function roomList() {
+  const peers = RoomNet.room ? RoomNet.room.peers() : [];
+  return ROOM_SERVERS.map(([id, name]) => {
+    const players = [null, null, null, null];
+    for (const q of peers) {
+      const pr = q.presence || {};
+      if (pr.srv === id && pr.s >= 0 && pr.s < 4) players[pr.s] = cleanName(pr.n) || 'Farmer';
+    }
+    return { id, name, n: players.filter(Boolean).length, max: 4, players };
+  });
+}
+const roomSay = m => { try { netHandle(m); } catch (e) { console.error(e); } };
+function roomConnect() {
+  if (RoomNet.dead) { Net.status = 'offline'; Net.started = false; syncNetHUD(); renderServers(); return; }
+  const ws = { readyState: 1, send: txt => { try { roomSend(JSON.parse(txt)); } catch (e) { console.error(e); } }, close() {} };
+  Net.ws = ws; Net.status = 'connecting'; syncNetHUD(); renderServers();
+  const room = RoomNet.room;
+  if (!RoomNet.lobbyOn) {
+    RoomNet.lobbyOn = true;
+    room.onPeers(() => { if (Net.ws && Net.ws.room) roomSay({ t: 'servers', list: roomList() }); }, e => roomDead(e));
+  }
+  const go = () => { if (Net.ws !== ws) return; ws.room = true; roomSay({ t: 'welcome', id: 'me', name: Net.name, now: Date.now(), list: roomList() }); };
+  if (room.connected()) setTimeout(go, 600);   // let the lobby tell us who is where first
+  else { const off = room.onConnection(on => { if (on) { off(); setTimeout(go, 600); } }, e => roomDead(e)); }
+}
+function roomDead(e) {
+  if (!e || e.code === 'upstream_error' || e.code === 'invalid_argument') return;
+  RoomNet.dead = true;
+  if (Net.ws && Net.ws.room !== undefined) { Net.ws = null; netDropped(); }
+}
+function roomLost() { if (RoomNet.unsub) { RoomNet.unsub(); RoomNet.unsub = null; } RoomNet.named = null; RoomNet.ready = false; if (Net.ws) { Net.ws = null; netDropped(); } }
+function roomSend(m) {
+  const nr = RoomNet.named, drop = () => { /* the room is between servers */ };
+  switch (m.t) {
+    case 'list': roomSay({ t: 'servers', list: roomList() }); break;
+    case 'join': roomJoin(String(m.room || 'auto'), m.slot); break;
+    case 'name':
+      Net.name = cleanName(m.name) || Net.name;
+      if (nr) { nr.presence({ n: Net.name }).catch(drop); RoomNet.room.presence({ n: Net.name }).catch(drop); }
+      roomSay({ t: 'you', name: Net.name });
+      break;
+    case 'pos': if (nr && RoomNet.ready) nr.presence({ x: m.x, z: m.z, r: m.yaw, v: m.s, h: m.h }).catch(drop); break;
+    case 'farm': {
+      if (!nr || !RoomNet.ready) break;
+      const txt = farmToText(m.f).slice(0, 3000);
+      if (txt !== RoomNet.farm) { RoomNet.farm = txt; nr.presence({ f: txt }).catch(drop); }
+      break;
+    }
+    case 'chat': {
+      if (!nr || !RoomNet.ready) break;
+      const t = Date.now(), text = String(m.text || '').replace(/[\u0000-\u001f\u007f]/g, '').slice(0, 160);
+      RoomNet.chatTimes = RoomNet.chatTimes.filter(x => t - x < 8000);
+      if (RoomNet.chatTimes.length >= 5) { roomSay({ t: 'chat', k: 'sys', text: 'Slow down a little, you are chatting too fast.' }); break; }
+      RoomNet.chatTimes.push(t);
+      nr.presence({ say: text, sn: ++RoomNet.sn }).catch(drop);
+      roomSay({ t: 'chat', k: 'chat', id: 'me', name: Net.name, slot: RoomNet.slot, text });
+      break;
+    }
+    case 'brag':
+      if (!nr || !RoomNet.ready) break;
+      nr.presence({ bg: [m.what, String(m.a || ''), String(m.b || '')], bn: ++RoomNet.bn }).catch(drop);
+      roomSay({ t: 'chat', k: 'brag', id: 'me', name: Net.name, slot: RoomNet.slot, what: m.what, a: m.a, b: m.b });
+      break;
+  }
+}
+function roomTaken() {
+  const taken = new Map();
+  for (const [peer, q] of RoomNet.known) if (q.slot >= 0) taken.set(q.slot, { peer, j: q.j });
+  return taken;
+}
+async function roomJoin(id, pref) {
+  const room = RoomNet.room, list = roomList();
+  if (id === 'auto') {
+    let best = null;
+    for (const sv of list) if (sv.n < sv.max && (!best || sv.n > best.n)) best = sv;
+    if (!best) return roomSay({ t: 'join-fail', room: id, reason: 'Every server is full right now.' });
+    id = best.id;
+  }
+  const sv = list.find(x => x.id === id);
+  if (!sv) return roomSay({ t: 'join-fail', room: id, reason: 'That server does not exist.' });
+  if (sv.id !== RoomNet.srv && sv.n >= sv.max) return roomSay({ t: 'join-fail', room: id, reason: `${sv.name} is full. Try another server.` });
+  if (RoomNet.named) { const old = RoomNet.named; if (RoomNet.unsub) RoomNet.unsub(); RoomNet.unsub = null; RoomNet.named = null; old.leave().catch(() => {}); }
+  RoomNet.ready = false; RoomNet.known = new Map(); RoomNet.farm = '';
+  let nr;
+  try { nr = await room.join('bc-' + id); }
+  catch (e) { roomDead(e); return roomSay({ t: 'join-fail', room: id, reason: 'Could not reach that server. Try again in a moment.' }); }
+  RoomNet.named = nr; RoomNet.srv = id; RoomNet.j = Date.now();
+  RoomNet.unsub = nr.onPeers(roomPeers, e => { if (RoomNet.named === nr) roomLost(); });
+  await new Promise(r => setTimeout(r, 1300));   // hear who is already farming here
+  if (RoomNet.named !== nr) return;
+  const taken = roomTaken();
+  let slot = pref >= 0 && pref < 4 && !taken.has(+pref) ? +pref : -1;
+  for (let k = 0; slot < 0 && k < 4; k++) if (!taken.has(k)) slot = k;
+  if (slot < 0) { RoomNet.named = null; if (RoomNet.unsub) RoomNet.unsub(); nr.leave().catch(() => {}); return roomSay({ t: 'join-fail', room: id, reason: `${sv.name} is full. Try another server.` }); }
+  roomTake(slot, true);
+}
+function roomTake(slot, first) {
+  const nr = RoomNet.named;
+  RoomNet.slot = slot; RoomNet.ready = true;
+  nr.presence({ n: Net.name, s: slot, j: RoomNet.j }).catch(() => {});
+  RoomNet.room.presence({ srv: RoomNet.srv, n: Net.name, s: slot }).catch(() => {});
+  const players = [];
+  for (const [peer, q] of RoomNet.known) if (q.slot >= 0) players.push({ id: peer, name: q.name, slot: q.slot, farm: q.f ? textToFarm(q.f) : null, pos: q.pos });
+  const sv = ROOM_SERVERS.find(x => x[0] === RoomNet.srv);
+  roomSay({ t: 'joined', room: { id: RoomNet.srv, name: sv[1] }, slot, players, chat: first ? [] : null, list: roomList(), now: Date.now() });
+  roomSay({ t: 'chat', k: 'sys', text: players.length ? `Farming with ${players.map(p => p.name).join(', ')}.` : 'Nobody else is here yet. Share the link so friends can join.' });
+}
+function roomPeers(change) {
+  const nr = RoomNet.named;
+  if (!nr) return;
+  const seen = new Set();
+  for (const q of change.peers) {
+    if (q.isMe && q.sameTab) { RoomNet.me = q.peer; continue; }
+    const pr = q.presence || {};
+    const slot = Number.isInteger(pr.s) && pr.s >= 0 && pr.s < 4 ? pr.s : -1;
+    if (slot < 0) continue;
+    seen.add(q.peer);
+    const name = cleanName(pr.n) || 'Farmer';
+    const pos = typeof pr.x === 'number' ? { x: pr.x, z: pr.z, yaw: pr.r, s: pr.v, h: pr.h } : null;
+    let rec = RoomNet.known.get(q.peer);
+    if (!rec) {
+      rec = { slot, name, j: +pr.j || 0, f: pr.f, pos, sn: pr.sn, bn: pr.bn, sayOk: false };
+      RoomNet.known.set(q.peer, rec);
+      if (RoomNet.ready) {
+        roomSay({ t: 'peer-join', p: { id: q.peer, name, slot, farm: pr.f ? textToFarm(pr.f) : null, pos } });
+        roomSay({ t: 'chat', k: 'sys', text: `${name} joined on plot ${slot + 1}` });
+      }
+      continue;
+    }
+    if (rec.slot !== slot) {
+      rec.slot = slot;
+      if (RoomNet.ready) { roomSay({ t: 'peer-leave', id: q.peer }); roomSay({ t: 'peer-join', p: { id: q.peer, name, slot, farm: pr.f ? textToFarm(pr.f) : null, pos } }); }
+    }
+    if (rec.name !== name) { rec.name = name; if (RoomNet.ready) roomSay({ t: 'peer-name', id: q.peer, name }); }
+    if (pos && (!rec.pos || rec.pos.x !== pos.x || rec.pos.z !== pos.z || rec.pos.yaw !== pos.yaw || rec.pos.h !== pos.h || rec.pos.s !== pos.s)) { rec.pos = pos; if (RoomNet.ready) roomSay(Object.assign({ t: 'pos', id: q.peer }, pos)); }
+    if (pr.f !== rec.f) { rec.f = pr.f; if (RoomNet.ready && pr.f) roomSay({ t: 'farm', id: q.peer, f: textToFarm(pr.f) }); }
+    if (pr.sn !== rec.sn) { rec.sn = pr.sn; if (RoomNet.ready && typeof pr.say === 'string' && pr.say) roomSay({ t: 'chat', k: 'chat', id: q.peer, name, slot, text: String(pr.say).slice(0, 160) }); }
+    if (pr.bn !== rec.bn) { rec.bn = pr.bn; if (RoomNet.ready && Array.isArray(pr.bg)) roomSay({ t: 'chat', k: 'brag', id: q.peer, name, slot, what: pr.bg[0], a: pr.bg[1], b: pr.bg[2] }); }
+    // two farmers picked the same plot at once: whoever came first keeps it
+    if (RoomNet.ready && slot === RoomNet.slot && (rec.j < RoomNet.j || (rec.j === RoomNet.j && q.peer < RoomNet.me))) {
+      const taken = roomTaken();
+      let next = -1;
+      for (let k = 0; k < 4; k++) if (!taken.has(k)) { next = k; break; }
+      if (next >= 0) roomTake(next, false);
+      else roomJoin('auto');
+    }
+  }
+  for (const [peer, rec] of [...RoomNet.known]) {
+    if (seen.has(peer)) continue;
+    RoomNet.known.delete(peer);
+    if (RoomNet.ready) { roomSay({ t: 'peer-leave', id: peer }); roomSay({ t: 'chat', k: 'sys', text: `${rec.name} left the server` }); }
+  }
+}
+// use the live room when this page runs inside claude.ai and nobody pointed it at a game server
+async function pickNetMode() {
+  if (new URLSearchParams(location.search).get('server') || lsGet(ADDR_KEY)) return 'ws';
+  const c = window.claude;
+  if (c && typeof c.use === 'function') {
+    try { const room = await c.use('room'); if (room) { RoomNet.room = room; return 'room'; } } catch (e) { /* no room here */ }
+  }
+  return 'ws';
 }
 
 /* ---- name tags and speech bubbles over heads ---- */
@@ -6669,6 +6873,8 @@ function bindNet() {
       Net.addr = Net.addr || defaultAddr();
       $('#addrEdit').value = Net.addr;
       Net.started = true; Net.retry = 0;
+      if (raw) Net.mode = 'ws';
+      if (Net.ws && Net.mode === 'ws' && Net.ws.room !== undefined) { Net.ws = null; }
       netConnect();
     }
   });
