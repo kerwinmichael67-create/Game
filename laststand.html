@@ -3770,6 +3770,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
 (function () {
   const Net = TD.Net = {
     backend: null,      // 'room' | 'channel' | null
+    hosted: false,      // true when running as the published artifact
     session: null,      // the joined Session, if any
     code: null,         // the room code we are in
     peer: null          // our own peer label
@@ -3953,6 +3954,10 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     probe = (async () => {
       try {
         if (window.claude && typeof window.claude.use === 'function') {
+          /* We ARE on the published page.  Worth recording, because the
+             capability resolving null here does not mean the page is a
+             local copy — it means this viewer is not admitted to rooms. */
+          Net.hosted = true;
           roomNs = await window.claude.use('room');
           if (roomNs) return (Net.backend = 'room');
         }
@@ -8717,6 +8722,12 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     st.classList.remove('hidden');
     if (backend === 'room') {
       st.innerHTML = '<b class="ok">Online.</b> Everyone who opens this page lands on a server and shares its plaza.';
+    } else if (TD.Net.hosted) {
+      /* On the published page, but rooms are not offered to this viewer:
+         opening it by a public link, or with view-only access, does that. */
+      st.innerHTML = '<b class="warn">Servers unavailable for your account.</b> Opening this page by a public ' +
+        'link, or with view-only access, cannot reach other players — the owner has to invite you to the page ' +
+        'with edit access. Until then a server only reaches other tabs of this browser.';
     } else {
       st.innerHTML = '<b class="warn">Local only.</b> This copy is not hosted on claude.ai, so a server reaches ' +
         'other tabs of this browser but not other people. Open the published page to play with friends.';

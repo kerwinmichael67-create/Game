@@ -1036,6 +1036,12 @@
     st.classList.remove('hidden');
     if (backend === 'room') {
       st.innerHTML = '<b class="ok">Online.</b> Everyone who opens this page lands on a server and shares its plaza.';
+    } else if (TD.Net.hosted) {
+      /* On the published page, but rooms are not offered to this viewer:
+         opening it by a public link, or with view-only access, does that. */
+      st.innerHTML = '<b class="warn">Servers unavailable for your account.</b> Opening this page by a public ' +
+        'link, or with view-only access, cannot reach other players — the owner has to invite you to the page ' +
+        'with edit access. Until then a server only reaches other tabs of this browser.';
     } else {
       st.innerHTML = '<b class="warn">Local only.</b> This copy is not hosted on claude.ai, so a server reaches ' +
         'other tabs of this browser but not other people. Open the published page to play with friends.';

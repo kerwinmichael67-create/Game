@@ -29,6 +29,7 @@
 (function () {
   const Net = TD.Net = {
     backend: null,      // 'room' | 'channel' | null
+    hosted: false,      // true when running as the published artifact
     session: null,      // the joined Session, if any
     code: null,         // the room code we are in
     peer: null          // our own peer label
@@ -212,6 +213,10 @@
     probe = (async () => {
       try {
         if (window.claude && typeof window.claude.use === 'function') {
+          /* We ARE on the published page.  Worth recording, because the
+             capability resolving null here does not mean the page is a
+             local copy — it means this viewer is not admitted to rooms. */
+          Net.hosted = true;
           roomNs = await window.claude.use('room');
           if (roomNs) return (Net.backend = 'room');
         }
