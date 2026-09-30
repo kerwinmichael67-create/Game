@@ -19,6 +19,16 @@
   const MSG_KEEP = 200; // older messages are pruned
   const MAX_ROOM_SUBS = 50; // db allows 64 live subscriptions per view
   const NAMED_REASONS = ['forfeited', 'disconnected', 'topped out'];
+  // What the artifact file store accepts (by type, with extensions for files whose type the browser leaves blank).
+  const FILE_TYPES = {
+    'image/png': 'png', 'image/jpeg': 'jpg', 'image/gif': 'gif', 'image/webp': 'webp', 'image/svg+xml': 'svg',
+    'video/mp4': 'mp4', 'video/webm': 'webm', 'application/pdf': 'pdf',
+    'text/plain': 'txt', 'text/csv': 'csv', 'text/markdown': 'md', 'application/json': 'json',
+  };
+  const EXT_TYPES = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', svg: 'image/svg+xml',
+    mp4: 'video/mp4', m4v: 'video/mp4', webm: 'video/webm', pdf: 'application/pdf', txt: 'text/plain', csv: 'text/csv', md: 'text/markdown', json: 'application/json' };
+  const MAX_FILE = 20 * 1024 * 1024;
+  const ASSET_ID = /^[A-Za-z0-9_-]{8,64}$/;
 
   const rid = (n = 10) => Array.from(crypto.getRandomValues(new Uint8Array(n)), (b) => (b % 36).toString(36)).join('');
   const msgId = () => Date.now().toString(36).padStart(9, '0') + rid(5);
@@ -33,6 +43,7 @@
   }
 
   window.ChatTransport = function ChatTransport(emit, options) {
+    let assets = null, downloads = null;
     let db = null, room = null, user = null, myId = null, myColor = '#6d5dfc';
     let ready = false, profilesLoaded = false, roomsLoaded = false, creatingProfile = false, readOnly = false;
     const profiles = {}; // id -> profile doc
@@ -126,9 +137,16 @@
         default: return '';
       }
     }
+    function fileOf(f) {
+      if (!f || typeof f !== 'object' || typeof f.asset !== 'string' || !ASSET_ID.test(f.asset)) return null;
+      return { url: '/_blob/' + f.asset, name: str(f.name, 120) || 'file', type: FILE_TYPES[f.type] ? f.type : 'application/octet-stream', size: Math.max(0, +f.size || 0) };
+    }
     function toMsg(d) {
       if (d.sys) return { id: d.id, ts: +d.ts || 0, from: null, sys: true, text: sysText(d), game: d.game };
-      return { id: d.id, ts: +d.ts || 0, from: typeof d.from === 'string' ? d.from : null, text: str(d.text, 1000) };
+      const m = { id: d.id, ts: +d.ts || 0, from: typeof d.from === 'string' ? d.from : null, text: str(d.text, 1000) };
+      const file = fileOf(d.file);
+      if (file) m.file = file;
+      return m;
     }
     const roomView = (id) => Object.assign(roomMeta(id), { messages: (rawMsgs[id] || []).map(toMsg) });
     function subscribeMsgs(id) {
@@ -433,14 +451,16 @@
     const handlers = {
       msg(m) {
         const text = str(m.text, 1000), r = m.room === 'global' ? GLOBAL : rooms[m.room];
-        if (!r || !text) return;
+        const f = m.file && typeof m.file.ref === 'string' && ASSET_ID.test(m.file.ref)
+          ? { asset: m.file.ref, name: str(m.file.name, 120), type: FILE_TYPES[m.file.type] ? m.file.type : 'application/octet-stream', size: +m.file.size || 0 } : null;
+        if (!r || (!text && !f)) return;
         if (readOnly) return writeError({ code: 'invalid_argument' });
         const now = Date.now();
         while (recent.length && now - recent[0] > 4000) recent.shift();
         if (recent.length >= 8) return emit({ t: 'error', text: 'Slow down a little!' });
         recent.push(now);
         if (r.public && r.id !== 'global' && !ids(r.members).includes(myId)) db.doc('rooms/' + r.id).update({ members: ids(r.members).concat(myId) }).catch(() => {});
-        post(r.id, { from: myId, text });
+        post(r.id, f ? { from: myId, text, file: f } : { from: myId, text });
       },
       logout() {
         if (game && !game.over) handlers.gameLeave({ id: game.id });
@@ -545,7 +565,7 @@
     (async () => {
       const api = window.claude && typeof window.claude.use === 'function' ? window.claude : null;
       if (!api) return emit({ t: 'fatal', title: 'Open this on claude.ai', text: 'Game Chat runs inside claude.ai. Open the artifact link while signed in.' });
-      [db, room, user] = await Promise.all(['db', 'room', 'user'].map((n) => api.use(n).catch(() => null)));
+      [db, room, user, assets, downloads] = await Promise.all(['db', 'room', 'user', 'assets', 'downloads'].map((n) => api.use(n).catch(() => null)));
       if (!db || !user) return emit({ t: 'fatal', title: 'Sign in to chat', text: 'Open this page while signed in to claude.ai. If someone shared it with you, ask them to invite you by email as an Editor.' });
       const me = await user.me();
       myId = me.id;
@@ -564,7 +584,45 @@
       }, 10000);
     })().catch(() => emit({ t: 'fatal', title: 'Can’t connect', text: 'Something went wrong loading the chat. Reload the page to try again.' }));
 
+    const uploadError = (code) => ({
+      too_large: 'That file is over 20 MB. Try a smaller one.',
+      unsupported_type: 'That file type can’t be shared here. Photos (PNG, JPG, GIF, WebP), videos (MP4, WebM), PDFs and text files work.',
+      quota_or_state: 'This chat is out of file storage. Ask the owner to delete old files.',
+      rate_limited: 'Too many uploads at once. Wait a moment and try again.',
+      not_granted: 'Sending files needs Editor access. Ask the owner to invite you as an Editor.',
+    }[code] || 'That file didn’t upload. Check your connection and try again.');
+
     return {
+      fileTypes: Object.keys(FILE_TYPES).concat(Object.keys(EXT_TYPES).map((e) => '.' + e)).join(','),
+      maxFile: MAX_FILE,
+      // Store a file in the artifact's asset store; resolves what a message needs to point at it.
+      async upload(file) {
+        if (!assets) throw new Error('Sending files needs Editor access. Ask the owner to invite you as an Editor.');
+        const ext = (file.name.split('.').pop() || '').toLowerCase();
+        const type = FILE_TYPES[file.type] ? file.type : EXT_TYPES[ext];
+        if (!type) throw new Error(uploadError('unsupported_type'));
+        if (file.size > MAX_FILE) throw new Error(uploadError('too_large'));
+        try {
+          const r = await assets.upload(file, { type });
+          return { ref: r.id, url: r.url, name: file.name, type, size: r.sizeBytes };
+        } catch (e) {
+          throw new Error(uploadError(e && e.code));
+        }
+      },
+      // Save a shared file to the viewer's device (the platform asks them to confirm).
+      canSave: () => !!downloads,
+      async save(file) {
+        if (!downloads) throw new Error('Saving files isn’t available here.');
+        const blob = await (await fetch(file.url)).blob();
+        let name = file.name || 'file';
+        if (!/\.[a-z0-9]{2,5}$/i.test(name) && FILE_TYPES[file.type]) name += '.' + FILE_TYPES[file.type];
+        try {
+          await downloads.save({ filename: name, data: blob });
+        } catch (e) {
+          if (e && e.code === 'declined') return;
+          throw new Error(e && e.code === 'rejected_extension' ? 'That file type can’t be saved from here.' : 'Couldn’t save the file.');
+        }
+      },
       send(m) {
         if (!m || !handlers[m.t] || !myId) return;
         try { handlers[m.t](m); } catch (e) { console.error(e); emit({ t: 'error', text: 'Something went wrong' }); }

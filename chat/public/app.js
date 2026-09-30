@@ -36,6 +36,7 @@
   }
   function connect() {
     if (ARTIFACT) {
+      setTimeout(() => { if (transport) $('#fileInput').accept = transport.fileTypes; });
       transport = window.ChatTransport((m) => (on[m.t] || (() => {}))(m), { signedIn: (uid) => store.get('chatSignedIn:' + uid) === '1' });
       return;
     }
@@ -368,10 +369,98 @@
           h('div', { class: 'meta' },
             h('button', { class: 'who', onclick: () => showProfile(m.from) }, mine ? 'You' : nameOf(m.from)),
             h('span', { class: 'time' }, fmtTime(m.ts))),
-          h('div', { class: 'text', title: fmtTime(m.ts) }, m.text))));
+          m.file ? attachmentEl(m.file) : null,
+          m.text ? h('div', { class: 'text', title: fmtTime(m.ts) }, m.text) : null)));
     }
     if (!bulk && (stick || m.from === S.me.username)) box.scrollTop = box.scrollHeight;
   }
+  // ---------------------------------------------------------------- files
+  const fmtSize = (n) => (n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(0)} KB` : `${(n / 1048576).toFixed(1)} MB`);
+  const isImage = (f) => /^image\/(png|jpeg|gif|webp|svg\+xml)$/.test(f.type);
+  const isVideo = (f) => /^video\/(mp4|webm|ogg|quicktime)$/.test(f.type);
+  function fileIcon(f) {
+    if (f.type === 'application/pdf') return '📄';
+    if (/^text\/|json$/.test(f.type)) return '📝';
+    if (/^audio\//.test(f.type)) return '🎵';
+    if (/zip|compressed|tar/.test(f.type)) return '🗜️';
+    return '📎';
+  }
+  function saveButton(f, cls) {
+    if (!ARTIFACT) return h('a', { class: 'btn small ' + (cls || ''), href: f.url, download: f.name, target: '_blank', rel: 'noopener' }, 'Save');
+    if (!transport.canSave()) return null;
+    return h('button', { class: 'btn small ' + (cls || ''), onclick: (e) => {
+      e.stopPropagation();
+      transport.save(f).catch((err) => toast(err.message, 'err'));
+    } }, 'Save');
+  }
+  function keepBottom() {
+    const box = $('#messages');
+    if (box.scrollHeight - box.scrollTop - box.clientHeight < 400) box.scrollTop = box.scrollHeight;
+  }
+  function attachmentEl(f) {
+    if (isImage(f)) {
+      const img = h('img', { class: 'att-img', src: f.url, alt: f.name, loading: 'lazy', onload: keepBottom });
+      img.addEventListener('error', () => img.replaceWith(h('div', { class: 'att-file' }, h('span', { class: 'att-icon' }, '🖼️'), h('div', {}, h('b', {}, f.name), h('small', {}, 'Image unavailable')))));
+      return h('button', { class: 'att-media', title: f.name, onclick: () => showImage(f) }, img);
+    }
+    if (isVideo(f)) {
+      return h('div', { class: 'att-media' }, h('video', { class: 'att-video', src: f.url, controls: true, preload: 'metadata', playsinline: true, onloadedmetadata: keepBottom }));
+    }
+    return h('div', { class: 'att-file' }, h('span', { class: 'att-icon' }, fileIcon(f)),
+      h('div', { class: 'att-info' }, h('b', {}, f.name), h('small', {}, fmtSize(f.size))),
+      saveButton(f));
+  }
+  function showImage(f) {
+    openModal(() => [h('div', { class: 'modal-head' }, h('h2', { class: 'att-title' }, f.name), saveButton(f), h('button', { class: 'close-x', onclick: closeModal }, 'X')),
+      h('img', { class: 'att-full', src: f.url, alt: f.name })], true);
+  }
+  const MAX_SERVER_FILE = 10 * 1024 * 1024;
+  async function uploadOne(file, roomId) {
+    const max = ARTIFACT ? transport.maxFile : MAX_SERVER_FILE;
+    if (file.size > max) { toast(`“${file.name}” is over ${max / 1048576} MB. Try a smaller file.`, 'err'); return; }
+    const note = toast(`Sending “${file.name}”…`, null, 600000);
+    try {
+      let meta;
+      if (ARTIFACT) meta = await transport.upload(file);
+      else {
+        const res = await fetch('/upload', {
+          method: 'POST', body: file,
+          headers: { 'X-Token': S.token || '', 'X-File-Name': encodeURIComponent(file.name), 'Content-Type': file.type || 'application/octet-stream' },
+        });
+        meta = await res.json().catch(() => ({ error: 'Upload failed' }));
+        if (!res.ok) throw new Error(meta.error || 'Upload failed');
+      }
+      send({ t: 'msg', room: roomId, text: '', file: meta });
+    } catch (err) {
+      toast(err.message || 'That file didn’t upload.', 'err');
+    } finally {
+      note.remove();
+    }
+  }
+  function sendFiles(list) {
+    const roomId = S.current;
+    [...list].slice(0, 10).forEach((f) => uploadOne(f, roomId));
+  }
+  $('#attachBtn').addEventListener('click', () => $('#fileInput').click());
+  $('#fileInput').addEventListener('change', (e) => { sendFiles(e.target.files); e.target.value = ''; });
+  $('#msgInput').addEventListener('paste', (e) => {
+    const files = e.clipboardData && e.clipboardData.files;
+    if (files && files.length) { e.preventDefault(); sendFiles(files); }
+  });
+  const pane = $('#chatPane');
+  let dragDepth = 0;
+  const hasFiles = (e) => e.dataTransfer && [...e.dataTransfer.types].includes('Files');
+  pane.addEventListener('dragenter', (e) => { if (!hasFiles(e)) return; e.preventDefault(); dragDepth++; pane.classList.add('dragging'); });
+  pane.addEventListener('dragover', (e) => { if (hasFiles(e)) e.preventDefault(); });
+  pane.addEventListener('dragleave', () => { if (--dragDepth <= 0) { dragDepth = 0; pane.classList.remove('dragging'); } });
+  pane.addEventListener('drop', (e) => {
+    if (!hasFiles(e)) return;
+    e.preventDefault();
+    dragDepth = 0;
+    pane.classList.remove('dragging');
+    sendFiles(e.dataTransfer.files);
+  });
+
   function renderTyping() {
     const t = S.typing[S.current] || {}, now = Date.now();
     const who = Object.keys(t).filter((u) => now - t[u] < 3500).map(nameOf);

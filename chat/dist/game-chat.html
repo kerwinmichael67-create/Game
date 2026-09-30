@@ -499,6 +499,37 @@ body[data-theme="dark"] .fav-btn.on { color: #c9c2ff; }
   .auth-tiles { display: none; }
 }
 
+/* ============================================================
+   Attachments
+   ============================================================ */
+.composer .attach { width: 48px; height: 48px; padding: 0; border-radius: 999px; flex: none; color: var(--muted); }
+.composer .attach:hover { color: var(--accent); }
+.composer .attach svg { width: 22px; height: 22px; }
+.chat { position: relative; }
+.drop-hint {
+  display: none; position: absolute; inset: 10px; z-index: 5; border: 3px dashed var(--accent); border-radius: var(--radius-lg);
+  background: var(--accent-soft); color: var(--accent); font-size: 22px; font-weight: 700; place-items: center; pointer-events: none;
+}
+.chat.dragging .drop-hint { display: grid; }
+.msg .body > * + * { margin-top: 4px; }
+.att-media { display: block; padding: 0; border: 0; background: none; cursor: zoom-in; border-radius: 16px; overflow: hidden; max-width: 100%; line-height: 0; }
+.att-img { display: block; max-width: min(320px, 100%); max-height: 320px; border-radius: 16px; object-fit: cover; background: var(--surface-2); min-width: 60px; min-height: 60px; }
+.att-video { display: block; max-width: min(360px, 100%); max-height: 320px; border-radius: 16px; background: #000; cursor: auto; }
+.att-file {
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 16px; background: var(--bubble);
+  max-width: min(360px, 100%); min-width: 0;
+}
+.msg.me .att-file { background: var(--accent-soft); }
+.att-icon { font-size: 26px; flex: none; }
+.att-info { min-width: 0; flex: 1; display: grid; }
+.att-info b, .att-file b { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.att-info small, .att-file small { color: var(--muted); font-size: 12px; }
+.att-full { max-width: 100%; max-height: calc(100vh - 160px); object-fit: contain; justify-self: center; border-radius: var(--radius); }
+.att-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 17px !important; }
+@media (max-width: 720px) {
+  .composer .attach { width: 42px; height: 42px; }
+}
+
 </style>
 <!-- Sign in / create account -->
 <div id="auth" class="auth">
@@ -554,10 +585,13 @@ body[data-theme="dark"] .fav-btn.on { color: #c9c2ff; }
     </header>
 
     <div class="content">
-      <section class="chat">
+      <section class="chat" id="chatPane">
+        <div class="drop-hint" aria-hidden="true">Drop to send</div>
         <div id="messages" class="messages"></div>
         <div id="typing" class="typing"></div>
         <form id="composer" class="composer">
+          <button type="button" id="attachBtn" class="btn icon ghost attach" title="Send a photo, video or file" aria-label="Send a photo, video or file"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></button>
+          <input type="file" id="fileInput" multiple hidden>
           <input id="msgInput" placeholder="Say hello" maxlength="1000" autocomplete="off">
           <button class="btn primary" title="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg></button>
         </form>
@@ -1810,6 +1844,16 @@ else globalThis.Realtime = Realtime;
   const MSG_KEEP = 200; // older messages are pruned
   const MAX_ROOM_SUBS = 50; // db allows 64 live subscriptions per view
   const NAMED_REASONS = ['forfeited', 'disconnected', 'topped out'];
+  // What the artifact file store accepts (by type, with extensions for files whose type the browser leaves blank).
+  const FILE_TYPES = {
+    'image/png': 'png', 'image/jpeg': 'jpg', 'image/gif': 'gif', 'image/webp': 'webp', 'image/svg+xml': 'svg',
+    'video/mp4': 'mp4', 'video/webm': 'webm', 'application/pdf': 'pdf',
+    'text/plain': 'txt', 'text/csv': 'csv', 'text/markdown': 'md', 'application/json': 'json',
+  };
+  const EXT_TYPES = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', svg: 'image/svg+xml',
+    mp4: 'video/mp4', m4v: 'video/mp4', webm: 'video/webm', pdf: 'application/pdf', txt: 'text/plain', csv: 'text/csv', md: 'text/markdown', json: 'application/json' };
+  const MAX_FILE = 20 * 1024 * 1024;
+  const ASSET_ID = /^[A-Za-z0-9_-]{8,64}$/;
 
   const rid = (n = 10) => Array.from(crypto.getRandomValues(new Uint8Array(n)), (b) => (b % 36).toString(36)).join('');
   const msgId = () => Date.now().toString(36).padStart(9, '0') + rid(5);
@@ -1824,6 +1868,7 @@ else globalThis.Realtime = Realtime;
   }
 
   window.ChatTransport = function ChatTransport(emit, options) {
+    let assets = null, downloads = null;
     let db = null, room = null, user = null, myId = null, myColor = '#6d5dfc';
     let ready = false, profilesLoaded = false, roomsLoaded = false, creatingProfile = false, readOnly = false;
     const profiles = {}; // id -> profile doc
@@ -1917,9 +1962,16 @@ else globalThis.Realtime = Realtime;
         default: return '';
       }
     }
+    function fileOf(f) {
+      if (!f || typeof f !== 'object' || typeof f.asset !== 'string' || !ASSET_ID.test(f.asset)) return null;
+      return { url: '/_blob/' + f.asset, name: str(f.name, 120) || 'file', type: FILE_TYPES[f.type] ? f.type : 'application/octet-stream', size: Math.max(0, +f.size || 0) };
+    }
     function toMsg(d) {
       if (d.sys) return { id: d.id, ts: +d.ts || 0, from: null, sys: true, text: sysText(d), game: d.game };
-      return { id: d.id, ts: +d.ts || 0, from: typeof d.from === 'string' ? d.from : null, text: str(d.text, 1000) };
+      const m = { id: d.id, ts: +d.ts || 0, from: typeof d.from === 'string' ? d.from : null, text: str(d.text, 1000) };
+      const file = fileOf(d.file);
+      if (file) m.file = file;
+      return m;
     }
     const roomView = (id) => Object.assign(roomMeta(id), { messages: (rawMsgs[id] || []).map(toMsg) });
     function subscribeMsgs(id) {
@@ -2224,14 +2276,16 @@ else globalThis.Realtime = Realtime;
     const handlers = {
       msg(m) {
         const text = str(m.text, 1000), r = m.room === 'global' ? GLOBAL : rooms[m.room];
-        if (!r || !text) return;
+        const f = m.file && typeof m.file.ref === 'string' && ASSET_ID.test(m.file.ref)
+          ? { asset: m.file.ref, name: str(m.file.name, 120), type: FILE_TYPES[m.file.type] ? m.file.type : 'application/octet-stream', size: +m.file.size || 0 } : null;
+        if (!r || (!text && !f)) return;
         if (readOnly) return writeError({ code: 'invalid_argument' });
         const now = Date.now();
         while (recent.length && now - recent[0] > 4000) recent.shift();
         if (recent.length >= 8) return emit({ t: 'error', text: 'Slow down a little!' });
         recent.push(now);
         if (r.public && r.id !== 'global' && !ids(r.members).includes(myId)) db.doc('rooms/' + r.id).update({ members: ids(r.members).concat(myId) }).catch(() => {});
-        post(r.id, { from: myId, text });
+        post(r.id, f ? { from: myId, text, file: f } : { from: myId, text });
       },
       logout() {
         if (game && !game.over) handlers.gameLeave({ id: game.id });
@@ -2336,7 +2390,7 @@ else globalThis.Realtime = Realtime;
     (async () => {
       const api = window.claude && typeof window.claude.use === 'function' ? window.claude : null;
       if (!api) return emit({ t: 'fatal', title: 'Open this on claude.ai', text: 'Game Chat runs inside claude.ai. Open the artifact link while signed in.' });
-      [db, room, user] = await Promise.all(['db', 'room', 'user'].map((n) => api.use(n).catch(() => null)));
+      [db, room, user, assets, downloads] = await Promise.all(['db', 'room', 'user', 'assets', 'downloads'].map((n) => api.use(n).catch(() => null)));
       if (!db || !user) return emit({ t: 'fatal', title: 'Sign in to chat', text: 'Open this page while signed in to claude.ai. If someone shared it with you, ask them to invite you by email as an Editor.' });
       const me = await user.me();
       myId = me.id;
@@ -2355,7 +2409,45 @@ else globalThis.Realtime = Realtime;
       }, 10000);
     })().catch(() => emit({ t: 'fatal', title: 'Can’t connect', text: 'Something went wrong loading the chat. Reload the page to try again.' }));
 
+    const uploadError = (code) => ({
+      too_large: 'That file is over 20 MB. Try a smaller one.',
+      unsupported_type: 'That file type can’t be shared here. Photos (PNG, JPG, GIF, WebP), videos (MP4, WebM), PDFs and text files work.',
+      quota_or_state: 'This chat is out of file storage. Ask the owner to delete old files.',
+      rate_limited: 'Too many uploads at once. Wait a moment and try again.',
+      not_granted: 'Sending files needs Editor access. Ask the owner to invite you as an Editor.',
+    }[code] || 'That file didn’t upload. Check your connection and try again.');
+
     return {
+      fileTypes: Object.keys(FILE_TYPES).concat(Object.keys(EXT_TYPES).map((e) => '.' + e)).join(','),
+      maxFile: MAX_FILE,
+      // Store a file in the artifact's asset store; resolves what a message needs to point at it.
+      async upload(file) {
+        if (!assets) throw new Error('Sending files needs Editor access. Ask the owner to invite you as an Editor.');
+        const ext = (file.name.split('.').pop() || '').toLowerCase();
+        const type = FILE_TYPES[file.type] ? file.type : EXT_TYPES[ext];
+        if (!type) throw new Error(uploadError('unsupported_type'));
+        if (file.size > MAX_FILE) throw new Error(uploadError('too_large'));
+        try {
+          const r = await assets.upload(file, { type });
+          return { ref: r.id, url: r.url, name: file.name, type, size: r.sizeBytes };
+        } catch (e) {
+          throw new Error(uploadError(e && e.code));
+        }
+      },
+      // Save a shared file to the viewer's device (the platform asks them to confirm).
+      canSave: () => !!downloads,
+      async save(file) {
+        if (!downloads) throw new Error('Saving files isn’t available here.');
+        const blob = await (await fetch(file.url)).blob();
+        let name = file.name || 'file';
+        if (!/\.[a-z0-9]{2,5}$/i.test(name) && FILE_TYPES[file.type]) name += '.' + FILE_TYPES[file.type];
+        try {
+          await downloads.save({ filename: name, data: blob });
+        } catch (e) {
+          if (e && e.code === 'declined') return;
+          throw new Error(e && e.code === 'rejected_extension' ? 'That file type can’t be saved from here.' : 'Couldn’t save the file.');
+        }
+      },
       send(m) {
         if (!m || !handlers[m.t] || !myId) return;
         try { handlers[m.t](m); } catch (e) { console.error(e); emit({ t: 'error', text: 'Something went wrong' }); }
@@ -2404,6 +2496,7 @@ else globalThis.Realtime = Realtime;
   }
   function connect() {
     if (ARTIFACT) {
+      setTimeout(() => { if (transport) $('#fileInput').accept = transport.fileTypes; });
       transport = window.ChatTransport((m) => (on[m.t] || (() => {}))(m), { signedIn: (uid) => store.get('chatSignedIn:' + uid) === '1' });
       return;
     }
@@ -2736,10 +2829,98 @@ else globalThis.Realtime = Realtime;
           h('div', { class: 'meta' },
             h('button', { class: 'who', onclick: () => showProfile(m.from) }, mine ? 'You' : nameOf(m.from)),
             h('span', { class: 'time' }, fmtTime(m.ts))),
-          h('div', { class: 'text', title: fmtTime(m.ts) }, m.text))));
+          m.file ? attachmentEl(m.file) : null,
+          m.text ? h('div', { class: 'text', title: fmtTime(m.ts) }, m.text) : null)));
     }
     if (!bulk && (stick || m.from === S.me.username)) box.scrollTop = box.scrollHeight;
   }
+  // ---------------------------------------------------------------- files
+  const fmtSize = (n) => (n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(0)} KB` : `${(n / 1048576).toFixed(1)} MB`);
+  const isImage = (f) => /^image\/(png|jpeg|gif|webp|svg\+xml)$/.test(f.type);
+  const isVideo = (f) => /^video\/(mp4|webm|ogg|quicktime)$/.test(f.type);
+  function fileIcon(f) {
+    if (f.type === 'application/pdf') return '📄';
+    if (/^text\/|json$/.test(f.type)) return '📝';
+    if (/^audio\//.test(f.type)) return '🎵';
+    if (/zip|compressed|tar/.test(f.type)) return '🗜️';
+    return '📎';
+  }
+  function saveButton(f, cls) {
+    if (!ARTIFACT) return h('a', { class: 'btn small ' + (cls || ''), href: f.url, download: f.name, target: '_blank', rel: 'noopener' }, 'Save');
+    if (!transport.canSave()) return null;
+    return h('button', { class: 'btn small ' + (cls || ''), onclick: (e) => {
+      e.stopPropagation();
+      transport.save(f).catch((err) => toast(err.message, 'err'));
+    } }, 'Save');
+  }
+  function keepBottom() {
+    const box = $('#messages');
+    if (box.scrollHeight - box.scrollTop - box.clientHeight < 400) box.scrollTop = box.scrollHeight;
+  }
+  function attachmentEl(f) {
+    if (isImage(f)) {
+      const img = h('img', { class: 'att-img', src: f.url, alt: f.name, loading: 'lazy', onload: keepBottom });
+      img.addEventListener('error', () => img.replaceWith(h('div', { class: 'att-file' }, h('span', { class: 'att-icon' }, '🖼️'), h('div', {}, h('b', {}, f.name), h('small', {}, 'Image unavailable')))));
+      return h('button', { class: 'att-media', title: f.name, onclick: () => showImage(f) }, img);
+    }
+    if (isVideo(f)) {
+      return h('div', { class: 'att-media' }, h('video', { class: 'att-video', src: f.url, controls: true, preload: 'metadata', playsinline: true, onloadedmetadata: keepBottom }));
+    }
+    return h('div', { class: 'att-file' }, h('span', { class: 'att-icon' }, fileIcon(f)),
+      h('div', { class: 'att-info' }, h('b', {}, f.name), h('small', {}, fmtSize(f.size))),
+      saveButton(f));
+  }
+  function showImage(f) {
+    openModal(() => [h('div', { class: 'modal-head' }, h('h2', { class: 'att-title' }, f.name), saveButton(f), h('button', { class: 'close-x', onclick: closeModal }, 'X')),
+      h('img', { class: 'att-full', src: f.url, alt: f.name })], true);
+  }
+  const MAX_SERVER_FILE = 10 * 1024 * 1024;
+  async function uploadOne(file, roomId) {
+    const max = ARTIFACT ? transport.maxFile : MAX_SERVER_FILE;
+    if (file.size > max) { toast(`“${file.name}” is over ${max / 1048576} MB. Try a smaller file.`, 'err'); return; }
+    const note = toast(`Sending “${file.name}”…`, null, 600000);
+    try {
+      let meta;
+      if (ARTIFACT) meta = await transport.upload(file);
+      else {
+        const res = await fetch('/upload', {
+          method: 'POST', body: file,
+          headers: { 'X-Token': S.token || '', 'X-File-Name': encodeURIComponent(file.name), 'Content-Type': file.type || 'application/octet-stream' },
+        });
+        meta = await res.json().catch(() => ({ error: 'Upload failed' }));
+        if (!res.ok) throw new Error(meta.error || 'Upload failed');
+      }
+      send({ t: 'msg', room: roomId, text: '', file: meta });
+    } catch (err) {
+      toast(err.message || 'That file didn’t upload.', 'err');
+    } finally {
+      note.remove();
+    }
+  }
+  function sendFiles(list) {
+    const roomId = S.current;
+    [...list].slice(0, 10).forEach((f) => uploadOne(f, roomId));
+  }
+  $('#attachBtn').addEventListener('click', () => $('#fileInput').click());
+  $('#fileInput').addEventListener('change', (e) => { sendFiles(e.target.files); e.target.value = ''; });
+  $('#msgInput').addEventListener('paste', (e) => {
+    const files = e.clipboardData && e.clipboardData.files;
+    if (files && files.length) { e.preventDefault(); sendFiles(files); }
+  });
+  const pane = $('#chatPane');
+  let dragDepth = 0;
+  const hasFiles = (e) => e.dataTransfer && [...e.dataTransfer.types].includes('Files');
+  pane.addEventListener('dragenter', (e) => { if (!hasFiles(e)) return; e.preventDefault(); dragDepth++; pane.classList.add('dragging'); });
+  pane.addEventListener('dragover', (e) => { if (hasFiles(e)) e.preventDefault(); });
+  pane.addEventListener('dragleave', () => { if (--dragDepth <= 0) { dragDepth = 0; pane.classList.remove('dragging'); } });
+  pane.addEventListener('drop', (e) => {
+    if (!hasFiles(e)) return;
+    e.preventDefault();
+    dragDepth = 0;
+    pane.classList.remove('dragging');
+    sendFiles(e.dataTransfer.files);
+  });
+
   function renderTyping() {
     const t = S.typing[S.current] || {}, now = Date.now();
     const who = Object.keys(t).filter((u) => now - t[u] < 3500).map(nameOf);

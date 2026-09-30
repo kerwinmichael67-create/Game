@@ -12,6 +12,10 @@ const PORT = process.env.PORT !== undefined ? Number(process.env.PORT) : 3000;
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
 const DB_FILE = path.join(DATA_DIR, 'db.json');
 const MAX_HISTORY = 300;
+const UPLOAD_DIR = path.join(DATA_DIR, 'uploads');
+const MAX_UPLOAD = 10 * 1024 * 1024;
+// Uploaded types a browser may show inline; everything else is served as a download.
+const INLINE_TYPES = /^(image\/(png|jpeg|gif|webp|svg\+xml)|video\/(mp4|webm|ogg|quicktime)|audio\/(mpeg|ogg|wav|webm|mp4)|application\/pdf)$/;
 
 // kind: 'turn' = validated with shared/rules.js, 'realtime' = simulated here, 'relay' = each client plays its own board
 const GAMES = {
@@ -264,14 +268,14 @@ const authed = {
     ws.close();
   },
   msg(ws, u, m) {
-    const room = db.rooms[m.room], text = str(m.text, 1000);
-    if (!room || !canSee(room, u) || !text) return;
+    const room = db.rooms[m.room], text = str(m.text, 1000), file = attachment(m.file, u);
+    if (!room || !canSee(room, u) || (!text && !file)) return;
     if (!rateOk(u)) return { error: 'Slow down a little!' };
     if (room.public && room.id !== 'global' && !room.members.includes(u)) {
       room.members.push(u);
       toRoom(room, { t: 'room', room: roomView(room) });
     }
-    postMessage(room, { from: u, text });
+    postMessage(room, file ? { from: u, text, file } : { from: u, text });
   },
   typing(ws, u, m) {
     const room = db.rooms[m.room];
@@ -391,11 +395,89 @@ const authed = {
   },
 };
 
+// ---------------------------------------------------------------- file uploads
+const uploadMeta = (id) => {
+  if (!/^[A-Za-z0-9_-]{16}$/.test(id)) return null;
+  try { return JSON.parse(fs.readFileSync(path.join(UPLOAD_DIR, id + '.json'), 'utf8')); } catch { return null; }
+};
+// A message may only point at a file its sender uploaded; the details come from the server's record.
+function attachment(f, u) {
+  const id = f && typeof f.url === 'string' && (f.url.match(/^\/files\/([A-Za-z0-9_-]{16})$/) || [])[1];
+  const meta = id && uploadMeta(id);
+  if (!meta || meta.by !== u) return null;
+  return { url: f.url, name: meta.name, type: meta.type, size: meta.size };
+}
+function handleUpload(req, res) {
+  const json = (code, obj) => { res.writeHead(code, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(obj)); };
+  const u = db.tokens[req.headers['x-token']];
+  if (!u || !db.users[u]) return json(401, { error: 'Sign in again to send files' });
+  if (Number(req.headers['content-length']) > MAX_UPLOAD) { req.resume(); return json(413, { error: 'Files can be up to 10 MB' }); }
+  let name = 'file';
+  try { name = decodeURIComponent(req.headers['x-file-name'] || 'file'); } catch {}
+  name = path.basename(name).replace(/[^\w .()+-]/g, '_').slice(0, 120) || 'file';
+  const rawType = String(req.headers['content-type'] || '').split(';')[0].trim().toLowerCase();
+  const type = /^[\w.+-]+\/[\w.+-]+$/.test(rawType) ? rawType : 'application/octet-stream';
+  const id = rid(12);
+  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+  const dest = path.join(UPLOAD_DIR, id), out = fs.createWriteStream(dest);
+  let size = 0, failed = false;
+  const fail = (code, msg) => {
+    if (failed) return;
+    failed = true;
+    out.destroy();
+    fs.rm(dest, { force: true }, () => {});
+    json(code, { error: msg });
+  };
+  req.on('data', (chunk) => {
+    size += chunk.length;
+    if (size > MAX_UPLOAD) { fail(413, 'Files can be up to 10 MB'); req.destroy(); }
+  });
+  req.on('error', () => fail(400, 'Upload failed'));
+  out.on('error', () => fail(500, 'Couldn’t save the file'));
+  out.on('finish', () => {
+    if (failed) return;
+    if (!size) return fail(400, 'That file is empty');
+    fs.writeFileSync(path.join(UPLOAD_DIR, id + '.json'), JSON.stringify({ name, type, size, by: u, ts: Date.now() }));
+    json(200, { url: '/files/' + id, name, type, size });
+  });
+  req.pipe(out);
+}
+function serveUpload(req, res, id) {
+  const meta = uploadMeta(id);
+  const file = meta && path.join(UPLOAD_DIR, id);
+  let stat;
+  try { stat = fs.statSync(file); } catch { res.writeHead(404, { 'Content-Type': 'text/plain' }); return res.end('Not found'); }
+  const inline = INLINE_TYPES.test(meta.type);
+  const headers = {
+    'Content-Type': inline ? meta.type : 'application/octet-stream',
+    'Content-Disposition': `${inline ? 'inline' : 'attachment'}; filename*=UTF-8''${encodeURIComponent(meta.name)}`,
+    'X-Content-Type-Options': 'nosniff',
+    // uploads never run scripts, even an SVG or a PDF opened directly
+    'Content-Security-Policy': "default-src 'none'; img-src 'self'; media-src 'self'; style-src 'unsafe-inline'; sandbox",
+    'Cache-Control': 'private, max-age=31536000, immutable',
+    'Accept-Ranges': 'bytes',
+  };
+  const range = /^bytes=(\d*)-(\d*)$/.exec(req.headers.range || '');
+  if (range && (range[1] || range[2])) {
+    let start = range[1] ? Number(range[1]) : stat.size - Number(range[2]);
+    let end = range[1] && range[2] ? Number(range[2]) : stat.size - 1;
+    start = Math.max(0, start); end = Math.min(end, stat.size - 1);
+    if (start > end) { res.writeHead(416, { 'Content-Range': `bytes */${stat.size}` }); return res.end(); }
+    res.writeHead(206, Object.assign(headers, { 'Content-Range': `bytes ${start}-${end}/${stat.size}`, 'Content-Length': end - start + 1 }));
+    return fs.createReadStream(file, { start, end }).pipe(res);
+  }
+  res.writeHead(200, Object.assign(headers, { 'Content-Length': stat.size }));
+  fs.createReadStream(file).pipe(res);
+}
+
 // ---------------------------------------------------------------- http + websocket
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon', '.woff2': 'font/woff2' };
 const PUBLIC = path.join(__dirname, 'public');
 const server = http.createServer((req, res) => {
-  const url = decodeURIComponent(req.url.split('?')[0]);
+  let url;
+  try { url = decodeURIComponent(req.url.split('?')[0]); } catch { res.writeHead(400); return res.end(); }
+  if (req.method === 'POST' && url === '/upload') return handleUpload(req, res);
+  if (url.startsWith('/files/')) return serveUpload(req, res, url.slice(7));
   let file;
   if (url === '/shared/rules.js') file = path.join(__dirname, 'shared', 'rules.js');
   else {

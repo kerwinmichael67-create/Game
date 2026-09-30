@@ -494,3 +494,34 @@ body[data-theme="dark"] .fav-btn.on { color: #c9c2ff; }
   .auth-hero h1 { font-size: 44px; }
   .auth-tiles { display: none; }
 }
+
+/* ============================================================
+   Attachments
+   ============================================================ */
+.composer .attach { width: 48px; height: 48px; padding: 0; border-radius: 999px; flex: none; color: var(--muted); }
+.composer .attach:hover { color: var(--accent); }
+.composer .attach svg { width: 22px; height: 22px; }
+.chat { position: relative; }
+.drop-hint {
+  display: none; position: absolute; inset: 10px; z-index: 5; border: 3px dashed var(--accent); border-radius: var(--radius-lg);
+  background: var(--accent-soft); color: var(--accent); font-size: 22px; font-weight: 700; place-items: center; pointer-events: none;
+}
+.chat.dragging .drop-hint { display: grid; }
+.msg .body > * + * { margin-top: 4px; }
+.att-media { display: block; padding: 0; border: 0; background: none; cursor: zoom-in; border-radius: 16px; overflow: hidden; max-width: 100%; line-height: 0; }
+.att-img { display: block; max-width: min(320px, 100%); max-height: 320px; border-radius: 16px; object-fit: cover; background: var(--surface-2); min-width: 60px; min-height: 60px; }
+.att-video { display: block; max-width: min(360px, 100%); max-height: 320px; border-radius: 16px; background: #000; cursor: auto; }
+.att-file {
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 16px; background: var(--bubble);
+  max-width: min(360px, 100%); min-width: 0;
+}
+.msg.me .att-file { background: var(--accent-soft); }
+.att-icon { font-size: 26px; flex: none; }
+.att-info { min-width: 0; flex: 1; display: grid; }
+.att-info b, .att-file b { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.att-info small, .att-file small { color: var(--muted); font-size: 12px; }
+.att-full { max-width: 100%; max-height: calc(100vh - 160px); object-fit: contain; justify-self: center; border-radius: var(--radius); }
+.att-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 17px !important; }
+@media (max-width: 720px) {
+  .composer .attach { width: 42px; height: 42px; }
+}

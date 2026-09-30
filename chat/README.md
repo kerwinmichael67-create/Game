@@ -32,6 +32,10 @@ An online chat where you can talk to whoever is online, make your own chats, and
 
 Real-time games also have on-screen buttons for phones and tablets.
 
+**Sharing files**: send photos, videos and files with the 📎 button, by dragging them onto the chat, or by pasting a screenshot. Photos show inline (click one to see it full size), videos play in the chat, and other files show as a card with a **Save** button.
+- **Website (server):** any file type, up to 10 MB each, stored in `data/uploads`. Uploads are served sandboxed, so they can't run scripts, and anything that isn't a photo, video, audio file or PDF downloads instead of opening.
+- **claude.ai:** photos (PNG, JPG, GIF, WebP, SVG), videos (MP4, WebM), PDFs and text files, up to 20 MB each.
+
 ## Get a public link (free, ~3 minutes)
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/kerwinmichael67-create/Game)

@@ -182,6 +182,35 @@ async function e2e(port) {
   a.send({ t: 'gameInvite', game: 'pong', to: 'Jerry' });
   assert.match((await a.wait(is('error'))).text, /do not disturb/);
 
+  // file uploads: upload, send, receive; only your own uploads can be attached; served safely
+  const base = `http://localhost:${port}`;
+  const up = (token, name, type, body) => fetch(base + '/upload', { method: 'POST', body, headers: { 'X-Token': token, 'X-File-Name': encodeURIComponent(name), 'Content-Type': type } });
+  assert.strictEqual((await up('nope', 'a.txt', 'text/plain', 'hi')).status, 401);
+  const png = Buffer.from('89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4890000000d4944415478da6364f8ffbf1e000502027fa3a3c6f20000000049454e44ae426082', 'hex');
+  const res = await up(helloA.token, 'cat photo.png', 'image/png', png);
+  assert.strictEqual(res.status, 200);
+  const meta = await res.json();
+  assert.match(meta.url, /^\/files\/[A-Za-z0-9_-]{16}$/);
+  a.send({ t: 'msg', room: 'global', text: '', file: meta });
+  const fm = await b.wait(is('msg', (m) => m.msg.file));
+  assert.deepStrictEqual(fm.msg.file, { url: meta.url, name: 'cat photo.png', type: 'image/png', size: png.length });
+  b.send({ t: 'msg', room: 'global', text: 'stolen', file: meta }); // Jerry can't attach Bob's upload
+  const plain = await a.wait(is('msg', (m) => m.msg.text === 'stolen'));
+  assert.strictEqual(plain.msg.file, undefined);
+  const served = await fetch(base + meta.url);
+  assert.strictEqual(served.headers.get("content-type"), "image/png");
+  assert.match(served.headers.get("content-security-policy"), /sandbox/);
+  assert.deepStrictEqual(Buffer.from(await served.arrayBuffer()), png);
+  const part = await fetch(base + meta.url, { headers: { Range: 'bytes=0-7' } });
+  assert.strictEqual(part.status, 206);
+  assert.strictEqual((await part.arrayBuffer()).byteLength, 8);
+  const html = await (await up(helloA.token, 'x.html', 'text/html', '<script>alert(1)</script>')).json();
+  const h = await fetch(base + html.url);
+  assert.strictEqual(h.headers.get('content-type'), 'application/octet-stream');
+  assert.match(h.headers.get('content-disposition'), /^attachment/);
+  assert.strictEqual((await up(helloA.token, 'big.bin', 'application/octet-stream', Buffer.alloc(10 * 1024 * 1024 + 1))).status, 413);
+  assert.strictEqual((await fetch(base + '/files/../../server.js')).status, 404);
+
   // resume with token
   const c = client(port);
   await c.open;
