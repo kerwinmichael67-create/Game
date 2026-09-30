@@ -36,7 +36,7 @@
   }
   function connect() {
     if (ARTIFACT) {
-      transport = window.ChatTransport((m) => (on[m.t] || (() => {}))(m));
+      transport = window.ChatTransport((m) => (on[m.t] || (() => {}))(m), { signedIn: (uid) => store.get('chatSignedIn:' + uid) === '1' });
       return;
     }
     const ws = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws');
@@ -75,11 +75,11 @@
       S.rooms = {};
       m.rooms.forEach((r) => { S.rooms[r.id] = r; });
       if (!S.rooms[S.current]) S.current = 'global';
-      $('#auth').classList.add('hidden');
-      $('#app').classList.remove('hidden');
       applyTheme();
       renderAll();
-      if (ARTIFACT && store.get('chatSignedOut')) { send({ t: 'logout' }); showSignedOut(); }
+      if (ARTIFACT && store.get('chatSignedIn:' + S.me.username) !== '1') { showSignIn(false); return; }
+      $('#auth').classList.add('hidden');
+      $('#app').classList.remove('hidden');
     },
     authFailed() {
       S.token = null;
@@ -179,30 +179,43 @@
     $('#authError').textContent = '';
     send({ t: S.authMode, username: $('#authUser').value.trim(), password: $('#authPass').value, name: $('#authName').value.trim() });
   });
-  // On claude.ai you stay signed in to your Claude account; signing out leaves the chat
-  // (you show as offline and can't be challenged) until you sign back in on this browser.
-  function showSignedOut() {
+  // On claude.ai your identity is your Claude account. Signing in here joins the chat (you show as
+  // online); signing out leaves it (you show as offline and can't be challenged) on this browser.
+  const noDot = (el) => { const d = el.querySelector('.dot'); if (d) d.remove(); return el; };
+  function showSignIn(afterSignOut) {
     $('#app').classList.add('hidden');
     $('#auth').classList.remove('hidden');
+    const me = S.me;
+    const name = h('input', { id: 'signInName', maxlength: 30, value: me.name, placeholder: 'e.g. Bob', autocomplete: 'nickname' });
+    const err = h('div', { class: 'error' });
+    const go = () => {
+      const n = name.value.trim();
+      if (!n) { err.textContent = 'Pick a name people will see.'; name.focus(); return; }
+      if (n !== me.name) send({ t: 'profile', data: { name: n } });
+      store.set('chatSignedIn:' + me.username, '1');
+      send({ t: 'login' });
+      $('#auth').classList.add('hidden');
+      $('#app').classList.remove('hidden');
+      applyTheme();
+      renderAll();
+    };
+    name.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); go(); } });
     $('#authForm').replaceChildren(
-      h('h2', {}, 'You’re signed out'),
-      h('p', { class: 'muted' }, 'Other people see you as offline and can’t challenge you to games.'),
-      h('button', { class: 'btn primary block', onclick: () => {
-        store.set('chatSignedOut', null);
-        send({ t: 'login' });
-        $('#auth').classList.add('hidden');
-        $('#app').classList.remove('hidden');
-        applyTheme();
-        renderAll();
-      } }, 'Sign back in'));
+      h('h2', {}, afterSignOut ? 'You’re signed out' : 'Welcome 👋'),
+      h('p', { class: 'muted' }, afterSignOut ? 'People see you as offline and can’t challenge you. Sign in to jump back in.' : 'Sign in to chat with whoever’s online and play games.'),
+      h('div', { class: 'me-card', style: 'margin:0;cursor:default' }, noDot(avatar(me.username)),
+        h('div', { class: 'grow' }, h('small', {}, 'Claude account'), h('b', {}, me.handle || me.name))),
+      h('label', { for: 'signInName' }, 'Display name ', h('span', { class: 'muted' }, '(what people see)'), name),
+      err,
+      h('button', { class: 'btn primary block', onclick: go }, afterSignOut ? 'Sign back in' : 'Sign in'));
   }
   function signOut() {
     if (ARTIFACT) {
       send({ t: 'logout' });
-      store.set('chatSignedOut', '1');
+      store.set('chatSignedIn:' + S.me.username, null);
       GameDock.close();
       closeModal();
-      showSignedOut();
+      showSignIn(true);
       return;
     }
     send({ t: 'logout', token: S.token });

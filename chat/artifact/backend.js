@@ -32,7 +32,7 @@
     return (h >>> 0).toString(36);
   }
 
-  window.ChatTransport = function ChatTransport(emit) {
+  window.ChatTransport = function ChatTransport(emit, options) {
     let db = null, room = null, user = null, myId = null, myColor = '#6d5dfc';
     let ready = false, profilesLoaded = false, roomsLoaded = false, creatingProfile = false, readOnly = false;
     const profiles = {}; // id -> profile doc
@@ -51,7 +51,7 @@
     const answered = new Set();
     const seenInvites = new Set(); // every invite id shown once, so an accepted one never pops up again
     let pendingOpen = null;
-    let signedOut = false; // left the chat: shown offline, no invites
+    let signedOut = true; // not in the chat yet: shown offline, no invites (set once we know who's viewing)
     let game = null;
     const recent = [];
 
@@ -552,7 +552,8 @@
       myColor = me.color || myColor;
       if (!myId) return emit({ t: 'fatal', title: 'Sign in to chat', text: 'Open this page while signed in to claude.ai. If someone shared it with you, ask them to invite you by email as an Editor.' });
       platform[myId] = { name: me.name, color: myColor };
-      setPresence({ uid: myId, status: 'online', inGame: null, invite: null, reply: null });
+      signedOut = !(options && options.signedIn && options.signedIn(myId));
+      setPresence({ uid: myId, status: signedOut ? 'offline' : 'online', inGame: null, invite: null, reply: null });
       db.collection('profiles').onSnapshot(onProfiles, dbError);
       db.collection('rooms').onSnapshot(onRooms, dbError);
       subscribeMsgs('global');
