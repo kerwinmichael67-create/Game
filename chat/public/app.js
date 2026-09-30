@@ -143,7 +143,7 @@
     S.me = null;
     $('#app').classList.add('hidden');
     $('#auth').classList.remove('hidden');
-    document.body.dataset.theme = 'light';
+    document.body.dataset.theme = 'dark';
     document.body.style.removeProperty('--bg');
   }
   document.querySelectorAll('.tab').forEach((tab) => tab.addEventListener('click', () => {
@@ -214,14 +214,12 @@
   function applyTheme() {
     const me = S.me, body = document.body;
     body.style.removeProperty('--bg');
-    body.style.removeProperty('--panel');
     if (me.bg === 'black') body.dataset.theme = 'dark';
     else if (me.bg === 'custom') {
       const c = me.bgCustom, n = parseInt(c.slice(1), 16);
       const lum = (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
       body.dataset.theme = lum < 0.5 ? 'dark' : 'light';
       body.style.setProperty('--bg', c);
-      body.style.setProperty('--panel', lum < 0.5 ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.05)');
     } else body.dataset.theme = 'light';
   }
 
@@ -241,7 +239,7 @@
       const n = S.unread[r.id];
       const other = r.dm && r.members.find((m) => m !== S.me.username);
       list.append(h('li', { class: r.id === S.current ? 'active' : '', onclick: () => selectRoom(r.id) },
-        r.dm ? avatar(other || S.me.username) : r.public ? h('span', {}, r.id === 'global' ? '🌐' : '#') : h('span', {}, '🔒'),
+        r.dm ? avatar(other || S.me.username) : h('span', { class: 'room-icon' }, r.id === 'global' ? '🌐' : r.public ? '#' : '🔒'),
         h('span', { class: 'grow' }, roomLabel(r), ' ', r.dm ? null : h('small', {}, `${roomActive(r)} active`)),
         n ? h('span', { class: 'badge' }, n) : null));
     }
@@ -260,6 +258,10 @@
     $('#friendList').replaceChildren(...(friends.length ? friends.map(personRow) : [h('li', { class: 'empty' }, 'Click someone to add them as a friend')]));
     const n = online.length;
     $('#onlineCount').textContent = `${n} Online`;
+    const me = userOf(S.me.username);
+    $('#meCard').replaceChildren(avatar(S.me.username),
+      h('div', { class: 'grow' }, h('b', {}, me.name), h('small', {}, `@${S.me.username} · ${PRESENCE_LABEL[me.presence]}`)),
+      h('span', { class: 'muted', style: 'font-size:18px' }, '⚙'));
   }
   function renderHeader() {
     const r = S.rooms[S.current];
@@ -277,7 +279,7 @@
     const box = $('#messages'), r = S.rooms[S.current];
     box.replaceChildren();
     if (!r) return;
-    if (!r.messages.length) box.append(h('div', { class: 'empty-chat' }, h('div', { style: 'font-size:40px' }, '👋'), 'No messages yet — say hello!'));
+    if (!r.messages.length) box.append(h('div', { class: 'empty-chat' }, h('div', { class: 'big-emoji' }, '👋'), h('b', {}, 'No messages yet'), 'Say hello to get things going!'));
     r.messages.forEach((m, i) => appendMessage(m, r.messages[i - 1], true));
     box.scrollTop = box.scrollHeight;
     renderTyping();
@@ -292,12 +294,14 @@
       box.append(h('div', { class: 'sysmsg' }, m.text));
     } else {
       const mine = m.from === S.me.username;
-      box.append(h('div', { class: 'msg' + (mine ? ' me' : '') },
-        h('div', { onclick: () => showProfile(m.from) }, avatar(m.from)),
-        h('div', {},
-          h('button', { class: 'who', onclick: () => showProfile(m.from) }, nameOf(m.from)),
-          h('span', { class: 'time' }, fmtTime(m.ts)),
-          h('div', { class: 'text' }, m.text))));
+      const cont = prev && !prev.sys && prev.from === m.from && m.ts - prev.ts < 5 * 60e3 && fmtDay(prev.ts) === fmtDay(m.ts);
+      box.append(h('div', { class: 'msg' + (mine ? ' me' : '') + (cont ? ' cont' : '') },
+        h('div', { class: 'av-slot', onclick: () => showProfile(m.from) }, avatar(m.from)),
+        h('div', { class: 'body' },
+          h('div', { class: 'meta' },
+            h('button', { class: 'who', onclick: () => showProfile(m.from) }, mine ? 'You' : nameOf(m.from)),
+            h('span', { class: 'time' }, fmtTime(m.ts))),
+          h('div', { class: 'text', title: fmtTime(m.ts) }, m.text))));
     }
     if (!bulk && (stick || m.from === S.me.username)) box.scrollTop = box.scrollHeight;
   }
@@ -415,7 +419,7 @@
         h('div', { class: 'bio-box' }, h('b', {}, 'Bio'), h('div', { style: 'white-space:pre-wrap' }, x.bio || h('span', { class: 'muted' }, 'No bio yet.'))),
         h('div', { class: 'field' }, h('b', {}, 'Favorite games'),
           h('div', { class: 'chips' }, favs.length ? favs.map((g) => h('span', { class: 'chip' }, g)) : h('span', { class: 'muted' }, 'None picked'))),
-        h('div', {}, h('b', {}, 'Record: '), `${x.stats.w} wins · ${x.stats.l} losses · ${x.stats.d} draws`),
+        record(x.stats),
         mine ? h('div', { class: 'row end' }, h('button', { class: 'btn primary', onclick: settingsModal }, 'Edit in Settings'))
           : h('div', { class: 'row end' },
             h('button', { class: 'btn', onclick: () => send({ t: 'friend', username: u, add: !friend }) }, friend ? 'Remove friend' : '＋ Add friend'),
@@ -427,6 +431,8 @@
     openModal(build);
   }
 
+  const record = (st) => h('div', { class: 'record' },
+    h('div', {}, h('b', {}, st.w), h('small', {}, 'Wins')), h('div', {}, h('b', {}, st.l), h('small', {}, 'Losses')), h('div', {}, h('b', {}, st.d), h('small', {}, 'Draws')));
   const gameName = (g) => (GameDock.META[g] || {}).name || g;
   function gameModal(opponent, preselect) {
     let game = preselect || (S.me.favorites && S.me.favorites[0]) || 'snake';
@@ -437,7 +443,7 @@
         .sort((a, b) => (r && r.members.includes(b.username)) - (r && r.members.includes(a.username)) || a.name.localeCompare(b.name));
       if (!target && pool.length) target = (r && r.dm && r.members.find((m) => m !== S.me.username && userOf(m).presence !== 'offline')) || pool[0].username;
       const grid = h('div', { class: 'game-grid' }, Object.entries(GameDock.META).map(([id, g]) =>
-        h('button', { class: 'game-card' + (id === game ? ' sel' : ''), onclick: () => { game = id; rebuild(); } },
+        h('button', { class: 'game-card' + (id === game ? ' sel' : ''), style: `--g:${g.color}`, onclick: () => { game = id; rebuild(); } },
           h('span', { class: 'emoji' }, g.emoji), h('b', {}, g.name), h('small', {}, g.desc))));
       const people = h('ul', { class: 'list' }, pool.length ? pool.map((u) => h('li', {
         class: u.username === target ? 'active' : '', onclick: () => { target = u.username; rebuild(); } },
@@ -475,9 +481,9 @@
   function settingsModal() {
     const set = (data) => send({ t: 'profile', data });
     let me = S.me;
-    const statusOpt = (val, color, label) => h('button', { class: 'status-opt', onclick: () => { set({ status: val }); } },
+    const statusOpt = (val, color, label) => h('button', { class: 'status-opt' + (me.status === val ? ' sel' : ''), onclick: () => { set({ status: val }); } },
       h('span', { class: 'arrow' }, me.status === val ? '➡' : ''), h('span', { class: 'sq', style: `background:${color}` }), label);
-    const bgOpt = (val, cls, label, extra) => h('div', { class: 'bg-opt' }, h('span', { class: 'arrow' }, me.bg === val ? '➡' : ''),
+    const bgOpt = (val, cls, label, extra) => h('div', { class: 'bg-opt' + (me.bg === val ? ' sel' : '') }, h('span', { class: 'arrow' }, me.bg === val ? '➡' : ''),
       h('button', { class: 'btn ' + cls, onclick: () => set({ bg: val }) }, label), extra || null);
     const build = () => {
       me = S.me;
@@ -518,7 +524,7 @@
             h('div', { class: 'friends-box' }, h('b', {}, 'Friends list'),
               friends.length ? friends.map((f) => h('div', { class: 'row', style: 'cursor:pointer', onclick: () => showProfile(f) }, h('i', { class: 'dot ' + userOf(f).presence }), nameOf(f), h('small', { class: 'muted' }, PRESENCE_LABEL[userOf(f).presence])))
                 : h('span', { class: 'muted' }, 'No friends yet — click someone’s name and press “Add friend”.')),
-            h('div', { class: 'muted' }, `Your record: ${me.stats.w} W · ${me.stats.l} L · ${me.stats.d} D`))),
+            h('div', { class: 'boxed-title' }, 'Your record'), record(me.stats))),
       ];
     };
     // Re-render on updates, but never while the user is typing in a field.
@@ -533,6 +539,7 @@
   // ---------------------------------------------------------------- wire up
   $('#newChatBtn').addEventListener('click', newChatModal);
   $('#settingsBtn').addEventListener('click', settingsModal);
+  $('#meCard').addEventListener('click', settingsModal);
   $('#signOutBtn').addEventListener('click', signOut);
   $('#membersBtn').addEventListener('click', membersModal);
   $('#requestGameBtn').addEventListener('click', () => gameModal());

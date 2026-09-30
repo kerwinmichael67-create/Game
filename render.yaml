@@ -1,0 +1,10 @@
+# One-click deploy on Render: https://render.com/deploy?repo=https://github.com/kerwinmichael67-create/Game
+services:
+  - type: web
+    name: game-chat
+    runtime: node
+    rootDir: chat
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /

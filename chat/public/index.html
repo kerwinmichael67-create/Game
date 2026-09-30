@@ -4,22 +4,33 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Game Chat</title>
+<meta name="theme-color" content="#6d5dfc">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+<link rel="stylesheet" href="fonts/fonts.css">
 <link rel="stylesheet" href="style.css">
 </head>
 <body data-theme="light">
 
 <!-- Sign in / create account -->
 <div id="auth" class="auth hidden">
+  <div class="auth-hero">
+    <h1>Chat. Challenge.<br><span>Play together.</span></h1>
+    <p>Talk with whoever's online, start your own group chats, and jump straight into head-to-head games.</p>
+    <div class="auth-tiles">
+      <span>🐍 Snake PvP</span><span>♟️ Chess</span><span>⛀ Checkers</span><span>🧱 Tetris Battle</span>
+      <span>🥊 Street Fighter</span><span>🏓 Pong</span><span>🔴 Connect Four</span><span>❌ Tic-Tac-Toe</span>
+    </div>
+  </div>
   <form id="authForm" class="auth-card">
-    <h1>🎮 Game Chat</h1>
-    <p class="muted">Chat with whoever is online and challenge them to games.</p>
+    <h2>Welcome 👋</h2>
+    <p class="muted">Sign in or make an account to start chatting.</p>
     <div class="tabs">
       <button type="button" class="tab active" data-mode="login">Sign in</button>
       <button type="button" class="tab" data-mode="register">Create account</button>
     </div>
-    <label>Username<input id="authUser" autocomplete="username" required maxlength="20"></label>
-    <label id="authNameRow" class="hidden">Name <span class="muted">(what people see)</span><input id="authName" maxlength="30"></label>
-    <label>Password<input id="authPass" type="password" autocomplete="current-password" required></label>
+    <label>Username<input id="authUser" autocomplete="username" required maxlength="20" placeholder="e.g. Bob123"></label>
+    <label id="authNameRow" class="hidden">Display name <span class="muted">(what people see)</span><input id="authName" maxlength="30" placeholder="e.g. Bob"></label>
+    <label>Password<input id="authPass" type="password" autocomplete="current-password" required placeholder="••••••••"></label>
     <div id="authError" class="error"></div>
     <button class="btn primary block" id="authSubmit">Sign in</button>
   </form>
@@ -28,34 +39,38 @@
 <!-- Main app -->
 <div id="app" class="app hidden">
   <aside id="sidebar" class="sidebar">
-    <button id="newChatBtn" class="btn block new-chat"><b>＋</b> New chat</button>
-    <div class="side-section">
-      <h4>Chats</h4>
-      <ul id="roomList" class="list"></ul>
+    <div class="brand"><span class="logo">🎮</span> Game Chat</div>
+    <button id="newChatBtn" class="btn primary new-chat"><b>＋</b> New chat</button>
+    <div class="side-scroll">
+      <div class="side-section">
+        <h4>Chats</h4>
+        <ul id="roomList" class="list"></ul>
+      </div>
+      <div class="side-section">
+        <h4>Online now</h4>
+        <ul id="onlineList" class="list"></ul>
+      </div>
+      <div class="side-section">
+        <h4>Friends</h4>
+        <ul id="friendList" class="list"></ul>
+      </div>
     </div>
-    <div class="side-section">
-      <h4>Online now</h4>
-      <ul id="onlineList" class="list"></ul>
-    </div>
-    <div class="side-section">
-      <h4>Friends</h4>
-      <ul id="friendList" class="list"></ul>
-    </div>
+    <div id="meCard" class="me-card" title="Settings"></div>
   </aside>
   <div id="scrim" class="scrim"></div>
 
   <main class="main">
     <header class="topbar">
-      <button id="menuBtn" class="btn icon mobile-only" title="Chats">☰</button>
+      <button id="menuBtn" class="btn icon ghost mobile-only" title="Chats">☰</button>
       <button id="onlineBtn" class="btn"><span id="onlineCount">0 Online</span> <i class="dot online"></i></button>
       <button id="settingsBtn" class="btn">Settings</button>
-      <button id="signOutBtn" class="btn small">Sign out</button>
+      <button id="signOutBtn" class="btn ghost">Sign out</button>
       <div class="room-title">
         <span id="roomName">Global chat</span>
         <small id="roomMeta" class="muted"></small>
       </div>
       <button id="membersBtn" class="btn">Members</button>
-      <button id="requestGameBtn" class="btn primary">Request a game</button>
+      <button id="requestGameBtn" class="btn primary">🎮 Request a game</button>
     </header>
 
     <div class="content">
@@ -64,7 +79,7 @@
         <div id="typing" class="typing"></div>
         <form id="composer" class="composer">
           <input id="msgInput" placeholder="Say hello" maxlength="1000" autocomplete="off">
-          <button class="btn primary">Send</button>
+          <button class="btn primary" title="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg></button>
         </form>
       </section>
       <section id="gameDock" class="game-dock hidden"></section>

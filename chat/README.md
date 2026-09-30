@@ -32,6 +32,16 @@ An online chat where you can talk to whoever is online, make your own chats, and
 
 Real-time games also have on-screen buttons for phones and tablets.
 
+## Get a public link (free, ~3 minutes)
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/kerwinmichael67-create/Game)
+
+1. Make sure this code is on the repo's `main` branch. Render reads `render.yaml` from there.
+2. Click the button above and sign in to Render with GitHub. It's free.
+3. Press **Deploy**. When it's done you'll get a link like `https://game-chat-xxxx.onrender.com`. Send it to your friends!
+
+On the free plan, the site goes to sleep after about 15 minutes with nobody on it, and the first visit after that takes around 30 seconds to wake it up. Saved data (accounts and chat history) is reset whenever the site restarts or redeploys. To keep data, upgrade to a paid plan, add a persistent disk mounted at `/data`, and set the `DATA_DIR=/data` environment variable.
+
 ## Run it
 
 You need [Node.js](https://nodejs.org) 18 or newer.

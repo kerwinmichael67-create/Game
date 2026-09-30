@@ -1,14 +1,14 @@
 // Game dock: renders whichever multiplayer game you're in next to the chat.
 (() => {
   const META = {
-    snake: { emoji: '🐍', name: 'Snake PvP', desc: 'Eat & grow. Longest snake after 90s wins.', help: 'Arrow keys / WASD (or swipe)' },
-    chess: { emoji: '♟️', name: 'Chess', desc: 'Classic chess with full rules.', help: 'Click a piece, then click where to move it' },
-    checkers: { emoji: '⛀', name: 'Checkers', desc: 'Jumps are mandatory. Reach the end to king.', help: 'Click a piece, then click where to move it' },
-    tetris: { emoji: '🧱', name: 'Tetris Battle', desc: 'Clear lines to send junk. Last one standing wins.', help: '←→ move · ↑/X rotate · Z rotate back · ↓ soft drop · Space hard drop · C hold' },
-    fighter: { emoji: '🥊', name: 'Street Fighter', desc: 'Best of 3 rounds. Punch, kick, block, fireball.', help: 'A/D or ←→ move · W/↑ jump · S/↓ block · J punch · K kick · L fireball (needs 50 energy)' },
-    pong: { emoji: '🏓', name: 'Pong', desc: 'First to 7 points wins.', help: 'W/S or ↑/↓ to move your paddle' },
-    connect4: { emoji: '🔴', name: 'Connect Four', desc: 'Get four in a row.', help: 'Click a column to drop a disc' },
-    tictactoe: { emoji: '❌', name: 'Tic-Tac-Toe', desc: 'Three in a row. Quick game!', help: 'Click a square' },
+    snake: { color: 'linear-gradient(135deg,#22c55e,#15803d)', emoji: '🐍', name: 'Snake PvP', desc: 'Eat & grow. Longest snake after 90s wins.', help: 'Arrow keys / WASD (or swipe)' },
+    chess: { color: 'linear-gradient(135deg,#a3a38a,#4d6b35)', emoji: '♟️', name: 'Chess', desc: 'Classic chess with full rules.', help: 'Click a piece, then click where to move it' },
+    checkers: { color: 'linear-gradient(135deg,#f97316,#b91c1c)', emoji: '⛀', name: 'Checkers', desc: 'Jumps are mandatory. Reach the end to king.', help: 'Click a piece, then click where to move it' },
+    tetris: { color: 'linear-gradient(135deg,#22d3ee,#6366f1)', emoji: '🧱', name: 'Tetris Battle', desc: 'Clear lines to send junk. Last one standing wins.', help: '←→ move · ↑/X rotate · Z rotate back · ↓ soft drop · Space hard drop · C hold' },
+    fighter: { color: 'linear-gradient(135deg,#f59e0b,#dc2626)', emoji: '🥊', name: 'Street Fighter', desc: 'Best of 3 rounds. Punch, kick, block, fireball.', help: 'A/D or ←→ move · W/↑ jump · S/↓ block · J punch · K kick · L fireball (needs 50 energy)' },
+    pong: { color: 'linear-gradient(135deg,#64748b,#0f172a)', emoji: '🏓', name: 'Pong', desc: 'First to 7 points wins.', help: 'W/S or ↑/↓ to move your paddle' },
+    connect4: { color: 'linear-gradient(135deg,#3b82f6,#1e3a8a)', emoji: '🔴', name: 'Connect Four', desc: 'Get four in a row.', help: 'Click a column to drop a disc' },
+    tictactoe: { color: 'linear-gradient(135deg,#ec4899,#8b5cf6)', emoji: '❌', name: 'Tic-Tac-Toe', desc: 'Three in a row. Quick game!', help: 'Click a square' },
   };
 
   function h(tag, attrs, ...kids) {
@@ -133,7 +133,7 @@
         ctx.fillRect(0, 0, 800, 500);
         ctx.fillStyle = '#333';
         for (let y = 0; y < 500; y += 30) ctx.fillRect(398, y, 4, 18);
-        ctx.font = 'bold 56px Arial';
+        ctx.font = 'bold 56px Outfit, Arial';
         ctx.textAlign = 'center';
         ctx.fillStyle = colors[0]; ctx.fillText(s.score[0], 320, 70);
         ctx.fillStyle = colors[1]; ctx.fillText(s.score[1], 480, 70);
@@ -141,7 +141,7 @@
         ctx.fillStyle = colors[1]; ctx.fillRect(758, s.p[1].y, 12, s.ph);
         ctx.fillStyle = '#fff';
         ctx.beginPath(); ctx.arc(s.ball.x, s.ball.y, 8, 0, 7); ctx.fill();
-        if (s.serve > 0) { ctx.font = '20px Arial'; ctx.fillText('Get ready…', 400, 300); }
+        if (s.serve > 0) { ctx.font = '20px Outfit, Arial'; ctx.fillText('Get ready…', 400, 300); }
         api.status(`First to ${s.to}`, h('b', {}, `${s.score[api.you]} – ${s.score[1 - api.you]}`));
       },
       destroy() { keys.destroy(); },
@@ -231,17 +231,17 @@
         ctx.fillStyle = '#facc15';
         ctx.fillRect(20 + 360 - 200 * s.f[0].en / 100, 42, 200 * s.f[0].en / 100, 6);
         ctx.fillRect(520, 42, 200 * s.f[1].en / 100, 6);
-        ctx.fillStyle = '#fff'; ctx.font = 'bold 15px Arial';
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 15px Outfit, Arial';
         ctx.textAlign = 'left'; ctx.fillText(api.players[0].name + (api.you === 0 ? ' (you)' : ''), 20, 66);
         ctx.textAlign = 'right'; ctx.fillText(api.players[1].name + (api.you === 1 ? ' (you)' : ''), 880, 66);
-        ctx.textAlign = 'center'; ctx.font = 'bold 30px Arial';
+        ctx.textAlign = 'center'; ctx.font = 'bold 30px Outfit, Arial';
         ctx.fillText(Math.ceil(s.timer / 50), 450, 42);
         for (let i = 0; i < 2; i++) {
           ctx.fillStyle = s.wins[0] > i ? '#facc15' : '#555'; ctx.beginPath(); ctx.arc(360 - i * 18, 76, 6, 0, 7); ctx.fill();
           ctx.fillStyle = s.wins[1] > i ? '#facc15' : '#555'; ctx.beginPath(); ctx.arc(540 + i * 18, 76, 6, 0, 7); ctx.fill();
         }
         if (s.msg) {
-          ctx.font = 'bold 64px Arial'; ctx.lineWidth = 6; ctx.strokeStyle = '#000'; ctx.fillStyle = '#facc15';
+          ctx.font = 'bold 64px Outfit, Arial'; ctx.lineWidth = 6; ctx.strokeStyle = '#000'; ctx.fillStyle = '#facc15';
           const msg = s.msg.replace(/^P([12]) WINS ROUND$/, (_, n) => `${api.players[n - 1].name} wins round`.toUpperCase());
           ctx.strokeText(msg, 450, 230); ctx.fillText(msg, 450, 230);
         }
