@@ -94,9 +94,14 @@
       pill.onclick = () => { TD.Audio.ui(); UI.open('coop'); };
       return;
     }
-    pill.classList.remove('hidden', 'off');
+    pill.classList.remove('hidden');
+    pill.classList.toggle('off', C.online === false);
     const n = C.players.length;
-    pill.textContent = C.serverName().toUpperCase() + ' · ' + n + (n === 1 ? ' player' : ' players') + ' · SWITCH';
+    let text = C.serverName().toUpperCase() + ' · ' + n + (n === 1 ? ' player' : ' players');
+    if (C.online === false) text += ' · RECONNECTING…';
+    else if (C.waiting) text += ' · MATCH IN PROGRESS, YOU ARE UP NEXT';
+    else text += ' · SWITCH';
+    pill.textContent = text;
     pill.onclick = () => { TD.Audio.ui(); UI.open('coop'); };
   };
 
@@ -1074,9 +1079,11 @@
     deploy.classList.remove('hidden');
     deploy.textContent = 'CHOOSE MAP & DEPLOY';
     const n = C.players.length;
-    $('#coop-foot-note').textContent = n < 2
-      ? 'Alone on this server — start anyway, or switch to another.'
-      : n + ' players here · Deploy takes everyone in';
+    $('#coop-foot-note').textContent = C.waiting
+      ? 'A match is running here — you join the next one, or switch server.'
+      : n < 2
+        ? 'Alone on this server — start anyway, or switch to another.'
+        : n + ' players here · Deploy takes everyone in';
 
     UI.placeChat();
   };

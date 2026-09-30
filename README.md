@@ -140,8 +140,22 @@ match ends. Anyone can start the next wave early; pause and game speed belong to
 host, since they move the world everybody is looking at.
 
 If the host leaves mid-match the match ends for everyone — nobody inherits a
-half-finished world. A player who arrives after a match has started watches rather
-than plays; they join the next one.
+half-finished world. A player who arrives after a match has started **waits in the
+plaza** rather than being dropped into it: slots are fixed when Deploy is pressed, so
+a latecomer would have no wallet and could place nothing. The banner tells them they
+are up next, and the next Deploy takes them in.
+
+**When the connection goes.** A named room can end under you — a reconnect the
+platform could not carry — and every call on it rejects from then on. The game
+notices instead of leaving you in a plaza that will never update again: it says so in
+chat and rejoins the same server once. If the failure is a permission one it stops
+rather than looping, and says why. A drop that lasts more than a couple of seconds
+shows in the banner as *reconnecting*, and the servers panel grows a **Reconnect**
+button. Brief blips are ignored, because `connected()` is false for about a second at
+load and flickers whenever the platform refreshes the socket.
+
+Switching servers converges on the **last** one you asked for, not whichever join
+happens to win the race.
 
 ### Team chat
 Chat is always there, because you are always on a server: it sits at the edge of

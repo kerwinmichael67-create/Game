@@ -56,6 +56,30 @@
      ==================================================================== */
   Coop.backend = async function () { return await TD.Net.connect(); };
 
+  /* A room can end under us — a reconnect the platform could not carry.
+     Try once to get back into the same server; if that fails, say so
+     instead of leaving a plaza that will never update again. */
+  let recovering = false;
+  TD.Net.onRoomError = async function (code) {
+    if (!Coop.active || recovering) return;
+    recovering = true;
+    const sv = Coop.server;
+    const fatal = code === 'not_permitted' || code === 'not_granted' || code === 'revoked';
+    await Coop.leave();
+    /* after the leave, which clears the log — otherwise the one message
+       explaining what happened is the first thing wiped */
+    TD.Chat.system(fatal ? 'Disconnected from the server' : 'Connection lost — reconnecting…');
+    if (!fatal && sv) {
+      const ok = await Coop.open(sv);
+      if (ok) TD.Chat.system('Back on ' + Coop.serverName());
+      else Coop.error = joinError(code, sv);
+    } else {
+      Coop.error = joinError(code, sv || { kind: 'public', n: 1 });
+    }
+    recovering = false;
+    TD.UI.afterServerChange && TD.UI.afterServerChange();
+  };
+
   /* The platform refuses sends from view-only members.  Say so once rather
      than letting their clicks quietly do nothing. */
   let deniedOnce = false;
@@ -73,20 +97,41 @@
   };
   const roomFor = sv => sv.kind === 'private' ? 'td-' + sv.code : 'plaza-' + sv.n;
 
+  /* Why a join did not work, in words a player can act on. */
+  function joinError(code, sv) {
+    if (code === 'not_permitted')
+      return 'This page cannot use servers — you may have view-only access to it.';
+    if (code === 'limit_reached')
+      return 'Too many rooms open on this page. Reload and try again.';
+    return 'Could not reach ' + Coop.serverName(sv) + '. Try Reconnect.';
+  }
+
+  /* Joins are serialised: two clicks on two servers used to interleave
+     their leave and join, leaving listeners on an abandoned room and the
+     panel naming a server we were not actually in. */
+  let joinSeq = 0;
+
   /* Join a server.  Nobody is host here; the seat is claimed on Deploy. */
   Coop.open = async function (sv) {
+    const seq = ++joinSeq;
     Coop.error = null;
     const backend = await TD.Net.connect();
+    if (seq !== joinSeq) return false;                 // superseded while connecting
     if (!backend) { Coop.error = 'This browser cannot reach other players.'; return false; }
     const room = roomFor(sv);
+    let joined;
     try {
-      session = await TD.Net.join(room);
+      joined = await TD.Net.join(room);
     } catch (e) {
-      Coop.error = 'Could not reach ' + Coop.serverName(sv) + '.';
+      if (seq !== joinSeq) return false;
+      Coop.error = joinError(e && e.code, sv);
       return false;
     }
+    if (seq !== joinSeq) { await TD.Net.leave(); return false; }
+    session = joined;
     Coop.active = true;
     Coop.announced = false;
+    Coop.waiting = false;
     Coop.server = sv;
     Coop.code = room;
     Coop.role = 'client';
@@ -94,6 +139,27 @@
     Coop.hostPeer = null;
     Coop.me = TD.Net.selfPeer();
 
+    /* `connected()` is false for about a second at load and blips briefly
+       when the platform refreshes the socket, so only a drop that persists
+       counts as one — otherwise the banner cries wolf on every join. */
+    Coop.online = true;
+    if (session.onConnection) {
+      let dropTimer = null;
+      unsubs.push(session.onConnection(up => {
+        if (up) {
+          if (dropTimer) { clearTimeout(dropTimer); dropTimer = null; }
+          if (Coop.online !== true) { Coop.online = true; TD.UI.tickRoomPill && TD.UI.tickRoomPill(); }
+          return;
+        }
+        if (dropTimer) return;
+        dropTimer = setTimeout(() => {
+          dropTimer = null;
+          Coop.online = false;
+          TD.UI.tickRoomPill && TD.UI.tickRoomPill();
+        }, 2500);
+      }));
+      unsubs.push(() => { if (dropTimer) clearTimeout(dropTimer); });
+    }
     unsubs.push(session.on('act', onAct));
     unsubs.push(session.on('ev', onEvent));
     unsubs.push(session.on('chat', onChat));
@@ -115,14 +181,28 @@
     return ok;
   };
 
+  /* Switching converges on the LAST server asked for.  Clicking three
+     buttons quickly used to leave you on whichever join happened to win
+     the race; now each request just updates the target and the one switch
+     in flight keeps going until it has landed on it. */
+  let switching = false;
   Coop.switchTo = async function (sv) {
     if (TD.Battle.active) { TD.Audio.error(); TD.toast('Leave the match first', 'bad'); return false; }
-    if (Coop.server && roomFor(Coop.server) === roomFor(sv)) return true;
-    await Coop.leave();
-    const ok = await Coop.open(sv);
-    if (ok) {
-      if (sv.kind === 'public') { TD.Save.data.settings.server = sv.n; TD.Save.save(); }
-      TD.Chat.system('Moved to ' + Coop.serverName());
+    Coop.wanted = sv;
+    if (switching) return true;
+    switching = true;
+    let ok = true;
+    try {
+      while (Coop.wanted && (!Coop.server || roomFor(Coop.server) !== roomFor(Coop.wanted))) {
+        const target = Coop.wanted;
+        await Coop.leave();
+        ok = await Coop.open(target);
+        if (!ok) break;
+        if (target.kind === 'public') { TD.Save.data.settings.server = target.n; TD.Save.save(); }
+        if (Coop.wanted === target) TD.Chat.system('Moved to ' + Coop.serverName());
+      }
+    } finally {
+      switching = false;
     }
     TD.UI.afterServerChange && TD.UI.afterServerChange();
     return ok;
@@ -133,6 +213,7 @@
   Coop.newPrivate = () => Coop.switchTo({ kind: 'private', code: TD.Net.makeCode() });
 
   Coop.leave = async function () {
+    joinSeq++;
     if (timer) { clearInterval(timer); timer = null; }
     unsubs.forEach(u => { try { u(); } catch (e) { /* already gone */ } });
     unsubs = [];
@@ -172,6 +253,15 @@
       Coop.role = 'client';                       // we lost the tie; stand down
       pushPresence(true);
     }
+    /* With no host there is no match, so anyone who was waiting for the
+       next one is free: the host releases the seat when it returns to the
+       plaza, and then nobody publishes the state that used to clear this. */
+    if (!host && Coop.waiting) {
+      Coop.waiting = false;
+      TD.UI.tickRoomPill && TD.UI.tickRoomPill();
+      TD.UI.renderCoop && TD.UI.renderCoop();
+    }
+
     /* A plaza has no host at all — one exists only while a match runs, and
        nobody inherits a running match: if the host goes, it ends. */
     if (Coop.role === 'client' && !host && TD.Battle.active && TD.Battle.remote) {
@@ -258,10 +348,25 @@
     Coop.phase = st;
 
     if (st === 'lobby') {
+      if (Coop.waiting) { Coop.waiting = false; TD.UI.tickRoomPill && TD.UI.tickRoomPill(); }
       if (was !== 'lobby' && TD.Battle.active && TD.Battle.remote) TD.Game.toLobby();
       return;
     }
-    /* The host is in a match.  Join it. */
+    /* The host is in a match.  Join it — but only if we are one of its
+       players.  Slots are fixed when Deploy is pressed, so somebody who
+       arrives afterwards has no wallet and could place nothing: they used
+       to be dropped into a match they could only watch, with an empty HUD.
+       They wait in the plaza for the next one instead. */
+    const mine = !Coop.me || Coop.slots.indexOf(Coop.me) >= 0;
+    if (!mine) {
+      if (!Coop.waiting) {
+        Coop.waiting = true;
+        TD.Chat.system('A match is already running here — you are in for the next one');
+        TD.UI.tickRoomPill && TD.UI.tickRoomPill();
+      }
+      return;
+    }
+    Coop.waiting = false;
     if (TD.Battle.active && TD.Battle.remote && TD.Battle.map.id !== Coop.map) {
       TD.Game.toLobby();                       // they moved on to another map
     }

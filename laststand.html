@@ -3791,21 +3791,46 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   /* ====================================================================
      Backend 1 — the artifact `room` capability
      ==================================================================== */
+  /* A room can END under you: after a reconnect the platform re-joins your
+     rooms itself, and when it cannot, every listener gets one terminal
+     error and every call rejects from then on.  Swallowing that leaves the
+     player in a plaza that looks fine and will never update again, so each
+     listener reports it and the session is marked dead. */
   function roomSession(named) {
+    let dead = null;
+    const fail = e => {
+      const code = (e && e.code) || 'upstream_error';
+      if (dead) return;
+      dead = code;
+      if (Net.onRoomError) Net.onRoomError(code);
+    };
     return {
       kind: 'room',
+      get dead() { return dead; },
       emit: (topic, data) => named.emit(topic, data).catch(e => {
         if (e && e.code === 'not_permitted') Net.onDenied && Net.onDenied(topic);
+        else if (e && TERMINAL[e.code]) fail(e);
         return null;
       }),
-      on: (topic, fn) => named.on(topic, fn, () => {}),
-      presence: patch => named.presence(patch).catch(() => null),
+      on: (topic, fn) => named.on(topic, fn, fail),
+      presence: patch => named.presence(patch).catch(e => {
+        if (e && TERMINAL[e.code]) fail(e);
+        return null;
+      }),
       peers: () => named.peers(),
-      onPeers: fn => named.onPeers(fn, () => {}),
+      onPeers: fn => named.onPeers(fn, fail),
+      onConnection: fn => named.onConnection(fn, fail),
       connected: () => named.connected(),
       leave: () => named.leave().catch(() => null)
     };
   }
+
+  /* Codes that end a room for good, as opposed to a blip. */
+  const TERMINAL = {
+    revoked: 1, not_granted: 1, not_permitted: 1,
+    capability_disabled: 1, capability_removed: 1, transform_error: 1
+  };
+  Net.TERMINAL = TERMINAL;
 
   /* ====================================================================
      Backend 2 — BroadcastChannel
@@ -3901,7 +3926,9 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
       },
       peers: () => snapshot,
       onPeers: fn => { peerSubs.add(fn); return () => peerSubs.delete(fn); },
+      onConnection: fn => { setTimeout(() => fn(alive), 0); return () => {}; },
       connected: () => alive,
+      get dead() { return null; },
       leave: () => {
         alive = false; clearInterval(beat); bye();
         window.removeEventListener('pagehide', bye);
@@ -3945,7 +3972,14 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     if (Net.session) await Net.leave();
 
     if (Net.backend === 'room') {
-      const named = await roomNs.join(room);
+      let named;
+      try {
+        named = await roomNs.join(room);
+      } catch (e) {
+        const err = new Error('join failed');
+        err.code = (e && e.code) || 'upstream_error';
+        throw err;
+      }
       Net.session = roomSession(named);
     } else if (Net.backend === 'channel') {
       Net.session = channelSession(room);
@@ -6870,6 +6904,30 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
      ==================================================================== */
   Coop.backend = async function () { return await TD.Net.connect(); };
 
+  /* A room can end under us — a reconnect the platform could not carry.
+     Try once to get back into the same server; if that fails, say so
+     instead of leaving a plaza that will never update again. */
+  let recovering = false;
+  TD.Net.onRoomError = async function (code) {
+    if (!Coop.active || recovering) return;
+    recovering = true;
+    const sv = Coop.server;
+    const fatal = code === 'not_permitted' || code === 'not_granted' || code === 'revoked';
+    await Coop.leave();
+    /* after the leave, which clears the log — otherwise the one message
+       explaining what happened is the first thing wiped */
+    TD.Chat.system(fatal ? 'Disconnected from the server' : 'Connection lost — reconnecting…');
+    if (!fatal && sv) {
+      const ok = await Coop.open(sv);
+      if (ok) TD.Chat.system('Back on ' + Coop.serverName());
+      else Coop.error = joinError(code, sv);
+    } else {
+      Coop.error = joinError(code, sv || { kind: 'public', n: 1 });
+    }
+    recovering = false;
+    TD.UI.afterServerChange && TD.UI.afterServerChange();
+  };
+
   /* The platform refuses sends from view-only members.  Say so once rather
      than letting their clicks quietly do nothing. */
   let deniedOnce = false;
@@ -6887,20 +6945,41 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   };
   const roomFor = sv => sv.kind === 'private' ? 'td-' + sv.code : 'plaza-' + sv.n;
 
+  /* Why a join did not work, in words a player can act on. */
+  function joinError(code, sv) {
+    if (code === 'not_permitted')
+      return 'This page cannot use servers — you may have view-only access to it.';
+    if (code === 'limit_reached')
+      return 'Too many rooms open on this page. Reload and try again.';
+    return 'Could not reach ' + Coop.serverName(sv) + '. Try Reconnect.';
+  }
+
+  /* Joins are serialised: two clicks on two servers used to interleave
+     their leave and join, leaving listeners on an abandoned room and the
+     panel naming a server we were not actually in. */
+  let joinSeq = 0;
+
   /* Join a server.  Nobody is host here; the seat is claimed on Deploy. */
   Coop.open = async function (sv) {
+    const seq = ++joinSeq;
     Coop.error = null;
     const backend = await TD.Net.connect();
+    if (seq !== joinSeq) return false;                 // superseded while connecting
     if (!backend) { Coop.error = 'This browser cannot reach other players.'; return false; }
     const room = roomFor(sv);
+    let joined;
     try {
-      session = await TD.Net.join(room);
+      joined = await TD.Net.join(room);
     } catch (e) {
-      Coop.error = 'Could not reach ' + Coop.serverName(sv) + '.';
+      if (seq !== joinSeq) return false;
+      Coop.error = joinError(e && e.code, sv);
       return false;
     }
+    if (seq !== joinSeq) { await TD.Net.leave(); return false; }
+    session = joined;
     Coop.active = true;
     Coop.announced = false;
+    Coop.waiting = false;
     Coop.server = sv;
     Coop.code = room;
     Coop.role = 'client';
@@ -6908,6 +6987,27 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     Coop.hostPeer = null;
     Coop.me = TD.Net.selfPeer();
 
+    /* `connected()` is false for about a second at load and blips briefly
+       when the platform refreshes the socket, so only a drop that persists
+       counts as one — otherwise the banner cries wolf on every join. */
+    Coop.online = true;
+    if (session.onConnection) {
+      let dropTimer = null;
+      unsubs.push(session.onConnection(up => {
+        if (up) {
+          if (dropTimer) { clearTimeout(dropTimer); dropTimer = null; }
+          if (Coop.online !== true) { Coop.online = true; TD.UI.tickRoomPill && TD.UI.tickRoomPill(); }
+          return;
+        }
+        if (dropTimer) return;
+        dropTimer = setTimeout(() => {
+          dropTimer = null;
+          Coop.online = false;
+          TD.UI.tickRoomPill && TD.UI.tickRoomPill();
+        }, 2500);
+      }));
+      unsubs.push(() => { if (dropTimer) clearTimeout(dropTimer); });
+    }
     unsubs.push(session.on('act', onAct));
     unsubs.push(session.on('ev', onEvent));
     unsubs.push(session.on('chat', onChat));
@@ -6929,14 +7029,28 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     return ok;
   };
 
+  /* Switching converges on the LAST server asked for.  Clicking three
+     buttons quickly used to leave you on whichever join happened to win
+     the race; now each request just updates the target and the one switch
+     in flight keeps going until it has landed on it. */
+  let switching = false;
   Coop.switchTo = async function (sv) {
     if (TD.Battle.active) { TD.Audio.error(); TD.toast('Leave the match first', 'bad'); return false; }
-    if (Coop.server && roomFor(Coop.server) === roomFor(sv)) return true;
-    await Coop.leave();
-    const ok = await Coop.open(sv);
-    if (ok) {
-      if (sv.kind === 'public') { TD.Save.data.settings.server = sv.n; TD.Save.save(); }
-      TD.Chat.system('Moved to ' + Coop.serverName());
+    Coop.wanted = sv;
+    if (switching) return true;
+    switching = true;
+    let ok = true;
+    try {
+      while (Coop.wanted && (!Coop.server || roomFor(Coop.server) !== roomFor(Coop.wanted))) {
+        const target = Coop.wanted;
+        await Coop.leave();
+        ok = await Coop.open(target);
+        if (!ok) break;
+        if (target.kind === 'public') { TD.Save.data.settings.server = target.n; TD.Save.save(); }
+        if (Coop.wanted === target) TD.Chat.system('Moved to ' + Coop.serverName());
+      }
+    } finally {
+      switching = false;
     }
     TD.UI.afterServerChange && TD.UI.afterServerChange();
     return ok;
@@ -6947,6 +7061,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   Coop.newPrivate = () => Coop.switchTo({ kind: 'private', code: TD.Net.makeCode() });
 
   Coop.leave = async function () {
+    joinSeq++;
     if (timer) { clearInterval(timer); timer = null; }
     unsubs.forEach(u => { try { u(); } catch (e) { /* already gone */ } });
     unsubs = [];
@@ -6986,6 +7101,15 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
       Coop.role = 'client';                       // we lost the tie; stand down
       pushPresence(true);
     }
+    /* With no host there is no match, so anyone who was waiting for the
+       next one is free: the host releases the seat when it returns to the
+       plaza, and then nobody publishes the state that used to clear this. */
+    if (!host && Coop.waiting) {
+      Coop.waiting = false;
+      TD.UI.tickRoomPill && TD.UI.tickRoomPill();
+      TD.UI.renderCoop && TD.UI.renderCoop();
+    }
+
     /* A plaza has no host at all — one exists only while a match runs, and
        nobody inherits a running match: if the host goes, it ends. */
     if (Coop.role === 'client' && !host && TD.Battle.active && TD.Battle.remote) {
@@ -7072,10 +7196,25 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     Coop.phase = st;
 
     if (st === 'lobby') {
+      if (Coop.waiting) { Coop.waiting = false; TD.UI.tickRoomPill && TD.UI.tickRoomPill(); }
       if (was !== 'lobby' && TD.Battle.active && TD.Battle.remote) TD.Game.toLobby();
       return;
     }
-    /* The host is in a match.  Join it. */
+    /* The host is in a match.  Join it — but only if we are one of its
+       players.  Slots are fixed when Deploy is pressed, so somebody who
+       arrives afterwards has no wallet and could place nothing: they used
+       to be dropped into a match they could only watch, with an empty HUD.
+       They wait in the plaza for the next one instead. */
+    const mine = !Coop.me || Coop.slots.indexOf(Coop.me) >= 0;
+    if (!mine) {
+      if (!Coop.waiting) {
+        Coop.waiting = true;
+        TD.Chat.system('A match is already running here — you are in for the next one');
+        TD.UI.tickRoomPill && TD.UI.tickRoomPill();
+      }
+      return;
+    }
+    Coop.waiting = false;
     if (TD.Battle.active && TD.Battle.remote && TD.Battle.map.id !== Coop.map) {
       TD.Game.toLobby();                       // they moved on to another map
     }
@@ -7636,9 +7775,14 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
       pill.onclick = () => { TD.Audio.ui(); UI.open('coop'); };
       return;
     }
-    pill.classList.remove('hidden', 'off');
+    pill.classList.remove('hidden');
+    pill.classList.toggle('off', C.online === false);
     const n = C.players.length;
-    pill.textContent = C.serverName().toUpperCase() + ' · ' + n + (n === 1 ? ' player' : ' players') + ' · SWITCH';
+    let text = C.serverName().toUpperCase() + ' · ' + n + (n === 1 ? ' player' : ' players');
+    if (C.online === false) text += ' · RECONNECTING…';
+    else if (C.waiting) text += ' · MATCH IN PROGRESS, YOU ARE UP NEXT';
+    else text += ' · SWITCH';
+    pill.textContent = text;
     pill.onclick = () => { TD.Audio.ui(); UI.open('coop'); };
   };
 
@@ -8616,9 +8760,11 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     deploy.classList.remove('hidden');
     deploy.textContent = 'CHOOSE MAP & DEPLOY';
     const n = C.players.length;
-    $('#coop-foot-note').textContent = n < 2
-      ? 'Alone on this server — start anyway, or switch to another.'
-      : n + ' players here · Deploy takes everyone in';
+    $('#coop-foot-note').textContent = C.waiting
+      ? 'A match is running here — you join the next one, or switch server.'
+      : n < 2
+        ? 'Alone on this server — start anyway, or switch to another.'
+        : n + ' players here · Deploy takes everyone in';
 
     UI.placeChat();
   };

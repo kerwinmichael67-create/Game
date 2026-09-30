@@ -50,21 +50,46 @@
   /* ====================================================================
      Backend 1 — the artifact `room` capability
      ==================================================================== */
+  /* A room can END under you: after a reconnect the platform re-joins your
+     rooms itself, and when it cannot, every listener gets one terminal
+     error and every call rejects from then on.  Swallowing that leaves the
+     player in a plaza that looks fine and will never update again, so each
+     listener reports it and the session is marked dead. */
   function roomSession(named) {
+    let dead = null;
+    const fail = e => {
+      const code = (e && e.code) || 'upstream_error';
+      if (dead) return;
+      dead = code;
+      if (Net.onRoomError) Net.onRoomError(code);
+    };
     return {
       kind: 'room',
+      get dead() { return dead; },
       emit: (topic, data) => named.emit(topic, data).catch(e => {
         if (e && e.code === 'not_permitted') Net.onDenied && Net.onDenied(topic);
+        else if (e && TERMINAL[e.code]) fail(e);
         return null;
       }),
-      on: (topic, fn) => named.on(topic, fn, () => {}),
-      presence: patch => named.presence(patch).catch(() => null),
+      on: (topic, fn) => named.on(topic, fn, fail),
+      presence: patch => named.presence(patch).catch(e => {
+        if (e && TERMINAL[e.code]) fail(e);
+        return null;
+      }),
       peers: () => named.peers(),
-      onPeers: fn => named.onPeers(fn, () => {}),
+      onPeers: fn => named.onPeers(fn, fail),
+      onConnection: fn => named.onConnection(fn, fail),
       connected: () => named.connected(),
       leave: () => named.leave().catch(() => null)
     };
   }
+
+  /* Codes that end a room for good, as opposed to a blip. */
+  const TERMINAL = {
+    revoked: 1, not_granted: 1, not_permitted: 1,
+    capability_disabled: 1, capability_removed: 1, transform_error: 1
+  };
+  Net.TERMINAL = TERMINAL;
 
   /* ====================================================================
      Backend 2 — BroadcastChannel
@@ -160,7 +185,9 @@
       },
       peers: () => snapshot,
       onPeers: fn => { peerSubs.add(fn); return () => peerSubs.delete(fn); },
+      onConnection: fn => { setTimeout(() => fn(alive), 0); return () => {}; },
       connected: () => alive,
+      get dead() { return null; },
       leave: () => {
         alive = false; clearInterval(beat); bye();
         window.removeEventListener('pagehide', bye);
@@ -204,7 +231,14 @@
     if (Net.session) await Net.leave();
 
     if (Net.backend === 'room') {
-      const named = await roomNs.join(room);
+      let named;
+      try {
+        named = await roomNs.join(room);
+      } catch (e) {
+        const err = new Error('join failed');
+        err.code = (e && e.code) || 'upstream_error';
+        throw err;
+      }
       Net.session = roomSession(named);
     } else if (Net.backend === 'channel') {
       Net.session = channelSession(room);
