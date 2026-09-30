@@ -1,0 +1,17 @@
+{
+  "name": "game-chat",
+  "version": "1.0.0",
+  "description": "Online chat with live multiplayer minigames (snake, chess, checkers, tetris, fighter and more)",
+  "main": "server.js",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test/smoke.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}
