@@ -676,3 +676,12 @@ body[data-theme="dark"] .fav-btn.on { color: #c9c2ff; }
   .call-panel:not(.incoming) { inset: 0; width: auto; max-width: none; border-radius: 0; grid-template-rows: 1fr auto; padding-top: env(safe-area-inset-top, 0px); }
   .call-panel:not(.incoming) .call-stage { aspect-ratio: auto; }
 }
+
+/* ============================================================
+   Apex Rush 3D (full-window game)
+   ============================================================ */
+.game-dock.full { position: fixed; inset: 0; z-index: 30; border: 0; padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 0px); }
+.game-dock.full.min { inset: auto 0 0 0; }
+.game-dock.full .game-stage { padding: 0; flex: 1; display: flex; }
+.game-dock.full .game-status { min-height: 0; padding: 6px 14px; }
+.apex-frame { flex: 1; width: 100%; min-height: 0; border: 0; background: #0b0e14; display: block; }

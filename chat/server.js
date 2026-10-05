@@ -33,6 +33,7 @@ const GAMES = {
   gomoku: { name: 'Five in a Row', kind: 'turn' },
   tron: { name: 'Light Cycles', kind: 'realtime' },
   hockey: { name: 'Air Hockey', kind: 'realtime' },
+  apex: { name: 'Apex Rush 3D', kind: 'relay' },
 };
 const AVATAR_COLORS = ['#22c55e', '#111111', '#ef4444', '#facc15', '#d946ef', '#3b82f6', '#f97316', '#14b8a6'];
 
@@ -195,6 +196,15 @@ function gameInput(u, msg) {
     Realtime[s.type].input(s.state, idx, msg.input);
   } else {
     const inp = msg.input || {};
+    if (s.type === 'apex') {
+      // each browser drives its own car; pass its updates and events to the other player
+      if (inp.kind === 'msg' && inp.data && typeof inp.data === 'object' && JSON.stringify(inp.data).length <= 2000) {
+        sendUser(s.players[1 - idx], { t: 'gameEvent', id: s.id, ev: { msg: inp.data } });
+      } else if (inp.kind === 'result' && [0, 1, -1].includes(inp.winner)) {
+        endGame(s, { winner: inp.winner, reason: str(inp.reason, 80) || 'race finished' });
+      }
+      return;
+    }
     if (inp.kind === 'board' && typeof inp.board === 'string' && /^[0-8]{200}$/.test(inp.board)) {
       s.state.boards[idx] = inp.board;
       s.state.scores[idx] = Math.max(0, Number(inp.score) || 0);

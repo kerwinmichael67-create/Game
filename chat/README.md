@@ -35,10 +35,13 @@ An online chat where you can talk to whoever is online, make your own chats, and
 | ⭕ Five in a Row | Five stones in a line on a 15×15 board | Click a spot |
 | 🏍️ Light Cycles | Best of 5 rounds: don't crash into a trail or the wall | Arrows / WASD / swipe |
 | 🏒 Air Hockey | First to 7 goals | Mouse or finger, or WASD / arrows |
+| 🏎️ Apex Rush 3D | First over the line. 3D racing on nine circuits, with nitro, drifting, jumps and pickups. | WASD or arrows, Shift nitro, Space pickup, C camera (keyboard only) |
 
-Real-time games also have on-screen buttons for phones and tablets.
+Real-time games also have on-screen buttons for phones and tablets, except Apex Rush 3D, which needs a keyboard.
 
-**Playing the bot**: in **Request a game**, pick **Play the bot** and choose Easy, Medium or Hard. It's always there, and it's picked automatically when nobody else is online. It plays all 14 games and runs in your own browser, so it works on both the website and claude.ai. Bot games don't count toward your win/loss record and aren't posted in the chat. Run `node test/bots.js` to check the bots' strength and speed.
+**Apex Rush 3D online**: the game (`public/apex.html`) opens full-window. Whoever sent the challenge picks the circuit, direction, weather, pickups and laps; each player picks their own car; both press **Ready** and the countdown starts. Each browser drives its own car and streams it to the other about 20 times a second; Jolt and Oil pickups reach the other car too. If one player finishes, the other has 30 seconds to cross the line before the race is called.
+
+**Playing the bot**: in **Request a game**, pick **Play the bot** and choose Easy, Medium or Hard. It's always there, and it's picked automatically when nobody else is online. It plays all 15 games (Apex Rush uses its own built-in bot) and runs in your own browser, so it works on both the website and claude.ai. Bot games don't count toward your win/loss record and aren't posted in the chat. Run `node test/bots.js` to check the bots' strength and speed.
 
 **Replying and editing**: point at a message (or tap it on a phone) and press ↩ to reply or ✏️ to edit one of your own. You can also press ↑ in an empty message box to edit your last message, and Esc cancels. A reply shows a quote of the message it answers; click the quote to jump to that message. Edited messages say **edited**; click that to see the original text, and click again to switch back. Every earlier version is kept.
 

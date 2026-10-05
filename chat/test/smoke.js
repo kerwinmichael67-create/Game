@@ -251,6 +251,18 @@ async function e2e(port) {
   assert.strictEqual((await b.wait(is('callEnded', (m) => m.id === inc2.id))).reason, 'declined');
   await a.wait(is('callEnded', (m) => m.id === inc2.id));
 
+  // apex rush: car updates and events pass straight through; the reported result ends the game
+  g = await playOnline('apex');
+  a.send({ t: 'gameInput', id: g.id, input: { kind: 'msg', data: { k: 's', x: 10, y: 20 } } });
+  assert.deepStrictEqual((await b.wait(is('gameEvent', (m) => m.id === g.id))).ev.msg, { k: 's', x: 10, y: 20 });
+  b.send({ t: 'gameInput', id: g.id, input: { kind: 'msg', data: { k: 'jolt' } } });
+  assert.strictEqual((await a.wait(is('gameEvent', (m) => m.id === g.id))).ev.msg.k, 'jolt');
+  a.send({ t: 'gameInput', id: g.id, input: { kind: 'msg', data: { k: 's', junk: 'x'.repeat(3000) } } }); // too big: dropped
+  a.send({ t: 'gameInput', id: g.id, input: { kind: 'result', winner: 1, reason: '1:02.345 vs 1:03.001' } });
+  const apexOver = await b.wait(is('gameOver', (m) => m.id === g.id));
+  assert.deepStrictEqual(apexOver.result, { winner: 1, reason: '1:02.345 vs 1:03.001' });
+  await a.wait(is('msg', (m) => m.msg.sys && m.msg.text.includes('Jerry beat Bob at Apex Rush 3D')));
+
   // file uploads: upload, send, receive; only your own uploads can be attached; served safely
   const base = `http://localhost:${port}`;
   const up = (token, name, type, body) => fetch(base + '/upload', { method: 'POST', body, headers: { 'X-Token': token, 'X-File-Name': encodeURIComponent(name), 'Content-Type': type } });

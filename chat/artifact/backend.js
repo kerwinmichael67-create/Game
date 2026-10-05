@@ -20,6 +20,7 @@
     gomoku: { name: 'Five in a Row', kind: 'turn' },
     tron: { name: 'Light Cycles', kind: 'realtime' },
     hockey: { name: 'Air Hockey', kind: 'realtime' },
+    apex: { name: 'Apex Rush 3D', kind: 'relay' },
   };
   const DIR_GAMES = new Set(['snake', 'tron']); // realtime games whose input is a direction press
   const MSG_WINDOW = 100; // messages loaded per chat
@@ -371,6 +372,16 @@
         return finish(g, { winner: pr.result.winner, reason: str(pr.result.reason, 80) }, {});
       }
       if (pr.forfeit) return finish(g, { winner: g.you, reason: 'forfeited' }, { post: true });
+      if (g.type === 'apex') {
+        if (pr.st && typeof pr.st === 'object' && pr.st.t !== g.lastSt) { g.lastSt = pr.st.t; emit({ t: 'gameEvent', id: g.id, ev: { msg: pr.st } }); }
+        for (const e of Array.isArray(pr.q) ? pr.q : []) {
+          if (e && typeof e.seq === 'number' && e.seq > (g.lastSeq || 0) && e.d && typeof e.d === 'object') {
+            g.lastSeq = e.seq;
+            emit({ t: 'gameEvent', id: g.id, ev: { msg: e.d } });
+          }
+        }
+        return;
+      }
       if (g.kind === 'relay') {
         const o = 1 - g.you;
         if (typeof pr.board === 'string' && /^[0-8]{200}$/.test(pr.board)) g.state.boards[o] = pr.board;
@@ -409,6 +420,19 @@
     }
     function gameInput(g, input) {
       input = input || {};
+      if (g.type === 'apex') {
+        if (input.kind === 'msg' && input.data && typeof input.data === 'object' && JSON.stringify(input.data).length <= 2000) {
+          if (input.data.k === 's') g.named && g.named.presence({ st: input.data }).catch(() => {}); // latest car state
+          else {
+            g.outSeq = (g.outSeq || 0) + 1;
+            g.outbox = (g.outbox || []).concat({ seq: g.outSeq, d: input.data }).slice(-8);
+            g.named && g.named.presence({ q: g.outbox }).catch(() => {});
+          }
+        } else if (input.kind === 'result' && [0, 1, -1].includes(input.winner)) {
+          finish(g, { winner: input.winner, reason: str(input.reason, 80) || 'race finished' }, { post: g.you === 0 });
+        }
+        return;
+      }
       if (g.kind === 'relay') {
         if (input.kind === 'board' && typeof input.board === 'string') {
           g.state.boards[g.you] = input.board;

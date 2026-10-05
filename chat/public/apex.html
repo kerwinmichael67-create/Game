@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <title>Apex Rush 3D — chase-cam racing</title>
+<!-- Game Chat: adds an online two-player mode (see the "online" section in the script). -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -183,6 +184,10 @@ canvas{display:block}
 }
 .ghost:hover{color:var(--ink);border-color:rgba(255,255,255,.3)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+/* ---------- online lobby (Game Chat) ---------- */
+.locked{pointer-events:none; opacity:.55}
+.netline{margin-top:10px; font-size:13px; color:var(--mute); min-height:18px; text-align:center}
+.netline b{color:var(--ink)}
 </style>
 </head>
 <body>
@@ -287,6 +292,7 @@ canvas{display:block}
             </div>
           </div>
           <button class="go" id="startBtn">Start engine</button>
+          <div class="netline" id="netLine" hidden></div>
           <div class="keys">
             <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> + <kbd>L Shift</kbd> nitro &nbsp;·&nbsp;
             <kbd>&uarr;</kbd><kbd>&larr;</kbd><kbd>&darr;</kbd><kbd>&rarr;</kbd> + <kbd>R Shift</kbd> nitro<br>
@@ -784,7 +790,7 @@ addEventListener('keydown', e=>{
   if(e.repeat || KEY[e.code]) return;
   KEY[e.code]=true;
   if(G.state!=='race' && G.state!=='pause') return;
-  if(e.code==='Escape'||e.code==='KeyP'){ if(G.leave) G.leave=null; else togglePause(); }
+  if(e.code==='Escape'||e.code==='KeyP'){ if(G.leave) G.leave=null; else if(!NET.on) togglePause(); }
   if(e.code==='KeyM') requestLeave(-1);
   if(e.code==='KeyR') requestLeave(0);
   if(e.code==='KeyQ') respawnPlayer(0);
@@ -839,6 +845,7 @@ function makeRacer(carDef, opts){
   };
 }
 function cycleCam(i){
+  if(NET.on) i=NET.you;
   let c=G.grid[i];
   if(!c || c.bot) c=G.grid.find(x=>!x.bot);
   if(!c) return;
@@ -1125,6 +1132,7 @@ function checkPads(c,dt){
   }
 }
 function useItem(i){
+  if(NET.on) i=NET.you;
   let c=G.grid[i];
   if(!c || c.bot) c=G.grid.find(x=>!x.bot);
   if(c) fireItem(c);
@@ -1156,12 +1164,14 @@ function fireItem(c){
   else if(k==='slick'){
     const bx=c.x-Math.cos(c.angle)*c.def.body.L*.9, by=c.y-Math.sin(c.angle)*c.def.body.L*.9;
     G.slicks.push({x:bx,y:by,h:c.z,t:15,age:0,by:c});
+    if(NET.on) netSend({k:'slick', x:Math.round(bx), y:Math.round(by), h:Math.round(c.z)});
     Sound.blip(190,.20,'square',.10);
   } else if(k==='jolt'){
     const gap=score(o)-score(c);
     const near=Math.hypot(o.x-c.x,o.y-c.y);
     if(gap>0 && near<1500 && !o.done){
-      if(o.shield>0){ o.shield=0; o.flash=.5; }
+      if(NET.on && o.remote) netSend({k:'jolt'});        /* their browser applies the hit */
+      else if(o.shield>0){ o.shield=0; o.flash=.5; }
       else { o.zap=1.3; o.flash=.5; }
       G.bolt={a:c,b:o,t:.35};
     }
@@ -1349,6 +1359,13 @@ function startRace(){
 
 /* leaving a race: one player can ask, but in two-player both have to agree */
 function requestLeave(who){
+  if(NET.on){
+    if(G.state!=='race') return;
+    if(!G.leave) G.leave={v:[false,false], n:0, t:9};
+    G.leave.t=9; G.leave.n++;
+    if(G.leave.n>=2){ G.leave=null; netLeave(); } else Sound.blip(560,.07,'triangle',.09);
+    return;
+  }
   if(G.state==='done'){ quitToMenu(); return; }
   if(G.state!=='race' && G.state!=='pause') return;
   const two = G.mode==='2p';
@@ -1364,6 +1381,7 @@ function requestLeave(who){
   }
 }
 function respawnPlayer(i){
+  if(NET.on) i=NET.you;
   let c=G.grid[i];
   if(!c || c.bot) c=G.grid.find(x=>!x.bot);
   if(c && !c.done) respawn(c);
@@ -1377,8 +1395,10 @@ function togglePause(){
   if(G.state==='race'){ G.state='pause'; Sound.duck(true); }
   else if(G.state==='pause'){ G.state='race'; Sound.duck(false); }
 }
+function esc(t){ return String(t).replace(/[&<>"']/g, ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
 function finishRace(){
   G.state='done'; Sound.stop();
+  if(NET.on) return netFinish();
   const order=[...G.grid].sort((a,b)=>(a.finish??1e12)-(b.finish??1e12));
   const win=order[0], s=G.series;
   if(s) seriesAward(order);
@@ -1395,13 +1415,13 @@ function finishRace(){
   let html = broke? '<p style="color:#ffd400;font-size:13px;margin:0 0 12px;font-family:var(--disp);letter-spacing:.1em">NEW CIRCUIT RECORD</p>' : '';
   html+='<table class="res"><tr><th>Pos</th><th>Driver</th><th>Total</th><th>Best lap</th></tr>';
   order.forEach((c,i)=>{
-    html+='<tr><td class="pos">'+(i+1)+'</td><td>'+c.name+'<div class="car">'+c.def.name+'</div></td>'+
+    html+='<tr><td class="pos">'+(i+1)+'</td><td>'+esc(c.name)+'<div class="car">'+c.def.name+'</div></td>'+
           '<td>'+fmtTime(c.finish)+'</td><td>'+fmtTime(c.best)+'</td></tr>';
   });
   html+='</table>';
   if(s){
     html+='<table class="res"><tr><th>Championship after round '+(s.round+1)+'/'+s.rounds.length+'</th><th>Pts</th></tr>';
-    G.grid.forEach((c,i)=>{ html+='<tr><td>'+c.name+'</td><td>'+s.pts[i]+'</td></tr>'; });
+    G.grid.forEach((c,i)=>{ html+='<tr><td>'+esc(c.name)+'</td><td>'+s.pts[i]+'</td></tr>'; });
     html+='</table>';
     if(!last) html+='<p style="color:#8b97ad;font-size:13px;margin:0 0 14px">Next up: '+
       trackFor(s.rounds[s.round+1],G.reverse).def.name+'</p>';
@@ -2572,6 +2592,7 @@ function seen(cam, c){
 function driverView(c){ return !c.bot && c.camMode!=='chase'; }
 function updateCams(dt){
   if(!T3.ready) return;
+  if(NET.on){ G.split=false; G.solo=true; setCam(T3.camA, G.grid[NET.you], VW/VH, dt); return; }
   const a=G.grid[0], b=G.grid[1];
   const vertical=VW>=VH;
   const paneA = vertical? (VW/2)/VH : VW/(VH/2);
@@ -2692,7 +2713,7 @@ function drawHUD(view, c, side){
 
   ctx.textAlign='left'; ctx.fillStyle='#8b97ad'; ctx.font=F(600,9);
   ctx.fillText('NITRO', L, y+50);
-  if(!c.bot){ ctx.textAlign='right'; ctx.fillText(CAM_LABEL[c.camMode].split(' ')[0].toUpperCase()+' CAM', R, y+50); }
+  if(!c.bot && !c.remote){ ctx.textAlign='right'; ctx.fillText(CAM_LABEL[c.camMode].split(' ')[0].toUpperCase()+' CAM', R, y+50); }
 
   const by=y+61, bh=8;
   ctx.fillStyle='rgba(255,255,255,.10)'; ctx.fillRect(L,by,bw,bh);
@@ -2725,9 +2746,9 @@ function drawHUD(view, c, side){
     } else {
       ctx.fillStyle='#4d5769'; ctx.font=F(700,20); ctx.fillText('\u2014', sx+sw/2, sy+26);
     }
-    if(!c.bot){
+    if(!c.bot && !c.remote){
       ctx.fillStyle= it? '#8b97ad':'#4d5769'; ctx.font=F(600,9);
-      ctx.fillText(c===G.grid[1]? 'ENTER':'SPACE', sx+sw/2, sy+sh-13);
+      ctx.fillText(NET.on? 'SPACE' : (c===G.grid[1]? 'ENTER':'SPACE'), sx+sw/2, sy+sh-13);
     }
   }
   const eff=[];
@@ -2783,7 +2804,7 @@ function drawTopBar(){
   ctx.fillStyle='rgba(8,11,16,.7)'; ctx.fillRect(VW/2-92,0,184,42);
   ctx.fillStyle='#eef2f8'; ctx.font=F(700,22);
   ctx.fillText(fmtTime(G.clock), VW/2, 9);
-  const p=G.grid[0];
+  const p=G.grid[NET.on? NET.you : 0];
   ctx.fillStyle='#8b97ad'; ctx.font=F(600,10);
   ctx.fillText('BEST '+fmtTime(p.best), VW/2, 30);
 }
@@ -2801,7 +2822,7 @@ function drawToast(view){
 
 function drawLeave(){
   if(!G.leave) return;
-  const two=G.mode==='2p';
+  const two=G.mode==='2p' && !NET.on;
   const w=Math.min(580,VW-40), h=78, x=VW/2-w/2, y=52;
   ctx.save();
   ctx.globalAlpha=clamp(G.leave.t,0,1);
@@ -2809,7 +2830,7 @@ function drawLeave(){
   ctx.fillStyle='#ffd400'; ctx.fillRect(x,y,4,h);
   ctx.textBaseline='top';
   ctx.fillStyle='#eef2f8'; ctx.font=F(700,18); ctx.textAlign='center';
-  ctx.fillText(two? 'LEAVE RACE \u2014 BOTH PLAYERS MUST AGREE' : 'LEAVE RACE?', x+w/2, y+13);
+  ctx.fillText(two? 'LEAVE RACE \u2014 BOTH PLAYERS MUST AGREE' : (NET.on? 'FORFEIT THE RACE?' : 'LEAVE RACE?'), x+w/2, y+13);
   ctx.font=F(600,13);
   if(two){
     const a=G.leave.v[0], b=G.leave.v[1];
@@ -2819,7 +2840,7 @@ function drawLeave(){
     ctx.fillText((b?'\u2713 ':'')+'PLAYER 2  \u2014  PRESS /', x+w-26, y+45);
   } else {
     ctx.fillStyle='#8b97ad'; ctx.textAlign='center';
-    ctx.fillText('PRESS R AGAIN TO LEAVE   \u00b7   ESC TO STAY', x+w/2, y+45);
+    ctx.fillText(NET.on? 'PRESS R AGAIN TO FORFEIT   \u00b7   ESC TO STAY' : 'PRESS R AGAIN TO LEAVE   \u00b7   ESC TO STAY', x+w/2, y+45);
   }
   ctx.restore();
 }
@@ -2846,6 +2867,12 @@ function drawPause(){
 
 /* ============================== frame ============================== */
 function readInput(c){
+  if(NET.on){  /* online: either key set drives your car */
+    c.input.throttle=((KEY.KeyW||KEY.ArrowUp)?1:0)-((KEY.KeyS||KEY.ArrowDown)?1:0);
+    c.input.steer=((KEY.KeyD||KEY.ArrowRight)?1:0)-((KEY.KeyA||KEY.ArrowLeft)?1:0);
+    c.input.nitro=!!(KEY.ShiftLeft||KEY.ShiftRight);
+    return;
+  }
   const k=c.scheme;
   c.input.throttle=(KEY[k.up]?1:0)-(KEY[k.down]?1:0);
   c.input.steer=(KEY[k.right]?1:0)-(KEY[k.left]?1:0);
@@ -2854,6 +2881,16 @@ function readInput(c){
 function bumpCars(){
   const a=G.grid[0], b=G.grid[1];
   const dx=b.x-a.x, dy=b.y-a.y, d=Math.hypot(dx,dy), min=(a.def.body.L+b.def.body.L)*.39;
+  if(NET.on){
+    /* only your own car is yours to move: it takes the whole push */
+    if(d<min && d>.001 && Math.abs(a.z-b.z)<60){
+      const me=G.grid[NET.you], sg=NET.you===0?-1:1, ux=dx/d, uy=dy/d, push=min-d;
+      me.x+=ux*push*sg; me.y+=uy*push*sg;
+      const f=(Math.cos(me.angle)*ux+Math.sin(me.angle)*uy)*sg;
+      me.speed*=(f<0?.90:.97); if(me.bump<.5) Sound.thud(); me.bump=1;
+    }
+    return;
+  }
   if(d<min && d>.001 && Math.abs(a.z-b.z)<60){
     const ux=dx/d, uy=dy/d, push=(min-d)/2;
     a.x-=ux*push; a.y-=uy*push; b.x+=ux*push; b.y+=uy*push;
@@ -2903,10 +2940,11 @@ function update(dt){
   } else {
     G.clock+=dt*1000;
     rubberBand(); slipstream();
-    for(const c of G.grid){ if(c.bot||c.done) botDrive(c,dt); else readInput(c); if(c.bot&&G.items) botItems(c,dt); }
+    for(const c of G.grid){ if(c.remote) continue; if(c.bot||c.done) botDrive(c,dt); else readInput(c); if(c.bot&&G.items) botItems(c,dt); }
   }
   const steps=clamp(Math.ceil(dt/.0125),1,6), h=dt/steps;
-  for(let i=0;i<steps;i++){ for(const c of G.grid) driveStep(c,h); bumpCars(); }
+  for(let i=0;i<steps;i++){ for(const c of G.grid) if(!c.remote) driveStep(c,h); bumpCars(); }
+  if(NET.on) netApplyRemote();
   for(const c of G.grid){ tickTimers(c,dt); fx(c,dt); c.bump=Math.max(0,c.bump-dt*3); }
   tickWorld(dt);
   stepParts(dt);
@@ -2916,6 +2954,7 @@ function update(dt){
   updateCams(dt);
   Sound.update(G.grid);
   if(G.grid.every(c=>c.done)) finishRace();
+  else if(NET.on) netWaitFinish(dt);
 }
 function paneDraw(cam, car, x, y, w, h, scissor){
   const r=T3.renderer;
@@ -2951,11 +2990,12 @@ function render(dt){
     if(vertical) ctx.fillRect(VW/2-1.5,0,3,VH); else ctx.fillRect(0,VH/2-1.5,VW,3);
     drawHUD(v1,a,'left'); drawHUD(v2,b,'left'); drawToast(v1);
   } else {
-    const solo = G.solo? a : null;
+    const me = NET.on? G.grid[NET.you] : a, them = NET.on? G.grid[1-NET.you] : b;
+    const solo = G.solo? me : null;
     paneDraw(T3.camA, solo, 0,0,VW,VH,false);
     const v={x:0,y:0,w:VW,h:VH};
-    if(solo && a.camMode==='cockpit') drawCockpit(v,a);
-    drawHUD(v,a,'left'); drawHUD(v,b,'right'); drawToast(v);
+    if(solo && me.camMode==='cockpit') drawCockpit(v,me);
+    drawHUD(v,me,'left'); drawHUD(v,them,'right'); drawToast(v);
   }
   drawMini(); drawTopBar(); drawLeave();
   if(G.countdown>0) drawCountdown();
@@ -3069,7 +3109,7 @@ function syncCars(){
     kids[i].setAttribute('aria-pressed', i===sel?'true':'false');
     kids[i].style.color = i===sel? tint : '';
   }
-  const who = G.slot===0 ? 'Player 1' : (G.mode==='2p'?'Player 2':DIFF[G.diff].name+' bot');
+  const who = NET.on ? 'Your car' : (G.slot===0 ? 'Player 1' : (G.mode==='2p'?'Player 2':DIFF[G.diff].name+' bot'));
   const spec=$('#spec');
   spec.style.color=CARS[sel].color;
   spec.innerHTML=specHtml(CARS[sel], who);
@@ -3185,7 +3225,7 @@ function buildMenu(){
     const b=document.createElement('button');
     b.className='card'; b.type='button'; b.setAttribute('aria-pressed','false');
     b.innerHTML=carSvg(c)+'<b>'+c.name+'</b><small>'+c.cls+'</small>';
-    b.addEventListener('click', ()=>{ G.pick[G.slot]=i; syncCars(); Sound.init(); Sound.blip(520,.05,'triangle',.08); });
+    b.addEventListener('click', ()=>{ G.pick[G.slot]=i; syncCars(); Sound.init(); Sound.blip(520,.05,'triangle',.08); if(NET.on) netCar(); });
     cars.appendChild(b);
   });
   const row=$('#trackRow');
@@ -3210,6 +3250,7 @@ function buildMenu(){
   $('#startBtn').addEventListener('click', ()=>{
     if(G.state==='race'||G.state==='pause') return;
     Sound.init();
+    if(NET.on){ netToggleReady(); return; }
     G.series = G.format==='series' ? (startSeries(), G.series) : null;
     startRace();
   });
@@ -3226,6 +3267,189 @@ function buildMenu(){
   });
 }
 
+/* ============================== online (Game Chat) ==============================
+   Game Chat opens this page in a frame and relays messages between the two players.
+   Each browser simulates only its own car and streams it ~20 times a second; the other
+   car is drawn from that stream, 110 ms behind and interpolated, so it moves smoothly.
+   Player 0 (who sent the challenge) picks the circuit; each player picks their own car. */
+const NET = { on:false, you:0, host:false, names:['Player 1','Player 2'], ready:[false,false], buf:[], offset:null,
+              setupKey:'', setupAt:0, carAt:0, finWait:0, reported:false, other:1 };
+const PARENT_ORIGIN = location.origin==='null' ? '*' : location.origin;
+function toParent(msg){ try{ window.parent.postMessage(msg, PARENT_ORIGIN); }catch(e){} }
+function netSend(data){ if(NET.on) toParent({type:'apex:send', data}); }
+function netLeave(){ toParent({type:'apex:leave'}); }
+const num = (v,d) => (typeof v==='number' && isFinite(v)) ? v : d;
+
+function netSetupData(){ return {track:G.trackIdx, rev:G.reverse, wx:G.weather, items:G.items, laps:G.laps}; }
+function netApplySetup(d){
+  if(Number.isInteger(d.track) && d.track>=0 && d.track<TRACKS.length) G.trackIdx=d.track;
+  G.reverse=!!d.rev; G.weather = d.wx==='wet'?'wet':'dry'; G.items=!!d.items;
+  if([2,3,5,8].includes(d.laps)) G.laps=d.laps;
+  const press=(sel,key,val)=>{ for(const el of $(sel).children) el.setAttribute('aria-pressed', el.dataset[key]===String(val)?'true':'false'); };
+  press('#dirRow','dir', G.reverse?'rev':'fwd'); press('#wxRow','wx', G.weather);
+  press('#itemRow','items', G.items?'1':'0'); press('#lapRow','laps', G.laps);
+  syncTrack();
+}
+function netCar(){ netSend({k:'car', car:G.pick[NET.you], ready:NET.ready[NET.you]}); NET.carAt=performance.now(); }
+function netLine(){
+  const el=$('#netLine'); if(!el) return;
+  const them=NET.names[NET.other];
+  el.hidden=false;
+  el.textContent='';
+  const b=document.createElement('b'); b.textContent=them;
+  if(NET.ready[NET.you] && NET.ready[NET.other]) el.append('Starting…');
+  else if(NET.ready[NET.you]) el.append('Waiting for ', b, ' to press Ready…');
+  else if(NET.ready[NET.other]) el.append(b, ' is ready. Pick your car and press Ready.');
+  else el.append(NET.host? 'You pick the circuit. ' : '', b, NET.host? ' picks their own car.' : ' picks the circuit, laps and weather.');
+  $('#startBtn').textContent = NET.ready[NET.you] ? 'Not ready' : 'Ready';
+}
+function netToggleReady(){
+  NET.ready[NET.you]=!NET.ready[NET.you];
+  netCar(); netLine(); netMaybeGo();
+}
+function netMaybeGo(){
+  if(!NET.host || G.state!=='menu' || !NET.ready[0] || !NET.ready[1]) return;
+  const go=Object.assign({k:'go', cars:[G.pick[0],G.pick[1]]}, netSetupData());
+  netSend(go);
+  netStart(go);
+}
+function netStart(go){
+  netApplySetup(go);
+  for(const i of [0,1]) if(Number.isInteger(go.cars[i]) && go.cars[i]>=0 && go.cars[i]<CARS.length) G.pick[i]=go.cars[i];
+  G.format='single'; G.series=null; G.mode='2p';
+  NET.ready=[false,false]; NET.buf=[]; NET.offset=null; NET.finWait=0; NET.reported=false;
+  startRace();
+  G.grid.forEach((c,i)=>{ c.name=NET.names[i]; c.remote = i!==NET.you; });
+  netLine();
+}
+function netState(c){
+  const r=(v,k)=>Math.round(v*k)/k;
+  return {k:'s', t:Math.round(performance.now()), x:r(c.x,10), y:r(c.y,10), z:r(c.z,10), a:r(c.angle,1000), sp:r(c.speed,10),
+    st:r(c.steer,1000), sl:r(c.slide,100), p:r(c.pitch,1000), sf:r(c.sf,100), sr:r(c.sr,100), n:r(c.nitro,10), no:c.nitroOn?1:0,
+    lap:c.lap, si:c.sIdx, dn:c.done?1:0, fn:c.finish, bs:c.best, sh:r(c.shield,10), zp:r(c.zap,10), sn:r(c.spin,10), fl:r(c.flash||0,10),
+    it:c.item, air:c.air?1:0, aT:r(c.airT||0,10), dr:r(c.drift,10), db:r(c.driftBoost,10), tt:r(c.turboT,10), gt:r(c.gripT,10),
+    ot:c.onTrack?1:0, th:Math.sign(c.input.throttle), lt:r(c.landT,10), lg:c.landing||'', ad:Math.round(c.airDist||0)};
+}
+function netApplyRemote(){
+  const c=G.grid[NET.other], buf=NET.buf;
+  if(!c || !buf.length) return;
+  const now=performance.now()-110;
+  let i=buf.length-1;
+  while(i>0 && buf[i].at>now) i--;
+  const A=buf[i], B=buf[i+1], L=buf[buf.length-1].d;
+  let x=A.d.x, y=A.d.y, z=A.d.z, ang=A.d.a, sp=A.d.sp;
+  if(B && B.at>A.at){
+    const t=clamp((now-A.at)/(B.at-A.at),0,1);
+    x=lerp(A.d.x,B.d.x,t); y=lerp(A.d.y,B.d.y,t); z=lerp(A.d.z,B.d.z,t);
+    ang=A.d.a+angNorm(B.d.a-A.d.a)*t; sp=lerp(A.d.sp,B.d.sp,t);
+  }
+  c.x=num(x,c.x); c.y=num(y,c.y); c.z=num(z,c.z); c.angle=num(ang,c.angle); c.speed=num(sp,c.speed);
+  c.steer=num(L.st,0); c.slide=num(L.sl,0); c.pitch=num(L.p,0); c.sf=num(L.sf,.18); c.sr=num(L.sr,.18);
+  c.nitro=num(L.n,c.nitro); c.nitroOn=!!L.no; c.shield=num(L.sh,0); c.zap=num(L.zp,0); c.spin=num(L.sn,0); c.flash=num(L.fl,0);
+  c.item = ITEMS[L.it]? L.it : null; c.air=!!L.air; c.airT=num(L.aT,0); c.drift=num(L.dr,0); c.driftBoost=num(L.db,0);
+  c.turboT=num(L.tt,0); c.gripT=num(L.gt,0); c.onTrack=!!L.ot; c.input.throttle=num(L.th,0);
+  c.landT=num(L.lt,0); c.landing=['CLEAN','SOLID','HEAVY'].includes(L.lg)? L.lg : ''; c.airDist=num(L.ad,0);
+  const N=G.track.N;
+  c.lap=clamp(Math.round(num(L.lap,0)),0,G.laps); c.sIdx=clamp(Math.round(num(L.si,0)),0,N-1);
+  if(L.bs!=null) c.best=num(L.bs,c.best);
+  if(L.dn && !c.done){ c.done=true; c.finish=num(L.fn,G.clock); }
+  while(buf.length>2 && buf[1].at<now-1000) buf.shift();
+}
+function netWaitFinish(dt){
+  /* once you're over the line, give the other driver 30 s before calling the race */
+  const me=G.grid[NET.you];
+  if(me.done){ NET.finWait+=dt; if(NET.finWait>30) finishRace(); }
+}
+function netFinish(){
+  const order=[...G.grid].sort((a,b)=>(a.finish??1e12)-(b.finish??1e12));
+  const win=order[0], me=G.grid[NET.you];
+  for(const c of G.grid) if(!c.remote) Records.submit(c);
+  const lost = win!==me;
+  $('#mTitle').textContent = win.finish==null ? 'No finish' : (lost? win.name+' wins' : 'You win');
+  let html='<table class="res"><tr><th>Pos</th><th>Driver</th><th>Total</th><th>Best lap</th></tr>';
+  order.forEach((c,i)=>{
+    html+='<tr><td class="pos">'+(i+1)+'</td><td>'+esc(c.name)+'<div class="car">'+c.def.name+'</div></td>'+
+          '<td>'+(c.finish==null?'DNF':fmtTime(c.finish))+'</td><td>'+fmtTime(c.best)+'</td></tr>';
+  });
+  $('#mBody').innerHTML=html+'</table>';
+  $('#mAgain').hidden=true; $('#mMenu').hidden=true;
+  $('#modal').hidden=false;
+  if(NET.reported) return;
+  NET.reported=true;
+  const wi=G.grid.indexOf(win), lo=G.grid[1-wi];
+  const tie = win.finish!=null && lo.finish===win.finish;
+  toParent({type:'apex:result', winner: win.finish==null||tie ? -1 : wi,
+            reason: win.finish==null ? 'nobody finished' : fmtTime(win.finish)+(lo.finish!=null? ' vs '+fmtTime(lo.finish) : ' · other car DNF')});
+}
+function netRecv(d){
+  if(!d || typeof d!=='object') return;
+  const other=NET.other;
+  if(d.k==='s'){
+    if(G.state!=='race' && G.state!=='done') return;
+    const t=num(d.t,0), off=performance.now()-t;
+    NET.offset = NET.offset==null ? off : Math.min(NET.offset+.5, off);   /* lowest delay seen, drifting slowly */
+    NET.buf.push({at:t+NET.offset, d});
+    if(NET.buf.length>60) NET.buf.shift();
+  } else if(d.k==='setup'){
+    if(!NET.host && G.state==='menu') netApplySetup(d);
+  } else if(d.k==='car'){
+    if(Number.isInteger(d.car) && d.car>=0 && d.car<CARS.length){ G.pick[other]=d.car; drawMap(); }
+    if(G.state==='menu'){ NET.ready[other]=!!d.ready; netLine(); netMaybeGo(); }
+  } else if(d.k==='go'){
+    if(!NET.host && G.state==='menu' && Array.isArray(d.cars)) netStart(d);
+  } else if(d.k==='jolt'){
+    const me=G.grid[NET.you], them=G.grid[other];
+    if(G.state!=='race' || !me || me.done) return;
+    if(me.shield>0){ me.shield=0; me.flash=.5; } else { me.zap=1.3; me.flash=.5; }
+    G.bolt={a:them, b:me, t:.35}; Sound.blip(1200,.14,'square',.12);
+  } else if(d.k==='slick'){
+    if(G.state==='race') G.slicks.push({x:num(d.x,0), y:num(d.y,0), h:num(d.h,0), t:15, age:0, by:G.grid[other]});
+  }
+}
+function netTick(){
+  const now=performance.now();
+  if(G.state==='menu'){
+    if(NET.host){
+      const key=JSON.stringify(netSetupData());
+      if(key!==NET.setupKey || now-NET.setupAt>2000){ NET.setupKey=key; NET.setupAt=now; netSend(Object.assign({k:'setup'}, netSetupData())); }
+    }
+    if(now-NET.carAt>1500) netCar();
+  } else if(G.state==='race' || G.state==='done'){
+    const me=G.grid[NET.you]; if(me) netSend(netState(me));
+  }
+}
+function netInit(m){
+  if(m.mode==='bot'){
+    /* playing the computer from Game Chat: the game's own bot, at the chosen skill */
+    G.mode='bot'; G.diff=clamp(m.diff|0,0,2);
+    for(const el of $('#modeRow').children) el.setAttribute('aria-pressed', el.dataset.mode==='bot'?'true':'false');
+    for(const el of $('#diffRow').children) el.setAttribute('aria-pressed', el.dataset.diff===String(G.diff)?'true':'false');
+    syncMode();
+    return;
+  }
+  NET.on=true; NET.you = m.you===1 ? 1 : 0; NET.other=1-NET.you; NET.host = NET.you===0;
+  NET.names=[0,1].map(i=>String((m.players&&m.players[i]&&m.players[i].name)||('Player '+(i+1))).slice(0,30));
+  G.mode='2p'; G.slot=NET.you; G.format='single';
+  const hide=el=>{ if(el) el.style.display='none'; };
+  hide($('#modeRow')); hide($('#soloOnly')); hide($('#formatRow')); hide($('#formatRow').previousElementSibling); hide($('#tabs'));
+  hide($('#setItemRow')); hide($('#setItemRow').previousElementSibling);
+  const h1=$('.mark h1'); if(h1) h1.lastChild.textContent='Online';
+  const intro=$('.mast p'); if(intro) intro.textContent='Online race: '+NET.names[0]+' vs '+NET.names[1]+'. You drive your own car; theirs streams in live. '+
+    'Pickups that hit the other car (Jolt, Oil) reach them too.';
+  if(!NET.host){
+    for(const sel of ['#dirRow','#wxRow','#itemRow','#lapRow','#trackRow']) $(sel).classList.add('locked');
+  }
+  const keys=$('.keys'); if(keys) keys.textContent='W A S D or arrows to drive · Shift nitro · Space pickup · C camera · Q recover · R twice to forfeit. Steering only bites while the wheels are rolling.';
+  syncTabs(); syncCars(); syncTrack(); netLine(); netCar();
+  setInterval(netTick, 50);
+}
+addEventListener('message', e=>{
+  if(e.source!==window.parent || (location.origin!=='null' && e.origin!==location.origin)) return;
+  const m=e.data||{};
+  if(m.type==='apex:init') netInit(m);
+  else if(m.type==='apex:peer') netRecv(m.data);
+});
+
 /* ============================== boot ============================== */
 Records.boot(); initPaths(); buildMenu(); wireSettings(); syncMode(); syncTrack();
 for(const b of $('#itemRow').children) b.setAttribute('aria-pressed', (b.dataset.items==='1')===G.items?'true':'false');
@@ -3241,6 +3465,7 @@ if(!glOK){
   b.parentNode.insertBefore(note, b.nextSibling);
 }
 requestAnimationFrame(frame);
+if(window.parent!==window) toParent({type:'apex:hello'});
 </script>
 </body>
 </html>

@@ -15,6 +15,7 @@
     gomoku: { color: 'linear-gradient(135deg,#d6a35c,#8a5a24)', emoji: '⭕', name: 'Five in a Row', desc: 'Get five stones in a line on a big board.', help: 'Click a spot to place a stone' },
     tron: { color: 'linear-gradient(135deg,#06b6d4,#7c3aed)', emoji: '🏍️', name: 'Light Cycles', desc: 'Don’t hit a wall. Best of 5 rounds.', help: 'Arrow keys / WASD (or swipe) to turn' },
     hockey: { color: 'linear-gradient(135deg,#38bdf8,#1d4ed8)', emoji: '🏒', name: 'Air Hockey', desc: 'Smash the puck into their goal. First to 7.', help: 'Move the mouse or your finger over your half (or WASD / arrows)' },
+    apex: { color: 'linear-gradient(135deg,#ffd400,#ff3b4e)', emoji: '🏎️', name: 'Apex Rush 3D', desc: '3D racing on nine circuits. First over the line wins.', help: 'W A S D or arrows · Shift nitro · Space pickup · C camera (keyboard only)' },
   };
 
   function h(tag, attrs, ...kids) {
@@ -779,9 +780,44 @@
     };
   }
 
+  // ---------------------------------------------------------------- APEX RUSH 3D
+  // The racing game is its own page (apex.html) in a frame. This side passes messages between
+  // that frame and the other player, and reports the result.
+  function apexGame(stage, api) {
+    const frame = h('iframe', { class: 'apex-frame', src: 'apex.html', title: 'Apex Rush 3D', allow: 'autoplay; fullscreen' });
+    const target = location.origin === 'null' ? '*' : location.origin;
+    let ready = false;
+    const queue = [];
+    const post = (msg) => { if (frame.contentWindow) frame.contentWindow.postMessage(msg, target); };
+    const onMsg = (e) => {
+      if (e.source !== frame.contentWindow) return;
+      const m = e.data || {};
+      if (m.type === 'apex:hello') {
+        ready = true;
+        post(api.bot ? { type: 'apex:init', mode: 'bot', diff: api.bot.diff }
+          : { type: 'apex:init', mode: 'online', you: api.you, players: api.players.map((p) => ({ name: p.name })) });
+        queue.splice(0).forEach((d) => post({ type: 'apex:peer', data: d }));
+        frame.focus();
+      } else if (m.type === 'apex:send' && !api.bot) api.send({ kind: 'msg', data: m.data });
+      else if (m.type === 'apex:result' && !api.bot) api.send({ kind: 'result', winner: m.winner, reason: String(m.reason || '').slice(0, 80) });
+      else if (m.type === 'apex:leave') api.leave();
+    };
+    addEventListener('message', onMsg);
+    stage.append(frame);
+    api.status(api.bot ? 'Racing the computer. Pick your car and press Start engine.' : 'Pick your car and press Ready. Click the game if your keys stop working.');
+    return {
+      update() {},
+      event(ev) {
+        if (!ev || !ev.msg) return;
+        if (ready) post({ type: 'apex:peer', data: ev.msg }); else queue.push(ev.msg);
+      },
+      destroy() { removeEventListener('message', onMsg); frame.src = 'about:blank'; },
+    };
+  }
+
   const FACTORY = {
     snake: snakeGame, pong: pongGame, fighter: fighterGame, tetris: tetrisGame, chess: chessGame, checkers: checkersGame, connect4: connect4Game, tictactoe: tictactoeGame,
-    reversi: reversiGame, dots: dotsGame, mancala: mancalaGame, gomoku: gomokuGame, tron: tronGame, hockey: hockeyGame,
+    reversi: reversiGame, dots: dotsGame, mancala: mancalaGame, gomoku: gomokuGame, tron: tronGame, hockey: hockeyGame, apex: apexGame,
   };
 
   // ---------------------------------------------------------------- dock
@@ -794,7 +830,7 @@
     cur = null;
     if (c && c.onClose) c.onClose();
     dock().classList.add('hidden');
-    dock().classList.remove('min');
+    dock().classList.remove('min', 'full');
     dock().replaceChildren();
   }
   function start(m) {
@@ -821,9 +857,12 @@
         leaveBtn),
       statusEl, stage);
     d.classList.remove('hidden', 'min');
+    d.classList.toggle('full', m.game === 'apex'); // the racing game wants the whole window
     const api = {
       you: m.you,
       players: m.players,
+      bot: m.bot || null,
+      leave: () => cur && (cur.over ? close() : gameHost.leave(cur.id)),
       send: (input) => cur && !cur.over && gameHost.send(cur.id, input),
       status: (...parts) => statusEl.replaceChildren(...parts.flat().filter((x) => x !== '' && x !== null).map((x) => (x instanceof Node ? x : h('span', {}, x)))),
     };
