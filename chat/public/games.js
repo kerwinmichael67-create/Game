@@ -566,8 +566,10 @@
   const dock = () => document.getElementById('gameDock');
 
   function close() {
-    if (cur && cur.inst.destroy) cur.inst.destroy();
+    const c = cur;
+    if (c && c.inst.destroy) c.inst.destroy();
     cur = null;
+    if (c && c.onClose) c.onClose();
     dock().classList.add('hidden');
     dock().classList.remove('min');
     dock().replaceChildren();
@@ -576,6 +578,7 @@
     if (cur && cur.id === m.id) { cur.inst.update(m.state); return; }
     close();
     const meta = META[m.game], d = dock();
+    const gameHost = m.host || host; // a bot game brings its own host instead of the server
     const colors = playerColors(m.players);
     const statusEl = h('div', { class: 'game-status' });
     const stage = h('div', { class: 'game-stage' });
@@ -584,7 +587,7 @@
       if (cur.over) close();
       else {
         const id = cur.id;
-        window.uiConfirm('Forfeit this game?', 'Forfeit', () => host.leave(id));
+        window.uiConfirm('Forfeit this game?', 'Forfeit', () => gameHost.leave(id));
       }
     } }, 'Forfeit');
     d.replaceChildren(
@@ -598,10 +601,10 @@
     const api = {
       you: m.you,
       players: m.players,
-      send: (input) => cur && !cur.over && host.send(cur.id, input),
+      send: (input) => cur && !cur.over && gameHost.send(cur.id, input),
       status: (...parts) => statusEl.replaceChildren(...parts.flat().filter((x) => x !== '' && x !== null).map((x) => (x instanceof Node ? x : h('span', {}, x)))),
     };
-    cur = { id: m.id, game: m.game, players: m.players, you: m.you, over: false, stage, statusEl, leaveBtn, inst: FACTORY[m.game](stage, api) };
+    cur = { id: m.id, game: m.game, players: m.players, you: m.you, over: false, stage, statusEl, leaveBtn, host: gameHost, onClose: m.onClose, inst: FACTORY[m.game](stage, api) };
     cur.inst.update(m.state);
     if (document.activeElement && document.activeElement.id === 'msgInput') document.activeElement.blur();
   }
@@ -621,7 +624,7 @@
       h('div', { class: 'muted' }, r.reason),
       h('div', { class: 'row', style: 'justify-content:center' },
         h('button', { class: 'btn', onclick: close }, 'Close'),
-        h('button', { class: 'btn primary', onclick: () => { host.rematch(game, opp.username); close(); } }, `Rematch ${opp.name}`)))));
+        h('button', { class: 'btn primary', onclick: () => { const again = cur.host; close(); again.rematch(game, opp.username); } }, `Rematch ${opp.name}`)))));
   }
 
   window.GameDock = {

@@ -480,6 +480,7 @@ const server = http.createServer((req, res) => {
   if (url.startsWith('/files/')) return serveUpload(req, res, url.slice(7));
   let file;
   if (url === '/shared/rules.js') file = path.join(__dirname, 'shared', 'rules.js');
+  else if (url === '/realtime.js') file = path.join(__dirname, 'realtime.js'); // bot games run the simulations in the browser
   else {
     file = path.normalize(path.join(PUBLIC, url === '/' ? 'index.html' : url));
     if (!file.startsWith(PUBLIC + path.sep)) { res.writeHead(403); return res.end(); }

@@ -597,27 +597,38 @@
   const record = (st) => h('div', { class: 'record' },
     h('div', {}, h('b', {}, st.w), h('small', {}, 'Wins')), h('div', {}, h('b', {}, st.l), h('small', {}, 'Losses')), h('div', {}, h('b', {}, st.d), h('small', {}, 'Draws')));
   const gameName = (g) => (GameDock.META[g] || {}).name || g;
+  const BOT = '__bot';
   function gameModal(opponent, preselect) {
     let game = preselect || (S.me.favorites && S.me.favorites[0]) || 'snake';
+    let level = BotPlay.LEVELS[store.get('botLevel')] ? store.get('botLevel') : 'medium';
     let target = opponent || null;
     const build = () => {
       const r = S.rooms[S.current];
       const pool = onlineUsers().filter((u) => u.username !== S.me.username)
         .sort((a, b) => (r && r.members.includes(b.username)) - (r && r.members.includes(a.username)) || a.name.localeCompare(b.name));
       if (!target && pool.length) target = (r && r.dm && r.members.find((m) => m !== S.me.username && userOf(m).presence !== 'offline')) || pool[0].username;
+      if (!target || (target !== BOT && !pool.some((u) => u.username === target))) target = BOT; // nobody (else) online: play the bot
       const grid = h('div', { class: 'game-grid' }, Object.entries(GameDock.META).map(([id, g]) =>
         h('button', { class: 'game-card' + (id === game ? ' sel' : ''), style: `--g:${g.color}`, onclick: () => { game = id; rebuild(); } },
           h('span', { class: 'emoji' }, g.emoji), h('b', {}, g.name), h('small', {}, g.desc))));
-      const people = h('ul', { class: 'list' }, pool.length ? pool.map((u) => h('li', {
+      const levels = h('div', { class: 'levels', role: 'radiogroup', 'aria-label': 'Bot difficulty' }, Object.entries(BotPlay.LEVELS).map(([id, l]) =>
+        h('button', { class: 'level' + (id === level ? ' sel' : ''), role: 'radio', 'aria-checked': String(id === level), onclick: (e) => {
+          e.stopPropagation(); level = id; store.set('botLevel', id); target = BOT; rebuild();
+        } }, l.label)));
+      const botRow = h('li', { class: 'bot-row' + (target === BOT ? ' active' : ''), onclick: () => { target = BOT; rebuild(); } },
+        h('div', { class: 'avatar bot-avatar' }, '🤖'),
+        h('span', { class: 'grow' }, 'Play the bot ', h('small', {}, pool.length ? 'Practice anytime' : 'Nobody else is online, so play the bot')), levels);
+      const people = h('ul', { class: 'list' }, botRow, pool.map((u) => h('li', {
         class: u.username === target ? 'active' : '', onclick: () => { target = u.username; rebuild(); } },
-      avatar(u.username), h('span', { class: 'grow' }, u.name, ' ', h('small', {}, u.inGame ? `🎮 in a game` : PRESENCE_LABEL[u.presence]))))
-        : h('li', { class: 'empty' }, 'Nobody else is online right now. Invite a friend to open this page!'));
+      avatar(u.username), h('span', { class: 'grow' }, u.name, ' ', h('small', {}, u.inGame ? `🎮 in a game` : PRESENCE_LABEL[u.presence])))));
+      const vsBot = target === BOT;
       return [modalHead('Request a game'), h('b', {}, '1. Pick a game'), grid, h('b', {}, '2. Pick who to play'), people,
         h('div', { class: 'row end' }, h('button', { class: 'btn', onclick: closeModal }, 'Cancel'),
-          h('button', { class: 'btn primary', disabled: !target || !pool.some((u) => u.username === target), onclick: () => {
-            send({ t: 'gameInvite', game, to: target, room: S.current });
+          h('button', { class: 'btn primary', onclick: () => {
             closeModal();
-          } }, `Challenge${target ? ' ' + nameOf(target) : ''}`))];
+            if (vsBot) BotPlay.start(game, level, { username: S.me.username, name: S.me.name, avatar: S.me.avatar });
+            else send({ t: 'gameInvite', game, to: target, room: S.current });
+          } }, vsBot ? `Play the bot (${BotPlay.LEVELS[level].label})` : `Challenge ${nameOf(target)}`))];
     };
     const rebuild = () => $('#modalCard').replaceChildren(...build());
     build.refresh = rebuild;

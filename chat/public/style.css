@@ -525,3 +525,15 @@ body[data-theme="dark"] .fav-btn.on { color: #c9c2ff; }
 @media (max-width: 720px) {
   .composer .attach { width: 42px; height: 42px; }
 }
+
+/* ============================================================
+   Bot opponent
+   ============================================================ */
+.bot-row { flex-wrap: wrap; }
+.bot-avatar { background: var(--grad); font-size: 16px; }
+.list .bot-avatar { font-size: 15px; }
+.levels { display: inline-flex; gap: 2px; background: var(--surface-2); padding: 3px; border-radius: 10px; flex: none; }
+.level { border: 0; background: none; padding: 5px 10px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--muted); }
+.level:hover { color: var(--text); }
+.level.sel { background: var(--surface); color: var(--accent); box-shadow: var(--shadow-sm); }
+.level:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }

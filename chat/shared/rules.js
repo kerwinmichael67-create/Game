@@ -164,6 +164,12 @@
     else if (ns.half >= 100) ns.result = { winner: -1, reason: '50-move rule' };
     return { state: ns };
   };
+  // Fast paths for the bot's search: apply a move already known to be legal, and check detection.
+  chess.apply = applyChess;
+  chess.inCheck = (s) => {
+    const c = s.turn === 0 ? 'w' : 'b';
+    return attacked(s.board, kingSq(s.board, c), c === 'w' ? 'b' : 'w');
+  };
   Rules.chess = chess;
 
   // ---------------------------------------------------------------- CHECKERS
