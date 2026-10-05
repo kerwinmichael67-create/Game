@@ -27,6 +27,12 @@ const GAMES = {
   pong: { name: 'Pong', kind: 'realtime' },
   connect4: { name: 'Connect Four', kind: 'turn' },
   tictactoe: { name: 'Tic-Tac-Toe', kind: 'turn' },
+  reversi: { name: 'Reversi', kind: 'turn' },
+  dots: { name: 'Dots & Boxes', kind: 'turn' },
+  mancala: { name: 'Mancala', kind: 'turn' },
+  gomoku: { name: 'Five in a Row', kind: 'turn' },
+  tron: { name: 'Light Cycles', kind: 'realtime' },
+  hockey: { name: 'Air Hockey', kind: 'realtime' },
 };
 const AVATAR_COLORS = ['#22c55e', '#111111', '#ef4444', '#facc15', '#d946ef', '#3b82f6', '#f97316', '#14b8a6'];
 

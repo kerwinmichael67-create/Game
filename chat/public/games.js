@@ -9,6 +9,12 @@
     pong: { color: 'linear-gradient(135deg,#64748b,#0f172a)', emoji: '🏓', name: 'Pong', desc: 'First to 7 points wins.', help: 'W/S or ↑/↓ to move your paddle' },
     connect4: { color: 'linear-gradient(135deg,#3b82f6,#1e3a8a)', emoji: '🔴', name: 'Connect Four', desc: 'Get four in a row.', help: 'Click a column to drop a disc' },
     tictactoe: { color: 'linear-gradient(135deg,#ec4899,#8b5cf6)', emoji: '❌', name: 'Tic-Tac-Toe', desc: 'Three in a row. Quick game!', help: 'Click a square' },
+    reversi: { color: 'linear-gradient(135deg,#16a34a,#14532d)', emoji: '⚫', name: 'Reversi', desc: 'Trap discs to flip them. Most discs wins.', help: 'Click a dotted square to place a disc' },
+    dots: { color: 'linear-gradient(135deg,#f59e0b,#ea580c)', emoji: '🔲', name: 'Dots & Boxes', desc: 'Close a box to score and go again.', help: 'Click between two dots to draw a line' },
+    mancala: { color: 'linear-gradient(135deg,#a16207,#713f12)', emoji: '🫘', name: 'Mancala', desc: 'Sow seeds, capture, fill your store.', help: 'Click one of your pits (bottom row) to sow its seeds' },
+    gomoku: { color: 'linear-gradient(135deg,#d6a35c,#8a5a24)', emoji: '⭕', name: 'Five in a Row', desc: 'Get five stones in a line on a big board.', help: 'Click a spot to place a stone' },
+    tron: { color: 'linear-gradient(135deg,#06b6d4,#7c3aed)', emoji: '🏍️', name: 'Light Cycles', desc: 'Don’t hit a wall. Best of 5 rounds.', help: 'Arrow keys / WASD (or swipe) to turn' },
+    hockey: { color: 'linear-gradient(135deg,#38bdf8,#1d4ed8)', emoji: '🏒', name: 'Air Hockey', desc: 'Smash the puck into their goal. First to 7.', help: 'Move the mouse or your finger over your half (or WASD / arrows)' },
   };
 
   function h(tag, attrs, ...kids) {
@@ -34,8 +40,13 @@
   function playerColors(players) {
     const fix = (c) => (c.toLowerCase() === '#111111' || c.toLowerCase() === '#000000' ? '#9ca3af' : c);
     const a = fix(players[0].avatar), b = fix(players[1].avatar);
-    return [a, a.toLowerCase() === b.toLowerCase() ? (a.toLowerCase() === '#3b82f6' ? '#f97316' : '#3b82f6') : b];
+    const hex = (c) => /^#[0-9a-f]{6}$/i.test(c);
+    const rgb = (c) => [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16));
+    const close = (x, y) => !hex(x) || !hex(y) || Math.hypot(...rgb(x).map((v, i) => v - rgb(y)[i])) < 110;
+    if (!close(a, b)) return [a, b];
+    return [a, ['#3b82f6', '#f97316', '#ec4899', '#22c55e'].find((c) => !close(a, c)) || '#f97316'];
   }
+
 
   // Tracks held keys (ignoring keys while typing in chat) and on-screen touch buttons.
   function heldKeys(map, onChange) {
@@ -559,7 +570,219 @@
     };
   }
 
-  const FACTORY = { snake: snakeGame, pong: pongGame, fighter: fighterGame, tetris: tetrisGame, chess: chessGame, checkers: checkersGame, connect4: connect4Game, tictactoe: tictactoeGame };
+  // ---------------------------------------------------------------- REVERSI
+  function reversiGame(stage, api) {
+    const board = h('div', { class: 'board reversi' });
+    stage.append(board, h('div', { class: 'controls-help' }, `You are ${api.you === 0 ? '⚫ Black' : '⚪ White'} · ${META.reversi.help}`));
+    return {
+      update(s) {
+        const moves = s.turn === api.you && !s.result ? new Set(Rules.reversi.legal(s).map((m) => m.cell)) : new Set();
+        board.replaceChildren(...s.board.map((v, i) => h('button', {
+          class: ['sq', i === s.last ? 'last' : '', moves.has(i) ? 'hint' : ''].join(' '),
+          'aria-label': `Row ${(i >> 3) + 1}, column ${(i & 7) + 1}`,
+          onclick: () => moves.has(i) && api.send({ cell: i }),
+        }, v >= 0 ? h('span', { class: 'disc ' + (v === 0 ? 'black' : 'white') }) : null)));
+        const [b, w] = Rules.reversi.count(s.board);
+        const mine = api.you === 0 ? b : w, theirs = api.you === 0 ? w : b;
+        if (s.result) api.status(`Discs ${mine} – ${theirs}`);
+        else if (s.turn === api.you) api.status(h('b', {}, s.passed ? 'They had no move, so it’s your move again' : 'Your move'), `Discs ${mine} – ${theirs}`);
+        else api.status(`Waiting for ${api.players[1 - api.you].name}…`, s.passed ? 'You had no move' : '', `Discs ${mine} – ${theirs}`);
+      },
+    };
+  }
+
+  // ---------------------------------------------------------------- DOTS & BOXES
+  function dotsGame(stage, api) {
+    const SIZE = 440, M = 40, GAP = 90;
+    const [cv, ctx] = canvas(SIZE, SIZE);
+    cv.classList.add('board-canvas');
+    const colors = playerColors(api.players);
+    let state = null, hover = -1;
+    stage.append(cv, h('div', { class: 'controls-help' }, META.dots.help));
+    const ends = (l) => (l < 20 ? [[M + (l % 4) * GAP, M + Math.floor(l / 4) * GAP], [M + (l % 4 + 1) * GAP, M + Math.floor(l / 4) * GAP]]
+      : [[M + ((l - 20) % 5) * GAP, M + Math.floor((l - 20) / 5) * GAP], [M + ((l - 20) % 5) * GAP, M + (Math.floor((l - 20) / 5) + 1) * GAP]]);
+    function lineAt(e) {
+      const r = cv.getBoundingClientRect(), x = ((e.clientX - r.left) / r.width) * SIZE, y = ((e.clientY - r.top) / r.height) * SIZE;
+      let best = -1, bd = 22;
+      for (let l = 0; l < 40; l++) {
+        const [[x1, y1], [x2, y2]] = ends(l), mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+        const d = l < 20 ? Math.abs(y - y1) + Math.max(0, Math.abs(x - mx) - GAP / 2) : Math.abs(x - x1) + Math.max(0, Math.abs(y - my) - GAP / 2);
+        if (d < bd) { bd = d; best = l; }
+      }
+      return best;
+    }
+    const myTurn = () => state && !state.result && state.turn === api.you;
+    cv.addEventListener('pointermove', (e) => { const l = lineAt(e); hover = myTurn() && l >= 0 && state.lines[l] === -1 ? l : -1; draw(); });
+    cv.addEventListener('pointerleave', () => { hover = -1; draw(); });
+    cv.addEventListener('click', (e) => { const l = lineAt(e); if (myTurn() && l >= 0 && state.lines[l] === -1) { hover = -1; api.send({ line: l }); } });
+    function draw() {
+      if (!state) return;
+      const s = state, dark = getComputedStyle(document.body).getPropertyValue('--surface').trim();
+      ctx.fillStyle = dark || '#fff'; ctx.fillRect(0, 0, SIZE, SIZE);
+      s.boxes.forEach((o, i) => {
+        if (o < 0) return;
+        const x = M + (i % 4) * GAP, y = M + Math.floor(i / 4) * GAP;
+        ctx.globalAlpha = 0.28; ctx.fillStyle = colors[o]; ctx.fillRect(x, y, GAP, GAP); ctx.globalAlpha = 1;
+        ctx.fillStyle = colors[o]; ctx.font = 'bold 30px Outfit, Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText((api.players[o].name.replace(/^\W+/, '')[0] || '?').toUpperCase(), x + GAP / 2, y + GAP / 2);
+      });
+      for (let l = 0; l < 40; l++) {
+        const [[x1, y1], [x2, y2]] = ends(l), o = s.lines[l];
+        if (o < 0 && l !== hover) continue;
+        ctx.strokeStyle = o >= 0 ? colors[o] : colors[api.you]; ctx.globalAlpha = o >= 0 ? 1 : 0.4;
+        ctx.lineWidth = l === s.last ? 9 : 7; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); ctx.globalAlpha = 1;
+      }
+      ctx.fillStyle = '#64748b';
+      for (let r = 0; r < 5; r++) for (let c = 0; c < 5; c++) { ctx.beginPath(); ctx.arc(M + c * GAP, M + r * GAP, 7, 0, 7); ctx.fill(); }
+    }
+    return {
+      update(s) {
+        state = s; draw();
+        const sc = `Boxes ${s.scores[api.you]} – ${s.scores[1 - api.you]}`;
+        if (s.result) api.status(sc);
+        else api.status(s.turn === api.you ? h('b', {}, 'Your move') : `Waiting for ${api.players[1 - api.you].name}…`, sc);
+      },
+    };
+  }
+
+  // ---------------------------------------------------------------- MANCALA
+  function mancalaGame(stage, api) {
+    const wrap = h('div', { class: 'mancala' });
+    stage.append(wrap, h('div', { class: 'controls-help' }, META.mancala.help));
+    const mineIdx = api.you === 0 ? [0, 1, 2, 3, 4, 5] : [7, 8, 9, 10, 11, 12];
+    const theirsIdx = api.you === 0 ? [12, 11, 10, 9, 8, 7] : [5, 4, 3, 2, 1, 0];
+    const myStore = api.you === 0 ? 6 : 13, theirStore = api.you === 0 ? 13 : 6;
+    const seeds = (n) => h('span', { class: 'seeds' }, ...Array.from({ length: Math.min(n, 15) }, () => h('i', {})));
+    return {
+      update(s) {
+        const can = s.turn === api.you && !s.result;
+        const pit = (i, mine) => h('button', {
+          class: ['pit', mine && can && s.pits[i] ? 'can' : '', i === s.last ? 'last' : ''].join(' '),
+          'aria-label': `${s.pits[i]} seeds`,
+          onclick: () => mine && can && s.pits[i] && api.send({ pit: i }),
+        }, seeds(s.pits[i]), h('b', {}, s.pits[i]));
+        wrap.replaceChildren(
+          h('div', { class: 'store' }, h('small', {}, api.players[1 - api.you].name), seeds(s.pits[theirStore]), h('b', {}, s.pits[theirStore])),
+          h('div', { class: 'pits' }, theirsIdx.map((i) => pit(i, false)), mineIdx.map((i) => pit(i, true))),
+          h('div', { class: 'store mine' }, h('small', {}, 'You'), seeds(s.pits[myStore]), h('b', {}, s.pits[myStore])));
+        const sc = `Store ${s.pits[myStore]} – ${s.pits[theirStore]}`;
+        if (s.result) api.status(sc);
+        else api.status(can ? h('b', {}, 'Your move') : `Waiting for ${api.players[1 - api.you].name}…`, sc);
+      },
+    };
+  }
+
+  // ---------------------------------------------------------------- FIVE IN A ROW
+  function gomokuGame(stage, api) {
+    const board = h('div', { class: 'gomoku' });
+    stage.append(board, h('div', { class: 'controls-help' }, `You are ${api.you === 0 ? '⚫ Black' : '⚪ White'} · ${META.gomoku.help}`));
+    return {
+      update(s) {
+        const can = s.turn === api.you && !s.result;
+        board.replaceChildren(...s.cells.map((v, i) => h('button', {
+          class: ['pt', i === s.last ? 'last' : '', s.line && s.line.includes(i) ? 'win' : '', can && v < 0 ? 'can' : ''].join(' '),
+          'aria-label': `Row ${Math.floor(i / 15) + 1}, column ${(i % 15) + 1}`,
+          onclick: () => can && v < 0 && api.send({ cell: i }),
+        }, v >= 0 ? h('span', { class: 'stone ' + (v === 0 ? 'black' : 'white') }) : null)));
+        if (!s.result) api.status(can ? h('b', {}, 'Your move') : `Waiting for ${api.players[1 - api.you].name}…`);
+      },
+    };
+  }
+
+  // ---------------------------------------------------------------- LIGHT CYCLES
+  function tronGame(stage, api) {
+    const CELL = 14;
+    const [cv, ctx] = canvas(56 * CELL, 36 * CELL);
+    const colors = playerColors(api.players);
+    stage.append(cv, touchPad([['◀', 'L'], ['▲', 'U'], ['▼', 'D'], ['▶', 'R']], (a, v) => v && api.send({ dir: a })),
+      h('div', { class: 'controls-help' }, META.tron.help));
+    const keys = heldKeys({ ArrowUp: 'U', KeyW: 'U', ArrowDown: 'D', KeyS: 'D', ArrowLeft: 'L', KeyA: 'L', ArrowRight: 'R', KeyD: 'R' }, (held, a, v) => v && api.send({ dir: a }));
+    let sx = 0, sy = 0;
+    cv.addEventListener('pointerdown', (e) => { sx = e.clientX; sy = e.clientY; });
+    cv.addEventListener('pointerup', (e) => {
+      const dx = e.clientX - sx, dy = e.clientY - sy;
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < 20) return;
+      api.send({ dir: Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'R' : 'L') : dy > 0 ? 'D' : 'U' });
+    });
+    return {
+      update(s) {
+        ctx.fillStyle = '#05060d'; ctx.fillRect(0, 0, cv.width, cv.height);
+        ctx.strokeStyle = 'rgba(99,102,241,.12)'; ctx.lineWidth = 1;
+        for (let x = 0; x <= s.W; x += 4) { ctx.beginPath(); ctx.moveTo(x * CELL, 0); ctx.lineTo(x * CELL, cv.height); ctx.stroke(); }
+        for (let y = 0; y <= s.H; y += 4) { ctx.beginPath(); ctx.moveTo(0, y * CELL); ctx.lineTo(cv.width, y * CELL); ctx.stroke(); }
+        for (let i = 0; i < s.grid.length; i++) {
+          const ch = s.grid[i];
+          if (ch === '0') continue;
+          ctx.fillStyle = colors[+ch - 1]; ctx.globalAlpha = 0.75;
+          ctx.fillRect((i % s.W) * CELL + 2, Math.floor(i / s.W) * CELL + 2, CELL - 4, CELL - 4);
+        }
+        ctx.globalAlpha = 1;
+        s.p.forEach((p, i) => {
+          ctx.fillStyle = p.alive ? '#fff' : '#ef4444';
+          ctx.shadowColor = colors[i]; ctx.shadowBlur = 16;
+          ctx.fillRect(p.x * CELL, p.y * CELL, CELL, CELL);
+          ctx.shadowBlur = 0;
+        });
+        if (s.msg) {
+          const msg = s.msg.replace(/^P([12]) SCORES$/, (_, n) => `${api.players[n - 1].name} scores`.toUpperCase());
+          ctx.font = 'bold 48px Outfit, Arial'; ctx.textAlign = 'center'; ctx.lineWidth = 6; ctx.strokeStyle = '#000'; ctx.fillStyle = '#fff';
+          ctx.strokeText(msg, cv.width / 2, cv.height / 2); ctx.fillText(msg, cv.width / 2, cv.height / 2);
+        }
+        api.status(h('b', {}, `Rounds ${s.wins[api.you]} – ${s.wins[1 - api.you]}`), `First to ${s.to}`,
+          h('span', { style: `color:${colors[api.you]};font-weight:bold` }, 'You'), `vs`, h('span', { style: `color:${colors[1 - api.you]};font-weight:bold` }, api.players[1 - api.you].name));
+      },
+      destroy() { keys.destroy(); },
+    };
+  }
+
+  // ---------------------------------------------------------------- AIR HOCKEY
+  function hockeyGame(stage, api) {
+    const [cv, ctx] = canvas(800, 480);
+    const colors = playerColors(api.players);
+    stage.append(cv, h('div', { class: 'controls-help' }, `You're on the ${api.you === 0 ? 'LEFT' : 'RIGHT'} · ${META.hockey.help}`));
+    let lastSent = 0, pending = null;
+    const sendAim = (e) => {
+      const r = cv.getBoundingClientRect();
+      pending = { tx: ((e.clientX - r.left) / r.width) * 800, ty: ((e.clientY - r.top) / r.height) * 480 };
+      const now = performance.now();
+      if (now - lastSent > 33) { lastSent = now; api.send(pending); pending = null; }
+    };
+    cv.addEventListener('pointermove', sendAim);
+    cv.addEventListener('pointerdown', (e) => { cv.setPointerCapture(e.pointerId); sendAim(e); });
+    const flush = setInterval(() => { if (pending) { api.send(pending); pending = null; } }, 50);
+    const keys = heldKeys({ ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right' },
+      (k) => api.send({ up: !!k.up, down: !!k.down, left: !!k.left, right: !!k.right }));
+    return {
+      update(s) {
+        ctx.fillStyle = '#e0f2fe'; ctx.fillRect(0, 0, 800, 480);
+        ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(400, 0); ctx.lineTo(400, 480); ctx.stroke();
+        ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(400, 240, 60, 0, 7); ctx.stroke();
+        ctx.lineWidth = 3;
+        [0, 800].forEach((x, i) => {
+          ctx.strokeStyle = colors[i]; ctx.beginPath(); ctx.arc(x, 240, 90, 0, 7); ctx.stroke();
+          ctx.fillStyle = '#0f172a'; ctx.fillRect(i ? 794 : 0, 240 - s.goal / 2, 6, s.goal);
+        });
+        ctx.font = 'bold 64px Outfit, Arial'; ctx.textAlign = 'center'; ctx.globalAlpha = 0.25;
+        ctx.fillStyle = colors[0]; ctx.fillText(s.score[0], 300, 90);
+        ctx.fillStyle = colors[1]; ctx.fillText(s.score[1], 500, 90); ctx.globalAlpha = 1;
+        s.m.forEach((m, i) => {
+          ctx.fillStyle = colors[i]; ctx.beginPath(); ctx.arc(m.x, m.y, s.mallet, 0, 7); ctx.fill();
+          ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.beginPath(); ctx.arc(m.x, m.y, s.mallet * 0.45, 0, 7); ctx.fill();
+          if (i === api.you) { ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(m.x, m.y, s.mallet + 3, 0, 7); ctx.stroke(); }
+        });
+        ctx.fillStyle = '#0f172a'; ctx.beginPath(); ctx.arc(s.puck.x, s.puck.y, s.puckR, 0, 7); ctx.fill();
+        if (s.serve > 0) { ctx.font = '20px Outfit, Arial'; ctx.fillStyle = '#0f172a'; ctx.fillText('Get ready…', 400, 300); }
+        api.status(`First to ${s.to}`, h('b', {}, `${s.score[api.you]} – ${s.score[1 - api.you]}`));
+      },
+      destroy() { keys.destroy(); clearInterval(flush); },
+    };
+  }
+
+  const FACTORY = {
+    snake: snakeGame, pong: pongGame, fighter: fighterGame, tetris: tetrisGame, chess: chessGame, checkers: checkersGame, connect4: connect4Game, tictactoe: tictactoeGame,
+    reversi: reversiGame, dots: dotsGame, mancala: mancalaGame, gomoku: gomokuGame, tron: tronGame, hockey: hockeyGame,
+  };
 
   // ---------------------------------------------------------------- dock
   let host = null, cur = null;

@@ -29,10 +29,16 @@ An online chat where you can talk to whoever is online, make your own chats, and
 | 🏓 Pong | First to 7 | W/S or ↑/↓ |
 | 🔴 Connect Four | Four in a row | Click a column |
 | ❌ Tic-Tac-Toe | Three in a row | Click a square |
+| ⚫ Reversi | Most discs when neither player can move. Trap discs to flip them. | Click a dotted square |
+| 🔲 Dots & Boxes | Most boxes. Closing a box scores it and gives you another turn. | Click between two dots |
+| 🫘 Mancala | Most seeds in your store. Land in your store to go again, or in an empty pit to capture. | Click one of your pits |
+| ⭕ Five in a Row | Five stones in a line on a 15×15 board | Click a spot |
+| 🏍️ Light Cycles | Best of 5 rounds: don't crash into a trail or the wall | Arrows / WASD / swipe |
+| 🏒 Air Hockey | First to 7 goals | Mouse or finger, or WASD / arrows |
 
 Real-time games also have on-screen buttons for phones and tablets.
 
-**Playing the bot**: in **Request a game**, pick **Play the bot** and choose Easy, Medium or Hard. It's always there, and it's picked automatically when nobody else is online. It plays all 8 games and runs in your own browser, so it works on both the website and claude.ai. Bot games don't count toward your win/loss record and aren't posted in the chat. Run `node test/bots.js` to check the bots' strength and speed.
+**Playing the bot**: in **Request a game**, pick **Play the bot** and choose Easy, Medium or Hard. It's always there, and it's picked automatically when nobody else is online. It plays all 14 games and runs in your own browser, so it works on both the website and claude.ai. Bot games don't count toward your win/loss record and aren't posted in the chat. Run `node test/bots.js` to check the bots' strength and speed.
 
 **Sharing files**: send photos, videos and files with the 📎 button, by dragging them onto the chat, or by pasting a screenshot. Photos show inline (click one to see it full size), videos play in the chat, and other files show as a card with a **Save** button.
 - **Website (server):** any file type, up to 10 MB each, stored in `data/uploads`. Uploads are served sandboxed, so they can't run scripts, and anything that isn't a photo, video, audio file or PDF downloads instead of opening.

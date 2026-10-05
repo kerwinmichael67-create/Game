@@ -14,7 +14,14 @@
     pong: { name: 'Pong', kind: 'realtime' },
     connect4: { name: 'Connect Four', kind: 'turn' },
     tictactoe: { name: 'Tic-Tac-Toe', kind: 'turn' },
+    reversi: { name: 'Reversi', kind: 'turn' },
+    dots: { name: 'Dots & Boxes', kind: 'turn' },
+    mancala: { name: 'Mancala', kind: 'turn' },
+    gomoku: { name: 'Five in a Row', kind: 'turn' },
+    tron: { name: 'Light Cycles', kind: 'realtime' },
+    hockey: { name: 'Air Hockey', kind: 'realtime' },
   };
+  const DIR_GAMES = new Set(['snake', 'tron']); // realtime games whose input is a direction press
   const MSG_WINDOW = 100; // messages loaded per chat
   const MSG_KEEP = 200; // older messages are pruned
   const MAX_ROOM_SUBS = 50; // db allows 64 live subscriptions per view
@@ -382,8 +389,8 @@
           const r = Rules[g.type].move(g.state, 1, pr.mv);
           if (!r.error) { g.state = r.state; publish(g); }
         }
-      } else if (g.type === 'snake') {
-        if (pr.dir && typeof pr.n === 'number' && pr.n > g.lastN) { g.lastN = pr.n; Realtime.snake.input(g.state, 1, { dir: pr.dir }); }
+      } else if (DIR_GAMES.has(g.type)) {
+        if (pr.dir && typeof pr.n === 'number' && pr.n > g.lastN) { g.lastN = pr.n; Realtime[g.type].input(g.state, 1, { dir: pr.dir }); }
       } else if (pr.in && typeof pr.in === 'object') {
         Realtime[g.type].input(g.state, 1, pr.in);
       }
@@ -415,7 +422,7 @@
         return;
       }
       if (g.you === 0) Realtime[g.type].input(g.state, 0, input);
-      else if (g.type === 'snake') g.named && g.named.presence({ dir: input.dir, n: ++g.n }).catch(() => {});
+      else if (DIR_GAMES.has(g.type)) g.named && g.named.presence({ dir: input.dir, n: ++g.n }).catch(() => {});
       else g.named && g.named.presence({ in: input }).catch(() => {});
     }
     function finish(g, result, opts) {

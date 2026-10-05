@@ -286,6 +286,144 @@ function updateProjectiles(s) {
   s.proj = s.proj.filter((p) => !p.dead && p.x > -40 && p.x < s.W + 40);
 }
 
-const Realtime = { snake, pong, fighter };
+// ---------------------------------------------------------------- LIGHT CYCLES (Tron)
+// Leave a wall behind you; crashing into any wall ends the round. First to 3 rounds.
+// The grid travels as a string ('0' empty, '1'/'2' trails) so it stays small enough to stream.
+function tronRound(s) {
+  s.grid = '0'.repeat(s.W * s.H);
+  s.p = [
+    { x: 10, y: Math.floor(s.H / 2), dir: 'R', queue: [], alive: true },
+    { x: s.W - 11, y: Math.floor(s.H / 2), dir: 'L', queue: [], alive: true },
+  ];
+  s.p.forEach((p, i) => { s.grid = setCell(s.grid, p.y * s.W + p.x, String(i + 1)); });
+  s.pause = 45;
+  s.msg = `ROUND ${s.wins[0] + s.wins[1] + s.draws + 1}`;
+}
+const setCell = (g, i, ch) => g.slice(0, i) + ch + g.slice(i + 1);
+const tron = {
+  tickMs: 70,
+  init() {
+    const s = { W: 56, H: 36, wins: [0, 0], draws: 0, to: 3, grid: '', p: [], pause: 0, msg: '', crash: null };
+    tronRound(s);
+    return s;
+  },
+  input(s, i, inp) {
+    const p = s.p[i], d = inp && inp.dir;
+    if (!p.alive || !DIRS[d]) return;
+    const last = p.queue.length ? p.queue[p.queue.length - 1] : p.dir;
+    if (d === last || OPP[d] === last || p.queue.length >= 3) return;
+    p.queue.push(d);
+  },
+  tick(s) {
+    if (s.pause > 0) {
+      s.pause--;
+      if (s.pause === 15) s.msg = 'GO!';
+      if (s.pause === 0) {
+        s.msg = '';
+        if (s.crash) {
+          s.crash = null;
+          if (s.wins[0] >= s.to || s.wins[1] >= s.to) return { winner: s.wins[0] > s.wins[1] ? 0 : 1, reason: `${Math.max(...s.wins)} - ${Math.min(...s.wins)} in rounds` };
+          if (s.wins[0] + s.wins[1] + s.draws >= 9) return { winner: s.wins[0] === s.wins[1] ? -1 : s.wins[0] > s.wins[1] ? 0 : 1, reason: `${s.wins[0]} - ${s.wins[1]} in rounds` };
+          tronRound(s);
+        }
+      }
+      return null;
+    }
+    const next = s.p.map((p) => {
+      if (p.queue.length) p.dir = p.queue.shift();
+      const [dx, dy] = DIRS[p.dir];
+      return { x: p.x + dx, y: p.y + dy };
+    });
+    const dead = next.map((n) => n.x < 0 || n.y < 0 || n.x >= s.W || n.y >= s.H || s.grid[n.y * s.W + n.x] !== '0');
+    if (next[0].x === next[1].x && next[0].y === next[1].y) dead[0] = dead[1] = true; // head-on
+    s.p.forEach((p, i) => {
+      if (dead[i]) { p.alive = false; return; }
+      p.x = next[i].x; p.y = next[i].y;
+      s.grid = setCell(s.grid, p.y * s.W + p.x, String(i + 1));
+    });
+    if (dead[0] || dead[1]) {
+      if (dead[0] && dead[1]) { s.draws++; s.msg = 'BOTH CRASHED'; }
+      else { const w = dead[0] ? 1 : 0; s.wins[w]++; s.msg = `P${w + 1} SCORES`; }
+      s.crash = true;
+      s.pause = 40;
+    }
+    return null;
+  },
+};
+
+// ---------------------------------------------------------------- AIR HOCKEY
+// Each player steers a mallet in their own half (point at a spot, or use the keys). First to 7.
+const HOCKEY = { W: 800, H: 480, goal: 150, mallet: 30, puckR: 18, speed: 13 };
+function hockeyServe(s, toward) {
+  s.puck = { x: s.W / 2, y: s.H / 2, vx: 0, vy: 0 };
+  s.serve = 50;
+  s.toward = toward;
+}
+const hockey = {
+  tickMs: 20,
+  init() {
+    const s = Object.assign({}, HOCKEY, {
+      m: [{ x: 120, y: HOCKEY.H / 2, vx: 0, vy: 0, tx: 120, ty: HOCKEY.H / 2 }, { x: HOCKEY.W - 120, y: HOCKEY.H / 2, vx: 0, vy: 0, tx: HOCKEY.W - 120, ty: HOCKEY.H / 2 }],
+      score: [0, 0], to: 7, puck: null, serve: 0, toward: 0,
+    });
+    hockeyServe(s, Math.random() < 0.5 ? 0 : 1);
+    return s;
+  },
+  input(s, i, inp) {
+    if (!inp) return;
+    const m = s.m[i];
+    if (typeof inp.tx === 'number' && typeof inp.ty === 'number') { m.tx = inp.tx; m.ty = inp.ty; m.keys = null; }
+    else m.keys = { x: (inp.right ? 1 : 0) - (inp.left ? 1 : 0), y: (inp.down ? 1 : 0) - (inp.up ? 1 : 0) };
+  },
+  tick(s) {
+    s.m.forEach((m, i) => {
+      if (m.keys) { m.tx = m.x + m.keys.x * 40; m.ty = m.y + m.keys.y * 40; }
+      const minX = i === 0 ? s.mallet : s.W / 2 + s.mallet, maxX = i === 0 ? s.W / 2 - s.mallet : s.W - s.mallet;
+      const tx = clamp(m.tx, minX, maxX), ty = clamp(m.ty, s.mallet, s.H - s.mallet);
+      let dx = tx - m.x, dy = ty - m.y;
+      const d = Math.hypot(dx, dy);
+      if (d > s.speed) { dx = (dx / d) * s.speed; dy = (dy / d) * s.speed; }
+      m.vx = dx; m.vy = dy; m.x += dx; m.y += dy;
+    });
+    const p = s.puck;
+    if (s.serve > 0) {
+      s.serve--;
+      if (s.serve === 0) { p.vx = s.toward === 0 ? -4 : 4; p.vy = Math.random() * 4 - 2; }
+    }
+    p.x += p.vx; p.y += p.vy;
+    p.vx *= 0.996; p.vy *= 0.996;
+    // a puck left sitting still for 4 seconds goes to the other player
+    s.still = s.serve === 0 && Math.hypot(p.vx, p.vy) < 0.2 ? (s.still || 0) + 1 : 0;
+    if (s.still > 200) { s.still = 0; hockeyServe(s, p.x < s.W / 2 ? 1 : 0); return null; }
+    const r = HOCKEY.puckR;
+    if (p.y < r) { p.y = r; p.vy = Math.abs(p.vy); }
+    if (p.y > s.H - r) { p.y = s.H - r; p.vy = -Math.abs(p.vy); }
+    const inGoal = Math.abs(p.y - s.H / 2) < s.goal / 2;
+    if (p.x < r && !inGoal) { p.x = r; p.vx = Math.abs(p.vx); }
+    if (p.x > s.W - r && !inGoal) { p.x = s.W - r; p.vx = -Math.abs(p.vx); }
+    if (p.x < -r || p.x > s.W + r) {
+      const scorer = p.x < 0 ? 1 : 0;
+      s.score[scorer]++;
+      if (s.score[scorer] >= s.to) return { winner: scorer, reason: `${s.score[0]} - ${s.score[1]}` };
+      hockeyServe(s, 1 - scorer);
+      return null;
+    }
+    for (const m of s.m) {
+      const dx = p.x - m.x, dy = p.y - m.y, dist = Math.hypot(dx, dy), min = s.mallet + r;
+      if (dist < min && dist > 0) {
+        const nx = dx / dist, ny = dy / dist;
+        p.x = m.x + nx * min; p.y = m.y + ny * min;
+        const rel = (p.vx - m.vx) * nx + (p.vy - m.vy) * ny;
+        if (rel < 0) { p.vx -= 1.9 * rel * nx; p.vy -= 1.9 * rel * ny; }
+        p.vx += m.vx * 0.5; p.vy += m.vy * 0.5;
+        const sp = Math.hypot(p.vx, p.vy);
+        if (sp > 22) { p.vx *= 22 / sp; p.vy *= 22 / sp; }
+      }
+    }
+    return null;
+  },
+};
+
+const Realtime = { snake, pong, fighter, tron, hockey };
 if (typeof module !== 'undefined' && module.exports) module.exports = Realtime;
 else globalThis.Realtime = Realtime;

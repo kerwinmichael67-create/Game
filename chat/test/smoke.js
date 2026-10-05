@@ -182,6 +182,35 @@ async function e2e(port) {
   a.send({ t: 'gameInvite', game: 'pong', to: 'Jerry' });
   assert.match((await a.wait(is('error'))).text, /do not disturb/);
 
+  // new games work online: reversi move, light cycles steering, air hockey aiming
+  const playOnline = async (game) => {
+    a.send({ t: 'gameInvite', game, to: 'Jerry', room: 'global' });
+    const iv = await b.wait(is('invite', (m) => m.invite.game === game));
+    b.send({ t: 'gameRespond', id: iv.invite.id, accept: true });
+    const st = await a.wait(is('gameStart', (m) => m.game === game));
+    await b.wait(is('gameStart', (m) => m.game === game));
+    return st;
+  };
+  b.send({ t: 'profile', data: { status: 'online' } });
+  await b.wait(is('me', (m) => m.me.status === 'online'));
+  let g = await playOnline('reversi');
+  a.send({ t: 'gameInput', id: g.id, input: { cell: 19 } });
+  const rv = await b.wait(is('gameState', (m) => m.id === g.id));
+  assert.strictEqual(rv.state.board[19], 0);
+  assert.strictEqual(rv.state.board[27], 0); // flipped
+  a.send({ t: 'gameLeave', id: g.id });
+  await b.wait(is('gameOver', (m) => m.id === g.id));
+  g = await playOnline('tron');
+  b.send({ t: 'gameInput', id: g.id, input: { dir: 'U' } });
+  await a.wait(is('gameState', (m) => m.id === g.id && m.state.p[1].dir === 'U'), 5000);
+  a.send({ t: 'gameLeave', id: g.id });
+  await b.wait(is('gameOver', (m) => m.id === g.id));
+  g = await playOnline('hockey');
+  b.send({ t: 'gameInput', id: g.id, input: { tx: 700, ty: 100 } });
+  await a.wait(is('gameState', (m) => m.id === g.id && m.state.m[1].y < 200), 5000);
+  a.send({ t: 'gameLeave', id: g.id });
+  await b.wait(is('gameOver', (m) => m.id === g.id));
+
   // file uploads: upload, send, receive; only your own uploads can be attached; served safely
   const base = `http://localhost:${port}`;
   const up = (token, name, type, body) => fetch(base + '/upload', { method: 'POST', body, headers: { 'X-Token': token, 'X-File-Name': encodeURIComponent(name), 'Content-Type': type } });

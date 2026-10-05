@@ -205,7 +205,138 @@
     return { from: m.from, to: m.to, promo: m.promo };
   }
 
-  const TURN_BOTS = { tictactoe: tictactoeMove, connect4: connect4Move, checkers: checkersMove, chess: chessMove };
+  // ---------------------------------------------------------------- reversi: alpha-beta on corners, edges and mobility
+  const RV_DEPTH = { easy: 1, medium: 3, hard: 4 };
+  const RV_WEIGHTS = [
+    100, -20, 10, 5, 5, 10, -20, 100, -20, -50, -2, -2, -2, -2, -50, -20, 10, -2, -1, -1, -1, -1, -2, 10, 5, -2, -1, -1, -1, -1, -2, 5,
+    5, -2, -1, -1, -1, -1, -2, 5, 10, -2, -1, -1, -1, -1, -2, 10, -20, -50, -2, -2, -2, -2, -50, -20, 100, -20, 10, 5, 5, 10, -20, 100,
+  ];
+  function rvEval(s, me) {
+    if (s.result) return s.result.winner === me ? 10000 : s.result.winner === -1 ? 0 : -10000;
+    let v = 0;
+    for (let i = 0; i < 64; i++) if (s.board[i] === me) v += RV_WEIGHTS[i]; else if (s.board[i] === 1 - me) v -= RV_WEIGHTS[i];
+    const mob = Rules.reversi.legal(s).length * 4;
+    return v + (s.turn === me ? mob : -mob);
+  }
+  function rvSearch(s, depth, a, b, me) {
+    if (depth === 0 || s.result) return rvEval(s, me);
+    const moves = Rules.reversi.legal(s), mine = s.turn === me;
+    let best = mine ? -Infinity : Infinity;
+    for (const m of moves) {
+      const v = rvSearch(Rules.reversi.move(s, s.turn, m).state, depth - 1, a, b, me);
+      if (mine) { best = Math.max(best, v); a = Math.max(a, v); } else { best = Math.min(best, v); b = Math.min(b, v); }
+      if (a >= b) break;
+    }
+    return best;
+  }
+  function reversiMove(s, me, lv, level) {
+    const moves = Rules.reversi.legal(s);
+    if (Math.random() < lv.blunder) return pick(moves);
+    return bestOf(moves, (m) => rvSearch(Rules.reversi.move(s, me, m).state, RV_DEPTH[level] - 1, -Infinity, Infinity, me));
+  }
+
+  // ---------------------------------------------------------------- dots & boxes: take boxes, never give a third side, give away little
+  function dotsSides(lines, r, c) { return Rules.dots.boxLines(r, c).filter((l) => lines[l] !== -1).length; }
+  function dotsGiveaway(lines, line) {
+    // boxes the opponent could then take in a row if we draw `line`
+    const ls = lines.slice();
+    ls[line] = 0;
+    let taken = 0, found = true;
+    while (found) {
+      found = false;
+      for (let r = 0; r < 4 && !found; r++) for (let c = 0; c < 4 && !found; c++) {
+        if (dotsSides(ls, r, c) === 3) {
+          const l = Rules.dots.boxLines(r, c).find((x) => ls[x] === -1);
+          ls[l] = 1;
+          taken += Rules.dots.boxesOf(l).filter(([rr, cc]) => dotsSides(ls, rr, cc) === 4).length;
+          found = true;
+        }
+      }
+    }
+    return taken;
+  }
+  function dotsMove(s, me, lv) {
+    const free = Rules.dots.legal(s).map((m) => m.line);
+    const scores = (l) => Rules.dots.boxesOf(l).some(([r, c]) => dotsSides(s.lines, r, c) === 3);
+    const safe = (l) => Rules.dots.boxesOf(l).every(([r, c]) => dotsSides(s.lines, r, c) < 2);
+    if (Math.random() < lv.blunder) return { line: pick(free) };
+    const take = free.filter(scores);
+    if (take.length) return { line: pick(take) };
+    const ok = free.filter(safe);
+    if (ok.length) return { line: pick(ok) };
+    return { line: bestOf(free, (l) => -dotsGiveaway(s.lines, l)) };
+  }
+
+  // ---------------------------------------------------------------- mancala: minimax with extra turns
+  const MC_DEPTH = { easy: 2, medium: 5, hard: 8 };
+  function mcSearch(pits, turn, depth, a, b, me) {
+    const base = turn === 0 ? 0 : 7, moves = [];
+    for (let i = base; i < base + 6; i++) if (pits[i] > 0) moves.push(i);
+    const store = (p) => (p === 0 ? 6 : 13);
+    if (!moves.length || depth === 0) {
+      // seeds left on a side go to that side's owner at the end, so they count for half
+      const side = (p) => { let n = 0; for (let k = p === 0 ? 0 : 7, e = k + 6; k < e; k++) n += pits[k]; return n; };
+      return pits[store(me)] - pits[store(1 - me)] + 0.5 * (side(me) - side(1 - me));
+    }
+    const mine = turn === me;
+    let best = mine ? -Infinity : Infinity;
+    for (const pit of moves) {
+      const r = Rules.mancala.sow(pits, turn, pit);
+      const v = r.over ? (r.pits[store(me)] - r.pits[store(1 - me)]) * 100 : mcSearch(r.pits, r.again ? turn : 1 - turn, depth - 1, a, b, me);
+      if (mine) { best = Math.max(best, v); a = Math.max(a, v); } else { best = Math.min(best, v); b = Math.min(b, v); }
+      if (a >= b) break;
+    }
+    return best;
+  }
+  function mancalaMove(s, me, lv, level) {
+    const moves = Rules.mancala.legal(s);
+    if (Math.random() < lv.blunder) return pick(moves);
+    return bestOf(moves, (m) => {
+      const r = Rules.mancala.sow(s.pits, me, m.pit);
+      if (r.over) return (r.pits[me === 0 ? 6 : 13] - r.pits[me === 0 ? 13 : 6]) * 100;
+      return mcSearch(r.pits, r.again ? me : 1 - me, MC_DEPTH[level] - 1, -Infinity, Infinity, me) + (r.again ? 0.5 : 0);
+    });
+  }
+
+  // ---------------------------------------------------------------- five in a row: score threats for both sides
+  function gmLineScore(cells, i, p) {
+    const r = Math.floor(i / 15), c = i % 15;
+    let total = 0;
+    for (const [dr, dc] of [[0, 1], [1, 0], [1, 1], [1, -1]]) {
+      let count = 1, open = 0;
+      for (const sg of [1, -1]) {
+        let rr = r + dr * sg, cc = c + dc * sg;
+        while (rr >= 0 && rr < 15 && cc >= 0 && cc < 15 && cells[rr * 15 + cc] === p) { count++; rr += dr * sg; cc += dc * sg; }
+        if (rr >= 0 && rr < 15 && cc >= 0 && cc < 15 && cells[rr * 15 + cc] === -1) open++;
+      }
+      if (count >= 5) total += 1e6;
+      else if (count === 4) total += open === 2 ? 1e5 : open === 1 ? 1e4 : 0;
+      else if (count === 3) total += open === 2 ? 5000 : open === 1 ? 400 : 0;
+      else if (count === 2) total += open === 2 ? 200 : open === 1 ? 40 : 0;
+      else total += open * 4;
+    }
+    return total;
+  }
+  function gomokuMove(s, me, lv, level) {
+    const cells = s.cells;
+    if (cells.every((v) => v === -1)) return { cell: 7 * 15 + 7 };
+    const near = [];
+    for (let i = 0; i < 225; i++) {
+      if (cells[i] !== -1) continue;
+      const r = Math.floor(i / 15), c = i % 15;
+      let has = false;
+      for (let dr = -2; dr <= 2 && !has; dr++) for (let dc = -2; dc <= 2 && !has; dc++) {
+        const rr = r + dr, cc = c + dc;
+        if (rr >= 0 && rr < 15 && cc >= 0 && cc < 15 && cells[rr * 15 + cc] !== -1) has = true;
+      }
+      if (has) near.push(i);
+    }
+    if (Math.random() < lv.blunder * 0.6) return { cell: pick(near) };
+    const defend = level === 'easy' ? 0.6 : level === 'medium' ? 0.9 : 1;
+    return { cell: bestOf(near, (i) => gmLineScore(cells, i, me) * 1.1 + gmLineScore(cells, i, 1 - me) * defend + (level === 'easy' ? Math.random() * 300 : 0)) };
+  }
+
+  const TURN_BOTS = { tictactoe: tictactoeMove, connect4: connect4Move, checkers: checkersMove, chess: chessMove, reversi: reversiMove, dots: dotsMove, mancala: mancalaMove, gomoku: gomokuMove };
 
   // ---------------------------------------------------------------- snake: chase food, keep room to move
   const SDIRS = { U: [0, -1], D: [0, 1], L: [-1, 0], R: [1, 0] };
@@ -310,6 +441,69 @@
     };
   }
 
+  // ---------------------------------------------------------------- light cycles: keep the most open space
+  function tronBot(level) {
+    let tick = 0;
+    return (s, me) => {
+      const p = s.p[me], o = s.p[1 - me];
+      if (s.pause > 0 || !p.alive) return null;
+      if (level === 'easy' && ++tick % 2) return null;
+      const W = s.W, H = s.H, g = s.grid;
+      const free = (x, y) => x >= 0 && y >= 0 && x < W && y < H && g[y * W + x] === '0';
+      const area = (sx, sy) => {
+        const seen = new Uint8Array(W * H), q = [sy * W + sx];
+        seen[sy * W + sx] = 1;
+        let n = 0;
+        while (q.length && n < 600) {
+          const cell = q.pop(); n++;
+          const cx = cell % W, cy = (cell / W) | 0;
+          for (const [dx, dy] of Object.values(SDIRS)) {
+            const nx = cx + dx, ny = cy + dy;
+            if (free(nx, ny) && !seen[ny * W + nx]) { seen[ny * W + nx] = 1; q.push(ny * W + nx); }
+          }
+        }
+        return n;
+      };
+      const options = Object.keys(SDIRS).filter((d) => d !== SOPP[p.dir]).map((d) => {
+        const x = p.x + SDIRS[d][0], y = p.y + SDIRS[d][1];
+        if (!free(x, y)) return null;
+        const nearHead = Math.abs(x - o.x) + Math.abs(y - o.y) === 1;
+        return { d, room: area(x, y), nearHead, straight: d === p.dir };
+      }).filter(Boolean);
+      if (!options.length) return null;
+      if (level === 'easy' && Math.random() < 0.06) return pick(options).d;
+      return bestOf(options, (op) => op.room * 10 - (op.nearHead && level !== 'easy' ? 3000 : 0) + (op.straight ? 3 : 0)).d;
+    };
+  }
+
+  // ---------------------------------------------------------------- air hockey: shoot at the far goal, fall back to defend
+  function hockeyBot(level) {
+    const cfg = { easy: { every: 5, err: 40, lead: 0 }, medium: { every: 2, err: 15, lead: 2 }, hard: { every: 1, err: 4, lead: 4 } }[level];
+    let tick = 0, held = null, off = 0;
+    return (s, me) => {
+      if (++tick % cfg.every && held) return held;
+      if (tick % 50 === 1) off = (Math.random() * 2 - 1) * cfg.err;
+      const m = s.m[me], p = s.puck, mySide = me === 1 ? p.x > s.W / 2 : p.x < s.W / 2;
+      const goalX = me === 1 ? 0 : s.W, homeX = me === 1 ? s.W - 70 : 70;
+      const px = p.x + p.vx * cfg.lead, py = p.y + p.vy * cfg.lead;
+      let tx, ty;
+      if (mySide) {
+        const behind = me === 1 ? px > m.x - 8 : px < m.x + 8;
+        if (behind) { tx = px + (me === 1 ? 45 : -45); ty = py + (py > m.y ? -55 : 55); } // circle round the puck
+        else {
+          const gx = goalX - px, gy = s.H / 2 + off - py, d = Math.hypot(gx, gy) || 1;
+          tx = px - (gx / d) * (s.mallet + s.puckR - 10);
+          ty = py - (gy / d) * (s.mallet + s.puckR - 10);
+        }
+      } else {
+        tx = homeX;
+        ty = Math.max(s.H / 2 - 90, Math.min(s.H / 2 + 90, py + off));
+      }
+      held = { tx, ty };
+      return held;
+    };
+  }
+
   // ---------------------------------------------------------------- tetris: its own board, scoring each placement
   const TETRO = {
     I: [[0, 0, 0, 0], [1, 1, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]],
@@ -400,14 +594,18 @@
   }
 
   // ---------------------------------------------------------------- bot game session
-  const KIND = { snake: 'realtime', pong: 'realtime', fighter: 'realtime', tetris: 'relay', chess: 'turn', checkers: 'turn', connect4: 'turn', tictactoe: 'turn' };
-  const REAL_BOTS = { snake: snakeBot, pong: pongBot, fighter: fighterBot };
+  const KIND = {
+    snake: 'realtime', pong: 'realtime', fighter: 'realtime', tron: 'realtime', hockey: 'realtime', tetris: 'relay',
+    chess: 'turn', checkers: 'turn', connect4: 'turn', tictactoe: 'turn', reversi: 'turn', dots: 'turn', mancala: 'turn', gomoku: 'turn',
+  };
+  const REAL_BOTS = { snake: snakeBot, pong: pongBot, fighter: fighterBot, tron: tronBot, hockey: hockeyBot };
+  const DIR_GAMES = new Set(['snake', 'tron']); // inputs are a direction
 
   function start(game, level, me) {
     level = LEVELS[level] ? level : 'medium';
     const lv = LEVELS[level], kind = KIND[game];
     const id = 'bot-' + Date.now().toString(36);
-    const players = [me, { username: '__bot', name: `🤖 Bot (${lv.label})`, avatar: '#64748b' }];
+    const players = [me, { username: '__bot', name: `🤖 Bot (${lv.label})`, avatar: '#f97316' }];
     let state, over = false, timer = null, botTimer = null, tetris = null, humanSent = 0, humanScore = 0, humanLines = 0;
     const push = () => !over && GameDock.state({ id, state });
     function finish(result) {
@@ -465,7 +663,7 @@
       const bot = REAL_BOTS[game](level), sim = Realtime[game];
       timer = setInterval(() => {
         const input = bot(state, 1);
-        if (input) sim.input(state, 1, game === 'snake' ? { dir: input } : input);
+        if (input) sim.input(state, 1, DIR_GAMES.has(game) ? { dir: input } : input);
         const res = sim.tick(state);
         push();
         if (res) finish(res);
@@ -480,5 +678,5 @@
     }
   }
 
-  window.BotPlay = { LEVELS, start, _ai: { TURN_BOTS, snakeBot, pongBot, fighterBot, tetrisBot } }; // _ai: for tests
+  window.BotPlay = { LEVELS, start, _ai: { TURN_BOTS, snakeBot, pongBot, fighterBot, tronBot, hockeyBot, tetrisBot } }; // _ai: for tests
 })();

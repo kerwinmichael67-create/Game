@@ -542,6 +542,55 @@ body[data-theme="dark"] .fav-btn.on { color: #c9c2ff; }
 .level.sel { background: var(--surface); color: var(--accent); box-shadow: var(--shadow-sm); }
 .level:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
+/* ============================================================
+   Reversi, Dots & Boxes, Mancala, Five in a Row
+   ============================================================ */
+.board.reversi { background: #15803d; gap: 2px; padding: 2px; }
+.board.reversi .sq { background: #16a34a; }
+.board.reversi .sq.last { box-shadow: inset 0 0 0 3px #facc15; }
+.board.reversi .sq.hint::after { content: ''; position: absolute; width: 22%; height: 22%; border-radius: 50%; background: rgba(0, 0, 0, .3); }
+.disc { width: 80%; height: 80%; border-radius: 50%; box-shadow: inset 0 -4px 0 rgba(0, 0, 0, .25), 0 2px 4px rgba(0, 0, 0, .35); }
+.disc.black { background: radial-gradient(circle at 35% 30%, #4b5563, #0b0b0f); }
+.disc.white { background: radial-gradient(circle at 35% 30%, #fff, #d1d5db); }
+.board-canvas { background: var(--surface) !important; border-radius: var(--radius); cursor: pointer; width: min(100%, 440px); }
+.mancala {
+  display: grid; grid-template-columns: 70px 1fr 70px; gap: 10px; align-items: stretch; width: min(100%, 640px);
+  background: linear-gradient(160deg, #a16207, #713f12); padding: 12px; border-radius: 40px; box-shadow: var(--shadow), inset 0 -6px 0 rgba(0, 0, 0, .25);
+}
+.mancala .pits { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+.mancala .pit, .mancala .store {
+  border: 0; border-radius: 999px; background: rgba(41, 20, 4, .45); color: #fde68a; display: grid; place-items: center; align-content: center;
+  gap: 2px; padding: 6px 2px; box-shadow: inset 0 4px 8px rgba(0, 0, 0, .45); font: inherit; min-width: 0;
+}
+.mancala .pit { aspect-ratio: 1; }
+.mancala .pit b, .mancala .store b { font: 700 15px var(--mono); }
+.mancala .store small { font-size: 11px; color: #fef3c7; max-width: 64px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mancala .pit.can { cursor: pointer; outline: 2px solid rgba(253, 230, 138, .7); }
+.mancala .pit.can:hover { background: rgba(41, 20, 4, .25); }
+.mancala .pit.last { outline: 3px solid #facc15; }
+.mancala .store.mine { outline: 2px solid rgba(253, 230, 138, .5); }
+.seeds { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; max-width: 46px; }
+.seeds i { width: 7px; height: 7px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fef9c3, #65a30d); display: block; }
+.gomoku {
+  display: grid; grid-template-columns: repeat(15, 1fr); width: min(100%, 520px); aspect-ratio: 1; padding: 10px; border-radius: var(--radius);
+  background-color: #dcb06a; box-shadow: var(--shadow);
+  background-image: linear-gradient(#7c5a2a 1px, transparent 1px), linear-gradient(90deg, #7c5a2a 1px, transparent 1px);
+  background-size: calc((100% - 20px) / 15) calc((100% - 20px) / 15); background-position: calc(10px + (100% - 20px) / 30) calc(10px + (100% - 20px) / 30);
+}
+.gomoku .pt { border: 0; background: none; padding: 0; display: grid; place-items: center; min-width: 0; min-height: 0; position: relative; }
+.gomoku .pt.can { cursor: pointer; }
+.gomoku .pt.can:hover::after { content: ''; width: 60%; height: 60%; border-radius: 50%; background: rgba(0, 0, 0, .18); }
+.stone { width: 86%; height: 86%; border-radius: 50%; box-shadow: 0 2px 3px rgba(0, 0, 0, .4); }
+.stone.black { background: radial-gradient(circle at 35% 30%, #6b7280, #050507); }
+.stone.white { background: radial-gradient(circle at 35% 30%, #fff, #cbd5e1); }
+.gomoku .pt.last .stone { box-shadow: 0 0 0 3px #ef4444; }
+.gomoku .pt.win .stone { box-shadow: 0 0 0 3px #22c55e, 0 0 12px #22c55e; }
+@media (max-width: 560px) {
+  .mancala { grid-template-columns: 48px 1fr 48px; gap: 6px; padding: 8px; border-radius: 26px; }
+  .mancala .pits { gap: 4px; }
+  .seeds { display: none; }
+}
+
 </style>
 <!-- Sign in / create account -->
 <div id="auth" class="auth">
@@ -551,6 +600,7 @@ body[data-theme="dark"] .fav-btn.on { color: #c9c2ff; }
     <div class="auth-tiles">
       <span>🐍 Snake PvP</span><span>♟️ Chess</span><span>⛀ Checkers</span><span>🧱 Tetris Battle</span>
       <span>🥊 Street Fighter</span><span>🏓 Pong</span><span>🔴 Connect Four</span><span>❌ Tic-Tac-Toe</span>
+      <span>⚫ Reversi</span><span>🔲 Dots &amp; Boxes</span><span>🫘 Mancala</span><span>⭕ Five in a Row</span><span>🏍️ Light Cycles</span><span>🏒 Air Hockey</span>
     </div>
   </div>
   <div id="authForm" class="auth-card">
@@ -902,6 +952,159 @@ body[data-theme="dark"] .fav-btn.on { color: #c9c2ff; }
   };
   Rules.tictactoe = tictactoe;
 
+  // ---------------------------------------------------------------- REVERSI
+  // 8x8, player 0 = black (moves first), 1 = white. A move must flip at least one disc;
+  // a player with no move passes; the game ends when neither can move.
+  const reversi = {};
+  const RDIRS = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]];
+  reversi.init = () => {
+    const board = new Array(64).fill(-1);
+    board[27] = 1; board[36] = 1; board[28] = 0; board[35] = 0;
+    return { board, turn: 0, last: -1, passed: false, result: null };
+  };
+  reversi.flips = function (b, cell, p) {
+    if (b[cell] !== -1) return [];
+    const r = cell >> 3, c = cell & 7, out = [];
+    for (const [dr, dc] of RDIRS) {
+      const run = [];
+      let rr = r + dr, cc = c + dc;
+      while (on(rr, cc) && b[rr * 8 + cc] === 1 - p) { run.push(rr * 8 + cc); rr += dr; cc += dc; }
+      if (run.length && on(rr, cc) && b[rr * 8 + cc] === p) out.push(...run);
+    }
+    return out;
+  };
+  const rMoves = (b, p) => { const m = []; for (let i = 0; i < 64; i++) if (reversi.flips(b, i, p).length) m.push({ cell: i }); return m; };
+  reversi.legal = (s) => (s.result ? [] : rMoves(s.board, s.turn));
+  reversi.count = (b) => [b.filter((v) => v === 0).length, b.filter((v) => v === 1).length];
+  reversi.move = function (s, idx, mv) {
+    if (s.result) return { error: 'Game is over' };
+    if (s.turn !== idx) return { error: 'Not your turn' };
+    const cell = mv && mv.cell;
+    const flips = Number.isInteger(cell) && cell >= 0 && cell < 64 ? reversi.flips(s.board, cell, idx) : [];
+    if (!flips.length) return { error: 'That move doesn’t flip anything' };
+    const board = s.board.slice();
+    board[cell] = idx;
+    for (const f of flips) board[f] = idx;
+    const ns = { board, turn: 1 - idx, last: cell, passed: false, result: null };
+    if (!rMoves(board, 1 - idx).length) {
+      if (rMoves(board, idx).length) { ns.turn = idx; ns.passed = true; }
+      else {
+        const [a, b] = reversi.count(board);
+        ns.result = a === b ? { winner: -1, reason: `${a} - ${b}` } : { winner: a > b ? 0 : 1, reason: `${Math.max(a, b)} - ${Math.min(a, b)} discs` };
+      }
+    }
+    return { state: ns };
+  };
+  Rules.reversi = reversi;
+
+  // ---------------------------------------------------------------- DOTS & BOXES
+  // 5x5 dots, 4x4 boxes. Lines 0-19 are horizontal (row*4+col, rows 0-4), 20-39 vertical (20+row*5+col, rows 0-3).
+  // Completing a box scores it and you go again.
+  const dots = { N: 4 };
+  dots.boxLines = (r, c) => [r * 4 + c, (r + 1) * 4 + c, 20 + r * 5 + c, 20 + r * 5 + c + 1];
+  dots.boxesOf = (line) => {
+    if (line < 20) { const r = Math.floor(line / 4), c = line % 4; return [[r - 1, c], [r, c]].filter(([rr]) => rr >= 0 && rr < 4); }
+    const v = line - 20, r = Math.floor(v / 5), c = v % 5;
+    return [[r, c - 1], [r, c]].filter(([, cc]) => cc >= 0 && cc < 4);
+  };
+  dots.init = () => ({ lines: new Array(40).fill(-1), boxes: new Array(16).fill(-1), turn: 0, scores: [0, 0], last: -1, result: null });
+  dots.legal = (s) => (s.result ? [] : s.lines.map((v, i) => (v === -1 ? { line: i } : null)).filter(Boolean));
+  dots.move = function (s, idx, mv) {
+    if (s.result) return { error: 'Game is over' };
+    if (s.turn !== idx) return { error: 'Not your turn' };
+    const line = mv && mv.line;
+    if (!Number.isInteger(line) || line < 0 || line >= 40 || s.lines[line] !== -1) return { error: 'That line is taken' };
+    const ns = clone(s);
+    ns.lines[line] = idx;
+    ns.last = line;
+    let scored = 0;
+    for (const [r, c] of dots.boxesOf(line)) {
+      if (dots.boxLines(r, c).every((l) => ns.lines[l] !== -1)) { ns.boxes[r * 4 + c] = idx; scored++; }
+    }
+    ns.scores[idx] += scored;
+    if (!scored) ns.turn = 1 - idx;
+    if (ns.lines.every((v) => v !== -1)) {
+      const [a, b] = ns.scores;
+      ns.result = a === b ? { winner: -1, reason: `${a} - ${b} boxes` } : { winner: a > b ? 0 : 1, reason: `${Math.max(a, b)} - ${Math.min(a, b)} boxes` };
+    }
+    return { state: ns };
+  };
+  Rules.dots = dots;
+
+  // ---------------------------------------------------------------- MANCALA (Kalah, 4 seeds)
+  // Pits 0-5 are player 0's (store 6), pits 7-12 player 1's (store 13). Sowing skips the opponent's store.
+  // Ending in your store gives another turn; ending in your own empty pit captures the opposite pit.
+  const mancala = {};
+  mancala.init = () => ({ pits: [4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0], turn: 0, last: -1, result: null });
+  mancala.legal = (s) => {
+    if (s.result) return [];
+    const base = s.turn === 0 ? 0 : 7, out = [];
+    for (let i = base; i < base + 6; i++) if (s.pits[i] > 0) out.push({ pit: i });
+    return out;
+  };
+  mancala.sow = function (pits, idx, pit) {
+    const p = pits.slice(), store = idx === 0 ? 6 : 13, skip = idx === 0 ? 13 : 6;
+    let seeds = p[pit], i = pit;
+    p[pit] = 0;
+    while (seeds > 0) { i = (i + 1) % 14; if (i === skip) continue; p[i]++; seeds--; }
+    const own = idx === 0 ? i >= 0 && i <= 5 : i >= 7 && i <= 12;
+    if (own && p[i] === 1 && p[12 - i] > 0) { p[store] += p[12 - i] + 1; p[12 - i] = 0; p[i] = 0; }
+    let again = i === store;
+    const side = (a) => p.slice(a, a + 6).reduce((x, y) => x + y, 0);
+    let over = false;
+    if (side(0) === 0 || side(7) === 0) {
+      p[6] += side(0); p[13] += side(7);
+      for (let k = 0; k < 13; k++) if (k !== 6) p[k] = 0;
+      over = true; again = false;
+    }
+    return { pits: p, again, over, end: i };
+  };
+  mancala.move = function (s, idx, mv) {
+    if (s.result) return { error: 'Game is over' };
+    if (s.turn !== idx) return { error: 'Not your turn' };
+    const pit = mv && mv.pit, base = idx === 0 ? 0 : 7;
+    if (!Number.isInteger(pit) || pit < base || pit > base + 5 || s.pits[pit] === 0) return { error: 'Pick one of your pits with seeds' };
+    const r = mancala.sow(s.pits, idx, pit);
+    const ns = { pits: r.pits, turn: r.again ? idx : 1 - idx, last: pit, result: null };
+    if (r.over) {
+      const a = r.pits[6], b = r.pits[13];
+      ns.result = a === b ? { winner: -1, reason: `${a} - ${b}` } : { winner: a > b ? 0 : 1, reason: `${Math.max(a, b)} - ${Math.min(a, b)} seeds` };
+    }
+    return { state: ns };
+  };
+  Rules.mancala = mancala;
+
+  // ---------------------------------------------------------------- FIVE IN A ROW (Gomoku, 15x15)
+  const gomoku = { N: 15 };
+  gomoku.init = () => ({ cells: new Array(225).fill(-1), turn: 0, last: -1, line: null, result: null });
+  gomoku.legal = (s) => (s.result ? [] : s.cells.map((v, i) => (v === -1 ? { cell: i } : null)).filter(Boolean));
+  gomoku.lineAt = function (cells, i, p) {
+    const r = Math.floor(i / 15), c = i % 15;
+    for (const [dr, dc] of [[0, 1], [1, 0], [1, 1], [1, -1]]) {
+      const line = [i];
+      for (const sg of [1, -1]) {
+        let rr = r + dr * sg, cc = c + dc * sg;
+        while (rr >= 0 && rr < 15 && cc >= 0 && cc < 15 && cells[rr * 15 + cc] === p) { line.push(rr * 15 + cc); rr += dr * sg; cc += dc * sg; }
+      }
+      if (line.length >= 5) return line;
+    }
+    return null;
+  };
+  gomoku.move = function (s, idx, mv) {
+    if (s.result) return { error: 'Game is over' };
+    if (s.turn !== idx) return { error: 'Not your turn' };
+    const cell = mv && mv.cell;
+    if (!Number.isInteger(cell) || cell < 0 || cell >= 225 || s.cells[cell] !== -1) return { error: 'That spot is taken' };
+    const cells = s.cells.slice();
+    cells[cell] = idx;
+    const ns = { cells, turn: 1 - idx, last: cell, line: null, result: null };
+    const line = gomoku.lineAt(cells, cell, idx);
+    if (line) { ns.line = line; ns.result = { winner: idx, reason: 'five in a row' }; }
+    else if (cells.every((v) => v !== -1)) ns.result = { winner: -1, reason: 'board full' };
+    return { state: ns };
+  };
+  Rules.gomoku = gomoku;
+
   if (typeof module !== 'undefined' && module.exports) module.exports = Rules;
   else root.Rules = Rules;
 })(typeof window !== 'undefined' ? window : globalThis);
@@ -1196,7 +1399,145 @@ function updateProjectiles(s) {
   s.proj = s.proj.filter((p) => !p.dead && p.x > -40 && p.x < s.W + 40);
 }
 
-const Realtime = { snake, pong, fighter };
+// ---------------------------------------------------------------- LIGHT CYCLES (Tron)
+// Leave a wall behind you; crashing into any wall ends the round. First to 3 rounds.
+// The grid travels as a string ('0' empty, '1'/'2' trails) so it stays small enough to stream.
+function tronRound(s) {
+  s.grid = '0'.repeat(s.W * s.H);
+  s.p = [
+    { x: 10, y: Math.floor(s.H / 2), dir: 'R', queue: [], alive: true },
+    { x: s.W - 11, y: Math.floor(s.H / 2), dir: 'L', queue: [], alive: true },
+  ];
+  s.p.forEach((p, i) => { s.grid = setCell(s.grid, p.y * s.W + p.x, String(i + 1)); });
+  s.pause = 45;
+  s.msg = `ROUND ${s.wins[0] + s.wins[1] + s.draws + 1}`;
+}
+const setCell = (g, i, ch) => g.slice(0, i) + ch + g.slice(i + 1);
+const tron = {
+  tickMs: 70,
+  init() {
+    const s = { W: 56, H: 36, wins: [0, 0], draws: 0, to: 3, grid: '', p: [], pause: 0, msg: '', crash: null };
+    tronRound(s);
+    return s;
+  },
+  input(s, i, inp) {
+    const p = s.p[i], d = inp && inp.dir;
+    if (!p.alive || !DIRS[d]) return;
+    const last = p.queue.length ? p.queue[p.queue.length - 1] : p.dir;
+    if (d === last || OPP[d] === last || p.queue.length >= 3) return;
+    p.queue.push(d);
+  },
+  tick(s) {
+    if (s.pause > 0) {
+      s.pause--;
+      if (s.pause === 15) s.msg = 'GO!';
+      if (s.pause === 0) {
+        s.msg = '';
+        if (s.crash) {
+          s.crash = null;
+          if (s.wins[0] >= s.to || s.wins[1] >= s.to) return { winner: s.wins[0] > s.wins[1] ? 0 : 1, reason: `${Math.max(...s.wins)} - ${Math.min(...s.wins)} in rounds` };
+          if (s.wins[0] + s.wins[1] + s.draws >= 9) return { winner: s.wins[0] === s.wins[1] ? -1 : s.wins[0] > s.wins[1] ? 0 : 1, reason: `${s.wins[0]} - ${s.wins[1]} in rounds` };
+          tronRound(s);
+        }
+      }
+      return null;
+    }
+    const next = s.p.map((p) => {
+      if (p.queue.length) p.dir = p.queue.shift();
+      const [dx, dy] = DIRS[p.dir];
+      return { x: p.x + dx, y: p.y + dy };
+    });
+    const dead = next.map((n) => n.x < 0 || n.y < 0 || n.x >= s.W || n.y >= s.H || s.grid[n.y * s.W + n.x] !== '0');
+    if (next[0].x === next[1].x && next[0].y === next[1].y) dead[0] = dead[1] = true; // head-on
+    s.p.forEach((p, i) => {
+      if (dead[i]) { p.alive = false; return; }
+      p.x = next[i].x; p.y = next[i].y;
+      s.grid = setCell(s.grid, p.y * s.W + p.x, String(i + 1));
+    });
+    if (dead[0] || dead[1]) {
+      if (dead[0] && dead[1]) { s.draws++; s.msg = 'BOTH CRASHED'; }
+      else { const w = dead[0] ? 1 : 0; s.wins[w]++; s.msg = `P${w + 1} SCORES`; }
+      s.crash = true;
+      s.pause = 40;
+    }
+    return null;
+  },
+};
+
+// ---------------------------------------------------------------- AIR HOCKEY
+// Each player steers a mallet in their own half (point at a spot, or use the keys). First to 7.
+const HOCKEY = { W: 800, H: 480, goal: 150, mallet: 30, puckR: 18, speed: 13 };
+function hockeyServe(s, toward) {
+  s.puck = { x: s.W / 2, y: s.H / 2, vx: 0, vy: 0 };
+  s.serve = 50;
+  s.toward = toward;
+}
+const hockey = {
+  tickMs: 20,
+  init() {
+    const s = Object.assign({}, HOCKEY, {
+      m: [{ x: 120, y: HOCKEY.H / 2, vx: 0, vy: 0, tx: 120, ty: HOCKEY.H / 2 }, { x: HOCKEY.W - 120, y: HOCKEY.H / 2, vx: 0, vy: 0, tx: HOCKEY.W - 120, ty: HOCKEY.H / 2 }],
+      score: [0, 0], to: 7, puck: null, serve: 0, toward: 0,
+    });
+    hockeyServe(s, Math.random() < 0.5 ? 0 : 1);
+    return s;
+  },
+  input(s, i, inp) {
+    if (!inp) return;
+    const m = s.m[i];
+    if (typeof inp.tx === 'number' && typeof inp.ty === 'number') { m.tx = inp.tx; m.ty = inp.ty; m.keys = null; }
+    else m.keys = { x: (inp.right ? 1 : 0) - (inp.left ? 1 : 0), y: (inp.down ? 1 : 0) - (inp.up ? 1 : 0) };
+  },
+  tick(s) {
+    s.m.forEach((m, i) => {
+      if (m.keys) { m.tx = m.x + m.keys.x * 40; m.ty = m.y + m.keys.y * 40; }
+      const minX = i === 0 ? s.mallet : s.W / 2 + s.mallet, maxX = i === 0 ? s.W / 2 - s.mallet : s.W - s.mallet;
+      const tx = clamp(m.tx, minX, maxX), ty = clamp(m.ty, s.mallet, s.H - s.mallet);
+      let dx = tx - m.x, dy = ty - m.y;
+      const d = Math.hypot(dx, dy);
+      if (d > s.speed) { dx = (dx / d) * s.speed; dy = (dy / d) * s.speed; }
+      m.vx = dx; m.vy = dy; m.x += dx; m.y += dy;
+    });
+    const p = s.puck;
+    if (s.serve > 0) {
+      s.serve--;
+      if (s.serve === 0) { p.vx = s.toward === 0 ? -4 : 4; p.vy = Math.random() * 4 - 2; }
+    }
+    p.x += p.vx; p.y += p.vy;
+    p.vx *= 0.996; p.vy *= 0.996;
+    // a puck left sitting still for 4 seconds goes to the other player
+    s.still = s.serve === 0 && Math.hypot(p.vx, p.vy) < 0.2 ? (s.still || 0) + 1 : 0;
+    if (s.still > 200) { s.still = 0; hockeyServe(s, p.x < s.W / 2 ? 1 : 0); return null; }
+    const r = HOCKEY.puckR;
+    if (p.y < r) { p.y = r; p.vy = Math.abs(p.vy); }
+    if (p.y > s.H - r) { p.y = s.H - r; p.vy = -Math.abs(p.vy); }
+    const inGoal = Math.abs(p.y - s.H / 2) < s.goal / 2;
+    if (p.x < r && !inGoal) { p.x = r; p.vx = Math.abs(p.vx); }
+    if (p.x > s.W - r && !inGoal) { p.x = s.W - r; p.vx = -Math.abs(p.vx); }
+    if (p.x < -r || p.x > s.W + r) {
+      const scorer = p.x < 0 ? 1 : 0;
+      s.score[scorer]++;
+      if (s.score[scorer] >= s.to) return { winner: scorer, reason: `${s.score[0]} - ${s.score[1]}` };
+      hockeyServe(s, 1 - scorer);
+      return null;
+    }
+    for (const m of s.m) {
+      const dx = p.x - m.x, dy = p.y - m.y, dist = Math.hypot(dx, dy), min = s.mallet + r;
+      if (dist < min && dist > 0) {
+        const nx = dx / dist, ny = dy / dist;
+        p.x = m.x + nx * min; p.y = m.y + ny * min;
+        const rel = (p.vx - m.vx) * nx + (p.vy - m.vy) * ny;
+        if (rel < 0) { p.vx -= 1.9 * rel * nx; p.vy -= 1.9 * rel * ny; }
+        p.vx += m.vx * 0.5; p.vy += m.vy * 0.5;
+        const sp = Math.hypot(p.vx, p.vy);
+        if (sp > 22) { p.vx *= 22 / sp; p.vy *= 22 / sp; }
+      }
+    }
+    return null;
+  },
+};
+
+const Realtime = { snake, pong, fighter, tron, hockey };
 if (typeof module !== 'undefined' && module.exports) module.exports = Realtime;
 else globalThis.Realtime = Realtime;
 
@@ -1213,6 +1554,12 @@ else globalThis.Realtime = Realtime;
     pong: { color: 'linear-gradient(135deg,#64748b,#0f172a)', emoji: '🏓', name: 'Pong', desc: 'First to 7 points wins.', help: 'W/S or ↑/↓ to move your paddle' },
     connect4: { color: 'linear-gradient(135deg,#3b82f6,#1e3a8a)', emoji: '🔴', name: 'Connect Four', desc: 'Get four in a row.', help: 'Click a column to drop a disc' },
     tictactoe: { color: 'linear-gradient(135deg,#ec4899,#8b5cf6)', emoji: '❌', name: 'Tic-Tac-Toe', desc: 'Three in a row. Quick game!', help: 'Click a square' },
+    reversi: { color: 'linear-gradient(135deg,#16a34a,#14532d)', emoji: '⚫', name: 'Reversi', desc: 'Trap discs to flip them. Most discs wins.', help: 'Click a dotted square to place a disc' },
+    dots: { color: 'linear-gradient(135deg,#f59e0b,#ea580c)', emoji: '🔲', name: 'Dots & Boxes', desc: 'Close a box to score and go again.', help: 'Click between two dots to draw a line' },
+    mancala: { color: 'linear-gradient(135deg,#a16207,#713f12)', emoji: '🫘', name: 'Mancala', desc: 'Sow seeds, capture, fill your store.', help: 'Click one of your pits (bottom row) to sow its seeds' },
+    gomoku: { color: 'linear-gradient(135deg,#d6a35c,#8a5a24)', emoji: '⭕', name: 'Five in a Row', desc: 'Get five stones in a line on a big board.', help: 'Click a spot to place a stone' },
+    tron: { color: 'linear-gradient(135deg,#06b6d4,#7c3aed)', emoji: '🏍️', name: 'Light Cycles', desc: 'Don’t hit a wall. Best of 5 rounds.', help: 'Arrow keys / WASD (or swipe) to turn' },
+    hockey: { color: 'linear-gradient(135deg,#38bdf8,#1d4ed8)', emoji: '🏒', name: 'Air Hockey', desc: 'Smash the puck into their goal. First to 7.', help: 'Move the mouse or your finger over your half (or WASD / arrows)' },
   };
 
   function h(tag, attrs, ...kids) {
@@ -1238,8 +1585,13 @@ else globalThis.Realtime = Realtime;
   function playerColors(players) {
     const fix = (c) => (c.toLowerCase() === '#111111' || c.toLowerCase() === '#000000' ? '#9ca3af' : c);
     const a = fix(players[0].avatar), b = fix(players[1].avatar);
-    return [a, a.toLowerCase() === b.toLowerCase() ? (a.toLowerCase() === '#3b82f6' ? '#f97316' : '#3b82f6') : b];
+    const hex = (c) => /^#[0-9a-f]{6}$/i.test(c);
+    const rgb = (c) => [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16));
+    const close = (x, y) => !hex(x) || !hex(y) || Math.hypot(...rgb(x).map((v, i) => v - rgb(y)[i])) < 110;
+    if (!close(a, b)) return [a, b];
+    return [a, ['#3b82f6', '#f97316', '#ec4899', '#22c55e'].find((c) => !close(a, c)) || '#f97316'];
   }
+
 
   // Tracks held keys (ignoring keys while typing in chat) and on-screen touch buttons.
   function heldKeys(map, onChange) {
@@ -1763,7 +2115,219 @@ else globalThis.Realtime = Realtime;
     };
   }
 
-  const FACTORY = { snake: snakeGame, pong: pongGame, fighter: fighterGame, tetris: tetrisGame, chess: chessGame, checkers: checkersGame, connect4: connect4Game, tictactoe: tictactoeGame };
+  // ---------------------------------------------------------------- REVERSI
+  function reversiGame(stage, api) {
+    const board = h('div', { class: 'board reversi' });
+    stage.append(board, h('div', { class: 'controls-help' }, `You are ${api.you === 0 ? '⚫ Black' : '⚪ White'} · ${META.reversi.help}`));
+    return {
+      update(s) {
+        const moves = s.turn === api.you && !s.result ? new Set(Rules.reversi.legal(s).map((m) => m.cell)) : new Set();
+        board.replaceChildren(...s.board.map((v, i) => h('button', {
+          class: ['sq', i === s.last ? 'last' : '', moves.has(i) ? 'hint' : ''].join(' '),
+          'aria-label': `Row ${(i >> 3) + 1}, column ${(i & 7) + 1}`,
+          onclick: () => moves.has(i) && api.send({ cell: i }),
+        }, v >= 0 ? h('span', { class: 'disc ' + (v === 0 ? 'black' : 'white') }) : null)));
+        const [b, w] = Rules.reversi.count(s.board);
+        const mine = api.you === 0 ? b : w, theirs = api.you === 0 ? w : b;
+        if (s.result) api.status(`Discs ${mine} – ${theirs}`);
+        else if (s.turn === api.you) api.status(h('b', {}, s.passed ? 'They had no move, so it’s your move again' : 'Your move'), `Discs ${mine} – ${theirs}`);
+        else api.status(`Waiting for ${api.players[1 - api.you].name}…`, s.passed ? 'You had no move' : '', `Discs ${mine} – ${theirs}`);
+      },
+    };
+  }
+
+  // ---------------------------------------------------------------- DOTS & BOXES
+  function dotsGame(stage, api) {
+    const SIZE = 440, M = 40, GAP = 90;
+    const [cv, ctx] = canvas(SIZE, SIZE);
+    cv.classList.add('board-canvas');
+    const colors = playerColors(api.players);
+    let state = null, hover = -1;
+    stage.append(cv, h('div', { class: 'controls-help' }, META.dots.help));
+    const ends = (l) => (l < 20 ? [[M + (l % 4) * GAP, M + Math.floor(l / 4) * GAP], [M + (l % 4 + 1) * GAP, M + Math.floor(l / 4) * GAP]]
+      : [[M + ((l - 20) % 5) * GAP, M + Math.floor((l - 20) / 5) * GAP], [M + ((l - 20) % 5) * GAP, M + (Math.floor((l - 20) / 5) + 1) * GAP]]);
+    function lineAt(e) {
+      const r = cv.getBoundingClientRect(), x = ((e.clientX - r.left) / r.width) * SIZE, y = ((e.clientY - r.top) / r.height) * SIZE;
+      let best = -1, bd = 22;
+      for (let l = 0; l < 40; l++) {
+        const [[x1, y1], [x2, y2]] = ends(l), mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+        const d = l < 20 ? Math.abs(y - y1) + Math.max(0, Math.abs(x - mx) - GAP / 2) : Math.abs(x - x1) + Math.max(0, Math.abs(y - my) - GAP / 2);
+        if (d < bd) { bd = d; best = l; }
+      }
+      return best;
+    }
+    const myTurn = () => state && !state.result && state.turn === api.you;
+    cv.addEventListener('pointermove', (e) => { const l = lineAt(e); hover = myTurn() && l >= 0 && state.lines[l] === -1 ? l : -1; draw(); });
+    cv.addEventListener('pointerleave', () => { hover = -1; draw(); });
+    cv.addEventListener('click', (e) => { const l = lineAt(e); if (myTurn() && l >= 0 && state.lines[l] === -1) { hover = -1; api.send({ line: l }); } });
+    function draw() {
+      if (!state) return;
+      const s = state, dark = getComputedStyle(document.body).getPropertyValue('--surface').trim();
+      ctx.fillStyle = dark || '#fff'; ctx.fillRect(0, 0, SIZE, SIZE);
+      s.boxes.forEach((o, i) => {
+        if (o < 0) return;
+        const x = M + (i % 4) * GAP, y = M + Math.floor(i / 4) * GAP;
+        ctx.globalAlpha = 0.28; ctx.fillStyle = colors[o]; ctx.fillRect(x, y, GAP, GAP); ctx.globalAlpha = 1;
+        ctx.fillStyle = colors[o]; ctx.font = 'bold 30px Outfit, Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText((api.players[o].name.replace(/^\W+/, '')[0] || '?').toUpperCase(), x + GAP / 2, y + GAP / 2);
+      });
+      for (let l = 0; l < 40; l++) {
+        const [[x1, y1], [x2, y2]] = ends(l), o = s.lines[l];
+        if (o < 0 && l !== hover) continue;
+        ctx.strokeStyle = o >= 0 ? colors[o] : colors[api.you]; ctx.globalAlpha = o >= 0 ? 1 : 0.4;
+        ctx.lineWidth = l === s.last ? 9 : 7; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); ctx.globalAlpha = 1;
+      }
+      ctx.fillStyle = '#64748b';
+      for (let r = 0; r < 5; r++) for (let c = 0; c < 5; c++) { ctx.beginPath(); ctx.arc(M + c * GAP, M + r * GAP, 7, 0, 7); ctx.fill(); }
+    }
+    return {
+      update(s) {
+        state = s; draw();
+        const sc = `Boxes ${s.scores[api.you]} – ${s.scores[1 - api.you]}`;
+        if (s.result) api.status(sc);
+        else api.status(s.turn === api.you ? h('b', {}, 'Your move') : `Waiting for ${api.players[1 - api.you].name}…`, sc);
+      },
+    };
+  }
+
+  // ---------------------------------------------------------------- MANCALA
+  function mancalaGame(stage, api) {
+    const wrap = h('div', { class: 'mancala' });
+    stage.append(wrap, h('div', { class: 'controls-help' }, META.mancala.help));
+    const mineIdx = api.you === 0 ? [0, 1, 2, 3, 4, 5] : [7, 8, 9, 10, 11, 12];
+    const theirsIdx = api.you === 0 ? [12, 11, 10, 9, 8, 7] : [5, 4, 3, 2, 1, 0];
+    const myStore = api.you === 0 ? 6 : 13, theirStore = api.you === 0 ? 13 : 6;
+    const seeds = (n) => h('span', { class: 'seeds' }, ...Array.from({ length: Math.min(n, 15) }, () => h('i', {})));
+    return {
+      update(s) {
+        const can = s.turn === api.you && !s.result;
+        const pit = (i, mine) => h('button', {
+          class: ['pit', mine && can && s.pits[i] ? 'can' : '', i === s.last ? 'last' : ''].join(' '),
+          'aria-label': `${s.pits[i]} seeds`,
+          onclick: () => mine && can && s.pits[i] && api.send({ pit: i }),
+        }, seeds(s.pits[i]), h('b', {}, s.pits[i]));
+        wrap.replaceChildren(
+          h('div', { class: 'store' }, h('small', {}, api.players[1 - api.you].name), seeds(s.pits[theirStore]), h('b', {}, s.pits[theirStore])),
+          h('div', { class: 'pits' }, theirsIdx.map((i) => pit(i, false)), mineIdx.map((i) => pit(i, true))),
+          h('div', { class: 'store mine' }, h('small', {}, 'You'), seeds(s.pits[myStore]), h('b', {}, s.pits[myStore])));
+        const sc = `Store ${s.pits[myStore]} – ${s.pits[theirStore]}`;
+        if (s.result) api.status(sc);
+        else api.status(can ? h('b', {}, 'Your move') : `Waiting for ${api.players[1 - api.you].name}…`, sc);
+      },
+    };
+  }
+
+  // ---------------------------------------------------------------- FIVE IN A ROW
+  function gomokuGame(stage, api) {
+    const board = h('div', { class: 'gomoku' });
+    stage.append(board, h('div', { class: 'controls-help' }, `You are ${api.you === 0 ? '⚫ Black' : '⚪ White'} · ${META.gomoku.help}`));
+    return {
+      update(s) {
+        const can = s.turn === api.you && !s.result;
+        board.replaceChildren(...s.cells.map((v, i) => h('button', {
+          class: ['pt', i === s.last ? 'last' : '', s.line && s.line.includes(i) ? 'win' : '', can && v < 0 ? 'can' : ''].join(' '),
+          'aria-label': `Row ${Math.floor(i / 15) + 1}, column ${(i % 15) + 1}`,
+          onclick: () => can && v < 0 && api.send({ cell: i }),
+        }, v >= 0 ? h('span', { class: 'stone ' + (v === 0 ? 'black' : 'white') }) : null)));
+        if (!s.result) api.status(can ? h('b', {}, 'Your move') : `Waiting for ${api.players[1 - api.you].name}…`);
+      },
+    };
+  }
+
+  // ---------------------------------------------------------------- LIGHT CYCLES
+  function tronGame(stage, api) {
+    const CELL = 14;
+    const [cv, ctx] = canvas(56 * CELL, 36 * CELL);
+    const colors = playerColors(api.players);
+    stage.append(cv, touchPad([['◀', 'L'], ['▲', 'U'], ['▼', 'D'], ['▶', 'R']], (a, v) => v && api.send({ dir: a })),
+      h('div', { class: 'controls-help' }, META.tron.help));
+    const keys = heldKeys({ ArrowUp: 'U', KeyW: 'U', ArrowDown: 'D', KeyS: 'D', ArrowLeft: 'L', KeyA: 'L', ArrowRight: 'R', KeyD: 'R' }, (held, a, v) => v && api.send({ dir: a }));
+    let sx = 0, sy = 0;
+    cv.addEventListener('pointerdown', (e) => { sx = e.clientX; sy = e.clientY; });
+    cv.addEventListener('pointerup', (e) => {
+      const dx = e.clientX - sx, dy = e.clientY - sy;
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < 20) return;
+      api.send({ dir: Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'R' : 'L') : dy > 0 ? 'D' : 'U' });
+    });
+    return {
+      update(s) {
+        ctx.fillStyle = '#05060d'; ctx.fillRect(0, 0, cv.width, cv.height);
+        ctx.strokeStyle = 'rgba(99,102,241,.12)'; ctx.lineWidth = 1;
+        for (let x = 0; x <= s.W; x += 4) { ctx.beginPath(); ctx.moveTo(x * CELL, 0); ctx.lineTo(x * CELL, cv.height); ctx.stroke(); }
+        for (let y = 0; y <= s.H; y += 4) { ctx.beginPath(); ctx.moveTo(0, y * CELL); ctx.lineTo(cv.width, y * CELL); ctx.stroke(); }
+        for (let i = 0; i < s.grid.length; i++) {
+          const ch = s.grid[i];
+          if (ch === '0') continue;
+          ctx.fillStyle = colors[+ch - 1]; ctx.globalAlpha = 0.75;
+          ctx.fillRect((i % s.W) * CELL + 2, Math.floor(i / s.W) * CELL + 2, CELL - 4, CELL - 4);
+        }
+        ctx.globalAlpha = 1;
+        s.p.forEach((p, i) => {
+          ctx.fillStyle = p.alive ? '#fff' : '#ef4444';
+          ctx.shadowColor = colors[i]; ctx.shadowBlur = 16;
+          ctx.fillRect(p.x * CELL, p.y * CELL, CELL, CELL);
+          ctx.shadowBlur = 0;
+        });
+        if (s.msg) {
+          const msg = s.msg.replace(/^P([12]) SCORES$/, (_, n) => `${api.players[n - 1].name} scores`.toUpperCase());
+          ctx.font = 'bold 48px Outfit, Arial'; ctx.textAlign = 'center'; ctx.lineWidth = 6; ctx.strokeStyle = '#000'; ctx.fillStyle = '#fff';
+          ctx.strokeText(msg, cv.width / 2, cv.height / 2); ctx.fillText(msg, cv.width / 2, cv.height / 2);
+        }
+        api.status(h('b', {}, `Rounds ${s.wins[api.you]} – ${s.wins[1 - api.you]}`), `First to ${s.to}`,
+          h('span', { style: `color:${colors[api.you]};font-weight:bold` }, 'You'), `vs`, h('span', { style: `color:${colors[1 - api.you]};font-weight:bold` }, api.players[1 - api.you].name));
+      },
+      destroy() { keys.destroy(); },
+    };
+  }
+
+  // ---------------------------------------------------------------- AIR HOCKEY
+  function hockeyGame(stage, api) {
+    const [cv, ctx] = canvas(800, 480);
+    const colors = playerColors(api.players);
+    stage.append(cv, h('div', { class: 'controls-help' }, `You're on the ${api.you === 0 ? 'LEFT' : 'RIGHT'} · ${META.hockey.help}`));
+    let lastSent = 0, pending = null;
+    const sendAim = (e) => {
+      const r = cv.getBoundingClientRect();
+      pending = { tx: ((e.clientX - r.left) / r.width) * 800, ty: ((e.clientY - r.top) / r.height) * 480 };
+      const now = performance.now();
+      if (now - lastSent > 33) { lastSent = now; api.send(pending); pending = null; }
+    };
+    cv.addEventListener('pointermove', sendAim);
+    cv.addEventListener('pointerdown', (e) => { cv.setPointerCapture(e.pointerId); sendAim(e); });
+    const flush = setInterval(() => { if (pending) { api.send(pending); pending = null; } }, 50);
+    const keys = heldKeys({ ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right' },
+      (k) => api.send({ up: !!k.up, down: !!k.down, left: !!k.left, right: !!k.right }));
+    return {
+      update(s) {
+        ctx.fillStyle = '#e0f2fe'; ctx.fillRect(0, 0, 800, 480);
+        ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(400, 0); ctx.lineTo(400, 480); ctx.stroke();
+        ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(400, 240, 60, 0, 7); ctx.stroke();
+        ctx.lineWidth = 3;
+        [0, 800].forEach((x, i) => {
+          ctx.strokeStyle = colors[i]; ctx.beginPath(); ctx.arc(x, 240, 90, 0, 7); ctx.stroke();
+          ctx.fillStyle = '#0f172a'; ctx.fillRect(i ? 794 : 0, 240 - s.goal / 2, 6, s.goal);
+        });
+        ctx.font = 'bold 64px Outfit, Arial'; ctx.textAlign = 'center'; ctx.globalAlpha = 0.25;
+        ctx.fillStyle = colors[0]; ctx.fillText(s.score[0], 300, 90);
+        ctx.fillStyle = colors[1]; ctx.fillText(s.score[1], 500, 90); ctx.globalAlpha = 1;
+        s.m.forEach((m, i) => {
+          ctx.fillStyle = colors[i]; ctx.beginPath(); ctx.arc(m.x, m.y, s.mallet, 0, 7); ctx.fill();
+          ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.beginPath(); ctx.arc(m.x, m.y, s.mallet * 0.45, 0, 7); ctx.fill();
+          if (i === api.you) { ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(m.x, m.y, s.mallet + 3, 0, 7); ctx.stroke(); }
+        });
+        ctx.fillStyle = '#0f172a'; ctx.beginPath(); ctx.arc(s.puck.x, s.puck.y, s.puckR, 0, 7); ctx.fill();
+        if (s.serve > 0) { ctx.font = '20px Outfit, Arial'; ctx.fillStyle = '#0f172a'; ctx.fillText('Get ready…', 400, 300); }
+        api.status(`First to ${s.to}`, h('b', {}, `${s.score[api.you]} – ${s.score[1 - api.you]}`));
+      },
+      destroy() { keys.destroy(); clearInterval(flush); },
+    };
+  }
+
+  const FACTORY = {
+    snake: snakeGame, pong: pongGame, fighter: fighterGame, tetris: tetrisGame, chess: chessGame, checkers: checkersGame, connect4: connect4Game, tictactoe: tictactoeGame,
+    reversi: reversiGame, dots: dotsGame, mancala: mancalaGame, gomoku: gomokuGame, tron: tronGame, hockey: hockeyGame,
+  };
 
   // ---------------------------------------------------------------- dock
   let host = null, cur = null;
@@ -2051,7 +2615,138 @@ else globalThis.Realtime = Realtime;
     return { from: m.from, to: m.to, promo: m.promo };
   }
 
-  const TURN_BOTS = { tictactoe: tictactoeMove, connect4: connect4Move, checkers: checkersMove, chess: chessMove };
+  // ---------------------------------------------------------------- reversi: alpha-beta on corners, edges and mobility
+  const RV_DEPTH = { easy: 1, medium: 3, hard: 4 };
+  const RV_WEIGHTS = [
+    100, -20, 10, 5, 5, 10, -20, 100, -20, -50, -2, -2, -2, -2, -50, -20, 10, -2, -1, -1, -1, -1, -2, 10, 5, -2, -1, -1, -1, -1, -2, 5,
+    5, -2, -1, -1, -1, -1, -2, 5, 10, -2, -1, -1, -1, -1, -2, 10, -20, -50, -2, -2, -2, -2, -50, -20, 100, -20, 10, 5, 5, 10, -20, 100,
+  ];
+  function rvEval(s, me) {
+    if (s.result) return s.result.winner === me ? 10000 : s.result.winner === -1 ? 0 : -10000;
+    let v = 0;
+    for (let i = 0; i < 64; i++) if (s.board[i] === me) v += RV_WEIGHTS[i]; else if (s.board[i] === 1 - me) v -= RV_WEIGHTS[i];
+    const mob = Rules.reversi.legal(s).length * 4;
+    return v + (s.turn === me ? mob : -mob);
+  }
+  function rvSearch(s, depth, a, b, me) {
+    if (depth === 0 || s.result) return rvEval(s, me);
+    const moves = Rules.reversi.legal(s), mine = s.turn === me;
+    let best = mine ? -Infinity : Infinity;
+    for (const m of moves) {
+      const v = rvSearch(Rules.reversi.move(s, s.turn, m).state, depth - 1, a, b, me);
+      if (mine) { best = Math.max(best, v); a = Math.max(a, v); } else { best = Math.min(best, v); b = Math.min(b, v); }
+      if (a >= b) break;
+    }
+    return best;
+  }
+  function reversiMove(s, me, lv, level) {
+    const moves = Rules.reversi.legal(s);
+    if (Math.random() < lv.blunder) return pick(moves);
+    return bestOf(moves, (m) => rvSearch(Rules.reversi.move(s, me, m).state, RV_DEPTH[level] - 1, -Infinity, Infinity, me));
+  }
+
+  // ---------------------------------------------------------------- dots & boxes: take boxes, never give a third side, give away little
+  function dotsSides(lines, r, c) { return Rules.dots.boxLines(r, c).filter((l) => lines[l] !== -1).length; }
+  function dotsGiveaway(lines, line) {
+    // boxes the opponent could then take in a row if we draw `line`
+    const ls = lines.slice();
+    ls[line] = 0;
+    let taken = 0, found = true;
+    while (found) {
+      found = false;
+      for (let r = 0; r < 4 && !found; r++) for (let c = 0; c < 4 && !found; c++) {
+        if (dotsSides(ls, r, c) === 3) {
+          const l = Rules.dots.boxLines(r, c).find((x) => ls[x] === -1);
+          ls[l] = 1;
+          taken += Rules.dots.boxesOf(l).filter(([rr, cc]) => dotsSides(ls, rr, cc) === 4).length;
+          found = true;
+        }
+      }
+    }
+    return taken;
+  }
+  function dotsMove(s, me, lv) {
+    const free = Rules.dots.legal(s).map((m) => m.line);
+    const scores = (l) => Rules.dots.boxesOf(l).some(([r, c]) => dotsSides(s.lines, r, c) === 3);
+    const safe = (l) => Rules.dots.boxesOf(l).every(([r, c]) => dotsSides(s.lines, r, c) < 2);
+    if (Math.random() < lv.blunder) return { line: pick(free) };
+    const take = free.filter(scores);
+    if (take.length) return { line: pick(take) };
+    const ok = free.filter(safe);
+    if (ok.length) return { line: pick(ok) };
+    return { line: bestOf(free, (l) => -dotsGiveaway(s.lines, l)) };
+  }
+
+  // ---------------------------------------------------------------- mancala: minimax with extra turns
+  const MC_DEPTH = { easy: 2, medium: 5, hard: 8 };
+  function mcSearch(pits, turn, depth, a, b, me) {
+    const base = turn === 0 ? 0 : 7, moves = [];
+    for (let i = base; i < base + 6; i++) if (pits[i] > 0) moves.push(i);
+    const store = (p) => (p === 0 ? 6 : 13);
+    if (!moves.length || depth === 0) {
+      // seeds left on a side go to that side's owner at the end, so they count for half
+      const side = (p) => { let n = 0; for (let k = p === 0 ? 0 : 7, e = k + 6; k < e; k++) n += pits[k]; return n; };
+      return pits[store(me)] - pits[store(1 - me)] + 0.5 * (side(me) - side(1 - me));
+    }
+    const mine = turn === me;
+    let best = mine ? -Infinity : Infinity;
+    for (const pit of moves) {
+      const r = Rules.mancala.sow(pits, turn, pit);
+      const v = r.over ? (r.pits[store(me)] - r.pits[store(1 - me)]) * 100 : mcSearch(r.pits, r.again ? turn : 1 - turn, depth - 1, a, b, me);
+      if (mine) { best = Math.max(best, v); a = Math.max(a, v); } else { best = Math.min(best, v); b = Math.min(b, v); }
+      if (a >= b) break;
+    }
+    return best;
+  }
+  function mancalaMove(s, me, lv, level) {
+    const moves = Rules.mancala.legal(s);
+    if (Math.random() < lv.blunder) return pick(moves);
+    return bestOf(moves, (m) => {
+      const r = Rules.mancala.sow(s.pits, me, m.pit);
+      if (r.over) return (r.pits[me === 0 ? 6 : 13] - r.pits[me === 0 ? 13 : 6]) * 100;
+      return mcSearch(r.pits, r.again ? me : 1 - me, MC_DEPTH[level] - 1, -Infinity, Infinity, me) + (r.again ? 0.5 : 0);
+    });
+  }
+
+  // ---------------------------------------------------------------- five in a row: score threats for both sides
+  function gmLineScore(cells, i, p) {
+    const r = Math.floor(i / 15), c = i % 15;
+    let total = 0;
+    for (const [dr, dc] of [[0, 1], [1, 0], [1, 1], [1, -1]]) {
+      let count = 1, open = 0;
+      for (const sg of [1, -1]) {
+        let rr = r + dr * sg, cc = c + dc * sg;
+        while (rr >= 0 && rr < 15 && cc >= 0 && cc < 15 && cells[rr * 15 + cc] === p) { count++; rr += dr * sg; cc += dc * sg; }
+        if (rr >= 0 && rr < 15 && cc >= 0 && cc < 15 && cells[rr * 15 + cc] === -1) open++;
+      }
+      if (count >= 5) total += 1e6;
+      else if (count === 4) total += open === 2 ? 1e5 : open === 1 ? 1e4 : 0;
+      else if (count === 3) total += open === 2 ? 5000 : open === 1 ? 400 : 0;
+      else if (count === 2) total += open === 2 ? 200 : open === 1 ? 40 : 0;
+      else total += open * 4;
+    }
+    return total;
+  }
+  function gomokuMove(s, me, lv, level) {
+    const cells = s.cells;
+    if (cells.every((v) => v === -1)) return { cell: 7 * 15 + 7 };
+    const near = [];
+    for (let i = 0; i < 225; i++) {
+      if (cells[i] !== -1) continue;
+      const r = Math.floor(i / 15), c = i % 15;
+      let has = false;
+      for (let dr = -2; dr <= 2 && !has; dr++) for (let dc = -2; dc <= 2 && !has; dc++) {
+        const rr = r + dr, cc = c + dc;
+        if (rr >= 0 && rr < 15 && cc >= 0 && cc < 15 && cells[rr * 15 + cc] !== -1) has = true;
+      }
+      if (has) near.push(i);
+    }
+    if (Math.random() < lv.blunder * 0.6) return { cell: pick(near) };
+    const defend = level === 'easy' ? 0.6 : level === 'medium' ? 0.9 : 1;
+    return { cell: bestOf(near, (i) => gmLineScore(cells, i, me) * 1.1 + gmLineScore(cells, i, 1 - me) * defend + (level === 'easy' ? Math.random() * 300 : 0)) };
+  }
+
+  const TURN_BOTS = { tictactoe: tictactoeMove, connect4: connect4Move, checkers: checkersMove, chess: chessMove, reversi: reversiMove, dots: dotsMove, mancala: mancalaMove, gomoku: gomokuMove };
 
   // ---------------------------------------------------------------- snake: chase food, keep room to move
   const SDIRS = { U: [0, -1], D: [0, 1], L: [-1, 0], R: [1, 0] };
@@ -2156,6 +2851,69 @@ else globalThis.Realtime = Realtime;
     };
   }
 
+  // ---------------------------------------------------------------- light cycles: keep the most open space
+  function tronBot(level) {
+    let tick = 0;
+    return (s, me) => {
+      const p = s.p[me], o = s.p[1 - me];
+      if (s.pause > 0 || !p.alive) return null;
+      if (level === 'easy' && ++tick % 2) return null;
+      const W = s.W, H = s.H, g = s.grid;
+      const free = (x, y) => x >= 0 && y >= 0 && x < W && y < H && g[y * W + x] === '0';
+      const area = (sx, sy) => {
+        const seen = new Uint8Array(W * H), q = [sy * W + sx];
+        seen[sy * W + sx] = 1;
+        let n = 0;
+        while (q.length && n < 600) {
+          const cell = q.pop(); n++;
+          const cx = cell % W, cy = (cell / W) | 0;
+          for (const [dx, dy] of Object.values(SDIRS)) {
+            const nx = cx + dx, ny = cy + dy;
+            if (free(nx, ny) && !seen[ny * W + nx]) { seen[ny * W + nx] = 1; q.push(ny * W + nx); }
+          }
+        }
+        return n;
+      };
+      const options = Object.keys(SDIRS).filter((d) => d !== SOPP[p.dir]).map((d) => {
+        const x = p.x + SDIRS[d][0], y = p.y + SDIRS[d][1];
+        if (!free(x, y)) return null;
+        const nearHead = Math.abs(x - o.x) + Math.abs(y - o.y) === 1;
+        return { d, room: area(x, y), nearHead, straight: d === p.dir };
+      }).filter(Boolean);
+      if (!options.length) return null;
+      if (level === 'easy' && Math.random() < 0.06) return pick(options).d;
+      return bestOf(options, (op) => op.room * 10 - (op.nearHead && level !== 'easy' ? 3000 : 0) + (op.straight ? 3 : 0)).d;
+    };
+  }
+
+  // ---------------------------------------------------------------- air hockey: shoot at the far goal, fall back to defend
+  function hockeyBot(level) {
+    const cfg = { easy: { every: 5, err: 40, lead: 0 }, medium: { every: 2, err: 15, lead: 2 }, hard: { every: 1, err: 4, lead: 4 } }[level];
+    let tick = 0, held = null, off = 0;
+    return (s, me) => {
+      if (++tick % cfg.every && held) return held;
+      if (tick % 50 === 1) off = (Math.random() * 2 - 1) * cfg.err;
+      const m = s.m[me], p = s.puck, mySide = me === 1 ? p.x > s.W / 2 : p.x < s.W / 2;
+      const goalX = me === 1 ? 0 : s.W, homeX = me === 1 ? s.W - 70 : 70;
+      const px = p.x + p.vx * cfg.lead, py = p.y + p.vy * cfg.lead;
+      let tx, ty;
+      if (mySide) {
+        const behind = me === 1 ? px > m.x - 8 : px < m.x + 8;
+        if (behind) { tx = px + (me === 1 ? 45 : -45); ty = py + (py > m.y ? -55 : 55); } // circle round the puck
+        else {
+          const gx = goalX - px, gy = s.H / 2 + off - py, d = Math.hypot(gx, gy) || 1;
+          tx = px - (gx / d) * (s.mallet + s.puckR - 10);
+          ty = py - (gy / d) * (s.mallet + s.puckR - 10);
+        }
+      } else {
+        tx = homeX;
+        ty = Math.max(s.H / 2 - 90, Math.min(s.H / 2 + 90, py + off));
+      }
+      held = { tx, ty };
+      return held;
+    };
+  }
+
   // ---------------------------------------------------------------- tetris: its own board, scoring each placement
   const TETRO = {
     I: [[0, 0, 0, 0], [1, 1, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]],
@@ -2246,14 +3004,18 @@ else globalThis.Realtime = Realtime;
   }
 
   // ---------------------------------------------------------------- bot game session
-  const KIND = { snake: 'realtime', pong: 'realtime', fighter: 'realtime', tetris: 'relay', chess: 'turn', checkers: 'turn', connect4: 'turn', tictactoe: 'turn' };
-  const REAL_BOTS = { snake: snakeBot, pong: pongBot, fighter: fighterBot };
+  const KIND = {
+    snake: 'realtime', pong: 'realtime', fighter: 'realtime', tron: 'realtime', hockey: 'realtime', tetris: 'relay',
+    chess: 'turn', checkers: 'turn', connect4: 'turn', tictactoe: 'turn', reversi: 'turn', dots: 'turn', mancala: 'turn', gomoku: 'turn',
+  };
+  const REAL_BOTS = { snake: snakeBot, pong: pongBot, fighter: fighterBot, tron: tronBot, hockey: hockeyBot };
+  const DIR_GAMES = new Set(['snake', 'tron']); // inputs are a direction
 
   function start(game, level, me) {
     level = LEVELS[level] ? level : 'medium';
     const lv = LEVELS[level], kind = KIND[game];
     const id = 'bot-' + Date.now().toString(36);
-    const players = [me, { username: '__bot', name: `🤖 Bot (${lv.label})`, avatar: '#64748b' }];
+    const players = [me, { username: '__bot', name: `🤖 Bot (${lv.label})`, avatar: '#f97316' }];
     let state, over = false, timer = null, botTimer = null, tetris = null, humanSent = 0, humanScore = 0, humanLines = 0;
     const push = () => !over && GameDock.state({ id, state });
     function finish(result) {
@@ -2311,7 +3073,7 @@ else globalThis.Realtime = Realtime;
       const bot = REAL_BOTS[game](level), sim = Realtime[game];
       timer = setInterval(() => {
         const input = bot(state, 1);
-        if (input) sim.input(state, 1, game === 'snake' ? { dir: input } : input);
+        if (input) sim.input(state, 1, DIR_GAMES.has(game) ? { dir: input } : input);
         const res = sim.tick(state);
         push();
         if (res) finish(res);
@@ -2326,7 +3088,7 @@ else globalThis.Realtime = Realtime;
     }
   }
 
-  window.BotPlay = { LEVELS, start, _ai: { TURN_BOTS, snakeBot, pongBot, fighterBot, tetrisBot } }; // _ai: for tests
+  window.BotPlay = { LEVELS, start, _ai: { TURN_BOTS, snakeBot, pongBot, fighterBot, tronBot, hockeyBot, tetrisBot } }; // _ai: for tests
 })();
 
 </script>
@@ -2347,7 +3109,14 @@ else globalThis.Realtime = Realtime;
     pong: { name: 'Pong', kind: 'realtime' },
     connect4: { name: 'Connect Four', kind: 'turn' },
     tictactoe: { name: 'Tic-Tac-Toe', kind: 'turn' },
+    reversi: { name: 'Reversi', kind: 'turn' },
+    dots: { name: 'Dots & Boxes', kind: 'turn' },
+    mancala: { name: 'Mancala', kind: 'turn' },
+    gomoku: { name: 'Five in a Row', kind: 'turn' },
+    tron: { name: 'Light Cycles', kind: 'realtime' },
+    hockey: { name: 'Air Hockey', kind: 'realtime' },
   };
+  const DIR_GAMES = new Set(['snake', 'tron']); // realtime games whose input is a direction press
   const MSG_WINDOW = 100; // messages loaded per chat
   const MSG_KEEP = 200; // older messages are pruned
   const MAX_ROOM_SUBS = 50; // db allows 64 live subscriptions per view
@@ -2715,8 +3484,8 @@ else globalThis.Realtime = Realtime;
           const r = Rules[g.type].move(g.state, 1, pr.mv);
           if (!r.error) { g.state = r.state; publish(g); }
         }
-      } else if (g.type === 'snake') {
-        if (pr.dir && typeof pr.n === 'number' && pr.n > g.lastN) { g.lastN = pr.n; Realtime.snake.input(g.state, 1, { dir: pr.dir }); }
+      } else if (DIR_GAMES.has(g.type)) {
+        if (pr.dir && typeof pr.n === 'number' && pr.n > g.lastN) { g.lastN = pr.n; Realtime[g.type].input(g.state, 1, { dir: pr.dir }); }
       } else if (pr.in && typeof pr.in === 'object') {
         Realtime[g.type].input(g.state, 1, pr.in);
       }
@@ -2748,7 +3517,7 @@ else globalThis.Realtime = Realtime;
         return;
       }
       if (g.you === 0) Realtime[g.type].input(g.state, 0, input);
-      else if (g.type === 'snake') g.named && g.named.presence({ dir: input.dir, n: ++g.n }).catch(() => {});
+      else if (DIR_GAMES.has(g.type)) g.named && g.named.presence({ dir: input.dir, n: ++g.n }).catch(() => {});
       else g.named && g.named.presence({ in: input }).catch(() => {});
     }
     function finish(g, result, opts) {
