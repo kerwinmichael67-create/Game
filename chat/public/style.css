@@ -620,3 +620,59 @@ body[data-theme="dark"] .fav-btn.on { color: #c9c2ff; }
 .compose-bar .cb-text { display: grid; flex: 1; min-width: 0; font-size: 13px; }
 .compose-bar .cb-text span { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .compose-bar .close-x { width: 28px; height: 28px; }
+
+/* ============================================================
+   Calls
+   ============================================================ */
+.call-panel {
+  position: fixed; right: 18px; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); z-index: 70; width: 360px; max-width: calc(100vw - 24px);
+  background: #0b0c14; color: #eef0ff; border-radius: 22px; box-shadow: var(--shadow-lg); overflow: hidden; display: grid;
+  animation: rise .25s cubic-bezier(.2, .9, .3, 1.2);
+}
+.call-panel.big { inset: 12px; width: auto; max-width: none; grid-template-rows: 1fr auto; }
+.call-stage { position: relative; aspect-ratio: 4 / 3; background: radial-gradient(circle at 50% 35%, #2a2560, #0b0c14 70%); }
+.call-panel.big .call-stage { aspect-ratio: auto; min-height: 0; }
+.call-remote { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; }
+.call-panel.has-video .call-remote { opacity: 1; }
+.call-panel.big .call-remote { object-fit: contain; }
+.call-avatar { position: absolute; inset: 0; display: grid; place-items: center; align-content: center; gap: 10px; }
+.call-avatar .avatar { width: 96px; height: 96px; font-size: 40px; box-shadow: 0 0 0 6px rgba(139, 125, 255, .25); }
+.call-avatar .avatar .dot { display: none; }
+.call-panel.has-video .call-avatar { display: none; }
+.call-local {
+  position: absolute; right: 10px; bottom: 10px; width: 30%; max-width: 180px; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 12px;
+  transform: scaleX(-1); box-shadow: 0 4px 14px rgba(0, 0, 0, .5); display: none; background: #000;
+}
+.call-panel.self-video .call-local { display: block; }
+.call-top {
+  position: absolute; left: 0; right: 0; top: 0; padding: 10px 14px; display: flex; gap: 10px; align-items: baseline;
+  background: linear-gradient(rgba(0, 0, 0, .55), transparent); font-size: 14px;
+}
+.call-status { font: 12px var(--mono); color: #b6bbdd; }
+.call-flag { font-size: 12px; background: rgba(239, 68, 68, .85); padding: 1px 8px; border-radius: 999px; }
+.call-controls { display: flex; justify-content: center; gap: 12px; padding: 12px; background: #11131f; }
+.call-btn {
+  width: 48px; height: 48px; border-radius: 50%; border: 0; background: rgba(255, 255, 255, .12); color: #fff; cursor: pointer;
+  display: grid; place-items: center; transition: background .15s, transform .1s;
+}
+.call-btn svg { width: 22px; height: 22px; }
+.call-btn:hover { background: rgba(255, 255, 255, .22); }
+.call-btn:active { transform: scale(.95); }
+.call-btn:focus-visible { outline: 3px solid #8b7dff; outline-offset: 2px; }
+.call-btn.off { background: #fff; color: #0b0c14; }
+.call-btn.danger { background: #ef4444; }
+.call-btn.danger:hover { background: #dc2626; }
+.call-btn.accept { background: #22c55e; }
+.call-btn.accept:hover { background: #16a34a; }
+.call-panel.incoming { padding-top: 22px; justify-items: center; gap: 6px; }
+.call-panel.incoming .call-controls { background: none; width: 100%; }
+.call-ring .avatar { width: 84px; height: 84px; font-size: 36px; animation: ringpulse 1.4s ease-out infinite; }
+.call-ring .avatar .dot { display: none; }
+@keyframes ringpulse { 0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, .55); } 100% { box-shadow: 0 0 0 26px rgba(34, 197, 94, 0); } }
+.call-who { display: grid; text-align: center; gap: 2px; }
+.call-who b { font-size: 18px; }
+.call-who span { color: #b6bbdd; font-size: 13px; }
+@media (max-width: 720px) {
+  .call-panel:not(.incoming) { inset: 0; width: auto; max-width: none; border-radius: 0; grid-template-rows: 1fr auto; padding-top: env(safe-area-inset-top, 0px); }
+  .call-panel:not(.incoming) .call-stage { aspect-ratio: auto; }
+}

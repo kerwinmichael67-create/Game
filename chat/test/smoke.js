@@ -225,6 +225,32 @@ async function e2e(port) {
   a.send({ t: 'gameLeave', id: g.id });
   await b.wait(is('gameOver', (m) => m.id === g.id));
 
+  // calls: ring, answer, relay connection details both ways, hang up
+  assert(Array.isArray(helloA.calls.iceServers) && helloA.calls.iceServers.length);
+  a.send({ t: 'call', to: 'Jerry', video: true });
+  const ringing = await a.wait(is('callRinging'));
+  const inc = await b.wait(is('callIncoming'));
+  assert.strictEqual(inc.from, 'Bob');
+  assert.strictEqual(inc.video, true);
+  b.send({ t: 'call', to: 'Bob' });
+  assert.strictEqual((await b.wait(is('error'))).text, 'You’re already in a call');
+  b.send({ t: 'callAnswer', id: inc.id, accept: true });
+  await a.wait(is('callAccepted', (m) => m.id === ringing.id));
+  a.send({ t: 'callSignal', id: ringing.id, data: { description: { type: 'offer', sdp: 'v=0' } } });
+  assert.strictEqual((await b.wait(is('callSignal'))).data.description.type, 'offer');
+  b.send({ t: 'callSignal', id: inc.id, data: { cam: false } });
+  assert.strictEqual((await a.wait(is('callSignal'))).data.cam, false);
+  a.send({ t: 'callEnd', id: ringing.id });
+  const ended = await b.wait(is('callEnded'));
+  assert.strictEqual(ended.reason, 'ended');
+  assert.strictEqual(ended.by, 'Bob');
+  await a.wait(is('callEnded'));
+  b.send({ t: 'call', to: 'Bob' });
+  const inc2 = await a.wait(is('callIncoming'));
+  a.send({ t: 'callAnswer', id: inc2.id, accept: false });
+  assert.strictEqual((await b.wait(is('callEnded', (m) => m.id === inc2.id))).reason, 'declined');
+  await a.wait(is('callEnded', (m) => m.id === inc2.id));
+
   // file uploads: upload, send, receive; only your own uploads can be attached; served safely
   const base = `http://localhost:${port}`;
   const up = (token, name, type, body) => fetch(base + '/upload', { method: 'POST', body, headers: { 'X-Token': token, 'X-File-Name': encodeURIComponent(name), 'Content-Type': type } });

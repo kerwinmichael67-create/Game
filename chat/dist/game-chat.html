@@ -625,6 +625,62 @@ body[data-theme="dark"] .fav-btn.on { color: #c9c2ff; }
 .compose-bar .cb-text span { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .compose-bar .close-x { width: 28px; height: 28px; }
 
+/* ============================================================
+   Calls
+   ============================================================ */
+.call-panel {
+  position: fixed; right: 18px; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); z-index: 70; width: 360px; max-width: calc(100vw - 24px);
+  background: #0b0c14; color: #eef0ff; border-radius: 22px; box-shadow: var(--shadow-lg); overflow: hidden; display: grid;
+  animation: rise .25s cubic-bezier(.2, .9, .3, 1.2);
+}
+.call-panel.big { inset: 12px; width: auto; max-width: none; grid-template-rows: 1fr auto; }
+.call-stage { position: relative; aspect-ratio: 4 / 3; background: radial-gradient(circle at 50% 35%, #2a2560, #0b0c14 70%); }
+.call-panel.big .call-stage { aspect-ratio: auto; min-height: 0; }
+.call-remote { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; }
+.call-panel.has-video .call-remote { opacity: 1; }
+.call-panel.big .call-remote { object-fit: contain; }
+.call-avatar { position: absolute; inset: 0; display: grid; place-items: center; align-content: center; gap: 10px; }
+.call-avatar .avatar { width: 96px; height: 96px; font-size: 40px; box-shadow: 0 0 0 6px rgba(139, 125, 255, .25); }
+.call-avatar .avatar .dot { display: none; }
+.call-panel.has-video .call-avatar { display: none; }
+.call-local {
+  position: absolute; right: 10px; bottom: 10px; width: 30%; max-width: 180px; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 12px;
+  transform: scaleX(-1); box-shadow: 0 4px 14px rgba(0, 0, 0, .5); display: none; background: #000;
+}
+.call-panel.self-video .call-local { display: block; }
+.call-top {
+  position: absolute; left: 0; right: 0; top: 0; padding: 10px 14px; display: flex; gap: 10px; align-items: baseline;
+  background: linear-gradient(rgba(0, 0, 0, .55), transparent); font-size: 14px;
+}
+.call-status { font: 12px var(--mono); color: #b6bbdd; }
+.call-flag { font-size: 12px; background: rgba(239, 68, 68, .85); padding: 1px 8px; border-radius: 999px; }
+.call-controls { display: flex; justify-content: center; gap: 12px; padding: 12px; background: #11131f; }
+.call-btn {
+  width: 48px; height: 48px; border-radius: 50%; border: 0; background: rgba(255, 255, 255, .12); color: #fff; cursor: pointer;
+  display: grid; place-items: center; transition: background .15s, transform .1s;
+}
+.call-btn svg { width: 22px; height: 22px; }
+.call-btn:hover { background: rgba(255, 255, 255, .22); }
+.call-btn:active { transform: scale(.95); }
+.call-btn:focus-visible { outline: 3px solid #8b7dff; outline-offset: 2px; }
+.call-btn.off { background: #fff; color: #0b0c14; }
+.call-btn.danger { background: #ef4444; }
+.call-btn.danger:hover { background: #dc2626; }
+.call-btn.accept { background: #22c55e; }
+.call-btn.accept:hover { background: #16a34a; }
+.call-panel.incoming { padding-top: 22px; justify-items: center; gap: 6px; }
+.call-panel.incoming .call-controls { background: none; width: 100%; }
+.call-ring .avatar { width: 84px; height: 84px; font-size: 36px; animation: ringpulse 1.4s ease-out infinite; }
+.call-ring .avatar .dot { display: none; }
+@keyframes ringpulse { 0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, .55); } 100% { box-shadow: 0 0 0 26px rgba(34, 197, 94, 0); } }
+.call-who { display: grid; text-align: center; gap: 2px; }
+.call-who b { font-size: 18px; }
+.call-who span { color: #b6bbdd; font-size: 13px; }
+@media (max-width: 720px) {
+  .call-panel:not(.incoming) { inset: 0; width: auto; max-width: none; border-radius: 0; grid-template-rows: 1fr auto; padding-top: env(safe-area-inset-top, 0px); }
+  .call-panel:not(.incoming) .call-stage { aspect-ratio: auto; }
+}
+
 </style>
 <!-- Sign in / create account -->
 <div id="auth" class="auth">
@@ -676,6 +732,8 @@ body[data-theme="dark"] .fav-btn.on { color: #c9c2ff; }
         <span id="roomName">Global chat</span>
         <small id="roomMeta" class="muted"></small>
       </div>
+      <button id="callBtn" class="btn icon hidden" title="Voice call" aria-label="Voice call">📞</button>
+      <button id="videoBtn" class="btn icon hidden" title="Video call" aria-label="Video call">🎥</button>
       <button id="membersBtn" class="btn">Members</button>
       <button id="requestGameBtn" class="btn primary">🎮 Request a game</button>
     </header>
@@ -3822,6 +3880,7 @@ else globalThis.Realtime = Realtime;
   };
   // In the claude.ai artifact build, a ChatTransport replaces the WebSocket server.
   const ARTIFACT = typeof window.ChatTransport === 'function';
+  const CALLS = !ARTIFACT && typeof window.Calls === 'object'; // claude.ai pages can't use the camera, mic or WebRTC
   const PRESENCE_LABEL = { online: 'Online', offline: 'Offline', idle: 'Do not disturb' };
   const AVATARS = ['#22c55e', '#111111', '#ef4444', '#facc15', '#d946ef'];
 
@@ -3869,6 +3928,7 @@ else globalThis.Realtime = Realtime;
       }
       S.me = m.me;
       S.games = m.games;
+      if (CALLS) Calls.configure(m.calls);
       S.users = {};
       m.users.forEach((u) => { S.users[u.username] = u; });
       S.rooms = {};
@@ -3966,6 +4026,11 @@ else globalThis.Realtime = Realtime;
     gameEvent(m) { GameDock.event(m); },
     gameOver(m) { GameDock.over(m); },
     gameError(m) { toast(m.text, 'err'); },
+    callIncoming(m) { Calls.event(m); },
+    callRinging(m) { Calls.event(m); },
+    callAccepted(m) { Calls.event(m); },
+    callSignal(m) { Calls.event(m); },
+    callEnded(m) { Calls.event(m); },
   };
 
   // ---------------------------------------------------------------- auth
@@ -4020,6 +4085,7 @@ else globalThis.Realtime = Realtime;
       h('button', { class: 'btn primary block', onclick: go }, afterSignOut ? 'Sign back in' : 'Sign in'));
   }
   function signOut() {
+    if (CALLS) Calls.hangUp();
     if (ARTIFACT) {
       send({ t: 'logout' });
       store.set('chatSignedIn:' + S.me.username, null);
@@ -4151,6 +4217,11 @@ else globalThis.Realtime = Realtime;
     } else meta = r.public ? `Public · ${roomActive(r)} active` : `Private · ${r.members.length} members · ${roomActive(r)} active`;
     $('#roomMeta').textContent = meta;
     $('#msgInput').placeholder = r.dm ? `Message ${roomLabel(r)}` : 'Say hello';
+    // calls: in a DM, when the other person is online (website only: claude.ai pages can't use the camera or mic)
+    const other = r.dm && r.members.find((m) => m !== S.me.username);
+    const canCall = CALLS && other && userOf(other).presence !== 'offline';
+    $('#callBtn').classList.toggle('hidden', !canCall);
+    $('#videoBtn').classList.toggle('hidden', !canCall);
   }
   function renderMessages() {
     const box = $('#messages'), r = S.rooms[S.current];
@@ -4482,6 +4553,8 @@ else globalThis.Realtime = Realtime;
           : h('div', { class: 'row end' },
             h('button', { class: 'btn', onclick: () => send({ t: 'friend', username: u, add: !friend }) }, friend ? 'Remove friend' : '＋ Add friend'),
             h('button', { class: 'btn', onclick: () => send({ t: 'dm', with: u }) }, 'Message'),
+            CALLS && x.presence !== 'offline' ? h('button', { class: 'btn', title: 'Voice call', onclick: () => { closeModal(); Calls.start(u, false); } }, '📞 Call') : null,
+            CALLS && x.presence !== 'offline' ? h('button', { class: 'btn', title: 'Video call', onclick: () => { closeModal(); Calls.start(u, true); } }, '🎥 Video') : null,
             h('button', { class: 'btn primary', onclick: () => gameModal(u) }, 'Challenge')),
       ];
     };
@@ -4616,6 +4689,19 @@ else globalThis.Realtime = Realtime;
     h('ul', { class: 'list' }, onlineUsers().map((u) => personRow(u.username)))]));
   $('#menuBtn').addEventListener('click', () => $('#app').classList.toggle('menu-open'));
   $('#scrim').addEventListener('click', () => $('#app').classList.remove('menu-open'));
+
+  if (CALLS) {
+    Calls.init({
+      send,
+      toast,
+      nameOf,
+      avatarEl: (u) => avatar(u, true),
+      me: () => S.me && S.me.username,
+    });
+  }
+  const dmPartner = () => { const r = S.rooms[S.current]; return r && r.dm && r.members.find((m) => m !== S.me.username); };
+  $('#callBtn').addEventListener('click', () => { const u = dmPartner(); if (u) Calls.start(u, false); });
+  $('#videoBtn').addEventListener('click', () => { const u = dmPartner(); if (u) Calls.start(u, true); });
 
   GameDock.init({
     send: (id, input) => send({ t: 'gameInput', id, input }),

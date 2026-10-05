@@ -227,7 +227,7 @@ function onAuth(ws, u, token) {
   clearTimeout(forfeitTimers.get(u));
   forfeitTimers.delete(u);
   const rooms = Object.values(db.rooms).filter((r) => canSee(r, u)).map(roomView);
-  send(ws, { t: 'hello', token, me: privateUser(u), users: Object.keys(db.users).map(publicUser), rooms, games: GAMES });
+  send(ws, { t: 'hello', token, me: privateUser(u), users: Object.keys(db.users).map(publicUser), rooms, games: GAMES, calls: { iceServers: ICE_SERVERS } });
   if (userGame.has(u)) {
     const s = sessions.get(userGame.get(u));
     send(ws, { t: 'gameStart', id: s.id, game: s.type, players: gamePlayers(s), you: s.players.indexOf(u), state: s.state });
@@ -418,7 +418,64 @@ const authed = {
     const idx = s.players.indexOf(u);
     if (idx >= 0) endGame(s, { winner: 1 - idx, reason: `${nameOf(u)} forfeited` });
   },
+
+  // ---- calls: the server only relays ringing and WebRTC connection details; audio/video go browser to browser
+  call(ws, u, m) {
+    const to = m.to;
+    if (!db.users[to] || to === u) return { error: 'Pick someone to call' };
+    if (userCall.has(u)) return { error: 'You’re already in a call' };
+    if (!isConnected(to) || db.users[to].status === 'offline') return { error: `${nameOf(to)} is offline` };
+    if (db.users[to].status === 'idle') return { error: `${nameOf(to)} is set to do not disturb` };
+    if (userCall.has(to)) return { error: `${nameOf(to)} is on another call` };
+    const c = { id: rid(), a: { u, ws }, b: { u: to, ws: null }, video: !!m.video, state: 'ringing', started: 0 };
+    calls.set(c.id, c);
+    userCall.set(u, c.id);
+    userCall.set(to, c.id);
+    c.timer = setTimeout(() => endCall(c, 'no answer'), 40000);
+    sendUser(to, { t: 'callIncoming', id: c.id, from: u, video: c.video });
+    send(ws, { t: 'callRinging', id: c.id, to, video: c.video });
+  },
+  callAnswer(ws, u, m) {
+    const c = calls.get(m.id);
+    if (!c || c.b.u !== u || c.state !== 'ringing') return { t: 'callEnded', id: m.id, reason: 'That call has ended' };
+    if (!m.accept) return endCall(c, 'declined', u);
+    clearTimeout(c.timer);
+    c.state = 'active';
+    c.b.ws = ws;
+    c.started = Date.now();
+    for (const other of conns.get(u) || []) if (other !== ws) send(other, { t: 'callEnded', id: c.id, reason: 'answered in another tab' });
+    send(c.a.ws, { t: 'callAccepted', id: c.id });
+  },
+  callSignal(ws, u, m) {
+    const c = calls.get(m.id);
+    if (!c || c.state !== 'active' || !m.data || typeof m.data !== 'object') return;
+    if (ws === c.a.ws) send(c.b.ws, { t: 'callSignal', id: c.id, data: m.data });
+    else if (ws === c.b.ws) send(c.a.ws, { t: 'callSignal', id: c.id, data: m.data });
+  },
+  callEnd(ws, u, m) {
+    const c = calls.get(m.id);
+    if (c && (c.a.u === u || c.b.u === u)) endCall(c, 'ended', u);
+  },
 };
+
+const calls = new Map(); // id -> call
+const userCall = new Map(); // username -> call id
+function endCall(c, reason, by) {
+  if (!calls.has(c.id)) return;
+  calls.delete(c.id);
+  clearTimeout(c.timer);
+  userCall.delete(c.a.u);
+  userCall.delete(c.b.u);
+  const msg = { t: 'callEnded', id: c.id, reason, by: by || null, duration: c.started ? Date.now() - c.started : 0 };
+  send(c.a.ws, msg);
+  if (c.b.ws) send(c.b.ws, msg);
+  else sendUser(c.b.u, msg); // still ringing on every tab
+}
+// STUN finds a route between browsers; set ICE_SERVERS (JSON) to add a TURN relay for strict networks.
+const ICE_SERVERS = (() => {
+  try { if (process.env.ICE_SERVERS) return JSON.parse(process.env.ICE_SERVERS); } catch { console.error('ICE_SERVERS is not valid JSON; using public STUN'); }
+  return [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }];
+})();
 
 // ---------------------------------------------------------------- file uploads
 const uploadMeta = (id) => {
@@ -540,8 +597,11 @@ wss.on('connection', (ws) => {
     const u = ws.user;
     if (!u || !conns.has(u)) return;
     conns.get(u).delete(ws);
+    for (const c of [...calls.values()]) if (c.a.ws === ws || c.b.ws === ws) endCall(c, 'disconnected', u);
     if (conns.get(u).size) return;
     conns.delete(u);
+    const ringing = calls.get(userCall.get(u));
+    if (ringing) endCall(ringing, 'disconnected', u);
     for (const inv of invites.values()) if (inv.from === u || inv.to === u) invites.delete(inv.id);
     if (userGame.has(u)) {
       // give them 20 seconds to come back (e.g. a page refresh) before forfeiting

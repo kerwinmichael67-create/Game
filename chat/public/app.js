@@ -24,6 +24,7 @@
   };
   // In the claude.ai artifact build, a ChatTransport replaces the WebSocket server.
   const ARTIFACT = typeof window.ChatTransport === 'function';
+  const CALLS = !ARTIFACT && typeof window.Calls === 'object'; // claude.ai pages can't use the camera, mic or WebRTC
   const PRESENCE_LABEL = { online: 'Online', offline: 'Offline', idle: 'Do not disturb' };
   const AVATARS = ['#22c55e', '#111111', '#ef4444', '#facc15', '#d946ef'];
 
@@ -71,6 +72,7 @@
       }
       S.me = m.me;
       S.games = m.games;
+      if (CALLS) Calls.configure(m.calls);
       S.users = {};
       m.users.forEach((u) => { S.users[u.username] = u; });
       S.rooms = {};
@@ -168,6 +170,11 @@
     gameEvent(m) { GameDock.event(m); },
     gameOver(m) { GameDock.over(m); },
     gameError(m) { toast(m.text, 'err'); },
+    callIncoming(m) { Calls.event(m); },
+    callRinging(m) { Calls.event(m); },
+    callAccepted(m) { Calls.event(m); },
+    callSignal(m) { Calls.event(m); },
+    callEnded(m) { Calls.event(m); },
   };
 
   // ---------------------------------------------------------------- auth
@@ -222,6 +229,7 @@
       h('button', { class: 'btn primary block', onclick: go }, afterSignOut ? 'Sign back in' : 'Sign in'));
   }
   function signOut() {
+    if (CALLS) Calls.hangUp();
     if (ARTIFACT) {
       send({ t: 'logout' });
       store.set('chatSignedIn:' + S.me.username, null);
@@ -353,6 +361,11 @@
     } else meta = r.public ? `Public · ${roomActive(r)} active` : `Private · ${r.members.length} members · ${roomActive(r)} active`;
     $('#roomMeta').textContent = meta;
     $('#msgInput').placeholder = r.dm ? `Message ${roomLabel(r)}` : 'Say hello';
+    // calls: in a DM, when the other person is online (website only: claude.ai pages can't use the camera or mic)
+    const other = r.dm && r.members.find((m) => m !== S.me.username);
+    const canCall = CALLS && other && userOf(other).presence !== 'offline';
+    $('#callBtn').classList.toggle('hidden', !canCall);
+    $('#videoBtn').classList.toggle('hidden', !canCall);
   }
   function renderMessages() {
     const box = $('#messages'), r = S.rooms[S.current];
@@ -684,6 +697,8 @@
           : h('div', { class: 'row end' },
             h('button', { class: 'btn', onclick: () => send({ t: 'friend', username: u, add: !friend }) }, friend ? 'Remove friend' : '＋ Add friend'),
             h('button', { class: 'btn', onclick: () => send({ t: 'dm', with: u }) }, 'Message'),
+            CALLS && x.presence !== 'offline' ? h('button', { class: 'btn', title: 'Voice call', onclick: () => { closeModal(); Calls.start(u, false); } }, '📞 Call') : null,
+            CALLS && x.presence !== 'offline' ? h('button', { class: 'btn', title: 'Video call', onclick: () => { closeModal(); Calls.start(u, true); } }, '🎥 Video') : null,
             h('button', { class: 'btn primary', onclick: () => gameModal(u) }, 'Challenge')),
       ];
     };
@@ -818,6 +833,19 @@
     h('ul', { class: 'list' }, onlineUsers().map((u) => personRow(u.username)))]));
   $('#menuBtn').addEventListener('click', () => $('#app').classList.toggle('menu-open'));
   $('#scrim').addEventListener('click', () => $('#app').classList.remove('menu-open'));
+
+  if (CALLS) {
+    Calls.init({
+      send,
+      toast,
+      nameOf,
+      avatarEl: (u) => avatar(u, true),
+      me: () => S.me && S.me.username,
+    });
+  }
+  const dmPartner = () => { const r = S.rooms[S.current]; return r && r.dm && r.members.find((m) => m !== S.me.username); };
+  $('#callBtn').addEventListener('click', () => { const u = dmPartner(); if (u) Calls.start(u, false); });
+  $('#videoBtn').addEventListener('click', () => { const u = dmPartner(); if (u) Calls.start(u, true); });
 
   GameDock.init({
     send: (id, input) => send({ t: 'gameInput', id, input }),

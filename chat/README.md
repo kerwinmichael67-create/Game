@@ -42,6 +42,11 @@ Real-time games also have on-screen buttons for phones and tablets.
 
 **Replying and editing**: point at a message (or tap it on a phone) and press ↩ to reply or ✏️ to edit one of your own. You can also press ↑ in an empty message box to edit your last message, and Esc cancels. A reply shows a quote of the message it answers; click the quote to jump to that message. Edited messages say **edited**; click that to see the original text, and click again to switch back. Every earlier version is kept.
 
+**Calls (website version)**: open a direct message with someone who's online and press 📞 for a voice call or 🎥 for a video call. You can also use **Call** / **Video** on their profile card. They can answer with voice or video, or decline. During a call you can mute, turn your camera on or off (even partway through a voice call), make the call window bigger, or hang up. Audio and video go straight between the two browsers (WebRTC); the chat server only passes along ringing and connection details.
+- The browser asks for camera and microphone permission the first time. Calls need an `https` address, which Render provides, or `localhost`.
+- Most connections work with the free public STUN servers. Some strict school or office networks block direct connections; for those, add a TURN relay by setting the `ICE_SERVERS` environment variable, for example `[{"urls":"turn:turn.example.com:3478","username":"u","credential":"p"}]`.
+- Calls aren't available on the claude.ai version: claude.ai pages can't use the camera or microphone, and they block WebRTC.
+
 **Sharing files**: send photos, videos and files with the 📎 button, by dragging them onto the chat, or by pasting a screenshot. Photos show inline (click one to see it full size), videos play in the chat, and other files show as a card with a **Save** button.
 - **Website (server):** any file type, up to 10 MB each, stored in `data/uploads`. Uploads are served sandboxed, so they can't run scripts, and anything that isn't a photo, video, audio file or PDF downloads instead of opening.
 - **claude.ai:** photos (PNG, JPG, GIF, WebP, SVG), videos (MP4, WebM), PDFs and text files, up to 20 MB each.
