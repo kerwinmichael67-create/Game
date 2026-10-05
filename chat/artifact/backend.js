@@ -153,6 +153,14 @@
       const m = { id: d.id, ts: +d.ts || 0, from: typeof d.from === 'string' ? d.from : null, text: str(d.text, 1000) };
       const file = fileOf(d.file);
       if (file) m.file = file;
+      const r = d.replyTo;
+      if (r && typeof r === 'object' && typeof r.id === 'string') {
+        m.replyTo = { id: r.id, from: typeof r.from === 'string' ? r.from : null, text: str(r.text, 140), file: typeof r.file === 'string' ? str(r.file, 120) : null };
+      }
+      if (d.editedAt) {
+        m.editedAt = +d.editedAt || 0;
+        m.history = (Array.isArray(d.history) ? d.history : []).slice(-20).map((v) => ({ text: str(v && v.text, 1000), ts: +(v && v.ts) || 0 }));
+      }
       return m;
     }
     const roomView = (id) => Object.assign(roomMeta(id), { messages: (rawMsgs[id] || []).map(toMsg) });
@@ -164,8 +172,12 @@
         rawMsgs[id] = list;
         if (!ready || !(id === 'global' || rooms[id])) return;
         if (!had) { emit({ t: 'room', room: roomView(id) }); return; }
-        const old = new Set(had.map((m) => m.id));
-        for (const m of list) if (!old.has(m.id)) emit({ t: 'msg', room: id, msg: toMsg(m) });
+        const old = new Map(had.map((m) => [m.id, m]));
+        for (const m of list) {
+          const before = old.get(m.id);
+          if (!before) emit({ t: 'msg', room: id, msg: toMsg(m) });
+          else if (before.editedAt !== m.editedAt || before.text !== m.text) emit({ t: 'msgEdit', room: id, msg: toMsg(m) });
+        }
       }, dbError);
     }
     function onRooms(snap) {
@@ -467,7 +479,21 @@
         if (recent.length >= 8) return emit({ t: 'error', text: 'Slow down a little!' });
         recent.push(now);
         if (r.public && r.id !== 'global' && !ids(r.members).includes(myId)) db.doc('rooms/' + r.id).update({ members: ids(r.members).concat(myId) }).catch(() => {});
-        post(r.id, f ? { from: myId, text, file: f } : { from: myId, text });
+        const msg = { from: myId, text };
+        if (f) msg.file = f;
+        const orig = typeof m.replyTo === 'string' && (rawMsgs[r.id] || []).find((x) => x.id === m.replyTo && !x.sys);
+        if (orig) msg.replyTo = { id: orig.id, from: typeof orig.from === 'string' ? orig.from : null, text: str(orig.text, 140), file: orig.file && orig.file.name ? str(orig.file.name, 120) : null };
+        post(r.id, msg);
+      },
+      edit(m) {
+        const text = str(m.text, 1000), list = rawMsgs[m.room] || [];
+        const d = list.find((x) => x.id === m.id);
+        if (!d || d.sys || d.from !== myId) return emit({ t: 'error', text: 'You can only edit your own messages' });
+        if (!text && !d.file) return emit({ t: 'error', text: 'A message can’t be empty' });
+        if (text === d.text) return;
+        if (readOnly) return writeError({ code: 'invalid_argument' });
+        const history = (Array.isArray(d.history) ? d.history : []).concat({ text: d.text || '', ts: d.editedAt || d.ts }).slice(-20);
+        db.doc(`rooms/${m.room}/msgs/${d.id}`).update({ text, editedAt: Date.now(), history }).catch(writeError);
       },
       logout() {
         if (game && !game.over) handlers.gameLeave({ id: game.id });

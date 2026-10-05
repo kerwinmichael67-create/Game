@@ -116,6 +116,20 @@ async function e2e(port) {
   const got = await b.wait(is('msg', (m) => m.msg.text === 'Hello everyone'));
   assert.strictEqual(got.msg.from, 'Bob');
 
+  // replies and edits
+  b.send({ t: 'msg', room: 'global', text: 'nice one', replyTo: got.msg.id });
+  const rep = await a.wait(is('msg', (m) => m.msg.text === 'nice one'));
+  assert.deepStrictEqual(rep.msg.replyTo, { id: got.msg.id, from: 'Bob', text: 'Hello everyone', file: null });
+  b.send({ t: 'msg', room: 'global', text: 'fake quote', replyTo: 'nope' });
+  assert.strictEqual((await a.wait(is('msg', (m) => m.msg.text === 'fake quote'))).msg.replyTo, undefined);
+  b.send({ t: 'edit', room: 'global', id: got.msg.id, text: 'hacked' });
+  assert.strictEqual((await b.wait(is('error'))).text, 'You can only edit your own messages');
+  a.send({ t: 'edit', room: 'global', id: got.msg.id, text: 'Hello everyone!!' });
+  const ed = await b.wait(is('msgEdit', (m) => m.msg.id === got.msg.id));
+  assert.strictEqual(ed.msg.text, 'Hello everyone!!');
+  assert.strictEqual(ed.msg.history[0].text, 'Hello everyone');
+  assert(ed.msg.editedAt >= ed.msg.ts);
+
   // private room
   a.send({ t: 'createRoom', name: 'Secret club', members: ['Jerry'] });
   const opened = await a.wait(is('openRoom'));

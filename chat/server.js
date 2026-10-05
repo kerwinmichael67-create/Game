@@ -119,6 +119,8 @@ function postMessage(room, msg) {
   toRoom(room, { t: 'msg', room: room.id, msg });
   save();
 }
+// What a reply shows of the message it answers (taken from the server's copy, so it can't be faked).
+const replySnapshot = (orig) => ({ id: orig.id, from: orig.from, text: (orig.text || '').slice(0, 140), file: orig.file ? orig.file.name : null });
 const sys = (room, text, extra) => room && postMessage(room, Object.assign({ from: null, sys: true, text }, extra));
 const nameOf = (u) => (db.users[u] ? db.users[u].name : u);
 
@@ -281,7 +283,24 @@ const authed = {
       room.members.push(u);
       toRoom(room, { t: 'room', room: roomView(room) });
     }
-    postMessage(room, file ? { from: u, text, file } : { from: u, text });
+    const msg = { from: u, text };
+    if (file) msg.file = file;
+    const orig = typeof m.replyTo === 'string' && room.messages.find((x) => x.id === m.replyTo && !x.sys);
+    if (orig) msg.replyTo = replySnapshot(orig);
+    postMessage(room, msg);
+  },
+  edit(ws, u, m) {
+    const room = db.rooms[m.room], text = str(m.text, 1000);
+    if (!room || !canSee(room, u)) return;
+    const msg = room.messages.find((x) => x.id === m.id);
+    if (!msg || msg.sys || msg.from !== u) return { error: 'You can only edit your own messages' };
+    if (!text && !msg.file) return { error: 'A message can’t be empty' };
+    if (text === msg.text) return;
+    msg.history = (msg.history || []).concat({ text: msg.text, ts: msg.editedAt || msg.ts }).slice(-20);
+    msg.text = text;
+    msg.editedAt = Date.now();
+    toRoom(room, { t: 'msgEdit', room: room.id, msg });
+    save();
   },
   typing(ws, u, m) {
     const room = db.rooms[m.room];

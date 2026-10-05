@@ -137,6 +137,17 @@
       renderRooms();
       updateTitle();
     },
+    msgEdit(m) {
+      const room = S.rooms[m.room];
+      const i = room ? room.messages.findIndex((x) => x.id === m.msg.id) : -1;
+      if (i < 0) return;
+      room.messages[i] = m.msg;
+      if (editing && editing.id === m.msg.id) editing = m.msg;
+      if (m.room !== S.current) return;
+      const old = $(`#messages [data-id="${CSS.escape(m.msg.id)}"]`);
+      if (old) old.replaceWith(msgEl(m.msg, room.messages[i - 1]));
+      document.querySelectorAll(`#messages .reply-quote[data-for="${CSS.escape(m.msg.id)}"] span`).forEach((s) => { s.textContent = snippet(m.msg); });
+    },
     typing(m) {
       (S.typing[m.room] = S.typing[m.room] || {})[m.from] = Date.now();
       if (m.room === S.current) renderTyping();
@@ -358,22 +369,98 @@
     if (empty) empty.remove();
     const stick = box.scrollHeight - box.scrollTop - box.clientHeight < 80;
     if (!prev || fmtDay(prev.ts) !== fmtDay(m.ts)) box.append(h('div', { class: 'day' }, fmtDay(m.ts)));
-    if (m.sys) {
-      box.append(h('div', { class: 'sysmsg' }, m.text));
-    } else {
-      const mine = m.from === S.me.username;
-      const cont = prev && !prev.sys && prev.from === m.from && m.ts - prev.ts < 5 * 60e3 && fmtDay(prev.ts) === fmtDay(m.ts);
-      box.append(h('div', { class: 'msg' + (mine ? ' me' : '') + (cont ? ' cont' : '') },
-        h('div', { class: 'av-slot', onclick: () => showProfile(m.from) }, avatar(m.from)),
-        h('div', { class: 'body' },
-          h('div', { class: 'meta' },
-            h('button', { class: 'who', onclick: () => showProfile(m.from) }, mine ? 'You' : nameOf(m.from)),
-            h('span', { class: 'time' }, fmtTime(m.ts))),
-          m.file ? attachmentEl(m.file) : null,
-          m.text ? h('div', { class: 'text', title: fmtTime(m.ts) }, m.text) : null)));
-    }
+    box.append(msgEl(m, prev));
     if (!bulk && (stick || m.from === S.me.username)) box.scrollTop = box.scrollHeight;
   }
+  const snippet = (m) => (m.text ? m.text : m.file ? `📎 ${m.file.name || m.file}` : 'Message');
+  function msgEl(m, prev) {
+    if (m.sys) return h('div', { class: 'sysmsg', 'data-id': m.id }, m.text);
+    const mine = m.from === S.me.username;
+    const cont = prev && !prev.sys && prev.from === m.from && m.ts - prev.ts < 5 * 60e3 && fmtDay(prev.ts) === fmtDay(m.ts) && !m.replyTo;
+    const edited = m.editedAt && m.history && m.history.length;
+    const textEl = m.text || edited ? h('div', { class: 'text' + (m.text ? '' : ' hidden'), title: fmtTime(m.ts) }, m.text) : null;
+    let tag = null;
+    if (edited) {
+      // click "edited" to see the original text, click again to go back
+      const original = m.history[0].text;
+      let showing = false;
+      tag = h('button', { class: 'edited', title: `Edited ${fmtTime(m.editedAt)}. Click to see the original.`, onclick: (e) => {
+        e.stopPropagation();
+        showing = !showing;
+        textEl.textContent = showing ? original || '(no text)' : m.text;
+        textEl.classList.toggle('original', showing);
+        textEl.classList.toggle('hidden', !showing && !m.text);
+        tag.textContent = showing ? `original · sent ${fmtTime(m.ts)} · show edited` : 'edited';
+      } }, 'edited');
+    }
+    const el = h('div', { class: 'msg' + (mine ? ' me' : '') + (cont ? ' cont' : ''), 'data-id': m.id, onclick: () => el.classList.toggle('tapped') },
+      h('div', { class: 'av-slot', onclick: () => showProfile(m.from) }, avatar(m.from)),
+      h('div', { class: 'body' },
+        h('div', { class: 'meta' },
+          h('button', { class: 'who', onclick: () => showProfile(m.from) }, mine ? 'You' : nameOf(m.from)),
+          h('span', { class: 'time' }, fmtTime(m.ts))),
+        m.replyTo ? replyQuote(m.replyTo) : null,
+        m.file ? attachmentEl(m.file) : null,
+        textEl,
+        tag),
+      h('div', { class: 'msg-actions' },
+        h('button', { title: 'Reply', 'aria-label': 'Reply', onclick: (e) => { e.stopPropagation(); startReply(m); } }, '↩'),
+        mine ? h('button', { title: 'Edit', 'aria-label': 'Edit', onclick: (e) => { e.stopPropagation(); startEdit(m); } }, '✏️') : null));
+    return el;
+  }
+  function replyQuote(r) {
+    const room = S.rooms[S.current], live = room && room.messages.find((x) => x.id === r.id);
+    return h('button', { class: 'reply-quote', 'data-for': r.id, title: 'Show this message', onclick: (e) => { e.stopPropagation(); jumpTo(r.id); } },
+      h('b', {}, r.from === S.me.username ? 'You' : nameOf(r.from)),
+      h('span', {}, live ? snippet(live) : r.text || (r.file ? `📎 ${r.file}` : 'Message')));
+  }
+  function jumpTo(id) {
+    const el = $(`#messages [data-id="${CSS.escape(id)}"]`);
+    if (!el) { toast('That message is too old to show here.'); return; }
+    el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    el.classList.remove('flash');
+    void el.offsetWidth;
+    el.classList.add('flash');
+  }
+
+  // ---------------------------------------------------------------- replying and editing
+  let replyTo = null, editing = null;
+  function composeBar() {
+    const bar = $('#composeBar'), target = editing || replyTo;
+    if (!target) { bar.classList.add('hidden'); bar.replaceChildren(); return; }
+    bar.classList.remove('hidden');
+    bar.replaceChildren(
+      h('span', { class: 'cb-icon' }, editing ? '✏️' : '↩'),
+      h('div', { class: 'cb-text' },
+        h('b', {}, editing ? 'Editing your message' : `Replying to ${replyTo.from === S.me.username ? 'yourself' : nameOf(replyTo.from)}`),
+        h('span', {}, snippet(target))),
+      h('button', { class: 'close-x', type: 'button', title: 'Cancel (Esc)', 'aria-label': 'Cancel', onclick: cancelCompose }, '✕'));
+  }
+  function startReply(m) {
+    if (editing) $('#msgInput').value = '';
+    editing = null; replyTo = m;
+    composeBar();
+    $('#msgInput').focus();
+  }
+  function startEdit(m) {
+    replyTo = null; editing = m;
+    $('#msgInput').value = m.text || '';
+    composeBar();
+    $('#msgInput').focus();
+  }
+  function cancelCompose() {
+    if (editing) $('#msgInput').value = '';
+    replyTo = editing = null;
+    composeBar();
+  }
+  $('#msgInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && (replyTo || editing)) { e.stopPropagation(); cancelCompose(); }
+    if (e.key === 'ArrowUp' && !e.target.value && !editing) {
+      // up arrow in an empty box edits your last message
+      const room = S.rooms[S.current], mine = room && [...room.messages].reverse().find((x) => !x.sys && x.from === S.me.username);
+      if (mine) { e.preventDefault(); startEdit(mine); }
+    }
+  });
   // ---------------------------------------------------------------- files
   const fmtSize = (n) => (n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(0)} KB` : `${(n / 1048576).toFixed(1)} MB`);
   const isImage = (f) => /^image\/(png|jpeg|gif|webp|svg\+xml)$/.test(f.type);
@@ -415,7 +502,7 @@
       h('img', { class: 'att-full', src: f.url, alt: f.name })], true);
   }
   const MAX_SERVER_FILE = 10 * 1024 * 1024;
-  async function uploadOne(file, roomId) {
+  async function uploadOne(file, roomId, rep) {
     const max = ARTIFACT ? transport.maxFile : MAX_SERVER_FILE;
     if (file.size > max) { toast(`“${file.name}” is over ${max / 1048576} MB. Try a smaller file.`, 'err'); return; }
     const note = toast(`Sending “${file.name}”…`, null, 600000);
@@ -430,7 +517,7 @@
         meta = await res.json().catch(() => ({ error: 'Upload failed' }));
         if (!res.ok) throw new Error(meta.error || 'Upload failed');
       }
-      send({ t: 'msg', room: roomId, text: '', file: meta });
+      send(rep ? { t: 'msg', room: roomId, text: '', file: meta, replyTo: rep } : { t: 'msg', room: roomId, text: '', file: meta });
     } catch (err) {
       toast(err.message || 'That file didn’t upload.', 'err');
     } finally {
@@ -438,8 +525,9 @@
     }
   }
   function sendFiles(list) {
-    const roomId = S.current;
-    [...list].slice(0, 10).forEach((f) => uploadOne(f, roomId));
+    const roomId = S.current, rep = replyTo && !editing ? replyTo.id : null;
+    [...list].slice(0, 10).forEach((f) => uploadOne(f, roomId, rep));
+    if (rep) cancelCompose();
   }
   $('#attachBtn').addEventListener('click', () => $('#fileInput').click());
   $('#fileInput').addEventListener('change', (e) => { sendFiles(e.target.files); e.target.value = ''; });
@@ -470,6 +558,7 @@
 
   function selectRoom(id) {
     if (!S.rooms[id]) return;
+    if (id !== S.current) cancelCompose();
     S.current = id;
     store.set('chatRoom', id);
     delete S.unread[id];
@@ -489,10 +578,18 @@
   $('#composer').addEventListener('submit', (e) => {
     e.preventDefault();
     const input = $('#msgInput'), text = input.value.trim();
+    if (editing) {
+      if (!text && !editing.file) return;
+      if (text !== (editing.text || '')) send({ t: 'edit', room: S.current, id: editing.id, text });
+      input.value = '';
+      cancelCompose();
+      return;
+    }
     if (!text) return;
-    send({ t: 'msg', room: S.current, text });
+    send(replyTo ? { t: 'msg', room: S.current, text, replyTo: replyTo.id } : { t: 'msg', room: S.current, text });
     input.value = '';
     lastTyping = 0;
+    cancelCompose();
   });
 
   // ---------------------------------------------------------------- modals
