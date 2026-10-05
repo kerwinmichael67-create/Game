@@ -97,11 +97,18 @@ const pong = {
     return { W: 800, H: 500, ph: 90, p: [{ y: 205, up: false, down: false }, { y: 205, up: false, down: false }], ball: { x: 400, y: 250, vx: 0, vy: 0 }, score: [0, 0], serve: 75, server: rnd(2), to: 7 };
   },
   input(s, i, inp) {
-    s.p[i].up = !!(inp && inp.up);
-    s.p[i].down = !!(inp && inp.down);
+    const p = s.p[i];
+    p.up = !!(inp && inp.up);
+    p.down = !!(inp && inp.down);
+    // A player whose browser moves their own paddle (to hide network lag) sends where it is.
+    // It may only move a paddle a short way per message.
+    if (inp && typeof inp.y === 'number' && Number.isFinite(inp.y)) {
+      p.y = clamp(clamp(inp.y, p.y - 60, p.y + 60), 0, s.H - s.ph);
+      p.ext = true;
+    }
   },
   tick(s) {
-    for (const p of s.p) p.y = clamp(p.y + (p.down ? 9 : 0) - (p.up ? 9 : 0), 0, s.H - s.ph);
+    for (const p of s.p) if (!p.ext) p.y = clamp(p.y + (p.down ? 9 : 0) - (p.up ? 9 : 0), 0, s.H - s.ph);
     const b = s.ball;
     if (s.serve > 0) {
       s.serve--;
@@ -372,11 +379,18 @@ const hockey = {
   input(s, i, inp) {
     if (!inp) return;
     const m = s.m[i];
-    if (typeof inp.tx === 'number' && typeof inp.ty === 'number') { m.tx = inp.tx; m.ty = inp.ty; m.keys = null; }
+    if (typeof inp.mx === 'number' && typeof inp.my === 'number' && Number.isFinite(inp.mx) && Number.isFinite(inp.my)) {
+      // the player's browser moves its own mallet (to hide network lag) and sends where it is
+      const minX = i === 0 ? s.mallet : s.W / 2 + s.mallet, maxX = i === 0 ? s.W / 2 - s.mallet : s.W - s.mallet;
+      const nx = clamp(clamp(inp.mx, m.x - 80, m.x + 80), minX, maxX), ny = clamp(clamp(inp.my, m.y - 80, m.y + 80), s.mallet, s.H - s.mallet);
+      m.vx = clamp(+inp.vx || 0, -s.speed, s.speed); m.vy = clamp(+inp.vy || 0, -s.speed, s.speed);
+      m.x = m.tx = nx; m.y = m.ty = ny; m.keys = null; m.ext = true;
+    } else if (typeof inp.tx === 'number' && typeof inp.ty === 'number') { m.tx = inp.tx; m.ty = inp.ty; m.keys = null; }
     else m.keys = { x: (inp.right ? 1 : 0) - (inp.left ? 1 : 0), y: (inp.down ? 1 : 0) - (inp.up ? 1 : 0) };
   },
   tick(s) {
     s.m.forEach((m, i) => {
+      if (m.ext) { m.vx *= 0.7; m.vy *= 0.7; return; } // moved by its player's browser
       if (m.keys) { m.tx = m.x + m.keys.x * 40; m.ty = m.y + m.keys.y * 40; }
       const minX = i === 0 ? s.mallet : s.W / 2 + s.mallet, maxX = i === 0 ? s.W / 2 - s.mallet : s.W - s.mallet;
       const tx = clamp(m.tx, minX, maxX), ty = clamp(m.ty, s.mallet, s.H - s.mallet);

@@ -95,6 +95,15 @@ function unitTests() {
   res = null;
   for (let i = 0; i < 20000 && !res; i++) res = Realtime.pong.tick(pg);
   assert(res && res.winner >= 0);
+  // a browser-moved paddle / mallet may only move a short way per message, and stays in bounds
+  const pp = Realtime.pong.init();
+  Realtime.pong.input(pp, 1, { y: 9999 });
+  assert.strictEqual(pp.p[1].y, 205 + 60);
+  Realtime.pong.tick(pp);
+  assert.strictEqual(pp.p[1].y, 265, 'a browser-moved paddle is not also moved by keys');
+  const hk = Realtime.hockey.init();
+  Realtime.hockey.input(hk, 1, { mx: 0, my: -500, vx: 99, vy: 0 });
+  assert(hk.m[1].x >= hk.W / 2 + hk.mallet && hk.m[1].y === 240 - 80 && hk.m[1].vx === hk.speed);
   console.log('✓ game rules');
 }
 

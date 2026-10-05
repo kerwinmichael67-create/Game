@@ -346,7 +346,9 @@
       g.state = freshState(g.type);
       g.opp = g.players[1 - g.you];
       setPresence({ inGame: g.type, invite: null });
-      emit({ t: 'gameStart', id: g.id, game: g.type, players: playersView(g), you: g.you, state: g.state });
+      // the guest's view lags the host's by a network round trip: let the UI smooth it out and move
+      // the guest's own paddle / mallet locally
+      emit({ t: 'gameStart', id: g.id, game: g.type, players: playersView(g), you: g.you, state: g.state, net: g.you === 1 ? { smooth: true, predict: true } : null });
       try {
         g.named = await room.join('g-' + g.id);
       } catch {

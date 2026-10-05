@@ -200,7 +200,9 @@ function gameInput(u, msg) {
     toPlayers(s, { t: 'gameState', id: s.id, state: s.state });
     if (s.state.result) endGame(s, s.state.result);
   } else if (s.kind === 'realtime') {
-    Realtime[s.type].input(s.state, idx, msg.input);
+    // positions are only taken from a player hosting the game in their own browser (claude.ai), never here
+    const inp = msg.input && typeof msg.input === 'object' ? Object.assign({}, msg.input, { y: undefined, mx: undefined, my: undefined }) : msg.input;
+    Realtime[s.type].input(s.state, idx, inp);
   } else {
     const inp = msg.input || {};
     if (s.type === 'apex') {

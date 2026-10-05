@@ -136,8 +136,18 @@
     const [cv, ctx] = canvas(800, 500);
     const colors = playerColors(api.players);
     const held = { up: false, down: false };
-    const keys = heldKeys({ ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down' }, (k) => api.send({ up: !!k.up, down: !!k.down }));
-    stage.append(cv, touchPad([['▲', 'up'], ['▼', 'down']], (a, v) => { held[a] = v; api.send(held); }),
+    // When the game runs in the other player's browser, move our own paddle right away and send
+    // where it is, instead of waiting a round trip to see it move.
+    const local = api.predict ? { y: null, sentY: null, sentAt: 0 } : null;
+    const sendKeys = (k) => (local ? (local.sentAt = 0) : api.send({ up: !!k.up, down: !!k.down }));
+    const keys = heldKeys({ ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down' }, (k) => { held.up = !!k.up; held.down = !!k.down; sendKeys(held); });
+    const step = local && setInterval(() => {
+      if (local.y === null) return;
+      local.y = Math.max(0, Math.min(500 - 90, local.y + (held.down ? 9 : 0) - (held.up ? 9 : 0)));
+      const now = performance.now();
+      if (local.y !== local.sentY && now - local.sentAt > 30) { local.sentY = local.y; local.sentAt = now; api.send({ up: held.up, down: held.down, y: local.y }); }
+    }, 20);
+    stage.append(cv, touchPad([['▲', 'up'], ['▼', 'down']], (a, v) => { held[a] = v; sendKeys(held); }),
       h('div', { class: 'controls-help' }, `You are the ${api.you === 0 ? 'LEFT' : 'RIGHT'} paddle · ${META.pong.help}`));
     return {
       update(s) {
@@ -149,14 +159,16 @@
         ctx.textAlign = 'center';
         ctx.fillStyle = colors[0]; ctx.fillText(s.score[0], 320, 70);
         ctx.fillStyle = colors[1]; ctx.fillText(s.score[1], 480, 70);
-        ctx.fillStyle = colors[0]; ctx.fillRect(30, s.p[0].y, 12, s.ph);
-        ctx.fillStyle = colors[1]; ctx.fillRect(758, s.p[1].y, 12, s.ph);
+        if (local && (local.y === null || Math.abs(local.y - s.p[api.you].y) > 250)) local.y = s.p[api.you].y; // start, or way off: take the game's
+        const py = (i) => (local && i === api.you ? local.y : s.p[i].y);
+        ctx.fillStyle = colors[0]; ctx.fillRect(30, py(0), 12, s.ph);
+        ctx.fillStyle = colors[1]; ctx.fillRect(758, py(1), 12, s.ph);
         ctx.fillStyle = '#fff';
         ctx.beginPath(); ctx.arc(s.ball.x, s.ball.y, 8, 0, 7); ctx.fill();
         if (s.serve > 0) { ctx.font = '20px Outfit, Arial'; ctx.fillText('Get ready…', 400, 300); }
         api.status(`First to ${s.to}`, h('b', {}, `${s.score[api.you]} – ${s.score[1 - api.you]}`));
       },
-      destroy() { keys.destroy(); },
+      destroy() { keys.destroy(); clearInterval(step); },
     };
   }
 
@@ -743,17 +755,38 @@
     const colors = playerColors(api.players);
     stage.append(cv, h('div', { class: 'controls-help' }, `You're on the ${api.you === 0 ? 'LEFT' : 'RIGHT'} · ${META.hockey.help}`));
     let lastSent = 0, pending = null;
+    // When the game runs in the other player's browser, move our own mallet here (same rules as
+    // the game) and send where it is, instead of waiting a round trip to see it move.
+    const local = api.predict ? { m: null, aim: null, keys: null, sentAt: 0, sent: '' } : null;
     const sendAim = (e) => {
       const r = cv.getBoundingClientRect();
       pending = { tx: ((e.clientX - r.left) / r.width) * 800, ty: ((e.clientY - r.top) / r.height) * 480 };
+      if (local) { local.aim = pending; local.keys = null; pending = null; return; }
       const now = performance.now();
       if (now - lastSent > 33) { lastSent = now; api.send(pending); pending = null; }
     };
     cv.addEventListener('pointermove', sendAim);
     cv.addEventListener('pointerdown', (e) => { cv.setPointerCapture(e.pointerId); sendAim(e); });
-    const flush = setInterval(() => { if (pending) { api.send(pending); pending = null; } }, 50);
+    const flush = setInterval(() => {
+      if (!local) { if (pending) { api.send(pending); pending = null; } return; }
+      const m = local.m;
+      if (!m) return;
+      const me = api.you, R = 30, minX = me === 0 ? R : 400 + R, maxX = me === 0 ? 400 - R : 800 - R;
+      let tx = m.x, ty = m.y;
+      if (local.keys) { tx = m.x + local.keys.x * 40; ty = m.y + local.keys.y * 40; } else if (local.aim) { tx = local.aim.tx; ty = local.aim.ty; }
+      tx = Math.max(minX, Math.min(maxX, tx)); ty = Math.max(R, Math.min(480 - R, ty));
+      let dx = tx - m.x, dy = ty - m.y;
+      const d = Math.hypot(dx, dy);
+      if (d > 13) { dx = (dx / d) * 13; dy = (dy / d) * 13; }
+      m.x += dx; m.y += dy; m.vx = dx; m.vy = dy;
+      const now = performance.now(), key = Math.round(m.x) + ',' + Math.round(m.y);
+      if (now - local.sentAt > 30 && (key !== local.sent || dx || dy)) { local.sent = key; local.sentAt = now; api.send({ mx: m.x, my: m.y, vx: m.vx, vy: m.vy }); }
+    }, local ? 20 : 50);
     const keys = heldKeys({ ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right' },
-      (k) => api.send({ up: !!k.up, down: !!k.down, left: !!k.left, right: !!k.right }));
+      (k) => {
+        if (local) { local.keys = k.up || k.down || k.left || k.right ? { x: (k.right ? 1 : 0) - (k.left ? 1 : 0), y: (k.down ? 1 : 0) - (k.up ? 1 : 0) } : null; if (!local.keys) local.aim = null; return; }
+        api.send({ up: !!k.up, down: !!k.down, left: !!k.left, right: !!k.right });
+      });
     return {
       update(s) {
         ctx.fillStyle = '#e0f2fe'; ctx.fillRect(0, 0, 800, 480);
@@ -767,7 +800,9 @@
         ctx.font = 'bold 64px Outfit, Arial'; ctx.textAlign = 'center'; ctx.globalAlpha = 0.25;
         ctx.fillStyle = colors[0]; ctx.fillText(s.score[0], 300, 90);
         ctx.fillStyle = colors[1]; ctx.fillText(s.score[1], 500, 90); ctx.globalAlpha = 1;
-        s.m.forEach((m, i) => {
+        if (local && (!local.m || Math.hypot(local.m.x - s.m[api.you].x, local.m.y - s.m[api.you].y) > 250)) local.m = { x: s.m[api.you].x, y: s.m[api.you].y, vx: 0, vy: 0 };
+        s.m.forEach((m0, i) => {
+          const m = local && i === api.you ? local.m : m0;
           ctx.fillStyle = colors[i]; ctx.beginPath(); ctx.arc(m.x, m.y, s.mallet, 0, 7); ctx.fill();
           ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.beginPath(); ctx.arc(m.x, m.y, s.mallet * 0.45, 0, 7); ctx.fill();
           if (i === api.you) { ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(m.x, m.y, s.mallet + 3, 0, 7); ctx.stroke(); }
@@ -822,10 +857,45 @@
 
   // ---------------------------------------------------------------- dock
   let host = null, cur = null;
+  // Smoothing for a player whose updates arrive over the network in uneven bursts: keep the last
+  // few states and draw slightly in the past, sliding positions between them every frame.
+  const SMOOTH = new Set(['pong', 'hockey', 'fighter']);
+  function lerpState(a, b, t, key) {
+    if (typeof a === 'number' && typeof b === 'number') {
+      if (key !== 'x' && key !== 'y') return b;
+      return Math.abs(b - a) > 150 ? b : a + (b - a) * t; // a big jump is a reset: don't slide across the board
+    }
+    if (Array.isArray(a) && Array.isArray(b)) return a.length === b.length ? b.map((v, i) => lerpState(a[i], v, t, key)) : b;
+    if (a && b && typeof a === 'object' && typeof b === 'object') {
+      const out = {};
+      for (const k of Object.keys(b)) out[k] = k in a ? lerpState(a[k], b[k], t, k) : b[k];
+      return out;
+    }
+    return b;
+  }
+  function smoothPush(c, state) {
+    const now = performance.now(), buf = c.buf;
+    if (buf.length) c.gap = c.gap * 0.85 + Math.min(200, now - buf[buf.length - 1].t) * 0.15;
+    buf.push({ t: now, s: state });
+    while (buf.length > 12) buf.shift();
+    if (!c.raf) c.raf = requestAnimationFrame(() => smoothFrame(c));
+  }
+  function smoothFrame(c) {
+    c.raf = 0;
+    if (cur !== c || c.over) return;
+    const buf = c.buf, at = performance.now() - Math.max(40, Math.min(160, c.gap * 2 + 15));
+    let i = buf.length - 1;
+    while (i > 0 && buf[i - 1].t > at) i--;
+    const b = buf[i], a = buf[i - 1];
+    const s = !a || at >= b.t ? b.s : lerpState(a.s, b.s, Math.max(0, Math.min(1, (at - a.t) / (b.t - a.t || 1))));
+    c.inst.update(s);
+    c.raf = requestAnimationFrame(() => smoothFrame(c));
+  }
   const dock = () => document.getElementById('gameDock');
 
   function close() {
     const c = cur;
+    if (c && c.raf) cancelAnimationFrame(c.raf);
     if (c && c.inst.destroy) c.inst.destroy();
     cur = null;
     if (c && c.onClose) c.onClose();
@@ -860,20 +930,22 @@
     d.classList.toggle('full', m.game === 'apex'); // the racing game wants the whole window
     const api = {
       you: m.you,
+      predict: !!(m.net && m.net.predict),
       players: m.players,
       bot: m.bot || null,
       leave: () => cur && (cur.over ? close() : gameHost.leave(cur.id)),
       send: (input) => cur && !cur.over && gameHost.send(cur.id, input),
       status: (...parts) => statusEl.replaceChildren(...parts.flat().filter((x) => x !== '' && x !== null).map((x) => (x instanceof Node ? x : h('span', {}, x)))),
     };
-    cur = { id: m.id, game: m.game, players: m.players, you: m.you, over: false, stage, statusEl, leaveBtn, host: gameHost, onClose: m.onClose, inst: FACTORY[m.game](stage, api) };
+    cur = { id: m.id, game: m.game, players: m.players, you: m.you, over: false, smooth: !!(m.net && m.net.smooth) && SMOOTH.has(m.game), buf: [], gap: 33, raf: 0, stage, statusEl, leaveBtn, host: gameHost, onClose: m.onClose, inst: FACTORY[m.game](stage, api) };
     cur.inst.update(m.state);
     if (document.activeElement && document.activeElement.id === 'msgInput') document.activeElement.blur();
   }
   function over(m) {
     if (!cur || cur.id !== m.id) return;
-    cur.inst.update(m.state);
     cur.over = true;
+    if (cur.raf) { cancelAnimationFrame(cur.raf); cur.raf = 0; }
+    cur.inst.update(m.state);
     if (cur.inst.stop) cur.inst.stop();
     cur.leaveBtn.textContent = 'Close';
     const r = m.result, win = r.winner === cur.you, draw = r.winner === -1;
@@ -895,7 +967,11 @@
     start,
     close,
     over,
-    state(m) { if (cur && cur.id === m.id) cur.inst.update(m.state); },
+    state(m) {
+      if (!cur || cur.id !== m.id) return;
+      if (cur.smooth) smoothPush(cur, m.state);
+      else cur.inst.update(m.state);
+    },
     event(m) { if (cur && cur.id === m.id && cur.inst.event) cur.inst.event(m.ev); },
   };
 })();
