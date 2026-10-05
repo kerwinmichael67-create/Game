@@ -804,7 +804,7 @@
     };
     addEventListener('message', onMsg);
     stage.append(frame);
-    api.status(api.bot ? 'Racing the computer. Pick your car and press Start engine.' : 'Pick your car and press Ready. Click the game if your keys stop working.');
+    api.status((api.bot ? 'Racing the computer. ' : '') + 'Drive with WASD or the arrow keys. Click the game if your keys stop working.');
     return {
       update() {},
       event(ev) {
