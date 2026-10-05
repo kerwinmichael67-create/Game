@@ -690,6 +690,85 @@ body[data-theme="dark"] .fav-btn.on { color: #c9c2ff; }
 .game-dock.full .game-status { min-height: 0; padding: 6px 14px; }
 .apex-frame { flex: 1; width: 100%; min-height: 0; border: 0; background: #0b0e14; display: block; }
 
+/* ============================================================
+   Profile photos, mentions, reactions, polls, search
+   ============================================================ */
+.avatar.photo { background-size: cover; background-position: center; text-shadow: none; }
+.photo-btns { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.settings-grid label.sound-row, label.sound-row { display: flex; flex-direction: row; flex-wrap: nowrap; align-items: flex-start; gap: 10px; font-size: 14px; font-weight: 500; margin-top: 12px; cursor: pointer; }
+.sound-row input { flex: none; margin-top: 3px; }
+
+.msg .text a { color: inherit; text-decoration: underline; text-underline-offset: 2px; word-break: break-all; }
+.mention { font-weight: 700; color: var(--accent); cursor: pointer; border-radius: 6px; padding: 0 2px; }
+.mention.you { background: var(--accent-soft); }
+.msg.me .mention { color: #fff; background: rgba(255, 255, 255, .18); }
+.msg.mentioned .text { box-shadow: inset 3px 0 0 var(--accent); background: var(--accent-soft); }
+.badge.mention { background: var(--danger); margin-right: 2px; }
+
+.msg.deleted .text.gone { background: none; border: 1.5px dashed var(--line-strong); color: var(--muted); font-style: italic; font-size: 14px; }
+.msg.me.deleted .text.gone { background: none; color: var(--muted); }
+
+.reactions { display: flex; flex-wrap: wrap; gap: 4px; }
+.reaction {
+  display: inline-flex; align-items: center; gap: 4px; border: 1.5px solid var(--line); background: var(--surface);
+  border-radius: 999px; padding: 1px 8px; font-size: 14px; cursor: pointer; color: var(--text); line-height: 1.5;
+}
+.reaction span { font: 600 12px var(--mono); color: var(--muted); }
+.reaction:hover { border-color: var(--accent); }
+.reaction.mine { border-color: var(--accent); background: var(--accent-soft); }
+.reaction.mine span { color: var(--accent); }
+
+.popover {
+  position: fixed; z-index: 60; background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+  box-shadow: var(--shadow-lg); padding: 6px; display: flex; gap: 2px; animation: pop .15s ease-out;
+}
+.emoji-pop { display: grid; grid-template-columns: repeat(10, 34px); max-width: calc(100vw - 16px); }
+@media (max-width: 420px) { .emoji-pop { grid-template-columns: repeat(8, 34px); } }
+.emoji-btn { width: 34px; height: 34px; border: 0; background: none; border-radius: 8px; font-size: 20px; cursor: pointer; padding: 0; line-height: 1; }
+.emoji-btn:hover, .emoji-btn:focus-visible { background: var(--accent-soft); transform: scale(1.15); }
+.composer .emoji-open { font-size: 20px; }
+
+.poll { background: var(--surface); border: 1.5px solid var(--line); border-radius: 16px; padding: 10px 12px; display: grid; gap: 6px; min-width: min(300px, 70vw); }
+.poll-q { font-weight: 700; }
+.poll-opt {
+  position: relative; overflow: hidden; display: flex; align-items: center; justify-content: space-between; gap: 10px; text-align: left;
+  border: 1.5px solid var(--line); background: var(--surface-2); border-radius: 10px; padding: 7px 10px; cursor: pointer; color: var(--text); font: inherit; font-size: 14px;
+}
+.poll-opt:hover { border-color: var(--accent); }
+.poll-opt.mine { border-color: var(--accent); font-weight: 600; }
+.poll-bar { position: absolute; inset: 0 auto 0 0; background: var(--accent-soft); transition: width .3s; }
+.poll-text, .poll-count { position: relative; }
+.poll-count { font: 12px var(--mono); color: var(--muted); white-space: nowrap; }
+.poll small { font-size: 12px; }
+.poll-inputs { display: grid; gap: 6px; margin-bottom: 6px; }
+
+.chat { --composer-h: 72px; }
+.mention-box {
+  position: absolute; left: 14px; bottom: var(--composer-h); z-index: 6; min-width: 220px; max-width: calc(100% - 28px);
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow-lg); padding: 4px; display: grid;
+}
+.mention-box button { display: flex; align-items: center; gap: 8px; border: 0; background: none; padding: 6px 8px; border-radius: 10px; cursor: pointer; color: var(--text); font: inherit; text-align: left; }
+.mention-box button .avatar { width: 26px; height: 26px; font-size: 11px; }
+.mention-box button .avatar .dot { width: 9px; height: 9px; border-width: 2px; }
+.mention-box button small { margin-left: auto; font-size: 11px; }
+.mention-box button.sel, .mention-box button:hover { background: var(--accent-soft); }
+
+.search-results { display: grid; gap: 4px; max-height: min(60vh, 520px); overflow: auto; margin-top: 10px; }
+.search-hit { display: flex; gap: 10px; align-items: flex-start; text-align: left; border: 0; background: none; border-radius: 12px; padding: 8px; cursor: pointer; color: var(--text); font: inherit; }
+.search-hit:hover { background: var(--surface-2); }
+.search-hit .avatar { width: 32px; height: 32px; font-size: 13px; }
+.search-meta { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.search-text { font-size: 14px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.search-text mark { background: #fde047; color: #111; border-radius: 3px; padding: 0 1px; }
+
+@media (max-width: 520px) {
+  .composer { gap: 6px; padding: 8px 8px 10px; }
+  .composer .btn, .composer .attach { width: 40px; height: 40px; }
+  .composer input { padding: 10px 14px; min-width: 0; }
+  .chat { --composer-h: 60px; }
+}
+.search-hit .grow { flex: 1; min-width: 0; }
+
 </style>
 <!-- Sign in / create account -->
 <div id="auth" class="auth">
@@ -743,6 +822,7 @@ body[data-theme="dark"] .fav-btn.on { color: #c9c2ff; }
       </div>
       <button id="callBtn" class="btn icon hidden" title="Voice call" aria-label="Voice call">📞</button>
       <button id="videoBtn" class="btn icon hidden" title="Video call" aria-label="Video call">🎥</button>
+      <button id="searchBtn" class="btn icon" title="Search messages (Ctrl+K)" aria-label="Search messages">🔍</button>
       <button id="membersBtn" class="btn">Members</button>
       <button id="requestGameBtn" class="btn primary">🎮 Request a game</button>
     </header>
@@ -753,9 +833,12 @@ body[data-theme="dark"] .fav-btn.on { color: #c9c2ff; }
         <div id="messages" class="messages"></div>
         <div id="typing" class="typing"></div>
         <div id="composeBar" class="compose-bar hidden" aria-live="polite"></div>
+        <div id="mentionBox" class="mention-box hidden" role="listbox" aria-label="People to mention"></div>
         <form id="composer" class="composer">
           <button type="button" id="attachBtn" class="btn icon ghost attach" title="Send a photo, video or file" aria-label="Send a photo, video or file"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></button>
           <input type="file" id="fileInput" multiple hidden>
+          <button type="button" id="emojiBtn" class="btn icon ghost attach emoji-open" title="Emoji" aria-label="Emoji">😊</button>
+          <button type="button" id="pollBtn" class="btn icon ghost attach" title="Create a poll" aria-label="Create a poll">📊</button>
           <input id="msgInput" placeholder="Say hello" maxlength="1000" autocomplete="off">
           <button class="btn primary" title="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg></button>
         </form>
@@ -3283,6 +3366,8 @@ else globalThis.Realtime = Realtime;
     mp4: 'video/mp4', m4v: 'video/mp4', webm: 'video/webm', pdf: 'application/pdf', txt: 'text/plain', csv: 'text/csv', md: 'text/markdown', json: 'application/json' };
   const MAX_FILE = 20 * 1024 * 1024;
   const ASSET_ID = /^[A-Za-z0-9_-]{8,64}$/;
+  const REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🔥', '🎉', '👀'];
+  const PHOTO_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
 
   const rid = (n = 10) => Array.from(crypto.getRandomValues(new Uint8Array(n)), (b) => (b % 36).toString(36)).join('');
   const msgId = () => Date.now().toString(36).padStart(9, '0') + rid(5);
@@ -3345,7 +3430,7 @@ else globalThis.Realtime = Realtime;
       const st = p.stats || {};
       return {
         username: id, handle: (platform[id] && platform[id].name) || '', name: displayName(id), bio: str(p.bio, 300),
-        avatar: avatarOf(id), favorites: ids(p.favorites).filter((g) => GAMES[g]), presence: presenceOf(id),
+        avatar: avatarOf(id), photo: typeof p.photo === 'string' && ASSET_ID.test(p.photo) ? '/_blob/' + p.photo : null, favorites: ids(p.favorites).filter((g) => GAMES[g]), presence: presenceOf(id),
         stats: { w: +st.w || 0, l: +st.l || 0, d: +st.d || 0 }, inGame: inGameOf(id),
       };
     }
@@ -3391,6 +3476,12 @@ else globalThis.Realtime = Realtime;
         default: return '';
       }
     }
+    function pollOf(p) {
+      if (!p || typeof p !== 'object' || !Array.isArray(p.options)) return null;
+      const options = p.options.map((o) => str(o, 80)).filter(Boolean).slice(0, 6);
+      const q = str(p.q, 200);
+      return q && options.length >= 2 ? { q, options: options.map((text) => ({ text, votes: [] })) } : null;
+    }
     function fileOf(f) {
       if (!f || typeof f !== 'object' || typeof f.asset !== 'string' || !ASSET_ID.test(f.asset)) return null;
       return { url: '/_blob/' + f.asset, name: str(f.name, 120) || 'file', type: FILE_TYPES[f.type] ? f.type : 'application/octet-stream', size: Math.max(0, +f.size || 0) };
@@ -3398,6 +3489,18 @@ else globalThis.Realtime = Realtime;
     function toMsg(d) {
       if (d.sys) return { id: d.id, ts: +d.ts || 0, from: null, sys: true, text: sysText(d), game: d.game };
       const m = { id: d.id, ts: +d.ts || 0, from: typeof d.from === 'string' ? d.from : null, text: str(d.text, 1000) };
+      if (d.deleted) return Object.assign(m, { text: '', deleted: true });
+      // stored per person ({ uid: [emoji] }) so two people reacting at once never overwrite each other
+      const reactions = {};
+      for (const [uid, list] of Object.entries(d.reactions && typeof d.reactions === 'object' ? d.reactions : {})) {
+        for (const e of Array.isArray(list) ? list : []) if (REACTIONS.includes(e)) (reactions[e] = reactions[e] || []).push(uid);
+      }
+      if (Object.keys(reactions).length) m.reactions = reactions;
+      const poll = pollOf(d.poll);
+      if (poll) {
+        for (const [uid, i] of Object.entries(d.votes && typeof d.votes === 'object' ? d.votes : {})) if (poll.options[i]) poll.options[i].votes.push(uid);
+        m.poll = poll;
+      }
       const file = fileOf(d.file);
       if (file) m.file = file;
       const r = d.replyTo;
@@ -3423,7 +3526,7 @@ else globalThis.Realtime = Realtime;
         for (const m of list) {
           const before = old.get(m.id);
           if (!before) emit({ t: 'msg', room: id, msg: toMsg(m) });
-          else if (before.editedAt !== m.editedAt || before.text !== m.text) emit({ t: 'msgEdit', room: id, msg: toMsg(m) });
+          else if (JSON.stringify(before) !== JSON.stringify(m)) emit({ t: 'msgEdit', room: id, msg: toMsg(m) });
         }
       }, dbError);
     }
@@ -3742,7 +3845,8 @@ else globalThis.Realtime = Realtime;
         const text = str(m.text, 1000), r = m.room === 'global' ? GLOBAL : rooms[m.room];
         const f = m.file && typeof m.file.ref === 'string' && ASSET_ID.test(m.file.ref)
           ? { asset: m.file.ref, name: str(m.file.name, 120), type: FILE_TYPES[m.file.type] ? m.file.type : 'application/octet-stream', size: +m.file.size || 0 } : null;
-        if (!r || (!text && !f)) return;
+        const poll = pollOf(m.poll);
+        if (!r || (!text && !f && !poll)) return;
         if (readOnly) return writeError({ code: 'invalid_argument' });
         const now = Date.now();
         while (recent.length && now - recent[0] > 4000) recent.shift();
@@ -3751,19 +3855,45 @@ else globalThis.Realtime = Realtime;
         if (r.public && r.id !== 'global' && !ids(r.members).includes(myId)) db.doc('rooms/' + r.id).update({ members: ids(r.members).concat(myId) }).catch(() => {});
         const msg = { from: myId, text };
         if (f) msg.file = f;
-        const orig = typeof m.replyTo === 'string' && (rawMsgs[r.id] || []).find((x) => x.id === m.replyTo && !x.sys);
+        if (poll) msg.poll = { q: poll.q, options: poll.options.map((o) => o.text) };
+        const orig = typeof m.replyTo === 'string' && (rawMsgs[r.id] || []).find((x) => x.id === m.replyTo && !x.sys && !x.deleted);
         if (orig) msg.replyTo = { id: orig.id, from: typeof orig.from === 'string' ? orig.from : null, text: str(orig.text, 140), file: orig.file && orig.file.name ? str(orig.file.name, 120) : null };
         post(r.id, msg);
       },
       edit(m) {
         const text = str(m.text, 1000), list = rawMsgs[m.room] || [];
         const d = list.find((x) => x.id === m.id);
-        if (!d || d.sys || d.from !== myId) return emit({ t: 'error', text: 'You can only edit your own messages' });
+        if (!d || d.sys || d.deleted || d.from !== myId) return emit({ t: 'error', text: 'You can only edit your own messages' });
+        if (d.poll) return emit({ t: 'error', text: 'Polls can’t be edited' });
         if (!text && !d.file) return emit({ t: 'error', text: 'A message can’t be empty' });
         if (text === d.text) return;
         if (readOnly) return writeError({ code: 'invalid_argument' });
         const history = (Array.isArray(d.history) ? d.history : []).concat({ text: d.text || '', ts: d.editedAt || d.ts }).slice(-20);
         db.doc(`rooms/${m.room}/msgs/${d.id}`).update({ text, editedAt: Date.now(), history }).catch(writeError);
+      },
+      react(m) {
+        const d = (rawMsgs[m.room] || []).find((x) => x.id === m.id);
+        if (!d || d.sys || d.deleted || !REACTIONS.includes(m.emoji)) return;
+        if (readOnly) return writeError({ code: 'invalid_argument' });
+        const mine = Array.isArray(d.reactions && d.reactions[myId]) ? d.reactions[myId].filter((e) => REACTIONS.includes(e)) : [];
+        const next = mine.includes(m.emoji) ? mine.filter((e) => e !== m.emoji) : mine.concat(m.emoji);
+        db.doc(`rooms/${m.room}/msgs/${d.id}`).update({ reactions: { [myId]: next } }).catch(writeError);
+      },
+      vote(m) {
+        const d = (rawMsgs[m.room] || []).find((x) => x.id === m.id);
+        const poll = d && !d.deleted && pollOf(d.poll);
+        if (!poll || !Number.isInteger(m.option) || !poll.options[m.option]) return;
+        if (readOnly) return writeError({ code: 'invalid_argument' });
+        const cur = d.votes && d.votes[myId];
+        db.doc(`rooms/${m.room}/msgs/${d.id}`).update({ votes: { [myId]: cur === m.option ? -1 : m.option } }).catch(writeError);
+      },
+      del(m) {
+        const d = (rawMsgs[m.room] || []).find((x) => x.id === m.id);
+        if (!d || d.sys || d.from !== myId) return emit({ t: 'error', text: 'You can only delete your own messages' });
+        if (d.deleted) return;
+        if (readOnly) return writeError({ code: 'invalid_argument' });
+        // keep the doc (replies still point at it) but drop what it said
+        db.doc(`rooms/${m.room}/msgs/${d.id}`).set({ from: d.from, ts: d.ts, deleted: true, text: '' }).catch(writeError);
       },
       logout() {
         if (game && !game.over) handlers.gameLeave({ id: game.id });
@@ -3821,6 +3951,8 @@ else globalThis.Realtime = Realtime;
         if (['auto', 'white', 'black', 'custom'].includes(d.bg)) patch.bg = d.bg;
         if (isColor(d.bgCustom)) patch.bgCustom = d.bgCustom;
         if (isColor(d.avatar)) patch.avatar = d.avatar;
+        if (d.photo === null) patch.photo = null;
+        else if (d.photo && typeof d.photo.ref === 'string' && ASSET_ID.test(d.photo.ref) && PHOTO_TYPES.includes(d.photo.type)) patch.photo = d.photo.ref;
         if (Array.isArray(d.favorites)) patch.favorites = d.favorites.filter((g) => GAMES[g]).slice(0, 8);
         if (Object.keys(patch).length) updateMe(patch);
       },
@@ -3898,6 +4030,7 @@ else globalThis.Realtime = Realtime;
     return {
       fileTypes: Object.keys(FILE_TYPES).concat(Object.keys(EXT_TYPES).map((e) => '.' + e)).join(','),
       maxFile: MAX_FILE,
+      reactions: REACTIONS,
       // Store a file in the artifact's asset store; resolves what a message needs to point at it.
       async upload(file) {
         if (!assets) throw new Error('Sending files needs Editor access. Ask the owner to invite you as an Editor.');
@@ -3958,13 +4091,17 @@ else globalThis.Realtime = Realtime;
 
   const S = {
     ws: null, me: null, users: {}, rooms: {}, games: {}, current: store.get('chatRoom') || 'global',
-    unread: {}, typing: {}, token: store.get('chatToken'), signedOut: false, retry: 0, authMode: 'login', queue: [],
+    unread: {}, mentions: {}, typing: {}, token: store.get('chatToken'), signedOut: false, retry: 0, authMode: 'login', queue: [],
   };
   // In the claude.ai artifact build, a ChatTransport replaces the WebSocket server.
   const ARTIFACT = typeof window.ChatTransport === 'function';
   const CALLS = !ARTIFACT && typeof window.Calls === 'object'; // claude.ai pages can't use the camera, mic or WebRTC
   const PRESENCE_LABEL = { online: 'Online', offline: 'Offline', idle: 'Do not disturb' };
   const AVATARS = ['#22c55e', '#111111', '#ef4444', '#facc15', '#d946ef'];
+  const REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🔥', '🎉', '👀'];
+  const EMOJIS = ('😀 😁 😂 🤣 😊 😍 😘 😎 🤩 🥳 😅 😉 🙂 🙃 😐 🤔 🤨 🙄 😴 😮 😢 😭 😡 🤯 😱 🥶 🤡 💀 👻 🤖 '
+    + '👍 👎 👏 🙌 🙏 💪 👀 👋 🤝 ✌️ 🤞 👌 ❤️ 💔 💯 🔥 ✨ ⭐ 🎉 🎮 🕹️ 🏆 🥇 🎯 ⚽ 🏀 🍕 🍔 🍿 ☕ 🐍 🐱 🐶 🌈 ☀️ 🌙 ⚡ 💤 ✅ ❌').split(' ');
+  const PHOTO_URL = /^\/(files|_blob)\/[A-Za-z0-9_-]+$/;
 
   // ---------------------------------------------------------------- connection
   let transport = null;
@@ -4071,8 +4208,18 @@ else globalThis.Realtime = Realtime;
         appendMessage(m.msg, room.messages[room.messages.length - 2]);
         renderTyping();
       }
-      if ((m.room !== S.current || document.hidden) && m.msg.from && m.msg.from !== S.me.username) {
+      const fromOther = m.msg.from && m.msg.from !== S.me.username;
+      const away = m.room !== S.current || document.hidden;
+      if (away && fromOther) {
         S.unread[m.room] = (S.unread[m.room] || 0) + 1;
+        const mentioned = mentionsMe(m.msg.text);
+        if (mentioned) S.mentions[m.room] = true;
+        if (mentioned || room.dm) ping();
+        if (mentioned && m.room !== S.current) {
+          const t = toast(`${nameOf(m.msg.from)} mentioned you in ${roomLabel(room)} — click to see`, null, 7000);
+          t.style.cursor = 'pointer';
+          t.addEventListener('click', () => { t.remove(); selectRoom(m.room); jumpTo(m.msg.id); });
+        }
       }
       renderRooms();
       updateTitle();
@@ -4082,7 +4229,8 @@ else globalThis.Realtime = Realtime;
       const i = room ? room.messages.findIndex((x) => x.id === m.msg.id) : -1;
       if (i < 0) return;
       room.messages[i] = m.msg;
-      if (editing && editing.id === m.msg.id) editing = m.msg;
+      if (m.msg.deleted && ((editing && editing.id === m.msg.id) || (replyTo && replyTo.id === m.msg.id))) cancelCompose();
+      else if (editing && editing.id === m.msg.id) editing = m.msg;
       if (m.room !== S.current) return;
       const old = $(`#messages [data-id="${CSS.escape(m.msg.id)}"]`);
       if (old) old.replaceWith(msgEl(m.msg, room.messages[i - 1]));
@@ -4191,10 +4339,74 @@ else globalThis.Realtime = Realtime;
   const handleText = (u) => (ARTIFACT ? u.handle || '' : '@' + (u.handle || u.username));
   const onlineUsers = () => Object.values(S.users).filter((u) => u.presence !== 'offline');
   function avatar(u, big) {
-    const x = userOf(u);
-    return h('div', { class: 'avatar' + (big ? ' big' : ''), style: `background:${x.avatar}`, title: x.name },
-      (x.name || '?')[0].toUpperCase(), h('i', { class: 'dot ' + x.presence }));
+    const x = userOf(u), photo = typeof x.photo === 'string' && PHOTO_URL.test(x.photo) ? x.photo : null;
+    return h('div', { class: 'avatar' + (big ? ' big' : '') + (photo ? ' photo' : ''), title: x.name,
+      style: photo ? `background-color:${x.avatar};background-image:url("${photo}")` : `background:${x.avatar}` },
+    photo ? '' : (x.name || '?')[0].toUpperCase(), h('i', { class: 'dot ' + x.presence }));
   }
+  // ---------------------------------------------------------------- mentions, links and sounds
+  const escRe = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const AFTER_NAME = '(?![\\p{L}\\p{N}_])';
+  function mentionsMe(text) {
+    if (!text || !S.me || !S.me.name) return false;
+    return new RegExp('@' + escRe(S.me.name) + AFTER_NAME, 'iu').test(text);
+  }
+  // Text with clickable links and highlighted @names (built as nodes, never as HTML).
+  function richText(text) {
+    const names = [...new Set(Object.values(S.users).map((u) => u.name).filter(Boolean))].sort((a, b) => b.length - a.length).map(escRe);
+    const re = new RegExp('(https?:\\/\\/[^\\s<>"]+)' + (names.length ? '|@(' + names.join('|') + ')' + AFTER_NAME : ''), 'giu');
+    const out = [];
+    let last = 0, mt;
+    while ((mt = re.exec(text))) {
+      let whole = mt[0];
+      if (mt[1]) whole = whole.replace(/[.,!?;:)\]}'"]+$/, '');
+      if (mt.index > last) out.push(text.slice(last, mt.index));
+      if (mt[1]) out.push(h('a', { href: whole, target: '_blank', rel: 'noopener noreferrer', onclick: (e) => e.stopPropagation() }, whole));
+      else {
+        const who = Object.values(S.users).find((u) => u.name && u.name.toLowerCase() === mt[2].toLowerCase());
+        out.push(h('span', { class: 'mention' + (who && who.username === S.me.username ? ' you' : ''), onclick: who ? (e) => { e.stopPropagation(); showProfile(who.username); } : null }, '@' + mt[2]));
+      }
+      last = mt.index + whole.length;
+      re.lastIndex = last;
+    }
+    if (last < text.length) out.push(text.slice(last));
+    return out;
+  }
+  let actx = null;
+  const soundOn = () => store.get('chatSound') !== '0';
+  function ping() {
+    if (!soundOn()) return;
+    try {
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      const t = actx.currentTime, o = actx.createOscillator(), g = actx.createGain();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(880, t);
+      o.frequency.setValueAtTime(1320, t + 0.09);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.12, t + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.28);
+      o.connect(g).connect(actx.destination);
+      o.start(t);
+      o.stop(t + 0.3);
+    } catch { /* no audio here */ }
+  }
+  // A small menu next to a button; closes on outside click or Escape.
+  let pop = null;
+  function closePop() { if (pop) { pop.remove(); pop = null; } }
+  function popover(anchor, content, cls) {
+    closePop();
+    pop = h('div', { class: 'popover ' + (cls || ''), role: 'dialog', onclick: (e) => e.stopPropagation(), onmousedown: (e) => e.stopPropagation() }, content);
+    document.body.append(pop);
+    const r = anchor.getBoundingClientRect(), pw = pop.offsetWidth, ph = pop.offsetHeight;
+    const left = Math.max(8, Math.min(window.innerWidth - pw - 8, r.left + r.width / 2 - pw / 2));
+    const top = r.top - ph - 8 > 8 ? r.top - ph - 8 : Math.min(window.innerHeight - ph - 8, r.bottom + 8);
+    pop.style.left = left + 'px';
+    pop.style.top = top + 'px';
+    return pop;
+  }
+  document.addEventListener('mousedown', closePop);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && pop) { e.stopPropagation(); closePop(); } }, true);
+  window.addEventListener('resize', closePop);
   function roomLabel(r) {
     if (r.dm) return nameOf(r.members.find((m) => m !== S.me.username) || S.me.username);
     return r.name;
@@ -4225,7 +4437,7 @@ else globalThis.Realtime = Realtime;
     document.title = (n ? `(${n}) ` : '') + 'Game Chat';
   }
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden && S.unread[S.current]) { delete S.unread[S.current]; renderRooms(); updateTitle(); }
+    if (!document.hidden && S.unread[S.current]) { delete S.unread[S.current]; delete S.mentions[S.current]; renderRooms(); updateTitle(); }
   });
 
   function systemDark() {
@@ -4266,6 +4478,7 @@ else globalThis.Realtime = Realtime;
       list.append(h('li', { class: r.id === S.current ? 'active' : '', onclick: () => selectRoom(r.id) },
         r.dm ? avatar(other || S.me.username) : h('span', { class: 'room-icon' }, r.id === 'global' ? '🌐' : r.public ? '#' : '🔒'),
         h('span', { class: 'grow' }, roomLabel(r), ' ', r.dm ? null : h('small', {}, `${roomActive(r)} active`)),
+        S.mentions[r.id] ? h('span', { class: 'badge mention', title: 'You were mentioned' }, '@') : null,
         n ? h('span', { class: 'badge' }, n) : null));
     }
   }
@@ -4323,13 +4536,20 @@ else globalThis.Realtime = Realtime;
     box.append(msgEl(m, prev));
     if (!bulk && (stick || m.from === S.me.username)) box.scrollTop = box.scrollHeight;
   }
-  const snippet = (m) => (m.text ? m.text : m.file ? `📎 ${m.file.name || m.file}` : 'Message');
+  const snippet = (m) => (m.deleted ? 'Message deleted' : m.text ? m.text : m.poll ? `📊 ${m.poll.q}` : m.file ? `📎 ${m.file.name || m.file}` : 'Message');
   function msgEl(m, prev) {
     if (m.sys) return h('div', { class: 'sysmsg', 'data-id': m.id }, m.text);
     const mine = m.from === S.me.username;
     const cont = prev && !prev.sys && prev.from === m.from && m.ts - prev.ts < 5 * 60e3 && fmtDay(prev.ts) === fmtDay(m.ts) && !m.replyTo;
+    if (m.deleted) {
+      return h('div', { class: 'msg deleted' + (mine ? ' me' : '') + (cont ? ' cont' : ''), 'data-id': m.id },
+        h('div', { class: 'av-slot', onclick: () => showProfile(m.from) }, avatar(m.from)),
+        h('div', { class: 'body' },
+          h('div', { class: 'meta' }, h('button', { class: 'who', onclick: () => showProfile(m.from) }, mine ? 'You' : nameOf(m.from)), h('span', { class: 'time' }, fmtTime(m.ts))),
+          h('div', { class: 'text gone' }, mine ? '🚫 You deleted this message' : '🚫 This message was deleted')));
+    }
     const edited = m.editedAt && m.history && m.history.length;
-    const textEl = m.text || edited ? h('div', { class: 'text' + (m.text ? '' : ' hidden'), title: fmtTime(m.ts) }, m.text) : null;
+    const textEl = m.text || edited ? h('div', { class: 'text' + (m.text ? '' : ' hidden'), title: fmtTime(m.ts) }, richText(m.text || '')) : null;
     let tag = null;
     if (edited) {
       // click "edited" to see the original text, click again to go back
@@ -4338,13 +4558,13 @@ else globalThis.Realtime = Realtime;
       tag = h('button', { class: 'edited', title: `Edited ${fmtTime(m.editedAt)}. Click to see the original.`, onclick: (e) => {
         e.stopPropagation();
         showing = !showing;
-        textEl.textContent = showing ? original || '(no text)' : m.text;
+        textEl.replaceChildren(...(showing ? [original || '(no text)'] : richText(m.text || '')));
         textEl.classList.toggle('original', showing);
         textEl.classList.toggle('hidden', !showing && !m.text);
         tag.textContent = showing ? `original · sent ${fmtTime(m.ts)} · show edited` : 'edited';
       } }, 'edited');
     }
-    const el = h('div', { class: 'msg' + (mine ? ' me' : '') + (cont ? ' cont' : ''), 'data-id': m.id, onclick: () => el.classList.toggle('tapped') },
+    const el = h('div', { class: 'msg' + (mine ? ' me' : '') + (cont ? ' cont' : '') + (!mine && mentionsMe(m.text) ? ' mentioned' : ''), 'data-id': m.id, onclick: () => el.classList.toggle('tapped') },
       h('div', { class: 'av-slot', onclick: () => showProfile(m.from) }, avatar(m.from)),
       h('div', { class: 'body' },
         h('div', { class: 'meta' },
@@ -4352,12 +4572,82 @@ else globalThis.Realtime = Realtime;
           h('span', { class: 'time' }, fmtTime(m.ts))),
         m.replyTo ? replyQuote(m.replyTo) : null,
         m.file ? attachmentEl(m.file) : null,
+        m.poll ? pollEl(m) : null,
         textEl,
-        tag),
+        tag,
+        reactionsEl(m)),
       h('div', { class: 'msg-actions' },
+        h('button', { title: 'React', 'aria-label': 'React', onclick: (e) => { e.stopPropagation(); reactPicker(e.currentTarget, m); } }, '😊'),
         h('button', { title: 'Reply', 'aria-label': 'Reply', onclick: (e) => { e.stopPropagation(); startReply(m); } }, '↩'),
-        mine ? h('button', { title: 'Edit', 'aria-label': 'Edit', onclick: (e) => { e.stopPropagation(); startEdit(m); } }, '✏️') : null));
+        mine && !m.poll ? h('button', { title: 'Edit', 'aria-label': 'Edit', onclick: (e) => { e.stopPropagation(); startEdit(m); } }, '✏️') : null,
+        mine ? h('button', { title: 'Delete', 'aria-label': 'Delete', onclick: (e) => {
+          e.stopPropagation();
+          const room = S.current;
+          uiConfirm('Delete this message for everyone?', 'Delete', () => send({ t: 'del', room, id: m.id }));
+        } }, '🗑️') : null));
     return el;
+  }
+  // ---------------------------------------------------------------- reactions and polls
+  function reactionsEl(m) {
+    const list = Object.entries(m.reactions || {}).filter(([, who]) => who.length);
+    if (!list.length) return null;
+    const room = S.current;
+    return h('div', { class: 'reactions' }, list.map(([emoji, who]) => h('button', {
+      class: 'reaction' + (who.includes(S.me.username) ? ' mine' : ''),
+      title: who.map((u) => (u === S.me.username ? 'You' : nameOf(u))).join(', ') + ' reacted ' + emoji,
+      onclick: (e) => { e.stopPropagation(); send({ t: 'react', room, id: m.id, emoji }); },
+    }, emoji, h('span', {}, who.length))));
+  }
+  function reactPicker(anchor, m) {
+    const room = S.current;
+    popover(anchor, REACTIONS.map((emoji) => h('button', { class: 'emoji-btn', title: `React ${emoji}`, onclick: () => { closePop(); send({ t: 'react', room, id: m.id, emoji }); } }, emoji)), 'react-pop');
+  }
+  function pollEl(m) {
+    const p = m.poll, room = S.current;
+    const total = p.options.reduce((a, o) => a + o.votes.length, 0);
+    const voted = p.options.some((o) => o.votes.includes(S.me.username));
+    return h('div', { class: 'poll' },
+      h('div', { class: 'poll-q' }, '📊 ', p.q),
+      p.options.map((o, i) => {
+        const pct = total ? Math.round((o.votes.length / total) * 100) : 0, mineVote = o.votes.includes(S.me.username);
+        return h('button', { class: 'poll-opt' + (mineVote ? ' mine' : ''), title: o.votes.map(nameOf).join(', ') || 'No votes yet',
+          onclick: (e) => { e.stopPropagation(); send({ t: 'vote', room, id: m.id, option: i }); } },
+        h('span', { class: 'poll-bar', style: `width:${pct}%` }),
+        h('span', { class: 'poll-text' }, mineVote ? '✓ ' : '', o.text),
+        h('span', { class: 'poll-count' }, voted || total ? `${o.votes.length} · ${pct}%` : ''));
+      }),
+      h('small', { class: 'muted' }, `${total} vote${total === 1 ? '' : 's'} · ${voted ? 'tap your choice again to take it back' : 'tap to vote'}`));
+  }
+  function pollModal() {
+    const roomId = S.current;
+    openModal(() => {
+      const q = h('input', { placeholder: 'Ask something, e.g. What should we play?', maxlength: 200 });
+      const opts = h('div', { class: 'poll-inputs' });
+      const err = h('div', { class: 'error' });
+      const addOpt = () => {
+        if (opts.children.length >= 6) return;
+        const inp = h('input', { placeholder: `Option ${opts.children.length + 1}`, maxlength: 80 });
+        opts.append(inp);
+        addBtn.classList.toggle('hidden', opts.children.length >= 6);
+        return inp;
+      };
+      const addBtn = h('button', { class: 'btn small', type: 'button', onclick: () => { const i = addOpt(); if (i) i.focus(); } }, '＋ Add option');
+      addOpt(); addOpt();
+      setTimeout(() => q.focus());
+      return [modalHead('New poll'),
+        h('label', { class: 'field' }, h('span', {}, 'Question'), q),
+        h('div', { class: 'field' }, h('span', {}, 'Options'), opts, addBtn),
+        err,
+        h('div', { class: 'row end' },
+          h('button', { class: 'btn', onclick: closeModal }, 'Cancel'),
+          h('button', { class: 'btn primary', onclick: () => {
+            const options = [...opts.querySelectorAll('input')].map((i) => i.value.trim()).filter(Boolean);
+            if (!q.value.trim()) { err.textContent = 'Write a question.'; q.focus(); return; }
+            if (options.length < 2) { err.textContent = 'Add at least two options.'; return; }
+            send({ t: 'msg', room: roomId, text: '', poll: { q: q.value.trim(), options } });
+            closeModal();
+          } }, 'Post poll'))];
+    });
   }
   function replyQuote(r) {
     const room = S.rooms[S.current], live = room && room.messages.find((x) => x.id === r.id);
@@ -4405,13 +4695,109 @@ else globalThis.Realtime = Realtime;
     composeBar();
   }
   $('#msgInput').addEventListener('keydown', (e) => {
+    if (mentionKey(e)) return;
     if (e.key === 'Escape' && (replyTo || editing)) { e.stopPropagation(); cancelCompose(); }
     if (e.key === 'ArrowUp' && !e.target.value && !editing) {
       // up arrow in an empty box edits your last message
-      const room = S.rooms[S.current], mine = room && [...room.messages].reverse().find((x) => !x.sys && x.from === S.me.username);
+      const room = S.rooms[S.current], mine = room && [...room.messages].reverse().find((x) => !x.sys && !x.deleted && !x.poll && x.from === S.me.username);
       if (mine) { e.preventDefault(); startEdit(mine); }
     }
   });
+  // ---------------------------------------------------------------- @mention suggestions
+  const mbox = $('#mentionBox');
+  let mlist = [], mpick = 0;
+  function mentionQuery() {
+    const inp = $('#msgInput'), before = inp.value.slice(0, inp.selectionStart);
+    const mt = /(^|\s)@([^\s@]{0,20})$/.exec(before);
+    return mt ? { q: mt[2], start: before.length - mt[2].length - 1 } : null;
+  }
+  function updateMentions() {
+    const mq = mentionQuery();
+    const q = mq && mq.q.toLowerCase();
+    mlist = !mq ? [] : Object.values(S.users)
+      .filter((u) => u.username !== S.me.username && u.name && u.name.toLowerCase().startsWith(q))
+      .sort((a, b) => (a.presence === 'offline') - (b.presence === 'offline') || a.name.localeCompare(b.name)).slice(0, 6);
+    mpick = Math.min(mpick, Math.max(0, mlist.length - 1));
+    if (!mlist.length) { mbox.classList.add('hidden'); mbox.replaceChildren(); return; }
+    mbox.classList.remove('hidden');
+    mbox.replaceChildren(...mlist.map((u, i) => h('button', { type: 'button', class: i === mpick ? 'sel' : '', onmousedown: (e) => { e.preventDefault(); pickMention(i); } },
+      avatar(u.username), h('span', {}, u.name), h('small', { class: 'muted' }, PRESENCE_LABEL[u.presence]))));
+  }
+  function pickMention(i) {
+    const u = mlist[i], mq = mentionQuery(), inp = $('#msgInput');
+    if (!u || !mq) return;
+    const after = inp.value.slice(inp.selectionStart);
+    const ins = '@' + u.name + ' ';
+    inp.value = inp.value.slice(0, mq.start) + ins + after.replace(/^\S*\s?/, '');
+    const pos = mq.start + ins.length;
+    inp.setSelectionRange(pos, pos);
+    inp.focus();
+    mlist = [];
+    updateMentions();
+  }
+  function mentionKey(e) {
+    if (!mlist.length) return false;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { mpick = (mpick + (e.key === 'ArrowDown' ? 1 : mlist.length - 1)) % mlist.length; updateMentions(); }
+    else if (e.key === 'Enter' || e.key === 'Tab') pickMention(mpick);
+    else if (e.key === 'Escape') { mlist = []; mbox.classList.add('hidden'); e.stopPropagation(); }
+    else return false;
+    e.preventDefault();
+    return true;
+  }
+  $('#msgInput').addEventListener('input', updateMentions);
+  $('#msgInput').addEventListener('click', updateMentions);
+  $('#msgInput').addEventListener('blur', () => setTimeout(() => { mlist = []; mbox.classList.add('hidden'); }, 150));
+
+  // ---------------------------------------------------------------- emoji picker, polls, search
+  function insertText(t) {
+    const inp = $('#msgInput'), a = inp.selectionStart ?? inp.value.length, b = inp.selectionEnd ?? a;
+    inp.value = (inp.value.slice(0, a) + t + inp.value.slice(b)).slice(0, 1000);
+    inp.setSelectionRange(a + t.length, a + t.length);
+    inp.focus();
+  }
+  $('#emojiBtn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (pop && pop.classList.contains('emoji-pop')) { closePop(); return; }
+    popover(e.currentTarget, EMOJIS.map((em) => h('button', { type: 'button', class: 'emoji-btn', onclick: () => insertText(em) }, em)), 'emoji-pop');
+  });
+  $('#emojiBtn').addEventListener('mousedown', (e) => e.stopPropagation());
+  $('#pollBtn').addEventListener('click', () => pollModal());
+
+  function searchModal() {
+    let q = '';
+    const input = h('input', { type: 'search', placeholder: 'Search messages, files and polls', maxlength: 100 });
+    const results = h('div', { class: 'search-results' });
+    const run = () => {
+      const needle = q.trim().toLowerCase();
+      if (!needle) { results.replaceChildren(h('div', { class: 'muted' }, 'Type to search recent messages in all your chats.')); return; }
+      const hits = [];
+      const rooms = Object.values(S.rooms).sort((a, b) => (a.id === S.current ? -1 : b.id === S.current ? 1 : 0));
+      for (const r of rooms) {
+        for (const m of r.messages) {
+          if (m.sys || m.deleted) continue;
+          const hay = [m.text, m.file && m.file.name, m.poll && m.poll.q].concat(m.poll ? m.poll.options.map((o) => o.text) : []).filter(Boolean).join(' \n ');
+          if (hay.toLowerCase().includes(needle)) hits.push({ r, m });
+        }
+      }
+      const shown = hits.sort((a, b) => (b.r.id === S.current) - (a.r.id === S.current) || b.m.ts - a.m.ts).slice(0, 50);
+      if (!shown.length) { results.replaceChildren(h('div', { class: 'muted' }, 'No messages match.')); return; }
+      results.replaceChildren(...shown.map(({ r, m }) => {
+        const text = snippet(m), at = text.toLowerCase().indexOf(needle);
+        const body = at < 0 ? [text] : [text.slice(Math.max(0, at - 40), at), h('mark', {}, text.slice(at, at + needle.length)), text.slice(at + needle.length, at + needle.length + 80)];
+        if (at > 40) body.unshift('…');
+        return h('button', { class: 'search-hit', onclick: () => { closeModal(); if (r.id !== S.current) selectRoom(r.id); setTimeout(() => jumpTo(m.id), 50); } },
+          avatar(m.from),
+          h('div', { class: 'grow' },
+            h('div', { class: 'search-meta' }, h('b', {}, m.from === S.me.username ? 'You' : nameOf(m.from)), h('small', { class: 'muted' }, `${roomLabel(r)} · ${fmtDay(m.ts)} ${fmtTime(m.ts)}`)),
+            h('div', { class: 'search-text' }, body)));
+      }));
+    };
+    input.addEventListener('input', () => { q = input.value; run(); });
+    run();
+    setTimeout(() => input.focus());
+    openModal(() => [modalHead('Search'), input, results], true);
+  }
+
   // ---------------------------------------------------------------- files
   const fmtSize = (n) => (n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(0)} KB` : `${(n / 1048576).toFixed(1)} MB`);
   const isImage = (f) => /^image\/(png|jpeg|gif|webp|svg\+xml)$/.test(f.type);
@@ -4453,21 +4839,60 @@ else globalThis.Realtime = Realtime;
       h('img', { class: 'att-full', src: f.url, alt: f.name })], true);
   }
   const MAX_SERVER_FILE = 10 * 1024 * 1024;
+  async function uploadFile(file) {
+    if (ARTIFACT) return transport.upload(file);
+    const res = await fetch('/upload', {
+      method: 'POST', body: file,
+      headers: { 'X-Token': S.token || '', 'X-File-Name': encodeURIComponent(file.name), 'Content-Type': file.type || 'application/octet-stream' },
+    });
+    const meta = await res.json().catch(() => ({ error: 'Upload failed' }));
+    if (!res.ok) throw new Error(meta.error || 'Upload failed');
+    return meta;
+  }
+  // Profile photos: cropped to the middle square and shrunk, so they load fast everywhere.
+  async function squarePhoto(file) {
+    const url = URL.createObjectURL(file);
+    try {
+      const img = await new Promise((res, rej) => {
+        const i = new Image();
+        i.onload = () => res(i);
+        i.onerror = () => rej(new Error('That photo couldn’t be opened. Try a PNG or JPG.'));
+        i.src = url;
+      });
+      const side = Math.min(img.naturalWidth, img.naturalHeight), size = 256;
+      const c = document.createElement('canvas');
+      c.width = c.height = size;
+      const g = c.getContext('2d');
+      g.fillStyle = '#ffffff';
+      g.fillRect(0, 0, size, size);
+      g.drawImage(img, (img.naturalWidth - side) / 2, (img.naturalHeight - side) / 2, side, side, 0, 0, size, size);
+      const blob = await new Promise((res) => c.toBlob(res, 'image/jpeg', 0.9));
+      if (!blob) throw new Error('That photo couldn’t be opened. Try a PNG or JPG.');
+      return new File([blob], 'profile.jpg', { type: 'image/jpeg' });
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  }
+  async function setPhoto(file) {
+    if (!file) return;
+    if (!/^image\//.test(file.type) && !/\.(png|jpe?g|gif|webp|heic)$/i.test(file.name)) { toast('Pick a photo (PNG, JPG, GIF or WebP).', 'err'); return; }
+    const note = toast('Uploading your photo…', null, 600000);
+    try {
+      const meta = await uploadFile(await squarePhoto(file));
+      send({ t: 'profile', data: { photo: meta } });
+      toast('Profile picture updated');
+    } catch (err) {
+      toast(err.message || 'That photo didn’t upload.', 'err');
+    } finally {
+      note.remove();
+    }
+  }
   async function uploadOne(file, roomId, rep) {
     const max = ARTIFACT ? transport.maxFile : MAX_SERVER_FILE;
     if (file.size > max) { toast(`“${file.name}” is over ${max / 1048576} MB. Try a smaller file.`, 'err'); return; }
     const note = toast(`Sending “${file.name}”…`, null, 600000);
     try {
-      let meta;
-      if (ARTIFACT) meta = await transport.upload(file);
-      else {
-        const res = await fetch('/upload', {
-          method: 'POST', body: file,
-          headers: { 'X-Token': S.token || '', 'X-File-Name': encodeURIComponent(file.name), 'Content-Type': file.type || 'application/octet-stream' },
-        });
-        meta = await res.json().catch(() => ({ error: 'Upload failed' }));
-        if (!res.ok) throw new Error(meta.error || 'Upload failed');
-      }
+      const meta = await uploadFile(file);
       send(rep ? { t: 'msg', room: roomId, text: '', file: meta, replyTo: rep } : { t: 'msg', room: roomId, text: '', file: meta });
     } catch (err) {
       toast(err.message || 'That file didn’t upload.', 'err');
@@ -4513,6 +4938,8 @@ else globalThis.Realtime = Realtime;
     S.current = id;
     store.set('chatRoom', id);
     delete S.unread[id];
+    delete S.mentions[id];
+    closePop();
     $('#app').classList.remove('menu-open');
     renderRooms();
     renderHeader();
@@ -4715,7 +5142,10 @@ else globalThis.Realtime = Realtime;
       const oldPw = h('input', { type: 'password', placeholder: 'Current password', autocomplete: 'current-password' });
       const newPw = h('input', { type: 'password', placeholder: 'New password', autocomplete: 'new-password' });
       const bgColor = h('input', { type: 'color', value: me.bgCustom, title: 'Pick a background color', oninput: (e) => { me.bgCustom = e.target.value; me.bg = 'custom'; applyTheme(); }, onchange: (e) => set({ bg: 'custom', bgCustom: e.target.value }) });
-      const avColor = h('input', { type: 'color', value: me.avatar, oninput: (e) => { $('#settingsAvatar').style.background = e.target.value; }, onchange: (e) => set({ avatar: e.target.value }) });
+      const preview = avatar(me.username, true);
+      preview.querySelector('.dot').remove();
+      const avColor = h('input', { type: 'color', value: /^#[0-9a-f]{6}$/i.test(me.avatar) ? me.avatar : '#6d5dfc', oninput: (e) => { preview.style.backgroundColor = e.target.value; }, onchange: (e) => set({ avatar: e.target.value }) });
+      const photoInput = h('input', { type: 'file', accept: 'image/png,image/jpeg,image/gif,image/webp,image/heic', hidden: true, onchange: (e) => { setPhoto(e.target.files[0]); e.target.value = ''; } });
       const bio = h('textarea', { maxlength: 300, placeholder: 'Tell people about yourself', onchange: (e) => set({ bio: e.target.value }) });
       bio.value = me.bio || '';
       const friends = (me.friends || []).filter((f) => S.users[f]);
@@ -4728,10 +5158,17 @@ else globalThis.Realtime = Realtime;
             ARTIFACT ? null : h('div', { class: 'field' }, h('span', {}, 'Password'), oldPw, newPw,
               h('button', { class: 'btn', onclick: () => { send({ t: 'password', old: oldPw.value, new: newPw.value }); oldPw.value = newPw.value = ''; } }, 'Change password')),
             h('label', { class: 'field' }, h('span', {}, ARTIFACT ? 'Claude account' : 'Username'), h('input', { value: me.handle || me.username, disabled: true, title: ARTIFACT ? 'You’re signed in with your Claude account' : 'Usernames can’t be changed' })),
-            h('div', { class: 'field' }, h('div', { class: 'boxed-title' }, 'Profile picture color'),
-              h('div', { class: 'row' }, h('div', { id: 'settingsAvatar', class: 'avatar big', style: `background:${me.avatar}` }, me.name[0].toUpperCase()),
-                h('div', { class: 'swatches' }, AVATARS.map((c) => h('button', { class: 'swatch' + (me.avatar.toLowerCase() === c ? ' sel' : ''), style: `background:${c}`, title: c, onclick: () => set({ avatar: c }) })))),
-              h('label', { class: 'field' }, h('small', {}, 'Color selector'), avColor))),
+            h('div', { class: 'field' }, h('div', { class: 'boxed-title' }, 'Profile picture'),
+              h('div', { class: 'row' }, preview,
+                h('div', { class: 'photo-btns' },
+                  h('button', { class: 'btn small', onclick: () => photoInput.click() }, me.photo ? '📷 Change photo' : '📷 Choose a photo'),
+                  me.photo ? h('button', { class: 'btn small ghost', onclick: () => set({ photo: null }) }, 'Remove photo') : null,
+                  photoInput)),
+              h('small', { class: 'muted' }, me.photo ? 'The color shows while your photo loads.' : 'Or pick a color:'),
+              h('div', { class: 'swatches' }, AVATARS.map((c) => h('button', { class: 'swatch' + (me.avatar.toLowerCase() === c ? ' sel' : ''), style: `background:${c}`, title: c, onclick: () => set({ avatar: c }) }))),
+              h('label', { class: 'field' }, h('small', {}, 'Color selector'), avColor)),
+            h('label', { class: 'row sound-row' }, h('input', { type: 'checkbox', checked: soundOn(), style: 'width:auto', onchange: (e) => { store.set('chatSound', e.target.checked ? null : '0'); if (e.target.checked) ping(); } }),
+              'Play a sound when someone @mentions you or sends you a direct message')),
           h('section', {},
             h('div', { class: 'boxed-title' }, 'Status'),
             h('div', {}, statusOpt('online', 'var(--online)', 'Online'), statusOpt('offline', 'var(--offline)', 'Offline (appear offline)'), statusOpt('idle', 'var(--idle)', 'Idle / do not disturb')),
@@ -4766,6 +5203,10 @@ else globalThis.Realtime = Realtime;
   $('#meCard').addEventListener('click', settingsModal);
   $('#signOutBtn').addEventListener('click', signOut);
   $('#membersBtn').addEventListener('click', membersModal);
+  $('#searchBtn').addEventListener('click', searchModal);
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k' && S.me && !$('#app').classList.contains('hidden')) { e.preventDefault(); searchModal(); }
+  });
   $('#requestGameBtn').addEventListener('click', () => gameModal());
   $('#onlineBtn').addEventListener('click', () => openModal(() => [modalHead(`${onlineUsers().length} Online`),
     h('ul', { class: 'list' }, onlineUsers().map((u) => personRow(u.username)))]));

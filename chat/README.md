@@ -12,9 +12,16 @@ An online chat where you can talk to whoever is online, make your own chats, and
   - Name, password and username
   - Status: Online, Offline (appear offline), or Idle / do not disturb. While you're on do not disturb, nobody can challenge you.
   - Background: White, Black, or any custom color
-  - Profile picture color: pick a swatch or use the color picker
+  - Profile picture: choose a photo (cropped to a square automatically), or pick a color swatch or use the color picker
+  - Sound on/off for @mentions and direct messages
   - Bio, favorite games and friends list
   - Sign out
+- **Reactions**: hover a message and press 😊 to react (👍 ❤️ 😂 😮 😢 🔥 🎉 👀). Click a reaction to add yours or take it back.
+- **Polls**: press 📊 next to the message box, write a question and 2–6 options. Everyone can vote and change their vote, and the results update live.
+- **@mentions**: type `@` to pick someone. Their name is highlighted, and they get a pop-up, a red **@** badge on the chat and a sound.
+- **Delete** your own messages (🗑️). Everyone sees "This message was deleted".
+- **Search** (🔍 or Ctrl+K) through recent messages, file names and polls in all your chats. Click a result to jump to it.
+- **Emoji picker** (😊 next to the message box) and clickable links in messages.
 - **Request a game**: pick a game and an online opponent. They get an Accept / Decline pop-up, and the game opens next to the chat. Results are posted to the chat, and everyone's win/loss record shows on their profile.
 
 ### Games (all online, player vs player)

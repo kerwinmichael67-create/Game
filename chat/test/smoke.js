@@ -130,6 +130,35 @@ async function e2e(port) {
   assert.strictEqual(ed.msg.history[0].text, 'Hello everyone');
   assert(ed.msg.editedAt >= ed.msg.ts);
 
+  // reactions, polls, delete
+  b.send({ t: 'react', room: 'global', id: got.msg.id, emoji: '🔥' });
+  a.send({ t: 'react', room: 'global', id: got.msg.id, emoji: '🔥' });
+  await a.wait(is('msgEdit', (m) => m.msg.reactions && m.msg.reactions['🔥'] && m.msg.reactions['🔥'].length === 2));
+  b.send({ t: 'react', room: 'global', id: got.msg.id, emoji: '🔥' });
+  assert.deepStrictEqual((await a.wait(is('msgEdit', (m) => m.msg.reactions && m.msg.reactions['🔥'].join() === 'Bob'))).msg.reactions, { '🔥': ['Bob'] });
+  b.send({ t: 'react', room: 'global', id: got.msg.id, emoji: '<b>' }); // not one of the reactions: ignored
+  a.send({ t: 'msg', room: 'global', text: '', poll: { q: 'Play what?', options: ['Chess', '', 'Snake', 'Pong'] } });
+  const pm = await b.wait(is('msg', (m) => m.msg.poll));
+  assert.deepStrictEqual(pm.msg.poll.options.map((o) => o.text), ['Chess', 'Snake', 'Pong']);
+  b.send({ t: 'vote', room: 'global', id: pm.msg.id, option: 1 });
+  a.send({ t: 'vote', room: 'global', id: pm.msg.id, option: 1 });
+  await b.wait(is('msgEdit', (m) => m.msg.id === pm.msg.id && m.msg.poll.options[1].votes.length === 2));
+  b.send({ t: 'vote', room: 'global', id: pm.msg.id, option: 0 }); // change vote
+  const pv = await a.wait(is('msgEdit', (m) => m.msg.id === pm.msg.id && m.msg.poll.options[0].votes.length === 1));
+  assert.deepStrictEqual(pv.msg.poll.options.map((o) => o.votes), [['Jerry'], ['Bob'], []]);
+  a.send({ t: 'edit', room: 'global', id: pm.msg.id, text: 'x' });
+  assert.strictEqual((await a.wait(is('error'))).text, 'Polls can’t be edited');
+  a.send({ t: 'msg', room: 'global', text: '', poll: { q: 'Only one?', options: ['a'] } }); // needs two options: dropped
+  a.send({ t: 'msg', room: 'global', text: 'delete me' });
+  const dmsg = await b.wait(is('msg', (m) => m.msg.text === 'delete me'));
+  b.send({ t: 'del', room: 'global', id: dmsg.msg.id });
+  assert.strictEqual((await b.wait(is('error'))).text, 'You can only delete your own messages');
+  a.send({ t: 'del', room: 'global', id: dmsg.msg.id });
+  const gone = await b.wait(is('msgEdit', (m) => m.msg.id === dmsg.msg.id));
+  assert.deepStrictEqual(gone.msg, { id: dmsg.msg.id, ts: dmsg.msg.ts, from: 'Bob', text: '', deleted: true });
+  b.send({ t: 'msg', room: 'global', text: 'reply to gone', replyTo: dmsg.msg.id });
+  assert.strictEqual((await a.wait(is('msg', (m) => m.msg.text === 'reply to gone'))).msg.replyTo, undefined);
+
   // private room
   a.send({ t: 'createRoom', name: 'Secret club', members: ['Jerry'] });
   const opened = await a.wait(is('openRoom'));
@@ -291,6 +320,17 @@ async function e2e(port) {
   assert.match(h.headers.get('content-disposition'), /^attachment/);
   assert.strictEqual((await up(helloA.token, 'big.bin', 'application/octet-stream', Buffer.alloc(10 * 1024 * 1024 + 1))).status, 413);
   assert.strictEqual((await fetch(base + '/files/../../server.js')).status, 404);
+
+  // profile photo: only your own image upload
+  b.send({ t: 'profile', data: { photo: meta } }); // Bob's upload
+  await b.wait(is('me'));
+  assert.strictEqual((await b.wait(is('user', (m) => m.user.username === 'Jerry'))).user.photo, null);
+  a.send({ t: 'profile', data: { photo: html } }); // not an image
+  assert.strictEqual((await a.wait(is('me'))).me.photo, null);
+  a.send({ t: 'profile', data: { photo: meta } });
+  assert.strictEqual((await b.wait(is('user', (m) => m.user.username === 'Bob' && m.user.photo))).user.photo, meta.url);
+  a.send({ t: 'profile', data: { photo: null } });
+  assert.strictEqual((await b.wait(is('user', (m) => m.user.username === 'Bob' && !m.user.photo))).user.photo, null);
 
   // resume with token
   const c = client(port);

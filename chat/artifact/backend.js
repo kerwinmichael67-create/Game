@@ -37,6 +37,8 @@
     mp4: 'video/mp4', m4v: 'video/mp4', webm: 'video/webm', pdf: 'application/pdf', txt: 'text/plain', csv: 'text/csv', md: 'text/markdown', json: 'application/json' };
   const MAX_FILE = 20 * 1024 * 1024;
   const ASSET_ID = /^[A-Za-z0-9_-]{8,64}$/;
+  const REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🔥', '🎉', '👀'];
+  const PHOTO_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
 
   const rid = (n = 10) => Array.from(crypto.getRandomValues(new Uint8Array(n)), (b) => (b % 36).toString(36)).join('');
   const msgId = () => Date.now().toString(36).padStart(9, '0') + rid(5);
@@ -99,7 +101,7 @@
       const st = p.stats || {};
       return {
         username: id, handle: (platform[id] && platform[id].name) || '', name: displayName(id), bio: str(p.bio, 300),
-        avatar: avatarOf(id), favorites: ids(p.favorites).filter((g) => GAMES[g]), presence: presenceOf(id),
+        avatar: avatarOf(id), photo: typeof p.photo === 'string' && ASSET_ID.test(p.photo) ? '/_blob/' + p.photo : null, favorites: ids(p.favorites).filter((g) => GAMES[g]), presence: presenceOf(id),
         stats: { w: +st.w || 0, l: +st.l || 0, d: +st.d || 0 }, inGame: inGameOf(id),
       };
     }
@@ -145,6 +147,12 @@
         default: return '';
       }
     }
+    function pollOf(p) {
+      if (!p || typeof p !== 'object' || !Array.isArray(p.options)) return null;
+      const options = p.options.map((o) => str(o, 80)).filter(Boolean).slice(0, 6);
+      const q = str(p.q, 200);
+      return q && options.length >= 2 ? { q, options: options.map((text) => ({ text, votes: [] })) } : null;
+    }
     function fileOf(f) {
       if (!f || typeof f !== 'object' || typeof f.asset !== 'string' || !ASSET_ID.test(f.asset)) return null;
       return { url: '/_blob/' + f.asset, name: str(f.name, 120) || 'file', type: FILE_TYPES[f.type] ? f.type : 'application/octet-stream', size: Math.max(0, +f.size || 0) };
@@ -152,6 +160,18 @@
     function toMsg(d) {
       if (d.sys) return { id: d.id, ts: +d.ts || 0, from: null, sys: true, text: sysText(d), game: d.game };
       const m = { id: d.id, ts: +d.ts || 0, from: typeof d.from === 'string' ? d.from : null, text: str(d.text, 1000) };
+      if (d.deleted) return Object.assign(m, { text: '', deleted: true });
+      // stored per person ({ uid: [emoji] }) so two people reacting at once never overwrite each other
+      const reactions = {};
+      for (const [uid, list] of Object.entries(d.reactions && typeof d.reactions === 'object' ? d.reactions : {})) {
+        for (const e of Array.isArray(list) ? list : []) if (REACTIONS.includes(e)) (reactions[e] = reactions[e] || []).push(uid);
+      }
+      if (Object.keys(reactions).length) m.reactions = reactions;
+      const poll = pollOf(d.poll);
+      if (poll) {
+        for (const [uid, i] of Object.entries(d.votes && typeof d.votes === 'object' ? d.votes : {})) if (poll.options[i]) poll.options[i].votes.push(uid);
+        m.poll = poll;
+      }
       const file = fileOf(d.file);
       if (file) m.file = file;
       const r = d.replyTo;
@@ -177,7 +197,7 @@
         for (const m of list) {
           const before = old.get(m.id);
           if (!before) emit({ t: 'msg', room: id, msg: toMsg(m) });
-          else if (before.editedAt !== m.editedAt || before.text !== m.text) emit({ t: 'msgEdit', room: id, msg: toMsg(m) });
+          else if (JSON.stringify(before) !== JSON.stringify(m)) emit({ t: 'msgEdit', room: id, msg: toMsg(m) });
         }
       }, dbError);
     }
@@ -496,7 +516,8 @@
         const text = str(m.text, 1000), r = m.room === 'global' ? GLOBAL : rooms[m.room];
         const f = m.file && typeof m.file.ref === 'string' && ASSET_ID.test(m.file.ref)
           ? { asset: m.file.ref, name: str(m.file.name, 120), type: FILE_TYPES[m.file.type] ? m.file.type : 'application/octet-stream', size: +m.file.size || 0 } : null;
-        if (!r || (!text && !f)) return;
+        const poll = pollOf(m.poll);
+        if (!r || (!text && !f && !poll)) return;
         if (readOnly) return writeError({ code: 'invalid_argument' });
         const now = Date.now();
         while (recent.length && now - recent[0] > 4000) recent.shift();
@@ -505,19 +526,45 @@
         if (r.public && r.id !== 'global' && !ids(r.members).includes(myId)) db.doc('rooms/' + r.id).update({ members: ids(r.members).concat(myId) }).catch(() => {});
         const msg = { from: myId, text };
         if (f) msg.file = f;
-        const orig = typeof m.replyTo === 'string' && (rawMsgs[r.id] || []).find((x) => x.id === m.replyTo && !x.sys);
+        if (poll) msg.poll = { q: poll.q, options: poll.options.map((o) => o.text) };
+        const orig = typeof m.replyTo === 'string' && (rawMsgs[r.id] || []).find((x) => x.id === m.replyTo && !x.sys && !x.deleted);
         if (orig) msg.replyTo = { id: orig.id, from: typeof orig.from === 'string' ? orig.from : null, text: str(orig.text, 140), file: orig.file && orig.file.name ? str(orig.file.name, 120) : null };
         post(r.id, msg);
       },
       edit(m) {
         const text = str(m.text, 1000), list = rawMsgs[m.room] || [];
         const d = list.find((x) => x.id === m.id);
-        if (!d || d.sys || d.from !== myId) return emit({ t: 'error', text: 'You can only edit your own messages' });
+        if (!d || d.sys || d.deleted || d.from !== myId) return emit({ t: 'error', text: 'You can only edit your own messages' });
+        if (d.poll) return emit({ t: 'error', text: 'Polls can’t be edited' });
         if (!text && !d.file) return emit({ t: 'error', text: 'A message can’t be empty' });
         if (text === d.text) return;
         if (readOnly) return writeError({ code: 'invalid_argument' });
         const history = (Array.isArray(d.history) ? d.history : []).concat({ text: d.text || '', ts: d.editedAt || d.ts }).slice(-20);
         db.doc(`rooms/${m.room}/msgs/${d.id}`).update({ text, editedAt: Date.now(), history }).catch(writeError);
+      },
+      react(m) {
+        const d = (rawMsgs[m.room] || []).find((x) => x.id === m.id);
+        if (!d || d.sys || d.deleted || !REACTIONS.includes(m.emoji)) return;
+        if (readOnly) return writeError({ code: 'invalid_argument' });
+        const mine = Array.isArray(d.reactions && d.reactions[myId]) ? d.reactions[myId].filter((e) => REACTIONS.includes(e)) : [];
+        const next = mine.includes(m.emoji) ? mine.filter((e) => e !== m.emoji) : mine.concat(m.emoji);
+        db.doc(`rooms/${m.room}/msgs/${d.id}`).update({ reactions: { [myId]: next } }).catch(writeError);
+      },
+      vote(m) {
+        const d = (rawMsgs[m.room] || []).find((x) => x.id === m.id);
+        const poll = d && !d.deleted && pollOf(d.poll);
+        if (!poll || !Number.isInteger(m.option) || !poll.options[m.option]) return;
+        if (readOnly) return writeError({ code: 'invalid_argument' });
+        const cur = d.votes && d.votes[myId];
+        db.doc(`rooms/${m.room}/msgs/${d.id}`).update({ votes: { [myId]: cur === m.option ? -1 : m.option } }).catch(writeError);
+      },
+      del(m) {
+        const d = (rawMsgs[m.room] || []).find((x) => x.id === m.id);
+        if (!d || d.sys || d.from !== myId) return emit({ t: 'error', text: 'You can only delete your own messages' });
+        if (d.deleted) return;
+        if (readOnly) return writeError({ code: 'invalid_argument' });
+        // keep the doc (replies still point at it) but drop what it said
+        db.doc(`rooms/${m.room}/msgs/${d.id}`).set({ from: d.from, ts: d.ts, deleted: true, text: '' }).catch(writeError);
       },
       logout() {
         if (game && !game.over) handlers.gameLeave({ id: game.id });
@@ -575,6 +622,8 @@
         if (['auto', 'white', 'black', 'custom'].includes(d.bg)) patch.bg = d.bg;
         if (isColor(d.bgCustom)) patch.bgCustom = d.bgCustom;
         if (isColor(d.avatar)) patch.avatar = d.avatar;
+        if (d.photo === null) patch.photo = null;
+        else if (d.photo && typeof d.photo.ref === 'string' && ASSET_ID.test(d.photo.ref) && PHOTO_TYPES.includes(d.photo.type)) patch.photo = d.photo.ref;
         if (Array.isArray(d.favorites)) patch.favorites = d.favorites.filter((g) => GAMES[g]).slice(0, 8);
         if (Object.keys(patch).length) updateMe(patch);
       },
@@ -652,6 +701,7 @@
     return {
       fileTypes: Object.keys(FILE_TYPES).concat(Object.keys(EXT_TYPES).map((e) => '.' + e)).join(','),
       maxFile: MAX_FILE,
+      reactions: REACTIONS,
       // Store a file in the artifact's asset store; resolves what a message needs to point at it.
       async upload(file) {
         if (!assets) throw new Error('Sending files needs Editor access. Ask the owner to invite you as an Editor.');

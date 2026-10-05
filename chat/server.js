@@ -35,6 +35,8 @@ const GAMES = {
   hockey: { name: 'Air Hockey', kind: 'realtime' },
   apex: { name: 'Apex Rush 3D', kind: 'relay' },
 };
+const REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🔥', '🎉', '👀'];
+const PHOTO_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
 const AVATAR_COLORS = ['#22c55e', '#111111', '#ef4444', '#facc15', '#d946ef', '#3b82f6', '#f97316', '#14b8a6'];
 
 // ---------------------------------------------------------------- storage
@@ -82,7 +84,7 @@ const presence = (u) => (isConnected(u) ? db.users[u].status : 'offline');
 function publicUser(u) {
   const x = db.users[u];
   return {
-    username: x.username, handle: x.username, name: x.name, bio: x.bio, avatar: x.avatar, favorites: x.favorites,
+    username: x.username, handle: x.username, name: x.name, bio: x.bio, avatar: x.avatar, photo: x.photo || null, favorites: x.favorites,
     presence: presence(u), stats: x.stats, inGame: userGame.has(u) ? sessions.get(userGame.get(u)).type : null,
   };
 }
@@ -121,6 +123,11 @@ function postMessage(room, msg) {
   save();
 }
 // What a reply shows of the message it answers (taken from the server's copy, so it can't be faked).
+function pollOf(p) {
+  if (!p || typeof p !== 'object' || !Array.isArray(p.options)) return null;
+  const q = str(p.q, 200), options = p.options.map((o) => str(o, 80)).filter(Boolean).slice(0, 6);
+  return q && options.length >= 2 ? { q, options: options.map((text) => ({ text, votes: [] })) } : null;
+}
 const replySnapshot = (orig) => ({ id: orig.id, from: orig.from, text: (orig.text || '').slice(0, 140), file: orig.file ? orig.file.name : null });
 const sys = (room, text, extra) => room && postMessage(room, Object.assign({ from: null, sys: true, text }, extra));
 const nameOf = (u) => (db.users[u] ? db.users[u].name : u);
@@ -286,8 +293,8 @@ const authed = {
     ws.close();
   },
   msg(ws, u, m) {
-    const room = db.rooms[m.room], text = str(m.text, 1000), file = attachment(m.file, u);
-    if (!room || !canSee(room, u) || (!text && !file)) return;
+    const room = db.rooms[m.room], text = str(m.text, 1000), file = attachment(m.file, u), poll = pollOf(m.poll);
+    if (!room || !canSee(room, u) || (!text && !file && !poll)) return;
     if (!rateOk(u)) return { error: 'Slow down a little!' };
     if (room.public && room.id !== 'global' && !room.members.includes(u)) {
       room.members.push(u);
@@ -295,7 +302,8 @@ const authed = {
     }
     const msg = { from: u, text };
     if (file) msg.file = file;
-    const orig = typeof m.replyTo === 'string' && room.messages.find((x) => x.id === m.replyTo && !x.sys);
+    if (poll) msg.poll = poll;
+    const orig = typeof m.replyTo === 'string' && room.messages.find((x) => x.id === m.replyTo && !x.sys && !x.deleted);
     if (orig) msg.replyTo = replySnapshot(orig);
     postMessage(room, msg);
   },
@@ -303,13 +311,43 @@ const authed = {
     const room = db.rooms[m.room], text = str(m.text, 1000);
     if (!room || !canSee(room, u)) return;
     const msg = room.messages.find((x) => x.id === m.id);
-    if (!msg || msg.sys || msg.from !== u) return { error: 'You can only edit your own messages' };
+    if (!msg || msg.sys || msg.deleted || msg.from !== u) return { error: 'You can only edit your own messages' };
+    if (msg.poll) return { error: 'Polls can’t be edited' };
     if (!text && !msg.file) return { error: 'A message can’t be empty' };
     if (text === msg.text) return;
     msg.history = (msg.history || []).concat({ text: msg.text, ts: msg.editedAt || msg.ts }).slice(-20);
     msg.text = text;
     msg.editedAt = Date.now();
     toRoom(room, { t: 'msgEdit', room: room.id, msg });
+    save();
+  },
+  react(ws, u, m) {
+    const room = db.rooms[m.room], msg = room && canSee(room, u) && room.messages.find((x) => x.id === m.id);
+    if (!msg || msg.sys || msg.deleted || !REACTIONS.includes(m.emoji)) return;
+    const r = msg.reactions = msg.reactions || {};
+    const list = r[m.emoji] || [];
+    r[m.emoji] = list.includes(u) ? list.filter((x) => x !== u) : list.concat(u);
+    if (!r[m.emoji].length) delete r[m.emoji];
+    if (!Object.keys(r).length) delete msg.reactions;
+    toRoom(room, { t: 'msgEdit', room: room.id, msg });
+    save();
+  },
+  vote(ws, u, m) {
+    const room = db.rooms[m.room], msg = room && canSee(room, u) && room.messages.find((x) => x.id === m.id);
+    if (!msg || !msg.poll || msg.deleted || !Number.isInteger(m.option) || !msg.poll.options[m.option]) return;
+    const had = msg.poll.options[m.option].votes.includes(u);
+    msg.poll.options.forEach((o) => { o.votes = o.votes.filter((x) => x !== u); });
+    if (!had) msg.poll.options[m.option].votes.push(u);
+    toRoom(room, { t: 'msgEdit', room: room.id, msg });
+    save();
+  },
+  del(ws, u, m) {
+    const room = db.rooms[m.room], i = room && canSee(room, u) ? room.messages.findIndex((x) => x.id === m.id) : -1;
+    const msg = i >= 0 && room.messages[i];
+    if (!msg || msg.sys || msg.from !== u) return { error: 'You can only delete your own messages' };
+    if (msg.deleted) return;
+    room.messages[i] = { id: msg.id, ts: msg.ts, from: msg.from, text: '', deleted: true };
+    toRoom(room, { t: 'msgEdit', room: room.id, msg: room.messages[i] });
     save();
   },
   typing(ws, u, m) {
@@ -370,6 +408,11 @@ const authed = {
     if (['white', 'black', 'custom'].includes(d.bg)) x.bg = d.bg;
     if (isColor(d.bgCustom)) x.bgCustom = d.bgCustom;
     if (isColor(d.avatar)) x.avatar = d.avatar;
+    if (d.photo === null) x.photo = null;
+    else if (d.photo) {
+      const a = attachment(d.photo, u);
+      if (a && PHOTO_TYPES.includes(a.type)) x.photo = a.url;
+    }
     if (Array.isArray(d.favorites)) x.favorites = d.favorites.filter((g) => GAMES[g]).slice(0, 8);
     save();
     sendUser(u, { t: 'me', me: privateUser(u) });

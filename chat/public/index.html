@@ -72,6 +72,7 @@
       </div>
       <button id="callBtn" class="btn icon hidden" title="Voice call" aria-label="Voice call">📞</button>
       <button id="videoBtn" class="btn icon hidden" title="Video call" aria-label="Video call">🎥</button>
+      <button id="searchBtn" class="btn icon" title="Search messages (Ctrl+K)" aria-label="Search messages">🔍</button>
       <button id="membersBtn" class="btn">Members</button>
       <button id="requestGameBtn" class="btn primary">🎮 Request a game</button>
     </header>
@@ -82,9 +83,12 @@
         <div id="messages" class="messages"></div>
         <div id="typing" class="typing"></div>
         <div id="composeBar" class="compose-bar hidden" aria-live="polite"></div>
+        <div id="mentionBox" class="mention-box hidden" role="listbox" aria-label="People to mention"></div>
         <form id="composer" class="composer">
           <button type="button" id="attachBtn" class="btn icon ghost attach" title="Send a photo, video or file" aria-label="Send a photo, video or file"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></button>
           <input type="file" id="fileInput" multiple hidden>
+          <button type="button" id="emojiBtn" class="btn icon ghost attach emoji-open" title="Emoji" aria-label="Emoji">😊</button>
+          <button type="button" id="pollBtn" class="btn icon ghost attach" title="Create a poll" aria-label="Create a poll">📊</button>
           <input id="msgInput" placeholder="Say hello" maxlength="1000" autocomplete="off">
           <button class="btn primary" title="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg></button>
         </form>
