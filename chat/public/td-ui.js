@@ -13,6 +13,23 @@
     for (const kid of kids.flat()) if (kid !== null && kid !== undefined && kid !== false) el.append(kid instanceof Node ? kid : String(kid));
     return el;
   }
+  // Tower pictures (td-icons.js): an <svg> for the side panel, a Path2D for the map.
+  const SVG = 'http://www.w3.org/2000/svg';
+  function icon(type, lvl, cls) {
+    const svg = document.createElementNS(SVG, 'svg');
+    svg.setAttribute('viewBox', '0 0 512 512');
+    svg.setAttribute('class', 'td-icon' + (cls ? ' ' + cls : ''));
+    svg.setAttribute('aria-hidden', 'true');
+    const p = document.createElementNS(SVG, 'path');
+    p.setAttribute('d', window.TD_ICONS[type][lvl][1]);
+    p.setAttribute('fill', 'currentColor');
+    svg.append(p);
+    return svg;
+  }
+  const pathCache = {};
+  const iconPath = (type, lvl) => pathCache[type + lvl] || (pathCache[type + lvl] = new Path2D(window.TD_ICONS[type][lvl][1]));
+  // dark picture on light towers, white on dark ones
+  const inkFor = (hex) => { const n = parseInt(hex.slice(1), 16); return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) > 150 ? '#111827' : '#ffffff'; };
   const isTyping = () => { const a = document.activeElement; return a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.isContentEditable); };
   const money = (n) => '$' + Math.floor(n).toLocaleString();
   const TARGET_LABEL = { first: 'First', strong: 'Strongest', last: 'Last', close: 'Closest' };
@@ -36,7 +53,7 @@
     for (const type of T.ORDER) {
       const d = T.TOWERS[type];
       shopBtns[type] = h('button', { class: 'td-buy', title: `${d.name}: ${d.desc} (key ${d.key})`, onclick: () => choose(type) },
-        h('span', { class: 'td-buy-icon', style: `background:${d.color}` }, d.icon),
+        h('span', { class: 'td-buy-icon', style: `background:${d.color};color:${inkFor(d.color)}` }, icon(type, 0)),
         h('span', { class: 'td-buy-name' }, d.name), h('span', { class: 'td-buy-cost' }, money(d.cost)), h('small', {}, ''));
       shop.append(shopBtns[type]);
     }
@@ -66,7 +83,7 @@
       const err = T.upgrade(s, id);
       if (err) { flash(err); return; }
       const t = s.towers.find((x) => x.id === id), d = T.TOWERS[t.type];
-      levelUps.push({ x: t.x, y: t.y, at: performance.now(), text: `${d.icons[t.lvl]} ${d.names[t.lvl]}!` });
+      levelUps.push({ x: t.x, y: t.y, at: performance.now(), text: `${d.names[t.lvl]}!` });
     }
     const banners = [];
     function setSpeed(n) { speed = n; speedBtns.forEach((b, i) => b.classList.toggle('sel', i + 1 === n)); }
@@ -134,10 +151,10 @@
       const row = (label, a, b) => h('div', { class: 'td-row' }, h('span', {}, label), h('b', {}, a), b !== undefined && b !== a ? h('span', { class: 'td-next' }, '→ ' + b) : null);
       const fmt = (v) => (Math.round(v * 10) / 10).toString();
       info.replaceChildren(...[
-        h('div', { class: 'td-sel-head' }, h('span', { class: 'td-buy-icon' + (t.lvl >= 5 ? ' gold' : ''), style: `background:${d.color}` }, d.icons[t.lvl]),
+        h('div', { class: 'td-sel-head' }, h('span', { class: 'td-buy-icon' + (t.lvl >= 5 ? ' gold' : ''), style: `background:${d.color};color:${inkFor(d.color)}` }, icon(t.type, t.lvl)),
           h('div', { class: 'td-sel-name' }, h('b', {}, d.names[t.lvl]), h('small', { class: 'muted' }, t.lvl ? `${d.name} · level ${t.lvl}` : 'Not upgraded yet')),
           h('span', { class: 'td-pips' }, [0, 1, 2, 3, 4].map((i) => h('i', { class: i < t.lvl ? 'on' : '' })))),
-        h('div', { class: 'td-ladder' }, d.icons.map((ic, i) => h('span', { class: i === t.lvl ? 'cur' : i < t.lvl ? 'done' : '', title: d.names[i] }, ic))),
+        h('div', { class: 'td-ladder' }, d.names.map((name, i) => h('span', { class: i === t.lvl ? 'cur' : i < t.lvl ? 'done' : '', title: `${i ? 'Level ' + i : 'Base'}: ${name}` }, icon(t.type, i)))),
         t.type === 'farm'
           ? row('Pays per wave', money(st.income), nx ? money(nx.income) : undefined)
           : [row('Damage', fmt(st.dmg), nx ? fmt(nx.dmg) : undefined), row('Shots / sec', fmt(st.rate), nx ? fmt(nx.rate) : undefined),
@@ -145,7 +162,7 @@
             h('div', { class: 'td-row muted' }, h('span', {}, 'Damage dealt'), h('b', {}, Math.round(t.dmg).toLocaleString()))],
         h('div', { class: 'td-actions' },
           h('button', { class: 'btn primary small', disabled: cost === null || s.money < cost, onclick: () => { doUpgrade(t.id); render(); } },
-            cost === null ? `${d.icons[5]} Fully upgraded` : `Upgrade to ${d.icons[t.lvl + 1]} ${d.names[t.lvl + 1]} · ${money(cost)} (U)`),
+            ...(cost === null ? [icon(t.type, 5), ' Fully upgraded'] : ['Upgrade to ', icon(t.type, t.lvl + 1), ` ${d.names[t.lvl + 1]} · ${money(cost)} (U)`])),
           t.type === 'farm' ? null : h('button', { class: 'btn small', title: 'Which enemy it shoots (T)', onclick: () => { T.retarget(s, t.id); render(); } }, 'Target: ' + TARGET_LABEL[t.target]),
           h('button', { class: 'btn small danger', onclick: () => { T.sell(s, t.id); selected = null; render(); } }, `Sell ${money(T.sellValue(t))}`))].flat().filter(Boolean));
     }
@@ -221,11 +238,19 @@
         for (let i = 0; i < n; i++) {
           const off = (i - (n - 1) / 2) * (w + 1.5);
           const bx = x - sin * off, by = y + cos * off;
-          g.beginPath(); g.moveTo(bx, by); g.lineTo(bx + cos * len, by + sin * len); g.stroke();
+          g.beginPath(); g.moveTo(bx + cos * r * 0.72, by + sin * r * 0.72); g.lineTo(bx + cos * (r * 0.72 + len * 0.75), by + sin * (r * 0.72 + len * 0.75)); g.stroke(); // from the rim, so the picture stays clear
         }
       }
-      g.font = `${12 + lvl}px serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
-      g.fillText(d.icons[lvl], x, y + 1);
+      { // the level's picture
+        const size = r * 1.55, ink = inkFor(d.color);
+        g.save();
+        g.translate(x - size / 2, y - size / 2);
+        g.scale(size / 512, size / 512);
+        g.shadowColor = ink === '#ffffff' ? 'rgba(0,0,0,.6)' : 'rgba(255,255,255,.5)'; g.shadowBlur = 3;
+        g.fillStyle = ink; g.fill(iconPath(type, lvl));
+        g.restore();
+      }
+      g.textAlign = 'center'; g.textBaseline = 'middle';
       for (let i = 0; i < lvl; i++) { // level stars
         const sx = x - (lvl - 1) * 3 + i * 6, sy = y + r + 6;
         g.fillStyle = lvl >= 5 ? '#fde047' : '#facc15'; poly(g, sx, sy, 3, 4, Math.PI / 4); g.fill();

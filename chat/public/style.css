@@ -834,3 +834,9 @@ body[data-theme="dark"] .fav-btn.on { color: #c9c2ff; }
 .td-ladder span { flex: 1; text-align: center; border-radius: 8px; padding: 2px 0; background: var(--surface-2); opacity: .45; filter: grayscale(.7); }
 .td-ladder span.done { opacity: .9; filter: none; }
 .td-ladder span.cur { opacity: 1; filter: none; background: var(--accent-soft); outline: 2px solid var(--accent); }
+
+.td-icon { width: 18px; height: 18px; display: inline-block; vertical-align: -3px; flex: none; }
+.td-buy-icon .td-icon { width: 19px; height: 19px; }
+.td-ladder .td-icon { width: 18px; height: 18px; }
+.td-ladder span { display: grid; place-items: center; color: var(--text); padding: 3px 0; }
+.td-actions .btn .td-icon { width: 15px; height: 15px; margin: 0 2px; }

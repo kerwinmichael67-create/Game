@@ -39,45 +39,45 @@
   // Towers: level 0 is as bought; 5 upgrades each, every one dearer than the last.
   const TOWERS = {
     pistol: {
-      name: 'Pistol', cost: 100, max: Infinity, color: '#94a3b8', icon: '🔫', key: '1', desc: 'Cheap all-rounder',
+      name: 'Pistol', cost: 100, max: Infinity, color: '#94a3b8', key: '1', desc: 'Cheap all-rounder',
       up: [60, 110, 180, 280, 420],
       lv: [{ dmg: 6, rate: 1.6, range: 115 }, { dmg: 8, rate: 1.9, range: 122 }, { dmg: 11, rate: 2.2, range: 130 },
         { dmg: 15, rate: 2.6, range: 138 }, { dmg: 21, rate: 3.0, range: 148 }, { dmg: 30, rate: 3.6, range: 160 }],
     },
     machinegun: {
-      name: 'Machine gun', cost: 250, max: 5, color: '#f59e0b', icon: '💥', key: '2', desc: 'Very fast fire; armor blunts it',
+      name: 'Machine gun', cost: 250, max: 5, color: '#f59e0b', key: '2', desc: 'Very fast fire; armor blunts it',
       up: [160, 260, 380, 540, 760],
       lv: [{ dmg: 3, rate: 9, range: 118 }, { dmg: 3.6, rate: 10.5, range: 124 }, { dmg: 4.4, rate: 12, range: 130 },
         { dmg: 5.5, rate: 14, range: 136 }, { dmg: 7, rate: 16, range: 145 }, { dmg: 9, rate: 19, range: 155 }],
     },
     sniper: {
-      name: 'Sniper', cost: 200, max: 8, color: '#22c55e', icon: '🎯', key: '3', desc: 'Huge range, pierces armor',
+      name: 'Sniper', cost: 200, max: 8, color: '#22c55e', key: '3', desc: 'Huge range, pierces armor',
       up: [130, 210, 320, 470, 680],
       lv: [{ dmg: 40, rate: 0.45, range: 260 }, { dmg: 55, rate: 0.5, range: 275 }, { dmg: 78, rate: 0.55, range: 290 },
         { dmg: 110, rate: 0.6, range: 310 }, { dmg: 155, rate: 0.66, range: 335 }, { dmg: 225, rate: 0.75, range: 370 }],
     },
     flamethrower: {
-      name: 'Flamethrower', cost: 150, max: 5, color: '#ef4444', icon: '🔥', key: '4', desc: 'Burns everything close by',
+      name: 'Flamethrower', cost: 150, max: 5, color: '#ef4444', key: '4', desc: 'Burns everything close by',
       up: [100, 160, 240, 350, 520],
       lv: [{ dmg: 2, rate: 6, range: 78, burn: 4 }, { dmg: 2.6, rate: 6.5, range: 82, burn: 6 }, { dmg: 3.4, rate: 7, range: 86, burn: 9 },
         { dmg: 4.4, rate: 7.5, range: 92, burn: 13 }, { dmg: 5.6, rate: 8, range: 98, burn: 18 }, { dmg: 7.2, rate: 9, range: 106, burn: 25 }],
     },
     farm: {
-      name: 'Farm', cost: 75, max: 7, color: '#a3e635', icon: '🌾', key: '5', desc: 'Pays out after every wave',
+      name: 'Farm', cost: 75, max: 7, color: '#a3e635', key: '5', desc: 'Pays out after every wave',
       up: [75, 125, 200, 300, 450],
       lv: [{ income: 25 }, { income: 50 }, { income: 85 }, { income: 130 }, { income: 185 }, { income: 250 }],
     },
   };
   const ORDER = ['pistol', 'machinegun', 'sniper', 'flamethrower', 'farm'];
-  // Every level has its own name and icon (level 0 is the tower as bought).
-  const LOOKS = {
-    pistol: [['Pistol', '🔫'], ['Revolver', '🤠'], ['Dual Pistols', '✌️'], ['Hand Cannon', '💣'], ['Elite Marksman', '🎖️'], ['Golden Gun', '👑']],
-    machinegun: [['Machine Gun', '💥'], ['Heavy MG', '⚙️'], ['Twin MG', '🔩'], ['Armored Nest', '🛡️'], ['Minigun', '🌀'], ['Doom Gatling', '☢️']],
-    sniper: [['Sniper', '🎯'], ['Scoped Rifle', '🔭'], ['Eagle Eye', '🦅'], ['Cold Shot', '🧊'], ['Railgun', '⚡'], ['Deadeye', '💀']],
-    flamethrower: [['Flamethrower', '🔥'], ['Hot Sauce', '🌶️'], ['Magma', '🌋'], ['Inferno', '☄️'], ['Dragon Breath', '🐉'], ['Solar Flare', '☀️']],
-    farm: [['Farm', '🌾'], ['Corn Field', '🌽'], ['Ranch', '🐄'], ['Tractor Co.', '🚜'], ['Estate', '🏡'], ['Gold Mine', '💰']],
+  // Every level has its own name (level 0 is the tower as bought); td-icons.js has a picture for each.
+  const NAMES = {
+    pistol: ['Pistol', 'Revolver', 'Dual Pistols', 'Hand Cannon', 'Quick Draw', 'Laser Pistol'],
+    machinegun: ['Machine Gun', 'Grease Gun', 'Autogun', 'Chaingun', 'Minigun', 'Flak Cannon'],
+    sniper: ['Sniper', 'Hollow Point', 'Scoped Rifle', 'Eagle Eye', 'Railgun', 'Deadeye'],
+    flamethrower: ['Flamethrower', 'Hot Sauce', 'Flamer', 'Magma', 'Dragon Breath', 'Solar Flare'],
+    farm: ['Farm', 'Corn Field', 'Ranch', 'Tractor Co.', 'Barn', 'Gold Mine'],
   };
-  for (const k of ORDER) { TOWERS[k].names = LOOKS[k].map((x) => x[0]); TOWERS[k].icons = LOOKS[k].map((x) => x[1]); }
+  for (const k of ORDER) TOWERS[k].names = NAMES[k];
   const TARGETS = ['first', 'strong', 'last', 'close'];
 
   const ENEMIES = {
