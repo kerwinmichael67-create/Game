@@ -764,3 +764,56 @@ body[data-theme="dark"] .fav-btn.on { color: #c9c2ff; }
   .chat { --composer-h: 60px; }
 }
 .search-hit .grow { flex: 1; min-width: 0; }
+
+/* ============================================================
+   Tower Defense
+   ============================================================ */
+.td-wrap { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 14px; padding: 10px 14px 14px; min-height: 0; width: 100%; align-items: start; }
+.td-board { display: grid; place-items: center; min-width: 0; }
+.game-stage canvas.td-canvas { width: 100%; max-width: 1200px; max-height: calc(100vh - 140px); object-fit: contain; cursor: crosshair; background: #21452f; }
+.td-side { display: grid; gap: 8px; align-content: start; max-height: calc(100vh - 120px); overflow-y: auto; padding-right: 2px; }
+.td-h { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-top: 4px; }
+.td-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.td-stat { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 4px 10px; display: grid; }
+.td-stat.wide { grid-column: span 2; }
+.td-stat small { font-size: 11px; color: var(--muted); }
+.td-stat b { font: 700 17px var(--mono); }
+.td-stat b.low { color: var(--danger); }
+.td-wave-row { gap: 6px; flex-wrap: wrap; }
+.td-wave-row > .btn { flex: 1; }
+.td-speeds { display: inline-flex; gap: 3px; }
+.td-speed { padding: 5px 8px; }
+.td-speed.sel { background: var(--accent); color: #fff; border-color: var(--accent); }
+.td-shop { display: grid; gap: 5px; }
+.td-buy {
+  display: grid; grid-template-columns: 30px 1fr auto; grid-template-rows: auto auto; column-gap: 8px; align-items: center; text-align: left;
+  background: var(--surface); border: 1.5px solid var(--line); border-radius: 12px; padding: 4px 10px; cursor: pointer; color: var(--text); font: inherit;
+}
+.td-buy:hover:not(:disabled) { border-color: var(--accent); }
+.td-buy.sel { border-color: var(--accent); background: var(--accent-soft); }
+.td-buy:disabled { opacity: .45; cursor: not-allowed; }
+.td-buy-icon { grid-row: span 2; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-size: 15px; box-shadow: inset 0 -2px 0 rgba(0,0,0,.2); }
+.td-buy-name { font-weight: 600; font-size: 14px; }
+.td-buy-cost { font: 700 13px var(--mono); color: var(--accent); }
+.td-buy small { grid-column: 2 / 4; font-size: 11px; color: var(--muted); }
+.td-info { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px; display: grid; gap: 4px; min-height: 64px; }
+.td-help { font-size: 13px; }
+.td-sel-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.td-sel-head .td-buy-icon { grid-row: auto; }
+.td-pips { margin-left: auto; display: flex; gap: 3px; }
+.td-pips i { width: 10px; height: 10px; border-radius: 3px; background: var(--surface-3); }
+.td-pips i.on { background: #facc15; }
+.td-row { display: flex; gap: 6px; font-size: 13px; align-items: baseline; }
+.td-row span:first-child { flex: 1; color: var(--muted); }
+.td-row b { font-family: var(--mono); }
+.td-next { color: #16a34a; font: 600 12px var(--mono); }
+.td-actions { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.td-actions .btn.primary { flex-basis: 100%; }
+.td-opp { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; display: grid; gap: 2px; }
+.td-opp-line { display: flex; gap: 12px; font-size: 14px; }
+.td-mini { width: 100%; border-radius: 10px; box-shadow: none !important; }
+@media (max-width: 900px) {
+  .td-wrap { grid-template-columns: 1fr; padding: 6px; }
+  .td-side { max-height: none; }
+  .game-stage canvas.td-canvas { max-height: none; }
+}

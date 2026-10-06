@@ -603,6 +603,16 @@
 
   function start(game, level, me) {
     level = LEVELS[level] ? level : 'medium';
+    if (game === 'td') {
+      // Tower Defense: the bot plays its own map in this browser (td.js has its brain)
+      const id = 'bot-' + Date.now().toString(36);
+      const players = [me, { username: '__bot', name: `🤖 Bot (${LEVELS[level].label})`, avatar: '#f97316' }];
+      GameDock.start({
+        id, game, players, you: 0, state: null, bot: { level },
+        host: { send() {}, leave() { GameDock.over({ id, result: { winner: 1, reason: 'you forfeited' }, state: null }); }, rematch() { start(game, level, me); } },
+      });
+      return;
+    }
     if (game === 'apex') {
       // Apex Rush has its own bot driver; the frame runs the whole race
       const id = 'bot-' + Date.now().toString(36);

@@ -95,6 +95,48 @@ function unitTests() {
   res = null;
   for (let i = 0; i < 20000 && !res; i++) res = Realtime.pong.tick(pg);
   assert(res && res.winner >= 0);
+  // Tower Defense rules
+  const TD = require('../public/td.js');
+  const td = TD.create();
+  assert.strictEqual(td.money, 350);
+  assert.deepStrictEqual(TD.ORDER.map((k) => TD.TOWERS[k].cost), [100, 250, 200, 150, 75]);
+  assert.deepStrictEqual(TD.ORDER.map((k) => TD.TOWERS[k].max), [Infinity, 5, 8, 5, 7]);
+  for (const k of TD.ORDER) {
+    const up = TD.TOWERS[k].up;
+    assert.strictEqual(up.length, 5, k + ' has 5 upgrades');
+    assert(up.every((c, i) => i === 0 || c > up[i - 1]), k + ' upgrades get dearer');
+  }
+  assert.strictEqual(TD.TOWERS.farm.lv[0].income, 25);
+  assert.strictEqual(TD.TOWERS.farm.lv[5].income, 250);
+  assert.strictEqual(TD.place(td, 'pistol', 400, 70), 'Can’t build on the road');
+  assert.strictEqual(TD.place(td, 'pistol', 400, 135), null);
+  assert.strictEqual(td.money, 250);
+  assert.match(TD.place(td, 'sniper', 401, 136), /Too close/);
+  td.money = 1e6;
+  const spots = [];
+  for (let x = 30; x <= 770; x += 40) for (const y of [20, 135, 265, 395, 480]) spots.push([x, y]);
+  const tryAll = (st, type) => spots.filter(([x, y]) => !TD.place(st, type, x, y)).length;
+  for (const [type, max] of [['machinegun', 5], ['sniper', 8], ['flamethrower', 5], ['farm', 7]]) {
+    const fresh = Object.assign(TD.create(), { money: 1e6 });
+    assert.strictEqual(tryAll(fresh, type), max, type + ' limit');
+  }
+  assert.strictEqual(td.towers.length + tryAll(td, 'pistol'), 20, 'pistols only stop at 20 towers');
+  assert.match(TD.place(td, 'farm', 30, 480), /only have 20/);
+  const gone = td.towers[td.towers.length - 1];
+  TD.sell(td, gone.id);
+  assert.strictEqual(TD.place(td, 'farm', gone.x, gone.y), null);
+  const farm = td.towers.find((t) => t.type === 'farm');
+  for (let i = 0; i < 5; i++) assert.strictEqual(TD.upgrade(td, farm.id), null);
+  assert.strictEqual(TD.upgrade(td, farm.id), 'Fully upgraded');
+  for (const n of [5, 10, 25]) assert(TD.waveList(n).some(([k]) => TD.ENEMIES[k].boss), `boss on wave ${n}`);
+  for (const n of [4, 6, 9, 11, 24]) assert(!TD.waveList(n).some(([k]) => TD.ENEMIES[k].boss), `no boss on wave ${n}`);
+  // a full game with the hard bot reaches the end
+  const tb = TD.create();
+  for (let i = 0, ai = 0; i < 30 * 60 * 40 && tb.phase !== 'dead' && tb.phase !== 'won'; i++) {
+    TD.step(tb, 1 / 30);
+    if (i % 15 === 0) while (TD.ai(tb, 'hard'));
+  }
+  assert.strictEqual(tb.phase, 'won', `hard bot beats wave 25 (got to ${tb.cleared})`);
   // a browser-moved paddle / mallet may only move a short way per message, and stays in bounds
   const pp = Realtime.pong.init();
   Realtime.pong.input(pp, 1, { y: 9999 });
@@ -300,6 +342,17 @@ async function e2e(port) {
   const apexOver = await b.wait(is('gameOver', (m) => m.id === g.id));
   assert.deepStrictEqual(apexOver.result, { winner: 1, reason: '1:02.345 vs 1:03.001' });
   await a.wait(is('msg', (m) => m.msg.sys && m.msg.text.includes('Jerry beat Bob at Apex Rush 3D')));
+  // tower defense: progress reports are passed along, the result ends the game
+  a.send({ t: 'gameInvite', game: 'td', to: 'Jerry', room: 'global' });
+  const tdInv = await b.wait(is('invite', (m) => m.invite.game === 'td'));
+  b.send({ t: 'gameRespond', id: tdInv.invite.id, accept: true });
+  const tdStart = await a.wait(is('gameStart', (m) => m.game === 'td'));
+  await b.wait(is('gameStart', (m) => m.game === 'td'));
+  a.send({ t: 'gameInput', id: tdStart.id, input: { kind: 'msg', data: { k: 's', t: 1, w: 3, c: 2, l: 90, tw: [[0, 400, 135, 1]] } } });
+  assert.strictEqual((await b.wait(is('gameEvent', (m) => m.id === tdStart.id))).ev.msg.c, 2);
+  b.send({ t: 'gameInput', id: tdStart.id, input: { kind: 'result', winner: 0, reason: 'survived 2 waves vs 1' } });
+  assert.strictEqual((await a.wait(is('gameOver', (m) => m.id === tdStart.id))).result.winner, 0);
+  await b.wait(is('msg', (m) => m.msg.sys && m.msg.text.includes('Bob beat Jerry at Tower Defense')));
 
   // file uploads: upload, send, receive; only your own uploads can be attached; served safely
   const base = `http://localhost:${port}`;

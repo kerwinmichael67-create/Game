@@ -22,7 +22,7 @@ body = body.slice(0, formStart) +
 body = body.replace('<div id="auth" class="auth hidden">', '<div id="auth" class="auth">');
 
 const css = read('public/style.css');
-const scripts = ['shared/rules.js', 'realtime.js', 'public/games.js', 'public/bots.js', 'artifact/backend.js', 'public/app.js'];
+const scripts = ['shared/rules.js', 'realtime.js', 'public/td.js', 'public/td-ui.js', 'public/games.js', 'public/bots.js', 'artifact/backend.js', 'public/app.js'];
 
 const html = `<title>Game Chat</title>
 <meta name="theme-color" content="#6d5dfc">

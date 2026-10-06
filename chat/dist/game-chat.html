@@ -769,6 +769,59 @@ body[data-theme="dark"] .fav-btn.on { color: #c9c2ff; }
 }
 .search-hit .grow { flex: 1; min-width: 0; }
 
+/* ============================================================
+   Tower Defense
+   ============================================================ */
+.td-wrap { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 14px; padding: 10px 14px 14px; min-height: 0; width: 100%; align-items: start; }
+.td-board { display: grid; place-items: center; min-width: 0; }
+.game-stage canvas.td-canvas { width: 100%; max-width: 1200px; max-height: calc(100vh - 140px); object-fit: contain; cursor: crosshair; background: #21452f; }
+.td-side { display: grid; gap: 8px; align-content: start; max-height: calc(100vh - 120px); overflow-y: auto; padding-right: 2px; }
+.td-h { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-top: 4px; }
+.td-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.td-stat { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 4px 10px; display: grid; }
+.td-stat.wide { grid-column: span 2; }
+.td-stat small { font-size: 11px; color: var(--muted); }
+.td-stat b { font: 700 17px var(--mono); }
+.td-stat b.low { color: var(--danger); }
+.td-wave-row { gap: 6px; flex-wrap: wrap; }
+.td-wave-row > .btn { flex: 1; }
+.td-speeds { display: inline-flex; gap: 3px; }
+.td-speed { padding: 5px 8px; }
+.td-speed.sel { background: var(--accent); color: #fff; border-color: var(--accent); }
+.td-shop { display: grid; gap: 5px; }
+.td-buy {
+  display: grid; grid-template-columns: 30px 1fr auto; grid-template-rows: auto auto; column-gap: 8px; align-items: center; text-align: left;
+  background: var(--surface); border: 1.5px solid var(--line); border-radius: 12px; padding: 4px 10px; cursor: pointer; color: var(--text); font: inherit;
+}
+.td-buy:hover:not(:disabled) { border-color: var(--accent); }
+.td-buy.sel { border-color: var(--accent); background: var(--accent-soft); }
+.td-buy:disabled { opacity: .45; cursor: not-allowed; }
+.td-buy-icon { grid-row: span 2; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-size: 15px; box-shadow: inset 0 -2px 0 rgba(0,0,0,.2); }
+.td-buy-name { font-weight: 600; font-size: 14px; }
+.td-buy-cost { font: 700 13px var(--mono); color: var(--accent); }
+.td-buy small { grid-column: 2 / 4; font-size: 11px; color: var(--muted); }
+.td-info { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px; display: grid; gap: 4px; min-height: 64px; }
+.td-help { font-size: 13px; }
+.td-sel-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.td-sel-head .td-buy-icon { grid-row: auto; }
+.td-pips { margin-left: auto; display: flex; gap: 3px; }
+.td-pips i { width: 10px; height: 10px; border-radius: 3px; background: var(--surface-3); }
+.td-pips i.on { background: #facc15; }
+.td-row { display: flex; gap: 6px; font-size: 13px; align-items: baseline; }
+.td-row span:first-child { flex: 1; color: var(--muted); }
+.td-row b { font-family: var(--mono); }
+.td-next { color: #16a34a; font: 600 12px var(--mono); }
+.td-actions { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.td-actions .btn.primary { flex-basis: 100%; }
+.td-opp { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; display: grid; gap: 2px; }
+.td-opp-line { display: flex; gap: 12px; font-size: 14px; }
+.td-mini { width: 100%; border-radius: 10px; box-shadow: none !important; }
+@media (max-width: 900px) {
+  .td-wrap { grid-template-columns: 1fr; padding: 6px; }
+  .td-side { max-height: none; }
+  .game-stage canvas.td-canvas { max-height: none; }
+}
+
 </style>
 <!-- Sign in / create account -->
 <div id="auth" class="auth">
@@ -778,7 +831,7 @@ body[data-theme="dark"] .fav-btn.on { color: #c9c2ff; }
     <div class="auth-tiles">
       <span>🐍 Snake PvP</span><span>♟️ Chess</span><span>⛀ Checkers</span><span>🧱 Tetris Battle</span>
       <span>🥊 Street Fighter</span><span>🏓 Pong</span><span>🔴 Connect Four</span><span>❌ Tic-Tac-Toe</span>
-      <span>⚫ Reversi</span><span>🔲 Dots &amp; Boxes</span><span>🫘 Mancala</span><span>⭕ Five in a Row</span><span>🏍️ Light Cycles</span><span>🏒 Air Hockey</span><span>🏎️ Apex Rush 3D</span>
+      <span>⚫ Reversi</span><span>🔲 Dots &amp; Boxes</span><span>🫘 Mancala</span><span>⭕ Five in a Row</span><span>🏍️ Light Cycles</span><span>🏒 Air Hockey</span><span>🏎️ Apex Rush 3D</span><span>🏰 Tower Defense</span>
     </div>
   </div>
   <div id="authForm" class="auth-card">
@@ -1742,6 +1795,686 @@ else globalThis.Realtime = Realtime;
 
 </script>
 <script>
+// Tower Defense engine: one player's map. No drawing here, so the same code runs the game you
+// play, the bot opponent, and the balance tests.
+//   TD.create() -> state      TD.step(state, dt)      TD.place / upgrade / sell / retarget / startWave
+//   TD.ai(state, level)       picks and makes one purchase for the bot
+(function (root) {
+  const W = 800, H = 500;
+  const START_MONEY = 350, START_LIVES = 100, LAST_WAVE = 25, BOSS_WAVES = [5, 10, 25];
+  const MAX_TOWERS = 20, FIRST_BREAK = 25, BREAK = 12;
+  const ROAD = 18, TOWER_R = 13;
+
+  // The road enemies walk along.
+  const PATH = [[-20, 70], [690, 70], [690, 200], [110, 200], [110, 330], [690, 330], [690, 440], [820, 440]];
+  const SEG = [];
+  let PATH_LEN = 0;
+  for (let i = 1; i < PATH.length; i++) {
+    const [ax, ay] = PATH[i - 1], [bx, by] = PATH[i], len = Math.hypot(bx - ax, by - ay);
+    SEG.push({ ax, ay, bx, by, len, at: PATH_LEN });
+    PATH_LEN += len;
+  }
+  function pointAt(d) {
+    d = Math.max(0, Math.min(PATH_LEN, d));
+    for (const s of SEG) {
+      if (d <= s.at + s.len) { const t = (d - s.at) / s.len; return [s.ax + (s.bx - s.ax) * t, s.ay + (s.by - s.ay) * t]; }
+    }
+    return PATH[PATH.length - 1].slice();
+  }
+  function distToPath(x, y) {
+    let best = Infinity;
+    for (const s of SEG) {
+      const dx = s.bx - s.ax, dy = s.by - s.ay;
+      const t = Math.max(0, Math.min(1, ((x - s.ax) * dx + (y - s.ay) * dy) / (s.len * s.len)));
+      best = Math.min(best, Math.hypot(x - (s.ax + dx * t), y - (s.ay + dy * t)));
+    }
+    return best;
+  }
+  const SAMPLES = [];
+  for (let d = 0; d <= PATH_LEN; d += 10) SAMPLES.push(pointAt(d));
+
+  // Towers: level 0 is as bought; 5 upgrades each, every one dearer than the last.
+  const TOWERS = {
+    pistol: {
+      name: 'Pistol', cost: 100, max: Infinity, color: '#94a3b8', icon: '🔫', key: '1', desc: 'Cheap all-rounder',
+      up: [60, 110, 180, 280, 420],
+      lv: [{ dmg: 6, rate: 1.6, range: 115 }, { dmg: 8, rate: 1.9, range: 122 }, { dmg: 11, rate: 2.2, range: 130 },
+        { dmg: 15, rate: 2.6, range: 138 }, { dmg: 21, rate: 3.0, range: 148 }, { dmg: 30, rate: 3.6, range: 160 }],
+    },
+    machinegun: {
+      name: 'Machine gun', cost: 250, max: 5, color: '#f59e0b', icon: '💥', key: '2', desc: 'Very fast fire; armor blunts it',
+      up: [160, 260, 380, 540, 760],
+      lv: [{ dmg: 3, rate: 9, range: 118 }, { dmg: 3.6, rate: 10.5, range: 124 }, { dmg: 4.4, rate: 12, range: 130 },
+        { dmg: 5.5, rate: 14, range: 136 }, { dmg: 7, rate: 16, range: 145 }, { dmg: 9, rate: 19, range: 155 }],
+    },
+    sniper: {
+      name: 'Sniper', cost: 200, max: 8, color: '#22c55e', icon: '🎯', key: '3', desc: 'Huge range, pierces armor',
+      up: [130, 210, 320, 470, 680],
+      lv: [{ dmg: 40, rate: 0.45, range: 260 }, { dmg: 55, rate: 0.5, range: 275 }, { dmg: 78, rate: 0.55, range: 290 },
+        { dmg: 110, rate: 0.6, range: 310 }, { dmg: 155, rate: 0.66, range: 335 }, { dmg: 225, rate: 0.75, range: 370 }],
+    },
+    flamethrower: {
+      name: 'Flamethrower', cost: 150, max: 5, color: '#ef4444', icon: '🔥', key: '4', desc: 'Burns everything close by',
+      up: [100, 160, 240, 350, 520],
+      lv: [{ dmg: 2, rate: 6, range: 78, burn: 4 }, { dmg: 2.6, rate: 6.5, range: 82, burn: 6 }, { dmg: 3.4, rate: 7, range: 86, burn: 9 },
+        { dmg: 4.4, rate: 7.5, range: 92, burn: 13 }, { dmg: 5.6, rate: 8, range: 98, burn: 18 }, { dmg: 7.2, rate: 9, range: 106, burn: 25 }],
+    },
+    farm: {
+      name: 'Farm', cost: 75, max: 7, color: '#a3e635', icon: '🌾', key: '5', desc: 'Pays out after every wave',
+      up: [75, 125, 200, 300, 450],
+      lv: [{ income: 25 }, { income: 50 }, { income: 85 }, { income: 130 }, { income: 185 }, { income: 250 }],
+    },
+  };
+  const ORDER = ['pistol', 'machinegun', 'sniper', 'flamethrower', 'farm'];
+  const TARGETS = ['first', 'strong', 'last', 'close'];
+
+  const ENEMIES = {
+    grunt: { name: 'Grunt', hp: 20, speed: 62, reward: 3, dmg: 1, r: 9, color: '#e11d48' },
+    runner: { name: 'Runner', hp: 13, speed: 112, reward: 3, dmg: 1, r: 7, color: '#f97316' },
+    brute: { name: 'Brute', hp: 95, speed: 40, reward: 9, dmg: 3, r: 13, color: '#7c3aed' },
+    shield: { name: 'Shield', hp: 60, speed: 52, reward: 7, dmg: 2, r: 11, armor: 3, color: '#0ea5e9' },
+    warlord: { name: 'Warlord', hp: 650, speed: 34, reward: 120, dmg: 25, r: 20, boss: true, color: '#b91c1c' },
+    juggernaut: { name: 'Juggernaut', hp: 1500, speed: 30, reward: 250, dmg: 45, r: 23, armor: 4, boss: true, color: '#1e3a8a' },
+    overlord: { name: 'Overlord', hp: 3800, speed: 24, reward: 0, dmg: 100, r: 27, armor: 6, boss: true, color: '#111827' },
+  };
+  const BOSS_OF = { 5: 'warlord', 10: 'juggernaut', 25: 'overlord' };
+
+  const hpScale = (n) => (n <= 12 ? Math.pow(1.18, n - 1) : Math.pow(1.18, 11) * Math.pow(1.11, n - 12)); // steep early, then steady
+  // The same waves for everyone: a list of [kind, seconds after the previous one].
+  function waveList(n) {
+    const out = [];
+    const add = (kind, count, gap) => { for (let i = 0; i < count; i++) out.push([kind, gap]); };
+    add('grunt', 6 + Math.floor(n * 1.3), Math.max(0.3, 0.8 - n * 0.02));
+    if (n >= 3) add('runner', Math.floor(n * 1.1), 0.4);
+    if (n >= 5) add('brute', Math.floor((n - 3) / 1.6), 1.0);
+    if (n >= 11) add('shield', Math.floor((n - 8) / 1.4), 0.75);
+    if (BOSS_OF[n]) {
+      out.push([BOSS_OF[n], 2]);
+      if (n === 25) add('brute', 6, 1.5);
+    }
+    return out;
+  }
+
+  function create() {
+    return {
+      money: START_MONEY, lives: START_LIVES, wave: 0, cleared: 0, phase: 'build', breakT: FIRST_BREAK, t: 0,
+      towers: [], enemies: [], queue: [], spawnT: 0, nextId: 1, kills: 0, fx: [], events: [], boss: null, earned: 0,
+    };
+  }
+  const statsOf = (t) => TOWERS[t.type].lv[t.lvl];
+  const countOf = (s, type) => s.towers.filter((t) => t.type === type).length;
+  const upgradeCost = (t) => (t.lvl < 5 ? TOWERS[t.type].up[t.lvl] : null);
+  const sellValue = (t) => Math.floor(t.spent * 0.7);
+  function farmIncome(s) { return s.towers.reduce((a, t) => a + (t.type === 'farm' ? TOWERS.farm.lv[t.lvl].income : 0), 0); }
+
+  function canPlace(s, type, x, y) {
+    const def = TOWERS[type];
+    if (!def) return 'Unknown tower';
+    if (s.phase === 'dead' || s.phase === 'won') return 'The game is over';
+    if (s.towers.length >= MAX_TOWERS) return `You can only have ${MAX_TOWERS} towers`;
+    if (countOf(s, type) >= def.max) return `You can only have ${def.max} ${def.name.toLowerCase()}${def.max === 1 ? '' : 's'}`;
+    if (s.money < def.cost) return `Need $${def.cost}`;
+    if (!(x >= TOWER_R + 2 && x <= W - TOWER_R - 2 && y >= TOWER_R + 2 && y <= H - TOWER_R - 2)) return 'Out of bounds';
+    if (distToPath(x, y) < ROAD + TOWER_R - 2) return 'Can’t build on the road';
+    if (s.towers.some((t) => Math.hypot(t.x - x, t.y - y) < TOWER_R * 2 + 2)) return 'Too close to another tower';
+    return null;
+  }
+  function place(s, type, x, y) {
+    const err = canPlace(s, type, x, y);
+    if (err) return err;
+    s.money -= TOWERS[type].cost;
+    s.towers.push({ id: s.nextId++, type, x, y, lvl: 0, cd: 0, aim: 0, target: type === 'sniper' ? 'strong' : 'first', spent: TOWERS[type].cost, dmg: 0 });
+    return null;
+  }
+  const find = (s, id) => s.towers.find((t) => t.id === id);
+  function upgrade(s, id) {
+    const t = find(s, id);
+    if (!t) return 'No such tower';
+    const c = upgradeCost(t);
+    if (c === null) return 'Fully upgraded';
+    if (s.money < c) return `Need $${c}`;
+    s.money -= c; t.spent += c; t.lvl++;
+    return null;
+  }
+  function sell(s, id) {
+    const t = find(s, id);
+    if (!t) return 'No such tower';
+    s.money += sellValue(t);
+    s.towers = s.towers.filter((x) => x !== t);
+    return null;
+  }
+  function retarget(s, id) {
+    const t = find(s, id);
+    if (t && t.type !== 'farm') t.target = TARGETS[(TARGETS.indexOf(t.target) + 1) % TARGETS.length];
+  }
+  function startWave(s) {
+    if (s.phase !== 'build') return;
+    s.wave++;
+    s.phase = 'wave';
+    s.queue = waveList(s.wave).slice();
+    s.spawnT = 0.5;
+    s.events.push({ type: 'wave', wave: s.wave, boss: BOSS_OF[s.wave] || null });
+  }
+
+  function spawn(s, kind) {
+    const e = ENEMIES[kind], hp = Math.round(e.hp * hpScale(s.wave));
+    const en = { id: s.nextId++, kind, hp, max: hp, d: 0, speed: e.speed, armor: e.armor || 0, burn: 0, burnT: 0, boss: !!e.boss };
+    s.enemies.push(en);
+    if (en.boss) { s.boss = en.id; s.events.push({ type: 'boss', kind }); }
+  }
+  function hurt(s, e, amount, t) {
+    if (e.hp <= 0) return;
+    e.hp -= amount;
+    if (t) t.dmg += amount;
+    if (e.hp <= 0) {
+      s.kills++;
+      const r = ENEMIES[e.kind].reward;
+      s.money += r; s.earned += r;
+      if (e.id === s.boss) s.boss = null;
+    }
+  }
+  function pickTarget(t, list) {
+    switch (t.target) {
+      case 'strong': return list.reduce((a, b) => (b.hp > a.hp ? b : a));
+      case 'last': return list.reduce((a, b) => (b.d < a.d ? b : a));
+      case 'close': return list.reduce((a, b) => (Math.hypot(b.x - t.x, b.y - t.y) < Math.hypot(a.x - t.x, a.y - t.y) ? b : a));
+      default: return list.reduce((a, b) => (b.d > a.d ? b : a));
+    }
+  }
+
+  function step(s, dt) {
+    if (s.phase === 'dead' || s.phase === 'won') return;
+    s.t += dt;
+    s.fx = s.fx.filter((f) => (f.life -= dt) > 0);
+    if (s.phase === 'build') {
+      s.breakT -= dt;
+      if (s.breakT <= 0) startWave(s);
+      return;
+    }
+    // spawn
+    s.spawnT -= dt;
+    while (s.queue.length && s.spawnT <= 0) {
+      const [kind] = s.queue.shift();
+      spawn(s, kind);
+      s.spawnT += s.queue.length ? s.queue[0][1] : 0;
+    }
+    // move, burn, leak
+    for (const e of s.enemies) {
+      e.d += e.speed * dt;
+      if (e.burnT > 0) { e.burnT -= dt; hurt(s, e, e.burn * dt, null); }
+      const p = pointAt(e.d); e.x = p[0]; e.y = p[1];
+    }
+    for (const e of s.enemies) {
+      if (e.hp > 0 && e.d >= PATH_LEN) {
+        s.lives -= ENEMIES[e.kind].dmg;
+        e.hp = 0;
+        if (e.id === s.boss) s.boss = null;
+        s.events.push({ type: 'leak', kind: e.kind });
+      }
+    }
+    s.enemies = s.enemies.filter((e) => e.hp > 0);
+    if (s.lives <= 0) { s.lives = 0; s.phase = 'dead'; s.events.push({ type: 'dead' }); return; }
+    // towers
+    for (const t of s.towers) {
+      if (t.type === 'farm') continue;
+      const st = statsOf(t);
+      t.cd -= dt;
+      if (t.cd > 0) continue;
+      const inRange = s.enemies.filter((e) => e.hp > 0 && Math.hypot(e.x - t.x, e.y - t.y) <= st.range);
+      if (!inRange.length) { t.cd = 0; continue; }
+      t.cd += 1 / st.rate;
+      if (t.cd < 0) t.cd = 0;
+      const e = pickTarget(t, inRange);
+      t.aim = Math.atan2(e.y - t.y, e.x - t.x);
+      if (t.type === 'flamethrower') {
+        for (const o of inRange) {
+          hurt(s, o, Math.max(st.dmg * 0.3, st.dmg - o.armor * 0.5), t);
+          o.burn = Math.max(o.burn, st.burn); o.burnT = 2;
+        }
+        s.fx.push({ type: 'flame', x: t.x, y: t.y, a: t.aim, r: st.range, life: 0.12 });
+      } else {
+        const dmg = t.type === 'sniper' ? st.dmg : Math.max(st.dmg * 0.25, st.dmg - e.armor);
+        hurt(s, e, dmg, t);
+        s.fx.push({ type: t.type, x: t.x, y: t.y, tx: e.x, ty: e.y, life: t.type === 'sniper' ? 0.15 : 0.06 });
+      }
+    }
+    s.enemies = s.enemies.filter((e) => e.hp > 0);
+    // wave over
+    if (!s.queue.length && !s.enemies.length) {
+      s.cleared = s.wave;
+      const bonus = 40 + s.wave * 8, farms = farmIncome(s);
+      s.money += bonus + farms; s.earned += bonus + farms;
+      s.events.push({ type: 'cleared', wave: s.wave, bonus, farms });
+      if (s.wave >= LAST_WAVE) { s.phase = 'won'; s.events.push({ type: 'won' }); return; }
+      s.phase = 'build';
+      s.breakT = BREAK;
+    }
+  }
+
+  // ---------------------------------------------------------------- the bot
+  // Spot picking: how much of the road a tower at (x, y) with this range covers.
+  const SPOTS = [];
+  for (let x = 20; x <= W - 20; x += 20) for (let y = 20; y <= H - 20; y += 20) if (distToPath(x, y) >= ROAD + TOWER_R) SPOTS.push([x, y]);
+  const covCache = new Map();
+  function coverage(x, y, range) {
+    const k = x + ',' + y + ',' + range;
+    let v = covCache.get(k);
+    if (v === undefined) { v = 0; for (const [px, py] of SAMPLES) if (Math.hypot(px - x, py - y) <= range) v++; covCache.set(k, v); }
+    return v;
+  }
+  function bestSpot(s, type, jitter) {
+    const range = type === 'farm' ? 0 : TOWERS[type].lv[0].range;
+    let best = null, bestV = -Infinity;
+    for (const [x, y] of SPOTS) {
+      if (canPlace(s, type, x, y)) continue;
+      // farms go where guns don't want to be; guns go where they see the most road
+      const v = type === 'farm' ? -coverage(x, y, 120) : coverage(x, y, range) * (1 + (jitter ? (Math.random() - 0.5) * jitter : 0));
+      if (v > bestV) { bestV = v; best = [x, y]; }
+    }
+    return best;
+  }
+  // a tower's worth: damage per second times how much road it sees
+  function towerValue(type, lvl, x, y) {
+    const st = TOWERS[type].lv[lvl];
+    let dps = st.dmg * st.rate;
+    if (type === 'flamethrower') dps = dps * 3.5 + st.burn * 1.5; // hits whole crowds
+    if (type === 'machinegun') dps *= 0.85; // armor
+    // a single gun can only use so much road: more coverage helps less and less
+    return dps * Math.sqrt(coverage(x, y, st.range));
+  }
+  function defense(s) { return s.towers.reduce((a, t) => a + (t.type === 'farm' ? 0 : towerValue(t.type, t.lvl, t.x, t.y)), 0); }
+  function need(n) { // what wave n asks for, in the same units (tuned against the simulation)
+    const hp = waveList(n).reduce((a, [k]) => a + ENEMIES[k].hp * hpScale(n), 0);
+    return hp * 0.16;
+  }
+  const AI = {
+    easy: { farmUntil: 6, maxFarms: 2, margin: 0.45, jitter: 1.2, farmLevel: 1, maxLevel: 1, maxTowers: 7, spendEvery: 5 },
+    medium: { farmUntil: 12, maxFarms: 3, margin: 0.8, jitter: 0.5, farmLevel: 2, maxLevel: 2, maxTowers: 12, spendEvery: 3 },
+    hard: { farmUntil: 17, maxFarms: 7, margin: 1.35, jitter: 0, farmLevel: 5, maxLevel: 5, maxTowers: MAX_TOWERS, spendEvery: 0 },
+  };
+  function ai(s, level) {
+    const p = AI[level] || AI.medium;
+    if (s.phase === 'dead' || s.phase === 'won') return null;
+    if (p.spendEvery && s.t - (s.aiAt || -99) < p.spendEvery) return null; // slower hands
+    const upcoming = s.wave + 1;
+    // losing lives means the estimate was too low: lean harder on defense from now on
+    if (s.aiLives === undefined) { s.aiLives = s.lives; s.aiPressure = 1; }
+    if (s.lives < s.aiLives) { s.aiPressure = Math.min(5, s.aiPressure * 1.3); s.aiLives = s.lives; }
+    const bossSoon = BOSS_OF[upcoming] || (s.phase === 'wave' && BOSS_OF[s.wave]);
+    const want = need(Math.min(LAST_WAVE, upcoming)) * p.margin * s.aiPressure * (bossSoon ? 1.5 : 1);
+    const have = defense(s);
+    const options = [];
+    // defense: new towers and upgrades, by value per dollar
+    if (s.towers.length < p.maxTowers) {
+      for (const type of ORDER) {
+        if (type === 'farm' || countOf(s, type) >= TOWERS[type].max) continue;
+        const spot = bestSpot(s, type, p.jitter);
+        if (!spot) continue;
+        options.push({ kind: 'place', type, x: spot[0], y: spot[1], cost: TOWERS[type].cost, gain: towerValue(type, 0, spot[0], spot[1]) });
+      }
+    }
+    for (const t of s.towers) {
+      if (t.type === 'farm' || t.lvl >= p.maxLevel) continue;
+      options.push({ kind: 'up', id: t.id, cost: upgradeCost(t), gain: towerValue(t.type, t.lvl + 1, t.x, t.y) - towerValue(t.type, t.lvl, t.x, t.y) });
+    }
+    const bestDef = options.sort((a, b) => b.gain / b.cost - a.gain / a.cost)[0];
+    // economy
+    let eco = null;
+    if (upcoming <= p.farmUntil) {
+      const farms = s.towers.filter((t) => t.type === 'farm');
+      const low = farms.filter((t) => t.lvl < p.farmLevel).sort((a, b) => a.lvl - b.lvl)[0];
+      if (farms.length < p.maxFarms && s.towers.length < MAX_TOWERS - 4) {
+        const spot = bestSpot(s, 'farm');
+        if (spot) eco = { kind: 'place', type: 'farm', x: spot[0], y: spot[1], cost: TOWERS.farm.cost };
+      } else if (low) eco = { kind: 'up', id: low.id, cost: upgradeCost(low) };
+    }
+    const choice = have < want || !eco ? bestDef : eco;
+    if (!choice || s.money < choice.cost) return null;
+    s.aiAt = s.t;
+    if (choice.kind === 'place') place(s, choice.type, choice.x, choice.y);
+    else upgrade(s, choice.id);
+    return choice;
+  }
+
+  const TD = {
+    W, H, PATH, PATH_LEN, ROAD, TOWER_R, TOWERS, ORDER, ENEMIES, TARGETS, MAX_TOWERS, LAST_WAVE, BOSS_WAVES, START_MONEY, START_LIVES,
+    create, step, place, canPlace, upgrade, sell, retarget, startWave, waveList, statsOf, upgradeCost, sellValue, farmIncome, countOf, pointAt, ai,
+  };
+  if (typeof module !== 'undefined' && module.exports) module.exports = TD;
+  else root.TD = TD;
+})(typeof window !== 'undefined' ? window : this);
+
+</script>
+<script>
+// Tower Defense screen. Each player defends their own map (td.js) against the same waves; the
+// two browsers only swap progress reports (wave, lives, towers) for the scoreboard and mini-map.
+// Whoever survives more waves wins; clearing wave 25 wins outright.
+(() => {
+  function h(tag, attrs, ...kids) {
+    const el = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs || {})) {
+      if (v === null || v === undefined || v === false) continue;
+      if (k === 'class') el.className = v;
+      else if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+      else el.setAttribute(k, v === true ? '' : v);
+    }
+    for (const kid of kids.flat()) if (kid !== null && kid !== undefined && kid !== false) el.append(kid instanceof Node ? kid : String(kid));
+    return el;
+  }
+  const isTyping = () => { const a = document.activeElement; return a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.isContentEditable); };
+  const money = (n) => '$' + Math.floor(n).toLocaleString();
+  const TARGET_LABEL = { first: 'First', strong: 'Strongest', last: 'Last', close: 'Closest' };
+  const BOSS_NAME = { 5: 'Warlord', 10: 'Juggernaut', 25: 'Overlord' };
+
+  window.TDGame = function TDGame(stage, api) {
+    const T = window.TD, s = T.create();
+    const me = api.you, oppIdx = 1 - me, oppName = api.players[oppIdx].name;
+    let opp = null; // the other player's last report
+    let bot = null;
+    if (api.bot) bot = { s: T.create(), level: api.bot.level, aiT: 0 };
+
+    // ---------------------------------------------------------------- layout
+    const cv = h('canvas', { width: T.W, height: T.H, class: 'td-canvas' });
+    const ctx = cv.getContext('2d');
+    const stats = h('div', { class: 'td-stats' });
+    const waveBtn = h('button', { class: 'btn primary small', onclick: () => { T.startWave(s); render(); } }, 'Start wave now');
+    const speedBtns = [1, 2, 3].map((n) => h('button', { class: 'btn small td-speed' + (n === 1 ? ' sel' : ''), onclick: () => setSpeed(n) }, n + '×'));
+    const shop = h('div', { class: 'td-shop' });
+    const shopBtns = {};
+    for (const type of T.ORDER) {
+      const d = T.TOWERS[type];
+      shopBtns[type] = h('button', { class: 'td-buy', title: `${d.name}: ${d.desc} (key ${d.key})`, onclick: () => choose(type) },
+        h('span', { class: 'td-buy-icon', style: `background:${d.color}` }, d.icon),
+        h('span', { class: 'td-buy-name' }, d.name), h('span', { class: 'td-buy-cost' }, money(d.cost)), h('small', {}, ''));
+      shop.append(shopBtns[type]);
+    }
+    const info = h('div', { class: 'td-info' });
+    const oppMap = h('canvas', { width: 200, height: 125, class: 'td-mini' });
+    const oppBox = h('div', { class: 'td-opp' });
+    stage.append(h('div', { class: 'td-wrap' },
+      h('div', { class: 'td-board' }, cv),
+      h('div', { class: 'td-side' }, stats, h('div', { class: 'row td-wave-row' }, waveBtn, h('span', { class: 'td-speeds' }, speedBtns)),
+        h('b', { class: 'td-h' }, 'Towers'), shop, info, h('b', { class: 'td-h' }, api.bot ? oppName : `${oppName}’s map`), oppBox, oppMap)));
+
+    // ---------------------------------------------------------------- input
+    let placing = null, selected = null, hover = null, speed = 1;
+    const banners = [];
+    function setSpeed(n) { speed = n; speedBtns.forEach((b, i) => b.classList.toggle('sel', i + 1 === n)); }
+    function choose(type) { placing = placing === type ? null : type; selected = null; render(); }
+    const toMap = (e) => { const r = cv.getBoundingClientRect(); return [((e.clientX - r.left) / r.width) * T.W, ((e.clientY - r.top) / r.height) * T.H]; };
+    cv.addEventListener('pointermove', (e) => { hover = toMap(e); });
+    cv.addEventListener('pointerleave', () => { hover = null; });
+    cv.addEventListener('contextmenu', (e) => { e.preventDefault(); placing = null; selected = null; render(); });
+    cv.addEventListener('click', (e) => {
+      const [x, y] = toMap(e);
+      if (placing) {
+        const err = T.place(s, placing, Math.round(x), Math.round(y));
+        if (err) flash(err);
+        else if (!e.shiftKey || s.money < T.TOWERS[placing].cost) { selected = s.towers[s.towers.length - 1].id; placing = null; } // hold Shift to keep placing
+        render();
+        return;
+      }
+      const t = s.towers.find((t) => Math.hypot(t.x - x, t.y - y) <= T.TOWER_R + 4);
+      selected = t ? t.id : null;
+      render();
+    });
+    const onKey = (e) => {
+      if (isTyping() || e.ctrlKey || e.metaKey || e.altKey) return;
+      const type = T.ORDER.find((k) => T.TOWERS[k].key === e.key);
+      if (type) { choose(type); e.preventDefault(); return; }
+      if (e.key === 'Escape') { placing = null; selected = null; render(); }
+      else if (e.key === ' ' && s.phase === 'build') { T.startWave(s); e.preventDefault(); render(); }
+      else if ((e.key === 'u' || e.key === 'U') && selected) { const err = T.upgrade(s, selected); if (err) flash(err); render(); }
+      else if ((e.key === 't' || e.key === 'T') && selected) { T.retarget(s, selected); render(); }
+    };
+    addEventListener('keydown', onKey);
+    let flashMsg = null;
+    function flash(text) { flashMsg = { text, until: performance.now() + 1800 }; }
+
+    // ---------------------------------------------------------------- side panel
+    function render() {
+      const inc = T.farmIncome(s);
+      stats.replaceChildren(...[
+        h('div', { class: 'td-stat' }, h('small', {}, 'Lives'), h('b', { class: s.lives <= 25 ? 'low' : '' }, '❤ ' + s.lives)),
+        h('div', { class: 'td-stat' }, h('small', {}, 'Money'), h('b', {}, money(s.money))),
+        h('div', { class: 'td-stat' }, h('small', {}, 'Wave'), h('b', {}, `${s.wave} / ${T.LAST_WAVE}`)),
+        h('div', { class: 'td-stat' }, h('small', {}, 'Towers'), h('b', {}, `${s.towers.length} / ${T.MAX_TOWERS}`)),
+        inc ? h('div', { class: 'td-stat wide' }, h('small', {}, 'Farms pay after each wave'), h('b', {}, '🌾 ' + money(inc))) : null].filter(Boolean));
+      waveBtn.disabled = s.phase !== 'build';
+      waveBtn.textContent = s.phase === 'build' ? `Start wave ${s.wave + 1} now (${Math.ceil(s.breakT)}s)` : s.phase === 'wave' ? `Wave ${s.wave} in progress` : 'Game over';
+      for (const type of T.ORDER) {
+        const d = T.TOWERS[type], n = T.countOf(s, type), b = shopBtns[type];
+        b.querySelector('small').textContent = d.max === Infinity ? `${n} placed` : `${n} / ${d.max}`;
+        b.classList.toggle('sel', placing === type);
+        b.disabled = n >= d.max || s.towers.length >= T.MAX_TOWERS || s.money < d.cost || s.phase === 'dead' || s.phase === 'won';
+      }
+      const t = selected && s.towers.find((x) => x.id === selected);
+      if (!t) {
+        info.replaceChildren(h('div', { class: 'td-help muted' }, placing
+          ? `Click the map to place a ${T.TOWERS[placing].name.toLowerCase()}. Shift-click to place several. Right-click or Esc to stop.`
+          : 'Pick a tower (or press 1–5), then click the map. Click a tower to upgrade or sell it. Space starts the next wave.'));
+        return;
+      }
+      const d = T.TOWERS[t.type], st = T.statsOf(t), nx = t.lvl < 5 ? d.lv[t.lvl + 1] : null, cost = T.upgradeCost(t);
+      const row = (label, a, b) => h('div', { class: 'td-row' }, h('span', {}, label), h('b', {}, a), b !== undefined && b !== a ? h('span', { class: 'td-next' }, '→ ' + b) : null);
+      const fmt = (v) => (Math.round(v * 10) / 10).toString();
+      info.replaceChildren(...[
+        h('div', { class: 'td-sel-head' }, h('span', { class: 'td-buy-icon', style: `background:${d.color}` }, d.icon), h('b', {}, d.name),
+          h('span', { class: 'td-pips' }, [0, 1, 2, 3, 4].map((i) => h('i', { class: i < t.lvl ? 'on' : '' })))),
+        t.type === 'farm'
+          ? row('Pays per wave', money(st.income), nx ? money(nx.income) : undefined)
+          : [row('Damage', fmt(st.dmg), nx ? fmt(nx.dmg) : undefined), row('Shots / sec', fmt(st.rate), nx ? fmt(nx.rate) : undefined),
+            row('Range', String(st.range), nx ? String(nx.range) : undefined), st.burn ? row('Burn / sec', String(st.burn), nx ? String(nx.burn) : undefined) : null,
+            h('div', { class: 'td-row muted' }, h('span', {}, 'Damage dealt'), h('b', {}, Math.round(t.dmg).toLocaleString()))],
+        h('div', { class: 'td-actions' },
+          h('button', { class: 'btn primary small', disabled: cost === null || s.money < cost, onclick: () => { const err = T.upgrade(s, t.id); if (err) flash(err); render(); } },
+            cost === null ? 'Max level' : `Upgrade ${money(cost)} (U)`),
+          t.type === 'farm' ? null : h('button', { class: 'btn small', title: 'Which enemy it shoots (T)', onclick: () => { T.retarget(s, t.id); render(); } }, 'Target: ' + TARGET_LABEL[t.target]),
+          h('button', { class: 'btn small danger', onclick: () => { T.sell(s, t.id); selected = null; render(); } }, `Sell ${money(T.sellValue(t))}`))].flat().filter(Boolean));
+    }
+    function renderOpp() {
+      const o = opp;
+      const out = o && o.d, won = o && o.v;
+      oppBox.replaceChildren(
+        h('div', { class: 'td-opp-line' },
+          h('span', {}, '🌊 ', h('b', {}, o ? `Wave ${o.w}` : 'Starting…')),
+          h('span', {}, '❤ ', h('b', {}, o ? o.l : 100)),
+          h('span', {}, '🏰 ', h('b', {}, o ? o.tw.length : 0))),
+        h('small', { class: 'muted' }, !o ? 'Waiting for their first report…' : won ? 'Beat wave 25!' : out ? `Overrun at wave ${o.w} (survived ${o.c})` : `Survived ${o.c} wave${o.c === 1 ? '' : 's'} · ${money(o.m)}`));
+      const g = oppMap.getContext('2d'), k = 200 / T.W;
+      g.fillStyle = '#1f3d2b'; g.fillRect(0, 0, 200, 125);
+      g.strokeStyle = '#8a7559'; g.lineWidth = T.ROAD * 2 * k; g.lineJoin = 'round';
+      g.beginPath(); T.PATH.forEach(([x, y], i) => (i ? g.lineTo(x * k, y * k) : g.moveTo(x * k, y * k))); g.stroke();
+      if (o) for (const [ti, x, y, lvl] of o.tw) {
+        const d = T.TOWERS[T.ORDER[ti]];
+        if (!d) continue;
+        g.fillStyle = d.color; g.beginPath(); g.arc(x * k, y * k, 3 + lvl * 0.4, 0, 7); g.fill();
+      }
+      if (out || won) { g.fillStyle = 'rgba(0,0,0,.55)'; g.fillRect(0, 0, 200, 125); g.fillStyle = '#fff'; g.font = 'bold 15px Outfit, Arial'; g.textAlign = 'center'; g.fillText(won ? 'WON' : 'OVERRUN', 100, 68); }
+    }
+
+    // ---------------------------------------------------------------- drawing
+    function draw() {
+      ctx.fillStyle = '#21452f'; ctx.fillRect(0, 0, T.W, T.H);
+      ctx.fillStyle = 'rgba(255,255,255,.025)';
+      for (let x = 0; x < T.W; x += 40) for (let y = (x / 40) % 2 ? 0 : 20; y < T.H; y += 40) ctx.fillRect(x, y, 20, 20);
+      // road
+      ctx.lineJoin = 'round'; ctx.lineCap = 'butt';
+      const road = (w, c) => { ctx.strokeStyle = c; ctx.lineWidth = w; ctx.beginPath(); T.PATH.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.stroke(); };
+      road(T.ROAD * 2 + 6, '#5d4b36'); road(T.ROAD * 2, '#9a8462');
+      ctx.setLineDash([10, 12]); road(2, 'rgba(255,255,255,.18)'); ctx.setLineDash([]);
+      ctx.font = '20px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('🚩', 18, 44); ctx.fillText('🏰', 780, 470);
+      // ranges
+      const sel = selected && s.towers.find((t) => t.id === selected);
+      const ring = (x, y, r, ok) => { ctx.fillStyle = ok ? 'rgba(255,255,255,.08)' : 'rgba(239,68,68,.12)'; ctx.strokeStyle = ok ? 'rgba(255,255,255,.45)' : 'rgba(239,68,68,.7)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); ctx.stroke(); };
+      if (sel && sel.type !== 'farm') ring(sel.x, sel.y, T.statsOf(sel).range, true);
+      // towers
+      for (const t of s.towers) {
+        const d = T.TOWERS[t.type];
+        ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.beginPath(); ctx.arc(t.x + 2, t.y + 3, T.TOWER_R + 1, 0, 7); ctx.fill();
+        ctx.fillStyle = d.color; ctx.beginPath(); ctx.arc(t.x, t.y, T.TOWER_R, 0, 7); ctx.fill();
+        ctx.strokeStyle = t.id === selected ? '#fff' : 'rgba(0,0,0,.45)'; ctx.lineWidth = t.id === selected ? 3 : 2; ctx.stroke();
+        if (t.type !== 'farm') {
+          ctx.strokeStyle = '#1f2937'; ctx.lineWidth = t.type === 'sniper' ? 3 : t.type === 'machinegun' ? 5 : 4; ctx.lineCap = 'round';
+          const len = t.type === 'sniper' ? 20 : 15;
+          ctx.beginPath(); ctx.moveTo(t.x, t.y); ctx.lineTo(t.x + Math.cos(t.aim) * len, t.y + Math.sin(t.aim) * len); ctx.stroke();
+        }
+        ctx.font = '13px serif'; ctx.fillText(d.icon, t.x, t.y + 1);
+        for (let i = 0; i < t.lvl; i++) { ctx.fillStyle = '#facc15'; ctx.fillRect(t.x - 11 + i * 5, t.y + T.TOWER_R + 3, 4, 4); }
+      }
+      // shots
+      for (const f of s.fx) {
+        if (f.type === 'flame') {
+          const grd = ctx.createRadialGradient(f.x, f.y, 4, f.x, f.y, f.r);
+          grd.addColorStop(0, 'rgba(255,220,90,.75)'); grd.addColorStop(1, 'rgba(239,68,68,0)');
+          ctx.fillStyle = grd; ctx.beginPath(); ctx.moveTo(f.x, f.y); ctx.arc(f.x, f.y, f.r, f.a - 0.6, f.a + 0.6); ctx.closePath(); ctx.fill();
+        } else {
+          ctx.strokeStyle = f.type === 'sniper' ? `rgba(255,255,255,${Math.min(1, f.life * 8)})` : f.type === 'machinegun' ? '#fbbf24' : '#fde68a';
+          ctx.lineWidth = f.type === 'sniper' ? 2.5 : 1.5;
+          ctx.beginPath(); ctx.moveTo(f.x, f.y); ctx.lineTo(f.tx, f.ty); ctx.stroke();
+        }
+      }
+      // enemies
+      let boss = null;
+      for (const e of s.enemies) {
+        const d = T.ENEMIES[e.kind];
+        if (e.boss) boss = e;
+        ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.beginPath(); ctx.ellipse(e.x + 2, e.y + d.r * 0.8, d.r, d.r * 0.45, 0, 0, 7); ctx.fill();
+        ctx.fillStyle = d.color; ctx.beginPath(); ctx.arc(e.x, e.y, d.r, 0, 7); ctx.fill();
+        if (e.armor) { ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 3; ctx.stroke(); }
+        if (e.burnT > 0) { ctx.strokeStyle = 'rgba(251,146,60,.9)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(e.x, e.y, d.r + 3, 0, 7); ctx.stroke(); }
+        if (e.boss) { ctx.font = `${d.r}px serif`; ctx.fillText('👑', e.x, e.y - d.r - 8); }
+        if (e.hp < e.max && !e.boss) {
+          ctx.fillStyle = '#111'; ctx.fillRect(e.x - 11, e.y - d.r - 7, 22, 4);
+          ctx.fillStyle = '#4ade80'; ctx.fillRect(e.x - 11, e.y - d.r - 7, 22 * Math.max(0, e.hp / e.max), 4);
+        }
+      }
+      if (boss) {
+        const d = T.ENEMIES[boss.kind];
+        ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(200, 8, 400, 26);
+        ctx.fillStyle = '#dc2626'; ctx.fillRect(203, 11, 394 * Math.max(0, boss.hp / boss.max), 20);
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 14px Outfit, Arial';
+        ctx.fillText(`👑 ${d.name} · ${Math.ceil(boss.hp).toLocaleString()} HP`, 400, 22);
+      }
+      // placing ghost
+      if (placing && hover) {
+        const [x, y] = hover, d = T.TOWERS[placing], ok = !T.canPlace(s, placing, x, y);
+        if (placing !== 'farm') ring(x, y, d.lv[0].range, ok);
+        ctx.globalAlpha = 0.75; ctx.fillStyle = ok ? d.color : '#ef4444'; ctx.beginPath(); ctx.arc(x, y, T.TOWER_R, 0, 7); ctx.fill(); ctx.globalAlpha = 1;
+        ctx.font = '13px serif'; ctx.fillText(d.icon, x, y + 1);
+      }
+      // banners
+      const now = performance.now();
+      while (banners.length && banners[0].until < now) banners.shift();
+      const b = banners[banners.length - 1];
+      ctx.font = 'bold 30px Outfit, Arial';
+      const big = (text, color, y) => { ctx.lineWidth = 6; ctx.strokeStyle = 'rgba(0,0,0,.7)'; ctx.strokeText(text, 400, y); ctx.fillStyle = color; ctx.fillText(text, 400, y); };
+      if (b) big(b.text, b.color, 250);
+      else if (s.phase === 'build') { ctx.font = 'bold 20px Outfit, Arial'; big(`Wave ${s.wave + 1}${BOSS_NAME[s.wave + 1] ? ` · BOSS: ${BOSS_NAME[s.wave + 1]}` : ''} in ${Math.ceil(s.breakT)}s`, BOSS_NAME[s.wave + 1] ? '#fca5a5' : '#fff', 140); }
+      if (flashMsg && flashMsg.until > now) { ctx.font = 'bold 16px Outfit, Arial'; big(flashMsg.text, '#fecaca', 480); }
+      if (s.phase === 'dead' || s.phase === 'won') {
+        ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(0, 0, T.W, T.H);
+        ctx.font = 'bold 34px Outfit, Arial';
+        big(s.phase === 'won' ? 'You beat wave 25!' : `Overrun at wave ${s.wave}`, s.phase === 'won' ? '#86efac' : '#fca5a5', 220);
+        ctx.font = '18px Outfit, Arial';
+        big(s.phase === 'won' ? '' : `You survived ${s.cleared} wave${s.cleared === 1 ? '' : 's'}. ${decided ? '' : `Waiting to see how ${oppName} does…`}`, '#fff', 270);
+      }
+    }
+
+    // ---------------------------------------------------------------- reports and the result
+    let lastReport = '', reportAt = 0, decided = false;
+    const myReport = () => ({ w: s.wave, c: s.cleared, l: s.lives, m: Math.floor(s.money), d: s.phase === 'dead' ? 1 : 0, v: s.phase === 'won' ? 1 : 0, ki: s.kills,
+      tw: s.towers.map((t) => [T.ORDER.indexOf(t.type), Math.round(t.x), Math.round(t.y), t.lvl]) });
+    function report(force) {
+      if (api.bot) return;
+      const r = myReport(), j = JSON.stringify(r), now = performance.now();
+      if (!force && (j === lastReport || now - reportAt < 500)) return;
+      lastReport = j; reportAt = now;
+      api.send({ kind: 'msg', data: Object.assign({ k: 's', t: Date.now() }, r) });
+    }
+    // Both browsers reach the same verdict from the same final reports.
+    function decide() {
+      if (decided || !opp) return;
+      const m = myReport(), o = opp;
+      let winner = null, reason = '';
+      const ws = (n) => `${n} wave${n === 1 ? '' : 's'}`;
+      if (m.v && o.v) { winner = m.l === o.l ? -1 : m.l > o.l ? me : oppIdx; reason = 'both beat wave 25'; }
+      else if (m.v) { winner = me; reason = 'beat wave 25'; }
+      else if (o.v) { winner = oppIdx; reason = 'beat wave 25'; }
+      else if (m.d && o.d) {
+        if (m.c !== o.c) winner = m.c > o.c ? me : oppIdx;
+        else winner = m.ki === o.ki ? -1 : m.ki > o.ki ? me : oppIdx;
+        reason = m.c !== o.c ? `survived ${ws(Math.max(m.c, o.c))} vs ${Math.min(m.c, o.c)}` : `both survived ${ws(m.c)}; ${m.ki === o.ki ? 'same kills' : 'more kills'}`;
+      } else if (m.d && o.c > m.c) { winner = oppIdx; reason = `survived ${ws(o.c)} vs ${m.c}`; }
+      else if (o.d && m.c > o.c) { winner = me; reason = `survived ${ws(m.c)} vs ${o.c}`; }
+      if (winner === null) return;
+      decided = true;
+      // the result is told from player 0's side, like every other game
+      if (api.bot) api.finish({ winner, reason });
+      else api.send({ kind: 'result', winner, reason });
+    }
+
+    // ---------------------------------------------------------------- loop
+    let last = performance.now(), acc = 0, raf = 0, stopped = false, panelT = 0;
+    const DT = 1 / 30;
+    function botStep(dt) {
+      T.step(bot.s, dt);
+      bot.aiT -= dt;
+      if (bot.aiT <= 0) { bot.aiT = 0.5; let n = 0; while (n++ < 4 && T.ai(bot.s, bot.level)); }
+      bot.s.events.length = 0;
+      const b = bot.s;
+      opp = { w: b.wave, c: b.cleared, l: b.lives, m: Math.floor(b.money), d: b.phase === 'dead' ? 1 : 0, v: b.phase === 'won' ? 1 : 0, ki: b.kills,
+        tw: b.towers.map((t) => [T.ORDER.indexOf(t.type), t.x, t.y, t.lvl]) };
+    }
+    function frame(now) {
+      if (stopped) return;
+      const dt = Math.min(0.1, (now - last) / 1000);
+      last = now;
+      acc += dt * speed;
+      let steps = 0;
+      while (acc >= DT && steps < 12) {
+        acc -= DT; steps++;
+        T.step(s, DT);
+        if (bot) botStep(DT);
+      }
+      // once you're out, the bot plays on quickly so you see how it ends
+      if (bot && (s.phase === 'dead' || s.phase === 'won') && !decided) for (let i = 0; i < 20; i++) botStep(DT);
+      for (const e of s.events.splice(0)) {
+        if (e.type === 'wave') banners.push({ text: e.boss ? `BOSS WAVE ${e.wave}: ${BOSS_NAME[e.wave]}!` : `Wave ${e.wave}`, color: e.boss ? '#fca5a5' : '#fff', until: performance.now() + 1800 });
+        else if (e.type === 'cleared') banners.push({ text: `Wave ${e.wave} cleared  +${money(e.bonus + e.farms)}`, color: '#86efac', until: performance.now() + 1800 });
+        else if (e.type === 'dead' || e.type === 'won') report(true);
+      }
+      draw();
+      if (now - panelT > 250) { panelT = now; render(); renderOpp(); api.status(statusLine()); }
+      report(false);
+      decide();
+      raf = requestAnimationFrame(frame);
+    }
+    function statusLine() {
+      return [h('b', {}, `You: wave ${s.wave} · ❤ ${s.lives}`), h('span', {}, 'vs'),
+        h('b', {}, `${oppName}: ${opp ? `wave ${opp.w} · ❤ ${opp.l}` : '…'}`), h('small', { class: 'muted' }, 'Survive the most waves, or beat wave 25')];
+    }
+    cv.tdDebug = { s, get opp() { return opp; }, get bot() { return bot; }, setSpeed }; // for tests
+    render(); renderOpp();
+    raf = requestAnimationFrame((t) => { last = t; frame(t); });
+
+    return {
+      update() {},
+      event(ev) {
+        const m = ev && ev.msg;
+        if (!m || m.k !== 's' || !Array.isArray(m.tw)) return;
+        opp = { w: +m.w || 0, c: +m.c || 0, l: +m.l || 0, m: +m.m || 0, d: m.d ? 1 : 0, v: m.v ? 1 : 0, ki: +m.ki || 0, tw: m.tw.slice(0, 20) };
+        renderOpp();
+      },
+      stop() { stopped = true; cancelAnimationFrame(raf); },
+      destroy() { stopped = true; cancelAnimationFrame(raf); removeEventListener('keydown', onKey); },
+    };
+  };
+})();
+
+</script>
+<script>
 // Game dock: renders whichever multiplayer game you're in next to the chat.
 (() => {
   const META = {
@@ -1758,6 +2491,7 @@ else globalThis.Realtime = Realtime;
     mancala: { color: 'linear-gradient(135deg,#a16207,#713f12)', emoji: '🫘', name: 'Mancala', desc: 'Sow seeds, capture, fill your store.', help: 'Click one of your pits (bottom row) to sow its seeds' },
     gomoku: { color: 'linear-gradient(135deg,#d6a35c,#8a5a24)', emoji: '⭕', name: 'Five in a Row', desc: 'Get five stones in a line on a big board.', help: 'Click a spot to place a stone' },
     tron: { color: 'linear-gradient(135deg,#06b6d4,#7c3aed)', emoji: '🏍️', name: 'Light Cycles', desc: 'Don’t hit a wall. Best of 5 rounds.', help: 'Arrow keys / WASD (or swipe) to turn' },
+    td: { color: 'linear-gradient(135deg,#65a30d,#166534)', emoji: '🏰', name: 'Tower Defense', desc: 'Survive the most waves, or beat wave 25.', help: 'Click to build · 1–5 pick a tower · U upgrade · Space next wave' },
     hockey: { color: 'linear-gradient(135deg,#38bdf8,#1d4ed8)', emoji: '🏒', name: 'Air Hockey', desc: 'Smash the puck into their goal. First to 7.', help: 'Move the mouse or your finger over your half (or WASD / arrows)' },
     apex: { color: 'linear-gradient(135deg,#ffd400,#ff3b4e)', emoji: '🏎️', name: 'Apex Rush 3D', desc: '3D racing on nine circuits. First over the line wins.', help: 'W A S D or arrows · Shift nitro · Space pickup · C camera (keyboard only)' },
   };
@@ -2597,6 +3331,7 @@ else globalThis.Realtime = Realtime;
   const FACTORY = {
     snake: snakeGame, pong: pongGame, fighter: fighterGame, tetris: tetrisGame, chess: chessGame, checkers: checkersGame, connect4: connect4Game, tictactoe: tictactoeGame,
     reversi: reversiGame, dots: dotsGame, mancala: mancalaGame, gomoku: gomokuGame, tron: tronGame, hockey: hockeyGame, apex: apexGame,
+    td: (stage, api) => window.TDGame(stage, api),
   };
 
   // ---------------------------------------------------------------- dock
@@ -2671,13 +3406,14 @@ else globalThis.Realtime = Realtime;
         leaveBtn),
       statusEl, stage);
     d.classList.remove('hidden', 'min');
-    d.classList.toggle('full', m.game === 'apex'); // the racing game wants the whole window
+    d.classList.toggle('full', m.game === 'apex' || m.game === 'td'); // these want the whole window
     const api = {
       you: m.you,
       predict: !!(m.net && m.net.predict),
       players: m.players,
       bot: m.bot || null,
       leave: () => cur && (cur.over ? close() : gameHost.leave(cur.id)),
+      finish: (result) => over({ id: m.id, result, state: null }), // a game against the bot that keeps its own score
       send: (input) => cur && !cur.over && gameHost.send(cur.id, input),
       status: (...parts) => statusEl.replaceChildren(...parts.flat().filter((x) => x !== '' && x !== null).map((x) => (x instanceof Node ? x : h('span', {}, x)))),
     };
@@ -3327,6 +4063,16 @@ else globalThis.Realtime = Realtime;
 
   function start(game, level, me) {
     level = LEVELS[level] ? level : 'medium';
+    if (game === 'td') {
+      // Tower Defense: the bot plays its own map in this browser (td.js has its brain)
+      const id = 'bot-' + Date.now().toString(36);
+      const players = [me, { username: '__bot', name: `🤖 Bot (${LEVELS[level].label})`, avatar: '#f97316' }];
+      GameDock.start({
+        id, game, players, you: 0, state: null, bot: { level },
+        host: { send() {}, leave() { GameDock.over({ id, result: { winner: 1, reason: 'you forfeited' }, state: null }); }, rematch() { start(game, level, me); } },
+      });
+      return;
+    }
     if (game === 'apex') {
       // Apex Rush has its own bot driver; the frame runs the whole race
       const id = 'bot-' + Date.now().toString(36);
@@ -3440,7 +4186,9 @@ else globalThis.Realtime = Realtime;
     tron: { name: 'Light Cycles', kind: 'realtime' },
     hockey: { name: 'Air Hockey', kind: 'realtime' },
     apex: { name: 'Apex Rush 3D', kind: 'relay' },
+    td: { name: 'Tower Defense', kind: 'relay' },
   };
+  const MSG_RELAY = new Set(['apex', 'td']); // each browser plays its own game; they swap reports and agree on the result
   const DIR_GAMES = new Set(['snake', 'tron']); // realtime games whose input is a direction press
   const MSG_WINDOW = 100; // messages loaded per chat
   const MSG_KEEP = 200; // older messages are pruned
@@ -3813,7 +4561,7 @@ else globalThis.Realtime = Realtime;
         return finish(g, { winner: pr.result.winner, reason: str(pr.result.reason, 80) }, {});
       }
       if (pr.forfeit) return finish(g, { winner: g.you, reason: 'forfeited' }, { post: true });
-      if (g.type === 'apex') {
+      if (MSG_RELAY.has(g.type)) {
         if (pr.st && typeof pr.st === 'object' && pr.st.t !== g.lastSt) { g.lastSt = pr.st.t; emit({ t: 'gameEvent', id: g.id, ev: { msg: pr.st } }); }
         for (const e of Array.isArray(pr.q) ? pr.q : []) {
           if (e && typeof e.seq === 'number' && e.seq > (g.lastSeq || 0) && e.d && typeof e.d === 'object') {
@@ -3861,7 +4609,7 @@ else globalThis.Realtime = Realtime;
     }
     function gameInput(g, input) {
       input = input || {};
-      if (g.type === 'apex') {
+      if (MSG_RELAY.has(g.type)) {
         if (input.kind === 'msg' && input.data && typeof input.data === 'object' && JSON.stringify(input.data).length <= 2000) {
           if (input.data.k === 's') g.named && g.named.presence({ st: input.data }).catch(() => {}); // latest car state
           else {

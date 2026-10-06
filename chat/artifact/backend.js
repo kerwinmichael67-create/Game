@@ -21,7 +21,9 @@
     tron: { name: 'Light Cycles', kind: 'realtime' },
     hockey: { name: 'Air Hockey', kind: 'realtime' },
     apex: { name: 'Apex Rush 3D', kind: 'relay' },
+    td: { name: 'Tower Defense', kind: 'relay' },
   };
+  const MSG_RELAY = new Set(['apex', 'td']); // each browser plays its own game; they swap reports and agree on the result
   const DIR_GAMES = new Set(['snake', 'tron']); // realtime games whose input is a direction press
   const MSG_WINDOW = 100; // messages loaded per chat
   const MSG_KEEP = 200; // older messages are pruned
@@ -394,7 +396,7 @@
         return finish(g, { winner: pr.result.winner, reason: str(pr.result.reason, 80) }, {});
       }
       if (pr.forfeit) return finish(g, { winner: g.you, reason: 'forfeited' }, { post: true });
-      if (g.type === 'apex') {
+      if (MSG_RELAY.has(g.type)) {
         if (pr.st && typeof pr.st === 'object' && pr.st.t !== g.lastSt) { g.lastSt = pr.st.t; emit({ t: 'gameEvent', id: g.id, ev: { msg: pr.st } }); }
         for (const e of Array.isArray(pr.q) ? pr.q : []) {
           if (e && typeof e.seq === 'number' && e.seq > (g.lastSeq || 0) && e.d && typeof e.d === 'object') {
@@ -442,7 +444,7 @@
     }
     function gameInput(g, input) {
       input = input || {};
-      if (g.type === 'apex') {
+      if (MSG_RELAY.has(g.type)) {
         if (input.kind === 'msg' && input.data && typeof input.data === 'object' && JSON.stringify(input.data).length <= 2000) {
           if (input.data.k === 's') g.named && g.named.presence({ st: input.data }).catch(() => {}); // latest car state
           else {

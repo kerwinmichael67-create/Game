@@ -14,6 +14,7 @@
     mancala: { color: 'linear-gradient(135deg,#a16207,#713f12)', emoji: '🫘', name: 'Mancala', desc: 'Sow seeds, capture, fill your store.', help: 'Click one of your pits (bottom row) to sow its seeds' },
     gomoku: { color: 'linear-gradient(135deg,#d6a35c,#8a5a24)', emoji: '⭕', name: 'Five in a Row', desc: 'Get five stones in a line on a big board.', help: 'Click a spot to place a stone' },
     tron: { color: 'linear-gradient(135deg,#06b6d4,#7c3aed)', emoji: '🏍️', name: 'Light Cycles', desc: 'Don’t hit a wall. Best of 5 rounds.', help: 'Arrow keys / WASD (or swipe) to turn' },
+    td: { color: 'linear-gradient(135deg,#65a30d,#166534)', emoji: '🏰', name: 'Tower Defense', desc: 'Survive the most waves, or beat wave 25.', help: 'Click to build · 1–5 pick a tower · U upgrade · Space next wave' },
     hockey: { color: 'linear-gradient(135deg,#38bdf8,#1d4ed8)', emoji: '🏒', name: 'Air Hockey', desc: 'Smash the puck into their goal. First to 7.', help: 'Move the mouse or your finger over your half (or WASD / arrows)' },
     apex: { color: 'linear-gradient(135deg,#ffd400,#ff3b4e)', emoji: '🏎️', name: 'Apex Rush 3D', desc: '3D racing on nine circuits. First over the line wins.', help: 'W A S D or arrows · Shift nitro · Space pickup · C camera (keyboard only)' },
   };
@@ -853,6 +854,7 @@
   const FACTORY = {
     snake: snakeGame, pong: pongGame, fighter: fighterGame, tetris: tetrisGame, chess: chessGame, checkers: checkersGame, connect4: connect4Game, tictactoe: tictactoeGame,
     reversi: reversiGame, dots: dotsGame, mancala: mancalaGame, gomoku: gomokuGame, tron: tronGame, hockey: hockeyGame, apex: apexGame,
+    td: (stage, api) => window.TDGame(stage, api),
   };
 
   // ---------------------------------------------------------------- dock
@@ -927,13 +929,14 @@
         leaveBtn),
       statusEl, stage);
     d.classList.remove('hidden', 'min');
-    d.classList.toggle('full', m.game === 'apex'); // the racing game wants the whole window
+    d.classList.toggle('full', m.game === 'apex' || m.game === 'td'); // these want the whole window
     const api = {
       you: m.you,
       predict: !!(m.net && m.net.predict),
       players: m.players,
       bot: m.bot || null,
       leave: () => cur && (cur.over ? close() : gameHost.leave(cur.id)),
+      finish: (result) => over({ id: m.id, result, state: null }), // a game against the bot that keeps its own score
       send: (input) => cur && !cur.over && gameHost.send(cur.id, input),
       status: (...parts) => statusEl.replaceChildren(...parts.flat().filter((x) => x !== '' && x !== null).map((x) => (x instanceof Node ? x : h('span', {}, x)))),
     };
