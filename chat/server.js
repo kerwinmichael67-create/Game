@@ -86,7 +86,7 @@ const presence = (u) => (isConnected(u) ? db.users[u].status : 'offline');
 function publicUser(u) {
   const x = db.users[u];
   return {
-    username: x.username, handle: x.username, name: x.name, bio: x.bio, avatar: x.avatar, photo: x.photo || null, favorites: x.favorites,
+    username: x.username, handle: x.username, name: x.name, bio: x.bio, custom: x.custom || '', avatar: x.avatar, photo: x.photo || null, favorites: x.favorites,
     presence: presence(u), stats: x.stats, inGame: userGame.has(u) ? sessions.get(userGame.get(u)).type : null,
   };
 }
@@ -345,6 +345,14 @@ const authed = {
     toRoom(room, { t: 'msgEdit', room: room.id, msg });
     save();
   },
+  pin(ws, u, m) {
+    const room = db.rooms[m.room], msg = room && canSee(room, u) && room.messages.find((x) => x.id === m.id);
+    if (!msg || msg.sys || msg.deleted) return;
+    if (m.on) { if (room.messages.filter((x) => x.pinned).length >= 25) return { error: 'A chat can have up to 25 pinned messages' }; msg.pinned = { by: u, ts: Date.now() }; }
+    else delete msg.pinned;
+    toRoom(room, { t: 'msgEdit', room: room.id, msg });
+    save();
+  },
   del(ws, u, m) {
     const room = db.rooms[m.room], i = room && canSee(room, u) ? room.messages.findIndex((x) => x.id === m.id) : -1;
     const msg = i >= 0 && room.messages[i];
@@ -408,6 +416,7 @@ const authed = {
     const x = db.users[u], d = m.data || {};
     if (typeof d.name === 'string' && str(d.name, 30)) x.name = str(d.name, 30);
     if (typeof d.bio === 'string') x.bio = str(d.bio, 300);
+    if (typeof d.custom === 'string') x.custom = str(d.custom, 60);
     if (['online', 'offline', 'idle'].includes(d.status)) x.status = d.status;
     if (['white', 'black', 'custom'].includes(d.bg)) x.bg = d.bg;
     if (isColor(d.bgCustom)) x.bgCustom = d.bgCustom;

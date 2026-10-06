@@ -20,7 +20,7 @@
 
   const S = {
     ws: null, me: null, users: {}, rooms: {}, games: {}, current: store.get('chatRoom') || 'global',
-    unread: {}, mentions: {}, typing: {}, token: store.get('chatToken'), signedOut: false, retry: 0, authMode: 'login', queue: [],
+    unread: {}, mentions: {}, typing: {}, revealed: new Set(), newBelow: 0, helloAt: 0, token: store.get('chatToken'), signedOut: false, retry: 0, authMode: 'login', queue: [],
   };
   // In the claude.ai artifact build, a ChatTransport replaces the WebSocket server.
   const ARTIFACT = typeof window.ChatTransport === 'function';
@@ -31,6 +31,26 @@
   const EMOJIS = ('😀 😁 😂 🤣 😊 😍 😘 😎 🤩 🥳 😅 😉 🙂 🙃 😐 🤔 🤨 🙄 😴 😮 😢 😭 😡 🤯 😱 🥶 🤡 💀 👻 🤖 '
     + '👍 👎 👏 🙌 🙏 💪 👀 👋 🤝 ✌️ 🤞 👌 ❤️ 💔 💯 🔥 ✨ ⭐ 🎉 🎮 🕹️ 🏆 🥇 🎯 ⚽ 🏀 🍕 🍔 🍿 ☕ 🐍 🐱 🐶 🌈 ☀️ 🌙 ⚡ 💤 ✅ ❌').split(' ');
   const PHOTO_URL = /^\/(files|_blob)\/[A-Za-z0-9_-]+$/;
+  // Per-person settings kept in this browser (blocked people, muted chats, drafts, sounds…).
+  const prefKey = (k) => 'chat:' + k + ':' + (S.me ? S.me.username : '');
+  function pref(k, d) { try { const v = JSON.parse(store.get(prefKey(k))); return v === null || v === undefined ? d : v; } catch { return d; } }
+  const setPref = (k, v) => store.set(prefKey(k), v === null ? null : JSON.stringify(v));
+  const inSet = (k, v) => pref(k, []).includes(v);
+  function toggleIn(k, v) { const l = pref(k, []); setPref(k, l.includes(v) ? l.filter((x) => x !== v) : l.concat(v)); return !l.includes(v); }
+  const isBlocked = (u) => !!u && u !== (S.me && S.me.username) && inSet('blocked', u);
+  const isMuted = (id) => inSet('muted', id);
+  const isFav = (id) => inSet('favs', id);
+  const EMOJI_CODES = {
+    smile: '😄', grin: '😁', joy: '😂', rofl: '🤣', laugh: '😆', wink: '😉', blush: '😊', cool: '😎', sunglasses: '😎', heart_eyes: '😍', kiss: '😘',
+    thinking: '🤔', neutral: '😐', eyeroll: '🙄', sleepy: '😴', cry: '😢', sob: '😭', angry: '😡', rage: '🤬', scream: '😱', mindblown: '🤯', cold: '🥶',
+    party: '🥳', clown: '🤡', skull: '💀', ghost: '👻', robot: '🤖', alien: '👽', poop: '💩', shrug: '🤷', facepalm: '🤦',
+    thumbsup: '👍', '+1': '👍', thumbsdown: '👎', '-1': '👎', clap: '👏', wave: '👋', pray: '🙏', muscle: '💪', flex: '💪', ok: '👌', v: '✌️', handshake: '🤝', gg: '🤝', eyes: '👀', point_up: '☝️',
+    heart: '❤️', broken_heart: '💔', fire: '🔥', '100': '💯', sparkles: '✨', star: '⭐', boom: '💥', zap: '⚡', tada: '🎉', confetti: '🎊', rocket: '🚀',
+    check: '✅', x: '❌', warning: '⚠️', question: '❓', exclamation: '❗', game: '🎮', joystick: '🕹️', trophy: '🏆', medal: '🥇', crown: '👑', dart: '🎯', dice: '🎲',
+    pizza: '🍕', burger: '🍔', fries: '🍟', cake: '🎂', cookie: '🍪', coffee: '☕', popcorn: '🍿', money: '💰', gift: '🎁', music: '🎵',
+    snake: '🐍', dog: '🐶', cat: '🐱', frog: '🐸', unicorn: '🦄', sun: '☀️', moon: '🌙', rainbow: '🌈', snow: '❄️', zzz: '💤',
+  };
+  const swapShortcodes = (t) => t.split(/(`[^`]*`)/).map((part, i) => (i % 2 ? part : part.replace(/:([a-z0-9_+-]{1,20}):/gi, (m, k) => EMOJI_CODES[k.toLowerCase()] || m))).join('');
 
   // ---------------------------------------------------------------- connection
   let transport = null;
@@ -75,6 +95,7 @@
         store.set('chatToken', m.token);
       }
       S.me = m.me;
+      S.helloAt = Date.now();
       S.games = m.games;
       if (CALLS) Calls.configure(m.calls);
       S.users = {};
@@ -94,6 +115,14 @@
       showAuth();
     },
     user(m) {
+      const before = S.users[m.user.username];
+      // a friend just came online
+      if (S.me && before && before.presence === 'offline' && m.user.presence !== 'offline' && (S.me.friends || []).includes(m.user.username)
+        && Date.now() - S.helloAt > 5000 && pref('friendAlerts', true) && !isBlocked(m.user.username)) {
+        const t = toast(`🟢 ${m.user.name} is online`, 'friend-toast', 5000);
+        t.style.cursor = 'pointer';
+        t.addEventListener('click', () => { t.remove(); showProfile(m.user.username); });
+      }
       S.users[m.user.username] = m.user;
       if (S.me && m.user.username === S.me.username) Object.assign(S.me, m.user);
       renderPeople();
@@ -133,17 +162,21 @@
       if (!room) return;
       room.messages.push(m.msg);
       if (S.typing[m.room]) delete S.typing[m.room][m.msg.from];
+      const fromOther = m.msg.from && m.msg.from !== S.me.username;
       if (m.room === S.current) {
+        const box = $('#messages'), below = box.scrollHeight - box.scrollTop - box.clientHeight > 300;
         appendMessage(m.msg, room.messages[room.messages.length - 2]);
         renderTyping();
+        if (below && fromOther) { S.newBelow = (S.newBelow || 0) + 1; updateJump(); }
       }
-      const fromOther = m.msg.from && m.msg.from !== S.me.username;
+      // You hear about it when you're on another tab or in another chat. An @mention always
+      // pings (even in a muted chat); a direct message pings unless that chat is muted.
       const away = m.room !== S.current || document.hidden;
-      if (away && fromOther) {
+      if (away && fromOther && !isBlocked(m.msg.from)) {
         S.unread[m.room] = (S.unread[m.room] || 0) + 1;
         const mentioned = mentionsMe(m.msg.text);
         if (mentioned) S.mentions[m.room] = true;
-        if (mentioned || room.dm) ping();
+        if (mentioned || (room.dm && !isMuted(m.room))) ping();
         if (mentioned && m.room !== S.current) {
           const t = toast(`${nameOf(m.msg.from)} mentioned you in ${roomLabel(room)} — click to see`, null, 7000);
           t.style.cursor = 'pointer';
@@ -164,8 +197,10 @@
       const old = $(`#messages [data-id="${CSS.escape(m.msg.id)}"]`);
       if (old) old.replaceWith(msgEl(m.msg, room.messages[i - 1]));
       document.querySelectorAll(`#messages .reply-quote[data-for="${CSS.escape(m.msg.id)}"] span`).forEach((s) => { s.textContent = snippet(m.msg); });
+      refreshOpenModal(); // e.g. the pinned list
     },
     typing(m) {
+      if (isBlocked(m.from)) return;
       (S.typing[m.room] = S.typing[m.room] || {})[m.from] = Date.now();
       if (m.room === S.current) renderTyping();
     },
@@ -179,7 +214,10 @@
       $('#auth').classList.remove('hidden');
       $('#authForm').replaceChildren(h('h2', {}, m.title || 'Can’t connect'), h('p', { class: 'muted' }, m.text));
     },
-    invite(m) { showInvite(m.invite); },
+    invite(m) {
+      if (isBlocked(m.invite.from)) { send({ t: 'gameRespond', id: m.invite.id, accept: false }); return; } // blocked: turned down quietly
+      showInvite(m.invite);
+    },
     gameStart(m) { closeModal(); GameDock.start(m); renderPeople(); },
     gameState(m) { GameDock.state(m); },
     gameEvent(m) { GameDock.event(m); },
@@ -278,11 +316,66 @@
   const AFTER_NAME = '(?![\\p{L}\\p{N}_])';
   function mentionsMe(text) {
     if (!text || !S.me || !S.me.name) return false;
-    return new RegExp('@' + escRe(S.me.name) + AFTER_NAME, 'iu').test(text);
+    return new RegExp('@(' + escRe(S.me.name) + '|everyone|here)' + AFTER_NAME, 'iu').test(text);
   }
-  // Text with clickable links and highlighted @names (built as nodes, never as HTML).
+  // Message text, built as nodes (never as HTML): ```code blocks```, > quotes, then inline
+  // `code`, ||spoilers||, **bold**, *italic* / _italic_, ~~strike~~, \escapes, links and @names.
   function richText(text) {
-    const names = [...new Set(Object.values(S.users).map((u) => u.name).filter(Boolean))].sort((a, b) => b.length - a.length).map(escRe);
+    const out = [], parts = text.split('```');
+    parts.forEach((part, i) => {
+      if (i % 2 === 1 && i < parts.length - 1) { out.push(h('pre', { class: 'md-code' }, part.replace(/^[a-z0-9+-]*\n/i, '').replace(/\n$/, ''))); return; }
+      if (i % 2 === 1) part = '```' + part; // a fence that never closes is just text
+      if (i > 0) part = part.replace(/^\n/, '');
+      if (i < parts.length - 2) part = part.replace(/\n$/, '');
+      let quote = null, prevQuote = false;
+      part.split('\n').forEach((line, j) => {
+        const q = /^>\s?(.*)$/.exec(line);
+        if (q) {
+          if (!quote) { quote = h('blockquote', { class: 'md-quote' }); out.push(quote); } else quote.append('\n');
+          quote.append(...inlineText(q[1]));
+          prevQuote = true;
+          return;
+        }
+        quote = null;
+        if (j > 0 && !prevQuote) out.push('\n');
+        prevQuote = false;
+        out.push(...inlineText(line));
+      });
+    });
+    return out;
+  }
+  const INLINE = [
+    { re: /\\([*_~`|\\>])/, make: (m) => [m[1]] },
+    { re: /`([^`\n]+)`/, make: (m) => [h('code', { class: 'md-inline' }, m[1])] },
+    { re: /\|\|(.+?)\|\|/, make: (m) => [spoilerEl(inlineText(m[1]))] },
+    { re: /\*\*(.+?)\*\*/, make: (m) => [h('strong', {}, inlineText(m[1]))] },
+    { re: /~~(.+?)~~/, make: (m) => [h('s', {}, inlineText(m[1]))] },
+    { re: /(?<![\w*])\*(?!\s)([^*\n]+?)(?<!\s)\*(?![\w*])/, make: (m) => [h('em', {}, inlineText(m[1]))] },
+    { re: /(?<![\w_])_(?!\s)([^_\n]+?)(?<!\s)_(?![\w_])/, make: (m) => [h('em', {}, inlineText(m[1]))] },
+  ];
+  function inlineText(text) {
+    const out = [];
+    let rest = text;
+    while (rest) {
+      let best = null;
+      for (const rule of INLINE) {
+        const m = rule.re.exec(rest);
+        if (m && (!best || m.index < best.m.index)) best = { m, rule };
+      }
+      if (!best) { out.push(...linkText(rest)); break; }
+      if (best.m.index) out.push(...linkText(rest.slice(0, best.m.index)));
+      out.push(...best.rule.make(best.m));
+      rest = rest.slice(best.m.index + best.m[0].length);
+    }
+    return out;
+  }
+  function spoilerEl(kids) {
+    const el = h('span', { class: 'spoiler', title: 'Spoiler: click to show', onclick: (e) => { e.stopPropagation(); el.classList.add('shown'); } }, kids);
+    return el;
+  }
+  // Plain text with clickable links and highlighted @names.
+  function linkText(text) {
+    const names = [...new Set(Object.values(S.users).map((u) => u.name).filter(Boolean).concat('everyone', 'here'))].sort((a, b) => b.length - a.length).map(escRe);
     const re = new RegExp('(https?:\\/\\/[^\\s<>"]+)' + (names.length ? '|@(' + names.join('|') + ')' + AFTER_NAME : ''), 'giu');
     const out = [];
     let last = 0, mt;
@@ -293,7 +386,8 @@
       if (mt[1]) out.push(h('a', { href: whole, target: '_blank', rel: 'noopener noreferrer', onclick: (e) => e.stopPropagation() }, whole));
       else {
         const who = Object.values(S.users).find((u) => u.name && u.name.toLowerCase() === mt[2].toLowerCase());
-        out.push(h('span', { class: 'mention' + (who && who.username === S.me.username ? ' you' : ''), onclick: who ? (e) => { e.stopPropagation(); showProfile(who.username); } : null }, '@' + mt[2]));
+        const all = /^(everyone|here)$/i.test(mt[2]) && !who;
+        out.push(h('span', { class: 'mention' + (all || (who && who.username === S.me.username) ? ' you' : ''), onclick: who ? (e) => { e.stopPropagation(); showProfile(who.username); } : null }, '@' + mt[2]));
       }
       last = mt.index + whole.length;
       re.lastIndex = last;
@@ -301,22 +395,38 @@
     if (last < text.length) out.push(text.slice(last));
     return out;
   }
+  // Notification sounds, made on the fly: [frequency, start, length, wave, loudness]
   let actx = null;
-  const soundOn = () => store.get('chatSound') !== '0';
-  function ping() {
-    if (!soundOn()) return;
+  const SOUNDS = {
+    ding: { label: 'Ding', notes: [[1318.5, 0, 0.9, 'sine', 1], [2637, 0, 0.45, 'sine', 0.35]] },
+    chime: { label: 'Chime', notes: [[880, 0, 0.5, 'sine', 0.9], [1318.5, 0.13, 0.7, 'sine', 0.9]] },
+    bell: { label: 'Bell', notes: [[660, 0, 1.6, 'sine', 0.8], [1320, 0, 1.1, 'sine', 0.4], [1980, 0, 0.7, 'sine', 0.25]] },
+    pop: { label: 'Pop', notes: [[620, 0, 0.12, 'sine', 1, 220]] },
+    blip: { label: 'Blip', notes: [[880, 0, 0.1, 'square', 0.35], [1320, 0.09, 0.14, 'square', 0.35]] },
+  };
+  const soundOn = () => soundKind() !== 'off';
+  function soundKind() { if (store.get('chatSound') === '0') return 'off'; const k = pref('sound', 'ding'); return SOUNDS[k] || k === 'off' ? k : 'ding'; }
+  function ping(force) {
+    const kind = force || soundKind();
+    if (kind === 'off' || !SOUNDS[kind]) return;
+    const vol = Math.max(0, Math.min(1, +pref('volume', 0.7)));
+    if (!vol) return;
     try {
       actx = actx || new (window.AudioContext || window.webkitAudioContext)();
-      const t = actx.currentTime, o = actx.createOscillator(), g = actx.createGain();
-      o.type = 'sine';
-      o.frequency.setValueAtTime(880, t);
-      o.frequency.setValueAtTime(1320, t + 0.09);
-      g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(0.12, t + 0.01);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.28);
-      o.connect(g).connect(actx.destination);
-      o.start(t);
-      o.stop(t + 0.3);
+      if (actx.state === 'suspended') actx.resume().catch(() => {});
+      const now = actx.currentTime;
+      for (const [f, at, len, wave, loud, to] of SOUNDS[kind].notes) {
+        const t = now + at, o = actx.createOscillator(), g = actx.createGain();
+        o.type = wave;
+        o.frequency.setValueAtTime(f, t);
+        if (to) o.frequency.exponentialRampToValueAtTime(to, t + len);
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(Math.max(0.0002, 0.16 * vol * loud), t + 0.008);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+        o.connect(g).connect(actx.destination);
+        o.start(t);
+        o.stop(t + len + 0.02);
+      }
     } catch { /* no audio here */ }
   }
   // A small menu next to a button; closes on outside click or Escape.
@@ -362,7 +472,7 @@
     return el;
   }
   function updateTitle() {
-    const n = Object.values(S.unread).reduce((a, b) => a + b, 0);
+    const n = Object.entries(S.unread).reduce((a, [id, c]) => a + (isMuted(id) && !S.mentions[id] ? 0 : c), 0);
     document.title = (n ? `(${n}) ` : '') + 'Game Chat';
   }
   document.addEventListener('visibilitychange', () => {
@@ -400,22 +510,25 @@
     if (!S.me) return;
     const list = $('#roomList');
     list.replaceChildren();
-    const rooms = Object.values(S.rooms).sort((a, b) => (a.id === 'global' ? -1 : b.id === 'global' ? 1 : lastTs(b) - lastTs(a)));
-    for (const r of rooms) {
-      const n = S.unread[r.id];
+    for (const r of sortedRooms()) {
+      const n = S.unread[r.id], muted = isMuted(r.id), fav = isFav(r.id);
       const other = r.dm && r.members.find((m) => m !== S.me.username);
-      list.append(h('li', { class: r.id === S.current ? 'active' : '', onclick: () => selectRoom(r.id) },
+      list.append(h('li', { class: (r.id === S.current ? 'active' : '') + (muted ? ' muted-room' : ''), onclick: () => selectRoom(r.id) },
         r.dm ? avatar(other || S.me.username) : h('span', { class: 'room-icon' }, r.id === 'global' ? '🌐' : r.public ? '#' : '🔒'),
-        h('span', { class: 'grow' }, roomLabel(r), ' ', r.dm ? null : h('small', {}, `${roomActive(r)} active`)),
+        h('span', { class: 'grow' }, fav ? h('span', { class: 'fav-star', title: 'Favorite' }, '★ ') : null, roomLabel(r), ' ', r.dm ? null : h('small', {}, `${roomActive(r)} active`)),
+        muted ? h('span', { class: 'mute-icon', title: 'Muted' }, '🔕') : null,
         S.mentions[r.id] ? h('span', { class: 'badge mention', title: 'You were mentioned' }, '@') : null,
-        n ? h('span', { class: 'badge' }, n) : null));
+        n ? h('span', { class: 'badge' + (muted ? ' quiet' : '') }, n) : null));
     }
   }
+  // global first, then favorites, then the rest; newest activity first
+  const sortedRooms = () => Object.values(S.rooms).sort((a, b) => (a.id === 'global' ? -1 : b.id === 'global' ? 1 : (isFav(b.id) - isFav(a.id)) || lastTs(b) - lastTs(a)));
   function personRow(u) {
     const x = userOf(u);
     return h('li', { onclick: () => showProfile(u) }, avatar(u),
       h('span', { class: 'grow' }, x.name, u === S.me.username ? h('small', {}, ' (you)') : null, ' ',
-        x.inGame ? h('small', {}, `🎮 ${gameName(x.inGame)}`) : h('small', {}, PRESENCE_LABEL[x.presence])));
+        x.inGame ? h('small', {}, `🎮 ${gameName(x.inGame)}`) : h('small', { title: x.custom || '' }, x.custom || PRESENCE_LABEL[x.presence]),
+        isBlocked(u) ? h('small', { class: 'blocked-tag' }, ' blocked') : null));
   }
   function renderPeople() {
     if (!S.me) return;
@@ -427,7 +540,7 @@
     $('#onlineCount').textContent = `${n} Online`;
     const me = userOf(S.me.username);
     $('#meCard').replaceChildren(avatar(S.me.username),
-      h('div', { class: 'grow' }, h('b', {}, me.name), h('small', {}, `${ARTIFACT ? '' : handleText(me) + ' · '}${PRESENCE_LABEL[me.presence]}`)),
+      h('div', { class: 'grow' }, h('b', {}, me.name), h('small', {}, me.custom || `${ARTIFACT ? '' : handleText(me) + ' · '}${PRESENCE_LABEL[me.presence]}`)),
       h('span', { class: 'muted', style: 'font-size:18px' }, '⚙'));
   }
   function renderHeader() {
@@ -437,7 +550,7 @@
     let meta;
     if (r.dm) {
       const other = userOf(r.members.find((m) => m !== S.me.username) || S.me.username);
-      meta = PRESENCE_LABEL[other.presence];
+      meta = PRESENCE_LABEL[other.presence] + (other.custom ? ` · ${other.custom}` : '');
     } else meta = r.public ? `Public · ${roomActive(r)} active` : `Private · ${r.members.length} members · ${roomActive(r)} active`;
     $('#roomMeta').textContent = meta;
     $('#msgInput').placeholder = r.dm ? `Message ${roomLabel(r)}` : 'Say hello';
@@ -465,7 +578,7 @@
     box.append(msgEl(m, prev));
     if (!bulk && (stick || m.from === S.me.username)) box.scrollTop = box.scrollHeight;
   }
-  const snippet = (m) => (m.deleted ? 'Message deleted' : m.text ? m.text : m.poll ? `📊 ${m.poll.q}` : m.file ? `📎 ${m.file.name || m.file}` : 'Message');
+  const snippet = (m) => (m.deleted ? 'Message deleted' : m.text && m.text.startsWith('/me ') ? `* ${nameOf(m.from)} ${m.text.slice(4)}` : m.text ? m.text : m.poll ? `📊 ${m.poll.q}` : m.file ? `📎 ${m.file.name || m.file}` : 'Message');
   function msgEl(m, prev) {
     if (m.sys) return h('div', { class: 'sysmsg', 'data-id': m.id }, m.text);
     const mine = m.from === S.me.username;
@@ -477,8 +590,15 @@
           h('div', { class: 'meta' }, h('button', { class: 'who', onclick: () => showProfile(m.from) }, mine ? 'You' : nameOf(m.from)), h('span', { class: 'time' }, fmtTime(m.ts))),
           h('div', { class: 'text gone' }, mine ? '🚫 You deleted this message' : '🚫 This message was deleted')));
     }
+    if (isBlocked(m.from) && !S.revealed.has(m.id)) {
+      return h('div', { class: 'msg blocked-msg' + (mine ? ' me' : ''), 'data-id': m.id },
+        h('div', { class: 'body' }, h('button', { class: 'text gone', title: 'Show it anyway', onclick: () => { S.revealed.add(m.id); const el = $(`#messages [data-id="${CSS.escape(m.id)}"]`); if (el) el.replaceWith(msgEl(m, prev)); } },
+          '🚫 Message from someone you blocked · show')));
+    }
     const edited = m.editedAt && m.history && m.history.length;
-    const textEl = m.text || edited ? h('div', { class: 'text' + (m.text ? '' : ' hidden'), title: fmtTime(m.ts) }, richText(m.text || '')) : null;
+    const action = m.text && m.text.startsWith('/me ');
+    const body = (t) => (t && t.startsWith('/me ') ? [h('b', {}, nameOf(m.from)), ' ', ...richText(t.slice(4))] : richText(t || ''));
+    const textEl = m.text || edited ? h('div', { class: 'text' + (m.text ? '' : ' hidden') + (action ? ' me-action' : '') + (isJumbo(m.text) ? ' jumbo' : ''), title: new Date(m.ts).toLocaleString() }, body(m.text)) : null;
     let tag = null;
     if (edited) {
       // click "edited" to see the original text, click again to go back
@@ -487,7 +607,7 @@
       tag = h('button', { class: 'edited', title: `Edited ${fmtTime(m.editedAt)}. Click to see the original.`, onclick: (e) => {
         e.stopPropagation();
         showing = !showing;
-        textEl.replaceChildren(...(showing ? [original || '(no text)'] : richText(m.text || '')));
+        textEl.replaceChildren(...(showing ? [original || '(no text)'] : body(m.text)));
         textEl.classList.toggle('original', showing);
         textEl.classList.toggle('hidden', !showing && !m.text);
         tag.textContent = showing ? `original · sent ${fmtTime(m.ts)} · show edited` : 'edited';
@@ -498,7 +618,8 @@
       h('div', { class: 'body' },
         h('div', { class: 'meta' },
           h('button', { class: 'who', onclick: () => showProfile(m.from) }, mine ? 'You' : nameOf(m.from)),
-          h('span', { class: 'time' }, fmtTime(m.ts))),
+          h('span', { class: 'time', title: new Date(m.ts).toLocaleString() }, fmtTime(m.ts))),
+        m.pinned ? h('div', { class: 'pin-tag' }, `📌 Pinned by ${m.pinned.by === S.me.username ? 'you' : nameOf(m.pinned.by)}`) : null,
         m.replyTo ? replyQuote(m.replyTo) : null,
         m.file ? attachmentEl(m.file) : null,
         m.poll ? pollEl(m) : null,
@@ -513,8 +634,71 @@
           e.stopPropagation();
           const room = S.current;
           uiConfirm('Delete this message for everyone?', 'Delete', () => send({ t: 'del', room, id: m.id }));
-        } }, '🗑️') : null));
+        } }, '🗑️') : null,
+        h('button', { title: 'More', 'aria-label': 'More', onclick: (e) => { e.stopPropagation(); msgMenu(e.currentTarget, m); } }, '⋯')));
+    // double-click a message to give it a 👍
+    el.addEventListener('dblclick', (e) => {
+      if (e.target.closest('button, a, input, video, .spoiler')) return;
+      const sel = window.getSelection && window.getSelection();
+      if (sel) sel.removeAllRanges();
+      send({ t: 'react', room: S.current, id: m.id, emoji: '👍' });
+    });
     return el;
+  }
+  // only emoji (up to 6): show them big
+  function isJumbo(t) {
+    if (!t) return false;
+    t = t.trim();
+    if (t.length > 48 || !/^(?:\p{Extended_Pictographic}|\p{Emoji_Modifier}|\p{Regional_Indicator}|‍|️|⃣|\s)+$/u.test(t)) return false;
+    const n = (t.match(/\p{Extended_Pictographic}|\p{Regional_Indicator}{2}/gu) || []).length;
+    return n >= 1 && n <= 6;
+  }
+  // ---------------------------------------------------------------- message menu: copy, forward, pin, save
+  function menuItem(icon, label, fn, cls) {
+    return h('button', { type: 'button', class: 'menu-item' + (cls ? ' ' + cls : ''), onclick: () => { closePop(); fn(); } }, h('span', { class: 'mi-icon' }, icon), label);
+  }
+  function msgMenu(anchor, m) {
+    const room = S.current, saved = pref('saved', []).some((x) => x.id === m.id);
+    popover(anchor, h('div', { class: 'menu' },
+      m.text || m.poll || m.file ? menuItem('📋', 'Copy text', () => copyText(m.text || (m.poll ? m.poll.q : m.file.name))) : null,
+      menuItem('↪️', 'Forward…', () => forwardModal(m)),
+      menuItem('📌', m.pinned ? 'Unpin' : 'Pin to this chat', () => send({ t: 'pin', room, id: m.id, on: !m.pinned })),
+      menuItem('🔖', saved ? 'Remove from saved' : 'Save for later', () => toggleSaved(m, room)),
+      menuItem('👍', 'Like (double-click)', () => send({ t: 'react', room, id: m.id, emoji: '👍' }))), 'menu-pop');
+  }
+  async function copyText(t) {
+    // some browsers never answer the clipboard request inside an embedded page: give up quickly and copy the old way
+    try { await Promise.race([navigator.clipboard.writeText(t), new Promise((res, rej) => setTimeout(rej, 700))]); }
+    catch {
+      const ta = h('textarea', { style: 'position:fixed;left:-9999px;opacity:0' });
+      ta.value = t; document.body.append(ta); ta.select();
+      try { document.execCommand('copy'); } catch {}
+      ta.remove();
+    }
+    toast('Copied');
+  }
+  function forwardText(m) {
+    const quote = (t) => t.split('\n').map((l) => '> ' + l).join('\n');
+    const what = m.text ? quote(m.text.startsWith('/me ') ? `* ${nameOf(m.from)} ${m.text.slice(4)}` : m.text) : m.poll ? quote('📊 ' + m.poll.q) : '';
+    const file = m.file ? '\n> 📎 ' + (m.file.name || 'file') : '';
+    return (`↪️ Forwarded from **${nameOf(m.from)}**\n` + what + file).slice(0, 1000);
+  }
+  function forwardModal(m) {
+    openModal(() => [modalHead('Forward to…'),
+      h('div', { class: 'fwd-preview' }, richText(forwardText(m))),
+      h('ul', { class: 'list' }, sortedRooms().map((r) => h('li', { onclick: () => {
+        send({ t: 'msg', room: r.id, text: forwardText(m) });
+        closeModal();
+        toast(`Forwarded to ${roomLabel(r)}`);
+      } }, r.dm ? avatar(r.members.find((x) => x !== S.me.username) || S.me.username) : h('span', { class: 'room-icon' }, r.id === 'global' ? '🌐' : r.public ? '#' : '🔒'),
+      h('span', { class: 'grow' }, roomLabel(r)))))]);
+  }
+  function toggleSaved(m, room) {
+    const list = pref('saved', []);
+    if (list.some((x) => x.id === m.id)) { setPref('saved', list.filter((x) => x.id !== m.id)); toast('Removed from saved'); return; }
+    list.unshift({ id: m.id, room, from: m.from, text: snippet(m).slice(0, 300), ts: m.ts, at: Date.now() });
+    setPref('saved', list.slice(0, 100));
+    toast('Saved. Find it in ⋯ → Saved messages');
   }
   // ---------------------------------------------------------------- reactions and polls
   function reactionsEl(m) {
@@ -615,6 +799,7 @@
   function startEdit(m) {
     replyTo = null; editing = m;
     $('#msgInput').value = m.text || '';
+    fitInput();
     composeBar();
     $('#msgInput').focus();
   }
@@ -623,8 +808,12 @@
     replyTo = editing = null;
     composeBar();
   }
+  // the message box grows with what you type; Enter sends, Shift+Enter starts a new line
+  function fitInput() { const el = $('#msgInput'); el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight + 2, 160) + 'px'; }
+  $('#msgInput').addEventListener('input', fitInput);
   $('#msgInput').addEventListener('keydown', (e) => {
     if (mentionKey(e)) return;
+    if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); $('#composer').requestSubmit(); return; }
     if (e.key === 'Escape' && (replyTo || editing)) { e.stopPropagation(); cancelCompose(); }
     if (e.key === 'ArrowUp' && !e.target.value && !editing) {
       // up arrow in an empty box edits your last message
@@ -632,33 +821,47 @@
       if (mine) { e.preventDefault(); startEdit(mine); }
     }
   });
-  // ---------------------------------------------------------------- @mention suggestions
+  // ---------------------------------------------------------------- suggestions: @people, :emoji:, /commands
   const mbox = $('#mentionBox');
   let mlist = [], mpick = 0;
   function mentionQuery() {
     const inp = $('#msgInput'), before = inp.value.slice(0, inp.selectionStart);
-    const mt = /(^|\s)@([^\s@]{0,20})$/.exec(before);
-    return mt ? { q: mt[2], start: before.length - mt[2].length - 1 } : null;
+    let mt;
+    if ((mt = /^\/(\w{0,12})$/.exec(before))) return { kind: 'cmd', q: mt[1].toLowerCase(), start: 0 };
+    if ((mt = /(^|\s)@([^\s@]{0,20})$/.exec(before))) return { kind: 'at', q: mt[2].toLowerCase(), start: before.length - mt[2].length - 1 };
+    if ((mt = /(^|\s):([a-z0-9_+-]{2,20})$/i.exec(before))) return { kind: 'emoji', q: mt[2].toLowerCase(), start: before.length - mt[2].length - 1 };
+    return null;
   }
   function updateMentions() {
     const mq = mentionQuery();
-    const q = mq && mq.q.toLowerCase();
-    mlist = !mq ? [] : Object.values(S.users)
-      .filter((u) => u.username !== S.me.username && u.name && u.name.toLowerCase().startsWith(q))
-      .sort((a, b) => (a.presence === 'offline') - (b.presence === 'offline') || a.name.localeCompare(b.name)).slice(0, 6);
+    mlist = [];
+    if (mq && mq.kind === 'at') {
+      const r = S.rooms[S.current];
+      mlist = Object.values(S.users)
+        .filter((u) => u.username !== S.me.username && u.name && u.name.toLowerCase().startsWith(mq.q))
+        .sort((a, b) => (a.presence === 'offline') - (b.presence === 'offline') || a.name.localeCompare(b.name)).slice(0, 6)
+        .map((u) => ({ insert: '@' + u.name + ' ', view: [avatar(u.username), h('span', {}, u.name), h('small', { class: 'muted' }, PRESENCE_LABEL[u.presence])] }));
+      if (r && !r.dm) for (const [k, d] of [['everyone', 'Everyone in this chat'], ['here', 'Everyone online here']]) {
+        if (k.startsWith(mq.q)) mlist.push({ insert: '@' + k + ' ', view: [h('span', { class: 'sugg-icon' }, '📣'), h('span', {}, '@' + k), h('small', { class: 'muted' }, d)] });
+      }
+    } else if (mq && mq.kind === 'emoji') {
+      mlist = Object.entries(EMOJI_CODES).filter(([k]) => k.startsWith(mq.q)).slice(0, 8)
+        .map(([k, e]) => ({ insert: e + ' ', view: [h('span', { class: 'sugg-icon' }, e), h('span', {}, `:${k}:`)] }));
+    } else if (mq && mq.kind === 'cmd') {
+      mlist = COMMANDS.filter((c) => c.name.startsWith(mq.q))
+        .map((c) => ({ insert: '/' + c.name + (c.args ? ' ' : ''), view: [h('span', { class: 'sugg-icon' }, c.icon), h('span', {}, h('b', {}, '/' + c.name), c.args ? h('span', { class: 'muted' }, ' ' + c.args) : null), h('small', { class: 'muted' }, c.desc)] }));
+    }
     mpick = Math.min(mpick, Math.max(0, mlist.length - 1));
     if (!mlist.length) { mbox.classList.add('hidden'); mbox.replaceChildren(); return; }
     mbox.classList.remove('hidden');
-    mbox.replaceChildren(...mlist.map((u, i) => h('button', { type: 'button', class: i === mpick ? 'sel' : '', onmousedown: (e) => { e.preventDefault(); pickMention(i); } },
-      avatar(u.username), h('span', {}, u.name), h('small', { class: 'muted' }, PRESENCE_LABEL[u.presence]))));
+    mbox.replaceChildren(...mlist.map((it, i) => h('button', { type: 'button', class: i === mpick ? 'sel' : '', onmousedown: (e) => { e.preventDefault(); pickMention(i); } }, it.view)));
   }
   function pickMention(i) {
-    const u = mlist[i], mq = mentionQuery(), inp = $('#msgInput');
-    if (!u || !mq) return;
+    const it = mlist[i], mq = mentionQuery(), inp = $('#msgInput');
+    if (!it || !mq) return;
     const after = inp.value.slice(inp.selectionStart);
-    const ins = '@' + u.name + ' ';
-    inp.value = inp.value.slice(0, mq.start) + ins + after.replace(/^\S*\s?/, '');
-    const pos = mq.start + ins.length;
+    inp.value = inp.value.slice(0, mq.start) + it.insert + after.replace(/^\S*\s?/, '');
+    const pos = mq.start + it.insert.length;
     inp.setSelectionRange(pos, pos);
     inp.focus();
     mlist = [];
@@ -667,12 +870,65 @@
   function mentionKey(e) {
     if (!mlist.length) return false;
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { mpick = (mpick + (e.key === 'ArrowDown' ? 1 : mlist.length - 1)) % mlist.length; updateMentions(); }
-    else if (e.key === 'Enter' || e.key === 'Tab') pickMention(mpick);
+    else if (e.key === 'Tab' || (e.key === 'Enter' && !(mentionQuery() && mentionQuery().kind === 'cmd' && COMMANDS.some((c) => c.name === mentionQuery().q)))) pickMention(mpick);
     else if (e.key === 'Escape') { mlist = []; mbox.classList.add('hidden'); e.stopPropagation(); }
     else return false;
     e.preventDefault();
     return true;
   }
+
+  // ---------------------------------------------------------------- slash commands
+  const FACES = { shrug: '¯\\\\\\_(ツ)\\_/¯', tableflip: '(╯°□°)╯︵ ┻━┻', unflip: '┬─┬ノ( º \\_ ºノ)', lenny: '( ͡° ͜ʖ ͡°)' };
+  const COMMANDS = [
+    { name: 'me', icon: '💬', args: '<action>', desc: 'Say what you’re doing: /me waves', run: (r) => (r ? '/me ' + r : null) },
+    { name: 'shrug', icon: '🤷', args: '[text]', desc: '¯\\_(ツ)_/¯', run: (r) => (r ? r + ' ' : '') + FACES.shrug },
+    { name: 'tableflip', icon: '😤', args: '[text]', desc: '(╯°□°)╯︵ ┻━┻', run: (r) => (r ? r + ' ' : '') + FACES.tableflip },
+    { name: 'unflip', icon: '😌', args: '[text]', desc: '┬─┬ノ( º _ ºノ)', run: (r) => (r ? r + ' ' : '') + FACES.unflip },
+    { name: 'lenny', icon: '😏', args: '[text]', desc: '( ͡° ͜ʖ ͡°)', run: (r) => (r ? r + ' ' : '') + FACES.lenny },
+    { name: 'roll', icon: '🎲', args: '[2d6]', desc: 'Roll dice for everyone to see', run: rollDice },
+    { name: 'flip', icon: '🪙', args: '', desc: 'Flip a coin', run: () => `🪙 flipped a coin: **${Math.random() < 0.5 ? 'Heads' : 'Tails'}**` },
+    { name: 'remind', icon: '⏰', args: '<10m> <note>', desc: 'Remind yourself later (only you see it)', run: (r) => { addReminder(r); return null; } },
+    { name: 'help', icon: '❓', args: '', desc: 'Commands, formatting and shortcuts', run: () => { helpModal(); return null; } },
+  ];
+  function rollDice(arg) {
+    const m = /^(?:(\d{1,2})?d)?(\d{1,3})$/i.exec((arg || '').trim()) || (arg ? null : [0, '1', '6']);
+    if (!m) { toast('Try /roll, /roll 20 or /roll 2d6', 'err'); return null; }
+    const n = Math.max(1, Math.min(10, +(m[1] || 1))), sides = Math.max(2, Math.min(100, +m[2]));
+    const rolls = Array.from({ length: n }, () => 1 + Math.floor(Math.random() * sides)), sum = rolls.reduce((a, b) => a + b, 0);
+    return n === 1 ? `🎲 rolled a d${sides}: **${sum}**` : `🎲 rolled ${n}d${sides}: ${rolls.join(' + ')} = **${sum}**`;
+  }
+  // a text you're about to send that starts with / is a command; returns the text to send (or null)
+  function runCommand(text) {
+    const m = /^\/(\w+)(?:\s+([\s\S]*))?$/.exec(text);
+    if (!m) return text;
+    const c = COMMANDS.find((x) => x.name === m[1].toLowerCase());
+    if (!c) { toast(`There’s no /${m[1]} command. Type /help to see them all.`, 'err'); return null; }
+    return c.run((m[2] || '').trim());
+  }
+  // ---------------------------------------------------------------- reminders (this browser only)
+  function addReminder(arg) {
+    const m = /^(\d{1,4})\s*(s|sec|secs|seconds?|m|min|mins|minutes?|h|hr|hrs|hours?)?\s+([\s\S]+)$/i.exec(arg || '');
+    if (!m) { toast('Try /remind 10m stretch, or /remind 1h start the tournament', 'err'); return; }
+    const unit = (m[2] || 'm')[0].toLowerCase(), ms = +m[1] * (unit === 's' ? 1000 : unit === 'h' ? 3600e3 : 60e3);
+    if (ms > 24 * 3600e3) { toast('Reminders can be up to 24 hours away', 'err'); return; }
+    const list = pref('reminders', []);
+    list.push({ at: Date.now() + ms, text: m[3].slice(0, 200), room: S.current });
+    setPref('reminders', list);
+    const mins = Math.round(ms / 60e3);
+    toast(`⏰ I’ll remind you in ${ms < 60e3 ? Math.round(ms / 1000) + ' seconds' : mins < 60 ? mins + ' minute' + (mins === 1 ? '' : 's') : (ms / 3600e3).toFixed(ms % 3600e3 ? 1 : 0) + ' hours'}`);
+  }
+  setInterval(() => {
+    if (!S.me) return;
+    const list = pref('reminders', []), now = Date.now(), due = list.filter((r) => r.at <= now);
+    if (!due.length) return;
+    setPref('reminders', list.filter((r) => r.at > now));
+    for (const r of due) {
+      const t = toast(`⏰ Reminder: ${r.text}`, 'reminder-toast', 20000);
+      t.style.cursor = 'pointer';
+      t.addEventListener('click', () => t.remove());
+      ping(soundKind() === 'off' ? 'off' : 'bell');
+    }
+  }, 2000);
   $('#msgInput').addEventListener('input', updateMentions);
   $('#msgInput').addEventListener('click', updateMentions);
   $('#msgInput').addEventListener('blur', () => setTimeout(() => { mlist = []; mbox.classList.add('hidden'); }, 150));
@@ -854,6 +1110,16 @@
     sendFiles(e.dataTransfer.files);
   });
 
+  // "Jump to latest" when you've scrolled up, with how many new messages arrived below
+  function updateJump() {
+    const box = $('#messages'), btn = $('#jumpBtn');
+    const far = box.scrollHeight - box.scrollTop - box.clientHeight > 300;
+    if (!far) S.newBelow = 0;
+    btn.classList.toggle('hidden', !far);
+    btn.textContent = S.newBelow ? `↓ ${S.newBelow} new message${S.newBelow === 1 ? '' : 's'}` : '↓ Jump to latest';
+  }
+  $('#messages').addEventListener('scroll', () => updateJump());
+  $('#jumpBtn').addEventListener('click', () => { const box = $('#messages'); box.scrollTo({ top: box.scrollHeight, behavior: 'smooth' }); S.newBelow = 0; setTimeout(updateJump, 400); });
   function renderTyping() {
     const t = S.typing[S.current] || {}, now = Date.now();
     const who = Object.keys(t).filter((u) => now - t[u] < 3500).map(nameOf);
@@ -863,7 +1129,9 @@
 
   function selectRoom(id) {
     if (!S.rooms[id]) return;
-    if (id !== S.current) cancelCompose();
+    const switching = id !== S.current;
+    if (switching) { saveDraft(); cancelCompose(); }
+    const unreadN = S.unread[id] || 0;
     S.current = id;
     store.set('chatRoom', id);
     delete S.unread[id];
@@ -873,6 +1141,15 @@
     renderRooms();
     renderHeader();
     renderMessages();
+    if (switching) { $('#msgInput').value = pref('drafts', {})[id] || ''; fitInput(); }
+    // a line above the first message you haven't seen
+    if (unreadN) {
+      const msgs = S.rooms[id].messages, first = msgs[Math.max(0, msgs.length - unreadN)];
+      const el = first && $(`#messages [data-id="${CSS.escape(first.id)}"]`);
+      if (el) { el.before(h('div', { class: 'new-divider' }, h('span', {}, `${unreadN} new message${unreadN === 1 ? '' : 's'}`))); el.scrollIntoView({ block: 'center' }); }
+    }
+    S.newBelow = 0;
+    updateJump();
     updateTitle();
     if (matchMedia('(min-width: 721px)').matches) $('#msgInput').focus();
   }
@@ -880,8 +1157,18 @@
   // ---------------------------------------------------------------- composer
   let lastTyping = 0;
   $('#msgInput').addEventListener('input', () => {
-    if (Date.now() - lastTyping > 2000) { lastTyping = Date.now(); send({ t: 'typing', room: S.current }); }
+    if (Date.now() - lastTyping > 2000 && !$('#msgInput').value.startsWith('/')) { lastTyping = Date.now(); send({ t: 'typing', room: S.current }); }
+    clearTimeout(draftTimer);
+    draftTimer = setTimeout(saveDraft, 400);
   });
+  // drafts: what you were typing in each chat is kept when you switch chats or reload
+  let draftTimer = 0;
+  function saveDraft(roomId) {
+    if (!S.me || editing) return;
+    const d = pref('drafts', {}), v = $('#msgInput').value;
+    if (v.trim()) d[roomId || S.current] = v; else delete d[roomId || S.current];
+    setPref('drafts', d);
+  }
   $('#composer').addEventListener('submit', (e) => {
     e.preventDefault();
     const input = $('#msgInput'), text = input.value.trim();
@@ -889,12 +1176,18 @@
       if (!text && !editing.file) return;
       if (text !== (editing.text || '')) send({ t: 'edit', room: S.current, id: editing.id, text });
       input.value = '';
+      fitInput();
       cancelCompose();
       return;
     }
     if (!text) return;
-    send(replyTo ? { t: 'msg', room: S.current, text, replyTo: replyTo.id } : { t: 'msg', room: S.current, text });
+    const out = text.startsWith('/') && !text.startsWith('//') ? runCommand(text) : text.replace(/^\/\//, '/');
     input.value = '';
+    fitInput();
+    saveDraft();
+    if (!out) { cancelCompose(); return; }
+    const body = swapShortcodes(out).slice(0, 1000);
+    send(replyTo ? { t: 'msg', room: S.current, text: body, replyTo: replyTo.id } : { t: 'msg', room: S.current, text: body });
     lastTyping = 0;
     cancelCompose();
   });
@@ -981,7 +1274,8 @@
       return [
         h('div', { class: 'modal-head' }, h('div', { class: 'profile-top', style: 'flex:1' }, avatar(u, true),
           h('div', {}, h('h2', {}, x.name), h('div', { class: 'muted' }, handleText(x)),
-            h('div', {}, h('i', { class: 'dot ' + x.presence }), ' ', PRESENCE_LABEL[x.presence], x.inGame ? ` · playing ${gameName(x.inGame)}` : ''))),
+            h('div', {}, h('i', { class: 'dot ' + x.presence }), ' ', PRESENCE_LABEL[x.presence], x.inGame ? ` · playing ${gameName(x.inGame)}` : ''),
+            x.custom ? h('div', { class: 'custom-status' }, x.custom) : null)),
         h('button', { class: 'close-x', onclick: closeModal }, 'X')),
         h('div', { class: 'bio-box' }, h('b', {}, 'Bio'), h('div', { style: 'white-space:pre-wrap' }, x.bio || h('span', { class: 'muted' }, 'No bio yet.'))),
         h('div', { class: 'field' }, h('b', {}, 'Favorite games'),
@@ -994,6 +1288,11 @@
             CALLS && x.presence !== 'offline' ? h('button', { class: 'btn', title: 'Voice call', onclick: () => { closeModal(); Calls.start(u, false); } }, '📞 Call') : null,
             CALLS && x.presence !== 'offline' ? h('button', { class: 'btn', title: 'Video call', onclick: () => { closeModal(); Calls.start(u, true); } }, '🎥 Video') : null,
             h('button', { class: 'btn primary', onclick: () => gameModal(u) }, 'Challenge')),
+        mine ? null : h('div', { class: 'row end' }, h('button', { class: 'btn small ghost danger-text', onclick: () => {
+          const on = toggleIn('blocked', u);
+          toast(on ? `Blocked ${x.name}. You won’t see their messages, pings or challenges.` : `Unblocked ${x.name}`);
+          build.refresh(); renderPeople(); renderMessages();
+        } }, isBlocked(u) ? '✅ Unblock' : '🚫 Block')),
       ];
     };
     build.refresh = () => $('#modalCard').replaceChildren(...build());
@@ -1084,6 +1383,8 @@
         h('div', { class: 'settings-grid' },
           h('section', {},
             h('label', { class: 'field' }, h('span', {}, 'Name'), name),
+            h('label', { class: 'field' }, h('span', {}, 'Custom status ', h('small', { class: 'muted' }, '(shows under your name)')),
+              h('input', { value: me.custom || '', maxlength: 60, placeholder: 'e.g. 🎮 grinding Tower Defense', onchange: (e) => set({ custom: e.target.value }) })),
             ARTIFACT ? null : h('div', { class: 'field' }, h('span', {}, 'Password'), oldPw, newPw,
               h('button', { class: 'btn', onclick: () => { send({ t: 'password', old: oldPw.value, new: newPw.value }); oldPw.value = newPw.value = ''; } }, 'Change password')),
             h('label', { class: 'field' }, h('span', {}, ARTIFACT ? 'Claude account' : 'Username'), h('input', { value: me.handle || me.username, disabled: true, title: ARTIFACT ? 'You’re signed in with your Claude account' : 'Usernames can’t be changed' })),
@@ -1096,8 +1397,17 @@
               h('small', { class: 'muted' }, me.photo ? 'The color shows while your photo loads.' : 'Or pick a color:'),
               h('div', { class: 'swatches' }, AVATARS.map((c) => h('button', { class: 'swatch' + (me.avatar.toLowerCase() === c ? ' sel' : ''), style: `background:${c}`, title: c, onclick: () => set({ avatar: c }) }))),
               h('label', { class: 'field' }, h('small', {}, 'Color selector'), avColor)),
-            h('label', { class: 'row sound-row' }, h('input', { type: 'checkbox', checked: soundOn(), style: 'width:auto', onchange: (e) => { store.set('chatSound', e.target.checked ? null : '0'); if (e.target.checked) ping(); } }),
-              'Play a sound when someone @mentions you or sends you a direct message')),
+            h('div', { class: 'boxed-title' }, 'Notifications'),
+            h('small', { class: 'muted' }, 'Plays when someone @mentions you or sends you a direct message while you’re on another tab or in another chat.'),
+            h('div', { class: 'sound-grid' },
+              h('select', { class: 'sound-pick', 'aria-label': 'Sound', onchange: (e) => { store.set('chatSound', null); setPref('sound', e.target.value); ping(); } },
+                Object.entries(SOUNDS).map(([k, v]) => h('option', { value: k, selected: soundKind() === k }, '🔔 ' + v.label)),
+                h('option', { value: 'off', selected: soundKind() === 'off' }, '🔕 No sound')),
+              h('button', { class: 'btn small', onclick: () => ping(soundKind() === 'off' ? 'ding' : soundKind()) }, '▶ Test')),
+            h('label', { class: 'field' }, h('small', {}, 'Volume'),
+              h('input', { type: 'range', min: 0, max: 1, step: 0.05, value: pref('volume', 0.7), oninput: (e) => setPref('volume', +e.target.value), onchange: () => ping() })),
+            h('label', { class: 'row sound-row' }, h('input', { type: 'checkbox', checked: pref('friendAlerts', true), style: 'width:auto', onchange: (e) => setPref('friendAlerts', e.target.checked) }),
+              'Tell me when a friend comes online')),
           h('section', {},
             h('div', { class: 'boxed-title' }, 'Status'),
             h('div', {}, statusOpt('online', 'var(--online)', 'Online'), statusOpt('offline', 'var(--offline)', 'Offline (appear offline)'), statusOpt('idle', 'var(--idle)', 'Idle / do not disturb')),
@@ -1114,7 +1424,11 @@
             h('div', { class: 'friends-box' }, h('b', {}, 'Friends list'),
               friends.length ? friends.map((f) => h('div', { class: 'row', style: 'cursor:pointer', onclick: () => showProfile(f) }, h('i', { class: 'dot ' + userOf(f).presence }), nameOf(f), h('small', { class: 'muted' }, PRESENCE_LABEL[userOf(f).presence])))
                 : h('span', { class: 'muted' }, 'No friends yet — click someone’s name and press “Add friend”.')),
-            h('div', { class: 'boxed-title' }, 'Your record'), record(me.stats))),
+            h('div', { class: 'boxed-title' }, 'Your record'), record(me.stats),
+            h('div', { class: 'friends-box' }, h('b', {}, 'Blocked people'),
+              pref('blocked', []).length ? pref('blocked', []).map((b) => h('div', { class: 'row' }, h('span', { style: 'flex:1' }, nameOf(b)),
+                h('button', { class: 'btn small', onclick: () => { toggleIn('blocked', b); $('#modalCard').replaceChildren(...build()); renderPeople(); renderMessages(); } }, 'Unblock')))
+                : h('span', { class: 'muted' }, 'Nobody. Open someone’s profile to block them.')))),
       ];
     };
     // Re-render on updates, but never while the user is typing in a field.
@@ -1126,7 +1440,112 @@
     openModal(build, true);
   }
 
+  // ---------------------------------------------------------------- chat menu (⋯ in the top bar)
+  function chatMenu(anchor) {
+    const r = S.rooms[S.current];
+    if (!r) return;
+    const pins = r.messages.filter((m) => m.pinned && !m.deleted).length, saved = pref('saved', []).length;
+    const unread = Object.values(S.unread).reduce((a, b) => a + b, 0);
+    popover(anchor, h('div', { class: 'menu' },
+      menuItem('📌', `Pinned messages${pins ? ` (${pins})` : ''}`, pinnedModal),
+      menuItem('🔖', `Saved messages${saved ? ` (${saved})` : ''}`, savedModal),
+      menuItem('🖼️', 'Photos & videos in this chat', galleryModal),
+      menuItem('📤', 'Export this chat', exportChat),
+      h('hr'),
+      menuItem(isFav(r.id) ? '☆' : '★', isFav(r.id) ? 'Remove from favorites' : 'Favorite (keep at the top)', () => { toggleIn('favs', r.id); renderRooms(); }),
+      menuItem(isMuted(r.id) ? '🔔' : '🔕', isMuted(r.id) ? 'Unmute this chat' : 'Mute (no sounds or counts, except @mentions)', () => { const on = toggleIn('muted', r.id); renderRooms(); updateTitle(); toast(on ? 'Muted. You’ll still hear @mentions.' : 'Unmuted'); }),
+      menuItem('✔️', `Mark all chats as read${unread ? ` (${unread})` : ''}`, markAllRead),
+      h('hr'),
+      menuItem('⌨️', 'Commands, formatting & shortcuts', helpModal)), 'menu-pop');
+  }
+  function markAllRead() { S.unread = {}; S.mentions = {}; renderRooms(); updateTitle(); toast('All caught up ✔️'); }
+  function jumpToMsg(roomId, id) {
+    closeModal();
+    if (!S.rooms[roomId]) { toast('That chat isn’t available any more.', 'err'); return; }
+    if (roomId !== S.current) selectRoom(roomId);
+    setTimeout(() => jumpTo(id), 60);
+  }
+  function msgRow(m, roomId, extra) {
+    return h('div', { class: 'list-msg' }, avatar(m.from),
+      h('div', { class: 'grow' }, h('div', { class: 'search-meta' }, h('b', {}, m.from === S.me.username ? 'You' : nameOf(m.from)),
+        h('small', { class: 'muted' }, `${S.rooms[roomId] ? roomLabel(S.rooms[roomId]) : 'Old chat'} · ${fmtDay(m.ts)} ${fmtTime(m.ts)}`)),
+      h('div', { class: 'search-text' }, typeof m.text === 'string' && !m.poll && !m.file ? richText(m.text) : snippet(m))),
+      h('div', { class: 'list-msg-btns' }, h('button', { class: 'btn small', onclick: () => jumpToMsg(roomId, m.id) }, 'Go to'), extra || null));
+  }
+  function pinnedModal() {
+    const build = () => {
+      const r = S.rooms[S.current], pins = r.messages.filter((m) => m.pinned && !m.deleted).sort((a, b) => b.pinned.ts - a.pinned.ts);
+      return [modalHead(`📌 Pinned in ${roomLabel(r)}`),
+        h('div', { class: 'search-results' }, pins.length ? pins.map((m) => msgRow(m, r.id, h('button', { class: 'btn small ghost', onclick: () => send({ t: 'pin', room: r.id, id: m.id, on: false }) }, 'Unpin')))
+          : h('div', { class: 'muted' }, 'Nothing pinned yet. Hover a message, press ⋯ and pick “Pin to this chat”.'))];
+    };
+    build.refresh = () => $('#modalCard').replaceChildren(...build());
+    openModal(build, true);
+  }
+  function savedModal() {
+    const build = () => {
+      const list = pref('saved', []);
+      return [modalHead('🔖 Saved messages'), h('small', { class: 'muted' }, 'Only you can see these. They’re kept in this browser.'),
+        h('div', { class: 'search-results' }, list.length ? list.map((x) => msgRow({ id: x.id, from: x.from, text: x.text, ts: x.ts }, x.room,
+          h('button', { class: 'btn small ghost', onclick: () => { setPref('saved', pref('saved', []).filter((y) => y.id !== x.id)); $('#modalCard').replaceChildren(...build()); } }, 'Remove')))
+          : h('div', { class: 'muted' }, 'Nothing saved yet. Hover a message, press ⋯ and pick “Save for later”.'))];
+    };
+    openModal(build, true);
+  }
+  function galleryModal() {
+    const r = S.rooms[S.current];
+    const media = r.messages.filter((m) => m.file && !m.deleted && (isImage(m.file) || isVideo(m.file))).reverse();
+    openModal(() => [modalHead(`🖼️ Photos & videos in ${roomLabel(r)}`),
+      media.length ? h('div', { class: 'gallery' }, media.map((m) => isImage(m.file)
+        ? h('button', { class: 'gallery-tile', title: `${m.file.name} · ${nameOf(m.from)}`, onclick: () => showImage(m.file) }, h('img', { src: m.file.url, alt: m.file.name, loading: 'lazy' }))
+        : h('button', { class: 'gallery-tile video', title: `${m.file.name} · ${nameOf(m.from)}`, onclick: () => jumpToMsg(r.id, m.id) }, h('video', { src: m.file.url, preload: 'metadata', muted: true }), h('span', {}, '▶'))))
+        : h('div', { class: 'muted' }, 'No photos or videos in the recent messages of this chat.')], true);
+  }
+  async function exportChat() {
+    const r = S.rooms[S.current];
+    const lines = [`${roomLabel(r)} — exported ${new Date().toLocaleString()}`, ''].concat(r.messages.map((m) => {
+      const when = new Date(m.ts).toLocaleString();
+      if (m.sys) return `[${when}] • ${m.text}`;
+      const who = nameOf(m.from);
+      if (m.deleted) return `[${when}] ${who}: (deleted)`;
+      let t = m.text && m.text.startsWith('/me ') ? `* ${who} ${m.text.slice(4)}` : `${who}: ${m.text || ''}`;
+      if (m.file) t += ` [file: ${m.file.name}]`;
+      if (m.poll) t += ` [poll: ${m.poll.q} — ${m.poll.options.map((o) => `${o.text} (${o.votes.length})`).join(', ')}]`;
+      return `[${when}] ${t}`;
+    }));
+    const name = `${roomLabel(r).replace(/[^\w -]+/g, '').trim() || 'chat'}.txt`, blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+    try {
+      if (ARTIFACT) await transport.saveBlob(name, blob);
+      else {
+        const url = URL.createObjectURL(blob), a = h('a', { href: url, download: name });
+        document.body.append(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+      }
+    } catch (e) { toast(e.message || 'Couldn’t export the chat.', 'err'); }
+  }
+  function helpModal() {
+    const row = (a, b) => h('div', { class: 'help-row' }, h('code', {}, a), h('span', {}, b));
+    openModal(() => [modalHead('Commands, formatting & shortcuts'),
+      h('div', { class: 'help-grid' },
+        h('section', {}, h('b', {}, 'Commands'), COMMANDS.map((c) => row('/' + c.name + (c.args ? ' ' + c.args : ''), c.desc))),
+        h('section', {}, h('b', {}, 'Formatting'),
+          row('**bold**', 'bold'), row('*italic* or _italic_', 'italic'), row('~~strike~~', 'strikethrough'), row('`code`', 'code'),
+          row('```code block```', 'code block'), row('> quote', 'quote'), row('||spoiler||', 'hidden until clicked'), row(':fire:', '🔥 emoji shortcodes'),
+          row('@name, @everyone, @here', 'ping people'), row('\\*', 'show a symbol as is'),
+          h('b', {}, 'Shortcuts'),
+          row('Enter / Shift + Enter', 'send / new line'), row('Ctrl/⌘ + K', 'search'), row('Alt + ↑ / ↓', 'previous / next chat'), row('↑ in an empty box', 'edit your last message'),
+          row('Double-click a message', '👍 it'), row('Esc', 'cancel a reply or edit')))], true);
+  }
+
   // ---------------------------------------------------------------- wire up
+  $('#moreBtn').addEventListener('click', (e) => { e.stopPropagation(); if (pop && pop.classList.contains('menu-pop')) { closePop(); return; } chatMenu(e.currentTarget); });
+  $('#moreBtn').addEventListener('mousedown', (e) => e.stopPropagation());
+  document.addEventListener('keydown', (e) => {
+    if (!e.altKey || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') || !S.me || $('#app').classList.contains('hidden')) return;
+    const ids = sortedRooms().map((r) => r.id), i = ids.indexOf(S.current);
+    const next = ids[(i + (e.key === 'ArrowDown' ? 1 : ids.length - 1)) % ids.length];
+    if (next) { e.preventDefault(); selectRoom(next); }
+  });
   $('#newChatBtn').addEventListener('click', newChatModal);
   $('#settingsBtn').addEventListener('click', settingsModal);
   $('#meCard').addEventListener('click', settingsModal);

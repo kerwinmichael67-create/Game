@@ -22,6 +22,15 @@ An online chat where you can talk to whoever is online, make your own chats, and
 - **Delete** your own messages (🗑️). Everyone sees "This message was deleted".
 - **Search** (🔍 or Ctrl+K) through recent messages, file names and polls in all your chats. Click a result to jump to it.
 - **Emoji picker** (😊 next to the message box) and clickable links in messages.
+- **Formatting**: `**bold**`, `*italic*`, `~~strike~~`, `` `code` ``, code blocks with three backticks, `> quotes` and `||spoilers||` (click to reveal). The message box is multi-line: Enter sends, Shift+Enter starts a new line.
+- **Commands** (type `/` for suggestions): `/me waves`, `/shrug`, `/tableflip`, `/unflip`, `/lenny`, `/roll 2d6`, `/flip`, `/remind 10m stretch` (only you see reminders) and `/help`.
+- **Emoji shortcodes**: type `:fire:` (with suggestions after two letters). A message of just a few emoji shows them big.
+- **@everyone and @here** ping everyone in the chat.
+- **Mention sound**: when someone @mentions you, or sends you a direct message, while you're on another tab or in another chat, a sound plays. Pick Ding, Chime, Bell, Pop, Blip or none, and the volume, in Settings. Mentions still ping in muted chats.
+- **Message menu** (⋯ on a message): copy text, forward to another chat, pin to the chat, save for later. Double-click a message to 👍 it.
+- **Chat menu** (⋯ in the top bar): pinned messages, saved messages, photos & videos in the chat, export the chat as a text file, favorite (keeps it at the top), mute, mark all chats read, and a list of commands and shortcuts.
+- **Drafts** are kept per chat. A **Jump to latest** button shows how many new messages arrived while you were scrolled up, and a **New messages** line marks where you left off. **Alt+↑/↓** switches chats.
+- **Custom status** under your name, **friend online alerts**, and **blocking** someone (from their profile) hides their messages, pings, typing and challenges. Blocking, muting, favorites, drafts, saved messages and sound settings are kept in your own browser.
 - **Request a game**: pick a game and an online opponent. They get an Accept / Decline pop-up, and the game opens next to the chat. Results are posted to the chat, and everyone's win/loss record shows on their profile.
 
 ### Games (all online, player vs player)

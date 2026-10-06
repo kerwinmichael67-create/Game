@@ -102,7 +102,7 @@
       const p = profiles[id] || {};
       const st = p.stats || {};
       return {
-        username: id, handle: (platform[id] && platform[id].name) || '', name: displayName(id), bio: str(p.bio, 300),
+        username: id, handle: (platform[id] && platform[id].name) || '', name: displayName(id), bio: str(p.bio, 300), custom: str(p.custom, 60),
         avatar: avatarOf(id), photo: typeof p.photo === 'string' && ASSET_ID.test(p.photo) ? '/_blob/' + p.photo : null, favorites: ids(p.favorites).filter((g) => GAMES[g]), presence: presenceOf(id),
         stats: { w: +st.w || 0, l: +st.l || 0, d: +st.d || 0 }, inGame: inGameOf(id),
       };
@@ -169,6 +169,7 @@
         for (const e of Array.isArray(list) ? list : []) if (REACTIONS.includes(e)) (reactions[e] = reactions[e] || []).push(uid);
       }
       if (Object.keys(reactions).length) m.reactions = reactions;
+      if (d.pinned && typeof d.pinned === 'object' && typeof d.pinned.by === 'string') m.pinned = { by: d.pinned.by, ts: +d.pinned.ts || 0 };
       const poll = pollOf(d.poll);
       if (poll) {
         for (const [uid, i] of Object.entries(d.votes && typeof d.votes === 'object' ? d.votes : {})) if (poll.options[i]) poll.options[i].votes.push(uid);
@@ -562,6 +563,13 @@
         const cur = d.votes && d.votes[myId];
         db.doc(`rooms/${m.room}/msgs/${d.id}`).update({ votes: { [myId]: cur === m.option ? -1 : m.option } }).catch(writeError);
       },
+      pin(m) {
+        const list = rawMsgs[m.room] || [], d = list.find((x) => x.id === m.id);
+        if (!d || d.sys || d.deleted) return;
+        if (readOnly) return writeError({ code: 'invalid_argument' });
+        if (m.on && list.filter((x) => x.pinned).length >= 25) return emit({ t: 'error', text: 'A chat can have up to 25 pinned messages' });
+        db.doc(`rooms/${m.room}/msgs/${d.id}`).update({ pinned: m.on ? { by: myId, ts: Date.now() } : null }).catch(writeError);
+      },
       del(m) {
         const d = (rawMsgs[m.room] || []).find((x) => x.id === m.id);
         if (!d || d.sys || d.from !== myId) return emit({ t: 'error', text: 'You can only delete your own messages' });
@@ -622,6 +630,7 @@
         const d = m.data || {}, patch = {};
         if (typeof d.name === 'string' && str(d.name, 30)) patch.name = str(d.name, 30);
         if (typeof d.bio === 'string') patch.bio = str(d.bio, 300);
+        if (typeof d.custom === 'string') patch.custom = str(d.custom, 60);
         if (['online', 'offline', 'idle'].includes(d.status)) { patch.status = d.status; if (!signedOut) setPresence({ status: d.status }); }
         if (['auto', 'white', 'black', 'custom'].includes(d.bg)) patch.bg = d.bg;
         if (isColor(d.bgCustom)) patch.bgCustom = d.bgCustom;
@@ -722,6 +731,11 @@
       },
       // Save a shared file to the viewer's device (the platform asks them to confirm).
       canSave: () => !!downloads,
+      // hand the viewer a file made here (a chat export)
+      async saveBlob(filename, blob) {
+        if (!downloads) throw new Error('Saving files isn’t available here.');
+        try { await downloads.save({ filename, data: blob }); } catch (e) { if (!e || e.code !== 'declined') throw new Error('Couldn’t save the file.'); }
+      },
       async save(file) {
         if (!downloads) throw new Error('Saving files isn’t available here.');
         const blob = await (await fetch(file.url)).blob();
