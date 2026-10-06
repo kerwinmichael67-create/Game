@@ -69,6 +69,15 @@
     },
   };
   const ORDER = ['pistol', 'machinegun', 'sniper', 'flamethrower', 'farm'];
+  // Every level has its own name and icon (level 0 is the tower as bought).
+  const LOOKS = {
+    pistol: [['Pistol', '🔫'], ['Revolver', '🤠'], ['Dual Pistols', '✌️'], ['Hand Cannon', '💣'], ['Elite Marksman', '🎖️'], ['Golden Gun', '👑']],
+    machinegun: [['Machine Gun', '💥'], ['Heavy MG', '⚙️'], ['Twin MG', '🔩'], ['Armored Nest', '🛡️'], ['Minigun', '🌀'], ['Doom Gatling', '☢️']],
+    sniper: [['Sniper', '🎯'], ['Scoped Rifle', '🔭'], ['Eagle Eye', '🦅'], ['Cold Shot', '🧊'], ['Railgun', '⚡'], ['Deadeye', '💀']],
+    flamethrower: [['Flamethrower', '🔥'], ['Hot Sauce', '🌶️'], ['Magma', '🌋'], ['Inferno', '☄️'], ['Dragon Breath', '🐉'], ['Solar Flare', '☀️']],
+    farm: [['Farm', '🌾'], ['Corn Field', '🌽'], ['Ranch', '🐄'], ['Tractor Co.', '🚜'], ['Estate', '🏡'], ['Gold Mine', '💰']],
+  };
+  for (const k of ORDER) { TOWERS[k].names = LOOKS[k].map((x) => x[0]); TOWERS[k].icons = LOOKS[k].map((x) => x[1]); }
   const TARGETS = ['first', 'strong', 'last', 'close'];
 
   const ENEMIES = {

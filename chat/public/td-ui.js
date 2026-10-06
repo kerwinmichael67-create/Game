@@ -41,19 +41,41 @@
       shop.append(shopBtns[type]);
     }
     const info = h('div', { class: 'td-info' });
-    const oppMap = h('canvas', { width: 200, height: 125, class: 'td-mini' });
+    const oppMap = h('canvas', { width: 200, height: 125, class: 'td-mini', title: 'Click to watch their map', onclick: () => openPeek() });
+    const peekCv = h('canvas', { width: T.W, height: T.H, class: 'td-peek-canvas' });
+    const peekHead = h('div', { class: 'td-peek-title' });
+    const peek = h('div', { class: 'td-peek hidden', onclick: (e) => { if (e.target === peek) closePeek(); } },
+      h('div', { class: 'td-peek-card' },
+        h('div', { class: 'td-peek-head' }, peekHead, h('button', { class: 'close-x', title: 'Close (Esc)', 'aria-label': 'Close', onclick: () => closePeek() }, 'X')),
+        peekCv, h('small', { class: 'muted' }, api.bot ? 'Live view of the bot’s map.' : 'Live view, updated a couple of times a second. Your own game keeps running.')));
+    let peekOpen = false;
+    function openPeek() { peekOpen = true; peek.classList.remove('hidden'); drawPeek(); }
+    function closePeek() { peekOpen = false; peek.classList.add('hidden'); }
     const oppBox = h('div', { class: 'td-opp' });
     stage.append(h('div', { class: 'td-wrap' },
       h('div', { class: 'td-board' }, cv),
       h('div', { class: 'td-side' }, stats, h('div', { class: 'row td-wave-row' }, waveBtn, h('span', { class: 'td-speeds' }, speedBtns)),
-        h('b', { class: 'td-h' }, 'Towers'), shop, info, h('b', { class: 'td-h' }, api.bot ? oppName : `${oppName}’s map`), oppBox, oppMap)));
+        h('b', { class: 'td-h' }, 'Towers'), shop, info, h('b', { class: 'td-h' }, api.bot ? oppName : `${oppName}’s map`), oppBox, oppMap, h('small', { class: 'muted td-mini-hint' }, '🔍 Click the map to watch it')),
+      peek));
 
     // ---------------------------------------------------------------- input
     let placing = null, selected = null, hover = null, speed = 1;
+    const levelUps = [];
+    const EKINDS = Object.keys(T.ENEMIES);
+    function doUpgrade(id) {
+      const err = T.upgrade(s, id);
+      if (err) { flash(err); return; }
+      const t = s.towers.find((x) => x.id === id), d = T.TOWERS[t.type];
+      levelUps.push({ x: t.x, y: t.y, at: performance.now(), text: `${d.icons[t.lvl]} ${d.names[t.lvl]}!` });
+    }
     const banners = [];
     function setSpeed(n) { speed = n; speedBtns.forEach((b, i) => b.classList.toggle('sel', i + 1 === n)); }
     function choose(type) { placing = placing === type ? null : type; selected = null; render(); }
-    const toMap = (e) => { const r = cv.getBoundingClientRect(); return [((e.clientX - r.left) / r.width) * T.W, ((e.clientY - r.top) / r.height) * T.H]; };
+    // where the pointer is on the map (the picture keeps its shape, so allow for any space around it)
+    const toMap = (e) => {
+      const r = cv.getBoundingClientRect(), k = Math.min(r.width / T.W, r.height / T.H);
+      return [(e.clientX - (r.left + (r.width - T.W * k) / 2)) / k, (e.clientY - (r.top + (r.height - T.H * k) / 2)) / k];
+    };
     cv.addEventListener('pointermove', (e) => { hover = toMap(e); });
     cv.addEventListener('pointerleave', () => { hover = null; });
     cv.addEventListener('contextmenu', (e) => { e.preventDefault(); placing = null; selected = null; render(); });
@@ -74,9 +96,10 @@
       if (isTyping() || e.ctrlKey || e.metaKey || e.altKey) return;
       const type = T.ORDER.find((k) => T.TOWERS[k].key === e.key);
       if (type) { choose(type); e.preventDefault(); return; }
+      if (e.key === 'Escape' && peekOpen) { closePeek(); e.preventDefault(); return; }
       if (e.key === 'Escape') { placing = null; selected = null; render(); }
       else if (e.key === ' ' && s.phase === 'build') { T.startWave(s); e.preventDefault(); render(); }
-      else if ((e.key === 'u' || e.key === 'U') && selected) { const err = T.upgrade(s, selected); if (err) flash(err); render(); }
+      else if ((e.key === 'u' || e.key === 'U') && selected) { doUpgrade(selected); render(); }
       else if ((e.key === 't' || e.key === 'T') && selected) { T.retarget(s, selected); render(); }
     };
     addEventListener('keydown', onKey);
@@ -111,16 +134,18 @@
       const row = (label, a, b) => h('div', { class: 'td-row' }, h('span', {}, label), h('b', {}, a), b !== undefined && b !== a ? h('span', { class: 'td-next' }, '→ ' + b) : null);
       const fmt = (v) => (Math.round(v * 10) / 10).toString();
       info.replaceChildren(...[
-        h('div', { class: 'td-sel-head' }, h('span', { class: 'td-buy-icon', style: `background:${d.color}` }, d.icon), h('b', {}, d.name),
+        h('div', { class: 'td-sel-head' }, h('span', { class: 'td-buy-icon' + (t.lvl >= 5 ? ' gold' : ''), style: `background:${d.color}` }, d.icons[t.lvl]),
+          h('div', { class: 'td-sel-name' }, h('b', {}, d.names[t.lvl]), h('small', { class: 'muted' }, t.lvl ? `${d.name} · level ${t.lvl}` : 'Not upgraded yet')),
           h('span', { class: 'td-pips' }, [0, 1, 2, 3, 4].map((i) => h('i', { class: i < t.lvl ? 'on' : '' })))),
+        h('div', { class: 'td-ladder' }, d.icons.map((ic, i) => h('span', { class: i === t.lvl ? 'cur' : i < t.lvl ? 'done' : '', title: d.names[i] }, ic))),
         t.type === 'farm'
           ? row('Pays per wave', money(st.income), nx ? money(nx.income) : undefined)
           : [row('Damage', fmt(st.dmg), nx ? fmt(nx.dmg) : undefined), row('Shots / sec', fmt(st.rate), nx ? fmt(nx.rate) : undefined),
             row('Range', String(st.range), nx ? String(nx.range) : undefined), st.burn ? row('Burn / sec', String(st.burn), nx ? String(nx.burn) : undefined) : null,
             h('div', { class: 'td-row muted' }, h('span', {}, 'Damage dealt'), h('b', {}, Math.round(t.dmg).toLocaleString()))],
         h('div', { class: 'td-actions' },
-          h('button', { class: 'btn primary small', disabled: cost === null || s.money < cost, onclick: () => { const err = T.upgrade(s, t.id); if (err) flash(err); render(); } },
-            cost === null ? 'Max level' : `Upgrade ${money(cost)} (U)`),
+          h('button', { class: 'btn primary small', disabled: cost === null || s.money < cost, onclick: () => { doUpgrade(t.id); render(); } },
+            cost === null ? `${d.icons[5]} Fully upgraded` : `Upgrade to ${d.icons[t.lvl + 1]} ${d.names[t.lvl + 1]} · ${money(cost)} (U)`),
           t.type === 'farm' ? null : h('button', { class: 'btn small', title: 'Which enemy it shoots (T)', onclick: () => { T.retarget(s, t.id); render(); } }, 'Target: ' + TARGET_LABEL[t.target]),
           h('button', { class: 'btn small danger', onclick: () => { T.sell(s, t.id); selected = null; render(); } }, `Sell ${money(T.sellValue(t))}`))].flat().filter(Boolean));
     }
@@ -141,39 +166,127 @@
         const d = T.TOWERS[T.ORDER[ti]];
         if (!d) continue;
         g.fillStyle = d.color; g.beginPath(); g.arc(x * k, y * k, 3 + lvl * 0.4, 0, 7); g.fill();
+        if (lvl >= 5) { g.strokeStyle = '#facc15'; g.lineWidth = 1.5; g.stroke(); }
       }
+      if (o && o.en) for (const [ki, x, y] of o.en) { const e = T.ENEMIES[EKINDS[ki]]; if (!e) continue; g.fillStyle = e.color; g.beginPath(); g.arc(x * k, y * k, e.boss ? 4 : 1.8, 0, 7); g.fill(); }
+      if (peekOpen) drawPeek();
       if (out || won) { g.fillStyle = 'rgba(0,0,0,.55)'; g.fillRect(0, 0, 200, 125); g.fillStyle = '#fff'; g.font = 'bold 15px Outfit, Arial'; g.textAlign = 'center'; g.fillText(won ? 'WON' : 'OVERRUN', 100, 68); }
     }
 
     // ---------------------------------------------------------------- drawing
-    function draw() {
-      ctx.fillStyle = '#21452f'; ctx.fillRect(0, 0, T.W, T.H);
-      ctx.fillStyle = 'rgba(255,255,255,.025)';
-      for (let x = 0; x < T.W; x += 40) for (let y = (x / 40) % 2 ? 0 : 20; y < T.H; y += 40) ctx.fillRect(x, y, 20, 20);
-      // road
-      ctx.lineJoin = 'round'; ctx.lineCap = 'butt';
-      const road = (w, c) => { ctx.strokeStyle = c; ctx.lineWidth = w; ctx.beginPath(); T.PATH.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.stroke(); };
+    function drawBoard(g) {
+      g.fillStyle = '#21452f'; g.fillRect(0, 0, T.W, T.H);
+      g.fillStyle = 'rgba(255,255,255,.025)';
+      for (let x = 0; x < T.W; x += 40) for (let y = (x / 40) % 2 ? 0 : 20; y < T.H; y += 40) g.fillRect(x, y, 20, 20);
+      g.lineJoin = 'round'; g.lineCap = 'butt';
+      const road = (w, c) => { g.strokeStyle = c; g.lineWidth = w; g.beginPath(); T.PATH.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.stroke(); };
       road(T.ROAD * 2 + 6, '#5d4b36'); road(T.ROAD * 2, '#9a8462');
-      ctx.setLineDash([10, 12]); road(2, 'rgba(255,255,255,.18)'); ctx.setLineDash([]);
-      ctx.font = '20px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText('🚩', 18, 44); ctx.fillText('🏰', 780, 470);
+      g.setLineDash([10, 12]); road(2, 'rgba(255,255,255,.18)'); g.setLineDash([]);
+      g.font = '20px serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillText('🚩', 18, 44); g.fillText('🏰', 780, 470);
+    }
+    const shade = (hex, amt) => { // amt -1..1: darker..lighter
+      const n = parseInt(hex.slice(1), 16), f = (c) => Math.round(amt < 0 ? c * (1 + amt) : c + (255 - c) * amt);
+      return `rgb(${f(n >> 16)},${f((n >> 8) & 255)},${f(n & 255)})`;
+    };
+    function poly(g, x, y, r, sides, rot) { g.beginPath(); for (let i = 0; i < sides; i++) { const a = rot + (i / sides) * Math.PI * 2; g[i ? 'lineTo' : 'moveTo'](x + Math.cos(a) * r, y + Math.sin(a) * r); } g.closePath(); }
+    // A tower looks different at every level: a bigger body, a base plate (square, then
+    // octagon), a ring, more and longer barrels, a glow, and a gold finish at the top level.
+    function drawTower(g, type, lvl, x, y, aim, opts) {
+      const d = T.TOWERS[type], r = T.TOWER_R + lvl * 0.45, now = performance.now() / 1000;
+      opts = opts || {};
+      g.save();
+      if (opts.alpha) g.globalAlpha = opts.alpha;
+      g.fillStyle = 'rgba(0,0,0,.35)'; g.beginPath(); g.arc(x + 2, y + 3, r + (lvl >= 2 ? 3 : 1), 0, 7); g.fill();
+      if (lvl >= 2) { // base plate
+        poly(g, x, y, r + 4, lvl >= 3 ? 8 : 4, lvl >= 3 ? Math.PI / 8 : Math.PI / 4);
+        g.fillStyle = lvl >= 5 ? '#78350f' : '#1f2937'; g.fill();
+        g.strokeStyle = lvl >= 5 ? '#facc15' : shade(d.color, -0.3); g.lineWidth = 2; g.stroke();
+      }
+      if (lvl >= 4) { g.shadowColor = lvl >= 5 ? '#fde047' : d.color; g.shadowBlur = 10 + Math.sin(now * 4) * 4; }
+      const grd = g.createRadialGradient(x - r * 0.35, y - r * 0.35, 1, x, y, r);
+      grd.addColorStop(0, lvl >= 5 ? '#fef9c3' : shade(d.color, 0.45));
+      grd.addColorStop(lvl >= 5 ? 0.35 : 0, lvl >= 5 ? shade(d.color, 0.2) : shade(d.color, 0.45));
+      grd.addColorStop(1, shade(d.color, -0.12 * lvl)); // keeps its own color; level 5 gets a gold shine and trim
+      g.fillStyle = grd; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill();
+      g.shadowBlur = 0;
+      g.strokeStyle = opts.selected ? '#fff' : lvl >= 5 ? '#facc15' : 'rgba(0,0,0,.45)'; g.lineWidth = opts.selected ? 3 : lvl >= 5 ? 2.5 : 2; g.stroke();
+      if (lvl >= 1) { g.strokeStyle = 'rgba(255,255,255,.55)'; g.lineWidth = 1.5; g.beginPath(); g.arc(x, y, r - 4, 0, 7); g.stroke(); }
+      if (type !== 'farm') { // barrels
+        const n = type === 'machinegun' ? (lvl >= 4 ? 3 : lvl >= 2 ? 2 : 1) : lvl >= 3 ? 2 : 1;
+        const len = (type === 'sniper' ? 20 : type === 'flamethrower' ? 13 : 15) + lvl * 1.6;
+        const w = type === 'sniper' ? 3 : type === 'machinegun' ? 3.5 : type === 'flamethrower' ? 6 : 4;
+        const cos = Math.cos(aim), sin = Math.sin(aim);
+        g.strokeStyle = lvl >= 5 ? '#a16207' : '#1f2937'; g.lineWidth = w; g.lineCap = 'round';
+        for (let i = 0; i < n; i++) {
+          const off = (i - (n - 1) / 2) * (w + 1.5);
+          const bx = x - sin * off, by = y + cos * off;
+          g.beginPath(); g.moveTo(bx, by); g.lineTo(bx + cos * len, by + sin * len); g.stroke();
+        }
+      }
+      g.font = `${12 + lvl}px serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillText(d.icons[lvl], x, y + 1);
+      for (let i = 0; i < lvl; i++) { // level stars
+        const sx = x - (lvl - 1) * 3 + i * 6, sy = y + r + 6;
+        g.fillStyle = lvl >= 5 ? '#fde047' : '#facc15'; poly(g, sx, sy, 3, 4, Math.PI / 4); g.fill();
+      }
+      if (lvl >= 5) for (let i = 0; i < 3; i++) { // sparkles circling a maxed tower
+        const a = now * 1.6 + (i * Math.PI * 2) / 3;
+        g.fillStyle = '#fef08a'; poly(g, x + Math.cos(a) * (r + 7), y + Math.sin(a) * (r + 7), 2.2, 4, a); g.fill();
+      }
+      g.restore();
+    }
+    function drawEnemy(g, kind, x, y, frac, burning) {
+      const d = T.ENEMIES[kind];
+      g.fillStyle = 'rgba(0,0,0,.3)'; g.beginPath(); g.ellipse(x + 2, y + d.r * 0.8, d.r, d.r * 0.45, 0, 0, 7); g.fill();
+      g.fillStyle = d.color; g.beginPath(); g.arc(x, y, d.r, 0, 7); g.fill();
+      if (d.armor) { g.strokeStyle = '#cbd5e1'; g.lineWidth = 3; g.stroke(); }
+      if (burning) { g.strokeStyle = 'rgba(251,146,60,.9)'; g.lineWidth = 2; g.beginPath(); g.arc(x, y, d.r + 3, 0, 7); g.stroke(); }
+      if (d.boss) { g.font = `${d.r}px serif`; g.fillText('👑', x, y - d.r - 8); }
+      if (frac < 1 && !d.boss) {
+        g.fillStyle = '#111'; g.fillRect(x - 11, y - d.r - 7, 22, 4);
+        g.fillStyle = '#4ade80'; g.fillRect(x - 11, y - d.r - 7, 22 * Math.max(0, frac), 4);
+      }
+    }
+    function drawPeek() {
+      const o = opp, g = peekCv.getContext('2d');
+      peekHead.replaceChildren(h('b', {}, `${oppName}’s map`),
+        h('span', { class: 'muted' }, o ? ` · Wave ${o.w} · ❤ ${o.l} · 🏰 ${o.tw.length} · ${money(o.m)}` : ' · waiting for their first report…'));
+      drawBoard(g);
+      if (!o) return;
+      for (const [ti, x, y, lvl, aim] of o.tw) if (T.ORDER[ti]) drawTower(g, T.ORDER[ti], Math.max(0, Math.min(5, lvl | 0)), x, y, (aim || 0) / 10);
+      let boss = null;
+      for (const [ki, x, y, pct] of o.en || []) {
+        const kind = EKINDS[ki];
+        if (!kind) continue;
+        drawEnemy(g, kind, x, y, pct / 100, false);
+        if (T.ENEMIES[kind].boss) boss = [kind, pct];
+      }
+      if (boss) {
+        g.fillStyle = 'rgba(0,0,0,.6)'; g.fillRect(200, 8, 400, 26);
+        g.fillStyle = '#dc2626'; g.fillRect(203, 11, 394 * boss[1] / 100, 20);
+        g.fillStyle = '#fff'; g.font = 'bold 14px Outfit, Arial'; g.fillText(`👑 ${T.ENEMIES[boss[0]].name}`, 400, 22);
+      }
+      if (o.d || o.v) {
+        g.fillStyle = 'rgba(0,0,0,.55)'; g.fillRect(0, 0, T.W, T.H);
+        g.fillStyle = '#fff'; g.font = 'bold 34px Outfit, Arial'; g.fillText(o.v ? 'Beat wave 25!' : `Overrun at wave ${o.w}`, 400, 250);
+      }
+    }
+    function draw() {
+      drawBoard(ctx);
       // ranges
       const sel = selected && s.towers.find((t) => t.id === selected);
       const ring = (x, y, r, ok) => { ctx.fillStyle = ok ? 'rgba(255,255,255,.08)' : 'rgba(239,68,68,.12)'; ctx.strokeStyle = ok ? 'rgba(255,255,255,.45)' : 'rgba(239,68,68,.7)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); ctx.stroke(); };
       if (sel && sel.type !== 'farm') ring(sel.x, sel.y, T.statsOf(sel).range, true);
       // towers
-      for (const t of s.towers) {
-        const d = T.TOWERS[t.type];
-        ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.beginPath(); ctx.arc(t.x + 2, t.y + 3, T.TOWER_R + 1, 0, 7); ctx.fill();
-        ctx.fillStyle = d.color; ctx.beginPath(); ctx.arc(t.x, t.y, T.TOWER_R, 0, 7); ctx.fill();
-        ctx.strokeStyle = t.id === selected ? '#fff' : 'rgba(0,0,0,.45)'; ctx.lineWidth = t.id === selected ? 3 : 2; ctx.stroke();
-        if (t.type !== 'farm') {
-          ctx.strokeStyle = '#1f2937'; ctx.lineWidth = t.type === 'sniper' ? 3 : t.type === 'machinegun' ? 5 : 4; ctx.lineCap = 'round';
-          const len = t.type === 'sniper' ? 20 : 15;
-          ctx.beginPath(); ctx.moveTo(t.x, t.y); ctx.lineTo(t.x + Math.cos(t.aim) * len, t.y + Math.sin(t.aim) * len); ctx.stroke();
-        }
-        ctx.font = '13px serif'; ctx.fillText(d.icon, t.x, t.y + 1);
-        for (let i = 0; i < t.lvl; i++) { ctx.fillStyle = '#facc15'; ctx.fillRect(t.x - 11 + i * 5, t.y + T.TOWER_R + 3, 4, 4); }
+      for (const t of s.towers) drawTower(ctx, t.type, t.lvl, t.x, t.y, t.aim, { selected: t.id === selected });
+      // level-up bursts
+      const nowT = performance.now();
+      for (let i = levelUps.length - 1; i >= 0; i--) {
+        const u = levelUps[i], k = (nowT - u.at) / 700;
+        if (k >= 1) { levelUps.splice(i, 1); continue; }
+        ctx.strokeStyle = `rgba(250,204,21,${1 - k})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(u.x, u.y, 16 + k * 26, 0, 7); ctx.stroke();
+        ctx.font = 'bold 13px Outfit, Arial'; ctx.fillStyle = `rgba(254,240,138,${1 - k})`; ctx.fillText(u.text, u.x, u.y - 24 - k * 16);
       }
       // shots
       for (const f of s.fx) {
@@ -190,17 +303,8 @@
       // enemies
       let boss = null;
       for (const e of s.enemies) {
-        const d = T.ENEMIES[e.kind];
         if (e.boss) boss = e;
-        ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.beginPath(); ctx.ellipse(e.x + 2, e.y + d.r * 0.8, d.r, d.r * 0.45, 0, 0, 7); ctx.fill();
-        ctx.fillStyle = d.color; ctx.beginPath(); ctx.arc(e.x, e.y, d.r, 0, 7); ctx.fill();
-        if (e.armor) { ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 3; ctx.stroke(); }
-        if (e.burnT > 0) { ctx.strokeStyle = 'rgba(251,146,60,.9)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(e.x, e.y, d.r + 3, 0, 7); ctx.stroke(); }
-        if (e.boss) { ctx.font = `${d.r}px serif`; ctx.fillText('👑', e.x, e.y - d.r - 8); }
-        if (e.hp < e.max && !e.boss) {
-          ctx.fillStyle = '#111'; ctx.fillRect(e.x - 11, e.y - d.r - 7, 22, 4);
-          ctx.fillStyle = '#4ade80'; ctx.fillRect(e.x - 11, e.y - d.r - 7, 22 * Math.max(0, e.hp / e.max), 4);
-        }
+        drawEnemy(ctx, e.kind, e.x, e.y, e.hp / e.max, e.burnT > 0);
       }
       if (boss) {
         const d = T.ENEMIES[boss.kind];
@@ -213,8 +317,8 @@
       if (placing && hover) {
         const [x, y] = hover, d = T.TOWERS[placing], ok = !T.canPlace(s, placing, x, y);
         if (placing !== 'farm') ring(x, y, d.lv[0].range, ok);
-        ctx.globalAlpha = 0.75; ctx.fillStyle = ok ? d.color : '#ef4444'; ctx.beginPath(); ctx.arc(x, y, T.TOWER_R, 0, 7); ctx.fill(); ctx.globalAlpha = 1;
-        ctx.font = '13px serif'; ctx.fillText(d.icon, x, y + 1);
+        drawTower(ctx, placing, 0, x, y, -Math.PI / 2, { alpha: 0.75 });
+        if (!ok) { ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(x, y, T.TOWER_R + 2, 0, 7); ctx.stroke(); }
       }
       // banners
       const now = performance.now();
@@ -237,7 +341,9 @@
     // ---------------------------------------------------------------- reports and the result
     let lastReport = '', reportAt = 0, decided = false;
     const myReport = () => ({ w: s.wave, c: s.cleared, l: s.lives, m: Math.floor(s.money), d: s.phase === 'dead' ? 1 : 0, v: s.phase === 'won' ? 1 : 0, ki: s.kills,
-      tw: s.towers.map((t) => [T.ORDER.indexOf(t.type), Math.round(t.x), Math.round(t.y), t.lvl]) });
+      tw: s.towers.map((t) => [T.ORDER.indexOf(t.type), Math.round(t.x), Math.round(t.y), t.lvl, Math.round(t.aim * 10)]), en: enemiesOf(s) });
+    // up to 60 enemies, for the other player's live view: [kind, x, y, health %]
+    function enemiesOf(st) { return st.enemies.slice(0, 60).map((e) => [EKINDS.indexOf(e.kind), Math.round(e.x), Math.round(e.y), Math.max(0, Math.round((e.hp / e.max) * 100))]); }
     function report(force) {
       if (api.bot) return;
       const r = myReport(), j = JSON.stringify(r), now = performance.now();
@@ -277,7 +383,7 @@
       bot.s.events.length = 0;
       const b = bot.s;
       opp = { w: b.wave, c: b.cleared, l: b.lives, m: Math.floor(b.money), d: b.phase === 'dead' ? 1 : 0, v: b.phase === 'won' ? 1 : 0, ki: b.kills,
-        tw: b.towers.map((t) => [T.ORDER.indexOf(t.type), t.x, t.y, t.lvl]) };
+        tw: b.towers.map((t) => [T.ORDER.indexOf(t.type), t.x, t.y, t.lvl, Math.round(t.aim * 10)]), en: enemiesOf(b) };
     }
     function frame(now) {
       if (stopped) return;
@@ -299,6 +405,7 @@
       }
       draw();
       if (now - panelT > 250) { panelT = now; render(); renderOpp(); api.status(statusLine()); }
+      else if (peekOpen && bot) drawPeek(); // the bot's map is right here: keep the view smooth
       report(false);
       decide();
       raf = requestAnimationFrame(frame);
@@ -316,7 +423,7 @@
       event(ev) {
         const m = ev && ev.msg;
         if (!m || m.k !== 's' || !Array.isArray(m.tw)) return;
-        opp = { w: +m.w || 0, c: +m.c || 0, l: +m.l || 0, m: +m.m || 0, d: m.d ? 1 : 0, v: m.v ? 1 : 0, ki: +m.ki || 0, tw: m.tw.slice(0, 20) };
+        opp = { w: +m.w || 0, c: +m.c || 0, l: +m.l || 0, m: +m.m || 0, d: m.d ? 1 : 0, v: m.v ? 1 : 0, ki: +m.ki || 0, tw: m.tw.slice(0, 20), en: Array.isArray(m.en) ? m.en.slice(0, 60) : [] };
         renderOpp();
       },
       stop() { stopped = true; cancelAnimationFrame(raf); },

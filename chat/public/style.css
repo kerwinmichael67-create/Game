@@ -768,9 +768,9 @@ body[data-theme="dark"] .fav-btn.on { color: #c9c2ff; }
 /* ============================================================
    Tower Defense
    ============================================================ */
-.td-wrap { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 14px; padding: 10px 14px 14px; min-height: 0; width: 100%; align-items: start; }
+.td-wrap { position: relative; flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 14px; padding: 10px 14px 14px; min-height: 0; width: 100%; align-items: start; }
 .td-board { display: grid; place-items: center; min-width: 0; }
-.game-stage canvas.td-canvas { width: 100%; max-width: 1200px; max-height: calc(100vh - 140px); object-fit: contain; cursor: crosshair; background: #21452f; }
+.game-stage canvas.td-canvas { width: min(100%, 1200px, calc((100vh - 150px) * 1.6)); height: auto; aspect-ratio: 8 / 5; cursor: crosshair; background: #21452f; }
 .td-side { display: grid; gap: 8px; align-content: start; max-height: calc(100vh - 120px); overflow-y: auto; padding-right: 2px; }
 .td-h { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-top: 4px; }
 .td-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
@@ -817,3 +817,20 @@ body[data-theme="dark"] .fav-btn.on { color: #c9c2ff; }
   .td-side { max-height: none; }
   .game-stage canvas.td-canvas { max-height: none; }
 }
+
+.td-mini { cursor: zoom-in; }
+.td-mini:hover { outline: 2px solid var(--accent); }
+.td-mini-hint { font-size: 11px; margin-top: -4px; }
+.td-peek { position: absolute; inset: 0; z-index: 5; background: rgba(8, 9, 18, .6); backdrop-filter: blur(2px); display: grid; place-items: center; padding: 16px; animation: fade .15s; }
+.td-peek.hidden { display: none; }
+.td-peek-card { background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); padding: 12px 14px 14px; display: grid; gap: 8px; width: min(100%, 980px, calc((100vh - 160px) * 1.6 + 28px)); }
+.td-peek-head { display: flex; align-items: center; gap: 10px; }
+.td-peek-title { flex: 1; font-size: 16px; }
+.game-stage canvas.td-peek-canvas { width: 100%; height: auto; aspect-ratio: 8 / 5; border-radius: var(--radius); }
+.td-sel-name { display: grid; line-height: 1.2; }
+.td-sel-name small { font-size: 11px; }
+.td-buy-icon.gold { box-shadow: 0 0 0 2px #facc15, 0 0 10px #fde047; }
+.td-ladder { display: flex; gap: 4px; font-size: 16px; margin: 2px 0 4px; }
+.td-ladder span { flex: 1; text-align: center; border-radius: 8px; padding: 2px 0; background: var(--surface-2); opacity: .45; filter: grayscale(.7); }
+.td-ladder span.done { opacity: .9; filter: none; }
+.td-ladder span.cur { opacity: 1; filter: none; background: var(--accent-soft); outline: 2px solid var(--accent); }
