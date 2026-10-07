@@ -10,7 +10,8 @@
     { id: 'standard', name: 'STANDARD', waves: 30, hpMul: 1.0, spdMul: 1.00, cash: 1200, baseHp: 140, reward: 1.0, color: '#4f8cff', desc: 'The intended experience. 30 waves.' },
     { id: 'molten', name: 'MOLTEN', waves: 35, hpMul: 1.9, spdMul: 1.05, cash: 1000, baseHp: 115, reward: 1.7, color: '#ff8b3a', desc: 'Molten enemies join the fight. 35 waves.' },
     { id: 'forsaken', name: 'FORSAKEN', waves: 40, hpMul: 3.4, spdMul: 1.12, cash: 900, baseHp: 95, reward: 2.6, color: '#a678ff', desc: 'The Forsaken march. 40 waves.' },
-    { id: 'nightmare', name: 'NIGHTMARE', waves: 45, hpMul: 6.5, spdMul: 1.20, cash: 800, baseHp: 75, reward: 4.2, color: '#ff5d6c', desc: 'Only the best survive. 45 waves.' }
+    { id: 'nightmare', name: 'NIGHTMARE', waves: 45, hpMul: 6.5, spdMul: 1.20, cash: 800, baseHp: 75, reward: 4.2, color: '#ff5d6c', desc: 'Only the best survive. 45 waves.' },
+    { id: 'endless', name: 'ENDLESS', waves: Infinity, hpMul: 1.0, spdMul: 1.00, cash: 1300, baseHp: 130, reward: 2.0, endless: true, color: '#6ee7ff', desc: 'It never stops. How far can you get?' }
   ];
 
   /* ------------------------------ themes ----------------------------- */

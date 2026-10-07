@@ -499,6 +499,22 @@
         break;
       }
       case 'wave': if (B.phase === 'prep') B.startWave(true); break;
+      case 'perk': {
+        const id = String(c.p || '');
+        /* Only from the set this wave actually offered, so a client cannot
+           hand itself a perk it was never shown.  This is the table's offer,
+           not the host's own modal, which the host may already have closed. */
+        if (B.draftIds && B.draftIds.indexOf(id) >= 0) B.pickPerk(id, key);
+        break;
+      }
+      case 'cmd': {
+        const a = String(c.a || '');
+        const x = Number(c.x), z = Number(c.z);
+        if (!B.CMD[a] || !isFinite(x) || !isFinite(z)) return;
+        if (Math.abs(x) > 120 || Math.abs(z) > 120) return;
+        B.useCommand(a, key, x, z);
+        break;
+      }
       default: break;
     }
   }
@@ -510,6 +526,16 @@
     const d = msg.data || {};
     if (msg.isMe && msg.sameTab) return;
     if (d.k === 'wave' && TD.Battle.active) TD.UI.waveBanner('WAVE ' + (Number(d.n) || 0), String(d.s || '').slice(0, 80));
+    if (d.k === 'draft' && TD.Battle.active && TD.Battle.remote) {
+      const ids = (Array.isArray(d.ids) ? d.ids : []).map(String).filter(TD.perkById).slice(0, 3);
+      if (ids.length) {
+        TD.Battle.draft = { wave: Number(d.w) || TD.Battle.wave, ids: ids };
+        TD.UI.showDraft(ids, TD.Battle.draft.wave);
+      }
+    }
+    if (d.k === 'cmdfx' && TD.Battle.active && TD.Battle.remote && d.by !== TD.Battle.me) {
+      TD.Battle.showCommandFx(String(d.a || ''), Number(d.x), Number(d.z));
+    }
     if (d.k === 'start') Coop.lastSnapAt = performance.now();
     if (d.k === 'end' && TD.Battle.active && TD.Battle.remote) {
       const st = TD.Battle.stats;

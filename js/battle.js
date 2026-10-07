@@ -48,6 +48,73 @@
     return i < 0 ? 0 : i;
   };
 
+  /* ------------------------------ perks ------------------------------
+     Every player carries their own bag, so a tower is buffed by whoever
+     built it.  An unknown owner falls back to an empty bag rather than
+     undefined, which keeps the hot loops free of guards. */
+  const EMPTY_BAG = TD.perkBag();
+  B.perkOf = function (owner) {
+    return (this.perks && this.perks[owner]) || EMPTY_BAG;
+  };
+
+  B.takePerk = function (owner, id) {
+    const perk = TD.perkById(id);
+    if (!perk) return false;
+    if (!this.perks[owner]) this.perks[owner] = TD.perkBag();
+    if (!this.perkTaken[owner]) this.perkTaken[owner] = [];
+    if (perk.once && this.perkTaken[owner].indexOf(id) >= 0) return false;
+    const hp = TD.applyPerk(this.perks[owner], perk);
+    this.perkTaken[owner].push(id);
+    if (hp && !this.remote) {
+      this.maxHp = Math.max(20, this.maxHp + hp);
+      this.hp = TD.clamp(this.hp + Math.max(0, hp), 1, this.maxHp);
+    }
+    return true;
+  };
+
+  /* Roll one set of three and show it to everyone — each player picks
+     their own from the same three, so nobody waits on anyone else. */
+  B.offerDraft = function () {
+    if (this.remote) return;
+    const ids = TD.rollPerks(this.perkTaken[this.me] || [], 3).map(p => p.id);
+    /* draft is this page's open modal; draftIds and draftTook are the table's
+       offer. They are separate because the host closing its own modal must
+       not shut the door on teammates who are still reading their cards. */
+    this.draft = { wave: this.wave, ids: ids };
+    this.draftIds = ids;
+    this.draftTook = {};
+    if (this.net) TD.Coop.announce({ k: 'draft', w: this.wave, ids: ids });
+    TD.UI.showDraft(ids, this.wave);
+  };
+
+  /* A pick, from this player or a teammate. */
+  B.pickPerk = function (id, actor) {
+    const mine = !actor || actor === this.me;
+    actor = actor || this.me;
+    if (this.remote && mine) {
+      if (!this.takePerk(actor, id)) { TD.Audio.error(); TD.toast('You already have that one', 'bad'); return; }
+      this.net.send({ k: 'perk', p: id });
+      this.draft = null;
+      const got = TD.perkById(id);
+      TD.Audio.upgrade();
+      TD.toast(got.name + ' — ' + got.desc, 'good');
+      TD.Chat.system('You took ' + got.name);
+      return;
+    }
+    /* One perk each per draft. The host is the only judge of that, so a
+       client re-sending the message cannot stack the same card. */
+    if (this.draftTook && this.draftTook[actor]) return;
+    if (!this.takePerk(actor, id)) return;
+    if (this.draftTook) this.draftTook[actor] = true;
+    if (mine) {
+      this.draft = null;
+      const perk = TD.perkById(id);
+      TD.Audio.upgrade();
+      TD.toast(perk.name + ' — ' + perk.desc, 'good');
+    }
+    if (mine && TD.Coop && TD.Coop.active) TD.Chat.system('You took ' + TD.perkById(id).name);
+  };
+
   /* A repeating two-tone checkerboard, built once per colour pair. */
   const checkerCache = new Map();
   /* Two tones of ground with a little grain and a soft seam, rather than
@@ -113,6 +180,9 @@
     this.wave = 0; this.phase = 'prep'; this.prepT = 14; this.time = 0;
     this.speed = 1; this.paused = false; this.selected = null; this.placing = null;
     this.globalBuff = { rate: 0, dmg: 0, until: 0 };
+    this.perks = {}; this.perkTaken = {}; this.draft = null;
+    this.draftIds = null; this.draftTook = null;
+    this.cmdCd = {}; this.pulses = [];
     this.stats = { kills: 0, leaked: 0, cashEarned: 0, damage: 0, placed: 0 };
     this.buildWorld();
     this.active = true;
@@ -451,10 +521,22 @@
     return true;
   };
 
+  /* What a tower actually costs this player, after Logistics / Overcharge. */
+  B.costOf = function (def, owner) {
+    const pk = this.perkOf(owner === undefined ? this.me : owner);
+    return Math.max(1, Math.round(def.lv[0].c * (1 - pk.discount)));
+  };
+  B.upCostOf = function (t, owner) {
+    const next = t.def.lv[t.level + 1];
+    if (!next) return 0;
+    const pk = this.perkOf(owner === undefined ? this.me : owner);
+    return Math.max(1, Math.round(next.c * (1 - pk.discount)));
+  };
+
   B.placeAt = function (x, z) {
     const p = this.placing; if (!p) return;
     if (!p.ok) { TD.Audio.error(); return; }
-    const def = p.def, cost = def.lv[0].c;
+    const def = p.def, cost = this.costOf(def);
     if (this.cash < cost) { TD.Audio.error(); TD.toast('Not enough cash', 'bad'); return; }
 
     /* A client asks; the host decides.  The tower arrives in the next
@@ -483,7 +565,7 @@
      makes, against their wallet instead of ours. */
   B.placeFor = function (actor, def, x, z) {
     if (!def || this.wallets[actor] === undefined) return null;
-    const cost = def.lv[0].c;
+    const cost = this.costOf(def, actor);
     if (this.wallets[actor] < cost) return null;
     if (this.towers.filter(t => t.def.id === def.id).length >= def.limit) return null;
     if (this.towers.length >= this.map.maxTowers) return null;
@@ -536,9 +618,10 @@
     if (t.level >= t.def.lv.length - 1) return;
     if (!this.owns(t, actor)) { if (mine) { TD.Audio.error(); TD.toast('That is not your tower', 'bad'); } return; }
     const next = t.def.lv[t.level + 1];
-    if ((this.wallets[actor] || 0) < next.c) { if (mine) { TD.Audio.error(); TD.toast('Not enough cash', 'bad'); } return; }
+    const cost = this.upCostOf(t, actor);
+    if ((this.wallets[actor] || 0) < cost) { if (mine) { TD.Audio.error(); TD.toast('Not enough cash', 'bad'); } return; }
     if (this.remote && mine) { this.net.send({ k: 'up', n: t.nid }); return; }
-    this.wallets[actor] -= next.c; t.spent += next.c; t.level++;
+    this.wallets[actor] -= cost; t.spent += cost; t.level++;
     t.stats = TD.statsAt(t.def, t.level);
     this.scene.remove(t.group);
     t.group = TD.buildTower(t.def, t.level);
@@ -556,7 +639,7 @@
     actor = actor || this.me;
     if (!this.owns(t, actor)) { if (mine) { TD.Audio.error(); TD.toast('That is not your tower', 'bad'); } return; }
     if (this.remote && mine) { this.net.send({ k: 'sell', n: t.nid }); this.select(null); return; }
-    const refund = Math.floor(t.spent * 0.65);
+    const refund = Math.floor(t.spent * (this.perkOf(actor).sellFull ? 1 : 0.65));
     this.credit(actor, refund);
     this.removeTower(t);
     TD.Audio.sell();
@@ -620,8 +703,16 @@
     const base = TD.waveBonus(this.diff, this.wave);
     let income = base;
     let heal = 0;
-    /* The wave bonus is paid to everyone; a farm pays the player who built it. */
-    this.slots.forEach(k => this.credit(k, base));
+    /* The wave bonus is paid to everyone; a farm pays the player who built it.
+       Scrap Runner and Field Medic are drafted perks, so they pay out per
+       player rather than off the shared pot. */
+    this.slots.forEach(k => {
+      const pk = this.perkOf(k);
+      const pay = base + pk.waveCash;
+      this.credit(k, pay);
+      if (k === this.me) income = pay;
+      heal += pk.regen;
+    });
     this.towers.forEach(t => {
       const s = t.stats;
       if (s.income) { this.credit(t.owner, s.income); if (t.owner === this.me) income += s.income; }
@@ -630,7 +721,8 @@
     if (heal) { this.hp = Math.min(this.maxHp, this.hp + heal); }
     TD.Audio.coin();
     TD.toast('Wave ' + this.wave + ' cleared  +$' + TD.fmt(income) + (heal ? '  +' + heal + ' HP' : ''), 'good');
-    if (this.wave >= this.diff.waves) this.finish(true);
+    if (this.wave >= this.diff.waves) { this.finish(true); return; }
+    if (this.wave % TD.DRAFT_EVERY === 0) this.offerDraft();
   };
 
   B.finish = function (won) {
@@ -650,12 +742,13 @@
     const coins = Math.round((won ? 260 : 60) * mul + this.wave * 11 * mul + this.stats.kills * 0.25);
     const xp = Math.round((won ? 200 : 45) * mul + this.wave * 9 * mul);
     d.coins += coins; d.xp += xp; d.kills += this.stats.kills;
+    this.prevBest = d.bestWave;
     if (this.wave > d.bestWave) d.bestWave = this.wave;
     if (won) {
       d.wins++;
       d.mapsBeaten[this.map.id] = Math.max(d.mapsBeaten[this.map.id] || 0, TD.DIFFICULTIES.indexOf(this.diff) + 1);
       if (this.diff.id === 'forsaken' || this.diff.id === 'nightmare') d.gems += this.diff.id === 'nightmare' ? 40 : 20;
-    } else d.losses++;
+    } else if (!this.diff.endless) d.losses++;
     TD.Save.save();
     TD.UI.showResults(won, this, coins, xp);
   };
@@ -745,8 +838,14 @@
       return;
     }
     e.dead = true;
-    const cash = Math.round(e.def.cash * TD.cashScale(this.diff, this.wave));
-    this.credit(source ? source.owner : this.me, cash);
+    const earner = source ? source.owner : this.me;
+    const pk = this.perkOf(earner);
+    let cash = Math.round(e.def.cash * TD.cashScale(this.diff, this.wave) * (1 + pk.cash));
+    if (pk.bounty && Math.random() < pk.bounty) {
+      cash *= 3;
+      if (earner === this.me) TD.DamageText.push(e.group.position, '$' + TD.fmt(cash), '#ffc63d');
+    }
+    this.credit(earner, cash);
     this.stats.kills++;
     if (source) { source.kills++; if (source.stats.harvest) source.harvestKills++; }
     TD.Audio.hit();
@@ -879,8 +978,22 @@
   B.step = function (dt) {
     this.time += dt;
 
+    /* Commander cooldowns and the Overclock zones they leave behind. */
+    for (const k in this.cmdCd) {
+      const c = this.cmdCd[k];
+      if (c.oc > 0) c.oc -= dt;
+      if (c.shock > 0) c.shock -= dt;
+    }
+    for (let i = this.pulses.length - 1; i >= 0; i--) {
+      this.pulses[i].until -= dt;
+      if (this.pulses[i].until <= 0) this.pulses.splice(i, 1);
+    }
+
     if (this.phase === 'prep') {
-      if (this.prepT > 0) {
+      /* Solo holds the clock while the draft is open — nobody should lose a
+         wave to reading three cards.  On a server it keeps ticking, because
+         one player's modal must not stall everyone else. */
+      if (this.prepT > 0 && !(this.draft && !this.net)) {
         this.prepT -= dt;
         if (this.prepT <= 0 && this.wave < this.diff.waves) this.startWave(false);
       }
@@ -1092,6 +1205,12 @@
           t.buff.rate += b.rate || 0; t.buff.dmg += b.dmg || 0; t.buff.range += b.range || 0;
         }
       }
+      for (let p = 0; p < this.pulses.length; p++) {
+        const z = this.pulses[p];
+        if (z.owner !== t.owner) continue;
+        if (TD.dist(t.x, t.z, z.x, z.z) > z.r) continue;
+        t.buff.rate += z.rate; t.buff.dmg += z.dmg;
+      }
       t.weaken = Math.max(0, t.weaken - dt * 0.8);
     }
 
@@ -1115,9 +1234,10 @@
       if (t.abilityCd > 0) t.abilityCd -= dt;
       if (t.fireAnim > 0) t.fireAnim -= dt * 3;
 
-      const range = s.range * (1 + t.buff.range);
-      const rate = 1 + t.buff.rate;
-      const dmgMul = (1 + t.buff.dmg) * (1 - t.weaken) *
+      const pk = this.perkOf(t.owner);
+      const range = s.range * Math.max(0.3, 1 + t.buff.range + pk.range);
+      const rate = Math.max(0.1, 1 + t.buff.rate + pk.rate);
+      const dmgMul = (1 + t.buff.dmg + pk.dmg) * (1 - t.weaken) *
         (s.harvest ? 1 + Math.min(s.harvest.max, t.harvestKills * s.harvest.per) : 1);
 
       /* --- support / passive towers --- */
@@ -1285,8 +1405,24 @@
   B.hitEnemy = function (t, e, dmg, opts) {
     let d = dmg;
     if (opts.chaos) d *= TD.rand(opts.chaos[0], opts.chaos[1]);
-    const crit = opts.chaos && d > dmg * 1.8;
-    this.damageEnemy(e, d, { source: t, armorPierce: opts.armorPierce, execute: opts.execute, crit: crit });
+    let crit = opts.chaos && d > dmg * 1.8;
+
+    /* The owner's drafted perks ride along on every hit their towers land. */
+    const pk = this.perkOf(t && t.owner);
+    if (pk.firstHit && e.hp >= e.maxHp - 0.01) d *= 1 + pk.firstHit;
+    if (pk.crit && Math.random() < pk.crit) { d *= pk.critMul; crit = true; }
+
+    this.damageEnemy(e, d, {
+      source: t, crit: crit,
+      armorPierce: Math.min(0.95, (opts.armorPierce || 0) + pk.pierce),
+      execute: Math.max(opts.execute || 0, pk.exec)
+    });
+    if (pk.slow || pk.burn) {
+      const extra = {};
+      if (pk.slow) extra.slow = { pct: pk.slow, dur: 1.2 };
+      if (pk.burn) extra.burn = { dps: d * pk.burn, dur: 2.5 };
+      this.applyStatus(e, extra, t);
+    }
     if (opts.status) this.applyStatus(e, opts.status, t);
     if (opts.splash) this.splashDamage(t, e.group.position.x, e.group.position.z, opts.splash, d * 0.6, { source: t, armorPierce: opts.armorPierce, status: opts.status, skip: e });
   };
@@ -1837,7 +1973,7 @@
     if (!ab || t.level < ab.level || t.abilityCd > 0) { if (mine) TD.Audio.error(); return; }
     if (!this.owns(t, actor)) { if (mine) { TD.Audio.error(); TD.toast('That is not your tower', 'bad'); } return; }
     if (this.remote && mine) { this.net.send({ k: 'ability', n: t.nid }); return; }
-    t.abilityCd = ab.cd;
+    t.abilityCd = ab.cd * (1 - this.perkOf(actor).cdr);
     TD.Audio.ability();
     switch (ab.id) {
       case 'rally':
@@ -1870,6 +2006,89 @@
         break;
     }
     TD.UI.showTower(t);
+  };
+
+  /* ====================================================================
+     COMMANDER ABILITIES
+
+     Both land on the spot the player is standing on, which is the whole
+     point: the avatar used to be scenery, and now where you stand during
+     a wave decides which half of your defence gets the help.  Cooldowns
+     are per player, so a full server has three of each to spend.
+     ==================================================================== */
+  B.CMD = {
+    oc: {
+      id: 'oc', key: 'G', name: 'Overclock', icon: '⚡', col: 0x6ee7ff, cd: 45,
+      r: 26, dur: 8, rate: 0.7, dmg: 0.2,
+      desc: 'Your towers nearby fire 70% faster for 8s.'
+    },
+    shock: {
+      id: 'shock', key: 'H', name: 'Shockwave', icon: '◉', col: 0xffc63d, cd: 55,
+      r: 15, stun: 1.4,
+      desc: 'Stun everything around you for 1.4s.'
+    }
+  };
+
+  B.cmdCdOf = function (actor) {
+    if (!this.cmdCd[actor]) this.cmdCd[actor] = { oc: 0, shock: 0 };
+    return this.cmdCd[actor];
+  };
+
+  /* Pressed locally.  A client fires its own cooldown and visual at once
+     and lets the host do the real work, so the button never feels laggy. */
+  B.useCommand = function (id, actor, px, pz) {
+    const def = B.CMD[id];
+    if (!def || this.phase === 'over') return;
+    const mine = !actor || actor === this.me;
+    actor = actor || this.me;
+    const cd = this.cmdCdOf(actor);
+
+    if (mine) {
+      if (cd[id] > 0) { TD.Audio.error(); TD.toast(def.name + ' recharging', 'bad'); return; }
+      const p = this.player;
+      if (!p) return;
+      px = p.x; pz = p.z;
+      if (this.remote) {
+        cd[id] = def.cd;
+        this.net.send({ k: 'cmd', a: id, x: px, z: pz });
+        spawnRipple(this, px, pz, def.col, def.r);
+        TD.Audio.ability();
+        return;
+      }
+    }
+    if (!isFinite(px) || !isFinite(pz)) return;
+    if (cd[id] > 0) return;
+    cd[id] = def.cd;
+
+    if (id === 'oc') {
+      this.pulses.push({ owner: actor, x: px, z: pz, r: def.r, until: def.dur, rate: def.rate, dmg: def.dmg });
+    } else {
+      const dmg = 40 + this.wave * 30;
+      for (let i = this.enemies.length - 1; i >= 0; i--) {
+        const e = this.enemies[i];
+        if (e.dead) continue;
+        if (TD.dist(px, pz, e.group.position.x, e.group.position.z) > def.r) continue;
+        this.applyStatus(e, { stun: def.stun }, null);
+        this.damageEnemy(e, dmg, { trueDamage: true });
+      }
+      TD.Audio.boom();
+    }
+    spawnRipple(this, px, pz, def.col, def.r);
+    /* Tell the other pages where it landed, so a command reads as something
+       a teammate did rather than enemies falling over for no reason. */
+    if (this.net && !this.remote) TD.Coop.announce({ k: 'cmdfx', a: id, by: actor, x: px, z: pz });
+    if (mine) {
+      TD.Audio.ability();
+      TD.toast(def.name + '!', 'good');
+    }
+  };
+
+  /* A teammate's command, replayed on this page for the visual only. */
+  B.showCommandFx = function (id, x, z) {
+    const def = B.CMD[id];
+    if (!def || !this.active || !isFinite(x) || !isFinite(z)) return;
+    spawnRipple(this, x, z, def.col, def.r);
+    if (id === 'shock') TD.Audio.boom();
   };
 
   /* ------------------------------- input ----------------------------- */
@@ -1947,6 +2166,8 @@
       if (k === 'x' && self.selected) self.sell(self.selected);
       if (k === 't' && self.selected) self.setMode(self.selected, (self.selected.mode + 1) % 5);
       if (k === 'f' && self.selected) self.useAbility(self.selected);
+      if (k === 'g') self.useCommand('oc');
+      if (k === 'h') self.useCommand('shock');
       if (k === ' ') e.preventDefault();               // jump; handled in updatePlayer
       if (k === 'enter') { if (self.phase === 'prep' && self.wave < self.diff.waves) self.startWave(true); }
       if (k === 'c') TD.UI.toggleFollow();
@@ -2147,11 +2368,12 @@
     const coins = Math.round((won ? 260 : 60) * mul + this.wave * 11 * mul);
     const xp = Math.round((won ? 200 : 45) * mul + this.wave * 9 * mul);
     d.coins += coins; d.xp += xp;
+    this.prevBest = d.bestWave;
     if (this.wave > d.bestWave) d.bestWave = this.wave;
     if (won) {
       d.wins++;
       d.mapsBeaten[this.map.id] = Math.max(d.mapsBeaten[this.map.id] || 0, TD.DIFFICULTIES.indexOf(this.diff) + 1);
-    } else d.losses++;
+    } else if (!this.diff.endless) d.losses++;
     TD.Save.save();
     TD.UI.showResults(!!won, this, coins, xp);
   };
@@ -2160,6 +2382,11 @@
      camera, the placement ghost) plus dead reckoning for the world. */
   B.updateRemote = function (rawDt) {
     this.time += rawDt;
+    /* The host owns the real cooldowns; this is the local mirror that keeps
+       our own two buttons honest. */
+    const cd = this.cmdCdOf(this.me);
+    if (cd.oc > 0) cd.oc -= rawDt;
+    if (cd.shock > 0) cd.shock -= rawDt;
     this.panKeys(rawDt);
     this.updatePlayer(rawDt);
     this.stepRemoteEnemies(rawDt);

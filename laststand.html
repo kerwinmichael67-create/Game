@@ -592,6 +592,89 @@ kbd{
 #coop-modal .modal{max-height:92vh;display:flex;flex-direction:column}
 #coop-modal .coop-body{overflow-y:auto;flex:1;min-height:0}
 @media (max-width:720px){ .chat.right{right:8px;bottom:88px} }
+
+
+/* ===========================================================
+   COMMANDER ABILITIES + PERK DRAFT
+   =========================================================== */
+.commander{
+  position:absolute; left:14px; bottom:16px; display:flex; flex-direction:column;
+  gap:8px; align-items:flex-start; pointer-events:none;
+}
+.cmdbar{display:flex; gap:8px; pointer-events:auto}
+.cmd{
+  position:relative; width:62px; padding:7px 4px 6px; border-radius:12px; cursor:pointer;
+  border:1px solid var(--line); background:linear-gradient(180deg, rgba(28,36,64,.97), rgba(17,22,40,.97));
+  color:var(--ink); font-family:inherit; overflow:hidden; transition:.12s;
+  box-shadow:0 8px 20px rgba(0,0,0,.45);
+}
+.cmd:hover{transform:translateY(-3px); border-color:#5b72b6}
+.cmd .ci{font-size:19px; line-height:1}
+.cmd .cn{font-size:10px; font-weight:800; letter-spacing:.4px; margin-top:2px; white-space:nowrap}
+.cmd .ck{
+  position:absolute; top:4px; right:5px; font-size:9px; color:var(--dim);
+  background:rgba(8,11,22,.8); padding:0 4px; border-radius:4px;
+}
+.cmd .cfill{position:absolute; left:0; right:0; bottom:0; background:rgba(4,6,14,.72); height:0%}
+.cmd .ctime{
+  position:absolute; inset:0; display:none; align-items:center; justify-content:center;
+  font:800 16px inherit; color:#8f9bc0;
+}
+.cmd.cooling .ctime{display:flex}
+.cmd.cooling .ci,.cmd.cooling .cn{opacity:.25}
+.cmd.ready{border-color:#3d86c9; box-shadow:0 0 0 2px rgba(61,134,201,.25), 0 8px 20px rgba(0,0,0,.45)}
+
+.perkstrip{display:flex; gap:5px; flex-wrap:wrap; max-width:300px; pointer-events:auto}
+.perkstrip:empty{display:none}
+.pchip{
+  display:flex; align-items:center; gap:4px; padding:3px 8px 3px 6px; border-radius:99px;
+  background:rgba(12,17,30,.86); border:1px solid var(--line); font-size:11px; color:var(--dim);
+}
+.pchip b{font-size:12px}
+.pchip .pn{color:var(--ink); font-weight:700}
+.pchip .px{color:var(--dim); font-weight:700}
+
+/* --- the draft --- */
+.modal.draft{width:min(760px,96vw)}
+.draft-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; padding:16px 20px 6px}
+.pcard{
+  display:flex; flex-direction:column; gap:7px; align-items:center; text-align:center;
+  padding:18px 12px 16px; border-radius:var(--r); cursor:pointer; transition:.13s;
+  border:1px solid var(--line); background:var(--panel-2); min-height:168px;
+}
+.pcard:hover{transform:translateY(-4px); border-color:#5f76bb; background:#232c4c}
+.pcard .pi{
+  width:52px; height:52px; border-radius:50%; display:flex; align-items:center;
+  justify-content:center; font-size:24px; background:#141b2e; border:2px solid currentColor;
+}
+.pcard h4{margin:0; font-size:16px; letter-spacing:.5px; color:var(--ink)}
+.pcard p{margin:0; font-size:12px; color:var(--dim); line-height:1.45}
+.pcard .pown{font-size:11px; color:#ffc63d; letter-spacing:.08em}
+@media (max-width:720px){
+  .draft-grid{grid-template-columns:1fr; padding:12px 14px 4px}
+  .pcard{flex-direction:row; text-align:left; min-height:0; padding:12px}
+  .pcard .pi{width:40px; height:40px; font-size:19px; flex:0 0 auto}
+  .commander{left:8px; bottom:10px}
+  .perkstrip{max-width:60vw}
+}
+
+/* big glyph standing in for a thumbnail on the codex perk cards */
+.perk-ico {
+  height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  line-height: 1;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  background: radial-gradient(circle at 50% 45%, rgba(255, 255, 255, .10), rgba(0, 0, 0, .25));
+  text-shadow: 0 0 18px currentColor;
+}
+
+/* a one-only perk the player already holds: shown, but not takeable */
+.pcard.spent { opacity: .45; cursor: default; filter: grayscale(.5); }
+.pcard.spent:hover { transform: none; border-color: var(--line); background: var(--panel-2); }
 </style>
 </head>
 <body>
@@ -800,7 +883,13 @@ kbd{
 
   <!-- placement helper -->
   <div class="place-hint hidden" id="place-hint">Click to place · <kbd>R</kbd> rotate · <kbd>Esc</kbd> cancel</div>
-  <div class="cam-hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> walk · <kbd>Space</kbd> jump · <kbd>Enter</kbd> next wave · <kbd>C</kbd> follow cam · Right-drag rotate · Arrows pan</div>
+  <div class="cam-hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> walk · <kbd>Space</kbd> jump · <kbd>Enter</kbd> next wave · <kbd>G</kbd>/<kbd>H</kbd> commander · <kbd>C</kbd> follow cam · Right-drag rotate · Arrows pan</div>
+  <!-- commander abilities + the perks drafted this run -->
+  <div class="commander" id="commander">
+    <div class="perkstrip" id="perkstrip"></div>
+    <div class="cmdbar" id="cmdbar"></div>
+  </div>
+
   <div class="toasts" id="toasts"></div>
 
   <!-- co-op only -->
@@ -824,6 +913,21 @@ kbd{
 </div>
 
 <!-- ============================== RESULTS ============================== -->
+<!-- ============================== PERK DRAFT ============================== -->
+<div id="draft-modal" class="overlay hidden">
+  <div class="modal draft">
+    <header>
+      <h2>Choose a Perk</h2>
+      <div class="sub" id="draft-sub">Wave 5 cleared</div>
+    </header>
+    <div class="draft-grid" id="draft-grid"></div>
+    <div class="modal-foot">
+      <div class="coop-foot-note">Yours for the rest of the run. Everyone picks their own.</div>
+      <button class="cta ghost" id="draft-skip">SKIP</button>
+    </div>
+  </div>
+</div>
+
 <div id="result-modal" class="overlay hidden">
   <div class="modal result">
     <div class="res-title" id="res-title">VICTORY</div>
@@ -3500,7 +3604,8 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     { id: 'standard', name: 'STANDARD', waves: 30, hpMul: 1.0, spdMul: 1.00, cash: 1200, baseHp: 140, reward: 1.0, color: '#4f8cff', desc: 'The intended experience. 30 waves.' },
     { id: 'molten', name: 'MOLTEN', waves: 35, hpMul: 1.9, spdMul: 1.05, cash: 1000, baseHp: 115, reward: 1.7, color: '#ff8b3a', desc: 'Molten enemies join the fight. 35 waves.' },
     { id: 'forsaken', name: 'FORSAKEN', waves: 40, hpMul: 3.4, spdMul: 1.12, cash: 900, baseHp: 95, reward: 2.6, color: '#a678ff', desc: 'The Forsaken march. 40 waves.' },
-    { id: 'nightmare', name: 'NIGHTMARE', waves: 45, hpMul: 6.5, spdMul: 1.20, cash: 800, baseHp: 75, reward: 4.2, color: '#ff5d6c', desc: 'Only the best survive. 45 waves.' }
+    { id: 'nightmare', name: 'NIGHTMARE', waves: 45, hpMul: 6.5, spdMul: 1.20, cash: 800, baseHp: 75, reward: 4.2, color: '#ff5d6c', desc: 'Only the best survive. 45 waves.' },
+    { id: 'endless', name: 'ENDLESS', waves: Infinity, hpMul: 1.0, spdMul: 1.00, cash: 1300, baseHp: 130, reward: 2.0, endless: true, color: '#6ee7ff', desc: 'It never stops. How far can you get?' }
   ];
 
   /* ------------------------------ themes ----------------------------- */
@@ -3686,19 +3791,37 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   const SPICE = {
     molten: { from: 12, add: ['cinder', 'frostling'], every: 3, count: 4 },
     forsaken: { from: 14, add: ['cinder', 'revenant', 'ripper'], every: 2, count: 5 },
-    nightmare: { from: 8, add: ['cinder', 'revenant', 'rifthound', 'magma'], every: 2, count: 6 }
+    nightmare: { from: 8, add: ['cinder', 'revenant', 'rifthound', 'magma'], every: 2, count: 6 },
+    endless: { from: 10, add: ['cinder', 'frostling', 'revenant', 'ripper', 'rifthound'], every: 3, count: 4 }
   };
 
+  /* Past the end of the script, endless loops the last stretch — waves 30
+     to 45, the part with bosses in it — so it keeps its shape instead of
+     repeating one wave forever. */
+  const LOOP_FROM = 30;
+  function scriptIndex(n) {
+    if (n <= W.length) return n - 1;
+    const span = W.length - LOOP_FROM + 1;
+    return LOOP_FROM - 1 + ((n - W.length - 1) % span);
+  }
+  /* Each full lap of the loop piles on more health on top of the usual
+     per-wave climb, so lap three is genuinely harder than lap one. */
+  function loopMul(n) {
+    if (n <= W.length) return 1;
+    const span = W.length - LOOP_FROM + 1;
+    return 1 + Math.floor((n - W.length - 1) / span + 1) * 0.55;
+  }
+
   /* Health / reward scaling. Bosses scale much more slowly than trash. */
-  TD.hpScale = (diff, n) => diff.hpMul * (1 + (n - 1) * 0.14);
-  TD.bossScale = (diff, n) => (1 + (diff.hpMul - 1) * 0.45) * (1 + (n - 1) * 0.025);
+  TD.hpScale = (diff, n) => diff.hpMul * (1 + (n - 1) * 0.14) * loopMul(n);
+  TD.bossScale = (diff, n) => (1 + (diff.hpMul - 1) * 0.45) * (1 + (n - 1) * 0.025) * loopMul(n);
   TD.cashScale = (diff, n) => 1.6 * (1 + (n - 1) * 0.06) * (diff.id === 'rookie' ? 1.15 : 1);
   TD.waveBonus = (diff, n) => Math.round((90 + n * 26) * (diff.id === 'rookie' ? 1.2 : 1));
   TD.skipBonus = (diff, n, secsLeft) => Math.round((18 + n * 6) * TD.clamp(secsLeft / 12, 0.2, 1));
 
   /* Build the ordered spawn list for a wave. */
   TD.buildWave = function (diff, n, pathCount) {
-    const script = W[TD.clamp(n, 1, W.length) - 1];
+    const script = W[scriptIndex(n)];
     const groups = script.map(g => ({ id: g[0], count: g[1], gap: g[2], delay: g[3] || 0 }));
 
     const spice = SPICE[diff.id];
@@ -3727,7 +3850,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
 
   /* A short human-readable preview of what is coming, for the wave banner. */
   TD.wavePreview = function (diff, n) {
-    const script = W[TD.clamp(n, 1, W.length) - 1];
+    const script = W[scriptIndex(n)];
     const boss = script.filter(g => TD.ENEMIES[g[0]] && TD.ENEMIES[g[0]].boss)[0];
     if (boss) return TD.ENEMIES[boss[0]].name;
     const names = script.slice(0, 2).map(g => TD.ENEMIES[g[0]] ? TD.ENEMIES[g[0]].name : g[0]);
@@ -3735,6 +3858,143 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   };
 
   TD.WAVE_SCRIPT = W;
+})();
+</script>
+<script>
+/* ---- js/data/perks.js ---- */
+/* =========================================================================
+   data/perks.js — the between-wave draft
+
+   Every fifth wave each player picks one of three perks.  A perk is a bag
+   of numbers that is added to the picker's own bag, so two players on the
+   same server build in different directions and a run is never the same
+   twice.  Everything here is per-player and applies to the towers that
+   player owns; the handful that touch the shared base say so in the text.
+
+   `once: true` marks a perk that cannot be offered again once taken.
+   `w` is the draw weight — the plain stat boosts come up more often than
+   the swingy ones.
+   ========================================================================= */
+(function () {
+
+  /* Every field a perk can contribute to.  Keeping them all here means the
+     battle code can read any of them without a guard. */
+  TD.perkBag = function () {
+    return {
+      dmg: 0,        // +% tower damage
+      rate: 0,       // +% fire rate
+      range: 0,      // +% range
+      cash: 0,       // +% cash from kills
+      waveCash: 0,   // flat $ at the end of each wave
+      crit: 0,       // chance a hit crits
+      critMul: 2.2,  // crit multiplier
+      pierce: 0,     // armour ignored
+      slow: 0,       // slow applied by your hits
+      burn: 0,       // burn damage/s applied by your hits, as a % of the hit
+      firstHit: 0,   // +% damage to enemies still at full health
+      exec: 0,       // finish off non-boss enemies under this fraction
+      bounty: 0,     // chance a kill pays triple
+      discount: 0,   // -% tower cost
+      sellFull: 0,   // >0 sells at full price
+      cdr: 0,        // -% ability cooldown
+      regen: 0       // base HP restored after each wave
+    };
+  };
+
+  const P = [
+    /* --- the bread and butter ------------------------------------- */
+    { id: 'power', name: 'Live Fire', icon: '✸', w: 10, col: '#ff8b3a',
+      desc: '+12% damage from your towers.', add: { dmg: 0.12 } },
+    { id: 'tempo', name: 'Tempo', icon: '⏩', w: 10, col: '#6ee7ff',
+      desc: '+12% fire rate on your towers.', add: { rate: 0.12 } },
+    { id: 'optics', name: 'Long Optics', icon: '◎', w: 9, col: '#4f8cff',
+      desc: '+12% range on your towers.', add: { range: 0.12 } },
+    { id: 'payroll', name: 'Payroll', icon: '◆', w: 9, col: '#ffc63d',
+      desc: '+15% cash from your kills.', add: { cash: 0.15 } },
+    { id: 'scrap', name: 'Scrap Runner', icon: '⚙', w: 8, col: '#ffc63d',
+      desc: '+$120 at the end of every wave.', add: { waveCash: 120 } },
+    { id: 'plating', name: 'Plating', icon: '❤', w: 8, col: '#51d88a',
+      desc: '+20 max base HP, repaired now.', add: {}, hp: 20 },
+
+    /* --- shape the build ------------------------------------------ */
+    { id: 'marksman', name: 'Marksman', icon: '✦', w: 7, col: '#ffc63d',
+      desc: '15% of your hits crit for 2.2×.', add: { crit: 0.15 } },
+    { id: 'shatter', name: 'Shatter Rounds', icon: '◈', w: 6, col: '#9fb2e6',
+      desc: 'Your hits ignore 22% of armour.', add: { pierce: 0.22 } },
+    { id: 'cryo', name: 'Cryo Coating', icon: '❄', w: 6, col: '#7fe6ff',
+      desc: 'Your hits slow enemies 18% for 1.2s.', add: { slow: 0.18 } },
+    { id: 'incend', name: 'Incendiary', icon: '🔥', w: 6, col: '#ff8b3a',
+      desc: 'Your hits set a burn worth 25% of the hit.', add: { burn: 0.25 } },
+    { id: 'ambush', name: 'Ambush', icon: '⇲', w: 6, col: '#a678ff',
+      desc: '+35% damage to enemies still at full health.', add: { firstHit: 0.35 } },
+    { id: 'bounty', name: 'Bounty Board', icon: '★', w: 6, col: '#ffc63d',
+      desc: '12% of your kills pay triple.', add: { bounty: 0.12 } },
+    { id: 'adrenaline', name: 'Adrenaline', icon: '⟳', w: 6, col: '#a678ff',
+      desc: 'Your tower abilities recharge 25% faster.', add: { cdr: 0.25 } },
+    { id: 'logistics', name: 'Logistics', icon: '▣', w: 6, col: '#51d88a',
+      desc: 'Your towers cost 10% less.', add: { discount: 0.10 } },
+    { id: 'medic', name: 'Field Medic', icon: '✚', w: 6, col: '#51d88a',
+      desc: 'Repair 6 base HP after every wave.', add: { regen: 6 } },
+    { id: 'executioner', name: 'Executioner', icon: '☠', w: 5, col: '#ff5d6c',
+      desc: 'Your hits finish off non-boss enemies under 8% HP.', add: { exec: 0.08 } },
+
+    /* --- unique ----------------------------------------------------- */
+    { id: 'salvage', name: 'Salvage Rights', icon: '♻', w: 5, col: '#51d88a', once: true,
+      desc: 'Sell your towers back for the full price.', add: { sellFull: 1 } },
+
+    /* --- deals with a cost ------------------------------------------ */
+    { id: 'overcharge', name: 'Overcharge', icon: '⚡', w: 5, col: '#ff8b3a',
+      desc: '+28% damage, but your towers cost 15% more.',
+      add: { dmg: 0.28, discount: -0.15 } },
+    { id: 'swarm', name: 'Swarm Tactics', icon: '⋮⋮', w: 5, col: '#6ee7ff',
+      desc: '+22% fire rate, but −10% range.', add: { rate: 0.22, range: -0.10 } },
+    { id: 'glass', name: 'Glass Cannon', icon: '✹', w: 4, col: '#ff5d6c',
+      desc: '+45% damage, but −25 max base HP.', add: { dmg: 0.45 }, hp: -25 }
+  ];
+
+  TD.PERKS = P;
+  TD.perkById = id => P.filter(p => p.id === id)[0] || null;
+
+  /* Three to choose from.  Uniques already taken drop out of the pool; if
+     the pool ever runs dry we top up with repeats of the plain boosts so
+     the draft always has something to offer. */
+  TD.rollPerks = function (taken, n) {
+    n = n || 3;
+    const used = {};
+    (taken || []).forEach(id => { used[id] = (used[id] || 0) + 1; });
+
+    const pool = P.filter(p => !(p.once && used[p.id]));
+    const out = [];
+    const picked = {};
+    while (out.length < n && pool.length) {
+      let total = 0;
+      pool.forEach(p => { if (!picked[p.id]) total += p.w; });
+      if (total <= 0) break;
+      let r = Math.random() * total;
+      for (let i = 0; i < pool.length; i++) {
+        const p = pool[i];
+        if (picked[p.id]) continue;
+        r -= p.w;
+        if (r <= 0) { picked[p.id] = 1; out.push(p); break; }
+      }
+    }
+    while (out.length < n) out.push(P[out.length % P.length]);
+    return out;
+  };
+
+  /* Fold a perk into a bag.  Returns the base-HP change, which the caller
+     applies, because that one is shared rather than per-player. */
+  TD.applyPerk = function (bag, perk) {
+    if (!perk) return 0;
+    Object.keys(perk.add).forEach(k => { bag[k] = (bag[k] || 0) + perk.add[k]; });
+    if (bag.discount > 0.45) bag.discount = 0.45;   // never free
+    if (bag.crit > 0.75) bag.crit = 0.75;
+    if (bag.cdr > 0.6) bag.cdr = 0.6;
+    return perk.hp || 0;
+  };
+
+  /* Waves on which a draft happens. */
+  TD.DRAFT_EVERY = 5;
 })();
 </script>
 <script>
@@ -4619,6 +4879,73 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     return i < 0 ? 0 : i;
   };
 
+  /* ------------------------------ perks ------------------------------
+     Every player carries their own bag, so a tower is buffed by whoever
+     built it.  An unknown owner falls back to an empty bag rather than
+     undefined, which keeps the hot loops free of guards. */
+  const EMPTY_BAG = TD.perkBag();
+  B.perkOf = function (owner) {
+    return (this.perks && this.perks[owner]) || EMPTY_BAG;
+  };
+
+  B.takePerk = function (owner, id) {
+    const perk = TD.perkById(id);
+    if (!perk) return false;
+    if (!this.perks[owner]) this.perks[owner] = TD.perkBag();
+    if (!this.perkTaken[owner]) this.perkTaken[owner] = [];
+    if (perk.once && this.perkTaken[owner].indexOf(id) >= 0) return false;
+    const hp = TD.applyPerk(this.perks[owner], perk);
+    this.perkTaken[owner].push(id);
+    if (hp && !this.remote) {
+      this.maxHp = Math.max(20, this.maxHp + hp);
+      this.hp = TD.clamp(this.hp + Math.max(0, hp), 1, this.maxHp);
+    }
+    return true;
+  };
+
+  /* Roll one set of three and show it to everyone — each player picks
+     their own from the same three, so nobody waits on anyone else. */
+  B.offerDraft = function () {
+    if (this.remote) return;
+    const ids = TD.rollPerks(this.perkTaken[this.me] || [], 3).map(p => p.id);
+    /* draft is this page's open modal; draftIds and draftTook are the table's
+       offer. They are separate because the host closing its own modal must
+       not shut the door on teammates who are still reading their cards. */
+    this.draft = { wave: this.wave, ids: ids };
+    this.draftIds = ids;
+    this.draftTook = {};
+    if (this.net) TD.Coop.announce({ k: 'draft', w: this.wave, ids: ids });
+    TD.UI.showDraft(ids, this.wave);
+  };
+
+  /* A pick, from this player or a teammate. */
+  B.pickPerk = function (id, actor) {
+    const mine = !actor || actor === this.me;
+    actor = actor || this.me;
+    if (this.remote && mine) {
+      if (!this.takePerk(actor, id)) { TD.Audio.error(); TD.toast('You already have that one', 'bad'); return; }
+      this.net.send({ k: 'perk', p: id });
+      this.draft = null;
+      const got = TD.perkById(id);
+      TD.Audio.upgrade();
+      TD.toast(got.name + ' — ' + got.desc, 'good');
+      TD.Chat.system('You took ' + got.name);
+      return;
+    }
+    /* One perk each per draft. The host is the only judge of that, so a
+       client re-sending the message cannot stack the same card. */
+    if (this.draftTook && this.draftTook[actor]) return;
+    if (!this.takePerk(actor, id)) return;
+    if (this.draftTook) this.draftTook[actor] = true;
+    if (mine) {
+      this.draft = null;
+      const perk = TD.perkById(id);
+      TD.Audio.upgrade();
+      TD.toast(perk.name + ' — ' + perk.desc, 'good');
+    }
+    if (mine && TD.Coop && TD.Coop.active) TD.Chat.system('You took ' + TD.perkById(id).name);
+  };
+
   /* A repeating two-tone checkerboard, built once per colour pair. */
   const checkerCache = new Map();
   /* Two tones of ground with a little grain and a soft seam, rather than
@@ -4684,6 +5011,9 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     this.wave = 0; this.phase = 'prep'; this.prepT = 14; this.time = 0;
     this.speed = 1; this.paused = false; this.selected = null; this.placing = null;
     this.globalBuff = { rate: 0, dmg: 0, until: 0 };
+    this.perks = {}; this.perkTaken = {}; this.draft = null;
+    this.draftIds = null; this.draftTook = null;
+    this.cmdCd = {}; this.pulses = [];
     this.stats = { kills: 0, leaked: 0, cashEarned: 0, damage: 0, placed: 0 };
     this.buildWorld();
     this.active = true;
@@ -5022,10 +5352,22 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     return true;
   };
 
+  /* What a tower actually costs this player, after Logistics / Overcharge. */
+  B.costOf = function (def, owner) {
+    const pk = this.perkOf(owner === undefined ? this.me : owner);
+    return Math.max(1, Math.round(def.lv[0].c * (1 - pk.discount)));
+  };
+  B.upCostOf = function (t, owner) {
+    const next = t.def.lv[t.level + 1];
+    if (!next) return 0;
+    const pk = this.perkOf(owner === undefined ? this.me : owner);
+    return Math.max(1, Math.round(next.c * (1 - pk.discount)));
+  };
+
   B.placeAt = function (x, z) {
     const p = this.placing; if (!p) return;
     if (!p.ok) { TD.Audio.error(); return; }
-    const def = p.def, cost = def.lv[0].c;
+    const def = p.def, cost = this.costOf(def);
     if (this.cash < cost) { TD.Audio.error(); TD.toast('Not enough cash', 'bad'); return; }
 
     /* A client asks; the host decides.  The tower arrives in the next
@@ -5054,7 +5396,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
      makes, against their wallet instead of ours. */
   B.placeFor = function (actor, def, x, z) {
     if (!def || this.wallets[actor] === undefined) return null;
-    const cost = def.lv[0].c;
+    const cost = this.costOf(def, actor);
     if (this.wallets[actor] < cost) return null;
     if (this.towers.filter(t => t.def.id === def.id).length >= def.limit) return null;
     if (this.towers.length >= this.map.maxTowers) return null;
@@ -5107,9 +5449,10 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     if (t.level >= t.def.lv.length - 1) return;
     if (!this.owns(t, actor)) { if (mine) { TD.Audio.error(); TD.toast('That is not your tower', 'bad'); } return; }
     const next = t.def.lv[t.level + 1];
-    if ((this.wallets[actor] || 0) < next.c) { if (mine) { TD.Audio.error(); TD.toast('Not enough cash', 'bad'); } return; }
+    const cost = this.upCostOf(t, actor);
+    if ((this.wallets[actor] || 0) < cost) { if (mine) { TD.Audio.error(); TD.toast('Not enough cash', 'bad'); } return; }
     if (this.remote && mine) { this.net.send({ k: 'up', n: t.nid }); return; }
-    this.wallets[actor] -= next.c; t.spent += next.c; t.level++;
+    this.wallets[actor] -= cost; t.spent += cost; t.level++;
     t.stats = TD.statsAt(t.def, t.level);
     this.scene.remove(t.group);
     t.group = TD.buildTower(t.def, t.level);
@@ -5127,7 +5470,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     actor = actor || this.me;
     if (!this.owns(t, actor)) { if (mine) { TD.Audio.error(); TD.toast('That is not your tower', 'bad'); } return; }
     if (this.remote && mine) { this.net.send({ k: 'sell', n: t.nid }); this.select(null); return; }
-    const refund = Math.floor(t.spent * 0.65);
+    const refund = Math.floor(t.spent * (this.perkOf(actor).sellFull ? 1 : 0.65));
     this.credit(actor, refund);
     this.removeTower(t);
     TD.Audio.sell();
@@ -5191,8 +5534,16 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     const base = TD.waveBonus(this.diff, this.wave);
     let income = base;
     let heal = 0;
-    /* The wave bonus is paid to everyone; a farm pays the player who built it. */
-    this.slots.forEach(k => this.credit(k, base));
+    /* The wave bonus is paid to everyone; a farm pays the player who built it.
+       Scrap Runner and Field Medic are drafted perks, so they pay out per
+       player rather than off the shared pot. */
+    this.slots.forEach(k => {
+      const pk = this.perkOf(k);
+      const pay = base + pk.waveCash;
+      this.credit(k, pay);
+      if (k === this.me) income = pay;
+      heal += pk.regen;
+    });
     this.towers.forEach(t => {
       const s = t.stats;
       if (s.income) { this.credit(t.owner, s.income); if (t.owner === this.me) income += s.income; }
@@ -5201,7 +5552,8 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     if (heal) { this.hp = Math.min(this.maxHp, this.hp + heal); }
     TD.Audio.coin();
     TD.toast('Wave ' + this.wave + ' cleared  +$' + TD.fmt(income) + (heal ? '  +' + heal + ' HP' : ''), 'good');
-    if (this.wave >= this.diff.waves) this.finish(true);
+    if (this.wave >= this.diff.waves) { this.finish(true); return; }
+    if (this.wave % TD.DRAFT_EVERY === 0) this.offerDraft();
   };
 
   B.finish = function (won) {
@@ -5221,12 +5573,13 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     const coins = Math.round((won ? 260 : 60) * mul + this.wave * 11 * mul + this.stats.kills * 0.25);
     const xp = Math.round((won ? 200 : 45) * mul + this.wave * 9 * mul);
     d.coins += coins; d.xp += xp; d.kills += this.stats.kills;
+    this.prevBest = d.bestWave;
     if (this.wave > d.bestWave) d.bestWave = this.wave;
     if (won) {
       d.wins++;
       d.mapsBeaten[this.map.id] = Math.max(d.mapsBeaten[this.map.id] || 0, TD.DIFFICULTIES.indexOf(this.diff) + 1);
       if (this.diff.id === 'forsaken' || this.diff.id === 'nightmare') d.gems += this.diff.id === 'nightmare' ? 40 : 20;
-    } else d.losses++;
+    } else if (!this.diff.endless) d.losses++;
     TD.Save.save();
     TD.UI.showResults(won, this, coins, xp);
   };
@@ -5316,8 +5669,14 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
       return;
     }
     e.dead = true;
-    const cash = Math.round(e.def.cash * TD.cashScale(this.diff, this.wave));
-    this.credit(source ? source.owner : this.me, cash);
+    const earner = source ? source.owner : this.me;
+    const pk = this.perkOf(earner);
+    let cash = Math.round(e.def.cash * TD.cashScale(this.diff, this.wave) * (1 + pk.cash));
+    if (pk.bounty && Math.random() < pk.bounty) {
+      cash *= 3;
+      if (earner === this.me) TD.DamageText.push(e.group.position, '$' + TD.fmt(cash), '#ffc63d');
+    }
+    this.credit(earner, cash);
     this.stats.kills++;
     if (source) { source.kills++; if (source.stats.harvest) source.harvestKills++; }
     TD.Audio.hit();
@@ -5450,8 +5809,22 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   B.step = function (dt) {
     this.time += dt;
 
+    /* Commander cooldowns and the Overclock zones they leave behind. */
+    for (const k in this.cmdCd) {
+      const c = this.cmdCd[k];
+      if (c.oc > 0) c.oc -= dt;
+      if (c.shock > 0) c.shock -= dt;
+    }
+    for (let i = this.pulses.length - 1; i >= 0; i--) {
+      this.pulses[i].until -= dt;
+      if (this.pulses[i].until <= 0) this.pulses.splice(i, 1);
+    }
+
     if (this.phase === 'prep') {
-      if (this.prepT > 0) {
+      /* Solo holds the clock while the draft is open — nobody should lose a
+         wave to reading three cards.  On a server it keeps ticking, because
+         one player's modal must not stall everyone else. */
+      if (this.prepT > 0 && !(this.draft && !this.net)) {
         this.prepT -= dt;
         if (this.prepT <= 0 && this.wave < this.diff.waves) this.startWave(false);
       }
@@ -5663,6 +6036,12 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
           t.buff.rate += b.rate || 0; t.buff.dmg += b.dmg || 0; t.buff.range += b.range || 0;
         }
       }
+      for (let p = 0; p < this.pulses.length; p++) {
+        const z = this.pulses[p];
+        if (z.owner !== t.owner) continue;
+        if (TD.dist(t.x, t.z, z.x, z.z) > z.r) continue;
+        t.buff.rate += z.rate; t.buff.dmg += z.dmg;
+      }
       t.weaken = Math.max(0, t.weaken - dt * 0.8);
     }
 
@@ -5686,9 +6065,10 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
       if (t.abilityCd > 0) t.abilityCd -= dt;
       if (t.fireAnim > 0) t.fireAnim -= dt * 3;
 
-      const range = s.range * (1 + t.buff.range);
-      const rate = 1 + t.buff.rate;
-      const dmgMul = (1 + t.buff.dmg) * (1 - t.weaken) *
+      const pk = this.perkOf(t.owner);
+      const range = s.range * Math.max(0.3, 1 + t.buff.range + pk.range);
+      const rate = Math.max(0.1, 1 + t.buff.rate + pk.rate);
+      const dmgMul = (1 + t.buff.dmg + pk.dmg) * (1 - t.weaken) *
         (s.harvest ? 1 + Math.min(s.harvest.max, t.harvestKills * s.harvest.per) : 1);
 
       /* --- support / passive towers --- */
@@ -5856,8 +6236,24 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   B.hitEnemy = function (t, e, dmg, opts) {
     let d = dmg;
     if (opts.chaos) d *= TD.rand(opts.chaos[0], opts.chaos[1]);
-    const crit = opts.chaos && d > dmg * 1.8;
-    this.damageEnemy(e, d, { source: t, armorPierce: opts.armorPierce, execute: opts.execute, crit: crit });
+    let crit = opts.chaos && d > dmg * 1.8;
+
+    /* The owner's drafted perks ride along on every hit their towers land. */
+    const pk = this.perkOf(t && t.owner);
+    if (pk.firstHit && e.hp >= e.maxHp - 0.01) d *= 1 + pk.firstHit;
+    if (pk.crit && Math.random() < pk.crit) { d *= pk.critMul; crit = true; }
+
+    this.damageEnemy(e, d, {
+      source: t, crit: crit,
+      armorPierce: Math.min(0.95, (opts.armorPierce || 0) + pk.pierce),
+      execute: Math.max(opts.execute || 0, pk.exec)
+    });
+    if (pk.slow || pk.burn) {
+      const extra = {};
+      if (pk.slow) extra.slow = { pct: pk.slow, dur: 1.2 };
+      if (pk.burn) extra.burn = { dps: d * pk.burn, dur: 2.5 };
+      this.applyStatus(e, extra, t);
+    }
     if (opts.status) this.applyStatus(e, opts.status, t);
     if (opts.splash) this.splashDamage(t, e.group.position.x, e.group.position.z, opts.splash, d * 0.6, { source: t, armorPierce: opts.armorPierce, status: opts.status, skip: e });
   };
@@ -6408,7 +6804,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     if (!ab || t.level < ab.level || t.abilityCd > 0) { if (mine) TD.Audio.error(); return; }
     if (!this.owns(t, actor)) { if (mine) { TD.Audio.error(); TD.toast('That is not your tower', 'bad'); } return; }
     if (this.remote && mine) { this.net.send({ k: 'ability', n: t.nid }); return; }
-    t.abilityCd = ab.cd;
+    t.abilityCd = ab.cd * (1 - this.perkOf(actor).cdr);
     TD.Audio.ability();
     switch (ab.id) {
       case 'rally':
@@ -6441,6 +6837,89 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
         break;
     }
     TD.UI.showTower(t);
+  };
+
+  /* ====================================================================
+     COMMANDER ABILITIES
+
+     Both land on the spot the player is standing on, which is the whole
+     point: the avatar used to be scenery, and now where you stand during
+     a wave decides which half of your defence gets the help.  Cooldowns
+     are per player, so a full server has three of each to spend.
+     ==================================================================== */
+  B.CMD = {
+    oc: {
+      id: 'oc', key: 'G', name: 'Overclock', icon: '⚡', col: 0x6ee7ff, cd: 45,
+      r: 26, dur: 8, rate: 0.7, dmg: 0.2,
+      desc: 'Your towers nearby fire 70% faster for 8s.'
+    },
+    shock: {
+      id: 'shock', key: 'H', name: 'Shockwave', icon: '◉', col: 0xffc63d, cd: 55,
+      r: 15, stun: 1.4,
+      desc: 'Stun everything around you for 1.4s.'
+    }
+  };
+
+  B.cmdCdOf = function (actor) {
+    if (!this.cmdCd[actor]) this.cmdCd[actor] = { oc: 0, shock: 0 };
+    return this.cmdCd[actor];
+  };
+
+  /* Pressed locally.  A client fires its own cooldown and visual at once
+     and lets the host do the real work, so the button never feels laggy. */
+  B.useCommand = function (id, actor, px, pz) {
+    const def = B.CMD[id];
+    if (!def || this.phase === 'over') return;
+    const mine = !actor || actor === this.me;
+    actor = actor || this.me;
+    const cd = this.cmdCdOf(actor);
+
+    if (mine) {
+      if (cd[id] > 0) { TD.Audio.error(); TD.toast(def.name + ' recharging', 'bad'); return; }
+      const p = this.player;
+      if (!p) return;
+      px = p.x; pz = p.z;
+      if (this.remote) {
+        cd[id] = def.cd;
+        this.net.send({ k: 'cmd', a: id, x: px, z: pz });
+        spawnRipple(this, px, pz, def.col, def.r);
+        TD.Audio.ability();
+        return;
+      }
+    }
+    if (!isFinite(px) || !isFinite(pz)) return;
+    if (cd[id] > 0) return;
+    cd[id] = def.cd;
+
+    if (id === 'oc') {
+      this.pulses.push({ owner: actor, x: px, z: pz, r: def.r, until: def.dur, rate: def.rate, dmg: def.dmg });
+    } else {
+      const dmg = 40 + this.wave * 30;
+      for (let i = this.enemies.length - 1; i >= 0; i--) {
+        const e = this.enemies[i];
+        if (e.dead) continue;
+        if (TD.dist(px, pz, e.group.position.x, e.group.position.z) > def.r) continue;
+        this.applyStatus(e, { stun: def.stun }, null);
+        this.damageEnemy(e, dmg, { trueDamage: true });
+      }
+      TD.Audio.boom();
+    }
+    spawnRipple(this, px, pz, def.col, def.r);
+    /* Tell the other pages where it landed, so a command reads as something
+       a teammate did rather than enemies falling over for no reason. */
+    if (this.net && !this.remote) TD.Coop.announce({ k: 'cmdfx', a: id, by: actor, x: px, z: pz });
+    if (mine) {
+      TD.Audio.ability();
+      TD.toast(def.name + '!', 'good');
+    }
+  };
+
+  /* A teammate's command, replayed on this page for the visual only. */
+  B.showCommandFx = function (id, x, z) {
+    const def = B.CMD[id];
+    if (!def || !this.active || !isFinite(x) || !isFinite(z)) return;
+    spawnRipple(this, x, z, def.col, def.r);
+    if (id === 'shock') TD.Audio.boom();
   };
 
   /* ------------------------------- input ----------------------------- */
@@ -6518,6 +6997,8 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
       if (k === 'x' && self.selected) self.sell(self.selected);
       if (k === 't' && self.selected) self.setMode(self.selected, (self.selected.mode + 1) % 5);
       if (k === 'f' && self.selected) self.useAbility(self.selected);
+      if (k === 'g') self.useCommand('oc');
+      if (k === 'h') self.useCommand('shock');
       if (k === ' ') e.preventDefault();               // jump; handled in updatePlayer
       if (k === 'enter') { if (self.phase === 'prep' && self.wave < self.diff.waves) self.startWave(true); }
       if (k === 'c') TD.UI.toggleFollow();
@@ -6718,11 +7199,12 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     const coins = Math.round((won ? 260 : 60) * mul + this.wave * 11 * mul);
     const xp = Math.round((won ? 200 : 45) * mul + this.wave * 9 * mul);
     d.coins += coins; d.xp += xp;
+    this.prevBest = d.bestWave;
     if (this.wave > d.bestWave) d.bestWave = this.wave;
     if (won) {
       d.wins++;
       d.mapsBeaten[this.map.id] = Math.max(d.mapsBeaten[this.map.id] || 0, TD.DIFFICULTIES.indexOf(this.diff) + 1);
-    } else d.losses++;
+    } else if (!this.diff.endless) d.losses++;
     TD.Save.save();
     TD.UI.showResults(!!won, this, coins, xp);
   };
@@ -6731,6 +7213,11 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
      camera, the placement ghost) plus dead reckoning for the world. */
   B.updateRemote = function (rawDt) {
     this.time += rawDt;
+    /* The host owns the real cooldowns; this is the local mirror that keeps
+       our own two buttons honest. */
+    const cd = this.cmdCdOf(this.me);
+    if (cd.oc > 0) cd.oc -= rawDt;
+    if (cd.shock > 0) cd.shock -= rawDt;
     this.panKeys(rawDt);
     this.updatePlayer(rawDt);
     this.stepRemoteEnemies(rawDt);
@@ -7352,6 +7839,22 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
         break;
       }
       case 'wave': if (B.phase === 'prep') B.startWave(true); break;
+      case 'perk': {
+        const id = String(c.p || '');
+        /* Only from the set this wave actually offered, so a client cannot
+           hand itself a perk it was never shown.  This is the table's offer,
+           not the host's own modal, which the host may already have closed. */
+        if (B.draftIds && B.draftIds.indexOf(id) >= 0) B.pickPerk(id, key);
+        break;
+      }
+      case 'cmd': {
+        const a = String(c.a || '');
+        const x = Number(c.x), z = Number(c.z);
+        if (!B.CMD[a] || !isFinite(x) || !isFinite(z)) return;
+        if (Math.abs(x) > 120 || Math.abs(z) > 120) return;
+        B.useCommand(a, key, x, z);
+        break;
+      }
       default: break;
     }
   }
@@ -7363,6 +7866,16 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     const d = msg.data || {};
     if (msg.isMe && msg.sameTab) return;
     if (d.k === 'wave' && TD.Battle.active) TD.UI.waveBanner('WAVE ' + (Number(d.n) || 0), String(d.s || '').slice(0, 80));
+    if (d.k === 'draft' && TD.Battle.active && TD.Battle.remote) {
+      const ids = (Array.isArray(d.ids) ? d.ids : []).map(String).filter(TD.perkById).slice(0, 3);
+      if (ids.length) {
+        TD.Battle.draft = { wave: Number(d.w) || TD.Battle.wave, ids: ids };
+        TD.UI.showDraft(ids, TD.Battle.draft.wave);
+      }
+    }
+    if (d.k === 'cmdfx' && TD.Battle.active && TD.Battle.remote && d.by !== TD.Battle.me) {
+      TD.Battle.showCommandFx(String(d.a || ''), Number(d.x), Number(d.z));
+    }
     if (d.k === 'start') Coop.lastSnapAt = performance.now();
     if (d.k === 'end' && TD.Battle.active && TD.Battle.remote) {
       const st = TD.Battle.stats;
@@ -8077,12 +8590,12 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   /* ---------------------------------------------------------------- */
   UI.buildCodex = function () {
     const tabs = $('#codex-tabs'); tabs.innerHTML = '';
-    ['Enemies', 'Towers', 'How to play'].forEach(t => {
+    ['Enemies', 'Towers', 'Perks', 'How to play'].forEach(t => {
       const b = el('button', UI.codexTab === t ? 'on' : '', t);
       b.onclick = () => { UI.codexTab = t; TD.Audio.ui(); UI.buildCodex(); };
       tabs.appendChild(b);
     });
-    const grid = $('#codex-grid'); grid.innerHTML = '';
+    const grid = $('#codex-grid'); grid.innerHTML = ''; grid.style.gridTemplateColumns = '';
 
     if (UI.codexTab === 'Enemies') {
       TD.ENEMY_IDS.forEach(id => {
@@ -8116,6 +8629,22 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
         card.onclick = () => UI.towerInfo(id);
         grid.appendChild(card);
       });
+    } else if (UI.codexTab === 'Perks') {
+      TD.PERKS.forEach(p => {
+        const card = el('div', 'card');
+        card.style.cursor = 'default';
+        const ic = el('div', 'perk-ico', p.icon);
+        ic.style.color = p.col;
+        card.appendChild(ic);
+        card.appendChild(el('h4', null, p.name));
+        card.appendChild(el('div', 'role', p.hp ? 'PERK · ' + (p.hp > 0 ? '+' : '') + p.hp + ' HP' : 'PERK'));
+        card.appendChild(el('p', null, p.desc));
+        const tags = el('div', 'tagrow');
+        tags.appendChild(el('span', 'tag' + (p.once ? ' sup' : ''), p.once ? 'One only' : 'Stacks'));
+        if (p.hp < 0) tags.appendChild(el('span', 'tag hid', 'Trade-off'));
+        card.appendChild(tags);
+        grid.appendChild(card);
+      });
     } else {
       grid.style.gridTemplateColumns = '1fr';
       const c = el('div', 'card');
@@ -8132,10 +8661,14 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
         'Click a built tower to open its panel: <kbd>Q</kbd> upgrades, <kbd>X</kbd> sells for 65%, ' +
         '<kbd>T</kbd> cycles targeting, <kbd>F</kbd> triggers its ability.<br><br>' +
         '<kbd>Enter</kbd> starts the next wave early for a cash bonus. <kbd>P</kbd> pauses.</p>' +
-        '<h4 style="margin-top:14px">Your character</h4><p style="min-height:0">' +
+        '<h4 style="margin-top:14px">Your commander</h4><p style="min-height:0">' +
         'You are on the map during the battle. <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> walks, ' +
-        '<kbd>Space</kbd> jumps, <kbd>Shift</kbd> sprints. Enemies ignore you and you block nothing — ' +
-        'you are there to watch your defence from ground level.<br><br>' +
+        '<kbd>Space</kbd> jumps, <kbd>Shift</kbd> sprints. Enemies ignore you and you block nothing, ' +
+        'but where you stand matters — both of your abilities land around <i>you</i>:<br><br>' +
+        '<kbd>G</kbd> <b>Overclock</b> — your towers near you fire 70% faster for 8s.<br>' +
+        '<kbd>H</kbd> <b>Shockwave</b> — stuns and damages everything around you.<br><br>' +
+        'Run to whichever side of the map is about to break. In co-op each player has their own ' +
+        'pair, so split up and cover different lanes.<br><br>' +
         'Walking makes the camera follow you; the arrow keys or a middle-drag let it go again, ' +
         'and <kbd>C</kbd> (or the ◎ button) toggles follow on and off. ' +
         'Right-drag rotates, the wheel zooms.</p>' +
@@ -8144,7 +8677,15 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
         '<b>Flying</b> enemies need anti-air. <b>Armoured</b> enemies shrug off weak, fast shots — ' +
         'bring big single hits or armour-piercing.<br>' +
         '<b>Jammers</b> and <b>Detonators</b> shut your towers down temporarily. Spread your defence out.<br><br>' +
-        'Build <b>Homesteads</b> early: income compounds. Sell them late for a defensive push.</p>';
+        'Build <b>Homesteads</b> early: income compounds. Sell them late for a defensive push.</p>' +
+        '<h4 style="margin-top:14px">Perks</h4><p style="min-height:0">' +
+        'Every ' + TD.DRAFT_EVERY + ' waves you are offered three perks and keep one for the rest of the run. ' +
+        'Most of them stack, so leaning into one idea — crits, burn, income — pays off harder than ' +
+        'taking a little of everything. In co-op everybody drafts from the same three and picks ' +
+        'their own, and a perk only ever affects the towers <i>you</i> built. See the Perks tab.</p>' +
+        '<h4 style="margin-top:14px">Endless</h4><p style="min-height:0">' +
+        'The last difficulty has no final wave. Past wave 45 the script loops its hardest stretch ' +
+        'back round with more health each lap, so it is a score chase: get as far as you can.</p>';
       grid.appendChild(c);
     }
   };
@@ -8362,7 +8903,9 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     $('#battle-hud').classList.remove('hidden');
     $('#b-map').textContent = B.map.name + ' · ' + B.diff.name;
     UI.buildBar(B);
+    UI.buildCmdBar(B);
     UI.hideTower();
+    $('#draft-modal').classList.add('hidden');
     UI.lastCash = -1;
     $('#b-speed').textContent = '1×';
     $('#b-pause').textContent = '❚❚';
@@ -8371,6 +8914,8 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     $('#battle-hud').classList.add('hidden');
     $('#lobby-hud').classList.remove('hidden');
     $('#coop-hud').classList.add('hidden');
+    $('#draft-modal').classList.add('hidden');
+    UI.cmdNodes = null;
     UI.chatInBattle = false;
     UI.battle = null;
     UI.placeChat();
@@ -8385,7 +8930,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
       const th = thumbImg(towerThumb(id, 0), 'tthumb');
       b.appendChild(th);
       b.appendChild(el('div', 'tname', def.name));
-      b.appendChild(el('div', 'tcost', '$' + TD.fmt(def.lv[0].c)));
+      b.appendChild(el('div', 'tcost', '$' + TD.fmt(B.costOf(def))));
       b.appendChild(el('div', 'tkey', i + 1));
       b.appendChild(el('div', 'tcount', ''));
       b.onclick = () => { TD.Audio.ui(); if (B.placing && B.placing.def.id === id) B.cancelPlace(); else B.beginPlace(id); };
@@ -8412,15 +8957,18 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   UI.tick = function (B) {
     const n = nodes();
     n.hp.textContent = Math.ceil(B.hp);
-    n.wave.textContent = B.wave + ' / ' + B.diff.waves;
+    n.wave.textContent = B.wave + ' / ' + (B.diff.endless ? '\u221e' : B.diff.waves);
     const cash = Math.floor(B.cash);
-    if (cash !== UI.lastCash) {
-      UI.lastCash = cash;
+    const disc = B.perkOf(B.me).discount;
+    if (cash !== UI.lastCash || disc !== UI.lastDisc) {
+      UI.lastCash = cash; UI.lastDisc = disc;
       n.cash.textContent = TD.fmt(cash);
       $$('#buildbar .tbtn').forEach(b => {
         const def = TD.TOWERS[b.dataset.tid];
         const n = B.towers.filter(t => t.def.id === def.id).length;
-        b.classList.toggle('cant', cash < def.lv[0].c || n >= def.limit);
+        const cost = B.costOf(def);
+        b.classList.toggle('cant', cash < cost || n >= def.limit);
+        b.querySelector('.tcost').textContent = '$' + TD.fmt(cost);
         b.querySelector('.tcount').textContent = n + '/' + def.limit;
       });
     }
@@ -8431,6 +8979,8 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
       n.autoNum.textContent = Math.ceil(B.prepT);
     } else { n.skip.classList.add('hidden'); n.auto.classList.add('hidden'); }
 
+    UI.tickCmdBar(B);
+    UI.tickPerkStrip(B);
     if (UI.panelTower) UI.tickTowerPanel();
     if (n.follow) n.follow.classList.toggle('on', B.camFollow);
     if (B.remote) {
@@ -8487,9 +9037,10 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
       up.appendChild(el('div', 'upg max', 'MAX LEVEL'));
     } else {
       const nx = t.def.lv[t.level + 1];
-      const can = UI.battle && UI.battle.cash >= nx.c;
+      const upc = UI.battle ? UI.battle.upCostOf(t, t.owner) : nx.c;
+      const can = UI.battle && UI.battle.cash >= upc;
       const b = el('button', 'upg' + (can ? '' : ' cant'),
-        '<span class="uc">$' + TD.fmt(nx.c) + '</span><div class="un">' + nx.n + '</div><div class="ud">' + nx.t + '</div>');
+        '<span class="uc">$' + TD.fmt(upc) + '</span><div class="un">' + nx.n + '</div><div class="ud">' + nx.t + '</div>');
       b.onclick = () => { UI.battle.upgrade(t); };
       up.appendChild(b);
     }
@@ -8508,7 +9059,14 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     } else UI._abilBtn = null;
 
     $('#tp-target').textContent = 'Target: ' + MODES[t.mode];
-    $('#tp-sell').textContent = 'Sell $' + TD.fmt(Math.floor(t.spent * 0.65));
+    $('#tp-sell').textContent = 'Sell $' + TD.fmt(UI.sellValue(t));
+  };
+
+  /* Salvage Rights hands the whole build cost back, so the button has to
+     read off the owner's perks rather than the flat rate. */
+  UI.sellValue = function (t) {
+    const full = UI.battle && UI.battle.perkOf(t.owner).sellFull;
+    return Math.floor(t.spent * (full ? 1 : 0.65));
   };
 
   UI.tickTowerPanel = function () {
@@ -8522,9 +9080,10 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     // keep the upgrade button affordability fresh
     const btn = $('#tp-upgrade .upg');
     if (btn && !btn.classList.contains('max') && UI.battle) {
-      const nx = t.def.lv[t.level + 1];
-      btn.classList.toggle('cant', UI.battle.cash < nx.c);
+      btn.classList.toggle('cant', UI.battle.cash < UI.battle.upCostOf(t, t.owner));
     }
+    const sb = $('#tp-sell');
+    if (sb && UI.battle) sb.textContent = 'Sell $' + TD.fmt(UI.sellValue(t));
   };
 
   UI.hideTower = function () {
@@ -8551,13 +9110,114 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   /* ---------------------------------------------------------------- */
   /*  RESULTS                                                          */
   /* ---------------------------------------------------------------- */
+  /* ---------------------------------------------------------------- */
+  /*  commander abilities + the perk draft                             */
+  /* ---------------------------------------------------------------- */
+  UI.buildCmdBar = function (B) {
+    const bar = $('#cmdbar'); bar.innerHTML = '';
+    Object.keys(B.CMD).forEach(id => {
+      const def = B.CMD[id];
+      const b = el('button', 'cmd');
+      b.dataset.cid = id;
+      b.title = def.name + ' — ' + def.desc;
+      b.innerHTML =
+        '<div class="cfill"></div><div class="ck">' + def.key + '</div>' +
+        '<div class="ci">' + def.icon + '</div><div class="cn">' + def.name + '</div>' +
+        '<div class="ctime">0</div>';
+      b.onclick = () => B.useCommand(id);
+      bar.appendChild(b);
+    });
+    UI.cmdNodes = $$('#cmdbar .cmd').map(b => ({
+      el: b, id: b.dataset.cid,
+      fill: b.querySelector('.cfill'), time: b.querySelector('.ctime'), last: -1
+    }));
+    UI.lastPerks = '';
+    UI.tickPerkStrip(B);
+  };
+
+  UI.tickCmdBar = function (B) {
+    const list = UI.cmdNodes;
+    if (!list) return;
+    const cd = B.cmdCdOf(B.me);
+    for (let i = 0; i < list.length; i++) {
+      const n = list[i], left = Math.max(0, cd[n.id] || 0);
+      const shown = Math.ceil(left);
+      if (shown === n.last) continue;
+      n.last = shown;
+      const pct = left / B.CMD[n.id].cd;
+      n.fill.style.height = (pct * 100) + '%';
+      n.time.textContent = shown;
+      n.el.classList.toggle('cooling', left > 0);
+      n.el.classList.toggle('ready', left <= 0);
+    }
+  };
+
+  UI.tickPerkStrip = function (B) {
+    const taken = (B.perkTaken && B.perkTaken[B.me]) || [];
+    const key = taken.join(',');
+    if (key === UI.lastPerks) return;
+    UI.lastPerks = key;
+    const strip = $('#perkstrip');
+    strip.innerHTML = '';
+    const count = {};
+    taken.forEach(id => { count[id] = (count[id] || 0) + 1; });
+    Object.keys(count).forEach(id => {
+      const p = TD.perkById(id); if (!p) return;
+      const c = el('div', 'pchip');
+      c.title = p.name + ' — ' + p.desc;
+      c.innerHTML = '<b style="color:' + p.col + '">' + p.icon + '</b>' +
+        '<span class="pn">' + p.name + '</span>' +
+        (count[id] > 1 ? '<span class="px">×' + count[id] + '</span>' : '');
+      strip.appendChild(c);
+    });
+  };
+
+  UI.showDraft = function (ids, wave) {
+    const B = UI.battle; if (!B) return;
+    const grid = $('#draft-grid'); grid.innerHTML = '';
+    $('#draft-sub').textContent = 'Wave ' + wave + ' cleared';
+    const taken = (B.perkTaken && B.perkTaken[B.me]) || [];
+    ids.forEach(id => {
+      const p = TD.perkById(id); if (!p) return;
+      const have = taken.filter(t => t === id).length;
+      /* The host rolls one set for the table, so a one-only perk somebody
+         else can still take may already be in your bag. Say so instead of
+         letting the click quietly do nothing. */
+      const spent = have && p.once;
+      const card = el('div', 'pcard' + (spent ? ' spent' : ''));
+      card.style.color = p.col;
+      card.innerHTML =
+        '<div class="pi">' + p.icon + '</div><h4>' + p.name + '</h4>' +
+        '<p>' + p.desc + '</p>' +
+        (spent ? '<div class="pown">ALREADY YOURS</div>'
+               : have ? '<div class="pown">OWNED ×' + have + ' — STACKS</div>' : '');
+      if (!spent) {
+        card.onclick = () => { TD.Audio.ui(); $('#draft-modal').classList.add('hidden'); B.pickPerk(id); };
+      }
+      grid.appendChild(card);
+    });
+    $('#draft-modal').classList.remove('hidden');
+    TD.Audio.coin();
+  };
+
+  UI.closeDraft = function () {
+    $('#draft-modal').classList.add('hidden');
+    if (UI.battle) UI.battle.draft = null;
+  };
+
   UI.showResults = function (won, B, coins, xp) {
     const m = $('#result-modal');
-    $('#res-title').textContent = won ? 'VICTORY' : 'DEFEAT';
+    const endless = !won && B.diff.endless;
+    $('#res-title').textContent = won ? 'VICTORY' : endless ? 'RUN OVER' : 'DEFEAT';
     $('#res-title').className = 'res-title ' + (won ? 'win' : 'lose');
     $('#res-sub').textContent = won
       ? 'You held ' + B.map.name + ' on ' + B.diff.name
-      : 'The base fell on wave ' + B.wave + ' of ' + B.diff.waves;
+      : B.diff.endless
+        ? (B.prevBest !== undefined && B.wave > B.prevBest
+            ? 'NEW BEST — ' + B.wave + ' waves on ' + B.map.name
+            : 'You held ' + B.map.name + ' for ' + B.wave + ' waves'
+              + (B.prevBest ? ' · best ' + B.prevBest : ''))
+        : 'The base fell on wave ' + B.wave + ' of ' + B.diff.waves;
     const s = B.stats;
     $('#res-stats').innerHTML =
       '<div><span>Waves survived</span><b>' + B.wave + '</b></div>' +
@@ -8628,6 +9288,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     };
     $('#tp-sell').onclick = () => { const t = UI.panelTower; if (t && UI.battle) UI.battle.sell(t); };
 
+    $('#draft-skip').onclick = () => { TD.Audio.ui(); UI.closeDraft(); };
     $('#btn-lobby').onclick = () => { $('#result-modal').classList.add('hidden'); TD.Game.toLobby(); };
     $('#btn-again').onclick = () => {
       $('#result-modal').classList.add('hidden');

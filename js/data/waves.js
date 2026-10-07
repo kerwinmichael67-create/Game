@@ -59,19 +59,37 @@
   const SPICE = {
     molten: { from: 12, add: ['cinder', 'frostling'], every: 3, count: 4 },
     forsaken: { from: 14, add: ['cinder', 'revenant', 'ripper'], every: 2, count: 5 },
-    nightmare: { from: 8, add: ['cinder', 'revenant', 'rifthound', 'magma'], every: 2, count: 6 }
+    nightmare: { from: 8, add: ['cinder', 'revenant', 'rifthound', 'magma'], every: 2, count: 6 },
+    endless: { from: 10, add: ['cinder', 'frostling', 'revenant', 'ripper', 'rifthound'], every: 3, count: 4 }
   };
 
+  /* Past the end of the script, endless loops the last stretch — waves 30
+     to 45, the part with bosses in it — so it keeps its shape instead of
+     repeating one wave forever. */
+  const LOOP_FROM = 30;
+  function scriptIndex(n) {
+    if (n <= W.length) return n - 1;
+    const span = W.length - LOOP_FROM + 1;
+    return LOOP_FROM - 1 + ((n - W.length - 1) % span);
+  }
+  /* Each full lap of the loop piles on more health on top of the usual
+     per-wave climb, so lap three is genuinely harder than lap one. */
+  function loopMul(n) {
+    if (n <= W.length) return 1;
+    const span = W.length - LOOP_FROM + 1;
+    return 1 + Math.floor((n - W.length - 1) / span + 1) * 0.55;
+  }
+
   /* Health / reward scaling. Bosses scale much more slowly than trash. */
-  TD.hpScale = (diff, n) => diff.hpMul * (1 + (n - 1) * 0.14);
-  TD.bossScale = (diff, n) => (1 + (diff.hpMul - 1) * 0.45) * (1 + (n - 1) * 0.025);
+  TD.hpScale = (diff, n) => diff.hpMul * (1 + (n - 1) * 0.14) * loopMul(n);
+  TD.bossScale = (diff, n) => (1 + (diff.hpMul - 1) * 0.45) * (1 + (n - 1) * 0.025) * loopMul(n);
   TD.cashScale = (diff, n) => 1.6 * (1 + (n - 1) * 0.06) * (diff.id === 'rookie' ? 1.15 : 1);
   TD.waveBonus = (diff, n) => Math.round((90 + n * 26) * (diff.id === 'rookie' ? 1.2 : 1));
   TD.skipBonus = (diff, n, secsLeft) => Math.round((18 + n * 6) * TD.clamp(secsLeft / 12, 0.2, 1));
 
   /* Build the ordered spawn list for a wave. */
   TD.buildWave = function (diff, n, pathCount) {
-    const script = W[TD.clamp(n, 1, W.length) - 1];
+    const script = W[scriptIndex(n)];
     const groups = script.map(g => ({ id: g[0], count: g[1], gap: g[2], delay: g[3] || 0 }));
 
     const spice = SPICE[diff.id];
@@ -100,7 +118,7 @@
 
   /* A short human-readable preview of what is coming, for the wave banner. */
   TD.wavePreview = function (diff, n) {
-    const script = W[TD.clamp(n, 1, W.length) - 1];
+    const script = W[scriptIndex(n)];
     const boss = script.filter(g => TD.ENEMIES[g[0]] && TD.ENEMIES[g[0]].boss)[0];
     if (boss) return TD.ENEMIES[boss[0]].name;
     const names = script.slice(0, 2).map(g => TD.ENEMIES[g[0]] ? TD.ENEMIES[g[0]].name : g[0]);

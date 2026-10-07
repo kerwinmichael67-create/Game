@@ -213,7 +213,13 @@
 
   <!-- placement helper -->
   <div class="place-hint hidden" id="place-hint">Click to place · <kbd>R</kbd> rotate · <kbd>Esc</kbd> cancel</div>
-  <div class="cam-hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> walk · <kbd>Space</kbd> jump · <kbd>Enter</kbd> next wave · <kbd>C</kbd> follow cam · Right-drag rotate · Arrows pan</div>
+  <div class="cam-hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> walk · <kbd>Space</kbd> jump · <kbd>Enter</kbd> next wave · <kbd>G</kbd>/<kbd>H</kbd> commander · <kbd>C</kbd> follow cam · Right-drag rotate · Arrows pan</div>
+  <!-- commander abilities + the perks drafted this run -->
+  <div class="commander" id="commander">
+    <div class="perkstrip" id="perkstrip"></div>
+    <div class="cmdbar" id="cmdbar"></div>
+  </div>
+
   <div class="toasts" id="toasts"></div>
 
   <!-- co-op only -->
@@ -237,6 +243,21 @@
 </div>
 
 <!-- ============================== RESULTS ============================== -->
+<!-- ============================== PERK DRAFT ============================== -->
+<div id="draft-modal" class="overlay hidden">
+  <div class="modal draft">
+    <header>
+      <h2>Choose a Perk</h2>
+      <div class="sub" id="draft-sub">Wave 5 cleared</div>
+    </header>
+    <div class="draft-grid" id="draft-grid"></div>
+    <div class="modal-foot">
+      <div class="coop-foot-note">Yours for the rest of the run. Everyone picks their own.</div>
+      <button class="cta ghost" id="draft-skip">SKIP</button>
+    </div>
+  </div>
+</div>
+
 <div id="result-modal" class="overlay hidden">
   <div class="modal result">
     <div class="res-title" id="res-title">VICTORY</div>
@@ -259,6 +280,7 @@
 <script src="js/data/enemies.js"></script>
 <script src="js/data/maps.js"></script>
 <script src="js/data/waves.js"></script>
+<script src="js/data/perks.js"></script>
 <script src="js/net.js"></script>
 <script src="js/lobby.js"></script>
 <script src="js/battle.js"></script>

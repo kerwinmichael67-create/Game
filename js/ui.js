@@ -391,12 +391,12 @@
   /* ---------------------------------------------------------------- */
   UI.buildCodex = function () {
     const tabs = $('#codex-tabs'); tabs.innerHTML = '';
-    ['Enemies', 'Towers', 'How to play'].forEach(t => {
+    ['Enemies', 'Towers', 'Perks', 'How to play'].forEach(t => {
       const b = el('button', UI.codexTab === t ? 'on' : '', t);
       b.onclick = () => { UI.codexTab = t; TD.Audio.ui(); UI.buildCodex(); };
       tabs.appendChild(b);
     });
-    const grid = $('#codex-grid'); grid.innerHTML = '';
+    const grid = $('#codex-grid'); grid.innerHTML = ''; grid.style.gridTemplateColumns = '';
 
     if (UI.codexTab === 'Enemies') {
       TD.ENEMY_IDS.forEach(id => {
@@ -430,6 +430,22 @@
         card.onclick = () => UI.towerInfo(id);
         grid.appendChild(card);
       });
+    } else if (UI.codexTab === 'Perks') {
+      TD.PERKS.forEach(p => {
+        const card = el('div', 'card');
+        card.style.cursor = 'default';
+        const ic = el('div', 'perk-ico', p.icon);
+        ic.style.color = p.col;
+        card.appendChild(ic);
+        card.appendChild(el('h4', null, p.name));
+        card.appendChild(el('div', 'role', p.hp ? 'PERK · ' + (p.hp > 0 ? '+' : '') + p.hp + ' HP' : 'PERK'));
+        card.appendChild(el('p', null, p.desc));
+        const tags = el('div', 'tagrow');
+        tags.appendChild(el('span', 'tag' + (p.once ? ' sup' : ''), p.once ? 'One only' : 'Stacks'));
+        if (p.hp < 0) tags.appendChild(el('span', 'tag hid', 'Trade-off'));
+        card.appendChild(tags);
+        grid.appendChild(card);
+      });
     } else {
       grid.style.gridTemplateColumns = '1fr';
       const c = el('div', 'card');
@@ -446,10 +462,14 @@
         'Click a built tower to open its panel: <kbd>Q</kbd> upgrades, <kbd>X</kbd> sells for 65%, ' +
         '<kbd>T</kbd> cycles targeting, <kbd>F</kbd> triggers its ability.<br><br>' +
         '<kbd>Enter</kbd> starts the next wave early for a cash bonus. <kbd>P</kbd> pauses.</p>' +
-        '<h4 style="margin-top:14px">Your character</h4><p style="min-height:0">' +
+        '<h4 style="margin-top:14px">Your commander</h4><p style="min-height:0">' +
         'You are on the map during the battle. <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> walks, ' +
-        '<kbd>Space</kbd> jumps, <kbd>Shift</kbd> sprints. Enemies ignore you and you block nothing — ' +
-        'you are there to watch your defence from ground level.<br><br>' +
+        '<kbd>Space</kbd> jumps, <kbd>Shift</kbd> sprints. Enemies ignore you and you block nothing, ' +
+        'but where you stand matters — both of your abilities land around <i>you</i>:<br><br>' +
+        '<kbd>G</kbd> <b>Overclock</b> — your towers near you fire 70% faster for 8s.<br>' +
+        '<kbd>H</kbd> <b>Shockwave</b> — stuns and damages everything around you.<br><br>' +
+        'Run to whichever side of the map is about to break. In co-op each player has their own ' +
+        'pair, so split up and cover different lanes.<br><br>' +
         'Walking makes the camera follow you; the arrow keys or a middle-drag let it go again, ' +
         'and <kbd>C</kbd> (or the ◎ button) toggles follow on and off. ' +
         'Right-drag rotates, the wheel zooms.</p>' +
@@ -458,7 +478,15 @@
         '<b>Flying</b> enemies need anti-air. <b>Armoured</b> enemies shrug off weak, fast shots — ' +
         'bring big single hits or armour-piercing.<br>' +
         '<b>Jammers</b> and <b>Detonators</b> shut your towers down temporarily. Spread your defence out.<br><br>' +
-        'Build <b>Homesteads</b> early: income compounds. Sell them late for a defensive push.</p>';
+        'Build <b>Homesteads</b> early: income compounds. Sell them late for a defensive push.</p>' +
+        '<h4 style="margin-top:14px">Perks</h4><p style="min-height:0">' +
+        'Every ' + TD.DRAFT_EVERY + ' waves you are offered three perks and keep one for the rest of the run. ' +
+        'Most of them stack, so leaning into one idea — crits, burn, income — pays off harder than ' +
+        'taking a little of everything. In co-op everybody drafts from the same three and picks ' +
+        'their own, and a perk only ever affects the towers <i>you</i> built. See the Perks tab.</p>' +
+        '<h4 style="margin-top:14px">Endless</h4><p style="min-height:0">' +
+        'The last difficulty has no final wave. Past wave 45 the script loops its hardest stretch ' +
+        'back round with more health each lap, so it is a score chase: get as far as you can.</p>';
       grid.appendChild(c);
     }
   };
@@ -676,7 +704,9 @@
     $('#battle-hud').classList.remove('hidden');
     $('#b-map').textContent = B.map.name + ' · ' + B.diff.name;
     UI.buildBar(B);
+    UI.buildCmdBar(B);
     UI.hideTower();
+    $('#draft-modal').classList.add('hidden');
     UI.lastCash = -1;
     $('#b-speed').textContent = '1×';
     $('#b-pause').textContent = '❚❚';
@@ -685,6 +715,8 @@
     $('#battle-hud').classList.add('hidden');
     $('#lobby-hud').classList.remove('hidden');
     $('#coop-hud').classList.add('hidden');
+    $('#draft-modal').classList.add('hidden');
+    UI.cmdNodes = null;
     UI.chatInBattle = false;
     UI.battle = null;
     UI.placeChat();
@@ -699,7 +731,7 @@
       const th = thumbImg(towerThumb(id, 0), 'tthumb');
       b.appendChild(th);
       b.appendChild(el('div', 'tname', def.name));
-      b.appendChild(el('div', 'tcost', '$' + TD.fmt(def.lv[0].c)));
+      b.appendChild(el('div', 'tcost', '$' + TD.fmt(B.costOf(def))));
       b.appendChild(el('div', 'tkey', i + 1));
       b.appendChild(el('div', 'tcount', ''));
       b.onclick = () => { TD.Audio.ui(); if (B.placing && B.placing.def.id === id) B.cancelPlace(); else B.beginPlace(id); };
@@ -726,15 +758,18 @@
   UI.tick = function (B) {
     const n = nodes();
     n.hp.textContent = Math.ceil(B.hp);
-    n.wave.textContent = B.wave + ' / ' + B.diff.waves;
+    n.wave.textContent = B.wave + ' / ' + (B.diff.endless ? '\u221e' : B.diff.waves);
     const cash = Math.floor(B.cash);
-    if (cash !== UI.lastCash) {
-      UI.lastCash = cash;
+    const disc = B.perkOf(B.me).discount;
+    if (cash !== UI.lastCash || disc !== UI.lastDisc) {
+      UI.lastCash = cash; UI.lastDisc = disc;
       n.cash.textContent = TD.fmt(cash);
       $$('#buildbar .tbtn').forEach(b => {
         const def = TD.TOWERS[b.dataset.tid];
         const n = B.towers.filter(t => t.def.id === def.id).length;
-        b.classList.toggle('cant', cash < def.lv[0].c || n >= def.limit);
+        const cost = B.costOf(def);
+        b.classList.toggle('cant', cash < cost || n >= def.limit);
+        b.querySelector('.tcost').textContent = '$' + TD.fmt(cost);
         b.querySelector('.tcount').textContent = n + '/' + def.limit;
       });
     }
@@ -745,6 +780,8 @@
       n.autoNum.textContent = Math.ceil(B.prepT);
     } else { n.skip.classList.add('hidden'); n.auto.classList.add('hidden'); }
 
+    UI.tickCmdBar(B);
+    UI.tickPerkStrip(B);
     if (UI.panelTower) UI.tickTowerPanel();
     if (n.follow) n.follow.classList.toggle('on', B.camFollow);
     if (B.remote) {
@@ -801,9 +838,10 @@
       up.appendChild(el('div', 'upg max', 'MAX LEVEL'));
     } else {
       const nx = t.def.lv[t.level + 1];
-      const can = UI.battle && UI.battle.cash >= nx.c;
+      const upc = UI.battle ? UI.battle.upCostOf(t, t.owner) : nx.c;
+      const can = UI.battle && UI.battle.cash >= upc;
       const b = el('button', 'upg' + (can ? '' : ' cant'),
-        '<span class="uc">$' + TD.fmt(nx.c) + '</span><div class="un">' + nx.n + '</div><div class="ud">' + nx.t + '</div>');
+        '<span class="uc">$' + TD.fmt(upc) + '</span><div class="un">' + nx.n + '</div><div class="ud">' + nx.t + '</div>');
       b.onclick = () => { UI.battle.upgrade(t); };
       up.appendChild(b);
     }
@@ -822,7 +860,14 @@
     } else UI._abilBtn = null;
 
     $('#tp-target').textContent = 'Target: ' + MODES[t.mode];
-    $('#tp-sell').textContent = 'Sell $' + TD.fmt(Math.floor(t.spent * 0.65));
+    $('#tp-sell').textContent = 'Sell $' + TD.fmt(UI.sellValue(t));
+  };
+
+  /* Salvage Rights hands the whole build cost back, so the button has to
+     read off the owner's perks rather than the flat rate. */
+  UI.sellValue = function (t) {
+    const full = UI.battle && UI.battle.perkOf(t.owner).sellFull;
+    return Math.floor(t.spent * (full ? 1 : 0.65));
   };
 
   UI.tickTowerPanel = function () {
@@ -836,9 +881,10 @@
     // keep the upgrade button affordability fresh
     const btn = $('#tp-upgrade .upg');
     if (btn && !btn.classList.contains('max') && UI.battle) {
-      const nx = t.def.lv[t.level + 1];
-      btn.classList.toggle('cant', UI.battle.cash < nx.c);
+      btn.classList.toggle('cant', UI.battle.cash < UI.battle.upCostOf(t, t.owner));
     }
+    const sb = $('#tp-sell');
+    if (sb && UI.battle) sb.textContent = 'Sell $' + TD.fmt(UI.sellValue(t));
   };
 
   UI.hideTower = function () {
@@ -865,13 +911,114 @@
   /* ---------------------------------------------------------------- */
   /*  RESULTS                                                          */
   /* ---------------------------------------------------------------- */
+  /* ---------------------------------------------------------------- */
+  /*  commander abilities + the perk draft                             */
+  /* ---------------------------------------------------------------- */
+  UI.buildCmdBar = function (B) {
+    const bar = $('#cmdbar'); bar.innerHTML = '';
+    Object.keys(B.CMD).forEach(id => {
+      const def = B.CMD[id];
+      const b = el('button', 'cmd');
+      b.dataset.cid = id;
+      b.title = def.name + ' — ' + def.desc;
+      b.innerHTML =
+        '<div class="cfill"></div><div class="ck">' + def.key + '</div>' +
+        '<div class="ci">' + def.icon + '</div><div class="cn">' + def.name + '</div>' +
+        '<div class="ctime">0</div>';
+      b.onclick = () => B.useCommand(id);
+      bar.appendChild(b);
+    });
+    UI.cmdNodes = $$('#cmdbar .cmd').map(b => ({
+      el: b, id: b.dataset.cid,
+      fill: b.querySelector('.cfill'), time: b.querySelector('.ctime'), last: -1
+    }));
+    UI.lastPerks = '';
+    UI.tickPerkStrip(B);
+  };
+
+  UI.tickCmdBar = function (B) {
+    const list = UI.cmdNodes;
+    if (!list) return;
+    const cd = B.cmdCdOf(B.me);
+    for (let i = 0; i < list.length; i++) {
+      const n = list[i], left = Math.max(0, cd[n.id] || 0);
+      const shown = Math.ceil(left);
+      if (shown === n.last) continue;
+      n.last = shown;
+      const pct = left / B.CMD[n.id].cd;
+      n.fill.style.height = (pct * 100) + '%';
+      n.time.textContent = shown;
+      n.el.classList.toggle('cooling', left > 0);
+      n.el.classList.toggle('ready', left <= 0);
+    }
+  };
+
+  UI.tickPerkStrip = function (B) {
+    const taken = (B.perkTaken && B.perkTaken[B.me]) || [];
+    const key = taken.join(',');
+    if (key === UI.lastPerks) return;
+    UI.lastPerks = key;
+    const strip = $('#perkstrip');
+    strip.innerHTML = '';
+    const count = {};
+    taken.forEach(id => { count[id] = (count[id] || 0) + 1; });
+    Object.keys(count).forEach(id => {
+      const p = TD.perkById(id); if (!p) return;
+      const c = el('div', 'pchip');
+      c.title = p.name + ' — ' + p.desc;
+      c.innerHTML = '<b style="color:' + p.col + '">' + p.icon + '</b>' +
+        '<span class="pn">' + p.name + '</span>' +
+        (count[id] > 1 ? '<span class="px">×' + count[id] + '</span>' : '');
+      strip.appendChild(c);
+    });
+  };
+
+  UI.showDraft = function (ids, wave) {
+    const B = UI.battle; if (!B) return;
+    const grid = $('#draft-grid'); grid.innerHTML = '';
+    $('#draft-sub').textContent = 'Wave ' + wave + ' cleared';
+    const taken = (B.perkTaken && B.perkTaken[B.me]) || [];
+    ids.forEach(id => {
+      const p = TD.perkById(id); if (!p) return;
+      const have = taken.filter(t => t === id).length;
+      /* The host rolls one set for the table, so a one-only perk somebody
+         else can still take may already be in your bag. Say so instead of
+         letting the click quietly do nothing. */
+      const spent = have && p.once;
+      const card = el('div', 'pcard' + (spent ? ' spent' : ''));
+      card.style.color = p.col;
+      card.innerHTML =
+        '<div class="pi">' + p.icon + '</div><h4>' + p.name + '</h4>' +
+        '<p>' + p.desc + '</p>' +
+        (spent ? '<div class="pown">ALREADY YOURS</div>'
+               : have ? '<div class="pown">OWNED ×' + have + ' — STACKS</div>' : '');
+      if (!spent) {
+        card.onclick = () => { TD.Audio.ui(); $('#draft-modal').classList.add('hidden'); B.pickPerk(id); };
+      }
+      grid.appendChild(card);
+    });
+    $('#draft-modal').classList.remove('hidden');
+    TD.Audio.coin();
+  };
+
+  UI.closeDraft = function () {
+    $('#draft-modal').classList.add('hidden');
+    if (UI.battle) UI.battle.draft = null;
+  };
+
   UI.showResults = function (won, B, coins, xp) {
     const m = $('#result-modal');
-    $('#res-title').textContent = won ? 'VICTORY' : 'DEFEAT';
+    const endless = !won && B.diff.endless;
+    $('#res-title').textContent = won ? 'VICTORY' : endless ? 'RUN OVER' : 'DEFEAT';
     $('#res-title').className = 'res-title ' + (won ? 'win' : 'lose');
     $('#res-sub').textContent = won
       ? 'You held ' + B.map.name + ' on ' + B.diff.name
-      : 'The base fell on wave ' + B.wave + ' of ' + B.diff.waves;
+      : B.diff.endless
+        ? (B.prevBest !== undefined && B.wave > B.prevBest
+            ? 'NEW BEST — ' + B.wave + ' waves on ' + B.map.name
+            : 'You held ' + B.map.name + ' for ' + B.wave + ' waves'
+              + (B.prevBest ? ' · best ' + B.prevBest : ''))
+        : 'The base fell on wave ' + B.wave + ' of ' + B.diff.waves;
     const s = B.stats;
     $('#res-stats').innerHTML =
       '<div><span>Waves survived</span><b>' + B.wave + '</b></div>' +
@@ -942,6 +1089,7 @@
     };
     $('#tp-sell').onclick = () => { const t = UI.panelTower; if (t && UI.battle) UI.battle.sell(t); };
 
+    $('#draft-skip').onclick = () => { TD.Audio.ui(); UI.closeDraft(); };
     $('#btn-lobby').onclick = () => { $('#result-modal').classList.add('hidden'); TD.Game.toLobby(); };
     $('#btn-again').onclick = () => {
       $('#result-modal').classList.add('hidden');
