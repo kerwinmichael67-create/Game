@@ -368,12 +368,13 @@ const WEAPONS = {
   grenade:  { id: 'grenade', slot: 3, name: 'Grenade', kind: 'throw', uses: 2, dmg: 75, splash: 25, r1: 70, r2: 160, range: 480, blurb: '75 in the blast, 25 in the splash' },
   medkit:   { id: 'medkit', slot: 3, name: 'Medical Kit', kind: 'heal', uses: 1, heal: 100, time: 3.5, slow: 0.25, blurb: 'Heal while you reposition' },
   molotov:  { id: 'molotov', slot: 3, name: 'Molotov', kind: 'throw', uses: 2, burn: 50, time: 3.5, r: 88, range: 440, blurb: 'Fire zone that burns on contact' },
+  shotgun:  { id: 'shotgun', slot: 0, name: 'Shotgun', kind: 'gun', dmg: 5, pellets: 5, cd: 1.25, mag: 5, reload: 0.75, perRound: true, speed: 1000, spread: 0.13, range: 560, len: 28, blurb: '5 pellets, loads shell by shell' },
 };
 const WIDS = Object.keys(WEAPONS);
-const SLOT_OPTS = [['ar', 'smg', 'sniper', 'mg'], ['revolver', 'deagle', 'uzi'], ['knife', 'sledge', 'shield'], ['grenade', 'medkit', 'molotov']];
+const SLOT_OPTS = [['ar', 'smg', 'sniper', 'mg', 'shotgun'], ['revolver', 'deagle', 'uzi'], ['knife', 'sledge', 'shield'], ['grenade', 'medkit', 'molotov']];
 const SLOT_NAMES = ['Primary', 'Secondary', 'Melee', 'Support'];
 function statList(w) {
-  if (w.kind === 'gun') return [['DMG', w.dmg], ['RPM', Math.round(60 / w.cd)], ['MAG', w.mag], ['RLD', w.perRound ? w.reload + 's/rd' : w.reload + 's']];
+  if (w.kind === 'gun') return [['DMG', w.pellets ? w.pellets + '×' + w.dmg : w.dmg], ['RPM', Math.round(60 / w.cd)], ['MAG', w.mag], ['RLD', w.perRound ? w.reload + 's/rd' : w.reload + 's']];
   if (w.kind === 'melee') return w.guard ? [['DMG', w.dmg], ['CD', w.cd + 's'], ['GUARD', '−40%']] : [['DMG', w.dmg], ['CD', w.cd + 's'], ['REACH', w.reach]];
   if (w.id === 'grenade') return [['BLAST', 75], ['SPLASH', 25], ['QTY', '2/match']];
   if (w.id === 'medkit') return [['HEAL', '+100'], ['TIME', '3.5s'], ['MOVE', '−25%'], ['QTY', '1/match']];
@@ -491,6 +492,7 @@ const SND = (() => {
     revolver: { vol: 0.42, dur: 0.16, f: 2000, thump: 0.35, tf: 110 },
     deagle: { vol: 0.46, dur: 0.2, f: 1800, thump: 0.45, tf: 95 },
     uzi: { vol: 0.18, dur: 0.05, f: 3600, thump: 0.08, tf: 200 },
+    shotgun: { vol: 0.55, dur: 0.24, f: 1500, thump: 0.6, tf: 80 },
     swing: { vol: 0.2, dur: 0.13, f: 900, type: 'bandpass', q: 2 },
     boom: { vol: 0.75, dur: 0.75, f: 600, thump: 0.9, tf: 70 },
     fire: { vol: 0.28, dur: 0.45, f: 1100, type: 'bandpass', q: 0.8 },
@@ -591,11 +593,16 @@ function tryAttack(f) {
     if (f.ammo[f.slot] <= 0) { startReload(f); return false; }
     if (f.reloading) { if (w.perRound) { f.reloading = false; f.reloadT = 0; } else return false; }
     f.ammo[f.slot]--; f.cd = w.cd; f.shotT = 0.06;
-    const ang = f.a + (Math.random() * 2 - 1) * w.spread;
     let mx = f.x + Math.cos(f.a) * (PR + w.len * 0.55), my = f.y + Math.sin(f.a) * (PR + w.len * 0.55);
     if (!clearLine(f.x, f.y, mx, my)) { mx = f.x; my = f.y; }
-    spawnBullet(f, w, mx, my, ang);
-    netEvent(f, 'b', wid, Math.round(mx), Math.round(my), Math.round(ang * 1000));
+    const n = w.pellets || 1;
+    for (let i = 0; i < n; i++) {
+      // pellets fan evenly across the spread with a little jitter; single-shot guns stay random within it
+      const off = n > 1 ? ((i / (n - 1)) * 2 - 1) * w.spread + (Math.random() * 2 - 1) * w.spread * 0.3 : (Math.random() * 2 - 1) * w.spread;
+      const ang = f.a + off;
+      spawnBullet(f, w, mx, my, ang, i > 0);
+      netEvent(f, 'b', wid, Math.round(mx), Math.round(my), Math.round(ang * 1000), i);
+    }
     sfxAt(w.id, f.x, f.y);
     if (f.ammo[f.slot] === 0) startReload(f);
     return true;
@@ -714,9 +721,9 @@ function trackDamage(f, dt) {
 }
 
 /* projectiles */
-function spawnBullet(owner, w, x, y, ang) {
+function spawnBullet(owner, w, x, y, ang, quiet) {
   G.bullets.push({ owner, w, x, y, ox: x, oy: y, vx: Math.cos(ang) * w.speed, vy: Math.sin(ang) * w.speed, left: w.range });
-  G.flashes.push({ x, y, a: ang, t: 0.05, big: w.id === 'sniper' || w.id === 'deagle' });
+  if (!quiet) G.flashes.push({ x, y, a: ang, t: 0.05, big: w.id === 'sniper' || w.id === 'deagle' || w.id === 'shotgun' });
 }
 function updateBullets(dt) {
   for (let i = G.bullets.length - 1; i >= 0; i--) {
@@ -820,7 +827,7 @@ function updateFx(dt) {
 /* =========================================================
    bot brain
    ========================================================= */
-const PREF = { sniper: 640, ar: 400, mg: 420, smg: 240, revolver: 330, deagle: 380, uzi: 190 };
+const PREF = { sniper: 640, ar: 400, mg: 420, smg: 240, shotgun: 190, revolver: 330, deagle: 380, uzi: 190 };
 function botThink(b, t, dt) {
   if (!b.alive) return;
   const B = b.brain || (b.brain = { think: 0, path: null, pathT: 0, strafe: Math.random() < 0.5 ? 1 : -1, err: 0, see: 0, hold: 0 });
@@ -1265,7 +1272,7 @@ function drawWeapon(c, f) {
   if (f.switchT > 0) c.globalAlpha = 0.5;
   if (w.kind === 'gun') {
     const len = PR - 4 + w.len * 0.6;
-    c.fillStyle = '#1a1e24'; c.fillRect(4, 3, len, w.id === 'sniper' || w.id === 'mg' ? 7 : 6);
+    c.fillStyle = '#1a1e24'; c.fillRect(4, 3, len, w.id === 'sniper' || w.id === 'mg' || w.id === 'shotgun' ? 7 : 6);
     c.fillStyle = '#3a414b'; c.fillRect(4, 3, 9, 6);
     if (w.id === 'sniper') { c.fillStyle = '#2b323b'; c.fillRect(14, 0, 12, 4); }
     if (f.shotT > 0) {
@@ -2010,7 +2017,7 @@ setInterval(() => { if (!$('#menu').hidden) renderChat(); }, 30000);
    network: lobby, matchmaking, match rooms (all over presence)
    ========================================================= */
 const NET = { room: null, db: null, user: null, uid: null, ready: false, connected: false, dead: false, myPeer: null, canNamed: true };
-const PROTO = 2; // bump when the map or match state changes, so tabs on different builds never pair
+const PROTO = 3; // bump when the map or match state changes, so tabs on different builds never pair
 const LP = { v: PROTO, n: ACCT.name, st: 'menu', q: null, w: null, m: null, c: [] };
 const MM = { state: 'idle', since: 0, timer: 0 };
 function setLobby(patch) {
@@ -2337,10 +2344,10 @@ function oppEvent(ev) {
   if (w.kind !== 'heal') o.revealT = 1.6;
   const X = (v) => clamp(num(v, 0), -10, W + 10), Y = (v) => clamp(num(v, 0), -10, H + 10);
   if (ev[1] === 'b' && w.kind === 'gun') {
-    const ang = num(ev[6], 0) / 1000;
-    spawnBullet(o, w, X(ev[4]), Y(ev[5]), ang);
+    const ang = num(ev[6], 0) / 1000, pellet = num(ev[7], 0) > 0;
+    spawnBullet(o, w, X(ev[4]), Y(ev[5]), ang, pellet);
     o.shotT = 0.06;
-    sfxAt(w.id, o.x, o.y);
+    if (!pellet) sfxAt(w.id, o.x, o.y);
   } else if (ev[1] === 'm' && w.kind === 'melee') {
     o.swingT = 0.2;
     meleeStrike(o, w, X(ev[4]), Y(ev[5]), num(ev[6], 0) / 1000);
