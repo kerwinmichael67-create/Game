@@ -1140,6 +1140,7 @@ const ctx = cv.getContext('2d');
 let cw = innerWidth, ch = innerHeight, dpr = 1;
 const CAM = { s: 1, ox: 0, oy: 0 };
 const MAP = { cv: document.createElement('canvas'), res: 0, M: 70 };
+const MAP_RES_MAX = Math.sqrt(8e6 / ((W + 2 * MAP.M) * (H + 2 * MAP.M))); // keep the yard texture near 8M pixels
 const HUDBOX = { top: 0, bottom: 0 };
 function resize() {
   cw = innerWidth; ch = innerHeight; dpr = Math.min(2, devicePixelRatio || 1);
@@ -1159,7 +1160,7 @@ function updateCamera(dt) {
   const fit = Math.min(availW / W, availH / H);
   if (!inGame()) { CAM.s = fit; CAM.ox = (cw - W * fit) / 2; CAM.oy = top + (availH - H * fit) / 2; CAMF.init = false; return; }
   // in a match: keep the zoom of a ~1600x1000 view and follow the player, looking a little toward the aim
-  const s = Math.max(fit, clamp(Math.min(availW / VIEW_W, availH / VIEW_H), 0.42, 1.3));
+  const s = Math.max(fit, clamp(Math.min(availW / VIEW_W, availH / VIEW_H), Math.min(0.42, availH / 600), 1.3));
   CAM.s = s;
   const m = G.me;
   let lx = 0, ly = 0;
@@ -1344,7 +1345,7 @@ function render(dt) {
   c.fillStyle = '#0b0e12'; c.fillRect(0, 0, cw, ch);
   if (!G) return;
   updateCamera(dt);
-  const s = CAM.s, res = Math.min(1.5, s * dpr);
+  const s = CAM.s, res = Math.min(MAP_RES_MAX, s * dpr);
   if (Math.abs(res - MAP.res) > 0.02) { MAP.res = res; buildMap(res); }
   let sx = 0, sy = 0;
   if (G.shake > 0 && !REDUCED) { sx = rand(-1, 1) * G.shake; sy = rand(-1, 1) * G.shake; }
@@ -1430,8 +1431,8 @@ function render(dt) {
     c.fillStyle = gr; c.fillRect(0, 0, cw, ch);
   }
   if (G.hurtT > 0) { c.fillStyle = `rgba(255,60,40,${G.hurtT * 0.35})`; c.fillRect(0, 0, cw, ch); }
-  drawEdgeArrow(c);
   drawMinimap(c);
+  drawEdgeArrow(c);
   if (!TOUCH.on && MOUSE.seen) drawCrosshair(c);
   if (TOUCH.on) {
     for (const st of [TOUCH.move, TOUCH.aim]) {
@@ -1442,15 +1443,22 @@ function render(dt) {
     }
   }
 }
-// the opponent shows on your minimap while you can see them or for a moment after they attack
+// the opponent shows on your minimap while they are on screen or in sight, or for a moment after they attack
 function oppSpotted() {
   const o = G.opp, m = G.me;
   if (o.hidden || !o.alive) return false;
-  return o.revealT > 0 || clearLine(m.x, m.y, o.x, o.y);
+  if (o.revealT > 0 || clearLine(m.x, m.y, o.x, o.y)) return true;
+  const sx = CAM.ox + o.x * CAM.s, sy = CAM.oy + o.y * CAM.s;
+  return sx > 0 && sx < cw && sy > HUDBOX.top && sy < ch - HUDBOX.bottom;
+}
+const TOUCH_COL = 72; // width of the touch button column on the right
+function mmRect() {
+  const playH = Math.max(60, ch - HUDBOX.top - HUDBOX.bottom);
+  const mw = Math.round(Math.min(cw < 640 ? 118 : 188, (0.36 * playH * W) / H));
+  return { mw, mh: (mw * H) / W, x: cw - mw - 16 - (TOUCH.on ? TOUCH_COL : 0), y: HUDBOX.top + 4 };
 }
 function drawMinimap(c) {
-  const mw = cw < 640 ? 118 : 188, mh = (mw * H) / W, k = mw / W;
-  const x = cw - mw - 16, y = HUDBOX.top + 4;
+  const { mw, mh, x, y } = mmRect(), k = mw / W;
   c.fillStyle = 'rgba(15,19,24,.86)'; c.fillRect(x - 5, y - 5, mw + 10, mh + 10);
   c.strokeStyle = '#2d3744'; c.lineWidth = 1; c.strokeRect(x - 4.5, y - 4.5, mw + 9, mh + 9);
   c.fillStyle = '#222a33'; c.fillRect(x, y, mw, mh);
@@ -1471,11 +1479,14 @@ function drawMinimap(c) {
 function drawEdgeArrow(c) {
   if (!oppSpotted()) return;
   const o = G.opp, sx = CAM.ox + o.x * CAM.s, sy = CAM.oy + o.y * CAM.s;
-  const pad = 26, x0 = pad, y0 = HUDBOX.top + pad, x1 = cw - pad, y1 = ch - HUDBOX.bottom - pad;
+  const pad = 26, x0 = pad, y0 = HUDBOX.top + pad, x1 = cw - pad - (TOUCH.on ? TOUCH_COL : 0), y1 = ch - HUDBOX.bottom - pad;
   if (sx > x0 - 10 && sx < x1 + 10 && sy > y0 - 10 && sy < y1 + 10) return;
   const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, dx = sx - cx, dy = sy - cy;
   const t = Math.min(Math.abs((dx > 0 ? x1 - cx : x0 - cx) / (dx || 1e-6)), Math.abs((dy > 0 ? y1 - cy : y0 - cy) / (dy || 1e-6)));
-  const ax = cx + dx * t, ay = cy + dy * t, a = Math.atan2(dy, dx);
+  let ax = cx + dx * t, ay = cy + dy * t;
+  const a = Math.atan2(dy, dx);
+  const mm = mmRect(), bl = mm.x - 5, bb = mm.y + mm.mh + 5;
+  if (ax > bl - 14 && ay < bb + 14) { if (ax >= x1 - 0.5) ay = bb + 14; else ax = bl - 14; }
   c.save(); c.translate(ax, ay); c.rotate(a);
   c.fillStyle = COL.foe; c.strokeStyle = 'rgba(0,0,0,.6)'; c.lineWidth = 2;
   c.beginPath(); c.moveTo(12, 0); c.lineTo(-8, -9); c.lineTo(-4, 0); c.lineTo(-8, 9); c.closePath(); c.stroke(); c.fill();
@@ -1999,7 +2010,8 @@ setInterval(() => { if (!$('#menu').hidden) renderChat(); }, 30000);
    network: lobby, matchmaking, match rooms (all over presence)
    ========================================================= */
 const NET = { room: null, db: null, user: null, uid: null, ready: false, connected: false, dead: false, myPeer: null, canNamed: true };
-const LP = { n: ACCT.name, st: 'menu', q: null, w: null, m: null, c: [] };
+const PROTO = 2; // bump when the map or match state changes, so tabs on different builds never pair
+const LP = { v: PROTO, n: ACCT.name, st: 'menu', q: null, w: null, m: null, c: [] };
 const MM = { state: 'idle', since: 0, timer: 0 };
 function setLobby(patch) {
   Object.assign(LP, patch);
@@ -2107,9 +2119,9 @@ function mmTick() {
   for (const p of peers) {
     if (p.sameTab) continue;
     const pr = p.presence || {};
-    if (LP.w === p.peer && typeof pr.m === 'string' && pr.m === quickCode(myPeer, p.peer)) { goQuick(pr.m); return; }
+    if (pr.v === PROTO && LP.w === p.peer && typeof pr.m === 'string' && pr.m === quickCode(myPeer, p.peer)) { goQuick(pr.m); return; }
   }
-  const list = peers.filter((p) => !p.sameTab && typeof (p.presence || {}).q === 'number').map((p) => ({ peer: p.peer, q: p.presence.q, w: p.presence.w }));
+  const list = peers.filter((p) => !p.sameTab && (p.presence || {}).v === PROTO && typeof p.presence.q === 'number').map((p) => ({ peer: p.peer, q: p.presence.q, w: p.presence.w }));
   list.push({ peer: myPeer, q: LP.q, w: LP.w, me: true });
   list.sort((a, b) => (a.q - b.q) || (a.peer < b.peer ? -1 : a.peer > b.peer ? 1 : 0));
   const i = list.findIndex((x) => x.me);
@@ -2202,7 +2214,7 @@ function sendState() {
   if (!G || G.mode !== 'online') return;
   const m = G.me;
   const g = {
-    code: G.code, n: ACCT.name, lo: m.lo.map((id) => WIDS.indexOf(id)), j: G.joinedAt, w: G.wantPeer || null, mi: G.mi, rq: G.rq,
+    v: PROTO, code: G.code, n: ACCT.name, lo: m.lo.map((id) => WIDS.indexOf(id)), j: G.joinedAt, w: G.wantPeer || null, mi: G.mi, rq: G.rq,
     x: Math.round(m.x), y: Math.round(m.y), a: Math.round(m.a * 1000), s: m.slot, hp: Math.round(m.hp * 10) / 10,
     al: m.alive ? 1 : 0, d: m.deaths, rl: m.reloading ? 1 : 0, hl: m.healT > 0 ? 1 : 0, e: G.out.slice(),
   };
@@ -2215,7 +2227,7 @@ function matchPeersChanged() {
   const add = (list, src) => {
     for (const p of list || []) {
       const g = p.presence && p.presence.g;
-      if (!g || typeof g !== 'object' || g.code !== G.code || by.has(p.peer)) continue;
+      if (!g || typeof g !== 'object' || g.v !== PROTO || g.code !== G.code || by.has(p.peer)) continue;
       by.set(p.peer, { p, g, src });
     }
   };
