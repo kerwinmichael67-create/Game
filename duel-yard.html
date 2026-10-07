@@ -333,27 +333,31 @@ const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 /* =========================================================
    arena + weapons
    ========================================================= */
-const W = 1600, H = 1000, PR = 18, MAXHP = 150, WIN_ROUNDS = 3, SPEED = 220;
+const W = 2400, H = 1500, PR = 18, MAXHP = 150, WIN_ROUNDS = 3, SPEED = 220;
+const VIEW_W = 1600, VIEW_H = 1000; // world area the follow camera aims to show
 const COL = { you: '#37c8b2', foe: '#ff5b47', paper: '#ece6d9', hazard: '#f2b31b', heal: '#7bd66f' };
-const SPAWNS = [{ x: 110, y: 500, a: 0 }, { x: W - 110, y: 500, a: Math.PI }];
+const SPAWNS = [{ x: 140, y: H / 2, a: 0 }, { x: W - 140, y: H / 2, a: Math.PI }];
 const WALLS = [];
 (() => {
+  // one half of the yard; every piece is mirrored through the centre so both spawns get the same cover
   const half = [
-    [240, 180, 170, 48], [240, 772, 170, 48], [520, 380, 48, 240], [700, 120, 200, 48],
-    [640, 250, 48, 110], [640, 640, 48, 110], [380, 470, 60, 60],
+    [300, 260, 200, 48], [300, 1192, 200, 48], [560, 600, 48, 300], [380, 720, 60, 60],
+    [760, 220, 48, 200], [760, 1080, 48, 200], [980, 140, 220, 48], [1000, 480, 48, 160],
+    [1000, 860, 48, 160], [860, 720, 60, 60], [200, 470, 60, 60], [200, 970, 60, 60], [930, 1152, 170, 48],
   ];
   const colors = ['#8b4a33', '#2e4d6e', '#41603f', '#7a6a2e', '#5b3f60', '#365a63', '#7a6448'];
   half.forEach(([x, y, w, h], i) => {
-    WALLS.push({ x, y, w, h, color: colors[i], tag: 'DYU ' + (204117 + i * 7919) });
-    WALLS.push({ x: W - x - w, y: H - y - h, w, h, color: colors[i], tag: 'DYU ' + (318041 + i * 6113) });
+    const color = colors[i % colors.length];
+    WALLS.push({ x, y, w, h, color, tag: 'DYU ' + (204117 + i * 7919) });
+    WALLS.push({ x: W - x - w, y: H - y - h, w, h, color, tag: 'DYU ' + (318041 + i * 6113) });
   });
-  WALLS.push({ x: 760, y: 450, w: 80, h: 100, color: '#6f6a62', tag: 'BAY 07', barrier: true });
+  WALLS.push({ x: W / 2 - 40, y: H / 2 - 60, w: 80, h: 120, color: '#6f6a62', tag: 'BAY 07', barrier: true });
 })();
 
 const WEAPONS = {
   ar:       { id: 'ar', slot: 0, name: 'Assault Rifle', kind: 'gun', dmg: 15, cd: 0.25, mag: 15, reload: 2.5, speed: 1200, spread: 0.035, range: 1150, len: 30, blurb: 'Steady all-rounder' },
   smg:      { id: 'smg', slot: 0, name: 'SMG', kind: 'gun', dmg: 7, cd: 0.1, mag: 25, reload: 1.5, speed: 1050, spread: 0.085, range: 760, len: 22, blurb: 'Close-range spray' },
-  sniper:   { id: 'sniper', slot: 0, name: 'Sniper', kind: 'gun', dmg: 100, cd: 1.5, mag: 5, reload: 3, speed: 2600, spread: 0.004, range: 2200, len: 42, blurb: 'Two hits drop anyone' },
+  sniper:   { id: 'sniper', slot: 0, name: 'Sniper', kind: 'gun', dmg: 100, cd: 1.5, mag: 5, reload: 3, speed: 2600, spread: 0.004, range: 2900, len: 42, blurb: 'Two hits drop anyone' },
   mg:       { id: 'mg', slot: 0, name: 'Machine Gun', kind: 'gun', dmg: 10, cd: 0.175, mag: 50, reload: 7.5, speed: 1100, spread: 0.06, range: 1100, len: 34, blurb: 'Huge mag, slow reload' },
   revolver: { id: 'revolver', slot: 1, name: 'Revolver', kind: 'gun', dmg: 35, cd: 0.6, mag: 6, reload: 0.5, perRound: true, speed: 1350, spread: 0.022, range: 950, len: 18, blurb: 'Reloads one round at a time' },
   deagle:   { id: 'deagle', slot: 1, name: 'Desert Eagle', kind: 'gun', dmg: 40, cd: 1.0, mag: 8, reload: 2.75, speed: 1450, spread: 0.018, range: 1000, len: 19, blurb: 'Heavy single shots' },
@@ -449,7 +453,7 @@ function findPath(sx, sy, tx, ty) {
   const hfn = (i) => { const dx = Math.abs((i % GW) - tgx), dy = Math.abs(((i / GW) | 0) - tgy); return dx + dy + (Math.SQRT2 - 2) * Math.min(dx, dy); };
   g[s] = 0; push(s, hfn(s));
   let found = false, iter = 0;
-  while (heap.length && iter++ < 4000) {
+  while (heap.length && iter++ < 12000) {
     const [, i] = pop();
     if (closed[i]) continue;
     closed[i] = 1;
@@ -531,7 +535,7 @@ const SND = (() => {
 function sfxAt(name, x, y) {
   if (!G || G.mode === 'demo') return;
   const d = Math.hypot(x - G.me.x, y - G.me.y);
-  SND.play(name, clamp(1.1 - d / 1700, 0.25, 1));
+  SND.play(name, clamp(1.1 - d / 2600, 0.2, 1));
 }
 
 /* =========================================================
@@ -544,7 +548,7 @@ function makeFighter(o) {
     name: o.name, color: o.color, side: o.side, lo: o.lo.slice(), auth: !!o.auth, bot: !!o.bot, remote: !!o.remote,
     x: 0, y: 0, a: 0, vx: 0, vy: 0, px: 0, py: 0, hp: MAXHP, prevHp: MAXHP, alive: true, hidden: false,
     slot: 0, ammo: [0, 0, 0, 0], uses: 0, cd: 0, switchT: 0, reloadT: 0, reloading: false, healT: 0,
-    swingT: 0, shotT: 0, flash: 0, deaths: 0, aimX: 0, aimY: 0, pend: 0, pendT: 0, brain: null,
+    swingT: 0, shotT: 0, flash: 0, revealT: 0, deaths: 0, aimX: 0, aimY: 0, pend: 0, pendT: 0, brain: null,
   };
   f.uses = WEAPONS[f.lo[3]].uses;
   resetFighter(f);
@@ -582,6 +586,7 @@ function netEvent(f, type, wid, ...args) {
 function tryAttack(f) {
   if (!G || !f.alive || f.cd > 0 || f.switchT > 0 || f.healT > 0 || G.phase !== 'play') return false;
   const w = wOf(f), wid = WIDS.indexOf(w.id);
+  if (w.kind !== 'heal') f.revealT = 1.6;
   if (w.kind === 'gun') {
     if (f.ammo[f.slot] <= 0) { startReload(f); return false; }
     if (f.reloading) { if (w.perRound) { f.reloading = false; f.reloadT = 0; } else return false; }
@@ -664,7 +669,7 @@ function die(v) {
 }
 function tickFighter(f, dt) {
   f.cd = Math.max(0, f.cd - dt); f.switchT = Math.max(0, f.switchT - dt); f.swingT = Math.max(0, f.swingT - dt);
-  f.shotT = Math.max(0, f.shotT - dt); f.flash = Math.max(0, f.flash - dt);
+  f.shotT = Math.max(0, f.shotT - dt); f.flash = Math.max(0, f.flash - dt); f.revealT = Math.max(0, f.revealT - dt);
   if (f.remote) return;
   if (f.reloading) {
     f.reloadT -= dt;
@@ -944,6 +949,7 @@ function nextRound() {
   if (a >= WIN_ROUNDS || b >= WIN_ROUNDS) { endMatch(); return; }
   for (const f of G.fighters) if (f.auth) resetFighter(f);
   clearField();
+  CAMF.init = false;
   G.phase = 'countdown'; G.phaseT = 3;
   countdownBanner();
 }
@@ -952,6 +958,7 @@ function beginInstance(mi) {
   G.me.deaths = 0; G.me.uses = WEAPONS[G.me.lo[3]].uses;
   resetFighter(G.me);
   clearField();
+  CAMF.init = false;
   G.phase = 'countdown'; G.phaseT = 3;
   closeSheet();
   countdownBanner();
@@ -1145,19 +1152,27 @@ function measureHud() {
   HUDBOX.top = t.bottom + 6; HUDBOX.bottom = ch - b.top + 6;
 }
 addEventListener('resize', resize);
-function updateCamera() {
+const CAMF = { x: W / 2, y: H / 2, init: false };
+function updateCamera(dt) {
   const top = HUDBOX.top, bottom = HUDBOX.bottom;
   const availW = cw - 16, availH = Math.max(120, ch - top - bottom);
   const fit = Math.min(availW / W, availH / H);
-  const follow = inGame() && fit < 0.42;
-  const s = follow ? Math.min(0.42, availH / 600) : fit;
+  if (!inGame()) { CAM.s = fit; CAM.ox = (cw - W * fit) / 2; CAM.oy = top + (availH - H * fit) / 2; CAMF.init = false; return; }
+  // in a match: keep the zoom of a ~1600x1000 view and follow the player, looking a little toward the aim
+  const s = Math.max(fit, clamp(Math.min(availW / VIEW_W, availH / VIEW_H), 0.42, 1.3));
   CAM.s = s;
-  if (!follow) { CAM.ox = (cw - W * s) / 2; CAM.oy = top + (availH - H * s) / 2; return; }
-  const fx = G.me.x, fy = G.me.y;
-  let ox = cw / 2 - fx * s, oy = top + availH / 2 - fy * s;
-  const M = 30;
-  if (W * s + 2 * M * s > cw) ox = clamp(ox, cw - (W + M) * s, M * s); else ox = (cw - W * s) / 2;
-  if (H * s + 2 * M * s > availH) oy = clamp(oy, top + availH - (H + M) * s, top + M * s); else oy = top + (availH - H * s) / 2;
+  const m = G.me;
+  let lx = 0, ly = 0;
+  if (TOUCH.on) { if (TOUCH.aim) { lx = Math.cos(m.a) * 140; ly = Math.sin(m.a) * 140; } }
+  else if (MOUSE.seen) { lx = clamp(((MOUSE.x - cw / 2) / s) * 0.22, -260, 260); ly = clamp(((MOUSE.y - (top + availH / 2)) / s) * 0.22, -170, 170); }
+  const tx = m.x + lx, ty = m.y + ly;
+  if (!CAMF.init) { CAMF.x = tx; CAMF.y = ty; CAMF.init = true; }
+  const k = 1 - Math.exp(-Math.min(dt || 0.016, 0.05) * 9);
+  CAMF.x += (tx - CAMF.x) * k; CAMF.y += (ty - CAMF.y) * k;
+  let ox = cw / 2 - CAMF.x * s, oy = top + availH / 2 - CAMF.y * s;
+  const M = 40;
+  if ((W + 2 * M) * s > cw) ox = clamp(ox, cw - (W + M) * s, M * s); else ox = (cw - W * s) / 2;
+  if ((H + 2 * M) * s > availH) oy = clamp(oy, top + availH - (H + M) * s, top + M * s); else oy = top + (availH - H * s) / 2;
   CAM.ox = ox; CAM.oy = oy;
 }
 function mulberry(seed) { return () => { seed |= 0; seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
@@ -1178,17 +1193,17 @@ function buildMap(res) {
   c.fillStyle = '#0c0f13'; c.fillRect(-M, -M, W + 2 * M, H + 2 * M);
   c.fillStyle = '#1b2129'; c.fillRect(0, 0, W, H);
   const r = mulberry(7);
-  for (let i = 0; i < 2600; i++) { c.fillStyle = r() < 0.5 ? 'rgba(255,255,255,.035)' : 'rgba(0,0,0,.18)'; c.fillRect(r() * W, r() * H, 1 + r() * 2.5, 1 + r() * 2.5); }
-  for (let i = 0; i < 26; i++) { c.fillStyle = 'rgba(0,0,0,.12)'; c.beginPath(); c.ellipse(r() * W, r() * H, 20 + r() * 60, 12 + r() * 30, r() * 3, 0, TAU); c.fill(); }
+  for (let i = 0; i < 5800; i++) { c.fillStyle = r() < 0.5 ? 'rgba(255,255,255,.035)' : 'rgba(0,0,0,.18)'; c.fillRect(r() * W, r() * H, 1 + r() * 2.5, 1 + r() * 2.5); }
+  for (let i = 0; i < 58; i++) { c.fillStyle = 'rgba(0,0,0,.12)'; c.beginPath(); c.ellipse(r() * W, r() * H, 20 + r() * 60, 12 + r() * 30, r() * 3, 0, TAU); c.fill(); }
   c.strokeStyle = 'rgba(0,0,0,.28)'; c.lineWidth = 2;
   for (let x = 200; x < W; x += 200) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, H); c.stroke(); }
   for (let y = 250; y < H; y += 250) { c.beginPath(); c.moveTo(0, y); c.lineTo(W, y); c.stroke(); }
   c.strokeStyle = 'rgba(236,230,217,.16)'; c.lineWidth = 5;
   c.setLineDash([26, 22]); c.beginPath(); c.moveTo(W / 2, 20); c.lineTo(W / 2, H - 20); c.stroke(); c.setLineDash([]);
-  c.beginPath(); c.arc(W / 2, H / 2, 130, 0, TAU); c.stroke();
+  c.beginPath(); c.arc(W / 2, H / 2, 170, 0, TAU); c.stroke();
   c.strokeStyle = 'rgba(236,230,217,.1)'; c.lineWidth = 4;
   c.strokeRect(30, 30, W - 60, H - 60);
-  const pads = [[40, 410], [W - 40 - 150, 410]];
+  const pads = [[SPAWNS[0].x - 100, H / 2 - 90], [SPAWNS[1].x - 50, H / 2 - 90]];
   pads.forEach(([x, y], i) => {
     c.save(); c.globalAlpha = 0.35; hazardBand(c, x, y, 150, 14); hazardBand(c, x, y + 166, 150, 14); c.restore();
     c.strokeStyle = 'rgba(242,179,27,.4)'; c.lineWidth = 3; c.strokeRect(x, y, 150, 180);
@@ -1196,8 +1211,8 @@ function buildMap(res) {
     c.fillText(i ? 'B' : 'A', x + 75, y + 92);
   });
   c.fillStyle = 'rgba(236,230,217,.08)'; c.font = '900 46px "Big Shoulders Stencil Display", Impact, sans-serif'; c.textAlign = 'center';
-  c.fillText('DUEL YARD', W / 2, 700);
-  c.font = '700 22px "JetBrains Mono", monospace'; c.fillText('BAY 07 · 1V1', W / 2, 300);
+  c.fillText('DUEL YARD', W / 2, H / 2 + 250);
+  c.font = '700 22px "JetBrains Mono", monospace'; c.fillText('BAY 07 · 1V1', W / 2, H / 2 - 250);
   hazardBand(c, 0, 0, W, 14); hazardBand(c, 0, H - 14, W, 14); hazardBand(c, 0, 0, 14, H); hazardBand(c, W - 14, 0, 14, H);
   c.strokeStyle = '#38424e'; c.lineWidth = 10; c.strokeRect(-5, -5, W + 10, H + 10);
   for (const wl of WALLS) { c.fillStyle = 'rgba(0,0,0,.38)'; c.fillRect(wl.x + 6, wl.y + 8, wl.w, wl.h); }
@@ -1323,13 +1338,13 @@ function drawTag(c, f, isMe) {
     c.fillStyle = COL.paper; c.fillText(f.name, f.x, y - 3 * k);
   }
 }
-function render() {
+function render(dt) {
   const c = ctx;
   c.setTransform(dpr, 0, 0, dpr, 0, 0);
   c.fillStyle = '#0b0e12'; c.fillRect(0, 0, cw, ch);
   if (!G) return;
-  updateCamera();
-  const s = CAM.s, res = Math.min(2, s * dpr);
+  updateCamera(dt);
+  const s = CAM.s, res = Math.min(1.5, s * dpr);
   if (Math.abs(res - MAP.res) > 0.02) { MAP.res = res; buildMap(res); }
   let sx = 0, sy = 0;
   if (G.shake > 0 && !REDUCED) { sx = rand(-1, 1) * G.shake; sy = rand(-1, 1) * G.shake; }
@@ -1384,7 +1399,7 @@ function render() {
   if (inGame() && G.me.alive) {
     const w = wOf(G.me);
     if (w.id === 'sniper' && G.me.switchT <= 0) {
-      const ex = G.me.x + Math.cos(G.me.a) * 2400, ey = G.me.y + Math.sin(G.me.a) * 2400;
+      const ex = G.me.x + Math.cos(G.me.a) * 3200, ey = G.me.y + Math.sin(G.me.a) * 3200;
       const t = Math.min(1, segWalls(G.me.x, G.me.y, ex, ey));
       c.strokeStyle = 'rgba(255,91,71,.35)'; c.lineWidth = 1.2 / s;
       c.beginPath(); c.moveTo(G.me.x, G.me.y); c.lineTo(lerp(G.me.x, ex, t), lerp(G.me.y, ey, t)); c.stroke();
@@ -1415,6 +1430,8 @@ function render() {
     c.fillStyle = gr; c.fillRect(0, 0, cw, ch);
   }
   if (G.hurtT > 0) { c.fillStyle = `rgba(255,60,40,${G.hurtT * 0.35})`; c.fillRect(0, 0, cw, ch); }
+  drawEdgeArrow(c);
+  drawMinimap(c);
   if (!TOUCH.on && MOUSE.seen) drawCrosshair(c);
   if (TOUCH.on) {
     for (const st of [TOUCH.move, TOUCH.aim]) {
@@ -1424,6 +1441,45 @@ function render() {
       c.fillStyle = 'rgba(236,230,217,.35)'; c.beginPath(); c.arc(st.ox + dx * k, st.oy + dy * k, 22, 0, TAU); c.fill();
     }
   }
+}
+// the opponent shows on your minimap while you can see them or for a moment after they attack
+function oppSpotted() {
+  const o = G.opp, m = G.me;
+  if (o.hidden || !o.alive) return false;
+  return o.revealT > 0 || clearLine(m.x, m.y, o.x, o.y);
+}
+function drawMinimap(c) {
+  const mw = cw < 640 ? 118 : 188, mh = (mw * H) / W, k = mw / W;
+  const x = cw - mw - 16, y = HUDBOX.top + 4;
+  c.fillStyle = 'rgba(15,19,24,.86)'; c.fillRect(x - 5, y - 5, mw + 10, mh + 10);
+  c.strokeStyle = '#2d3744'; c.lineWidth = 1; c.strokeRect(x - 4.5, y - 4.5, mw + 9, mh + 9);
+  c.fillStyle = '#222a33'; c.fillRect(x, y, mw, mh);
+  c.fillStyle = '#56606d';
+  for (const r of WALLS) c.fillRect(x + r.x * k, y + r.y * k, Math.max(1.5, r.w * k), Math.max(1.5, r.h * k));
+  for (const fi of G.fires) { c.fillStyle = 'rgba(255,120,50,.55)'; c.beginPath(); c.arc(x + fi.x * k, y + fi.y * k, Math.max(2, fi.r * k), 0, TAU); c.fill(); }
+  const vx0 = clamp(-CAM.ox / CAM.s, 0, W), vy0 = clamp((HUDBOX.top - CAM.oy) / CAM.s, 0, H);
+  const vx1 = clamp((cw - CAM.ox) / CAM.s, 0, W), vy1 = clamp((ch - HUDBOX.bottom - CAM.oy) / CAM.s, 0, H);
+  c.strokeStyle = 'rgba(236,230,217,.4)'; c.strokeRect(x + vx0 * k + 0.5, y + vy0 * k + 0.5, Math.max(1, (vx1 - vx0) * k - 1), Math.max(1, (vy1 - vy0) * k - 1));
+  const dot = (f, col) => {
+    const px = x + f.x * k, py = y + f.y * k;
+    c.fillStyle = col; c.beginPath(); c.arc(px, py, 3.6, 0, TAU); c.fill();
+    c.strokeStyle = col; c.lineWidth = 1.5; c.beginPath(); c.moveTo(px, py); c.lineTo(px + Math.cos(f.a) * 8, py + Math.sin(f.a) * 8); c.stroke();
+  };
+  if (oppSpotted()) dot(G.opp, COL.foe);
+  if (G.me.alive) dot(G.me, COL.you);
+}
+function drawEdgeArrow(c) {
+  if (!oppSpotted()) return;
+  const o = G.opp, sx = CAM.ox + o.x * CAM.s, sy = CAM.oy + o.y * CAM.s;
+  const pad = 26, x0 = pad, y0 = HUDBOX.top + pad, x1 = cw - pad, y1 = ch - HUDBOX.bottom - pad;
+  if (sx > x0 - 10 && sx < x1 + 10 && sy > y0 - 10 && sy < y1 + 10) return;
+  const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, dx = sx - cx, dy = sy - cy;
+  const t = Math.min(Math.abs((dx > 0 ? x1 - cx : x0 - cx) / (dx || 1e-6)), Math.abs((dy > 0 ? y1 - cy : y0 - cy) / (dy || 1e-6)));
+  const ax = cx + dx * t, ay = cy + dy * t, a = Math.atan2(dy, dx);
+  c.save(); c.translate(ax, ay); c.rotate(a);
+  c.fillStyle = COL.foe; c.strokeStyle = 'rgba(0,0,0,.6)'; c.lineWidth = 2;
+  c.beginPath(); c.moveTo(12, 0); c.lineTo(-8, -9); c.lineTo(-4, 0); c.lineTo(-8, 9); c.closePath(); c.stroke(); c.fill();
+  c.restore();
 }
 function drawCrosshair(c) {
   const m = G.me, w = wOf(m), x = MOUSE.x, y = MOUSE.y;
@@ -1573,6 +1629,7 @@ function enterGameUI() {
   $('#hud').hidden = false;
   document.body.classList.add('ingame');
   buildHudSlots();
+  CAMF.init = false;
   const chip = $('#codeChip');
   chip.hidden = !(G && G.display);
   chip.textContent = G && G.display ? 'Code ' + G.display : '';
@@ -2265,6 +2322,7 @@ function oppEvent(ev) {
   if (ev[2] !== roundTag() || G.phase !== 'play') return;
   const o = G.opp, w = WEAPONS[WIDS[num(ev[3], -1) | 0]];
   if (!w || !o.lo.includes(w.id)) return;
+  if (w.kind !== 'heal') o.revealT = 1.6;
   const X = (v) => clamp(num(v, 0), -10, W + 10), Y = (v) => clamp(num(v, 0), -10, H + 10);
   if (ev[1] === 'b' && w.kind === 'gun') {
     const ang = num(ev[6], 0) / 1000;
@@ -2331,7 +2389,7 @@ function frame(t) {
   if (dt > 0.05) dt = 0.05;
   try {
     if (G) step(dt);
-    render();
+    render(dt);
     updateHud();
   } catch (err) {
     console.error(err);
