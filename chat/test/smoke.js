@@ -383,6 +383,47 @@ async function e2e(port) {
   assert.strictEqual((await up(helloA.token, 'big.bin', 'application/octet-stream', Buffer.alloc(10 * 1024 * 1024 + 1))).status, 413);
   assert.strictEqual((await fetch(base + '/files/../../server.js')).status, 404);
 
+  // Draw Phone servers: make, join, write, draw, describe, albums, play again, leave
+  a.send({ t: 'partyCreate', game: 'phone', name: 'Doodles', max: 4, drawTime: 60 });
+  const pa = await a.wait(is('party', (m) => m.party && m.party.name === 'Doodles'));
+  const pid = pa.party.id;
+  await b.wait(is('parties', (m) => m.list.some((p) => p.id === pid)));
+  b.send({ t: 'partyJoin', id: pid });
+  await a.wait(is('party', (m) => m.party && m.party.players.length === 2));
+  b.send({ t: 'partyStart' }); // only the host can start
+  a.send({ t: 'partyStart' });
+  const w0 = await b.wait(is('party', (m) => m.party && m.party.state === 'playing' && m.party.round === 0));
+  assert.strictEqual(w0.party.kind, 'write');
+  assert.strictEqual(w0.party.steps, 3);
+  a.send({ t: 'partySubmit', round: 0, text: 'a cat' });
+  b.send({ t: 'partySubmit', round: 0, text: 'a dog' });
+  const d1 = await a.wait(is('party', (m) => m.party && m.party.round === 1));
+  assert.strictEqual(d1.party.kind, 'draw');
+  assert.strictEqual(d1.party.task.prompt, 'a dog');
+  a.send({ t: 'partySubmit', round: 1, image: meta }); // Bob's own upload
+  b.send({ t: 'partySubmit', round: 1, image: meta }); // not Jerry's: counts as no drawing
+  const g2 = await b.wait(is('party', (m) => m.party && m.party.round === 2));
+  assert.strictEqual(g2.party.kind, 'describe');
+  assert.strictEqual(g2.party.task.image, meta.url); // Jerry describes Bob's drawing of "a dog"
+  a.send({ t: 'partySubmit', round: 2, text: 'cat?' });
+  b.send({ t: 'partySubmit', round: 2, text: 'a puppy' });
+  const rvl = await a.wait(is('party', (m) => m.party && m.party.state === 'reveal'));
+  const dogChain = rvl.party.chains.find((c) => c[0].text === 'a dog');
+  assert.deepStrictEqual(dogChain.map((e) => [e.kind, e.text || e.image]), [['write', 'a dog'], ['draw', meta.url], ['describe', 'a puppy']]);
+  assert(rvl.party.chains.find((c) => c[0].text === 'a cat')[1].missing);
+  b.send({ t: 'partyNext' }); // not the host: ignored
+  a.send({ t: 'partyNext' });
+  await b.wait(is('party', (m) => m.party && m.party.state === 'reveal' && m.party.reveal.step === 1));
+  a.send({ t: 'partyNext', all: true });
+  await b.wait(is('party', (m) => m.party && m.party.state === 'done'));
+  a.send({ t: 'partyAgain' });
+  await b.wait(is('party', (m) => m.party && m.party.state === 'lobby' && m.party.round === 0 && !m.party.chains));
+  a.send({ t: 'partyLeave' });
+  const hostMoved = await b.wait(is('party', (m) => m.party && m.party.players.length === 1));
+  assert.strictEqual(hostMoved.party.host, 'Jerry');
+  b.send({ t: 'partyLeave' });
+  await a.wait(is('parties', (m) => !m.list.some((p) => p.id === pid)));
+
   // profile photo: only your own image upload
   b.send({ t: 'profile', data: { photo: meta } }); // Bob's upload
   await b.wait(is('me'));

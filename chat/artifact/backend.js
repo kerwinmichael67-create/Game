@@ -282,6 +282,7 @@
       const me = privateUser();
       sentMe = JSON.stringify(me);
       emit({ t: 'hello', me, users, rooms: roomIds.map(roomView), games: GAMES });
+      setTimeout(pushParties);
     }
 
     function dbError(e) {
@@ -304,6 +305,7 @@
     }
     function onLobby(change) {
       lobbyPeers = change.peers;
+      lobbySeen = true;
       for (const p of change.peers) {
         if (p.isMe) continue;
         const pr = p.presence || {}, from = pidOf(p);
@@ -328,6 +330,8 @@
         }
       }
       pushUsers();
+      pushParties();
+      hostDuties();
     }
     function clearInvite() {
       myInvite = null;
@@ -509,6 +513,186 @@
       setTimeout(() => { if (g.named) g.named.leave().catch(() => {}); }, 4000);
     }
 
+    // ------------------------------------------------------------ party games: Draw Phone servers
+    // A server is a doc in `parties` (members merge in as { uid: joinedAt }, so joins never clash);
+    // each answer is its own doc under parties/<id>/subs. Whoever hosts runs the clock from their browser.
+    const PHONE_SECS = { write: 45, describe: 45 };
+    const partyDocs = {}; // id -> doc
+    let myParty = null, subsUnsub = null, subsOf = null, subs = [], hostBusy = '', bootAt = Date.now(), lobbySeen = false;
+    const phoneKind = (r) => (r === 0 ? 'write' : r % 2 ? 'draw' : 'describe');
+    const chainOf = (i, r, n) => (((i - r) % n) + n) % n;
+    const inPartyOf = (id) => lobbyPeers.filter((pr) => pr.presence && pr.presence.inParty === id).map(pidOf);
+    // members still here: joined, not left, and (for others) showing this server in their lobby presence
+    function present(p, id) {
+      const here = new Set(inPartyOf(id));
+      return Object.entries(p.members || {}).filter(([u, at]) => at && (u === myId ? myParty === id : here.has(u))).sort((a, b) => a[1] - b[1]).map(([u]) => u);
+    }
+    const hostOf = (p, id) => { const ps = present(p, id); return ps.includes(p.host) ? p.host : ps[0] || null; };
+    function partySummary(id) {
+      const p = partyDocs[id];
+      return { id, game: p.game, name: str(p.name, 30) || 'Server', host: hostOf(p, id), players: present(p, id), max: p.max, state: p.state };
+    }
+    function chains(p) {
+      const n = (p.order || []).length, out = Array.from({ length: n }, () => []);
+      for (let r = 0; r < p.steps; r++) {
+        p.order.forEach((u, i) => {
+          const sub = subs.find((x) => x.gen === p.gen && x.round === r && x.uid === u);
+          out[chainOf(i, r, n)][r] = sub ? { by: u, kind: phoneKind(r), text: str(sub.text, 120), image: sub.asset && ASSET_ID.test(sub.asset) ? '/_blob/' + sub.asset : null, missing: phoneKind(r) === 'draw' ? !sub.asset : !str(sub.text, 120) }
+            : { by: u, kind: phoneKind(r), text: '', image: null, missing: true };
+        });
+      }
+      return out;
+    }
+    const subFor = (p, u, r) => subs.find((x) => x.gen === p.gen && x.round === r && x.uid === u);
+    function partyView(id) {
+      const p = partyDocs[id], v = Object.assign(partySummary(id), { drawTime: p.drawTime, round: p.round, steps: p.steps, roundEnds: p.roundEnds, serverNow: Date.now(), reveal: p.reveal || null, order: p.order || [] });
+      if (p.state === 'playing') {
+        const n = p.order.length, i = p.order.indexOf(myId);
+        v.kind = phoneKind(p.round);
+        v.done = p.order.filter((u) => subFor(p, u, p.round));
+        if (i >= 0) {
+          v.mineDone = !!subFor(p, myId, p.round);
+          if (p.round > 0) {
+            // what I was handed: the previous step of the paper I'm holding
+            const c = chainOf(i, p.round, n), from = p.order.find((u, j) => chainOf(j, p.round - 1, n) === c), prev = from && subFor(p, from, p.round - 1);
+            v.task = phoneKind(p.round - 1) === 'draw' ? { image: prev && prev.asset ? '/_blob/' + prev.asset : null, by: from } : { prompt: prev ? str(prev.text, 120) : '', by: from };
+          }
+        }
+      }
+      if (p.state === 'reveal' || p.state === 'done') v.chains = chains(p);
+      return v;
+    }
+    let sentParties = '', sentParty = '';
+    function pushParties() {
+      if (!ready) return;
+      const list = Object.keys(partyDocs).map(partySummary).filter((x) => x.players.length);
+      const j = JSON.stringify(list);
+      if (j !== sentParties) { sentParties = j; emit({ t: 'parties', list }); }
+      const view = myParty && partyDocs[myParty] ? partyView(myParty) : null;
+      const k = JSON.stringify(view && Object.assign({}, view, { serverNow: 0 }));
+      if (k !== sentParty) { sentParty = k; emit({ t: 'party', party: view }); }
+    }
+    function onParties(snap) {
+      for (const k of Object.keys(partyDocs)) delete partyDocs[k];
+      for (const d of snap.docs) partyDocs[d.id] = d.data();
+      // came back after a reload while still seated somewhere: take the seat again
+      if (!myParty && !signedOut) {
+        const mine = Object.entries(partyDocs).filter(([, p]) => p.members && p.members[myId]).sort((a, b) => b[1].members[myId] - a[1].members[myId])[0];
+        if (mine && Date.now() - mine[1].members[myId] < 6 * 3600e3) enterParty(mine[0]);
+      }
+      if (myParty && !partyDocs[myParty]) leaveLocal();
+      pushParties();
+    }
+    function enterParty(id) {
+      myParty = id;
+      setPresence({ inParty: id });
+      if (subsOf !== id) {
+        if (subsUnsub) subsUnsub();
+        subs = []; subsOf = id;
+        subsUnsub = db.collection(`parties/${id}/subs`).onSnapshot((snap) => { subs = snap.docs.map((d) => d.data()); pushParties(); hostDuties(); }, dbError);
+      }
+    }
+    function leaveLocal() {
+      myParty = null;
+      setPresence({ inParty: null });
+      if (subsUnsub) subsUnsub();
+      subsUnsub = null; subsOf = null; subs = [];
+      pushParties();
+    }
+    const partyDoc = (id) => db.doc('parties/' + id);
+    // the host's browser moves the game along
+    function hostDuties() {
+      const id = myParty, p = id && partyDocs[id];
+      if (!p || hostOf(p, id) !== myId || readOnly) return;
+      if (p.host !== myId) partyDoc(id).update({ host: myId }).catch(() => {});
+      if (p.state !== 'playing') return;
+      const key = p.gen + ':' + p.round;
+      if (hostBusy === key) return;
+      const here = present(p, id);
+      const waiting = p.order.some((u) => here.includes(u) && !subFor(p, u, p.round));
+      if (waiting && Date.now() < p.roundEnds + 4000) return;
+      hostBusy = key;
+      const r = p.round + 1;
+      const next = r >= p.steps ? { state: 'reveal', reveal: { chain: 0, step: 0 } }
+        : { round: r, roundEnds: Date.now() + (phoneKind(r) === 'draw' ? p.drawTime : PHONE_SECS[phoneKind(r)]) * 1000 };
+      partyDoc(id).update(next).catch(writeError);
+    }
+    setInterval(() => {
+      hostDuties();
+      if (!ready || !lobbySeen || Date.now() - bootAt < 20000) return;
+      // tidy up servers everyone has left
+      for (const [id, p] of Object.entries(partyDocs)) {
+        if (!present(p, id).length && Date.now() - (p.created || 0) > 10 * 60e3) partyDoc(id).delete().catch(() => {});
+      }
+    }, 1000);
+    const partyHandlers = {
+      partyCreate(m) {
+        if (readOnly) return writeError({ code: 'invalid_argument' });
+        if (myParty) partyHandlers.partyLeave();
+        const id = rid(10);
+        partyDoc(id).set({
+          game: 'phone', name: str(m.name, 30) || `${displayName(myId)}’s server`, host: myId, members: { [myId]: Date.now() },
+          max: Math.max(2, Math.min(12, m.max | 0 || 8)), drawTime: [60, 90, 120, 180].includes(m.drawTime) ? m.drawTime : 90,
+          state: 'lobby', round: 0, steps: 0, order: [], roundEnds: 0, reveal: null, gen: 0, created: Date.now(),
+        }).catch(writeError);
+        enterParty(id);
+      },
+      partyJoin(m) {
+        const p = partyDocs[m.id];
+        if (!p) return emit({ t: 'error', text: 'That server has closed' });
+        if (myParty === m.id) return pushParties();
+        if (p.state !== 'lobby') return emit({ t: 'error', text: 'That game has already started. Wait for the next one.' });
+        if (present(p, m.id).length >= p.max) return emit({ t: 'error', text: 'That server is full' });
+        if (readOnly) return writeError({ code: 'invalid_argument' });
+        if (myParty) partyHandlers.partyLeave();
+        partyDoc(m.id).update({ members: { [myId]: Date.now() } }).catch(writeError);
+        enterParty(m.id);
+      },
+      partyLeave() {
+        const id = myParty, p = id && partyDocs[id];
+        if (!id) return;
+        leaveLocal();
+        if (!p || readOnly) return;
+        const others = present(p, id).filter((u) => u !== myId);
+        if (!others.length) partyDoc(id).delete().catch(() => {});
+        else partyDoc(id).update(Object.assign({ members: { [myId]: null } }, p.host === myId ? { host: others[0] } : {})).catch(() => {});
+      },
+      partyStart() {
+        const id = myParty, p = id && partyDocs[id];
+        if (!p || hostOf(p, id) !== myId || p.state !== 'lobby') return;
+        const order = present(p, id).sort(() => Math.random() - 0.5);
+        if (order.length < 2) return emit({ t: 'error', text: 'You need at least 2 players' });
+        // clear out answers from earlier games on this server
+        for (const sub of subs) if (sub.gen <= (p.gen || 0)) db.doc(`parties/${id}/subs/${sub.gen}_${sub.round}_${sub.uid}`).delete().catch(() => {});
+        partyDoc(id).update({ state: 'playing', order, steps: order.length === 2 ? 3 : order.length, gen: (p.gen || 0) + 1, round: 0, roundEnds: Date.now() + PHONE_SECS.write * 1000, reveal: null, host: myId }).catch(writeError);
+      },
+      partySubmit(m) {
+        const id = myParty, p = id && partyDocs[id];
+        if (!p || p.state !== 'playing' || m.round !== p.round || !p.order.includes(myId) || subFor(p, myId, p.round)) return;
+        const doc = { gen: p.gen, round: p.round, uid: myId, text: '', asset: null };
+        if (phoneKind(p.round) === 'draw') { if (m.image && typeof m.image.ref === 'string' && ASSET_ID.test(m.image.ref)) doc.asset = m.image.ref; }
+        else doc.text = str(m.text, 120);
+        subs = subs.concat(doc); // show it as done right away
+        pushParties();
+        db.doc(`parties/${id}/subs/${p.gen}_${p.round}_${myId}`).set(doc).catch(writeError);
+      },
+      partyNext(m) {
+        const id = myParty, p = id && partyDocs[id];
+        if (!p || hostOf(p, id) !== myId || p.state !== 'reveal') return;
+        if (m.all) return partyDoc(id).update({ state: 'done' }).catch(writeError);
+        const r = Object.assign({ chain: 0, step: 0 }, p.reveal);
+        if (r.step + 1 < p.steps) r.step++;
+        else if (r.chain + 1 < p.order.length) { r.chain++; r.step = 0; }
+        else return partyDoc(id).update({ state: 'done' }).catch(writeError);
+        partyDoc(id).update({ reveal: r }).catch(writeError);
+      },
+      partyAgain() {
+        const id = myParty, p = id && partyDocs[id];
+        if (!p || hostOf(p, id) !== myId || (p.state !== 'done' && p.state !== 'reveal')) return;
+        partyDoc(id).update({ state: 'lobby', order: [], round: 0, steps: 0, reveal: null }).catch(writeError);
+      },
+    };
+
     // ------------------------------------------------------------ requests from the UI
     function busyReason(id) {
       if (presenceOf(id) === 'offline') return `${displayName(id)} is offline`;
@@ -517,6 +701,7 @@
       return null;
     }
     const handlers = {
+      ...partyHandlers,
       msg(m) {
         const text = str(m.text, 1000), r = m.room === 'global' ? GLOBAL : rooms[m.room];
         const f = m.file && typeof m.file.ref === 'string' && ASSET_ID.test(m.file.ref)
@@ -579,6 +764,7 @@
         db.doc(`rooms/${m.room}/msgs/${d.id}`).set({ from: d.from, ts: d.ts, deleted: true, text: '' }).catch(writeError);
       },
       logout() {
+        if (myParty) partyHandlers.partyLeave();
         if (game && !game.over) handlers.gameLeave({ id: game.id });
         if (myInvite) clearInvite();
         signedOut = true;
@@ -695,6 +881,7 @@
       setPresence({ uid: myId, status: signedOut ? 'offline' : 'online', inGame: null, invite: null, reply: null });
       db.collection('profiles').onSnapshot(onProfiles, dbError);
       db.collection('rooms').onSnapshot(onRooms, dbError);
+      db.collection('parties').onSnapshot(onParties, dbError);
       subscribeMsgs('global');
       if (room) room.onPeers(onLobby, () => { lobbyPeers = []; pushUsers(); });
       setInterval(() => {

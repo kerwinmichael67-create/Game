@@ -169,9 +169,9 @@
         renderTyping();
         if (below && fromOther) { S.newBelow = (S.newBelow || 0) + 1; updateJump(); }
       }
-      // You hear about it when you're on another tab or in another chat. An @mention always
-      // pings (even in a muted chat); a direct message pings unless that chat is muted.
-      const away = m.room !== S.current || document.hidden;
+      // You hear about it when you're on another tab, in another app, or in another chat. An
+      // @mention always pings (even in a muted chat); a direct message pings unless it's muted.
+      const away = m.room !== S.current || notLooking();
       if (away && fromOther && !isBlocked(m.msg.from)) {
         S.unread[m.room] = (S.unread[m.room] || 0) + 1;
         const mentioned = mentionsMe(m.msg.text);
@@ -190,6 +190,13 @@
       const room = S.rooms[m.room];
       const i = room ? room.messages.findIndex((x) => x.id === m.msg.id) : -1;
       if (i < 0) return;
+      // someone edited a message to @mention you: that counts as a mention
+      const before = room.messages[i];
+      if (m.msg.from && m.msg.from !== S.me.username && !isBlocked(m.msg.from) && mentionsMe(m.msg.text) && !mentionsMe(before.text) && (m.room !== S.current || notLooking())) {
+        S.mentions[m.room] = true;
+        ping();
+        renderRooms();
+      }
       room.messages[i] = m.msg;
       if (m.msg.deleted && ((editing && editing.id === m.msg.id) || (replyTo && replyTo.id === m.msg.id))) cancelCompose();
       else if (editing && editing.id === m.msg.id) editing = m.msg;
@@ -219,6 +226,8 @@
       showInvite(m.invite);
     },
     gameStart(m) { closeModal(); GameDock.start(m); renderPeople(); },
+    parties(m) { PartyUI.list(m.list); renderPeople(); updateGamesBtn(); },
+    party(m) { if (m.party && !$('#modal').classList.contains('hidden') && PartyUI.isOpen()) closeModal(); PartyUI.state(m.party); },
     gameState(m) { GameDock.state(m); },
     gameEvent(m) { GameDock.event(m); },
     gameOver(m) { GameDock.over(m); },
@@ -283,6 +292,8 @@
   }
   function signOut() {
     if (CALLS) Calls.hangUp();
+    send({ t: 'partyLeave' });
+    PartyUI.state(null);
     if (ARTIFACT) {
       send({ t: 'logout' });
       store.set('chatSignedIn:' + S.me.username, null);
@@ -397,6 +408,19 @@
   }
   // Notification sounds, made on the fly: [frequency, start, length, wave, loudness]
   let actx = null;
+  // Browsers only let a page make sound after you've clicked or typed on it, so get the sound
+  // ready on your first click or key press; otherwise the first pings would be silent.
+  function unlockAudio() {
+    try {
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      if (actx.state === 'suspended') actx.resume().catch(() => {});
+      if (actx.state === 'running') { removeEventListener('pointerdown', unlockAudio, true); removeEventListener('keydown', unlockAudio, true); }
+    } catch { /* no audio here */ }
+  }
+  addEventListener('pointerdown', unlockAudio, true);
+  addEventListener('keydown', unlockAudio, true);
+  // not looking at the chat: another tab, a minimized window, or another app in front
+  const notLooking = () => document.hidden || !document.hasFocus() || !!document.querySelector('#partyView:not(.hidden), #gameDock.full:not(.hidden):not(.min)');
   const SOUNDS = {
     ding: { label: 'Ding', notes: [[1318.5, 0, 0.9, 'sine', 1], [2637, 0, 0.45, 'sine', 0.35]] },
     chime: { label: 'Chime', notes: [[880, 0, 0.5, 'sine', 0.9], [1318.5, 0.13, 0.7, 'sine', 0.9]] },
@@ -475,9 +499,11 @@
     const n = Object.entries(S.unread).reduce((a, [id, c]) => a + (isMuted(id) && !S.mentions[id] ? 0 : c), 0);
     document.title = (n ? `(${n}) ` : '') + 'Game Chat';
   }
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden && S.unread[S.current]) { delete S.unread[S.current]; delete S.mentions[S.current]; renderRooms(); updateTitle(); }
-  });
+  const backToChat = () => {
+    if (S.me && !notLooking() && S.unread[S.current]) { delete S.unread[S.current]; delete S.mentions[S.current]; renderRooms(); updateTitle(); }
+  };
+  document.addEventListener('visibilitychange', backToChat);
+  window.addEventListener('focus', backToChat);
 
   function systemDark() {
     const t = document.documentElement.dataset.theme;
@@ -527,7 +553,7 @@
     const x = userOf(u);
     return h('li', { onclick: () => showProfile(u) }, avatar(u),
       h('span', { class: 'grow' }, x.name, u === S.me.username ? h('small', {}, ' (you)') : null, ' ',
-        x.inGame ? h('small', {}, `🎮 ${gameName(x.inGame)}`) : h('small', { title: x.custom || '' }, x.custom || PRESENCE_LABEL[x.presence]),
+        x.inGame ? h('small', {}, `🎮 ${gameName(x.inGame)}`) : PartyUI.where(u) ? h('small', {}, `🎨 ${PartyUI.where(u)}`) : h('small', { title: x.custom || '' }, x.custom || PRESENCE_LABEL[x.presence]),
         isBlocked(u) ? h('small', { class: 'blocked-tag' }, ' blocked') : null));
   }
   function renderPeople() {
@@ -1195,6 +1221,7 @@
   // ---------------------------------------------------------------- modals
   let modalRefresh = null;
   function openModal(build, wide) {
+    if (!build.party) PartyUI.closed();
     const card = $('#modalCard');
     card.className = 'modal-card' + (wide ? ' wide' : '');
     card.replaceChildren(...[].concat(build()));
@@ -1209,6 +1236,7 @@
   }
   window.uiConfirm = uiConfirm;
   function closeModal() {
+    PartyUI.closed();
     $('#modal').classList.add('hidden');
     $('#modalCard').replaceChildren();
     modalRefresh = null;
@@ -1556,6 +1584,17 @@
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k' && S.me && !$('#app').classList.contains('hidden')) { e.preventDefault(); searchModal(); }
   });
   $('#requestGameBtn').addEventListener('click', () => gameModal());
+  $('#gamesBtn').addEventListener('click', () => PartyUI.openGames());
+  function updateGamesBtn() {
+    const n = PartyUI.openCount();
+    $('#gamesBtn').replaceChildren('🕹️ Games', n ? h('span', { class: 'badge games-badge', title: `${n} server${n === 1 ? '' : 's'} open` }, n) : '');
+  }
+  PartyUI.init({
+    send, toast, avatar, nameOf, uploadFile, closeModal, modalHead, confirm: uiConfirm, me: () => S.me,
+    openModal: (build, wide) => { const b = () => build(); b.party = true; b.refresh = () => $('#modalCard').replaceChildren(...[].concat(build())); openModal(b, wide); },
+    refreshModal: () => { if (PartyUI.isOpen()) refreshOpenModal(); },
+    shareInvite: (text) => { const r = S.rooms[S.current]; send({ t: 'msg', room: S.current, text }); toast(`Invite posted in ${r ? roomLabel(r) : 'the chat'}`); },
+  });
   $('#onlineBtn').addEventListener('click', () => openModal(() => [modalHead(`${onlineUsers().length} Online`),
     h('ul', { class: 'list' }, onlineUsers().map((u) => personRow(u.username)))]));
   $('#menuBtn').addEventListener('click', () => $('#app').classList.toggle('menu-open'));

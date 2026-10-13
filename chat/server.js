@@ -240,6 +240,71 @@ function rateOk(u) {
   return list.length <= 8;
 }
 
+// ---------------------------------------------------------------- party games: servers anyone can join
+// Draw Phone (like Gartic Phone): everyone writes a prompt, then the papers go round, alternating
+// drawing what you were handed and describing the drawing you were handed. Then every chain is shown.
+const PARTY_GAMES = { phone: { name: 'Draw Phone', min: 2, max: 12 } };
+const PHONE_SECS = { write: 45, describe: 45 };
+const parties = new Map(); // id -> party
+const userParty = new Map(); // username -> party id
+const leaveTimers = new Map();
+const phoneKind = (r) => (r === 0 ? 'write' : r % 2 ? 'draw' : 'describe');
+const chainOf = (i, r, n) => (((i - r) % n) + n) % n; // which paper player i holds in round r
+const partySummary = (p) => ({ id: p.id, game: p.game, name: p.name, host: p.host, players: p.players.slice(), max: p.max, state: p.state });
+const broadcastParties = () => broadcast({ t: 'parties', list: [...parties.values()].map(partySummary) });
+function partyView(p, u) {
+  const v = Object.assign(partySummary(p), { drawTime: p.drawTime, round: p.round, steps: p.steps, roundEnds: p.roundEnds, serverNow: Date.now(), reveal: p.reveal, order: p.order });
+  if (p.state === 'playing') {
+    const n = p.order.length, i = p.order.indexOf(u);
+    v.kind = phoneKind(p.round);
+    v.done = p.order.filter((x, j) => p.chains[chainOf(j, p.round, n)][p.round]);
+    if (i >= 0) {
+      const c = chainOf(i, p.round, n), prev = p.round > 0 ? p.chains[c][p.round - 1] : null;
+      v.mineDone = !!p.chains[c][p.round];
+      v.task = !prev ? null : phoneKind(p.round - 1) === 'draw' ? { image: prev.image || null, by: prev.by } : { prompt: prev.text || '', by: prev.by };
+    }
+  }
+  if (p.state === 'reveal' || p.state === 'done') v.chains = p.chains;
+  return v;
+}
+function sendParty(p) {
+  for (const u of p.players) sendUser(u, { t: 'party', party: partyView(p, u) });
+  broadcastParties();
+}
+function partyRound(p, r) {
+  p.round = r;
+  const kind = phoneKind(r), secs = kind === 'draw' ? p.drawTime : PHONE_SECS[kind];
+  p.roundEnds = Date.now() + secs * 1000;
+  clearTimeout(p.timer);
+  p.timer = setTimeout(() => partyEndRound(p), secs * 1000 + 4000); // a little grace for the last uploads
+  sendParty(p);
+}
+function partyEndRound(p) {
+  if (p.state !== 'playing') return;
+  const n = p.order.length, kind = phoneKind(p.round);
+  p.order.forEach((u, i) => {
+    const c = chainOf(i, p.round, n);
+    if (!p.chains[c][p.round]) p.chains[c][p.round] = { by: u, kind, missing: true, text: '', image: null };
+  });
+  if (p.round + 1 >= p.steps) { clearTimeout(p.timer); p.state = 'reveal'; p.reveal = { chain: 0, step: 0 }; sendParty(p); }
+  else partyRound(p, p.round + 1);
+}
+function partyMaybeAdvance(p) {
+  const n = p.order.length;
+  const waiting = p.order.some((u, i) => p.players.includes(u) && !p.chains[chainOf(i, p.round, n)][p.round]);
+  if (!waiting) partyEndRound(p); else sendParty(p);
+}
+function partyLeave(u) {
+  const p = parties.get(userParty.get(u));
+  userParty.delete(u);
+  sendUser(u, { t: 'party', party: null });
+  if (!p) return;
+  p.players = p.players.filter((x) => x !== u);
+  if (!p.players.length) { clearTimeout(p.timer); parties.delete(p.id); broadcastParties(); return; }
+  if (p.host === u) p.host = p.players[0];
+  if (p.state === 'playing') partyMaybeAdvance(p); else sendParty(p);
+}
+
 function onAuth(ws, u, token) {
   ws.user = u;
   const wasOnline = isConnected(u);
@@ -254,6 +319,9 @@ function onAuth(ws, u, token) {
     send(ws, { t: 'gameStart', id: s.id, game: s.type, players: gamePlayers(s), you: s.players.indexOf(u), state: s.state });
   }
   for (const inv of invites.values()) if (inv.to === u) send(ws, { t: 'invite', invite: inv });
+  clearTimeout(leaveTimers.get(u));
+  send(ws, { t: 'parties', list: [...parties.values()].map(partySummary) });
+  if (parties.has(userParty.get(u))) send(ws, { t: 'party', party: partyView(parties.get(userParty.get(u)), u) });
   if (!wasOnline) broadcastUser(u);
 }
 
@@ -361,6 +429,74 @@ const authed = {
     room.messages[i] = { id: msg.id, ts: msg.ts, from: msg.from, text: '', deleted: true };
     toRoom(room, { t: 'msgEdit', room: room.id, msg: room.messages[i] });
     save();
+  },
+  partyCreate(ws, u, m) {
+    if (!PARTY_GAMES[m.game]) return { error: 'Unknown game' };
+    if (userParty.has(u)) partyLeave(u);
+    const p = {
+      id: rid(6), game: m.game, name: str(m.name, 30) || `${nameOf(u)}’s server`, host: u, players: [u],
+      max: Math.max(2, Math.min(PARTY_GAMES[m.game].max, m.max | 0 || 8)), drawTime: [60, 90, 120, 180].includes(m.drawTime) ? m.drawTime : 90,
+      state: 'lobby', round: 0, steps: 0, order: [], chains: [], roundEnds: 0, reveal: null, created: Date.now(),
+    };
+    parties.set(p.id, p);
+    userParty.set(u, p.id);
+    sendParty(p);
+  },
+  partyJoin(ws, u, m) {
+    const p = parties.get(m.id);
+    if (!p) return { error: 'That server has closed' };
+    if (p.players.includes(u)) return sendParty(p);
+    if (p.state !== 'lobby') return { error: 'That game has already started. Wait for the next one.' };
+    if (p.players.length >= p.max) return { error: 'That server is full' };
+    if (userParty.has(u)) partyLeave(u);
+    p.players.push(u);
+    userParty.set(u, p.id);
+    sendParty(p);
+  },
+  partyLeave(ws, u) { partyLeave(u); },
+  partyStart(ws, u) {
+    const p = parties.get(userParty.get(u));
+    if (!p || p.host !== u || p.state !== 'lobby') return;
+    if (p.players.length < PARTY_GAMES[p.game].min) return { error: 'You need at least 2 players' };
+    p.order = p.players.slice().sort(() => Math.random() - 0.5);
+    const n = p.order.length;
+    p.steps = n === 2 ? 3 : n;
+    p.chains = Array.from({ length: n }, () => []);
+    p.state = 'playing';
+    p.reveal = null;
+    partyRound(p, 0);
+  },
+  partySubmit(ws, u, m) {
+    const p = parties.get(userParty.get(u));
+    if (!p || p.state !== 'playing' || m.round !== p.round) return;
+    const n = p.order.length, i = p.order.indexOf(u);
+    if (i < 0) return;
+    const c = chainOf(i, p.round, n), kind = phoneKind(p.round);
+    if (p.chains[c][p.round]) return;
+    const entry = { by: u, kind, text: '', image: null };
+    if (kind === 'draw') {
+      const f = attachment(m.image, u);
+      if (f && /^image\/(png|jpeg|webp)$/.test(f.type)) entry.image = f.url; else entry.missing = true;
+    } else entry.text = str(m.text, 120);
+    if (kind !== 'draw' && !entry.text) entry.missing = true;
+    p.chains[c][p.round] = entry;
+    partyMaybeAdvance(p);
+  },
+  partyNext(ws, u, m) {
+    const p = parties.get(userParty.get(u));
+    if (!p || p.host !== u || p.state !== 'reveal') return;
+    const r = p.reveal;
+    if (m.all) { p.state = 'done'; return sendParty(p); }
+    if (r.step + 1 < p.steps) r.step++;
+    else if (r.chain + 1 < p.order.length) { r.chain++; r.step = 0; }
+    else p.state = 'done';
+    sendParty(p);
+  },
+  partyAgain(ws, u) {
+    const p = parties.get(userParty.get(u));
+    if (!p || p.host !== u || (p.state !== 'done' && p.state !== 'reveal')) return;
+    Object.assign(p, { state: 'lobby', round: 0, steps: 0, order: [], chains: [], roundEnds: 0, reveal: null });
+    sendParty(p);
   },
   typing(ws, u, m) {
     const room = db.rooms[m.room];
@@ -669,6 +805,8 @@ wss.on('connection', (ws) => {
     const ringing = calls.get(userCall.get(u));
     if (ringing) endCall(ringing, 'disconnected', u);
     for (const inv of invites.values()) if (inv.from === u || inv.to === u) invites.delete(inv.id);
+    // a party seat is kept for 20 seconds too
+    if (userParty.has(u)) leaveTimers.set(u, setTimeout(() => { if (!isConnected(u)) partyLeave(u); }, 20000));
     if (userGame.has(u)) {
       // give them 20 seconds to come back (e.g. a page refresh) before forfeiting
       forfeitTimers.set(u, setTimeout(() => {

@@ -911,6 +911,106 @@ body[data-theme="dark"] .fav-btn.on { color: #c9c2ff; }
 .toast.friend-toast { border-left-color: var(--online); }
 .toast.reminder-toast { border-left-color: #f59e0b; font-weight: 600; }
 
+/* ============================================================
+   Games button and party games (Draw Phone)
+   ============================================================ */
+.games-btn { font-weight: 600; }
+.games-badge { margin-left: 6px; }
+.party-games { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.party-game-card {
+  display: grid; gap: 6px; text-align: left; padding: 16px; border-radius: var(--radius); border: 0; cursor: pointer; color: #fff; font: inherit;
+  background: var(--g); box-shadow: var(--shadow); transition: transform .15s;
+}
+.party-game-card:hover { transform: translateY(-2px); }
+.party-game-card b { font-size: 20px; }
+.party-game-card small { opacity: .9; }
+.party-game-card.soon { background: var(--surface-2); color: var(--muted); cursor: default; box-shadow: none; border: 2px dashed var(--line-strong); }
+.pg-emoji { font-size: 34px; }
+.pg-meta { font: 600 12px var(--mono); opacity: .9; }
+.server-list { display: grid; gap: 6px; max-height: 45vh; overflow: auto; margin: 6px 0 12px; }
+.server-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: var(--surface-2); }
+.server-row.mine { outline: 2px solid var(--accent); }
+.server-row .grow { flex: 1; min-width: 0; }
+.server-people { display: flex; gap: 2px; margin-top: 4px; align-items: center; }
+.server-people .avatar { width: 22px; height: 22px; font-size: 10px; }
+.server-people .avatar .dot { display: none; }
+.server-count { font: 700 13px var(--mono); }
+.server-count.full { color: var(--danger); }
+.server-state { font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 600; }
+.server-state.lobby { background: rgba(34, 197, 94, .15); color: #16a34a; }
+.server-state.playing { background: rgba(245, 158, 11, .15); color: #d97706; }
+.server-empty { padding: 18px; text-align: center; }
+.server-create { display: grid; gap: 8px; border-top: 1px solid var(--line); padding-top: 12px; }
+.server-create input { flex: 1; min-width: 160px; }
+.server-create select { width: auto; }
+
+.party-view { position: fixed; inset: 0; z-index: 36; background: var(--bg); display: flex; flex-direction: column; animation: fade .2s; }
+.party-view.hidden, .party-pill.hidden { display: none; }
+.party-head { display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: var(--surface); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.party-title { font-weight: 800; font-size: 18px; }
+.party-server { flex: 1; }
+.party-people { display: flex; gap: 3px; }
+.party-person { position: relative; }
+.party-person .avatar { width: 30px; height: 30px; font-size: 12px; }
+.party-person.host::after { content: '👑'; position: absolute; top: -10px; left: 8px; font-size: 12px; }
+.party-body { flex: 1; overflow: auto; padding: 18px; display: grid; justify-items: center; align-content: start; }
+.party-lobby, .party-round, .party-album { width: min(100%, 900px); display: grid; gap: 14px; justify-items: center; text-align: center; }
+.party-lobby h2, .party-round h2, .party-album h2 { margin: 0; font-size: 28px; }
+.lobby-people { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
+.lobby-person { display: grid; justify-items: center; gap: 4px; width: 92px; }
+.lobby-person.empty { opacity: .45; }
+.how-to { background: var(--surface); border-radius: var(--radius); padding: 12px 18px; text-align: left; box-shadow: var(--shadow-sm); }
+.how-to ol { margin: 6px 0 0; padding-left: 20px; }
+.round-label { font: 600 12px var(--mono); text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+.party-timer { position: relative; width: min(100%, 600px); height: 26px; border-radius: 999px; background: var(--surface-3); overflow: hidden; }
+.party-timer .bar { position: absolute; inset: 0 auto 0 0; background: var(--grad); transition: width .25s linear; }
+.party-timer span { position: relative; font: 700 13px var(--mono); line-height: 26px; color: var(--text); }
+.party-timer.low .bar { background: var(--danger); }
+.task-card { display: grid; gap: 6px; justify-items: center; background: var(--surface); padding: 12px 20px; border-radius: var(--radius); box-shadow: var(--shadow-sm); max-width: 100%; }
+.task-card b { font-size: 22px; }
+.task-img { max-width: min(100%, 640px); border-radius: 12px; border: 1px solid var(--line); background: #fff; }
+.task-row { width: min(100%, 640px); }
+.task-input { flex: 1; font-size: 17px; padding: 12px 16px; }
+.big-btn { padding: 12px 34px; font-size: 16px; }
+.no-drawing { padding: 30px; }
+.done-people { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; justify-content: center; }
+.done-person { opacity: .35; filter: grayscale(1); position: relative; }
+.done-person.yes { opacity: 1; filter: none; }
+.done-person.yes::after { content: '✓'; position: absolute; right: -2px; bottom: -2px; background: var(--online); color: #fff; border-radius: 50%; width: 14px; height: 14px; font-size: 10px; display: grid; place-items: center; }
+.done-person .avatar { width: 28px; height: 28px; font-size: 11px; }
+.done-person .avatar .dot { display: none; }
+.draw-pad { display: grid; gap: 8px; width: min(100%, 860px, calc((100vh - 440px) * 1.6)); min-width: min(100%, 360px); }
+.draw-tools { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: center; }
+.draw-colors { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+.draw-swatch { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--line-strong); cursor: pointer; padding: 0; }
+.draw-swatch.sel { outline: 3px solid var(--accent); outline-offset: 1px; }
+.draw-custom { width: 32px; height: 28px; padding: 0; border: 0; background: none; }
+.draw-sizes { display: flex; gap: 3px; }
+.draw-size { width: 32px; height: 32px; border-radius: 8px; border: 1.5px solid var(--line); background: var(--surface); cursor: pointer; display: grid; place-items: center; }
+.draw-size i { display: block; border-radius: 50%; background: var(--text); }
+.draw-size.sel, .draw-tool.sel { border-color: var(--accent); background: var(--accent-soft); }
+.draw-canvas { width: 100%; aspect-ratio: 8 / 5; height: auto; background: #fff; border-radius: 12px; box-shadow: var(--shadow); touch-action: none; cursor: crosshair; border: 1px solid var(--line); }
+.draw-canvas[data-tool="fill"] { cursor: cell; }
+.album { display: grid; gap: 12px; width: min(100%, 700px); }
+.album-entry { display: grid; gap: 6px; text-align: left; animation: pop .3s ease-out; }
+.album-who { display: flex; align-items: center; gap: 8px; }
+.album-who .avatar { width: 26px; height: 26px; font-size: 11px; }
+.album-who .avatar .dot { display: none; }
+.album-text { background: var(--surface); padding: 12px 16px; border-radius: 16px; font-size: 18px; box-shadow: var(--shadow-sm); }
+.album-entry.first .album-text { background: var(--bubble-me); color: #fff; }
+.album-entry img { width: 100%; border-radius: 12px; border: 1px solid var(--line); background: #fff; }
+.album-block { display: grid; gap: 8px; width: 100%; text-align: left; }
+.row-album { width: 100%; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); align-items: start; }
+.party-pill {
+  position: fixed; left: 18px; bottom: 18px; z-index: 37; border: 0; border-radius: 999px; padding: 12px 18px; cursor: pointer;
+  background: var(--grad); color: #fff; font: 700 14px var(--font); box-shadow: var(--shadow-lg); animation: pop .2s ease-out;
+}
+@media (max-width: 720px) { .party-body { padding: 10px; } .party-lobby h2, .party-round h2, .party-album h2 { font-size: 22px; } }
+.party-round { gap: 10px; }
+.party-round h2 { font-size: 24px; }
+.party-round .task-card { padding: 8px 18px; }
+.party-round .task-card b { font-size: 20px; }
+
 </style>
 <!-- Sign in / create account -->
 <div id="auth" class="auth">
@@ -967,6 +1067,7 @@ body[data-theme="dark"] .fav-btn.on { color: #c9c2ff; }
       <button id="searchBtn" class="btn icon" title="Search messages (Ctrl+K)" aria-label="Search messages">🔍</button>
       <button id="moreBtn" class="btn icon" title="Pinned, saved, photos, export, mute…" aria-label="More">⋯</button>
       <button id="membersBtn" class="btn">Members</button>
+      <button id="gamesBtn" class="btn games-btn" title="Party games with servers">🕹️ Games</button>
       <button id="requestGameBtn" class="btn primary">🎮 Request a game</button>
     </header>
 
@@ -3772,6 +3873,334 @@ else globalThis.Realtime = Realtime;
 
 </script>
 <script>
+// Party games with servers anyone can join (opened from the 🕹️ Games button).
+// Draw Phone, like Gartic Phone: everyone writes a prompt, then the papers go round: draw the
+// prompt you're handed, describe the drawing you're handed, and so on. Then every album is shown.
+(() => {
+  function h(tag, attrs, ...kids) {
+    const el = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs || {})) {
+      if (v === null || v === undefined || v === false) continue;
+      if (k === 'class') el.className = v;
+      else if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+      else if (k === 'value') el.value = v;
+      else el.setAttribute(k, v === true ? '' : v);
+    }
+    for (const kid of kids.flat()) if (kid !== null && kid !== undefined && kid !== false) el.append(kid instanceof Node ? kid : String(kid));
+    return el;
+  }
+  const GAMES = {
+    phone: { name: 'Draw Phone', emoji: '🎨', color: 'linear-gradient(135deg,#f472b6,#8b5cf6)', players: '2–12 players',
+      desc: 'Write a prompt, draw what you’re handed, guess what others drew — then watch how it all went wrong.' },
+  };
+  const IDEAS = ['A cat running a lemonade stand', 'A dragon at the dentist', 'Pizza delivery on the moon', 'A snowman on vacation', 'A robot learning to dance',
+    'A shark playing video games', 'Grandma riding a skateboard', 'A haunted vending machine', 'Dinosaur birthday party', 'A wizard stuck in traffic',
+    'A penguin chef', 'The world’s smallest elephant', 'A banana in a business suit', 'Aliens at a fast food drive-thru', 'A dog driving a bus',
+    'A volcano erupting popcorn', 'A ghost taking a selfie', 'Superhero doing laundry', 'A frog king on a lily pad throne', 'A cactus giving hugs',
+    'Pirates on a rubber duck', 'A tiny house on a giant turtle', 'An octopus playing drums', 'A cloud that rains candy', 'A knight fighting a vacuum cleaner',
+    'A sloth winning a race', 'A treehouse in space', 'A monster under the bed who is scared', 'A snail with a rocket', 'Ice cream that melts upward'];
+  const KIND_LABEL = { write: 'Write a prompt', draw: 'Draw it', describe: 'What is this?' };
+  const COLORS = ['#111827', '#ffffff', '#9ca3af', '#ef4444', '#f97316', '#facc15', '#22c55e', '#14b8a6', '#3b82f6', '#8b5cf6', '#ec4899', '#92400e'];
+
+  let api = null, list = [], party = null, offset = 0, view = null, minimized = false;
+  let task = null; // what I'm working on this round: { key, canvas tools / input }
+  const $ = (sel, el = document) => el.querySelector(sel);
+
+  // ---------------------------------------------------------------- the Games window
+  let gamesOpen = null; // 'pick' | game id, while the window is open
+  function openGames(game) {
+    gamesOpen = game || 'pick';
+    api.openModal(buildGames, true);
+  }
+  function buildGames() {
+    if (gamesOpen === 'pick' || !GAMES[gamesOpen]) {
+      return [api.modalHead('🕹️ Games'), h('p', { class: 'muted' }, 'Party games with servers: make one, or join someone else’s. More games are coming.'),
+        h('div', { class: 'party-games' }, Object.entries(GAMES).map(([id, g]) => {
+          const open = list.filter((p) => p.game === id && p.players.length);
+          return h('button', { class: 'party-game-card', style: `--g:${g.color}`, onclick: () => { gamesOpen = id; api.refreshModal(); } },
+            h('span', { class: 'pg-emoji' }, g.emoji), h('b', {}, g.name), h('small', {}, g.desc),
+            h('span', { class: 'pg-meta' }, `${g.players} · ${open.length ? `${open.length} server${open.length === 1 ? '' : 's'} open` : 'no servers yet'}`));
+        }),
+        h('div', { class: 'party-game-card soon' }, h('span', { class: 'pg-emoji' }, '✨'), h('b', {}, 'More soon'), h('small', {}, 'New party games will show up here.'))),
+      ];
+    }
+    const g = GAMES[gamesOpen], servers = list.filter((p) => p.game === gamesOpen && p.players.length);
+    const name = h('input', { maxlength: 30, placeholder: `${api.me().name}’s server` });
+    const max = h('select', {}, [2, 3, 4, 5, 6, 8, 10, 12].map((n) => h('option', { value: n, selected: n === 8 }, `${n} players`)));
+    const time = h('select', {}, [[60, '1 min to draw'], [90, '1½ min to draw'], [120, '2 min to draw'], [180, '3 min to draw']].map(([v, l]) => h('option', { value: v, selected: v === 90 }, l)));
+    return [
+      h('div', { class: 'modal-head' }, h('button', { class: 'btn small ghost', onclick: () => { gamesOpen = 'pick'; api.refreshModal(); } }, '‹ Games'),
+        h('h2', { style: 'flex:1' }, `${g.emoji} ${g.name} servers`), h('button', { class: 'close-x', onclick: api.closeModal }, 'X')),
+      h('div', { class: 'server-list' }, servers.length ? servers.map((p) => {
+        const full = p.players.length >= p.max, playing = p.state !== 'lobby', mine = party && party.id === p.id;
+        return h('div', { class: 'server-row' + (mine ? ' mine' : '') },
+          h('div', { class: 'grow' }, h('b', {}, p.name), h('small', { class: 'muted' }, ` hosted by ${api.nameOf(p.host)}`),
+            h('div', { class: 'server-people' }, p.players.slice(0, 8).map((u) => api.avatar(u)), p.players.length > 8 ? h('small', {}, `+${p.players.length - 8}`) : null)),
+          h('span', { class: 'server-count' + (full ? ' full' : '') }, `${p.players.length}/${p.max}`),
+          h('span', { class: 'server-state ' + (playing ? 'playing' : 'lobby') }, playing ? 'Playing' : 'In lobby'),
+          mine ? h('button', { class: 'btn small primary', onclick: () => { api.closeModal(); show(); } }, 'Open')
+            : h('button', { class: 'btn small primary', disabled: full || playing, onclick: () => { api.send({ t: 'partyJoin', id: p.id }); api.closeModal(); } }, playing ? 'In game' : full ? 'Full' : 'Join'));
+      }) : h('div', { class: 'muted server-empty' }, 'No servers yet. Make the first one!')),
+      h('div', { class: 'server-create' }, h('b', {}, 'Make a server'),
+        h('div', { class: 'row', style: 'flex-wrap:wrap' }, name, max, time,
+          h('button', { class: 'btn primary', onclick: () => {
+            api.send({ t: 'partyCreate', game: gamesOpen, name: name.value.trim(), max: +max.value, drawTime: +time.value });
+            api.closeModal();
+          } }, '＋ Create server'))),
+    ];
+  }
+
+  // ---------------------------------------------------------------- the party screen
+  function root() {
+    let el = $('#partyView');
+    if (!el) {
+      el = h('section', { id: 'partyView', class: 'party-view hidden' });
+      document.body.append(el);
+      const pill = h('button', { id: 'partyPill', class: 'party-pill hidden', onclick: () => { minimized = false; render(); } });
+      document.body.append(pill);
+    }
+    return el;
+  }
+  function show() { minimized = false; render(); }
+  const now = () => Date.now() + offset;
+  const secsLeft = () => Math.max(0, Math.ceil((party.roundEnds - now()) / 1000));
+  const isHost = () => party && party.host === api.me().username;
+
+  function render() {
+    const el = root(), pill = $('#partyPill');
+    if (!party) { el.classList.add('hidden'); pill.classList.add('hidden'); el.replaceChildren(); task = null; view = null; return; }
+    el.classList.toggle('hidden', minimized);
+    pill.classList.toggle('hidden', !minimized);
+    pill.textContent = `${GAMES[party.game].emoji} Back to ${GAMES[party.game].name}` + (party.state === 'playing' ? ` · ${secsLeft()}s` : '');
+    if (minimized) return;
+    // keep the drawing (or typing) in progress when updates arrive during the same round
+    const key = `${party.id}:${party.state}:${party.round}:${party.mineDone ? 1 : 0}:${party.state === 'reveal' ? JSON.stringify(party.reveal) : ''}`;
+    if (view === key && party.state === 'playing') { updateLive(); return; }
+    view = key;
+    const g = GAMES[party.game];
+    el.replaceChildren(
+      h('header', { class: 'party-head' },
+        h('span', { class: 'party-title' }, `${g.emoji} ${g.name}`), h('span', { class: 'muted party-server' }, party.name),
+        h('span', { class: 'party-people' }, party.players.map((u) => h('span', { class: 'party-person' + (u === party.host ? ' host' : ''), title: api.nameOf(u) + (u === party.host ? ' (host)' : '') }, api.avatar(u)))),
+        h('button', { class: 'btn small', title: 'Go back to the chat; the game keeps going', onclick: () => { minimized = true; render(); } }, '▁ Chat'),
+        h('button', { class: 'btn small danger', onclick: () => api.confirm('Leave this server?', 'Leave', () => api.send({ t: 'partyLeave' })) }, 'Leave')),
+      h('div', { class: 'party-body' }, party.state === 'lobby' ? lobbyView() : party.state === 'playing' ? playView() : albumView()));
+    updateLive();
+  }
+
+  function lobbyView() {
+    const enough = party.players.length >= 2;
+    return h('div', { class: 'party-lobby' },
+      h('h2', {}, 'Waiting room'),
+      h('p', { class: 'muted' }, `Up to ${party.max} players · ${Math.round(party.drawTime / 60 * 10) / 10} min to draw each round`),
+      h('div', { class: 'lobby-people' }, party.players.map((u) => h('div', { class: 'lobby-person' }, api.avatar(u, true), h('b', {}, api.nameOf(u)), u === party.host ? h('small', {}, '👑 Host') : null)),
+        Array.from({ length: Math.max(0, Math.min(3, party.max - party.players.length)) }, () => h('div', { class: 'lobby-person empty' }, h('div', { class: 'avatar big' }, '?'), h('small', { class: 'muted' }, 'Open seat')))),
+      h('div', { class: 'how-to' }, h('b', {}, 'How to play'),
+        h('ol', {}, h('li', {}, 'Everyone writes a silly prompt.'), h('li', {}, 'You get someone else’s prompt: draw it.'),
+          h('li', {}, 'You get someone else’s drawing: describe it.'), h('li', {}, 'Repeat until every paper has been round, then laugh at the albums.'))),
+      h('div', { class: 'row', style: 'justify-content:center;flex-wrap:wrap' },
+        h('button', { class: 'btn', onclick: () => api.shareInvite(`🎨 Come play **Draw Phone** in “${party.name}”! Open 🕹️ Games → Draw Phone and join.`) }, '📣 Invite from chat'),
+        isHost() ? h('button', { class: 'btn primary', disabled: !enough, onclick: () => api.send({ t: 'partyStart' }) }, enough ? '▶ Start game' : 'Need 2+ players')
+          : h('span', { class: 'muted' }, `Waiting for ${api.nameOf(party.host)} to start…`)));
+  }
+
+  // ---------------------------------------------------------------- playing a round
+  function playView() {
+    const kind = party.kind, step = `Round ${party.round + 1} of ${party.steps}`;
+    const timer = h('div', { class: 'party-timer' }, h('div', { class: 'bar' }), h('span', {}));
+    const doneBox = h('div', { class: 'done-people' });
+    if (!party.order.includes(api.me().username)) {
+      task = null;
+      return h('div', { class: 'party-round' }, h('h2', {}, 'Watching'), h('p', { class: 'muted' }, 'You joined after this game started. You’ll be in the next one!'), doneBox, timer);
+    }
+    if (party.mineDone) {
+      task = null;
+      return h('div', { class: 'party-round waiting' }, h('div', { class: 'round-label' }, step), h('h2', {}, '✅ Done!'), h('p', { class: 'muted' }, 'Waiting for everyone else…'), doneBox, timer);
+    }
+    const prompt = party.task;
+    let work;
+    if (kind === 'draw') {
+      const pad = drawPad();
+      task = { kind, pad, sent: false };
+      work = [h('div', { class: 'task-card' }, h('small', {}, 'Draw this:'), h('b', {}, prompt && prompt.prompt ? prompt.prompt : '(they didn’t write anything — draw anything!)')),
+        pad.el, h('button', { class: 'btn primary big-btn', onclick: () => submit() }, '✔ Done')];
+    } else {
+      const input = h('input', { class: 'task-input', maxlength: 120, placeholder: kind === 'write' ? 'e.g. A cat running a lemonade stand' : 'Describe what you see…',
+        onkeydown: (e) => { if (e.key === 'Enter') { e.preventDefault(); submit(); } } });
+      task = { kind, input, sent: false };
+      setTimeout(() => input.focus(), 30);
+      work = [
+        kind === 'describe' ? h('div', { class: 'task-card' }, h('small', {}, 'What is this drawing?'),
+          prompt && prompt.image ? h('img', { class: 'task-img', src: prompt.image, alt: 'The drawing you were handed' }) : h('div', { class: 'muted no-drawing' }, '(they didn’t draw anything — make something up!)')) : null,
+        h('div', { class: 'row task-row' }, input,
+          kind === 'write' ? h('button', { class: 'btn', title: 'Give me an idea', onclick: () => { input.value = IDEAS[Math.floor(Math.random() * IDEAS.length)]; input.focus(); } }, '🎲 Idea') : null,
+          h('button', { class: 'btn primary', onclick: () => submit() }, '✔ Done'))];
+    }
+    return h('div', { class: 'party-round' }, h('div', { class: 'round-label' }, step), h('h2', {}, KIND_LABEL[kind]), timer, ...work, doneBox);
+  }
+  async function submit() {
+    if (!task || task.sent || !party || party.state !== 'playing') return;
+    task.sent = true;
+    const round = party.round;
+    if (task.kind === 'draw') {
+      const btn = $('#partyView .big-btn');
+      if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+      try {
+        const blob = await new Promise((res) => task.pad.canvas.toBlob(res, 'image/png'));
+        const meta = await api.uploadFile(new File([blob], 'drawing.png', { type: 'image/png' }));
+        api.send({ t: 'partySubmit', round, image: meta });
+      } catch (e) {
+        api.toast(e.message || 'Your drawing didn’t send.', 'err');
+        api.send({ t: 'partySubmit', round, image: null });
+      }
+    } else api.send({ t: 'partySubmit', round, text: task.input.value.trim() });
+  }
+  function updateLive() {
+    if (!party || party.state !== 'playing') return;
+    const el = root(), left = secsLeft(), total = party.kind === 'draw' ? party.drawTime : 45;
+    const t = $('.party-timer', el);
+    if (t) {
+      $('.bar', t).style.width = `${Math.max(0, Math.min(100, (left / total) * 100))}%`;
+      $('span', t).textContent = `${left}s`;
+      t.classList.toggle('low', left <= 10);
+    }
+    const d = $('.done-people', el);
+    if (d) d.replaceChildren(h('small', { class: 'muted' }, `${(party.done || []).length}/${party.order.length} done`),
+      ...party.order.map((u) => h('span', { class: 'done-person' + ((party.done || []).includes(u) ? ' yes' : ''), title: api.nameOf(u) }, api.avatar(u))));
+    // time's up: send what you have
+    if (task && !task.sent && left <= 1) submit();
+  }
+  setInterval(() => { if (party && party.state === 'playing') { updateLive(); const pill = $('#partyPill'); if (pill && minimized) pill.textContent = `${GAMES[party.game].emoji} Back to ${GAMES[party.game].name} · ${secsLeft()}s`; } }, 250);
+
+  // ---------------------------------------------------------------- the drawing pad
+  function drawPad() {
+    const W = 800, H = 500;
+    const canvas = h('canvas', { width: W, height: H, class: 'draw-canvas' });
+    const g = canvas.getContext('2d');
+    g.fillStyle = '#ffffff'; g.fillRect(0, 0, W, H);
+    g.lineCap = 'round'; g.lineJoin = 'round';
+    let color = '#111827', size = 6, tool = 'pen', drawing = false, lx = 0, ly = 0;
+    const undo = [];
+    const snap = () => { undo.push(g.getImageData(0, 0, W, H)); if (undo.length > 25) undo.shift(); };
+    const pos = (e) => { const r = canvas.getBoundingClientRect(); return [((e.clientX - r.left) / r.width) * W, ((e.clientY - r.top) / r.height) * H]; };
+    canvas.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      canvas.setPointerCapture(e.pointerId);
+      const [x, y] = pos(e);
+      snap();
+      if (tool === 'fill') { fill(Math.floor(x), Math.floor(y)); return; }
+      drawing = true; lx = x; ly = y;
+      g.strokeStyle = tool === 'eraser' ? '#ffffff' : color; g.lineWidth = tool === 'eraser' ? size * 3 : size;
+      g.beginPath(); g.moveTo(x, y); g.lineTo(x + 0.01, y); g.stroke();
+    });
+    canvas.addEventListener('pointermove', (e) => {
+      if (!drawing) return;
+      const pts = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+      for (const p of pts.length ? pts : [e]) {
+        const [x, y] = pos(p);
+        g.beginPath(); g.moveTo(lx, ly); g.lineTo(x, y); g.stroke();
+        lx = x; ly = y;
+      }
+    });
+    const stop = () => { drawing = false; };
+    canvas.addEventListener('pointerup', stop);
+    canvas.addEventListener('pointercancel', stop);
+    function fill(x, y) {
+      const img = g.getImageData(0, 0, W, H), d = img.data, i0 = (y * W + x) * 4;
+      const target = [d[i0], d[i0 + 1], d[i0 + 2]], n = parseInt(color.slice(1), 16), rep = [n >> 16, (n >> 8) & 255, n & 255];
+      const near = (i) => Math.abs(d[i] - target[0]) + Math.abs(d[i + 1] - target[1]) + Math.abs(d[i + 2] - target[2]) < 60;
+      if (Math.abs(target[0] - rep[0]) + Math.abs(target[1] - rep[1]) + Math.abs(target[2] - rep[2]) < 8) return;
+      const stack = [[x, y]], seen = new Uint8Array(W * H);
+      while (stack.length) {
+        const [cx, cy] = stack.pop();
+        if (cx < 0 || cy < 0 || cx >= W || cy >= H) continue;
+        const k = cy * W + cx;
+        if (seen[k]) continue;
+        seen[k] = 1;
+        const i = k * 4;
+        if (!near(i)) continue;
+        d[i] = rep[0]; d[i + 1] = rep[1]; d[i + 2] = rep[2]; d[i + 3] = 255;
+        stack.push([cx + 1, cy], [cx - 1, cy], [cx, cy + 1], [cx, cy - 1]);
+      }
+      g.putImageData(img, 0, 0);
+    }
+    const swatches = h('div', { class: 'draw-colors' }, COLORS.map((c) => h('button', { class: 'draw-swatch' + (c === color ? ' sel' : ''), style: `background:${c}`, title: c, onclick: (e) => {
+      color = c; if (tool === 'eraser') setTool('pen');
+      swatches.querySelectorAll('.draw-swatch').forEach((b) => b.classList.toggle('sel', b === e.currentTarget));
+    } })), h('input', { type: 'color', class: 'draw-custom', title: 'Any color', value: '#ff6600', oninput: (e) => { color = e.target.value; swatches.querySelectorAll('.draw-swatch').forEach((b) => b.classList.remove('sel')); if (tool === 'eraser') setTool('pen'); } }));
+    const tools = {};
+    const setTool = (t) => { tool = t; Object.entries(tools).forEach(([k, b]) => b.classList.toggle('sel', k === t)); canvas.dataset.tool = t; };
+    for (const [k, label, tip] of [['pen', '✏️', 'Pen'], ['fill', '🪣', 'Fill'], ['eraser', '🧽', 'Eraser']]) tools[k] = h('button', { class: 'btn small draw-tool', title: tip, onclick: () => setTool(k) }, label, ' ', tip);
+    const sizes = h('div', { class: 'draw-sizes' }, [3, 6, 12, 24].map((s) => h('button', { class: 'draw-size' + (s === size ? ' sel' : ''), title: `Brush ${s}`, onclick: (e) => {
+      size = s; sizes.querySelectorAll('.draw-size').forEach((b) => b.classList.toggle('sel', b === e.currentTarget));
+    } }, h('i', { style: `width:${Math.min(22, s)}px;height:${Math.min(22, s)}px` }))));
+    setTool('pen');
+    const el = h('div', { class: 'draw-pad' },
+      h('div', { class: 'draw-tools' }, swatches, sizes, tools.pen, tools.fill, tools.eraser,
+        h('button', { class: 'btn small', title: 'Undo (Ctrl+Z)', onclick: () => { const u = undo.pop(); if (u) g.putImageData(u, 0, 0); } }, '↶ Undo'),
+        h('button', { class: 'btn small', onclick: () => { snap(); g.fillStyle = '#ffffff'; g.fillRect(0, 0, W, H); } }, '🗑 Clear')),
+      canvas);
+    el.undo = () => { const u = undo.pop(); if (u) g.putImageData(u, 0, 0); };
+    return { el, canvas };
+  }
+  addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && task && task.pad && !minimized) { e.preventDefault(); task.pad.el.undo(); }
+  });
+
+  // ---------------------------------------------------------------- albums
+  function entryEl(en, i) {
+    const who = h('div', { class: 'album-who' }, api.avatar(en.by), h('b', {}, api.nameOf(en.by)),
+      h('small', { class: 'muted' }, i === 0 ? 'wrote' : en.kind === 'draw' ? 'drew' : 'thought it was'));
+    if (en.kind === 'draw') return h('div', { class: 'album-entry draw' }, who, en.image ? h('img', { src: en.image, alt: `Drawing by ${api.nameOf(en.by)}`, loading: 'lazy' }) : h('div', { class: 'no-drawing muted' }, '(no drawing)'));
+    return h('div', { class: 'album-entry text' + (i === 0 ? ' first' : '') }, who, h('div', { class: 'album-text' }, en.text || h('span', { class: 'muted' }, '(nothing)')));
+  }
+  function albumView() {
+    const chains = party.chains || [];
+    if (party.state === 'reveal') {
+      const r = party.reveal || { chain: 0, step: 0 }, chain = chains[r.chain] || [];
+      return h('div', { class: 'party-album' },
+        h('div', { class: 'round-label' }, `Album ${r.chain + 1} of ${chains.length}`),
+        h('h2', {}, `${api.nameOf(chain[0] && chain[0].by)}’s album`),
+        h('div', { class: 'album' }, chain.slice(0, r.step + 1).map(entryEl)),
+        isHost() ? h('div', { class: 'row', style: 'justify-content:center' },
+          h('button', { class: 'btn', onclick: () => api.send({ t: 'partyNext', all: true }) }, 'Show all albums'),
+          h('button', { class: 'btn primary', onclick: () => api.send({ t: 'partyNext' }) }, r.step + 1 < party.steps ? 'Next ▶' : r.chain + 1 < chains.length ? 'Next album ▶' : 'Finish ▶'))
+          : h('p', { class: 'muted', style: 'text-align:center' }, `${api.nameOf(party.host)} is showing the albums…`));
+    }
+    return h('div', { class: 'party-album' },
+      h('h2', {}, '🎉 All the albums'),
+      chains.map((chain) => h('div', { class: 'album-block' }, h('b', {}, `${api.nameOf(chain[0] && chain[0].by)}’s album`), h('div', { class: 'album row-album' }, chain.map(entryEl)))),
+      h('div', { class: 'row', style: 'justify-content:center' },
+        isHost() ? h('button', { class: 'btn primary', onclick: () => api.send({ t: 'partyAgain' }) }, '🔁 Play again') : h('span', { class: 'muted' }, `${api.nameOf(party.host)} can start another game.`),
+        h('button', { class: 'btn', onclick: () => api.send({ t: 'partyLeave' }) }, 'Leave server')));
+  }
+
+  window.PartyUI = {
+    GAMES,
+    init(a) { api = a; },
+    openGames,
+    buildGames: () => buildGames(),
+    isOpen: () => !!gamesOpen,
+    closed() { gamesOpen = null; },
+    list(l) {
+      list = Array.isArray(l) ? l : [];
+      if (gamesOpen) api.refreshModal();
+    },
+    state(p) {
+      const was = party;
+      party = p;
+      if (p) offset = (p.serverNow || Date.now()) - Date.now();
+      if (p && !was) minimized = false;
+      if (!p && was) api.toast(`You left ${GAMES[was.game].name}`);
+      render();
+    },
+    where(u) { const p = list.find((x) => x.players.includes(u)); return p ? GAMES[p.game] && GAMES[p.game].name : null; },
+    openCount: () => list.filter((p) => p.players.length).length,
+  };
+})();
+
+</script>
+<script>
 // Computer opponents. A bot game runs entirely in this browser with the same rules (shared/rules.js)
 // and simulations (realtime.js) the server uses; the bot is always player 1.
 (() => {
@@ -4761,6 +5190,7 @@ else globalThis.Realtime = Realtime;
       const me = privateUser();
       sentMe = JSON.stringify(me);
       emit({ t: 'hello', me, users, rooms: roomIds.map(roomView), games: GAMES });
+      setTimeout(pushParties);
     }
 
     function dbError(e) {
@@ -4783,6 +5213,7 @@ else globalThis.Realtime = Realtime;
     }
     function onLobby(change) {
       lobbyPeers = change.peers;
+      lobbySeen = true;
       for (const p of change.peers) {
         if (p.isMe) continue;
         const pr = p.presence || {}, from = pidOf(p);
@@ -4807,6 +5238,8 @@ else globalThis.Realtime = Realtime;
         }
       }
       pushUsers();
+      pushParties();
+      hostDuties();
     }
     function clearInvite() {
       myInvite = null;
@@ -4988,6 +5421,186 @@ else globalThis.Realtime = Realtime;
       setTimeout(() => { if (g.named) g.named.leave().catch(() => {}); }, 4000);
     }
 
+    // ------------------------------------------------------------ party games: Draw Phone servers
+    // A server is a doc in `parties` (members merge in as { uid: joinedAt }, so joins never clash);
+    // each answer is its own doc under parties/<id>/subs. Whoever hosts runs the clock from their browser.
+    const PHONE_SECS = { write: 45, describe: 45 };
+    const partyDocs = {}; // id -> doc
+    let myParty = null, subsUnsub = null, subsOf = null, subs = [], hostBusy = '', bootAt = Date.now(), lobbySeen = false;
+    const phoneKind = (r) => (r === 0 ? 'write' : r % 2 ? 'draw' : 'describe');
+    const chainOf = (i, r, n) => (((i - r) % n) + n) % n;
+    const inPartyOf = (id) => lobbyPeers.filter((pr) => pr.presence && pr.presence.inParty === id).map(pidOf);
+    // members still here: joined, not left, and (for others) showing this server in their lobby presence
+    function present(p, id) {
+      const here = new Set(inPartyOf(id));
+      return Object.entries(p.members || {}).filter(([u, at]) => at && (u === myId ? myParty === id : here.has(u))).sort((a, b) => a[1] - b[1]).map(([u]) => u);
+    }
+    const hostOf = (p, id) => { const ps = present(p, id); return ps.includes(p.host) ? p.host : ps[0] || null; };
+    function partySummary(id) {
+      const p = partyDocs[id];
+      return { id, game: p.game, name: str(p.name, 30) || 'Server', host: hostOf(p, id), players: present(p, id), max: p.max, state: p.state };
+    }
+    function chains(p) {
+      const n = (p.order || []).length, out = Array.from({ length: n }, () => []);
+      for (let r = 0; r < p.steps; r++) {
+        p.order.forEach((u, i) => {
+          const sub = subs.find((x) => x.gen === p.gen && x.round === r && x.uid === u);
+          out[chainOf(i, r, n)][r] = sub ? { by: u, kind: phoneKind(r), text: str(sub.text, 120), image: sub.asset && ASSET_ID.test(sub.asset) ? '/_blob/' + sub.asset : null, missing: phoneKind(r) === 'draw' ? !sub.asset : !str(sub.text, 120) }
+            : { by: u, kind: phoneKind(r), text: '', image: null, missing: true };
+        });
+      }
+      return out;
+    }
+    const subFor = (p, u, r) => subs.find((x) => x.gen === p.gen && x.round === r && x.uid === u);
+    function partyView(id) {
+      const p = partyDocs[id], v = Object.assign(partySummary(id), { drawTime: p.drawTime, round: p.round, steps: p.steps, roundEnds: p.roundEnds, serverNow: Date.now(), reveal: p.reveal || null, order: p.order || [] });
+      if (p.state === 'playing') {
+        const n = p.order.length, i = p.order.indexOf(myId);
+        v.kind = phoneKind(p.round);
+        v.done = p.order.filter((u) => subFor(p, u, p.round));
+        if (i >= 0) {
+          v.mineDone = !!subFor(p, myId, p.round);
+          if (p.round > 0) {
+            // what I was handed: the previous step of the paper I'm holding
+            const c = chainOf(i, p.round, n), from = p.order.find((u, j) => chainOf(j, p.round - 1, n) === c), prev = from && subFor(p, from, p.round - 1);
+            v.task = phoneKind(p.round - 1) === 'draw' ? { image: prev && prev.asset ? '/_blob/' + prev.asset : null, by: from } : { prompt: prev ? str(prev.text, 120) : '', by: from };
+          }
+        }
+      }
+      if (p.state === 'reveal' || p.state === 'done') v.chains = chains(p);
+      return v;
+    }
+    let sentParties = '', sentParty = '';
+    function pushParties() {
+      if (!ready) return;
+      const list = Object.keys(partyDocs).map(partySummary).filter((x) => x.players.length);
+      const j = JSON.stringify(list);
+      if (j !== sentParties) { sentParties = j; emit({ t: 'parties', list }); }
+      const view = myParty && partyDocs[myParty] ? partyView(myParty) : null;
+      const k = JSON.stringify(view && Object.assign({}, view, { serverNow: 0 }));
+      if (k !== sentParty) { sentParty = k; emit({ t: 'party', party: view }); }
+    }
+    function onParties(snap) {
+      for (const k of Object.keys(partyDocs)) delete partyDocs[k];
+      for (const d of snap.docs) partyDocs[d.id] = d.data();
+      // came back after a reload while still seated somewhere: take the seat again
+      if (!myParty && !signedOut) {
+        const mine = Object.entries(partyDocs).filter(([, p]) => p.members && p.members[myId]).sort((a, b) => b[1].members[myId] - a[1].members[myId])[0];
+        if (mine && Date.now() - mine[1].members[myId] < 6 * 3600e3) enterParty(mine[0]);
+      }
+      if (myParty && !partyDocs[myParty]) leaveLocal();
+      pushParties();
+    }
+    function enterParty(id) {
+      myParty = id;
+      setPresence({ inParty: id });
+      if (subsOf !== id) {
+        if (subsUnsub) subsUnsub();
+        subs = []; subsOf = id;
+        subsUnsub = db.collection(`parties/${id}/subs`).onSnapshot((snap) => { subs = snap.docs.map((d) => d.data()); pushParties(); hostDuties(); }, dbError);
+      }
+    }
+    function leaveLocal() {
+      myParty = null;
+      setPresence({ inParty: null });
+      if (subsUnsub) subsUnsub();
+      subsUnsub = null; subsOf = null; subs = [];
+      pushParties();
+    }
+    const partyDoc = (id) => db.doc('parties/' + id);
+    // the host's browser moves the game along
+    function hostDuties() {
+      const id = myParty, p = id && partyDocs[id];
+      if (!p || hostOf(p, id) !== myId || readOnly) return;
+      if (p.host !== myId) partyDoc(id).update({ host: myId }).catch(() => {});
+      if (p.state !== 'playing') return;
+      const key = p.gen + ':' + p.round;
+      if (hostBusy === key) return;
+      const here = present(p, id);
+      const waiting = p.order.some((u) => here.includes(u) && !subFor(p, u, p.round));
+      if (waiting && Date.now() < p.roundEnds + 4000) return;
+      hostBusy = key;
+      const r = p.round + 1;
+      const next = r >= p.steps ? { state: 'reveal', reveal: { chain: 0, step: 0 } }
+        : { round: r, roundEnds: Date.now() + (phoneKind(r) === 'draw' ? p.drawTime : PHONE_SECS[phoneKind(r)]) * 1000 };
+      partyDoc(id).update(next).catch(writeError);
+    }
+    setInterval(() => {
+      hostDuties();
+      if (!ready || !lobbySeen || Date.now() - bootAt < 20000) return;
+      // tidy up servers everyone has left
+      for (const [id, p] of Object.entries(partyDocs)) {
+        if (!present(p, id).length && Date.now() - (p.created || 0) > 10 * 60e3) partyDoc(id).delete().catch(() => {});
+      }
+    }, 1000);
+    const partyHandlers = {
+      partyCreate(m) {
+        if (readOnly) return writeError({ code: 'invalid_argument' });
+        if (myParty) partyHandlers.partyLeave();
+        const id = rid(10);
+        partyDoc(id).set({
+          game: 'phone', name: str(m.name, 30) || `${displayName(myId)}’s server`, host: myId, members: { [myId]: Date.now() },
+          max: Math.max(2, Math.min(12, m.max | 0 || 8)), drawTime: [60, 90, 120, 180].includes(m.drawTime) ? m.drawTime : 90,
+          state: 'lobby', round: 0, steps: 0, order: [], roundEnds: 0, reveal: null, gen: 0, created: Date.now(),
+        }).catch(writeError);
+        enterParty(id);
+      },
+      partyJoin(m) {
+        const p = partyDocs[m.id];
+        if (!p) return emit({ t: 'error', text: 'That server has closed' });
+        if (myParty === m.id) return pushParties();
+        if (p.state !== 'lobby') return emit({ t: 'error', text: 'That game has already started. Wait for the next one.' });
+        if (present(p, m.id).length >= p.max) return emit({ t: 'error', text: 'That server is full' });
+        if (readOnly) return writeError({ code: 'invalid_argument' });
+        if (myParty) partyHandlers.partyLeave();
+        partyDoc(m.id).update({ members: { [myId]: Date.now() } }).catch(writeError);
+        enterParty(m.id);
+      },
+      partyLeave() {
+        const id = myParty, p = id && partyDocs[id];
+        if (!id) return;
+        leaveLocal();
+        if (!p || readOnly) return;
+        const others = present(p, id).filter((u) => u !== myId);
+        if (!others.length) partyDoc(id).delete().catch(() => {});
+        else partyDoc(id).update(Object.assign({ members: { [myId]: null } }, p.host === myId ? { host: others[0] } : {})).catch(() => {});
+      },
+      partyStart() {
+        const id = myParty, p = id && partyDocs[id];
+        if (!p || hostOf(p, id) !== myId || p.state !== 'lobby') return;
+        const order = present(p, id).sort(() => Math.random() - 0.5);
+        if (order.length < 2) return emit({ t: 'error', text: 'You need at least 2 players' });
+        // clear out answers from earlier games on this server
+        for (const sub of subs) if (sub.gen <= (p.gen || 0)) db.doc(`parties/${id}/subs/${sub.gen}_${sub.round}_${sub.uid}`).delete().catch(() => {});
+        partyDoc(id).update({ state: 'playing', order, steps: order.length === 2 ? 3 : order.length, gen: (p.gen || 0) + 1, round: 0, roundEnds: Date.now() + PHONE_SECS.write * 1000, reveal: null, host: myId }).catch(writeError);
+      },
+      partySubmit(m) {
+        const id = myParty, p = id && partyDocs[id];
+        if (!p || p.state !== 'playing' || m.round !== p.round || !p.order.includes(myId) || subFor(p, myId, p.round)) return;
+        const doc = { gen: p.gen, round: p.round, uid: myId, text: '', asset: null };
+        if (phoneKind(p.round) === 'draw') { if (m.image && typeof m.image.ref === 'string' && ASSET_ID.test(m.image.ref)) doc.asset = m.image.ref; }
+        else doc.text = str(m.text, 120);
+        subs = subs.concat(doc); // show it as done right away
+        pushParties();
+        db.doc(`parties/${id}/subs/${p.gen}_${p.round}_${myId}`).set(doc).catch(writeError);
+      },
+      partyNext(m) {
+        const id = myParty, p = id && partyDocs[id];
+        if (!p || hostOf(p, id) !== myId || p.state !== 'reveal') return;
+        if (m.all) return partyDoc(id).update({ state: 'done' }).catch(writeError);
+        const r = Object.assign({ chain: 0, step: 0 }, p.reveal);
+        if (r.step + 1 < p.steps) r.step++;
+        else if (r.chain + 1 < p.order.length) { r.chain++; r.step = 0; }
+        else return partyDoc(id).update({ state: 'done' }).catch(writeError);
+        partyDoc(id).update({ reveal: r }).catch(writeError);
+      },
+      partyAgain() {
+        const id = myParty, p = id && partyDocs[id];
+        if (!p || hostOf(p, id) !== myId || (p.state !== 'done' && p.state !== 'reveal')) return;
+        partyDoc(id).update({ state: 'lobby', order: [], round: 0, steps: 0, reveal: null }).catch(writeError);
+      },
+    };
+
     // ------------------------------------------------------------ requests from the UI
     function busyReason(id) {
       if (presenceOf(id) === 'offline') return `${displayName(id)} is offline`;
@@ -4996,6 +5609,7 @@ else globalThis.Realtime = Realtime;
       return null;
     }
     const handlers = {
+      ...partyHandlers,
       msg(m) {
         const text = str(m.text, 1000), r = m.room === 'global' ? GLOBAL : rooms[m.room];
         const f = m.file && typeof m.file.ref === 'string' && ASSET_ID.test(m.file.ref)
@@ -5058,6 +5672,7 @@ else globalThis.Realtime = Realtime;
         db.doc(`rooms/${m.room}/msgs/${d.id}`).set({ from: d.from, ts: d.ts, deleted: true, text: '' }).catch(writeError);
       },
       logout() {
+        if (myParty) partyHandlers.partyLeave();
         if (game && !game.over) handlers.gameLeave({ id: game.id });
         if (myInvite) clearInvite();
         signedOut = true;
@@ -5174,6 +5789,7 @@ else globalThis.Realtime = Realtime;
       setPresence({ uid: myId, status: signedOut ? 'offline' : 'online', inGame: null, invite: null, reply: null });
       db.collection('profiles').onSnapshot(onProfiles, dbError);
       db.collection('rooms').onSnapshot(onRooms, dbError);
+      db.collection('parties').onSnapshot(onParties, dbError);
       subscribeMsgs('global');
       if (room) room.onPeers(onLobby, () => { lobbyPeers = []; pushUsers(); });
       setInterval(() => {
@@ -5408,9 +6024,9 @@ else globalThis.Realtime = Realtime;
         renderTyping();
         if (below && fromOther) { S.newBelow = (S.newBelow || 0) + 1; updateJump(); }
       }
-      // You hear about it when you're on another tab or in another chat. An @mention always
-      // pings (even in a muted chat); a direct message pings unless that chat is muted.
-      const away = m.room !== S.current || document.hidden;
+      // You hear about it when you're on another tab, in another app, or in another chat. An
+      // @mention always pings (even in a muted chat); a direct message pings unless it's muted.
+      const away = m.room !== S.current || notLooking();
       if (away && fromOther && !isBlocked(m.msg.from)) {
         S.unread[m.room] = (S.unread[m.room] || 0) + 1;
         const mentioned = mentionsMe(m.msg.text);
@@ -5429,6 +6045,13 @@ else globalThis.Realtime = Realtime;
       const room = S.rooms[m.room];
       const i = room ? room.messages.findIndex((x) => x.id === m.msg.id) : -1;
       if (i < 0) return;
+      // someone edited a message to @mention you: that counts as a mention
+      const before = room.messages[i];
+      if (m.msg.from && m.msg.from !== S.me.username && !isBlocked(m.msg.from) && mentionsMe(m.msg.text) && !mentionsMe(before.text) && (m.room !== S.current || notLooking())) {
+        S.mentions[m.room] = true;
+        ping();
+        renderRooms();
+      }
       room.messages[i] = m.msg;
       if (m.msg.deleted && ((editing && editing.id === m.msg.id) || (replyTo && replyTo.id === m.msg.id))) cancelCompose();
       else if (editing && editing.id === m.msg.id) editing = m.msg;
@@ -5458,6 +6081,8 @@ else globalThis.Realtime = Realtime;
       showInvite(m.invite);
     },
     gameStart(m) { closeModal(); GameDock.start(m); renderPeople(); },
+    parties(m) { PartyUI.list(m.list); renderPeople(); updateGamesBtn(); },
+    party(m) { if (m.party && !$('#modal').classList.contains('hidden') && PartyUI.isOpen()) closeModal(); PartyUI.state(m.party); },
     gameState(m) { GameDock.state(m); },
     gameEvent(m) { GameDock.event(m); },
     gameOver(m) { GameDock.over(m); },
@@ -5522,6 +6147,8 @@ else globalThis.Realtime = Realtime;
   }
   function signOut() {
     if (CALLS) Calls.hangUp();
+    send({ t: 'partyLeave' });
+    PartyUI.state(null);
     if (ARTIFACT) {
       send({ t: 'logout' });
       store.set('chatSignedIn:' + S.me.username, null);
@@ -5636,6 +6263,19 @@ else globalThis.Realtime = Realtime;
   }
   // Notification sounds, made on the fly: [frequency, start, length, wave, loudness]
   let actx = null;
+  // Browsers only let a page make sound after you've clicked or typed on it, so get the sound
+  // ready on your first click or key press; otherwise the first pings would be silent.
+  function unlockAudio() {
+    try {
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      if (actx.state === 'suspended') actx.resume().catch(() => {});
+      if (actx.state === 'running') { removeEventListener('pointerdown', unlockAudio, true); removeEventListener('keydown', unlockAudio, true); }
+    } catch { /* no audio here */ }
+  }
+  addEventListener('pointerdown', unlockAudio, true);
+  addEventListener('keydown', unlockAudio, true);
+  // not looking at the chat: another tab, a minimized window, or another app in front
+  const notLooking = () => document.hidden || !document.hasFocus() || !!document.querySelector('#partyView:not(.hidden), #gameDock.full:not(.hidden):not(.min)');
   const SOUNDS = {
     ding: { label: 'Ding', notes: [[1318.5, 0, 0.9, 'sine', 1], [2637, 0, 0.45, 'sine', 0.35]] },
     chime: { label: 'Chime', notes: [[880, 0, 0.5, 'sine', 0.9], [1318.5, 0.13, 0.7, 'sine', 0.9]] },
@@ -5714,9 +6354,11 @@ else globalThis.Realtime = Realtime;
     const n = Object.entries(S.unread).reduce((a, [id, c]) => a + (isMuted(id) && !S.mentions[id] ? 0 : c), 0);
     document.title = (n ? `(${n}) ` : '') + 'Game Chat';
   }
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden && S.unread[S.current]) { delete S.unread[S.current]; delete S.mentions[S.current]; renderRooms(); updateTitle(); }
-  });
+  const backToChat = () => {
+    if (S.me && !notLooking() && S.unread[S.current]) { delete S.unread[S.current]; delete S.mentions[S.current]; renderRooms(); updateTitle(); }
+  };
+  document.addEventListener('visibilitychange', backToChat);
+  window.addEventListener('focus', backToChat);
 
   function systemDark() {
     const t = document.documentElement.dataset.theme;
@@ -5766,7 +6408,7 @@ else globalThis.Realtime = Realtime;
     const x = userOf(u);
     return h('li', { onclick: () => showProfile(u) }, avatar(u),
       h('span', { class: 'grow' }, x.name, u === S.me.username ? h('small', {}, ' (you)') : null, ' ',
-        x.inGame ? h('small', {}, `🎮 ${gameName(x.inGame)}`) : h('small', { title: x.custom || '' }, x.custom || PRESENCE_LABEL[x.presence]),
+        x.inGame ? h('small', {}, `🎮 ${gameName(x.inGame)}`) : PartyUI.where(u) ? h('small', {}, `🎨 ${PartyUI.where(u)}`) : h('small', { title: x.custom || '' }, x.custom || PRESENCE_LABEL[x.presence]),
         isBlocked(u) ? h('small', { class: 'blocked-tag' }, ' blocked') : null));
   }
   function renderPeople() {
@@ -6434,6 +7076,7 @@ else globalThis.Realtime = Realtime;
   // ---------------------------------------------------------------- modals
   let modalRefresh = null;
   function openModal(build, wide) {
+    if (!build.party) PartyUI.closed();
     const card = $('#modalCard');
     card.className = 'modal-card' + (wide ? ' wide' : '');
     card.replaceChildren(...[].concat(build()));
@@ -6448,6 +7091,7 @@ else globalThis.Realtime = Realtime;
   }
   window.uiConfirm = uiConfirm;
   function closeModal() {
+    PartyUI.closed();
     $('#modal').classList.add('hidden');
     $('#modalCard').replaceChildren();
     modalRefresh = null;
@@ -6795,6 +7439,17 @@ else globalThis.Realtime = Realtime;
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k' && S.me && !$('#app').classList.contains('hidden')) { e.preventDefault(); searchModal(); }
   });
   $('#requestGameBtn').addEventListener('click', () => gameModal());
+  $('#gamesBtn').addEventListener('click', () => PartyUI.openGames());
+  function updateGamesBtn() {
+    const n = PartyUI.openCount();
+    $('#gamesBtn').replaceChildren('🕹️ Games', n ? h('span', { class: 'badge games-badge', title: `${n} server${n === 1 ? '' : 's'} open` }, n) : '');
+  }
+  PartyUI.init({
+    send, toast, avatar, nameOf, uploadFile, closeModal, modalHead, confirm: uiConfirm, me: () => S.me,
+    openModal: (build, wide) => { const b = () => build(); b.party = true; b.refresh = () => $('#modalCard').replaceChildren(...[].concat(build())); openModal(b, wide); },
+    refreshModal: () => { if (PartyUI.isOpen()) refreshOpenModal(); },
+    shareInvite: (text) => { const r = S.rooms[S.current]; send({ t: 'msg', room: S.current, text }); toast(`Invite posted in ${r ? roomLabel(r) : 'the chat'}`); },
+  });
   $('#onlineBtn').addEventListener('click', () => openModal(() => [modalHead(`${onlineUsers().length} Online`),
     h('ul', { class: 'list' }, onlineUsers().map((u) => personRow(u.username)))]));
   $('#menuBtn').addEventListener('click', () => $('#app').classList.toggle('menu-open'));
