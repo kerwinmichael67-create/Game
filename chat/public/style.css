@@ -1006,3 +1006,12 @@ body[data-theme="dark"] .fav-btn.on { color: #c9c2ff; }
 .party-round h2 { font-size: 24px; }
 .party-round .task-card { padding: 8px 18px; }
 .party-round .task-card b { font-size: 20px; }
+
+/* full-window games from 🕹️ Games */
+.frame-view { position: fixed; inset: 0; z-index: 36; background: #000; display: flex; flex-direction: column; }
+.frame-view.hidden, .frame-pill.hidden { display: none; }
+.frame-head { display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: var(--surface); border-bottom: 1px solid var(--line); }
+.frame-head .grow { flex: 1; }
+.frame-head .party-title { font-size: 16px; }
+.frame-game { flex: 1; width: 100%; min-height: 0; border: 0; display: block; background: #000; }
+.frame-pill { left: auto; right: 18px; bottom: 80px; }

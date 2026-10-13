@@ -1,4 +1,5 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html><head>
+<script src="net.js"></script><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -563,7 +564,7 @@ kbd{
    =========================================================== */
 .srv-label{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);
   margin:14px 0 7px}
-.srv-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+.srv-grid{display:grid;grid-template-columns:repeat(9,1fr);gap:6px}
 .srv{background:#141b2e;border:1px solid var(--line);color:var(--ink);border-radius:8px;
   padding:9px 0;font:700 13px/1 inherit;cursor:pointer}
 .srv:hover{background:#24304d;border-color:#3d86c9}
@@ -582,7 +583,7 @@ kbd{
 
 /* the plaza chat should not sit under the build bar in battle */
 #battle-hud:not(.hidden) ~ .chat, .chat{bottom:124px}
-@media (max-width:720px){ .srv-grid{grid-template-columns:repeat(4,1fr)} }
+@media (max-width:720px){ .srv-grid{grid-template-columns:repeat(5,1fr)} }
 
 
 /* the chat moves aside for whichever HUD is showing */
@@ -7514,8 +7515,8 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   /* What the game does by itself at startup. */
   Coop.autoJoin = async function () {
     if (Coop.active) return true;
-    const want = TD.Save.data.settings.server;
-    const n = (typeof want === 'number' && want >= 1 && want <= Coop.SERVERS) ? want : 1;
+    // Joining puts you on a random public server (pick another one any time from Servers)
+    const n = 1 + Math.floor(Math.random() * Coop.SERVERS);
     const ok = await Coop.open({ kind: 'public', n: n });
     if (ok) TD.Chat.system('Joined ' + Coop.serverName());
     TD.UI.afterServerChange && TD.UI.afterServerChange();
@@ -9410,6 +9411,16 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
       b.onclick = () => { TD.Audio.ui(); TD.Coop.joinServer(n); };
       grid.appendChild(b);
     }
+    const rnd = el('button', 'srv srv-random', '🎲');
+    rnd.title = 'Join a random server';
+    rnd.onclick = () => {
+      TD.Audio.ui();
+      const cur = C.server && C.server.kind === 'public' ? C.server.n : 0;
+      let n = cur;
+      while (n === cur) n = 1 + Math.floor(Math.random() * C.SERVERS);
+      TD.Coop.joinServer(n);
+    };
+    grid.appendChild(rnd);
 
     /* who is here */
     const list = $('#coop-players');

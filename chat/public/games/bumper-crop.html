@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="net.js"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Bumper Crop Online</title>
@@ -344,6 +345,31 @@ body.touch #toasts{bottom:calc(262px + env(safe-area-inset-bottom))}
 .danger-zone{margin-top:22px;padding-top:16px;border-top:2.5px dashed rgba(58,38,24,.4)}
 
 /* loading */
+/* ---------- home screen: Play, the server list and settings ---------- */
+#home{position:fixed;inset:0;z-index:55;display:grid;place-items:center;padding:16px;overflow:auto;
+  background:linear-gradient(180deg,rgba(111,194,238,.92),rgba(214,240,251,.88));backdrop-filter:blur(3px)}
+#home[hidden],#home [hidden]{display:none!important}
+.home-wrap{width:min(1040px,100%);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,440px);gap:18px;align-items:start}
+.home-main{display:grid;gap:14px;justify-items:center;text-align:center;padding:20px 10px}
+.home-main .load-logo{font-size:min(84px,15vw)}
+.home-tag{font-weight:800;font-size:18px;color:var(--loam);max-width:34ch;margin-top:10px}
+.home-play{max-width:340px;height:74px!important;font-size:34px!important;margin-top:10px!important}
+.home-card{width:100%;background-color:var(--kraft);border:3px solid var(--loam);border-radius:24px;box-shadow:0 6px 0 var(--loam),0 26px 60px rgba(58,38,24,.3);
+  padding:16px 20px 20px;text-align:left}
+.home-card h3{font-family:var(--display);font-weight:400;font-size:24px;margin:0 0 8px}
+.home-srv-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.home-srvlist{display:grid;gap:10px;margin-top:12px;max-height:46vh;overflow:auto;padding:4px}
+.home-note{font-size:14px;opacity:.85;margin-top:10px}
+#home .home-settings{max-height:calc(100vh - 40px);overflow:auto}
+#home .namerow{display:flex;gap:8px;margin-bottom:14px}
+#home .namerow input{flex:1;min-width:0;height:46px;border:2.5px solid var(--loam);border-radius:12px;padding:0 12px;font:inherit;font-weight:700;background:var(--paper)}
+.home-sound{width:100%;justify-content:flex-start!important;margin-bottom:6px}
+/* the save sheet lives inside the home screen now */
+#home #sheet-save{position:static;transform:none;visibility:visible;width:auto;border:0;box-shadow:none!important;background:none;transition:none;z-index:auto}
+#home #sheet-save .sheet-head{display:none}
+#home #sheet-save .sheet-body{padding:0;overflow:visible}
+#home #sheet-save .sheet-body h3:first-of-type{margin-top:8px}
+@media (max-width:820px){.home-wrap{grid-template-columns:1fr}#home .home-settings{max-height:none}}
 #loading{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:linear-gradient(180deg,var(--sky-top),var(--sky-bot));transition:opacity .45s}
 #loading.done{opacity:0;pointer-events:none}
 .load-card{text-align:center;padding:24px}
@@ -539,7 +565,7 @@ body.compact .chat.open .chat-log{max-height:32vh}
       <span class="restock-txt"><small>Restock in</small><b id="restockTime">5:00</b></span>
     </button>
     <button class="icon-btn" id="soundBtn" aria-label="Sound on" aria-pressed="true"></button>
-    <button class="icon-btn" id="saveBtn" aria-label="Save and load"><span data-icon="save"></span><i class="save-dot" id="saveDot"></i></button>
+    <button class="icon-btn" id="saveBtn" aria-label="Home: servers and settings" title="Home: servers and settings"><span data-icon="save"></span><i class="save-dot" id="saveDot"></i></button>
   </div>
 </header>
 
@@ -626,6 +652,32 @@ body.compact .chat.open .chat-log{max-height:32vh}
   <div class="sheet-body" id="saveBody"></div>
 </aside>
 
+<div id="home" hidden>
+  <div class="home-wrap">
+    <div>
+      <div class="home-main" id="homeMain">
+        <div class="load-logo">Bumper Crop</div>
+        <p class="home-tag">Grow, harvest and sell crops on a shared yard with up to three other farmers.</p>
+        <button class="btn big home-play" id="homePlay" type="button">Play</button>
+        <button class="btn ghost" id="homeResume" type="button" hidden>Back to my farm</button>
+      </div>
+      <div class="home-card" id="homeServers" hidden>
+        <div class="home-srv-head"><h3>Servers</h3><button class="btn ghost" id="homeBack" type="button">‹ Back</button></div>
+        <button class="btn big" id="homeRandom" type="button">Join a random server</button>
+        <div class="home-srvlist" id="homeSrvList"></div>
+        <p class="home-note" id="homeSrvNote">Your coins, seeds, pets and plants travel with you. Every server has four plots, its own weather and its own chat.</p>
+        <button class="btn ghost" id="homeOffline" type="button" hidden>Farm offline for now</button>
+      </div>
+    </div>
+    <div class="home-card home-settings" id="homeSettings">
+      <h3>Settings</h3>
+      <label for="homeName" style="font-weight:800">Your farmer name</label>
+      <div class="namerow"><input id="homeName" maxlength="16" spellcheck="false" aria-label="Farmer name"><button class="btn" id="homeNameSave" type="button">Save</button></div>
+      <button class="btn ghost home-sound" id="homeSound" type="button"></button>
+      <div id="homeSaveSlot"></div>
+    </div>
+  </div>
+</div>
 <div class="modal" id="nameCard" hidden>
   <form class="modal-box" id="nameForm" autocomplete="off">
     <div class="load-logo">Bumper Crop</div>
@@ -5934,7 +5986,7 @@ function onSaveStatus() {
   if (el) el.textContent = saveStatusText();
 }
 function renderSave() {
-  if (ui.sheet !== 'save') return;
+  if (ui.sheet !== 'save' && !homeUI.open) return;
   const s = state.stats;
   $('#saveBody').innerHTML = `
     <div class="save-block">
@@ -6120,7 +6172,7 @@ function bindUI() {
     if (buy) buyGear(buy.dataset.gear);
     else if (max) buyGearMax(max.dataset.gearmax);
   });
-  $('#saveBtn').addEventListener('click', () => openSheet('save'));
+  $('#saveBtn').addEventListener('click', () => showHome());
   $('#basketChip').addEventListener('click', () => openSheet('market'));
   $('#restockChip').addEventListener('click', () => openSheet('shop'));
   $('#soundBtn').addEventListener('click', toggleSound);
@@ -6165,11 +6217,12 @@ function bindUI() {
   });
   bindStick();
   bindNet();
+  bindHome();
 
   const KEYMAP = { w: 'f', a: 'l', s: 'b', d: 'r', arrowup: 'f', arrowleft: 'l', arrowdown: 'b', arrowright: 'r' };
   window.addEventListener('keydown', e => {
     if (e.target.matches('textarea, input')) { if (e.key === 'Escape') e.target.blur(); return; }
-    if (!$('#nameCard').hidden) return;
+    if (!$('#nameCard').hidden || homeUI.open) return;
     const k = e.key.toLowerCase();
     if (KEYMAP[k]) { MOVE[KEYMAP[k]] = 1; if (ui.sheet) closeSheet(); e.preventDefault(); Sound.init(); return; }
     if (k === 'shift') { MOVE.run = true; return; }
@@ -6294,8 +6347,18 @@ function netHandle(m) {
       if (m.name && m.name !== Net.name) { Net.name = m.name; lsSet(NAME_KEY, m.name); }
       Net.list = Array.isArray(m.list) ? m.list : [];
       const room = lsGet(ROOM_KEY);
-      Net.rejoin = !!room;
-      Net.send({ t: 'join', room: room || 'auto', slot: +(lsGet(SLOT_KEY) || 0) });
+      if (Net.joined && room) {
+        // the connection dropped: go back to the server we were on
+        Net.rejoin = true;
+        Net.send({ t: 'join', room, slot: +(lsGet(SLOT_KEY) || 0) });
+      } else if (Net.want) {
+        Net.send({ t: 'join', room: Net.want, slot: +(lsGet(SLOT_KEY) || 0) });
+        Net.want = null;
+      } else {
+        // connected: wait on the home screen until a server is picked
+        Net.status = 'online';
+        syncNetHUD(); renderServers();
+      }
       break;
     }
     case 'joined': netJoined(m); break;
@@ -6808,6 +6871,7 @@ function syncNetHUD() {
   syncChatInput();
 }
 function renderServers() {
+  renderHomeServers();
   if (ui.sheet !== 'servers') return;
   const body = $('#srvBody');
   if (!body.querySelector('#srvStatus')) {
@@ -6853,6 +6917,81 @@ function renameMe(raw) {
   if (Net.ws && Net.ws.readyState === 1) Net.send({ t: 'name', name });
   refreshPlotSigns();
   return true;
+}
+/* ---- the home screen: Play, the server list, and settings (moved here from the save sheet) ---- */
+const homeUI = { open: false, view: 'main' };
+function showHome(view) {
+  if (ui.sheet) closeSheet();
+  homeUI.open = true; homeUI.view = view || 'main';
+  const slot = $('#homeSaveSlot'), sheet = $('#sheet-save');
+  if (sheet.parentNode !== slot) slot.appendChild(sheet);   // the save & codes panel moves in with all its buttons
+  $('#home').hidden = false;
+  $('#homeName').value = Net.name || '';
+  syncHomeSound();
+  renderSave();
+  syncHomeView();
+}
+function hideHome() {
+  homeUI.open = false;
+  $('#home').hidden = true;
+  $('#scene').focus({ preventScroll: true });
+}
+function syncHomeView() {
+  const srv = homeUI.view === 'servers';
+  $('#homeMain').hidden = srv;
+  $('#homeServers').hidden = !srv;
+  $('#homePlay').textContent = Net.room ? 'Servers' : 'Play';
+  $('#homeResume').hidden = !Net.room && !homeUI.offline;
+  renderHomeServers();
+}
+function syncHomeSound() {
+  const b = $('#homeSound');
+  if (b) b.innerHTML = (state.opt.sound ? ICON.soundOn : ICON.soundOff) + `<span>Sound ${state.opt.sound ? 'on' : 'off'}</span>`;
+}
+function renderHomeServers() {
+  if (!homeUI.open || homeUI.view !== 'servers') return;
+  const list = Net.list || [], open = list.filter(sv => sv.n < sv.max && sv.id !== Net.room);
+  const online = Net.status === 'online' || Net.status === 'joining';
+  $('#homeRandom').disabled = !online || !open.length;
+  $('#homeRandom').textContent = !online ? 'Connecting to the servers…' : open.length ? (Net.room ? 'Move to a random server' : 'Join a random server') : 'Every server is full';
+  $('#homeOffline').hidden = online;
+  const now = slotNow();
+  $('#homeSrvList').innerHTML = list.length ? list.map(sv => {
+    const wx = weatherFor(now, 'srv:' + sv.id), isHere = sv.id === Net.room, full = sv.n >= sv.max;
+    const dots = (sv.players || []).map((nm, k) => `<i style="${nm ? `background:${SLOT_LOOK[k].tag}` : ''}" title="${nm ? esc(nm) : 'Open plot'}"></i>`).join('');
+    return `<article class="srvcard${isHere ? ' here' : ''}">
+      <div class="srv-wx">${ICON[wx] || ICON.sun}</div>
+      <div><h4>${esc(sv.name)}</h4><p>${wx ? WEATHER[wx].name : 'Clear skies'} · ${sv.n} of ${sv.max} farmers</p><div class="srv-dots">${dots}</div></div>
+      <button class="btn${isHere ? ' ghost' : ''}" data-homejoin="${esc(sv.id)}" ${isHere || full || !online ? 'disabled' : ''}>${isHere ? 'Here' : full ? 'Full' : 'Join'}</button>
+    </article>`;
+  }).join('') : `<div class="empty"><p>${online ? 'Loading the server list…' : 'Connecting to the servers…'}</p></div>`;
+}
+function homeJoin(id) {
+  const nm = cleanName($('#homeName').value);
+  if (nm && nm !== Net.name) renameMe(nm);
+  Sound.init();
+  hideHome();
+  if (Net.room) return joinServer(id);
+  if (Net.status !== 'online') { Net.want = id; toast('Connecting…'); return; }
+  showTravel((Net.list.find(x => x.id === id) || {}).name || 'the farm');
+  Net.send({ t: 'join', room: id, slot: +(lsGet(SLOT_KEY) || 0) });
+}
+function bindHome() {
+  $('#homePlay').addEventListener('click', () => { Sound.init(); homeUI.view = 'servers'; syncHomeView(); if (Net.status === 'online') Net.send({ t: 'list' }); });
+  $('#homeBack').addEventListener('click', () => { homeUI.view = 'main'; syncHomeView(); });
+  $('#homeResume').addEventListener('click', () => hideHome());
+  $('#homeOffline').addEventListener('click', () => { homeUI.offline = true; hideHome(); toast('Farming offline. Open Home to join a server when it connects.'); });
+  $('#homeRandom').addEventListener('click', () => {
+    // pressing Join drops you on a random server that still has room
+    const open = (Net.list || []).filter(sv => sv.n < sv.max && sv.id !== Net.room);
+    if (!open.length) { toast('Every server is full right now'); Sound.play('error'); return; }
+    homeJoin(open[Math.floor(Math.random() * open.length)].id);
+  });
+  $('#homeSrvList').addEventListener('click', e => { const j = e.target.closest('[data-homejoin]'); if (j && !j.disabled) homeJoin(j.dataset.homejoin); });
+  $('#homeNameSave').addEventListener('click', () => { if (renameMe($('#homeName').value)) { $('#homeName').value = Net.name; toast(`You are now ${Net.name}`); } });
+  $('#homeName').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('#homeNameSave').click(); } });
+  $('#homeSound').addEventListener('click', () => { toggleSound(); syncHomeSound(); });
+  addEventListener('keydown', e => { if (homeUI.open && e.key === 'Escape' && Net.room) hideHome(); }, true);
 }
 function askName() {
   const card = $('#nameCard'), inp = $('#nameIn');
@@ -7010,7 +7149,10 @@ async function boot() {
 
   syncNetHUD();
   Net.name = cleanName(lsGet(NAME_KEY));
-  if (Net.name) { refreshPlotSigns(); netStart(); } else askName();
+  if (!Net.name) Net.name = randomName();
+  refreshPlotSigns();
+  netStart();      // connects and lists the servers; you join one from the home screen
+  showHome();
 
   const away = state.savedAt ? Date.now() - state.savedAt : 0;
   const load = $('#loading');

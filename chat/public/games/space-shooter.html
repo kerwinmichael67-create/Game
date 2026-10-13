@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8">
+<html lang="en"><head>
+<script src="net.js"></script><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Space Shooter</title>
 <style>
@@ -7,8 +8,27 @@
 html,body{height:100%;margin:0;background:#05060f;color:#cfe;font-family:system-ui,sans-serif;overflow:hidden}
 body{display:flex;flex-direction:column;align-items:center;justify-content:center}
 canvas{background:#05060f;max-width:100%;max-height:calc(100% - 8px);touch-action:none;border:1px solid #234}
+/* co-op servers */
+#coopBtn{position:fixed;top:10px;right:10px;z-index:5;background:rgba(10,20,40,.85);color:#cfe;border:1px solid #3a8cff;border-radius:8px;padding:8px 12px;font:bold 13px system-ui;cursor:pointer}
+#coopBtn:hover{background:#13284a}
+#coopBtn[hidden],#coopPanel[hidden]{display:none}
+#coopPanel{position:fixed;inset:0;z-index:6;display:flex;align-items:center;justify-content:center;background:rgba(2,4,12,.78);padding:16px}
+.cp{width:min(420px,100%);max-height:100%;overflow:auto;background:#0a1328;border:1px solid #3a8cff;border-radius:12px;padding:18px;box-shadow:0 20px 60px #000a}
+.cp h2{margin:0 0 4px;font-size:20px;color:#fff}
+.cp p{margin:6px 0;font-size:13.5px;color:#9cd;line-height:1.45}
+.cp b{color:#fff}
+.cp button{font:bold 13px system-ui;border-radius:8px;padding:8px 12px;cursor:pointer;border:1px solid #3a8cff;background:#13284a;color:#cfe}
+.cp button.main{width:100%;padding:12px;font-size:15px;background:linear-gradient(#3a8cff,#2a6ad0);color:#fff;border:0;margin:8px 0}
+.cp button:disabled{opacity:.45;cursor:default}
+.cp .row{display:flex;gap:8px;margin-top:10px}
+.cp .srv{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid #234;border-radius:8px;margin-top:6px;font-size:13px}
+.cp .srv.here{border-color:#66eeff}
+.cp .srv span{margin-left:auto;color:#9cd}
+.cp ul{margin:6px 0;padding-left:18px;font-size:13.5px}
 </style></head><body>
 <canvas id="c" width="480" height="720"></canvas>
+<button id="coopBtn" hidden>👥 Co-op</button>
+<div id="coopPanel" hidden><div class="cp" id="coopBody"></div></div>
 <script>
 const cv=document.getElementById('c'),g=cv.getContext('2d'),W=480,H=720;
 let keys={},touch=null,state='title',lvl=1,kills=0,fuel=100,hull=3,score=0,t=0;
@@ -17,14 +37,204 @@ stars=Array.from({length:150},(_,i)=>{const l=i%3;return{x:Math.random()*W,y:Mat
 function reset(full){ship={x:W/2,y:H-90,cd:0,inv:0,sh:0,rf:0,tri:(!full&&ship&&ship.tri)||0};bullets=[];ebul=[];rocks=[];foes=[];pups=[];allies=[];parts=[];rings=[];bombs=[];reinfLeft=CALLS();boss=null;bossDone=false;planet=null;kills=0;
  if(full){reinfCd=0;lvl=1;fuel=100;hull=SH.hull;score=0}}
 function say(m){msg=m;msgT=120}
-addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=1;if(e.key===' '||e.key==='Tab')e.preventDefault();const rk={r:'F',e:'B',g:'G',h:'H',t:'T',c:'D'}[e.key.toLowerCase()];if(rk)callReinf(rk);if(state==='title'){if(e.key==='?'||e.key.toLowerCase()==='h')tHelp=!tHelp;else if(!tHelp&&e.key.toLowerCase()==='b'){state='select';hTab=2}else if(tHelp&&e.key!==' '&&e.key!=='Enter')tHelp=false}if(state==='select')navSel(e.key.toLowerCase());if(state==='map')navMap(e.key.toLowerCase());if(state==='brief'&&e.key.toLowerCase()==='m')toMap();if(state==='over'&&e.key.toLowerCase()==='h')state='select';
+addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=1;if(e.key===' '||e.key==='Tab')e.preventDefault();if(Coop.mate())return;const rk={r:'F',e:'B',g:'G',h:'H',t:'T',c:'D'}[e.key.toLowerCase()];if(rk)callReinf(rk);if(state==='title'){if(e.key==='?'||e.key.toLowerCase()==='h')tHelp=!tHelp;else if(!tHelp&&e.key.toLowerCase()==='b'){state='select';hTab=2}else if(tHelp&&e.key!==' '&&e.key!=='Enter')tHelp=false}if(state==='select')navSel(e.key.toLowerCase());if(state==='map')navMap(e.key.toLowerCase());if(state==='brief'&&e.key.toLowerCase()==='m')toMap();if(state==='over'&&e.key.toLowerCase()==='h')state='select';
  if(e.key===' '||e.key==='Enter')advance()});
 addEventListener('keyup',e=>keys[e.key.toLowerCase()]=0);
 function pos(e){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)*W/r.width,y:(e.clientY-r.top)*H/r.height}}
-cv.addEventListener('pointerdown',e=>{const q=pos(e);if(state==='play'){const ow=Object.keys(REINF).filter(k=>SAVE.rf.includes(k)),bi=ow.findIndex((k,i)=>hit(q,{x:W-30-i*56,y:H-36},28));if(bi>=0){callReinf(ow[bi]);return}}if(state==='title'){if(tHelp){tHelp=false;return}const bx=(x,y,w,h)=>q.x>=x&&q.x<=x+w&&q.y>=y&&q.y<=y+h;if(bx(60,508,170,34)){state='select';hTab=0;return}if(bx(250,508,170,34)){state='select';hTab=2;return}if(bx(150,550,180,32)){tHelp=true;return}advance();return}if(state==='brief'&&q.x<130&&q.y>670){toMap();return}if(state==='select'){selTap(q);return}if(state==='map'){mapTap(q);return}if(state!=='play'&&state!=='land'){advance();return}touch=q});
+cv.addEventListener('pointerdown',e=>{const q=pos(e);if(Coop.mate()){touch=q;return}if(state==='play'){const ow=Object.keys(REINF).filter(k=>SAVE.rf.includes(k)),bi=ow.findIndex((k,i)=>hit(q,{x:W-30-i*56,y:H-36},28));if(bi>=0){callReinf(ow[bi]);return}}if(state==='title'){if(tHelp){tHelp=false;return}const bx=(x,y,w,h)=>q.x>=x&&q.x<=x+w&&q.y>=y&&q.y<=y+h;if(bx(60,508,170,34)){state='select';hTab=0;return}if(bx(250,508,170,34)){state='select';hTab=2;return}if(bx(150,550,180,32)){tHelp=true;return}advance();return}if(state==='brief'&&q.x<130&&q.y>670){toMap();return}if(state==='select'){selTap(q);return}if(state==='map'){mapTap(q);return}if(state!=='play'&&state!=='land'){advance();return}touch=q});
 cv.addEventListener('pointermove',e=>{if(touch)touch=pos(e)});
 addEventListener('pointerup',()=>touch=null);
 const hit=(a,b,r)=>Math.hypot(a.x-b.x,a.y-b.y)<r;
+/* ======================================================================
+   CO-OP — servers in the chat's 🕹️ Games (window.claude rooms).
+   Everyone on a server flies the host's missions together. The host's
+   game runs the mission (enemies, hits, the shared hull and fuel) and
+   shares it ~20 times a second; every other pilot flies their own ship
+   on their own screen and shares where it is and whether it's firing.
+   ====================================================================== */
+const Coop=(()=>{
+  const SERVERS=6,MAX=4,WORLD=['brief','play','land','over','win'];
+  const C={srv:0,lobby:null,room:null,peers:[],pres:new Map(),lobbyPeers:[],name:'Pilot',t0:0,offs:[],busy:false,queued:null,
+    mates:[],me:null,snap:null,viewing:false,evs:[],evSeq:0,lastEv:0,sendAt:0,lastIn:'',inAt:0,status:'',joining:false,lastScore:null,wasHost:false};
+  const btn=document.getElementById('coopBtn'),panel=document.getElementById('coopPanel'),body=document.getElementById('coopBody');
+  const r1=v=>Math.round(v*10)/10,r0=Math.round;
+  let lobbyP=null;
+  if(window.claude){btn.hidden=false}
+  function lobby(){
+    if(!lobbyP)lobbyP=(async()=>{
+      const room=window.claude&&await window.claude.use('room');if(!room)return null;
+      C.lobby=room;room.onPeers(ch=>{C.lobbyPeers=ch.peers;if(!panel.hidden)render()},()=>{});
+      try{const u=await window.claude.use('user'),me=u&&await u.me();if(me&&me.name)C.name=String(me.name).slice(0,16)}catch(e){}
+      return room})();
+    return lobbyP}
+  const myPeer=()=>{const m=C.peers.find(q=>q.isMe);return m?m.peer:''};
+  function crew(){return C.peers.filter(q=>q.presence&&q.presence.t).map(q=>({peer:q.peer,nm:String(q.presence.nm||'Pilot').slice(0,16),t:+q.presence.t,isMe:q.isMe,s:+q.presence.s||0,g:q.presence.g,inp:q.presence.in}))
+    .sort((a,b)=>a.t-b.t||(a.peer<b.peer?-1:1))}
+  const host=()=>crew()[0];
+  const isHost=()=>!C.srv||!!(host()&&host().isMe);
+  const mate=()=>C.viewing;
+  function send(patch){if(!C.room)return;if(C.busy){C.queued=Object.assign(C.queued||{},patch);return}C.busy=true;const room=C.room;
+    room.presence(patch).catch(()=>{}).then(()=>{C.busy=false;if(C.queued&&C.room===room){const q=C.queued;C.queued=null;send(q)}})}
+  function counts(){const c=new Array(SERVERS+1).fill(0);C.lobbyPeers.forEach(q=>{const n=q.presence&&q.presence.srv;if(n>=1&&n<=SERVERS)c[n]++});return c}
+  async function join(n){
+    if(C.joining)return;C.joining=true;C.status='Joining server '+n+'…';render();
+    try{if(C.srv)await leave();const lob=await lobby();if(!lob){C.status="Co-op isn't available here.";return}
+      const room=await lob.join('srv-'+n);C.room=room;C.srv=n;C.t0=Date.now();C.peers=[];C.status='';
+      C.offs.push(room.onPeers(onPeers,()=>{}));
+      send({nm:C.name,t:C.t0,s:Math.max(0,SHIPS.indexOf(SH))});lob.presence({srv:n}).catch(()=>{});
+    }catch(e){C.status="Couldn't reach that server.";C.room=null;C.srv=0}
+    finally{C.joining=false;render()}}
+  function joinRandom(){const c=counts(),open=[];for(let n=1;n<=SERVERS;n++)if(n!==C.srv&&c[n]<MAX)open.push(n);
+    if(!open.length){C.status='Every server is full right now.';render();return}join(open[Math.floor(Math.random()*open.length)])}
+  async function leave(){
+    stopView();const room=C.room;C.offs.forEach(f=>{try{f()}catch(e){}});C.offs=[];C.room=null;C.srv=0;C.peers=[];C.mates=[];C.busy=false;C.queued=null;
+    if(C.lobby)C.lobby.presence({srv:null}).catch(()=>{});if(room)await room.leave().catch(()=>{});render()}
+  function stopView(){if(C.viewing){C.viewing=false;C.snap=null;C.lastScore=null;reset(true);state='title';save()}}
+  function render(){
+    const c=counts(),cr=crew(),h=cr[0];let o='<h2>👥 Co-op</h2>';
+    if(C.status)o+=`<p>${esc(C.status)}</p>`;
+    if(!C.srv){o+='<p>Fly the campaign together: up to 4 pilots per server share one hull and one fuel tank, and the host picks the mission.</p>';
+      o+=`<button class="main" data-random ${C.joining?'disabled':''}>Join a random server</button>`}
+    else{o+=`<p>You're on <b>Server ${C.srv}</b> with ${cr.length} pilot${cr.length===1?'':'s'}:</p><ul>${cr.map((p,i)=>`<li>${esc(p.nm)}${p.isMe?' (you)':''}${i===0?' — host':''} · ${esc((SHIPS[p.s]||SHIPS[0]).n)}</li>`).join('')}</ul>`;
+      o+=h&&h.isMe?'<p>You\'re the host: pick a mission and everyone here flies it with you.</p>':`<p><b>${esc(h?h.nm:'The host')}</b> picks the mission. You'll join as soon as it launches — fly with the arrows or WASD, hold SPACE to shoot.</p>`;
+      o+='<div class="row"><button data-random>Random server</button><button data-leave>Leave server</button></div>'}
+    for(let n=1;n<=SERVERS;n++){const here=n===C.srv,full=c[n]>=MAX;o+=`<div class="srv${here?' here':''}"><b>Server ${n}</b><span>${c[n]}/${MAX} pilots</span><button data-srv="${n}" ${here||full||C.joining?'disabled':''}>${here?'Here':full?'Full':'Join'}</button></div>`}
+    o+='<div class="row"><button data-close style="margin-left:auto">Back to the game</button></div>';
+    body.innerHTML=o;
+    btn.textContent=C.srv?`👥 Server ${C.srv} · ${cr.length}`:'👥 Co-op'}
+  body.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled)return;
+    if(b.dataset.srv)join(+b.dataset.srv);else if('random' in b.dataset)joinRandom();else if('leave' in b.dataset)leave();else if('close' in b.dataset)panel.hidden=true});
+  btn.addEventListener('click',()=>{panel.hidden=false;render();if(!C.srv)lobby().then(r=>{if(!r)C.status="Co-op isn't available here.";render()})});
+  const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  function onPeers(ch){
+    C.peers=ch.peers;const cr=crew(),h=cr[0],me=myPeer();
+    if(h&&h.isMe){
+      if(C.viewing){stopView();say('You are the co-op host now')}
+      // keep one record per other pilot; their ship moves where they fly it
+      const keep=new Map(C.mates.map(m=>[m.peer,m]));
+      C.mates=cr.slice(1,MAX).map((p,i)=>{const m=keep.get(p.peer)||{peer:p.peer,x:W/2+(i%2?60:-60)*(1+(i>>1)),y:H-90,f:0,inv:120,sh:0,tri:0,rf:0,cd:0};
+        m.nm=p.nm;m.s=SHIPS[p.s]?p.s:0;if(p.inp&&typeof p.inp.x==='number'){m.x=p.inp.x;m.y=p.inp.y;m.f=p.inp.f}return m});
+    }else if(h&&cr.slice(0,MAX).some(p=>p.peer===me)){
+      // on someone else's server you fly their missions; between missions you wait for the next one
+      if(!C.viewing)startView();
+      if(h.g){C.snap=h.g;apply(h.g)}
+    }
+    if(!panel.hidden)render();else btn.textContent=C.srv?`👥 Server ${C.srv} · ${cr.length}`:'👥 Co-op';
+  }
+
+  /* ---------------- host ---------------- */
+  const tgt=o=>{let best=ship,bd=Math.hypot(ship.x-o.x,ship.y-o.y);if(C.viewing)return best;
+    C.mates.forEach(m=>{const d=Math.hypot(m.x-o.x,m.y-o.y);if(d<bd){bd=d;best=m}});return best};
+  function hostFire(){
+    if(C.viewing||!C.srv)return;
+    C.mates.forEach(m=>{const S=SHIPS[m.s]||SHIPS[0];m.cd--;if(m.tri>0)m.tri--;if(m.rf>0)m.rf--;
+      if(m.f&&m.cd<=0){const bd=S.dm||1,pc=S.pierce?1:0;if(m.tri>0||S.tri)[-2.2,0,2.2].forEach(v=>bullets.push({x:m.x,y:m.y-18,vx:v,d:bd,pc}));else bullets.push({x:m.x,y:m.y-18,vx:0,d:bd,pc});m.cd=m.rf>0?Math.ceil(S.cd/2):S.cd}
+      if(t%2===0)parts.push({x:m.x+(Math.random()-.5)*5,y:m.y+16,vx:(Math.random()-.5)*.5,vy:1.8+Math.random(),l:12,c:'#ffaa44',s:1.2})})}
+  function hostHits(){
+    if(C.viewing||!C.srv||state!=='play')return;
+    C.mates.forEach(m=>{const S=SHIPS[m.s]||SHIPS[0];
+      pups.forEach(p=>{if(p.dead||!hit(p,m,24))return;p.dead=1;const k=p.k;boom(p.x,p.y,16,PU[k][0]);
+        if(k==='T'){m.tri=600;say(m.nm+': triple shot!')}else if(k==='L'){hull=Math.min(SH.maxH,hull+1);say('Hull repaired +1')}else if(k==='F'){fuel=Math.min(100,fuel+25);say('Fuel +25')}
+        else if(k==='S'){m.sh=480;say(m.nm+': shield!')}else if(k==='R'){m.rf=480;say(m.nm+': rapid fire!')}else if(k==='W'){reinfLeft++;say('+1 reinforcement call')}else if(k==='B'){nuke();say('Bomb!')}});
+      if(m.sh>0){m.sh--;ebul=ebul.filter(b=>!hit(b,m,30));rocks.forEach(r=>{if(hit(r,m,r.r+26)){r.dead=1;boom(r.x,r.y,8,'#aa9')}});return}
+      if(m.inv>0){m.inv--;return}
+      const h=rocks.some(r=>hit(r,m,r.r+10))||foes.some(f=>hit(f,m,(f.r||18)+8))||(boss&&hit(boss,m,50))||(boss&&boss.bm>0&&Math.abs(m.x-boss.bx)<20)||ebul.some(b=>hit(b,m,12));
+      if(h&&state==='play'){hull--;m.inv=S.inv||90;boom(m.x,m.y,24,S.c);ebul=ebul.filter(b=>!hit(b,m,60));foes.forEach(f=>{if(hit(f,m,(f.r||18)+8)&&f.k!=='H')f.dead=1});say(m.nm+' took a hit!');if(hull<=0){state='over';say('Ship destroyed')}}});
+    pups=pups.filter(p=>!p.dead);rocks=rocks.filter(r=>!r.dead);foes=foes.filter(f=>!f.dead)}
+  function ev(x,y,n,c){if(C.viewing||!C.srv||!C.mates.length)return;C.evs.push([performance.now(),[++C.evSeq,r0(x),r0(y),Math.min(n,40),c]]);if(C.evs.length>30)C.evs.shift()}
+  const rb=o=>{const out={};for(const k in o){const v=o[k];if(typeof v==='number')out[k]=r1(v);else if(typeof v!=='object')out[k]=v}return out};
+  function snap(){
+    const now=performance.now(),world=WORLD.includes(state);
+    if(!world)return{st:state};
+    C.evs=C.evs.filter(e=>now-e[0]<700);
+    const g={st:state,lv:lvl,k:kills,sc:score,fu:r1(fuel),hu:hull,mh:SH.maxH,hs:Math.max(0,SHIPS.indexOf(SH)),m:msgT>0?[msg,msgT]:null,rc:reinfLeft,
+      sh:[r0(ship.x),r0(ship.y),ship.inv|0,ship.sh|0,ship.tri|0,ship.rf|0],
+      ma:C.mates.map(m=>[m.peer,r0(m.x),r0(m.y),m.inv|0,m.sh|0,m.s,m.tri|0,m.rf|0]),
+      r:rocks.map(r=>[r0(r.x),r0(r.y),r0(r.r),r1(r.a),r1(r.sd||1),r1(r.vx),r1(r.vy)]),
+      f:foes.map(f=>[f.k||'S',r0(f.x),r0(f.y),f.hp,f.mhp,f.fl|0,r1(f.ph||0)]),
+      e:ebul.slice(-80).map(b=>[r0(b.x),r0(b.y),r1(b.vx),r1(b.vy),b.c||'',b.r||0]),
+      b:bullets.slice(-60).map(b=>[r0(b.x),r0(b.y),r1(b.vx||0)]),
+      p:pups.map(p=>[p.k,r0(p.x),r0(p.y)]),
+      bo:boss?rb(boss):null,
+      al:allies.map(a=>[a.k,r0(a.x),r0(a.y),a.hp,a.mhp,a.hf|0,a.heals|0,r1(a.fl||0)]),
+      bm:bombs.map(b=>[r0(b.x),r0(b.y)]),
+      pl:planet?[r0(planet.y),r0(planet.pad)]:null,
+      ev:C.evs.map(e=>e[1])};
+    for(const key of ['e','b','ev','r']){while(JSON.stringify(g).length>3800&&g[key].length)g[key].splice(0,Math.max(1,g[key].length>>2))}
+    return g}
+  function tick(){
+    if(!C.srv||C.viewing)return;const now=performance.now(),world=WORLD.includes(state);
+    if(now-C.sendAt<(world&&C.mates.length?50:600))return;C.sendAt=now;
+    if(isHost())send({g:snap()})}
+
+  /* ---------------- other pilots ---------------- */
+  function startView(){
+    C.viewing=true;C.lastEv=0;C.lastScore=null;const cr=crew(),i=Math.max(1,cr.findIndex(p=>p.isMe));
+    C.me={x:W/2+(i%2?60:-60)*(1+((i-1)>>1)),y:H-90,init:false};panel.hidden=true;touch=null}
+  function apply(g){
+    const prevSt=state;
+    if(!WORLD.includes(g.st)){state=g.st;C.me.init=false;return}
+    state=g.st;lvl=g.lv;kills=g.k;fuel=g.fu;hull=g.hu;reinfLeft=g.rc;
+    if(C.lastScore!=null&&g.sc>C.lastScore){cAcc+=g.sc-C.lastScore;if(cAcc>=10){credits+=Math.floor(cAcc/10);cAcc%=10}}C.lastScore=g.sc;score=g.sc;
+    if(g.m){msg=g.m[0];msgT=g.m[1]}
+    const hs=g.sh;ship={x:hs[0],y:hs[1],inv:hs[2],sh:hs[3],tri:hs[4],rf:hs[5],cd:0};
+    const me=myPeer();
+    C.mates=g.ma.map(a=>({peer:a[0],x:a[1],y:a[2],inv:a[3],sh:a[4],s:a[5],tri:a[6],rf:a[7],nm:(crew().find(p=>p.peer===a[0])||{}).nm||'Pilot'}));
+    const mine=C.mates.find(m=>m.peer===me);
+    if(mine&&!C.me.init){C.me.x=mine.x;C.me.y=mine.y;C.me.init=true}
+    if(state==='land'&&prevSt!=='land')C.me.y=Math.min(C.me.y,200);
+    rocks=g.r.map(a=>({x:a[0],y:a[1],r:a[2],a:a[3],sd:a[4],vx:a[5],vy:a[6]}));
+    const old=new Map(foes.map((f,i)=>[i,f]));
+    foes=g.f.map((a,i)=>{const o=old.get(i);return{k:a[0],x:o&&o.k===a[0]?o.x:a[1],y:o&&o.k===a[0]?o.y:a[2],tx:a[1],ty:a[2],hp:a[3],mhp:a[4],fl:a[5],ph:a[6],r:FT[a[0]]?FT[a[0]].r:18}});
+    ebul=g.e.map(a=>({x:a[0],y:a[1],vx:a[2],vy:a[3],c:a[4]||undefined,r:a[5]||undefined}));
+    bullets=g.b.map(a=>({x:a[0],y:a[1],vx:a[2]}));
+    pups=g.p.map(a=>({k:a[0],x:a[1],y:a[2]}));
+    boss=g.bo?Object.assign(boss&&boss.k===g.bo.k?boss:{},g.bo):null;
+    allies=g.al.map(a=>({k:a[0],x:a[1],y:a[2],hp:a[3],mhp:a[4],hf:a[5],heals:a[6],fl:a[7]}));
+    bombs=g.bm.map(a=>({x:a[0],y:a[1]}));
+    if(g.pl){if(!planet)planet=makePlanet();planet.y=g.pl[0];planet.pad=g.pl[1]}else planet=null;
+    let top=C.lastEv;(g.ev||[]).forEach(e=>{if(e[0]<=C.lastEv)return;top=Math.max(top,e[0]);for(let i=0;i<e[3];i++){const a=Math.random()*6.283,sp=Math.random()*3.5;parts.push({x:e[1],y:e[2],vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,l:25+Math.random()*25,c:e[4],s:1.5+Math.random()*2.5})}});C.lastEv=top}
+  function drawWait(){
+    g.fillStyle='#05060f';g.fillRect(0,0,W,H);drawSky();const h=host(),cr=crew();
+    g.textAlign='center';g.fillStyle='#fff';g.font='bold 26px system-ui';g.fillText('CO-OP',W/2,200);
+    g.font='14px system-ui';g.fillStyle='#9cd';g.fillText('Server '+C.srv+' · '+cr.length+' pilot'+(cr.length===1?'':'s'),W/2,228);
+    g.fillStyle='#cfe';g.font='16px system-ui';g.fillText('Waiting for '+(h?h.nm:'the host')+' to launch a mission…',W/2,290);
+    cr.forEach((p,i)=>{const S=SHIPS[p.s]||SHIPS[0];drawShip(W/2-70,340+i*48,S.c,.8,S.w,S.v);g.textAlign='left';g.font='bold 14px system-ui';g.fillStyle=p.isMe?'#fff':'#9cd';
+      g.fillText(p.nm+(p.isMe?' (you)':'')+(i===0?' — host':''),W/2-40,336+i*48);g.font='11px system-ui';g.fillStyle='#789';g.fillText(S.n,W/2-40,350+i*48)});
+    g.textAlign='center';g.font='12px system-ui';g.fillStyle='#789';g.fillText('Your ship is the one you last picked in the hangar.',W/2,H-80);g.fillText('Press 👥 at the top to switch servers or leave.',W/2,H-60)}
+  function mateFrame(){
+    if(!WORLD.includes(state)){t++;stars.forEach(s=>{s.y+=s.v;if(s.y>H){s.y=0;s.x=Math.random()*W}});drawWait();return}
+    t++;stars.forEach(s=>{s.y+=s.v*(state==='land'?.35:1);if(s.y>H){s.y=0;s.x=Math.random()*W}});
+    if(msgT>0)msgT--;
+    parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.l--});parts=parts.filter(p=>p.l>0);
+    const me=C.me,sp=SPD();let dx=0,dy=0;
+    if(keys.arrowleft||keys.a)dx-=1;if(keys.arrowright||keys.d)dx+=1;if(keys.arrowup||keys.w)dy-=1;if(keys.arrowdown||keys.s)dy+=1;
+    if(touch){const ax=touch.x-me.x,ay=touch.y-70-me.y;dx=Math.abs(ax)>6?Math.sign(ax):0;dy=Math.abs(ay)>6?Math.sign(ay):0}
+    if(state==='play'||state==='land'){me.x=Math.max(16,Math.min(W-16,me.x+dx*sp));me.y=Math.max(60,Math.min(H-30,me.y+dy*sp));
+      if(t%2===0)parts.push({x:me.x+(Math.random()-.5)*5,y:me.y+16,vx:(Math.random()-.5)*.5,vy:1.8+Math.random(),l:12,c:'#ffaa44',s:1.2})}
+    // between updates everything keeps flying the way it was going
+    bullets.forEach(b=>{b.y-=9;b.x+=b.vx||0});ebul.forEach(b=>{b.x+=b.vx;b.y+=b.vy});rocks.forEach(r=>{r.x+=r.vx;r.y+=r.vy;r.a+=.02});pups.forEach(p=>p.y+=1.6);
+    foes.forEach(f=>{f.x+=(f.tx-f.x)*.3;f.y+=(f.ty-f.y)*.3;if(f.fl>0)f.fl--});
+    const mine=C.mates.find(m=>m.peer===myPeer());if(mine){mine.x=me.x;mine.y=me.y}
+    const now=performance.now();
+    if(now-C.sendAt>=50){C.sendAt=now;const inp={x:r0(me.x),y:r0(me.y),f:(keys[' ']||touch)&&state==='play'?1:0},key=JSON.stringify(inp);
+      if(key!==C.lastIn||now-C.inAt>600){C.lastIn=key;C.inAt=now;send({in:inp})}}
+    if(t%300===0)save();
+    const mySH=SH;SH=SHIPS[C.snap&&C.snap.hs]||SH;try{draw()}finally{SH=mySH}
+    g.textAlign='center';g.font='11px system-ui';g.fillStyle='#9cd';
+    if(state==='over'||state==='brief'||state==='win')g.fillText('Co-op: '+((host()||{}).nm||'the host')+' runs the mission',W/2,H-40)}
+  function drawMates(){
+    if(!C.srv||!C.mates.length)return;
+    const me=myPeer();
+    C.mates.forEach(m=>{const S=SHIPS[m.s]||SHIPS[0];if(state==='over')return;
+      if(!(m.inv>0&&t%8<4))drawShip(m.x,m.y,S.c,.95,S.w,S.v);
+      if(m.sh>0&&(m.sh>120||t%10<5)){g.strokeStyle='rgba(120,200,255,.8)';g.lineWidth=3;g.beginPath();g.arc(m.x,m.y,28*S.w,0,7);g.stroke();g.lineWidth=1}
+      g.textAlign='center';g.font='bold 10px system-ui';g.fillStyle=m.peer===me?'#fff':'rgba(220,240,255,.75)';g.fillText(m.peer===me?'YOU':m.nm,m.x,m.y+34)});
+    if(state!=='over'){const h=host();g.textAlign='center';g.font='bold 10px system-ui';g.fillStyle='rgba(220,240,255,.75)';g.fillText(C.viewing?(h?h.nm:'HOST'):'YOU',ship.x,ship.y+34)}}
+  return{mate,tgt,hostFire,hostHits,ev,tick,mateFrame,drawMates}
+})();
+
 function update(){
  t++;stars.forEach(s=>{s.y+=s.v*(state==='land'?.35:1);if(s.y>H){s.y=0;s.x=Math.random()*W}});
  if(msgT>0)msgT--;
@@ -64,6 +274,7 @@ function update(){
   bombs.filter(b=>b.go).forEach(b=>{boom(b.x,b.y,40,'#fc6');foes.forEach(f=>{if(!f.dead&&hit(f,b,90))hurtFoe(f,4)});rocks.forEach(r=>{if(hit(r,b,90+r.r)){r.dead=1;score+=5}});ebul=ebul.filter(e=>!hit(e,b,90));if(boss&&hit(boss,b,110))boss.hp=Math.max(1,boss.hp-6)});
   bombs=bombs.filter(b=>!b.go);foes=foes.filter(f=>!f.dead);rocks=rocks.filter(r=>!r.dead);
   if((keys[' ']||touch)&&ship.cd<=0){const bd=SH.dm||1,pc=SH.pierce?1:0;if(ship.tri>0||SH.tri)[-2.2,0,2.2].forEach(v=>bullets.push({x:ship.x,y:ship.y-18,vx:v,d:bd,pc}));else bullets.push({x:ship.x,y:ship.y-18,vx:0,d:bd,pc});ship.cd=ship.rf>0?Math.ceil(CDN()/2):CDN()}
+  Coop.hostFire();
   if(t%Math.max(30,80-lvl*6)===0)rocks.push({x:Math.random()*W,y:-30,r:14+Math.random()*18,vy:1.3+Math.random()*1.5+Math.min(lvl,15)*.15,vx:(Math.random()-.5)*1.2,a:0,sd:Math.random()*10});
   if(t%Math.max(45,110-lvl*8)===0&&kills+foes.length<goal())spawnFoe();
   if(kills>=goal()&&!boss){
@@ -96,6 +307,7 @@ function update(){
  else if(ship.inv>0)ship.inv--;
  else{const h=rocks.some(r=>hit(r,ship,r.r+10))||foes.some(f=>hit(f,ship,(f.r||18)+8))||(boss&&hit(boss,ship,50))||(boss&&boss.bm>0&&Math.abs(ship.x-boss.bx)<20)||ebul.some(b=>hit(b,ship,12));
   if(h){hull--;ship.inv=SH.inv||90;boom(ship.x,ship.y,24,'#6df');ebul=[];foes.forEach(f=>{if(hit(f,ship,(f.r||18)+8)&&f.k!=='H')f.dead=1});if(hull<=0){state='over';say('Ship destroyed')}}}
+ Coop.hostHits();
 }
 function shade(c,f){let h=c.slice(1);if(h.length===3)h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];const n=[0,2,4].map(i=>Math.max(0,Math.min(255,Math.round(parseInt(h.substr(i,2),16)*f))));return'rgb('+n.join(',')+')'}
 const VS=[[[0,-20],[6,-4],[18,12],[18,17],[7,11],[4,15],[-4,15],[-7,11],[-18,17],[-18,12],[-6,-4]],[[0,-22],[5,-6],[22,16],[10,14],[4,16],[-4,16],[-10,14],[-22,16],[-5,-6]],[[0,-18],[8,-10],[14,-12],[20,6],[20,16],[10,14],[5,16],[-5,16],[-10,14],[-20,16],[-20,6],[-14,-12],[-8,-10]],[[0,-24],[3,-8],[10,8],[16,18],[6,12],[3,16],[-3,16],[-6,12],[-16,18],[-10,8],[-3,-8]],[[0,-20],[8,-12],[20,-2],[18,14],[8,12],[4,17],[-4,17],[-8,12],[-18,14],[-20,-2],[-8,-12]]];
@@ -125,11 +337,11 @@ function drawRock(r){const R0=r.r,sd=r.sd||1;g.save();g.translate(r.x,r.y);g.rot
 const REINF={F:{n:'FIGHT',key:'R',cost:15,c:'#6e8',msg:'Fighters inbound!'},B:{n:'BOMB',key:'E',cost:15,c:'#fb6',msg:'Bombers inbound!'},G:{n:'GUN',key:'G',cost:20,c:'#8af',msg:'Gunship inbound!'},H:{n:'MEDIC',key:'H',cost:25,c:'#fff',msg:'Medic inbound!'},T:{n:'FUEL',key:'T',cost:10,c:'#4af',msg:'Tanker inbound!'},D:{n:'DRONE',key:'C',cost:15,c:'#c8f',msg:'Guard drones deployed!'}};
 const RCOST={F:0,B:400,G:600,H:500,T:350,D:450},RDESC={F:'Two fighters with rapid twin guns',B:'Two bombers, 2 area bombs each',G:'Heavy gunship with a 5-way spread',H:'Medic repairs up to 2 hearts',T:'Tanker beams in up to 40 fuel',D:'Guard drones block shots and ram foes'};
 const AHP={F:2,B:3,G:6,H:3,T:3,D:3};
-function callReinf(k='F'){const q=REINF[k];if(state!=='play'||reinfCd>0||allies.length||reinfLeft<=0)return;if(!SAVE.rf.includes(k))return say('Locked - unlock it in the hangar');if(fuel<q.cost)return say('Not enough fuel');
+function callReinf(k='F'){const q=REINF[k];if(Coop.mate())return;if(state!=='play'||reinfCd>0||allies.length||reinfLeft<=0)return;if(!SAVE.rf.includes(k))return say('Locked - unlock it in the hangar');if(fuel<q.cost)return say('Not enough fuel');
  if(k==='H'&&hull>=SH.maxH)return say('Hull already full');if(k==='T'&&fuel>=85)return say('Fuel tank nearly full');
  fuel-=q.cost;reinfLeft--;reinfCd=SH.rcd||1200;
  allies=(k==='G'||k==='H'||k==='T'?[1]:[-1,1]).map((side,i)=>({side,k,x:ship.x+side*60,y:H+40,t:k==='D'?720:900,cd:0,bc:30,bombs:2,heals:2,hc:40,fl:40,hp:AHP[k],mhp:AHP[k],hf:0,ang:i*Math.PI}));say(q.msg)}
-function boom(x,y,n,c){for(let i=0;i<n;i++){const a=Math.random()*6.283,sp=Math.random()*3.5;parts.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,l:25+Math.random()*25,c,s:1.5+Math.random()*2.5})}
+function boom(x,y,n,c){Coop.ev(x,y,n,c);for(let i=0;i<n;i++){const a=Math.random()*6.283,sp=Math.random()*3.5;parts.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,l:25+Math.random()*25,c,s:1.5+Math.random()*2.5})}
  if(n>=10)rings.push({x,y,r:4,mr:18+n*.9,l:18,c});if(n>=18)rings.push({x,y,r:2,mr:10+n*.5,l:10,c:'#fff'})}
 function draw(){
  g.fillStyle='#05060f';g.fillRect(0,0,W,H);
@@ -252,6 +464,7 @@ bullets.forEach(b=>{g.strokeStyle='rgba(255,230,120,.3)';g.lineWidth=6;g.beginPa
  if(a.hp<a.mhp){const bw=K==='G'?26:18;g.fillStyle='rgba(0,0,0,.6)';g.fillRect(a.x-bw/2,a.y-28,bw,4);g.fillStyle=a.hp/a.mhp>.5?'#6f8':a.hp/a.mhp>.25?'#fd4':'#f55';g.fillRect(a.x-bw/2,a.y-28,bw*Math.max(0,a.hp)/a.mhp,4)}});bombs.forEach(b=>{g.fillStyle='#222';g.beginPath();g.arc(b.x,b.y,6,0,7);g.fill();g.fillStyle=t%6<3?'#f44':'#fa4';g.beginPath();g.arc(b.x,b.y,2.5,0,7);g.fill()});
  if(state!=='over'&&!(ship.inv>0&&t%8<4))drawShip(ship.x,ship.y,SH.c,1,SH.w,SH.v);
  if(ship.sh>0&&(ship.sh>120||t%10<5)){g.strokeStyle='rgba(120,200,255,.8)';g.lineWidth=3;g.beginPath();g.arc(ship.x,ship.y,28*SH.w,0,7);g.stroke();g.lineWidth=1}
+ Coop.drawMates();
  rings.forEach(r=>{const a=Math.max(0,r.l/18);g.globalAlpha=a*.8;g.strokeStyle=r.c;g.lineWidth=3;g.beginPath();g.arc(r.x,r.y,r.r,0,7);g.stroke();g.globalAlpha=a*.18;g.fillStyle=r.c;g.beginPath();g.arc(r.x,r.y,r.r,0,7);g.fill()});g.lineWidth=1;
  parts.forEach(p=>{const a=Math.min(1,p.l/30);g.fillStyle=p.c;g.globalAlpha=a*.35;g.beginPath();g.arc(p.x,p.y,(p.s||2)*1.8,0,7);g.fill();g.globalAlpha=a;g.beginPath();g.arc(p.x,p.y,(p.s||2)*.7,0,7);g.fill()});g.globalAlpha=1;
  const panel=(x,y,w,h)=>{g.fillStyle='rgba(8,14,30,.6)';g.fillRect(x,y,w,h);g.strokeStyle='rgba(100,170,255,.45)';g.strokeRect(x+.5,y+.5,w,h)};
@@ -264,7 +477,7 @@ bullets.forEach(b=>{g.strokeStyle='rgba(255,230,120,.3)';g.lineWidth=6;g.beginPa
  panel(W-148,8,140,34);g.textAlign='left';g.font='bold 11px system-ui';g.fillStyle='#9cd';g.fillText('FUEL',W-140,22);g.textAlign='right';g.fillStyle=fuel<25?'#ff6666':'#cfe';g.fillText(Math.ceil(fuel)+'%',W-16,22);
  g.fillStyle='rgba(255,255,255,.1)';g.fillRect(W-140,28,124,8);hg=g.createLinearGradient(W-140,0,W-16,0);hg.addColorStop(0,fuel<25?'#ff4040':'#2ad66a');hg.addColorStop(1,fuel<25?'#ff9060':'#c8ff60');g.fillStyle=(fuel<25&&t%30<15)?'#ff6060':hg;g.fillRect(W-140,28,1.24*fuel,8);
  g.strokeStyle='rgba(255,255,255,.25)';for(let i=1;i<5;i++){g.beginPath();g.moveTo(W-140+i*24.8,28);g.lineTo(W-140+i*24.8,36);g.stroke()}
- if(state==='play'){Object.keys(REINF).filter(k=>SAVE.rf.includes(k)).forEach((k,i)=>{const r=REINF[k],x=W-30-i*56,y=H-36,rdy=reinfCd<=0&&fuel>=r.cost&&!allies.length&&reinfLeft>0;
+ if(state==='play'&&!Coop.mate()){Object.keys(REINF).filter(k=>SAVE.rf.includes(k)).forEach((k,i)=>{const r=REINF[k],x=W-30-i*56,y=H-36,rdy=reinfCd<=0&&fuel>=r.cost&&!allies.length&&reinfLeft>0;
   g.fillStyle=rdy?'rgba(80,220,140,.2)':'rgba(120,120,120,.2)';g.beginPath();g.arc(x,y,25,0,7);g.fill();g.strokeStyle=rdy?r.c:'#667';g.lineWidth=2;g.beginPath();g.arc(x,y,25,-1.57,-1.57+6.283*(1-reinfCd/(SH.rcd||1200)));g.stroke();g.lineWidth=1;
   g.fillStyle=rdy?'#cfe':'#889';g.textAlign='center';g.font='bold 10px system-ui';g.fillText(r.n,x,y-2);g.font='9px system-ui';g.fillText('['+r.key+'] '+r.cost,x,y+10)});
  g.fillStyle='#cfe';g.font='11px system-ui';g.textAlign='right';g.fillText(reinfLeft+' calls left (number = fuel cost)',W-10,H-72)}
@@ -407,8 +620,8 @@ function mkFoe(k,x,y){const d=FT[k];if(!SAVE.bs.includes(k))SAVE.bs.push(k);retu
 function spawnFoe(){const k=pickFoe(lvl);
  if(!SAVE.bs.includes(k)&&NEWF[k])say(NEWF[k]);
  if(k==='W'){for(let i=0;i<3;i++)foes.push(mkFoe('W',40+Math.random()*(W-80),-20-i*30))}else foes.push(mkFoe(k,40+Math.random()*(W-80),-20))}
-function aimShot(f,sp,c,off,r){const a=Math.atan2(ship.y-f.y,ship.x-f.x)+(off||0);ebul.push({x:f.x,y:f.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,c,r})}
-function foeAI(f){const k=f.k||'S';if(f.fl>0)f.fl--;
+function aimShot(f,sp,c,off,r){const ship=Coop.tgt(f),a=Math.atan2(ship.y-f.y,ship.x-f.x)+(off||0);ebul.push({x:f.x,y:f.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,c,r})}
+function foeAI(f){const ship=Coop.tgt(f),k=f.k||'S';if(f.fl>0)f.fl--;
  if(k==='W'){f.y+=3;f.x+=Math.max(-2,Math.min(2,(ship.x-f.x)*.04));return}
  if(k==='N'){f.y+=Math.min(1.5,Math.max(0,f.ty-f.y));f.x+=Math.sin(t/40+f.ph)*1.6;if(--f.cd<=0){f.cd=55;aimShot(f,4.5,'#d6f')}return}
  if(k==='H'){f.y+=.5;f.x+=Math.sin(t/50+f.ph);if(--f.cd<=0){f.cd=110;[-.3,0,.3].forEach(d=>aimShot(f,3,'#fa6',d,5))}return}
@@ -460,7 +673,7 @@ function drawBest(){g.textAlign='center';g.fillStyle='#fff';g.font='bold 24px sy
   else{g.fillStyle='#223';g.beginPath();g.arc(ix,iy,20,0,7);g.fill();g.fillStyle='#456';g.font='bold 22px system-ui';g.textAlign='center';g.fillText('?',ix,iy+8);g.textAlign='left';g.fillStyle='#667';g.font='bold 13px system-ui';g.fillText('???',x+68,y+16);g.font='10px system-ui';g.fillText('Not yet encountered.',x+68,y+32)}});
  g.fillStyle='rgba(100,255,160,.2)';g.fillRect(120,600,240,54);g.strokeStyle='#6e8';g.strokeRect(120,600,240,54);g.fillStyle='#cfe';g.font='bold 19px system-ui';g.textAlign='center';g.fillText('LAUNCH',W/2,634);
  g.fillStyle='#789';g.font='11px system-ui';g.fillText('TAB: switch page   SPACE: launch',W/2,690)}
-function bossAI(){const b=boss,k=b.k,BC=['#ff8a3a','#9f5','#8cf','#fff','#f4f'][k];b.cd--;b.cd2--;b.cd3--;b.tcd--;
+function bossAI(){const ship=Coop.tgt(boss),b=boss,k=b.k,BC=['#ff8a3a','#9f5','#8cf','#fff','#f4f'][k];b.cd--;b.cd2--;b.cd3--;b.tcd--;
  const tY=[110,95,115,110,125][k];
  if(k===0&&b.dash>0){b.dash--;b.y+=b.dash>50?5:-5}else b.y+=Math.min(1.5,Math.abs(tY-b.y))*Math.sign(tY-b.y);
  const P=(a,sp,o)=>ebul.push(Object.assign({x:b.x,y:b.y+36,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,c:BC},o||{}));
@@ -607,5 +820,5 @@ function drawTerrain(p){const T=p.T,a=t/20;
 reset(true);
 function recover(){try{bullets=[];ebul=[];rocks=[];foes=[];pups=[];allies=[];bombs=[];parts=[];boss=null;planet=null;reset(false);toMap();say('Recovered from an error')}catch(e2){state='title'}}
 let errN=0;
-(function loop(){requestAnimationFrame(loop);try{update();draw();errN=0}catch(e){console.error(e);g.setTransform(1,0,0,1,0,0);g.globalAlpha=1;g.shadowBlur=0;g.setLineDash([]);g.lineWidth=1;if(++errN>=3){errN=0;recover()}}})();
+(function loop(){requestAnimationFrame(loop);try{if(Coop.mate())Coop.mateFrame();else{update();draw();Coop.tick()}errN=0}catch(e){console.error(e);g.setTransform(1,0,0,1,0,0);g.globalAlpha=1;g.shadowBlur=0;g.setLineDash([]);g.lineWidth=1;if(++errN>=3){errN=0;recover()}}})();
 </script></body></html>

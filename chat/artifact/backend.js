@@ -902,6 +902,8 @@
       fileTypes: Object.keys(FILE_TYPES).concat(Object.keys(EXT_TYPES).map((e) => '.' + e)).join(','),
       maxFile: MAX_FILE,
       reactions: REACTIONS,
+      // the live room, the viewer and the database, for the games in 🕹️ Games (gamenet.js)
+      caps: () => ({ room, user, db }),
       // Store a file in the artifact's asset store; resolves what a message needs to point at it.
       async upload(file) {
         if (!assets) throw new Error('Sending files needs Editor access. Ask the owner to invite you as an Editor.');

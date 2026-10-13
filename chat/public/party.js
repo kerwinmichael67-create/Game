@@ -18,6 +18,19 @@
     phone: { name: 'Draw Phone', emoji: '🎨', color: 'linear-gradient(135deg,#f472b6,#8b5cf6)', players: '2–12 players',
       desc: 'Write a prompt, draw what you’re handed, guess what others drew — then watch how it all went wrong.' },
   };
+  // Games that run full-window in their own frame, with their own servers (games/*.html + games/net.js)
+  const FRAME_GAMES = {
+    lastStand: { name: 'Tower Defense: Last Stand', emoji: '🏰', code: 'td', frame: 'games/last-stand.html', color: 'linear-gradient(135deg,#1e3a8a,#0f766e)', players: 'Co-op servers',
+      desc: '3D tower defense. Build together on a shared server; Join drops you on a random one.' },
+    crop: { name: 'Bumper Crop', emoji: '🌱', code: 'bc', frame: 'games/bumper-crop.html', color: 'linear-gradient(135deg,#65a30d,#ca8a04)', players: '4 farmers per server',
+      desc: 'Grow, harvest and sell crops next to other farmers. Join puts you on a random server.' },
+    duel: { name: 'Duel Yard', emoji: '🤠', code: 'dy', frame: 'games/duel-yard.html', color: 'linear-gradient(135deg,#b45309,#7c2d12)', players: '1 v 1 online',
+      desc: 'Quick-draw duels. Find a match, then out-shoot your opponent.' },
+    space: { name: 'Space Shooter', emoji: '🚀', code: 'ss', frame: 'games/space-shooter.html', color: 'linear-gradient(135deg,#312e81,#0e7490)', players: 'Co-op up to 4',
+      desc: 'Fly the campaign together: shared hull, fuel and score, everyone in their own ship.' },
+    tanks: { name: 'Tank Arena', emoji: '🛡️', code: 'ta', frame: 'games/tank-arena.html', color: 'linear-gradient(135deg,#ea580c,#7f1d1d)', players: '2–4 online',
+      desc: 'Aim with the mouse, click to shoot. Five rounds, upgrades when you get knocked out.' },
+  };
   const IDEAS = ['A cat running a lemonade stand', 'A dragon at the dentist', 'Pizza delivery on the moon', 'A snowman on vacation', 'A robot learning to dance',
     'A shark playing video games', 'Grandma riding a skateboard', 'A haunted vending machine', 'Dinosaur birthday party', 'A wizard stuck in traffic',
     'A penguin chef', 'The world’s smallest elephant', 'A banana in a business suit', 'Aliens at a fast food drive-thru', 'A dog driving a bus',
@@ -40,7 +53,9 @@
   function buildGames() {
     if (gamesOpen === 'pick' || !GAMES[gamesOpen]) {
       return [api.modalHead('🕹️ Games'), h('p', { class: 'muted' }, 'Party games with servers: make one, or join someone else’s. More games are coming.'),
-        h('div', { class: 'party-games' }, Object.entries(GAMES).map(([id, g]) => {
+        h('div', { class: 'party-games' }, Object.entries(FRAME_GAMES).map(([id, g]) => h('button', { class: 'party-game-card', style: `--g:${g.color}`, onclick: () => { api.closeModal(); openFrame(id); } },
+          h('span', { class: 'pg-emoji' }, g.emoji), h('b', {}, g.name), h('small', {}, g.desc), h('span', { class: 'pg-meta' }, `${g.players} · ${frame && frame.id === id ? 'open now' : 'Play'}`))),
+        Object.entries(GAMES).map(([id, g]) => {
           const open = list.filter((p) => p.game === id && p.players.length);
           return h('button', { class: 'party-game-card', style: `--g:${g.color}`, onclick: () => { gamesOpen = id; api.refreshModal(); } },
             h('span', { class: 'pg-emoji' }, g.emoji), h('b', {}, g.name), h('small', {}, g.desc),
@@ -73,6 +88,40 @@
             api.closeModal();
           } }, '＋ Create server'))),
     ];
+  }
+
+  // ---------------------------------------------------------------- full-window games in a frame
+  let frame = null; // { id, el, pill, iframe, detach, min }
+  function openFrame(id) {
+    const g = FRAME_GAMES[id];
+    if (!g) return;
+    if (frame && frame.id === id) { frame.min = false; syncFrame(); return; }
+    closeFrame();
+    const iframe = h('iframe', { class: 'frame-game', src: g.frame, title: g.name, allow: 'autoplay; fullscreen; pointer-lock; clipboard-write' });
+    const el = h('section', { id: 'frameView', class: 'frame-view' },
+      h('header', { class: 'frame-head' }, h('span', { class: 'party-title' }, `${g.emoji} ${g.name}`), h('span', { class: 'grow' }),
+        h('button', { class: 'btn small', title: 'Back to the chat; the game keeps running', onclick: () => { frame.min = true; syncFrame(); } }, '▁ Chat'),
+        h('button', { class: 'btn small danger', onclick: () => api.confirm(`Close ${g.name}?`, 'Close', closeFrame) }, '✕ Close')),
+      iframe);
+    const pill = h('button', { class: 'party-pill frame-pill hidden', onclick: () => { frame.min = false; syncFrame(); } }, `${g.emoji} Back to ${g.name}`);
+    document.body.append(el, pill);
+    frame = { id, el, pill, iframe, min: false, detach: window.GameNet ? window.GameNet.attach(iframe, id, g.code) : () => {} };
+    syncFrame();
+    setTimeout(() => iframe.focus(), 300);
+  }
+  function syncFrame() {
+    if (!frame) return;
+    frame.el.classList.toggle('hidden', frame.min);
+    frame.pill.classList.toggle('hidden', !frame.min);
+    if (!frame.min) setTimeout(() => frame && frame.iframe.focus(), 50);
+  }
+  function closeFrame() {
+    if (!frame) return;
+    const f = frame;
+    frame = null;
+    try { f.detach(); } catch {}
+    f.iframe.src = 'about:blank';
+    f.el.remove(); f.pill.remove();
   }
 
   // ---------------------------------------------------------------- the party screen
@@ -302,6 +351,10 @@
 
   window.PartyUI = {
     GAMES,
+    FRAME_GAMES,
+    openFrame,
+    closeFrame,
+    frameOpen: () => !!(frame && !frame.min),
     init(a) { api = a; },
     openGames,
     buildGames: () => buildGames(),

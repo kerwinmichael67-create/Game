@@ -305,6 +305,31 @@ function partyLeave(u) {
   if (p.state === 'playing') partyMaybeAdvance(p); else sendParty(p);
 }
 
+// ---------------------------------------------------------------- named rooms for the games in 🕹️ Games
+// The same idea as claude.ai's live rooms, so a game written for those runs here too: you join a
+// room by name, set your own "presence" (a small object everyone in the room sees) and send
+// moments to everyone in it. Each open game page is one "peer".
+const NR_NAME = /^[a-z0-9][a-z0-9_.-]{0,63}$/, NR_PEER = /^[a-z0-9]{6,24}$/, NR_MAX = 8192;
+const nrooms = new Map(); // name -> Map(peer -> { u, ws, presence, at })
+const nrTimers = new Map();
+function nrBroadcast(name) {
+  if (nrTimers.has(name)) return;
+  nrTimers.set(name, setTimeout(() => {
+    nrTimers.delete(name);
+    const room = nrooms.get(name);
+    if (!room) return;
+    const peers = [...room].map(([peer, e]) => ({ peer, by: e.u, presence: e.presence, at: e.at }));
+    for (const e of room.values()) send(e.ws, { t: 'nr', op: 'peers', room: name, peers });
+  }, 30));
+}
+function nrLeave(ws, name, peer) {
+  const room = nrooms.get(name);
+  if (!room || !room.has(peer) || room.get(peer).ws !== ws) return;
+  room.delete(peer);
+  if (ws.nr) ws.nr.delete(name + '|' + peer);
+  if (!room.size) nrooms.delete(name); else nrBroadcast(name);
+}
+
 function onAuth(ws, u, token) {
   ws.user = u;
   const wasOnline = isConnected(u);
@@ -429,6 +454,33 @@ const authed = {
     room.messages[i] = { id: msg.id, ts: msg.ts, from: msg.from, text: '', deleted: true };
     toRoom(room, { t: 'msgEdit', room: room.id, msg: room.messages[i] });
     save();
+  },
+  nr(ws, u, m) {
+    const name = typeof m.room === 'string' ? m.room : '', peer = typeof m.peer === 'string' ? m.peer : '';
+    if (!NR_NAME.test(name) || !NR_PEER.test(peer)) return;
+    let room = nrooms.get(name);
+    const me = room && room.get(peer);
+    if (m.op === 'join') {
+      if (me && me.ws !== ws) return;
+      if (!room) nrooms.set(name, (room = new Map()));
+      if (!me && room.size >= 64) return send(ws, { t: 'nr', op: 'error', room: name, code: 'limit_reached' });
+      room.set(peer, me || { u, ws, presence: {}, at: Date.now() });
+      (ws.nr = ws.nr || new Set()).add(name + '|' + peer);
+      nrBroadcast(name);
+    } else if (!me || me.ws !== ws) {
+      // not in that room
+    } else if (m.op === 'leave') nrLeave(ws, name, peer);
+    else if (m.op === 'pres' && m.patch && typeof m.patch === 'object') {
+      const next = Object.assign({}, me.presence);
+      for (const [k, v] of Object.entries(m.patch)) { if (v === null) delete next[k]; else next[k] = v; }
+      if (JSON.stringify(next).length > NR_MAX) return;
+      me.presence = next;
+      me.at = Date.now();
+      nrBroadcast(name);
+    } else if (m.op === 'emit' && typeof m.topic === 'string' && m.topic.length <= 64) {
+      if (JSON.stringify(m.data === undefined ? null : m.data).length > NR_MAX) return;
+      for (const e of room.values()) send(e.ws, { t: 'nr', op: 'msg', room: name, peer, by: u, topic: m.topic, data: m.data });
+    }
   },
   partyCreate(ws, u, m) {
     if (!PARTY_GAMES[m.game]) return { error: 'Unknown game' };
@@ -800,6 +852,7 @@ wss.on('connection', (ws) => {
     if (!u || !conns.has(u)) return;
     conns.get(u).delete(ws);
     for (const c of [...calls.values()]) if (c.a.ws === ws || c.b.ws === ws) endCall(c, 'disconnected', u);
+    for (const key of ws.nr || []) { const i = key.lastIndexOf('|'); nrLeave(ws, key.slice(0, i), key.slice(i + 1)); }
     if (conns.get(u).size) return;
     conns.delete(u);
     const ringing = calls.get(userCall.get(u));

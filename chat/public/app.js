@@ -63,7 +63,14 @@
     if (ARTIFACT) {
       setTimeout(() => { if (transport) $('#fileInput').accept = transport.fileTypes; });
       transport = window.ChatTransport((m) => (on[m.t] || (() => {}))(m), { signedIn: (uid) => store.get('chatSignedIn:' + uid) === '1' });
+      // the games in 🕹️ Games use the page's live room, viewer and database once they're ready
+      const tryCaps = () => { const c = transport.caps(); if (c.room || c.user) GameNet.useClaude(c); else setTimeout(tryCaps, 500); };
+      tryCaps();
       return;
+    }
+    if (!window.GameNetReady) {
+      window.GameNetReady = true;
+      GameNet.useSocket(send, { me: () => S.me || { username: '', name: '' }, user: (id) => S.users[id] });
     }
     const ws = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws');
     S.ws = ws;
@@ -81,6 +88,7 @@
       (on[m.t] || (() => {}))(m);
     };
     ws.onclose = () => {
+      GameNet.socketDown();
       if (S.signedOut) { S.signedOut = false; connect(); return; }
       if (S.me) $('#banner').classList.remove('hidden');
       S.retry = Math.min(S.retry + 1, 6);
@@ -96,6 +104,7 @@
       }
       S.me = m.me;
       S.helloAt = Date.now();
+      if (!ARTIFACT) GameNet.socketUp();
       S.games = m.games;
       if (CALLS) Calls.configure(m.calls);
       S.users = {};
@@ -227,6 +236,7 @@
     },
     gameStart(m) { closeModal(); GameDock.start(m); renderPeople(); },
     parties(m) { PartyUI.list(m.list); renderPeople(); updateGamesBtn(); },
+    nr(m) { GameNet.socketEvent(m); },
     party(m) { if (m.party && !$('#modal').classList.contains('hidden') && PartyUI.isOpen()) closeModal(); PartyUI.state(m.party); },
     gameState(m) { GameDock.state(m); },
     gameEvent(m) { GameDock.event(m); },
@@ -420,7 +430,8 @@
   addEventListener('pointerdown', unlockAudio, true);
   addEventListener('keydown', unlockAudio, true);
   // not looking at the chat: another tab, a minimized window, or another app in front
-  const notLooking = () => document.hidden || !document.hasFocus() || !!document.querySelector('#partyView:not(.hidden), #gameDock.full:not(.hidden):not(.min)');
+  // (a game in its own frame has the focus while you play it, so it counts as not looking too)
+  const notLooking = () => document.hidden || !document.hasFocus() || !!document.querySelector('#partyView:not(.hidden), #frameView:not(.hidden), #gameDock.full:not(.hidden):not(.min)');
   const SOUNDS = {
     ding: { label: 'Ding', notes: [[1318.5, 0, 0.9, 'sine', 1], [2637, 0, 0.45, 'sine', 0.35]] },
     chime: { label: 'Chime', notes: [[880, 0, 0.5, 'sine', 0.9], [1318.5, 0.13, 0.7, 'sine', 0.9]] },
