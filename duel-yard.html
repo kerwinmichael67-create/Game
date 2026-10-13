@@ -1208,6 +1208,7 @@ cv.addEventListener('contextmenu', (e) => { if (inGame()) e.preventDefault(); })
 cv.addEventListener('wheel', (e) => {
   if (!inGame()) return;
   e.preventDefault();
+  if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
   const now = performance.now();
   if (now - (cv._wheelT || 0) < 120) return;
   cv._wheelT = now;

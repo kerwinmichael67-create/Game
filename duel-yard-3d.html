@@ -161,7 +161,7 @@ label.k{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.08e
 #gchatIn{width:100%;background:rgba(15,19,24,.92);border:1px solid var(--hazard);border-radius:4px;padding:8px 10px}
 #touchBtns{position:absolute;right:16px;bottom:calc(150px + env(safe-area-inset-bottom, 0px));display:flex;flex-direction:column;gap:8px;pointer-events:auto}
 #touchBtns button{width:64px;height:44px;border-radius:6px;border:1px solid var(--edge);background:rgba(15,19,24,.8);font-size:12px;font-weight:700;text-transform:uppercase}
-#touchBtns #tFire{height:64px;background:rgba(255,91,71,.35);border-color:var(--foe)}
+#touchBtns #tFire{position:absolute;right:calc(100% + 10px);bottom:0;width:72px;height:72px;border-radius:50%;background:rgba(255,91,71,.35);border-color:var(--foe)}
 
 /* ---------- banners + sheets ---------- */
 #banner{position:fixed;left:0;right:0;top:30%;display:flex;flex-direction:column;align-items:center;gap:4px;pointer-events:none;text-align:center;padding-inline:16px}
@@ -280,7 +280,7 @@ label.k{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.08e
       <span class="sname foe" id="sOppName">Bot</span>
       <span class="sround" id="sRound">Round 1</span>
     </div>
-    <div class="hud-r"><span class="chip code" id="codeChip" hidden></span><button class="chip" id="btnView" type="button">View: 3rd person</button><button class="chip" id="btnMute" type="button">Sound on</button></div>
+    <div class="hud-r"><span class="chip code" id="codeChip" hidden></span><button class="chip" id="btnView" type="button">3rd person</button><button class="chip" id="btnMute" type="button">Sound on</button></div>
   </div>
   <div id="gchat">
     <ol id="gchatLog"></ol>
@@ -1125,7 +1125,7 @@ const MOUSE = { x: innerWidth / 2, y: innerHeight / 2, down: false, seen: false 
 const TOUCH = { on: false, move: null, aim: null, fire: false };
 const typing = () => { const a = document.activeElement; return !!a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA'); };
 const inGame = () => !!G && G.mode !== 'demo';
-const SENS = 0.0026, PITCH_MIN = 0.1, PITCH_MAX = 1.05;
+const SENS = 0.0026, PITCH_MIN = 0.1, PITCH_MAX = 0.6, SHOULDER = 46; // camera sits SHOULDER units to your right in third person
 // 'tps' = third person behind you, turned by the mouse; 'top' = tilted overhead camera aimed with the cursor
 const VIEW = { mode: 'tps', yaw: 0, pitch: 0.36, locked: false, lockFailed: false };
 VIEW.mode = store.get('dy3.view', matchMedia('(pointer: coarse)').matches ? 'top' : 'tps') === 'top' ? 'top' : 'tps';
@@ -1137,7 +1137,15 @@ function controlMe(dt) {
       if (KEYS.has('ArrowLeft')) VIEW.yaw -= 2.6 * dt;
       if (KEYS.has('ArrowRight')) VIEW.yaw += 2.6 * dt;
     }
-    if (m.alive) m.a = VIEW.yaw;
+    if (m.alive) {
+      // the camera looks along the shoulder line, so aim at the first wall or opponent on that line
+      const fx = Math.cos(VIEW.yaw), fy = Math.sin(VIEW.yaw), sx = m.x - fy * SHOULDER, sy = m.y + fx * SHOULDER, L = 1600;
+      let t = Math.min(1, segWalls(sx, sy, sx + fx * L, sy + fy * L));
+      const o = G.opp;
+      if (o.alive && !o.hidden) { const tt = segCircle(sx, sy, sx + fx * L, sy + fy * L, o.x, o.y, PR + 2); if (tt !== null && tt < t) t = tt; }
+      const px = sx + fx * L * t, py = sy + fy * L * t;
+      m.a = Math.hypot(px - m.x, py - m.y) > 60 ? Math.atan2(py - m.y, px - m.x) : VIEW.yaw;
+    }
     // looking further down throws closer
     const sup = WEAPONS[m.lo[3]], k = clamp((VIEW.pitch - PITCH_MIN) / (PITCH_MAX - PITCH_MIN), 0, 1);
     const reach = sup.range ? lerp(sup.range, 90, k) : 300;
@@ -1145,7 +1153,8 @@ function controlMe(dt) {
   } else if (TOUCH.aim) {
     const ax = TOUCH.aim.x - TOUCH.aim.ox, ay = TOUCH.aim.y - TOUCH.aim.oy, mag = Math.hypot(ax, ay);
     if (mag > 6 && m.alive) {
-      m.a = Math.atan2(ay, ax);
+      const ps = R ? toScreen(m.x, GUN_H, m.y) : null, g = ps && screenToGround(ps.x + (ax / mag) * 120, ps.y + (ay / mag) * 120, GUN_H);
+      m.a = g ? Math.atan2(g.y - m.y, g.x - m.x) : Math.atan2(ay, ax);
       const sup = WEAPONS[m.lo[3]], reach = sup.range ? clamp(mag / 70, 0.25, 1) * sup.range : 300;
       m.aimX = m.x + Math.cos(m.a) * reach; m.aimY = m.y + Math.sin(m.a) * reach;
     }
@@ -1182,7 +1191,7 @@ function setView(mode) {
   store.set('dy3.view', VIEW.mode);
   if (VIEW.mode === 'top') releaseLock();
   snapView();
-  $('#btnView').textContent = VIEW.mode === 'tps' ? 'View: 3rd person' : 'View: overhead';
+  $('#btnView').textContent = VIEW.mode === 'tps' ? '3rd person' : 'Overhead';
   $('#tFire').hidden = !(TOUCH.on && VIEW.mode === 'tps');
 }
 function requestLock() {
@@ -1195,10 +1204,11 @@ function requestLock() {
 function releaseLock() { if (document.pointerLockElement && document.exitPointerLock) document.exitPointerLock(); }
 function lockFailedNow() {
   if (VIEW.lockFailed) return;
+  if (performance.now() - (VIEW.unlockedAt || -1e9) < 2000) return; // browsers refuse a re-capture for about a second after Esc; the next click retries
   VIEW.lockFailed = true;
   if (inGame()) banner('Mouse look is blocked here', 'Turn with ← → · press V for the overhead view', 3.2);
 }
-document.addEventListener('pointerlockchange', () => { VIEW.locked = document.pointerLockElement === cv; if (!VIEW.locked) MOUSE.down = false; });
+document.addEventListener('pointerlockchange', () => { VIEW.locked = document.pointerLockElement === cv; if (!VIEW.locked) { MOUSE.down = false; VIEW.unlockedAt = performance.now(); } });
 document.addEventListener('pointerlockerror', lockFailedNow);
 
 addEventListener('keydown', (e) => {
@@ -1240,7 +1250,7 @@ cv.addEventListener('pointerdown', (e) => {
   setTouchMode(false);
   MOUSE.x = e.clientX; MOUSE.y = e.clientY; MOUSE.seen = true;
   // in third person the first click captures the mouse instead of firing
-  if (VIEW.mode === 'tps' && !VIEW.locked && !VIEW.lockFailed) { requestLock(); return; }
+  if (VIEW.mode === 'tps' && !VIEW.locked && !VIEW.lockFailed) { if (SHEET.kind !== 'over') requestLock(); return; }
   if (e.button === 0) MOUSE.down = true;
 });
 cv.addEventListener('pointermove', (e) => {
@@ -1277,6 +1287,7 @@ cv.addEventListener('contextmenu', (e) => { if (inGame()) e.preventDefault(); })
 cv.addEventListener('wheel', (e) => {
   if (!inGame()) return;
   e.preventDefault();
+  if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
   const now = performance.now();
   if (now - (cv._wheelT || 0) < 120) return;
   cv._wheelT = now;
@@ -1324,7 +1335,7 @@ function shade(hex, k) {
 function resize() {
   cw = innerWidth; ch = innerHeight; dpr = Math.min(2, devicePixelRatio || 1);
   cv.width = Math.round(cw * dpr); cv.height = Math.round(ch * dpr);
-  if (R) { R.renderer.setSize(cw, ch, false); R.camera.aspect = cw / ch; R.camera.updateProjectionMatrix(); }
+  if (R) { R.renderer.setPixelRatio(Math.min(devicePixelRatio || 1, R.mobile ? 1.5 : 1.75)); R.renderer.setSize(cw, ch, false); R.camera.aspect = cw / ch; R.camera.updateProjectionMatrix(); }
   measureHud();
 }
 function measureHud() {
@@ -1467,7 +1478,7 @@ function containerEnd(color) {
 function makeWall(wl) {
   const crate = !wl.barrier && Math.abs(wl.w - wl.h) < 4;
   const hgt = wl.barrier ? 78 : crate ? 62 : 112;
-  const mk = (map, color) => new THREE.MeshStandardMaterial({ map: map || null, color: color ? lin(color) : 0xffffff, roughness: 0.68, metalness: crate ? 0 : 0.25, transparent: true, opacity: 1 });
+  const mk = (map, color) => new THREE.MeshStandardMaterial({ map: map || null, color: color ? lin(color) : 0xffffff, roughness: 0.68, metalness: crate ? 0 : 0.25, transparent: false, opacity: 1 });
   let mats;
   if (crate) {
     const t = canvasTex(128, 128, (c, w, h) => {
@@ -1560,11 +1571,18 @@ function makeModel(f) {
   const light = new THREE.PointLight(lin('#ffd27a'), 0, 260, 2); light.position.set(44, GUN_H + 4, 0); g.add(light);
   // rail gun warning: a dashed red bar from the muzzle to the first wall
   const dashTex = canvasTex(64, 8, (c, w, h) => { c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, w, h); c.fillStyle = '#ff4637'; c.fillRect(0, 0, 40, h); });
+  R.redraws.pop(); // plain dashes, no text: never needs a redraw when fonts load
   dashTex.wrapS = THREE.RepeatWrapping;
   const warn = new THREE.Mesh(new THREE.BoxGeometry(1, 3, 4), new THREE.MeshBasicMaterial({ map: dashTex, transparent: true, opacity: 0.6, depthWrite: false }));
   warn.visible = false; R.scene.add(warn);
   R.scene.add(g);
   return { g, bodyMat, legs, arms, head, pivot, ring, light, warn, weapons: new Map(), cur: null, phase: 0, fall: 0 };
+}
+// free the GPU buffers of a model whose game has ended (shared materials stay)
+function disposeModel(M) {
+  const shared = new Set(R.mats.values()), mats = new Set();
+  for (const root of [M.g, M.warn]) root.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material && !shared.has(o.material)) mats.add(o.material); });
+  for (const m of mats) { if (m.map) m.map.dispose(); m.dispose(); }
 }
 function syncFighter(f, dt) {
   let M = R.models.get(f);
@@ -1627,6 +1645,8 @@ function glowTex(inner, outer) {
   });
 }
 function buildPools() {
+  C_ME = new THREE.Color(); C_OPP = new THREE.Color(); C_TMP = new THREE.Color(); M4 = new THREE.Matrix4();
+  Q = new THREE.Quaternion(); EUL = new THREE.Euler(); S3 = new THREE.Vector3(); P3 = new THREE.Vector3();
   const MAXT = 640;
   R.tracers = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial({ color: 0xffffff }), MAXT);
   R.tracers.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
@@ -1666,13 +1686,14 @@ function buildPools() {
   R.laser = new THREE.Mesh(new THREE.BoxGeometry(1, 1.2, 1.2), new THREE.MeshBasicMaterial({ color: lin('#ff5b47'), transparent: true, opacity: 0.45, depthWrite: false }));
   R.laser.visible = false; R.scene.add(R.laser);
   R.arc = new THREE.Line(new THREE.BufferGeometry().setFromPoints(Array.from({ length: 24 }, () => new THREE.Vector3())), new THREE.LineDashedMaterial({ color: lin('#f2b31b'), dashSize: 12, gapSize: 9, transparent: true, opacity: 0.85 }));
+  R.arc.geometry.setAttribute('lineDistance', new THREE.BufferAttribute(new Float32Array(24), 1).setUsage(THREE.DynamicDrawUsage));
   R.arc.frustumCulled = false; R.arc.visible = false; R.scene.add(R.arc);
   R.land = new THREE.Mesh(new THREE.RingGeometry(0.94, 1, 64), new THREE.MeshBasicMaterial({ color: lin('#f2b31b'), transparent: true, opacity: 0.6, depthWrite: false, side: THREE.DoubleSide }));
   R.land.rotation.x = -Math.PI / 2; R.land.visible = false; R.scene.add(R.land);
 }
 // hook from blastFx: a short burst of orange light at the explosion
 function fxHook(kind, x, y) { if (R && kind === 'blast') { R.boom = { x, y, t: 0.3 }; } }
-const C_ME = new THREE.Color(), C_OPP = new THREE.Color(), C_TMP = new THREE.Color(), M4 = new THREE.Matrix4(), Q = new THREE.Quaternion(), EUL = new THREE.Euler(), S3 = new THREE.Vector3(), P3 = new THREE.Vector3();
+let C_ME, C_OPP, C_TMP, M4, Q, EUL, S3, P3; // scratch objects, created in buildPools once three.js is known to be loaded
 function syncEffects(dt) {
   C_ME.set('#c8fff4').convertSRGBToLinear(); C_OPP.set('#ffd6c8').convertSRGBToLinear();
   // tracers
@@ -1792,7 +1813,10 @@ function syncAimHelpers() {
     const dist = Math.hypot(tx - m.x, ty - m.y), h = Math.min(70, 20 + dist * 0.16);
     const pos = R.arc.geometry.attributes.position;
     for (let i = 0; i < 24; i++) { const k = i / 23; pos.setXYZ(i, lerp(m.x, tx, k), 8 + Math.sin(Math.PI * k) * h * 2.2 + (1 - k) * (GUN_H - 8), lerp(m.y, ty, k)); }
-    pos.needsUpdate = true; R.arc.computeLineDistances(); R.arc.visible = true;
+    const ld = R.arc.geometry.attributes.lineDistance;
+    let acc = 0;
+    for (let i = 1; i < 24; i++) { acc += Math.hypot(pos.getX(i) - pos.getX(i - 1), pos.getY(i) - pos.getY(i - 1), pos.getZ(i) - pos.getZ(i - 1)); ld.setX(i, acc); }
+    pos.needsUpdate = true; ld.needsUpdate = true; R.arc.visible = true;
     R.land.visible = true; R.land.position.set(tx, 2, ty); R.land.scale.setScalar(w.id === 'grenade' ? w.r2 : w.r);
   }
 }
@@ -1812,7 +1836,7 @@ function fadeWalls(dt) {
     }
     if (Math.abs(target - wl.fade) > 0.002) {
       wl.fade += (target - wl.fade) * Math.min(1, dt * 10);
-      for (const mt of wl.mats) { mt.opacity = wl.fade; mt.depthWrite = wl.fade > 0.97; }
+      for (const mt of wl.mats) { mt.opacity = wl.fade; mt.depthWrite = wl.fade > 0.97; mt.transparent = wl.fade < 0.99; }
     }
   }
 }
@@ -1836,7 +1860,7 @@ function updateCamera(dt) {
     const kx = 1 - Math.exp(-Math.min(dt, 0.05) * 22);
     CAMF.x += (m.x - CAMF.x) * kx; CAMF.y += (m.y - CAMF.y) * kx;
     // over the right shoulder, so you sit left of the crosshair instead of in front of it
-    const rx = -fz * 46, rz = fx * 46;
+    const rx = -fz * SHOULDER, rz = fx * SHOULDER;
     cam.position.set(CAMF.x - fx * D * Math.cos(p) + rx, 70 + D * Math.sin(p), CAMF.y - fz * D * Math.cos(p) + rz);
     cam.lookAt(CAMF.x + fx * 150 + rx, 46, CAMF.y + fz * 150 + rz);
   } else {
@@ -1873,7 +1897,7 @@ function render(dt) {
   if (!G) return;
   updateCamera(dt);
   for (const f of G.fighters) syncFighter(f, dt);
-  for (const [f, M] of R.models) if (!G.fighters.includes(f)) { R.scene.remove(M.g); R.scene.remove(M.warn); R.models.delete(f); }
+  for (const [f, M] of R.models) if (!G.fighters.includes(f)) { R.scene.remove(M.g); R.scene.remove(M.warn); R.models.delete(f); disposeModel(M); }
   syncEffects(dt);
   syncAimHelpers();
   fadeWalls(dt);
@@ -1888,7 +1912,9 @@ function render(dt) {
 function aimScreenPoint() {
   const m = G.me, w = wOf(m), L = PR + (w.len || 0), reach = w.kind === 'gun' ? Math.min(w.range, 1600) : 400;
   const x0 = m.x + Math.cos(m.a) * L, y0 = m.y + Math.sin(m.a) * L, ex = x0 + Math.cos(m.a) * reach, ey = y0 + Math.sin(m.a) * reach;
-  const t = Math.min(1, segWalls(x0, y0, ex, ey));
+  let t = Math.min(1, segWalls(x0, y0, ex, ey));
+  const o = G.opp;
+  if (o.alive && !o.hidden) { const tt = segCircle(x0, y0, ex, ey, o.x, o.y, PR + 2); if (tt !== null && tt < t) t = tt; }
   return toScreen(lerp(x0, ex, t), GUN_H, lerp(y0, ey, t));
 }
 function drawOverlay() {
@@ -1912,7 +1938,7 @@ function drawOverlay() {
     }
   }
   for (const t of G.texts) {
-    const k = t.t / t.T, p = toScreen(t.x, 80 + k * 40, t.y);
+    const k = t.t / t.T, p = toScreen(t.x, 80 + k * 40, t.y + PR + 8);
     if (!p.front) continue;
     c.globalAlpha = 1 - k * k;
     c.font = `900 ${t.big ? 30 : 21}px "Big Shoulders Stencil Display", Impact, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle';
@@ -2164,7 +2190,7 @@ function enterGameUI() {
   chip.hidden = !(G && G.display);
   chip.textContent = G && G.display ? 'Code ' + G.display : '';
   $('#btnMute').textContent = SND.muted ? 'Sound off' : 'Sound on';
-  $('#btnView').textContent = VIEW.mode === 'tps' ? 'View: 3rd person' : 'View: overhead';
+  $('#btnView').textContent = VIEW.mode === 'tps' ? '3rd person' : 'Overhead';
   closeSheet(); hideBanner();
   requestAnimationFrame(measureHud);
   if (NET.room) setLobby({ st: G.mode === 'bot' ? 'bot' : 'play', q: null });
@@ -2579,8 +2605,8 @@ function renderNet() {
   else if (!usable) t.textContent = 'Offline · practice only';
   else if (!NET.connected) t.textContent = 'Reconnecting';
   else { const n = onlineCount(); t.textContent = `Online · ${n} ${n === 1 ? 'player' : 'players'} here`; }
-  for (const id of ['btnPlay', 'btnCreate']) $('#' + id).disabled = NET.ready && !usable;
-  $('#joinForm').querySelector('button').disabled = NET.ready && !usable;
+  for (const id of ['btnPlay', 'btnCreate']) $('#' + id).disabled = !R || (NET.ready && !usable);
+  $('#joinForm').querySelector('button').disabled = !R || (NET.ready && !usable);
   help.hidden = !(NET.ready && !usable);
   help.textContent = 'Online play, accounts and chat work when this page is opened from its claude.ai link while signed in. Practice against the bot works anywhere.';
   if (SHEET.kind === 'search') updateSearchSheet();
@@ -2940,6 +2966,7 @@ function frame(t) {
 }
 function boot() {
   if (!init3D()) {
+    $('#btnBot').disabled = true;
     const help = $('#glHelp');
     help.hidden = false;
     help.textContent = typeof THREE === 'undefined' ? 'The 3D engine did not load. Check your connection and reload the page.' : 'This browser could not start WebGL, which the 3D yard needs. Try another browser or turn on hardware acceleration.';
