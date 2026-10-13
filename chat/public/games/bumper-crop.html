@@ -358,7 +358,7 @@ body.touch #toasts{bottom:calc(262px + env(safe-area-inset-bottom))}
   padding:16px 20px 20px;text-align:left}
 .home-card h3{font-family:var(--display);font-weight:400;font-size:24px;margin:0 0 8px}
 .home-srv-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.home-srvlist{display:grid;gap:10px;margin-top:12px;max-height:46vh;overflow:auto;padding:4px}
+.home-srvlist{margin-top:12px}
 .home-note{font-size:14px;opacity:.85;margin-top:10px}
 #home .home-settings{max-height:calc(100vh - 40px);overflow:auto}
 #home .namerow{display:flex;gap:8px;margin-bottom:14px}
@@ -521,6 +521,21 @@ body.compact .chat.open .chat-log{max-height:32vh}
 .srv-dots{display:flex;gap:5px;margin-top:5px}
 .srv-dots i{width:14px;height:14px;border-radius:50%;border:2px solid var(--loam);background:rgba(58,38,24,.12)}
 .srvcard .btn{padding:0 14px}
+.srvgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.srvmini{display:grid;grid-template-columns:38px minmax(0,1fr);align-items:center;gap:10px;padding:9px 11px;text-align:left;font:inherit;color:inherit;cursor:pointer;
+  background:rgba(255,247,230,.8);border:2.5px solid var(--loam);border-radius:14px;box-shadow:0 3px 0 rgba(58,38,24,.34);transition:transform .08s}
+.srvmini:hover:not(:disabled){transform:translateY(-2px);background:#fff8e8}
+.srvmini:active:not(:disabled){transform:translateY(1px);box-shadow:0 1px 0 rgba(58,38,24,.34)}
+.srvmini:disabled{cursor:default}
+.srvmini.full{opacity:.55}
+.srvmini.here{background:#DDF5C9;border-color:var(--sprout);box-shadow:0 3px 0 #3d7a2a}
+.srvmini .srv-wx{width:38px;height:38px;border-width:2px}
+.srvmini .srv-wx svg{width:24px;height:24px}
+.srvmini h4{font-family:var(--display);font-weight:400;font-size:17px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.srvmini p{font-size:12px;line-height:1.25;opacity:.85;font-weight:700}
+.srvmini .srv-dots{margin-top:4px;gap:4px}
+.srvmini .srv-dots i{width:11px;height:11px}
+@media (max-width:520px){.srvgrid{grid-template-columns:1fr}}
 .plots{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:4px}
 .plots div{display:flex;align-items:center;gap:8px;min-width:0;padding:7px 10px;background:rgba(255,247,230,.72);border:2px solid var(--loam);border-left:8px solid var(--pc);border-radius:12px;font-size:14px;line-height:1.2}
 .plots div span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -674,6 +689,10 @@ body.compact .chat.open .chat-log{max-height:32vh}
       <label for="homeName" style="font-weight:800">Your farmer name</label>
       <div class="namerow"><input id="homeName" maxlength="16" spellcheck="false" aria-label="Farmer name"><button class="btn" id="homeNameSave" type="button">Save</button></div>
       <button class="btn ghost home-sound" id="homeSound" type="button"></button>
+      <details id="homeAddr" style="margin:4px 0 8px"><summary style="cursor:pointer;font-weight:800">Game server address</summary>
+        <p class="home-note" style="margin-top:6px">Only needed if the game page and the game server live in different places.</p>
+        <div class="namerow"><input id="addrEdit" spellcheck="false" placeholder="ws://localhost:3000/ws" aria-label="Game server address"><button class="btn ghost" id="addrConnect" type="button">Connect</button></div>
+      </details>
       <div id="homeSaveSlot"></div>
     </div>
   </div>
@@ -6878,18 +6897,10 @@ function renderServers() {
     body.innerHTML = `
       <p class="basket-line" id="srvStatus"></p>
       <div id="srvHere"></div>
-      <h3>Pick a server</h3>
-      <div class="srvlist" id="srvList"></div>
-      <p class="dim" style="margin-top:12px">Your coins, seeds, pets and plants travel with you. Every server has four plots, its own weather and its own chat.</p>
-      <div class="save-block">
-        <h3>Your farmer name</h3>
-        <div class="namerow"><input id="nameEdit" maxlength="16" spellcheck="false" aria-label="Farmer name"><button class="btn" data-rename>Save</button></div>
-        <h3>Game server address</h3>
-        <p>Only needed if the game page and the game server live in different places.</p>
-        <div class="namerow"><input id="addrEdit" spellcheck="false" placeholder="ws://localhost:3000/ws" aria-label="Game server address"><button class="btn ghost" data-connect>Connect</button></div>
-      </div>`;
-    $('#nameEdit').value = Net.name;
-    $('#addrEdit').value = Net.addr || defaultAddr();
+      <h3>Switch server</h3>
+      <button class="btn big" data-random style="width:100%;margin:4px 0 12px">Join a random server</button>
+      <div id="srvList"></div>
+      <p class="dim" style="margin-top:12px">Your coins, seeds, pets and plants travel with you. Every server has four plots, its own weather and its own chat. Your name and other settings are on the home screen (💾).</p>`;
   }
   $('#srvStatus').textContent = Net.room ? `Connected to ${Net.roomName}. You farm plot ${mySlot + 1}.`
     : Net.status === 'offline' ? (Net.started ? 'Cannot reach the game server. Your farm still works offline, and it keeps trying to reconnect.' : 'Not connected yet.')
@@ -6899,16 +6910,35 @@ function renderServers() {
     const nm = here.players && here.players[k];
     return `<div class="${k === mySlot ? 'me' : ''}" style="--pc:${SLOT_LOOK[k].tag}"><b>${k + 1}</b><span>${nm ? esc(nm) + (k === mySlot ? ' (you)' : '') : 'Open plot'}</span></div>`;
   }).join('')}</div>` : '';
-  const now = slotNow();
-  $('#srvList').innerHTML = Net.list.length ? Net.list.map(sv => {
+  $('#srvList').innerHTML = serverGrid();
+  const online = Net.status === 'online' || Net.status === 'joining';
+  $('#sheet-servers [data-random]').disabled = !online;
+}
+/* the server list: compact cards, two to a row; one click joins */
+function serverGrid() {
+  const list = Net.list || [], online = Net.status === 'online' || Net.status === 'joining', now = slotNow();
+  if (!list.length) return `<div class="empty"><p>${online ? 'Loading the server list…' : 'Connecting to the servers…'}</p></div>`;
+  return `<div class="srvgrid">${list.map(sv => {
     const wx = weatherFor(now, 'srv:' + sv.id), isHere = sv.id === Net.room, full = sv.n >= sv.max;
     const dots = (sv.players || []).map((nm, k) => `<i style="${nm ? `background:${SLOT_LOOK[k].tag}` : ''}" title="${nm ? esc(nm) : 'Open plot'}"></i>`).join('');
-    return `<article class="srvcard${isHere ? ' here' : ''}">
-      <div class="srv-wx">${ICON[wx] || ICON.sun}</div>
-      <div><h4>${esc(sv.name)}</h4><p>${wx ? WEATHER[wx].name : 'Clear skies'} · ${sv.n} of ${sv.max} farmers</p><div class="srv-dots">${dots}</div></div>
-      <button class="btn${isHere ? ' ghost' : ''}" data-join="${esc(sv.id)}" ${isHere || full || !Net.room ? 'disabled' : ''}>${isHere ? 'Here' : full ? 'Full' : 'Join'}</button>
-    </article>`;
-  }).join('') : `<div class="empty"><p>${Net.status === 'offline' ? 'No server list while offline.' : 'Loading the server list…'}</p></div>`;
+    const note = isHere ? 'You are here' : full ? 'Full' : sv.n ? `${sv.n} of ${sv.max} farmers` : 'Empty — 4 open plots';
+    return `<button class="srvmini${isHere ? ' here' : ''}${full && !isHere ? ' full' : ''}" data-srv="${esc(sv.id)}" ${isHere || full || !online ? 'disabled' : ''}
+      title="${isHere ? 'You are on ' + esc(sv.name) : full ? esc(sv.name) + ' is full' : 'Join ' + esc(sv.name) + (wx ? ' · ' + WEATHER[wx].name : '')}">
+      <span class="srv-wx">${ICON[wx] || ICON.sun}</span>
+      <span><h4>${esc(sv.name)}</h4><p>${note}</p><span class="srv-dots">${dots}</span></span>
+    </button>`;
+  }).join('')}</div>`;
+}
+function randomServer() {
+  // Join puts you on a random server that still has room
+  const open = (Net.list || []).filter(sv => sv.n < sv.max && sv.id !== Net.room);
+  if (!open.length) { toast('Every server is full right now'); Sound.play('error'); return; }
+  pickServer(open[Math.floor(Math.random() * open.length)].id);
+}
+function pickServer(id) {
+  if (ui.sheet) closeSheet();
+  if (Net.room) return joinServer(id);
+  homeJoin(id);
 }
 function renameMe(raw) {
   const name = cleanName(raw);
@@ -6927,6 +6957,8 @@ function showHome(view) {
   if (sheet.parentNode !== slot) slot.appendChild(sheet);   // the save & codes panel moves in with all its buttons
   $('#home').hidden = false;
   $('#homeName').value = Net.name || '';
+  $('#addrEdit').value = Net.addr || defaultAddr();
+  $('#homeAddr').hidden = !!window.ChatGame;   // inside the chat the servers come with it
   syncHomeSound();
   renderSave();
   syncHomeView();
@@ -6955,16 +6987,7 @@ function renderHomeServers() {
   $('#homeRandom').disabled = !online || !open.length;
   $('#homeRandom').textContent = !online ? 'Connecting to the servers…' : open.length ? (Net.room ? 'Move to a random server' : 'Join a random server') : 'Every server is full';
   $('#homeOffline').hidden = online;
-  const now = slotNow();
-  $('#homeSrvList').innerHTML = list.length ? list.map(sv => {
-    const wx = weatherFor(now, 'srv:' + sv.id), isHere = sv.id === Net.room, full = sv.n >= sv.max;
-    const dots = (sv.players || []).map((nm, k) => `<i style="${nm ? `background:${SLOT_LOOK[k].tag}` : ''}" title="${nm ? esc(nm) : 'Open plot'}"></i>`).join('');
-    return `<article class="srvcard${isHere ? ' here' : ''}">
-      <div class="srv-wx">${ICON[wx] || ICON.sun}</div>
-      <div><h4>${esc(sv.name)}</h4><p>${wx ? WEATHER[wx].name : 'Clear skies'} · ${sv.n} of ${sv.max} farmers</p><div class="srv-dots">${dots}</div></div>
-      <button class="btn${isHere ? ' ghost' : ''}" data-homejoin="${esc(sv.id)}" ${isHere || full || !online ? 'disabled' : ''}>${isHere ? 'Here' : full ? 'Full' : 'Join'}</button>
-    </article>`;
-  }).join('') : `<div class="empty"><p>${online ? 'Loading the server list…' : 'Connecting to the servers…'}</p></div>`;
+  $('#homeSrvList').innerHTML = serverGrid();
 }
 function homeJoin(id) {
   const nm = cleanName($('#homeName').value);
@@ -6981,13 +7004,8 @@ function bindHome() {
   $('#homeBack').addEventListener('click', () => { homeUI.view = 'main'; syncHomeView(); });
   $('#homeResume').addEventListener('click', () => hideHome());
   $('#homeOffline').addEventListener('click', () => { homeUI.offline = true; hideHome(); toast('Farming offline. Open Home to join a server when it connects.'); });
-  $('#homeRandom').addEventListener('click', () => {
-    // pressing Join drops you on a random server that still has room
-    const open = (Net.list || []).filter(sv => sv.n < sv.max && sv.id !== Net.room);
-    if (!open.length) { toast('Every server is full right now'); Sound.play('error'); return; }
-    homeJoin(open[Math.floor(Math.random() * open.length)].id);
-  });
-  $('#homeSrvList').addEventListener('click', e => { const j = e.target.closest('[data-homejoin]'); if (j && !j.disabled) homeJoin(j.dataset.homejoin); });
+  $('#homeRandom').addEventListener('click', () => randomServer());
+  $('#homeSrvList').addEventListener('click', e => { const j = e.target.closest('[data-srv]'); if (j && !j.disabled) homeJoin(j.dataset.srv); });
   $('#homeNameSave').addEventListener('click', () => { if (renameMe($('#homeName').value)) { $('#homeName').value = Net.name; toast(`You are now ${Net.name}`); } });
   $('#homeName').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('#homeNameSave').click(); } });
   $('#homeSound').addEventListener('click', () => { toggleSound(); syncHomeSound(); });
@@ -7002,10 +7020,12 @@ function askName() {
 function bindNet() {
   $('#srvChip').addEventListener('click', () => { openSheet('servers'); if (Net.room) Net.send({ t: 'list' }); });
   $('#sheet-servers').addEventListener('click', e => {
-    const j = e.target.closest('[data-join]');
-    if (j) return joinServer(j.dataset.join);
-    if (e.target.closest('[data-rename]')) { if (renameMe($('#nameEdit').value)) { $('#nameEdit').value = Net.name; toast(`You are now ${Net.name}`); } return; }
-    if (e.target.closest('[data-connect]')) {
+    const j = e.target.closest('[data-srv]');
+    if (j && !j.disabled) return pickServer(j.dataset.srv);
+    if (e.target.closest('[data-random]')) return randomServer();
+  });
+  $('#addrConnect').addEventListener('click', () => {
+    {
       const raw = $('#addrEdit').value.trim();
       Net.addr = raw ? wsAddr(raw) : '';
       lsSet(ADDR_KEY, raw ? Net.addr : null);
@@ -7015,6 +7035,7 @@ function bindNet() {
       if (raw) Net.mode = 'ws';
       if (Net.ws && Net.mode === 'ws' && Net.ws.room !== undefined) { Net.ws = null; }
       netConnect();
+      toast('Connecting to ' + Net.addr);
     }
   });
   $('#nameForm').addEventListener('submit', e => {

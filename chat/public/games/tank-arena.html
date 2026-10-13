@@ -26,7 +26,7 @@
       radial-gradient(700px 500px at 92% 108%, #22201a 0%, transparent 60%),
       linear-gradient(#0a100f,#080c0b);
     font-family:"Barlow","Segoe UI",Roboto,Arial,sans-serif;
-    display:flex; align-items:center; justify-content:center; padding:16px;
+    padding:14px 16px;
     -webkit-font-smoothing:antialiased;
   }
   button{font:inherit; color:inherit; cursor:pointer; border:0; background:none}
@@ -37,7 +37,7 @@
   .stripe{height:5px; background:var(--hazard); border-radius:2px}
 
   /* ================= MENU ================= */
-  #menu{width:min(1340px,100%)}
+  #menu{width:min(1340px,100%); margin:0 auto}
   .masthead{display:flex; align-items:flex-end; gap:18px; margin-bottom:14px; flex-wrap:wrap}
   .logo{display:flex; align-items:center; gap:12px}
   .logo svg{width:44px;height:44px; color:var(--orange)}
@@ -123,7 +123,7 @@
   .note{color:var(--dimmer); font-size:11.5px; padding:0 14px 12px; line-height:1.5}
 
   /* ================= GAME ================= */
-  #game{width:min(1340px,100%)}
+  #game{width:min(1340px,100%); margin:0 auto}
   .topbar{display:flex; align-items:center; gap:14px; margin-bottom:9px}
   .roundtag{font-family:"Oswald",sans-serif; font-weight:500; letter-spacing:.1em; font-size:15px}
   .roundtag b{color:var(--orange); font-weight:700}
@@ -140,11 +140,17 @@
   .quit:hover{color:var(--ink); border-color:var(--edge2)}
 
   .field{background:linear-gradient(#151f1d,#0f1716); border:1px solid var(--edge); border-radius:12px; padding:11px}
-  canvas#c{width:100%; display:block; border-radius:8px; background:#141c1a; box-shadow:0 0 0 1px #0b100f inset}
+  canvas#c{width:100%; max-width:100%; margin:0 auto; display:block; border-radius:8px; background:#141c1a; box-shadow:0 0 0 1px #0b100f inset}
 
   #hud{display:grid; gap:9px; margin-top:10px}
-  @media(max-width:820px){#hud{grid-template-columns:1fr 1fr !important}}
-  .pslot{background:var(--plate2); border:1px solid var(--edge); border-radius:9px; padding:9px 11px 10px; position:relative; overflow:hidden}
+  @media(max-width:700px){#hud{grid-template-columns:1fr 1fr !important}}
+  .pslot{background:var(--plate2); border:1px solid var(--edge); border-radius:9px; padding:9px 11px 10px; position:relative; overflow:hidden; min-width:0}
+  #hud.many .pslot{padding:7px 9px 8px}
+  #hud.many .stats{gap:3px; margin:6px 0 5px 4px}
+  #hud.many .chip{font-size:9.5px; padding:1px 4px}
+  #hud.many .chip.lo{display:none}
+  #hud.many .ups{margin-bottom:5px}
+  #hud.many .pslot .head{margin-bottom:5px}
   .pslot .flagbar{position:absolute; left:0; top:0; bottom:0; width:4px}
   .pslot.dead{opacity:.4; filter:grayscale(.5)}
   .pslot .head{display:flex; align-items:baseline; gap:8px; margin:0 0 7px 4px}
@@ -206,12 +212,19 @@
   .btn.ghost{background:transparent; border:1px solid var(--edge); color:var(--ink)}
   .btn.ghost:hover{border-color:var(--edge2)}
   /* ================= ONLINE ================= */
-  .srvs{display:grid; gap:6px; margin-top:10px}
-  .srvrow{display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:6px; background:var(--plate2); border:1px solid var(--edge)}
+  .srvs{display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:10px}
+  .srvrow{display:flex; flex-direction:column; align-items:flex-start; gap:2px; padding:8px 10px; border-radius:6px; background:var(--plate2);
+          border:1px solid var(--edge); text-align:left; color:var(--ink)}
+  .srvrow:hover:not(:disabled){border-color:var(--edge2); background:var(--plate3)}
+  .srvrow:disabled{cursor:default}
   .srvrow b{font-family:"Barlow Semi Condensed",sans-serif; font-weight:700; letter-spacing:.06em; font-size:13px}
-  .srvrow em{font-style:normal; font-size:12px; color:var(--dim); margin-left:auto}
-  .srvrow .btn{padding:6px 12px; font-size:13px}
-  .srvrow.here{border-color:var(--orange)}
+  .srvrow em{font-style:normal; font-size:11.5px; color:var(--dim)}
+  .srvrow .bar{display:flex; gap:3px; margin-top:3px}
+  .srvrow .bar i{width:16px; height:4px; border-radius:1px; background:#25322f}
+  .srvrow .bar i.on{background:var(--sage)}
+  .srvrow.here{border-color:var(--orange); background:#241a14}
+  .srvrow.here em{color:var(--amber)}
+  .srvrow.full{opacity:.5}
   .netline{font-size:12.5px; color:var(--dim); line-height:1.5}
   .netline b{color:var(--ink)}
   .go.small{padding:10px; font-size:15px; box-shadow:0 4px 0 #a83c19}
@@ -250,6 +263,9 @@
         <div class="label" id="pvTurret" style="margin:-4px 0 10px; color:var(--sage)"></div>
         <div id="pvStats"></div>
       </div>
+      <h2 style="border-top:1px solid var(--edge)">CONTROLS</h2>
+      <div class="keyhelp" id="keyHelp"></div>
+      <div class="note">Five rounds. Whoever gets knocked out picks one of three random upgrades, and it stays with them for the whole match.</div>
     </div>
 
     <!-- middle: crew slots + tank grid -->
@@ -266,15 +282,9 @@
         <div class="body" id="onlineBody"></div>
       </div>
       <div class="plate">
+        <div style="padding:14px 14px 0"><button class="go" id="startBtn">DEPLOY</button><div class="stripe" style="margin-top:14px"></div></div>
         <h2>BATTLEFIELD</h2>
         <div class="maps" id="mapGrid"></div>
-        <div style="padding:0 14px 14px"><div class="stripe" style="margin-bottom:12px"></div>
-          <button class="go" id="startBtn">DEPLOY</button></div>
-      </div>
-      <div class="plate">
-        <h2>CONTROLS</h2>
-        <div class="keyhelp" id="keyHelp"></div>
-        <div class="note">Five rounds. Whoever gets knocked out picks one of three random upgrades, and it stays with them for the whole match.</div>
       </div>
     </div>
   </div>
@@ -554,9 +564,9 @@ function renderMenu(){
     const k=b[i], K=c=>`<kbd>${KEYNAME[c]||c}</kbd>`;
     out+= i===0
       ? `<div><span style="color:${COLORS[i]};font-weight:700">${playerLabel(i)}</span> &nbsp;${K(k.fwd[0])}${K(k.left[0])}${K(k.back[0])}${K(k.right[0])} drive &nbsp; <kbd>Mouse</kbd> aim &nbsp; <kbd>Click</kbd> or ${K(k.fire[0])} fire</div>`
-      : `<div><span style="color:${COLORS[i]};font-weight:700">${playerLabel(i)}</span> &nbsp;${K(k.fwd[0])}${K(k.left[0])}${K(k.back[0])}${K(k.right[0])} drive &nbsp; ${K(k.fire[0])} fire &nbsp; <span style="color:var(--dimmer)">turret tracks the nearest tank</span></div>`;
+      : `<div><span style="color:${COLORS[i]};font-weight:700">${playerLabel(i)}</span> &nbsp;${K(k.fwd[0])}${K(k.left[0])}${K(k.back[0])}${K(k.right[0])} drive &nbsp; ${K(k.fire[0])} fire</div>`;
   }
-  if(humanCount()>=3) out+=`<div style="color:var(--dimmer);margin-top:4px">Player 3 can also fire with <kbd>N</kbd> if <kbd>U</kbd> gets swallowed while turning — most keyboards can only register a few keys at once per hand.</div>`;
+  if(humanCount()>=2) out+=`<div style="color:var(--dimmer);margin-top:4px">Only player 1 has the mouse; the other turrets aim at the nearest tank on their own.${humanCount()>=3?` Player 3 can also fire with <kbd>N</kbd>.`:""}</div>`;
   out+=`<div style="margin-top:8px;color:var(--sage)">Hold the mouse button to keep shooting at your tank's reload rate. Turrets swing toward your aim at ${BASE_TPS.toFixed(2)} turns per second — the Turret speed upgrade makes them faster.</div>`;
   kh.innerHTML=out;
   paintStats(cfg.picks[cfg.tab]);
@@ -717,15 +727,17 @@ const Online=(()=>{
       h+=`<div class="netline">You're on <b>Server ${O.srv}</b> · ${cr.length}/${MAX} tanks.<br>${
         host&&host.isMe ? (cr.length<2?"Waiting for others to join — or deploy now against a bot.":"You're the host: pick the battlefield and press DEPLOY.")
         : running ? "A match is under way. You'll be in the next one." : `<b>${esc(host?host.nm:"The host")}</b> picks the battlefield and starts the match.`}</div>`;
-      h+=`<div class="row" style="margin-top:10px"><button class="btn ghost" id="netRandom">Random server</button><button class="btn ghost" id="netLeave">Leave</button></div>`;
+      h+=`<div class="row" style="margin-top:10px"><button class="btn ghost" id="netRandom" style="flex:1">Random server</button><button class="btn ghost" id="netLeave">Leave</button></div>`;
     } else {
       h+=`<button class="go small" id="netRandom" ${O.joining?"disabled":""}>JOIN A RANDOM SERVER</button>`;
     }
     h+=`<div class="srvs">`;
     for(let n=1;n<=SERVERS;n++){
       const here=n===O.srv, full=c[n]>=MAX;
-      h+=`<div class="srvrow${here?" here":""}"><b>SERVER ${n}</b><em>${c[n]}/${MAX} tanks</em>
-        <button class="btn${here?" ghost":""}" data-srv="${n}" ${here||full||O.joining?"disabled":""}>${here?"HERE":full?"FULL":"JOIN"}</button></div>`;
+      const k=here?Math.max(1,c[n]):c[n];
+      h+=`<button class="srvrow${here?" here":""}${full&&!here?" full":""}" data-srv="${n}" ${here||full||O.joining?"disabled":""} title="${here?"You're here":full?"Full":"Join server "+n}">
+        <b>SERVER ${n}</b><em>${here?"YOU'RE HERE":full?"FULL":k?k+" of "+MAX+" tanks":"EMPTY"}</em>
+        <span class="bar">${[0,1,2,3].map(i=>`<i class="${i<k?"on":""}"></i>`).join("")}</span></button>`;
     }
     h+=`</div>`;
     body.innerHTML=h;
@@ -825,7 +837,7 @@ const Online=(()=>{
     G.binds=bindings(1); G.map=MAPS[g.mp]||MAPS[0]; G.round=g.rk; G.state=g.st;
     G.bullets.length=0; G.fx.length=0; G.beams.length=0; G.pops.length=0; G.queue.length=0;
     menuEl.classList.add("hide"); gameEl.classList.remove("hide"); ovl.classList.add("hide");
-    buildHud(); renderTop();
+    buildHud(); renderTop(); fitArena();
     if(!G.running){G.running=true; G.last=performance.now(); requestAnimationFrame(loop);}
   }
   function applySnap(g){
@@ -997,8 +1009,18 @@ function startRound(){
     p.cd=0; p.kx=0; p.ky=0; p.stun=0; p.poison=null; p.burn=null; p.sgCd=0; p.flipCd=0; p.muzzle=0;
     p.ammo=d.ammo||0; p.reload=0;
   });
-  ovl.classList.add("hide"); renderTop();
+  ovl.classList.add("hide"); renderTop(); fitArena();
 }
+/* size the arena so the round bar, the arena and every player's card fit in the window */
+function fitArena(){
+  if(gameEl.classList.contains("hide")) return;
+  const field=cv.parentElement, top=gameEl.querySelector(".topbar");
+  const room=innerHeight-28-top.offsetHeight-9-22-hudEl.offsetHeight-10;
+  const w=Math.max(320,Math.min(field.clientWidth-22, room*W/H));
+  cv.style.width=Math.floor(w)+"px";
+}
+addEventListener("resize",fitArena);
+if(window.ResizeObserver) new ResizeObserver(()=>fitArena()).observe(document.getElementById("hud"));
 function renderTop(){
   document.getElementById("roundNo").textContent=G.round;
   document.getElementById("pips").innerHTML=
@@ -1011,7 +1033,8 @@ function renderTop(){
    HUD
    ======================================================================= */
 function buildHud(){
-  hudEl.style.gridTemplateColumns=`repeat(${G.players.length},1fr)`;
+  hudEl.style.gridTemplateColumns=`repeat(${G.players.length},minmax(0,1fr))`;
+  hudEl.classList.toggle("many",G.players.length>=3);
   hudEl.innerHTML=G.players.map(p=>`
     <div class="pslot" id="slot${p.i}">
       <div class="flagbar" style="background:${p.color}"></div>
@@ -1037,8 +1060,8 @@ function updateHud(){
       `<span class="chip${up(s.dmg,d.dmg)}">DMG <u>${s.dmg.toFixed(1)}</u></span>`,
       `<span class="chip${up(1/s.cd,1/d.cd)}">RATE <u>${(1/s.cd).toFixed(1)}/s</u></span>`,
       `<span class="chip${up(s.speed,d.speed||60)}">SPD <u>${Math.round(s.speed)}</u></span>`,
-      `<span class="chip${up(s.tps,d.tps)}">TUR <u>${s.tps.toFixed(2)}</u></span>`,
-      `<span class="chip${up(s.crit*s.critMult,(d.noCrit?0:0.025)*1.5)}">CRIT <u>${(s.crit*100).toFixed(1)}% ×${s.critMult.toFixed(1)}</u></span>`
+      `<span class="chip lo${up(s.tps,d.tps)}">TUR <u>${s.tps.toFixed(2)}</u></span>`,
+      `<span class="chip lo${up(s.crit*s.critMult,(d.noCrit?0:0.025)*1.5)}">CRIT <u>${(s.crit*100).toFixed(1)}% ×${s.critMult.toFixed(1)}</u></span>`
     ].join("");
     const ur=document.getElementById("up"+p.i);
     const badges=ownedBadges(p);

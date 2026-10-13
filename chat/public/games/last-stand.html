@@ -564,9 +564,14 @@ kbd{
    =========================================================== */
 .srv-label{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);
   margin:14px 0 7px}
-.srv-grid{display:grid;grid-template-columns:repeat(9,1fr);gap:6px}
+.srv-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .srv{background:#141b2e;border:1px solid var(--line);color:var(--ink);border-radius:8px;
-  padding:9px 0;font:700 13px/1 inherit;cursor:pointer}
+  padding:8px 4px;font:700 13px/1.2 inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px}
+.srv small{font-weight:500;font-size:11px;color:var(--dim)}
+.srv.on small{color:#bfe3ff}
+.srv.full{opacity:.5}
+.srv-random-wide{width:100%;margin-top:6px;padding:10px;border-radius:8px;border:1px solid #3d86c9;background:#1b3354;color:#bfe3ff;font:700 13px/1 inherit;cursor:pointer}
+.srv-random-wide:hover{background:#24456f}
 .srv:hover{background:#24304d;border-color:#3d86c9}
 .srv.on{background:#1f4d7a;border-color:#3d86c9;color:#bfe3ff}
 
@@ -583,7 +588,7 @@ kbd{
 
 /* the plaza chat should not sit under the build bar in battle */
 #battle-hud:not(.hidden) ~ .chat, .chat{bottom:124px}
-@media (max-width:720px){ .srv-grid{grid-template-columns:repeat(5,1fr)} }
+@media (max-width:720px){ .srv-grid{grid-template-columns:repeat(2,1fr)} }
 
 
 /* the chat moves aside for whichever HUD is showing */
@@ -4255,12 +4260,32 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     }
     Net.code = room;
     Net.peer = Net.session.myPeer || null;
+    Net.markServer(room);
     return Net.session;
+  };
+
+  /* Server player counts: everyone tells the page-wide lobby which server
+     they are on, so the server buttons can show how full each one is. */
+  let lobbyWatch = false;
+  Net.markServer = function (room) {
+    if (Net.backend !== 'room' || !roomNs) return;
+    roomNs.presence({ srv: room || null }).catch(() => {});
+    if (!lobbyWatch) {
+      lobbyWatch = true;
+      roomNs.onPeers(() => { if (TD.UI && TD.UI.serverCounts) TD.UI.serverCounts(); }, () => {});
+    }
+  };
+  Net.serverCounts = function () {
+    const c = {};
+    if (Net.backend !== 'room' || !roomNs) return null;
+    for (const p of roomNs.peers()) { const r = p.presence && p.presence.srv; if (typeof r === 'string') c[r] = (c[r] || 0) + 1; }
+    return c;
   };
 
   Net.leave = async function () {
     const s = Net.session;
     Net.session = null; Net.code = null; Net.peer = null;
+    Net.markServer(null);
     if (s) await s.leave();
   };
 
@@ -9344,6 +9369,17 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   UI.toggleQuickChat = function () { const b = document.querySelector('#chat-quick-btn'); if (b) b.click(); };
   UI.chatLine = function (who, text, mine) { TD.Chat.push({ kind: 'say', who: who, text: text, mine: !!mine }); };
 
+  /* "2 here" under each server button */
+  UI.serverCounts = function () {
+    const c = TD.Net.serverCounts(), C = TD.Coop;
+    document.querySelectorAll('#srv-grid .srv[data-n]').forEach(b => {
+      const n = +b.dataset.n, here = C.server && C.server.kind === 'public' && C.server.n === n;
+      let k = c ? (c['plaza-' + n] || 0) : null;
+      if (here && k !== null) k = Math.max(k, 1);
+      b.querySelector('small').textContent = here ? 'You are here' : k === null ? '' : k ? k + ' here' : 'Empty';
+    });
+  };
+
   UI.afterServerChange = function () {
     UI.renderCoop();
     UI.tickRoomPill();
@@ -9406,12 +9442,15 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     grid.innerHTML = '';
     for (let n = 1; n <= C.SERVERS; n++) {
       const here = C.server && C.server.kind === 'public' && C.server.n === n;
-      const b = el('button', 'srv' + (here ? ' on' : ''), String(n));
-      b.title = 'Server ' + n;
+      const b = el('button', 'srv' + (here ? ' on' : ''), '');
+      b.dataset.n = n;
+      b.innerHTML = 'Server ' + n + '<small></small>';
+      b.title = here ? 'You are on server ' + n : 'Join server ' + n;
       b.onclick = () => { TD.Audio.ui(); TD.Coop.joinServer(n); };
       grid.appendChild(b);
     }
-    const rnd = el('button', 'srv srv-random', '🎲');
+    UI.serverCounts();
+    const rnd = el('button', 'srv-random-wide', '🎲  Join a random server');
     rnd.title = 'Join a random server';
     rnd.onclick = () => {
       TD.Audio.ui();
@@ -9420,7 +9459,9 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
       while (n === cur) n = 1 + Math.floor(Math.random() * C.SERVERS);
       TD.Coop.joinServer(n);
     };
-    grid.appendChild(rnd);
+    grid.after(rnd);
+    const oldRnd = rnd.nextElementSibling;
+    if (oldRnd && oldRnd.classList.contains('srv-random-wide')) oldRnd.remove();
 
     /* who is here */
     const list = $('#coop-players');

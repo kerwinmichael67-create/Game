@@ -21,9 +21,15 @@ canvas{background:#05060f;max-width:100%;max-height:calc(100% - 8px);touch-actio
 .cp button.main{width:100%;padding:12px;font-size:15px;background:linear-gradient(#3a8cff,#2a6ad0);color:#fff;border:0;margin:8px 0}
 .cp button:disabled{opacity:.45;cursor:default}
 .cp .row{display:flex;gap:8px;margin-top:10px}
-.cp .srv{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid #234;border-radius:8px;margin-top:6px;font-size:13px}
-.cp .srv.here{border-color:#66eeff}
-.cp .srv span{margin-left:auto;color:#9cd}
+.cp .grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
+.cp .srv{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;padding:9px 11px;border:1px solid #234;background:#0d1a33;border-radius:8px}
+.cp .srv:hover:not(:disabled){border-color:#3a8cff;background:#13284a}
+.cp .srv.here{border-color:#66eeff;background:#10304a;opacity:1}
+.cp .srv small{font-weight:500;color:#9cd;font-size:12px}
+.cp .srv .bar{display:flex;gap:3px}
+.cp .srv .bar i{width:14px;height:4px;border-radius:1px;background:#234}
+.cp .srv .bar i.on{background:#66eeff}
+.cp .label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#789;margin-top:12px}
 .cp ul{margin:6px 0;padding-left:18px;font-size:13.5px}
 </style></head><body>
 <canvas id="c" width="480" height="720"></canvas>
@@ -93,13 +99,15 @@ const Coop=(()=>{
   function render(){
     const c=counts(),cr=crew(),h=cr[0];let o='<h2>👥 Co-op</h2>';
     if(C.status)o+=`<p>${esc(C.status)}</p>`;
-    if(!C.srv){o+='<p>Fly the campaign together: up to 4 pilots per server share one hull and one fuel tank, and the host picks the mission.</p>';
-      o+=`<button class="main" data-random ${C.joining?'disabled':''}>Join a random server</button>`}
-    else{o+=`<p>You're on <b>Server ${C.srv}</b> with ${cr.length} pilot${cr.length===1?'':'s'}:</p><ul>${cr.map((p,i)=>`<li>${esc(p.nm)}${p.isMe?' (you)':''}${i===0?' — host':''} · ${esc((SHIPS[p.s]||SHIPS[0]).n)}</li>`).join('')}</ul>`;
-      o+=h&&h.isMe?'<p>You\'re the host: pick a mission and everyone here flies it with you.</p>':`<p><b>${esc(h?h.nm:'The host')}</b> picks the mission. You'll join as soon as it launches — fly with the arrows or WASD, hold SPACE to shoot.</p>`;
-      o+='<div class="row"><button data-random>Random server</button><button data-leave>Leave server</button></div>'}
-    for(let n=1;n<=SERVERS;n++){const here=n===C.srv,full=c[n]>=MAX;o+=`<div class="srv${here?' here':''}"><b>Server ${n}</b><span>${c[n]}/${MAX} pilots</span><button data-srv="${n}" ${here||full||C.joining?'disabled':''}>${here?'Here':full?'Full':'Join'}</button></div>`}
-    o+='<div class="row"><button data-close style="margin-left:auto">Back to the game</button></div>';
+    if(!C.srv){o+='<p>Fly the campaign together: up to 4 pilots per server share one hull and one fuel tank, and the host picks the mission.</p>'}
+    else if(!cr.length){o+=`<p>Joining <b>Server ${C.srv}</b>…</p>`}
+    else{o+=`<p>You're on <b>Server ${C.srv}</b>:</p><ul>${cr.map((p,i)=>`<li>${esc(p.nm)}${p.isMe?' (you)':''}${i===0?' — host':''} · ${esc((SHIPS[p.s]||SHIPS[0]).n)}</li>`).join('')}</ul>`;
+      o+=h&&h.isMe?'<p>You\'re the host: pick a mission and everyone here flies it with you.</p>':`<p><b>${esc(h?h.nm:'The host')}</b> picks the mission. You'll join as soon as it launches — fly with the arrows or WASD, hold SPACE to shoot.</p>`}
+    o+=`<button class="main" data-random ${C.joining?'disabled':''}>${C.srv?'Move to a random server':'Join a random server'}</button>`;
+    o+='<div class="label">Or pick a server</div><div class="grid">';
+    for(let n=1;n<=SERVERS;n++){const here=n===C.srv,k=here?Math.max(c[n],cr.length,1):c[n],full=k>=MAX;
+      o+=`<button class="srv${here?' here':''}" data-srv="${n}" ${here||full||C.joining?'disabled':''}><b>Server ${n}</b><small>${here?'You are here':full?'Full':k?k+' of '+MAX+' pilots':'Empty'}</small><span class="bar">${[0,1,2,3].map(i=>`<i class="${i<k?'on':''}"></i>`).join('')}</span></button>`}
+    o+='</div><div class="row">'+(C.srv?'<button data-leave>Leave server</button>':'')+'<button data-close style="margin-left:auto">Back to the game</button></div>';
     body.innerHTML=o;
     btn.textContent=C.srv?`👥 Server ${C.srv} · ${cr.length}`:'👥 Co-op'}
   body.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled)return;
