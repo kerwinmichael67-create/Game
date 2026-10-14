@@ -97,9 +97,10 @@
     };
     const post = (m) => { try { win.postMessage(Object.assign({ gn: 1 }, m), '*'); } catch {} };
     const byName = new Map(); // joining a room you're already in gives back the same one
+    const leaving = new Map(); // rooms still on their way out: joining one again waits for that to finish
     function openRoom(name) {
       const key = String(name).toLowerCase();
-      if (!byName.has(key)) byName.set(key, openRoomNow(name).catch((e) => { byName.delete(key); throw e; }));
+      if (!byName.has(key)) byName.set(key, Promise.resolve(leaving.get(key)).then(() => openRoomNow(name)).catch((e) => { byName.delete(key); throw e; }));
       return byName.get(key);
     }
     async function openRoomNow(name) {
@@ -131,7 +132,13 @@
         return r;
       },
       join: (a) => openRoom(a.name),
-      leave: async (a) => { const R = S.rooms.get(a.rid); if (!R) return; S.rooms.delete(a.rid); byName.delete(R.key); R.unsubs.forEach((f) => f()); await R.named.leave(); },
+      leave: async (a) => {
+        const R = S.rooms.get(a.rid); if (!R) return;
+        S.rooms.delete(a.rid); byName.delete(R.key); R.unsubs.forEach((f) => f());
+        const p = R.named.leave().catch(() => {}).then(() => { if (leaving.get(R.key) === p) leaving.delete(R.key); });
+        leaving.set(R.key, p);
+        await p;
+      },
       pres: (a) => room(a).named.presence(a.patch),
       emit: (a) => room(a).named.emit(a.topic, a.data),
       listen: (a) => {

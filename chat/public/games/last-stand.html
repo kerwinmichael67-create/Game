@@ -4269,7 +4269,8 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   let lobbyWatch = false;
   Net.markServer = function (room) {
     if (Net.backend !== 'room' || !roomNs) return;
-    roomNs.presence({ srv: room || null }).catch(() => {});
+    // only public servers are announced: a private code stays private
+    roomNs.presence({ srv: room && /^plaza-\d+$/.test(room) ? room : null }).catch(() => {});
     if (!lobbyWatch) {
       lobbyWatch = true;
       roomNs.onPeers(() => { if (TD.UI && TD.UI.serverCounts) TD.UI.serverCounts(); }, () => {});

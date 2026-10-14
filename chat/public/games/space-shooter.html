@@ -74,8 +74,11 @@ const Coop=(()=>{
       return room})();
     return lobbyP}
   const myPeer=()=>{const m=C.peers.find(q=>q.isMe);return m?m.peer:''};
-  function crew(){return C.peers.filter(q=>q.presence&&q.presence.t).map(q=>({peer:q.peer,nm:String(q.presence.nm||'Pilot').slice(0,16),t:+q.presence.t,isMe:q.isMe,s:+q.presence.s||0,g:q.presence.g,inp:q.presence.in}))
-    .sort((a,b)=>a.t-b.t||(a.peer<b.peer?-1:1))}
+  // the host is whoever claimed it first; newcomers never take over, whatever their clock says
+  function crew(){return C.peers.filter(q=>q.presence&&q.presence.t).map(q=>({peer:q.peer,nm:String(q.presence.nm||'Pilot').slice(0,16),t:+q.presence.t,h:+q.presence.h||0,isMe:q.isMe,s:+q.presence.s||0,g:q.presence.g,inp:q.presence.in}))
+    .sort((a,b)=>(b.h?1:0)-(a.h?1:0)||a.t-b.t||(a.peer<b.peer?-1:1))}
+  function claimHost(){if(!C.room||C.claimed||performance.now()-C.joinAt<1500)return;const cr=crew();if(cr.some(c=>c.h&&!c.isMe))return;
+    if(cr[0]&&cr[0].isMe){C.claimed=true;send({h:1})}}
   const host=()=>crew()[0];
   const isHost=()=>!C.srv||!!(host()&&host().isMe);
   const mate=()=>C.viewing;
@@ -85,7 +88,7 @@ const Coop=(()=>{
   async function join(n){
     if(C.joining)return;C.joining=true;C.status='Joining server '+n+'…';render();
     try{if(C.srv)await leave();const lob=await lobby();if(!lob){C.status="Co-op isn't available here.";return}
-      const room=await lob.join('srv-'+n);C.room=room;C.srv=n;C.t0=Date.now();C.peers=[];C.status='';
+      const room=await lob.join('srv-'+n);C.room=room;C.srv=n;C.t0=Date.now();C.joinAt=performance.now();C.claimed=false;setTimeout(claimHost,1700);C.peers=[];C.status='';
       C.offs.push(room.onPeers(onPeers,()=>{}));
       send({nm:C.name,t:C.t0,s:Math.max(0,SHIPS.indexOf(SH))});lob.presence({srv:n}).catch(()=>{});
     }catch(e){C.status="Couldn't reach that server.";C.room=null;C.srv=0}
@@ -116,7 +119,11 @@ const Coop=(()=>{
   const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
   function onPeers(ch){
-    C.peers=ch.peers;const cr=crew(),h=cr[0],me=myPeer();
+    C.peers=ch.peers;
+    claimHost();
+    if(performance.now()-C.joinAt<4000){const cr0=crew().sort((a,b)=>a.t-b.t||(a.peer<b.peer?-1:1)),at=cr0.findIndex(p=>p.isMe);
+      if(at>=MAX){const n=C.srv;leave().then(()=>{C.status='Server '+n+' filled up just as you joined. Pick another one.';panel.hidden=false;render()});return}}
+    const cr=crew(),h=cr[0],me=myPeer();
     if(h&&h.isMe){
       if(C.viewing){stopView();say('You are the co-op host now')}
       // keep one record per other pilot; their ship moves where they fly it

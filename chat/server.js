@@ -463,7 +463,7 @@ const authed = {
     if (m.op === 'join') {
       if (me && me.ws !== ws) return;
       if (!room) nrooms.set(name, (room = new Map()));
-      if (!me && room.size >= 64) return send(ws, { t: 'nr', op: 'error', room: name, code: 'limit_reached' });
+      if (!me && room.size >= (name.endsWith('.lobby') ? 500 : 64)) return send(ws, { t: 'nr', op: 'error', room: name, code: 'limit_reached' });
       room.set(peer, me || { u, ws, presence: {}, at: Date.now() });
       (ws.nr = ws.nr || new Set()).add(name + '|' + peer);
       nrBroadcast(name);

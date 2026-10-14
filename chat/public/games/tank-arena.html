@@ -667,9 +667,18 @@ const Online=(()=>{
   }
   const myPeer=()=>{ const m=O.peers.find(q=>q.isMe); return m?m.peer:""; };
   function crew(){
+    // the host is whoever claimed it first; newcomers never take over, whatever their clock says
     return O.peers.filter(q=>q.presence&&q.presence.t).map(q=>({peer:q.peer, nm:String(q.presence.nm||"Player").slice(0,16),
-      tk:TANKS[q.presence.tk]?q.presence.tk:"cannon", t:+q.presence.t||0, isMe:q.isMe, g:q.presence.g, mp:q.presence.mp}))
-      .sort((a,b)=>a.t-b.t||(a.peer<b.peer?-1:1));
+      tk:TANKS[q.presence.tk]?q.presence.tk:"cannon", t:+q.presence.t||0, h:+q.presence.h||0, isMe:q.isMe, g:q.presence.g, mp:q.presence.mp}))
+      .sort((a,b)=>(b.h?1:0)-(a.h?1:0)||a.t-b.t||(a.peer<b.peer?-1:1));
+  }
+  /* nobody holds the host spot (a new server, or the host left): the first in line takes it,
+     once it has been here long enough to have heard about everyone already on the server */
+  function claimHost(){
+    if(!O.room||O.claimed||performance.now()-O.joinAt<1500) return;
+    const cr=crew();
+    if(cr.some(c=>c.h&&!c.isMe)) return;
+    if(cr[0]&&cr[0].isMe){ O.claimed=true; send({h:1}); }
   }
   const isHost=()=> G.online ? O.hostPeer===myPeer() : (crew()[0]||{}).isMe===true;
   function send(patch){
@@ -692,7 +701,7 @@ const Online=(()=>{
       const lob=await lobby();
       if(!lob){ O.status="Online play isn't available here."; return; }
       const room=await lob.join("srv-"+n);
-      O.room=room; O.srv=n; O.t=Date.now(); O.peers=[]; O.pres=new Map(); O.status="";
+      O.room=room; O.srv=n; O.t=Date.now(); O.joinAt=performance.now(); O.claimed=false; setTimeout(claimHost,1700); O.peers=[]; O.pres=new Map(); O.status="";
       O.offs.push(room.onPeers(onPeers,()=>{}));
       send({nm:O.name, tk:cfg.picks[0], t:O.t, mp:cfg.map});
       lob.presence({srv:n}).catch(()=>{});
@@ -752,6 +761,12 @@ const Online=(()=>{
   /* ---------------- the room's peers changed ---------------- */
   function onPeers(ch){
     O.peers=ch.peers; O.pres=new Map(ch.peers.map(q=>[q.peer,q.presence||{}]));
+    claimHost();
+    // two people grabbing the last place at once: whoever came last moves on (only ever a newcomer)
+    if(!G.online&&O.srv&&performance.now()-O.joinAt<4000){
+      const cr=crew().sort((a,b)=>a.t-b.t||(a.peer<b.peer?-1:1)), at=cr.findIndex(c=>c.isMe);
+      if(at>=MAX){ const n=O.srv; leave().then(()=>{ O.status="Server "+n+" filled up just as you joined. Pick another one."; renderMenu(); }); return; }
+    }
     if(G.online&&isHost()) return hostPeers();
     const cr=crew(), host=cr[0];
     if(G.online){
@@ -759,6 +774,7 @@ const Online=(()=>{
       if(!hp||!hp.g||hp.g.mid!==O.mid){
         if(hp&&hp.g&&hp.g.mid&&hp.g.ro.some(r=>r[0]===myPeer())){ applySnap(hp.g); return; }   // a fresh match: play again
         O.status=hp?"The host ended the match.":"The host left the server.";
+        const said=O.status; setTimeout(()=>{ if(O.status===said){ O.status=""; if(cfg.mode==="online"&&!G.online) renderPanel(); } },8000);
         O.leftMid=O.mid; toMenu(); return;
       }
       applySnap(hp.g); return;
