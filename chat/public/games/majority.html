@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script src="net.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Majority Rules</title>
+<style>
+  :root{--pk-accent:#4f46e5;--pk-soft:#e0e7ff;--pk-font:"Trebuchet MS",system-ui,sans-serif;color-scheme:light}
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{font-family:var(--pk-font);background:radial-gradient(circle at 80% 10%,#22d3ee 0,transparent 40%),radial-gradient(circle at 10% 90%,#a78bfa 0,transparent 40%),linear-gradient(135deg,#1e3a8a,#4338ca);color:#1f2937;overflow:auto}
+  #app{min-height:100%;display:grid;place-items:start center;padding:24px 16px}
+  .mr-wrap{width:min(1000px,100%);display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:16px;align-items:start}
+  @media (max-width:760px){.mr-wrap{grid-template-columns:1fr}}
+  .mr-main{background:#fff;border-radius:22px;padding:20px;box-shadow:0 18px 50px rgba(0,0,0,.3);display:grid;gap:14px}
+  .mr-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .mr-chip{padding:5px 12px;border-radius:999px;background:#e0e7ff;color:#3730a3;font-weight:800;font-size:13px}
+  .mr-chip.flip{background:#fde68a;color:#92400e}
+  .mr-timer{margin-left:auto;font:900 28px var(--pk-font);color:#4338ca;min-width:48px;text-align:right}
+  .mr-timer.low{color:#dc2626}
+  .mr-bar{height:8px;border-radius:999px;background:#e0e7ff;overflow:hidden}
+  .mr-bar i{display:block;height:100%;background:linear-gradient(90deg,#4f46e5,#06b6d4);transition:width .25s linear}
+  .mr-q{font:800 clamp(20px,3.2vw,30px)/1.25 var(--pk-font);margin:4px 0}
+  .mr-hint{color:#6b7280;font-size:14px;margin-top:-6px}
+  .mr-opts{display:grid;gap:10px}
+  .mr-opt{position:relative;border:0;border-radius:16px;padding:16px 16px 16px 56px;min-height:64px;text-align:left;font:800 18px var(--pk-font);color:#fff;cursor:pointer;box-shadow:0 5px 0 rgba(0,0,0,.22);overflow:hidden;transition:transform .08s,opacity .2s}
+  .mr-opt>b{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:30px;height:30px;border-radius:9px;background:rgba(255,255,255,.25);display:grid;place-items:center;z-index:1}
+  .mr-opt:hover:not(:disabled){transform:translateY(-2px)}
+  .mr-opt:disabled{cursor:default}
+  .mr-opt.o0{background:#6366f1}.mr-opt.o1{background:#06b6d4}.mr-opt.o2{background:#f59e0b}.mr-opt.o3{background:#ec4899}
+  .mr-opt.mine{outline:4px solid #111827;outline-offset:2px}
+  .mr-opt .fill{position:absolute;left:0;top:0;bottom:0;background:rgba(255,255,255,.22);transition:width .6s}
+  .mr-opt .lab{position:relative}
+  .mr-opt .cnt{position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:22px}
+  .mr-opt .who{display:block;font-size:12px;font-weight:600;opacity:.95;margin-top:4px;position:relative}
+  .mr-opt.win{outline:4px solid #16a34a;outline-offset:2px}
+  .mr-opt.lose{opacity:.45}
+  .mr-msg{text-align:center;font-weight:800;font-size:18px;color:#4338ca;min-height:24px}
+  .mr-side{background:rgba(255,255,255,.95);border-radius:22px;padding:16px;box-shadow:0 18px 50px rgba(0,0,0,.25)}
+  .mr-side h3{margin:0 0 10px;font-size:16px;letter-spacing:.08em;text-transform:uppercase;color:#4338ca}
+  .mr-row{display:grid;grid-template-columns:22px 12px 1fr auto;align-items:center;gap:8px;padding:7px 4px;border-bottom:1px solid #f3f4f6;font-weight:700}
+  .mr-row i{width:12px;height:12px;border-radius:50%}
+  .mr-row .gain{color:#16a34a;font-size:12px;font-weight:800}
+  .mr-row.me{background:#eef2ff;border-radius:10px}
+  .mr-row .tick{color:#16a34a}
+  .mr-pod{display:flex;align-items:flex-end;justify-content:center;gap:10px;margin:10px 0}
+  .mr-pod div{width:110px;border-radius:14px 14px 0 0;color:#fff;text-align:center;padding:10px 6px;font-weight:800}
+  .mr-pod .p1{height:150px;background:linear-gradient(#facc15,#ca8a04)}
+  .mr-pod .p2{height:115px;background:linear-gradient(#cbd5e1,#64748b)}
+  .mr-pod .p3{height:90px;background:linear-gradient(#fdba74,#c2410c)}
+  .mr-pod span{display:block;font-size:30px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="party-kit.js"></script>
+<script>
+// Majority Rules: there's no right answer — only the popular one. Pick what you think most people will pick.
+// Every fourth round flips it: the least-picked answer wins.
+const Q = [
+  ['Best pizza topping?', 'Pepperoni', 'Pineapple', 'Mushrooms', 'Extra cheese'],
+  ['Cats or dogs?', 'Cats', 'Dogs', 'Both!', 'Neither'],
+  ['Best superpower?', 'Flying', 'Invisibility', 'Teleporting', 'Super strength'],
+  ['Best season?', 'Spring', 'Summer', 'Autumn', 'Winter'],
+  ['Which would you rather be?', 'A pirate', 'A ninja', 'A wizard', 'An astronaut'],
+  ['Most useful in a zombie apocalypse?', 'Baseball bat', 'Bicycle', 'Canned food', 'A loyal dog'],
+  ['Best way to eat potatoes?', 'Fries', 'Mashed', 'Baked', 'Chips'],
+  ['Pick a dragon colour', 'Red', 'Green', 'Black', 'Gold'],
+  ['Beach or mountains?', 'Beach', 'Mountains', 'A city', 'My couch'],
+  ['The best number?', '3', '7', '13', '42'],
+  ['Socks with sandals?', 'Fashion', 'Crime', 'Comfy', 'Only at home'],
+  ['Which emoji are you today?', '😀', '😴', '😎', '🤪'],
+  ['Is a hot dog a sandwich?', 'Yes', 'No', 'It’s its own thing'],
+  ['Best cookie?', 'Chocolate chip', 'Oatmeal raisin', 'Sugar cookie', 'Peanut butter'],
+  ['If you could keep only one app?', 'Messages', 'Maps', 'Music', 'Camera'],
+  ['Toilet paper goes…', 'Over', 'Under', 'Whatever'],
+  ['Worst chore?', 'Dishes', 'Laundry', 'Vacuuming', 'Taking out the trash'],
+  ['Pick a holiday', 'Theme park', 'Camping', 'City trip', 'Beach resort'],
+  ['Best movie snack?', 'Popcorn', 'Sweets', 'Nachos', 'Nothing'],
+  ['How do you eat a cookie?', 'In one go', 'Dunk it', 'Nibble the edges', 'Crumbs everywhere'],
+  ['Scariest thing?', 'Spiders', 'Heights', 'Clowns', 'The dark'],
+  ['Best dinosaur?', 'T. rex', 'Triceratops', 'Velociraptor', 'Brachiosaurus'],
+  ['Morning person or night owl?', 'Morning', 'Night', 'Neither', 'Both'],
+  ['Which would win?', '100 duck-sized horses', '1 horse-sized duck'],
+  ['Best ice cream?', 'Vanilla', 'Chocolate', 'Strawberry', 'Mint choc chip'],
+  ['Cereal or milk first?', 'Cereal first', 'Milk first', 'No milk'],
+  ['Pick a magical creature', 'Unicorn', 'Phoenix', 'Griffin', 'Kraken'],
+  ['Best school subject?', 'Maths', 'Art', 'Science', 'Lunch'],
+  ['Best smell?', 'Rain', 'Fresh bread', 'Cut grass', 'A new book'],
+  ['Pancakes or waffles?', 'Pancakes', 'Waffles', 'French toast'],
+  ['How many pillows?', 'One', 'Two', 'Three or four', 'A mountain'],
+  ['Which would you rather have?', 'Time machine', 'Teleporter', 'Invisibility cloak', 'Talking pet'],
+  ['Best planet?', 'Earth', 'Mars', 'Saturn', 'Jupiter'],
+  ['Best sandwich?', 'Grilled cheese', 'BLT', 'PB&J', 'Club'],
+  ['Pick a pet', 'Hamster', 'Parrot', 'Goldfish', 'Lizard'],
+  ['Best game genre?', 'Puzzle', 'Racing', 'Adventure', 'Party games'],
+  ['If you were a fruit?', 'Banana', 'Strawberry', 'Pineapple', 'Watermelon'],
+  ['Ideal weekend?', 'Sleep in', 'Go out', 'Gaming', 'Sport'],
+  ['Hottest sauce you’d try?', 'Mild', 'Medium', 'Hot', 'Bring the ghost peppers'],
+  ['Best way to travel?', 'Plane', 'Train', 'Road trip', 'Boat'],
+  ['Which room is best?', 'Bedroom', 'Kitchen', 'Living room', 'Bathroom'],
+  ['Best colour?', 'Blue', 'Red', 'Green', 'Purple'],
+];
+let ROUNDS = 8; try { ROUNDS = Math.max(1, Math.min(12, +localStorage.getItem('mr.rounds') || 8)); } catch (e) {} // (a shorter game for tests)
+const ASK_MS = 20000, SHOW_MS = 7000;
+const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const flipRound = (k) => (k + 1) % 4 === 0; // rounds 4, 8, 12: the fewest picks win
+
+const host = {
+  start(players, t) {
+    const s = { ids: shuffle(Q.map((_, i) => i)).slice(0, ROUNDS), i: -1, ph: 'ask', ends: 0, picks: {}, win: [], sc: players.map(() => 0), gain: players.map(() => 0), out: [], note: '' };
+    next(s, t);
+    return s;
+  },
+  action(s, i, a, t) {
+    const n = Q[s.ids[s.i]].length - 1;
+    if (s.ph !== 'ask' || !a || typeof a.pick !== 'number' || s.picks[i] != null || a.pick < 0 || a.pick >= n) return false;
+    s.picks[i] = a.pick;
+    return true;
+  },
+  gone(s, i) { s.out[i] = true; },
+  tick(s, t) {
+    if (s.ph === 'ask') {
+      const here = s.sc.map((_, i) => i).filter((i) => !s.out[i]);
+      if (t >= s.ends || here.every((i) => s.picks[i] != null)) { score(s); s.ph = 'show'; s.ends = t + SHOW_MS; return true; }
+    } else if (s.ph === 'show' && t >= s.ends) {
+      if (s.i + 1 >= s.ids.length) { s.ph = 'done'; return true; }
+      next(s, t); return true;
+    }
+    return false;
+  },
+};
+function next(s, t) { s.i++; s.ph = 'ask'; s.picks = {}; s.win = []; s.ends = t + ASK_MS; s.gain = s.sc.map(() => 0); s.note = ''; }
+function score(s) {
+  const n = Q[s.ids[s.i]].length - 1, cnt = new Array(n).fill(0);
+  Object.values(s.picks).forEach((k) => cnt[k]++);
+  const voters = Object.keys(s.picks).length, used = cnt.filter((c) => c > 0);
+  if (!voters) { s.note = 'Nobody picked anything!'; return; }
+  if (flipRound(s.i)) {
+    // the fewest picks win — unless everyone agreed
+    if (used.length < 2) { s.note = 'Everyone agreed — nobody wins a minority round!'; return; }
+    const low = Math.min(...used); s.win = cnt.map((c, k) => (c === low ? k : -1)).filter((k) => k >= 0);
+    if (s.win.length === used.length) { s.win = []; s.note = 'A perfect split — no minority!'; return; }
+    for (const [i, k] of Object.entries(s.picks)) if (s.win.includes(k)) { s.gain[i] = 150; s.sc[i] += 150; }
+    s.note = 'The fewest picks win this round!';
+  } else {
+    const top = Math.max(...cnt); s.win = cnt.map((c, k) => (c === top ? k : -1)).filter((k) => k >= 0);
+    if (s.win.length > 1) { s.win = []; s.note = 'A split vote — nobody scores!'; return; }
+    const all = top === voters && voters > 1;
+    for (const [i, k] of Object.entries(s.picks)) if (s.win.includes(k)) { s.gain[i] = 100 + (all ? 50 : 0); s.sc[i] += s.gain[i]; }
+    s.note = all ? 'Everyone agreed! +50 bonus' : 'The crowd has spoken!';
+  }
+}
+
+let shown = '';
+const esc = (t) => PartyKit.esc(t);
+// who won (or who tied for first)
+function winLine(ranked, me, mine) {
+  const top = ranked.filter((r) => r.sc === ranked[0].sc);
+  if (top.length > 1) return `It’s a tie between ${top.map((r) => (r.i === me ? 'you' : esc(r.p.name))).join(' and ')}!`;
+  return ranked[0].i === me ? mine : `${esc(ranked[0].p.name)} wins!`;
+}
+function render(v, el) {
+  const s = v.state;
+  const key = `${v.id}:${s.i}:${s.ph}:${v.v}`;
+  if (v.soft && key === shown) { timer(v, s); return; }
+  shown = key;
+  const ranked = v.players.map((p, i) => ({ p, i, sc: s.sc[i] })).sort((a, b) => b.sc - a.sc);
+  const side = `<div class="mr-side"><h3>Scores</h3>${ranked.map((r, k) => `<div class="mr-row${r.i === v.me ? ' me' : ''}"><span>${k + 1}</span><i style="background:${esc(r.p.color)}"></i>
+      <span>${esc(r.p.name)}${r.p.gone ? ' 👋' : ''} ${s.ph === 'ask' && s.picks[r.i] != null ? '<span class="tick">✓</span>' : ''}</span>
+      <span>${r.sc}${s.ph === 'show' && s.gain[r.i] ? ` <span class="gain">+${s.gain[r.i]}</span>` : ''}</span></div>`).join('')}</div>`;
+  if (s.ph === 'done') {
+    const pod = ranked.slice(0, 3);
+    el.innerHTML = `<div class="mr-wrap"><div class="mr-main"><div class="mr-q" style="text-align:center">🏆 Final scores</div>
+      <div class="mr-pod">${[1, 0, 2].filter((k) => pod[k]).map((k) => `<div class="p${k + 1}"><span>${['🥇', '🥈', '🥉'][k]}</span>${esc(pod[k].p.name)}<br>${pod[k].sc}</div>`).join('')}</div>
+      <div class="mr-msg">${winLine(ranked, v.me, 'You think like the crowd! 🎉')}</div>
+      <div class="pk-row" style="justify-content:center">${v.isHost ? '<button class="pk-btn" id="again">🔁 Back to the lobby</button>' : '<span class="pk-tag">The host can start another game.</span>'}
+      <button class="pk-btn pk-ghost" id="leave">Leave server</button></div></div>${side}</div>`;
+    const ag = el.querySelector('#again'); if (ag) ag.onclick = v.again;
+    el.querySelector('#leave').onclick = v.leave;
+    return;
+  }
+  const q = Q[s.ids[s.i]] || Q[0], opts = q.slice(1), mine = v.me >= 0 ? s.picks[v.me] : null, show = s.ph === 'show', flip = flipRound(s.i);
+  const cnt = opts.map((_, k) => Object.values(s.picks).filter((x) => x === k).length), voters = Math.max(1, Object.keys(s.picks).length);
+  const who = (k) => v.players.map((p, i) => (s.picks[i] === k ? p.name : null)).filter(Boolean);
+  let msg = '';
+  if (v.me < 0) msg = 'You’re watching this game. Join the next one from the lobby!';
+  else if (show) msg = `${esc(s.note)}${s.gain[v.me] ? ` You scored +${s.gain[v.me]}!` : mine == null ? ' (You didn’t pick.)' : ''}`;
+  else if (mine != null) msg = 'Locked in! Waiting for the others…';
+  el.innerHTML = `<div class="mr-wrap"><div class="mr-main">
+    <div class="mr-top"><span class="mr-chip">Round ${s.i + 1} of ${s.ids.length}</span>${flip ? '<span class="mr-chip flip">🔄 Minority round</span>' : ''}<span class="mr-timer" id="t"></span></div>
+    <div class="mr-bar"><i id="bar"></i></div>
+    <div class="mr-q">${esc(q[0])}</div>
+    <div class="mr-hint">${flip ? 'This time the <b>least</b> popular answer wins. Be different!' : 'Pick what you think <b>most people</b> will pick.'}</div>
+    <div class="mr-opts">${opts.map((o, k) => {
+      const cls = ['mr-opt', 'o' + k, mine === k ? 'mine' : '', show ? (s.win.includes(k) ? 'win' : 'lose') : ''].join(' ');
+      const names = show ? who(k) : [];
+      return `<button class="${cls}" data-k="${k}" ${show || mine != null || v.me < 0 ? 'disabled' : ''}>${show ? `<span class="fill" style="width:${cnt[k] / voters * 100}%"></span><span class="cnt">${cnt[k]}</span>` : ''}<b>${'ABCD'[k]}</b><span class="lab">${esc(o)}</span>${names.length ? `<span class="who">${names.map(esc).join(', ')}</span>` : ''}</button>`;
+    }).join('')}</div>
+    <div class="mr-msg">${msg}</div></div>${side}</div>`;
+  el.querySelectorAll('.mr-opt').forEach((b) => (b.onclick = () => { v.send({ pick: +b.dataset.k }); b.classList.add('mine'); el.querySelectorAll('.mr-opt').forEach((x) => (x.disabled = true)); }));
+  timer(v, s);
+}
+function timer(v, s) {
+  const t = document.getElementById('t'), bar = document.getElementById('bar');
+  if (!t) return;
+  const left = v.left(s.ends);
+  t.textContent = s.ph === 'ask' ? left : '';
+  t.classList.toggle('low', s.ph === 'ask' && left <= 5);
+  bar.style.width = s.ph === 'ask' ? `${Math.min(100, (left / (ASK_MS / 1000)) * 100)}%` : '0%';
+}
+addEventListener('keydown', (e) => { const k = '1234'.indexOf(e.key); if (k >= 0) { const b = document.querySelector(`.mr-opt[data-k="${k}"]`); if (b && !b.disabled) b.click(); } });
+
+PartyKit.start({
+  code: 'mr', title: 'Majority Rules', emoji: '🙋', min: 2, max: 12, servers: 6, el: document.getElementById('app'),
+  tagline: 'No right answers — only popular ones. Think like the crowd!',
+  rules: '<b>How to play:</b> each round asks a question with no right answer. Pick what you think <b>most people</b> will pick: if your answer is the most popular, you score 100 (+50 if everyone agrees). Ties at the top score nothing. Every fourth round is a <b>minority round</b> — the least-picked answer scores 150. Most points after 8 rounds wins.',
+  host, render,
+});
+</script>
+</body>
+</html>

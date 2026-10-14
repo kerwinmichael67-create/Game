@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script src="net.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sketch &amp; Guess</title>
+<style>
+  :root{--pk-accent:#e11d48;--pk-soft:#ffe4e6;--pk-font:"Trebuchet MS",system-ui,sans-serif;color-scheme:light}
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{font-family:var(--pk-font);background:radial-gradient(circle at 15% 15%,#fb7185 0,transparent 40%),radial-gradient(circle at 85% 85%,#fbbf24 0,transparent 40%),linear-gradient(135deg,#be123c,#ea580c);color:#1f2937;overflow:auto}
+  #app{min-height:100%;display:grid;place-items:start center;padding:20px 14px}
+  .sg-wrap{width:min(1060px,100%);display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:14px;align-items:start}
+  @media (max-width:780px){.sg-wrap{grid-template-columns:1fr}}
+  .sg-main{background:#fff;border-radius:22px;padding:16px;box-shadow:0 18px 50px rgba(0,0,0,.3);display:grid;gap:10px}
+  .sg-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .sg-chip{padding:5px 12px;border-radius:999px;background:#ffe4e6;color:#be123c;font-weight:800;font-size:13px}
+  .sg-timer{margin-left:auto;font:900 28px var(--pk-font);color:#be123c;min-width:48px;text-align:right}
+  .sg-timer.low{color:#dc2626}
+  .sg-word{text-align:center;font:900 clamp(20px,3.4vw,30px) monospace;letter-spacing:.18em;color:#111827;min-height:36px;white-space:pre-wrap}
+  .sg-word small{display:block;font:700 12px var(--pk-font);letter-spacing:.08em;color:#9ca3af;text-transform:uppercase}
+  .sg-board{position:relative;border-radius:14px;overflow:hidden;border:3px solid #fecdd3;background:#fff;touch-action:none}
+  .sg-board canvas{display:block;width:100%;height:auto;aspect-ratio:4/3;cursor:crosshair}
+  .sg-board .sg-over{position:absolute;inset:0;display:grid;place-items:center;background:rgba(255,255,255,.85);font:800 22px var(--pk-font);text-align:center;padding:20px;color:#be123c}
+  .sg-tools{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+  .sg-col{width:28px;height:28px;border-radius:8px;border:2px solid #e5e7eb;cursor:pointer;padding:0}
+  .sg-col.on{outline:3px solid #111827;outline-offset:1px}
+  .sg-size{width:36px;height:32px;border-radius:8px;border:2px solid #e5e7eb;background:#fff;cursor:pointer;display:grid;place-items:center;padding:0}
+  .sg-size.on{border-color:#111827}
+  .sg-size i{display:block;border-radius:50%;background:#111827}
+  .sg-ink{flex:1;min-width:90px;height:8px;border-radius:999px;background:#ffe4e6;overflow:hidden}
+  .sg-ink i{display:block;height:100%;background:linear-gradient(90deg,#e11d48,#f59e0b)}
+  .sg-guess{display:flex;gap:8px}
+  .sg-guess input{flex:1;border:2px solid #fecdd3;border-radius:12px;padding:11px 14px;font:700 16px var(--pk-font);outline:none}
+  .sg-guess input:focus{border-color:#e11d48}
+  .sg-picks{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .sg-pick{border:0;border-radius:16px;padding:16px 22px;font:800 20px var(--pk-font);color:#fff;cursor:pointer;background:#e11d48;box-shadow:0 5px 0 rgba(0,0,0,.25)}
+  .sg-pick:nth-child(2){background:#ea580c}.sg-pick:nth-child(3){background:#7c3aed}
+  .sg-msg{text-align:center;font-weight:800;color:#be123c;min-height:22px}
+  .sg-side{display:grid;gap:12px}
+  .sg-box{background:rgba(255,255,255,.96);border-radius:22px;padding:14px;box-shadow:0 18px 50px rgba(0,0,0,.25)}
+  .sg-box h3{margin:0 0 8px;font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:#be123c}
+  .sg-row{display:grid;grid-template-columns:20px 12px 1fr auto;align-items:center;gap:8px;padding:6px 4px;border-bottom:1px solid #f3f4f6;font-weight:700;font-size:14px}
+  .sg-row i{width:12px;height:12px;border-radius:50%}
+  .sg-row.me{background:#fff1f2;border-radius:10px}
+  .sg-row .gain{color:#16a34a;font-size:12px;font-weight:800}
+  .sg-log{display:grid;gap:4px;max-height:280px;overflow:auto;font-size:14px}
+  .sg-log div{padding:4px 8px;border-radius:8px;background:#f9fafb;overflow-wrap:anywhere}
+  .sg-log .ok{background:#dcfce7;color:#166534;font-weight:800}
+  .sg-log .c{background:#fef9c3;color:#854d0e;font-weight:700}
+  .sg-log .sys{background:#fee2e2;color:#991b1b}
+  .sg-pod{display:flex;align-items:flex-end;justify-content:center;gap:10px;margin:10px 0}
+  .sg-pod div{width:110px;border-radius:14px 14px 0 0;color:#fff;text-align:center;padding:10px 6px;font-weight:800}
+  .sg-pod .p1{height:150px;background:linear-gradient(#facc15,#ca8a04)}
+  .sg-pod .p2{height:115px;background:linear-gradient(#cbd5e1,#64748b)}
+  .sg-pod .p3{height:90px;background:linear-gradient(#fdba74,#c2410c)}
+  .sg-pod span{display:block;font-size:30px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="party-kit.js"></script>
+<script>
+// Sketch & Guess: everyone takes a turn drawing a secret word; the others race to guess it.
+// Guessing fast scores more, and the drawer scores for every player who gets it.
+const WORDS = ['apple', 'banana', 'cat', 'dog', 'house', 'tree', 'car', 'sun', 'moon', 'star', 'fish', 'bird', 'rainbow', 'pizza', 'guitar', 'robot', 'rocket',
+  'snowman', 'castle', 'dragon', 'flower', 'bicycle', 'umbrella', 'clock', 'cake', 'ice cream', 'hamburger', 'butterfly', 'spider', 'snake', 'elephant', 'giraffe',
+  'penguin', 'turtle', 'octopus', 'shark', 'whale', 'crown', 'key', 'lamp', 'chair', 'glasses', 'hat', 'shoe', 'sock', 'book', 'pencil', 'scissors', 'camera',
+  'phone', 'computer', 'television', 'airplane', 'boat', 'train', 'bus', 'tractor', 'helicopter', 'mountain', 'volcano', 'island', 'beach', 'cloud', 'lightning',
+  'tornado', 'fire', 'candle', 'balloon', 'kite', 'ghost', 'pumpkin', 'skeleton', 'witch', 'pirate', 'treasure', 'map', 'anchor', 'bridge', 'tent', 'campfire',
+  'cactus', 'mushroom', 'carrot', 'strawberry', 'cherry', 'grapes', 'watermelon', 'pineapple', 'lemon', 'egg', 'cookie', 'donut', 'sandwich', 'hot dog',
+  'popcorn', 'cheese', 'bread', 'teapot', 'cup', 'fork', 'spoon', 'bed', 'door', 'window', 'ladder', 'hammer', 'saw', 'toothbrush', 'soap', 'bathtub',
+  'football', 'basketball', 'tennis', 'trophy', 'medal', 'drum', 'piano', 'trumpet', 'microphone', 'headphones', 'snail', 'frog', 'bee', 'ladybug', 'owl',
+  'bat', 'mouse', 'rabbit', 'horse', 'cow', 'pig', 'chicken', 'duck', 'lion', 'monkey', 'zebra', 'kangaroo', 'crocodile', 'dinosaur', 'unicorn', 'mermaid',
+  'alien', 'ufo', 'planet', 'astronaut', 'igloo', 'pyramid', 'lighthouse', 'windmill', 'fountain', 'swing', 'slide', 'sandcastle', 'surfboard', 'skateboard',
+  'snowflake', 'heart', 'diamond', 'magnet', 'battery', 'light bulb', 'envelope', 'gift', 'bell', 'feather', 'leaf', 'acorn', 'nest', 'spider web', 'bone'];
+const COLORS = ['#111827', '#ffffff', '#9ca3af', '#ef4444', '#f97316', '#facc15', '#22c55e', '#14b8a6', '#3b82f6', '#8b5cf6', '#ec4899', '#92400e'];
+const SIZES = [5, 12, 28];
+let PICK_MS = 15000, DRAW_MS = 80000; const REVEAL_MS = 6000;
+try { const d = +localStorage.getItem('sg.draw'); if (d > 0) DRAW_MS = d; } catch (e) {} // (a shorter turn for tests)
+const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const norm = (t) => String(t).toLowerCase().replace(/[^a-z]/g, '');
+function lev(a, b) {
+  if (Math.abs(a.length - b.length) > 1) return 2;
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+  return d[a.length][b.length];
+}
+
+/* ---------------- the host runs the game ---------------- */
+const host = {
+  start(players, t) {
+    const n = players.length, idx = () => shuffle(players.map((_, i) => i));
+    const order = n <= 3 ? idx().concat(idx()) : idx().slice(0, 8);
+    const s = { order, turn: -1, ph: 'pick', ends: 0, choices: [], word: '', hint: '', sc: players.map(() => 0), gain: players.map(() => 0), got: {}, log: [], used: [], hints: 0, out: [] };
+    nextTurn(s, t);
+    return s;
+  },
+  action(s, i, a, t) {
+    if (!a) return false;
+    const drawer = s.order[s.turn];
+    if (s.ph === 'pick' && i === drawer && [0, 1, 2].includes(a.pick)) { beginDraw(s, a.pick, t); return true; }
+    if (s.ph === 'draw' && typeof a.guess === 'string' && i !== drawer && s.got[i] == null) {
+      const g = a.guess.trim().slice(0, 40);
+      if (!g) return false;
+      if (norm(g) && norm(g) === norm(s.word)) {
+        const k = Object.keys(s.got).length;
+        s.got[i] = k;
+        const pts = Math.round(100 + 300 * Math.max(0, s.ends - t) / DRAW_MS) + (k === 0 ? 50 : 0);
+        s.gain[i] += pts; s.sc[i] += pts; s.gain[drawer] += 60; s.sc[drawer] += 60;
+        addLog(s, [i, '', 'ok']);
+        if (everyoneGot(s)) toReveal(s, t);
+      } else if (norm(g).length >= 4 && lev(norm(g), norm(s.word)) === 1) addLog(s, [i, '', 'c']);
+      else addLog(s, [i, g, 'g']);
+      return true;
+    }
+    return false;
+  },
+  gone(s, i) {
+    s.out[i] = true;
+    if ((s.ph === 'pick' || s.ph === 'draw') && s.order[s.turn] === i) { addLog(s, [i, '', 'left']); toReveal(s, Date.now()); }
+  },
+  tick(s, t) {
+    if (s.ph === 'pick' && t >= s.ends) { beginDraw(s, 0, t); return true; }
+    if (s.ph === 'draw') {
+      if (t >= s.ends || everyoneGot(s)) { toReveal(s, t); return true; }
+      const frac = 1 - (s.ends - t) / DRAW_MS, letters = s.word.replace(/[^a-z]/gi, '').length;
+      const want = letters >= 4 ? (frac > 0.72 ? 2 : frac > 0.45 ? 1 : 0) : 0;
+      if (want > s.hints) { s.hints = want; revealLetter(s); return true; }
+    }
+    if (s.ph === 'reveal' && t >= s.ends) { nextTurn(s, t); return true; }
+    return false;
+  },
+};
+function nextTurn(s, t) {
+  do s.turn++; while (s.turn < s.order.length && s.out[s.order[s.turn]]);
+  if (s.turn >= s.order.length) { s.ph = 'done'; return; }
+  Object.assign(s, { ph: 'pick', ends: t + PICK_MS, word: '', hint: '', got: {}, log: [], hints: 0, gain: s.sc.map(() => 0) });
+  s.choices = shuffle(WORDS.filter((w) => !s.used.includes(w))).slice(0, 3);
+}
+function beginDraw(s, k, t) {
+  s.word = s.choices[k] || s.choices[0]; s.used.push(s.word); s.choices = [];
+  s.hint = s.word.replace(/[a-z]/gi, '_'); s.ph = 'draw'; s.ends = t + DRAW_MS;
+}
+function revealLetter(s) {
+  const spots = [...s.hint].map((c, i) => (c === '_' ? i : -1)).filter((i) => i >= 0);
+  if (spots.length <= 1) return;
+  const i = spots[Math.floor(Math.random() * spots.length)];
+  s.hint = s.hint.slice(0, i) + s.word[i] + s.hint.slice(i + 1);
+}
+function toReveal(s, t) { s.ph = 'reveal'; s.ends = t + REVEAL_MS; s.hint = s.word; }
+function everyoneGot(s) {
+  const drawer = s.order[s.turn], guessers = s.sc.map((_, i) => i).filter((i) => i !== drawer && !s.out[i]);
+  return !guessers.length || guessers.every((i) => s.got[i] != null);
+}
+function addLog(s, e) { s.log.push(e); if (s.log.length > 12) s.log.shift(); }
+
+/* ---------------- the drawing: strokes on a 512×384 grid, packed small enough to share ---------------- */
+const AL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_', GW = 512, GH = 384, K = 800 / GW, MAX_INK = 2800;
+const n2 = (n) => AL[(n >> 6) & 63] + AL[n & 63];
+const d2 = (t, i) => AL.indexOf(t[i]) * 64 + AL.indexOf(t[i + 1]);
+const strokeLen = (st) => 6 + (st.pts.length - 1) * 2 + 1;
+function encode(strokes) {
+  return strokes.map((st) => {
+    let o = AL[st.c] + AL[st.s] + n2(st.pts[0][0]) + n2(st.pts[0][1]);
+    for (let k = 1; k < st.pts.length; k++) o += AL[st.pts[k][0] - st.pts[k - 1][0] + 32] + AL[st.pts[k][1] - st.pts[k - 1][1] + 32];
+    return o;
+  }).join('~');
+}
+function decode(str) {
+  if (typeof str !== 'string' || !str) return [];
+  return str.slice(0, 4000).split('~').map((t) => {
+    if (t.length < 6) return null;
+    const c = AL.indexOf(t[0]), sz = AL.indexOf(t[1]);
+    let x = d2(t, 2), y = d2(t, 4); const pts = [[x, y]];
+    for (let i = 6; i + 1 < t.length; i += 2) { x += AL.indexOf(t[i]) - 32; y += AL.indexOf(t[i + 1]) - 32; pts.push([x, y]); }
+    return { c: c >= 0 && c < COLORS.length ? c : 0, s: sz >= 0 && sz < SIZES.length ? sz : 1, pts };
+  }).filter(Boolean);
+}
+function paint(cv, strokes) {
+  const g = cv.getContext('2d');
+  g.fillStyle = '#fff'; g.fillRect(0, 0, cv.width, cv.height);
+  g.lineCap = g.lineJoin = 'round';
+  for (const st of strokes) {
+    g.strokeStyle = COLORS[st.c]; g.lineWidth = SIZES[st.s]; g.beginPath();
+    g.moveTo(st.pts[0][0] * K, st.pts[0][1] * K);
+    if (st.pts.length === 1) g.lineTo(st.pts[0][0] * K + 0.1, st.pts[0][1] * K);
+    for (let k = 1; k < st.pts.length; k++) g.lineTo(st.pts[k][0] * K, st.pts[k][1] * K);
+    g.stroke();
+  }
+}
+// what I'm drawing (when it's my turn)
+const D = { key: '', strokes: [], cur: null, ink: 0, color: 0, size: 1, sentAt: 0, timer: 0, shown: null };
+function inkLeft() { return MAX_INK - D.ink; }
+function publish(now) {
+  if (!V) return;
+  const go = () => { D.sentAt = performance.now(); D.timer = 0; V.mine({ dr: { k: D.key, d: encode(D.strokes) } }); };
+  clearTimeout(D.timer);
+  if (now || performance.now() - D.sentAt > 160) go(); else D.timer = setTimeout(go, 160);
+}
+function gridAt(cv, e) {
+  const r = cv.getBoundingClientRect();
+  return [Math.round(Math.max(0, Math.min(GW - 1, (e.clientX - r.left) / r.width * GW))), Math.round(Math.max(0, Math.min(GH - 1, (e.clientY - r.top) / r.height * GH)))];
+}
+function addPoint(p) {
+  const st = D.cur, last = st.pts[st.pts.length - 1], dx = p[0] - last[0], dy = p[1] - last[1];
+  if (Math.hypot(dx, dy) < 2.5) return;
+  const n = Math.ceil(Math.max(Math.abs(dx), Math.abs(dy)) / 30);
+  for (let k = 1; k <= n; k++) {
+    if (inkLeft() < 2) { D.cur = null; drawTools(); return; }
+    const prev = st.pts[st.pts.length - 1], q = [Math.round(last[0] + dx * k / n), Math.round(last[1] + dy * k / n)];
+    if (q[0] === prev[0] && q[1] === prev[1]) continue;
+    st.pts.push(q); D.ink += 2;
+  }
+}
+
+/* ---------------- the screen ---------------- */
+let V = null, built = '';
+const esc = (t) => PartyKit.esc(t);
+// who won (or who tied for first)
+function winLine(ranked, me, mine) {
+  const top = ranked.filter((r) => r.sc === ranked[0].sc);
+  if (top.length > 1) return `It’s a tie between ${top.map((r) => (r.i === me ? 'you' : esc(r.p.name))).join(' and ')}!`;
+  return ranked[0].i === me ? mine : `${esc(ranked[0].p.name)} wins!`;
+}
+function render(v, el) {
+  V = v;
+  const s = v.state, drawer = s.order[s.turn], amDrawer = v.me >= 0 && v.me === drawer;
+  if (s.ph === 'done') { if (built !== v.id + ':done') { built = v.id + ':done'; podium(v, el, s); } return; }
+  const turnKey = `${v.id}:${s.turn}`;
+  if (D.key !== turnKey) { D.key = turnKey; D.strokes = []; D.cur = null; D.ink = 0; D.shown = null; }
+  const key = `${turnKey}:${s.ph}:${amDrawer}`;
+  if (key !== built) { built = key; build(v, el, s, amDrawer); }
+  update(v, el, s, amDrawer);
+}
+function build(v, el, s, amDrawer) {
+  const drawer = v.players[s.order[s.turn]] || { name: '?' };
+  let under = '';
+  if (s.ph === 'draw' && amDrawer) under = `<div class="sg-tools" id="tools"></div>`;
+  else if (s.ph === 'draw' && v.me >= 0) under = `<form class="sg-guess" id="gf"><input id="gi" maxlength="40" autocomplete="off" placeholder="Type your guess and press Enter"><button class="pk-btn">Guess</button></form>`;
+  let over = '';
+  if (s.ph === 'pick') over = amDrawer ? `<div class="sg-over"><div>Pick a word to draw<div class="sg-picks" style="margin-top:14px">${s.choices.map((w, k) => `<button class="sg-pick" data-p="${k}">${esc(w)}</button>`).join('')}</div></div></div>`
+    : `<div class="sg-over">✏️ ${esc(drawer.name)} is picking a word…</div>`;
+  el.innerHTML = `<div class="sg-wrap"><div class="sg-main">
+    <div class="sg-top"><span class="sg-chip">Turn ${s.turn + 1} of ${s.order.length}</span><span class="sg-chip">✏️ ${esc(drawer.name)}${amDrawer ? ' (you)' : ''}</span><span class="sg-timer" id="t"></span></div>
+    <div class="sg-word" id="word"></div>
+    <div class="sg-board" id="board"><canvas id="cv" width="800" height="600"></canvas>${over}</div>
+    ${under}<div class="sg-msg" id="msg"></div></div>
+    <div class="sg-side"><div class="sg-box"><h3>Scores</h3><div id="scores"></div></div><div class="sg-box"><h3>Guesses</h3><div class="sg-log" id="log"></div></div></div></div>`;
+  el.querySelectorAll('[data-p]').forEach((b) => (b.onclick = () => { v.send({ pick: +b.dataset.p }); el.querySelectorAll('[data-p]').forEach((x) => (x.disabled = true)); }));
+  const gf = el.querySelector('#gf');
+  if (gf) {
+    let lastAt = 0;
+    gf.onsubmit = (e) => { e.preventDefault(); const i = el.querySelector('#gi'), t = i.value.trim(); if (!t || performance.now() - lastAt < 500) return; lastAt = performance.now(); V.send({ guess: t }); i.value = ''; };
+    setTimeout(() => { const i = el.querySelector('#gi'); if (i) i.focus(); }, 0);
+  }
+  const cv = el.querySelector('#cv');
+  if (amDrawer && s.ph === 'draw') {
+    drawTools();
+    cv.onpointerdown = (e) => {
+      if (inkLeft() < 8) return;
+      try { cv.setPointerCapture(e.pointerId); } catch (err) { /* not every pointer can be captured */ }
+      D.cur = { c: D.color, s: D.size, pts: [gridAt(cv, e)] }; D.strokes.push(D.cur); D.ink += 7;
+      paint(cv, D.strokes); publish();
+    };
+    cv.onpointermove = (e) => { if (!D.cur) return; addPoint(gridAt(cv, e)); paint(cv, D.strokes); publish(); drawInk(); };
+    cv.onpointerup = cv.onpointercancel = () => { if (!D.cur) return; D.cur = null; publish(true); drawInk(); };
+  }
+  paint(cv, amDrawer ? D.strokes : []); D.shown = null;
+}
+function drawTools() {
+  const box = document.getElementById('tools'); if (!box) return;
+  box.innerHTML = COLORS.map((c, i) => `<button class="sg-col ${D.color === i ? 'on' : ''}" data-c="${i}" style="background:${c}" title="${i === 1 ? 'Eraser (white)' : 'Colour'}"></button>`).join('')
+    + SIZES.map((z, i) => `<button class="sg-size ${D.size === i ? 'on' : ''}" data-s="${i}"><i style="width:${4 + i * 6}px;height:${4 + i * 6}px"></i></button>`).join('')
+    + `<button class="pk-btn pk-ghost" data-undo>↶ Undo</button><button class="pk-btn pk-ghost" data-clear>🗑 Clear</button><div class="sg-ink" title="Ink"><i id="ink"></i></div>`;
+  box.onclick = (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.c) D.color = +b.dataset.c;
+    else if (b.dataset.s) D.size = +b.dataset.s;
+    else if ('undo' in b.dataset) { const st = D.strokes.pop(); if (st) D.ink -= strokeLen(st); }
+    else if ('clear' in b.dataset) { D.strokes = []; D.ink = 0; }
+    D.cur = null; drawTools(); paint(document.getElementById('cv'), D.strokes); publish(true);
+  };
+  drawInk();
+}
+function drawInk() { const i = document.getElementById('ink'); if (i) i.style.width = `${Math.max(0, inkLeft()) / MAX_INK * 100}%`; }
+function update(v, el, s, amDrawer) {
+  const drawerI = s.order[s.turn], drawer = v.players[drawerI] || {};
+  // timer
+  const t = el.querySelector('#t'), left = v.left(s.ends);
+  t.textContent = s.ph === 'reveal' ? '' : left; t.classList.toggle('low', s.ph === 'draw' && left <= 10);
+  // the word (or its blanks)
+  const word = el.querySelector('#word');
+  let w = '';
+  if (s.ph === 'draw') w = amDrawer ? `${esc(s.word.toUpperCase())}<small>you’re drawing this</small>` : `${esc(s.hint.split('').join(' ').toUpperCase())}<small>${s.word.replace(/[^a-z]/gi, '').length || s.hint.replace(/[^_a-z]/gi, '').length} letters</small>`;
+  else if (s.ph === 'reveal') w = `${esc(s.word.toUpperCase())}<small>the word was</small>`;
+  if (word.innerHTML !== w) word.innerHTML = w;
+  // the drawing, straight from the drawer's presence
+  if (!amDrawer || s.ph !== 'draw') {
+    const d = drawer.peer && v.dataOf(drawer.peer), dr = d && d.dr;
+    const enc = dr && dr.k === `${v.id}:${s.turn}` && typeof dr.d === 'string' ? dr.d : '';
+    if (enc !== D.shown && (enc || s.ph !== 'reveal')) { D.shown = enc; paint(el.querySelector('#cv'), decode(enc)); }
+  }
+  // message
+  const msg = el.querySelector('#msg');
+  let m = '';
+  if (v.me < 0) m = 'You’re watching this game — join the next one from the lobby!';
+  else if (s.ph === 'draw' && !amDrawer && s.got[v.me] != null) m = `🎉 You got it! +${s.gain[v.me]}`;
+  else if (s.ph === 'draw' && amDrawer) m = Object.keys(s.got).length ? `${Object.keys(s.got).length} guessed it so far` : 'Draw it — no letters or numbers!';
+  else if (s.ph === 'reveal') m = amDrawer ? `You scored +${s.gain[v.me] || 0} for your drawing` : v.me >= 0 && s.got[v.me] != null ? `You got it! +${s.gain[v.me]}` : 'Next drawing coming up…';
+  if (msg.textContent !== m) msg.textContent = m;
+  const gi = el.querySelector('#gi'); if (gi) gi.disabled = s.got[v.me] != null;
+  // scores and guesses
+  const ranked = v.players.map((p, i) => ({ p, i, sc: s.sc[i] })).sort((a, b) => b.sc - a.sc);
+  const sc = ranked.map((r, k) => `<div class="sg-row${r.i === v.me ? ' me' : ''}"><span>${k + 1}</span><i style="background:${esc(r.p.color)}"></i><span>${esc(r.p.name)}${r.i === drawerI && s.ph !== 'reveal' ? ' ✏️' : ''}${s.got[r.i] != null ? ' ✅' : ''}${r.p.gone ? ' 👋' : ''}</span><span>${r.sc}${s.gain[r.i] && s.ph === 'reveal' ? ` <span class="gain">+${s.gain[r.i]}</span>` : ''}</span></div>`).join('');
+  const sb = el.querySelector('#scores'); if (sb.innerHTML !== sc) sb.innerHTML = sc;
+  const name = (i) => esc((v.players[i] || {}).name || 'Someone');
+  const lg = s.log.map(([i, txt, k]) => k === 'ok' ? `<div class="ok">✅ ${name(i)} guessed the word!</div>` : k === 'c' ? `<div class="c">🔥 ${name(i)} is close!</div>` : k === 'left' ? `<div class="sys">${name(i)} left — skipping their turn</div>` : `<div><b>${name(i)}:</b> ${esc(txt)}</div>`).join('');
+  const lb = el.querySelector('#log'); if (lb.innerHTML !== lg) { lb.innerHTML = lg || '<div style="color:#9ca3af">No guesses yet</div>'; lb.scrollTop = lb.scrollHeight; }
+}
+function podium(v, el, s) {
+  const ranked = v.players.map((p, i) => ({ p, i, sc: s.sc[i] })).sort((a, b) => b.sc - a.sc), pod = ranked.slice(0, 3);
+  el.innerHTML = `<div class="sg-wrap"><div class="sg-main"><div class="sg-word" style="letter-spacing:0">🏆 Final scores</div>
+    <div class="sg-pod">${[1, 0, 2].filter((k) => pod[k]).map((k) => `<div class="p${k + 1}"><span>${['🥇', '🥈', '🥉'][k]}</span>${esc(pod[k].p.name)}<br>${pod[k].sc}</div>`).join('')}</div>
+    <div class="sg-msg">${winLine(ranked, v.me, 'You win! 🎨')}</div>
+    <div class="pk-row" style="justify-content:center">${v.isHost ? '<button class="pk-btn" id="again">🔁 Back to the lobby</button>' : '<span class="pk-tag">The host can start another game.</span>'}<button class="pk-btn pk-ghost" id="leave">Leave server</button></div></div>
+    <div class="sg-side"><div class="sg-box"><h3>Scores</h3>${ranked.map((r, k) => `<div class="sg-row${r.i === v.me ? ' me' : ''}"><span>${k + 1}</span><i style="background:${esc(r.p.color)}"></i><span>${esc(r.p.name)}</span><span>${r.sc}</span></div>`).join('')}</div></div></div>`;
+  const ag = el.querySelector('#again'); if (ag) ag.onclick = v.again;
+  el.querySelector('#leave').onclick = v.leave;
+}
+
+PartyKit.start({
+  code: 'sg', title: 'Sketch & Guess', emoji: '🎨', min: 2, max: 10, servers: 6, el: document.getElementById('app'),
+  tagline: 'Take turns drawing a secret word while everyone else races to guess it.',
+  rules: '<b>How to play:</b> on your turn, pick one of three words and draw it — no letters! Everyone else types guesses. The faster you guess, the more you score (the first right guess gets a bonus), and the drawer scores for every player who gets it. Letters of the word appear as hints as time runs out.',
+  host, render,
+});
+</script>
+</body>
+</html>

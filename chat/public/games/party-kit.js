@@ -6,7 +6,9 @@
 //
 //   PartyKit.start({ code, title, emoji, tagline, min, max, servers, el,
 //     host: { start(players) -> state, action(state, i, action, now) -> changed, tick(state, now) -> changed },
-//     render(view) })     view: { state, me (index or -1), players, isHost, send(action), left(ms deadline) -> s, again() }
+//     render(view) })     view: { state, me (index or -1), players, isHost, send(action), left(ms deadline) -> s, again(),
+//                                  mine(patch) puts my own extra data in my presence, dataOf(peer) reads someone's }
+//   (mine/dataOf are for things too big for the host's shared state, like the drawing in Sketch & Guess)
 (() => {
   const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const now = () => performance.now();
@@ -210,7 +212,8 @@
       if (K.srv && g && g.st === 'play') {
         const me = g.pl.indexOf(myPeer());
         const view = { v: g.v, id: g.id, state: g.s, me, players: g.pl.map((p, i) => ({ peer: p, name: g.nm[i], color: g.cl[i], gone: g.gone[i] })), isHost: isHost(), send: act,
-          left: (deadline) => Math.max(0, Math.ceil((deadline - (Date.now() + K.view.offset)) / 1000)), again: backToLobby, leave: () => leave(), soft };
+          left: (deadline) => Math.max(0, Math.ceil((deadline - (Date.now() + K.view.offset)) / 1000)), again: backToLobby, leave: () => leave(), soft,
+          mine: (patch) => send(patch), dataOf: (peer) => { const p = K.peers.find((x) => x.peer === peer); return (p && p.presence) || null; } };
         el.dataset.screen = 'game';
         cfg.render(view, el);
         return;
