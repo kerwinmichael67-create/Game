@@ -27,6 +27,7 @@ const GAMES = {
   pong: { name: 'Pong', kind: 'realtime' },
   connect4: { name: 'Connect Four', kind: 'turn' },
   tictactoe: { name: 'Tic-Tac-Toe', kind: 'turn' },
+  battleship: { name: 'Battleship', kind: 'turn' },
   reversi: { name: 'Reversi', kind: 'turn' },
   dots: { name: 'Dots & Boxes', kind: 'turn' },
   mancala: { name: 'Mancala', kind: 'turn' },
@@ -147,8 +148,10 @@ function busyReason(u) {
   return null;
 }
 const gamePlayers = (s) => s.players.map((u) => ({ username: u, name: nameOf(u), avatar: db.users[u].avatar }));
+// games with something to hide (Battleship's fleets): each player gets only their own view
+const stateFor = (s, i) => (s.kind === 'turn' && Rules[s.type].view ? Rules[s.type].view(s.state, i) : s.state);
 function sendStart(s, u) {
-  sendUser(u, { t: 'gameStart', id: s.id, game: s.type, players: gamePlayers(s), you: s.players.indexOf(u), state: s.state });
+  sendUser(u, { t: 'gameStart', id: s.id, game: s.type, players: gamePlayers(s), you: s.players.indexOf(u), state: stateFor(s, s.players.indexOf(u)) });
 }
 function startGame(type, players, roomId) {
   const s = { id: rid(), type, players, room: roomId, over: false, kind: GAMES[type].kind, state: null, timer: null };
@@ -199,7 +202,7 @@ function gameInput(u, msg) {
     const r = Rules[s.type].move(s.state, idx, msg.input || {});
     if (r.error) return sendUser(u, { t: 'gameError', id: s.id, text: r.error });
     s.state = r.state;
-    toPlayers(s, { t: 'gameState', id: s.id, state: s.state });
+    s.players.forEach((p, i) => sendUser(p, { t: 'gameState', id: s.id, state: stateFor(s, i) }));
     if (s.state.result) endGame(s, s.state.result);
   } else if (s.kind === 'realtime') {
     // positions are only taken from a player hosting the game in their own browser (claude.ai), never here
@@ -341,7 +344,7 @@ function onAuth(ws, u, token) {
   send(ws, { t: 'hello', token, me: privateUser(u), users: Object.keys(db.users).map(publicUser), rooms, games: GAMES, calls: { iceServers: ICE_SERVERS } });
   if (userGame.has(u)) {
     const s = sessions.get(userGame.get(u));
-    send(ws, { t: 'gameStart', id: s.id, game: s.type, players: gamePlayers(s), you: s.players.indexOf(u), state: s.state });
+    send(ws, { t: 'gameStart', id: s.id, game: s.type, players: gamePlayers(s), you: s.players.indexOf(u), state: stateFor(s, s.players.indexOf(u)) });
   }
   for (const inv of invites.values()) if (inv.to === u) send(ws, { t: 'invite', invite: inv });
   clearTimeout(leaveTimers.get(u));

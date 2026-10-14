@@ -14,6 +14,7 @@
     pong: { name: 'Pong', kind: 'realtime' },
     connect4: { name: 'Connect Four', kind: 'turn' },
     tictactoe: { name: 'Tic-Tac-Toe', kind: 'turn' },
+    battleship: { name: 'Battleship', kind: 'turn' },
     reversi: { name: 'Reversi', kind: 'turn' },
     dots: { name: 'Dots & Boxes', kind: 'turn' },
     mancala: { name: 'Mancala', kind: 'turn' },

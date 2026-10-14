@@ -1036,3 +1036,20 @@ body[data-theme="dark"] .fav-btn.on { color: #c9c2ff; }
 .table-pill { bottom: 70px; }
 .table-pill.hidden { display: none; }
 #gameDock.spectating .controls-help, #gameDock.spectating .touchpad { display: none; }
+
+/* Battleship */
+.bs-wrap { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+.bs-side { display: grid; gap: 6px; justify-items: center; flex: 1 1 220px; max-width: 340px; }
+.bs-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 2px; width: 100%; aspect-ratio: 1; padding: 4px; border-radius: 10px; background: linear-gradient(160deg, #0c4a6e, #082f49); }
+.bs-grid button { border: 0; border-radius: 3px; background: rgba(125, 211, 252, .18); padding: 0; cursor: default; position: relative; }
+.bs-grid.enemy button.aim { cursor: crosshair; }
+.bs-grid.enemy button.aim:hover { background: rgba(250, 204, 21, .55); }
+.bs-grid button.ship { background: #94a3b8; }
+.bs-grid button.miss::after { content: ''; position: absolute; inset: 38%; border-radius: 50%; background: #e0f2fe; }
+.bs-grid button.hit { background: #ef4444; }
+.bs-grid button.hit::after { content: '✕'; position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-weight: 900; font-size: 12px; }
+.bs-grid button.sunk { background: #7f1d1d; }
+.bs-grid button.last { outline: 2px solid #facc15; z-index: 1; }
+.bs-fleet { display: flex; flex-wrap: wrap; gap: 4px 10px; justify-content: center; font-size: 12px; max-width: 340px; }
+.bs-ship i { font-style: normal; letter-spacing: -1px; color: #64748b; }
+.bs-ship.sunk { text-decoration: line-through; opacity: .5; }

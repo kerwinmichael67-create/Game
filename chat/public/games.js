@@ -8,6 +8,7 @@
     fighter: { color: 'linear-gradient(135deg,#f59e0b,#dc2626)', emoji: '🥊', name: 'Street Fighter', desc: 'Best of 3 rounds. Punch, kick, block, fireball.', help: 'A/D or ←→ move · W/↑ jump · S/↓ block · J punch · K kick · L fireball (needs 50 energy)' },
     pong: { color: 'linear-gradient(135deg,#64748b,#0f172a)', emoji: '🏓', name: 'Pong', desc: 'First to 7 points wins.', help: 'W/S or ↑/↓ to move your paddle' },
     connect4: { color: 'linear-gradient(135deg,#3b82f6,#1e3a8a)', emoji: '🔴', name: 'Connect Four', desc: 'Get four in a row.', help: 'Click a column to drop a disc' },
+    battleship: { color: 'linear-gradient(135deg,#0ea5e9,#1e3a8a)', emoji: '🚢', name: 'Battleship', desc: 'Hide your fleet, hunt theirs. Sink all five ships.', help: 'Shuffle until you like your fleet, press Ready, then click the enemy waters to fire' },
     tictactoe: { color: 'linear-gradient(135deg,#ec4899,#8b5cf6)', emoji: '❌', name: 'Tic-Tac-Toe', desc: 'Three in a row. Quick game!', help: 'Click a square' },
     reversi: { color: 'linear-gradient(135deg,#16a34a,#14532d)', emoji: '⚫', name: 'Reversi', desc: 'Trap discs to flip them. Most discs wins.', help: 'Click a dotted square to place a disc' },
     dots: { color: 'linear-gradient(135deg,#f59e0b,#ea580c)', emoji: '🔲', name: 'Dots & Boxes', desc: 'Close a box to score and go again.', help: 'Click between two dots to draw a line' },
@@ -609,6 +610,53 @@
     };
   }
 
+  // ---------------------------------------------------------------- BATTLESHIP
+  function battleshipGame(stage, api) {
+    const R = Rules.battleship, N = R.N;
+    const mine = h('div', { class: 'bs-grid' }), theirs = h('div', { class: 'bs-grid enemy' });
+    const myFleet = h('div', { class: 'bs-fleet' }), theirFleet = h('div', { class: 'bs-fleet' });
+    const tools = h('div', { class: 'row', style: 'justify-content:center;gap:8px' });
+    const opp = () => api.players[1 - api.you].name;
+    stage.append(h('div', { class: 'bs-wrap' },
+      h('div', { class: 'bs-side' }, h('b', {}, api.spectate ? `${api.players[0].name}’s fleet` : 'Your fleet'), mine, myFleet),
+      h('div', { class: 'bs-side' }, h('b', {}, api.spectate ? `${api.players[1].name}’s waters` : `${opp()}’s waters`), theirs, theirFleet)),
+      tools, h('div', { class: 'controls-help' }, META.battleship.help));
+    const cells = (grid, onClick) => { grid.replaceChildren(); const out = []; for (let i = 0; i < N * N; i++) { const b = h('button', { onclick: onClick ? () => onClick(i) : null }); out.push(b); grid.append(b); } return out; };
+    let st = null;
+    const myCells = cells(mine), foeCells = cells(theirs, (i) => {
+      if (!st || st.result || st.phase !== 'play' || st.turn !== api.you || st.shots[api.you].includes(i)) return;
+      api.send({ fire: i });
+    });
+    const fleetList = (el, fleet, sunk) => el.replaceChildren(...R.FLEET.map((len, k) => h('span', { class: 'bs-ship' + (sunk.includes(k) ? ' sunk' : '') }, `${R.NAMES[k]} `, h('i', {}, '■'.repeat(len)))));
+    return {
+      update(s0) {
+        const s = st = R.view(s0, api.you), me = api.you, o = 1 - me;
+        const myShips = s.fleets[me] || [], foeShips = s.fleets[o] || [];
+        const shotAtMe = new Set(s.shots[o]), myShots = new Set(s.shots[me]);
+        myCells.forEach((b, i) => {
+          const ship = R.shipAt(myShips, i), shot = shotAtMe.has(i);
+          b.className = [ship >= 0 ? 'ship' : '', shot ? (ship >= 0 ? 'hit' : 'miss') : '', ship >= 0 && s.sunk[o].includes(ship) ? 'sunk' : '', s.last && s.last.by === o && s.last.cell === i ? 'last' : ''].join(' ');
+        });
+        foeCells.forEach((b, i) => {
+          const ship = R.shipAt(foeShips, i), shot = myShots.has(i);
+          const hit = shot && s.hits[me].includes(i);
+          b.className = [shot ? (hit ? 'hit' : 'miss') : '', ship >= 0 ? 'sunk ship' : '', s.last && s.last.by === me && s.last.cell === i ? 'last' : '', !shot && s.phase === 'play' && s.turn === me && !s.result ? 'aim' : ''].join(' ');
+        });
+        fleetList(myFleet, myShips, s.sunk[o]); fleetList(theirFleet, foeShips, s.sunk[me]);
+        tools.replaceChildren();
+        if (s.phase === 'place' && !api.spectate) {
+          if (!s.ready[me]) tools.append(h('button', { class: 'btn', onclick: () => api.send({ shuffle: true }) }, '🔀 Shuffle my fleet'), h('button', { class: 'btn primary', onclick: () => api.send({ ready: true }) }, '✔ Ready'));
+          api.status(h('b', {}, s.ready[me] ? `Ready! Waiting for ${opp()}…` : 'Arrange your fleet'), s.ready[o] ? `${opp()} is ready` : `${opp()} is arranging their fleet`);
+          return;
+        }
+        if (s.phase === 'place') return api.status('Both players are arranging their fleets…');
+        if (s.result) return;
+        const lastTxt = s.last ? `${s.last.by === me ? 'You' : opp()} ${s.last.hit ? (s.last.sunk >= 0 ? `sank a ${R.NAMES[s.last.sunk].toLowerCase()}!` : 'hit!') : 'missed.'}` : '';
+        api.status(s.turn === me ? h('b', {}, 'Your turn — fire!') : `Waiting for ${opp()}…`, lastTxt, `Ships left: you ${R.FLEET.length - s.sunk[o].length} · ${opp()} ${R.FLEET.length - s.sunk[me].length}`);
+      },
+    };
+  }
+
   // ---------------------------------------------------------------- TIC-TAC-TOE
   function tictactoeGame(stage, api) {
     const grid = h('div', { class: 'ttt' });
@@ -897,7 +945,7 @@
   }
 
   const FACTORY = {
-    snake: snakeGame, pong: pongGame, fighter: fighterGame, tetris: tetrisGame, chess: chessGame, checkers: checkersGame, connect4: connect4Game, tictactoe: tictactoeGame,
+    snake: snakeGame, pong: pongGame, fighter: fighterGame, tetris: tetrisGame, chess: chessGame, checkers: checkersGame, connect4: connect4Game, tictactoe: tictactoeGame, battleship: battleshipGame,
     reversi: reversiGame, dots: dotsGame, mancala: mancalaGame, gomoku: gomokuGame, tron: tronGame, hockey: hockeyGame, apex: apexGame,
     td: (stage, api) => window.TDGame(stage, api),
   };

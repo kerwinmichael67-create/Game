@@ -336,7 +336,51 @@
     return { cell: bestOf(near, (i) => gmLineScore(cells, i, me) * 1.1 + gmLineScore(cells, i, 1 - me) * defend + (level === 'easy' ? Math.random() * 300 : 0)) };
   }
 
-  const TURN_BOTS = { tictactoe: tictactoeMove, connect4: connect4Move, checkers: checkersMove, chess: chessMove, reversi: reversiMove, dots: dotsMove, mancala: mancalaMove, gomoku: gomokuMove };
+  // Battleship: only uses what a player can know (where it fired, which shots hit, which ships sank)
+  function battleshipMove(s, me, lv, level) {
+    const R = Rules.battleship, N = R.N, foe = s.fleets[1 - me], fired = new Set(s.shots[me]);
+    const sunkCells = new Set(), blocked = new Set();
+    s.sunk[me].forEach((k) => foe[k].forEach((x) => { sunkCells.add(x); const r = Math.floor(x / N), c = x % N; for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) { const rr = r + dr, cc = c + dc; if (rr >= 0 && cc >= 0 && rr < N && cc < N) blocked.add(rr * N + cc); } }));
+    const hitAll = new Set(s.hits[me]);
+    const hits = s.hits[me].filter((x) => !sunkCells.has(x));
+    const misses = new Set(s.shots[me].filter((x) => !hitAll.has(x)));
+    const open = []; for (let x = 0; x < N * N; x++) if (!fired.has(x) && !blocked.has(x)) open.push(x);
+    if (!open.length) { for (let x = 0; x < N * N; x++) if (!fired.has(x)) return { fire: x }; }
+    const rnd = (a) => a[Math.floor(Math.random() * a.length)];
+    const near = (x) => { const r = Math.floor(x / N), c = x % N; return [[r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]].filter(([a, b]) => a >= 0 && b >= 0 && a < N && b < N).map(([a, b]) => a * N + b).filter((y) => !fired.has(y) && !blocked.has(y)); };
+    if (level === 'easy') {
+      if (hits.length && Math.random() < 0.6) { const n = hits.flatMap(near); if (n.length) return { fire: rnd(n) }; }
+      return { fire: rnd(open) };
+    }
+    if (level === 'medium') {
+      if (hits.length) {
+        // two hits in a line: keep going along it
+        if (hits.length > 1) {
+          const sameRow = hits.every((x) => Math.floor(x / N) === Math.floor(hits[0] / N)), sameCol = hits.every((x) => x % N === hits[0] % N);
+          const ends = sameRow || sameCol ? hits.flatMap(near).filter((y) => (sameRow ? Math.floor(y / N) === Math.floor(hits[0] / N) : y % N === hits[0] % N)) : [];
+          if (ends.length) return { fire: rnd(ends) };
+        }
+        const n = hits.flatMap(near); if (n.length) return { fire: rnd(n) };
+      }
+      const parity = open.filter((x) => (Math.floor(x / N) + x % N) % 2 === 0);
+      return { fire: rnd(parity.length ? parity : open) };
+    }
+    // hard: count every way the ships still afloat could lie, and fire where they most likely are
+    const left = R.FLEET.filter((_, k) => !s.sunk[me].includes(k)), score = new Array(N * N).fill(0), hitSet = new Set(hits);
+    for (const len of left) for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) for (const down of [false, true]) {
+      if (down ? r + len > N : c + len > N) continue;
+      const cells = Array.from({ length: len }, (_, k) => (down ? (r + k) * N + c : r * N + c + k));
+      if (cells.some((x) => misses.has(x) || blocked.has(x))) continue;
+      const covers = cells.filter((x) => hitSet.has(x)).length;
+      if (hits.length && !covers) continue;
+      const w = 1 + covers * 40;
+      cells.forEach((x) => { if (!fired.has(x)) score[x] += w; });
+    }
+    let best = -1, bestList = [];
+    open.forEach((x) => { if (score[x] > best) { best = score[x]; bestList = [x]; } else if (score[x] === best) bestList.push(x); });
+    return { fire: rnd(bestList.length ? bestList : open) };
+  }
+  const TURN_BOTS = { battleship: battleshipMove, tictactoe: tictactoeMove, connect4: connect4Move, checkers: checkersMove, chess: chessMove, reversi: reversiMove, dots: dotsMove, mancala: mancalaMove, gomoku: gomokuMove };
 
   // ---------------------------------------------------------------- snake: chase food, keep room to move
   const SDIRS = { U: [0, -1], D: [0, 1], L: [-1, 0], R: [1, 0] };
@@ -596,7 +640,7 @@
   // ---------------------------------------------------------------- bot game session
   const KIND = {
     snake: 'realtime', pong: 'realtime', fighter: 'realtime', tron: 'realtime', hockey: 'realtime', tetris: 'relay',
-    chess: 'turn', checkers: 'turn', connect4: 'turn', tictactoe: 'turn', reversi: 'turn', dots: 'turn', mancala: 'turn', gomoku: 'turn',
+    chess: 'turn', checkers: 'turn', connect4: 'turn', tictactoe: 'turn', battleship: 'turn', reversi: 'turn', dots: 'turn', mancala: 'turn', gomoku: 'turn',
   };
   const REAL_BOTS = { snake: snakeBot, pong: pongBot, fighter: fighterBot, tron: tronBot, hockey: hockeyBot };
   const DIR_GAMES = new Set(['snake', 'tron']); // inputs are a direction
@@ -675,6 +719,7 @@
 
     if (kind === 'turn') state = Rules[game].init();
     else if (kind === 'realtime') state = Realtime[game].init();
+    if (game === 'battleship') state = Rules.battleship.move(state, 1, { ready: true }).state; // the bot is happy with its fleet
     else state = { boards: [null, null], scores: [0, 0], lines: [0, 0], sent: [0, 0] };
 
     GameDock.start({ id, game, players, you: 0, state, host, onClose: () => { over = true; stop(); } });

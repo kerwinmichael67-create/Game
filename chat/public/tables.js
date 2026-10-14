@@ -9,10 +9,10 @@
 (() => {
   const TABLES = 6, SEATS = 12; // tables per game, people per table (players + watchers)
   const KIND = {
-    chess: 'turn', checkers: 'turn', connect4: 'turn', tictactoe: 'turn', reversi: 'turn', dots: 'turn', mancala: 'turn', gomoku: 'turn',
+    chess: 'turn', checkers: 'turn', connect4: 'turn', tictactoe: 'turn', battleship: 'turn', reversi: 'turn', dots: 'turn', mancala: 'turn', gomoku: 'turn',
     pong: 'realtime', hockey: 'realtime', fighter: 'realtime', snake: 'realtime', tron: 'realtime', tetris: 'relay',
   };
-  const ORDER = ['chess', 'checkers', 'connect4', 'tictactoe', 'reversi', 'dots', 'mancala', 'gomoku', 'pong', 'hockey', 'fighter', 'snake', 'tron', 'tetris'];
+  const ORDER = ['chess', 'checkers', 'connect4', 'battleship', 'tictactoe', 'reversi', 'dots', 'mancala', 'gomoku', 'pong', 'hockey', 'fighter', 'snake', 'tron', 'tetris'];
   const MAXP = { snake: 4, tron: 4, tetris: 4 };
   const maxPlayers = (g) => MAXP[g] || 2;
   const SMOOTH = new Set(['pong', 'hockey', 'fighter']);
@@ -238,8 +238,7 @@
     if (!m || m.st !== 'play' || m.out[i] || !input || typeof input !== 'object') return;
     const kind = KIND[T.game];
     if (kind === 'turn') {
-      if (m.state.turn !== i) return;
-      const r = Rules[T.game].move(m.state, i, input);
+      const r = Rules[T.game].move(m.state, i, input); // the rules know whose turn it is (Battleship: both arrange their fleets at once)
       if (r.error) return;
       m.state = r.state;
       T.hs.dirty = true;

@@ -1041,6 +1041,23 @@ body[data-theme="dark"] .fav-btn.on { color: #c9c2ff; }
 .table-pill.hidden { display: none; }
 #gameDock.spectating .controls-help, #gameDock.spectating .touchpad { display: none; }
 
+/* Battleship */
+.bs-wrap { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+.bs-side { display: grid; gap: 6px; justify-items: center; flex: 1 1 220px; max-width: 340px; }
+.bs-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 2px; width: 100%; aspect-ratio: 1; padding: 4px; border-radius: 10px; background: linear-gradient(160deg, #0c4a6e, #082f49); }
+.bs-grid button { border: 0; border-radius: 3px; background: rgba(125, 211, 252, .18); padding: 0; cursor: default; position: relative; }
+.bs-grid.enemy button.aim { cursor: crosshair; }
+.bs-grid.enemy button.aim:hover { background: rgba(250, 204, 21, .55); }
+.bs-grid button.ship { background: #94a3b8; }
+.bs-grid button.miss::after { content: ''; position: absolute; inset: 38%; border-radius: 50%; background: #e0f2fe; }
+.bs-grid button.hit { background: #ef4444; }
+.bs-grid button.hit::after { content: '✕'; position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-weight: 900; font-size: 12px; }
+.bs-grid button.sunk { background: #7f1d1d; }
+.bs-grid button.last { outline: 2px solid #facc15; z-index: 1; }
+.bs-fleet { display: flex; flex-wrap: wrap; gap: 4px 10px; justify-content: center; font-size: 12px; max-width: 340px; }
+.bs-ship i { font-style: normal; letter-spacing: -1px; color: #64748b; }
+.bs-ship.sunk { text-decoration: line-through; opacity: .5; }
+
 </style>
 <!-- Sign in / create account -->
 <div id="auth" class="auth">
@@ -1564,6 +1581,103 @@ body[data-theme="dark"] .fav-btn.on { color: #c9c2ff; }
     return { state: ns };
   };
   Rules.gomoku = gomoku;
+
+  // ---------------------------------------------------------------- BATTLESHIP
+  // 10x10 seas. Each fleet: carrier 5, battleship 4, cruiser 3, submarine 3, destroyer 2.
+  // First both players arrange their fleet (shuffle until happy) and press Ready; then they take turns
+  // firing one shot. Sink every ship of the other fleet to win.
+  // A fleet is [cells...] per ship, cell = row*10 + col. shots[i] = cells player i fired at.
+  const battleship = {};
+  const BS = 10, FLEET = [5, 4, 3, 3, 2];
+  battleship.N = BS; battleship.FLEET = FLEET; battleship.NAMES = ['Carrier', 'Battleship', 'Cruiser', 'Submarine', 'Destroyer'];
+  function bsFleet(rand) {
+    rand = rand || Math.random;
+    for (;;) {
+      const used = new Set(), fleet = [];
+      let ok = true;
+      for (const len of FLEET) {
+        let placed = false;
+        for (let t = 0; t < 200 && !placed; t++) {
+          const down = rand() < 0.5, r = Math.floor(rand() * (down ? BS - len + 1 : BS)), c = Math.floor(rand() * (down ? BS : BS - len + 1));
+          const cells = Array.from({ length: len }, (_, k) => (down ? (r + k) * BS + c : r * BS + c + k));
+          // ships don't touch, not even at the corners
+          const near = (x) => { const rr = Math.floor(x / BS), cc = x % BS; for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) { const R = rr + dr, C = cc + dc; if (R >= 0 && C >= 0 && R < BS && C < BS && used.has(R * BS + C)) return true; } return false; };
+          if (cells.some(near)) continue;
+          cells.forEach((x) => used.add(x));
+          fleet.push(cells);
+          placed = true;
+        }
+        if (!placed) { ok = false; break; }
+      }
+      if (ok) return fleet;
+    }
+  }
+  function bsValidFleet(f) {
+    if (!Array.isArray(f) || f.length !== FLEET.length) return false;
+    const used = new Set();
+    for (let i = 0; i < FLEET.length; i++) {
+      const cells = f[i];
+      if (!Array.isArray(cells) || cells.length !== FLEET[i]) return false;
+      if (!cells.every((x) => Number.isInteger(x) && x >= 0 && x < BS * BS && !used.has(x))) return false;
+      const rows = cells.map((x) => Math.floor(x / BS)), cols = cells.map((x) => x % BS), sorted = cells.slice().sort((a, b) => a - b);
+      const across = rows.every((r) => r === rows[0]) && sorted.every((x, k) => !k || x === sorted[k - 1] + 1);
+      const down = cols.every((c) => c === cols[0]) && sorted.every((x, k) => !k || x === sorted[k - 1] + BS);
+      if (!across && !down) return false;
+      cells.forEach((x) => used.add(x));
+    }
+    return true;
+  }
+  battleship.randomFleet = bsFleet;
+  battleship.init = () => ({ phase: 'place', fleets: [bsFleet(), bsFleet()], ready: [false, false], shots: [[], []], hits: [[], []], sunk: [[], []], turn: 0, last: null, result: null });
+  battleship.legal = (s) => {
+    if (s.result) return [];
+    if (s.phase === 'place') return [{ ready: true }];
+    const fired = new Set(s.shots[s.turn]);
+    const out = [];
+    for (let i = 0; i < BS * BS; i++) if (!fired.has(i)) out.push({ fire: i });
+    return out;
+  };
+  // is cell x a hit on player p's fleet? -> ship index or -1
+  battleship.shipAt = (fleet, x) => (fleet ? fleet.findIndex((sh) => sh && sh.includes(x)) : -1);
+  battleship.move = function (s, idx, mv) {
+    if (s.result) return { error: 'Game is over' };
+    mv = mv || {};
+    if (s.phase === 'place') {
+      if (s.ready[idx]) return { error: 'You’re already ready' };
+      const ns = clone(s);
+      if (mv.shuffle) ns.fleets[idx] = bsFleet();
+      else if (mv.place) { if (!bsValidFleet(mv.place)) return { error: 'Those ships don’t fit there' }; ns.fleets[idx] = mv.place; }
+      else if (mv.ready) {
+        ns.ready[idx] = true;
+        if (ns.ready[0] && ns.ready[1]) { ns.phase = 'play'; ns.turn = 0; }
+      } else return { error: 'Arrange your fleet, then press Ready' };
+      return { state: ns };
+    }
+    if (s.turn !== idx) return { error: 'Not your turn' };
+    const x = mv.fire;
+    if (!Number.isInteger(x) || x < 0 || x >= BS * BS) return { error: 'Pick a square' };
+    if (s.shots[idx].includes(x)) return { error: 'You already fired there' };
+    const ns = clone(s), foe = ns.fleets[1 - idx];
+    ns.shots[idx].push(x);
+    const hit = battleship.shipAt(foe, x);
+    ns.last = { by: idx, cell: x, hit: hit >= 0, sunk: -1 };
+    if (hit >= 0) ns.hits[idx].push(x); // everyone hears whether a shot hit
+    if (hit >= 0 && foe[hit].every((c) => ns.shots[idx].includes(c))) {
+      ns.sunk[idx].push(hit);
+      ns.last.sunk = hit;
+      if (ns.sunk[idx].length === FLEET.length) ns.result = { winner: idx, reason: 'sank the whole fleet' };
+    }
+    ns.turn = 1 - idx;
+    return { state: ns };
+  };
+  // what player i may see: their own fleet, and of the other fleet only the ships they've sunk
+  battleship.view = function (s, i) {
+    if (!s || s.result || i < 0) return s;
+    const v = clone(s), o = 1 - i;
+    v.fleets[o] = v.fleets[o].map((sh, k) => (s.sunk[i].includes(k) ? sh : null));
+    return v;
+  };
+  Rules.battleship = battleship;
 
   if (typeof module !== 'undefined' && module.exports) module.exports = Rules;
   else root.Rules = Rules;
@@ -2948,6 +3062,7 @@ else globalThis.Realtime = Realtime;
     fighter: { color: 'linear-gradient(135deg,#f59e0b,#dc2626)', emoji: '🥊', name: 'Street Fighter', desc: 'Best of 3 rounds. Punch, kick, block, fireball.', help: 'A/D or ←→ move · W/↑ jump · S/↓ block · J punch · K kick · L fireball (needs 50 energy)' },
     pong: { color: 'linear-gradient(135deg,#64748b,#0f172a)', emoji: '🏓', name: 'Pong', desc: 'First to 7 points wins.', help: 'W/S or ↑/↓ to move your paddle' },
     connect4: { color: 'linear-gradient(135deg,#3b82f6,#1e3a8a)', emoji: '🔴', name: 'Connect Four', desc: 'Get four in a row.', help: 'Click a column to drop a disc' },
+    battleship: { color: 'linear-gradient(135deg,#0ea5e9,#1e3a8a)', emoji: '🚢', name: 'Battleship', desc: 'Hide your fleet, hunt theirs. Sink all five ships.', help: 'Shuffle until you like your fleet, press Ready, then click the enemy waters to fire' },
     tictactoe: { color: 'linear-gradient(135deg,#ec4899,#8b5cf6)', emoji: '❌', name: 'Tic-Tac-Toe', desc: 'Three in a row. Quick game!', help: 'Click a square' },
     reversi: { color: 'linear-gradient(135deg,#16a34a,#14532d)', emoji: '⚫', name: 'Reversi', desc: 'Trap discs to flip them. Most discs wins.', help: 'Click a dotted square to place a disc' },
     dots: { color: 'linear-gradient(135deg,#f59e0b,#ea580c)', emoji: '🔲', name: 'Dots & Boxes', desc: 'Close a box to score and go again.', help: 'Click between two dots to draw a line' },
@@ -3549,6 +3664,53 @@ else globalThis.Realtime = Realtime;
     };
   }
 
+  // ---------------------------------------------------------------- BATTLESHIP
+  function battleshipGame(stage, api) {
+    const R = Rules.battleship, N = R.N;
+    const mine = h('div', { class: 'bs-grid' }), theirs = h('div', { class: 'bs-grid enemy' });
+    const myFleet = h('div', { class: 'bs-fleet' }), theirFleet = h('div', { class: 'bs-fleet' });
+    const tools = h('div', { class: 'row', style: 'justify-content:center;gap:8px' });
+    const opp = () => api.players[1 - api.you].name;
+    stage.append(h('div', { class: 'bs-wrap' },
+      h('div', { class: 'bs-side' }, h('b', {}, api.spectate ? `${api.players[0].name}’s fleet` : 'Your fleet'), mine, myFleet),
+      h('div', { class: 'bs-side' }, h('b', {}, api.spectate ? `${api.players[1].name}’s waters` : `${opp()}’s waters`), theirs, theirFleet)),
+      tools, h('div', { class: 'controls-help' }, META.battleship.help));
+    const cells = (grid, onClick) => { grid.replaceChildren(); const out = []; for (let i = 0; i < N * N; i++) { const b = h('button', { onclick: onClick ? () => onClick(i) : null }); out.push(b); grid.append(b); } return out; };
+    let st = null;
+    const myCells = cells(mine), foeCells = cells(theirs, (i) => {
+      if (!st || st.result || st.phase !== 'play' || st.turn !== api.you || st.shots[api.you].includes(i)) return;
+      api.send({ fire: i });
+    });
+    const fleetList = (el, fleet, sunk) => el.replaceChildren(...R.FLEET.map((len, k) => h('span', { class: 'bs-ship' + (sunk.includes(k) ? ' sunk' : '') }, `${R.NAMES[k]} `, h('i', {}, '■'.repeat(len)))));
+    return {
+      update(s0) {
+        const s = st = R.view(s0, api.you), me = api.you, o = 1 - me;
+        const myShips = s.fleets[me] || [], foeShips = s.fleets[o] || [];
+        const shotAtMe = new Set(s.shots[o]), myShots = new Set(s.shots[me]);
+        myCells.forEach((b, i) => {
+          const ship = R.shipAt(myShips, i), shot = shotAtMe.has(i);
+          b.className = [ship >= 0 ? 'ship' : '', shot ? (ship >= 0 ? 'hit' : 'miss') : '', ship >= 0 && s.sunk[o].includes(ship) ? 'sunk' : '', s.last && s.last.by === o && s.last.cell === i ? 'last' : ''].join(' ');
+        });
+        foeCells.forEach((b, i) => {
+          const ship = R.shipAt(foeShips, i), shot = myShots.has(i);
+          const hit = shot && s.hits[me].includes(i);
+          b.className = [shot ? (hit ? 'hit' : 'miss') : '', ship >= 0 ? 'sunk ship' : '', s.last && s.last.by === me && s.last.cell === i ? 'last' : '', !shot && s.phase === 'play' && s.turn === me && !s.result ? 'aim' : ''].join(' ');
+        });
+        fleetList(myFleet, myShips, s.sunk[o]); fleetList(theirFleet, foeShips, s.sunk[me]);
+        tools.replaceChildren();
+        if (s.phase === 'place' && !api.spectate) {
+          if (!s.ready[me]) tools.append(h('button', { class: 'btn', onclick: () => api.send({ shuffle: true }) }, '🔀 Shuffle my fleet'), h('button', { class: 'btn primary', onclick: () => api.send({ ready: true }) }, '✔ Ready'));
+          api.status(h('b', {}, s.ready[me] ? `Ready! Waiting for ${opp()}…` : 'Arrange your fleet'), s.ready[o] ? `${opp()} is ready` : `${opp()} is arranging their fleet`);
+          return;
+        }
+        if (s.phase === 'place') return api.status('Both players are arranging their fleets…');
+        if (s.result) return;
+        const lastTxt = s.last ? `${s.last.by === me ? 'You' : opp()} ${s.last.hit ? (s.last.sunk >= 0 ? `sank a ${R.NAMES[s.last.sunk].toLowerCase()}!` : 'hit!') : 'missed.'}` : '';
+        api.status(s.turn === me ? h('b', {}, 'Your turn — fire!') : `Waiting for ${opp()}…`, lastTxt, `Ships left: you ${R.FLEET.length - s.sunk[o].length} · ${opp()} ${R.FLEET.length - s.sunk[me].length}`);
+      },
+    };
+  }
+
   // ---------------------------------------------------------------- TIC-TAC-TOE
   function tictactoeGame(stage, api) {
     const grid = h('div', { class: 'ttt' });
@@ -3837,7 +3999,7 @@ else globalThis.Realtime = Realtime;
   }
 
   const FACTORY = {
-    snake: snakeGame, pong: pongGame, fighter: fighterGame, tetris: tetrisGame, chess: chessGame, checkers: checkersGame, connect4: connect4Game, tictactoe: tictactoeGame,
+    snake: snakeGame, pong: pongGame, fighter: fighterGame, tetris: tetrisGame, chess: chessGame, checkers: checkersGame, connect4: connect4Game, tictactoe: tictactoeGame, battleship: battleshipGame,
     reversi: reversiGame, dots: dotsGame, mancala: mancalaGame, gomoku: gomokuGame, tron: tronGame, hockey: hockeyGame, apex: apexGame,
     td: (stage, api) => window.TDGame(stage, api),
   };
@@ -4655,10 +4817,10 @@ else globalThis.Realtime = Realtime;
 (() => {
   const TABLES = 6, SEATS = 12; // tables per game, people per table (players + watchers)
   const KIND = {
-    chess: 'turn', checkers: 'turn', connect4: 'turn', tictactoe: 'turn', reversi: 'turn', dots: 'turn', mancala: 'turn', gomoku: 'turn',
+    chess: 'turn', checkers: 'turn', connect4: 'turn', tictactoe: 'turn', battleship: 'turn', reversi: 'turn', dots: 'turn', mancala: 'turn', gomoku: 'turn',
     pong: 'realtime', hockey: 'realtime', fighter: 'realtime', snake: 'realtime', tron: 'realtime', tetris: 'relay',
   };
-  const ORDER = ['chess', 'checkers', 'connect4', 'tictactoe', 'reversi', 'dots', 'mancala', 'gomoku', 'pong', 'hockey', 'fighter', 'snake', 'tron', 'tetris'];
+  const ORDER = ['chess', 'checkers', 'connect4', 'battleship', 'tictactoe', 'reversi', 'dots', 'mancala', 'gomoku', 'pong', 'hockey', 'fighter', 'snake', 'tron', 'tetris'];
   const MAXP = { snake: 4, tron: 4, tetris: 4 };
   const maxPlayers = (g) => MAXP[g] || 2;
   const SMOOTH = new Set(['pong', 'hockey', 'fighter']);
@@ -4884,8 +5046,7 @@ else globalThis.Realtime = Realtime;
     if (!m || m.st !== 'play' || m.out[i] || !input || typeof input !== 'object') return;
     const kind = KIND[T.game];
     if (kind === 'turn') {
-      if (m.state.turn !== i) return;
-      const r = Rules[T.game].move(m.state, i, input);
+      const r = Rules[T.game].move(m.state, i, input); // the rules know whose turn it is (Battleship: both arrange their fleets at once)
       if (r.error) return;
       m.state = r.state;
       T.hs.dirty = true;
@@ -5456,7 +5617,51 @@ else globalThis.Realtime = Realtime;
     return { cell: bestOf(near, (i) => gmLineScore(cells, i, me) * 1.1 + gmLineScore(cells, i, 1 - me) * defend + (level === 'easy' ? Math.random() * 300 : 0)) };
   }
 
-  const TURN_BOTS = { tictactoe: tictactoeMove, connect4: connect4Move, checkers: checkersMove, chess: chessMove, reversi: reversiMove, dots: dotsMove, mancala: mancalaMove, gomoku: gomokuMove };
+  // Battleship: only uses what a player can know (where it fired, which shots hit, which ships sank)
+  function battleshipMove(s, me, lv, level) {
+    const R = Rules.battleship, N = R.N, foe = s.fleets[1 - me], fired = new Set(s.shots[me]);
+    const sunkCells = new Set(), blocked = new Set();
+    s.sunk[me].forEach((k) => foe[k].forEach((x) => { sunkCells.add(x); const r = Math.floor(x / N), c = x % N; for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) { const rr = r + dr, cc = c + dc; if (rr >= 0 && cc >= 0 && rr < N && cc < N) blocked.add(rr * N + cc); } }));
+    const hitAll = new Set(s.hits[me]);
+    const hits = s.hits[me].filter((x) => !sunkCells.has(x));
+    const misses = new Set(s.shots[me].filter((x) => !hitAll.has(x)));
+    const open = []; for (let x = 0; x < N * N; x++) if (!fired.has(x) && !blocked.has(x)) open.push(x);
+    if (!open.length) { for (let x = 0; x < N * N; x++) if (!fired.has(x)) return { fire: x }; }
+    const rnd = (a) => a[Math.floor(Math.random() * a.length)];
+    const near = (x) => { const r = Math.floor(x / N), c = x % N; return [[r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]].filter(([a, b]) => a >= 0 && b >= 0 && a < N && b < N).map(([a, b]) => a * N + b).filter((y) => !fired.has(y) && !blocked.has(y)); };
+    if (level === 'easy') {
+      if (hits.length && Math.random() < 0.6) { const n = hits.flatMap(near); if (n.length) return { fire: rnd(n) }; }
+      return { fire: rnd(open) };
+    }
+    if (level === 'medium') {
+      if (hits.length) {
+        // two hits in a line: keep going along it
+        if (hits.length > 1) {
+          const sameRow = hits.every((x) => Math.floor(x / N) === Math.floor(hits[0] / N)), sameCol = hits.every((x) => x % N === hits[0] % N);
+          const ends = sameRow || sameCol ? hits.flatMap(near).filter((y) => (sameRow ? Math.floor(y / N) === Math.floor(hits[0] / N) : y % N === hits[0] % N)) : [];
+          if (ends.length) return { fire: rnd(ends) };
+        }
+        const n = hits.flatMap(near); if (n.length) return { fire: rnd(n) };
+      }
+      const parity = open.filter((x) => (Math.floor(x / N) + x % N) % 2 === 0);
+      return { fire: rnd(parity.length ? parity : open) };
+    }
+    // hard: count every way the ships still afloat could lie, and fire where they most likely are
+    const left = R.FLEET.filter((_, k) => !s.sunk[me].includes(k)), score = new Array(N * N).fill(0), hitSet = new Set(hits);
+    for (const len of left) for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) for (const down of [false, true]) {
+      if (down ? r + len > N : c + len > N) continue;
+      const cells = Array.from({ length: len }, (_, k) => (down ? (r + k) * N + c : r * N + c + k));
+      if (cells.some((x) => misses.has(x) || blocked.has(x))) continue;
+      const covers = cells.filter((x) => hitSet.has(x)).length;
+      if (hits.length && !covers) continue;
+      const w = 1 + covers * 40;
+      cells.forEach((x) => { if (!fired.has(x)) score[x] += w; });
+    }
+    let best = -1, bestList = [];
+    open.forEach((x) => { if (score[x] > best) { best = score[x]; bestList = [x]; } else if (score[x] === best) bestList.push(x); });
+    return { fire: rnd(bestList.length ? bestList : open) };
+  }
+  const TURN_BOTS = { battleship: battleshipMove, tictactoe: tictactoeMove, connect4: connect4Move, checkers: checkersMove, chess: chessMove, reversi: reversiMove, dots: dotsMove, mancala: mancalaMove, gomoku: gomokuMove };
 
   // ---------------------------------------------------------------- snake: chase food, keep room to move
   const SDIRS = { U: [0, -1], D: [0, 1], L: [-1, 0], R: [1, 0] };
@@ -5716,7 +5921,7 @@ else globalThis.Realtime = Realtime;
   // ---------------------------------------------------------------- bot game session
   const KIND = {
     snake: 'realtime', pong: 'realtime', fighter: 'realtime', tron: 'realtime', hockey: 'realtime', tetris: 'relay',
-    chess: 'turn', checkers: 'turn', connect4: 'turn', tictactoe: 'turn', reversi: 'turn', dots: 'turn', mancala: 'turn', gomoku: 'turn',
+    chess: 'turn', checkers: 'turn', connect4: 'turn', tictactoe: 'turn', battleship: 'turn', reversi: 'turn', dots: 'turn', mancala: 'turn', gomoku: 'turn',
   };
   const REAL_BOTS = { snake: snakeBot, pong: pongBot, fighter: fighterBot, tron: tronBot, hockey: hockeyBot };
   const DIR_GAMES = new Set(['snake', 'tron']); // inputs are a direction
@@ -5795,6 +6000,7 @@ else globalThis.Realtime = Realtime;
 
     if (kind === 'turn') state = Rules[game].init();
     else if (kind === 'realtime') state = Realtime[game].init();
+    if (game === 'battleship') state = Rules.battleship.move(state, 1, { ready: true }).state; // the bot is happy with its fleet
     else state = { boards: [null, null], scores: [0, 0], lines: [0, 0], sent: [0, 0] };
 
     GameDock.start({ id, game, players, you: 0, state, host, onClose: () => { over = true; stop(); } });
@@ -5839,6 +6045,7 @@ else globalThis.Realtime = Realtime;
     pong: { name: 'Pong', kind: 'realtime' },
     connect4: { name: 'Connect Four', kind: 'turn' },
     tictactoe: { name: 'Tic-Tac-Toe', kind: 'turn' },
+    battleship: { name: 'Battleship', kind: 'turn' },
     reversi: { name: 'Reversi', kind: 'turn' },
     dots: { name: 'Dots & Boxes', kind: 'turn' },
     mancala: { name: 'Mancala', kind: 'turn' },

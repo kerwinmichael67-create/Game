@@ -249,6 +249,27 @@ async function e2e(port) {
   assert.deepStrictEqual(over.result, { winner: 1, reason: 'checkmate' });
   await a.wait(is('msg', (m) => m.msg.sys && m.msg.text.includes('Jerry beat Bob at Chess')));
 
+  // battleship: each player only ever receives their own fleet; enemy ships show up once sunk
+  a.send({ t: 'gameInvite', game: 'battleship', to: 'Jerry', room: 'global' });
+  const binv = await b.wait(is('invite'));
+  b.send({ t: 'gameRespond', id: binv.invite.id, accept: true });
+  const bsA = await a.wait(is('gameStart', (m) => m.game === 'battleship')), bsB = await b.wait(is('gameStart', (m) => m.game === 'battleship'));
+  assert.ok(bsA.state.fleets[0].every(Boolean) && bsA.state.fleets[1].every((sh) => sh === null), 'Bob must not see Jerry’s fleet');
+  assert.ok(bsB.state.fleets[1].every(Boolean) && bsB.state.fleets[0].every((sh) => sh === null), 'Jerry must not see Bob’s fleet');
+  const bsIn = (c, input) => c.send({ t: 'gameInput', id: bsA.id, input });
+  bsIn(a, { fire: 0 });
+  assert.strictEqual((await a.wait(is('gameError'))).text, 'Arrange your fleet, then press Ready');
+  bsIn(a, { ready: true }); bsIn(b, { ready: true });
+  await a.wait(is('gameState', (m) => m.id === bsA.id && m.state.phase === 'play'));
+  bsIn(a, { fire: 0 });
+  const afterShot = await b.wait(is('gameState', (m) => m.id === bsA.id && m.state.shots && m.state.shots[0].length === 1));
+  assert.ok(afterShot.state.fleets[0].every((sh) => sh === null), 'still hidden after a shot');
+  bsIn(a, { fire: 1 });
+  assert.strictEqual((await a.wait(is('gameError'))).text, 'Not your turn');
+  a.send({ t: 'gameLeave', id: bsA.id });
+  await a.wait(is('gameOver', (m) => m.id === bsA.id));
+  await b.wait(is('gameOver', (m) => m.id === bsA.id));
+
   // tetris relay: garbage goes to the opponent, topping out ends the game
   b.send({ t: 'gameInvite', game: 'tetris', to: 'Bob' });
   const inv2 = await a.wait(is('invite'));

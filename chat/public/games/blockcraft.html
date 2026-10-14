@@ -48,6 +48,30 @@
   .pal{border:3px solid #111;background:#3c3c3c;padding:6px 2px;cursor:pointer;display:grid;justify-items:center;gap:3px;font-size:11px;color:#ddd}
   .pal:hover{outline:2px solid #fff}
   .pal canvas{width:36px;height:36px;image-rendering:pixelated}
+  #bars{left:50%;bottom:72px;transform:translateX(-50%);width:470px;display:none;justify-content:space-between;font-size:15px;text-shadow:0 1px 0 #000;letter-spacing:-1px}
+  #bars span i{font-style:normal}
+  .heart{color:#e3262b}.heart.half{color:#e98b8d}.heart.empty{color:rgba(0,0,0,.45)}
+  .food{color:#c8822b}.food.half{color:#e0b07a}.food.empty{color:rgba(0,0,0,.45)}
+  .slot b.count{position:absolute;right:3px;bottom:0;font-size:13px;text-shadow:1px 1px 0 #000}
+  #hurt{inset:0;background:radial-gradient(circle,transparent 45%,rgba(200,0,0,.55));opacity:0;transition:opacity .4s}
+  #mineBar{left:50%;top:calc(50% + 20px);width:60px;height:5px;margin-left:-30px;background:rgba(0,0,0,.5);display:none}
+  #mineBar i{display:block;height:100%;background:#fff;width:0}
+  .invwrap{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media (max-width:640px){.invwrap{grid-template-columns:1fr}}
+  .invgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:5px;align-content:start}
+  .inv{position:relative;border:3px solid #111;background:#3c3c3c;padding:4px;cursor:pointer;display:grid;place-items:center}
+  .inv:hover{outline:2px solid #fff}
+  .inv canvas{width:34px;height:34px;image-rendering:pixelated}
+  .inv b{position:absolute;right:3px;bottom:1px;font-size:12px;text-shadow:1px 1px 0 #000}
+  .recipes{display:grid;gap:5px;max-height:52vh;overflow:auto;padding-right:4px}
+  .rec{display:grid;grid-template-columns:34px 1fr auto;align-items:center;gap:8px;border:3px solid #111;background:#3c3c3c;padding:4px 8px;font-size:13px}
+  .rec canvas{width:30px;height:30px;image-rendering:pixelated}
+  .rec small{color:#bbb;display:block}
+  .rec button{padding:6px 10px;border:3px solid #111;background:linear-gradient(#6fbf3b,#3f8a1f);color:#fff;font:700 13px inherit;cursor:pointer}
+  .rec button:disabled{background:#555;color:#999;cursor:default}
+  .modes{display:flex;gap:8px}
+  .modes button{flex:1}
+  .modes button.on{outline:3px solid #fff;background:linear-gradient(#6fbf3b,#3f8a1f)}
   #loading{position:fixed;inset:0;display:grid;place-items:center;background:#1b1b1b;font:700 20px inherit;z-index:9}
   #loading[hidden]{display:none}
   .bar{width:280px;height:12px;border:2px solid #fff;margin-top:12px}
@@ -61,6 +85,11 @@
 <div id="slotName" class="ui"></div>
 <div id="hotbar" class="ui"></div>
 <div id="chatlog" class="ui"></div>
+<div id="bars" class="ui"><span id="hearts"></span><span id="foods"></span></div>
+<div id="hurt" class="ui"></div>
+<div id="mineBar" class="ui"><i></i></div>
+<div id="inventory" class="screen" hidden><div class="panel" style="width:min(820px,100%)"><b style="font-size:20px">Inventory & crafting</b><p class="note">Click an item to put it in the selected hotbar slot. Smelting needs coal. <kbd>E</kbd> or <kbd>Esc</kbd> closes.</p><div class="invwrap"><div class="invgrid" id="invGrid"></div><div class="recipes" id="recipes"></div></div></div></div>
+<div id="dead" class="screen" hidden><div class="panel" style="text-align:center"><div class="logo" style="font-size:44px;color:#ff6b6b">You died!</div><p class="note" id="deadWhy" style="font-size:15px"></p><button class="mbtn green" id="respawnBtn">Respawn</button><p class="note">You keep your inventory.</p></div></div>
 <div id="chatbox" class="ui"><input id="chatin" maxlength="120" placeholder="Say something… (Enter to send, Esc to cancel)" autocomplete="off"></div>
 <div id="menu" class="screen"><div class="panel" id="menuPanel"></div></div>
 <div id="pause" class="screen" hidden><div class="panel" id="pausePanel"></div></div>
@@ -114,6 +143,47 @@ const solid = (b) => b !== AIR && b !== WATER;
 const seeThrough = (b) => b === AIR || B[b].cut || B[b].liquid;
 const PLACEABLE = B.map((b, i) => i).filter((i) => i && i !== BEDROCK && i !== WATER).concat([WATER]);
 
+/* ---------------- items (survival) ---------------- */
+// ids below 100 are blocks; these are everything else you can carry
+const IT = {
+  100: { n: 'Stick' }, 101: { n: 'Coal' }, 102: { n: 'Iron Ingot' }, 103: { n: 'Gold Ingot' }, 104: { n: 'Diamond' },
+  105: { n: 'Wooden Pickaxe', pick: 1 }, 106: { n: 'Stone Pickaxe', pick: 2 }, 107: { n: 'Iron Pickaxe', pick: 3 }, 108: { n: 'Diamond Pickaxe', pick: 4 },
+  110: { n: 'Wooden Sword', dmg: 4 }, 111: { n: 'Stone Sword', dmg: 5 }, 112: { n: 'Iron Sword', dmg: 6 }, 113: { n: 'Diamond Sword', dmg: 7 },
+  120: { n: 'Raw Porkchop', food: 3 }, 121: { n: 'Cooked Porkchop', food: 8 }, 122: { n: 'Raw Beef', food: 3 }, 123: { n: 'Steak', food: 8 },
+  124: { n: 'Apple', food: 4 }, 125: { n: 'Rotten Flesh', food: 2 }, 126: { n: 'Raw Mutton', food: 2 }, 127: { n: 'Cooked Mutton', food: 6 },
+  130: { n: 'Gunpowder' }, 131: { n: 'Bone' },
+};
+const itemName = (id) => (id < 100 ? (B[id] ? B[id].n : '?') : IT[id] ? IT[id].n : '?');
+const isBlock = (id) => id > 0 && id < 100;
+const RECIPES = [
+  { o: [5, 4], i: [[6, 1]] }, { o: [100, 4], i: [[5, 2]] },
+  { o: [105, 1], i: [[5, 3], [100, 2]] }, { o: [106, 1], i: [[4, 3], [100, 2]] }, { o: [107, 1], i: [[102, 3], [100, 2]] }, { o: [108, 1], i: [[104, 3], [100, 2]] },
+  { o: [110, 1], i: [[5, 2], [100, 1]] }, { o: [111, 1], i: [[4, 2], [100, 1]] }, { o: [112, 1], i: [[102, 2], [100, 1]] }, { o: [113, 1], i: [[104, 2], [100, 1]] },
+  { o: [102, 1], i: [[15, 1], [101, 1]], smelt: 1 }, { o: [103, 1], i: [[16, 1], [101, 1]], smelt: 1 }, { o: [10, 2], i: [[8, 2], [101, 1]], smelt: 1 },
+  { o: [3, 2], i: [[4, 2], [101, 1]], smelt: 1 }, { o: [121, 1], i: [[120, 1], [101, 1]], smelt: 1 }, { o: [123, 1], i: [[122, 1], [101, 1]], smelt: 1 }, { o: [127, 1], i: [[126, 1], [101, 1]], smelt: 1 },
+  { o: [25, 4], i: [[3, 4]] }, { o: [11, 4], i: [[4, 3], [8, 1]] }, { o: [23, 1], i: [[5, 6], [100, 3]] }, { o: [24, 1], i: [[103, 1], [101, 2]] }, { o: [26, 1], i: [[130, 2], [8, 4]] },
+  { o: [18, 1], i: [[22, 1], [124, 1]] }, { o: [20, 1], i: [[22, 1], [103, 1]] }, { o: [21, 1], i: [[22, 1], [7, 2]] }, { o: [19, 1], i: [[22, 1], [101, 2]] },
+  { o: [27, 1], i: [[7, 4], [124, 1]] },
+];
+// how long a block takes to break by hand (seconds), and what pickaxe it needs to drop anything
+const HARD = { 1: 0.6, 2: 0.5, 3: 7.5, 4: 10, 5: 2, 6: 2, 7: 0.3, 8: 0.5, 10: 0.3, 11: 10, 12: 0.5, 14: 15, 15: 15, 16: 15, 17: 15, 18: 0.8, 19: 0.8, 20: 0.8, 21: 0.8, 22: 0.8, 23: 1.5, 24: 0.3, 25: 7.5, 26: 0.1, 27: 1 };
+const NEEDS = { 3: 1, 4: 1, 11: 1, 14: 1, 15: 2, 16: 3, 17: 3, 25: 1 };
+const PICK_SPEED = { 1: 4, 2: 7, 3: 10, 4: 14 };
+function breakTime(b, pick) { const base = HARD[b] || 1; if (NEEDS[b]) return pick ? base / PICK_SPEED[pick] : base * 1.5; return base; }
+function dropsOf(b, pick) {
+  if (NEEDS[b] && (pick || 0) < NEEDS[b]) return [];
+  if (b === 1) return [[2, 1]];
+  if (b === 3) return [[4, 1]];
+  if (b === 14) return [[101, 1]];
+  if (b === 17) return [[104, 1]];
+  if (b === 7) return Math.random() < 0.1 ? [[124, 1]] : [];
+  if (b === 10 || b === WATER || b === BEDROCK) return [];
+  return [[b, 1]];
+}
+// survival: health and food are out of 20 (10 hearts, 10 drumsticks)
+const S = { mode: 'creative', hp: 20, food: 20, inv: {}, hot: [0, 0, 0, 0, 0, 0, 0, 0, 0], dead: false, fallFrom: null, foodT: 0, regenT: 0, starveT: 0, mining: null, cd: 0, eatCd: 0, dirty: false };
+const survival = () => S.mode === 'survival';
+
 /* ---------------- textures (drawn, pixel by pixel) ---------------- */
 const TS = 16, AT = 16; // tile size, tiles per atlas row
 const atlas = document.createElement('canvas');
@@ -158,7 +228,27 @@ function drawAtlas() {
 }
 drawAtlas();
 const tileUV = (t) => [(t % AT) / AT, 1 - (Math.floor(t / AT) + 1) / AT];
+const TIER_COL = { 1: '#b8894f', 2: '#8d8d8d', 3: '#e6e6e6', 4: '#5de0e6' };
+function itemIcon(id, size) {
+  const c = document.createElement('canvas'); c.width = c.height = size;
+  const g = c.getContext('2d'), u = size / 16, P2 = (x, y, col) => { g.fillStyle = col; g.fillRect(Math.round(x * u), Math.round(y * u), Math.ceil(u), Math.ceil(u)); };
+  const line = (x0, y0, x1, y1, col) => { const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)); for (let k = 0; k <= n; k++) P2(Math.round(x0 + (x1 - x0) * k / n), Math.round(y0 + (y1 - y0) * k / n), col); };
+  const blob = (cx, cy, r, col, col2) => { for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) { const d = Math.hypot(x - cx, y - cy); if (d < r) P2(x, y, d > r - 1.2 && col2 ? col2 : col); } };
+  const it = IT[id] || {};
+  if (id === 100) { line(4, 12, 11, 3, '#6b4a2b'); line(5, 12, 12, 3, '#8a6237'); }
+  else if (id === 101) blob(8, 8, 5, '#222', '#000');
+  else if (id === 102 || id === 103) { const col = id === 102 ? '#e6e6e6' : '#f5d442'; for (let y = 6; y < 11; y++) for (let x = 3 + (y - 6); x < 13 - (10 - y); x++) P2(x, y, y === 6 ? '#fff' : col); }
+  else if (id === 104) { for (let y = 3; y < 13; y++) { const w = y < 7 ? (y - 3) * 1.5 + 1 : (13 - y) * 1.1; for (let x = 8 - w; x < 8 + w; x++) P2(x, y, y < 6 ? '#bff7fa' : '#5de0e6'); } }
+  else if (it.pick) { line(4, 13, 10, 7, '#6b4a2b'); const col = TIER_COL[it.pick]; line(5, 4, 9, 3, col); line(9, 3, 13, 6, col); line(9, 4, 12, 7, col); P2(4, 5, col); P2(13, 7, col); }
+  else if (it.dmg) { const col = TIER_COL[it.dmg - 3]; line(5, 11, 12, 4, col); line(6, 11, 13, 4, col); P2(13, 3, col); line(3, 10, 7, 14, '#6b4a2b'); line(2, 13, 4, 11, '#4e3520'); }
+  else if (id === 124) { blob(8, 9, 5, '#d42a2a', '#8f1414'); P2(8, 3, '#6b4a2b'); P2(9, 2, '#4f9a2f'); P2(10, 2, '#4f9a2f'); }
+  else if (it.food) { const col = { 120: '#f2a0a8', 121: '#b06a4a', 122: '#c0393b', 123: '#7a3e22', 125: '#7a8f3a', 126: '#d97a7a', 127: '#9a5a3a' }[id] || '#c66'; blob(8, 8, 5.5, col, '#00000055'); P2(11, 11, '#f4f0e0'); P2(12, 12, '#f4f0e0'); }
+  else if (id === 130) { for (let k = 0; k < 26; k++) P2(4 + Math.floor(Math.abs(Math.sin(k * 7.1)) * 8), 6 + Math.floor(Math.abs(Math.cos(k * 3.3)) * 7), k % 3 ? '#555' : '#888'); }
+  else if (id === 131) { line(4, 12, 12, 4, '#efeee0'); P2(3, 12, '#efeee0'); P2(4, 13, '#efeee0'); P2(12, 3, '#efeee0'); P2(13, 4, '#efeee0'); }
+  return c;
+}
 function icon(b, size = 34) {
+  if (!isBlock(b)) return itemIcon(b, size);
   const c = document.createElement('canvas'); c.width = c.height = size;
   const g = c.getContext('2d'); g.imageSmoothingEnabled = false;
   const t = B[b].tex[1], sx = (t % AT) * TS, sy = Math.floor(t / AT) * TS;
@@ -373,8 +463,14 @@ function physics(dt) {
     P.vy = Math.max(-40, P.vy - 28 * dt);
     if (keys.Space && P.ground) { P.vy = 8.6; P.ground = false; }
   }
+  const wasGround = P.ground;
   move(P.vx * dt, P.vy * dt, P.vz * dt);
-  if (P.y < -20) respawn();
+  // falling: remember the highest point; hitting the ground from more than 3 blocks hurts
+  if (inWater || P.fly) S.fallFrom = null;
+  else if (!P.ground) S.fallFrom = S.fallFrom === null ? P.y : Math.max(S.fallFrom, P.y);
+  else if (!wasGround && S.fallFrom !== null) { const d = S.fallFrom - P.y; S.fallFrom = null; if (d > 3.4) hurt(Math.floor(d - 3), 0, 0, 'You fell from a high place.'); }
+  survivalTick(dt, !!(fw || st), !!(keys.ControlLeft || keys.ControlRight));
+  if (P.y < -20) { if (survival()) { S.hp = 0; die('You fell out of the world.'); } else respawn(); }
 }
 function surface(x, z) { for (let y = H - 1; y >= 0; y--) { const b = get(x, y, z); if (solid(b)) return y + 1; if (b === WATER) return y + 1; } return H; }
 function respawn() {
@@ -389,22 +485,148 @@ function respawn() {
 }
 
 /* ---------------- hotbar and block picker ---------------- */
-const hot = [1, 2, 3, 4, 5, 6, 10, 11, 18];
+const hotC = [1, 2, 3, 4, 5, 6, 10, 11, 18];
+let hot = hotC; // creative: any block; survival: S.hot, filled from what you carry
 let sel = 0, nameTimer = 0;
 function drawHotbar() {
   const hb = $('#hotbar'); hb.innerHTML = '';
   hot.forEach((b, i) => {
     const s = document.createElement('div'); s.className = 'slot' + (i === sel ? ' on' : '');
-    s.append(icon(b)); const k = document.createElement('small'); k.textContent = i + 1; s.append(k);
+    if (b) s.append(icon(b));
+    const k = document.createElement('small'); k.textContent = i + 1; s.append(k);
+    if (survival() && b) { const c = document.createElement('b'); c.className = 'count'; c.textContent = S.inv[b] > 1 ? S.inv[b] : ''; s.append(c); }
     s.onclick = () => select(i);
     hb.append(s);
   });
 }
 function select(i) {
   sel = (i + 9) % 9; drawHotbar();
-  const n = $('#slotName'); n.textContent = B[hot[sel]].n; n.style.opacity = 1;
+  const n = $('#slotName'); n.textContent = hot[sel] ? itemName(hot[sel]) : ''; n.style.opacity = 1;
   clearTimeout(nameTimer); nameTimer = setTimeout(() => (n.style.opacity = 0), 1200);
 }
+/* ---- survival: carrying, health and food ---- */
+function give(id, n, quiet) {
+  if (!survival() || !id || n <= 0) return;
+  S.inv[id] = (S.inv[id] || 0) + n;
+  if (!S.hot.includes(id)) { const free = S.hot.indexOf(0); if (free >= 0) S.hot[free] = id; }
+  S.dirty = true; drawHotbar();
+  if (!quiet) toast(`+${n} ${itemName(id)}`);
+  if (!$('#inventory').hidden) drawInventory();
+}
+function take(id, n) {
+  if (!survival()) return true;
+  if ((S.inv[id] || 0) < n) return false;
+  S.inv[id] -= n;
+  if (!S.inv[id]) { delete S.inv[id]; for (let i = 0; i < 9; i++) if (S.hot[i] === id) S.hot[i] = 0; }
+  S.dirty = true; drawHotbar();
+  return true;
+}
+const held = () => hot[sel] || 0;
+const heldPick = () => (survival() && IT[held()] && IT[held()].pick) || (survival() ? 0 : 4);
+function setMode(m) {
+  S.mode = m === 'survival' ? 'survival' : 'creative';
+  hot = survival() ? S.hot : hotC;
+  if (survival()) P.fly = false;
+  $('#bars').style.display = survival() ? 'flex' : 'none';
+  try { localStorage.setItem('bc.mode', S.mode); } catch (e) {}
+  drawHotbar(); drawBars();
+  if (Net.room) send({ md: S.mode === 'survival' ? 's' : 'c' });
+}
+function drawBars() {
+  const icons = (v, cls, ch) => Array.from({ length: 10 }, (_, k) => `<i class="${cls}${v >= (k + 1) * 2 ? '' : v === k * 2 + 1 ? ' half' : ' empty'}">${ch}</i>`).join('');
+  $('#hearts').innerHTML = icons(Math.ceil(S.hp), 'heart', '❤');
+  $('#foods').innerHTML = icons(Math.ceil(S.food), 'food', '●');
+}
+function hurt(dmg, kx, kz, why) {
+  if (!survival() || S.dead || dmg <= 0) return;
+  S.hp = Math.max(0, S.hp - dmg); S.dirty = true;
+  P.vx += (kx || 0) * 7; P.vz += (kz || 0) * 7; if (kx || kz) P.vy = Math.max(P.vy, 4);
+  const o = $('#hurt'); o.style.transition = 'none'; o.style.opacity = 1; requestAnimationFrame(() => { o.style.transition = 'opacity .5s'; o.style.opacity = 0; });
+  drawBars();
+  if (S.hp <= 0) die(why || 'You were hurt too badly.');
+}
+function die(why) {
+  S.dead = true; unlock(); send({ dd: 1 });
+  $('#deadWhy').textContent = why;
+  $('#dead').hidden = false;
+  Net.chat(`${Net.name} died (${why.replace(/\.$/, '')})`);
+}
+$('#respawnBtn').onclick = () => { S.dead = false; S.hp = 20; S.food = 20; S.fallFrom = null; S.dirty = true; drawBars(); respawn(); $('#dead').hidden = true; send({ dd: 0 }); lock(); };
+function eat() {
+  const it = IT[held()];
+  if (!it || !it.food || S.food >= 20 || S.eatCd > 0) return false;
+  if (!take(held(), 1)) return false;
+  S.food = Math.min(20, S.food + it.food); S.eatCd = 0.8; drawBars(); toast(`Ate ${it.n}`);
+  return true;
+}
+// once a frame in survival: getting hungry, healing when fed, hurting when starving
+function survivalTick(dt, moving, sprint) {
+  if (!survival() || S.dead) return;
+  S.eatCd = Math.max(0, S.eatCd - dt); S.cd = Math.max(0, S.cd - dt);
+  S.foodT += dt * (sprint ? 3 : moving ? 1.3 : 1);
+  if (S.foodT > 40) { S.foodT = 0; S.food = Math.max(0, S.food - 1); drawBars(); S.dirty = true; }
+  if (S.food >= 17 && S.hp < 20) { S.regenT += dt; if (S.regenT > 3) { S.regenT = 0; S.hp = Math.min(20, S.hp + 1); S.foodT += 10; drawBars(); } }
+  if (S.food === 0) { S.starveT += dt; if (S.starveT > 4) { S.starveT = 0; if (S.hp > 1) hurt(1, 0, 0, 'You starved.'); } }
+}
+/* ---- your things, kept per world (in the chat's saves, so they follow you) ---- */
+async function meKey() {
+  let id = '';
+  try { const c = Net.api(), u = c && await c.use('user'); id = (u && (await u.id())) || ''; } catch (e) {}
+  if (!id) { try { id = localStorage.getItem('bc.me') || ''; if (!id) { id = Math.random().toString(36).slice(2, 12); localStorage.setItem('bc.me', id); } } catch (e) { id = 'guest'; } }
+  let h = 5381; for (const ch of String(id)) h = ((h * 33) ^ ch.charCodeAt(0)) >>> 0;
+  return 'pl-' + Net.srv + '-' + h.toString(36);
+}
+async function loadMe() {
+  S.inv = {}; S.hot.fill(0); S.hp = 20; S.food = 20; S.pos = null; S.meKey = null;
+  try {
+    S.meKey = await meKey();
+    const raw = window.ChatKV && await window.ChatKV.get(S.meKey), d = raw && JSON.parse(raw);
+    if (d && typeof d === 'object') {
+      for (const [k, v] of Object.entries(d.inv || {})) if ((IT[k] || B[k]) && +v > 0) S.inv[k] = Math.min(9999, Math.floor(+v));
+      if (Array.isArray(d.hot)) for (let i = 0; i < 9; i++) S.hot[i] = S.inv[d.hot[i]] ? +d.hot[i] : 0;
+      if (d.hp > 0) S.hp = Math.min(20, +d.hp); if (d.food >= 0) S.food = Math.min(20, +d.food);
+      if (Array.isArray(d.pos) && d.pos.length === 3) S.pos = d.pos.map(Number);
+    }
+  } catch (e) {}
+  if (survival()) hot = S.hot;
+  S.dirty = false; drawHotbar(); drawBars();
+}
+async function saveMe() {
+  if (!S.meKey || !window.ChatKV || !Net.loaded) return;
+  S.dirty = false;
+  const d = { inv: S.inv, hot: S.hot, hp: S.dead ? 20 : S.hp, food: S.dead ? 20 : S.food, pos: S.dead ? null : [+P.x.toFixed(1), +P.y.toFixed(1), +P.z.toFixed(1)] };
+  try { await window.ChatKV.set(S.meKey, JSON.stringify(d)); } catch (e) { S.dirty = true; }
+}
+// back where you left off, if it's still a safe place to stand
+function placeAt(pos) {
+  const [x, y, z] = pos;
+  if (!(x > 1 && z > 1 && x < W - 1 && z < W - 1 && y > 1 && y < H - 2)) return false;
+  if (boxHits(x, y, z, P.w, P.h)) return false;
+  P.x = x; P.y = y; P.z = z; P.vx = P.vy = P.vz = 0; S.fallFrom = null;
+  return true;
+}
+addEventListener('visibilitychange', () => { if (document.hidden && survival()) saveMe(); });
+addEventListener('pagehide', () => { if (survival()) saveMe(); });
+
+/* ---- the inventory and crafting screen (survival) ---- */
+function canCraft(r) { return r.i.every(([id, n]) => (S.inv[id] || 0) >= n); }
+function drawInventory() {
+  const grid = $('#invGrid'); grid.innerHTML = '';
+  const ids = Object.keys(S.inv).map(Number).sort((a, b) => a - b);
+  if (!ids.length) grid.innerHTML = '<p class="note">Nothing yet. Punch a tree (hold the left mouse button on a log) to start.</p>';
+  ids.forEach((id) => { const d = document.createElement('div'); d.className = 'inv'; d.title = itemName(id); d.append(icon(id, 34)); const c = document.createElement('b'); c.textContent = S.inv[id]; d.append(c); d.onclick = () => { for (let i = 0; i < 9; i++) if (S.hot[i] === id) S.hot[i] = 0; S.hot[sel] = id; select(sel); drawInventory(); }; grid.append(d); });
+  const rec = $('#recipes'); rec.innerHTML = '';
+  RECIPES.slice().sort((a, b) => canCraft(b) - canCraft(a)).forEach((r) => {
+    const d = document.createElement('div'); d.className = 'rec';
+    d.append(icon(r.o[0], 30));
+    const t = document.createElement('div'); t.innerHTML = `<b>${r.smelt ? '🔥 ' : ''}${r.o[1] > 1 ? r.o[1] + ' × ' : ''}${itemName(r.o[0])}</b><small>${r.i.map(([id, n]) => `${n} ${itemName(id)}`).join(' + ')}</small>`; d.append(t);
+    const b = document.createElement('button'); b.textContent = r.smelt ? 'Smelt' : 'Craft'; b.disabled = !canCraft(r);
+    b.onclick = () => { if (!canCraft(r)) return; r.i.forEach(([id, n]) => take(id, n)); give(r.o[0], r.o[1], true); toast(`Made ${r.o[1] > 1 ? r.o[1] + ' ' : ''}${itemName(r.o[0])}`); drawInventory(); };
+    d.append(b); rec.append(d);
+  });
+}
+function openInventory() { drawInventory(); $('#inventory').hidden = false; unlock(); }
+function closeInventory() { $('#inventory').hidden = true; }
 function openPicker() {
   const pal = $('#palette'); pal.innerHTML = '';
   PLACEABLE.forEach((b) => { const d = document.createElement('div'); d.className = 'pal'; d.append(icon(b, 36)); const s = document.createElement('span'); s.textContent = B[b].n; d.append(s); d.onclick = () => { hot[sel] = b; select(sel); closePicker(); }; pal.append(d); });
@@ -424,7 +646,7 @@ function unlock() { if (document.pointerLockElement) document.exitPointerLock();
 document.addEventListener('pointerlockchange', () => {
   locked = document.pointerLockElement === canvas;
   if (locked) dragLook = false;
-  else if (playing && $('#pick').hidden && $('#chatbox').style.display !== 'block' && !dragLook) showPause();
+  else if (playing && $('#pick').hidden && $('#inventory').hidden && $('#dead').hidden && $('#chatbox').style.display !== 'block' && !dragLook) showPause();
 });
 document.addEventListener('pointerlockerror', () => { dragLook = true; });
 let drag = null;
@@ -433,7 +655,7 @@ canvas.addEventListener('mousedown', (e) => {
   if (!locked && !dragLook) { lock(); return; }
   if (e.button === 0) { mouseDown.l = true; clicked.l = true; nextBreak = 0; drag = dragLook ? { x: e.clientX, y: e.clientY, moved: false } : null; }
   if (e.button === 2) { mouseDown.r = true; clicked.r = true; nextPlace = 0; }
-  if (e.button === 1) { const h = raycast(); if (h) { hot[sel] = get(h.x, h.y, h.z); drawHotbar(); } e.preventDefault(); }
+  if (e.button === 1) { const h = raycast(); if (h && !survival()) { hot[sel] = get(h.x, h.y, h.z); drawHotbar(); } e.preventDefault(); }
 });
 addEventListener('mouseup', (e) => { if (e.button === 0) { mouseDown.l = false; drag = null; } if (e.button === 2) mouseDown.r = false; });
 canvas.addEventListener('contextmenu', (e) => e.preventDefault());
@@ -450,9 +672,13 @@ addEventListener('keydown', (e) => {
   if (!playing) return;
   keys[e.code] = true;
   if (/^Digit[1-9]$/.test(e.code)) select(+e.code.slice(5) - 1);
-  if (e.code === 'KeyF') { P.fly = !P.fly; toast(P.fly ? 'Flying (Space up, Shift down)' : 'Walking'); }
-  if (e.code === 'Space') { const t = performance.now(); if (t - lastSpace < 280) { P.fly = !P.fly; toast(P.fly ? 'Flying' : 'Walking'); } lastSpace = t; }
-  if (e.code === 'KeyE') { if ($('#pick').hidden) openPicker(); else { closePicker(); lock(); } }
+  if (e.code === 'KeyF' && !survival()) { P.fly = !P.fly; toast(P.fly ? 'Flying (Space up, Shift down)' : 'Walking'); }
+  if (e.code === 'Space' && !survival()) { const t = performance.now(); if (t - lastSpace < 280) { P.fly = !P.fly; toast(P.fly ? 'Flying' : 'Walking'); } lastSpace = t; }
+  if (e.code === 'KeyE') {
+    if (survival()) { if ($('#inventory').hidden) openInventory(); else { closeInventory(); lock(); } }
+    else if ($('#pick').hidden) openPicker(); else { closePicker(); lock(); }
+  }
+  if (e.code === 'Escape' && !$('#inventory').hidden) closeInventory();
   if (e.code === 'Enter' || e.code === 'KeyT') { e.preventDefault(); openChat(); }
   if (e.code === 'F3') { e.preventDefault(); showCoords = !showCoords; }
   if (e.code === 'ArrowLeft') P.yaw += 0.12;
@@ -464,23 +690,48 @@ addEventListener('keyup', (e) => { keys[e.code] = false; });
 addEventListener('blur', () => { for (const k in keys) keys[k] = false; mouseDown.l = mouseDown.r = false; });
 let showCoords = false;
 
+const mineBox = new THREE.Mesh(new THREE.BoxGeometry(1.012, 1.012, 1.012), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0, depthWrite: false }));
+mineBox.visible = false; scene.add(mineBox);
+function hideMine() { mineBox.visible = false; $('#mineBar').style.display = 'none'; }
+let lastAct = 0;
 function act(t) {
-  const h = raycast();
-  hl.visible = !!h;
+  const dt = Math.max(0, Math.min(0.1, (t - (lastAct || t)) / 1000)); lastAct = t;
+  const h = raycast(), mob = Mobs.aim(h);
+  hl.visible = !!h && !mob;
   if (h) hl.position.set(h.x + 0.5, h.y + 0.5, h.z + 0.5);
-  if (!h) return;
   // a click counts even if the button came back up before this frame
-  const wantBreak = (mouseDown.l || clicked.l) && t >= nextBreak && !(drag && drag.moved), wantPlace = (mouseDown.r || clicked.r) && t >= nextPlace;
+  const left = (mouseDown.l || clicked.l) && !(drag && drag.moved), right = mouseDown.r || clicked.r, quick = clicked.l && !mouseDown.l;
   clicked.l = clicked.r = false;
-  if (wantBreak) {
+  if (S.dead) return hideMine();
+  // fighting: a mob in reach gets hit instead of the block behind it
+  if (mob && left) { if (t >= nextBreak) { Mobs.attack(mob); nextBreak = t + 450; } S.mining = null; return hideMine(); }
+  // eating
+  if (right && survival() && IT[held()] && IT[held()].food) { if (t >= nextPlace) { eat(); nextPlace = t + 300; } return; }
+  if (!h) { S.mining = null; return hideMine(); }
+  if (left) {
     const b = get(h.x, h.y, h.z);
-    if (b !== BEDROCK) { setBlock(h.x, h.y, h.z, AIR); burst(h.x, h.y, h.z, b); }
-    nextBreak = t + 250;
-  }
-  if (wantPlace) {
-    const X = h.x + h.n[0], Y = h.y + h.n[1], Z = h.z + h.n[2], b = hot[sel];
+    if (b === BEDROCK) hideMine();
+    else if (!survival()) { if (t >= nextBreak) { setBlock(h.x, h.y, h.z, AIR); burst(h.x, h.y, h.z, b); nextBreak = t + 250; } }
+    else {
+      // survival: hold the button; tougher blocks take longer, and stone needs a pickaxe to drop anything
+      const key = h.x + ',' + h.y + ',' + h.z;
+      if (!S.mining || S.mining.key !== key) S.mining = { key, prog: 0, need: breakTime(b, heldPick()) };
+      S.mining.prog += dt + (quick ? 0.05 : 0);
+      const f = Math.min(1, S.mining.prog / S.mining.need);
+      mineBox.visible = true; mineBox.position.set(h.x + 0.5, h.y + 0.5, h.z + 0.5); mineBox.material.opacity = 0.12 + f * 0.5;
+      $('#mineBar').style.display = 'block'; $('#mineBar i').style.width = f * 100 + '%';
+      if (f >= 1) {
+        setBlock(h.x, h.y, h.z, AIR); burst(h.x, h.y, h.z, b);
+        dropsOf(b, heldPick()).forEach(([id, n]) => give(id, n));
+        if (NEEDS[b] && heldPick() < NEEDS[b]) toast(NEEDS[b] > 1 ? 'You need a better pickaxe for that' : 'You need a pickaxe to collect that');
+        S.mining = null; hideMine();
+      }
+    }
+  } else { S.mining = null; hideMine(); }
+  if (right && t >= nextPlace) {
+    const X = h.x + h.n[0], Y = h.y + h.n[1], Z = h.z + h.n[2], b = held();
     const inside = X + 1 > P.x - P.w && X < P.x + P.w && Z + 1 > P.z - P.w && Z < P.z + P.w && Y + 1 > P.y && Y < P.y + P.h;
-    if (inWorld(X, Y, Z) && (get(X, Y, Z) === AIR || get(X, Y, Z) === WATER) && (!solid(b) || !inside)) setBlock(X, Y, Z, b);
+    if (isBlock(b) && inWorld(X, Y, Z) && (get(X, Y, Z) === AIR || get(X, Y, Z) === WATER) && (!solid(b) || !inside) && take(b, 1)) setBlock(X, Y, Z, b);
     nextPlace = t + 220;
   }
 }
@@ -496,6 +747,279 @@ function burst(x, y, z, b) {
     scene.add(m); bits.push(m);
   }
 }
+
+/* ---------------- mobs ----------------
+   The player who has been in the world longest runs the mobs: where they walk, who they chase, what
+   they hit. Everyone else sees them through that player's presence and sends their own hits there. */
+const MOBS = {
+  pig: { hp: 10, w: 0.45, h: 0.9, speed: 1.3, passive: 1, drop: [[120, 1, 3]] },
+  cow: { hp: 10, w: 0.45, h: 1.3, speed: 1.2, passive: 1, drop: [[122, 1, 3]] },
+  sheep: { hp: 8, w: 0.45, h: 1.2, speed: 1.2, passive: 1, drop: [[22, 1, 2], [126, 1, 2]] },
+  zombie: { hp: 20, w: 0.3, h: 1.9, speed: 2.4, hostile: 1, burns: 1, dmg: 3, drop: [[125, 0, 2]] },
+  skeleton: { hp: 20, w: 0.3, h: 1.9, speed: 2.2, hostile: 1, burns: 1, ranged: 1, dmg: 3, drop: [[131, 0, 2], [100, 0, 2]] },
+  creeper: { hp: 20, w: 0.3, h: 1.7, speed: 2.1, hostile: 1, explode: 1, drop: [[130, 1, 2]] },
+};
+const MOB_TYPES = Object.keys(MOBS);
+let dayLight = 1;
+const Mobs = { list: new Map(), next: 1, views: new Map(), seen: new Map(), ev: [], evSeq: 0, evDirty: false, lastEv: 0, acc: 0, spawnT: 0, snap: null, snapAt: 0, fx: [] };
+const myPeer = () => { const m = Net.peers.find((p) => p.isMe); return m ? m.peer : 'me'; };
+function boxHits(x, y, z, w, h) {
+  for (let X = Math.floor(x - w); X <= Math.floor(x + w); X++) for (let Y = Math.floor(y); Y <= Math.floor(y + h - 0.01); Y++) for (let Z = Math.floor(z - w); Z <= Math.floor(z + w); Z++) {
+    if (X < 0 || Z < 0 || X >= W || Z >= W) return true;
+    if (solid(get(X, Y, Z))) return true;
+  }
+  return false;
+}
+function mobMove(m, dx, dy, dz) {
+  const d = MOBS[m.type]; let blocked = false;
+  m.ground = false;
+  if (!boxHits(m.x + dx, m.y, m.z, d.w, d.h)) m.x += dx; else { m.vx = 0; blocked = true; }
+  if (!boxHits(m.x, m.y, m.z + dz, d.w, d.h)) m.z += dz; else { m.vz = 0; blocked = true; }
+  if (!boxHits(m.x, m.y + dy, m.z, d.w, d.h)) m.y += dy; else { if (dy < 0) m.ground = true; m.vy = 0; }
+  return blocked;
+}
+function mobPlayers() {
+  const out = [{ peer: myPeer(), x: P.x, y: P.y, z: P.z, surv: survival() && !S.dead }];
+  for (const p of Net.peers) if (!p.isMe && p.presence && Array.isArray(p.presence.p)) out.push({ peer: p.peer, x: p.presence.p[0], y: p.presence.p[1], z: p.presence.p[2], surv: p.presence.md === 's' && !p.presence.dd });
+  return out;
+}
+const skyOpen = (x, y, z) => { for (let Y = Math.floor(y + 2); Y < H; Y++) if (solid(get(Math.floor(x), Y, Math.floor(z)))) return false; return true; };
+function sight(a, b) {
+  const ax = a.x, ay = a.y + 1.5, az = a.z, bx = b.x, by = b.y + 1.5, bz = b.z, n = Math.ceil(Math.hypot(bx - ax, by - ay, bz - az) * 2);
+  for (let k = 1; k < n; k++) if (solid(get(Math.floor(ax + (bx - ax) * k / n), Math.floor(ay + (by - ay) * k / n), Math.floor(az + (bz - az) * k / n)))) return false;
+  return true;
+}
+// (kept short: the host's whole presence — mobs, events, edits, chat — has to fit in 4KB)
+const WHY = { z: 'A zombie got you.', s: 'You were shot by a skeleton.', c: 'You were blown up by a creeper.' };
+function mobEv(e) { e.unshift(++Mobs.evSeq); Mobs.ev.push(e); if (Mobs.ev.length > 12) Mobs.ev.shift(); Mobs.evDirty = true; playMobEv(e, true); }
+function hurtPlayer(peer, amt, kx, kz, why) { if (peer === myPeer()) hurt(amt, kx, kz, WHY[why]); else mobEv(['d', peer, amt, +kx.toFixed(1), +kz.toFixed(1), why]); }
+function spawnMob(type, x, y, z) {
+  const id = Mobs.next++;
+  Mobs.list.set(id, { id, type, x, y, z, vx: 0, vy: 0, vz: 0, yaw: Math.random() * 6.28, hp: MOBS[type].hp, ground: false, wt: 0, dir: null, flee: 0, cd: 1, fuse: 0, burnT: 0, burning: 0, hurt: 0, by: '' });
+}
+function trySpawn(players) {
+  let pas = 0, hos = 0;
+  for (const m of Mobs.list.values()) (MOBS[m.type].passive ? pas++ : hos++);
+  const night = dayLight < 0.5, pl = players[Math.floor(Math.random() * players.length)];
+  let type = null;
+  if (night && hos < 8) type = ['zombie', 'zombie', 'skeleton', 'creeper'][Math.floor(Math.random() * 4)];
+  else if (pas < (night ? 4 : 9)) type = ['pig', 'cow', 'sheep'][Math.floor(Math.random() * 3)];
+  if (!type) return;
+  for (let tries = 0; tries < 12; tries++) {
+    const a = Math.random() * 6.283, d = 14 + Math.random() * 18, x = Math.floor(pl.x + Math.cos(a) * d), z = Math.floor(pl.z + Math.sin(a) * d);
+    if (x < 2 || z < 2 || x >= W - 2 || z >= W - 2) continue;
+    const y = surface(x, z), top = get(x, y - 1, z);
+    if (get(x, y, z) !== AIR || get(x, y + 1, z) !== AIR) continue;
+    if (MOBS[type].passive ? top !== 1 : !solid(top) || top === 7) continue;
+    if (MOBS[type].hostile && players.some((q) => Math.hypot(q.x - x, q.z - z) < 12)) continue;
+    spawnMob(type, x + 0.5, y, z + 0.5);
+    if (MOBS[type].passive && Math.random() < 0.6) spawnMob(type, x + 1.5, y, z + 0.5);
+    return;
+  }
+}
+function killMob(m, by) {
+  Mobs.list.delete(m.id);
+  mobEv(['p', +m.x.toFixed(1), +(m.y + 0.6).toFixed(1), +m.z.toFixed(1)]);
+  if (!by) return;
+  for (const [id, lo, hi] of MOBS[m.type].drop) {
+    const n = lo + Math.floor(Math.random() * (hi - lo + 1));
+    if (n > 0) { if (by === myPeer()) give(id, n); else mobEv(['g', by, id, n]); }
+  }
+}
+// the crater: the same blocks for everyone, worked out from the blast's centre and number
+// (too many blocks to send one by one, so each player carves it themselves)
+function blast(cx, cy, cz, seed) {
+  for (let dy = -3; dy <= 3; dy++) for (let dz = -3; dz <= 3; dz++) for (let dx = -3; dx <= 3; dx++) {
+    const h = Math.imul(seed * 31 + (dx + 3) * 49 + (dy + 3) * 7 + (dz + 3), 2654435761) >>> 0;
+    if (dx * dx + dy * dy + dz * dz > 7 + (h % 1000) / 250) continue;
+    const b = get(cx + dx, cy + dy, cz + dz);
+    if (b && b !== BEDROCK && b !== WATER) setBlock(cx + dx, cy + dy, cz + dz, AIR, true);
+  }
+}
+function explode(m, players) {
+  const cx = Math.floor(m.x), cy = Math.floor(m.y + 0.5), cz = Math.floor(m.z);
+  Mobs.list.delete(m.id);
+  mobEv(['x', +m.x.toFixed(1), +(m.y + 0.8).toFixed(1), +m.z.toFixed(1), cx, cy, cz, m.id]);
+  blast(cx, cy, cz, m.id);
+  for (const pl of players) {
+    const d = Math.hypot(pl.x - m.x, pl.y - m.y, pl.z - m.z);
+    if (d < 6 && pl.surv) { const k = Math.max(0.01, d); hurtPlayer(pl.peer, Math.round((1 - d / 6) * 20), (pl.x - m.x) / k, (pl.z - m.z) / k, 'c'); }
+  }
+}
+function stepMob(m, dt, players) {
+  const def = MOBS[m.type];
+  let tx = 0, tz = 0, sp = def.speed, tgt = null, td = 1e9;
+  if (def.hostile) for (const pl of players) { if (!pl.surv) continue; const d = Math.hypot(pl.x - m.x, pl.y - m.y, pl.z - m.z); if (d < (def.explode ? 16 : 22) && d < td) { td = d; tgt = pl; } }
+  if (tgt) {
+    const dx = tgt.x - m.x, dz = tgt.z - m.z, d = Math.hypot(dx, dz) || 1;
+    m.yaw = Math.atan2(-dx, -dz);
+    if (def.ranged) { if (d > 10) { tx = dx / d; tz = dz / d; } else if (d < 6) { tx = -dx / d; tz = -dz / d; } }
+    else if (!(def.explode && m.fuse > 0)) { tx = dx / d; tz = dz / d; }
+  } else if (m.flee > 0) {
+    m.flee -= dt; const dx = m.x - m.fx, dz = m.z - m.fz, d = Math.hypot(dx, dz) || 1;
+    tx = dx / d; tz = dz / d; sp *= 2.2; m.yaw = Math.atan2(-tx, -tz);
+  } else {
+    m.wt -= dt;
+    if (m.wt <= 0) { m.wt = 2 + Math.random() * 4; m.dir = Math.random() < 0.4 ? null : Math.random() * 6.283; }
+    if (m.dir !== null) { tx = -Math.sin(m.dir); tz = -Math.cos(m.dir); m.yaw = m.dir; sp *= 0.6; }
+  }
+  m.vx += (tx * sp - m.vx) * Math.min(1, 8 * dt); m.vz += (tz * sp - m.vz) * Math.min(1, 8 * dt);
+  if (get(Math.floor(m.x), Math.floor(m.y + 0.4), Math.floor(m.z)) === WATER) m.vy = Math.min(2, m.vy + 20 * dt);
+  else m.vy = Math.max(-30, m.vy - 25 * dt);
+  const blocked = mobMove(m, m.vx * dt, m.vy * dt, m.vz * dt);
+  if (blocked && m.ground && (tx || tz)) m.vy = 7.6;
+  m.cd -= dt; m.hurt = Math.max(0, m.hurt - dt);
+  if (tgt) {
+    const dx = tgt.x - m.x, dz = tgt.z - m.z, d3 = Math.hypot(dx, tgt.y - m.y, dz), k = Math.max(0.01, Math.hypot(dx, dz));
+    if (m.type === 'zombie' && d3 < 1.6 && m.cd <= 0) { m.cd = 1; hurtPlayer(tgt.peer, def.dmg, dx / k, dz / k, 'z'); }
+    if (def.ranged && d3 < 16 && m.cd <= 0 && sight(m, tgt)) { m.cd = 2.2; mobEv(['s', m.id, tgt.peer]); if (Math.random() < 0.85 - d3 * 0.03) hurtPlayer(tgt.peer, def.dmg, dx / k, dz / k, 's'); }
+    if (def.explode) { if (d3 < 2.7) m.fuse += dt; else m.fuse = Math.max(0, m.fuse - dt); if (m.fuse >= 1.5) return explode(m, players); }
+  } else if (def.explode) m.fuse = Math.max(0, m.fuse - dt);
+  if (def.burns && dayLight > 0.7 && skyOpen(m.x, m.y, m.z)) { m.burning = 1; m.burnT += dt; if (m.burnT >= 1) { m.burnT = 0; m.hp -= 2; m.hurt = 0.2; } } else m.burning = 0;
+  if (m.hp <= 0) return killMob(m, '');
+  if (!players.some((pl) => Math.hypot(pl.x - m.x, pl.z - m.z) < 80) || m.y < -10) Mobs.list.delete(m.id);
+}
+function hitMob(id, dmg, kx, kz, by) {
+  const m = Mobs.list.get(id);
+  if (!m) return;
+  m.hp -= dmg; m.hurt = 0.35; m.vx += kx * 6; m.vz += kz * 6; m.vy = 5;
+  if (MOBS[m.type].passive) { m.flee = 3; m.fx = m.x - kx; m.fz = m.z - kz; }
+  if (m.hp <= 0) killMob(m, by);
+}
+function hostMobs(dt) {
+  // a mob world that keeps going if the old host left: pick up where their mobs were
+  if (!Mobs.hosting) {
+    Mobs.hosting = true;
+    if (!Mobs.list.size && Mobs.snap) for (const a of Mobs.snap) { const type = MOB_TYPES[a[1]]; if (!type) continue; Mobs.list.set(a[0], { id: a[0], type, x: a[2], y: a[3], z: a[4], vx: 0, vy: 0, vz: 0, yaw: a[5], hp: a[6], ground: false, wt: 0, dir: null, flee: 0, cd: 1, fuse: 0, burnT: 0, burning: 0, hurt: 0 }); Mobs.next = Math.max(Mobs.next, a[0] + 1); }
+  }
+  // hits other players landed
+  for (const p of Net.peers) {
+    if (p.isMe || !p.presence) continue;
+    const pr = p.presence, seen = Mobs.seen.get(p.peer) || { t: 0, n: 0 };
+    if (pr.t !== seen.t) { seen.t = pr.t; seen.n = 0; }
+    for (const h of Array.isArray(pr.ht) ? pr.ht : []) { if (!Array.isArray(h) || h[0] <= seen.n) continue; seen.n = h[0]; hitMob(h[1], Math.max(0, Math.min(8, +h[2] || 0)), +h[3] || 0, +h[4] || 0, p.peer); }
+    Mobs.seen.set(p.peer, seen);
+  }
+  Mobs.acc += dt;
+  const players = mobPlayers();
+  while (Mobs.acc >= 0.05) { Mobs.acc -= 0.05; for (const m of [...Mobs.list.values()]) stepMob(m, 0.05, players); }
+  Mobs.spawnT -= dt;
+  if (Mobs.spawnT <= 0) { Mobs.spawnT = 1.5; if (Mobs.list.size < 22) trySpawn(players); }
+  Mobs.snap = [...Mobs.list.values()].slice(0, 20).map((m) => [m.id, MOB_TYPES.indexOf(m.type), +m.x.toFixed(1), +m.y.toFixed(1), +m.z.toFixed(1), +m.yaw.toFixed(2), Math.ceil(m.hp), (m.hurt > 0 ? 1 : 0) | (m.fuse > 0 ? 2 : 0) | (m.burning ? 4 : 0)]);
+}
+function resetMobs() {
+  for (const v of Mobs.views.values()) scene.remove(v.g);
+  Object.assign(Mobs, { list: new Map(), views: new Map(), seen: new Map(), ev: [], evDirty: false, snap: null, hosting: false, from: null, evN: 0 });
+}
+// a non-host reads the host's presence: the mobs, and anything that happened to them (or to you)
+function hostNews(peer, pr) {
+  if (Array.isArray(pr.mb)) Mobs.snap = pr.mb.filter((a) => Array.isArray(a) && a.length >= 8).slice(0, 24);
+  const evs = Array.isArray(pr.ev) ? pr.ev.filter(Array.isArray) : [];
+  const from = peer + ':' + pr.t;
+  if (Mobs.from !== from) { Mobs.from = from; Mobs.evN = evs.reduce((m, e) => Math.max(m, +e[0] || 0), 0); return; } // a new host: only what happens from now on
+  for (const e of evs) { if (!(e[0] > Mobs.evN)) continue; Mobs.evN = e[0]; playMobEv(e, false); }
+}
+// what everyone does with the host's mob news
+function playMobEv(e, local) {
+  const [, kind] = e;
+  if (kind === 'd' && e[2] === myPeer() && !local) hurt(Math.max(0, Math.min(20, +e[3] || 0)), +e[4] || 0, +e[5] || 0, WHY[e[6]] || 'You were hurt.');
+  else if (kind === 'g' && e[2] === myPeer() && !local && (IT[e[3]] || B[e[3]])) give(e[3], Math.max(0, Math.min(8, +e[4] || 0)));
+  else if (kind === 'p') puff(e[2], e[3], e[4], 0xdddddd, 10);
+  else if (kind === 'x') { if (!local && [e[5], e[6], e[7], e[8]].every(Number.isInteger)) blast(e[5], e[6], e[7], e[8]); puff(e[2], e[3], e[4], 0x444444, 40); puff(e[2], e[3], e[4], 0xffaa33, 20); if (Math.hypot(e[2] - P.x, e[4] - P.z) < 30) say('💥 Boom!', '#ffaa33'); }
+  else if (kind === 's') { const v = Mobs.views.get(e[2]); const to = e[3] === myPeer() ? camera.position.clone().add(new THREE.Vector3(0, -0.4, 0)) : (Net.avatars.get(e[3]) || {}).g; if (v && to) arrowFx(v.g.position.clone().add(new THREE.Vector3(0, 1.5, 0)), to.position ? to.position.clone().add(new THREE.Vector3(0, 1.4, 0)) : to); }
+}
+function puff(x, y, z, color, n) {
+  for (let k = 0; k < n; k++) {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.18, 0.18), new THREE.MeshBasicMaterial({ color }));
+    m.position.set(x + (Math.random() - 0.5) * 0.6, y + (Math.random() - 0.5) * 0.6, z + (Math.random() - 0.5) * 0.6);
+    m.userData = { v: new THREE.Vector3((Math.random() - 0.5) * 6, Math.random() * 5, (Math.random() - 0.5) * 6), life: 0.6 + Math.random() * 0.4 };
+    scene.add(m); bits.push(m);
+  }
+}
+function arrowFx(from, to) {
+  const g = new THREE.BufferGeometry().setFromPoints([from, to]), l = new THREE.Line(g, new THREE.LineBasicMaterial({ color: 0xeeeeee }));
+  scene.add(l); Mobs.fx.push({ l, life: 0.25 });
+}
+// the mobs you see: little block models, sliding towards where the host says they are
+function makeMobModel(type) {
+  const g = new THREE.Group(), legs = [], mats = [], arms = [];
+  const box = (w, h, d, c, x, y, z, pivotTop) => {
+    const mat = new THREE.MeshBasicMaterial({ color: c }); mat.userData.base = new THREE.Color(c); mats.push(mat);
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+    if (pivotTop) m.geometry.translate(0, -h / 2, 0);
+    m.position.set(x, y, z); g.add(m); return m;
+  };
+  const quad = (bw, bh, bd, by, col, lc, lh, lw) => { box(bw, bh, bd, col, 0, by, 0); for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) legs.push(box(lw, lh, lw, lc, x * (bw / 2 - lw / 2), lh, z * (bd / 2 - lw / 2 - 0.02), true)); };
+  if (type === 'pig') { quad(0.62, 0.5, 0.95, 0.56, 0xf0a5a0, 0xf0a5a0, 0.32, 0.2); box(0.48, 0.45, 0.45, 0xf0a5a0, 0, 0.72, -0.62); box(0.24, 0.15, 0.06, 0xe07f7a, 0, 0.66, -0.87); box(0.07, 0.07, 0.02, 0x111111, -0.12, 0.8, -0.85); box(0.07, 0.07, 0.02, 0x111111, 0.12, 0.8, -0.85); }
+  else if (type === 'cow') { quad(0.7, 0.62, 1.15, 0.86, 0x4a3222, 0x3a2618, 0.55, 0.22); box(0.72, 0.3, 0.35, 0xeeeeee, 0, 0.92, 0.15); box(0.5, 0.48, 0.38, 0x4a3222, 0, 1.06, -0.74); box(0.3, 0.18, 0.06, 0xb08a78, 0, 0.94, -0.95); box(0.08, 0.12, 0.08, 0xdddddd, -0.2, 1.34, -0.76); box(0.08, 0.12, 0.08, 0xdddddd, 0.2, 1.34, -0.76); box(0.07, 0.07, 0.02, 0x111111, -0.13, 1.12, -0.94); box(0.07, 0.07, 0.02, 0x111111, 0.13, 1.12, -0.94); }
+  else if (type === 'sheep') { quad(0.78, 0.68, 1.05, 0.82, 0xf2f2f2, 0x8a7f78, 0.5, 0.2); box(0.38, 0.38, 0.38, 0x8a7f78, 0, 1.0, -0.64); box(0.44, 0.2, 0.3, 0xf2f2f2, 0, 1.18, -0.6); box(0.06, 0.06, 0.02, 0x111111, -0.1, 1.03, -0.84); box(0.06, 0.06, 0.02, 0x111111, 0.1, 1.03, -0.84); }
+  else if (type === 'creeper') {
+    box(0.45, 0.85, 0.3, 0x4caf3a, 0, 0.83, 0); box(0.5, 0.5, 0.5, 0x5cbf47, 0, 1.5, 0);
+    box(0.12, 0.12, 0.02, 0x0d0d0d, -0.12, 1.58, -0.26); box(0.12, 0.12, 0.02, 0x0d0d0d, 0.12, 1.58, -0.26); box(0.12, 0.18, 0.02, 0x0d0d0d, 0, 1.4, -0.26); box(0.24, 0.08, 0.02, 0x0d0d0d, 0, 1.34, -0.26);
+    for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) legs.push(box(0.2, 0.4, 0.2, 0x3f9a30, x * 0.12, 0.4, z * 0.22, true));
+  } else {
+    const skel = type === 'skeleton', w = skel ? 0.15 : 0.24;
+    const skin = skel ? 0xd8d8d0 : 0x5aa04a, shirt = skel ? 0xc8c8c0 : 0x2a8a8a, pants = skel ? 0xc0c0b8 : 0x3a3a9a;
+    legs.push(box(w, 0.72, w, pants, -0.12, 0.72, 0, true), box(w, 0.72, w, pants, 0.12, 0.72, 0, true));
+    box(0.5, 0.72, 0.26, shirt, 0, 1.08, 0);
+    const aL = box(w, 0.7, w, skin, -0.36, 1.42, 0, true), aR = box(w, 0.7, w, skin, 0.36, 1.42, 0, true);
+    aL.rotation.x = aR.rotation.x = -Math.PI / 2; arms.push(aL, aR);
+    box(0.5, 0.5, 0.5, skin, 0, 1.7, 0);
+    box(0.1, 0.08, 0.02, skel ? 0x222222 : 0x112211, -0.12, 1.74, -0.26); box(0.1, 0.08, 0.02, skel ? 0x222222 : 0x112211, 0.12, 1.74, -0.26);
+    if (skel) box(0.05, 0.7, 0.05, 0x6b4a2b, 0.36, 1.42, -0.62);
+  }
+  scene.add(g);
+  return { g, legs, mats, walk: 0, type };
+}
+function drawMobs(dt) {
+  const snap = Mobs.snap || [], ids = new Set();
+  for (const a of snap) {
+    const [id, ti, x, y, z, yaw, hp, fl] = a, type = MOB_TYPES[ti];
+    if (!type) continue;
+    ids.add(id);
+    let v = Mobs.views.get(id);
+    if (!v) { v = makeMobModel(type); v.g.position.set(x, y, z); Mobs.views.set(id, v); }
+    const k = Math.min(1, dt * 10), g = v.g, dx = x - g.position.x, dz = z - g.position.z, spd = Math.hypot(dx, dz) / Math.max(dt, 0.001);
+    g.position.x += dx * k; g.position.y += (y - g.position.y) * k; g.position.z += dz * k;
+    let dy = yaw - g.rotation.y; while (dy > Math.PI) dy -= 6.283; while (dy < -Math.PI) dy += 6.283; g.rotation.y += dy * k;
+    v.walk += Math.min(spd, 6) * dt * 2.2;
+    const sw = Math.sin(v.walk) * Math.min(1, spd / 2) * 0.6;
+    v.legs.forEach((l, i) => (l.rotation.x = i % 2 ? sw : -sw));
+    // hurt: red; fuse: white flashing and swelling; burning: orange
+    const fuse = fl & 2, flash = fl & 1 || (fuse && Math.floor(performance.now() / 120) % 2), burn = fl & 4;
+    for (const m of v.mats) { m.color.copy(m.userData.base); if (flash) m.color.lerp(fuse ? new THREE.Color(0xffffff) : new THREE.Color(0xff3333), 0.6); else if (burn) m.color.lerp(new THREE.Color(0xff8a20), 0.35); }
+    g.scale.setScalar(fuse ? 1.12 : 1);
+    if (burn && Math.random() < dt * 8) puff(g.position.x + (Math.random() - 0.5) * 0.5, g.position.y + 1.2 + Math.random() * 0.8, g.position.z + (Math.random() - 0.5) * 0.5, Math.random() < 0.5 ? 0xff7a1a : 0xffd23a, 1);
+  }
+  for (const [id, v] of Mobs.views) if (!ids.has(id)) { scene.remove(v.g); Mobs.views.delete(id); }
+  for (let i = Mobs.fx.length - 1; i >= 0; i--) { const f = Mobs.fx[i]; f.life -= dt; if (f.life <= 0) { scene.remove(f.l); f.l.geometry.dispose(); Mobs.fx.splice(i, 1); } }
+}
+// which mob (if any) you're pointing at, closer than the block you're pointing at
+Mobs.aim = function (blockHit) {
+  const o = camera.position, d = new THREE.Vector3(); camera.getWorldDirection(d);
+  const bd = blockHit ? Math.hypot(blockHit.x + 0.5 - o.x, blockHit.y + 0.5 - o.y, blockHit.z + 0.5 - o.z) : 99;
+  let best = null, bt = Math.min(3.6, bd);
+  for (const a of Mobs.snap || []) {
+    const v = Mobs.views.get(a[0]), type = MOB_TYPES[a[1]];
+    if (!v || !type) continue;
+    const def = MOBS[type], p = v.g.position, mn = [p.x - def.w, p.y, p.z - def.w], mx = [p.x + def.w, p.y + def.h, p.z + def.w];
+    let t0 = 0, t1 = bt;
+    for (let k = 0; k < 3; k++) {
+      const oo = [o.x, o.y, o.z][k], dd = [d.x, d.y, d.z][k];
+      if (Math.abs(dd) < 1e-6) { if (oo < mn[k] || oo > mx[k]) { t0 = 1e9; break; } continue; }
+      let a1 = (mn[k] - oo) / dd, a2 = (mx[k] - oo) / dd; if (a1 > a2) [a1, a2] = [a2, a1];
+      t0 = Math.max(t0, a1); t1 = Math.min(t1, a2);
+    }
+    if (t0 <= t1 && t0 < bt) { bt = t0; best = a[0]; }
+  }
+  return best;
+};
+Mobs.attack = function (id) {
+  const it = IT[held()], dmg = (it && it.dmg) || 1, kx = -Math.sin(P.yaw), kz = -Math.cos(P.yaw);
+  const v = Mobs.views.get(id); if (v) for (const m of v.mats) m.color.set(0xff3333);
+  if (iAmHost()) hitMob(id, dmg, kx, kz, myPeer());
+  else { Net.hits.push([++Net.hseq, id, dmg, +kx.toFixed(2), +kz.toFixed(2)]); if (Net.hits.length > 10) Net.hits.shift(); Net.dirty = true; }
+};
 
 /* ---------------- other players ---------------- */
 const SKIN = 0xf1c27d;
@@ -531,6 +1055,7 @@ function skyUpdate() {
   const day = (Date.now() / 1000 % 900) / 900; // a 15-minute day, the same for everyone
   const a = day * Math.PI * 2, h = Math.sin(a);
   const light = Math.max(0.28, Math.min(1, 0.55 + h * 0.9));
+  dayLight = Mobs.light != null ? Mobs.light : Math.max(0, Math.min(1, 0.55 + h * 0.9));
   sky.copy(NIGHT).lerp(DAY, Math.max(0, Math.min(1, 0.5 + h * 1.4)));
   if (Math.abs(h) < 0.25) sky.lerp(DUSK, 0.35 * (1 - Math.abs(h) / 0.25));
   renderer.setClearColor(sky); scene.fog.color.copy(sky);
@@ -571,10 +1096,10 @@ const SERVERS = 6, MAXP = 12;
 const WORLD_NAMES = ['Greenvale', 'Stoneridge', 'Sunny Shores', 'Pinewood', 'Frostpeak', 'Mossy Hollow'];
 const Net = {
   name: 'Steve', color: '#3b82f6', lobby: null, lobbyPeers: [], room: null, srv: 0, peers: [], t0: 0, joinAt: 0, claimed: false,
-  out: [], seq: 0, chats: [], cseq: 0, seen: new Map(), avatars: new Map(), busy: false, queued: null, sentAt: 0, lastPos: '', loaded: false, saveAt: 0, savedAt: 0,
+  out: [], seq: 0, chats: [], cseq: 0, hits: [], hseq: 0, seen: new Map(), avatars: new Map(), busy: false, queued: null, sentAt: 0, lastPos: '', loaded: false, saveAt: 0, savedAt: 0,
   api: () => window.ChatClaude || window.claude,
-  edit(x, y, z, b) { this.out.push([++this.seq, x, y, z, b]); if (this.out.length > 60) this.out.shift(); this.dirty = true; },
-  chat(t) { this.chats.push([++this.cseq, t.slice(0, 120)]); if (this.chats.length > 5) this.chats.shift(); this.dirty = true; },
+  edit(x, y, z, b) { this.out.push([++this.seq, x, y, z, b]); if (this.out.length > 40) this.out.shift(); this.dirty = true; },
+  chat(t) { this.chats.push([++this.cseq, t.slice(0, 120)]); if (this.chats.length > 3) this.chats.shift(); this.dirty = true; },
 };
 function send(patch) {
   if (!Net.room) return;
@@ -605,20 +1130,29 @@ function menu() {
   const c = counts();
   $('#menuPanel').innerHTML = `<div class="logo">BLOCK<b>CRAFT</b></div><p class="sub">Build and explore together. Every server is its own world, and it's saved.</p>
     ${menuStatus ? `<div class="status">${menuStatus}</div>` : ''}
+    ${modeButtons()}
     <button class="mbtn green" id="rnd">🎲 Join a random world</button>
     <div class="worlds">${WORLD_NAMES.map((nm, i) => `<button class="world" data-w="${i + 1}" ${c[i + 1] >= MAXP ? 'disabled' : ''}><b>${nm}</b><small>Server ${i + 1} · ${c[i + 1] >= MAXP ? 'Full' : c[i + 1] ? c[i + 1] + ' playing' : 'Nobody here'}</small></button>`).join('')}</div>
-    <p class="note"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move · mouse to look · <kbd>Space</kbd> jump (double-tap or <kbd>F</kbd> to fly) · <b>left click</b> break · <b>right click</b> place · <kbd>1</kbd>–<kbd>9</kbd> or wheel pick a block · <kbd>E</kbd> all blocks · <kbd>T</kbd> chat · <kbd>Ctrl</kbd> sprint</p>`;
+    <p class="note"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move · mouse to look · <kbd>Space</kbd> jump (double-tap or <kbd>F</kbd> to fly) · <b>left click</b> break · <b>right click</b> place · <kbd>1</kbd>–<kbd>9</kbd> or wheel pick a block · <kbd>E</kbd> blocks (survival: inventory and crafting) · <kbd>T</kbd> chat · <kbd>Ctrl</kbd> sprint</p>`;
   $('#rnd').onclick = () => { const open = []; for (let n = 1; n <= SERVERS; n++) if (c[n] < MAXP) open.push(n); join(open[Math.floor(Math.random() * open.length)] || 1); };
   $('#menuPanel').querySelectorAll('[data-w]').forEach((b) => (b.onclick = () => join(+b.dataset.w)));
+  wireModes($('#menuPanel'), menu);
 }
+function modeButtons() {
+  return `<div class="modes"><button class="mbtn ${survival() ? '' : 'on'}" data-mode="creative">🧱 Creative</button><button class="mbtn ${survival() ? 'on' : ''}" data-mode="survival">⚔️ Survival</button></div>
+    <p class="note" style="margin-top:4px">${survival() ? 'Survival: collect blocks, craft tools, eat, and watch out at night — zombies, skeletons and creepers come out.' : 'Creative: every block, fly anywhere, nothing can hurt you.'}</p>`;
+}
+function wireModes(root, redraw) { root.querySelectorAll('[data-mode]').forEach((b) => (b.onclick = () => { setMode(b.dataset.mode); redraw(); })); }
 function showPause() {
   $('#pausePanel').innerHTML = `<div class="logo" style="font-size:36px">Paused</div>
     <button class="mbtn green" id="resume">Back to the game</button>
+    ${modeButtons()}
     <button class="mbtn" id="switch">Switch world</button>
     <p class="note">You're in <b>${WORLD_NAMES[Net.srv - 1] || 'a world'}</b> with ${Math.max(1, crew().length)} player${crew().length === 1 ? '' : 's'}. Click the game to look around with the mouse; <kbd>Esc</kbd> lets go of it.</p>`;
   $('#pause').hidden = false;
   $('#resume').onclick = () => lock();
   $('#switch').onclick = () => leave().then(() => { $('#pause').hidden = true; $('#menu').hidden = false; menu(); });
+  wireModes($('#pausePanel'), () => { const title = $('#pausePanel .logo').textContent, play = $('#resume').textContent; showPause(); $('#pausePanel .logo').textContent = title; $('#resume').textContent = play; });
 }
 
 async function join(n) {
@@ -633,19 +1167,22 @@ async function join(n) {
   chunks.forEach((c) => (c.dirty = true));
   let room;
   try { room = await lob.join('w-' + n); } catch (e) { $('#loading').hidden = true; $('#menu').hidden = false; menuStatus = 'Couldn’t reach that world. Try another.'; menu(); return; }
-  Object.assign(Net, { room, srv: n, peers: [], t0: Date.now(), joinAt: performance.now(), claimed: false, out: [], seq: 0, chats: [], cseq: 0, seen: new Map(), loaded: false });
+  Object.assign(Net, { room, srv: n, peers: [], t0: Date.now(), joinAt: performance.now(), claimed: false, out: [], seq: 0, chats: [], cseq: 0, hits: [], hseq: 0, seen: new Map(), loaded: false, mbAt: 0, mbKey: '' });
+  resetMobs();
   room.onPeers(onPeers, () => {});
-  send({ nm: Net.name, c: Net.color, t: Net.t0 });
+  send({ nm: Net.name, c: Net.color, t: Net.t0, md: survival() ? 's' : 'c' });
   lob.presence({ srv: n }).catch(() => {});
   // then everything people built there: the saved world, after the host has had a moment to save it
   $('#loadText').textContent = 'Loading what people built…'; $('#loadBar').style.width = '45%';
   await new Promise((r) => setTimeout(r, 1500));
   try { const saved = await window.ChatKV.get('world-' + n); if (saved) await applySave(saved); } catch (e) { /* no save yet, or none here */ }
+  await loadMe();
   Net.loaded = true;
   for (const p of Net.peers) if (!p.isMe) applyPeer(p);
   $('#loadBar').style.width = '80%';
   for (let cz = 0; cz < NCH; cz++) for (let cx = 0; cx < NCH; cx++) buildChunk(cx, cz);
-  respawn();
+  if (!S.pos || !placeAt(S.pos)) respawn();
+  S.dead = false; $('#dead').hidden = true; drawBars();
   $('#loading').hidden = true;
   playing = true;
   say(`Welcome to ${WORLD_NAMES[n - 1]}! Press T to chat.`, '#ffe066');
@@ -653,7 +1190,8 @@ async function join(n) {
   $('#resume').textContent = 'Play';
 }
 async function leave() {
-  await saveWorld(true);
+  await Promise.all([saveWorld(true), saveMe()]);
+  resetMobs();
   const r = Net.room;
   Net.room = null; Net.srv = 0; playing = false;
   for (const a of Net.avatars.values()) scene.remove(a.g);
@@ -680,6 +1218,7 @@ function applyPeer(p) {
   }
   for (const c of Array.isArray(pr.ch) ? pr.ch : []) { if (!Array.isArray(c) || c[0] <= seen.c) continue; seen.c = c[0]; say(`<${String(pr.nm || 'Someone').slice(0, 16)}> ${String(c[1]).slice(0, 120)}`); }
   Net.seen.set(p.peer, seen);
+  if (!iAmHost() && crew()[0] && crew()[0].peer === p.peer) hostNews(p.peer, pr);
   if (Array.isArray(pr.p)) {
     let a = Net.avatars.get(p.peer);
     if (!a) { a = makeAvatar(pr.c || '#3b82f6', String(pr.nm || 'Player')); a.g.position.set(pr.p[0], pr.p[1], pr.p[2]); Net.avatars.set(p.peer, a); }
@@ -696,10 +1235,16 @@ function netTick(t) {
     if (key !== Net.lastPos || Net.dirty) {
       Net.lastPos = key; Net.sentAt = t;
       const patch = { p: pos };
-      if (Net.dirty) { patch.e = Net.out.slice(); patch.ch = Net.chats.slice(); Net.dirty = false; }
+      if (Net.dirty) { patch.e = Net.out.slice(); patch.ch = Net.chats.slice(); patch.ht = Net.hits.slice(); Net.dirty = false; }
       send(patch);
     }
   }
+  // the host tells everyone where the mobs are, about 8 times a second
+  if (iAmHost() && Net.loaded && t - Net.mbAt > 125) {
+    const mb = Mobs.snap || [], key = JSON.stringify(mb);
+    if (key !== Net.mbKey || Mobs.evDirty) { Net.mbAt = t; Net.mbKey = key; const patch = { mb }; if (Mobs.evDirty) { patch.ev = Mobs.ev.slice(); Mobs.evDirty = false; } send(patch); }
+  }
+  if (S.dirty && survival() && t > (Net.meAt || 0)) { Net.meAt = t + 15000; saveMe(); }
   if (iAmHost() && Net.loaded && editsDirty && t > Net.saveAt) { Net.saveAt = t + 5000; saveWorld(); }
 }
 // the saved world: every changed block as "where:what" in base 36, squeezed
@@ -742,7 +1287,7 @@ setInterval(() => saveWorld(), 20000);
 let last = performance.now(), fpsN = 0, fpsT = 0, fps = 0;
 function frame(t) {
   requestAnimationFrame(frame);
-  const dt = Math.min(0.05, (t - last) / 1000); last = t;
+  const dt = Math.min(0.05, (t - last) / 1000), mobDt = Math.min(0.25, (t - last) / 1000); last = t;
   if (playing) {
     if (locked || dragLook) physics(dt); else { P.vx = P.vz = 0; physics(dt); }
     camera.position.set(P.x, P.y + P.eye, P.z);
@@ -761,10 +1306,12 @@ function frame(t) {
       a.legL.rotation.x = sw; a.legR.rotation.x = -sw; a.armL.rotation.x = -sw; a.armR.rotation.x = sw;
       a.head.rotation.x = -(a.target[4] || 0) * 0.6;
     }
+    if (Net.loaded && iAmHost()) hostMobs(mobDt); else Mobs.hosting = false; // mobs keep real time even when the frame rate drops
+    drawMobs(dt);
     for (let i = bits.length - 1; i >= 0; i--) { const m = bits[i], u = m.userData; u.life -= dt; u.v.y -= 12 * dt; m.position.addScaledVector(u.v, dt); if (u.life <= 0) { scene.remove(m); m.geometry.dispose(); bits.splice(i, 1); } }
     netTick(t);
     fpsN++; if (t - fpsT > 1000) { fps = fpsN; fpsN = 0; fpsT = t; }
-    $('#info').innerHTML = `<b>${WORLD_NAMES[Net.srv - 1] || ''}</b> · ${Math.max(1, crew().length)} online${P.fly ? ' · ✈️ flying' : ''}<br><small>T chat · E blocks · F fly · Esc pause${showCoords ? ` · ${P.x.toFixed(1)} ${P.y.toFixed(1)} ${P.z.toFixed(1)} · ${fps} fps` : ''}</small>`;
+    $('#info').innerHTML = `<b>${WORLD_NAMES[Net.srv - 1] || ''}</b> · ${Math.max(1, crew().length)} online${survival() ? ' · ⚔️ survival' : P.fly ? ' · ✈️ flying' : ''}${Mobs.snap && Mobs.snap.length ? ` · ${Mobs.snap.length} mobs` : ''}<br><small>T chat · ${survival() ? 'E inventory' : 'E blocks · F fly'} · Esc pause${showCoords ? ` · ${P.x.toFixed(1)} ${P.y.toFixed(1)} ${P.z.toFixed(1)} · ${fps} fps` : ''}</small>`;
   } else {
     // the menu: a slow fly-around of the world
     const a = t / 9000;
@@ -778,10 +1325,11 @@ function frame(t) {
 }
 
 /* ---------------- start ---------------- */
+try { setMode(localStorage.getItem('bc.mode') || 'creative'); } catch (e) { setMode('creative'); }
 drawHotbar();
 generate(1000 + 7919); // a world to look at behind the menu
 requestAnimationFrame(frame);
-window.__bc = { P, Net, world, get, setBlock, raycast, edits, keys, idx, mouse: mouseDown, physics, act, lock, saveWorld }; // for tests
+window.__bc = { P, Net, world, get, setBlock, raycast, edits, keys, idx, mouse: mouseDown, physics, act, lock, saveWorld, S, Mobs, MOBS, give, take, setMode, spawnMob, hitMob, hurt, eat, RECIPES, drawInventory, openInventory, survival, iAmHost, saveMe, loadMe, held, select, get dayLight() { return dayLight; }, set dayLight(v) { dayLight = v; } }; // for tests
 if (!Net.api()) { menuStatus = 'Open Blockcraft from 🕹️ Games in the chat to play online.'; menu(); }
 else { menuStatus = 'Connecting…'; menu(); lobby().then((r) => { menuStatus = r ? '' : 'Live rooms aren’t switched on for your access to this page. The owner can share it with you as a Contributor (Share menu).'; menu(); }); }
 </script>

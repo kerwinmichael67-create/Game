@@ -436,6 +436,103 @@
   };
   Rules.gomoku = gomoku;
 
+  // ---------------------------------------------------------------- BATTLESHIP
+  // 10x10 seas. Each fleet: carrier 5, battleship 4, cruiser 3, submarine 3, destroyer 2.
+  // First both players arrange their fleet (shuffle until happy) and press Ready; then they take turns
+  // firing one shot. Sink every ship of the other fleet to win.
+  // A fleet is [cells...] per ship, cell = row*10 + col. shots[i] = cells player i fired at.
+  const battleship = {};
+  const BS = 10, FLEET = [5, 4, 3, 3, 2];
+  battleship.N = BS; battleship.FLEET = FLEET; battleship.NAMES = ['Carrier', 'Battleship', 'Cruiser', 'Submarine', 'Destroyer'];
+  function bsFleet(rand) {
+    rand = rand || Math.random;
+    for (;;) {
+      const used = new Set(), fleet = [];
+      let ok = true;
+      for (const len of FLEET) {
+        let placed = false;
+        for (let t = 0; t < 200 && !placed; t++) {
+          const down = rand() < 0.5, r = Math.floor(rand() * (down ? BS - len + 1 : BS)), c = Math.floor(rand() * (down ? BS : BS - len + 1));
+          const cells = Array.from({ length: len }, (_, k) => (down ? (r + k) * BS + c : r * BS + c + k));
+          // ships don't touch, not even at the corners
+          const near = (x) => { const rr = Math.floor(x / BS), cc = x % BS; for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) { const R = rr + dr, C = cc + dc; if (R >= 0 && C >= 0 && R < BS && C < BS && used.has(R * BS + C)) return true; } return false; };
+          if (cells.some(near)) continue;
+          cells.forEach((x) => used.add(x));
+          fleet.push(cells);
+          placed = true;
+        }
+        if (!placed) { ok = false; break; }
+      }
+      if (ok) return fleet;
+    }
+  }
+  function bsValidFleet(f) {
+    if (!Array.isArray(f) || f.length !== FLEET.length) return false;
+    const used = new Set();
+    for (let i = 0; i < FLEET.length; i++) {
+      const cells = f[i];
+      if (!Array.isArray(cells) || cells.length !== FLEET[i]) return false;
+      if (!cells.every((x) => Number.isInteger(x) && x >= 0 && x < BS * BS && !used.has(x))) return false;
+      const rows = cells.map((x) => Math.floor(x / BS)), cols = cells.map((x) => x % BS), sorted = cells.slice().sort((a, b) => a - b);
+      const across = rows.every((r) => r === rows[0]) && sorted.every((x, k) => !k || x === sorted[k - 1] + 1);
+      const down = cols.every((c) => c === cols[0]) && sorted.every((x, k) => !k || x === sorted[k - 1] + BS);
+      if (!across && !down) return false;
+      cells.forEach((x) => used.add(x));
+    }
+    return true;
+  }
+  battleship.randomFleet = bsFleet;
+  battleship.init = () => ({ phase: 'place', fleets: [bsFleet(), bsFleet()], ready: [false, false], shots: [[], []], hits: [[], []], sunk: [[], []], turn: 0, last: null, result: null });
+  battleship.legal = (s) => {
+    if (s.result) return [];
+    if (s.phase === 'place') return [{ ready: true }];
+    const fired = new Set(s.shots[s.turn]);
+    const out = [];
+    for (let i = 0; i < BS * BS; i++) if (!fired.has(i)) out.push({ fire: i });
+    return out;
+  };
+  // is cell x a hit on player p's fleet? -> ship index or -1
+  battleship.shipAt = (fleet, x) => (fleet ? fleet.findIndex((sh) => sh && sh.includes(x)) : -1);
+  battleship.move = function (s, idx, mv) {
+    if (s.result) return { error: 'Game is over' };
+    mv = mv || {};
+    if (s.phase === 'place') {
+      if (s.ready[idx]) return { error: 'You’re already ready' };
+      const ns = clone(s);
+      if (mv.shuffle) ns.fleets[idx] = bsFleet();
+      else if (mv.place) { if (!bsValidFleet(mv.place)) return { error: 'Those ships don’t fit there' }; ns.fleets[idx] = mv.place; }
+      else if (mv.ready) {
+        ns.ready[idx] = true;
+        if (ns.ready[0] && ns.ready[1]) { ns.phase = 'play'; ns.turn = 0; }
+      } else return { error: 'Arrange your fleet, then press Ready' };
+      return { state: ns };
+    }
+    if (s.turn !== idx) return { error: 'Not your turn' };
+    const x = mv.fire;
+    if (!Number.isInteger(x) || x < 0 || x >= BS * BS) return { error: 'Pick a square' };
+    if (s.shots[idx].includes(x)) return { error: 'You already fired there' };
+    const ns = clone(s), foe = ns.fleets[1 - idx];
+    ns.shots[idx].push(x);
+    const hit = battleship.shipAt(foe, x);
+    ns.last = { by: idx, cell: x, hit: hit >= 0, sunk: -1 };
+    if (hit >= 0) ns.hits[idx].push(x); // everyone hears whether a shot hit
+    if (hit >= 0 && foe[hit].every((c) => ns.shots[idx].includes(c))) {
+      ns.sunk[idx].push(hit);
+      ns.last.sunk = hit;
+      if (ns.sunk[idx].length === FLEET.length) ns.result = { winner: idx, reason: 'sank the whole fleet' };
+    }
+    ns.turn = 1 - idx;
+    return { state: ns };
+  };
+  // what player i may see: their own fleet, and of the other fleet only the ships they've sunk
+  battleship.view = function (s, i) {
+    if (!s || s.result || i < 0) return s;
+    const v = clone(s), o = 1 - i;
+    v.fleets[o] = v.fleets[o].map((sh, k) => (s.sunk[i].includes(k) ? sh : null));
+    return v;
+  };
+  Rules.battleship = battleship;
+
   if (typeof module !== 'undefined' && module.exports) module.exports = Rules;
   else root.Rules = Rules;
 })(typeof window !== 'undefined' ? window : globalThis);
