@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script src="net.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Odd One Out</title>
+<style>
+  :root{--pk-accent:#0f766e;--pk-soft:#ccfbf1;--pk-font:"Trebuchet MS",system-ui,sans-serif;color-scheme:light}
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{font-family:var(--pk-font);background:radial-gradient(circle at 15% 15%,#14b8a6 0,transparent 40%),radial-gradient(circle at 85% 85%,#6366f1 0,transparent 45%),linear-gradient(160deg,#0f172a,#1e3a8a);color:#1f2937;overflow:auto}
+  #app{min-height:100%;display:grid;place-items:start center;padding:24px 16px}
+  .oo-wrap{width:min(980px,100%);display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:16px;align-items:start}
+  @media (max-width:760px){.oo-wrap{grid-template-columns:1fr}}
+  .oo-main{background:#fff;border-radius:22px;padding:20px;box-shadow:0 18px 50px rgba(0,0,0,.35);display:grid;gap:14px}
+  .oo-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .oo-chip{padding:5px 12px;border-radius:999px;background:#ccfbf1;color:#0f766e;font-weight:800;font-size:13px}
+  .oo-timer{margin-left:auto;font:900 26px var(--pk-font);color:#0f766e}
+  .oo-timer.low{color:#dc2626}
+  .oo-word{border-radius:18px;padding:16px 18px;background:linear-gradient(135deg,#0f766e,#1e40af);color:#fff;display:flex;align-items:center;gap:14px}
+  .oo-word small{display:block;opacity:.8;font-size:13px}
+  .oo-word b{font-size:32px;letter-spacing:.04em}
+  .oo-word .hide{margin-left:auto;background:rgba(255,255,255,.18);border:0;color:#fff;border-radius:10px;padding:8px 10px;cursor:pointer;font:700 13px var(--pk-font)}
+  .oo-word.covered b{filter:blur(9px)}
+  .oo-say{font:800 22px var(--pk-font);text-align:center;color:#0f172a}
+  .oo-clues{display:grid;gap:8px}
+  .oo-clue{display:grid;grid-template-columns:12px 120px 1fr;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:#f1f5f9;font-weight:700}
+  .oo-clue i{width:12px;height:12px;border-radius:50%}
+  .oo-clue.turn{background:#fef9c3;outline:2px solid #eab308}
+  .oo-clue.gone{opacity:.45}
+  .oo-clue span.c{display:flex;gap:6px;flex-wrap:wrap}
+  .oo-clue span.c em{font-style:normal;background:#fff;border-radius:10px;padding:4px 10px;box-shadow:0 1px 0 rgba(0,0,0,.08)}
+  .oo-input{display:flex;gap:8px}
+  .oo-input input{flex:1;min-width:0;border:2px solid #0f766e;border-radius:14px;padding:12px 14px;font:700 18px var(--pk-font)}
+  .oo-votes{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+  .oo-vote{border:2px solid #e2e8f0;background:#fff;border-radius:16px;padding:12px;font:800 16px var(--pk-font);cursor:pointer;display:flex;align-items:center;gap:8px;justify-content:space-between}
+  .oo-vote:hover:not(:disabled){border-color:#0f766e}
+  .oo-vote.mine{border-color:#0f766e;background:#ccfbf1}
+  .oo-vote:disabled{cursor:default}
+  .oo-vote span{font-size:12px;color:#64748b}
+  .oo-big{text-align:center;font:900 26px/1.3 var(--pk-font);color:#0f172a}
+  .oo-big em{font-style:normal;color:#0f766e}
+  .oo-note{text-align:center;color:#64748b;margin:0}
+  .oo-warn{color:#b91c1c;font-weight:700;font-size:14px;min-height:18px}
+  .oo-side{background:rgba(255,255,255,.96);border-radius:22px;padding:16px;box-shadow:0 18px 50px rgba(0,0,0,.3)}
+  .oo-side h3{margin:0 0 10px;font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:#0f766e}
+  .oo-row{display:grid;grid-template-columns:22px 12px 1fr auto;align-items:center;gap:8px;padding:7px 4px;border-bottom:1px solid #f1f5f9;font-weight:700}
+  .oo-row i{width:12px;height:12px;border-radius:50%}
+  .oo-row.me{background:#f0fdfa;border-radius:10px}
+  .oo-row .gain{color:#16a34a;font-size:12px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="party-kit.js"></script>
+<script>
+// Odd One Out: everyone gets the same secret word except one player, who gets a similar one — and
+// nobody is told which they are. Take turns giving a clue, then vote for whoever seems to have a
+// different word. Catch them and everyone who voted for them scores; if they slip away, they score.
+// A caught odd one can still steal points by guessing everyone else's word.
+const PAIRS = [
+  ['Pizza', 'Burger'], ['Cat', 'Dog'], ['Beach', 'Pool'], ['Guitar', 'Violin'], ['Coffee', 'Tea'], ['Soccer', 'Basketball'],
+  ['Apple', 'Pear'], ['Train', 'Bus'], ['Winter', 'Autumn'], ['Moon', 'Sun'], ['Doctor', 'Nurse'], ['Pirate', 'Ninja'],
+  ['Castle', 'Palace'], ['Rain', 'Snow'], ['Piano', 'Keyboard'], ['Lion', 'Tiger'], ['Pencil', 'Pen'], ['Cake', 'Cookie'],
+  ['Shark', 'Dolphin'], ['Rocket', 'Airplane'], ['Library', 'Bookstore'], ['Volcano', 'Mountain'], ['Ice cream', 'Frozen yogurt'], ['Dragon', 'Dinosaur'],
+  ['Wizard', 'Witch'], ['Spoon', 'Fork'], ['Sneakers', 'Boots'], ['Hotel', 'Hospital'], ['Camping', 'Picnic'], ['Ghost', 'Zombie'],
+  ['Bicycle', 'Scooter'], ['Desert', 'Jungle'], ['Robot', 'Alien'], ['Banana', 'Mango'], ['Television', 'Computer'], ['Teacher', 'Principal'],
+  ['Birthday', 'Wedding'], ['Popcorn', 'Chips'], ['Eagle', 'Owl'], ['Pyramid', 'Skyscraper'], ['Superhero', 'Villain'], ['Chess', 'Checkers'],
+  ['Cheese', 'Butter'], ['River', 'Lake'], ['Spider', 'Ant'], ['Farm', 'Zoo'], ['Hammer', 'Screwdriver'], ['Penguin', 'Polar bear'],
+  ['Sandwich', 'Taco'], ['Clock', 'Watch'], ['Snowman', 'Scarecrow'], ['Candle', 'Flashlight'], ['Bee', 'Butterfly'], ['Ocean', 'Sky'],
+  ['Mermaid', 'Fairy'], ['Kangaroo', 'Rabbit'], ['Umbrella', 'Raincoat'], ['Painting', 'Photograph'], ['Football', 'Rugby'], ['Movie theater', 'Concert'],
+  ['Tent', 'Cabin'], ['Pumpkin', 'Watermelon'], ['Sword', 'Shield'], ['Treasure', 'Map'], ['Princess', 'Queen'], ['Hot dog', 'Sausage'],
+  ['Skateboard', 'Surfboard'], ['Jellyfish', 'Octopus'], ['Lemon', 'Orange'], ['Firefighter', 'Police officer'], ['Bathtub', 'Shower'], ['Video game', 'Board game'],
+  ['Honey', 'Syrup'], ['Lighthouse', 'Windmill'], ['Cactus', 'Palm tree'], ['Bridge', 'Tunnel'], ['Crown', 'Hat'], ['Mirror', 'Window'],
+  ['Pillow', 'Blanket'], ['Elephant', 'Hippo'], ['Phone', 'Tablet'], ['Snake', 'Worm'], ['Breakfast', 'Dinner'], ['Magician', 'Clown'],
+];
+const ROUNDS = 3, CLUE_MS = 30000, VOTE_MS = 35000, GUESS_MS = 25000, SHOW_MS = 9000;
+const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+// words travel lightly scrambled so nobody sees whose word is different just by glancing at the data
+const hideW = (w) => btoa(unescape(encodeURIComponent(w))).split('').reverse().join('');
+const showW = (x) => { try { return decodeURIComponent(escape(atob(String(x).split('').reverse().join('')))); } catch (e) { return '?'; } };
+const norm = (w) => String(w || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+const host = {
+  start(players, t) {
+    const n = players.length;
+    const s = { round: 0, rounds: Math.min(ROUNDS, n), used: [], oddUsed: [], score: players.map(() => 0), gain: players.map(() => 0), out: players.map(() => false) };
+    newRound(s, t);
+    return s;
+  },
+  action(s, i, a, t) {
+    if (!a || s.out[i]) return false;
+    if (s.phase === 'clue' && typeof a.clue === 'string' && s.order[s.turn] === i) {
+      const c = a.clue.trim().slice(0, 30);
+      if (!c || norm(c).includes(norm(showW(s.w[i])))) return false;
+      s.clues[i].push(c); advance(s, t); return true;
+    }
+    if (s.phase === 'vote' && typeof a.vote === 'number' && a.vote !== i && s.score[a.vote] !== undefined && !s.out[a.vote]) { s.votes[i] = a.vote; return true; }
+    if (s.phase === 'guess' && i === s.odd && typeof a.guess === 'string') { s.guess = a.guess.trim().slice(0, 30); finishRound(s, t); return true; }
+    return false;
+  },
+  gone(s, i) { s.out[i] = true; },
+  tick(s, t) {
+    if (s.phase === 'clue') {
+      if (s.out[s.order[s.turn]] || t >= s.ends) { if (!s.out[s.order[s.turn]]) s.clues[s.order[s.turn]].push('—'); advance(s, t); return true; }
+    } else if (s.phase === 'vote') {
+      const voters = s.score.map((_, k) => k).filter((k) => !s.out[k]);
+      if (t >= s.ends || voters.every((k) => s.votes[k] !== undefined)) { tally(s, t); return true; }
+    } else if (s.phase === 'guess') {
+      if (t >= s.ends || s.out[s.odd]) { finishRound(s, t); return true; }
+    } else if (s.phase === 'show' && t >= s.ends) {
+      if (s.round >= s.rounds || s.out.filter((o) => !o).length < 3) { s.phase = 'done'; return true; }
+      newRound(s, t); return true;
+    }
+    return false;
+  },
+};
+function newRound(s, t) {
+  const n = s.score.length;
+  let p; do { p = Math.floor(Math.random() * PAIRS.length); } while (s.used.includes(p) && s.used.length < PAIRS.length);
+  s.used.push(p);
+  const flip = Math.random() < 0.5, [major, minor] = flip ? [PAIRS[p][1], PAIRS[p][0]] : PAIRS[p];
+  const cands = s.score.map((_, k) => k).filter((k) => !s.out[k] && !s.oddUsed.includes(k));
+  const pool = cands.length ? cands : s.score.map((_, k) => k).filter((k) => !s.out[k]);
+  s.odd = pool[Math.floor(Math.random() * pool.length)];
+  s.oddUsed.push(s.odd);
+  s.w = s.score.map((_, k) => hideW(k === s.odd ? minor : major));
+  s.round++;
+  s.order = shuffle(s.score.map((_, k) => k).filter((k) => !s.out[k]));
+  s.clueRounds = n <= 5 ? 2 : 1;
+  s.lap = 0; s.turn = 0; s.clues = s.score.map(() => []); s.votes = {}; s.guess = null; s.caught = null; s.gain = s.score.map(() => 0);
+  s.phase = 'clue'; s.ends = t + CLUE_MS;
+}
+function advance(s, t) {
+  s.turn++;
+  if (s.turn >= s.order.length) { s.turn = 0; s.lap++; }
+  while (s.lap < s.clueRounds && s.out[s.order[s.turn]]) { s.turn++; if (s.turn >= s.order.length) { s.turn = 0; s.lap++; } }
+  if (s.lap >= s.clueRounds) { s.phase = 'vote'; s.ends = t + VOTE_MS; return; }
+  s.ends = t + CLUE_MS;
+}
+function tally(s, t) {
+  const count = {};
+  Object.values(s.votes).forEach((v) => { count[v] = (count[v] || 0) + 1; });
+  const top = Math.max(0, ...Object.values(count)), leaders = Object.keys(count).filter((k) => count[k] === top).map(Number);
+  s.count = count;
+  s.picked = leaders.length === 1 ? leaders[0] : -1; // a tie picks nobody
+  s.caught = s.picked === s.odd;
+  if (s.caught && !s.out[s.odd]) { s.phase = 'guess'; s.ends = t + GUESS_MS; } else finishRound(s, t);
+}
+function finishRound(s, t) {
+  const major = showW(s.w[s.odd === 0 ? 1 : 0]);
+  s.score.forEach((_, k) => { s.gain[k] = 0; });
+  if (s.caught) {
+    Object.entries(s.votes).forEach(([v, target]) => { if (target === s.odd) s.gain[+v] += 100; });
+    s.guessRight = !!s.guess && norm(s.guess) === norm(major);
+    if (s.guessRight) s.gain[s.odd] += 200;
+  } else {
+    s.gain[s.odd] += 300;
+    Object.entries(s.votes).forEach(([v, target]) => { if (target === s.odd) s.gain[+v] += 100; });
+  }
+  s.gain.forEach((g, k) => { s.score[k] += g; });
+  s.phase = 'show'; s.ends = t + SHOW_MS;
+}
+
+let shown = '', covered = false, draft = '';
+function render(v, el) {
+  const s = v.state, esc = PartyKit.esc;
+  const key = `${v.id}:${s.round}:${s.phase}:${s.turn}:${s.lap}:${v.v}`;
+  if (v.soft && key === shown) return timer(v, s);
+  // keep what you were typing when the screen refreshes
+  const inp = el.querySelector('#clueIn, #guessIn');
+  if (inp) draft = inp.value;
+  const hadFocus = inp && document.activeElement === inp;
+  shown = key;
+  const P = v.players, me = v.me, mine = me >= 0 ? showW(s.w[me]) : null;
+  const ranked = P.map((p, i) => ({ p, i, sc: s.score[i] })).sort((a, b) => b.sc - a.sc);
+  const side = `<div class="oo-side"><h3>Scores</h3>${ranked.map((r, k) => `<div class="oo-row${r.i === me ? ' me' : ''}"><span>${k + 1}</span><i style="background:${esc(r.p.color)}"></i><span>${esc(r.p.name)}${r.p.gone ? ' 👋' : ''}</span>
+    <span>${r.sc}${(s.phase === 'show' || s.phase === 'done') && s.gain[r.i] ? ` <span class="gain">+${s.gain[r.i]}</span>` : ''}</span></div>`).join('')}</div>`;
+  const head = `<div class="oo-top"><span class="oo-chip">Round ${s.round} of ${s.rounds}</span><span class="oo-chip">${{ clue: 'Clues', vote: 'Vote', guess: 'Last chance', show: 'Reveal', done: 'Game over' }[s.phase]}</span><span class="oo-timer" id="t"></span></div>`;
+  const wordCard = me >= 0 && s.phase !== 'done' ? `<div class="oo-word${covered ? ' covered' : ''}"><div><small>Your secret word</small><b>${esc(mine)}</b><small>One player has a different word. It might be you!</small></div><button class="hide" id="cover">${covered ? 'Show' : 'Hide'}</button></div>` : '';
+  const clueList = `<div class="oo-clues">${(s.order || []).map((k, pos) => `<div class="oo-clue${s.phase === 'clue' && pos === s.turn ? ' turn' : ''}${P[k].gone ? ' gone' : ''}"><i style="background:${esc(P[k].color)}"></i><span>${esc(P[k].name)}${k === me ? ' (you)' : ''}</span>
+    <span class="c">${s.clues[k].map((c) => `<em>${esc(c)}</em>`).join('') || (s.phase === 'clue' && pos === s.turn ? '<small>thinking…</small>' : '')}</span></div>`).join('')}</div>`;
+  let body = '';
+  if (s.phase === 'clue') {
+    const who = s.order[s.turn];
+    body = who === me
+      ? `<div class="oo-say">Your turn! Give a one- or two-word clue</div><div class="oo-input"><input id="clueIn" maxlength="30" placeholder="A clue about your word (not the word itself)" autocomplete="off"><button class="pk-btn" id="clueGo">Send</button></div><div class="oo-warn" id="warn"></div>`
+      : `<div class="oo-say">${esc(P[who].name)} is giving a clue…</div>`;
+  } else if (s.phase === 'vote') {
+    const myVote = me >= 0 ? s.votes[me] : undefined;
+    body = `<div class="oo-say">Who has a different word?</div><div class="oo-votes">${P.map((p, k) => k === me || p.gone ? '' : `<button class="oo-vote${myVote === k ? ' mine' : ''}" data-v="${k}" ${me < 0 ? 'disabled' : ''}>${esc(p.name)}<span>${myVote === k ? 'your vote' : ''}</span></button>`).join('')}</div>
+      <p class="oo-note">${Object.keys(s.votes).length} of ${P.filter((p) => !p.gone).length} have voted. You can change your vote until time runs out.</p>`;
+  } else if (s.phase === 'guess') {
+    body = me === s.odd
+      ? `<div class="oo-big">You were caught! 😱</div><div class="oo-say">Guess everyone else’s word for 200 points</div><div class="oo-input"><input id="guessIn" maxlength="30" placeholder="Their word was…" autocomplete="off"><button class="pk-btn" id="guessGo">Guess</button></div>`
+      : `<div class="oo-big"><em>${esc(P[s.odd].name)}</em> was the odd one out!</div><p class="oo-note">They get one guess at your word…</p>`;
+  } else if (s.phase === 'show') {
+    const major = showW(s.w[s.odd === 0 ? 1 : 0]), minor = showW(s.w[s.odd]);
+    const tallyHtml = `<p class="oo-note">${P.map((p, k) => (s.count && s.count[k] ? `${esc(p.name)}: ${s.count[k]} vote${s.count[k] > 1 ? 's' : ''}` : null)).filter(Boolean).join(' · ') || 'Nobody voted'}</p>`;
+    body = `<div class="oo-big">${s.caught ? `Caught! <em>${esc(P[s.odd].name)}</em> was the odd one out` : `<em>${esc(P[s.odd].name)}</em> got away with it!`}</div>
+      <p class="oo-note" style="font-size:18px">Everyone else had <b>${esc(major)}</b>; ${esc(P[s.odd].name)} had <b>${esc(minor)}</b>.</p>
+      ${s.caught && s.guess !== null ? `<p class="oo-note">${esc(P[s.odd].name)} guessed “${esc(s.guess)}” — ${s.guessRight ? 'right! +200' : 'wrong'}</p>` : ''}
+      ${!s.caught && s.picked >= 0 ? `<p class="oo-note">The vote picked ${esc(P[s.picked].name)}.</p>` : !s.caught ? '<p class="oo-note">The vote was a tie, so nobody was caught.</p>' : ''}${tallyHtml}`;
+  } else if (s.phase === 'done') {
+    const win = ranked[0];
+    body = `<div class="oo-big">🏆 ${win.i === me ? 'You win!' : `${esc(win.p.name)} wins!`}</div><p class="oo-note">${ranked.map((r) => `${esc(r.p.name)} ${r.sc}`).join(' · ')}</p>
+      <div class="pk-row" style="justify-content:center">${v.isHost ? '<button class="pk-btn" id="again">🔁 Back to the lobby</button>' : '<span class="pk-tag">The host can start another game.</span>'}<button class="pk-btn pk-ghost" id="leave">Leave server</button></div>`;
+  }
+  if (me < 0 && s.phase !== 'done') body = `<p class="oo-note">You’re watching this game. Join the next one from the lobby!</p>` + body;
+  el.innerHTML = `<div class="oo-wrap"><div class="oo-main">${head}${wordCard}${body}${s.phase === 'clue' || s.phase === 'vote' ? clueList : ''}</div>${side}</div>`;
+  const cv = el.querySelector('#cover'); if (cv) cv.onclick = () => { covered = !covered; shown = ''; render(v, el); };
+  const ci = el.querySelector('#clueIn'), cg = el.querySelector('#clueGo');
+  if (ci) {
+    ci.value = draft; if (hadFocus || !draft) ci.focus();
+    const go = () => {
+      const c = ci.value.trim();
+      if (!c) return;
+      if (norm(c).includes(norm(mine))) { el.querySelector('#warn').textContent = 'You can’t use your secret word in the clue!'; return; }
+      draft = ''; v.send({ clue: c }); cg.disabled = true; ci.disabled = true;
+    };
+    cg.onclick = go; ci.onkeydown = (e) => { if (e.key === 'Enter') go(); };
+  }
+  const gi = el.querySelector('#guessIn'), gg = el.querySelector('#guessGo');
+  if (gi) { gi.value = draft; gi.focus(); const go = () => { if (!gi.value.trim()) return; draft = ''; v.send({ guess: gi.value.trim() }); gg.disabled = true; gi.disabled = true; }; gg.onclick = go; gi.onkeydown = (e) => { if (e.key === 'Enter') go(); }; }
+  el.querySelectorAll('.oo-vote').forEach((b) => b.onclick = () => { v.send({ vote: +b.dataset.v }); el.querySelectorAll('.oo-vote').forEach((x) => x.classList.toggle('mine', x === b)); });
+  const ag = el.querySelector('#again'); if (ag) ag.onclick = v.again;
+  const lv = el.querySelector('#leave'); if (lv) lv.onclick = v.leave;
+  timer(v, s);
+}
+function timer(v, s) {
+  const t = document.getElementById('t');
+  if (!t) return;
+  const left = s.phase === 'done' ? 0 : v.left(s.ends);
+  t.textContent = s.phase === 'done' || s.phase === 'show' ? '' : left;
+  t.classList.toggle('low', left <= 5);
+}
+
+PartyKit.start({
+  code: 'oo', title: 'Odd One Out', emoji: '🕵️', min: 3, max: 10, servers: 6, el: document.getElementById('app'),
+  tagline: 'Everyone gets the same secret word, except one player. Find the odd one out!',
+  rules: '<b>How to play:</b> everyone sees a secret word, but one player’s word is a little different, and nobody is told whether it’s theirs. Take turns giving a short clue (without saying the word). Then vote for who you think has the different word. Catch them: everyone who voted for them gets 100. If they get away, they get 300. A caught odd one can still win 200 by guessing everyone else’s word. Three rounds, a different odd one each time.',
+  host, render,
+});
+</script>
+</body>
+</html>

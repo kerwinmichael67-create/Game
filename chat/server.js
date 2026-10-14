@@ -455,6 +455,21 @@ const authed = {
     toRoom(room, { t: 'msgEdit', room: room.id, msg: room.messages[i] });
     save();
   },
+  // a game's saved data (a Blockcraft world): one small text file per key, up to 512 KB
+  nrkv(ws, u, m) {
+    const key = typeof m.key === 'string' ? m.key : '', id = typeof m.id === 'number' ? m.id : 0;
+    if (!NR_NAME.test(key)) return send(ws, { t: 'nrkv', id, err: 'bad key' });
+    const file = path.join(DATA_DIR, 'game-saves', key + '.txt');
+    if (m.op === 'get') {
+      fs.readFile(file, 'utf8', (err, val) => send(ws, { t: 'nrkv', id, val: err ? null : val }));
+    } else if (m.op === 'set' && typeof m.val === 'string' && m.val.length <= 512 * 1024) {
+      fs.mkdirSync(path.dirname(file), { recursive: true });
+      fs.writeFile(file + '.tmp', m.val, (err) => {
+        if (!err) fs.rename(file + '.tmp', file, () => send(ws, { t: 'nrkv', id, ok: true }));
+        else send(ws, { t: 'nrkv', id, err: 'save failed' });
+      });
+    }
+  },
   nr(ws, u, m) {
     const name = typeof m.room === 'string' ? m.room : '', peer = typeof m.peer === 'string' ? m.peer : '';
     if (!NR_NAME.test(name) || !NR_PEER.test(peer)) return;

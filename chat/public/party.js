@@ -20,6 +20,12 @@
   };
   // Games that run full-window in their own frame, with their own servers (games/*.html + games/net.js)
   const FRAME_GAMES = {
+    blockcraft: { name: 'Blockcraft', emoji: '⛏️', code: 'mc', frame: 'games/blockcraft.html', color: 'linear-gradient(135deg,#4d7c0f,#78350f)', players: 'Online worlds',
+      desc: 'Build and mine in a blocky world with everyone on your server. Worlds are saved.' },
+    trivia: { name: 'Trivia Rush', emoji: '🧠', code: 'tr', frame: 'games/trivia.html', color: 'linear-gradient(135deg,#7c3aed,#db2777)', players: '2–12 players',
+      desc: 'Party quiz: ten questions, faster right answers score more.' },
+    odd: { name: 'Odd One Out', emoji: '🕵️', code: 'oo', frame: 'games/oddoneout.html', color: 'linear-gradient(135deg,#0f766e,#1e3a8a)', players: '3–10 players',
+      desc: 'Everyone gets the same secret word except one. Give clues, then vote out the odd one.' },
     lastStand: { name: 'Tower Defense: Last Stand', emoji: '🏰', code: 'td', frame: 'games/last-stand.html', color: 'linear-gradient(135deg,#1e3a8a,#0f766e)', players: 'Co-op servers',
       desc: '3D tower defense. Build together on a shared server; Join drops you on a random one.' },
     crop: { name: 'Bumper Crop', emoji: '🌱', code: 'bc', frame: 'games/bumper-crop.html', color: 'linear-gradient(135deg,#65a30d,#ca8a04)', players: '4 farmers per server',

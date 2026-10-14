@@ -151,6 +151,8 @@
     },
   });
   window.ChatClaude = bridge;
+  // a game's saved data, kept by the chat (the website's server, or claude.ai's storage)
+  window.ChatKV = Object.freeze({ get: (key) => call('kv.get', { key }, 20000), set: (key, val) => call('kv.set', { key, val }, 20000) });
   try { Object.defineProperty(window, 'claude', { value: bridge, configurable: true, writable: true }); } catch (e) {
     try { window.claude = bridge; } catch (e2) { /* the page's own stays; the games use window.ChatClaude */ }
   }

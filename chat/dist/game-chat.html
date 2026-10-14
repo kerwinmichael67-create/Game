@@ -4012,6 +4012,12 @@ else globalThis.Realtime = Realtime;
   };
   // Games that run full-window in their own frame, with their own servers (games/*.html + games/net.js)
   const FRAME_GAMES = {
+    blockcraft: { name: 'Blockcraft', emoji: '⛏️', code: 'mc', frame: 'games/blockcraft.html', color: 'linear-gradient(135deg,#4d7c0f,#78350f)', players: 'Online worlds',
+      desc: 'Build and mine in a blocky world with everyone on your server. Worlds are saved.' },
+    trivia: { name: 'Trivia Rush', emoji: '🧠', code: 'tr', frame: 'games/trivia.html', color: 'linear-gradient(135deg,#7c3aed,#db2777)', players: '2–12 players',
+      desc: 'Party quiz: ten questions, faster right answers score more.' },
+    odd: { name: 'Odd One Out', emoji: '🕵️', code: 'oo', frame: 'games/oddoneout.html', color: 'linear-gradient(135deg,#0f766e,#1e3a8a)', players: '3–10 players',
+      desc: 'Everyone gets the same secret word except one. Give clues, then vote out the odd one.' },
     lastStand: { name: 'Tower Defense: Last Stand', emoji: '🏰', code: 'td', frame: 'games/last-stand.html', color: 'linear-gradient(135deg,#1e3a8a,#0f766e)', players: 'Co-op servers',
       desc: '3D tower defense. Build together on a shared server; Join drops you on a random one.' },
     crop: { name: 'Bumper Crop', emoji: '🌱', code: 'bc', frame: 'games/bumper-crop.html', color: 'linear-gradient(135deg,#65a30d,#ca8a04)', players: '4 farmers per server',
@@ -4390,6 +4396,9 @@ else globalThis.Realtime = Realtime;
   // ---------------------------------------------------------------- website: rooms over the chat socket
   function wsRooms(send, myId) {
     const peer = rid(14);
+    const kvWait = new Map();
+    let kvN = 0;
+    const kvCall = (m) => new Promise((res, rej) => { const id = ++kvN; kvWait.set(id, { res, rej }); send(Object.assign({ t: 'nrkv', id }, m)); setTimeout(() => { if (kvWait.delete(id)) rej({ code: 'timeout', message: 'no answer' }); }, 15000); });
     const rooms = new Map(); // name -> state
     let online = true;
     function freezePeer(p, prevAt) {
@@ -4461,6 +4470,10 @@ else globalThis.Realtime = Realtime;
         }
       },
       dropped() { online = false; for (const R of rooms.values()) for (const fn of R.connH) fn(false); },
+      // a game's saved data, kept by the chat server
+      kvGet: (key) => kvCall({ op: 'get', key }),
+      kvSet: (key, val) => kvCall({ op: 'set', key, val }),
+      kvReply(m) { const p = kvWait.get(m.id); if (!p) return; kvWait.delete(m.id); if (m.err) p.rej({ code: 'failed', message: m.err }); else p.res(m.val === undefined ? true : m.val); },
     };
   }
 
@@ -4501,6 +4514,7 @@ else globalThis.Realtime = Realtime;
     }
     const room = (a) => { const R = S.rooms.get(a && a.rid); if (!R) throw { code: 'invalid_argument', message: 'no such room' }; return R; };
     const dbPath = (p) => `games/${code}/${String(p).replace(/^\/+/, '')}`;
+    const kvKey = (k) => { const s = String(k || 'save').toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 40) || 'save'; return `${code}.${s}`; };
     function query(a) {
       let q = backend.db.collection(dbPath(a.path));
       for (const [op, x, y, z] of a.q || []) {
@@ -4545,6 +4559,21 @@ else globalThis.Realtime = Realtime;
       'db.set': (a) => backend.db.doc(dbPath(a.path)).set(a.data),
       'db.update': (a) => backend.db.doc(dbPath(a.path)).update(a.data),
       'db.delete': (a) => backend.db.doc(dbPath(a.path)).delete(),
+      'kv.get': async (a) => {
+        const key = kvKey(a && a.key);
+        if (!(await connected())) return null;
+        if (backend.kv) return backend.kv.get(key);
+        if (backend.db) { const d = await backend.db.doc(dbPath('kv/' + key)).get(); return d.exists ? (d.data() || {}).v || null : null; }
+        return null;
+      },
+      'kv.set': async (a) => {
+        const key = kvKey(a && a.key), val = String((a && a.val) || '');
+        if (val.length > 512 * 1024) throw { code: 'too_big', message: 'save is too big' };
+        if (!(await connected())) throw { code: 'unavailable', message: 'no saves here' };
+        if (backend.kv) return backend.kv.set(key, val);
+        if (backend.db) { await backend.db.doc(dbPath('kv/' + key)).set({ v: val, at: Date.now() }); return true; }
+        throw { code: 'unavailable', message: 'no saves here' };
+      },
       'db.sub': (a) => {
         const id = S.next++;
         const onErr = (e) => post({ sub: 'd' + id, data: { type: 'err', e: { code: e && e.code, message: e && e.message } } });
@@ -4596,9 +4625,11 @@ else globalThis.Realtime = Realtime;
           canEdit: async () => true,
         },
         db: null,
+        kv: { get: (key) => ws.kvGet(key), set: (key, val) => ws.kvSet(key, val) },
       };
     },
     socketEvent(m) { if (ws) ws.event(m); },
+    socketKv(m) { if (ws) ws.kvReply(m); },
     socketUp() { if (ws) ws.reconnected(); },
     socketDown() { if (ws) ws.dropped(); },
     // the chat page's own game tables (tables.js): a live room under the "tb." prefix, or null when there are none here
@@ -6981,6 +7012,7 @@ else globalThis.Realtime = Realtime;
     gameStart(m) { closeModal(); GameDock.start(m); renderPeople(); },
     parties(m) { PartyUI.list(m.list); renderPeople(); updateGamesBtn(); },
     nr(m) { GameNet.socketEvent(m); },
+    nrkv(m) { GameNet.socketKv(m); },
     party(m) { if (m.party && !$('#modal').classList.contains('hidden') && PartyUI.isOpen()) closeModal(); PartyUI.state(m.party); },
     gameState(m) { GameDock.state(m); },
     gameEvent(m) { GameDock.event(m); },

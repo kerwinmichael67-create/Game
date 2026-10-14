@@ -11,6 +11,9 @@
   // ---------------------------------------------------------------- website: rooms over the chat socket
   function wsRooms(send, myId) {
     const peer = rid(14);
+    const kvWait = new Map();
+    let kvN = 0;
+    const kvCall = (m) => new Promise((res, rej) => { const id = ++kvN; kvWait.set(id, { res, rej }); send(Object.assign({ t: 'nrkv', id }, m)); setTimeout(() => { if (kvWait.delete(id)) rej({ code: 'timeout', message: 'no answer' }); }, 15000); });
     const rooms = new Map(); // name -> state
     let online = true;
     function freezePeer(p, prevAt) {
@@ -82,6 +85,10 @@
         }
       },
       dropped() { online = false; for (const R of rooms.values()) for (const fn of R.connH) fn(false); },
+      // a game's saved data, kept by the chat server
+      kvGet: (key) => kvCall({ op: 'get', key }),
+      kvSet: (key, val) => kvCall({ op: 'set', key, val }),
+      kvReply(m) { const p = kvWait.get(m.id); if (!p) return; kvWait.delete(m.id); if (m.err) p.rej({ code: 'failed', message: m.err }); else p.res(m.val === undefined ? true : m.val); },
     };
   }
 
@@ -122,6 +129,7 @@
     }
     const room = (a) => { const R = S.rooms.get(a && a.rid); if (!R) throw { code: 'invalid_argument', message: 'no such room' }; return R; };
     const dbPath = (p) => `games/${code}/${String(p).replace(/^\/+/, '')}`;
+    const kvKey = (k) => { const s = String(k || 'save').toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 40) || 'save'; return `${code}.${s}`; };
     function query(a) {
       let q = backend.db.collection(dbPath(a.path));
       for (const [op, x, y, z] of a.q || []) {
@@ -166,6 +174,21 @@
       'db.set': (a) => backend.db.doc(dbPath(a.path)).set(a.data),
       'db.update': (a) => backend.db.doc(dbPath(a.path)).update(a.data),
       'db.delete': (a) => backend.db.doc(dbPath(a.path)).delete(),
+      'kv.get': async (a) => {
+        const key = kvKey(a && a.key);
+        if (!(await connected())) return null;
+        if (backend.kv) return backend.kv.get(key);
+        if (backend.db) { const d = await backend.db.doc(dbPath('kv/' + key)).get(); return d.exists ? (d.data() || {}).v || null : null; }
+        return null;
+      },
+      'kv.set': async (a) => {
+        const key = kvKey(a && a.key), val = String((a && a.val) || '');
+        if (val.length > 512 * 1024) throw { code: 'too_big', message: 'save is too big' };
+        if (!(await connected())) throw { code: 'unavailable', message: 'no saves here' };
+        if (backend.kv) return backend.kv.set(key, val);
+        if (backend.db) { await backend.db.doc(dbPath('kv/' + key)).set({ v: val, at: Date.now() }); return true; }
+        throw { code: 'unavailable', message: 'no saves here' };
+      },
       'db.sub': (a) => {
         const id = S.next++;
         const onErr = (e) => post({ sub: 'd' + id, data: { type: 'err', e: { code: e && e.code, message: e && e.message } } });
@@ -217,9 +240,11 @@
           canEdit: async () => true,
         },
         db: null,
+        kv: { get: (key) => ws.kvGet(key), set: (key, val) => ws.kvSet(key, val) },
       };
     },
     socketEvent(m) { if (ws) ws.event(m); },
+    socketKv(m) { if (ws) ws.kvReply(m); },
     socketUp() { if (ws) ws.reconnected(); },
     socketDown() { if (ws) ws.dropped(); },
     // the chat page's own game tables (tables.js): a live room under the "tb." prefix, or null when there are none here

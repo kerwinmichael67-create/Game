@@ -238,6 +238,7 @@
     gameStart(m) { closeModal(); GameDock.start(m); renderPeople(); },
     parties(m) { PartyUI.list(m.list); renderPeople(); updateGamesBtn(); },
     nr(m) { GameNet.socketEvent(m); },
+    nrkv(m) { GameNet.socketKv(m); },
     party(m) { if (m.party && !$('#modal').classList.contains('hidden') && PartyUI.isOpen()) closeModal(); PartyUI.state(m.party); },
     gameState(m) { GameDock.state(m); },
     gameEvent(m) { GameDock.event(m); },
