@@ -2196,6 +2196,8 @@ async function initNet() {
   NET.room = room || null; NET.db = db || null; NET.user = user || null;
   if (user) { try { NET.uid = await user.id(); } catch (e) { NET.uid = null; } }
   NET.ready = true;
+  // inside the chat's 🕹️ Games the game is online first: start looking for an opponent straight away
+  if (NET.room && window.ChatGame) setTimeout(() => { if (MM.state === 'idle' && $('#hud').hidden && !NET.dead) startSearch(); }, 1200);
   if (NET.room) {
     NET.room.onPeers(onLobbyPeers, () => { NET.dead = true; renderNet(); });
     NET.room.onConnection((c) => { NET.connected = c; renderNet(); }, () => { NET.dead = true; renderNet(); });

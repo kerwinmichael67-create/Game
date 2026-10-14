@@ -26,13 +26,18 @@ function addFood(s, x, y) {
   s.food.push([x, y, Math.random() < 0.1 ? 1 : 0]);
 }
 
+// Up to 4 snakes (2 in a normal match; game tables can seat more).
+const SNAKE_STARTS = [[6, 8, 'R'], [33, 19, 'L'], [33, 8, 'L'], [6, 19, 'R']];
 const snake = {
   tickMs: 100,
-  init() {
-    const s = { W: 40, H: 28, ticks: 900, snakes: [makeSnake(6, 8, 'R'), makeSnake(33, 19, 'L')], food: [] };
-    for (let i = 0; i < 6; i++) addFood(s);
+  init(n) {
+    n = Math.max(2, Math.min(4, n | 0 || 2));
+    const s = { W: 40, H: 28, ticks: 900, snakes: SNAKE_STARTS.slice(0, n).map(([x, y, d]) => makeSnake(x, y, d)), food: [] };
+    for (let i = 0; i < 4 + 2 * n; i++) addFood(s);
     return s;
   },
+  // a player who left a table: their snake is gone for good
+  remove(s, i) { const sn = s.snakes[i]; if (sn) { sn.alive = false; sn.gone = true; sn.body = []; sn.queue = []; } },
   input(s, i, inp) {
     const sn = s.snakes[i], d = inp && inp.dir;
     if (!sn.alive || !DIRS[d]) return;
@@ -44,7 +49,7 @@ const snake = {
     s.ticks--;
     for (const sn of s.snakes) {
       if (!sn.alive) {
-        if (--sn.respawn <= 0) respawnSnake(s, sn);
+        if (!sn.gone && --sn.respawn <= 0) respawnSnake(s, sn);
         continue;
       }
       if (sn.queue.length) sn.dir = sn.queue.shift();
@@ -73,10 +78,13 @@ const snake = {
         body.forEach((p, k) => { if (k % 3 === 0 && p[0] >= 0 && p[1] >= 0 && p[0] < s.W && p[1] < s.H) addFood(s, p[0], p[1]); });
       } else if (sn.alive) sn.best = Math.max(sn.best, sn.body.length);
     });
-    if (s.ticks > 0) return null;
-    const [a, b] = s.snakes.map((sn) => sn.body.length);
-    if (a === b) return { winner: -1, reason: `tied at length ${a}` };
-    return { winner: a > b ? 0 : 1, reason: `longest snake (${Math.max(a, b)} vs ${Math.min(a, b)})` };
+    const left = s.snakes.filter((sn) => !sn.gone);
+    if (s.ticks > 0 && left.length > 1) return null;
+    if (left.length === 1) return { winner: s.snakes.indexOf(left[0]), reason: 'last snake on the board' };
+    const lens = s.snakes.map((sn) => (sn.gone ? -1 : sn.body.length)), top = Math.max(...lens);
+    const sorted = lens.filter((l) => l >= 0).sort((x, y) => y - x);
+    if (lens.filter((l) => l === top).length > 1) return { winner: -1, reason: `tied at length ${top}` };
+    return { winner: lens.indexOf(top), reason: `longest snake (${sorted.join(' vs ')})` };
   },
 };
 function respawnSnake(s, sn) {
@@ -298,22 +306,26 @@ function updateProjectiles(s) {
 // The grid travels as a string ('0' empty, '1'/'2' trails) so it stays small enough to stream.
 function tronRound(s) {
   s.grid = '0'.repeat(s.W * s.H);
-  s.p = [
-    { x: 10, y: Math.floor(s.H / 2), dir: 'R', queue: [], alive: true },
-    { x: s.W - 11, y: Math.floor(s.H / 2), dir: 'L', queue: [], alive: true },
-  ];
-  s.p.forEach((p, i) => { s.grid = setCell(s.grid, p.y * s.W + p.x, String(i + 1)); });
+  const n = s.wins.length, mid = Math.floor(s.H / 2);
+  const starts = n <= 2
+    ? [[10, mid, 'R'], [s.W - 11, mid, 'L']]
+    : [[10, 8, 'R'], [s.W - 11, s.H - 9, 'L'], [s.W - 11, 8, 'L'], [10, s.H - 9, 'R']];
+  s.p = starts.slice(0, n).map(([x, y, dir], i) => ({ x, y, dir, queue: [], alive: !(s.gone && s.gone[i]) }));
+  s.p.forEach((p, i) => { if (p.alive) s.grid = setCell(s.grid, p.y * s.W + p.x, String(i + 1)); });
   s.pause = 45;
-  s.msg = `ROUND ${s.wins[0] + s.wins[1] + s.draws + 1}`;
+  s.msg = `ROUND ${s.wins.reduce((a, b) => a + b, 0) + s.draws + 1}`;
 }
 const setCell = (g, i, ch) => g.slice(0, i) + ch + g.slice(i + 1);
 const tron = {
   tickMs: 70,
-  init() {
-    const s = { W: 56, H: 36, wins: [0, 0], draws: 0, to: 3, grid: '', p: [], pause: 0, msg: '', crash: null };
+  init(n) {
+    n = Math.max(2, Math.min(4, n | 0 || 2));
+    const s = { W: 56, H: 36, wins: new Array(n).fill(0), draws: 0, to: 3, grid: '', p: [], pause: 0, msg: '', crash: null };
     tronRound(s);
     return s;
   },
+  // a player who left a table sits out every round from now on
+  remove(s, i) { s.gone = s.gone || []; s.gone[i] = true; if (s.p[i]) s.p[i].alive = false; },
   input(s, i, inp) {
     const p = s.p[i], d = inp && inp.dir;
     if (!p.alive || !DIRS[d]) return;
@@ -329,28 +341,34 @@ const tron = {
         s.msg = '';
         if (s.crash) {
           s.crash = null;
-          if (s.wins[0] >= s.to || s.wins[1] >= s.to) return { winner: s.wins[0] > s.wins[1] ? 0 : 1, reason: `${Math.max(...s.wins)} - ${Math.min(...s.wins)} in rounds` };
-          if (s.wins[0] + s.wins[1] + s.draws >= 9) return { winner: s.wins[0] === s.wins[1] ? -1 : s.wins[0] > s.wins[1] ? 0 : 1, reason: `${s.wins[0]} - ${s.wins[1]} in rounds` };
+          const score = s.wins.slice().sort((a, b) => b - a).join(' - '), top = Math.max(...s.wins);
+          const inPlay = s.wins.filter((_, i) => !(s.gone && s.gone[i])).length;
+          if (inPlay <= 1) { const w = s.wins.findIndex((_, i) => !(s.gone && s.gone[i])); return { winner: w, reason: 'everyone else left' }; }
+          if (top >= s.to) return { winner: s.wins.indexOf(top), reason: `${score} in rounds` };
+          if (s.wins.reduce((a, b) => a + b, 0) + s.draws >= 9) return { winner: s.wins.filter((w) => w === top).length > 1 ? -1 : s.wins.indexOf(top), reason: `${score} in rounds` };
           tronRound(s);
         }
       }
       return null;
     }
     const next = s.p.map((p) => {
+      if (!p.alive) return null;
       if (p.queue.length) p.dir = p.queue.shift();
       const [dx, dy] = DIRS[p.dir];
       return { x: p.x + dx, y: p.y + dy };
     });
-    const dead = next.map((n) => n.x < 0 || n.y < 0 || n.x >= s.W || n.y >= s.H || s.grid[n.y * s.W + n.x] !== '0');
-    if (next[0].x === next[1].x && next[0].y === next[1].y) dead[0] = dead[1] = true; // head-on
+    const dead = next.map((n) => !!n && (n.x < 0 || n.y < 0 || n.x >= s.W || n.y >= s.H || s.grid[n.y * s.W + n.x] !== '0'));
+    next.forEach((a, i) => next.forEach((b, j) => { if (a && b && i < j && a.x === b.x && a.y === b.y) dead[i] = dead[j] = true; })); // head-on
     s.p.forEach((p, i) => {
+      if (!next[i]) return;
       if (dead[i]) { p.alive = false; return; }
       p.x = next[i].x; p.y = next[i].y;
       s.grid = setCell(s.grid, p.y * s.W + p.x, String(i + 1));
     });
-    if (dead[0] || dead[1]) {
-      if (dead[0] && dead[1]) { s.draws++; s.msg = 'BOTH CRASHED'; }
-      else { const w = dead[0] ? 1 : 0; s.wins[w]++; s.msg = `P${w + 1} SCORES`; }
+    const alive = s.p.filter((p) => p.alive);
+    if (alive.length <= 1 && dead.some(Boolean)) {
+      if (!alive.length) { s.draws++; s.msg = s.p.length > 2 ? 'EVERYONE CRASHED' : 'BOTH CRASHED'; }
+      else { const w = s.p.indexOf(alive[0]); s.wins[w]++; s.msg = `P${w + 1} SCORES`; }
       s.crash = true;
       s.pause = 40;
     }

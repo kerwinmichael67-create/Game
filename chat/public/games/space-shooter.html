@@ -66,6 +66,8 @@ const Coop=(()=>{
   const r1=v=>Math.round(v*10)/10,r0=Math.round;
   let lobbyP=null;
   if(window.claude){btn.hidden=false}
+  // inside the chat's 🕹️ Games the co-op server list opens first
+  if(window.claude&&window.ChatGame)setTimeout(()=>{if(!C.srv){panel.hidden=false;render();lobby().then(r=>{if(!r)C.status="Co-op isn't available here.";render()})}},300);
   function lobby(){
     if(!lobbyP)lobbyP=(async()=>{
       const room=window.claude&&await window.claude.use('room');if(!room)return null;

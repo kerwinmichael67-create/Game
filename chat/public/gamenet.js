@@ -215,6 +215,9 @@
     socketEvent(m) { if (ws) ws.event(m); },
     socketUp() { if (ws) ws.reconnected(); },
     socketDown() { if (ws) ws.dropped(); },
+    // the chat page's own game tables (tables.js): a live room under the "tb." prefix, or null when there are none here
+    ready: () => !!(backend && backend.room),
+    pageRoom: (name) => (backend && backend.room ? backend.room.join('tb.' + String(name).toLowerCase()) : Promise.reject({ code: 'unavailable', message: 'no live rooms here' })),
     // a game frame was opened / closed
     attach(frame, game, code) { const S = session(frame.contentWindow, game, code); frames.set(frame.contentWindow, S); return () => { frames.delete(frame.contentWindow); S.close(); }; },
   };

@@ -45,8 +45,14 @@
     const hex = (c) => /^#[0-9a-f]{6}$/i.test(c);
     const rgb = (c) => [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16));
     const close = (x, y) => !hex(x) || !hex(y) || Math.hypot(...rgb(x).map((v, i) => v - rgb(y)[i])) < 110;
-    if (!close(a, b)) return [a, b];
-    return [a, ['#3b82f6', '#f97316', '#ec4899', '#22c55e'].find((c) => !close(a, c)) || '#f97316'];
+    const out = [a, close(a, b) ? (['#3b82f6', '#f97316', '#ec4899', '#22c55e'].find((c) => !close(a, c)) || '#f97316') : b];
+    // a 3rd and 4th player (game tables): their own color when it stands out, else one that does
+    for (let i = 2; i < players.length; i++) {
+      const own = fix(players[i].avatar || '#888888');
+      const lum = hex(own) ? rgb(own).reduce((t, v, k) => t + v * [0.3, 0.59, 0.11][k], 0) : 128;
+      out.push(!out.some((c) => close(c, own)) && lum > 60 && lum < 200 ? own : ['#facc15', '#a855f7', '#14b8a6', '#ef4444', '#3b82f6', '#f97316', '#ec4899', '#22c55e'].find((c) => !out.some((o) => close(o, c))) || '#e5e7eb');
+    }
+    return out;
   }
 
 
@@ -122,7 +128,13 @@
             if (i === api.you) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(x * CELL, y * CELL, CELL, CELL); }
           }
         });
-        const me = s.snakes[api.you], them = s.snakes[1 - api.you];
+        const me = s.snakes[api.you];
+        if (s.snakes.length > 2 || api.spectate) {
+          api.status(h('span', {}, `⏱ ${Math.ceil(s.ticks / 10)}s`), ...s.snakes.map((sn, i) => sn.gone ? '' :
+            h('span', { style: `color:${colors[i]};font-weight:bold` }, `${i === api.you && !api.spectate ? 'You' : api.players[i].name}: ${sn.body.length}${sn.alive ? '' : ' 💀'}`)));
+          return;
+        }
+        const them = s.snakes[1 - api.you];
         api.status(h('span', {}, `⏱ ${Math.ceil(s.ticks / 10)}s`),
           h('span', { style: `color:${colors[api.you]};font-weight:bold` }, `You: ${me.body.length}`), me.alive ? '' : ' (respawning…)',
           h('span', { style: `color:${colors[1 - api.you]};font-weight:bold` }, `${api.players[1 - api.you].name}: ${them.body.length}`),
@@ -288,19 +300,44 @@
   };
   const TKEYS = Object.keys(TETRO);
   const TCOLORS = ['#000', '#06b6d4', '#eab308', '#a855f7', '#22c55e', '#ef4444', '#3b82f6', '#f97316', '#6b7280'];
+  // watching a Tetris table: every player's board, side by side
+  function tetrisWatch(stage, api) {
+    const COLS = 10, ROWS = 20, C = 15;
+    const cells = api.players.map((p) => {
+      const [c, x] = canvas(COLS * C, ROWS * C), sc = h('b', {}, '0');
+      stage.append(h('div', { class: 'tetris-side', style: 'display:inline-flex;margin:0 8px' }, h('span', {}, p.name), c, h('span', {}, 'Score ', sc)));
+      return { c, x, sc };
+    });
+    return {
+      update(s) {
+        cells.forEach((v, i) => {
+          v.x.fillStyle = '#0d0d12'; v.x.fillRect(0, 0, v.c.width, v.c.height);
+          const b = s.boards[i];
+          if (b) for (let k = 0; k < b.length; k++) if (b[k] !== '0') { v.x.fillStyle = ['', '#22d3ee', '#facc15', '#a855f7', '#22c55e', '#ef4444', '#3b82f6', '#f97316', '#6b7280'][+b[k]] || '#888'; v.x.fillRect((k % COLS) * C + 1, Math.floor(k / COLS) * C + 1, C - 2, C - 2); }
+          v.sc.textContent = s.scores[i] || 0;
+          if (s.dead && s.dead[i]) { v.x.fillStyle = 'rgba(0,0,0,.6)'; v.x.fillRect(0, 0, v.c.width, v.c.height); v.x.fillStyle = '#fff'; v.x.font = 'bold 16px Arial'; v.x.textAlign = 'center'; v.x.fillText('OUT', v.c.width / 2, v.c.height / 2); }
+        });
+        api.status('Last one standing wins');
+      },
+    };
+  }
   function tetrisGame(stage, api) {
+    if (api.spectate) return tetrisWatch(stage, api);
     const COLS = 10, ROWS = 20, CELL = 26;
     const [cv, ctx] = canvas(COLS * CELL, ROWS * CELL);
     const [nextCv, nctx] = canvas(96, 230);
     const [holdCv, hctx] = canvas(96, 80);
-    const [oppCv, octx] = canvas(COLS * 13, ROWS * 13);
+    const others = api.players.map((_, i) => i).filter((i) => i !== api.you);
+    const small = others.length > 1 ? 8 : 13; // 3-4 players: smaller boards for everyone else
+    const opp = others.map(() => canvas(COLS * small, ROWS * small)), oppScores = others.map(() => h('span', {}, '0'));
+    const [oppCv, octx] = opp[0];
     const scoreEl = h('b', {}, '0'), linesEl = h('span', {}, '0'), levelEl = h('span', {}, '1'), oppEl = h('span', {}, '0');
     const meter = h('i', {});
     stage.append(h('div', { class: 'tetris-wrap' },
       h('div', { class: 'tetris-side' }, h('span', {}, 'Hold (C)'), holdCv, h('span', {}, 'Score'), scoreEl, h('span', {}, 'Lines ', linesEl), h('span', {}, 'Level ', levelEl),
         h('span', {}, 'Incoming'), h('div', { class: 'garbage-meter' }, meter)),
       cv,
-      h('div', { class: 'tetris-side' }, h('span', {}, 'Next'), nextCv, h('span', {}, api.players[1 - api.you].name), oppCv, h('span', {}, 'Score ', oppEl))),
+      h('div', { class: 'tetris-side' }, h('span', {}, 'Next'), nextCv, ...others.map((o, k) => [h('span', {}, api.players[o].name), opp[k][0], h('span', {}, 'Score ', k ? oppScores[k] : oppEl)]).flat())),
     touchPad([['◀', 'left'], ['▶', 'right'], ['⟳', 'rot'], ['▼', 'soft'], ['⤓', 'drop'], ['Hold', 'hold']], (a, v) => v && act(a)),
     h('div', { class: 'controls-help' }, META.tetris.help));
 
@@ -456,10 +493,14 @@
     requestAnimationFrame(loop);
     return {
       update(s) {
-        const ob = s.boards[1 - api.you];
-        octx.fillStyle = '#0d0d12'; octx.fillRect(0, 0, oppCv.width, oppCv.height);
-        if (ob) for (let i = 0; i < ob.length; i++) if (ob[i] !== '0') cellDraw(octx, i % COLS, Math.floor(i / COLS), +ob[i], 13);
-        oppEl.textContent = s.scores[1 - api.you];
+        others.forEach((o, k) => {
+          const [ocv, ox] = opp[k], ob = s.boards[o];
+          ox.fillStyle = '#0d0d12'; ox.fillRect(0, 0, ocv.width, ocv.height);
+          if (ob) for (let i = 0; i < ob.length; i++) if (ob[i] !== '0') cellDraw(ox, i % COLS, Math.floor(i / COLS), +ob[i], small);
+          if (s.dead && s.dead[o]) { ox.fillStyle = 'rgba(0,0,0,.6)'; ox.fillRect(0, 0, ocv.width, ocv.height); }
+          (k ? oppScores[k] : oppEl).textContent = s.scores[o];
+        });
+        if (others.length > 1) { api.status(h('b', {}, dead ? 'You topped out!' : 'Survive!'), `Junk sent: ${s.sent[api.you]}`, `Players left: ${s.boards.length - (s.dead ? s.dead.filter(Boolean).length : 0)}`); return; }
         api.status(h('b', {}, dead ? 'You topped out!' : 'Survive!'), `Junk sent: ${s.sent[api.you]}`, `Junk received: ${s.sent[1 - api.you]}`);
       },
       event(ev) { if (ev.garbage) { pending += ev.garbage; draw(); } },
@@ -739,9 +780,13 @@
           ctx.shadowBlur = 0;
         });
         if (s.msg) {
-          const msg = s.msg.replace(/^P([12]) SCORES$/, (_, n) => `${api.players[n - 1].name} scores`.toUpperCase());
+          const msg = s.msg.replace(/^P([1-4]) SCORES$/, (_, n) => `${api.players[n - 1].name} scores`.toUpperCase());
           ctx.font = 'bold 48px Outfit, Arial'; ctx.textAlign = 'center'; ctx.lineWidth = 6; ctx.strokeStyle = '#000'; ctx.fillStyle = '#fff';
           ctx.strokeText(msg, cv.width / 2, cv.height / 2); ctx.fillText(msg, cv.width / 2, cv.height / 2);
+        }
+        if (s.wins.length > 2 || api.spectate) {
+          api.status(h('b', {}, 'Rounds'), ...s.wins.map((w, i) => h('span', { style: `color:${colors[i]};font-weight:bold` }, `${i === api.you && !api.spectate ? 'You' : api.players[i].name} ${w}`)), `First to ${s.to}`);
+          return;
         }
         api.status(h('b', {}, `Rounds ${s.wins[api.you]} – ${s.wins[1 - api.you]}`), `First to ${s.to}`,
           h('span', { style: `color:${colors[api.you]};font-weight:bold` }, 'You'), `vs`, h('span', { style: `color:${colors[1 - api.you]};font-weight:bold` }, api.players[1 - api.you].name));
@@ -915,32 +960,42 @@
     const stage = h('div', { class: 'game-stage' });
     const leaveBtn = h('button', { class: 'btn danger small', onclick: () => {
       if (!cur) return;
-      if (cur.over) close();
+      if (cur.over || m.spectate) { if (m.spectate && gameHost.leave) gameHost.leave(cur.id); close(); }
       else {
         const id = cur.id;
         window.uiConfirm('Forfeit this game?', 'Forfeit', () => gameHost.leave(id));
       }
-    } }, 'Forfeit');
+    } }, m.spectate ? 'Stop watching' : 'Forfeit');
     d.replaceChildren(
       h('div', { class: 'game-head' },
         h('span', { class: 'title' }, `${meta.emoji} ${meta.name}`),
-        h('span', { class: 'players-line' }, ...m.players.map((p, i) => h('span', { class: 'pchip' }, h('i', { style: `background:${colors[i]}` }), p.name + (i === m.you ? ' (you)' : ''))).reduce((a, el, i) => (i ? a.concat(' vs ', el) : [el]), [])),
+        m.spectate ? h('span', { class: 'pchip' }, '👀 Watching') : '',
+        h('span', { class: 'players-line' }, ...m.players.map((p, i) => h('span', { class: 'pchip' }, h('i', { style: `background:${colors[i]}` }), p.name + (i === m.you && !m.spectate ? ' (you)' : ''))).reduce((a, el, i) => (i ? a.concat(' vs ', el) : [el]), [])),
         h('button', { class: 'btn small', title: 'Minimize', onclick: () => d.classList.toggle('min') }, '▁'),
         leaveBtn),
       statusEl, stage);
     d.classList.remove('hidden', 'min');
+    d.classList.toggle('spectating', !!m.spectate); // watching a table: no controls
     d.classList.toggle('full', m.game === 'apex' || m.game === 'td'); // these want the whole window
+    // spectators see player 1's side; anything that says "you" is about that player
+    const asWatcher = (x) => (typeof x === 'string' && m.spectate
+      ? x.replace(/\bYour move\b/g, `${m.players[0].name}'s move`).replace(/^You: /, `${m.players[0].name}: `).replace(/^You\b/, m.players[0].name).replace(/\byou\b/g, m.players[0].name)
+      : x);
     const api = {
       you: m.you,
+      spectate: !!m.spectate,
       predict: !!(m.net && m.net.predict),
       players: m.players,
       bot: m.bot || null,
       leave: () => cur && (cur.over ? close() : gameHost.leave(cur.id)),
       finish: (result) => over({ id: m.id, result, state: null }), // a game against the bot that keeps its own score
-      send: (input) => cur && !cur.over && gameHost.send(cur.id, input),
-      status: (...parts) => statusEl.replaceChildren(...parts.flat().filter((x) => x !== '' && x !== null).map((x) => (x instanceof Node ? x : h('span', {}, x)))),
+      send: (input) => cur && !cur.over && !m.spectate && gameHost.send(cur.id, input),
+      status: (...parts) => {
+        statusEl.replaceChildren(...parts.flat().filter((x) => x !== '' && x !== null).map((x) => (x instanceof Node ? x : h('span', {}, asWatcher(x)))));
+        if (m.spectate) statusEl.querySelectorAll('b,span').forEach((el) => { if (el.children.length === 0) el.textContent = asWatcher(el.textContent); });
+      },
     };
-    cur = { id: m.id, game: m.game, players: m.players, you: m.you, over: false, smooth: !!(m.net && m.net.smooth) && SMOOTH.has(m.game), buf: [], gap: 33, raf: 0, stage, statusEl, leaveBtn, host: gameHost, onClose: m.onClose, inst: FACTORY[m.game](stage, api) };
+    cur = { id: m.id, game: m.game, players: m.players, you: m.you, spectate: !!m.spectate, table: m.table || null, over: false, smooth: !!(m.net && m.net.smooth) && SMOOTH.has(m.game), buf: [], gap: 33, raf: 0, stage, statusEl, leaveBtn, host: gameHost, onClose: m.onClose, inst: FACTORY[m.game](stage, api) };
     cur.inst.update(m.state);
     if (document.activeElement && document.activeElement.id === 'msgInput') document.activeElement.blur();
   }
@@ -951,7 +1006,20 @@
     cur.inst.update(m.state);
     if (cur.inst.stop) cur.inst.stop();
     cur.leaveBtn.textContent = 'Close';
-    const r = m.result, win = r.winner === cur.you, draw = r.winner === -1;
+    const r = m.result, draw = r.winner === -1;
+    if (cur.spectate || cur.players.length > 2 || cur.table) {
+      // a game table: say who won; the table itself carries on with the next match
+      const w = draw ? null : cur.players[r.winner], win = !cur.spectate && r.winner === cur.you;
+      cur.statusEl.replaceChildren(h('b', {}, draw ? 'Draw' : win ? 'You won! 🏆' : `${w.name} won`), h('span', { class: 'muted' }, r.reason));
+      cur.stage.append(h('div', { class: 'game-over' }, h('div', { class: 'box' },
+        h('div', { style: 'font-size:44px' }, draw ? '🤝' : win ? '🏆' : cur.spectate ? '🎉' : '😵'),
+        h('h3', {}, draw ? 'Draw!' : win ? 'You win!' : `${w.name} wins!`),
+        h('div', { class: 'muted' }, r.reason),
+        h('div', { class: 'muted', style: 'margin-top:6px' }, cur.table ? 'The next match on this table starts in a few seconds.' : ''),
+        h('div', { class: 'row', style: 'justify-content:center' }, h('button', { class: 'btn', onclick: close }, 'Close')))));
+      return;
+    }
+    const win = r.winner === cur.you;
     const opp = cur.players[1 - cur.you];
     const { game } = cur;
     cur.statusEl.replaceChildren(h('b', {}, draw ? 'Draw' : win ? 'You won! 🏆' : `${opp.name} won`), h('span', { class: 'muted' }, r.reason));
@@ -970,6 +1038,7 @@
     start,
     close,
     over,
+    current: () => (cur ? { id: cur.id, game: cur.game, table: cur.table, over: cur.over, spectate: cur.spectate } : null),
     state(m) {
       if (!cur || cur.id !== m.id) return;
       if (cur.smooth) smoothPush(cur, m.state);

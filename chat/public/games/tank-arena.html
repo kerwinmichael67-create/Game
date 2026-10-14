@@ -634,6 +634,8 @@ function previewLoop(t){
 requestAnimationFrame(previewLoop);
 
 document.getElementById("startBtn").onclick=()=>startMatch();
+// inside the chat's 🕹️ Games the arena opens on ONLINE
+if(window.ChatGame&&window.claude){ cfg.mode="online"; cfg.tab=0; setTimeout(()=>{ Online.enter(); renderMenu(); },0); }
 document.getElementById("quitBtn").onclick=()=>toMenu();
 function toMenu(){
   if(G.online) Online.quitMatch();

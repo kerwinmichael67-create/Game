@@ -1020,6 +1020,27 @@ body[data-theme="dark"] .fav-btn.on { color: #c9c2ff; }
 .frame-game { flex: 1; width: 100%; min-height: 0; border: 0; display: block; background: #000; }
 .frame-pill { left: auto; right: 18px; bottom: 80px; }
 
+/* game tables (tables.js) */
+.games-section { margin: 18px 0 4px; font-size: 18px; }
+.table-card { min-height: 0; }
+.table-card small { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.table-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.table-card-btn { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; text-align: left; padding: 10px 12px; border-radius: 12px;
+  border: 1px solid var(--line); background: var(--surface-2); color: var(--text); cursor: pointer; font: inherit; }
+.table-card-btn:hover:not(:disabled) { border-color: var(--accent, #6366f1); }
+.table-card-btn:disabled { cursor: default; opacity: .7; }
+.table-card-btn.mine { opacity: 1; border: 2px solid var(--accent, #6366f1); }
+.table-card-btn small { font-weight: 600; }
+.table-here { border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; background: var(--surface-2); display: grid; gap: 8px; }
+.table-people { display: flex; flex-wrap: wrap; gap: 6px; }
+.table-person { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); font-size: 13px; }
+.table-person.me { border-color: var(--accent, #6366f1); }
+.table-person i { width: 10px; height: 10px; border-radius: 50%; }
+.table-person small { color: var(--muted); }
+.table-pill { bottom: 70px; }
+.table-pill.hidden { display: none; }
+#gameDock.spectating .controls-help, #gameDock.spectating .touchpad { display: none; }
+
 </style>
 <!-- Sign in / create account -->
 <div id="auth" class="auth">
@@ -1578,13 +1599,18 @@ function addFood(s, x, y) {
   s.food.push([x, y, Math.random() < 0.1 ? 1 : 0]);
 }
 
+// Up to 4 snakes (2 in a normal match; game tables can seat more).
+const SNAKE_STARTS = [[6, 8, 'R'], [33, 19, 'L'], [33, 8, 'L'], [6, 19, 'R']];
 const snake = {
   tickMs: 100,
-  init() {
-    const s = { W: 40, H: 28, ticks: 900, snakes: [makeSnake(6, 8, 'R'), makeSnake(33, 19, 'L')], food: [] };
-    for (let i = 0; i < 6; i++) addFood(s);
+  init(n) {
+    n = Math.max(2, Math.min(4, n | 0 || 2));
+    const s = { W: 40, H: 28, ticks: 900, snakes: SNAKE_STARTS.slice(0, n).map(([x, y, d]) => makeSnake(x, y, d)), food: [] };
+    for (let i = 0; i < 4 + 2 * n; i++) addFood(s);
     return s;
   },
+  // a player who left a table: their snake is gone for good
+  remove(s, i) { const sn = s.snakes[i]; if (sn) { sn.alive = false; sn.gone = true; sn.body = []; sn.queue = []; } },
   input(s, i, inp) {
     const sn = s.snakes[i], d = inp && inp.dir;
     if (!sn.alive || !DIRS[d]) return;
@@ -1596,7 +1622,7 @@ const snake = {
     s.ticks--;
     for (const sn of s.snakes) {
       if (!sn.alive) {
-        if (--sn.respawn <= 0) respawnSnake(s, sn);
+        if (!sn.gone && --sn.respawn <= 0) respawnSnake(s, sn);
         continue;
       }
       if (sn.queue.length) sn.dir = sn.queue.shift();
@@ -1625,10 +1651,13 @@ const snake = {
         body.forEach((p, k) => { if (k % 3 === 0 && p[0] >= 0 && p[1] >= 0 && p[0] < s.W && p[1] < s.H) addFood(s, p[0], p[1]); });
       } else if (sn.alive) sn.best = Math.max(sn.best, sn.body.length);
     });
-    if (s.ticks > 0) return null;
-    const [a, b] = s.snakes.map((sn) => sn.body.length);
-    if (a === b) return { winner: -1, reason: `tied at length ${a}` };
-    return { winner: a > b ? 0 : 1, reason: `longest snake (${Math.max(a, b)} vs ${Math.min(a, b)})` };
+    const left = s.snakes.filter((sn) => !sn.gone);
+    if (s.ticks > 0 && left.length > 1) return null;
+    if (left.length === 1) return { winner: s.snakes.indexOf(left[0]), reason: 'last snake on the board' };
+    const lens = s.snakes.map((sn) => (sn.gone ? -1 : sn.body.length)), top = Math.max(...lens);
+    const sorted = lens.filter((l) => l >= 0).sort((x, y) => y - x);
+    if (lens.filter((l) => l === top).length > 1) return { winner: -1, reason: `tied at length ${top}` };
+    return { winner: lens.indexOf(top), reason: `longest snake (${sorted.join(' vs ')})` };
   },
 };
 function respawnSnake(s, sn) {
@@ -1850,22 +1879,26 @@ function updateProjectiles(s) {
 // The grid travels as a string ('0' empty, '1'/'2' trails) so it stays small enough to stream.
 function tronRound(s) {
   s.grid = '0'.repeat(s.W * s.H);
-  s.p = [
-    { x: 10, y: Math.floor(s.H / 2), dir: 'R', queue: [], alive: true },
-    { x: s.W - 11, y: Math.floor(s.H / 2), dir: 'L', queue: [], alive: true },
-  ];
-  s.p.forEach((p, i) => { s.grid = setCell(s.grid, p.y * s.W + p.x, String(i + 1)); });
+  const n = s.wins.length, mid = Math.floor(s.H / 2);
+  const starts = n <= 2
+    ? [[10, mid, 'R'], [s.W - 11, mid, 'L']]
+    : [[10, 8, 'R'], [s.W - 11, s.H - 9, 'L'], [s.W - 11, 8, 'L'], [10, s.H - 9, 'R']];
+  s.p = starts.slice(0, n).map(([x, y, dir], i) => ({ x, y, dir, queue: [], alive: !(s.gone && s.gone[i]) }));
+  s.p.forEach((p, i) => { if (p.alive) s.grid = setCell(s.grid, p.y * s.W + p.x, String(i + 1)); });
   s.pause = 45;
-  s.msg = `ROUND ${s.wins[0] + s.wins[1] + s.draws + 1}`;
+  s.msg = `ROUND ${s.wins.reduce((a, b) => a + b, 0) + s.draws + 1}`;
 }
 const setCell = (g, i, ch) => g.slice(0, i) + ch + g.slice(i + 1);
 const tron = {
   tickMs: 70,
-  init() {
-    const s = { W: 56, H: 36, wins: [0, 0], draws: 0, to: 3, grid: '', p: [], pause: 0, msg: '', crash: null };
+  init(n) {
+    n = Math.max(2, Math.min(4, n | 0 || 2));
+    const s = { W: 56, H: 36, wins: new Array(n).fill(0), draws: 0, to: 3, grid: '', p: [], pause: 0, msg: '', crash: null };
     tronRound(s);
     return s;
   },
+  // a player who left a table sits out every round from now on
+  remove(s, i) { s.gone = s.gone || []; s.gone[i] = true; if (s.p[i]) s.p[i].alive = false; },
   input(s, i, inp) {
     const p = s.p[i], d = inp && inp.dir;
     if (!p.alive || !DIRS[d]) return;
@@ -1881,28 +1914,34 @@ const tron = {
         s.msg = '';
         if (s.crash) {
           s.crash = null;
-          if (s.wins[0] >= s.to || s.wins[1] >= s.to) return { winner: s.wins[0] > s.wins[1] ? 0 : 1, reason: `${Math.max(...s.wins)} - ${Math.min(...s.wins)} in rounds` };
-          if (s.wins[0] + s.wins[1] + s.draws >= 9) return { winner: s.wins[0] === s.wins[1] ? -1 : s.wins[0] > s.wins[1] ? 0 : 1, reason: `${s.wins[0]} - ${s.wins[1]} in rounds` };
+          const score = s.wins.slice().sort((a, b) => b - a).join(' - '), top = Math.max(...s.wins);
+          const inPlay = s.wins.filter((_, i) => !(s.gone && s.gone[i])).length;
+          if (inPlay <= 1) { const w = s.wins.findIndex((_, i) => !(s.gone && s.gone[i])); return { winner: w, reason: 'everyone else left' }; }
+          if (top >= s.to) return { winner: s.wins.indexOf(top), reason: `${score} in rounds` };
+          if (s.wins.reduce((a, b) => a + b, 0) + s.draws >= 9) return { winner: s.wins.filter((w) => w === top).length > 1 ? -1 : s.wins.indexOf(top), reason: `${score} in rounds` };
           tronRound(s);
         }
       }
       return null;
     }
     const next = s.p.map((p) => {
+      if (!p.alive) return null;
       if (p.queue.length) p.dir = p.queue.shift();
       const [dx, dy] = DIRS[p.dir];
       return { x: p.x + dx, y: p.y + dy };
     });
-    const dead = next.map((n) => n.x < 0 || n.y < 0 || n.x >= s.W || n.y >= s.H || s.grid[n.y * s.W + n.x] !== '0');
-    if (next[0].x === next[1].x && next[0].y === next[1].y) dead[0] = dead[1] = true; // head-on
+    const dead = next.map((n) => !!n && (n.x < 0 || n.y < 0 || n.x >= s.W || n.y >= s.H || s.grid[n.y * s.W + n.x] !== '0'));
+    next.forEach((a, i) => next.forEach((b, j) => { if (a && b && i < j && a.x === b.x && a.y === b.y) dead[i] = dead[j] = true; })); // head-on
     s.p.forEach((p, i) => {
+      if (!next[i]) return;
       if (dead[i]) { p.alive = false; return; }
       p.x = next[i].x; p.y = next[i].y;
       s.grid = setCell(s.grid, p.y * s.W + p.x, String(i + 1));
     });
-    if (dead[0] || dead[1]) {
-      if (dead[0] && dead[1]) { s.draws++; s.msg = 'BOTH CRASHED'; }
-      else { const w = dead[0] ? 1 : 0; s.wins[w]++; s.msg = `P${w + 1} SCORES`; }
+    const alive = s.p.filter((p) => p.alive);
+    if (alive.length <= 1 && dead.some(Boolean)) {
+      if (!alive.length) { s.draws++; s.msg = s.p.length > 2 ? 'EVERYONE CRASHED' : 'BOTH CRASHED'; }
+      else { const w = s.p.indexOf(alive[0]); s.wins[w]++; s.msg = `P${w + 1} SCORES`; }
       s.crash = true;
       s.pause = 40;
     }
@@ -2946,8 +2985,14 @@ else globalThis.Realtime = Realtime;
     const hex = (c) => /^#[0-9a-f]{6}$/i.test(c);
     const rgb = (c) => [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16));
     const close = (x, y) => !hex(x) || !hex(y) || Math.hypot(...rgb(x).map((v, i) => v - rgb(y)[i])) < 110;
-    if (!close(a, b)) return [a, b];
-    return [a, ['#3b82f6', '#f97316', '#ec4899', '#22c55e'].find((c) => !close(a, c)) || '#f97316'];
+    const out = [a, close(a, b) ? (['#3b82f6', '#f97316', '#ec4899', '#22c55e'].find((c) => !close(a, c)) || '#f97316') : b];
+    // a 3rd and 4th player (game tables): their own color when it stands out, else one that does
+    for (let i = 2; i < players.length; i++) {
+      const own = fix(players[i].avatar || '#888888');
+      const lum = hex(own) ? rgb(own).reduce((t, v, k) => t + v * [0.3, 0.59, 0.11][k], 0) : 128;
+      out.push(!out.some((c) => close(c, own)) && lum > 60 && lum < 200 ? own : ['#facc15', '#a855f7', '#14b8a6', '#ef4444', '#3b82f6', '#f97316', '#ec4899', '#22c55e'].find((c) => !out.some((o) => close(o, c))) || '#e5e7eb');
+    }
+    return out;
   }
 
 
@@ -3023,7 +3068,13 @@ else globalThis.Realtime = Realtime;
             if (i === api.you) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(x * CELL, y * CELL, CELL, CELL); }
           }
         });
-        const me = s.snakes[api.you], them = s.snakes[1 - api.you];
+        const me = s.snakes[api.you];
+        if (s.snakes.length > 2 || api.spectate) {
+          api.status(h('span', {}, `⏱ ${Math.ceil(s.ticks / 10)}s`), ...s.snakes.map((sn, i) => sn.gone ? '' :
+            h('span', { style: `color:${colors[i]};font-weight:bold` }, `${i === api.you && !api.spectate ? 'You' : api.players[i].name}: ${sn.body.length}${sn.alive ? '' : ' 💀'}`)));
+          return;
+        }
+        const them = s.snakes[1 - api.you];
         api.status(h('span', {}, `⏱ ${Math.ceil(s.ticks / 10)}s`),
           h('span', { style: `color:${colors[api.you]};font-weight:bold` }, `You: ${me.body.length}`), me.alive ? '' : ' (respawning…)',
           h('span', { style: `color:${colors[1 - api.you]};font-weight:bold` }, `${api.players[1 - api.you].name}: ${them.body.length}`),
@@ -3189,19 +3240,44 @@ else globalThis.Realtime = Realtime;
   };
   const TKEYS = Object.keys(TETRO);
   const TCOLORS = ['#000', '#06b6d4', '#eab308', '#a855f7', '#22c55e', '#ef4444', '#3b82f6', '#f97316', '#6b7280'];
+  // watching a Tetris table: every player's board, side by side
+  function tetrisWatch(stage, api) {
+    const COLS = 10, ROWS = 20, C = 15;
+    const cells = api.players.map((p) => {
+      const [c, x] = canvas(COLS * C, ROWS * C), sc = h('b', {}, '0');
+      stage.append(h('div', { class: 'tetris-side', style: 'display:inline-flex;margin:0 8px' }, h('span', {}, p.name), c, h('span', {}, 'Score ', sc)));
+      return { c, x, sc };
+    });
+    return {
+      update(s) {
+        cells.forEach((v, i) => {
+          v.x.fillStyle = '#0d0d12'; v.x.fillRect(0, 0, v.c.width, v.c.height);
+          const b = s.boards[i];
+          if (b) for (let k = 0; k < b.length; k++) if (b[k] !== '0') { v.x.fillStyle = ['', '#22d3ee', '#facc15', '#a855f7', '#22c55e', '#ef4444', '#3b82f6', '#f97316', '#6b7280'][+b[k]] || '#888'; v.x.fillRect((k % COLS) * C + 1, Math.floor(k / COLS) * C + 1, C - 2, C - 2); }
+          v.sc.textContent = s.scores[i] || 0;
+          if (s.dead && s.dead[i]) { v.x.fillStyle = 'rgba(0,0,0,.6)'; v.x.fillRect(0, 0, v.c.width, v.c.height); v.x.fillStyle = '#fff'; v.x.font = 'bold 16px Arial'; v.x.textAlign = 'center'; v.x.fillText('OUT', v.c.width / 2, v.c.height / 2); }
+        });
+        api.status('Last one standing wins');
+      },
+    };
+  }
   function tetrisGame(stage, api) {
+    if (api.spectate) return tetrisWatch(stage, api);
     const COLS = 10, ROWS = 20, CELL = 26;
     const [cv, ctx] = canvas(COLS * CELL, ROWS * CELL);
     const [nextCv, nctx] = canvas(96, 230);
     const [holdCv, hctx] = canvas(96, 80);
-    const [oppCv, octx] = canvas(COLS * 13, ROWS * 13);
+    const others = api.players.map((_, i) => i).filter((i) => i !== api.you);
+    const small = others.length > 1 ? 8 : 13; // 3-4 players: smaller boards for everyone else
+    const opp = others.map(() => canvas(COLS * small, ROWS * small)), oppScores = others.map(() => h('span', {}, '0'));
+    const [oppCv, octx] = opp[0];
     const scoreEl = h('b', {}, '0'), linesEl = h('span', {}, '0'), levelEl = h('span', {}, '1'), oppEl = h('span', {}, '0');
     const meter = h('i', {});
     stage.append(h('div', { class: 'tetris-wrap' },
       h('div', { class: 'tetris-side' }, h('span', {}, 'Hold (C)'), holdCv, h('span', {}, 'Score'), scoreEl, h('span', {}, 'Lines ', linesEl), h('span', {}, 'Level ', levelEl),
         h('span', {}, 'Incoming'), h('div', { class: 'garbage-meter' }, meter)),
       cv,
-      h('div', { class: 'tetris-side' }, h('span', {}, 'Next'), nextCv, h('span', {}, api.players[1 - api.you].name), oppCv, h('span', {}, 'Score ', oppEl))),
+      h('div', { class: 'tetris-side' }, h('span', {}, 'Next'), nextCv, ...others.map((o, k) => [h('span', {}, api.players[o].name), opp[k][0], h('span', {}, 'Score ', k ? oppScores[k] : oppEl)]).flat())),
     touchPad([['◀', 'left'], ['▶', 'right'], ['⟳', 'rot'], ['▼', 'soft'], ['⤓', 'drop'], ['Hold', 'hold']], (a, v) => v && act(a)),
     h('div', { class: 'controls-help' }, META.tetris.help));
 
@@ -3357,10 +3433,14 @@ else globalThis.Realtime = Realtime;
     requestAnimationFrame(loop);
     return {
       update(s) {
-        const ob = s.boards[1 - api.you];
-        octx.fillStyle = '#0d0d12'; octx.fillRect(0, 0, oppCv.width, oppCv.height);
-        if (ob) for (let i = 0; i < ob.length; i++) if (ob[i] !== '0') cellDraw(octx, i % COLS, Math.floor(i / COLS), +ob[i], 13);
-        oppEl.textContent = s.scores[1 - api.you];
+        others.forEach((o, k) => {
+          const [ocv, ox] = opp[k], ob = s.boards[o];
+          ox.fillStyle = '#0d0d12'; ox.fillRect(0, 0, ocv.width, ocv.height);
+          if (ob) for (let i = 0; i < ob.length; i++) if (ob[i] !== '0') cellDraw(ox, i % COLS, Math.floor(i / COLS), +ob[i], small);
+          if (s.dead && s.dead[o]) { ox.fillStyle = 'rgba(0,0,0,.6)'; ox.fillRect(0, 0, ocv.width, ocv.height); }
+          (k ? oppScores[k] : oppEl).textContent = s.scores[o];
+        });
+        if (others.length > 1) { api.status(h('b', {}, dead ? 'You topped out!' : 'Survive!'), `Junk sent: ${s.sent[api.you]}`, `Players left: ${s.boards.length - (s.dead ? s.dead.filter(Boolean).length : 0)}`); return; }
         api.status(h('b', {}, dead ? 'You topped out!' : 'Survive!'), `Junk sent: ${s.sent[api.you]}`, `Junk received: ${s.sent[1 - api.you]}`);
       },
       event(ev) { if (ev.garbage) { pending += ev.garbage; draw(); } },
@@ -3640,9 +3720,13 @@ else globalThis.Realtime = Realtime;
           ctx.shadowBlur = 0;
         });
         if (s.msg) {
-          const msg = s.msg.replace(/^P([12]) SCORES$/, (_, n) => `${api.players[n - 1].name} scores`.toUpperCase());
+          const msg = s.msg.replace(/^P([1-4]) SCORES$/, (_, n) => `${api.players[n - 1].name} scores`.toUpperCase());
           ctx.font = 'bold 48px Outfit, Arial'; ctx.textAlign = 'center'; ctx.lineWidth = 6; ctx.strokeStyle = '#000'; ctx.fillStyle = '#fff';
           ctx.strokeText(msg, cv.width / 2, cv.height / 2); ctx.fillText(msg, cv.width / 2, cv.height / 2);
+        }
+        if (s.wins.length > 2 || api.spectate) {
+          api.status(h('b', {}, 'Rounds'), ...s.wins.map((w, i) => h('span', { style: `color:${colors[i]};font-weight:bold` }, `${i === api.you && !api.spectate ? 'You' : api.players[i].name} ${w}`)), `First to ${s.to}`);
+          return;
         }
         api.status(h('b', {}, `Rounds ${s.wins[api.you]} – ${s.wins[1 - api.you]}`), `First to ${s.to}`,
           h('span', { style: `color:${colors[api.you]};font-weight:bold` }, 'You'), `vs`, h('span', { style: `color:${colors[1 - api.you]};font-weight:bold` }, api.players[1 - api.you].name));
@@ -3816,32 +3900,42 @@ else globalThis.Realtime = Realtime;
     const stage = h('div', { class: 'game-stage' });
     const leaveBtn = h('button', { class: 'btn danger small', onclick: () => {
       if (!cur) return;
-      if (cur.over) close();
+      if (cur.over || m.spectate) { if (m.spectate && gameHost.leave) gameHost.leave(cur.id); close(); }
       else {
         const id = cur.id;
         window.uiConfirm('Forfeit this game?', 'Forfeit', () => gameHost.leave(id));
       }
-    } }, 'Forfeit');
+    } }, m.spectate ? 'Stop watching' : 'Forfeit');
     d.replaceChildren(
       h('div', { class: 'game-head' },
         h('span', { class: 'title' }, `${meta.emoji} ${meta.name}`),
-        h('span', { class: 'players-line' }, ...m.players.map((p, i) => h('span', { class: 'pchip' }, h('i', { style: `background:${colors[i]}` }), p.name + (i === m.you ? ' (you)' : ''))).reduce((a, el, i) => (i ? a.concat(' vs ', el) : [el]), [])),
+        m.spectate ? h('span', { class: 'pchip' }, '👀 Watching') : '',
+        h('span', { class: 'players-line' }, ...m.players.map((p, i) => h('span', { class: 'pchip' }, h('i', { style: `background:${colors[i]}` }), p.name + (i === m.you && !m.spectate ? ' (you)' : ''))).reduce((a, el, i) => (i ? a.concat(' vs ', el) : [el]), [])),
         h('button', { class: 'btn small', title: 'Minimize', onclick: () => d.classList.toggle('min') }, '▁'),
         leaveBtn),
       statusEl, stage);
     d.classList.remove('hidden', 'min');
+    d.classList.toggle('spectating', !!m.spectate); // watching a table: no controls
     d.classList.toggle('full', m.game === 'apex' || m.game === 'td'); // these want the whole window
+    // spectators see player 1's side; anything that says "you" is about that player
+    const asWatcher = (x) => (typeof x === 'string' && m.spectate
+      ? x.replace(/\bYour move\b/g, `${m.players[0].name}'s move`).replace(/^You: /, `${m.players[0].name}: `).replace(/^You\b/, m.players[0].name).replace(/\byou\b/g, m.players[0].name)
+      : x);
     const api = {
       you: m.you,
+      spectate: !!m.spectate,
       predict: !!(m.net && m.net.predict),
       players: m.players,
       bot: m.bot || null,
       leave: () => cur && (cur.over ? close() : gameHost.leave(cur.id)),
       finish: (result) => over({ id: m.id, result, state: null }), // a game against the bot that keeps its own score
-      send: (input) => cur && !cur.over && gameHost.send(cur.id, input),
-      status: (...parts) => statusEl.replaceChildren(...parts.flat().filter((x) => x !== '' && x !== null).map((x) => (x instanceof Node ? x : h('span', {}, x)))),
+      send: (input) => cur && !cur.over && !m.spectate && gameHost.send(cur.id, input),
+      status: (...parts) => {
+        statusEl.replaceChildren(...parts.flat().filter((x) => x !== '' && x !== null).map((x) => (x instanceof Node ? x : h('span', {}, asWatcher(x)))));
+        if (m.spectate) statusEl.querySelectorAll('b,span').forEach((el) => { if (el.children.length === 0) el.textContent = asWatcher(el.textContent); });
+      },
     };
-    cur = { id: m.id, game: m.game, players: m.players, you: m.you, over: false, smooth: !!(m.net && m.net.smooth) && SMOOTH.has(m.game), buf: [], gap: 33, raf: 0, stage, statusEl, leaveBtn, host: gameHost, onClose: m.onClose, inst: FACTORY[m.game](stage, api) };
+    cur = { id: m.id, game: m.game, players: m.players, you: m.you, spectate: !!m.spectate, table: m.table || null, over: false, smooth: !!(m.net && m.net.smooth) && SMOOTH.has(m.game), buf: [], gap: 33, raf: 0, stage, statusEl, leaveBtn, host: gameHost, onClose: m.onClose, inst: FACTORY[m.game](stage, api) };
     cur.inst.update(m.state);
     if (document.activeElement && document.activeElement.id === 'msgInput') document.activeElement.blur();
   }
@@ -3852,7 +3946,20 @@ else globalThis.Realtime = Realtime;
     cur.inst.update(m.state);
     if (cur.inst.stop) cur.inst.stop();
     cur.leaveBtn.textContent = 'Close';
-    const r = m.result, win = r.winner === cur.you, draw = r.winner === -1;
+    const r = m.result, draw = r.winner === -1;
+    if (cur.spectate || cur.players.length > 2 || cur.table) {
+      // a game table: say who won; the table itself carries on with the next match
+      const w = draw ? null : cur.players[r.winner], win = !cur.spectate && r.winner === cur.you;
+      cur.statusEl.replaceChildren(h('b', {}, draw ? 'Draw' : win ? 'You won! 🏆' : `${w.name} won`), h('span', { class: 'muted' }, r.reason));
+      cur.stage.append(h('div', { class: 'game-over' }, h('div', { class: 'box' },
+        h('div', { style: 'font-size:44px' }, draw ? '🤝' : win ? '🏆' : cur.spectate ? '🎉' : '😵'),
+        h('h3', {}, draw ? 'Draw!' : win ? 'You win!' : `${w.name} wins!`),
+        h('div', { class: 'muted' }, r.reason),
+        h('div', { class: 'muted', style: 'margin-top:6px' }, cur.table ? 'The next match on this table starts in a few seconds.' : ''),
+        h('div', { class: 'row', style: 'justify-content:center' }, h('button', { class: 'btn', onclick: close }, 'Close')))));
+      return;
+    }
+    const win = r.winner === cur.you;
     const opp = cur.players[1 - cur.you];
     const { game } = cur;
     cur.statusEl.replaceChildren(h('b', {}, draw ? 'Draw' : win ? 'You won! 🏆' : `${opp.name} won`), h('span', { class: 'muted' }, r.reason));
@@ -3871,6 +3978,7 @@ else globalThis.Realtime = Realtime;
     start,
     close,
     over,
+    current: () => (cur ? { id: cur.id, game: cur.game, table: cur.table, over: cur.over, spectate: cur.spectate } : null),
     state(m) {
       if (!cur || cur.id !== m.id) return;
       if (cur.smooth) smoothPush(cur, m.state);
@@ -3931,10 +4039,12 @@ else globalThis.Realtime = Realtime;
   // ---------------------------------------------------------------- the Games window
   let gamesOpen = null; // 'pick' | game id, while the window is open
   function openGames(game) {
+    const wasOpen = !!gamesOpen;
     gamesOpen = game || 'pick';
-    api.openModal(buildGames, true);
+    if (wasOpen) api.refreshModal(); else api.openModal(buildGames, true);
   }
   function buildGames() {
+    if (String(gamesOpen).startsWith('tb:') && window.Tables) return Tables.view(gamesOpen.slice(3));
     if (gamesOpen === 'pick' || !GAMES[gamesOpen]) {
       return [api.modalHead('🕹️ Games'), h('p', { class: 'muted' }, 'Party games with servers: make one, or join someone else’s. More games are coming.'),
         h('div', { class: 'party-games' }, Object.entries(FRAME_GAMES).map(([id, g]) => h('button', { class: 'party-game-card', style: `--g:${g.color}`, onclick: () => { api.closeModal(); openFrame(id); } },
@@ -3945,7 +4055,10 @@ else globalThis.Realtime = Realtime;
             h('span', { class: 'pg-emoji' }, g.emoji), h('b', {}, g.name), h('small', {}, g.desc),
             h('span', { class: 'pg-meta' }, `${g.players} · ${open.length ? `${open.length} server${open.length === 1 ? '' : 's'} open` : 'no servers yet'}`));
         }),
-        h('div', { class: 'party-game-card soon' }, h('span', { class: 'pg-emoji' }, '✨'), h('b', {}, 'More soon'), h('small', {}, 'New party games will show up here.'))),
+        ),
+        ...(window.Tables ? [h('h3', { class: 'games-section' }, '🎲 Classic games — tables'),
+          h('p', { class: 'muted', style: 'margin-top:0' }, 'Every Request-a-game game, with tables to join: the next players in line play, everyone else watches. Snake, Light Cycles and Tetris seat up to 4.'),
+          h('div', { class: 'party-games' }, Tables.cards())] : []),
       ];
     }
     const g = GAMES[gamesOpen], servers = list.filter((p) => p.game === gamesOpen && p.players.length);
@@ -4239,8 +4352,9 @@ else globalThis.Realtime = Realtime;
     openFrame,
     closeFrame,
     frameOpen: () => !!(frame && !frame.min),
-    init(a) { api = a; },
+    init(a) { api = a; if (window.Tables) Tables.init(a); },
     openGames,
+    openOn: () => gamesOpen,
     buildGames: () => buildGames(),
     isOpen: () => !!gamesOpen,
     closed() { gamesOpen = null; },
@@ -4480,8 +4594,481 @@ else globalThis.Realtime = Realtime;
     socketEvent(m) { if (ws) ws.event(m); },
     socketUp() { if (ws) ws.reconnected(); },
     socketDown() { if (ws) ws.dropped(); },
+    // the chat page's own game tables (tables.js): a live room under the "tb." prefix, or null when there are none here
+    ready: () => !!(backend && backend.room),
+    pageRoom: (name) => (backend && backend.room ? backend.room.join('tb.' + String(name).toLowerCase()) : Promise.reject({ code: 'unavailable', message: 'no live rooms here' })),
     // a game frame was opened / closed
     attach(frame, game, code) { const S = session(frame.contentWindow, game, code); frames.set(frame.contentWindow, S); return () => { frames.delete(frame.contentWindow); S.close(); }; },
+  };
+})();
+
+</script>
+<script>
+// Game tables: every Request-a-game game also has servers ("tables") in 🕹️ Games.
+// Join a table and the next players in line play while everyone else there watches; after each
+// match the winner stays on and the others go to the back of the line. Snake, Light Cycles and
+// Tetris Battle seat up to 4 players at once.
+//
+// It runs on the same live rooms as the other 🕹️ Games (GameNet: claude.ai's rooms, or the
+// website's relay). The first person at a table runs its matches in their browser and shares
+// them through room presence; everyone else shares their moves the same way.
+(() => {
+  const TABLES = 6, SEATS = 12; // tables per game, people per table (players + watchers)
+  const KIND = {
+    chess: 'turn', checkers: 'turn', connect4: 'turn', tictactoe: 'turn', reversi: 'turn', dots: 'turn', mancala: 'turn', gomoku: 'turn',
+    pong: 'realtime', hockey: 'realtime', fighter: 'realtime', snake: 'realtime', tron: 'realtime', tetris: 'relay',
+  };
+  const ORDER = ['chess', 'checkers', 'connect4', 'tictactoe', 'reversi', 'dots', 'mancala', 'gomoku', 'pong', 'hockey', 'fighter', 'snake', 'tron', 'tetris'];
+  const MAXP = { snake: 4, tron: 4, tetris: 4 };
+  const maxPlayers = (g) => MAXP[g] || 2;
+  const SMOOTH = new Set(['pong', 'hockey', 'fighter']);
+  const SEND_MS = 50, COUNTDOWN = 4000, COUNTDOWN_MORE = 7000, AFTER = 5000;
+
+  function h(tag, attrs, ...kids) {
+    const el = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs || {})) {
+      if (v === null || v === undefined || v === false) continue;
+      if (k === 'class') el.className = v;
+      else if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+      else el.setAttribute(k, v === true ? '' : v);
+    }
+    for (const kid of kids.flat()) if (kid !== null && kid !== undefined && kid !== false) el.append(kid instanceof Node ? kid : String(kid));
+    return el;
+  }
+  const meta = (g) => (window.GameDock && GameDock.META[g]) || { emoji: '🎮', name: g };
+  const copy = (o) => JSON.parse(JSON.stringify(o));
+  const now = () => performance.now();
+
+  let api = null;         // the 🕹️ Games window (party.js)
+  let lobby = null, lobbyPeers = [], lobbyP = null;
+  let T = null;           // the table I'm at
+  let pill = null;
+
+  // ---------------------------------------------------------------- lobby: who is at which table
+  function getLobby() {
+    if (!lobbyP) {
+      lobbyP = window.GameNet.pageRoom('lobby').then((r) => {
+        lobby = r;
+        r.onPeers((ch) => { lobbyPeers = ch.peers; refresh(); }, () => {});
+        return r;
+      }).catch((e) => { lobbyP = null; throw e; });
+    }
+    return lobbyP;
+  }
+  function tableInfo(game, n) {
+    const ps = lobbyPeers.filter((p) => p.presence && p.presence.g === game && p.presence.n === n);
+    return { people: ps.length, playing: ps.filter((p) => p.presence.p).map((p) => String(p.presence.nm || 'Someone')) };
+  }
+  const atGame = (game) => lobbyPeers.filter((p) => p.presence && p.presence.g === game).length;
+
+  // ---------------------------------------------------------------- my table
+  const myPeer = () => { const m = T && T.peers.find((p) => p.isMe); return m ? m.peer : ''; };
+  // everyone at the table, host first (whoever claimed it), then in the order they sat down
+  function crew() {
+    if (!T) return [];
+    return T.peers.filter((p) => p.presence && p.presence.t).map((p) => ({
+      peer: p.peer, isMe: p.isMe, nm: String(p.presence.nm || 'Player').slice(0, 24), uid: String(p.presence.uid || p.peer), av: String(p.presence.av || '#888888'),
+      t: +p.presence.t || 0, h: +p.presence.h || 0, sit: !!p.presence.sit, pr: p.presence,
+    })).sort((a, b) => (b.h ? 1 : 0) - (a.h ? 1 : 0) || a.t - b.t || (a.peer < b.peer ? -1 : 1));
+  }
+  const hostOf = () => crew()[0] || null;
+  const iAmHost = () => { const c = hostOf(); return !!(c && c.isMe); };
+
+  function send(patch) {
+    if (!T || !T.room) return;
+    if (T.busy) { T.queued = Object.assign(T.queued || {}, patch); return; }
+    T.busy = true;
+    const t = T;
+    t.room.presence(patch).catch(() => {}).then(() => { t.busy = false; if (t.queued && T === t) { const q = t.queued; t.queued = null; send(q); } });
+  }
+
+  async function join(game, n) {
+    if (T && T.game === game && T.n === n) return;
+    if (T) await leave(true);
+    const me = api.me();
+    const t = T = { game, n, room: null, peers: [], joinAt: now(), t0: Date.now(), claimed: false, sit: false, out: [], outN: 0, busy: false, queued: null, hs: null, view: {}, offs: [] };
+    refresh();
+    try {
+      await getLobby();
+      const room = await window.GameNet.pageRoom(`${game}.${n}`);
+      if (T !== t) { room.leave().catch(() => {}); return; }
+      t.room = room;
+      t.offs.push(room.onPeers((ch) => { if (T === t) onPeers(ch); }, () => {}));
+      send({ nm: me.name, uid: me.username, av: me.avatar || '#888888', t: t.t0 });
+      lobby.presence({ g: game, n, nm: me.name, p: 0 }).catch(() => {});
+      t.claimTimer = setTimeout(() => T === t && tick(), 1700);
+      t.tickTimer = setInterval(() => T === t && tick(), 100);
+    } catch (e) {
+      if (T === t) { T = null; api.toast('Couldn’t reach that table. Try another one.'); }
+    }
+    refresh();
+  }
+  async function leave(quiet) {
+    const t = T;
+    if (!t) return;
+    T = null;
+    clearInterval(t.tickTimer); clearTimeout(t.claimTimer);
+    stopHost(t);
+    t.offs.forEach((f) => { try { f(); } catch {} });
+    if (window.GameDock) {
+      const c = GameDock.current && GameDock.current();
+      if (c && c.table) GameDock.close(); // the table's match goes with you
+    }
+    if (lobby) lobby.presence({ g: null, n: null, p: null }).catch(() => {});
+    if (t.room) await t.room.leave().catch(() => {});
+    if (!quiet) api.toast(`You left ${meta(t.game).name} table ${t.n}`);
+    refresh();
+  }
+  function joinRandom(game) {
+    const open = [];
+    for (let n = 1; n <= TABLES; n++) if (!(T && T.game === game && T.n === n) && tableInfo(game, n).people < SEATS) open.push(n);
+    if (!open.length) return api.toast('Every table is full right now');
+    join(game, open[Math.floor(Math.random() * open.length)]);
+  }
+  function setSit(v) { if (!T) return; T.sit = v; send({ sit: v ? 1 : 0 }); refresh(); }
+
+  function onPeers(ch) {
+    T.peers = ch.peers;
+    // two people grabbing the last seat at once: whoever came last moves on
+    if (now() - T.joinAt < 4000) {
+      const byTime = crew().sort((a, b) => a.t - b.t || (a.peer < b.peer ? -1 : 1));
+      if (byTime.findIndex((c) => c.isMe) >= SEATS) { const t = T; leave(true).then(() => api.toast(`${meta(t.game).name} table ${t.n} filled up just as you joined`)); return; }
+    }
+    const hc = hostOf();
+    if (hc && hc.peer !== T.view.hostPeer) {
+      const v = T.view, had = v.hostPeer;
+      v.hostPeer = hc.peer; v.lastV = v.shownV = 0;
+      // the match ran in the old host's browser: it ends here, and the new host starts the next one
+      if (had && v.dockId && !v.overShown && v.g && v.g.st === 'play') {
+        v.overShown = true;
+        GameDock.over({ id: v.dockId, result: { winner: -1, reason: 'the table’s host left' }, state: copy(v.g.s) });
+      }
+    }
+    tick();
+    if (hc && !hc.isMe && hc.pr.g) watchHost(hc.pr.g);
+    refresh();
+  }
+
+  // ---------------------------------------------------------------- once a tenth of a second
+  function tick() {
+    if (!T || !T.room) return;
+    // nobody holds the table: the first in line takes it, once it has heard about everyone already here
+    const c = crew();
+    if (!T.claimed && now() - T.joinAt > 1500 && !c.some((x) => x.h && !x.isMe) && c[0] && c[0].isMe) { T.claimed = true; send({ h: 1 }); }
+    if (iAmHost()) hostTick();
+    else if (T.hs) { stopHost(T); } // someone else holds the table now
+    pillUpdate();
+  }
+
+  // ---------------------------------------------------------------- the host runs the matches
+  function stopHost(t) {
+    const hs = t && t.hs;
+    if (!hs) return;
+    if (hs.m && hs.m.timer) clearInterval(hs.m.timer);
+    t.hs = null;
+  }
+  function hostTick() {
+    if (!T.hs) T.hs = { order: [], m: null, sentAt: 0, v: 0, dirty: true, packing: false };
+    const hs = T.hs, c = crew(), here = new Set(c.map((x) => x.peer)), t = now();
+    // the line: people who want to play, in the order they came; new arrivals go to the back
+    hs.order = hs.order.filter((p) => here.has(p) && !c.find((x) => x.peer === p).sit);
+    for (const x of c.slice().sort((a, b) => a.t - b.t)) if (!x.sit && !hs.order.includes(x.peer)) hs.order.push(x.peer);
+    const m = hs.m, max = maxPlayers(T.game);
+    if (!m) {
+      if (hs.order.length >= 2) {
+        hs.m = { mid: Math.random().toString(36).slice(2, 9), st: 'cd', cdEnd: t + (hs.order.length < max ? COUNTDOWN_MORE : COUNTDOWN), pl: hs.order.slice(0, max) };
+        hs.dirty = true;
+      }
+    } else if (m.st === 'cd') {
+      m.pl = hs.order.slice(0, max);
+      if (m.pl.length < 2) { hs.m = null; hs.dirty = true; }
+      else if (t >= m.cdEnd) startMatch(hs);
+      else hs.dirty = true;
+    } else if (m.st === 'play') {
+      // players who left the table, or gave up this match
+      m.pl.forEach((p, i) => {
+        const x = c.find((y) => y.peer === p);
+        if (!m.out[i] && (!x || x.pr.ff === m.mid)) playerGone(m, i, x ? 'gave up' : 'left');
+      });
+      for (const x of c) if (!x.isMe) hostInputs(m, x);
+    } else if (m.st === 'over' && t - m.overAt > AFTER) {
+      // the winner stays on; everyone who just played goes to the back of the line
+      const w = m.res && m.res.winner >= 0 ? m.pl[m.res.winner] : null;
+      const played = new Set(m.pl);
+      hs.order = (w ? [w] : []).concat(hs.order.filter((p) => !played.has(p)), m.pl.filter((p) => p !== w && hs.order.includes(p)));
+      hs.m = null; hs.dirty = true;
+    }
+    publish(hs);
+  }
+  function freshState(game, n) {
+    if (KIND[game] === 'turn') return Rules[game].init();
+    if (KIND[game] === 'realtime') return Realtime[game].init(n);
+    return { boards: new Array(n).fill('0'.repeat(200)), scores: new Array(n).fill(0), lines: new Array(n).fill(0), sent: new Array(n).fill(0), dead: new Array(n).fill(false) };
+  }
+  function startMatch(hs) {
+    const m = hs.m, c = crew();
+    const info = m.pl.map((p) => c.find((x) => x.peer === p) || { nm: 'Player', uid: p, av: '#888888' });
+    Object.assign(m, { st: 'play', state: freshState(T.game, m.pl.length), names: info.map((x) => x.nm), uids: info.map((x) => x.uid), avs: info.map((x) => x.av), out: m.pl.map(() => false), lastN: {}, ev: [], evSeq: 0, res: null });
+    if (KIND[T.game] === 'realtime') {
+      const sim = Realtime[T.game];
+      m.timer = setInterval(() => {
+        if (!T || !T.hs || T.hs.m !== m || m.st !== 'play') return clearInterval(m.timer);
+        const r = sim.tick(m.state);
+        hs.dirty = true;
+        if (r) finish(m, r);
+        else if (now() - hs.sentAt >= SEND_MS) publish(hs);
+      }, sim.tickMs);
+    }
+    hs.dirty = true;
+  }
+  function finish(m, res) {
+    if (m.st !== 'play') return;
+    clearInterval(m.timer);
+    const reason = res.reason;
+    m.st = 'over'; m.res = { winner: typeof res.winner === 'number' ? res.winner : -1, reason }; m.overAt = now();
+    if (T && T.hs) T.hs.dirty = true;
+  }
+  function playerGone(m, i, how) {
+    m.out[i] = true;
+    const name = m.names[i], left = m.out.map((o, k) => (o ? -1 : k)).filter((k) => k >= 0);
+    if (left.length <= 1) return finish(m, { winner: left.length ? left[0] : -1, reason: `${name} ${how}` });
+    if (T.game === 'snake' || T.game === 'tron') Realtime[T.game].remove(m.state, i);
+    if (T.game === 'tetris') { m.state.dead[i] = true; tetrisCheck(m); }
+  }
+  function tetrisCheck(m) {
+    const alive = m.state.dead.map((d, k) => (d ? -1 : k)).filter((k) => k >= 0);
+    if (alive.length <= 1) finish(m, { winner: alive.length ? alive[0] : -1, reason: alive.length ? 'last one standing' : 'everyone topped out' });
+  }
+  // a player's moves, keys and boards, applied in the order they made them
+  function applyInput(m, i, input) {
+    if (!m || m.st !== 'play' || m.out[i] || !input || typeof input !== 'object') return;
+    const kind = KIND[T.game];
+    if (kind === 'turn') {
+      if (m.state.turn !== i) return;
+      const r = Rules[T.game].move(m.state, i, input);
+      if (r.error) return;
+      m.state = r.state;
+      T.hs.dirty = true;
+      if (m.state.result) finish(m, m.state.result);
+    } else if (kind === 'realtime') {
+      Realtime[T.game].input(m.state, i, input);
+    } else {
+      const s = m.state;
+      if (input.kind === 'board' && typeof input.board === 'string' && /^[0-8]{200}$/.test(input.board)) {
+        s.boards[i] = input.board; s.scores[i] = Math.max(0, +input.score || 0); s.lines[i] = Math.max(0, +input.lines || 0);
+      } else if (input.kind === 'garbage') {
+        const n = Math.max(1, Math.min(4, Math.floor(+input.n || 0)));
+        s.sent[i] += n;
+        // junk goes to the next player still in, round the table
+        for (let k = 1; k < s.dead.length; k++) {
+          const to = (i + k) % s.dead.length;
+          if (!s.dead[to]) { m.ev.push([++m.evSeq, to, n]); if (m.ev.length > 20) m.ev.shift(); if (m.pl[to] === myPeer()) deliverGarbage(n); break; }
+        }
+      } else if (input.kind === 'dead') { s.dead[i] = true; tetrisCheck(m); }
+      T.hs.dirty = true;
+    }
+  }
+  function hostInputs(m, x) {
+    const i = m.pl.indexOf(x.peer);
+    if (i < 0) return;
+    const pr = x.pr;
+    if (KIND[T.game] === 'relay' && pr.tb && typeof pr.tb === 'object' && pr.tb.m === m.mid) applyInput(m, i, Object.assign({ kind: 'board' }, pr.tb));
+    const q = Array.isArray(pr.in) ? pr.in : [];
+    for (const e of q) {
+      if (!Array.isArray(e) || e[0] !== m.mid || typeof e[1] !== 'number') continue;
+      if (e[1] <= (m.lastN[x.peer] || 0)) continue;
+      m.lastN[x.peer] = e[1];
+      applyInput(m, i, e[2]);
+    }
+  }
+  // what everyone at the table sees: the match, shared through the host's presence
+  function packet(hs) {
+    const m = hs.m;
+    if (!m) return { v: ++hs.v, q: hs.order };
+    const g = { v: ++hs.v, q: hs.order, mid: m.mid, game: T.game, st: m.st, pl: m.pl };
+    if (m.st === 'cd') g.cd = Math.max(0, Math.ceil((m.cdEnd - now()) / 1000));
+    else Object.assign(g, { s: m.state, nm: m.names, uid: m.uids, av: m.avs, res: m.res, ev: m.ev });
+    return g;
+  }
+  async function publish(hs) {
+    if (!hs.dirty || hs.packing || now() - hs.sentAt < SEND_MS) return;
+    hs.dirty = false; hs.sentAt = now();
+    const g = packet(hs);
+    showMatch(g); // the host watches / plays its own match too
+    const json = JSON.stringify(g);
+    if (json.length < 3300 || typeof CompressionStream === 'undefined') { send({ g }); return; }
+    // big boards (a long 4-snake game): squeeze them to fit in a presence
+    hs.packing = true;
+    try { send({ g: { v: g.v, z: await squeeze(json) } }); } catch { send({ g: { v: g.v, q: g.q } }); }
+    hs.packing = false;
+  }
+  async function squeeze(text) {
+    const buf = await new Response(new Blob([text]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer();
+    let bin = '';
+    const b = new Uint8Array(buf);
+    for (let i = 0; i < b.length; i += 0x8000) bin += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000));
+    return btoa(bin);
+  }
+  async function unsqueeze(z) {
+    const bin = atob(z), b = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) b[i] = bin.charCodeAt(i);
+    return JSON.parse(await new Response(new Blob([b]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text());
+  }
+
+  // ---------------------------------------------------------------- everyone: show the table's match
+  async function watchHost(g) {
+    if (!g || typeof g !== 'object' || typeof g.v !== 'number') return;
+    const v = T.view;
+    if (g.v === v.lastV) return;
+    v.lastV = g.v;
+    if (g.z) { try { g = await unsqueeze(g.z); } catch { return; } if (!T || T.view !== v || g.v < (v.shownV || 0)) return; }
+    showMatch(g);
+  }
+  function showMatch(g) {
+    if (!T) return;
+    const v = T.view;
+    v.shownV = g.v;
+    v.g = g;
+    if (lobby) {
+      const playing = !!(g.pl && g.st !== 'cd' && g.pl.includes(myPeer()) && g.st === 'play') ? 1 : 0;
+      if (playing !== v.lobbyP) { v.lobbyP = playing; lobby.presence({ p: playing }).catch(() => {}); }
+    }
+    if (!g.mid || g.st === 'cd' || !g.pl) { pillUpdate(); refresh(); return; }
+    const id = 'tb-' + g.mid, me = myPeer(), idx = g.pl.indexOf(me), dock = window.GameDock;
+    if (v.mid !== g.mid) {
+      v.mid = g.mid; v.lastEv = 0; v.overShown = false;
+      const c = dock.current && dock.current();
+      // don't take over a game you're already playing with someone outside the table
+      const busy = c && !c.table && !c.over;
+      if (busy || (idx < 0 && v.noWatch)) { v.dockId = null; refresh(); return; }
+      const players = g.pl.map((p, i) => ({ username: (g.uid && g.uid[i]) || p, name: (g.nm && g.nm[i]) || 'Player', avatar: (g.av && g.av[i]) || '#888888' }));
+      const host = iAmHost();
+      v.dockId = id;
+      // your match is starting: get the tables window out of the way
+      if (idx >= 0 && window.PartyUI && PartyUI.isOpen() && String(PartyUI.openOn()).startsWith('tb:')) api.closeModal();
+      dock.start({
+        id, game: g.game, players, you: idx < 0 ? 0 : idx, spectate: idx < 0, state: copy(g.s), table: { game: T.game, n: T.n },
+        net: { smooth: SMOOTH.has(g.game), predict: idx >= 0 && !host },
+        host: {
+          send: (gid, input) => sendInput(gid, input),
+          leave: (gid) => {
+            if (idx < 0) { if (T) T.view.noWatch = true; return; }
+            if (T && T.hs && T.hs.m && T.hs.m.mid === g.mid) playerGone(T.hs.m, idx, 'gave up');
+            else send({ ff: g.mid });
+          },
+          rematch() {},
+        },
+      });
+    }
+    if (v.dockId !== id) return;
+    if (g.st === 'play' || (g.st === 'over' && !v.overShown)) dock.state({ id, state: copy(g.s) });
+    if (Array.isArray(g.ev)) for (const e of g.ev) if (e[0] > v.lastEv) { v.lastEv = e[0]; if (e[1] === idx && !iAmHost()) deliverGarbage(e[2]); }
+    if (g.st === 'over' && !v.overShown && g.res) {
+      v.overShown = true;
+      dock.over({ id, result: g.res, state: copy(g.s) });
+    }
+    refresh();
+  }
+  function deliverGarbage(n) { const v = T && T.view; if (v && v.dockId) GameDock.event({ id: v.dockId, ev: { garbage: n } }); }
+  // my move / keys / board: straight in if I run the table, else through my presence
+  function sendInput(gid, input) {
+    if (!T || !T.view.g || 'tb-' + T.view.g.mid !== gid) return;
+    const g = T.view.g, idx = g.pl.indexOf(myPeer());
+    if (idx < 0 || !input) return;
+    if (iAmHost() && T.hs && T.hs.m && T.hs.m.mid === g.mid) return applyInput(T.hs.m, idx, input);
+    if (KIND[g.game] === 'relay' && input.kind === 'board') return send({ tb: { m: g.mid, board: input.board, score: input.score, lines: input.lines } });
+    T.out.push([g.mid, ++T.outN, input]);
+    if (T.out.length > 16) T.out.shift();
+    send({ in: T.out.slice() });
+  }
+
+  // ---------------------------------------------------------------- the "you're at a table" pill
+  function pillUpdate() {
+    if (!pill) {
+      pill = h('button', { class: 'party-pill table-pill hidden', onclick: () => T && api && window.PartyUI.openGames('tb:' + T.game) });
+      document.body.append(pill);
+    }
+    if (!T) { pill.classList.add('hidden'); return; }
+    const c = window.GameDock && GameDock.current && GameDock.current();
+    pill.classList.toggle('hidden', !!(c && c.table && !c.over && !document.getElementById('gameDock').classList.contains('min')));
+    pill.textContent = `${meta(T.game).emoji} ${meta(T.game).name} · table ${T.n} — ${statusLine()}`;
+  }
+  function statusLine() {
+    if (!T || !T.room) return 'joining…';
+    const g = T.view.g || (iAmHost() && T.hs ? packet0() : null), me = myPeer();
+    if (T.sit) return 'sitting out';
+    if (!g || !g.mid) {
+      const n = crew().filter((x) => !x.sit).length;
+      return n < 2 ? 'waiting for another player' : 'starting soon';
+    }
+    const inIt = g.pl && g.pl.includes(me);
+    if (g.st === 'cd') return inIt ? `you play in ${g.cd}…` : `next match in ${g.cd}`;
+    if (g.st === 'over') return 'match over';
+    if (inIt) return 'you’re playing';
+    const waiting = (g.q || []).filter((p) => !(g.pl || []).includes(p)), pos = waiting.indexOf(me);
+    return pos === 0 ? 'watching · you’re next' : pos > 0 ? `watching · ${pos + 1}th in line`.replace('2th', '2nd').replace('3th', '3rd') : 'watching';
+  }
+  function packet0() { const m = T.hs.m; return m ? { mid: m.mid, st: m.st, pl: m.pl, q: T.hs.order, cd: m.st === 'cd' ? Math.max(0, Math.ceil((m.cdEnd - now()) / 1000)) : 0 } : { q: T.hs.order }; }
+
+  // ---------------------------------------------------------------- the 🕹️ Games window
+  let refreshAt = 0, refreshTimer = 0;
+  function refresh() {
+    pillUpdate();
+    if (!(api && window.PartyUI && PartyUI.isOpen() && String(PartyUI.openOn()).startsWith('tb:'))) return;
+    const wait = 400 - (now() - refreshAt);
+    if (wait <= 0) { refreshAt = now(); api.refreshModal(); return; }
+    if (!refreshTimer) refreshTimer = setTimeout(() => { refreshTimer = 0; refresh(); }, wait);
+  }
+  function cards() {
+    if (window.GameNet && GameNet.ready()) getLobby().catch(() => {});
+    return ORDER.map((g) => {
+      const mt = meta(g), n = atGame(g);
+      return h('button', { class: 'party-game-card table-card', style: `--g:${mt.color}`, onclick: () => window.PartyUI.openGames('tb:' + g) },
+        h('span', { class: 'pg-emoji' }, mt.emoji), h('b', {}, mt.name), h('small', {}, mt.desc),
+        h('span', { class: 'pg-meta' }, `${maxPlayers(g) > 2 ? '2–4 players' : '2 players'} · ${T && T.game === g ? `you’re at table ${T.n}` : n ? `${n} at the tables` : 'Tables open'}`));
+    });
+  }
+  function view(game) {
+    const mt = meta(game);
+    if (!window.GameNet || !GameNet.ready()) {
+      return [api.modalHead(`${mt.emoji} ${mt.name} tables`), h('p', { class: 'muted' }, 'Game tables need a live connection, which isn’t available here.')];
+    }
+    getLobby().catch(() => {});
+    const here = T && T.game === game ? T : null, c = here ? crew() : [], g = here ? here.view.g || (iAmHost() && here.hs ? packet0() : null) : null;
+    const back = h('button', { class: 'btn small ghost', onclick: () => window.PartyUI.openGames('pick') }, '‹ Games');
+    const head = h('div', { class: 'modal-head' }, back, h('h2', { style: 'flex:1' }, `${mt.emoji} ${mt.name} tables`), h('button', { class: 'close-x', onclick: api.closeModal }, 'X'));
+    const out = [head];
+    if (here) {
+      const q = (g && g.q) || [], pl = (g && g.pl) || [];
+      const role = (x) => (x.sit ? 'sitting out' : pl.includes(x.peer) && g.st !== 'cd' ? 'playing' : pl.includes(x.peer) ? 'up next' : q.includes(x.peer) ? `#${q.indexOf(x.peer) + 1} in line` : 'watching');
+      out.push(h('div', { class: 'table-here' },
+        h('div', { class: 'row', style: 'align-items:center' }, h('b', { style: 'flex:1;font-size:17px' }, `You’re at table ${here.n}`), h('span', { class: 'server-state playing' }, statusLine())),
+        h('div', { class: 'table-people' }, c.map((x, i) => h('span', { class: 'table-person' + (x.isMe ? ' me' : '') }, h('i', { style: `background:${x.av}` }), `${x.nm}${x.isMe ? ' (you)' : ''}${i === 0 ? ' 👑' : ''}`, h('small', {}, role(x))))),
+        h('p', { class: 'muted', style: 'margin:6px 0' }, `${maxPlayers(game) > 2 ? `Up to ${maxPlayers(game)} play at once` : 'Two play at a time'}; everyone else at the table watches. The winner stays on, everyone else goes to the back of the line.`),
+        h('div', { class: 'row' },
+          here.sit ? h('button', { class: 'btn primary', onclick: () => setSit(false) }, '🎮 Play') : h('button', { class: 'btn', onclick: () => setSit(true) }, '👀 Just watch'),
+          g && g.mid && g.st !== 'cd' && here.view.dockId ? h('button', { class: 'btn', onclick: () => { api.closeModal(); const d = document.getElementById('gameDock'); d.classList.remove('min'); } }, 'Show the match') : '',
+          g && g.mid && g.st === 'play' && !here.view.dockId ? h('button', { class: 'btn', onclick: () => { const v = here.view; v.noWatch = false; v.mid = null; api.closeModal(); showMatch(v.g); } }, '👀 Watch the match') : '',
+          h('span', { class: 'grow' }), h('button', { class: 'btn danger', onclick: () => leave() }, 'Leave table'))));
+    }
+    out.push(h('button', { class: 'btn primary', style: 'width:100%;margin:10px 0', onclick: () => joinRandom(game) }, here ? '🎲 Move to a random table' : '🎲 Join a random table'));
+    out.push(h('div', { class: 'table-grid' }, Array.from({ length: TABLES }, (_, k) => {
+      const n = k + 1, info = tableInfo(game, n), mine = here && here.n === n, full = info.people >= SEATS;
+      const people = mine ? Math.max(info.people, c.length) : info.people;
+      const line = info.playing.length >= 2 ? `${info.playing.join(' vs ')} playing` : people ? `${people} waiting` : 'Empty';
+      return h('button', { class: 'table-card-btn' + (mine ? ' mine' : ''), disabled: mine || full, onclick: () => join(game, n) },
+        h('b', {}, `Table ${n}`), h('small', {}, mine ? 'You’re here' : full ? 'Full' : line), h('span', { class: 'muted' }, people ? `${people} at the table` : ''));
+    })));
+    return out;
+  }
+
+  window.Tables = {
+    init(a) { api = a; },
+    cards,
+    view,
+    at: () => (T ? { game: T.game, n: T.n } : null),
+    _debug: () => (T ? { g: T.view.g, host: iAmHost(), me: myPeer(), send: (input) => T.view.g && sendInput('tb-' + T.view.g.mid, input) } : null), // for tests
+    leave,
   };
 })();
 

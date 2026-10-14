@@ -47,10 +47,12 @@
   // ---------------------------------------------------------------- the Games window
   let gamesOpen = null; // 'pick' | game id, while the window is open
   function openGames(game) {
+    const wasOpen = !!gamesOpen;
     gamesOpen = game || 'pick';
-    api.openModal(buildGames, true);
+    if (wasOpen) api.refreshModal(); else api.openModal(buildGames, true);
   }
   function buildGames() {
+    if (String(gamesOpen).startsWith('tb:') && window.Tables) return Tables.view(gamesOpen.slice(3));
     if (gamesOpen === 'pick' || !GAMES[gamesOpen]) {
       return [api.modalHead('🕹️ Games'), h('p', { class: 'muted' }, 'Party games with servers: make one, or join someone else’s. More games are coming.'),
         h('div', { class: 'party-games' }, Object.entries(FRAME_GAMES).map(([id, g]) => h('button', { class: 'party-game-card', style: `--g:${g.color}`, onclick: () => { api.closeModal(); openFrame(id); } },
@@ -61,7 +63,10 @@
             h('span', { class: 'pg-emoji' }, g.emoji), h('b', {}, g.name), h('small', {}, g.desc),
             h('span', { class: 'pg-meta' }, `${g.players} · ${open.length ? `${open.length} server${open.length === 1 ? '' : 's'} open` : 'no servers yet'}`));
         }),
-        h('div', { class: 'party-game-card soon' }, h('span', { class: 'pg-emoji' }, '✨'), h('b', {}, 'More soon'), h('small', {}, 'New party games will show up here.'))),
+        ),
+        ...(window.Tables ? [h('h3', { class: 'games-section' }, '🎲 Classic games — tables'),
+          h('p', { class: 'muted', style: 'margin-top:0' }, 'Every Request-a-game game, with tables to join: the next players in line play, everyone else watches. Snake, Light Cycles and Tetris seat up to 4.'),
+          h('div', { class: 'party-games' }, Tables.cards())] : []),
       ];
     }
     const g = GAMES[gamesOpen], servers = list.filter((p) => p.game === gamesOpen && p.players.length);
@@ -355,8 +360,9 @@
     openFrame,
     closeFrame,
     frameOpen: () => !!(frame && !frame.min),
-    init(a) { api = a; },
+    init(a) { api = a; if (window.Tables) Tables.init(a); },
     openGames,
+    openOn: () => gamesOpen,
     buildGames: () => buildGames(),
     isOpen: () => !!gamesOpen,
     closed() { gamesOpen = null; },
