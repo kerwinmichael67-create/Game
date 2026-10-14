@@ -21,7 +21,9 @@
   // Games that run full-window in their own frame, with their own servers (games/*.html + games/net.js)
   const FRAME_GAMES = {
     blockcraft: { name: 'Blockcraft', emoji: '⛏️', code: 'mc', frame: 'games/blockcraft.html', color: 'linear-gradient(135deg,#4d7c0f,#78350f)', players: 'Online worlds',
-      desc: 'Build and mine in a blocky world with everyone on your server. Worlds are saved.' },
+      desc: 'Build and mine together, or switch to Survival: craft tools and fight mobs at night. Worlds are saved.' },
+    bloxverse: { name: 'Bloxverse', emoji: '🧱', code: 'rb', frame: 'games/bloxverse.html', color: 'linear-gradient(135deg,#0ea5e9,#16a34a)', players: 'Online servers',
+      desc: 'A Roblox-style hub: dress up your avatar, then play Mega Obby, Cube Factory Tycoon, Tag Arena or Floor is Lava.' },
     trivia: { name: 'Trivia Rush', emoji: '🧠', code: 'tr', frame: 'games/trivia.html', color: 'linear-gradient(135deg,#7c3aed,#db2777)', players: '2–12 players',
       desc: 'Party quiz: ten questions, faster right answers score more.' },
     odd: { name: 'Odd One Out', emoji: '🕵️', code: 'oo', frame: 'games/oddoneout.html', color: 'linear-gradient(135deg,#0f766e,#1e3a8a)', players: '3–10 players',
