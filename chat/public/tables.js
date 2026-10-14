@@ -425,7 +425,11 @@
   function view(game) {
     const mt = meta(game);
     if (!window.GameNet || !GameNet.ready()) {
-      return [api.modalHead(`${mt.emoji} ${mt.name} tables`), h('p', { class: 'muted' }, 'Game tables need a live connection, which isn’t available here.')];
+      const st = window.GameNet ? GameNet.status() : 'none';
+      if (st === 'connecting') setTimeout(refresh, 1000);
+      return [api.modalHead(`${mt.emoji} ${mt.name} tables`), h('p', { class: 'muted' }, st === 'connecting'
+        ? 'Connecting to the game servers…'
+        : 'Live rooms aren’t switched on for your access to this page, so tables can’t connect. The page’s owner can fix that by sharing it with you as a Contributor (Share menu).')];
     }
     getLobby().catch(() => {});
     const here = T && T.game === game ? T : null, c = here ? crew() : [], g = here ? here.view.g || (iAmHost() && here.hs ? packet0() : null) : null;

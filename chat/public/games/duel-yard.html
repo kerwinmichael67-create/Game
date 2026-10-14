@@ -2187,7 +2187,7 @@ function setLobby(patch) {
 }
 function capUse(name) {
   try {
-    if (window.claude && typeof window.claude.use === 'function') return Promise.resolve(window.claude.use(name)).catch(() => null);
+    if ((window.ChatClaude||window.claude) && typeof (window.ChatClaude||window.claude).use === 'function') return Promise.resolve((window.ChatClaude||window.claude).use(name)).catch(() => null);
   } catch (e) { /* not in a viewer */ }
   return Promise.resolve(null);
 }

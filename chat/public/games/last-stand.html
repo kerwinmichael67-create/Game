@@ -1310,8 +1310,8 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     if (asked) return asked;
     asked = (async () => {
       try {
-        if (!window.claude || typeof window.claude.use !== 'function') { Account.claudeState = 'none'; return null; }
-        const u = await window.claude.use('user');
+        if (!(window.ChatClaude||window.claude) || typeof (window.ChatClaude||window.claude).use !== 'function') { Account.claudeState = 'none'; return null; }
+        const u = await (window.ChatClaude||window.claude).use('user');
         if (!u) { Account.claudeState = 'none'; return null; }
         const me = await u.me();                       // never rejects, never null
         Account.claude = { id: me.id || null, name: me.name || '', avatarUrl: me.avatarUrl || null };
@@ -4220,12 +4220,12 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     if (probe) return probe;
     probe = (async () => {
       try {
-        if (window.claude && typeof window.claude.use === 'function') {
+        if ((window.ChatClaude||window.claude) && typeof (window.ChatClaude||window.claude).use === 'function') {
           /* We ARE on the published page.  Worth recording, because the
              capability resolving null here does not mean the page is a
              local copy — it means this viewer is not admitted to rooms. */
           Net.hosted = true;
-          roomNs = await window.claude.use('room');
+          roomNs = await (window.ChatClaude||window.claude).use('room');
           if (roomNs) return (Net.backend = 'room');
         }
       } catch (e) { /* fall through to the local backend */ }

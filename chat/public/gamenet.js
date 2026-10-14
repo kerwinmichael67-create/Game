@@ -112,6 +112,14 @@
       if (named.onConnection) R.unsubs.push(named.onConnection((c) => post({ sub: 'r' + id, data: { type: 'conn', c } }), () => {}));
       return { rid: id, name: String(name), connected: named.connected ? named.connected() : true };
     }
+    // the chat may still be connecting when a game asks: wait up to 20 seconds for it
+    async function connected(what) {
+      for (let i = 0; i < 80; i++) {
+        if (backend && (what ? backend[what] || backend.room : backend.room)) return true;
+        await new Promise((r) => setTimeout(r, 250));
+      }
+      return !!backend;
+    }
     const room = (a) => { const R = S.rooms.get(a && a.rid); if (!R) throw { code: 'invalid_argument', message: 'no such room' }; return R; };
     const dbPath = (p) => `games/${code}/${String(p).replace(/^\/+/, '')}`;
     function query(a) {
@@ -127,9 +135,8 @@
     const snapColl = (s) => ({ docs: s.docs.map((d) => ({ id: d.id, data: d.data() })), removed: (s.docChanges ? s.docChanges() : []).filter((c) => c.type === 'removed').map((c) => c.doc.id), fromCache: !!(s.metadata && s.metadata.fromCache) });
     const OPS = {
       room: async () => {
-        if (!backend || !backend.room) return null;
-        const r = await openRoom('lobby');
-        return r;
+        if (!(await connected())) return null;
+        return openRoom('lobby');
       },
       join: (a) => openRoom(a.name),
       leave: async (a) => {
@@ -147,13 +154,13 @@
         R.topics.add(a.topic);
         R.unsubs.push(R.named.on(a.topic, (msg) => post({ sub: 'r' + a.rid, data: { type: 'msg', topic: a.topic, msg: { peer: msg.peer, by: msg.by, isMe: msg.isMe, sameTab: msg.sameTab, kind: msg.kind, guest: msg.guest, topic: msg.topic, data: msg.data } } }), () => {}));
       },
-      user: () => !!(backend && backend.user),
+      user: async () => (await connected('user')) && !!backend.user,
       'user.me': () => backend.user.me(),
       'user.id': () => backend.user.id(),
       'user.profiles': (ids) => backend.user.profiles(ids),
       'user.isOwner': () => backend.user.isOwner(),
       'user.canEdit': () => backend.user.canEdit(),
-      db: () => !!(backend && backend.db),
+      db: async () => (await connected('db')) && !!backend.db,
       'db.get': async (a) => snapDoc(await backend.db.doc(dbPath(a.path)).get()),
       'db.query': async (a) => snapColl(await query(a).get()),
       'db.set': (a) => backend.db.doc(dbPath(a.path)).set(a.data),
@@ -217,6 +224,8 @@
     socketDown() { if (ws) ws.dropped(); },
     // the chat page's own game tables (tables.js): a live room under the "tb." prefix, or null when there are none here
     ready: () => !!(backend && backend.room),
+    // 'ready', 'connecting' (the chat hasn't been handed its live rooms yet) or 'none' (this view has none)
+    status: () => (backend && backend.room ? 'ready' : backend || ws ? 'none' : 'connecting'),
     pageRoom: (name) => (backend && backend.room ? backend.room.join('tb.' + String(name).toLowerCase()) : Promise.reject({ code: 'unavailable', message: 'no live rooms here' })),
     // a game frame was opened / closed
     attach(frame, game, code) { const S = session(frame.contentWindow, game, code); frames.set(frame.contentWindow, S); return () => { frames.delete(frame.contentWindow); S.close(); }; },

@@ -65,14 +65,14 @@ const Coop=(()=>{
   const btn=document.getElementById('coopBtn'),panel=document.getElementById('coopPanel'),body=document.getElementById('coopBody');
   const r1=v=>Math.round(v*10)/10,r0=Math.round;
   let lobbyP=null;
-  if(window.claude){btn.hidden=false}
+  if((window.ChatClaude||window.claude)){btn.hidden=false}
   // inside the chat's 🕹️ Games the co-op server list opens first
-  if(window.claude&&window.ChatGame)setTimeout(()=>{if(!C.srv){panel.hidden=false;render();lobby().then(r=>{if(!r)C.status="Co-op isn't available here.";render()})}},300);
+  if((window.ChatClaude||window.claude)&&window.ChatGame)setTimeout(()=>{if(!C.srv){panel.hidden=false;render();lobby().then(r=>{if(!r)C.status="Live rooms aren't switched on for your access to this page. The owner can share it with you as a Contributor (Share menu).";render()})}},300);
   function lobby(){
     if(!lobbyP)lobbyP=(async()=>{
-      const room=window.claude&&await window.claude.use('room');if(!room)return null;
+      const room=(window.ChatClaude||window.claude)&&await (window.ChatClaude||window.claude).use('room');if(!room)return null;
       C.lobby=room;room.onPeers(ch=>{C.lobbyPeers=ch.peers;if(!panel.hidden)render()},()=>{});
-      try{const u=await window.claude.use('user'),me=u&&await u.me();if(me&&me.name)C.name=String(me.name).slice(0,16)}catch(e){}
+      try{const u=await (window.ChatClaude||window.claude).use('user'),me=u&&await u.me();if(me&&me.name)C.name=String(me.name).slice(0,16)}catch(e){}
       return room})();
     return lobbyP}
   const myPeer=()=>{const m=C.peers.find(q=>q.isMe);return m?m.peer:''};
@@ -89,7 +89,7 @@ const Coop=(()=>{
   function counts(){const c=new Array(SERVERS+1).fill(0);C.lobbyPeers.forEach(q=>{const n=q.presence&&q.presence.srv;if(n>=1&&n<=SERVERS)c[n]++});return c}
   async function join(n){
     if(C.joining)return;C.joining=true;C.status='Joining server '+n+'…';render();
-    try{if(C.srv)await leave();const lob=await lobby();if(!lob){C.status="Co-op isn't available here.";return}
+    try{if(C.srv)await leave();const lob=await lobby();if(!lob){C.status="Live rooms aren't switched on for your access to this page. The owner can share it with you as a Contributor (Share menu).";return}
       const room=await lob.join('srv-'+n);C.room=room;C.srv=n;C.t0=Date.now();C.joinAt=performance.now();C.claimed=false;setTimeout(claimHost,1700);C.peers=[];C.status='';
       C.offs.push(room.onPeers(onPeers,()=>{}));
       send({nm:C.name,t:C.t0,s:Math.max(0,SHIPS.indexOf(SH))});lob.presence({srv:n}).catch(()=>{});
@@ -117,7 +117,7 @@ const Coop=(()=>{
     btn.textContent=C.srv?`👥 Server ${C.srv} · ${cr.length}`:'👥 Co-op'}
   body.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled)return;
     if(b.dataset.srv)join(+b.dataset.srv);else if('random' in b.dataset)joinRandom();else if('leave' in b.dataset)leave();else if('close' in b.dataset)panel.hidden=true});
-  btn.addEventListener('click',()=>{panel.hidden=false;render();if(!C.srv)lobby().then(r=>{if(!r)C.status="Co-op isn't available here.";render()})});
+  btn.addEventListener('click',()=>{panel.hidden=false;render();if(!C.srv)lobby().then(r=>{if(!r)C.status="Live rooms aren't switched on for your access to this page. The owner can share it with you as a Contributor (Share menu).";render()})});
   const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
   function onPeers(ch){

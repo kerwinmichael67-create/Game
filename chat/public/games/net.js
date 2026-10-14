@@ -2,11 +2,19 @@
 // window.claude that looks like claude.ai's (live rooms, who you are, saved data) and forwards each
 // call to the chat page (gamenet.js). Opened on its own, it does nothing and the game runs as before.
 (() => {
-  if (window.parent === window || window.claude) return;
+  if (window.parent === window) return;
+  // On claude.ai a page in a frame can be handed its own window.claude, but from inside the chat's
+  // frame that one can't reach live rooms. The chat's connection always works, so the games use it
+  // (as window.ChatClaude, and as window.claude whenever that can be replaced).
   let seq = 0;
   const pending = new Map(), subs = new Map();
   const post = (m) => window.parent.postMessage(Object.assign({ gn: 1 }, m), '*');
-  const call = (op, args) => new Promise((res, rej) => { const id = ++seq; pending.set(id, { res, rej }); post({ id, op, args }); });
+  const call = (op, args, wait) => new Promise((res, rej) => {
+    const id = ++seq;
+    pending.set(id, { res, rej });
+    post({ id, op, args });
+    if (wait) setTimeout(() => { if (pending.has(id)) { pending.delete(id); rej({ code: 'timeout', message: 'the chat did not answer' }); } }, wait);
+  });
   addEventListener('message', (e) => {
     if (e.source !== window.parent) return;
     const m = e.data;
@@ -127,17 +135,24 @@
 
   // ---------------------------------------------------------------- window.claude
   const cache = {};
-  window.claude = {
+  const bridge = Object.freeze({
     use(name) {
       if (cache[name]) return cache[name];
       let p;
-      if (name === 'room') p = call('room').then((info) => (info ? makeRoom(info, true) : null));
-      else if (name === 'user') p = call('user').then((ok) => (ok ? userNs : null));
-      else if (name === 'db') p = call('db').then((ok) => (ok ? dbNs : null));
+      if (name === 'room') p = call('room', null, 25000).then((info) => (info ? makeRoom(info, true) : null));
+      else if (name === 'user') p = call('user', null, 25000).then((ok) => (ok ? userNs : null));
+      else if (name === 'db') p = call('db', null, 25000).then((ok) => (ok ? dbNs : null));
       else p = Promise.resolve(null);
-      cache[name] = p.catch(() => null);
+      cache[name] = p.catch(() => null).then((v) => {
+        if (!v) setTimeout(() => { delete cache[name]; }, 3000); // not ready yet: ask again next time
+        return v;
+      });
       return cache[name];
     },
-  };
+  });
+  window.ChatClaude = bridge;
+  try { Object.defineProperty(window, 'claude', { value: bridge, configurable: true, writable: true }); } catch (e) {
+    try { window.claude = bridge; } catch (e2) { /* the page's own stays; the games use window.ChatClaude */ }
+  }
   window.ChatGame = { inChat: true }; // games can check this to know they're running inside the chat
 })();

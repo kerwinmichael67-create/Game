@@ -492,7 +492,7 @@ let hoverTank=null;
 const modesEl=document.getElementById("modes");
 [["solo","SOLO VS BOT"],["2","2 PLAYERS"],["3","3 PLAYERS"],["4","4 PLAYERS"],["online","ONLINE"]].forEach(([id,label])=>{
   const b=document.createElement("button"); b.className="mode"; b.textContent=label; b.dataset.id=id;
-  if(id==="online"){ b.id="onlineMode"; if(!window.claude) b.classList.add("hide"); }
+  if(id==="online"){ b.id="onlineMode"; if(!(window.ChatClaude||window.claude)) b.classList.add("hide"); }
   b.onclick=()=>{
     if(id==="online"){ cfg.mode="online"; cfg.tab=0; Online.enter(); renderMenu(); return; }
     cfg.mode=id==="solo"?"solo":"vs"; cfg.players=id==="solo"?2:+id; cfg.tab=0; renderMenu();
@@ -635,7 +635,7 @@ requestAnimationFrame(previewLoop);
 
 document.getElementById("startBtn").onclick=()=>startMatch();
 // inside the chat's 🕹️ Games the arena opens on ONLINE
-if(window.ChatGame&&window.claude){ cfg.mode="online"; cfg.tab=0; setTimeout(()=>{ Online.enter(); renderMenu(); },0); }
+if(window.ChatGame&&(window.ChatClaude||window.claude)){ cfg.mode="online"; cfg.tab=0; setTimeout(()=>{ Online.enter(); renderMenu(); },0); }
 document.getElementById("quitBtn").onclick=()=>toMenu();
 function toMenu(){
   if(G.online) Online.quitMatch();
@@ -658,11 +658,11 @@ const Online=(()=>{
   const r0=v=>Math.round(v), r2=v=>Math.round(v*100)/100;
   function lobby(){
     if(!lobbyP) lobbyP=(async()=>{
-      const room=window.claude&&await window.claude.use("room");
+      const room=(window.ChatClaude||window.claude)&&await (window.ChatClaude||window.claude).use("room");
       if(!room) return null;
       O.lobby=room;
       room.onPeers(ch=>{ O.lobbyPeers=ch.peers; if(cfg.mode==="online"&&!G.online) renderPanel(); },()=>{});
-      try{ const user=await window.claude.use("user"); const me=user&&await user.me(); if(me&&me.name) O.name=String(me.name).slice(0,16); }catch(e){}
+      try{ const user=await (window.ChatClaude||window.claude).use("user"); const me=user&&await user.me(); if(me&&me.name) O.name=String(me.name).slice(0,16); }catch(e){}
       return room;
     })();
     return lobbyP;
@@ -701,7 +701,7 @@ const Online=(()=>{
     try{
       if(O.srv) await leave();
       const lob=await lobby();
-      if(!lob){ O.status="Online play isn't available here."; return; }
+      if(!lob){ O.status="Live rooms aren't switched on for your access to this page. The owner can share it with you as a Contributor (Share menu)."; return; }
       const room=await lob.join("srv-"+n);
       O.room=room; O.srv=n; O.t=Date.now(); O.joinAt=performance.now(); O.claimed=false; setTimeout(claimHost,1700); O.peers=[]; O.pres=new Map(); O.status="";
       O.offs.push(room.onPeers(onPeers,()=>{}));
@@ -955,7 +955,7 @@ const Online=(()=>{
     else { O.leftMid=O.mid; send({in:null}); }
     G.online=false; O.mid=""; G.choose=null;
   }
-  return {enter:()=>{ if(!O.srv&&!O.joining){ O.status="Connecting…"; lobby().then(r=>{ O.status=r?"":"Online play isn't available here."; renderPanel(); }); } },
+  return {enter:()=>{ if(!O.srv&&!O.joining){ O.status="Connecting…"; lobby().then(r=>{ O.status=r?"":"Live rooms aren't switched on for your access to this page. The owner can share it with you as a Contributor (Share menu)."; renderPanel(); }); } },
     get srv(){return O.srv;}, leave, crew, isHost, pushLobby, renderPanel, startMatch, ev, input, askPick, clientUpdate, tick, sendPick, quitMatch};
 })();
 renderMenu();

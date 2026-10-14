@@ -64,7 +64,8 @@
       setTimeout(() => { if (transport) $('#fileInput').accept = transport.fileTypes; });
       transport = window.ChatTransport((m) => (on[m.t] || (() => {}))(m), { signedIn: (uid) => store.get('chatSignedIn:' + uid) === '1' });
       // the games in 🕹️ Games use the page's live room, viewer and database once they're ready
-      const tryCaps = () => { const c = transport.caps(); if (c.room || c.user) GameNet.useClaude(c); else setTimeout(tryCaps, 500); };
+      let capTries = 0;
+      const tryCaps = () => { const c = transport.caps(); if (c.room || ((c.user || c.db) && ++capTries > 60)) GameNet.useClaude(c); else setTimeout(tryCaps, 500); };
       tryCaps();
       return;
     }

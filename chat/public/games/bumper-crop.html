@@ -6768,7 +6768,7 @@ function roomPeers(change) {
 // use the live room when this page runs inside claude.ai and nobody pointed it at a game server
 async function pickNetMode() {
   if (new URLSearchParams(location.search).get('server') || lsGet(ADDR_KEY)) return 'ws';
-  const c = window.claude;
+  const c = (window.ChatClaude||window.claude);
   if (c && typeof c.use === 'function') {
     try { const room = await c.use('room'); if (room) { RoomNet.room = room; return 'room'; } } catch (e) { /* no room here */ }
   }
