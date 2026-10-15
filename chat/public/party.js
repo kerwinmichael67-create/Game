@@ -117,6 +117,7 @@
     const iframe = h('iframe', { class: 'frame-game', src: g.frame, title: g.name, allow: 'autoplay; fullscreen; pointer-lock; clipboard-write' });
     const el = h('section', { id: 'frameView', class: 'frame-view' },
       h('header', { class: 'frame-head' }, h('span', { class: 'party-title' }, `${g.emoji} ${g.name}`), h('span', { class: 'grow' }),
+        window.GameDock ? window.GameDock.soundButton() : '',
         h('button', { class: 'btn small', title: 'Back to the chat; the game keeps running', onclick: () => { frame.min = true; syncFrame(); } }, '▁ Chat'),
         h('button', { class: 'btn small danger', onclick: () => api.confirm(`Close ${g.name}?`, 'Close', closeFrame) }, '✕ Close')),
       iframe);

@@ -596,6 +596,15 @@
       this.sendMe();
       if (g.ph === 'end' && this.shownEnd !== g.gs && this.lastPh === 'battle') this.results(g);
       this.lastPh = g.ph;
+      if (g.ph === 'battle') {
+        this.dinT = (this.dinT || 0) - dt;
+        if (this.dinT <= 0) {
+          this.dinT = 0.16 + Math.random() * 0.1;
+          const n = (this.solList || []).filter((q) => q.atk && Math.hypot(q.x - P.x, q.z - P.z) < 32).length;
+          if (n) sfx(Math.random() < 0.55 ? 'swing' : 'block', { vol: Math.min(0.3, 0.04 + n * 0.015), pitch: 0.75 + Math.random() * 0.6, gap: 0 });
+        }
+      }
+      if (g.ph === 'lobby') { const c = Math.ceil(g.left); if (c !== this.cdS && c <= 5 && c > 0) sfx('count'); this.cdS = c; }
     },
     // events from the host: hits on me, kills, captures, streaks
     events(g) {
@@ -607,18 +616,19 @@
       const g = this.g || this.H, cm = g && g.cm, name = (ci) => { const c = cm && cm[ci]; return c ? (Array.isArray(c) ? c[2] : c.nm) : '?'; }, teamOf = (ci) => { const c = cm && cm[ci]; return c ? (Array.isArray(c) ? c[3] : c.team) : 0; };
       const [, k] = e, mineCi = this.ci;
       if (k === 'h' && e[2] === mineCi && !P.dead) this.takeHit(e[3], e[4]);
-      else if (k === 'k') { say(`☠️ ${name(e[2])} defeated ${name(e[3])}`, TEAM_CSS[teamOf(e[2])]); if (e[2] === mineCi) this.popup('+25 XP · hero down', '#fde68a'); }
-      else if (k === 'st' && e[2] === mineCi) this.popup(e[3], '#f87171', true);
-      else if (k === 'cap') { const n = POINTS[e[2]].n; toast(e[2] === 2 ? '🏰 Base captured!' : `🚩 Point ${n} captured! +2:00`, TEAM_CSS[0]); if (e[2] === 1) say('🚪 Gate breached!', '#fde68a'); }
-      else if (k === 'start') { say('⚔️ The battle has begun!', '#fde68a'); }
+      else if (k === 'k') { say(`☠️ ${name(e[2])} defeated ${name(e[3])}`, TEAM_CSS[teamOf(e[2])]); if (e[2] === mineCi) { this.popup('+25 XP · hero down', '#fde68a'); sfx('kill'); } }
+      else if (k === 'st' && e[2] === mineCi) { this.popup(e[3], '#f87171', true); sfx('levelup'); }
+      else if (k === 'cap') { const n = POINTS[e[2]].n; toast(e[2] === 2 ? '🏰 Base captured!' : `🚩 Point ${n} captured! +2:00`, TEAM_CSS[0]); sfx('bell'); sfx(this.team === 0 ? 'reward' : 'alarm'); if (e[2] === 1) { say('🚪 Gate breached!', '#fde68a'); setTimeout(() => sfx('boom'), 300); } }
+      else if (k === 'start') { say('⚔️ The battle has begun!', '#fde68a'); sfx('horn'); setTimeout(() => sfx('go'), 500); }
       else if (k === 'left') say(`${name(e[2])} left — a bot takes command`, '#9ca3af');
       else if (k === 'joined') say(`${name(e[2])} joined the battle`, '#9ca3af');
-      else if (k === 'chg' && e[2] === mineCi) toast(`Now commanding ${UNITS[e[3]].n}`, '#86efac');
+      else if (k === 'chg' && e[2] === mineCi) { toast(`Now commanding ${UNITS[e[3]].n}`, '#86efac'); sfx('select'); }
     },
     takeHit(dmg, from) {
       const st = this.stats();
       if (this.rollT > 0) return;
       const real = dmg * (this.blocking ? 1 - st.block : 1);
+      sfx(this.blocking ? 'block' : 'hurt', { gap: 120 });
       this.hp -= real / st.maxHp;
       this.floatDmg(P.x, P.y + 5, P.z, Math.round(real), '#f87171');
       if (this.hp <= 0) { this.hp = 0; this.deaths.push([++this.dn, from]); if (this.deaths.length > 8) this.deaths.shift(); send({ dth: this.deaths.slice() }); die(); toast('You were defeated — back to camp in 6s', '#fca5a5'); }
@@ -647,6 +657,7 @@
       const st = this.stats(); this.cdA = st.cd;
       P.yaw = cam.yaw;
       if (me) { me.armR.rotation.x = -2.4; }
+      sfx('swing');
       const fx = -Math.sin(P.yaw), fz = -Math.cos(P.yaw), reach = this.mounted ? 5.5 : 4.2, targets = [];
       const charge = this.mounted && Math.hypot(P.vx, P.vz) > 15 ? 1.35 : 1;
       for (const s of this.solList || []) { if (s.team === this.team) continue; const dx = s.x - P.x, dz = s.z - P.z, d = Math.hypot(dx, dz); if (d < reach && (dx * fx + dz * fz) / (d || 1) > 0.2) targets.push({ k: 's', id: s.id, d, x: s.x, z: s.z }); }
@@ -657,7 +668,7 @@
         this.hits.push([++this.hn, t.k, t.id, dmg]); if (this.hits.length > 16) this.hits.shift();
         this.floatDmg(t.x, 4, t.z, dmg, '#fde68a');
       }
-      if (targets.length) send({ ht: this.hits.slice() });
+      if (targets.length) { send({ ht: this.hits.slice() }); sfx(CLASSES[this.S.cls] && CLASSES[this.S.cls].hits > 2 ? 'punch' : 'hit'); }
     },
     floatDmg(x, y, z, n, col) {
       const l = label(String(n), { size: 0.9, color: col }); l.position.set(x + (Math.random() - 0.5), y, z + (Math.random() - 0.5)); place.add(l);
@@ -675,6 +686,7 @@
       if (o === 1) this.anchor = [+P.x.toFixed(1), +P.z.toFixed(1), +P.yaw.toFixed(2)];
       if (o === 3) { const fx = -Math.sin(cam.yaw), fz = -Math.cos(cam.yaw); this.rush = [+(P.x + fx * 40).toFixed(1), +(P.z + fz * 40).toFixed(1), +cam.yaw.toFixed(2)]; }
       toast(['', 'Hold Position', 'Attack!', 'Charge!', 'Follow Me'][o === 0 ? 4 : o], '#fde68a');
+      sfx(o === 2 || o === 3 ? 'horn' : 'toggle');
       this.sendMe(true); this.drawOrders();
     },
     key(code, down) {
@@ -685,10 +697,10 @@
       if (!g || g.ph !== 'battle') { const m = /^Digit([1-4])$/.exec(code); if (m && this.S.eq[+m[1] - 1] != null) { this.sel = +m[1] - 1; this.sendMe(true); this.drawMenu(); return true; } return false; }
       const map = { KeyX: 1, KeyC: 0, KeyV: 2, KeyB: 3 };
       if (code in map) { this.order(map[code]); return true; }
-      if (code === 'KeyZ') { this.form = (this.form + 1) % 3; toast(['Block formation', 'Wedge formation', 'Line formation'][this.form]); this.sendMe(true); this.drawOrders(); return true; }
-      if (code === 'KeyG') { this.mounted = !this.mounted; toast(this.mounted ? '🐴 Mounted' : 'On foot'); return true; }
-      if (code === 'KeyQ') { if (this.cdRoll <= 0 && !this.mounted && !P.dead) { this.cdRoll = 4; this.rollT = 0.35; const yaw = Math.hypot(P.vx, P.vz) > 1 ? Math.atan2(-P.vx, -P.vz) : P.yaw; this.rollV = [-Math.sin(yaw) * 30, -Math.cos(yaw) * 30]; } return true; }
-      if (code === 'KeyH') { if (this.cdHeal <= 0 && !P.dead) { this.cdHeal = 25; this.healT = 3; toast('💚 Healing'); } return true; }
+      if (code === 'KeyZ') { this.form = (this.form + 1) % 3; sfx('toggle'); toast(['Block formation', 'Wedge formation', 'Line formation'][this.form]); this.sendMe(true); this.drawOrders(); return true; }
+      if (code === 'KeyG') { this.mounted = !this.mounted; toast(this.mounted ? '🐴 Mounted' : 'On foot'); sfx(this.mounted ? 'gallop' : 'land'); return true; }
+      if (code === 'KeyQ') { if (this.cdRoll <= 0 && !this.mounted && !P.dead) { sfx('whoosh'); this.cdRoll = 4; this.rollT = 0.35; const yaw = Math.hypot(P.vx, P.vz) > 1 ? Math.atan2(-P.vx, -P.vz) : P.yaw; this.rollV = [-Math.sin(yaw) * 30, -Math.cos(yaw) * 30]; } return true; }
+      if (code === 'KeyH') { if (this.cdHeal <= 0 && !P.dead) { this.cdHeal = 25; this.healT = 3; toast('💚 Healing'); sfx('heal'); } return true; }
       const m = /^Digit([1-4])$/.exec(code);
       if (m && this.S.eq[+m[1] - 1] != null) { this.sel = +m[1] - 1; this.sendMe(true); toast(`Switching to ${UNITS[this.unitNow()].n} — stay in your camp`, '#fde68a'); return true; }
       return false;
@@ -717,7 +729,7 @@
       });
       // soldiers
       const sols = battle ? this.unpackSoldiers(g) : [], info = (g.cm || []).map((c, i) => this.cmInfo(g, i));
-      this.solList = sols.map((s) => ({ id: s.id, x: s.x, z: s.z, team: info[s.ci] ? info[s.ci].team : 0 }));
+      this.solList = sols.map((s) => ({ id: s.id, x: s.x, z: s.z, team: info[s.ci] ? info[s.ci].team : 0, atk: s.atk }));
       const keep = new Set(), now = performance.now();
       for (const s of sols) {
         keep.add(s.id);
@@ -955,7 +967,7 @@
         if (b.dataset.pick != null) { const i = +b.dataset.pick; if (i >= 0) this.uPick = i; this.openUnits(true); return; }
         if (b.dataset.go) { this.openMenu(b.dataset.go); return; }
         if (b.dataset.cmd != null) { this.key('Digit' + (+b.dataset.cmd + 1), true); this.openUnits(true); return; }
-        if (b.dataset.eq != null) { const i = +b.dataset.eq; this.uPick = i; this.equip(i); this.openUnits(true); }
+        if (b.dataset.eq != null) { const i = +b.dataset.eq; this.uPick = i; this.equip(i); sfx(this.S.eq.includes(i) ? 'select' : 'close'); this.openUnits(true); }
       }, () => (this.menuOpen = null), { full: true, extra: this.chips() });
     },
     // the full-screen summon banner
@@ -979,7 +991,7 @@
         }
         this.saveS(); this.openSummon(res);
         const best = Math.max(...res.map(([u]) => UNITS[u].st));
-        if (best >= 4) { puffAt(P.x, P.y + 4, P.z, CONFETTI, 40); toast(best === 5 ? '🌟 LEGENDARY!' : '✨ Epic unit!', '#fde68a'); }
+        sfx('magic'); if (best >= 4) { puffAt(P.x, P.y + 4, P.z, CONFETTI, 40); toast(best === 5 ? '🌟 LEGENDARY!' : '✨ Epic unit!', '#fde68a'); setTimeout(() => sfx(best === 5 ? 'win' : 'unlock'), 600); }
       }, () => (this.menuOpen = null), { full: true, extra: this.chips() });
     },
     openMenu(which) {
@@ -1004,11 +1016,11 @@
         title = '🎖️ Battle Pass · Season 1';
         const bl = Math.min(30, Math.floor(S.bpXp / BP_XP));
         html = `<div class="xp-row" style="display:block"><div style="display:flex;justify-content:space-between"><span>Level <b style="font-size:18px">${bl}</b>/30</span><small style="color:var(--muted)">${S.bpXp % BP_XP}/${BP_XP} XP</small></div><div class="meter" style="margin-top:8px"><i style="width:${bl >= 30 ? 100 : (S.bpXp % BP_XP) / BP_XP * 100}%;background:linear-gradient(180deg,#fde047,#f59e0b)"></i></div></div><p class="xp-note">Battle XP fills the pass. Claim each level’s reward.</p>${BP.map((r, i) => { const L = i + 1, got = S.bpClaimed.includes(L), open = bl >= L && !got; return `<div class="xp-row" style="${L % 5 === 0 ? 'border-color:rgba(250,204,21,.55);background:linear-gradient(180deg,#3a3214,#221d0c)' : ''}"><span style="display:flex;align-items:center;gap:10px"><span class="ca-lv ${got ? 'got' : open ? 'open' : ''}">${got ? '✓' : L}</span>${this.rewardText(r)}</span><button class="xp-btn ${got ? 'alt' : 'gold'}" data-bp="${L}" ${!open ? 'disabled' : ''}>${got ? 'Claimed' : open ? 'Claim' : '🔒'}</button></div>`; }).join('')}`;
-        onClick = (b) => { const L = +b.dataset.bp; if (S.bpClaimed.includes(L) || Math.floor(S.bpXp / BP_XP) < L) return; S.bpClaimed.push(L); this.give(BP[L - 1], `battle pass level ${L}`); toast(`🎁 ${this.rewardText(BP[L - 1])}`, '#fde68a'); this.saveS(); reopen(); };
+        onClick = (b) => { const L = +b.dataset.bp; if (S.bpClaimed.includes(L) || Math.floor(S.bpXp / BP_XP) < L) return; S.bpClaimed.push(L); this.give(BP[L - 1], `battle pass level ${L}`); toast(`🎁 ${this.rewardText(BP[L - 1])}`, '#fde68a'); sfx('reward'); this.saveS(); reopen(); };
       } else if (which === 'quests') {
         title = '📜 Daily Quests';
         html = QUESTS.map((q, i) => { const v = Math.min(q.goal, S.quest[q.k] || 0), done = v >= q.goal, got = S.quest.claimed.includes(i); return `<div class="xp-row" style="display:block"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><span><b>${q.n}</b><br><small style="color:var(--muted)">${v}/${q.goal} · reward 💎 ${q.gems}</small></span><button class="xp-btn gold" data-q="${i}" ${!done || got ? 'disabled' : ''}>${got ? '✓ Done' : 'Claim'}</button></div><div class="meter" style="margin-top:8px"><i style="width:${v / q.goal * 100}%"></i></div></div>`; }).join('') + '<p class="xp-note">New quests every day.</p>';
-        onClick = (b) => { const i = +b.dataset.q, q = QUESTS[i]; if (S.quest.claimed.includes(i) || (S.quest[q.k] || 0) < q.goal) return; S.quest.claimed.push(i); S.gems += q.gems; toast(`+💎${q.gems}`, '#fde68a'); this.saveS(); reopen(); };
+        onClick = (b) => { const i = +b.dataset.q, q = QUESTS[i]; if (S.quest.claimed.includes(i) || (S.quest[q.k] || 0) < q.goal) return; S.quest.claimed.push(i); S.gems += q.gems; toast(`+💎${q.gems}`, '#fde68a'); sfx('reward'); this.saveS(); reopen(); };
       } else if (which === 'ranked') {
         const t = tierOf(S.rating);
         title = '🏆 Ranked';
@@ -1016,7 +1028,7 @@
       } else if (which === 'codes') {
         title = '🎟️ Codes';
         html = `<p class="xp-note">Have a code? Try BLOXVERSE, COMMANDER or UPDATE4.</p><div style="display:flex;gap:8px"><input id="caCode" class="ca-input" maxlength="20" placeholder="Enter a code"><button class="xp-btn purple" data-code="1">Redeem</button></div><p class="xp-note" id="caCodeMsg"></p>`;
-        onClick = (b) => { const c = String($('#caCode').value || '').trim().toUpperCase(), r = CODES[c]; const msg = $('#caCodeMsg'); if (!r) { msg.textContent = '❌ That code doesn’t work.'; return; } if (S.codes.includes(c)) { msg.textContent = 'Already redeemed.'; return; } S.codes.push(c); this.give(r, `code ${c}`); this.saveS(); msg.textContent = `✅ Redeemed: ${this.rewardText(r)}!`; };
+        onClick = (b) => { const c = String($('#caCode').value || '').trim().toUpperCase(), r = CODES[c]; const msg = $('#caCodeMsg'); if (!r) { msg.textContent = '❌ That code doesn’t work.'; sfx('error'); return; } if (S.codes.includes(c)) { msg.textContent = 'Already redeemed.'; return; } S.codes.push(c); this.give(r, `code ${c}`); this.saveS(); msg.textContent = `✅ Redeemed: ${this.rewardText(r)}!`; sfx('unlock'); };
       }
       this.menuOpen = which;
       openPanel(title, html, onClick, () => (this.menuOpen = null), { extra: `<span class="chip">💎 ${S.gems.toLocaleString('en-US')}</span>` });
@@ -1046,6 +1058,7 @@
         <div class="ca-lvl">${after > before ? `<b style="color:#fde047">⬆️ Level ${after}! +${after - before} skill point${after - before > 1 ? 's' : ''}</b>` : `Commander level ${after}`}<div class="meter"><i style="width:${Math.round(L.into / L.need * 100)}%;background:linear-gradient(180deg,#fde047,#f59e0b)"></i></div></div>
         <button class="xp-btn" data-ok="1" style="font-size:18px;padding:14px 40px">Continue</button><p class="xp-note">The MVPs are on the podium in the courtyard.</p></div>`;
       this.menuOpen = 'end';
+      sfx(win ? 'win' : 'lose');
       openPanel(win ? '🏆 Victory' : '💀 Defeat', html, (b) => { if (b.dataset.ok) closePanel(); }, () => (this.menuOpen = null), { full: true, extra: this.chips() });
       this.lobbyShown = true;
       if (win) puffAt(P.x, P.y + 4, P.z, CONFETTI, 50);

@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <script src="net.js"></script>
+<script src="sfx.js"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Blockcraft</title>
@@ -389,10 +390,14 @@ function markDirty(x, z) {
 /* ---------------- placing and breaking ---------------- */
 const edits = new Map(); // block index -> block: everything anyone changed from the generated world
 let editsDirty = false;
+// sounds (sfx.js): sfx3 is one somewhere in the world, quieter further away
+const sfx = (name, opt) => { if (window.Sfx) window.Sfx.play(name, opt); };
+const sfx3 = (name, x, y, z, far, opt) => { if (window.Sfx) window.Sfx.at(name, Math.hypot(x - P.x, y - P.y, z - P.z), far || 32, opt); };
 function setBlock(x, y, z, b, fromNet) {
   if (!inWorld(x, y, z)) return false;
   const i = idx(x, y, z);
   if (world[i] === b) return false;
+  if (fromNet !== true || Net.loaded) { const o = { pitch: 0.85 + Math.random() * 0.3 }; if (fromNet) sfx3(b === AIR ? 'break' : 'place', x, y, z, 28, Object.assign(o, { vol: 0.7 })); else sfx(b === AIR ? 'break' : 'place', o); }
   world[i] = b;
   edits.set(i, b);
   editsDirty = true;
@@ -461,14 +466,14 @@ function physics(dt) {
     if (keys.Space) P.vy = Math.min(3.5, P.vy + 22 * dt);
   } else {
     P.vy = Math.max(-40, P.vy - 28 * dt);
-    if (keys.Space && P.ground) { P.vy = 8.6; P.ground = false; }
+    if (keys.Space && P.ground) { P.vy = 8.6; P.ground = false; sfx('jump', { vol: 0.5 }); }
   }
   const wasGround = P.ground;
   move(P.vx * dt, P.vy * dt, P.vz * dt);
   // falling: remember the highest point; hitting the ground from more than 3 blocks hurts
   if (inWater || P.fly) S.fallFrom = null;
   else if (!P.ground) S.fallFrom = S.fallFrom === null ? P.y : Math.max(S.fallFrom, P.y);
-  else if (!wasGround && S.fallFrom !== null) { const d = S.fallFrom - P.y; S.fallFrom = null; if (d > 3.4) hurt(Math.floor(d - 3), 0, 0, 'You fell from a high place.'); }
+  else if (!wasGround && S.fallFrom !== null) { const d = S.fallFrom - P.y; S.fallFrom = null; if (d > 1.2) sfx('land', { vol: Math.min(1, d / 6) }); if (d > 3.4) hurt(Math.floor(d - 3), 0, 0, 'You fell from a high place.'); }
   survivalTick(dt, !!(fw || st), !!(keys.ControlLeft || keys.ControlRight));
   if (P.y < -20) { if (survival()) { S.hp = 0; die('You fell out of the world.'); } else respawn(); }
 }
@@ -539,14 +544,14 @@ function drawBars() {
 }
 function hurt(dmg, kx, kz, why) {
   if (!survival() || S.dead || dmg <= 0) return;
-  S.hp = Math.max(0, S.hp - dmg); S.dirty = true;
+  S.hp = Math.max(0, S.hp - dmg); S.dirty = true; sfx('hurt', { gap: 120 });
   P.vx += (kx || 0) * 7; P.vz += (kz || 0) * 7; if (kx || kz) P.vy = Math.max(P.vy, 4);
   const o = $('#hurt'); o.style.transition = 'none'; o.style.opacity = 1; requestAnimationFrame(() => { o.style.transition = 'opacity .5s'; o.style.opacity = 0; });
   drawBars();
   if (S.hp <= 0) die(why || 'You were hurt too badly.');
 }
 function die(why) {
-  S.dead = true; unlock(); send({ dd: 1 });
+  S.dead = true; unlock(); send({ dd: 1 }); sfx('die');
   $('#deadWhy').textContent = why;
   $('#dead').hidden = false;
   Net.chat(`${Net.name} died (${why.replace(/\.$/, '')})`);
@@ -556,7 +561,7 @@ function eat() {
   const it = IT[held()];
   if (!it || !it.food || S.food >= 20 || S.eatCd > 0) return false;
   if (!take(held(), 1)) return false;
-  S.food = Math.min(20, S.food + it.food); S.eatCd = 0.8; drawBars(); toast(`Ate ${it.n}`);
+  S.food = Math.min(20, S.food + it.food); S.eatCd = 0.8; drawBars(); toast(`Ate ${it.n}`); sfx('crunch');
   return true;
 }
 // once a frame in survival: getting hungry, healing when fed, hurting when starving
@@ -621,7 +626,7 @@ function drawInventory() {
     d.append(icon(r.o[0], 30));
     const t = document.createElement('div'); t.innerHTML = `<b>${r.smelt ? '🔥 ' : ''}${r.o[1] > 1 ? r.o[1] + ' × ' : ''}${itemName(r.o[0])}</b><small>${r.i.map(([id, n]) => `${n} ${itemName(id)}`).join(' + ')}</small>`; d.append(t);
     const b = document.createElement('button'); b.textContent = r.smelt ? 'Smelt' : 'Craft'; b.disabled = !canCraft(r);
-    b.onclick = () => { if (!canCraft(r)) return; r.i.forEach(([id, n]) => take(id, n)); give(r.o[0], r.o[1], true); toast(`Made ${r.o[1] > 1 ? r.o[1] + ' ' : ''}${itemName(r.o[0])}`); drawInventory(); };
+    b.onclick = () => { if (!canCraft(r)) { sfx('error'); return; } r.i.forEach(([id, n]) => take(id, n)); give(r.o[0], r.o[1], true); sfx(r.smelt ? 'hiss' : 'buy', { vol: 0.7 }); toast(`Made ${r.o[1] > 1 ? r.o[1] + ' ' : ''}${itemName(r.o[0])}`); drawInventory(); };
     d.append(b); rec.append(d);
   });
 }
@@ -717,6 +722,7 @@ function act(t) {
       const key = h.x + ',' + h.y + ',' + h.z;
       if (!S.mining || S.mining.key !== key) S.mining = { key, prog: 0, need: breakTime(b, heldPick()) };
       S.mining.prog += dt + (quick ? 0.05 : 0);
+      S.mining.snd = (S.mining.snd || 0) - dt; if (S.mining.snd <= 0) { S.mining.snd = 0.22; sfx('dig', { vol: 0.45, pitch: 1 + Math.random() * 0.3 }); }
       const f = Math.min(1, S.mining.prog / S.mining.need);
       mineBox.visible = true; mineBox.position.set(h.x + 0.5, h.y + 0.5, h.z + 0.5); mineBox.material.opacity = 0.12 + f * 0.5;
       $('#mineBar').style.display = 'block'; $('#mineBar i').style.width = f * 100 + '%';
@@ -924,8 +930,8 @@ function playMobEv(e, local) {
   const [, kind] = e;
   if (kind === 'd' && e[2] === myPeer() && !local) hurt(Math.max(0, Math.min(20, +e[3] || 0)), +e[4] || 0, +e[5] || 0, WHY[e[6]] || 'You were hurt.');
   else if (kind === 'g' && e[2] === myPeer() && !local && (IT[e[3]] || B[e[3]])) give(e[3], Math.max(0, Math.min(8, +e[4] || 0)));
-  else if (kind === 'p') puff(e[2], e[3], e[4], 0xdddddd, 10);
-  else if (kind === 'x') { if (!local && [e[5], e[6], e[7], e[8]].every(Number.isInteger)) blast(e[5], e[6], e[7], e[8]); puff(e[2], e[3], e[4], 0x444444, 40); puff(e[2], e[3], e[4], 0xffaa33, 20); if (Math.hypot(e[2] - P.x, e[4] - P.z) < 30) say('💥 Boom!', '#ffaa33'); }
+  else if (kind === 'p') { puff(e[2], e[3], e[4], 0xdddddd, 10); sfx3('pop', e[2], e[3], e[4], 30); }
+  else if (kind === 'x') { sfx3('boom', e[2], e[3], e[4], 60); if (!local && [e[5], e[6], e[7], e[8]].every(Number.isInteger)) blast(e[5], e[6], e[7], e[8]); puff(e[2], e[3], e[4], 0x444444, 40); puff(e[2], e[3], e[4], 0xffaa33, 20); if (Math.hypot(e[2] - P.x, e[4] - P.z) < 30) say('💥 Boom!', '#ffaa33'); }
   else if (kind === 's') { const v = Mobs.views.get(e[2]); const to = e[3] === myPeer() ? camera.position.clone().add(new THREE.Vector3(0, -0.4, 0)) : (Net.avatars.get(e[3]) || {}).g; if (v && to) arrowFx(v.g.position.clone().add(new THREE.Vector3(0, 1.5, 0)), to.position ? to.position.clone().add(new THREE.Vector3(0, 1.4, 0)) : to); }
 }
 function puff(x, y, z, color, n) {
@@ -987,6 +993,8 @@ function drawMobs(dt) {
     v.legs.forEach((l, i) => (l.rotation.x = i % 2 ? sw : -sw));
     // hurt: red; fuse: white flashing and swelling; burning: orange
     const fuse = fl & 2, flash = fl & 1 || (fuse && Math.floor(performance.now() / 120) % 2), burn = fl & 4;
+    if (fuse && !v.fusing) sfx3('hiss', x, y, z, 24); v.fusing = !!fuse;
+    if ((fl & 1) && !v.hurting) sfx3('oof', x, y, z, 24, { vol: 0.5, pitch: type === 'zombie' ? 0.6 : 1.3 }); v.hurting = !!(fl & 1);
     for (const m of v.mats) { m.color.copy(m.userData.base); if (flash) m.color.lerp(fuse ? new THREE.Color(0xffffff) : new THREE.Color(0xff3333), 0.6); else if (burn) m.color.lerp(new THREE.Color(0xff8a20), 0.35); }
     g.scale.setScalar(fuse ? 1.12 : 1);
     if (burn && Math.random() < dt * 8) puff(g.position.x + (Math.random() - 0.5) * 0.5, g.position.y + 1.2 + Math.random() * 0.8, g.position.z + (Math.random() - 0.5) * 0.5, Math.random() < 0.5 ? 0xff7a1a : 0xffd23a, 1);
@@ -1017,6 +1025,7 @@ Mobs.aim = function (blockHit) {
 Mobs.attack = function (id) {
   const it = IT[held()], dmg = (it && it.dmg) || 1, kx = -Math.sin(P.yaw), kz = -Math.cos(P.yaw);
   const v = Mobs.views.get(id); if (v) for (const m of v.mats) m.color.set(0xff3333);
+  sfx('punch', { vol: 0.8 });
   if (iAmHost()) hitMob(id, dmg, kx, kz, myPeer());
   else { Net.hits.push([++Net.hseq, id, dmg, +kx.toFixed(2), +kz.toFixed(2)]); if (Net.hits.length > 10) Net.hits.shift(); Net.dirty = true; }
 };

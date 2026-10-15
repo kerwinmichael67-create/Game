@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <script src="net.js"></script>
+<script src="sfx.js"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Sketch &amp; Guess</title>
@@ -225,9 +226,23 @@ function winLine(ranked, me, mine) {
   if (top.length > 1) return `It’s a tie between ${top.map((r) => (r.i === me ? 'you' : esc(r.p.name))).join(' and ')}!`;
   return ranked[0].i === me ? mine : `${esc(ranked[0].p.name)} wins!`;
 }
+let sndKey = '', sndGot = -1, sndHints = -1, tickS = -1;
 function render(v, el) {
   V = v;
   const s = v.state, drawer = s.order[s.turn], amDrawer = v.me >= 0 && v.me === drawer;
+  // sounds: a new drawer, people guessing it, letters showing, the reveal, the end
+  const sk = `${v.id}:${s.turn}:${s.ph}`, got = s.got ? Object.keys(s.got).length : 0, sfx = PartyKit.sfx;
+  if (sk !== sndKey) {
+    sndKey = sk;
+    if (s.ph === 'pick' || s.ph === 'draw') sfx(amDrawer ? 'turn' : s.ph === 'draw' ? 'whoosh' : 'tap');
+    else if (s.ph === 'reveal') sfx('bell');
+    else if (s.ph === 'done') { const best = Math.max(...s.sc); sfx(v.me >= 0 && s.sc[v.me] === best ? 'win' : 'reward'); }
+  } else if (s.ph === 'draw') {
+    if (got > sndGot && sndGot >= 0) sfx(s.got && s.got[v.me] === got - 1 ? 'correct' : 'coin');
+    if (s.hints > sndHints && sndHints >= 0) sfx('flip');
+  }
+  sndGot = got; sndHints = s.hints || 0;
+  if (s.ph === 'draw' && s.ends) { const left = v.left(s.ends); if (left !== tickS && left <= 5 && left > 0) sfx('tick'); tickS = left; }
   if (s.ph === 'done') { if (built !== v.id + ':done') { built = v.id + ':done'; podium(v, el, s); } return; }
   const turnKey = `${v.id}:${s.turn}`;
   if (D.key !== turnKey) { D.key = turnKey; D.strokes = []; D.cur = null; D.ink = 0; D.shown = null; }

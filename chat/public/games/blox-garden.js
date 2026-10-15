@@ -279,7 +279,7 @@
         this.lastW = w;
         const sk = { Clear: ['#7cc4ff', '#e0f2fe'], Rain: ['#64748b', '#cbd5e1'], Thunderstorm: ['#1e293b', '#64748b'], Frost: ['#bae6fd', '#f0f9ff'], 'Golden Hour': ['#f59e0b', '#fde68a'] }[w];
         sky(sk[0], sk[1]);
-        if (w !== 'Clear') { toast(`${{ Rain: '🌧️', Thunderstorm: '⛈️', Frost: '❄️', 'Golden Hour': '🌅' }[w]} ${w}!`, '#e0f2fe'); say(`${w} has started: ${{ Rain: 'plants grow faster and crops may be Wet (×2)', Thunderstorm: 'faster growth, Wet crops, and lightning can Shock crops (×100)', Frost: 'crops may be Chilled (×2) or Frozen (×10)', 'Golden Hour': 'Gold crops (×20) are much more common' }[w]}`, '#bae6fd'); }
+        if (w !== 'Clear') { sfx(w === 'Thunderstorm' ? 'thunder' : w === 'Golden Hour' ? 'magic' : w === 'Frost' ? 'freeze' : 'splash'); toast(`${{ Rain: '🌧️', Thunderstorm: '⛈️', Frost: '❄️', 'Golden Hour': '🌅' }[w]} ${w}!`, '#e0f2fe'); say(`${w} has started: ${{ Rain: 'plants grow faster and crops may be Wet (×2)', Thunderstorm: 'faster growth, Wet crops, and lightning can Shock crops (×100)', Frost: 'crops may be Chilled (×2) or Frozen (×10)', 'Golden Hour': 'Gold crops (×20) are much more common' }[w]}`, '#bae6fd'); }
       }
       if (w === 'Rain' || w === 'Thunderstorm' || w === 'Frost') {
         const n = Math.min(6, Math.ceil(dt * (w === 'Frost' ? 60 : 140)));
@@ -378,7 +378,7 @@
       this.G.seeds[s]--; if (!this.G.seeds[s]) delete this.G.seeds[s];
       this.G.plants.push({ s, x: +spot[0].toFixed(2), z: +spot[1].toFixed(2), t: nowMs() });
       this.dirty = true; this.drawBar(); this.drawMine(); this.sendGarden();
-      const pl = this.plots[this.myPlot]; puffAt(pl.ox + spot[0], 0.8, pl.oz + spot[1], 0x7c4a1e, 6);
+      const pl = this.plots[this.myPlot]; puffAt(pl.ox + spot[0], 0.8, pl.oz + spot[1], 0x7c4a1e, 6); sfx('dig', { vol: 0.6 }); setTimeout(() => sfx('seed'), 120);
     },
     harvest(p) {
       if (this.G.bag.length >= MAX_BAG) return toast('Your bag is full — sell at the Sell Stand');
@@ -396,7 +396,7 @@
       else this.G.plants.splice(this.G.plants.indexOf(p), 1);
       const pl = this.plots[this.myPlot];
       puffAt(pl.ox + p.x, 1.5, pl.oz + p.z, MUT_COL[m] ? new THREE.Color(MUT_COL[m]).getHex() : 0x86efac, 8);
-      toast(`+1 ${m ? MUT[m][0] + ' ' : ''}${s[0]}${m ? ' ✨' : ''}`, MUT_COL[m] || '#86efac');
+      toast(`+1 ${m ? MUT[m][0] + ' ' : ''}${s[0]}${m ? ' ✨' : ''}`, MUT_COL[m] || '#86efac'); sfx('pop'); if (m) setTimeout(() => sfx(m >= 5 ? 'unlock' : 'magic', { vol: 0.7 }), 120);
       this.dirty = true; this.drawMine(); this.drawBar(); this.sendGarden();
     },
     water(p) {
@@ -405,12 +405,12 @@
       const s = SEEDS[p.s], ms = (s[4] && this.prog(p) >= 1 ? s[4] : s[3]) * 1000 * 0.12;
       if (this.prog(p) < 1) p.t -= ms; else { this.fruits(p); p.f = p.f.map((r) => (r > nowMs() ? r - ms : r)); }
       const pl = this.plots[this.myPlot]; puffAt(pl.ox + p.x, 2, pl.oz + p.z, 0x60a5fa, 10);
-      toast('💧 Watered!'); this.dirty = true; this.drawBar(); this.drawMine();
+      toast('💧 Watered!'); sfx('splash'); this.dirty = true; this.drawBar(); this.drawMine();
     },
     dig(p) {
       const valuable = 'LMDP'.includes(SEEDS[p.s][1]);
       if (valuable && this.ask !== p.id) { this.ask = p.id; return toast(`Dig up your ${SEEDS[p.s][0]}? Click it again`); }
-      this.ask = null; this.G.plants.splice(this.G.plants.indexOf(p), 1); this.dirty = true; this.drawMine(); this.sendGarden(); toast('🪏 Dug up');
+      this.ask = null; this.G.plants.splice(this.G.plants.indexOf(p), 1); this.dirty = true; this.drawMine(); this.sendGarden(); toast('🪏 Dug up'); sfx('dig');
     },
     placeSprinkler(type, x, z) {
       const spot = this.soilAt(x, z) || (this.myPlot != null && (() => { const pl = this.plots[this.myPlot], lx = x - pl.ox, lz = z - pl.oz; return Math.abs(lx) < PW / 2 && Math.abs(lz) < PD / 2 ? [lx, lz] : null; })());
@@ -418,7 +418,7 @@
       if (!(this.G.gear[type] > 0)) return;
       this.G.gear[type]--; if (!this.G.gear[type]) delete this.G.gear[type];
       this.G.sprk.push({ type, x: spot[0], z: spot[1], until: nowMs() + 300000 });
-      this.dirty = true; this.drawBar(); this.drawMine(); this.sendGarden(true); toast(`${type === 'gsprk' ? '⛲' : '💦'} Sprinkler on for 5 minutes`);
+      this.dirty = true; this.drawBar(); this.drawMine(); this.sendGarden(true); toast(`${type === 'gsprk' ? '⛲' : '💦'} Sprinkler on for 5 minutes`); sfx('splash'); sfx('place');
     },
     prompts() {
       const list = this.stalls.map((s) => ({ x: s.x, z: s.z, r: 7, text: { seeds: 'Seed Shop', sell: 'Sell crops', gear: 'Gear Shop', eggs: 'Egg Shop' }[s.kind], fn: () => this[{ seeds: 'openShop', sell: 'openSell', gear: 'openGear', eggs: 'openEggs' }[s.kind]]() }));
@@ -443,7 +443,7 @@
         if (this.G.bought.slot !== st2.slot) this.G.bought = { slot: st2.slot, n: {} };
         if ((this.G.bought.n[i] || 0) >= st2.n[i] || this.G.sh < s[2]) return;
         this.G.sh -= s[2]; this.G.bought.n[i] = (this.G.bought.n[i] || 0) + 1; this.G.seeds[i] = (this.G.seeds[i] || 0) + 1;
-        this.dirty = true; this.drawBar(); this.openShop(true); toast(`+1 ${s[0]} Seed`, '#86efac');
+        this.dirty = true; this.drawBar(); this.openShop(true); toast(`+1 ${s[0]} Seed`, '#86efac'); sfx('buy');
       }, () => (this.panel = null));
     },
     value(c) { const s = SEEDS[c[0]]; return Math.round(s[6] * c[1] * c[1] * MUT[c[2]][1] * (1 + (this.has('Bunny') ? 0.1 : 0) + (this.has('Owl') ? 0.2 : 0))); },
@@ -458,7 +458,7 @@
         const k = btn.dataset.sell; let got = 0;
         this.G.bag = this.G.bag.filter((c) => { if (k === 'all' || c[0] + ':' + c[2] === k) { got += this.value(c); return false; } return true; });
         if (!got) return;
-        this.G.sh += got; this.dirty = true; toast(`+${fmt(got)}`, '#fde68a'); this.drawBar(); this.sendGarden(true);
+        this.G.sh += got; this.dirty = true; toast(`+${fmt(got)}`, '#fde68a'); sfx('sell'); this.drawBar(); this.sendGarden(true);
         this.coinAcc += got / 60; if (this.coinAcc >= 1) { earn(Math.min(300, Math.floor(this.coinAcc)), 'sold crops'); this.coinAcc = 0; }
         this.openSell();
       });
@@ -468,7 +468,7 @@
       openPanel('🧰 Gear Shop', html, (btn) => {
         const g = GEAR.find((x) => x.id === btn.dataset.g); if (!g || this.G.sh < g.price) return;
         this.G.sh -= g.price; this.G.gear[g.id] = (this.G.gear[g.id] || 0) + (g.id === 'can' ? 10 : 1);
-        this.dirty = true; this.drawBar(); toast(`Bought ${g.n}`, '#86efac'); this.openGear();
+        this.dirty = true; this.drawBar(); toast(`Bought ${g.n}`, '#86efac'); sfx('buy'); this.openGear();
       });
     },
     openEggs() {
@@ -477,7 +477,7 @@
         const i = +btn.dataset.egg, e = EGGS[i]; if (this.G.sh < e.price || this.G.pets.length >= 30) return;
         this.G.sh -= e.price; const opts = PETS.map((p, k) => (p.egg === i ? k : -1)).filter((k) => k >= 0), got = opts[Math.floor(Math.random() * opts.length)];
         this.G.pets.push(got); if (this.G.eq.length < 3) this.G.eq.push(this.G.pets.length - 1);
-        this.dirty = true; this.sendGarden(true); toast(`${PETS[got].e} You hatched a ${PETS[got].n}!`, '#fde68a'); puffAt(P.x, P.y + 3, P.z, CONFETTI, 30); this.openEggs();
+        this.dirty = true; this.sendGarden(true); toast(`${PETS[got].e} You hatched a ${PETS[got].n}!`, '#fde68a'); sfx('egg'); puffAt(P.x, P.y + 3, P.z, CONFETTI, 30); this.openEggs();
       });
     },
     openPets() {

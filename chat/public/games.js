@@ -369,6 +369,7 @@
     function die() {
       if (dead) return;
       dead = true;
+      sfx('die');
       api.send({ kind: 'dead' });
     }
     function sendBoard() {
@@ -391,8 +392,11 @@
           y++;
         }
       }
+      const lvl0 = level();
       score += [0, 100, 300, 500, 800][cleared] * level();
       lines += cleared;
+      if (cleared === 4) sfx('levelup'); else if (cleared) sfx('clear', { pitch: 1 + cleared * 0.08 }); else sfx('lock', { vol: 0.7 });
+      if (level() > lvl0) later(250, 'powerup');
       let attack = [0, 0, 1, 2, 4][cleared];
       const cancel = Math.min(attack, pending);
       pending -= cancel; attack -= cancel;
@@ -400,6 +404,7 @@
       if (!cleared && pending > 0) {
         const n = Math.min(pending, 10), hole = Math.floor(Math.random() * COLS);
         pending -= n;
+        sfx('garbage');
         for (let i = 0; i < n; i++) {
           if (board.slice(0, COLS).some(Boolean)) { die(); return; }
           board.splice(0, COLS);
@@ -416,18 +421,18 @@
     function tryRotate(dir) {
       const m = rotate(cur.m, dir);
       for (const [kx, ky] of [[0, 0], [-1, 0], [1, 0], [0, -1], [-2, 0], [2, 0], [0, -2]]) {
-        if (fits(m, cur.x + kx, cur.y + ky)) { cur.m = m; cur.x += kx; cur.y += ky; lockDelay = 0; return; }
+        if (fits(m, cur.x + kx, cur.y + ky)) { cur.m = m; cur.x += kx; cur.y += ky; lockDelay = 0; sfx('rotate'); return; }
       }
     }
     function act(a) {
       if (dead || stopped || !cur) return;
-      if (a === 'left') tryMove(-1, 0);
-      else if (a === 'right') tryMove(1, 0);
+      if (a === 'left') { if (tryMove(-1, 0)) sfx('tick', { vol: 0.5 }); } else if (a === 'right') { if (tryMove(1, 0)) sfx('tick', { vol: 0.5 }); }
       else if (a === 'rot') tryRotate(1);
       else if (a === 'rotl') tryRotate(-1);
       else if (a === 'soft') { if (tryMove(0, 1)) score += 1; acc = 0; }
-      else if (a === 'drop') { while (tryMove(0, 1)) score += 2; lock(); }
+      else if (a === 'drop') { while (tryMove(0, 1)) score += 2; sfx('whoosh', { vol: 0.5 }); lock(); }
       else if (a === 'hold' && canHold) {
+        sfx('select');
         const t = cur.type;
         if (hold) cur = spawnPiece(hold); else spawn();
         hold = t; canHold = false;
@@ -504,7 +509,7 @@
         if (others.length > 1) { api.status(h('b', {}, dead ? 'You topped out!' : 'Survive!'), `Junk sent: ${s.sent[api.you]}`, `Players left: ${s.boards.length - (s.dead ? s.dead.filter(Boolean).length : 0)}`); return; }
         api.status(h('b', {}, dead ? 'You topped out!' : 'Survive!'), `Junk sent: ${s.sent[api.you]}`, `Junk received: ${s.sent[1 - api.you]}`);
       },
-      event(ev) { if (ev.garbage) { pending += ev.garbage; draw(); } },
+      event(ev) { if (ev.garbage) { pending += ev.garbage; sfx('alarm', { vol: 0.6 }); draw(); } },
       stop() { stopped = true; },
       destroy() { stopped = true; removeEventListener('keydown', onKey); },
     };
@@ -950,6 +955,114 @@
     td: (stage, api) => window.TDGame(stage, api),
   };
 
+  // ---------------------------------------------------------------- sound effects
+  // Each game's hook compares the state with the last one it saw (kept in m) and plays what happened.
+  const later = (ms, name, opt) => setTimeout(() => sfx(name, opt), ms);
+  const keyOf = (v) => JSON.stringify(v === undefined ? null : v);
+  const changed = (m, k, v) => { const j = keyOf(v), was = m[k]; m[k] = j; return was !== undefined && was !== j; };
+  // which way something is moving (from two positions); a flip means it bounced
+  function bounced(m, k, x, y) {
+    const p = m[k]; m[k] = { x, y, dx: p ? Math.sign(x - p.x) || p.dx : 0, dy: p ? Math.sign(y - p.y) || p.dy : 0 };
+    if (!p || Math.hypot(x - p.x, y - p.y) > 200) return {};
+    return { x: p.dx && m[k].dx && p.dx !== m[k].dx, y: p.dy && m[k].dy && p.dy !== m[k].dy };
+  }
+  const SOUNDS = {
+    snake(s, m, you) {
+      s.snakes.forEach((sn, i) => {
+        const L = sn.body.length, was = m['l' + i], alive = m['a' + i];
+        if (i === you && was != null && L > was && sn.alive) sfx(L - was > 1 ? 'coin' : 'chomp');
+        if (alive && !sn.alive) sfx('crash', { vol: i === you ? 1 : 0.4 });
+        m['l' + i] = L; m['a' + i] = sn.alive;
+      });
+    },
+    pong(s, m, you) {
+      const sc = s.score[0] + s.score[1];
+      if (m.sc != null && sc > m.sc) sfx(s.score[you] > m.mine ? 'score' : 'point');
+      m.sc = sc; m.mine = s.score[you];
+      const b = bounced(m, 'ball', s.ball.x, s.ball.y);
+      if (b.x) sfx('paddle'); else if (b.y) sfx('wall');
+    },
+    hockey(s, m, you) {
+      const sc = s.score[0] + s.score[1];
+      if (m.sc != null && sc > m.sc) sfx(s.score[you] > m.mine ? 'score' : 'point');
+      m.sc = sc; m.mine = s.score[you];
+      const b = bounced(m, 'puck', s.puck.x, s.puck.y);
+      if (b.x || b.y) sfx('paddle', { pitch: b.x ? 1 : 0.8, vol: 0.7 });
+    },
+    fighter(s, m) {
+      s.f.forEach((f, i) => {
+        const act = m['act' + i], hp = m['hp' + i];
+        if (act !== undefined && f.act !== act) {
+          if (f.act === 'punch' || f.act === 'kick') sfx('swing');
+          else if (f.act === 'special') sfx('zap', { pitch: 0.6 });
+          else if (f.act === 'jump') sfx('jump', { vol: 0.6 });
+          else if (f.act === 'ko') sfx('die');
+        }
+        if (hp != null && f.hp < hp - 0.5) sfx(f.act === 'block' ? 'block' : hp - f.hp > 12 ? 'explode' : 'punch', { vol: f.act === 'block' ? 1 : 0.9 });
+        m['act' + i] = f.act; m['hp' + i] = f.hp;
+      });
+      if (changed(m, 'msg', s.msg) && s.msg) {
+        if (/FIGHT/.test(s.msg)) sfx('go'); else if (/K\.?O/.test(s.msg)) sfx('boom'); else if (/WINS/.test(s.msg)) sfx('reward'); else sfx('count');
+      }
+    },
+    tron(s, m, you) {
+      s.p.forEach((p, i) => { if (m['a' + i] && !p.alive) sfx('crash', { vol: i === you ? 1 : 0.5 }); m['a' + i] = p.alive; });
+      if (changed(m, 'msg', s.msg) && s.msg) sfx(/SCORES/.test(s.msg) ? 'score' : 'count');
+    },
+    chess(s, m) {
+      const caps = s.captured[0].length + s.captured[1].length, was = m.caps;
+      m.caps = caps;
+      if (!changed(m, 'last', s.last)) return;
+      sfx(caps > was ? 'capture' : 'move');
+      if (s.check && !s.result) later(160, 'check');
+    },
+    checkers(s, m) {
+      const n = s.board.filter(Boolean).length, kings = s.board.filter((p) => p && p === p.toUpperCase()).length, was = m.n, wk = m.k;
+      m.n = n; m.k = kings;
+      if (!changed(m, 'last', s.last)) return;
+      sfx(n < was ? 'capture' : 'move');
+      if (kings > wk) later(150, 'reward');
+    },
+    connect4(s, m) { if (changed(m, 'last', s.last) && s.last >= 0) sfx('drop'); },
+    tictactoe(s, m) { const n = s.cells.filter((v) => v >= 0).length; if (m.n != null && n > m.n) sfx('place'); m.n = n; },
+    gomoku(s, m) { if (changed(m, 'last', s.last)) sfx('place'); },
+    reversi(s, m) {
+      const before = m.board; m.board = s.board.slice();
+      if (!changed(m, 'last', s.last) || !before) return;
+      sfx('place');
+      const flips = s.board.filter((v, i) => before[i] >= 0 && v !== before[i]).length;
+      for (let k = 0; k < Math.min(flips, 8); k++) later(90 + k * 55, 'flip', { pitch: 1 + k * 0.08, gap: 0 });
+    },
+    dots(s, m) {
+      const lines = s.lines.filter((v) => v !== null && v !== undefined && v !== -1).length, boxes = s.scores.reduce((a, b) => a + b, 0);
+      if (m.lines != null && lines > m.lines) { if (boxes > m.boxes) sfx('box'); else sfx('line'); }
+      m.lines = lines; m.boxes = boxes;
+    },
+    mancala(s, m) {
+      const before = m.pits; m.pits = s.pits.slice();
+      if (!changed(m, 'last', s.last) || !before) return;
+      const moved = s.pits.reduce((a, v, i) => a + Math.max(0, v - before[i]), 0);
+      for (let k = 0; k < Math.min(moved, 10); k++) later(k * 70, 'seed', { pitch: 1 + (k % 4) * 0.1, gap: 0 });
+      const stores = [6, 13].reduce((a, i) => a + s.pits[i] - before[i], 0);
+      if (stores > 1) later(Math.min(moved, 10) * 70 + 60, 'capture');
+    },
+    battleship(s, m, you) {
+      if (s.phase === 'place') { const r = keyOf(s.ready); if (m.ready !== undefined && r !== m.ready) sfx('select'); m.ready = r; return; }
+      if (!changed(m, 'last', s.last) || !s.last) return;
+      const L = s.last;
+      sfx('cannon', { vol: 0.7 });
+      later(380, L.hit ? (L.sunk >= 0 ? 'explode' : 'hit') : 'splash', { vol: L.by === you ? 1 : 0.8 });
+      if (L.hit && L.sunk >= 0) later(700, L.by === you ? 'reward' : 'alarm');
+    },
+  };
+  function withSounds(m, inst) {
+    const hook = SOUNDS[m.game];
+    if (!hook || !inst.update) return inst;
+    const mem = {}, upd = inst.update.bind(inst);
+    inst.update = (s) => { upd(s); if (s) { try { hook(s, mem, m.you); } catch (e) { /* a sound is never worth breaking the game */ } } };
+    return inst;
+  }
+
   // ---------------------------------------------------------------- dock
   let host = null, cur = null;
   // Smoothing for a player whose updates arrive over the network in uneven bursts: keep the last
@@ -987,6 +1100,15 @@
     c.raf = requestAnimationFrame(() => smoothFrame(c));
   }
   const dock = () => document.getElementById('gameDock');
+  // 🔊 / 🔇: sound effects for every game (the games in frames follow it too)
+  const sfx = (name, opt) => { if (window.Sfx) window.Sfx.play(name, opt); };
+  function soundButton() {
+    const b = h('button', { class: 'btn small sfx-btn', onclick: () => window.Sfx && window.Sfx.toggle() });
+    const draw = () => { const on = !window.Sfx || window.Sfx.on; b.textContent = on ? '🔊' : '🔇'; b.title = on ? 'Sound effects on (click to mute)' : 'Sound effects off (click to turn on)'; };
+    draw();
+    if (window.Sfx) { const off = window.Sfx.onChange(() => (b.isConnected ? draw() : off())); } // a closed game's button stops listening
+    return b;
+  }
 
   function close() {
     const c = cur;
@@ -1019,6 +1141,7 @@
         h('span', { class: 'title' }, `${meta.emoji} ${meta.name}`),
         m.spectate ? h('span', { class: 'pchip' }, '👀 Watching') : '',
         h('span', { class: 'players-line' }, ...m.players.map((p, i) => h('span', { class: 'pchip' }, h('i', { style: `background:${colors[i]}` }), p.name + (i === m.you && !m.spectate ? ' (you)' : ''))).reduce((a, el, i) => (i ? a.concat(' vs ', el) : [el]), [])),
+        soundButton(),
         h('button', { class: 'btn small', title: 'Minimize', onclick: () => d.classList.toggle('min') }, '▁'),
         leaveBtn),
       statusEl, stage);
@@ -1043,8 +1166,9 @@
         if (m.spectate) statusEl.querySelectorAll('b,span').forEach((el) => { if (el.children.length === 0) el.textContent = asWatcher(el.textContent); });
       },
     };
-    cur = { id: m.id, game: m.game, players: m.players, you: m.you, spectate: !!m.spectate, table: m.table || null, over: false, smooth: !!(m.net && m.net.smooth) && SMOOTH.has(m.game), buf: [], gap: 33, raf: 0, stage, statusEl, leaveBtn, host: gameHost, onClose: m.onClose, inst: FACTORY[m.game](stage, api) };
+    cur = { id: m.id, game: m.game, players: m.players, you: m.you, spectate: !!m.spectate, table: m.table || null, over: false, smooth: !!(m.net && m.net.smooth) && SMOOTH.has(m.game), buf: [], gap: 33, raf: 0, stage, statusEl, leaveBtn, host: gameHost, onClose: m.onClose, inst: withSounds(m, FACTORY[m.game](stage, api)) };
     cur.inst.update(m.state);
+    sfx('start');
     if (document.activeElement && document.activeElement.id === 'msgInput') document.activeElement.blur();
   }
   function over(m) {
@@ -1055,6 +1179,7 @@
     if (cur.inst.stop) cur.inst.stop();
     cur.leaveBtn.textContent = 'Close';
     const r = m.result, draw = r.winner === -1;
+    sfx(draw ? 'draw' : cur.spectate ? 'reward' : r.winner === cur.you ? 'win' : 'lose');
     if (cur.spectate || cur.players.length > 2 || cur.table) {
       // a game table: say who won; the table itself carries on with the next match
       const w = draw ? null : cur.players[r.winner], win = !cur.spectate && r.winner === cur.you;
@@ -1082,6 +1207,7 @@
 
   window.GameDock = {
     META,
+    soundButton,
     init(h2) { host = h2; },
     start,
     close,

@@ -14,7 +14,10 @@
   const now = () => performance.now();
   const COLORS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#14b8a6', '#3b82f6', '#8b5cf6', '#ec4899', '#a16207', '#64748b', '#0ea5e9', '#d946ef'];
 
-  window.PartyKit = { start, esc };
+  // sounds (sfx.js): the games use PartyKit.sfx; every button clicks
+  const sfx = (name, opt) => { if (window.Sfx) window.Sfx.play(name, opt); };
+  window.PartyKit = { start, esc, sfx };
+  document.addEventListener('click', (e) => { const b = e.target.closest('button'); if (b && !b.disabled) sfx('click', { gap: 30 }); }, true);
 
   const CSS = `
   .pk-card{width:min(720px,100%);margin:0 auto;background:var(--pk-card,#fff);color:var(--pk-ink,#1f2937);border-radius:22px;padding:22px;box-shadow:0 18px 50px rgba(0,0,0,.25);display:grid;gap:12px}
@@ -214,6 +217,7 @@
         const view = { v: g.v, id: g.id, state: g.s, me, players: g.pl.map((p, i) => ({ peer: p, name: g.nm[i], color: g.cl[i], gone: g.gone[i] })), isHost: isHost(), send: act,
           left: (deadline) => Math.max(0, Math.ceil((deadline - (Date.now() + K.view.offset)) / 1000)), again: backToLobby, leave: () => leave(), soft,
           mine: (patch) => send(patch), dataOf: (peer) => { const p = K.peers.find((x) => x.peer === peer); return (p && p.presence) || null; } };
+        if (el.dataset.screen !== 'game' || K.gameId !== g.id) { K.gameId = g.id; sfx('start'); }
         el.dataset.screen = 'game';
         cfg.render(view, el);
         return;

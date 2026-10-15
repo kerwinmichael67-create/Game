@@ -45,6 +45,8 @@
   const AL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
   const n2 = (n) => AL[(n >> 6) & 63] + AL[n & 63], d2 = (t, i) => AL.indexOf(t[i]) * 64 + AL.indexOf(t[i + 1]);
   const fmt = (n) => '$' + Math.floor(n).toLocaleString('en-US');
+  // the sound of each tower's shot (Farm and Commander don't shoot)
+  const SHOT_SND = [['gun', { vol: 0.5, pitch: 1.4 }], ['gun', { vol: 0.9, pitch: 0.7 }], ['gun', { vol: 0.6 }], ['explode', { vol: 0.45 }], null, ['freeze', { vol: 0.6 }], null, ['gun', { vol: 0.35, pitch: 1.6, gap: 30 }], ['laser', { vol: 0.7, pitch: 0.8 }]];
   // what each wave sends
   function waveList(n, last) {
     const q = [], add = (t, k, gap) => { for (let i = 0; i < k; i++) q.push([t, gap]); };
@@ -109,7 +111,7 @@
       // some trees where you can't build
       const r = mulberry(55);
       for (let i = 0; i < 26; i++) { const x = (r() - 0.5) * 190, z = (r() - 0.5) * 150; if (distToPath(x, z) < 12 || Math.abs(z - 62) < 10) continue; part({ x, y: 2, z, sx: 1, sy: 4, sz: 1, c: 0x92400e, plain: true }); part({ x, y: 5, z, sx: 4, sy: 3.5, sz: 4, c: 0x166534 }); }
-      this.views = new Map(); this.tviews = new Map(); this.fx = [];
+      this.views = new Map(); this.tviews = new Map(); this.fx = []; this.sndOn = false; this.sndHp = null; this.sndPh = null;
       this.ghost = null; this.ring = new THREE.Mesh(new THREE.RingGeometry(0.97, 1, 48), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.6, side: THREE.DoubleSide }));
       this.ring.rotation.x = -Math.PI / 2; this.ring.visible = false; place.add(this.ring);
       this.disc = new THREE.Mesh(new THREE.CircleGeometry(1, 48), new THREE.MeshBasicMaterial({ color: 0x60a5fa, transparent: true, opacity: 0.15, side: THREE.DoubleSide, depthWrite: false }));
@@ -295,17 +297,19 @@
         const walk = Math.sin(performance.now() / 120 + e.id) * 0.4; m.g.children[0].rotation.x = walk; m.g.children[1].rotation.x = -walk;
         if (EN[e.t].hidden) m.g.children.forEach((c) => { if (c.material && !c.material.transparent) { c.material = c.material.clone(); c.material.transparent = true; c.material.opacity = 0.45; } });
       }
-      for (const [id, m] of this.views) if (!keep.has(id)) { place.remove(m.g); this.views.delete(id); puffAt(m.g.position.x, 2, m.g.position.z, EN[m.t].c, 5); }
+      for (const [id, m] of this.views) if (!keep.has(id)) { place.remove(m.g); this.views.delete(id); puffAt(m.g.position.x, 2, m.g.position.z, EN[m.t].c, 5); if (this.sndOn) sfx3('pop', m.g.position.x, m.g.position.z, 140, { vol: 0.5, gap: 50 }); }
       // towers
       const tk = new Set();
       for (const w of v.tw) {
         tk.add(w.id);
         const sig = w.t + ':' + w.lvl + ':' + w.o;
         let m = this.tviews.get(w.id);
-        if (!m || m.sig !== sig) { if (m) place.remove(m.g); m = { g: towerModel(w.t, w.lvl, OWN_COL[w.o % 4]), sig, w }; m.g.position.set(w.x, 0, w.z); m.g.traverse((o) => (o.userData.tid = w.id)); place.add(m.g); this.tviews.set(w.id, m); }
+        if (!m || m.sig !== sig) {
+          if (this.sndOn) { const mine = w.o === this.myIdx(g); if (!m) sfx3('place', w.x, w.z, 140); else if (m.w.lvl !== w.lvl) { if (mine) sfx('levelup'); else sfx3('select', w.x, w.z, 140); } }
+          if (m) place.remove(m.g); m = { g: towerModel(w.t, w.lvl, OWN_COL[w.o % 4]), sig, w }; m.g.position.set(w.x, 0, w.z); m.g.traverse((o) => (o.userData.tid = w.id)); place.add(m.g); this.tviews.set(w.id, m); }
         m.w = w;
       }
-      for (const [id, m] of this.tviews) if (!tk.has(id)) { place.remove(m.g); this.tviews.delete(id); }
+      for (const [id, m] of this.tviews) if (!tk.has(id)) { place.remove(m.g); this.tviews.delete(id); if (this.sndOn) sfx3('sell', m.w.x, m.w.z, 140, { vol: m.w.o === this.myIdx(g) ? 1 : 0.4 }); }
       // shots
       const fsig = JSON.stringify(v.fx || []);
       if (fsig !== this.fxSig) {
@@ -315,12 +319,21 @@
           const m = this.tviews.get(f[0]); if (!m) continue;
           const [x, z] = posAt(f[1] / 4), t = m.w.t, from = new THREE.Vector3(m.w.x, 2.6, m.w.z), to = new THREE.Vector3(x, 2, z);
           m.g.rotation.y = Math.atan2(-(x - m.w.x), -(z - m.w.z));
+          if (this.sndOn) { const snd = SHOT_SND[t]; if (snd) sfx3(snd[0], m.w.x, m.w.z, 150, snd[1]); }
           if (t === 3) puffAt(x, 1.5, z, [0xf97316, 0x444444], 8); else if (t === 5) puffAt(x, 2, z, 0xa5f3fc, 4);
           const l = new THREE.Line(new THREE.BufferGeometry().setFromPoints([from, to]), new THREE.LineBasicMaterial({ color: t === 8 ? 0xa78bfa : t === 1 ? 0xfde047 : 0xffffff }));
           place.add(l); this.fx.push({ l, life: 0.08 });
         }
         this.fxOld = (v.fx || []).slice(); this.fxSig = fsig;
       }
+      // the base taking hits, and the waves coming and going
+      if (g && this.sndOn) {
+        if (this.sndHp != null && g.hp < this.sndHp && g.ph !== 'lobby') sfx('hurt', { gap: 200 });
+        if (g.ph !== this.sndPh) { if (g.ph === 'wave') sfx('horn'); else if (g.ph === 'break' && this.sndPh === 'wave') sfx('reward'); }
+        if (g.ph === 'lobby' || g.ph === 'break') { const c = Math.ceil(g.left); if (c !== this.sndC && c <= 3 && c > 0) sfx('count'); this.sndC = c; }
+      }
+      if (g) { this.sndHp = g.hp; this.sndPh = g.ph; }
+      this.sndOn = true; // (not on the first frame: everything already there would make a noise)
       for (let i = this.fx.length - 1; i >= 0; i--) { const f = this.fx[i]; f.life -= dt; if (f.life <= 0) { place.remove(f.l); f.l.geometry.dispose(); this.fx.splice(i, 1); } }
       // placing a tower: the ghost follows the mouse
       if (this.ghost) this.ghost.visible = !!this.placing && !!this.hoverAt;
@@ -374,8 +387,8 @@
       const g = this.g; if (!g) return;
       if (this.placing != null) {
         const h = pickPlane(e.x, e.y, 0); if (!h) return;
-        if (!this.canPlace(h.x, h.z, g)) return toast('You can’t place a tower there', '#fca5a5');
-        if (this.myCash(g) < TW[this.placing].price) return toast('Not enough cash', '#fca5a5');
+        if (!this.canPlace(h.x, h.z, g)) { sfx('error'); return toast('You can’t place a tower there', '#fca5a5'); }
+        if (this.myCash(g) < TW[this.placing].price) { sfx('error'); return toast('Not enough cash', '#fca5a5'); }
         this.ask('place', this.placing, +h.x.toFixed(1), +h.z.toFixed(1));
         if (!keys.ShiftLeft && !keys.ShiftRight) { this.placing = null; this.drawBar(); }
         return;
@@ -422,6 +435,7 @@
     finish(g) {
       if (this.myIdx(g) < 0) return;
       const D = DIFF[g.diff] || DIFF.normal, win = g.res === 'win';
+      sfx(win ? 'win' : 'lose');
       earn(g.wave * 3 + (win ? D.coins : 0), win ? `won ${D.n}` : `survived ${g.wave} waves`);
       if (win) { this.save.wins = (this.save.wins | 0) + 1; kvSet('ts', this.save); puffAt(P.x, P.y + 3, P.z, CONFETTI, 60); }
       this.ready = false; send({ rdy: 0 });

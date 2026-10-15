@@ -1,5 +1,5 @@
 <!doctype html><html><head>
-<script src="net.js"></script><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<script src="net.js"></script><script src="sfx.js"></script><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Duel Yard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -511,7 +511,9 @@ const SND = (() => {
   function init() {
     if (ac) { if (ac.state === 'suspended') ac.resume().catch(() => {}); return; }
     try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { ac = null; return; }
-    master = ac.createGain(); master.gain.value = muted ? 0 : 0.5; master.connect(ac.destination);
+    master = ac.createGain(); master.gain.value = muted || (window.Sfx && !Sfx.on) ? 0 : 0.5; master.connect(ac.destination);
+    // the chat's 🔊 button (sfx.js) mutes this game too
+    if (window.Sfx) Sfx.onChange((on) => { if (master) master.gain.value = muted || !on ? 0 : 0.5; });
     noise = ac.createBuffer(1, ac.sampleRate, ac.sampleRate);
     const d = noise.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
   }

@@ -182,11 +182,13 @@
       const g = this.g = roundState(this);
       if (g && g.seed && g.seed !== this.built) {
         this.tower(g.seed, Array.isArray(g.mut) ? g.mut.filter((k) => MUTS[k]) : []);
-        if (this.shown) { respawn(); toast(this.muts.length ? `New tower! ${this.muts.map((k) => MUTS[k].n).join(' + ')}` : 'New tower!', '#fecaca'); }
+        if (this.shown) { respawn(); sfx('teleport'); if (this.muts.length) sfx('magic'); toast(this.muts.length ? `New tower! ${this.muts.map((k) => MUTS[k].n).join(' + ')}` : 'New tower!', '#fecaca'); }
         this.shown = true;
       }
       if (!g) return setBanner('Building the tower…');
-      if (g.ph === 'inter') return setBanner('⏰ Time’s up! A new tower is coming…');
+      if (g.ph === 'inter') { if (this.lastPh !== 'inter') sfx('alarm'); this.lastPh = g.ph; return setBanner('⏰ Time’s up! A new tower is coming…'); }
+      this.lastPh = g.ph;
+      const sec = Math.ceil(g.left); if (sec <= 10 && sec !== this.tickS && this.fin !== g.rd) sfx(sec <= 3 ? 'count' : 'tick'); this.tickS = sec;
       const mut = this.muts.length ? ` · ${this.muts.map((k) => MUTS[k].n).join(' ')}` : '';
       setBanner(`🔥 ${mmss(g.left)}${mut}${this.fin === g.rd ? ' · ✅ you beat this one' : ''}`);
     },
@@ -195,7 +197,7 @@
       if (p.kind !== 'finish' || !g || this.fin === g.rd) return;
       const first = !players().some((x) => !x.me && x.pr.fin === g.rd);
       this.fin = g.rd; this.wins++; send({ fin: g.rd, wn: this.wins }); kvSet('th', { wins: this.wins });
-      toast('🔥 You beat the tower!', '#fde68a'); puffAt(P.x, P.y + 3, P.z, CONFETTI, 60);
+      toast('🔥 You beat the tower!', '#fde68a'); puffAt(P.x, P.y + 3, P.z, CONFETTI, 60); sfx('win');
       Net.chat(`🔥 beat the tower${first ? ' first' : ''}!`); say(`${Net.name} beat the tower!`, '#fde68a');
       earn(first ? 60 : 40, first ? 'first to beat the tower' : 'beat the tower');
       setTimeout(() => { if (exp === TOH && playing) respawn(); }, 3000);

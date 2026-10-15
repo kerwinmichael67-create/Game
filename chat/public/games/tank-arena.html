@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <script src="net.js"></script>
+<script src="sfx.js"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Spin Cycle — Tank Arena</title>
@@ -876,7 +877,7 @@ const Online=(()=>{
       if(p.score!==score) scored=true;
       p.score=score; p.cd=cd; p.ammo=ammo;
       if(shots>p.shots&&!newRound){
-        p.muzzle=0.07;
+        p.muzzle=0.07; shotSound(p);
         const d=TANKS[p.type];
         if(d.kind!=="beam") fx(p.x+Math.cos(p.tAngle)*26,p.y+Math.sin(p.tAngle)*26,d.kind==="flame"?2:5,"#ffd08a",120,0.18);
         if(p.mouse&&d.recoil){ p.kx-=Math.cos(p.tAngle)*d.recoil; p.ky-=Math.sin(p.tAngle)*d.recoil; G.shake=Math.max(G.shake,6); }
@@ -906,10 +907,10 @@ const Online=(()=>{
   }
   function playEv(e){
     const t=e[1];
-    if(t==="p"){ const [, ,x,y,txt,color,big]=e; fx(x,y+30,3,big?"#ffd42a":"#ffffff",70,0.25); G.pops.push({x,y,txt,color,life:0.85,big:!!big}); }
-    else if(t==="r"){ const [, ,x,y,r,color]=e; fx(x,y,18,"#ff8a3d",230,0.45); G.shake=Math.max(G.shake,5); G.beams.push({ring:true,x,y,r,life:0.28,color}); }
+    if(t==="p"){ const [, ,x,y,txt,color,big]=e; sfxAt(big?"punch":"hit",x,y,{gap:60}); fx(x,y+30,3,big?"#ffd42a":"#ffffff",70,0.25); G.pops.push({x,y,txt,color,life:0.85,big:!!big}); }
+    else if(t==="r"){ const [, ,x,y,r,color]=e; sfxAt("explode",x,y,{vol:0.6}); fx(x,y,18,"#ff8a3d",230,0.45); G.shake=Math.max(G.shake,5); G.beams.push({ring:true,x,y,r,life:0.28,color}); }
     else if(t==="b"){ const [, ,x1,y1,x2,y2,color,wide,life]=e; G.beams.push({x1,y1,x2,y2,color,wide:!!wide,life:life||0.2}); if(wide) G.shake=Math.max(G.shake,7); }
-    else if(t==="k"){ const [, ,x,y,color]=e; G.shake=Math.max(G.shake,11); fx(x,y,40,color,260,0.75); fx(x,y,20,"#ff6b35",190,0.6); }
+    else if(t==="k"){ const [, ,x,y,color]=e; sfxAt("explode",x,y); G.shake=Math.max(G.shake,11); fx(x,y,40,color,260,0.75); fx(x,y,20,"#ff6b35",190,0.6); }
   }
   function clientUpdate(dt){
     G.countdown=Math.max(0,G.countdown-dt); G.shake=Math.max(0,G.shake-dt*26);
@@ -1136,18 +1137,28 @@ function fx(x,y,n,color,spd,life){
 function pop(x,y,txt,color,big){ G.pops.push({x,y,txt,color,life:0.85,big:!!big}); Online.ev(["p",Math.round(x),Math.round(y),txt,color,big?1:0]); }
 function beam(b){ G.beams.push(b); Online.ev(b.ring?["r",Math.round(b.x),Math.round(b.y),Math.round(b.r),b.color]:["b",Math.round(b.x1),Math.round(b.y1),Math.round(b.x2),Math.round(b.y2),b.color,b.wide?1:0,b.life]); }
 
+/* sounds (sfx.js): quieter the further they are from your tank */
+const sfx=(n,o)=>{ if(window.Sfx) Sfx.play(n,o); };
+function sfxAt(n,x,y,o){ const me=G&&G.players&&G.players.find(p=>p.mouse&&p.alive); if(!window.Sfx) return; if(!me){ Sfx.play(n,o); return; } Sfx.at(n,Math.hypot(x-me.x,y-me.y),1600,o); }
+function shotSound(p){
+  const d=TANKS[p.type];
+  const [n,o]=d.kind==="beam"?["laser",{pitch:0.5}]:d.kind==="flame"?["whoosh",{vol:0.5,gap:80}]:d.kind==="missile"?["shoot",{pitch:0.6}]
+    :d.stun?["zap",{}]:d.poison?["shoot",{pitch:0.8}]:d.dmg>=40?["cannon",{}]:["gun",{pitch:1.2,vol:0.6}];
+  sfxAt(n,p.x,p.y,o);
+}
 function damage(target,amt,src,opt={}){
   if(!target.alive) return;
   if(target.poison&&target.poison.t>0&&!opt.dot) amt*=2;
   target.hp-=amt; target.flash=0.1;
   if(!opt.silent){
+    sfxAt(opt.crit?"punch":"hit",target.x,target.y,{gap:60});
     fx(target.x,target.y,3,opt.crit?"#ffd42a":"#ffffff",70,0.25);
     pop(target.x,target.y-30, (opt.crit?"":"")+Math.round(amt), opt.crit?"#ffd42a":"#ffffff", opt.crit);
   }
   if(target.hp<=0) killPlayer(target,src);
 }
 function killPlayer(t,src){
-  t.alive=false; t.hp=0; G.shake=Math.max(G.shake,11);
+  t.alive=false; t.hp=0; G.shake=Math.max(G.shake,11); sfxAt("explode",t.x,t.y);
   Online.ev(["k",Math.round(t.x),Math.round(t.y),t.color]);
   fx(t.x,t.y,40,t.color,260,0.75); fx(t.x,t.y,20,"#ff6b35",190,0.6);
   G.queue.push(t);
@@ -1197,14 +1208,14 @@ function tryFire(p,mult){
       const spread=(i-(volley-1)/2)*0.16;
       for(let j=0;j<shots;j++) fireBarrel(p,p.tAngle+spread+(j-(shots-1)/2)*0.05,26,mult);
     }
-    p.ammo-=volley; p.cd=0.25; p.shots++; return true;
+    p.ammo-=volley; p.cd=0.25; p.shots++; shotSound(p); return true;
   } else {
     if(p.cd>0) return false;
     for(let j=0;j<shots;j++){
       const spread=(j-(shots-1)/2)*(d.kind==="flame"?0.18:0.09);
       fireBarrel(p,p.tAngle+spread+(d.kind==="flame"?(Math.random()-0.5)*0.22:0),24,mult);
     }
-    p.cd=s.cd; p.shots++;
+    p.cd=s.cd; p.shots++; shotSound(p);
     if(d.recoil){p.kx-=Math.cos(p.tAngle)*d.recoil; p.ky-=Math.sin(p.tAngle)*d.recoil; G.shake=Math.max(G.shake,6);}
     if(d.selfDmg) damage(p,d.selfDmg,p,{silent:true,dot:true});
     if(d.dmg>=40||mult>2) G.shake=Math.max(G.shake,4+mult);
@@ -1223,7 +1234,7 @@ function hitTank(src,t,b){
   if(crit) fx(t.x,t.y,8,"#ffd42a",150,0.4);
 }
 function explode(b){
-  fx(b.x,b.y,18,"#ff8a3d",230,0.45); G.shake=Math.max(G.shake,5);
+  fx(b.x,b.y,18,"#ff8a3d",230,0.45); G.shake=Math.max(G.shake,5); sfxAt("explode",b.x,b.y,{vol:0.6});
   beam({ring:true,x:b.x,y:b.y,r:b.aoeR,life:0.28,color:"#ff8a3d"});
   G.players.forEach(t=>{
     if(!t.alive) return;
@@ -1553,6 +1564,9 @@ function loop(now){
   if(G.online&&!Online.isHost()) Online.clientUpdate(dt);
   else if(G.state==="play") update(dt);
   if(G.online) Online.tick(dt);
+  const cs=Math.ceil(G.countdown);
+  if(G.state==="play"&&cs!==G.sndC){ if(cs>0) sfx("count"); else if(G.sndC>0) sfx("go"); }
+  G.sndC=cs;
   draw(); updateHud();
   requestAnimationFrame(loop);
 }
@@ -1615,6 +1629,7 @@ function showPowerups(p,given){
   ovlCard.querySelectorAll(".pup").forEach(btn=>{
     btn.onclick=()=>{
       const u=offer[+btn.dataset.i];
+      sfx("powerup");
       if(G.online&&!Online.isHost()){ Online.sendPick(u.id); ovl.classList.add("hide"); return; }
       takeUpgrade(p,u);
       ovl.classList.add("hide"); G.state="play"; processQueue();
@@ -1624,6 +1639,7 @@ function showPowerups(p,given){
 function endRound(){
   G.state="over";
   const alive=G.players.filter(p=>p.alive), winner=alive[0];
+  sfx(winner&&winner.mouse?"win":"bell");
   const matchOver=G.round>=G.maxRounds;
   const best=Math.max(...G.players.map(p=>p.score));
   const champs=G.players.filter(p=>p.score===best);

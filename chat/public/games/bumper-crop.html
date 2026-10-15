@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <script src="net.js"></script>
+<script src="sfx.js"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Bumper Crop Online</title>
@@ -1244,7 +1245,9 @@ const Sound = {
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return null;
     try { this.ctx = new AC(); } catch (e) { return null; }
-    this.out = this.ctx.createGain(); this.out.gain.value = 0.3; this.out.connect(this.ctx.destination);
+    this.out = this.ctx.createGain(); this.out.gain.value = window.Sfx && !Sfx.on ? 0 : 0.3; this.out.connect(this.ctx.destination);
+    // the chat's 🔊 button (sfx.js) mutes this game too
+    if (window.Sfx) Sfx.onChange((on) => { if (this.out) this.out.gain.value = on ? 0.3 : 0; });
     return this.ctx;
   },
   blip(f0, f1, dur, type, vol, delay) {

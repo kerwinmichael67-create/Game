@@ -1,5 +1,5 @@
 <!doctype html><html><head>
-<script src="net.js"></script><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<script src="net.js"></script><script src="sfx.js"></script><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1059,7 +1059,7 @@ TD.Audio = (function () {
     musicGain = ctx.createGain(); musicGain.gain.value = 0.12; musicGain.connect(master);
     return ctx;
   }
-  function on() { return TD.Save.data.settings.sound; }
+  function on() { return TD.Save.data.settings.sound && !(window.Sfx && !Sfx.on); } // the chat's 🔊 button (sfx.js) mutes it too
 
   function blip(freq, dur, type, vol, slideTo) {
     if (!on() || !ensure() || ctx.state === 'suspended') return;
@@ -1107,7 +1107,7 @@ TD.Audio = (function () {
   /* A tiny generative loop so the lobby isn't silent. */
   const SCALE = [0, 3, 5, 7, 10, 12];
   function musicTick() {
-    if (!TD.Save.data.settings.music || !ensure() || ctx.state === 'suspended') return;
+    if (!TD.Save.data.settings.music || (window.Sfx && !Sfx.on) || !ensure() || ctx.state === 'suspended') return;
     const root = 55;
     const n = SCALE[Math.floor(Math.random() * SCALE.length)] + (Math.random() < .3 ? 12 : 0);
     const f = root * Math.pow(2, (n + (musicStep % 4 === 0 ? 0 : 12)) / 12);

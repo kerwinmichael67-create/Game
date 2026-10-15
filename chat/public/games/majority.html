@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <script src="net.js"></script>
+<script src="sfx.js"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Majority Rules</title>
@@ -161,9 +162,19 @@ function winLine(ranked, me, mine) {
   if (top.length > 1) return `It’s a tie between ${top.map((r) => (r.i === me ? 'you' : esc(r.p.name))).join(' and ')}!`;
   return ranked[0].i === me ? mine : `${esc(ranked[0].p.name)} wins!`;
 }
+let sndKey = '', tickS = -1;
 function render(v, el) {
   const s = v.state;
   const key = `${v.id}:${s.i}:${s.ph}:${v.v}`;
+  // sounds: a new question, whether you were with the crowd, the final scores
+  const sk = `${v.id}:${s.i}:${s.ph}`;
+  if (sk !== sndKey) {
+    sndKey = sk;
+    const sfx = PartyKit.sfx;
+    if (s.ph === 'ask') sfx(flipRound(s.i) ? 'magic' : 'whoosh');
+    else if (s.ph === 'show' && v.me >= 0) sfx(s.gain[v.me] > 0 ? 'correct' : s.picks[v.me] == null ? 'tap' : 'wrong');
+    else if (s.ph === 'done') { const best = Math.max(...s.sc); sfx(v.me >= 0 && s.sc[v.me] === best ? 'win' : 'reward'); }
+  }
   if (v.soft && key === shown) { timer(v, s); return; }
   shown = key;
   const ranked = v.players.map((p, i) => ({ p, i, sc: s.sc[i] })).sort((a, b) => b.sc - a.sc);
@@ -199,13 +210,14 @@ function render(v, el) {
       return `<button class="${cls}" data-k="${k}" ${show || mine != null || v.me < 0 ? 'disabled' : ''}>${show ? `<span class="fill" style="width:${cnt[k] / voters * 100}%"></span><span class="cnt">${cnt[k]}</span>` : ''}<b>${'ABCD'[k]}</b><span class="lab">${esc(o)}</span>${names.length ? `<span class="who">${names.map(esc).join(', ')}</span>` : ''}</button>`;
     }).join('')}</div>
     <div class="mr-msg">${msg}</div></div>${side}</div>`;
-  el.querySelectorAll('.mr-opt').forEach((b) => (b.onclick = () => { v.send({ pick: +b.dataset.k }); b.classList.add('mine'); el.querySelectorAll('.mr-opt').forEach((x) => (x.disabled = true)); }));
+  el.querySelectorAll('.mr-opt').forEach((b) => (b.onclick = () => { PartyKit.sfx('select'); v.send({ pick: +b.dataset.k }); b.classList.add('mine'); el.querySelectorAll('.mr-opt').forEach((x) => (x.disabled = true)); }));
   timer(v, s);
 }
 function timer(v, s) {
   const t = document.getElementById('t'), bar = document.getElementById('bar');
   if (!t) return;
   const left = v.left(s.ends);
+  if (s.ph === 'ask' && left !== tickS && left <= 5 && left > 0) PartyKit.sfx('tick'); tickS = left;
   t.textContent = s.ph === 'ask' ? left : '';
   t.classList.toggle('low', s.ph === 'ask' && left <= 5);
   bar.style.width = s.ph === 'ask' ? `${Math.min(100, (left / (ASK_MS / 1000)) * 100)}%` : '0%';

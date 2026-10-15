@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en"><head>
-<script src="net.js"></script><meta charset="utf-8">
+<script src="net.js"></script><script src="sfx.js"></script><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Space Shooter</title>
 <style>
@@ -42,7 +42,20 @@ let ship,bullets,ebul,rocks,foes,pups,boss,bossDone,allies,parts,rings=[],bombs=
 stars=Array.from({length:150},(_,i)=>{const l=i%3;return{x:Math.random()*W,y:Math.random()*H,l,s:[.8,1.4,2.2][l]*(.7+Math.random()*.6),v:[.4,.9,1.8][l],p:Math.random()*6,c:['#9ab','#cde','#fff','#adf','#fda'][i%5]}});
 function reset(full){ship={x:W/2,y:H-90,cd:0,inv:0,sh:0,rf:0,tri:(!full&&ship&&ship.tri)||0};bullets=[];ebul=[];rocks=[];foes=[];pups=[];allies=[];parts=[];rings=[];bombs=[];reinfLeft=CALLS();boss=null;bossDone=false;planet=null;kills=0;
  if(full){reinfCd=0;lvl=1;fuel=100;hull=SH.hull;score=0}}
-function say(m){msg=m;msgT=120}
+function say(m){msg=m;msgT=120;sayTone(m)}
+// sounds (sfx.js): what a message means, and how big a blast is
+const sfx=(n,o)=>{if(window.Sfx)Sfx.play(n,o)};
+function sayTone(m){m=String(m||'');
+  if(/WARNING/.test(m)){sfx('alarm');setTimeout(()=>sfx('horn'),300)}
+  else if(/Boss destroyed/.test(m))sfx('win');
+  else if(/Ship destroyed|Out of fuel/.test(m))sfx('lose');
+  else if(/took a hit/.test(m))sfx('hurt');
+  else if(/Bomb/.test(m))sfx('boom');
+  else if(/Missed the pad/.test(m))sfx('crash');
+  else if(/Triple|Rapid|Shield|Fuel \+|Hull repaired|reinforcement/.test(m))sfx('powerup');
+  else if(/Not enough|Locked|Already|first|Need /.test(m))sfx('error');
+  else if(/Landed|Mission|Welcome|landed/.test(m))sfx('reward')}
+function boomSnd(n){if(n<=2)return;if(n<=6)sfx('hit',{vol:.35,gap:50});else if(n<=18)sfx('explode',{vol:.45,gap:60});else sfx('explode',{gap:60})}
 addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=1;if(e.key===' '||e.key==='Tab')e.preventDefault();if(Coop.mate())return;const rk={r:'F',e:'B',g:'G',h:'H',t:'T',c:'D'}[e.key.toLowerCase()];if(rk)callReinf(rk);if(state==='title'){if(e.key==='?'||e.key.toLowerCase()==='h')tHelp=!tHelp;else if(!tHelp&&e.key.toLowerCase()==='b'){state='select';hTab=2}else if(tHelp&&e.key!==' '&&e.key!=='Enter')tHelp=false}if(state==='select')navSel(e.key.toLowerCase());if(state==='map')navMap(e.key.toLowerCase());if(state==='brief'&&e.key.toLowerCase()==='m')toMap();if(state==='over'&&e.key.toLowerCase()==='h')state='select';
  if(e.key===' '||e.key==='Enter')advance()});
 addEventListener('keyup',e=>keys[e.key.toLowerCase()]=0);
@@ -194,7 +207,7 @@ const Coop=(()=>{
     if(!WORLD.includes(g.st)){state=g.st;C.me.init=false;return}
     state=g.st;lvl=g.lv;kills=g.k;fuel=g.fu;hull=g.hu;reinfLeft=g.rc;
     if(C.lastScore!=null&&g.sc>C.lastScore){cAcc+=g.sc-C.lastScore;if(cAcc>=10){credits+=Math.floor(cAcc/10);cAcc%=10}}C.lastScore=g.sc;score=g.sc;
-    if(g.m){msg=g.m[0];msgT=g.m[1]}
+    if(g.m){if(g.m[0]!==msg)sayTone(g.m[0]);msg=g.m[0];msgT=g.m[1]}
     const hs=g.sh;ship={x:hs[0],y:hs[1],inv:hs[2],sh:hs[3],tri:hs[4],rf:hs[5],cd:0};
     const me=myPeer();
     C.mates=g.ma.map(a=>({peer:a[0],x:a[1],y:a[2],inv:a[3],sh:a[4],s:a[5],tri:a[6],rf:a[7],nm:(crew().find(p=>p.peer===a[0])||{}).nm||'Pilot'}));
@@ -211,7 +224,7 @@ const Coop=(()=>{
     allies=g.al.map(a=>({k:a[0],x:a[1],y:a[2],hp:a[3],mhp:a[4],hf:a[5],heals:a[6],fl:a[7]}));
     bombs=g.bm.map(a=>({x:a[0],y:a[1]}));
     if(g.pl){if(!planet)planet=makePlanet();planet.y=g.pl[0];planet.pad=g.pl[1]}else planet=null;
-    let top=C.lastEv;(g.ev||[]).forEach(e=>{if(e[0]<=C.lastEv)return;top=Math.max(top,e[0]);for(let i=0;i<e[3];i++){const a=Math.random()*6.283,sp=Math.random()*3.5;parts.push({x:e[1],y:e[2],vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,l:25+Math.random()*25,c:e[4],s:1.5+Math.random()*2.5})}});C.lastEv=top}
+    let top=C.lastEv;(g.ev||[]).forEach(e=>{if(e[0]<=C.lastEv)return;top=Math.max(top,e[0]);boomSnd(e[3]);for(let i=0;i<e[3];i++){const a=Math.random()*6.283,sp=Math.random()*3.5;parts.push({x:e[1],y:e[2],vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,l:25+Math.random()*25,c:e[4],s:1.5+Math.random()*2.5})}});C.lastEv=top}
   function drawWait(){
     g.fillStyle='#05060f';g.fillRect(0,0,W,H);drawSky();const h=host(),cr=crew();
     g.textAlign='center';g.fillStyle='#fff';g.font='bold 26px system-ui';g.fillText('CO-OP',W/2,200);
@@ -234,6 +247,7 @@ const Coop=(()=>{
     bullets.forEach(b=>{b.y-=9;b.x+=b.vx||0});ebul.forEach(b=>{b.x+=b.vx;b.y+=b.vy});rocks.forEach(r=>{r.x+=r.vx;r.y+=r.vy;r.a+=.02});pups.forEach(p=>p.y+=1.6);
     foes.forEach(f=>{f.x+=(f.tx-f.x)*.3;f.y+=(f.ty-f.y)*.3;if(f.fl>0)f.fl--});
     const mine=C.mates.find(m=>m.peer===myPeer());if(mine){mine.x=me.x;mine.y=me.y}
+    if((keys[' ']||touch)&&state==='play'&&t%8===0)sfx('laser',{vol:.25,gap:60}); // my shots (the host's game fires them)
     const now=performance.now();
     if(now-C.sendAt>=50){C.sendAt=now;const inp={x:r0(me.x),y:r0(me.y),f:(keys[' ']||touch)&&state==='play'?1:0},key=JSON.stringify(inp);
       if(key!==C.lastIn||now-C.inAt>600){C.lastIn=key;C.inAt=now;send({in:inp})}}
@@ -290,7 +304,7 @@ function update(){
   bombs.forEach(b=>{b.x+=b.vx;b.y+=b.vy;if(Math.hypot(b.tx-b.x,b.ty-b.y)<10||b.y<30)b.go=1});
   bombs.filter(b=>b.go).forEach(b=>{boom(b.x,b.y,40,'#fc6');foes.forEach(f=>{if(!f.dead&&hit(f,b,90))hurtFoe(f,4)});rocks.forEach(r=>{if(hit(r,b,90+r.r)){r.dead=1;score+=5}});ebul=ebul.filter(e=>!hit(e,b,90));if(boss&&hit(boss,b,110))boss.hp=Math.max(1,boss.hp-6)});
   bombs=bombs.filter(b=>!b.go);foes=foes.filter(f=>!f.dead);rocks=rocks.filter(r=>!r.dead);
-  if((keys[' ']||touch)&&ship.cd<=0){const bd=SH.dm||1,pc=SH.pierce?1:0;if(ship.tri>0||SH.tri)[-2.2,0,2.2].forEach(v=>bullets.push({x:ship.x,y:ship.y-18,vx:v,d:bd,pc}));else bullets.push({x:ship.x,y:ship.y-18,vx:0,d:bd,pc});ship.cd=ship.rf>0?Math.ceil(CDN()/2):CDN()}
+  if((keys[' ']||touch)&&ship.cd<=0){const bd=SH.dm||1,pc=SH.pierce?1:0;if(ship.tri>0||SH.tri)[-2.2,0,2.2].forEach(v=>bullets.push({x:ship.x,y:ship.y-18,vx:v,d:bd,pc}));else bullets.push({x:ship.x,y:ship.y-18,vx:0,d:bd,pc});ship.cd=ship.rf>0?Math.ceil(CDN()/2):CDN();sfx('laser',{vol:.25,gap:60})}
   Coop.hostFire();
   if(t%Math.max(30,80-lvl*6)===0)rocks.push({x:Math.random()*W,y:-30,r:14+Math.random()*18,vy:1.3+Math.random()*1.5+Math.min(lvl,15)*.15,vx:(Math.random()-.5)*1.2,a:0,sd:Math.random()*10});
   if(t%Math.max(45,110-lvl*8)===0&&kills+foes.length<goal())spawnFoe();
@@ -358,7 +372,7 @@ function callReinf(k='F'){const q=REINF[k];if(Coop.mate())return;if(state!=='pla
  if(k==='H'&&hull>=SH.maxH)return say('Hull already full');if(k==='T'&&fuel>=85)return say('Fuel tank nearly full');
  fuel-=q.cost;reinfLeft--;reinfCd=SH.rcd||1200;
  allies=(k==='G'||k==='H'||k==='T'?[1]:[-1,1]).map((side,i)=>({side,k,x:ship.x+side*60,y:H+40,t:k==='D'?720:900,cd:0,bc:30,bombs:2,heals:2,hc:40,fl:40,hp:AHP[k],mhp:AHP[k],hf:0,ang:i*Math.PI}));say(q.msg)}
-function boom(x,y,n,c){Coop.ev(x,y,n,c);for(let i=0;i<n;i++){const a=Math.random()*6.283,sp=Math.random()*3.5;parts.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,l:25+Math.random()*25,c,s:1.5+Math.random()*2.5})}
+function boom(x,y,n,c){Coop.ev(x,y,n,c);boomSnd(n);for(let i=0;i<n;i++){const a=Math.random()*6.283,sp=Math.random()*3.5;parts.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,l:25+Math.random()*25,c,s:1.5+Math.random()*2.5})}
  if(n>=10)rings.push({x,y,r:4,mr:18+n*.9,l:18,c});if(n>=18)rings.push({x,y,r:2,mr:10+n*.5,l:10,c:'#fff'})}
 function draw(){
  g.fillStyle='#05060f';g.fillRect(0,0,W,H);
@@ -586,7 +600,7 @@ function toMap(){state='map';mapSel=Math.min(lvl,SAVE.prog||1)}
 function startMission(i){if(i>(SAVE.prog||1))return say('Locked: finish the earlier missions first');lvl=i;reset(false);ship.tri=0;state='brief'}
 function navMap(k){const d={arrowleft:-1,a:-1,arrowup:-1,w:-1,arrowright:1,d:1,arrowdown:1,s:1}[k];if(d)mapSel=Math.max(1,Math.min(CAMP.length,mapSel+d));else if(k.length===1&&k>='1'&&k<='9')startMission(+k)}
 function mapTap(q){if(q.x<130&&q.y>670){state='select';return}const i=MP.findIndex(([x,y])=>Math.hypot(q.x-x,q.y-y)<30);if(i>=0){mapSel=i+1;startMission(i+1)}}
-function advance(){save();if(state==='title'){if(tHelp)tHelp=false;else if(SAVE.ship&&SAVE.un.includes(SH.n)){reset(true);toMap();mapSel=Math.min(SAVE.prog||1,CAMP.length)}else state='select'}else if(state==='select'){if(!SAVE.un.includes(SH.n)){if(hTab!==0){hTab=0;say('Choose an unlocked ship first');return}unlock();return}SAVE.ship=SH.n;reset(true);toMap();mapSel=Math.min(SAVE.prog||1,CAMP.length)}else if(state==='over'){reset(false);fuel=100;hull=SH.hull;ship.tri=0;reinfCd=0;state='brief'}else if(state==='map')startMission(mapSel);else if(state==='brief')state='play';else if(state==='win')state='title'}
+function advance(){save();sfx("select");if(state==='title'){if(tHelp)tHelp=false;else if(SAVE.ship&&SAVE.un.includes(SH.n)){reset(true);toMap();mapSel=Math.min(SAVE.prog||1,CAMP.length)}else state='select'}else if(state==='select'){if(!SAVE.un.includes(SH.n)){if(hTab!==0){hTab=0;say('Choose an unlocked ship first');return}unlock();return}SAVE.ship=SH.n;reset(true);toMap();mapSel=Math.min(SAVE.prog||1,CAMP.length)}else if(state==='over'){reset(false);fuel=100;hull=SH.hull;ship.tri=0;reinfCd=0;state='brief'}else if(state==='map')startMission(mapSel);else if(state==='brief')state='play';else if(state==='win')state='title'}
 function startLand(){state='land';planet=makePlanet();bullets=[];ebul=[];rocks=[];foes=[];pups=[];allies=[];bombs=[];ship.y=120;say('Level clear! Land on the pad — hold DOWN')}
 function drawPlanet(){const p=planet,T=p.T,cx=W/2,cy=p.y+R;
  let gr=g.createRadialGradient(cx,cy,R-4,cx,cy,R+60);gr.addColorStop(0,T.glow+'cc');gr.addColorStop(1,T.glow+'00');

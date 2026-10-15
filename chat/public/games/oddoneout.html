@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <script src="net.js"></script>
+<script src="sfx.js"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Odd One Out</title>
@@ -163,9 +164,20 @@ function finishRound(s, t) {
   s.phase = 'show'; s.ends = t + SHOW_MS;
 }
 
-let shown = '', covered = false, draft = '';
+let shown = '', covered = false, draft = '', sndKey = '', sndClues = -1;
 function render(v, el) {
   const s = v.state, esc = PartyKit.esc;
+  // sounds: whose turn it is, clues coming in, votes, the reveal
+  const sk = `${v.id}:${s.round}:${s.phase}:${s.turn}`, nClues = s.clues ? s.clues.reduce((a, c) => a + c.length, 0) : 0, sfx = PartyKit.sfx;
+  if (sk !== sndKey) {
+    sndKey = sk;
+    if (s.phase === 'clue') sfx(s.order && s.order[s.turn] === v.me ? 'turn' : 'tap');
+    else if (s.phase === 'vote') sfx('alarm', { vol: 0.6 });
+    else if (s.phase === 'guess') sfx('magic');
+    else if (s.phase === 'show') sfx(s.caught ? (v.me === s.odd ? 'lose' : 'correct') : (v.me === s.odd ? 'win' : 'wrong'));
+    else if (s.phase === 'done') { const best = Math.max(...s.score); sfx(v.me >= 0 && s.score[v.me] === best ? 'win' : 'reward'); }
+  } else if (nClues > sndClues && sndClues >= 0) sfx('pop');
+  sndClues = nClues;
   const key = `${v.id}:${s.round}:${s.phase}:${s.turn}:${s.lap}:${v.v}`;
   if (v.soft && key === shown) return timer(v, s);
   // keep what you were typing when the screen refreshes

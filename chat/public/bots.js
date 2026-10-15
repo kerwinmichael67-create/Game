@@ -719,8 +719,8 @@
 
     if (kind === 'turn') state = Rules[game].init();
     else if (kind === 'realtime') state = Realtime[game].init();
-    if (game === 'battleship') state = Rules.battleship.move(state, 1, { ready: true }).state; // the bot is happy with its fleet
     else state = { boards: [null, null], scores: [0, 0], lines: [0, 0], sent: [0, 0] };
+    if (game === 'battleship') state = Rules.battleship.move(state, 1, { ready: true }).state; // the bot is happy with its fleet
 
     GameDock.start({ id, game, players, you: 0, state, host, onClose: () => { over = true; stop(); } });
 

@@ -76,12 +76,14 @@
       peek));
 
     // ---------------------------------------------------------------- input
-    let placing = null, selected = null, hover = null, speed = 1;
+    let placing = null, selected = null, hover = null, speed = 1, seenFx = new Set(), lastKills = 0;
+    const sfx = (n, o) => { if (window.Sfx) window.Sfx.play(n, o); };
     const levelUps = [];
     const EKINDS = Object.keys(T.ENEMIES);
     function doUpgrade(id) {
       const err = T.upgrade(s, id);
-      if (err) { flash(err); return; }
+      if (err) { flash(err); sfx('error'); return; }
+      sfx('levelup');
       const t = s.towers.find((x) => x.id === id), d = T.TOWERS[t.type];
       levelUps.push({ x: t.x, y: t.y, at: performance.now(), text: `${d.names[t.lvl]}!` });
     }
@@ -100,8 +102,8 @@
       const [x, y] = toMap(e);
       if (placing) {
         const err = T.place(s, placing, Math.round(x), Math.round(y));
-        if (err) flash(err);
-        else if (!e.shiftKey || s.money < T.TOWERS[placing].cost) { selected = s.towers[s.towers.length - 1].id; placing = null; } // hold Shift to keep placing
+        if (err) { flash(err); sfx('error'); } else sfx('place');
+        if (!err && (!e.shiftKey || s.money < T.TOWERS[placing].cost)) { selected = s.towers[s.towers.length - 1].id; placing = null; } // hold Shift to keep placing
         render();
         return;
       }
@@ -164,7 +166,7 @@
           h('button', { class: 'btn primary small', disabled: cost === null || s.money < cost, onclick: () => { doUpgrade(t.id); render(); } },
             ...(cost === null ? [icon(t.type, 5), ' Fully upgraded'] : ['Upgrade to ', icon(t.type, t.lvl + 1), ` ${d.names[t.lvl + 1]} · ${money(cost)} (U)`])),
           t.type === 'farm' ? null : h('button', { class: 'btn small', title: 'Which enemy it shoots (T)', onclick: () => { T.retarget(s, t.id); render(); } }, 'Target: ' + TARGET_LABEL[t.target]),
-          h('button', { class: 'btn small danger', onclick: () => { T.sell(s, t.id); selected = null; render(); } }, `Sell ${money(T.sellValue(t))}`))].flat().filter(Boolean));
+          h('button', { class: 'btn small danger', onclick: () => { T.sell(s, t.id); sfx('sell'); selected = null; render(); } }, `Sell ${money(T.sellValue(t))}`))].flat().filter(Boolean));
     }
     function renderOpp() {
       const o = opp;
@@ -423,6 +425,15 @@
       }
       // once you're out, the bot plays on quickly so you see how it ends
       if (bot && (s.phase === 'dead' || s.phase === 'won') && !decided) for (let i = 0; i < 20; i++) botStep(DT);
+      // sounds: shots (new effects), kills, and what the events say
+      let shots = 0, snipe = 0, flame = 0;
+      for (const f of s.fx) if (!seenFx.has(f)) { seenFx.add(f); if (f.type === 'flame') flame++; else if (f.type === 'sniper') snipe++; else shots++; }
+      if (seenFx.size > 400) seenFx = new Set(s.fx);
+      if (shots) sfx('shoot', { vol: 0.3, gap: 70 }); if (snipe) sfx('gun', { vol: 0.5 }); if (flame) sfx('whoosh', { vol: 0.25, gap: 200 });
+      if (s.kills > lastKills) sfx('pop', { vol: 0.35, gap: 60 }); lastKills = s.kills;
+      for (const e of s.events) {
+        if (e.type === 'wave') sfx(e.boss ? 'alarm' : 'horn'); else if (e.type === 'leak') sfx('hurt', { gap: 150 }); else if (e.type === 'cleared') sfx('reward');
+      }
       for (const e of s.events.splice(0)) {
         if (e.type === 'wave') banners.push({ text: e.boss ? `BOSS WAVE ${e.wave}: ${BOSS_NAME[e.wave]}!` : `Wave ${e.wave}`, color: e.boss ? '#fca5a5' : '#fff', until: performance.now() + 1800 });
         else if (e.type === 'cleared') banners.push({ text: `Wave ${e.wave} cleared  +${money(e.bonus + e.farms)}`, color: '#86efac', until: performance.now() + 1800 });

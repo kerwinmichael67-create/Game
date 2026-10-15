@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <script src="net.js"></script>
+<script src="sfx.js"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Trivia Rush</title>
@@ -242,9 +243,19 @@ function reveal(s) {
 }
 
 let shown = '';
+let sndKey = '', tickS = -1;
 function render(v, el) {
   const s = v.state, q = Q[s.ids[s.i]] || Q[0];
   const key = `${v.id}:${s.i}:${s.phase}:${v.v}`;
+  // sounds: a new question, the answer, the final scores
+  const sk = `${v.id}:${s.i}:${s.phase}`;
+  if (sk !== sndKey) {
+    sndKey = sk;
+    const sfx = PartyKit.sfx, mine = v.me >= 0 ? s.ans[v.me] : null;
+    if (s.phase === 'q') sfx('whoosh');
+    else if (s.phase === 'reveal' && v.me >= 0) sfx(mine && mine[0] === s.order.indexOf(0) ? 'correct' : 'wrong', { vol: mine ? 1 : 0.6 });
+    else if (s.phase === 'done') { const best = Math.max(...s.score); sfx(v.me >= 0 && s.score[v.me] === best ? 'win' : 'reward'); }
+  }
   if (v.soft && key === shown) { timer(v, s); return; }
   shown = key;
   const esc = PartyKit.esc;
@@ -279,13 +290,14 @@ function render(v, el) {
       return `<button class="${cls}" data-k="${k}" ${rev || mine || v.me < 0 ? 'disabled' : ''}><b>${'ABCD'[k]}</b>${esc(q[1 + src])}${names.length ? `<span class="who">${names.map(esc).join(', ')}</span>` : ''}</button>`;
     }).join('')}</div>
     <div class="tr-msg">${msg}</div></div>${side}</div>`;
-  el.querySelectorAll('.tr-opt').forEach((b) => b.onclick = () => { v.send({ pick: +b.dataset.k }); b.classList.add('mine'); el.querySelectorAll('.tr-opt').forEach((x) => x.disabled = true); });
+  el.querySelectorAll('.tr-opt').forEach((b) => b.onclick = () => { PartyKit.sfx('select'); v.send({ pick: +b.dataset.k }); b.classList.add('mine'); el.querySelectorAll('.tr-opt').forEach((x) => x.disabled = true); });
   timer(v, s);
 }
 function timer(v, s) {
   const t = document.getElementById('t'), bar = document.getElementById('bar');
   if (!t) return;
   const left = v.left(s.ends);
+  if (s.phase === 'q' && left !== tickS && left <= 5 && left > 0) PartyKit.sfx('tick'); tickS = left;
   t.textContent = s.phase === 'q' ? left : '';
   t.classList.toggle('low', s.phase === 'q' && left <= 5);
   bar.style.width = s.phase === 'q' ? `${Math.min(100, (left / (ANSWER_MS / 1000)) * 100)}%` : '0%';

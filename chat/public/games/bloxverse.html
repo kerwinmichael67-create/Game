@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <script src="net.js"></script>
+<script src="sfx.js"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Bloxverse</title>
@@ -521,12 +522,15 @@ function physics(dt) {
   const sp = exp && exp.speed ? exp.speed() : 16, acc = P.ground ? 22 : 12, jp = exp && exp.jumpPower ? exp.jumpPower() : JUMP, gr = exp && exp.gravity ? exp.gravity() : GRAV;
   P.vx += (mx * sp - P.vx) * Math.min(1, acc * dt); P.vz += (mz * sp - P.vz) * Math.min(1, acc * dt);
   if (l > 0.1) { let d = Math.atan2(-mx, -mz) - P.yaw; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; P.yaw += d * Math.min(1, 14 * dt); }
-  if ((keys.Space || jumpHeld) && P.ground && !P.frozen && !chatOpen()) { P.vy = jp; P.ground = null; }
+  if ((keys.Space || jumpHeld) && P.ground && !P.frozen && !chatOpen()) { P.vy = jp; P.ground = null; sfx('jump'); }
   // trusses: walk into one and you climb it
   if (!P.frozen && (f > 0.1 || keys.Space || jumpHeld) && onTruss()) P.vy = 13;
   else P.vy = Math.max(-170, P.vy - gr * dt);
-  const cv = P.ground && P.ground.conv;
+  const cv = P.ground && P.ground.conv, air = !P.ground, vy0 = P.vy;
   moveP((P.vx + (cv ? cv[0] : 0)) * dt, P.vy * dt, (P.vz + (cv ? cv[1] : 0)) * dt);
+  if (air && P.ground && vy0 < -24) sfx('land', { vol: Math.min(1, -vy0 / 70) });
+  // footsteps
+  if (P.ground && Math.hypot(P.vx, P.vz) > 5) { stepT -= dt; if (stepT <= 0) { stepT = 0.3; sfx('step', { vol: 0.6, pitch: 0.9 + Math.random() * 0.25 }); } } else stepT = 0.08;
   if (exp && P.y < exp.killY) die();
 }
 function onTruss() {
@@ -557,13 +561,14 @@ function triggers() {
   if (P.dead) return;
   for (const p of touching()) {
     if (p.kind === 'kill') { die(); return; }
-    if (p.kind === 'bounce') { if (P.vy <= 1) { P.vy = p.power; P.ground = null; } }
+    if (p.kind === 'bounce') { if (P.vy <= 1) { P.vy = p.power; P.ground = null; sfx('bounce'); } }
     else if (exp && exp.touch) exp.touch(p);
   }
 }
 function die() {
   if (P.dead) return;
   P.dead = true; P.deadAt = performance.now(); P.vx = P.vy = P.vz = 0;
+  sfx('oof');
   Net.dd = (Net.dd || 0) + 1; send({ dd: Net.dd });
   if (me) scatter(me);
 }
@@ -573,7 +578,7 @@ function respawn(quiet) {
   cam.yaw = P.yaw;
   dropAvatar(me);
   me = makeAvatar(avArr(), Net.name, true); scene.add(me.g);
-  if (!quiet) puffAt(P.x, P.y + 2, P.z, 0xffffff);
+  if (!quiet) { puffAt(P.x, P.y + 2, P.z, 0xffffff); sfx('pop', { vol: 0.6 }); }
 }
 // the shadow under someone: the top of whatever is below them
 function groundBelow(x, y, z) {
@@ -811,6 +816,12 @@ function puffAt(x, y, z, color, n = 14) {
 }
 const CONFETTI = [0xef4444, 0xf59e0b, 0x22c55e, 0x3b82f6, 0xa855f7, 0xec4899];
 
+/* ---------------- sound ---------------- */
+// Sfx (sfx.js) makes every sound; sfx3 is one that happens somewhere in the world: quieter further away
+const sfx = (name, opt) => { if (window.Sfx) window.Sfx.play(name, opt); };
+const sfx3 = (name, x, z, far, opt) => { if (window.Sfx) window.Sfx.at(name, Math.hypot(x - P.x, z - P.z), far || 70, opt); };
+let stepT = 0;
+
 /* ---------------- hud bits ---------------- */
 function say(text, color) {
   const d = document.createElement('div'); d.textContent = text; if (color) d.style.color = color;
@@ -827,7 +838,7 @@ function openChat() { const box = $('#chatbox'), inp = $('#chatin'); box.style.d
 function closeChat() { $('#chatbox').style.display = 'none'; $('#chatin').blur(); }
 $('#chatin').addEventListener('keydown', (e) => {
   e.stopPropagation();
-  if (e.key === 'Enter') { const t = e.target.value.trim(); if (t) { Net.chat(t); say(`${Net.name}: ${t}`); if (me) bubble(me, t); } closeChat(); }
+  if (e.key === 'Enter') { const t = e.target.value.trim(); if (t) { Net.chat(t); say(`${Net.name}: ${t}`); if (me) bubble(me, t); sfx('chat'); } closeChat(); }
   if (e.key === 'Escape') closeChat();
 });
 
@@ -838,12 +849,13 @@ let panelClick = null, panelOnClose = null;
 function openPanel(title, html, onClick, onClose, opts = {}) {
   if (panelOnClose) { const f = panelOnClose; panelOnClose = null; f(); } // the panel it replaces is closing
   const el = $('#xpanel'), full = !!opts.full, was = !el.hidden && el.classList.contains('full') === full;
+  if (el.hidden) sfx(full ? 'whoosh' : 'open');
   $('#xpTitle').textContent = title; $('#xpExtra').innerHTML = opts.extra || ''; $('#xpBody').innerHTML = html;
   el.classList.toggle('full', full); el.style.animation = was ? 'none' : ''; el.hidden = false;
   if (full) { for (const k in keys) keys[k] = false; }
   panelClick = onClick || null; panelOnClose = onClose || null;
 }
-function closePanel() { if ($('#xpanel').hidden) return; $('#xpanel').hidden = true; $('#xpanel').classList.remove('full'); panelClick = null; const f = panelOnClose; panelOnClose = null; if (f) f(); }
+function closePanel() { if ($('#xpanel').hidden) return; sfx('close'); $('#xpanel').hidden = true; $('#xpanel').classList.remove('full'); panelClick = null; const f = panelOnClose; panelOnClose = null; if (f) f(); }
 const panelOpen = () => !$('#xpanel').hidden;
 const fullOpen = () => panelOpen() && $('#xpanel').classList.contains('full');
 $('#xpClose').onclick = closePanel;
@@ -868,7 +880,7 @@ function updatePrompt() {
   if (best !== promptCur || (best && el.dataset.t !== best.text)) { el.dataset.t = best ? best.text : ''; el.innerHTML = best ? `<kbd>E</kbd>${esc(best.text)}` : ''; el.style.display = best ? 'flex' : 'none'; }
   promptCur = best;
 }
-$('#prompt').addEventListener('click', () => { if (promptCur) promptCur.fn(); });
+$('#prompt').addEventListener('click', () => { if (promptCur) { sfx('select'); promptCur.fn(); } });
 // where the mouse points: on a flat height, or at some objects
 const raycaster = new THREE.Raycaster(), ndc = new THREE.Vector2();
 function rayAt(sx, sy) { ndc.set(sx / innerWidth * 2 - 1, -(sy / innerHeight) * 2 + 1); raycaster.setFromCamera(ndc, camera); return raycaster; }
@@ -884,11 +896,11 @@ function drawCoins(gain) {
 }
 function earn(n, why) {
   n = Math.floor(n); if (!(n > 0)) return;
-  W.coins += n; drawCoins(n); saveAv();
+  W.coins += n; drawCoins(n); saveAv(); sfx('coin', { gap: 120 });
   if (why) say(`🪙 +${n} — ${why}`, '#fde68a');
 }
-function spend(n) { if (W.coins < n) return false; W.coins -= n; drawCoins(); saveAv(); return true; }
-function grantCosmetic(slot, i, why) { if (W.own.has(slot + i)) return; W.own.add(slot + i); saveAv(); if (why) say(`🎁 ${COSMETICS[slot].list[i]} unlocked — ${why}`, '#fde68a'); }
+function spend(n) { if (W.coins < n) { sfx('error'); return false; } W.coins -= n; drawCoins(); saveAv(); sfx('buy'); return true; }
+function grantCosmetic(slot, i, why) { if (W.own.has(slot + i)) return; W.own.add(slot + i); saveAv(); sfx('unlock'); if (why) say(`🎁 ${COSMETICS[slot].list[i]} unlocked — ${why}`, '#fde68a'); }
 function saveAv() {
   const d = Object.assign({}, AV, { coins: W.coins, own: [...W.own], day: W.day, at: Date.now() });
   try { localStorage.setItem('rb.av', JSON.stringify(d)); } catch (e) {}
@@ -993,6 +1005,7 @@ async function join(id, n) {
   playing = true; joining = false;
   for (const p of Net.peers) if (!p.isMe) applyPeer(p);
   say(`Welcome to ${E.name}! ${touchy ? '' : 'Press / to chat.'}`, '#fde68a');
+  sfx('teleport');
   if (E.welcome) setTimeout(() => toast(E.welcome), 400);
   canvas.focus();
 }
@@ -1023,10 +1036,10 @@ function applyPeer(p) {
   for (const c of Array.isArray(pr.ch) ? pr.ch : []) {
     if (!Array.isArray(c) || c[0] <= seen.c) continue;
     seen.c = c[0]; const text = String(c[1]).slice(0, 100);
-    say(`${String(pr.nm || 'Someone').slice(0, 20)}: ${text}`); if (a) bubble(a, text);
+    say(`${String(pr.nm || 'Someone').slice(0, 20)}: ${text}`); if (a) bubble(a, text); sfx('chat', { gap: 250 });
   }
   if (a && Array.isArray(pr.p)) { a.target = pr.p; a.anim = pr.a | 0; }
-  if (a && seen.dd !== null && (pr.dd || 0) !== seen.dd) scatter(a);
+  if (a && seen.dd !== null && (pr.dd || 0) !== seen.dd) { scatter(a); sfx3('oof', a.g.position.x, a.g.position.z, 60, { vol: 0.8 }); }
   seen.dd = pr.dd || 0;
   Net.seen.set(p.peer, seen);
 }
@@ -1187,12 +1200,12 @@ const OBBY = {
   spawn() { const s = this.checks[clamp(this.stage, 0, this.total)]; return [s[0], s[1], s[2], 0]; },
   touch(p) {
     if (p.kind === 'check' && p.n > this.stage) {
-      this.stage = p.n; toast(`Stage ${p.n}!`, '#86efac'); puffAt(P.x, P.y + 2, P.z, hue(p.n), 10); earn(3);
+      this.stage = p.n; toast(`Stage ${p.n}!`, '#86efac'); puffAt(P.x, P.y + 2, P.z, hue(p.n), 10); sfx('reward'); earn(3);
       send({ st: this.won ? this.total + 1 : this.stage }); this.save();
     } else if (p.kind === 'win' && !this.won) {
       this.won = true; this.time = (performance.now() - this.t0) / 1000;
       if (!this.best || this.time < this.best) this.best = this.time;
-      toast('🏆 You beat the Mega Obby!', '#fde68a'); puffAt(P.x, P.y + 3, P.z, CONFETTI, 60);
+      toast('🏆 You beat the Mega Obby!', '#fde68a'); puffAt(P.x, P.y + 3, P.z, CONFETTI, 60); sfx('win');
       Net.chat(`🏆 beat the Mega Obby in ${mmss(this.time)}!`); say(`${Net.name} beat the Mega Obby in ${mmss(this.time)}!`, '#fde68a');
       send({ st: this.total + 1 }); this.save(); earn(100, 'beat the Mega Obby');
     }
@@ -1348,17 +1361,17 @@ const TYCOON = {
     this.myPlot = k; this.ct = Date.now();
     send({ pl: k, ct: this.ct, b: this.b, cash: Math.floor(this.cash) });
     this.peers();
-    toast(`It’s yours! ${PLOT_NAMES[k]} Factory`, '#86efac'); puffAt(P.x, P.y + 2, P.z, CONFETTI, 30);
+    toast(`It’s yours! ${PLOT_NAMES[k]} Factory`, '#86efac'); puffAt(P.x, P.y + 2, P.z, CONFETTI, 30); sfx('unlock');
   },
   buy(i) {
     const it = TY[i];
     if (has(this.b, i) || performance.now() < this.buyCd) return;
     this.buyCd = performance.now() + 700;
-    if (this.cash < it.price) { toast(`You need ${money(it.price - this.cash)} more`, '#fca5a5'); return; }
+    if (this.cash < it.price) { toast(`You need ${money(it.price - this.cash)} more`, '#fca5a5'); sfx('error', { gap: 600 }); return; }
     this.cash -= it.price; this.b |= 1 << i;
     send({ b: this.b, cash: Math.floor(this.cash) }); this.peers(); this.save();
-    toast(`Bought ${it.n}!`, '#86efac'); puffAt(P.x, P.y + 2, P.z, 0x22c55e, 18);
-    if (it.kind === 'rocket') { toast('🚀 You finished the tycoon!', '#fde68a'); puffAt(P.x, P.y + 4, P.z, CONFETTI, 80); Net.chat('🚀 finished Cube Factory Tycoon!'); }
+    toast(`Bought ${it.n}!`, '#86efac'); puffAt(P.x, P.y + 2, P.z, 0x22c55e, 18); sfx('buy');
+    if (it.kind === 'rocket') { toast('🚀 You finished the tycoon!', '#fde68a'); sfx('win'); puffAt(P.x, P.y + 4, P.z, CONFETTI, 80); Net.chat('🚀 finished Cube Factory Tycoon!'); }
   },
   touch(p) {
     if (p.kind === 'claim' && this.myPlot == null && !this.plots[p.plot].owner) this.claim(p.plot);
@@ -1392,7 +1405,7 @@ const TYCOON = {
       for (const u of [0, 1]) { const idx = u ? 7 : 3; if (has(b, idx) && !(c.up & (1 << u)) && c.lx >= 8.5 + u * 3.5) { c.up |= 1 << u; c.v *= 2; c.m.material = this.upMat; } }
       if (c.lx >= 16.5) {
         place.remove(c.m); pl.cubes.splice(j, 1);
-        if (pl.mine) { const v = c.v + (has(b, 2) ? 1 : 0); this.cash += v; this.earned.push([performance.now(), v]); this.dirty = true; this.coinAcc = (this.coinAcc || 0) + v / 200; if (this.coinAcc >= 1) { earn(Math.floor(this.coinAcc)); this.coinAcc %= 1; } }
+        if (pl.mine) { const v = c.v + (has(b, 2) ? 1 : 0); this.cash += v; sfx3('coin', c.m.position.x, c.m.position.z, 50, { vol: 0.25, gap: 350, pitch: 1.3 }); this.earned.push([performance.now(), v]); this.dirty = true; this.coinAcc = (this.coinAcc || 0) + v / 200; if (this.coinAcc >= 1) { earn(Math.floor(this.coinAcc)); this.coinAcc %= 1; } }
         continue;
       }
       const [x, z] = this.W(pl, c.lx, -12); c.m.position.set(x, c.y, z);
@@ -1465,12 +1478,14 @@ const TAG = {
   },
   tick(dt) {
     const g = this.g = roundState(this), mine = myPeer();
-    if (g && g.ph === 'play' && g.rd !== this.rd) { this.rd = g.rd; respawn(); if (g.it === mine) toast('You’re IT! Tag someone!', '#fca5a5'); }
+    if (g && g.ph === 'play' && g.rd !== this.rd) { this.rd = g.rd; respawn(); sfx('go'); if (g.it === mine) toast('You’re IT! Tag someone!', '#fca5a5'); }
+    if (g && g.ph === 'count') { const c = Math.ceil(g.left); if (c !== this.cdS && c <= 5) sfx('count'); this.cdS = c; } else this.cdS = null;
+    if (g && g.ph === 'play' && this.lastIt !== g.it && this.lastIt && (g.it === mine || this.lastIt === mine)) { sfx('hit'); sfx(g.it === mine ? 'alarm' : 'reward'); }
     if (g && g.ph === 'play' && this.lastIt !== g.it) { if (this.lastIt && g.it === mine) toast('Tagged! You’re IT!', '#fca5a5'); else if (this.lastIt === mine && g.it !== mine) toast('You tagged them!', '#86efac'); this.lastIt = g.it; }
     if (!g || g.ph !== 'play') this.lastIt = null;
     P.frozen = !!(g && g.ph === 'play' && g.it === mine && g.fz > 0);
     if (g && g.ph === 'play' && g.it !== mine) { this.freeT = (this.freeT || 0) + dt; if (this.freeT >= 10) { this.freeT -= 10; earn(1); } }
-    if (g && g.ph !== this.coinPh) { if (g.ph === 'end' && this.coinPh === 'play' && g.wp === mine) earn(25, 'won the round'); this.coinPh = g.ph; }
+    if (g && g.ph !== this.coinPh) { if (g.ph === 'end' && this.coinPh === 'play') sfx(g.wp === mine ? 'win' : 'bell'); if (g.ph === 'end' && this.coinPh === 'play' && g.wp === mine) earn(25, 'won the round'); this.coinPh = g.ph; }
     const itPeer = g && g.ph === 'play' ? g.it : null;
     setGlow(me, itPeer === mine ? 0x991b1b : null);
     for (const [peer, a] of Net.avatars) setGlow(a, itPeer === peer ? 0x991b1b : null);
@@ -1555,12 +1570,13 @@ const LAVA = {
     if (g && g.seed && g.seed !== this.built) this.tower(g.seed);
     const L = g && g.ph === 'play' ? lavaY(g.el) : g && g.ph === 'end' ? lavaY(g.el) : -1.5;
     this.lava.y = L - 200; this.lava.m.position.y = this.lava.y;
-    if (g && g.ph === 'play' && this.inr !== g.rd && g.el < 3.5 && !P.dead) { this.inr = g.rd; send({ inr: g.rd }); respawn(); toast('Climb! The lava is coming!', '#fdba74'); }
+    if (g && g.ph === 'play' && this.inr !== g.rd && g.el < 3.5 && !P.dead) { this.inr = g.rd; send({ inr: g.rd }); respawn(); toast('Climb! The lava is coming!', '#fdba74'); sfx('horn'); }
+    if (g && g.ph === 'count') { const c = Math.ceil(g.left); if (c !== this.cdS && c <= 5) sfx('count'); this.cdS = c; } else this.cdS = null;
     if (g && g.ph === 'play' && this.inr === g.rd && this.out !== g.rd && !P.dead && P.y < L - 0.2) {
-      this.out = g.rd; send({ out: g.rd }); toast(`🔥 You lasted ${Math.floor(g.el)}s`, '#fdba74'); die();
+      this.out = g.rd; send({ out: g.rd }); toast(`🔥 You lasted ${Math.floor(g.el)}s`, '#fdba74'); sfx('hiss'); die();
     }
     if (g && g.ph === 'play' && this.inr === g.rd && this.out !== g.rd && !P.dead) { this.aliveT = (this.aliveT || 0) + dt; if (this.aliveT >= 10) { this.aliveT -= 10; earn(2); } }
-    if (g && g.ph !== this.lastPh) { if (g.ph === 'end' && this.lastPh === 'play' && Array.isArray(g.wps) && g.wps.includes(myPeer())) earn(30, 'survived the lava'); if (g.ph === 'count' && this.lastPh === 'end' && P.z < 30) respawn(); this.lastPh = g.ph; }
+    if (g && g.ph !== this.lastPh) { if (g.ph === 'end' && this.lastPh === 'play') sfx(Array.isArray(g.wps) && g.wps.includes(myPeer()) ? 'win' : 'bell'); if (g.ph === 'end' && this.lastPh === 'play' && Array.isArray(g.wps) && g.wps.includes(myPeer())) earn(30, 'survived the lava'); if (g.ph === 'count' && this.lastPh === 'end' && P.z < 30) respawn(); this.lastPh = g.ph; }
     if (!g) setBanner('Getting the round…');
     else if (g.ph === 'wait') setBanner('Waiting for players…');
     else if (g.ph === 'count') setBanner(`Next tower in ${Math.ceil(g.left)}…`);
@@ -1610,7 +1626,7 @@ function drawAvatarOpts() {
       const price = COSMETICS[k].price[i];
       if (price < 0 || W.coins < price) { avAsk = ''; drawAvatarOpts(); return; }
       if (avAsk !== k + i) { avAsk = k + i; drawAvatarOpts(); return; } // tap again to buy
-      W.coins -= price; W.own.add(k + i); AV[k] = i; avAsk = '';
+      W.coins -= price; W.own.add(k + i); AV[k] = i; avAsk = ''; sfx('buy');
     }
     drawAvatarOpts(); pvAvatar(); saveAv();
   }));
@@ -1681,11 +1697,13 @@ function showPause() {
   $('#pausePanel').innerHTML = `<div class="phead"><div class="pthumb"><span>${exp.emoji}</span></div></div><h2>${esc(exp.name)}</h2><p>Server ${Net.srvN} · 👥 ${Math.max(1, crew().length)} playing</p>
     <button class="btn play" id="pResume">▶ Resume</button>${exp.noReset ? '' : '<button class="btn" id="pReset">🔄 Reset character <kbd>R</kbd></button>'}
     ${extra.map((x, i) => `<button class="btn blue" data-x="${i}">${esc(x[0])}</button>`).join('')}
+    <button class="btn" id="pSound">${window.Sfx && !Sfx.on ? '🔇 Sound: off' : '🔊 Sound: on'}</button>
     <button class="btn red" id="pLeave">🚪 Leave</button>`;
-  $('#pause').hidden = false;
+  $('#pause').hidden = false; sfx('open');
   $('#pResume').onclick = () => { $('#pause').hidden = true; };
   if ($('#pReset')) $('#pReset').onclick = () => { $('#pause').hidden = true; die(); };
   $('#pLeave').onclick = () => leave();
+  $('#pSound').onclick = () => { if (!window.Sfx) return; Sfx.toggle(); $('#pSound').textContent = Sfx.on ? '🔊 Sound: on' : '🔇 Sound: off'; };
   $('#pausePanel').querySelectorAll('[data-x]').forEach((b) => (b.onclick = () => { $('#pause').hidden = true; extra[+b.dataset.x][1](); }));
 }
 $('#menuBtn').onclick = showPause;
@@ -1717,7 +1735,7 @@ addEventListener('keydown', (e) => {
   if (e.code === 'Slash' || e.code === 'Enter') { e.preventDefault(); openChat(); return; }
   if (e.code === 'Escape') { if (panelOpen()) closePanel(); else if ($('#pause').hidden) showPause(); else $('#pause').hidden = true; return; }
   if (exp && exp.key && !e.repeat && exp.key(e.code, true) === true) { e.preventDefault(); return; }
-  if (e.code === 'KeyE' && promptCur && !e.repeat) { promptCur.fn(); return; }
+  if (e.code === 'KeyE' && promptCur && !e.repeat) { sfx('select'); promptCur.fn(); return; }
   if (e.code === 'KeyR' && !P.dead && !(exp && exp.noReset)) die();
   keys[e.code] = true;
   if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault();
@@ -1795,6 +1813,9 @@ function drawHud() {
   $('#stat').innerHTML = exp.hud ? exp.hud() : '';
   if (!exp.banner) setBanner('');
 }
+
+// every button in the HUD, menus and home screen clicks
+document.addEventListener('click', (e) => { const b = e.target.closest('button'); if (b && !b.disabled && b.id !== 'xpClose') sfx('click', { gap: 30 }); }, true);
 
 /* ---------------- start ---------------- */
 try { loadAvFrom(JSON.parse(localStorage.getItem('rb.av') || 'null')); } catch (e) {}
