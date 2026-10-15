@@ -310,7 +310,7 @@ const GRAV = 196.2, JUMP = 50, EPS = 0.002;
 function overlaps(x, y, z) {
   const out = [];
   for (const p of parts) {
-    if (!p.solid || !p.on || p.spin) continue;
+    if (!p.solid || !p.on || p.spin || (p.pass != null && p.pass === P.team)) continue;
     const b = boxOf(p);
     if (x + P.w > b[0] + EPS && x - P.w < b[3] - EPS && y + P.h > b[1] + EPS && y < b[4] - EPS && z + P.w > b[2] + EPS && z - P.w < b[5] - EPS) out.push(b);
   }
@@ -1543,7 +1543,7 @@ function frame(t) {
   if (P.ground && P.ground.move && !P.dead) { P.x += P.ground.dx; P.y += P.ground.dy; P.z += P.ground.dz; }
   const n = Math.ceil(dt / (1 / 120)); for (let i = 0; i < n; i++) physics(dt / n);
   triggers();
-  if (P.dead && t - P.deadAt > 2200) respawn();
+  if (P.dead && t - P.deadAt > (exp.respawnDelay || 2200)) respawn();
   if (exp.tick) exp.tick(dt);
   if (exp.host && iAmHost() && Net.loaded !== false) exp.host(dt);
   // me
