@@ -53,6 +53,7 @@
   #coins{display:flex;align-items:center;gap:8px;height:46px;padding:0 14px 0 8px;border-radius:14px;font:600 17px var(--fh);color:#fde68a;white-space:nowrap}
   #coins i{font-style:normal;color:#86efac;font-size:14px;transition:opacity .6s}
   .coin{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;flex:none;background:radial-gradient(circle at 34% 30%,#fff7c2 0 12%,#fcd34d 34%,#f59e0b 70%,#d97706);box-shadow:inset 0 -2px 0 rgba(146,64,14,.45),0 2px 0 rgba(0,0,0,.35);font:700 13px/1 var(--fh);color:#92400e;text-shadow:0 1px 0 rgba(255,255,255,.4)}
+  .coin::before{content:'B'}
   .coin.sm{width:18px;height:18px;font-size:10px;vertical-align:-3px}
   #xhud{position:absolute;inset:0;pointer-events:none}
   #prompt{position:absolute;left:50%;bottom:168px;transform:translateX(-50%);display:none;align-items:center;gap:12px;padding:8px 18px 8px 8px;border-radius:16px;font:600 16px var(--fh);pointer-events:auto;cursor:pointer;white-space:nowrap;animation:rise .18s ease-out}
@@ -860,7 +861,7 @@ function pickObjects(sx, sy, list) { return rayAt(sx, sy).intersectObjects(list,
 let coinPopT = 0, avSaveT = 0;
 function drawCoins(gain) {
   const t = W.coins.toLocaleString('en-US');
-  $('#coins').innerHTML = `<span class="coin">B</span>${t}` + (gain ? `<i>+${gain}</i>` : '');
+  $('#coins').innerHTML = `<span class="coin"></span>${t}` + (gain ? `<i>+${gain}</i>` : '');
   if (gain) { clearTimeout(coinPopT); coinPopT = setTimeout(() => { const i = $('#coins i'); if (i) i.style.opacity = 0; }, 1600); }
   const hc = document.getElementById('homeCoins'); if (hc) hc.textContent = t;
 }
@@ -1576,12 +1577,12 @@ function drawAvatarOpts() {
     const C = COSMETICS[avTab];
     body = `<div class="shop">${C.list.map((nm, i) => {
       const own = owns(avTab, i), price = C.price[i], on = AV[avTab] === i, ask = avAsk === avTab + i;
-      const pr = on ? '<span class="pr own">✓ Wearing</span>' : own ? '<span class="pr own">Owned</span>' : price < 0 ? '<span class="pr">🎖️ Reward</span>' : ask ? `<span class="pr">Buy? ${price}</span>` : `<span class="pr"><span class="coin sm">B</span> ${price}</span>`;
+      const pr = on ? '<span class="pr own">✓ Wearing</span>' : own ? '<span class="pr own">Owned</span>' : price < 0 ? '<span class="pr">🎖️ Reward</span>' : ask ? `<span class="pr">Buy? ${price}</span>` : `<span class="pr"><span class="coin sm"></span> ${price}</span>`;
       const cant = !own && (price < 0 || W.coins < price);
       return `<button data-k="${avTab}" data-i="${i}" class="${on ? 'on' : ''} ${cant ? 'cant' : ''} ${ask ? 'ask' : ''}" title="${esc(nm)}${price < 0 && !own ? ' — earned in Command an Army’s battle pass' : ''}"><span class="i">${C.icon[i]}</span>${esc(nm)}${pr}</button>`;
     }).join('')}</div>`;
   }
-  $('#avOpts').innerHTML = `<div class="coinbar"><span><span class="coin">B</span><span id="homeCoins">${W.coins.toLocaleString('en-US')}</span></span><small>Blox Coins · earn them<br>in every experience</small></div>
+  $('#avOpts').innerHTML = `<div class="coinbar"><span><span class="coin"></span><span id="homeCoins">${W.coins.toLocaleString('en-US')}</span></span><small>Blox Coins · earn them<br>in every experience</small></div>
     <div class="avtabs">${tabs.map(([k, t]) => `<button data-tab="${k}" class="${avTab === k ? 'on' : ''}">${t}</button>`).join('')}</div>${body}`;
   $('#avOpts').querySelectorAll('button').forEach((b) => (b.onclick = () => {
     if (b.dataset.tab) { avTab = b.dataset.tab; avAsk = ''; drawAvatarOpts(); return; }

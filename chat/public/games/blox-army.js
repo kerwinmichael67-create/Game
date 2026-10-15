@@ -1041,7 +1041,7 @@
       const html = `<div class="ca-end"><div class="ca-big ${win ? 'win' : 'lose'}">${win ? 'VICTORY' : 'DEFEAT'}</div>
         <p>${g.win === 0 ? '⚔️ The attackers captured the base' : '🛡️ The defenders held their ground'} · you fought for the ${TEAM_NAME[I.team].toLowerCase()}</p>
         <div class="ca-tiles">${tile('☠️', 'Troops defeated', s.k || 0, 0)}${tile('👑', 'Heroes defeated', s.hk || 0, 1)}${tile('🚩', 'Points captured', s.cap || 0, 2)}${tile('⭐', 'Score', s.score || 0, 3)}</div>
-        <div class="ca-rew"><span class="chip">✨ +${xp} XP</span><span class="chip">💎 +${gems}</span><span class="chip"><span class="coin sm">B</span> +${coins}</span>${rt ? `<span class="chip">🏆 ${rt} rating</span>` : ''}</div>
+        <div class="ca-rew"><span class="chip">✨ +${xp} XP</span><span class="chip">💎 +${gems}</span><span class="chip"><span class="coin sm"></span> +${coins}</span>${rt ? `<span class="chip">🏆 ${rt} rating</span>` : ''}</div>
         <div class="ca-lvl">${after > before ? `<b style="color:#fde047">⬆️ Level ${after}! +${after - before} skill point${after - before > 1 ? 's' : ''}</b>` : `Commander level ${after}`}<div class="meter"><i style="width:${Math.round(L.into / L.need * 100)}%;background:linear-gradient(180deg,#fde047,#f59e0b)"></i></div></div>
         <button class="xp-btn" data-ok="1" style="font-size:18px;padding:14px 40px">Continue</button><p class="xp-note">The MVPs are on the podium in the courtyard.</p></div>`;
       this.menuOpen = 'end';
