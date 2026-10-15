@@ -107,7 +107,7 @@
   // ---------------------------------------------------------------- the experience
   const G0 = () => ({ sh: 30, seeds: { 0: 5, 1: 2 }, gear: { can: 10 }, plants: [], bag: [], pets: [], eq: [], bought: { slot: 0, n: {} }, sprk: [], dogAt: 0 });
   const GARDEN = {
-    id: 'garden', code: 'gg', name: 'Grow a Garden', emoji: '🌱', max: 6, stat: 'Sheckles', killY: -30, camDist: 24,
+    id: 'garden', code: 'gg', rank: 2, name: 'Grow a Garden', emoji: '🌱', max: 6, stat: 'Sheckles', killY: -30, camDist: 24,
     color: 'linear-gradient(135deg,#65a30d,#facc15)',
     desc: 'Plant seeds in your own plot and watch them grow in real time (even while you’re away). Harvest, sell for Sheckles, and buy rarer seeds when the shop restocks every 5 minutes. Weather brings valuable mutations; eggs hatch pets with bonuses.',
     welcome: 'Plant seeds in your plot!',

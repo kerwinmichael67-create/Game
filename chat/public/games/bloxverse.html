@@ -104,6 +104,7 @@
   .hcard h3,#expArea h3{margin:0 0 10px;font-size:17px}
   #avPrev{display:block;width:100%;max-width:252px;height:auto;aspect-ratio:240/260;margin:0 auto 6px;background:radial-gradient(circle at 50% 40%,#3a3d40,#232527 70%);border-radius:12px}
   .coinbar{display:flex;align-items:center;justify-content:space-between;background:#2c2f32;border-radius:10px;padding:8px 10px;margin:4px 0 8px;font-weight:800;color:#fde68a}
+  .coinbar span{white-space:nowrap}
   .coinbar small{color:#9ca3af;font-weight:600;font-size:11px}
   .avtabs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
   .avtabs button{border:0;border-radius:8px;padding:5px 9px;background:#393b3d;color:#ddd;font:700 12px inherit;cursor:pointer}
@@ -878,7 +879,7 @@ function players() {
    ===================================================================== */
 const hue = (n) => new THREE.Color().setHSL(((n * 0.083) % 1 + 1) % 1, 0.72, 0.56).getHex();
 const OBBY = {
-  id: 'obby', code: 'ob', name: 'Mega Obby', emoji: '🏃', max: 12, stat: 'Stage', total: 30, killY: -45,
+  id: 'obby', code: 'ob', rank: 5, name: 'Mega Obby', emoji: '🏃', max: 12, stat: 'Stage', total: 30, killY: -45,
   color: 'linear-gradient(135deg,#ef4444,#f59e0b)',
   desc: '30 stages of jumps, lava, spinners, vanishing blocks, conveyors and moving platforms. Checkpoints save your stage, so you can come back later.',
   welcome: 'Reach the end!',
@@ -1042,7 +1043,7 @@ const PLOT_COLS = [0x3b82f6, 0xef4444, 0x22c55e, 0xf59e0b];
 const PLOT_NAMES = ['Blue', 'Red', 'Green', 'Yellow'];
 const has = (b, i) => ((b >> i) & 1) === 1;
 const TYCOON = {
-  id: 'tycoon', code: 'ty', name: 'Cube Factory Tycoon', emoji: '💰', max: 4, stat: 'Cash', killY: -40,
+  id: 'tycoon', code: 'ty', rank: 6, name: 'Cube Factory Tycoon', emoji: '💰', max: 4, stat: 'Cash', killY: -40,
   color: 'linear-gradient(135deg,#16a34a,#ca8a04)',
   desc: 'Claim a factory, buy droppers, upgraders and more, and watch the cash roll in. Your factory is saved for next time.',
   welcome: 'Step on a claim pad to get a factory!',
@@ -1225,7 +1226,7 @@ const TYCOON = {
    you stay free, the more you score. Rounds are run by the host.
    ===================================================================== */
 const TAG = {
-  id: 'tag', code: 'tg', name: 'Tag Arena', emoji: '🏷️', max: 10, stat: 'Score', killY: -40, banner: true,
+  id: 'tag', code: 'tg', rank: 7, name: 'Tag Arena', emoji: '🏷️', max: 10, stat: 'Score', killY: -40, banner: true,
   color: 'linear-gradient(135deg,#ec4899,#7c3aed)',
   desc: 'One player is IT. Run, jump and climb to stay free — every second counts. Get tagged and you’re IT. Rounds start when two or more are here.',
   build() {
@@ -1303,7 +1304,7 @@ const TAG = {
    ===================================================================== */
 const lavaY = (el) => el < 6 ? -1.5 : -1.5 + 1.25 * (el - 6) + 0.012 * (el - 6) * (el - 6);
 const LAVA = {
-  id: 'lava', code: 'lv', name: 'Floor is Lava', emoji: '🌋', max: 10, stat: 'Wins', killY: -40, banner: true,
+  id: 'lava', code: 'lv', rank: 8, name: 'Floor is Lava', emoji: '🌋', max: 10, stat: 'Wins', killY: -40, banner: true,
   color: 'linear-gradient(135deg,#f97316,#7f1d1d)',
   desc: 'The lava rises — climb! Every round builds a new tower of platforms. Last one standing wins (or see how long you last on your own).',
   build() {
@@ -1430,7 +1431,7 @@ function drawExps() {
   if (playing) return;
   const c = counts(), total = (E) => Array.from({ length: SERVERS }, (_, k) => c[`${E.code}-${k + 1}`] || 0).reduce((a, b) => a + b, 0);
   if (!homeView || !EXPS[homeView]) {
-    $('#expArea').innerHTML = `<h3>Experiences</h3><div class="egrid">${Object.values(EXPS).map((E) => `<button class="ecard" data-e="${E.id}"><div class="thumb" style="background:${E.color}">${E.emoji}</div><b>${esc(E.name)}</b><small>👤 ${total(E)} playing</small></button>`).join('')}</div>
+    $('#expArea').innerHTML = `<h3>Experiences</h3><div class="egrid">${Object.values(EXPS).sort((a, b) => (a.rank || 9) - (b.rank || 9)).map((E) => `<button class="ecard" data-e="${E.id}"><div class="thumb" style="background:${E.color}">${E.emoji}</div><b>${esc(E.name)}</b><small>👤 ${total(E)} playing</small></button>`).join('')}</div>
       <p class="note">Move with <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, jump with <kbd>Space</kbd>, drag the mouse to turn the camera, scroll to zoom. <kbd>/</kbd> chats, <kbd>R</kbd> resets your character, <kbd>Esc</kbd> opens the menu.</p>`;
     $('#expArea').querySelectorAll('[data-e]').forEach((b) => (b.onclick = () => { homeView = b.dataset.e; drawExps(); }));
     return;

@@ -23,7 +23,7 @@
     blockcraft: { name: 'Blockcraft', emoji: '⛏️', code: 'mc', frame: 'games/blockcraft.html', color: 'linear-gradient(135deg,#4d7c0f,#78350f)', players: 'Online worlds',
       desc: 'Build and mine together, or switch to Survival: craft tools and fight mobs at night. Worlds are saved.' },
     bloxverse: { name: 'Bloxverse', emoji: '🧱', code: 'rb', frame: 'games/bloxverse.html', color: 'linear-gradient(135deg,#0ea5e9,#16a34a)', players: 'Online servers',
-      desc: 'A Roblox-style hub: dress up your avatar, then play Mega Obby, Cube Factory Tycoon, Tag Arena or Floor is Lava.' },
+      desc: 'A Roblox-style hub: earn coins for cosmetics, then play Command an Army, Grow a Garden, Tower Defense Simulator, Tower of Hell, an obby, a tycoon, tag and more.' },
     trivia: { name: 'Trivia Rush', emoji: '🧠', code: 'tr', frame: 'games/trivia.html', color: 'linear-gradient(135deg,#7c3aed,#db2777)', players: '2–12 players',
       desc: 'Party quiz: ten questions, faster right answers score more.' },
     odd: { name: 'Odd One Out', emoji: '🕵️', code: 'oo', frame: 'games/oddoneout.html', color: 'linear-gradient(135deg,#0f766e,#1e3a8a)', players: '3–10 players',

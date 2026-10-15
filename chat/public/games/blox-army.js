@@ -94,7 +94,7 @@
 
   // ---------------------------------------------------------------- the experience
   const ARMY = {
-    id: 'army', code: 'ca', name: 'Command an Army', emoji: '⚔️', max: 6, stat: 'Score', killY: -40, banner: true, camDist: 22, respawnDelay: 6000, noReset: true,
+    id: 'army', code: 'ca', rank: 1, name: 'Command an Army', emoji: '⚔️', max: 6, stat: 'Score', killY: -40, banner: true, camDist: 22, respawnDelay: 6000, noReset: true,
     color: 'linear-gradient(135deg,#7f1d1d,#1e3a8a)',
     desc: '3 v 3 battles with armies: attackers capture A, B and then the enemy base; defenders hold them off. Ride your horse, give your soldiers orders, fight with your class. Empty seats are filled with bots. Summon units, level them, unlock classes and mounts, a skill tree, a battle pass, quests — and servers 5 and 6 are Ranked.',
     welcome: 'Battle starts soon — check your units!',
