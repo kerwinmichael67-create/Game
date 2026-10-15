@@ -1163,7 +1163,8 @@ const OBBY = {
     // nothing to jump to)
     fade(c, d, r, col) {
       let z = c.z;
-      const per = 3.4 - d * 0.8, on = 2.2 - d * 0.6;
+      // (each block is gone for 0.8s a turn; after the next one appears you have 0.8s, later 0.6s, to hop)
+      const per = 3.4 - d * 0.8, on = per / 2 + 0.9 - d * 0.4;
       for (let i = 0; i < 5; i++) { z -= 3 + 2.5; part({ x: c.x + (i % 2 ? 2 : -2), y: c.y - 0.5, z, sx: 5, sy: 1, sz: 5, c: col, fade: { per, on, ph: (i % 2) * per / 2 } }); z -= 2.5; }
       return { x: c.x, y: c.y, z };
     },
