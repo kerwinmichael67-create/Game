@@ -659,6 +659,7 @@ $('#chatin').addEventListener('keydown', (e) => {
 // a side panel (shops, menus); clicks inside go to onClick(button, event)
 let panelClick = null, panelOnClose = null;
 function openPanel(title, html, onClick, onClose) {
+  if (panelOnClose) { const f = panelOnClose; panelOnClose = null; f(); } // the panel it replaces is closing
   $('#xpTitle').textContent = title; $('#xpBody').innerHTML = html; $('#xpanel').hidden = false;
   panelClick = onClick || null; panelOnClose = onClose || null;
 }
@@ -1584,7 +1585,7 @@ function drawHud() {
 try { loadAvFrom(JSON.parse(localStorage.getItem('rb.av') || 'null')); } catch (e) {}
 drawAvatarOpts(); drawExps();
 requestAnimationFrame(frame);
-window.__rb = { P, Net, cam, keys, EXPS, join, leave, die, respawn, parts: () => parts, exp: () => exp, me: () => me, iAmHost, crew, players, get AV() { return AV; }, W, earn, spend, roundState, openPanel, closePanel, pickPlane, myPeer, grantCosmetic }; // for tests
+window.__rb = { P, Net, cam, camera, keys, EXPS, join, leave, die, respawn, parts: () => parts, exp: () => exp, me: () => me, iAmHost, crew, players, get AV() { return AV; }, W, earn, spend, roundState, openPanel, closePanel, pickPlane, myPeer, grantCosmetic }; // for tests
 if (!Net.api()) homeStatus('Open Bloxverse from 🕹️ Games in the chat to play online.');
 else {
   $('#hi').textContent = 'Connecting…';
