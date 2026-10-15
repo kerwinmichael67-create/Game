@@ -64,19 +64,20 @@
     <header class="topbar">
       <button id="menuBtn" class="btn icon ghost mobile-only" title="Chats">☰</button>
       <button id="onlineBtn" class="btn"><span id="onlineCount">0 Online</span> <i class="dot online"></i></button>
-      <button id="settingsBtn" class="btn">Settings</button>
-      <button id="signOutBtn" class="btn ghost">Sign out</button>
+      <button id="settingsBtn" class="btn" title="Settings" aria-label="Settings"><span class="ico">⚙️</span><span class="lbl">Settings</span></button>
+      <button id="signOutBtn" class="btn ghost" title="Sign out" aria-label="Sign out"><span class="ico">↪</span><span class="lbl">Sign out</span></button>
       <div class="room-title">
         <span id="roomName">Global chat</span>
         <small id="roomMeta" class="muted"></small>
       </div>
       <button id="callBtn" class="btn icon hidden" title="Voice call" aria-label="Voice call">📞</button>
       <button id="videoBtn" class="btn icon hidden" title="Video call" aria-label="Video call">🎥</button>
+      <button id="popBtn" class="btn icon" title="Pop out: keep the chat in a small window on top of your other tabs" aria-label="Pop out the chat">⧉</button>
       <button id="searchBtn" class="btn icon" title="Search messages (Ctrl+K)" aria-label="Search messages">🔍</button>
       <button id="moreBtn" class="btn icon" title="Pinned, saved, photos, export, mute…" aria-label="More">⋯</button>
-      <button id="membersBtn" class="btn">Members</button>
-      <button id="gamesBtn" class="btn games-btn" title="Party games with servers">🕹️ Games</button>
-      <button id="requestGameBtn" class="btn primary">🎮 Request a game</button>
+      <button id="membersBtn" class="btn" title="Members" aria-label="Members"><span class="ico">👥</span><span class="lbl">Members</span></button>
+      <button id="gamesBtn" class="btn games-btn" title="Party games with servers" aria-label="Games">🕹️<span class="lbl"> Games</span></button>
+      <button id="requestGameBtn" class="btn primary" aria-label="Request a game">🎮<span class="lbl"> Request a game</span><span class="lbl-short"> Play</span></button>
     </header>
 
     <div class="content">

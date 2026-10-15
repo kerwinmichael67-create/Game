@@ -25,6 +25,13 @@
   // In the claude.ai artifact build, a ChatTransport replaces the WebSocket server.
   const ARTIFACT = typeof window.ChatTransport === 'function';
   const CALLS = !ARTIFACT && typeof window.Calls === 'object'; // claude.ai pages can't use the camera, mic or WebRTC
+  // The popped-out chat (⧉): a second copy of the app in a small window, signed in the same way. While
+  // one is open it says so every couple of seconds, and this tab stays quiet so pings don't play twice.
+  const openedByUs = () => { try { return !!(window.top.opener && !window.top.opener.closed); } catch { return false; } };
+  const MINI = /[?&]mini=1(&|$)/.test(location.search) || (ARTIFACT && openedByUs());
+  const popChan = typeof BroadcastChannel === 'function' ? new BroadcastChannel('gamechat-popout') : null;
+  let miniAt = 0;
+  const miniOpen = () => !MINI && Date.now() - miniAt < 5000;
   const PRESENCE_LABEL = { online: 'Online', offline: 'Offline', idle: 'Do not disturb' };
   const AVATARS = ['#22c55e', '#111111', '#ef4444', '#facc15', '#d946ef'];
   const REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🔥', '🎉', '👀'];
@@ -444,6 +451,7 @@
   const soundOn = () => soundKind() !== 'off';
   function soundKind() { if (store.get('chatSound') === '0') return 'off'; const k = pref('sound', 'ding'); return SOUNDS[k] || k === 'off' ? k : 'ding'; }
   function ping(force) {
+    if (!force && miniOpen()) return; // the popped-out chat plays it
     const kind = force || soundKind();
     if (kind === 'off' || !SOUNDS[kind]) return;
     const vol = Math.max(0, Math.min(1, +pref('volume', 0.7)));
@@ -1593,6 +1601,7 @@
   $('#signOutBtn').addEventListener('click', signOut);
   $('#membersBtn').addEventListener('click', membersModal);
   $('#searchBtn').addEventListener('click', searchModal);
+  $('#popBtn').addEventListener('click', popOut);
   document.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k' && S.me && !$('#app').classList.contains('hidden')) { e.preventDefault(); searchModal(); }
   });
@@ -1600,7 +1609,7 @@
   $('#gamesBtn').addEventListener('click', () => PartyUI.openGames());
   function updateGamesBtn() {
     const n = PartyUI.openCount();
-    $('#gamesBtn').replaceChildren('🕹️ Games', n ? h('span', { class: 'badge games-badge', title: `${n} server${n === 1 ? '' : 's'} open` }, n) : '');
+    $('#gamesBtn').replaceChildren('🕹️', h('span', { class: 'lbl' }, ' Games'), n ? h('span', { class: 'badge games-badge', title: `${n} server${n === 1 ? '' : 's'} open` }, n) : '');
   }
   PartyUI.init({
     send, toast, avatar, nameOf, uploadFile, closeModal, modalHead, confirm: uiConfirm, me: () => S.me,
@@ -1634,4 +1643,64 @@
   });
 
   connect();
+  // ---------------------------------------------------------------- pop out
+  // Chrome and Edge: a window that floats over your other tabs and apps (Document Picture-in-Picture),
+  // with the chat inside it. Other browsers, and claude.ai (where a page can't float), get a small
+  // pop-up window instead; and if pop-ups are blocked, a note says how to do it by hand.
+  const POP_W = 420, POP_H = 720;
+  let popWin = null;
+  function popUrl() {
+    if (ARTIFACT) return window.GAME_CHAT_URL || '';
+    const u = new URL(location.href); u.searchParams.set('mini', '1'); u.hash = '';
+    return u.href;
+  }
+  async function popOut() {
+    if (popWin && !popWin.closed) { try { popWin.focus(); } catch {} return; }
+    const url = popUrl();
+    if (!ARTIFACT && window.documentPictureInPicture && window.top === window) {
+      try {
+        const pip = await window.documentPictureInPicture.requestWindow({ width: POP_W, height: POP_H });
+        const d = pip.document, st = d.createElement('style'), f = d.createElement('iframe');
+        d.title = 'Game Chat';
+        st.textContent = 'html,body{margin:0;height:100%;overflow:hidden;background:#11121a}iframe{display:block;border:0;width:100%;height:100%}';
+        f.src = url; f.title = 'Game Chat'; f.allow = 'autoplay; fullscreen; clipboard-write';
+        d.head.append(st); d.body.append(f);
+        popWin = pip; poppedOut(true, 10000);
+        pip.addEventListener('pagehide', () => { if (popWin === pip) { popWin = null; poppedOut(false); } });
+        return;
+      } catch (e) { /* not allowed here: a pop-up window instead */ }
+    }
+    if (url) {
+      const left = Math.max(0, (screen.availLeft || 0) + (screen.availWidth || 1280) - POP_W - 30);
+      const w = window.open(url, 'gamechat-mini', `popup=yes,width=${POP_W},height=${POP_H},left=${left},top=80`);
+      if (w) { popWin = w; poppedOut(true, 10000); return; }
+    }
+    openModal(() => [h('h2', {}, '⧉ Pop out the chat'),
+      h('p', { class: 'muted' }, 'Your browser didn’t open the small window (pop-ups may be blocked for this site).'),
+      h('p', {}, url ? 'Allow pop-ups for this site and press ⧉ again, or open this link in its own window and make it small:' : 'To keep the chat next to your other tabs, drag this tab out into its own window and make it small.'),
+      url ? h('p', {}, h('a', { href: url, target: '_blank', rel: 'opener' }, url)) : '',
+      h('div', { class: 'row end' }, h('button', { class: 'btn primary', onclick: closeModal }, 'OK'))]);
+  }
+  // this tab while the chat is popped out: a note, and a way to bring it back
+  function poppedOut(on, grace) {
+    if (on) miniAt = Math.max(miniAt, Date.now() + (grace || 0)); // (a new window gets a few seconds to load and say hello)
+    let bar = $('#popBar');
+    if (!on || !miniOpen()) { if (bar) bar.remove(); if (!on) miniAt = 0; return; }
+    if (bar) return;
+    bar = h('div', { id: 'popBar', class: 'pop-bar' }, h('span', {}, '⧉ The chat is popped out into its own window — this tab stays quiet.'),
+      h('button', { class: 'btn small', onclick: () => { if (popWin && !popWin.closed) { try { popWin.close(); } catch {} } else if (popChan) popChan.postMessage('close'); popWin = null; poppedOut(false); } }, 'Bring it back'));
+    document.querySelector('.main').insertBefore(bar, document.querySelector('.main .content'));
+    toast('⧉ Popped out — the small window stays open while you use other tabs');
+  }
+  if (popChan) {
+    popChan.onmessage = (e) => {
+      if (MINI && e.data === 'close' && window.top === window) window.close();
+      if (MINI) return;
+      if (e.data === 'mini') { const was = miniOpen(); miniAt = Date.now(); if (!was) poppedOut(true); }
+      if (e.data === 'bye') poppedOut(false);
+    };
+    if (MINI) { const beat = () => popChan.postMessage('mini'); beat(); setInterval(beat, 2000); addEventListener('pagehide', () => popChan.postMessage('bye')); }
+    else setInterval(() => { if (!miniOpen() && $('#popBar')) poppedOut(false); }, 2000); // a popped-out chat that went away
+  }
+  if (MINI) document.body.classList.add('mini');
 })();

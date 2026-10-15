@@ -22,6 +22,8 @@ body = body.slice(0, formStart) +
 body = body.replace('<div id="auth" class="auth hidden">', '<div id="auth" class="auth">');
 
 const css = read('public/style.css');
+// The published artifact's own link, for ⧉ Pop out (a page on claude.ai can't find out its own address).
+const POP_URL = process.env.ARTIFACT_URL || 'https://claude.ai/artifact/Db6d2TBY1bV7FPJ5c1CQR7';
 const scripts = ['shared/rules.js', 'realtime.js', 'public/games/sfx.js', 'public/td.js', 'public/td-icons.js', 'public/td-ui.js', 'public/games.js', 'public/party.js', 'public/gamenet.js', 'public/tables.js', 'public/bots.js', 'artifact/backend.js', 'public/app.js'];
 
 const html = `<title>Game Chat</title>
@@ -31,6 +33,7 @@ const html = `<title>Game Chat</title>
 ${css}
 </style>
 ${body.trim()}
+<script>window.GAME_CHAT_URL = ${JSON.stringify(POP_URL)};</script>
 ${scripts.map((s) => `<script>\n${inline(read(s))}\n</script>`).join('\n')}
 `;
 
