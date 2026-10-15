@@ -313,6 +313,7 @@
   function signOut() {
     if (CALLS) Calls.hangUp();
     AIChat.reset();
+    ToolsUI.reset();
     send({ t: 'partyLeave' });
     PartyUI.state(null);
     if (ARTIFACT) {
@@ -442,7 +443,7 @@
   addEventListener('keydown', unlockAudio, true);
   // not looking at the chat: another tab, a minimized window, or another app in front
   // (a game in its own frame has the focus while you play it, so it counts as not looking too)
-  const notLooking = () => document.hidden || !document.hasFocus() || !!document.querySelector('#partyView:not(.hidden), #frameView:not(.hidden), #gameDock.full:not(.hidden):not(.min), #aiPane:not(.hidden)');
+  const notLooking = () => document.hidden || !document.hasFocus() || !!document.querySelector('#partyView:not(.hidden), #frameView:not(.hidden), #gameDock.full:not(.hidden):not(.min), #aiPane:not(.hidden), #toolsPane:not(.hidden)');
   const SOUNDS = {
     ding: { label: 'Ding', notes: [[1318.5, 0, 0.9, 'sine', 1], [2637, 0, 0.45, 'sine', 0.35]] },
     chime: { label: 'Chime', notes: [[880, 0, 0.5, 'sine', 0.9], [1318.5, 0.13, 0.7, 'sine', 0.9]] },
@@ -557,14 +558,14 @@
   }
   function renderRooms() {
     if (!S.me) return;
-    const list = $('#roomList'), ai = AIChat.isOpen();
+    const list = $('#roomList'), ai = AIChat.isOpen(), away = ai || ToolsUI.isOpen();
     list.replaceChildren(h('li', { class: 'ai-room' + (ai ? ' active' : ''), id: 'aiRoom', title: 'A private chat with Claude, an AI', onclick: openAI },
       h('span', { class: 'room-icon ai-icon' }, '🤖'),
       h('span', { class: 'grow' }, 'AI helper ', h('small', {}, AIChat.busy() ? 'Claude is writing…' : 'Ask Claude anything'))));
     for (const r of sortedRooms()) {
       const n = S.unread[r.id], muted = isMuted(r.id), fav = isFav(r.id);
       const other = r.dm && r.members.find((m) => m !== S.me.username);
-      list.append(h('li', { class: (r.id === S.current && !ai ? 'active' : '') + (muted ? ' muted-room' : ''), onclick: () => selectRoom(r.id) },
+      list.append(h('li', { class: (r.id === S.current && !away ? 'active' : '') + (muted ? ' muted-room' : ''), onclick: () => selectRoom(r.id) },
         r.dm ? avatar(other || S.me.username) : h('span', { class: 'room-icon' }, r.id === 'global' ? '🌐' : r.public ? '#' : '🔒'),
         h('span', { class: 'grow' }, fav ? h('span', { class: 'fav-star', title: 'Favorite' }, '★ ') : null, roomLabel(r), ' ', r.dm ? null : h('small', {}, `${roomActive(r)} active`)),
         muted ? h('span', { class: 'mute-icon', title: 'Muted' }, '🔕') : null,
@@ -597,9 +598,11 @@
   function renderHeader() {
     const r = S.rooms[S.current];
     if (!r || !S.me) return;
-    if (AIChat.isOpen()) {
-      $('#roomName').textContent = '🤖 AI helper';
-      $('#roomMeta').textContent = 'Claude · only you see this chat';
+    $('#toolsBtn').classList.toggle('on', ToolsUI.isOpen());
+    if (AIChat.isOpen() || ToolsUI.isOpen()) {
+      const ai = AIChat.isOpen();
+      $('#roomName').textContent = ai ? '🤖 AI helper' : '🧰 Tools';
+      $('#roomMeta').textContent = ai ? 'Claude · only you see this chat' : 'Saved in this browser';
       $('#callBtn').classList.add('hidden');
       $('#videoBtn').classList.add('hidden');
       return;
@@ -1188,6 +1191,7 @@
   function selectRoom(id) {
     if (!S.rooms[id]) return;
     AIChat.close();
+    ToolsUI.close();
     const switching = id !== S.current;
     if (switching) { saveDraft(); cancelCompose(); }
     const unreadN = S.unread[id] || 0;
@@ -1574,7 +1578,11 @@
       if (m.poll) t += ` [poll: ${m.poll.q} — ${m.poll.options.map((o) => `${o.text} (${o.votes.length})`).join(', ')}]`;
       return `[${when}] ${t}`;
     }));
-    const name = `${roomLabel(r).replace(/[^\w -]+/g, '').trim() || 'chat'}.txt`, blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+    const name = `${roomLabel(r).replace(/[^\w -]+/g, '').trim() || 'chat'}.txt`;
+    saveFile(name, new Blob([lines.join('\n')], { type: 'text/plain' }));
+  }
+  // hand the person a file: a download on the website, claude.ai's save on the artifact
+  async function saveFile(name, blob) {
     try {
       if (ARTIFACT) await transport.saveBlob(name, blob);
       else {
@@ -1582,7 +1590,7 @@
         document.body.append(a); a.click(); a.remove();
         setTimeout(() => URL.revokeObjectURL(url), 5000);
       }
-    } catch (e) { toast(e.message || 'Couldn’t export the chat.', 'err'); }
+    } catch (e) { toast(e.message || 'Couldn’t save the file.', 'err'); }
   }
   function helpModal() {
     const row = (a, b) => h('div', { class: 'help-row' }, h('code', {}, a), h('span', {}, b));
@@ -1629,8 +1637,23 @@
     closePop();
     if (AIChat.isOpen()) return;
     saveDraft();
+    ToolsUI.close();
     AIChat.open();
   }
+  // 🧰 Tools (tools.js): the button opens them, and again goes back to the chat
+  function toggleTools() {
+    $('#app').classList.remove('menu-open');
+    closePop();
+    if (ToolsUI.isOpen()) { selectRoom(S.current); return; }
+    saveDraft();
+    AIChat.close();
+    ToolsUI.open();
+  }
+  $('#toolsBtn').addEventListener('click', toggleTools);
+  ToolsUI.init({
+    h, copyText, toast, confirm: uiConfirm, saveFile, me: () => S.me,
+    changed: () => { renderRooms(); renderHeader(); updateTitle(); },
+  });
   AIChat.init({
     h, richText, copyText, toast, confirm: uiConfirm, artifact: ARTIFACT,
     me: () => S.me, token: () => S.token, serverAI: () => S.aiOn,

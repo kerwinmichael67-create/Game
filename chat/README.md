@@ -8,6 +8,13 @@ An online chat where you can talk to whoever is online, make your own chats, and
 - **Global chat** for everyone, plus **New chat** for your own private or public group chats. You can add people to a chat or leave it.
 - **Direct messages**: click anyone's name and press **Message**.
 - **🤖 AI helper**: the first entry in your chats list is a private chat with Claude, an AI from Anthropic. Ask it anything: game tips and strategy, rules, homework, ideas, jokes, quizzes, help writing a message. Answers appear as they're written; ⏹ stops one part-way, **↻ Try again** asks for a different answer, 📋 copies one, and **🧹 New chat** starts over. Only you can see it, and the conversation is kept in your browser. Claude is told about Game Chat and its games and keeps things suitable for all ages. On the website the server needs an Anthropic API key (see [Turn on the AI helper](#turn-on-the-ai-helper)); on claude.ai it uses each person's own Claude plan, and claude.ai asks them once to allow it.
+- **🧰 Tools** (button in the top bar; press it again to go back to the chat). Everything you make is kept in your browser:
+  - **🌐 HTML previewer**: write HTML, CSS and JavaScript and see the page live as you type (or press ▶ Run / Ctrl+Enter). `console.log` and errors (with line numbers) show under the preview. Start from a template (starter page, bouncing ball, profile card, quiz), switch to a big preview, or download it as a `.html` file. The page runs walled off from the chat, so it can't see your chats or sign-in.
+  - **🧮 Calculator**: type or tap. + − × ÷, powers, roots, %, n!, sin/cos/tan (degrees or radians), log, ln, π, e and Ans, with brackets and `2π`-style multiplication. History of your answers; click one to reuse it.
+  - **⏱️ Stopwatch** with laps, and a **timer** (quick 30 s – 15 min buttons) that keeps going while you chat and rings when it's done.
+  - **🔁 Unit converter**: length, weight, temperature, speed, time, volume, data and area, both ways.
+  - **🎲 Random**: roll up to 6 dice (d4–d100), flip a coin, pick a number, or paste names to pick one, shuffle the order or make teams.
+  - **📝 Notes**, **✅ To-do list**, **🎨 Colors** (picker, HEX/RGB/HSL to copy, shades, and whether white or black text is readable on it), **🔤 Text tools** (word count, UPPER/lower/Title case, sort, remove repeats, find & replace) and **🔢 Number bases** (decimal, binary, octal, hex, and text ↔ binary).
 - **Presence**: see who's online. The "N Online" counter and "active" counts update live, and so does the typing indicator.
 - **Settings** (laid out like the mockup):
   - Name, password and username
@@ -165,5 +172,5 @@ This checks the game rules, then runs two simulated players against a real serve
 - `server.js`: HTTP server plus WebSocket (`ws`). It handles accounts, rooms, presence, challenges and game sessions. Passwords are hashed with scrypt.
 - `shared/rules.js`: chess, checkers, connect four and tic-tac-toe rules. The server uses them to validate every move, and the browser uses them to highlight legal moves.
 - `realtime.js`: snake, pong and the fighting game run on the server (server-authoritative), so neither player can cheat. For Tetris, each player's board runs in their own browser and the server passes junk rows between them.
-- `public/`: the web client (`index.html`, `style.css`, `app.js` for the chat, `games.js` for the game renderers, `ai.js` for the 🤖 AI helper).
+- `public/`: the web client (`index.html`, `style.css`, `app.js` for the chat, `games.js` for the game renderers, `ai.js` for the 🤖 AI helper, `tools.js` for the 🧰 Tools).
 - `shared/ai-guide.js`: what the AI helper is told about itself and Game Chat. The server's `POST /ai` sends it with each question to Claude (using `@anthropic-ai/sdk`) and streams the answer back.
