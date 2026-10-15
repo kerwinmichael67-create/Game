@@ -1158,9 +1158,13 @@ const OBBY = {
       }
       return { x: c.x, y: c.y, z };
     },
+    // vanishing blocks that take turns: the next one always appears a moment before the one you're
+    // standing on fades, so you wait for it and hop across (they used to appear in an order that left
+    // nothing to jump to)
     fade(c, d, r, col) {
       let z = c.z;
-      for (let i = 0; i < 5; i++) { z -= 3 + 2.5; part({ x: c.x + (i % 2 ? 2 : -2), y: c.y - 0.5, z, sx: 5, sy: 1, sz: 5, c: col, fade: { per: 3.4 - d * 0.8, on: 2.2 - d * 0.6, ph: i * 0.55 } }); z -= 2.5; }
+      const per = 3.4 - d * 0.8, on = 2.2 - d * 0.6;
+      for (let i = 0; i < 5; i++) { z -= 3 + 2.5; part({ x: c.x + (i % 2 ? 2 : -2), y: c.y - 0.5, z, sx: 5, sy: 1, sz: 5, c: col, fade: { per, on, ph: (i % 2) * per / 2 } }); z -= 2.5; }
       return { x: c.x, y: c.y, z };
     },
     beam(c, d, r, col) {
