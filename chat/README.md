@@ -7,6 +7,7 @@ An online chat where you can talk to whoever is online, make your own chats, and
 - **Accounts**: sign up with a username and password. You stay signed in on that browser.
 - **Global chat** for everyone, plus **New chat** for your own private or public group chats. You can add people to a chat or leave it.
 - **Direct messages**: click anyone's name and press **Message**.
+- **🤖 AI helper**: the first entry in your chats list is a private chat with Claude, an AI from Anthropic. Ask it anything: game tips and strategy, rules, homework, ideas, jokes, quizzes, help writing a message. Answers appear as they're written; ⏹ stops one part-way, **↻ Try again** asks for a different answer, 📋 copies one, and **🧹 New chat** starts over. Only you can see it, and the conversation is kept in your browser. Claude is told about Game Chat and its games and keeps things suitable for all ages. On the website the server needs an Anthropic API key (see [Turn on the AI helper](#turn-on-the-ai-helper)); on claude.ai it uses each person's own Claude plan, and claude.ai asks them once to allow it.
 - **Presence**: see who's online. The "N Online" counter and "active" counts update live, and so does the typing indicator.
 - **Settings** (laid out like the mockup):
   - Name, password and username
@@ -122,6 +123,7 @@ The same app also runs as a claude.ai artifact. There, chats and profiles are st
 - Rebuild it with `node scripts/build-artifact.js`, which writes `dist/game-chat.html`.
 - Everyone who uses it needs a claude.ai account. The owner invites each friend by email from the artifact's **Share** menu, as an **Editor**. That's the access level that lets people post, save their profile and play.
 - The code lives in `artifact/backend.js`. It stands in for `server.js` and speaks the same message protocol, so the web client runs unchanged.
+- The 🤖 AI helper asks Claude straight from the page (the artifact's `sample` capability), so no API key is needed. Each person's questions use their own Claude plan, and claude.ai asks them to allow it the first time. It also works in the ⧉ popped-out window, which asks through the claude.ai tab (keep that tab open).
 
 ## Run it
 
@@ -141,6 +143,15 @@ Then open http://localhost:3000. To try it alone, open a second browser (or a pr
 
 Accounts, chats and messages are saved to `chat/data/db.json`. Set `DATA_DIR` to store them somewhere else.
 
+### Turn on the AI helper
+
+On the website, the 🤖 AI helper's questions go through your server to Claude, so the server needs an Anthropic API key:
+
+1. Make a key at [platform.claude.com](https://platform.claude.com) (API keys). Questions are billed to that account.
+2. Set it as the `ANTHROPIC_API_KEY` environment variable and restart the server, for example `ANTHROPIC_API_KEY=sk-ant-... npm start`. On Render, add it under your service's **Environment** tab.
+
+Without a key everything else works, and the AI helper says it isn't switched on yet. The model is set by `AI_MODEL` in `server.js`. If Claude declines a question, Anthropic's server-side fallback retries it on the model Anthropic recommends for that case. To keep costs in check each person can ask up to 30 questions every 15 minutes, one at a time, and only the latest part of a long conversation is sent.
+
 ## Tests
 
 ```bash
@@ -154,4 +165,5 @@ This checks the game rules, then runs two simulated players against a real serve
 - `server.js`: HTTP server plus WebSocket (`ws`). It handles accounts, rooms, presence, challenges and game sessions. Passwords are hashed with scrypt.
 - `shared/rules.js`: chess, checkers, connect four and tic-tac-toe rules. The server uses them to validate every move, and the browser uses them to highlight legal moves.
 - `realtime.js`: snake, pong and the fighting game run on the server (server-authoritative), so neither player can cheat. For Tetris, each player's board runs in their own browser and the server passes junk rows between them.
-- `public/`: the web client (`index.html`, `style.css`, `app.js` for the chat, `games.js` for the game renderers).
+- `public/`: the web client (`index.html`, `style.css`, `app.js` for the chat, `games.js` for the game renderers, `ai.js` for the 🤖 AI helper).
+- `shared/ai-guide.js`: what the AI helper is told about itself and Game Chat. The server's `POST /ai` sends it with each question to Claude (using `@anthropic-ai/sdk`) and streams the answer back.

@@ -114,6 +114,7 @@
       S.helloAt = Date.now();
       if (!ARTIFACT) GameNet.socketUp();
       S.games = m.games;
+      S.aiOn = m.ai;
       if (CALLS) Calls.configure(m.calls);
       S.users = {};
       m.users.forEach((u) => { S.users[u.username] = u; });
@@ -311,6 +312,7 @@
   }
   function signOut() {
     if (CALLS) Calls.hangUp();
+    AIChat.reset();
     send({ t: 'partyLeave' });
     PartyUI.state(null);
     if (ARTIFACT) {
@@ -440,7 +442,7 @@
   addEventListener('keydown', unlockAudio, true);
   // not looking at the chat: another tab, a minimized window, or another app in front
   // (a game in its own frame has the focus while you play it, so it counts as not looking too)
-  const notLooking = () => document.hidden || !document.hasFocus() || !!document.querySelector('#partyView:not(.hidden), #frameView:not(.hidden), #gameDock.full:not(.hidden):not(.min)');
+  const notLooking = () => document.hidden || !document.hasFocus() || !!document.querySelector('#partyView:not(.hidden), #frameView:not(.hidden), #gameDock.full:not(.hidden):not(.min), #aiPane:not(.hidden)');
   const SOUNDS = {
     ding: { label: 'Ding', notes: [[1318.5, 0, 0.9, 'sine', 1], [2637, 0, 0.45, 'sine', 0.35]] },
     chime: { label: 'Chime', notes: [[880, 0, 0.5, 'sine', 0.9], [1318.5, 0.13, 0.7, 'sine', 0.9]] },
@@ -555,12 +557,14 @@
   }
   function renderRooms() {
     if (!S.me) return;
-    const list = $('#roomList');
-    list.replaceChildren();
+    const list = $('#roomList'), ai = AIChat.isOpen();
+    list.replaceChildren(h('li', { class: 'ai-room' + (ai ? ' active' : ''), id: 'aiRoom', title: 'A private chat with Claude, an AI', onclick: openAI },
+      h('span', { class: 'room-icon ai-icon' }, '🤖'),
+      h('span', { class: 'grow' }, 'AI helper ', h('small', {}, AIChat.busy() ? 'Claude is writing…' : 'Ask Claude anything'))));
     for (const r of sortedRooms()) {
       const n = S.unread[r.id], muted = isMuted(r.id), fav = isFav(r.id);
       const other = r.dm && r.members.find((m) => m !== S.me.username);
-      list.append(h('li', { class: (r.id === S.current ? 'active' : '') + (muted ? ' muted-room' : ''), onclick: () => selectRoom(r.id) },
+      list.append(h('li', { class: (r.id === S.current && !ai ? 'active' : '') + (muted ? ' muted-room' : ''), onclick: () => selectRoom(r.id) },
         r.dm ? avatar(other || S.me.username) : h('span', { class: 'room-icon' }, r.id === 'global' ? '🌐' : r.public ? '#' : '🔒'),
         h('span', { class: 'grow' }, fav ? h('span', { class: 'fav-star', title: 'Favorite' }, '★ ') : null, roomLabel(r), ' ', r.dm ? null : h('small', {}, `${roomActive(r)} active`)),
         muted ? h('span', { class: 'mute-icon', title: 'Muted' }, '🔕') : null,
@@ -593,6 +597,13 @@
   function renderHeader() {
     const r = S.rooms[S.current];
     if (!r || !S.me) return;
+    if (AIChat.isOpen()) {
+      $('#roomName').textContent = '🤖 AI helper';
+      $('#roomMeta').textContent = 'Claude · only you see this chat';
+      $('#callBtn').classList.add('hidden');
+      $('#videoBtn').classList.add('hidden');
+      return;
+    }
     $('#roomName').textContent = r.dm ? `💬 ${roomLabel(r)}` : roomLabel(r);
     let meta;
     if (r.dm) {
@@ -1176,6 +1187,7 @@
 
   function selectRoom(id) {
     if (!S.rooms[id]) return;
+    AIChat.close();
     const switching = id !== S.current;
     if (switching) { saveDraft(); cancelCompose(); }
     const unreadN = S.unread[id] || 0;
@@ -1611,6 +1623,19 @@
     const n = PartyUI.openCount();
     $('#gamesBtn').replaceChildren('🕹️', h('span', { class: 'lbl' }, ' Games'), n ? h('span', { class: 'badge games-badge', title: `${n} server${n === 1 ? '' : 's'} open` }, n) : '');
   }
+  // 🤖 AI helper (ai.js)
+  function openAI() {
+    $('#app').classList.remove('menu-open');
+    closePop();
+    if (AIChat.isOpen()) return;
+    saveDraft();
+    AIChat.open();
+  }
+  AIChat.init({
+    h, richText, copyText, toast, confirm: uiConfirm, artifact: ARTIFACT,
+    me: () => S.me, token: () => S.token, serverAI: () => S.aiOn,
+    changed: () => { renderRooms(); renderHeader(); updateTitle(); },
+  });
   PartyUI.init({
     send, toast, avatar, nameOf, uploadFile, closeModal, modalHead, confirm: uiConfirm, me: () => S.me,
     openModal: (build, wide) => { const b = () => build(); b.party = true; b.refresh = () => $('#modalCard').replaceChildren(...[].concat(build())); openModal(b, wide); },
@@ -1658,6 +1683,7 @@
     if (!tpl) throw new Error('no copy of the page');
     for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); try { win.localStorage.setItem(k, localStorage.getItem(k)); } catch {} } // settings and sign-in (its storage is its own)
     win.PopClaude = window.PopClaude || window.claude;
+    win.PopAsk = window.PopAsk || window.GCAsk; // the 🤖 AI helper's calls to Claude, made in this tab
     win.GC_MINI = true;
     d.title = 'Game Chat';
     d.head.innerHTML = '<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">';

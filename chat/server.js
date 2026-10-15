@@ -341,7 +341,7 @@ function onAuth(ws, u, token) {
   clearTimeout(forfeitTimers.get(u));
   forfeitTimers.delete(u);
   const rooms = Object.values(db.rooms).filter((r) => canSee(r, u)).map(roomView);
-  send(ws, { t: 'hello', token, me: privateUser(u), users: Object.keys(db.users).map(publicUser), rooms, games: GAMES, calls: { iceServers: ICE_SERVERS } });
+  send(ws, { t: 'hello', token, me: privateUser(u), users: Object.keys(db.users).map(publicUser), rooms, games: GAMES, calls: { iceServers: ICE_SERVERS }, ai: AI_ON });
   if (userGame.has(u)) {
     const s = sessions.get(userGame.get(u));
     send(ws, { t: 'gameStart', id: s.id, game: s.type, players: gamePlayers(s), you: s.players.indexOf(u), state: stateFor(s, s.players.indexOf(u)) });
@@ -824,6 +824,97 @@ function serveUpload(req, res, id) {
   fs.createReadStream(file).pipe(res);
 }
 
+// ---------------------------------------------------------------- 🤖 AI helper
+// A private chat with Claude for each person. The server holds the Anthropic API key (ANTHROPIC_API_KEY)
+// and streams each answer back as lines of JSON: {d: "more text"}…, then {done: true}, {refused: true}
+// or {error}. The conversation itself is kept in the person's browser and sent with each question.
+const AIGuide = require('./shared/ai-guide');
+const AI_MODEL = 'claude-opus-5-5';
+const AI_LIMIT = 30, AI_WINDOW = 15 * 60e3; // questions per person per 15 minutes
+const aiSdk = (() => { try { return require('@anthropic-ai/sdk'); } catch { return null; } })();
+const AI_ON = !!(aiSdk && (process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN));
+const AI_OFF = aiSdk
+  ? 'The AI helper isn’t switched on for this server yet. Whoever runs it can turn it on by setting ANTHROPIC_API_KEY to an Anthropic API key and restarting.'
+  : 'The AI helper isn’t installed on this server yet. Whoever runs it needs to run npm install, set ANTHROPIC_API_KEY and restart.';
+let aiClient = null;
+const aiUse = new Map(); // username -> times of recent questions
+const aiBusy = new Set(); // people waiting on an answer (one at a time each)
+// The turns to send: user/assistant text only, newest kept, starting and ending on a question.
+function aiTurns(list) {
+  if (!Array.isArray(list)) return null;
+  const turns = [];
+  for (const t of list.slice(-40)) {
+    if (!t || (t.role !== 'user' && t.role !== 'assistant') || typeof t.content !== 'string') return null;
+    const content = t.content.trim().slice(0, t.role === 'user' ? 4000 : 8000);
+    if (content) turns.push({ role: t.role, content });
+  }
+  let total = 0, i = turns.length;
+  while (i > 0 && total + turns[i - 1].content.length <= 60000) total += turns[--i].content.length;
+  const kept = turns.slice(i);
+  while (kept.length && kept[0].role !== 'user') kept.shift();
+  return kept.length && kept[kept.length - 1].role === 'user' ? kept : null;
+}
+function aiErrorText(e) {
+  if (e instanceof aiSdk.AuthenticationError || e instanceof aiSdk.PermissionDeniedError) return 'The AI key on this server isn’t working. Whoever runs the server should check ANTHROPIC_API_KEY.';
+  if (e instanceof aiSdk.RateLimitError || e.status === 529 || e instanceof aiSdk.InternalServerError) return 'Claude is very busy right now. Try again in a minute.';
+  if (e instanceof aiSdk.APIConnectionError) return 'Couldn’t reach Claude. Try again in a moment.';
+  if (e instanceof aiSdk.BadRequestError) return 'Claude couldn’t read this conversation. Try starting a new chat.';
+  return 'Something went wrong asking Claude. Try again.';
+}
+function handleAI(req, res) {
+  const json = (code, obj) => { res.writeHead(code, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(obj)); };
+  const u = db.tokens[req.headers['x-token']];
+  if (!u || !db.users[u]) { req.resume(); return json(401, { error: 'Sign in again to use the AI helper' }); }
+  if (!AI_ON) { req.resume(); return json(503, { error: AI_OFF, off: true }); }
+  let raw = '';
+  req.setEncoding('utf8');
+  req.on('data', (c) => { raw += c; if (raw.length > 400 * 1024) { req.destroy(); } });
+  req.on('end', () => {
+    let body;
+    try { body = JSON.parse(raw); } catch { return json(400, { error: 'Bad request' }); }
+    const turns = aiTurns(body && body.messages);
+    if (!turns) return json(400, { error: 'Ask Claude something first' });
+    if (aiBusy.has(u)) return json(429, { error: 'Claude is still answering your last question' });
+    const now = Date.now(), used = (aiUse.get(u) || []).filter((t) => now - t < AI_WINDOW);
+    if (used.length >= AI_LIMIT) {
+      const mins = Math.max(1, Math.ceil((used[0] + AI_WINDOW - now) / 60e3));
+      return json(429, { error: `You’ve asked a lot of questions! Take a short break and try again in ${mins} minute${mins === 1 ? '' : 's'}.` });
+    }
+    used.push(now);
+    aiUse.set(u, used);
+    aiBusy.add(u);
+    let stream;
+    try {
+      if (!aiClient) aiClient = new aiSdk(); // reads ANTHROPIC_API_KEY (and ANTHROPIC_BASE_URL, if set)
+      stream = aiClient.beta.messages.stream({
+        model: AI_MODEL,
+        max_tokens: 16000,
+        // if Claude declines a question, Anthropic retries it on the model it recommends for that case
+        betas: ['server-side-fallback-2026-07-01'],
+        fallbacks: 'default',
+        system: AIGuide.prompt(db.users[u].name),
+        messages: turns,
+      });
+    } catch (e) {
+      aiBusy.delete(u);
+      console.error('AI helper error', e.message);
+      return json(500, { error: 'Something went wrong asking Claude. Try again.' });
+    }
+    res.writeHead(200, { 'Content-Type': 'application/x-ndjson; charset=utf-8', 'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no' });
+    const line = (o) => { if (!res.writableEnded) res.write(JSON.stringify(o) + '\n'); };
+    res.on('close', () => { if (!res.writableEnded) stream.abort(); }); // they pressed Stop or left
+    stream.on('text', (d) => line({ d }));
+    stream.finalMessage()
+      .then((msg) => line(msg.stop_reason === 'refusal' ? { refused: true } : { done: true, cut: msg.stop_reason === 'max_tokens' }))
+      .catch((e) => {
+        if (e instanceof aiSdk.APIUserAbortError) return;
+        console.error('AI helper error', e.status || '', e.message);
+        line({ error: aiErrorText(e) });
+      })
+      .finally(() => { aiBusy.delete(u); res.end(); });
+  });
+}
+
 // ---------------------------------------------------------------- http + websocket
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon', '.woff2': 'font/woff2' };
 const PUBLIC = path.join(__dirname, 'public');
@@ -831,9 +922,10 @@ const server = http.createServer((req, res) => {
   let url;
   try { url = decodeURIComponent(req.url.split('?')[0]); } catch { res.writeHead(400); return res.end(); }
   if (req.method === 'POST' && url === '/upload') return handleUpload(req, res);
+  if (req.method === 'POST' && url === '/ai') return handleAI(req, res);
   if (url.startsWith('/files/')) return serveUpload(req, res, url.slice(7));
   let file;
-  if (url === '/shared/rules.js') file = path.join(__dirname, 'shared', 'rules.js');
+  if (url === '/shared/rules.js' || url === '/shared/ai-guide.js') file = path.join(__dirname, url);
   else if (url === '/realtime.js') file = path.join(__dirname, 'realtime.js'); // bot games run the simulations in the browser
   else {
     file = path.normalize(path.join(PUBLIC, url === '/' ? 'index.html' : url));
