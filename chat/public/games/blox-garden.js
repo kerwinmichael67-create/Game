@@ -107,7 +107,7 @@
   // ---------------------------------------------------------------- the experience
   const G0 = () => ({ sh: 30, seeds: { 0: 5, 1: 2 }, gear: { can: 10 }, plants: [], bag: [], pets: [], eq: [], bought: { slot: 0, n: {} }, sprk: [], dogAt: 0 });
   const GARDEN = {
-    id: 'garden', code: 'gg', rank: 2, name: 'Grow a Garden', emoji: '🌱', max: 6, stat: 'Sheckles', killY: -30, camDist: 24,
+    id: 'garden', code: 'gg', genre: 'Simulator', rank: 2, name: 'Grow a Garden', emoji: '🌱', max: 6, stat: 'Sheckles', killY: -30, camDist: 24,
     color: 'linear-gradient(135deg,#65a30d,#facc15)',
     desc: 'Plant seeds in your own plot and watch them grow in real time (even while you’re away). Harvest, sell for Sheckles, and buy rarer seeds when the shop restocks every 5 minutes. Weather brings valuable mutations; eggs hatch pets with bonuses.',
     welcome: 'Plant seeds in your plot!',
@@ -433,9 +433,9 @@
     openShop(refresh) {
       if (refresh && !panelOpen()) { this.panel = null; return; }
       const st = stockNow(), b = this.G.bought.slot === st.slot ? this.G.bought.n : {};
-      const html = `<div class="xp-row"><span>Sheckles: <b>${fmt(this.G.sh)}</b></span><span>Restock in ${mmss(st.left)}</span></div>
-        ${SEEDS.map((s, i) => { const left = Math.max(0, st.n[i] - (b[i] || 0)); return `<div class="xp-row"><span><span style="font-size:20px">${s[7]}</span> <b>${s[0]}</b> <small style="color:${RAR[s[1]][1]}">${RAR[s[1]][0]}</small><br><small style="color:#9ca3af">${s[4] ? `keeps fruiting · ${s[3]}s` : `harvest once · ${s[3]}s`}</small></span>
-          <span style="text-align:right">${left ? `<small>×${left} in stock</small>` : '<small style="color:#f87171">NO STOCK</small>'}<br><button class="xp-btn" data-buy="${i}" ${!left || this.G.sh < s[2] ? 'disabled' : ''}>${fmt(s[2])}</button></span></div>`; }).join('')}`;
+      const html = `<div class="xp-row"><span>🥕 <b>${fmt(this.G.sh)}</b></span><span>🔄 Restock in <b>${mmss(st.left)}</b></span></div>
+        ${SEEDS.map((s, i) => { const left = Math.max(0, st.n[i] - (b[i] || 0)); return `<div class="xp-row" style="border-left:4px solid ${RAR[s[1]][1]}"><span class="lft"><span class="ico">${s[7]}</span><span><b>${s[0]}</b> <small style="color:${RAR[s[1]][1]}">${RAR[s[1]][0]}</small><br><small style="color:var(--muted)">${s[4] ? `keeps fruiting · ${s[3]}s` : `harvest once · ${s[3]}s`}</small></span></span>
+          <span style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px">${left ? `<small style="color:#86efac">×${left} in stock</small>` : '<small style="color:#f87171">NO STOCK</small>'}<button class="xp-btn" data-buy="${i}" ${!left || this.G.sh < s[2] ? 'disabled' : ''}>${fmt(s[2])}</button></span></div>`; }).join('')}`;
       if (refresh) { if ($('#xpBody').dataset.k !== html.length + ':' + Math.floor(st.left)) { $('#xpBody').innerHTML = html; $('#xpBody').dataset.k = html.length + ':' + Math.floor(st.left); } return; }
       this.panel = 'seeds';
       openPanel('🌱 Seed Shop', html, (btn) => {
@@ -451,8 +451,8 @@
       const groups = {};
       for (const c of this.G.bag) { const k = c[0] + ':' + c[2]; (groups[k] = groups[k] || { s: c[0], m: c[2], n: 0, v: 0 }); groups[k].n++; groups[k].v += this.value(c); }
       const total = this.G.bag.reduce((a, c) => a + this.value(c), 0);
-      const html = `<div class="xp-row"><span>Sheckles: <b>${fmt(this.G.sh)}</b></span><span>${this.G.bag.length}/${MAX_BAG} crops</span></div>
-        ${Object.entries(groups).sort((a, b) => b[1].v - a[1].v).map(([k, g]) => `<div class="xp-row"><span><span style="font-size:20px">${SEEDS[g.s][7]}</span> ${g.m ? `<b style="color:${MUT_COL[g.m]}">${MUT[g.m][0]}</b> ` : ''}${SEEDS[g.s][0]} ×${g.n}</span><button class="xp-btn alt" data-sell="${k}">${fmt(g.v)}</button></div>`).join('') || '<p class="xp-note">Your bag is empty. Harvest ripe plants (press E next to them) and come back.</p>'}
+      const html = `<div class="xp-row"><span>🥕 <b>${fmt(this.G.sh)}</b></span><span>🎒 <b>${this.G.bag.length}/${MAX_BAG}</b> crops</span></div>
+        ${Object.entries(groups).sort((a, b) => b[1].v - a[1].v).map(([k, g]) => `<div class="xp-row"><span class="lft"><span class="ico">${SEEDS[g.s][7]}</span><span>${g.m ? `<b style="color:${MUT_COL[g.m]}">${MUT[g.m][0]}</b> ` : ''}<b>${SEEDS[g.s][0]}</b> <small style="color:var(--muted)">×${g.n}</small></span></span><button class="xp-btn alt" data-sell="${k}">${fmt(g.v)}</button></div>`).join('') || '<p class="xp-note">Your bag is empty. Harvest ripe plants (press E next to them) and come back.</p>'}
         <button class="xp-btn gold" data-sell="all" style="width:100%;margin-top:6px" ${total ? '' : 'disabled'}>Sell everything for ${fmt(total)}</button>`;
       openPanel('💰 Sell Stand', html, (btn) => {
         const k = btn.dataset.sell; let got = 0;
@@ -464,7 +464,7 @@
       });
     },
     openGear() {
-      const html = `<div class="xp-row"><span>Sheckles: <b>${fmt(this.G.sh)}</b></span></div>${GEAR.map((g) => `<div class="xp-row"><span><span style="font-size:20px">${g.e}</span> <b>${g.n}</b><br><small style="color:#9ca3af">${g.d}</small></span><button class="xp-btn" data-g="${g.id}" ${this.G.sh < g.price || (g.id === 'shovel' && this.G.gear.shovel) ? 'disabled' : ''}>${g.id === 'shovel' && this.G.gear.shovel ? 'Owned' : fmt(g.price)}</button></div>`).join('')}`;
+      const html = `<div class="xp-row"><span>🥕 <b>${fmt(this.G.sh)}</b></span></div>${GEAR.map((g) => `<div class="xp-row"><span class="lft"><span class="ico">${g.e}</span><span><b>${g.n}</b><br><small style="color:var(--muted)">${g.d}</small></span></span><button class="xp-btn" data-g="${g.id}" ${this.G.sh < g.price || (g.id === 'shovel' && this.G.gear.shovel) ? 'disabled' : ''}>${g.id === 'shovel' && this.G.gear.shovel ? 'Owned' : fmt(g.price)}</button></div>`).join('')}`;
       openPanel('🧰 Gear Shop', html, (btn) => {
         const g = GEAR.find((x) => x.id === btn.dataset.g); if (!g || this.G.sh < g.price) return;
         this.G.sh -= g.price; this.G.gear[g.id] = (this.G.gear[g.id] || 0) + (g.id === 'can' ? 10 : 1);
@@ -472,7 +472,7 @@
       });
     },
     openEggs() {
-      const html = `<div class="xp-row"><span>Sheckles: <b>${fmt(this.G.sh)}</b></span><span>${this.G.pets.length} pets</span></div>${EGGS.map((e, i) => `<div class="xp-row"><span><span style="font-size:22px">${e.e}</span> <b>${e.n}</b><br><small style="color:#9ca3af">${PETS.filter((p) => p.egg === i).map((p) => p.e + ' ' + p.n).join(' · ')}</small></span><button class="xp-btn" data-egg="${i}" ${this.G.sh < e.price ? 'disabled' : ''}>${fmt(e.price)}</button></div>`).join('')}<p class="xp-note">Eggs hatch straight away. Equip up to 3 pets from 🐾 Pets (P); each gives a bonus.</p>`;
+      const html = `<div class="xp-row"><span>🥕 <b>${fmt(this.G.sh)}</b></span><span>🐾 <b>${this.G.pets.length}</b> pets</span></div>${EGGS.map((e, i) => `<div class="xp-row"><span class="lft"><span class="ico">${e.e}</span><span><b>${e.n}</b><br><small style="color:var(--muted)">${PETS.filter((p) => p.egg === i).map((p) => p.e + ' ' + p.n).join(' · ')}</small></span></span><button class="xp-btn" data-egg="${i}" ${this.G.sh < e.price ? 'disabled' : ''}>${fmt(e.price)}</button></div>`).join('')}<p class="xp-note">Eggs hatch straight away. Equip up to 3 pets from 🐾 Pets (P); each gives a bonus.</p>`;
       openPanel('🥚 Egg Shop', html, (btn) => {
         const i = +btn.dataset.egg, e = EGGS[i]; if (this.G.sh < e.price || this.G.pets.length >= 30) return;
         this.G.sh -= e.price; const opts = PETS.map((p, k) => (p.egg === i ? k : -1)).filter((k) => k >= 0), got = opts[Math.floor(Math.random() * opts.length)];
@@ -491,7 +491,7 @@
       });
     },
     openBag() {
-      const html = this.G.bag.length ? this.G.bag.slice().sort((a, b) => this.value(b) - this.value(a)).slice(0, 60).map((c) => `<div class="xp-row"><span>${SEEDS[c[0]][7]} ${c[2] ? `<b style="color:${MUT_COL[c[2]]}">${MUT[c[2]][0]}</b> ` : ''}${SEEDS[c[0]][0]} <small style="color:#9ca3af">${c[1]}kg</small></span><span>${fmt(this.value(c))}</span></div>`).join('') + (this.G.bag.length > 60 ? `<p class="xp-note">…and ${this.G.bag.length - 60} more</p>` : '')
+      const html = this.G.bag.length ? this.G.bag.slice().sort((a, b) => this.value(b) - this.value(a)).slice(0, 60).map((c) => `<div class="xp-row"><span class="lft"><span class="ico">${SEEDS[c[0]][7]}</span><span>${c[2] ? `<b style="color:${MUT_COL[c[2]]}">${MUT[c[2]][0]}</b> ` : ''}<b>${SEEDS[c[0]][0]}</b> <small style="color:var(--muted)">${c[1]}kg</small></span></span><b style="color:#fde68a">${fmt(this.value(c))}</b></div>`).join('') + (this.G.bag.length > 60 ? `<p class="xp-note">…and ${this.G.bag.length - 60} more</p>` : '')
         : '<p class="xp-note">No crops yet.</p>';
       openPanel(`🎒 Bag (${this.G.bag.length}/${MAX_BAG})`, html, null);
     },

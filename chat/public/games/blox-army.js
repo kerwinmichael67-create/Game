@@ -92,9 +92,160 @@
   }
   const dummy = new THREE.Object3D(), tmpC = new THREE.Color();
 
+  // ---------------------------------------------------------------- menu looks: rarities, unit pictures, styles
+  const RAR = { 2: ['Common', '#cbd5e1', 'linear-gradient(160deg,#64748b,#273244)'], 3: ['Rare', '#93c5fd', 'linear-gradient(160deg,#3b82f6,#1e2f6b)'], 4: ['Epic', '#d8b4fe', 'linear-gradient(160deg,#a855f7,#3b1572)'], 5: ['Legendary', '#fde68a', 'linear-gradient(160deg,#f59e0b,#7c2d12)'] };
+  const roleOf = (U) => (U.ranged && U.cav ? '🏹 Horse archer' : U.ranged ? '🏹 Ranged' : U.cav ? '🐎 Cavalry' : U.antiCav ? '🔱 Anti-cavalry' : U.armor ? '🛡️ Armored' : '⚔️ Melee');
+  const stars = (n) => '★'.repeat(n);
+  function unitModel(U) {
+    const g = new THREE.Group(), up = U.cav ? 2.4 : 0, dark = new THREE.Color(U.c).multiplyScalar(0.6).getHex(), steel = 0xd1d5db, wood = 0x78350f;
+    if (U.cav) {
+      const hc = 0x7a4a24;
+      bx(g, hc, 1.3, 1.2, 3, 0, 2.1, 0); bx(g, hc, 0.7, 0.8, 1.3, 0, 3.15, -1.9); bx(g, 0x1f2937, 0.22, 0.8, 1, 0, 3.45, -1.3);
+      for (const [x, z] of [[-0.4, -1.1], [0.4, -1.1], [-0.4, 1.1], [0.4, 1.1]]) bx(g, 0x4a2f18, 0.3, 1.5, 0.3, x, 0.75, z);
+      bx(g, U.c, 1.36, 0.55, 1.7, 0, 2.55, 0.1);
+    } else for (const x of [-0.25, 0.25]) bx(g, 0x1f2937, 0.42, 1.4, 0.42, x, 0.7, 0);
+    bx(g, U.c, 1.1, 1.3, 0.6, 0, 2 + up, 0); bx(g, 0x111827, 1.12, 0.16, 0.62, 0, 1.55 + up, 0);
+    for (const x of [-0.72, 0.72]) bx(g, U.c, 0.34, 1.1, 0.4, x, 2.05 + up, 0);
+    bx(g, 0xf2c94c, 0.7, 0.7, 0.7, 0, 3.05 + up, 0);
+    for (const x of [-0.14, 0.14]) bx(g, 0x111111, 0.08, 0.12, 0.02, x, 3.12 + up, -0.36);
+    bx(g, dark, 0.84, 0.32, 0.84, 0, 3.45 + up, 0);
+    if (U.armor) bx(g, steel, 1.16, 0.55, 0.66, 0, 2.4 + up, 0);
+    const w = new THREE.Group(); w.position.set(0.78, 1.55 + up, -0.3); w.rotation.x = -0.2; g.add(w);
+    if (U.w === 'bow') { bx(w, wood, 0.12, 1.9, 0.12, 0, 0.5, -0.25); bx(w, 0xe5e7eb, 0.03, 1.8, 0.03, 0, 0.5, -0.05); }
+    else if (U.w === 'spear' || U.w === 'lance') { const L = U.w === 'lance' ? 3.8 : 3.2; bx(w, wood, 0.12, L, 0.12, 0, L / 2 - 0.7, 0); bx(w, steel, 0.24, 0.55, 0.08, 0, L - 0.4, 0); }
+    else if (U.w === 'axe') { bx(w, wood, 0.12, 1.9, 0.12, 0, 0.45, 0); bx(w, steel, 0.12, 0.65, 0.75, 0, 1.15, -0.32); }
+    else { const L = U.w === 'katana' ? 2 : 1.6; bx(w, 0x111827, 0.42, 0.12, 0.12, 0, 0.05, 0); bx(w, steel, 0.1, L, 0.2, 0, L / 2 + 0.1, 0); }
+    if (U.shield) bx(g, dark, 0.14, 1.25, 1.05, -0.84, 2.05 + up, -0.1);
+    return g;
+  }
+  const unitPic = (i) => snapshot('ca-u' + i, () => unitModel(UNITS[i]), { w: 200, h: 200, dir: [0.62, 0.3, -1], zoom: 0.86 });
+  const mountPic = (i) => snapshot('ca-m' + i, () => horseModel(MOUNTS[i].c, MOUNTS[i].armor), { w: 160, h: 120, dir: [1, 0.35, -0.55], zoom: 0.8 });
+  const css = document.createElement('style');
+  css.textContent = `
+  .ca-wrap{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:22px;max-width:1260px;margin:0 auto;align-items:start}
+  @media (max-width:920px){.ca-wrap{grid-template-columns:1fr}.ca-detail{position:static}}
+  @media (max-width:600px){.ca-load{grid-template-columns:repeat(2,1fr)}.ca-banner{grid-template-columns:1fr}.ca-banner .feat-u{display:none}}
+  .ca-h{display:flex;align-items:center;gap:10px;margin:0 0 10px;font:600 13px var(--fh);letter-spacing:.14em;text-transform:uppercase;color:#cbd5e1}
+  .ca-h small{letter-spacing:0;text-transform:none;color:var(--dim);font:700 12.5px var(--fb)}
+  .ca-load{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+  .ca-slot{all:unset;box-sizing:border-box;position:relative;height:158px;border-radius:18px;border:2px solid rgba(255,255,255,.14);background:var(--rb);box-shadow:0 5px 0 rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.22);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:8px 8px 10px;cursor:pointer;color:#fff;overflow:hidden;transition:transform .12s,box-shadow .12s}
+  .ca-slot:hover{transform:translateY(-3px)}
+  .ca-slot::before,.ca-pick::before,.ca-detail .hero::before,.ca-banner::before{content:'';position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.16) 22%,transparent 25%);background-size:16px 16px;opacity:.5;pointer-events:none}
+  .ca-slot img{position:absolute;left:0;right:0;top:4px;margin:auto;width:118px;height:118px;object-fit:contain;filter:drop-shadow(0 5px 0 rgba(0,0,0,.3))}
+  .ca-slot .num{position:absolute;left:8px;top:8px;width:26px;height:26px;border-radius:9px;background:rgba(0,0,0,.5);font:600 14px/26px var(--fh);text-align:center}
+  .ca-slot .nm{position:relative;font:600 15px var(--fh);text-shadow:0 2px 0 rgba(0,0,0,.5)}
+  .ca-slot .sub{position:relative;font:700 11px var(--fb);color:rgba(255,255,255,.8)}
+  .ca-slot .tag{position:absolute;right:8px;top:8px;background:linear-gradient(180deg,#fde047,#f59e0b);color:#422006;border-radius:999px;padding:3px 9px;font:700 10.5px var(--fh);letter-spacing:.06em;box-shadow:0 2px 0 #92400e}
+  .ca-slot.cmd{border-color:#fde047;box-shadow:0 0 0 3px rgba(250,204,21,.35),0 5px 0 rgba(0,0,0,.4),0 0 26px rgba(250,204,21,.3)}
+  .ca-slot.empty{background:rgba(255,255,255,.03);border:2px dashed rgba(255,255,255,.2);box-shadow:none;justify-content:center;gap:6px;color:var(--muted);font:600 14px var(--fh)}
+  .ca-slot.empty::before{display:none}
+  .ca-slot.empty .plus{font-size:38px;line-height:1;color:rgba(255,255,255,.3)}
+  .ca-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(156px,1fr));gap:12px}
+  .ca-card{position:relative;border-radius:18px;background:linear-gradient(180deg,#273041,#1a202b);border:2px solid rgba(255,255,255,.08);box-shadow:0 4px 0 rgba(0,0,0,.4);overflow:hidden;display:flex;flex-direction:column;transition:transform .12s,border-color .12s,box-shadow .12s;animation:rise .25s ease-out both}
+  .ca-card:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.2)}
+  .ca-card.sel{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.3),0 4px 0 rgba(0,0,0,.4)}
+  .ca-pick{all:unset;box-sizing:border-box;cursor:pointer;display:block;position:relative;height:136px;background:var(--rb)}
+  .ca-pick img{position:absolute;inset:6px;width:calc(100% - 12px);height:calc(100% - 12px);object-fit:contain;filter:drop-shadow(0 4px 0 rgba(0,0,0,.3));transition:transform .2s}
+  .ca-card:hover .ca-pick img{transform:scale(1.07)}
+  .ca-pick .st{position:absolute;left:8px;bottom:6px;color:#fde047;font:700 15px var(--fh);letter-spacing:-1px;text-shadow:0 2px 0 rgba(0,0,0,.5)}
+  .ca-pick .lvb{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.55);border-radius:8px;padding:2px 8px;font:600 12px var(--fh)}
+  .ca-pick .eqb{position:absolute;right:8px;top:8px;width:26px;height:26px;border-radius:50%;background:linear-gradient(180deg,#4ade80,#16a34a);border:2px solid #fff;font:700 13px/22px var(--fh);text-align:center;box-shadow:0 2px 0 rgba(0,0,0,.35)}
+  .ca-pick .lock{position:absolute;inset:0;display:grid;place-items:center;font-size:30px;filter:drop-shadow(0 3px 0 rgba(0,0,0,.4))}
+  .ca-card.locked .ca-pick img{filter:brightness(0) opacity(.35)}
+  .ca-card .meta{padding:9px 10px 10px;display:flex;flex-direction:column;gap:6px;flex:1}
+  .ca-card .meta b{font:600 15.5px/1.1 var(--fh)}
+  .ca-card .meta span{font:700 11.5px/1.3 var(--fb);color:var(--muted)}
+  .ca-card .meta .xp-btn{margin-top:auto;padding:7px 10px 8px;font-size:13px}
+  .ca-detail{position:sticky;top:0;background:linear-gradient(180deg,#222a38,#151a24);border:1px solid var(--line2);border-radius:22px;overflow:hidden;box-shadow:var(--drop),var(--hi);animation:pop .2s ease-out}
+  .ca-detail .hero{position:relative;height:240px;background:var(--rb)}
+  .ca-detail .hero img{position:absolute;inset:10px;width:calc(100% - 20px);height:calc(100% - 20px);object-fit:contain;filter:drop-shadow(0 8px 0 rgba(0,0,0,.3))}
+  .ca-detail .rar{position:absolute;left:12px;top:12px}
+  .ca-detail .trp{position:absolute;right:12px;top:12px}
+  .ca-detail .body{padding:14px 16px 16px}
+  .ca-detail h3{margin:0 0 2px;font:700 28px/1.1 var(--fh)}
+  .ca-detail .role{font:700 13px var(--fb);color:var(--muted);margin-bottom:10px}
+  .ca-stat{display:grid;grid-template-columns:96px 1fr 44px;align-items:center;gap:10px;margin:8px 0;font:700 12.5px var(--fb);color:#cbd5e1}
+  .ca-stat b{text-align:right;font:600 14px var(--fh);color:#fff}
+  .ca-btns{display:flex;gap:8px;margin-top:14px}
+  .ca-btns .xp-btn{flex:1;padding:12px 10px;font-size:15px}
+  .ca-banner{position:relative;overflow:hidden;border-radius:24px;padding:26px 28px;min-height:250px;background:linear-gradient(120deg,#4c1d95,#9333ea 45%,#f59e0b);box-shadow:var(--drop),inset 0 0 0 1px rgba(255,255,255,.18);display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center;max-width:1100px;margin:0 auto 20px}
+  .ca-banner > *{position:relative}
+  .ca-banner h2{margin:6px 0 8px;font:700 38px/1 var(--fh);text-shadow:0 3px 0 rgba(0,0,0,.35)}
+  .ca-banner p{margin:0 0 14px;max-width:460px;font:700 13.5px/1.5 var(--fb);color:#f5f3ff}
+  .ca-banner .feat-u{display:flex;align-items:flex-end}
+  .ca-banner .feat-u img{width:190px;height:190px;object-fit:contain;filter:drop-shadow(0 8px 0 rgba(0,0,0,.3));animation:bob 4s ease-in-out infinite}
+  .ca-banner .feat-u img + img{margin-left:-50px;animation-delay:-2s}
+  .ca-rates{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+  .ca-sumbtns{display:flex;gap:10px;flex-wrap:wrap}
+  .ca-sumbtns .xp-btn{padding:13px 22px;font-size:17px;border-radius:15px}
+  #caSum{max-width:1100px;margin:0 auto}
+  #caSum .xp-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+  .ca-res{padding:0!important;overflow:hidden;animation:pop .35s ease-out both}
+  .ca-res .pic{position:relative;height:120px;background:var(--rb)}
+  .ca-res .pic img{position:absolute;inset:4px;width:calc(100% - 8px);height:calc(100% - 8px);object-fit:contain}
+  .ca-res .txt{padding:8px 10px 10px;display:flex;flex-direction:column;gap:3px}
+  .ca-res .new{position:absolute;right:8px;top:8px;background:#ef4444;border:2px solid #fff;border-radius:999px;padding:1px 8px;font:700 11px var(--fh)}
+  .ca-res.r4{box-shadow:0 0 0 3px rgba(192,132,252,.5),0 0 26px rgba(192,132,252,.45)}
+  .ca-res.r5{box-shadow:0 0 0 3px rgba(251,191,36,.6),0 0 30px rgba(251,191,36,.55)}
+  .still .ca-card,.still .ca-detail{animation:none}
+  .ca-mount .big img{width:100%;height:60px;object-fit:contain}
+  .ca-pips{display:inline-flex;gap:4px;margin-left:6px;vertical-align:-1px}
+  .ca-pips i{width:11px;height:11px;border-radius:50%;background:rgba(255,255,255,.15);box-shadow:inset 0 1px 2px rgba(0,0,0,.5)}
+  .ca-pips i.on{background:linear-gradient(180deg,#fde047,#f59e0b);box-shadow:0 0 6px rgba(250,204,21,.6)}
+  .ca-ico{display:inline-grid;place-items:center;width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.08);font-size:20px;flex:none}
+  .ca-lv{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;flex:none;background:rgba(255,255,255,.08);font:600 13px var(--fh);border:2px solid rgba(255,255,255,.15)}
+  .ca-lv.got{background:linear-gradient(180deg,#4ade80,#16a34a);border-color:#bbf7d0}
+  .ca-lv.open{background:linear-gradient(180deg,#fde047,#f59e0b);border-color:#fef9c3;color:#422006}
+  .ca-tier{display:flex;align-items:center;gap:14px;padding:16px;border-radius:18px;background:linear-gradient(135deg,#312e81,#0f172a);border:1px solid var(--line2);margin-bottom:8px}
+  .ca-tier .e{font-size:54px;filter:drop-shadow(0 4px 0 rgba(0,0,0,.3))}
+  .ca-tier b{display:block;font:700 26px var(--fh)}
+  .ca-ladder{display:flex;gap:6px;flex-wrap:wrap}
+  .ca-ladder span{flex:1;min-width:76px;text-align:center;padding:8px 4px;border-radius:12px;background:rgba(255,255,255,.05);font:600 11.5px/1.3 var(--fh);color:var(--muted)}
+  .ca-ladder span.on{background:linear-gradient(180deg,#6366f1,#4338ca);color:#fff;box-shadow:0 0 0 2px #a5b4fc}
+  .ca-input{flex:1;border-radius:12px;border:2px solid rgba(255,255,255,.15);padding:10px 12px;background:rgba(0,0,0,.35);color:#fff;font:700 15px var(--fb);outline:none;text-transform:uppercase;letter-spacing:.06em}
+  .ca-input:focus{border-color:#a855f7}
+  /* battle */
+  .ca-hero{display:flex;flex-direction:column;align-items:center;gap:8px}
+  .ca-hp{position:relative;width:min(440px,90vw);height:24px;border-radius:13px;background:rgba(10,12,18,.7);border:2px solid rgba(255,255,255,.22);overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.3)}
+  .ca-hp i{position:absolute;left:0;top:0;bottom:0;border-radius:11px;transition:width .2s;box-shadow:inset 0 2px 0 rgba(255,255,255,.35)}
+  .ca-hp span{position:absolute;inset:0;display:grid;place-items:center;font:600 13px var(--fh);text-shadow:0 1.5px 0 rgba(0,0,0,.6)}
+  .ca-row{display:flex;gap:8px;align-items:flex-end}
+  .ca-sep{width:2px;height:56px;background:rgba(255,255,255,.18);border-radius:2px;margin:0 4px 8px}
+  .xslot .cd{position:absolute;inset:0;border-radius:15px;background:rgba(0,0,0,.6);display:grid;place-items:center;font:700 24px var(--fh)}
+  .ca-warn{font:600 14px var(--fh);padding:4px 14px;border-radius:999px;background:rgba(0,0,0,.55);text-shadow:0 1px 0 rgba(0,0,0,.5)}
+  .ca-prog{display:inline-block;width:130px;height:12px;border-radius:7px;background:rgba(0,0,0,.5);vertical-align:-1px;margin:0 10px;overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,.6)}
+  .ca-prog i{display:block;height:100%;border-radius:7px;box-shadow:inset 0 2px 0 rgba(255,255,255,.35)}
+  .ca-pop{position:absolute;left:50%;transform:translateX(-50%) rotate(-4deg);font-family:var(--fh);font-weight:700;letter-spacing:.02em;-webkit-text-stroke:8px rgba(10,12,18,.8);paint-order:stroke fill;text-shadow:0 5px 0 rgba(0,0,0,.35);pointer-events:none;transition:opacity .6s,transform .6s;white-space:nowrap;animation:toastPopX .35s ease-out}
+  @keyframes toastPopX{0%{transform:translateX(-50%) rotate(-4deg) scale(.4)}60%{transform:translateX(-50%) rotate(-4deg) scale(1.15)}100%{transform:translateX(-50%) rotate(-4deg) scale(1)}}
+  #caBoard{position:absolute;left:50%;top:76px;transform:translateX(-50%);display:flex;gap:14px;pointer-events:none;animation:pop .15s ease-out}
+  .ca-sb{min-width:330px;border-radius:18px;overflow:hidden}
+  .ca-sb .th{padding:10px 14px;font:700 15px var(--fh);letter-spacing:.08em;text-shadow:0 2px 0 rgba(0,0,0,.35)}
+  .ca-sb table{width:100%;border-collapse:collapse;font:700 13.5px var(--fb)}
+  .ca-sb td{padding:6px 12px}
+  .ca-sb tr:first-child td{color:var(--muted);font:600 11px var(--fh);letter-spacing:.08em;text-transform:uppercase}
+  .ca-sb td:not(:first-child){text-align:center;font-family:var(--fh);font-weight:600}
+  .ca-sb tr.me td{background:rgba(56,189,248,.16);color:#7dd3fc}
+  .ca-end{max-width:760px;margin:0 auto;text-align:center;padding-top:10px}
+  .ca-big{font:700 92px/1 var(--fh);letter-spacing:.04em;-webkit-text-stroke:10px rgba(10,12,18,.7);paint-order:stroke fill;text-shadow:0 8px 0 rgba(0,0,0,.35);animation:toastPopY .5s ease-out}
+  @keyframes toastPopY{0%{transform:scale(.3)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
+  .ca-big.win{color:#fde047}.ca-big.lose{color:#f87171}
+  .ca-end p{color:#cbd5e1;font:700 15px var(--fb);margin:8px 0 22px}
+  .ca-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+  @media (max-width:640px){.ca-tiles{grid-template-columns:repeat(2,1fr)}.ca-big{font-size:60px}}
+  .ca-tile{background:linear-gradient(180deg,#283143,#1c222d);border:1px solid var(--line2);border-radius:18px;padding:14px 8px;box-shadow:0 4px 0 rgba(0,0,0,.35);animation:rise .3s ease-out both}
+  .ca-tile .e{font-size:28px}
+  .ca-tile b{display:block;font:700 30px var(--fh);margin:4px 0 2px}
+  .ca-tile span{font:700 12px var(--fb);color:var(--muted)}
+  .ca-rew{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+  .ca-rew .chip{height:40px;font-size:17px;padding:0 16px}
+  .ca-lvl{max-width:460px;margin:0 auto 22px;text-align:left;font:700 13px var(--fb);color:var(--muted)}
+  .ca-lvl .meter{height:14px;margin-top:6px}
+  `;
+  document.head.append(css);
+
   // ---------------------------------------------------------------- the experience
   const ARMY = {
-    id: 'army', code: 'ca', rank: 1, name: 'Command an Army', emoji: '⚔️', max: 6, stat: 'Score', killY: -40, banner: true, camDist: 22, respawnDelay: 6000, noReset: true,
+    id: 'army', code: 'ca', genre: 'Strategy', rank: 1, name: 'Command an Army', emoji: '⚔️', max: 6, stat: 'Score', killY: -40, banner: true, camDist: 22, respawnDelay: 6000, noReset: true,
     color: 'linear-gradient(135deg,#7f1d1d,#1e3a8a)',
     desc: '3 v 3 battles with armies: attackers capture A, B and then the enemy base; defenders hold them off. Ride your horse, give your soldiers orders, fight with your class. Empty seats are filled with bots. Summon units, level them, unlock classes and mounts, a skill tree, a battle pass, quests — and servers 5 and 6 are Ranked.',
     welcome: 'Battle starts soon — check your units!',
@@ -513,7 +664,7 @@
     },
     popup(text, col, big) {
       const el = document.createElement('div');
-      el.textContent = text; el.style.cssText = `position:absolute;left:50%;top:${big ? 34 : 44}%;transform:translateX(-50%) rotate(-4deg);font:900 ${big ? 46 : 22}px "Segoe UI",sans-serif;color:${col};text-shadow:0 3px 0 #000,0 0 18px rgba(0,0,0,.5);pointer-events:none;transition:opacity .6s,transform .6s;white-space:nowrap`;
+      el.textContent = text; el.className = 'ca-pop'; el.style.cssText = `top:${big ? 30 : 42}%;font-size:${big ? 56 : 26}px;color:${col}`;
       $('#xhud').append(el);
       setTimeout(() => { el.style.opacity = 0; el.style.transform = 'translateX(-50%) translateY(-30px) rotate(-4deg)'; }, 1300); setTimeout(() => el.remove(), 2000);
     },
@@ -667,58 +818,76 @@
       if (g.ph === 'lobby') {
         setBanner(`⚔️ Next battle in ${Math.ceil(g.left)}s${g.rk || Net.srvN >= 5 ? ' · 🏆 Ranked server' : ''} — get your army ready`);
         if (!this.lobbyShown && !panelOpen()) { this.lobbyShown = true; this.openMenu('units'); }
+        const tm = document.getElementById('caTimer'); if (tm) tm.textContent = `⚔️ Battle in ${Math.ceil(g.left)}s`;
       } else if (battle) {
         this.lobbyShown = false;
+        if (this.lastPh !== 'battle' && this.menuOpen) closePanel(); // the battle is on: menus out of the way
         const obj = POINTS[Math.min(2, g.obj)], me = this.ci >= 0 ? this.cmInfo(g, this.ci) : null;
         const verb = me && me.team === 1 ? 'Defend' : 'Capture';
-        const bar = `<span style="display:inline-block;width:120px;height:10px;background:#374151;border-radius:5px;vertical-align:middle;margin:0 8px;overflow:hidden"><i style="display:block;height:100%;width:${g.prog}%;background:${g.ct ? '#facc15' : TEAM_CSS[0]}"></i></span>`;
-        setBanner(`${mmss(g.left)} · ${verb} ${obj.n === 'Base' ? 'the Base' : 'Point ' + obj.n}${bar}${g.ct ? '⚔️ contested' : ''}`);
+        const bar = `<span class="ca-prog"><i style="width:${g.prog}%;background:${g.ct ? 'linear-gradient(180deg,#fde047,#eab308)' : `linear-gradient(180deg,#60a5fa,${TEAM_CSS[0]})`}"></i></span>`;
+        setBanner(`⏱️ ${mmss(g.left)} · ${verb} ${obj.n === 'Base' ? 'the Base' : 'Point ' + obj.n}${bar}${g.ct ? '⚔️ Contested' : `${Math.round(g.prog)}%`}`);
       } else setBanner(g.win === 0 ? '⚔️ The attackers win!' : '🛡️ The defenders win!');
-      const sig = [g.ph, this.ci, this.ord, this.form, this.sel].join();
+      const sig = [g.ph, this.ci, this.ord, this.form, this.sel, this.S.eq.join('.')].join();
       if (sig !== this.uiSig) { this.uiSig = sig; this.drawOrders(); this.drawMenu(); }
       this.drawHeroBar(g);
       if (this.board) this.drawBoard();
     },
+    // orders: a column of big buttons on the left
     drawOrders() {
       const g = this.g, battle = g && g.ph === 'battle' && this.ci >= 0;
-      let el = document.getElementById('caOrders');
-      if (!battle) { if (el) el.remove(); return; }
-      if (!el) { el = document.createElement('div'); el.id = 'caOrders'; el.style.cssText = 'position:absolute;left:10px;top:120px;display:flex;flex-direction:column;gap:6px;pointer-events:auto'; $('#xhud').append(el); el.onclick = (e) => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.o) this.order(+b.dataset.o); if (b.dataset.f) { this.form = (this.form + 1) % 3; this.sendMe(true); this.drawOrders(); } }; }
-      const O = [[1, '✋', 'Hold', 'X'], [0, '🏃', 'Follow', 'C'], [2, '⚔️', 'Attack', 'V'], [3, '🐎', 'Rush', 'B']];
-      el.innerHTML = O.map(([o, e, n, k]) => `<button class="xslot ${this.ord === o ? 'on' : ''}" data-o="${o}" style="height:54px;min-width:70px"><span class="k">${k}</span><span class="e">${e}</span>${n}</button>`).join('')
-        + `<button class="xslot" data-f="1" style="height:54px;min-width:70px"><span class="k">Z</span><span class="e">${['▦', '◭', '▬'][this.form]}</span>${['Block', 'Wedge', 'Line'][this.form]}</button>`;
+      if (!battle) return;
+      const O = [[1, '✋', 'Hold', 'X', 'c-blue'], [0, '🏃', 'Follow', 'C', 'c-green'], [2, '⚔️', 'Attack', 'V', 'c-red'], [3, '🐎', 'Rush', 'B', 'c-orange']];
+      setSide(O.map(([o, e, n, k, c]) => `<button class="sbtn ${c} ${this.ord === o ? 'on' : ''}" data-o="${o}" title="${n} (${k})"><span class="k">${k}</span><span class="e">${e}</span>${n}</button>`).join('')
+        + `<button class="sbtn c-slate" data-f="1" title="Formation (Z)"><span class="k">Z</span><span class="e">${['▦', '◭', '▬'][this.form]}</span>${['Block', 'Wedge', 'Line'][this.form]}</button>`,
+      (b) => { if (b.dataset.o) this.order(+b.dataset.o); if (b.dataset.f) { this.form = (this.form + 1) % 3; this.sendMe(true); this.drawOrders(); } }, 1);
     },
+    // the bottom bar in battle: health, abilities and your units
     drawHeroBar(g) {
       const battle = g.ph === 'battle' && this.ci >= 0;
       if (!battle) { if (this.barMode !== 'lobby') { this.barMode = 'lobby'; this.drawMenu(); } return; }
       this.barMode = 'battle';
-      const st = this.stats(), mine = (this.solList || []).filter((s) => { const v = this.sviews.get(s.id); return v && v.s.ci === this.ci; }).length, U = UNITS[this.unitNow()], me = this.cmInfo(g, this.ci);
-      const unitNow = me ? UNITS[me.unit] : U, cd = (v, max) => (v > 0 ? `<span class="n">${Math.ceil(v)}</span>` : '');
-      const html = `<div style="display:flex;flex-direction:column;align-items:center;gap:4px">
-        <div style="width:300px;height:12px;background:#1f2937;border-radius:6px;overflow:hidden;border:2px solid rgba(255,255,255,.2)"><i style="display:block;height:100%;width:${Math.max(0, this.hp) * 100}%;background:linear-gradient(90deg,#dc2626,#f87171)"></i></div>
-        <div style="display:flex;gap:6px">${[['⚔️', 'Attack', 'Click', this.cdA], ['🛡️', 'Block', 'F', 0], ['🌀', 'Roll', 'Q', this.cdRoll], ['💚', 'Heal', 'H', this.cdHeal], [this.mounted ? '🚶' : '🐴', this.mounted ? 'Dismount' : 'Mount', 'G', 0]].map(([e, n, k, c], i) => `<button class="xslot ${i === 1 && this.blocking ? 'on' : ''}" data-ab="${i}"><span class="k">${k}</span><span class="e">${e}</span>${n}${cd(c)}</button>`).join('')}
-        <button class="xslot" data-ab="unit" title="${esc(unitNow.n)}" style="min-width:90px"><span class="e">${'⭐'.repeat(unitNow.st).slice(0, 10)}</span>${esc(unitNow.n)}<span class="n">${mine}/${unitNow.cnt}</span></button></div>
-        ${me && me.chg != null ? `<div style="font-weight:800;color:#fde68a">Changing unit… ${Math.ceil(me.chg)}s (stay in camp)</div>` : mine < unitNow.cnt * 0.3 ? '<div style="font-weight:800;color:#fca5a5">☠️ Get more units at camp</div>' : ''}
-      </div>`;
-      if (html !== this.barHtml) { this.barHtml = html; setBar(html, (b) => { const a = b.dataset.ab; if (a === '0') this.attack(); else if (a === '2') this.key('KeyQ', true); else if (a === '3') this.key('KeyH', true); else if (a === '4') this.key('KeyG', true); else if (a === '1') { this.blocking = !this.blocking; } }); }
+      const st = this.stats(), me = this.cmInfo(g, this.ci), cur = me ? me.unit : this.unitNow(), U = UNITS[cur];
+      const mine = (this.solList || []).filter((s) => { const v = this.sviews.get(s.id); return v && v.s.ci === this.ci; }).length;
+      const hp = Math.max(0, this.hp), hpc = hp > 0.5 ? 'linear-gradient(180deg,#4ade80,#16a34a)' : hp > 0.25 ? 'linear-gradient(180deg,#fde047,#f59e0b)' : 'linear-gradient(180deg,#f87171,#dc2626)';
+      const cd = (v) => (v > 0 ? `<span class="cd">${Math.ceil(v)}</span>` : '');
+      const abil = [['⚔️', 'Attack', 'Click', this.cdA], ['🛡️', 'Block', 'F', 0], ['🌀', 'Roll', 'Q', this.cdRoll], ['💚', 'Heal', 'H', this.cdHeal], [this.mounted ? '🚶' : '🐴', this.mounted ? 'Dismount' : 'Mount', 'G', 0]];
+      const units = this.S.eq.map((u, i) => `<button class="xslot ${u === cur ? 'on' : ''}" data-u="${i}" title="${esc(UNITS[u].n)} (${i + 1})"><span class="k">${i + 1}</span><img class="pic" src="${unitPic(u)}" alt="">${esc(UNITS[u].n)}${u === cur ? `<span class="n">${mine}/${U.cnt}</span>` : ''}</button>`).join('');
+      const warn = me && me.chg != null ? `<div class="ca-warn" style="color:#fde68a">🔄 Changing to ${esc(UNITS[this.unitNow()].n)}… ${Math.ceil(me.chg)}s — stay in camp</div>` : mine < U.cnt * 0.3 ? '<div class="ca-warn" style="color:#fca5a5">☠️ Few troops left — go back to camp for more</div>' : '';
+      const html = `<div class="ca-hero">${warn}<div class="ca-hp"><i style="width:${Math.round(hp * 100)}%;background:${hpc}"></i><span>❤️ ${Math.ceil(hp * st.maxHp)} / ${st.maxHp}</span></div>
+        <div class="ca-row">${abil.map(([e, n, k, c], i) => `<button class="xslot ${i === 1 && this.blocking ? 'on' : ''}" data-ab="${i}"><span class="k">${k}</span><span class="e">${e}</span>${n}${cd(c)}</button>`).join('')}<span class="ca-sep"></span>${units}</div></div>`;
+      if (html !== this.barHtml) {
+        this.barHtml = html;
+        setBar(html, (b) => {
+          const a = b.dataset.ab;
+          if (b.dataset.u != null) this.key('Digit' + (+b.dataset.u + 1), true);
+          else if (a === '0') this.attack(); else if (a === '2') this.key('KeyQ', true); else if (a === '3') this.key('KeyH', true); else if (a === '4') this.key('KeyG', true); else if (a === '1') { this.blocking = !this.blocking; }
+        });
+      }
     },
     drawBoard() {
       const g = this.g; let el = document.getElementById('caBoard');
       if (!this.board || !g || !g.cm || !g.cm.length) { if (el) el.remove(); return; }
-      if (!el) { el = document.createElement('div'); el.id = 'caBoard'; el.style.cssText = 'position:absolute;left:50%;top:120px;transform:translateX(-50%);display:flex;gap:14px;pointer-events:none'; $('#xhud').append(el); }
+      if (!el) { el = document.createElement('div'); el.id = 'caBoard'; $('#xhud').append(el); }
       const sc = g.sc || [], rows = (t) => g.cm.map((c, ci) => [this.cmInfo(g, ci), sc[ci] || {}, ci]).filter(([I]) => I.team === t).sort((a, b) => (b[1].score || 0) - (a[1].score || 0));
-      const table = (t) => `<div style="background:rgba(17,18,20,.85);border-radius:12px;overflow:hidden;min-width:300px"><div style="background:${TEAM_CSS[t]};padding:6px 12px;font-weight:900">${t === 0 ? '⚔️ ATTACKERS' : '🛡️ DEFENDERS'}</div><table style="width:100%;font-size:13px;border-collapse:collapse"><tr style="color:#9ca3af"><td style="padding:4px 10px">Player</td><td>Kills</td><td>Heroes</td><td>Deaths</td><td>Score</td></tr>${rows(t).map(([I, s, ci]) => `<tr style="${ci === this.ci ? 'color:#7dd3fc;font-weight:800' : ''}"><td style="padding:4px 10px">${esc(I.nm)}</td><td>${s.k || 0}</td><td>${s.hk || 0}</td><td>${s.d || 0}</td><td>${s.score || 0}</td></tr>`).join('')}</table></div>`;
-      el.innerHTML = table(0) + table(1);
+      const table = (t) => `<div class="ca-sb glass"><div class="th" style="background:linear-gradient(180deg,${t ? '#f87171,#b91c1c' : '#60a5fa,#1d4ed8'})">${t === 0 ? '⚔️ ATTACKERS' : '🛡️ DEFENDERS'}</div><table><tr><td>Commander</td><td>☠️</td><td>👑</td><td>💀</td><td>Score</td></tr>${rows(t).map(([I, s, ci]) => `<tr class="${ci === this.ci ? 'me' : ''}"><td>${esc(I.nm)}</td><td>${s.k || 0}</td><td>${s.hk || 0}</td><td>${s.d || 0}</td><td>${s.score || 0}</td></tr>`).join('')}</table></div>`;
+      const html = table(0) + table(1);
+      if (el.innerHTML !== html) el.innerHTML = html;
     },
-    // ---------------------------------------------------------------- the lobby menus (like the video's left-hand buttons)
+    // ---------------------------------------------------------------- the lobby: big menu buttons on the left, your units along the bottom
     drawMenu() {
       const g = this.g;
       if (g && g.ph === 'battle' && this.ci >= 0) return;
-      const S = this.S, lv = levelOf(S.xp);
-      setBar(`<button class="xslot" data-m="units"><span class="e">🪖</span>Units</button><button class="xslot" data-m="summon"><span class="e">🎲</span>Summon</button><button class="xslot" data-m="classes"><span class="e">🗡️</span>Classes</button><button class="xslot" data-m="mount"><span class="e">🐴</span>Mount</button><button class="xslot" data-m="skills"><span class="e">🌳</span>Skills${skillPts(S) > 0 ? `<span class="n">${skillPts(S)}</span>` : ''}</button><button class="xslot" data-m="bp"><span class="e">🎖️</span>Pass</button><button class="xslot" data-m="quests"><span class="e">📜</span>Quests</button><button class="xslot" data-m="ranked"><span class="e">${tierOf(S.rating)[2]}</span>Ranked</button><button class="xslot" data-m="codes"><span class="e">🎟️</span>Codes</button>
-        <div class="xslot" style="cursor:default;min-width:110px"><b style="font-size:13px">Lv ${lv.L}</b><span>💎 ${S.gems}</span></div>`, (b) => this.openMenu(b.dataset.m));
+      const S = this.S, lv = levelOf(S.xp), q = QUESTS.filter((x, i) => (S.quest[x.k] || 0) >= x.goal && !S.quest.claimed.includes(i)).length;
+      const bpOpen = Math.min(30, Math.floor(S.bpXp / BP_XP)) - S.bpClaimed.length;
+      const M = [['units', '🪖', 'Units', 'c-red'], ['summon', '🎲', 'Summon', 'c-purple'], ['classes', '🗡️', 'Classes', 'c-blue'], ['mount', '🐴', 'Mount', 'c-brown'], ['skills', '🌳', 'Skills', 'c-green', skillPts(S)], ['bp', '🎖️', 'Pass', 'c-gold', bpOpen], ['quests', '📜', 'Quests', 'c-teal', q], ['ranked', tierOf(S.rating)[2], 'Ranked', 'c-orange'], ['codes', '🎟️', 'Codes', 'c-pink']];
+      setSide(M.map(([k, e, n, c, badge]) => `<button class="sbtn ${c}" data-m="${k}" title="${n}"><span class="e">${e}</span>${n}${badge > 0 ? `<span class="n">${badge}</span>` : ''}</button>`).join(''), (b) => this.openMenu(b.dataset.m));
+      const cur = this.unitNow();
+      setBar(S.eq.map((u, i) => `<button class="xslot ${u === cur ? 'on' : ''}" data-u="${i}" title="${esc(UNITS[u].n)} — press ${i + 1} to command"><span class="k">${i + 1}</span><img class="pic" src="${unitPic(u)}" alt="">${esc(UNITS[u].n)}</button>`).join('')
+        + (S.eq.length < 4 ? '<button class="xslot" data-m="units" title="Equip more units"><span class="e" style="opacity:.6">＋</span>Equip</button>' : '')
+        + `<div class="xslot info"><b>Lv ${lv.L}</b><div class="meter" style="width:76px;height:7px"><i style="width:${Math.round(lv.into / lv.need * 100)}%"></i></div><span>💎 ${S.gems.toLocaleString('en-US')}</span></div>`,
+      (b) => { if (b.dataset.m) this.openMenu(b.dataset.m); else if (b.dataset.u != null) this.key('Digit' + (+b.dataset.u + 1), true); });
     },
-    saveS() { kvSet('ca', this.S); this.drawMenu(); },
+    saveS() { kvSet('ca', this.S); this.uiSig = ''; this.drawMenu(); },
     give(r, why) {
       const S = this.S;
       if (r.gems) { S.gems += r.gems; }
@@ -728,63 +897,128 @@
       if (r.cos) grantCosmetic(r.cos[0], r.cos[1], why);
     },
     rewardText(r) { return r.gems ? `💎 ${r.gems}` : r.coins ? `🪙 ${r.coins}` : r.unit != null ? `${'⭐'.repeat(UNITS[r.unit].st)} ${UNITS[r.unit].n}` : r.mount != null ? `🐴 ${MOUNTS[r.mount].n}` : r.cos ? `🎩 ${COSMETICS[r.cos[0]].list[r.cos[1]]}` : ''; },
+    chips() {
+      const S = this.S, g = this.g;
+      return `${g && g.ph === 'lobby' ? `<span class="chip" id="caTimer">⚔️ Battle in ${Math.ceil(g.left)}s</span>` : ''}<span class="chip">🎖️ Lv ${levelOf(S.xp).L}</span><span class="chip">💎 ${S.gems.toLocaleString('en-US')}</span>`;
+    },
+    // equip or take off a unit (the army you take into battle: up to 4)
+    equip(i) {
+      const S = this.S, at = S.eq.indexOf(i);
+      if (!S.units[i]) return;
+      if (at >= 0) { if (S.eq.length > 1) S.eq.splice(at, 1); else return toast('You need at least one unit', '#fca5a5'); }
+      else { if (S.eq.length >= 4) S.eq.pop(); S.eq.push(i); }
+      this.sel = Math.min(this.sel, S.eq.length - 1); this.saveS(); this.sendMe(true);
+    },
+    // the full-screen units menu
+    openUnits(still) {
+      const S = this.S, cur = this.unitNow();
+      if (this.uPick == null || !UNITS[this.uPick]) this.uPick = cur;
+      const f = this.uFilter || 'all', pk = this.uPick, PU = UNITS[pk], own = S.units[pk], at = S.eq.indexOf(pk);
+      const keep = (U, i) => f === 'all' || (f === 'owned' ? !!S.units[i] : f === 'ranged' ? !!U.ranged : f === 'cav' ? !!U.cav : !U.ranged && !U.cav);
+      const order = UNITS.map((U, i) => i).filter((i) => keep(UNITS[i], i)).sort((a, b) => (!!S.units[b] - !!S.units[a]) || UNITS[b].st - UNITS[a].st || a - b);
+      const lm = lvlMul(own && own.lvl), stat = (n, v, max, col, txt) => `<div class="ca-stat"><span>${n}</span><div class="meter"><i style="width:${Math.min(100, v / max * 100)}%;background:${col}"></i></div><b>${txt}</b></div>`;
+      const slots = [0, 1, 2, 3].map((k) => {
+        const u = S.eq[k];
+        if (u == null) return `<button class="ca-slot empty" data-pick="-1" title="Pick a unit below, then Equip"><span class="num">${k + 1}</span><span class="plus">＋</span>Empty slot</button>`;
+        const U = UNITS[u];
+        return `<button class="ca-slot ${u === cur ? 'cmd' : ''}" data-pick="${u}" style="--rb:${RAR[U.st][2]}"><span class="num">${k + 1}</span>${u === cur ? '<span class="tag">COMMANDING</span>' : ''}<img src="${unitPic(u)}" alt=""><span class="nm">${esc(U.n)}</span><span class="sub">${stars(U.st)} · Lv ${(S.units[u] || {}).lvl || 1}</span></button>`;
+      }).join('');
+      const cards = order.map((i, n) => {
+        const U = UNITS[i], o = S.units[i], e = S.eq.indexOf(i);
+        return `<div class="ca-card ${pk === i ? 'sel' : ''} ${o ? '' : 'locked'}" style="--rb:${RAR[U.st][2]};animation-delay:${n * 25}ms"><button class="ca-pick" data-pick="${i}" title="${esc(U.n)}"><img src="${unitPic(i)}" alt="">${o ? '' : '<span class="lock">🔒</span>'}<span class="st">${stars(U.st)}</span>${o ? `<span class="lvb">Lv ${o.lvl}</span>` : ''}${e >= 0 ? `<span class="eqb">${e + 1}</span>` : ''}</button>
+          <div class="meta"><b>${esc(U.n)}</b><span style="color:${RAR[U.st][1]}">${RAR[U.st][0]} · ${roleOf(U)}</span>${o ? `<button class="xp-btn ${e >= 0 ? 'alt' : ''}" data-eq="${i}">${e >= 0 ? 'Unequip' : 'Equip'}</button>` : '<button class="xp-btn purple" data-go="summon">🎲 Summon</button>'}</div></div>`;
+      }).join('');
+      const full = S.eq.length >= 4 && at < 0 ? UNITS[S.eq[S.eq.length - 1]].n : '';
+      const btns = !own ? '<button class="xp-btn purple" data-go="summon">🎲 Summon to unlock</button>'
+        : at >= 0 ? `<button class="xp-btn alt" data-eq="${pk}">Unequip</button>${cur !== pk ? `<button class="xp-btn gold" data-cmd="${at}">⚔️ Command</button>` : '<button class="xp-btn gold" disabled>⚔️ Commanding</button>'}`
+          : `<button class="xp-btn" data-eq="${pk}">${full ? `Equip · swaps ${esc(full)}` : 'Equip'}</button>`;
+      const html = `<div class="ca-wrap ${still ? 'still' : ''}"><div>
+        <div class="ca-h">⚔️ Your army <small>— up to 4 units. In battle, press 1–4 in your camp to switch.</small></div>
+        <div class="ca-load">${slots}</div>
+        <div class="ca-h" style="justify-content:space-between">🪖 All units <small>${Object.keys(S.units).length}/${UNITS.length} unlocked</small></div>
+        <div class="xp-tabs">${[['all', 'All'], ['owned', 'Unlocked'], ['melee', '⚔️ Melee'], ['ranged', '🏹 Ranged'], ['cav', '🐎 Cavalry']].map(([k, n]) => `<button data-f="${k}" class="${f === k ? 'on' : ''}">${n}</button>`).join('')}</div>
+        <div class="ca-grid">${cards || '<p class="xp-note">No units here yet.</p>'}</div></div>
+        <aside class="ca-detail" style="--rb:${RAR[PU.st][2]}"><div class="hero"><span class="chip rar" style="color:${RAR[PU.st][1]}">${stars(PU.st)} ${RAR[PU.st][0].toUpperCase()}</span><span class="chip trp">👥 ×${PU.cnt}</span><img src="${unitPic(pk)}" alt=""></div>
+          <div class="body"><h3>${esc(PU.n)}</h3><div class="role">${roleOf(PU)}${own ? ` · Level ${own.lvl}/10` : ' · 🔒 Locked'}</div>
+          ${own ? `<div class="ca-stat"><span>Level</span><div class="meter"><i style="width:${own.lvl * 10}%;background:linear-gradient(180deg,#fde047,#f59e0b)"></i></div><b>${own.lvl}/10</b></div>` : ''}
+          ${stat('❤️ Health', PU.hp * lm, 240, 'linear-gradient(180deg,#86efac,#16a34a)', Math.round(PU.hp * lm))}
+          ${stat('⚔️ Damage', PU.dmg * lm, 30, 'linear-gradient(180deg,#fca5a5,#dc2626)', Math.round(PU.dmg * lm))}
+          ${stat('⚡ Attack speed', 1 / PU.cd, 1.3, 'linear-gradient(180deg,#fde68a,#f59e0b)', (1 / PU.cd).toFixed(1) + '/s')}
+          ${stat('👟 Move speed', PU.sp, 18, 'linear-gradient(180deg,#93c5fd,#2563eb)', PU.sp)}
+          ${stat('🎯 Range', PU.rng, 26, 'linear-gradient(180deg,#d8b4fe,#9333ea)', PU.ranged ? PU.rng : 'Melee')}
+          <p class="xp-note">${PU.armor ? `Armored: takes ${Math.round(PU.armor * 100)}% less damage. ` : ''}${PU.antiCav ? `Deals ×${PU.antiCav} damage to cavalry. ` : ''}${PU.shield ? 'Carries a shield. ' : ''}Duplicates from summons level a unit up: +6% health and damage per level.</p>
+          <div class="ca-btns">${btns}</div></div></aside></div>`;
+      this.menuOpen = 'units';
+      openPanel('🪖 Units', html, (b) => {
+        if (b.dataset.f) { this.uFilter = b.dataset.f; this.openUnits(true); return; }
+        if (b.dataset.pick != null) { const i = +b.dataset.pick; if (i >= 0) this.uPick = i; this.openUnits(true); return; }
+        if (b.dataset.go) { this.openMenu(b.dataset.go); return; }
+        if (b.dataset.cmd != null) { this.key('Digit' + (+b.dataset.cmd + 1), true); this.openUnits(true); return; }
+        if (b.dataset.eq != null) { const i = +b.dataset.eq; this.uPick = i; this.equip(i); this.openUnits(true); }
+      }, () => (this.menuOpen = null), { full: true, extra: this.chips() });
+    },
+    // the full-screen summon banner
+    openSummon(got) {
+      const S = this.S;
+      const html = `<div class="ca-banner"><div><span class="chip">🎲 STANDARD BANNER</span><h2>Summon Units</h2><p>Every 10-summon has at least one ★4 or better. Duplicates level your units up. Earn gems in battles, quests, codes and the battle pass.</p>
+          <div class="ca-rates">${[[2, 55], [3, 30], [4, 12], [5, 3]].map(([s, p]) => `<span class="chip" style="color:${RAR[s][1]}">${stars(s)} ${RAR[s][0]} · ${p}%</span>`).join('')}</div>
+          <div class="ca-sumbtns"><button class="xp-btn" data-n="1" ${S.gems < 50 ? 'disabled' : ''}>Summon ×1 · 💎 50</button><button class="xp-btn gold" data-n="10" ${S.gems < 450 ? 'disabled' : ''}>Summon ×10 · 💎 450</button><button class="xp-btn alt" data-go="units">🪖 My units</button></div></div>
+          <div class="feat-u"><img src="${unitPic(8)}" alt=""><img src="${unitPic(9)}" alt=""></div></div>
+        <div id="caSum">${got ? `<div class="ca-h">✨ You got</div><div class="xp-grid">${got.map(([u, isNew], n) => `<div class="xp-card ca-res r${UNITS[u].st}" style="--rb:${RAR[UNITS[u].st][2]};animation-delay:${n * 90}ms"><div class="pic"><img src="${unitPic(u)}" alt="">${isNew ? '<span class="new">NEW!</span>' : ''}</div><div class="txt"><b>${esc(UNITS[u].n)}</b><span style="color:${RAR[UNITS[u].st][1]}">${stars(UNITS[u].st)} ${RAR[UNITS[u].st][0]}</span><span>${isNew ? 'Unlocked!' : `Level up → Lv ${S.units[u].lvl}`}</span></div></div>`).join('')}</div>` : ''}</div>`;
+      this.menuOpen = 'summon';
+      openPanel('🎲 Summon', html, (b) => {
+        if (b.dataset.go) { this.openMenu(b.dataset.go); return; }
+        const n = +b.dataset.n, cost = n === 10 ? 450 : 50; if (!n || S.gems < cost) return;
+        S.gems -= cost; const res = [];
+        for (let k = 0; k < n; k++) {
+          const roll = Math.random(); let st = roll < 0.03 ? 5 : roll < 0.15 ? 4 : roll < 0.45 ? 3 : 2;
+          if (n === 10 && k === 9 && !res.some(([u]) => UNITS[u].st >= 4)) st = Math.random() < 0.2 ? 5 : 4;
+          const pool = UNITS.map((u, i) => i).filter((i) => UNITS[i].st === st), u = pool[Math.floor(Math.random() * pool.length)];
+          res.push([u, !S.units[u]]); this.give({ unit: u });
+        }
+        this.saveS(); this.openSummon(res);
+        const best = Math.max(...res.map(([u]) => UNITS[u].st));
+        if (best >= 4) { puffAt(P.x, P.y + 4, P.z, CONFETTI, 40); toast(best === 5 ? '🌟 LEGENDARY!' : '✨ Epic unit!', '#fde68a'); }
+      }, () => (this.menuOpen = null), { full: true, extra: this.chips() });
+    },
     openMenu(which) {
-      const S = this.S, lv = levelOf(S.xp), self = this;
+      if (which === 'units') return this.openUnits();
+      if (which === 'summon') return this.openSummon();
+      const S = this.S, lv = levelOf(S.xp);
       const reopen = () => this.openMenu(which);
       let title = '', html = '', onClick = null;
-      if (which === 'units') {
-        title = '🪖 Units';
-        html = `<p class="xp-note">Equip up to 4 units; in battle press 1–4 in your camp to switch. Duplicates from summons level a unit up (+6% health and damage per level).</p><div class="xp-grid">${UNITS.map((U, i) => { const own = S.units[i], on = S.eq.indexOf(i); return `<div class="xp-card ${on >= 0 ? 'on' : ''}" style="${own ? '' : 'opacity:.45'}"><b>${U.n}</b><span>${'⭐'.repeat(U.st)}${own ? ` · Lv ${own.lvl}` : ''}</span><span>❤️ ${Math.round(U.hp * lvlMul(own && own.lvl))} · ⚔️ ${Math.round(U.dmg * lvlMul(own && own.lvl))} · ×${U.cnt}</span><span>${U.ranged ? '🏹 ranged' : U.cav ? '🐎 cavalry' : U.antiCav ? '🔱 anti-cavalry' : U.armor ? '🛡️ armored' : '⚔️ melee'}</span>${own ? `<button class="xp-btn ${on >= 0 ? 'alt' : ''}" data-eq="${i}">${on >= 0 ? `Slot ${on + 1} · Remove` : 'Equip'}</button>` : '<span>Summon to unlock</span>'}</div>`; }).join('')}</div>`;
-        onClick = (b) => { const i = +b.dataset.eq, at = S.eq.indexOf(i); if (at >= 0) { if (S.eq.length > 1) S.eq.splice(at, 1); } else { if (S.eq.length >= 4) S.eq.pop(); S.eq.push(i); } this.sel = Math.min(this.sel, S.eq.length - 1); this.saveS(); this.sendMe(true); reopen(); };
-      } else if (which === 'summon') {
-        title = '🎲 Summon — Standard Banner';
-        html = `<div class="xp-row"><span>💎 <b>${S.gems}</b> gems</span><span>★2 55% · ★3 30% · ★4 12% · ★5 3%</span></div><p class="xp-note">Every 10-summon has at least one ★4 or better. Earn gems in battles, quests, codes and the battle pass.</p>
-          <div style="display:flex;gap:8px"><button class="xp-btn" data-n="1" style="flex:1" ${S.gems < 50 ? 'disabled' : ''}>Summon ×1 — 💎50</button><button class="xp-btn gold" data-n="10" style="flex:1" ${S.gems < 450 ? 'disabled' : ''}>Summon ×10 — 💎450</button></div><div id="caSum" style="margin-top:10px"></div>`;
-        onClick = (b) => {
-          const n = +b.dataset.n, cost = n === 10 ? 450 : 50; if (S.gems < cost) return;
-          S.gems -= cost; const got = [];
-          for (let k = 0; k < n; k++) {
-            const roll = Math.random(); let st = roll < 0.03 ? 5 : roll < 0.15 ? 4 : roll < 0.45 ? 3 : 2;
-            if (n === 10 && k === 9 && !got.some((u) => UNITS[u].st >= 4)) st = Math.random() < 0.2 ? 5 : 4;
-            const pool = UNITS.map((u, i) => i).filter((i) => UNITS[i].st === st), u = pool[Math.floor(Math.random() * pool.length)];
-            got.push(u); this.give({ unit: u });
-          }
-          this.saveS(); reopen();
-          const best = Math.max(...got.map((u) => UNITS[u].st));
-          $('#caSum').innerHTML = `<div class="xp-grid">${got.map((u) => `<div class="xp-card" style="${UNITS[u].st >= 4 ? 'border-color:#facc15' : ''}"><b>${UNITS[u].n}</b><span>${'⭐'.repeat(UNITS[u].st)}</span><span>Lv ${S.units[u].lvl}</span></div>`).join('')}</div>`;
-          if (best >= 4) { puffAt(P.x, P.y + 4, P.z, CONFETTI, 40); toast(best === 5 ? '🌟 LEGENDARY!' : '✨ Epic unit!', '#fde68a'); }
-        };
-      } else if (which === 'classes') {
+      if (which === 'classes') {
         title = '🗡️ Classes';
-        html = `<div class="xp-grid">${CLASSES.map((C, i) => `<div class="xp-card ${S.cls === i ? 'on' : ''}"><div class="big">${C.e}</div><b>${C.n}</b><span>❤️ ${C.hp} · ⚔️ ${C.dmg} · ${C.cd}s</span><span>Block ${Math.round(C.block * 100)}% · ${C.hits > 2 ? 'hits a crowd' : C.hits === 1 ? 'one fast target' : 'two targets'}</span>${lv.L >= C.lvl ? `<button class="xp-btn ${S.cls === i ? 'alt' : ''}" data-c="${i}">${S.cls === i ? 'Equipped' : 'Equip'}</button>` : `<span>Unlocks at level ${C.lvl}</span>`}</div>`).join('')}</div>`;
+        html = `<p class="xp-note">Your class is how your hero fights. More unlock as your commander levels up.</p><div class="xp-grid">${CLASSES.map((C, i) => `<div class="xp-card ${S.cls === i ? 'on' : ''}" style="${lv.L >= C.lvl ? '' : 'opacity:.6'}"><div class="big">${C.e}</div><b>${C.n}</b><span>❤️ ${C.hp} · ⚔️ ${C.dmg} · ${C.cd}s</span><span>🛡️ Block ${Math.round(C.block * 100)}% · ${C.hits > 2 ? 'hits a crowd' : C.hits === 1 ? 'one fast target' : 'two targets'}</span>${lv.L >= C.lvl ? `<button class="xp-btn ${S.cls === i ? 'alt' : ''}" data-c="${i}">${S.cls === i ? 'Equipped' : 'Equip'}</button>` : `<button class="xp-btn alt" disabled>🔒 Level ${C.lvl}</button>`}</div>`).join('')}</div>`;
         onClick = (b) => { S.cls = +b.dataset.c; this.saveS(); this.sendMe(true); reopen(); };
       } else if (which === 'mount') {
         title = '🐴 Mounts';
-        html = `<p class="xp-note">Press G in battle to mount or dismount. Mounted: much faster, extra health, a charge bonus on hits. On foot: you can roll (Q).</p><div class="xp-grid">${MOUNTS.map((M, i) => { const own = S.mounts.includes(i); return `<div class="xp-card ${S.mount === i ? 'on' : ''}"><div class="big">${M.e}</div><b>${M.n}</b><span>Speed ${M.sp} · +${M.hp} health</span>${own ? `<button class="xp-btn ${S.mount === i ? 'alt' : ''}" data-mo="${i}">${S.mount === i ? 'Riding' : 'Ride'}</button>` : M.gems < 0 ? '<span>Battle pass level 25</span>' : `<button class="xp-btn gold" data-buy="${i}" ${S.gems < M.gems ? 'disabled' : ''}>💎 ${M.gems}</button>`}</div>`; }).join('')}</div>`;
+        html = `<p class="xp-note">Press <kbd>G</kbd> in battle to mount or dismount. Mounted: much faster, extra health, a charge bonus on hits. On foot you can roll (<kbd>Q</kbd>).</p><div class="xp-grid">${MOUNTS.map((M, i) => { const own = S.mounts.includes(i); return `<div class="xp-card ca-mount ${S.mount === i ? 'on' : ''}"><div class="big"><img src="${mountPic(i)}" alt=""></div><b>${M.e} ${M.n}</b><span>👟 Speed ${M.sp} · ❤️ +${M.hp}</span>${own ? `<button class="xp-btn ${S.mount === i ? 'alt' : ''}" data-mo="${i}">${S.mount === i ? 'Riding' : 'Ride'}</button>` : M.gems < 0 ? '<button class="xp-btn alt" disabled>🎖️ Pass Lv 25</button>' : `<button class="xp-btn gold" data-buy="${i}" ${S.gems < M.gems ? 'disabled' : ''}>💎 ${M.gems}</button>`}</div>`; }).join('')}</div>`;
         onClick = (b) => { if (b.dataset.mo) S.mount = +b.dataset.mo; else { const i = +b.dataset.buy; if (S.gems < MOUNTS[i].gems) return; S.gems -= MOUNTS[i].gems; S.mounts.push(i); S.mount = i; } this.saveS(); this.sendMe(true); reopen(); };
       } else if (which === 'skills') {
         title = '🌳 Skill Tree';
-        html = `<div class="xp-row"><span>Skill points: <b>${skillPts(S)}</b></span><span>1 point per commander level</span></div>${SKILLS.map((k) => { const have = S.skills[k.k] || 0; return `<div class="xp-row"><span>${k.e} <b>${k.n}</b> ${'I'.repeat(have) || '—'}<br><small style="color:#9ca3af">${k.d} per rank (max III)</small></span><button class="xp-btn" data-sk="${k.k}" ${have >= 3 || skillPts(S) < 1 ? 'disabled' : ''}>${have >= 3 ? 'Max' : `Learn ${'I'.repeat(have + 1)}`}</button></div>`; }).join('')}<button class="xp-btn red" data-reset="1" style="width:100%;margin-top:6px" ${S.gems < 100 || !Object.keys(S.skills).length ? 'disabled' : ''}>Reset skills — 💎100</button>`;
+        html = `<div class="xp-row"><span>✨ Skill points: <b style="font-size:18px;color:#fde047">${skillPts(S)}</b></span><small style="color:var(--muted)">1 per commander level</small></div>${SKILLS.map((k) => { const have = S.skills[k.k] || 0; return `<div class="xp-row"><span style="display:flex;gap:10px;align-items:center"><span class="ca-ico">${k.e}</span><span><b>${k.n}</b><span class="ca-pips">${[0, 1, 2].map((r) => `<i class="${r < have ? 'on' : ''}"></i>`).join('')}</span><br><small style="color:var(--muted)">${k.d} per rank</small></span></span><button class="xp-btn" data-sk="${k.k}" ${have >= 3 || skillPts(S) < 1 ? 'disabled' : ''}>${have >= 3 ? 'Max' : 'Learn'}</button></div>`; }).join('')}<button class="xp-btn red" data-reset="1" style="width:100%;margin-top:8px" ${S.gems < 100 || !Object.keys(S.skills).length ? 'disabled' : ''}>Reset skills · 💎 100</button>`;
         onClick = (b) => { if (b.dataset.reset) { if (S.gems < 100) return; S.gems -= 100; S.skills = {}; } else { const k = b.dataset.sk; if (skillPts(S) < 1 || (S.skills[k] || 0) >= 3) return; S.skills[k] = (S.skills[k] || 0) + 1; } this.saveS(); this.sendMe(true); reopen(); };
       } else if (which === 'bp') {
-        title = '🎖️ Battle Pass — Season 1';
+        title = '🎖️ Battle Pass · Season 1';
         const bl = Math.min(30, Math.floor(S.bpXp / BP_XP));
-        html = `<div class="xp-row"><span>Level <b>${bl}</b>/30</span><span>${S.bpXp % BP_XP}/${BP_XP} XP</span></div><p class="xp-note">Battle XP fills the pass. Claim each level's reward.</p>${BP.map((r, i) => { const L = i + 1, got = S.bpClaimed.includes(L); return `<div class="xp-row" style="${L % 5 === 0 ? 'border:1px solid #facc15' : ''}"><span>Level ${L} · ${this.rewardText(r)}</span><button class="xp-btn ${got ? 'alt' : 'gold'}" data-bp="${L}" ${got || bl < L ? 'disabled' : ''}>${got ? 'Claimed' : bl >= L ? 'Claim' : '🔒'}</button></div>`; }).join('')}`;
+        html = `<div class="xp-row" style="display:block"><div style="display:flex;justify-content:space-between"><span>Level <b style="font-size:18px">${bl}</b>/30</span><small style="color:var(--muted)">${S.bpXp % BP_XP}/${BP_XP} XP</small></div><div class="meter" style="margin-top:8px"><i style="width:${bl >= 30 ? 100 : (S.bpXp % BP_XP) / BP_XP * 100}%;background:linear-gradient(180deg,#fde047,#f59e0b)"></i></div></div><p class="xp-note">Battle XP fills the pass. Claim each level’s reward.</p>${BP.map((r, i) => { const L = i + 1, got = S.bpClaimed.includes(L), open = bl >= L && !got; return `<div class="xp-row" style="${L % 5 === 0 ? 'border-color:rgba(250,204,21,.55);background:linear-gradient(180deg,#3a3214,#221d0c)' : ''}"><span style="display:flex;align-items:center;gap:10px"><span class="ca-lv ${got ? 'got' : open ? 'open' : ''}">${got ? '✓' : L}</span>${this.rewardText(r)}</span><button class="xp-btn ${got ? 'alt' : 'gold'}" data-bp="${L}" ${!open ? 'disabled' : ''}>${got ? 'Claimed' : open ? 'Claim' : '🔒'}</button></div>`; }).join('')}`;
         onClick = (b) => { const L = +b.dataset.bp; if (S.bpClaimed.includes(L) || Math.floor(S.bpXp / BP_XP) < L) return; S.bpClaimed.push(L); this.give(BP[L - 1], `battle pass level ${L}`); toast(`🎁 ${this.rewardText(BP[L - 1])}`, '#fde68a'); this.saveS(); reopen(); };
       } else if (which === 'quests') {
         title = '📜 Daily Quests';
-        html = QUESTS.map((q, i) => { const v = Math.min(q.goal, S.quest[q.k] || 0), done = v >= q.goal, got = S.quest.claimed.includes(i); return `<div class="xp-row"><span><b>${q.n}</b><br><small style="color:#9ca3af">${v}/${q.goal} · 💎 ${q.gems}</small></span><button class="xp-btn gold" data-q="${i}" ${!done || got ? 'disabled' : ''}>${got ? 'Done' : 'Claim'}</button></div>`; }).join('') + '<p class="xp-note">New quests every day.</p>';
+        html = QUESTS.map((q, i) => { const v = Math.min(q.goal, S.quest[q.k] || 0), done = v >= q.goal, got = S.quest.claimed.includes(i); return `<div class="xp-row" style="display:block"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><span><b>${q.n}</b><br><small style="color:var(--muted)">${v}/${q.goal} · reward 💎 ${q.gems}</small></span><button class="xp-btn gold" data-q="${i}" ${!done || got ? 'disabled' : ''}>${got ? '✓ Done' : 'Claim'}</button></div><div class="meter" style="margin-top:8px"><i style="width:${v / q.goal * 100}%"></i></div></div>`; }).join('') + '<p class="xp-note">New quests every day.</p>';
         onClick = (b) => { const i = +b.dataset.q, q = QUESTS[i]; if (S.quest.claimed.includes(i) || (S.quest[q.k] || 0) < q.goal) return; S.quest.claimed.push(i); S.gems += q.gems; toast(`+💎${q.gems}`, '#fde68a'); this.saveS(); reopen(); };
       } else if (which === 'ranked') {
         const t = tierOf(S.rating);
         title = '🏆 Ranked';
-        html = `<div class="xp-row"><span>${t[2]} <b>${t[1]}</b></span><span>Rating <b>${S.rating}</b></span></div><div class="xp-row"><span>Wins ${S.wins}</span><span>Losses ${S.losses}</span></div><p class="xp-note">Battles on servers 5 and 6 are ranked: a win is +25 rating, a loss −20. Tiers: ${TIERS.map((x) => `${x[2]} ${x[1]} ${x[0]}`).join(' · ')}.</p>`;
+        html = `<div class="ca-tier"><span class="e">${t[2]}</span><span><b>${t[1]}</b><small style="color:var(--muted)">Rating ${S.rating} · ${S.wins}W ${S.losses}L</small></span></div><div class="ca-ladder">${TIERS.map((x) => `<span class="${x === t ? 'on' : ''}">${x[2]}<br>${x[1]}<br>${x[0]}</span>`).join('')}</div><p class="xp-note">Battles on servers 5 and 6 are ranked: a win is +25 rating, a loss −20.</p>`;
       } else if (which === 'codes') {
         title = '🎟️ Codes';
-        html = `<p class="xp-note">Have a code? Try BLOXVERSE, COMMANDER or UPDATE4.</p><div style="display:flex;gap:6px"><input id="caCode" maxlength="20" placeholder="Enter a code" style="flex:1;border-radius:8px;border:0;padding:9px;background:#2c2f32;color:#fff;font:600 14px inherit"><button class="xp-btn" data-code="1">Redeem</button></div><p class="xp-note" id="caCodeMsg"></p>`;
-        onClick = (b) => { const c = String($('#caCode').value || '').trim().toUpperCase(), r = CODES[c]; const msg = $('#caCodeMsg'); if (!r) { msg.textContent = 'That code doesn’t work.'; return; } if (S.codes.includes(c)) { msg.textContent = 'Already redeemed.'; return; } S.codes.push(c); this.give(r, `code ${c}`); this.saveS(); msg.textContent = `Redeemed: ${this.rewardText(r)}!`; };
+        html = `<p class="xp-note">Have a code? Try BLOXVERSE, COMMANDER or UPDATE4.</p><div style="display:flex;gap:8px"><input id="caCode" class="ca-input" maxlength="20" placeholder="Enter a code"><button class="xp-btn purple" data-code="1">Redeem</button></div><p class="xp-note" id="caCodeMsg"></p>`;
+        onClick = (b) => { const c = String($('#caCode').value || '').trim().toUpperCase(), r = CODES[c]; const msg = $('#caCodeMsg'); if (!r) { msg.textContent = '❌ That code doesn’t work.'; return; } if (S.codes.includes(c)) { msg.textContent = 'Already redeemed.'; return; } S.codes.push(c); this.give(r, `code ${c}`); this.saveS(); msg.textContent = `✅ Redeemed: ${this.rewardText(r)}!`; };
       }
-      openPanel(title, html, onClick);
+      this.menuOpen = which;
+      openPanel(title, html, onClick, () => (this.menuOpen = null), { extra: `<span class="chip">💎 ${S.gems.toLocaleString('en-US')}</span>` });
       if (which === 'codes') setTimeout(() => { const i = $('#caCode'); if (i) { i.focus(); i.addEventListener('keydown', (e) => e.stopPropagation()); } }, 0);
     },
     // after a battle: rewards for me
@@ -797,20 +1031,29 @@
       S.xp += xp; S.bpXp += xp; S.gems += gems;
       S.quest.kills = (S.quest.kills || 0) + (s.k || 0); S.quest.caps = (S.quest.caps || 0) + (s.cap || 0); if (win) S.quest.wins = (S.quest.wins || 0) + 1;
       let rt = '';
-      if (g.rk) { const d = win ? 25 : -20; S.rating = Math.max(0, S.rating + d); rt = ` · rating ${d > 0 ? '+' : ''}${d}`; }
+      if (g.rk) { const d = win ? 25 : -20; S.rating = Math.max(0, S.rating + d); rt = `${d > 0 ? '+' : ''}${d}`; }
       if (win) S.wins++; else S.losses++;
       this.saveS();
-      earn(win ? 40 : 15, win ? 'won a battle' : 'fought a battle');
-      const after = levelOf(S.xp).L;
-      openPanel(win ? '🏆 VICTORY' : '💀 DEFEAT', `<div class="xp-row"><span>Troops defeated</span><b>${s.k || 0}</b></div><div class="xp-row"><span>Heroes defeated</span><b>${s.hk || 0}</b></div><div class="xp-row"><span>Points captured</span><b>${s.cap || 0}</b></div><div class="xp-row"><span>Rewards</span><b>+${xp} XP · 💎 ${gems}${rt}</b></div>${after > before ? `<p class="xp-note" style="color:#fde68a">⬆️ Level ${after}! +${after - before} skill point${after - before > 1 ? 's' : ''}</p>` : ''}<p class="xp-note">MVPs are on the podium in the courtyard.</p>`, null);
+      const coins = win ? 40 : 15;
+      earn(coins, win ? 'won a battle' : 'fought a battle');
+      const L = levelOf(S.xp), after = L.L;
+      const tile = (e, n, v, k) => `<div class="ca-tile" style="animation-delay:${k * 80}ms"><span class="e">${e}</span><b>${v}</b><span>${n}</span></div>`;
+      const html = `<div class="ca-end"><div class="ca-big ${win ? 'win' : 'lose'}">${win ? 'VICTORY' : 'DEFEAT'}</div>
+        <p>${g.win === 0 ? '⚔️ The attackers captured the base' : '🛡️ The defenders held their ground'} · you fought for the ${TEAM_NAME[I.team].toLowerCase()}</p>
+        <div class="ca-tiles">${tile('☠️', 'Troops defeated', s.k || 0, 0)}${tile('👑', 'Heroes defeated', s.hk || 0, 1)}${tile('🚩', 'Points captured', s.cap || 0, 2)}${tile('⭐', 'Score', s.score || 0, 3)}</div>
+        <div class="ca-rew"><span class="chip">✨ +${xp} XP</span><span class="chip">💎 +${gems}</span><span class="chip"><span class="coin sm">B</span> +${coins}</span>${rt ? `<span class="chip">🏆 ${rt} rating</span>` : ''}</div>
+        <div class="ca-lvl">${after > before ? `<b style="color:#fde047">⬆️ Level ${after}! +${after - before} skill point${after - before > 1 ? 's' : ''}</b>` : `Commander level ${after}`}<div class="meter"><i style="width:${Math.round(L.into / L.need * 100)}%;background:linear-gradient(180deg,#fde047,#f59e0b)"></i></div></div>
+        <button class="xp-btn" data-ok="1" style="font-size:18px;padding:14px 40px">Continue</button><p class="xp-note">The MVPs are on the podium in the courtyard.</p></div>`;
+      this.menuOpen = 'end';
+      openPanel(win ? '🏆 Victory' : '💀 Defeat', html, (b) => { if (b.dataset.ok) closePanel(); }, () => (this.menuOpen = null), { full: true, extra: this.chips() });
       this.lobbyShown = true;
       if (win) puffAt(P.x, P.y + 4, P.z, CONFETTI, 50);
     },
     hud() {
       const g = this.g; if (!g) return '';
-      if (g.ph !== 'battle' || this.ci < 0) { const lv = levelOf(this.S.xp); return `Level ${lv.L} (${lv.into}/${lv.need} XP) · 💎 ${this.S.gems} · Commanding ${UNITS[this.unitNow()].n}`; }
+      if (g.ph !== 'battle' || this.ci < 0) return `🪖 Commanding <b>${esc(UNITS[this.unitNow()].n)}</b> <small>press 1–4 to switch</small>`;
       const s = (g.sc || [])[this.ci] || {};
-      return `${TEAM_NAME[this.team] || ''} · ☠️ ${s.k || 0} · 👑 ${s.hk || 0} · Tab: scoreboard`;
+      return `<span style="color:${TEAM_CSS[this.team] || '#fff'}">${TEAM_NAME[this.team] || ''}</span> · ☠️ ${s.k || 0} · 👑 ${s.hk || 0} <small>Tab: scoreboard</small>`;
     },
     statOf(pr, isMe, peer) { const g = this.g; if (!g || !g.cm) return '—'; const ci = g.cm.findIndex((c) => (Array.isArray(c) ? c[1] : c.id) === peer); return ci >= 0 && g.sc && g.sc[ci] ? g.sc[ci].score : '—'; },
     sortKey(pr, isMe, peer) { const v = this.statOf(pr, isMe, peer); return typeof v === 'number' ? v : -1; },

@@ -91,7 +91,7 @@
   const OWN_COL = [0x3b82f6, 0xef4444, 0x22c55e, 0xf59e0b];
 
   const TDS = {
-    id: 'tds', code: 'ts', rank: 3, name: 'Tower Defense Simulator', emoji: '🗼', max: 4, stat: 'Cash', killY: -30, banner: true, camDist: 40,
+    id: 'tds', code: 'ts', genre: 'Tower Defense', rank: 3, name: 'Tower Defense Simulator', emoji: '🗼', max: 4, stat: 'Cash', killY: -30, banner: true, camDist: 40,
     color: 'linear-gradient(135deg,#334155,#16a34a)',
     desc: 'Co-op tower defense for up to 4. Vote a difficulty, then place Scouts, Snipers, Demomen, Farms and more along the path and upgrade them. Hidden, armored and boss enemies; unlock more towers with Blox Coins.',
     welcome: 'Vote a difficulty and get ready!',
@@ -389,7 +389,7 @@
       const w = m.w, d = TW[w.t], g = this.g, mine = w.o === this.myIdx(g), cash = this.myCash(g), L = w.lvl;
       const stat = (k, f) => (d[k] ? `<div class="xp-row"><span>${f}</span><span>${d[k][L]}${L < 4 ? ` → <b style="color:#86efac">${d[k][L + 1]}</b>` : ''}</span></div>` : '');
       const owner = g.pl && g.pl[w.o] ? nameOf(g.pl[w.o]) : '?';
-      const html = `<div class="xp-row"><span>Owner</span><b>${esc(owner)}</b></div><div class="xp-row"><span>Level</span><b>${L}/4</b></div>
+      const html = `<div class="xp-row"><span>👤 Owner</span><b>${esc(owner)}</b></div><div class="xp-row" style="display:block"><div style="display:flex;justify-content:space-between"><span>⭐ Level</span><b>${L}/4</b></div><div class="meter" style="margin-top:8px"><i style="width:${L * 25}%;background:linear-gradient(180deg,#fde047,#f59e0b)"></i></div></div>
         ${stat('dmg', 'Damage')}${stat('rate', 'Shots per second')}${stat('range', 'Range')}${stat('income', 'Income per wave')}${stat('buff', 'Firerate buff')}${stat('slow', 'Slow')}
         ${d.hid != null ? `<div class="xp-row"><span>Hidden detection</span><b>${L >= d.hid ? '✅ Yes' : d.hid > 4 ? '❌ Never' : `at level ${d.hid}`}</b></div>` : ''}
         ${mine ? `<div class="xp-row"><span>Targeting</span><span>${TGT.map((n, i) => `<button class="xp-btn ${w.tg === i ? '' : 'alt'}" data-tg="${i}" style="padding:5px 7px">${n}</button>`).join(' ')}</span></div>
@@ -405,10 +405,10 @@
     },
     openLobby() {
       const S = this.save, coins = W.coins;
-      const html = `<p class="xp-note">Vote for a difficulty and press Ready. The game starts when everyone is ready (or the timer runs out).</p>
+      const html = `<p class="xp-note">🗳️ Vote for a difficulty and press Ready. The game starts when everyone is ready (or the timer runs out).</p>
         <div class="xp-tabs">${Object.entries(DIFF).map(([k, d]) => `<button data-vote="${k}" class="${this.vote === k ? 'on' : ''}">${d.n} · ${d.waves} waves</button>`).join('')}</div>
-        <button class="xp-btn ${this.ready ? 'alt' : ''}" data-ready="1" style="width:100%">${this.ready ? '✅ Ready' : 'Ready'}</button>
-        <h4 style="margin:12px 0 6px">Loadout (pick 5)</h4>
+        <button class="xp-btn ${this.ready ? 'alt' : ''}" data-ready="1" style="width:100%;padding:13px;font-size:17px">${this.ready ? '✅ Ready' : 'Ready'}</button>
+        <h4>🗼 Loadout <small style="color:var(--muted);font:700 12px var(--fb)">— pick 5 towers</small></h4>
         <div class="xp-grid">${TW.map((d, t) => { const has = S.unlocked.includes(t), on = S.loadout.includes(t); return `<div class="xp-card ${on ? 'on' : ''}"><div class="big">${d.e}</div><b>${d.n}</b><span>${fmt(d.price)}${d.hid != null && d.hid <= 4 ? ' · 👁️' : ''}</span>${has ? `<button class="xp-btn ${on ? 'alt' : ''}" data-lo="${t}">${on ? 'Remove' : 'Equip'}</button>` : `<button class="xp-btn gold" data-unlock="${t}" ${coins < d.unlock ? 'disabled' : ''}>🪙 ${d.unlock}</button>`}</div>`; }).join('')}</div>`;
       openPanel('🗼 Tower Defense Simulator', html, (b) => {
         if (b.dataset.vote) { this.vote = b.dataset.vote; send({ vt: this.vote }); }
