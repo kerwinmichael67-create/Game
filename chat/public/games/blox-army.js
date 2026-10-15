@@ -123,8 +123,6 @@
   const css = document.createElement('style');
   css.textContent = `
   .ca-wrap{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:22px;max-width:1260px;margin:0 auto;align-items:start}
-  @media (max-width:920px){.ca-wrap{grid-template-columns:1fr}.ca-detail{position:static}}
-  @media (max-width:600px){.ca-load{grid-template-columns:repeat(2,1fr)}.ca-banner{grid-template-columns:1fr}.ca-banner .feat-u{display:none}}
   .ca-h{display:flex;align-items:center;gap:10px;margin:0 0 10px;font:600 13px var(--fh);letter-spacing:.14em;text-transform:uppercase;color:#cbd5e1}
   .ca-h small{letter-spacing:0;text-transform:none;color:var(--dim);font:700 12.5px var(--fb)}
   .ca-load{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
@@ -240,6 +238,9 @@
   .ca-rew .chip{height:40px;font-size:17px;padding:0 16px}
   .ca-lvl{max-width:460px;margin:0 auto 22px;text-align:left;font:700 13px var(--fb);color:var(--muted)}
   .ca-lvl .meter{height:14px;margin-top:6px}
+  /* narrow screens (these come last so they win) */
+  @media (max-width:920px){.ca-wrap{grid-template-columns:1fr}.ca-detail{position:static}}
+  @media (max-width:600px){.ca-load{grid-template-columns:repeat(2,1fr)}.ca-slot{height:140px}.ca-banner{grid-template-columns:1fr;padding:20px}.ca-banner h2{font-size:30px}.ca-banner .feat-u{display:none}.ca-grid{grid-template-columns:repeat(2,1fr)}.ca-hp{width:min(440px,92vw)}}
   `;
   document.head.append(css);
 
