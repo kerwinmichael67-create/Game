@@ -12,7 +12,7 @@
     --fh:"Fredoka","Nunito","Segoe UI",system-ui,sans-serif;
     --fb:"Nunito","Segoe UI",system-ui,-apple-system,sans-serif;
     --bg:#0c0f15;
-    --glass:linear-gradient(180deg,rgba(34,40,53,.86),rgba(17,21,29,.9));
+    --glass:linear-gradient(180deg,rgba(34,40,53,.9),rgba(17,21,29,.92));
     --solid:linear-gradient(180deg,#222937,#151a24);
     --line:rgba(255,255,255,.09);--line2:rgba(255,255,255,.16);
     --hi:inset 0 1px 0 rgba(255,255,255,.1);
@@ -38,7 +38,7 @@
   /* ---------- the in-game HUD ---------- */
   #hud{position:fixed;inset:0;pointer-events:none;z-index:2}
   #hud[hidden]{display:none}
-  .glass{background:var(--glass);border:1px solid var(--line);box-shadow:var(--drop),var(--hi);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+  .glass{background:var(--glass);border:1px solid var(--line);box-shadow:var(--drop),var(--hi)}
   #topbar{position:absolute;left:12px;top:12px;display:flex;gap:8px;align-items:center;pointer-events:auto}
   #menuBtn{width:46px;height:46px;border-radius:14px;color:#fff;cursor:pointer;display:grid;place-items:center;padding:0;transition:transform .12s}
   #menuBtn:hover{transform:scale(1.06)}
@@ -167,7 +167,7 @@
   #toast{position:absolute;left:50%;top:32%;transform:translate(-50%,-50%);font:700 36px/1.15 var(--fh);letter-spacing:.01em;-webkit-text-stroke:7px rgba(10,12,18,.75);paint-order:stroke fill;text-shadow:0 5px 0 rgba(0,0,0,.35);opacity:0;transition:opacity .3s;text-align:center;white-space:nowrap}
   #toast.pop{animation:toastPop .35s ease-out}
   #chatlog{position:absolute;left:12px;top:68px;width:min(380px,56vw);display:flex;flex-direction:column;gap:3px;font:700 13.5px/1.35 var(--fb)}
-  #chatlog div{flex:none;background:rgba(12,15,21,.55);padding:4px 10px;border-radius:9px;transition:opacity 1s;text-shadow:0 1px 0 #000;align-self:flex-start;max-width:100%;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+  #chatlog div{flex:none;background:rgba(12,15,21,.62);padding:4px 10px;border-radius:9px;transition:opacity 1s;text-shadow:0 1px 0 #000;align-self:flex-start;max-width:100%}
   #chatlog div.old{opacity:0}
   #chatbox{position:absolute;left:12px;top:68px;width:min(380px,56vw);pointer-events:auto;display:none;z-index:2}
   #chatbox input{width:100%;padding:11px 14px;border:2px solid rgba(255,255,255,.22);border-radius:12px;background:rgba(12,15,21,.9);color:#fff;font:700 14px var(--fb);outline:none;box-shadow:var(--drop)}
@@ -1770,7 +1770,7 @@ function frame(t) {
   camera.lookAt(tx, ty, tz);
   netTick(t);
   if (t > hudAt) { hudAt = t + 200; drawHud(); }
-  renderer.render(scene, camera);
+  if (!fullOpen()) renderer.render(scene, camera); // a full-screen menu hides the world: skip drawing it
 }
 function drawHud() {
   const rows = crew().map((c) => ({ c, name: c.isMe ? Net.name : String(c.pr.nm || 'Player').slice(0, 20), v: exp.statOf(c.pr, c.isMe, c.peer), k: exp.sortKey(c.pr, c.isMe, c.peer) })).sort((a, b) => b.k - a.k);
