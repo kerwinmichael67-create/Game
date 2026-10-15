@@ -27,11 +27,11 @@
   const CALLS = !ARTIFACT && typeof window.Calls === 'object'; // claude.ai pages can't use the camera, mic or WebRTC
   // The popped-out chat (⧉): a second copy of the app in a small window, signed in the same way. While
   // one is open it says so every couple of seconds, and this tab stays quiet so pings don't play twice.
-  const openedByUs = () => { try { return !!(window.top.opener && !window.top.opener.closed); } catch { return false; } };
-  const MINI = /[?&]mini=1(&|$)/.test(location.search) || (ARTIFACT && openedByUs());
+  const MINI = /[?&]mini=1(&|$)/.test(location.search) || !!window.GC_MINI;
   const popChan = typeof BroadcastChannel === 'function' ? new BroadcastChannel('gamechat-popout') : null;
   let miniAt = 0;
-  const miniOpen = () => !MINI && Date.now() - miniAt < 5000;
+  let popWin = null;
+  const miniOpen = () => !MINI && (Date.now() - miniAt < 5000 || !!(popWin && !popWin.closed));
   const PRESENCE_LABEL = { online: 'Online', offline: 'Offline', idle: 'Do not disturb' };
   const AVATARS = ['#22c55e', '#111111', '#ef4444', '#facc15', '#d946ef'];
   const REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🔥', '🎉', '👀'];
@@ -1644,20 +1644,68 @@
 
   connect();
   // ---------------------------------------------------------------- pop out
-  // Chrome and Edge: a window that floats over your other tabs and apps (Document Picture-in-Picture),
-  // with the chat inside it. Other browsers, and claude.ai (where a page can't float), get a small
-  // pop-up window instead; and if pop-ups are blocked, a note says how to do it by hand.
+  // On the website: in Chrome and Edge a window that floats over your other tabs and apps (Document
+  // Picture-in-Picture) with the chat inside; elsewhere a small pop-up window (?mini=1).
+  // On claude.ai the artifact can't open claude.ai in a window of its own (claude.ai refuses), so it
+  // opens a blank window and starts a copy of the chat in it, using this tab's claude.ai connection
+  // (keep the claude.ai tab open; it can be in the background). In Chrome and Edge that window offers
+  // to float the chat on top instead.
   const POP_W = 420, POP_H = 720;
-  let popWin = null;
+  const POP_FEATURES = () => `popup=yes,width=${POP_W},height=${POP_H},left=${Math.max(0, (screen.availLeft || 0) + (screen.availWidth || 1280) - POP_W - 30)},top=80`;
+  // a copy of the chat in another window of the same page: the clean markup, the style and the scripts
+  function writeChat(win) {
+    const d = win.document, tpl = document.getElementById('gcBody');
+    if (!tpl) throw new Error('no copy of the page');
+    for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); try { win.localStorage.setItem(k, localStorage.getItem(k)); } catch {} } // settings and sign-in (its storage is its own)
+    win.PopClaude = window.PopClaude || window.claude;
+    win.GC_MINI = true;
+    d.title = 'Game Chat';
+    d.head.innerHTML = '<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">';
+    const base = d.createElement('base'); base.href = location.href; d.head.append(base); // the games' files are next to this page
+    document.querySelectorAll('link[rel="stylesheet"]').forEach((l) => d.head.append(d.importNode(l, true)));
+    document.querySelectorAll('style[data-gc]').forEach((st) => { const c = d.createElement('style'); c.textContent = st.textContent; d.head.append(c); });
+    d.body.setAttribute('data-theme', document.body.getAttribute('data-theme') || 'light');
+    d.body.innerHTML = tpl.innerHTML + '<template id="gcBody">' + tpl.innerHTML + '</template>';
+    for (const sc of document.querySelectorAll('script[data-gc]')) { const c = d.createElement('script'); c.textContent = sc.textContent; d.body.append(c); }
+  }
+  // the blank window on claude.ai: float on top (Chrome and Edge), or chat right there
+  function launchIn(win) {
+    if (!win.documentPictureInPicture) { writeChat(win); return; }
+    const d = win.document;
+    d.title = 'Game Chat';
+    d.head.innerHTML = '<meta charset="utf-8"><style>body{margin:0;min-height:100vh;display:grid;place-items:center;font:600 15px system-ui,sans-serif;background:#14152a;color:#eef0ff;text-align:center}main{padding:24px;max-width:340px}h1{font-size:22px;margin:0 0 8px}p{color:#aab0d6;font-weight:500;line-height:1.5;margin:0 0 18px}button{display:block;width:100%;margin:10px 0;padding:14px;border:0;border-radius:14px;font:700 16px system-ui,sans-serif;cursor:pointer;color:#fff;background:#3a3d63}button.go{background:linear-gradient(135deg,#6d5dfc,#d946ef)}</style>';
+    d.body.innerHTML = '<main><h1>💬 Game Chat</h1><p>Float the chat on top of your other tabs and windows, or keep it in this window.</p><button class="go" id="float">📌 Float on top</button><button id="here">🪟 Chat in this window</button></main>';
+    d.getElementById('here').onclick = () => writeChat(win);
+    d.getElementById('float').onclick = async () => {
+      try {
+        const pip = await win.documentPictureInPicture.requestWindow({ width: POP_W, height: POP_H });
+        win.gcPip = pip; win.addEventListener('pagehide', () => { try { pip.close(); } catch {} }); // they go together
+        writeChat(pip);
+        d.body.innerHTML = '<main><h1>📌 Floating</h1><p>The chat is floating on top of your other windows. Keep this little window open — minimizing it is fine; closing it closes the floating chat.</p><button id="back">🪟 Chat in this window instead</button></main>';
+        d.getElementById('back').onclick = () => { try { pip.close(); } catch {} win.gcPip = null; writeChat(win); };
+        pip.addEventListener('pagehide', () => { if (!win.closed && d.getElementById('back')) d.getElementById('back').textContent = '🪟 Chat in this window'; });
+      } catch (e) { writeChat(win); } // not allowed: chat right here
+    };
+  }
   function popUrl() {
-    if (ARTIFACT) return window.GAME_CHAT_URL || '';
     const u = new URL(location.href); u.searchParams.set('mini', '1'); u.hash = '';
     return u.href;
   }
   async function popOut() {
     if (popWin && !popWin.closed) { try { popWin.focus(); } catch {} return; }
+    if (ARTIFACT) {
+      let w = null;
+      try { w = window.open('', 'gamechat-mini', POP_FEATURES()); } catch {}
+      if (w) {
+        try {
+          if (!w.GC_MINI && !w.document.getElementById('float')) launchIn(w);
+          w.focus(); popWin = w; poppedOut(true); return;
+        } catch (e) { try { w.close(); } catch {} }
+      }
+      return popHelp('');
+    }
     const url = popUrl();
-    if (!ARTIFACT && window.documentPictureInPicture && window.top === window) {
+    if (window.documentPictureInPicture && window.top === window) {
       try {
         const pip = await window.documentPictureInPicture.requestWindow({ width: POP_W, height: POP_H });
         const d = pip.document, st = d.createElement('style'), f = d.createElement('iframe');
@@ -1670,16 +1718,24 @@
         return;
       } catch (e) { /* not allowed here: a pop-up window instead */ }
     }
-    if (url) {
-      const left = Math.max(0, (screen.availLeft || 0) + (screen.availWidth || 1280) - POP_W - 30);
-      const w = window.open(url, 'gamechat-mini', `popup=yes,width=${POP_W},height=${POP_H},left=${left},top=80`);
-      if (w) { popWin = w; poppedOut(true, 10000); return; }
-    }
+    const w = window.open(url, 'gamechat-mini', POP_FEATURES());
+    if (w) { popWin = w; poppedOut(true, 10000); return; }
+    popHelp(url);
+  }
+  // pop-ups blocked: how to do it by hand
+  function popHelp(url) {
     openModal(() => [h('h2', {}, '⧉ Pop out the chat'),
-      h('p', { class: 'muted' }, 'Your browser didn’t open the small window (pop-ups may be blocked for this site).'),
-      h('p', {}, url ? 'Allow pop-ups for this site and press ⧉ again, or open this link in its own window and make it small:' : 'To keep the chat next to your other tabs, drag this tab out into its own window and make it small.'),
+      h('p', { class: 'muted' }, 'Your browser didn’t open the small window — pop-ups may be blocked here.'),
+      h('p', {}, url ? 'Allow pop-ups for this site and press ⧉ again, or open this link in its own window and make it small:' : 'Allow pop-ups (the icon at the right of the address bar) and press ⧉ again. Or drag this tab out into its own window and make it small.'),
       url ? h('p', {}, h('a', { href: url, target: '_blank', rel: 'opener' }, url)) : '',
       h('div', { class: 'row end' }, h('button', { class: 'btn primary', onclick: closeModal }, 'OK'))]);
+  }
+  // close the popped-out chat (and a floating window it opened)
+  function bringBack() {
+    try { if (popWin && popWin.gcPip) popWin.gcPip.close(); } catch {}
+    try { if (popWin && !popWin.closed) popWin.close(); } catch {}
+    if (popChan) popChan.postMessage('close');
+    popWin = null; miniAt = 0; poppedOut(false);
   }
   // this tab while the chat is popped out: a note, and a way to bring it back
   function poppedOut(on, grace) {
@@ -1688,7 +1744,7 @@
     if (!on || !miniOpen()) { if (bar) bar.remove(); if (!on) miniAt = 0; return; }
     if (bar) return;
     bar = h('div', { id: 'popBar', class: 'pop-bar' }, h('span', {}, '⧉ The chat is popped out into its own window — this tab stays quiet.'),
-      h('button', { class: 'btn small', onclick: () => { if (popWin && !popWin.closed) { try { popWin.close(); } catch {} } else if (popChan) popChan.postMessage('close'); popWin = null; poppedOut(false); } }, 'Bring it back'));
+      h('button', { class: 'btn small', onclick: bringBack }, 'Bring it back'));
     document.querySelector('.main').insertBefore(bar, document.querySelector('.main .content'));
     toast('⧉ Popped out — the small window stays open while you use other tabs');
   }

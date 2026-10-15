@@ -22,19 +22,19 @@ body = body.slice(0, formStart) +
 body = body.replace('<div id="auth" class="auth hidden">', '<div id="auth" class="auth">');
 
 const css = read('public/style.css');
-// The published artifact's own link, for ⧉ Pop out (a page on claude.ai can't find out its own address).
-const POP_URL = process.env.ARTIFACT_URL || 'https://claude.ai/artifact/Db6d2TBY1bV7FPJ5c1CQR7';
 const scripts = ['shared/rules.js', 'realtime.js', 'public/games/sfx.js', 'public/td.js', 'public/td-icons.js', 'public/td-ui.js', 'public/games.js', 'public/party.js', 'public/gamenet.js', 'public/tables.js', 'public/bots.js', 'artifact/backend.js', 'public/app.js'];
 
+// (data-gc marks the chat's own style and scripts, and #gcBody keeps a clean copy of the page: ⧉ Pop out
+// copies them into a small window of its own, since claude.ai won't open its pages in one)
 const html = `<title>Game Chat</title>
 <meta name="theme-color" content="#6d5dfc">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap">
-<style>
+<style data-gc>
 ${css}
 </style>
 ${body.trim()}
-<script>window.GAME_CHAT_URL = ${JSON.stringify(POP_URL)};</script>
-${scripts.map((s) => `<script>\n${inline(read(s))}\n</script>`).join('\n')}
+<template id="gcBody">${body.trim()}</template>
+${scripts.map((s) => `<script data-gc>\n${inline(read(s))}\n</script>`).join('\n')}
 `;
 
 fs.mkdirSync(path.join(root, 'dist'), { recursive: true });

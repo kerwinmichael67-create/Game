@@ -869,7 +869,8 @@
 
     // ------------------------------------------------------------ boot
     (async () => {
-      const api = window.claude && typeof window.claude.use === 'function' ? window.claude : null;
+      // (in the popped-out chat's window, the claude.ai connection of the tab it came from)
+      const api = [window.PopClaude, window.claude].find((c) => c && typeof c.use === 'function') || null;
       if (!api) return emit({ t: 'fatal', title: 'Open this on claude.ai', text: 'Game Chat runs inside claude.ai. Open the artifact link while signed in.' });
       [db, room, user, assets, downloads] = await Promise.all(['db', 'room', 'user', 'assets', 'downloads'].map((n) => api.use(n).catch(() => null)));
       if (!db || !user) return emit({ t: 'fatal', title: 'Sign in to chat', text: 'Open this page while signed in to claude.ai. If someone shared it with you, ask them to invite you by email as an Editor.' });
