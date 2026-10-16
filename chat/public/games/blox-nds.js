@@ -50,12 +50,12 @@
       } else { // the front, with a window
         box(x0, y0, z1 - T, x - 2, y1, z1, col); box(x + 2, y0, z1 - T, x1, y1, z1, col); box(x - 2, y0, z1 - T, x + 2, y0 + 2.6, z1, col); box(x - 2, y0 + 5.4, z1 - T, x + 2, y1, z1, col);
       }
-      // the floor above (or the roof), leaving a hole for the ladder
+      // the floor above (or the roof), leaving a hole for the ladder; it fits inside the walls, so no faces overlap (they'd flicker)
       const top = y1, c2 = f === floors - 1 ? roof : 0xb8a58a;
-      box(x0, top - 0.8, z0 + T + H, x1, top, z1, c2);
-      box(x0 + T + H, top - 0.8, z0, x1, top, z0 + T + H, c2);
-      ladder(x0 + T + 0.8, y0, z0 + T + 0.8, FH + 1);
+      box(x0 + T, top - 0.8, z0 + T + H, x1 - T, top, z1 - T, c2);
+      box(x0 + T + H, top - 0.8, z0 + T, x1 - T, top, z0 + T + H, c2);
     }
+    ladder(x0 + T + 0.8, 0, z0 + T + 0.8, floors * FH + 1); // one ladder all the way up (stacked ones overlapped and flickered)
     if (o.sign) { const s = label(o.sign, { size: 1.6 }); s.position.set(x, floors * FH + 3, z1); place.add(s); signs.push(s); }
   }
   function tree(x, z, y = 0, s = 1) {
@@ -386,7 +386,7 @@
         if (!e.mark && e.fly) { // a warning on the ground
           e.y = Math.max(0, groundBelow(e.x, 200, e.z)); if (e.y < -50) e.y = 0;
           const r = e.big ? 9 : e.k === 'bolt' ? 4 : 5.5;
-          const ring = new THREE.Mesh(new THREE.RingGeometry(r * 0.75, r, 28), new THREE.MeshBasicMaterial({ color: e.k === 'bolt' ? 0xfde047 : 0xff3b30, transparent: true, opacity: 0.75, side: THREE.DoubleSide, depthWrite: false }));
+          const ring = new THREE.Mesh(new THREE.RingGeometry(r * 0.75, r, 28), new THREE.MeshBasicMaterial({ color: e.k === 'bolt' ? 0xfde047 : 0xff3b30, transparent: true, opacity: 0.75, side: THREE.DoubleSide, depthWrite: false, ...DECAL }));
           ring.rotation.x = -Math.PI / 2; ring.position.set(e.x, e.y + 0.15, e.z); scene.add(ring); this.fx.push(ring); e.mark = ring;
           if (e.k !== 'bolt') {
             const rock = new THREE.Mesh(new THREE.SphereGeometry(e.big ? 2.6 : e.k === 'bomb' ? 1.1 : 1.6, 10, 8), new THREE.MeshBasicMaterial({ color: e.k === 'bomb' ? 0xff5a00 : 0x9a3412 }));

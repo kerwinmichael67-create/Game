@@ -256,7 +256,7 @@
       slab(0, 0, 0, 240, 380, 0x4d7c0f, { sy: 2 });
       part({ x: 0, y: 0.07, z: 5, sx: 12, sy: 0.14, sz: 300, c: 0x8b6b45, plain: true });
       const r = mulberry(1234);
-      for (let i = 0; i < 60; i++) { const x = (r() < 0.5 ? -1 : 1) * (30 + r() * 85), z = -180 + r() * 360; if (inFort(x, z) || Math.abs(z - 150) < 20) continue; part({ x, y: 2, z, sx: 1, sy: 4, sz: 1, c: 0x78350f, plain: true, deco: 1 }); part({ x, y: 5.5, z, sx: 4.5, sy: 4, sz: 4.5, c: [0x166534, 0x14532d, 0x15803d][i % 3], deco: 1 }); }
+      for (let i = 0; i < 60; i++) { const x = (r() < 0.5 ? -1 : 1) * (30 + r() * 85), z = -180 + r() * 360; if (inFort(x, z) || Math.abs(z - 150) < 20) continue; part({ x, y: 2, z, sx: 1, sy: 4, sz: 1, c: 0x78350f, plain: true, deco: 1 }); part({ x, y: 5.5 + (i % 5) * 0.03, z, sx: 4.5, sy: 4 + (i % 5) * 0.06, sz: 4.5, c: [0x166534, 0x14532d, 0x15803d][i % 3], deco: 1 }); } // heights differ a touch, so overlapping trees don't flicker
       for (let i = 0; i < 10; i++) { const x = (i % 2 ? -1 : 1) * (22 + r() * 30), z = -90 + i * 22; part({ x, y: 2, z, sx: 6, sy: 4, sz: 5, c: 0xa16207 }); part({ x, y: 4.6, z, sx: 6.6, sy: 1.2, sz: 5.6, c: 0x7f1d1d }); }
       // the fort: walls, towers, and a gate only defenders can pass (until B falls)
       const WALL = 0x78716c;
@@ -266,7 +266,7 @@
       this.gate = part({ x: 0, y: 3.5, z: GATE_Z, sx: 12, sy: 7, sz: 1.2, c: 0x78350f, pass: 1, gate: 1 });
       // camps and points
       this.marks = [];
-      const ring = (x, z, rad, col, opa) => { const m = new THREE.Mesh(new THREE.RingGeometry(rad - 0.6, rad, 48), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: opa, side: THREE.DoubleSide })); m.rotation.x = -Math.PI / 2; m.position.set(x, 0.15, z); place.add(m); return m; };
+      const ring = (x, z, rad, col, opa) => { const m = new THREE.Mesh(new THREE.RingGeometry(rad - 0.6, rad, 48), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: opa, side: THREE.DoubleSide, ...DECAL })); m.rotation.x = -Math.PI / 2; m.position.set(x, 0.15, z); place.add(m); return m; };
       // camps: armies refill (and change units) here; they move as the battle moves
       for (const i of [0, 1]) CAMPS[i].forEach((c, k) => {
         ring(c[0], c[1], CAMP_R, TEAM_COL[i], 0.4);
@@ -275,7 +275,7 @@
         const l = label(`⛺ ${i ? 'Defender' : 'Attacker'} camp${k ? ` (after ${POINTS[k - 1].n})` : ''}`, { size: 1, color: TEAM_CSS[i] }); l.position.set(c[0], 7.5, c[1] + back); place.add(l);
       });
       this.pointRings = POINTS.map((p) => ring(p.x, p.z, POINT_R, 0xffffff, 0.6));
-      this.pointFills = POINTS.map((p) => { const m = new THREE.Mesh(new THREE.CircleGeometry(POINT_R - 0.6, 48), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.18, side: THREE.DoubleSide, depthWrite: false })); m.rotation.x = -Math.PI / 2; m.position.set(p.x, 0.12, p.z); place.add(m); return m; });
+      this.pointFills = POINTS.map((p) => { const m = new THREE.Mesh(new THREE.CircleGeometry(POINT_R - 0.6, 48), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.18, side: THREE.DoubleSide, depthWrite: false, ...DECAL })); m.rotation.x = -Math.PI / 2; m.position.set(p.x, 0.12, p.z); place.add(m); return m; });
       this.flags = POINTS.map((p) => { part({ x: p.x, y: 5, z: p.z, sx: 0.4, sy: 10, sz: 0.4, c: 0x57534e, plain: true }); const f = new THREE.Mesh(BOX, new THREE.MeshLambertMaterial({ color: 0xffffff })); f.scale.set(3, 2, 0.1); f.position.set(p.x + 1.7, 8.8, p.z); place.add(f); const l = label(p.n === 'Base' ? '🏰 BASE' : `Point ${p.n}`, { size: 2.2 }); l.position.set(p.x, 12.5, p.z); place.add(l); return f; });
       // the lobby: a courtyard far behind the battlefield
       slab(LOBBY[0], 0, LOBBY[1], 80, 60, 0x9ca3af, { sy: 2 });

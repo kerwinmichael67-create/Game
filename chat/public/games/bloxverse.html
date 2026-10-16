@@ -374,7 +374,7 @@ const canvas = $('#view');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1));
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(70, 1, 0.1, 1500);
+const camera = new THREE.PerspectiveCamera(70, 1, 0.5, 1500); // a near plane that isn't too near keeps the depth buffer sharp far away
 function resize() { renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
 addEventListener('resize', resize); resize();
 scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8a9a, 0.78));
@@ -436,8 +436,9 @@ function label(text, o = {}) {
 
 /* ---------------- the place: parts ---------------- */
 const BOX = new THREE.BoxGeometry(1, 1, 1);
+const DECAL = { polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -24 }; // flat marks lying on the ground (shadows, rings) always draw over it
 let place = new THREE.Group(); scene.add(place);
-let parts = [];
+let parts = [], partSeq = 0;
 function clearPlace() {
   scene.remove(place);
   place.traverse((o) => { if (o.material) { if (o.isSprite && o.material.map) o.material.map.dispose(); if (o.material.userData.own && o.material.map) o.material.map.dispose(); o.material.dispose(); } });
@@ -452,6 +453,10 @@ function part(o) {
   else if (p.map) mat = new THREE.MeshLambertMaterial({ color: p.c, map: p.map, transparent: true, alphaTest: 0.4, side: THREE.DoubleSide });
   else mat = new THREE.MeshLambertMaterial({ color: p.c, map: p.plain ? null : tex(p.sx / 2, p.sz / 2) });
   if (p.alpha != null || p.fade) { mat.transparent = true; mat.opacity = p.alpha != null ? p.alpha : 1; if (p.alpha != null && p.alpha < 0.5) mat.depthWrite = false; }
+  // two blocks whose faces overlap in the same plane flicker as they fight over which is in front: nudge each block's depth
+  // a touch, thin, see-through and glowing ones (markers, strips, paths) most, alternating the rest so neighbours never tie
+  const off = (Math.min(p.sx, p.sy, p.sz) <= 0.6 || p.alpha != null || p.neon || p.fade ? 4 : 0) + (partSeq++ & 3);
+  if (off) { mat.polygonOffset = true; mat.polygonOffsetFactor = -0.25 * off; mat.polygonOffsetUnits = -2 * off; }
   const m = new THREE.Mesh(BOX, mat); m.scale.set(p.sx, p.sy, p.sz); m.position.set(p.x, p.y, p.z);
   if (p.stripes && p.sx > p.sz) m.rotation.y = 0; // stripes run along the long side (set by the texture's repeat)
   place.add(m); p.m = m; parts.push(p);
@@ -493,9 +498,23 @@ function overlaps(x, y, z) {
   }
   return out;
 }
+// walk into a low step (STEP studs or less) and you go up onto it without jumping, like in Roblox; in the air only a
+// small ledge you just caught with your feet. An experience can change the height with stepHeight (0 turns it off)
+const STEP = 2.1;
+let stepLift = 0; // how far steps lifted you lately: the camera eases up after you
+function stepUp(hit, onGround) {
+  const max = exp && exp.stepHeight != null ? exp.stepHeight : STEP;
+  let top = -1e9; for (const b of hit) top = Math.max(top, b[4]);
+  const h = top - P.y;
+  if (!(h > 0) || h > (onGround ? max : Math.min(max, 0.8)) || (!onGround && P.vy > 5)) return false;
+  if (overlaps(P.x, top + EPS, P.z).length) return false; // no room on top
+  P.y = top + EPS; if (P.vy < 0) P.vy = 0; stepLift += h;
+  return true;
+}
 function moveP(dx, dy, dz) {
-  if (dx) { P.x += dx; for (const b of overlaps(P.x, P.y, P.z)) { P.x = dx > 0 ? b[0] - P.w - EPS : b[3] + P.w + EPS; P.vx = 0; } }
-  if (dz) { P.z += dz; for (const b of overlaps(P.x, P.y, P.z)) { P.z = dz > 0 ? b[2] - P.w - EPS : b[5] + P.w + EPS; P.vz = 0; } }
+  const onGround = !!P.ground;
+  if (dx) { P.x += dx; const hit = overlaps(P.x, P.y, P.z); if (hit.length && !stepUp(hit, onGround)) for (const b of hit) { P.x = dx > 0 ? b[0] - P.w - EPS : b[3] + P.w + EPS; P.vx = 0; } }
+  if (dz) { P.z += dz; const hit = overlaps(P.x, P.y, P.z); if (hit.length && !stepUp(hit, onGround)) for (const b of hit) { P.z = dz > 0 ? b[2] - P.w - EPS : b[5] + P.w + EPS; P.vz = 0; } }
   P.ground = null;
   P.y += dy;
   for (const b of overlaps(P.x, P.y, P.z)) {
@@ -573,7 +592,7 @@ function die() {
   if (me) scatter(me);
 }
 function respawn(quiet) {
-  const s = exp.spawn();
+  const s = exp.spawn(); stepLift = 0;
   P.x = s[0]; P.y = s[1]; P.z = s[2]; P.yaw = s[3] || 0; P.vx = P.vy = P.vz = 0; P.dead = false; P.ground = null;
   cam.yaw = P.yaw;
   dropAvatar(me);
@@ -666,7 +685,7 @@ function makeAvatar(av, name, mine) {
   if (av[7]) { const front = lam('#ffffff', { map: patternTex(av[7], SHIRTS[av[1]]) }); mats.push(front); const t = new THREE.Mesh(BOX, [shirt, shirt, shirt, shirt, shirt, front]); t.scale.set(2, 2, 1); t.position.set(0, 3, 0); body.add(t); }
   else box(shirt, 2, 2, 1, 0, 3, 0);
   const armL = limb(skin, -1.5, 4), armR = limb(skin, 1.5, 4);
-  box(shirt, 1.02, 0.8, 1.02, 0, -0.4, 0, armL); box(shirt, 1.02, 0.8, 1.02, 0, -0.4, 0, armR);
+  box(shirt, 1.02, 0.84, 1.02, 0, -0.4, 0, armL); box(shirt, 1.02, 0.84, 1.02, 0, -0.4, 0, armR); // a hair above the arm's top, or the two tops flicker
   const head = new THREE.Group(); head.position.set(0, 4.66, 0); body.add(head);
   head.add(new THREE.Mesh(HEAD_GEO, skin));
   head.add(new THREE.Mesh(FACE_GEO, new THREE.MeshBasicMaterial({ map: FACE_TEX[av[4]], transparent: true })));
@@ -698,7 +717,7 @@ function makeAvatar(av, name, mine) {
   const a = { g, body, legL, legR, armL, armR, head, mats, walk: 0, name, av, tag: null, glow: null, aura: av[6], pet: null };
   if (!mine && name) { a.tag = label(name, { size: 0.85 }); a.tag.position.y = 6.7; g.add(a.tag); }
   // a soft shadow on the ground under them
-  a.shadow = new THREE.Mesh(new THREE.CircleGeometry(1.25, 18), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.25, depthWrite: false }));
+  a.shadow = new THREE.Mesh(new THREE.CircleGeometry(1.25, 18), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.25, depthWrite: false, ...DECAL }));
   a.shadow.rotation.x = -Math.PI / 2; scene.add(a.shadow); g.userData.shadow = a.shadow;
   if (av[8]) { a.pet = { g: petModel(av[8]), type: av[8], walk: 0 }; scene.add(a.pet.g); }
   return a;
@@ -777,7 +796,7 @@ function placeShadow(a) {
   if (!a.shadow) return;
   const p = a.g.position, gy = groundBelow(p.x, p.y, p.z);
   a.shadow.visible = gy > -1e8 && !a.dead && p.y - gy < 40;
-  if (a.shadow.visible) { a.shadow.position.set(p.x, gy + 0.03, p.z); const s = 1 / (1 + (p.y - gy) * 0.06); a.shadow.scale.setScalar(s); a.shadow.material.opacity = 0.28 * s; }
+  if (a.shadow.visible) { a.shadow.position.set(p.x, gy + 0.05, p.z); const s = 1 / (1 + (p.y - gy) * 0.06); a.shadow.scale.setScalar(s); a.shadow.material.opacity = 0.28 * s; }
 }
 // "oof": the character falls apart, then comes back
 function scatter(a) {
@@ -986,7 +1005,7 @@ async function join(id, n) {
   document.documentElement.style.setProperty('--exp', E.color);
   $('#home').hidden = true; $('#loading').hidden = false; $('#loadThumb').innerHTML = `<span>${E.emoji}</span>`; $('#loadTitle').textContent = E.name; $('#loadText').textContent = `Joining server ${n}…`;
   clearPlace(); for (const a of Net.avatars.values()) dropAvatar(a); Net.avatars.clear();
-  exp = E; resetXUI(); $('#chatlog').innerHTML = ''; E.build(); P.frozen = false; setBanner(''); cam.dist = E.camDist || 20;
+  exp = E; resetXUI(); $('#chatlog').innerHTML = ''; E.build(); P.frozen = false; setBanner(''); cam.dist = camD = E.camDist || 20;
   let room;
   try { room = await lob.join(`${E.code}-${n}`); } catch (e) { joining = false; backHome('Couldn’t reach that server. Try another one.'); return; }
   Object.assign(Net, { room, srv: `${E.code}-${n}`, srvN: n, peers: [], t0: Date.now(), joinAt: performance.now(), claimed: false, chats: [], cseq: 0, seen: new Map(), lastPos: '', dd: 0 });
@@ -1802,15 +1821,35 @@ function frame(t) {
     animateAvatar(a, dt, a.anim === 1, a.anim === 2); placeShadow(a); updatePet(a, dt); auraTick(a, dt);
     if (a.bub) { a.bubT -= dt; if (a.bubT <= 0) { a.g.remove(a.bub); a.bub.material.map.dispose(); a.bub = null; } }
   }
+  if (exp.pose) exp.pose(dt); // after the walk animation: an experience can pose arms (holding a gun) and the like
   for (let i = bits.length - 1; i >= 0; i--) { const m = bits[i], u = m.userData; u.life -= dt; u.v.y -= (u.g != null ? u.g : 30) * dt; m.position.addScaledVector(u.v, dt); m.rotation.x += dt * 5; if (u.fade) m.material.opacity = Math.max(0, Math.min(0.9, u.life * 1.5)); if (u.life <= 0) { scene.remove(m); m.material.dispose(); bits.splice(i, 1); } }
   updatePrompt();
   // the camera, behind and above you
-  const tx = P.x, ty = P.y + 4.4, tz = P.z, cp = Math.cos(cam.pitch);
-  camera.position.set(tx + Math.sin(cam.yaw) * cp * cam.dist, ty - Math.sin(cam.pitch) * cam.dist, tz + Math.cos(cam.yaw) * cp * cam.dist);
+  stepLift = stepLift > 0.01 ? stepLift * Math.exp(-dt * 12) : 0;
+  const tx = P.x, ty = P.y + 4.4 - stepLift, tz = P.z, cp = Math.cos(cam.pitch), ux = Math.sin(cam.yaw) * cp, uy = -Math.sin(cam.pitch), uz = Math.cos(cam.yaw) * cp;
+  // a wall or roof between you and the camera: the camera comes in front of it (and eases back out after)
+  const want = exp.camClip === false ? cam.dist : Math.min(cam.dist, Math.max(2.5, camRoom(tx, ty, tz, ux, uy, uz, cam.dist) - 0.6));
+  camD = want < camD ? want : camD + (want - camD) * Math.min(1, dt * 4);
+  camera.position.set(tx + ux * camD, ty + uy * camD, tz + uz * camD);
   camera.lookAt(tx, ty, tz);
   netTick(t);
   if (t > hudAt) { hudAt = t + 200; drawHud(); }
   if (!fullOpen()) renderer.render(scene, camera); // a full-screen menu hides the world: skip drawing it
+}
+let camD = 20;
+function camRoom(ox, oy, oz, dx, dy, dz, max) {
+  let best = max; const o = [ox, oy, oz], d = [dx, dy, dz];
+  for (const p of parts) {
+    if (!p.solid || !p.on || p.spin || (p.alpha != null && p.alpha < 0.5)) continue;
+    const b = boxOf(p); let t0 = 0, t1 = best, hit = true;
+    for (let a = 0; a < 3 && hit; a++) {
+      if (Math.abs(d[a]) < 1e-9) { if (o[a] < b[a] || o[a] > b[a + 3]) hit = false; continue; }
+      let ta = (b[a] - o[a]) / d[a], tb = (b[a + 3] - o[a]) / d[a]; if (ta > tb) { const q = ta; ta = tb; tb = q; }
+      if (ta > t0) t0 = ta; if (tb < t1) t1 = tb; if (t0 > t1) hit = false;
+    }
+    if (hit && t0 > 0.2 && t0 < best) best = t0;
+  }
+  return best;
 }
 function drawHud() {
   const rows = crew().map((c) => ({ c, name: c.isMe ? Net.name : String(c.pr.nm || 'Player').slice(0, 20), v: exp.statOf(c.pr, c.isMe, c.peer), k: exp.sortKey(c.pr, c.isMe, c.peer) })).sort((a, b) => b.k - a.k);
@@ -1849,5 +1888,7 @@ else {
 <script src="blox-nds.js"></script>
 <script src="blox-pets.js"></script>
 <script src="blox-boat.js"></script>
+<script src="blox-zombie.js"></script>
+<script src="blox-egg.js"></script>
 </body>
 </html>

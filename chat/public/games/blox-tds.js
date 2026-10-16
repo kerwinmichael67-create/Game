@@ -93,7 +93,7 @@
   const OWN_COL = [0x3b82f6, 0xef4444, 0x22c55e, 0xf59e0b];
 
   const TDS = {
-    id: 'tds', code: 'ts', genre: 'Tower Defense', rank: 3, name: 'Tower Defense Simulator', emoji: '🗼', max: 4, stat: 'Cash', killY: -30, banner: true, camDist: 40,
+    id: 'tds', code: 'ts', genre: 'Tower Defense', rank: 3, name: 'Tower Defense Simulator', emoji: '🗼', max: 4, stat: 'Cash', killY: -30, banner: true, camDist: 40, camClip: false,
     color: 'linear-gradient(135deg,#334155,#16a34a)',
     desc: 'Co-op tower defense for up to 4. Vote a difficulty, then place Scouts, Snipers, Demomen, Farms and more along the path and upgrade them. Hidden, armored and boss enemies; unlock more towers with Blox Coins.',
     welcome: 'Vote a difficulty and get ready!',
@@ -112,9 +112,9 @@
       const r = mulberry(55);
       for (let i = 0; i < 26; i++) { const x = (r() - 0.5) * 190, z = (r() - 0.5) * 150; if (distToPath(x, z) < 12 || Math.abs(z - 62) < 10) continue; part({ x, y: 2, z, sx: 1, sy: 4, sz: 1, c: 0x92400e, plain: true }); part({ x, y: 5, z, sx: 4, sy: 3.5, sz: 4, c: 0x166534 }); }
       this.views = new Map(); this.tviews = new Map(); this.fx = []; this.sndOn = false; this.sndHp = null; this.sndPh = null;
-      this.ghost = null; this.ring = new THREE.Mesh(new THREE.RingGeometry(0.97, 1, 48), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.6, side: THREE.DoubleSide }));
+      this.ghost = null; this.ring = new THREE.Mesh(new THREE.RingGeometry(0.97, 1, 48), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.6, side: THREE.DoubleSide, ...DECAL }));
       this.ring.rotation.x = -Math.PI / 2; this.ring.visible = false; place.add(this.ring);
-      this.disc = new THREE.Mesh(new THREE.CircleGeometry(1, 48), new THREE.MeshBasicMaterial({ color: 0x60a5fa, transparent: true, opacity: 0.15, side: THREE.DoubleSide, depthWrite: false }));
+      this.disc = new THREE.Mesh(new THREE.CircleGeometry(1, 48), new THREE.MeshBasicMaterial({ color: 0x60a5fa, transparent: true, opacity: 0.15, side: THREE.DoubleSide, depthWrite: false, ...DECAL }));
       this.disc.rotation.x = -Math.PI / 2; this.disc.visible = false; place.add(this.disc);
     },
     pres() { return { tq: [], vt: 'normal', rdy: 0 }; },

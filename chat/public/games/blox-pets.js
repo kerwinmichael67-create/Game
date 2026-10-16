@@ -179,10 +179,11 @@
     decor(k, cz, r) {
       for (let i = 0; i < 9; i++) {
         const x = (r() < 0.5 ? -1 : 1) * (26 + r() * 7), z = cz + (r() - 0.5) * 62;
-        if (k === 0) { part({ x, y: 2.5, z, sx: 1.2, sy: 5, sz: 1.2, c: 0x7c4a1e }); part({ x, y: 6, z, sx: 5, sy: 4, sz: 5, c: 0x2f9e44 }); }
-        if (k === 1) { part({ x, y: 4, z, sx: 1, sy: 8, sz: 1, c: 0xa16207 }); for (const [a, b] of [[2, 0], [-2, 0], [0, 2], [0, -2]]) part({ x: x + a, y: 8, z: z + b, sx: a ? 4 : 1, sy: 0.4, sz: b ? 4 : 1, c: 0x16a34a }); }
-        if (k === 2) { for (let j = 0; j < 3; j++) part({ x, y: 1.5 + j * 2.5, z, sx: 5 - j * 1.5, sy: 2.5, sz: 5 - j * 1.5, c: 0x166534 }); part({ x, y: 9.2, z, sx: 1.2, sy: 1.2, sz: 1.2, c: 0xffffff }); }
-        if (k === 3) { part({ x, y: 0.12, z, sx: 6, sy: 0.25, sz: 6, c: 0xff6a00, neon: true, solid: false }); part({ x: x + 3, y: 1.5, z: z + 2, sx: 3, sy: 3, sz: 3, c: 0x292524 }); }
+        const j = (i % 4) * 0.05, up = (o) => Object.assign(o, { y: o.y + j / 2, sy: o.sy + j }); // a little taller or shorter each, so ones that overlap don't share a top (it flickered)
+        if (k === 0) { part({ x, y: 2.5, z, sx: 1.2, sy: 5, sz: 1.2, c: 0x7c4a1e }); part(up({ x, y: 6, z, sx: 5, sy: 4, sz: 5, c: 0x2f9e44 })); }
+        if (k === 1) { part({ x, y: 4, z, sx: 1, sy: 8, sz: 1, c: 0xa16207 }); for (const [a, b] of [[2, 0], [-2, 0], [0, 2], [0, -2]]) part({ x: x + a, y: 8 + j + (a ? 0.02 : 0), z: z + b, sx: a ? 4 : 1, sy: 0.4, sz: b ? 4 : 1, c: 0x16a34a }); }
+        if (k === 2) { for (let n = 0; n < 3; n++) part(up({ x, y: 1.5 + n * 2.5, z, sx: 5 - n * 1.5, sy: 2.5, sz: 5 - n * 1.5, c: 0x166534 })); part({ x, y: 9.2 + j, z, sx: 1.2, sy: 1.2, sz: 1.2, c: 0xffffff }); }
+        if (k === 3) { part({ x, y: 0.12, z, sx: 6, sy: 0.25, sz: 6, c: 0xff6a00, neon: true, solid: false }); part(up({ x: x + 3, y: 1.5, z: z + 2, sx: 3, sy: 3, sz: 3, c: 0x292524 })); }
         if (k === 4) { part({ x, y: 4, z, sx: 0.8, sy: 8, sz: 0.8, c: 0xffffff, stripes: '#ef4444' }); part({ x, y: 8.6, z, sx: 3, sy: 3, sz: 0.6, c: [0xf472b6, 0x22d3ee, 0xfde047][i % 3] }); }
         if (k === 5) { const m = new THREE.Mesh(new THREE.SphereGeometry(1.5 + r() * 2.5, 16, 12), new THREE.MeshLambertMaterial({ color: [0xa855f7, 0x38bdf8, 0xf97316, 0xfde047][i % 4] })); m.position.set(x, 9 + r() * 10, z); place.add(m); }
       }

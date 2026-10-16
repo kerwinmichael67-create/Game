@@ -142,6 +142,8 @@
     bell: [T(1319, 0.9, { type: 'sine', vol: 0.18 }), T(2637, 0.5, { type: 'sine', vol: 0.06 })],
     chat: [T(1568, 0.06, { type: 'sine', vol: 0.08 }), T(2093, 0.1, { type: 'sine', vol: 0.07, at: 0.05 })],
     thunder: [N(300, 1.6, { vol: 0.4, f2: 80, att: 0.05 }), N(1500, 0.2, { vol: 0.2 })],
+    groan: [T(105, 0.85, { type: 'sawtooth', vol: 0.07, f2: 72, att: 0.18 }), T(158, 0.7, { type: 'triangle', vol: 0.05, f2: 110, at: 0.08, att: 0.15 }), N(500, 0.5, { filter: 'lowpass', vol: 0.05, att: 0.2 })],
+    reload: [N(3000, 0.04, { filter: 'highpass', vol: 0.14 }), T(900, 0.05, { type: 'square', vol: 0.05, at: 0.12 }), N(2400, 0.05, { filter: 'highpass', vol: 0.16, at: 0.3 })],
     egg: [N(2500, 0.05, { filter: 'bandpass', q: 3, vol: 0.2 }), N(2000, 0.05, { filter: 'bandpass', q: 3, vol: 0.2, at: 0.12 }), ...arp([784, 1047, 1568], 0.06, { type: 'triangle', vol: 0.14, dur: 0.25 }).map((x) => Object.assign(x, { at: x.at + 0.25 }))],
   };
   const last = new Map(), recent = [];

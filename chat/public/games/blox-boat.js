@@ -37,7 +37,7 @@
       this.obs = []; this.fx = []; this.myParts = []; this.others = new Map(); this.sail = null; this.ghost = null;
       // the dock with six plots
       part({ x: 0, y: DOCK - 1.5, z: 16, sx: 116, sy: 3, sz: 28, c: 0x8b5a2b });
-      this.floors = PLOTS.map((px, n) => part({ x: px, y: DOCK - 0.05, z: PZ, sx: 16, sy: 0.1, sz: 16, c: [0x60a5fa, 0xf87171, 0x4ade80, 0xfacc15, 0xc084fc, 0xfb923c][n], plot: n }));
+      this.floors = PLOTS.map((px, n) => part({ x: px, y: DOCK - 0.04, z: PZ, sx: 16, sy: 0.1, sz: 16, c: [0x60a5fa, 0xf87171, 0x4ade80, 0xfacc15, 0xc084fc, 0xfb923c][n], plot: n }));
       const s = label('BUILD A BOAT\nFOR TREASURE', { size: 3 }); s.position.set(0, 16, 34); place.add(s);
       // the river: water, riverbed, canyon walls
       const water = (z0, z1, top) => part({ x: 0, y: top - 6, z: (z0 + z1) / 2, sx: 60, sy: 12, sz: z0 - z1, c: 0x1e88e5, alpha: 0.62, solid: false, plain: true });
@@ -63,9 +63,9 @@
       for (let i = 0; i < 4; i++) this.ob({ x: (r() - 0.5) * 44, y: -3, z: z0(4) - 6 - i * 7, sx: 3, sy: 10, sz: 3, c: 0x57534e }, 1);
       this.whirl = [(r() - 0.5) * 24, z0(5) - SL / 2];
       this.ob({ x: this.whirl[0], y: -14, z: this.whirl[1], sx: 4, sy: 12, sz: 4, c: 0x44403c }, 1);
-      const disc = new THREE.Mesh(new THREE.CircleGeometry(16, 40), new THREE.MeshBasicMaterial({ color: 0x0b3b6b, transparent: true, opacity: 0.55, depthWrite: false }));
+      const disc = new THREE.Mesh(new THREE.CircleGeometry(16, 40), new THREE.MeshBasicMaterial({ color: 0x0b3b6b, transparent: true, opacity: 0.55, depthWrite: false, ...DECAL }));
       disc.rotation.x = -Math.PI / 2; disc.position.set(this.whirl[0], -9.9, this.whirl[1]); place.add(disc); this.disc = disc;
-      for (let i = 0; i < 16; i++) { const s = 3 + r() * 3; this.ob({ x: (r() - 0.5) * 50, y: -10.2, z: z0(6) - 6 - r() * 58, sx: s, sy: 2.4, sz: s, c: 0xe0f2fe }, 0.8); }
+      for (let i = 0; i < 16; i++) { const s = 3 + r() * 3; this.ob({ x: (r() - 0.5) * 50, y: -10.2 + (i % 4) * 0.03, z: z0(6) - 6 - r() * 58, sx: s, sy: 2.4 + (i % 4) * 0.06, sz: s, c: 0xe0f2fe }, 0.8); } // heights differ a touch, so overlapping floes don't flicker
       for (let i = 0; i < 5; i++) for (const side of [-1, 1]) { const c = part({ x: side * 29.5, y: -8, z: z0(7) - 8 - i * 13, sx: 3, sy: 2, sz: 2, c: 0x111827 }); c.cannon = side; }
       for (let i = 0; i < 5; i++) this.ob({ x: (r() - 0.5) * 40, y: -13, z: z0(8) - 8 - i * 13, sx: 3, sy: 10, sz: 3, c: 0x7f1d1d }, 1);
       // the treasure beach
@@ -348,7 +348,7 @@
       if (s === 8 && now - (this.lavaAt || 0) > 700) {
         this.lavaAt = now;
         const x = clamp(B.x + (Math.random() - 0.5) * 20, -26, 26), z = B.z + B.vz * 1.2 + (Math.random() - 0.5) * 14, y = wl(z);
-        const ring = new THREE.Mesh(new THREE.RingGeometry(2, 2.6, 24), new THREE.MeshBasicMaterial({ color: 0xff3b30, transparent: true, opacity: 0.8, side: THREE.DoubleSide, depthWrite: false }));
+        const ring = new THREE.Mesh(new THREE.RingGeometry(2, 2.6, 24), new THREE.MeshBasicMaterial({ color: 0xff3b30, transparent: true, opacity: 0.8, side: THREE.DoubleSide, depthWrite: false, ...DECAL }));
         ring.rotation.x = -Math.PI / 2; ring.position.set(x, y + 0.2, z); scene.add(ring);
         const m = new THREE.Mesh(new THREE.SphereGeometry(1, 10, 8), new THREE.MeshBasicMaterial({ color: 0xff6a00 })); m.position.set(x, y + 40, z); scene.add(m);
         this.fx.push({ m, ring, v: [0, -32, 0], k: 'lava' });

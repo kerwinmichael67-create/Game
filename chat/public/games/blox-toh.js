@@ -36,7 +36,9 @@
     }
     return pts;
   }
-  const exitPad = (x, y, z, col) => slab(x, y, z, 5, 5, col, { th: true });
+  // where sections join, the exit pad sits a hair above the section's last platforms and the next section's way in a hair
+  // below it: platforms that overlap at a joint never share a plane (they'd flicker)
+  const JOIN = 0.03, exitPad = (x, y, z, col) => slab(x, y + JOIN, z, 5, 5, col, { th: true });
   const corner = (r, not) => { const cs = [[-9, -9], [9, -9], [9, 9], [-9, 9]].filter((c) => !not || Math.hypot(c[0] - not[0], c[1] - not[1]) > 8); return cs[Math.floor(r() * cs.length)]; };
   const SECTIONS = {
     'Stairway'(r, y0, e, col) { const x = corner(r, e); for (const [px, py, pz] of steps(r, y0, e, x, 6, col, { via: [0, 0] })) slab(px, py, pz, 3.6, 3.6, col, { th: true }); return x; },
@@ -54,7 +56,7 @@
     },
     'Truss Climb'(r, y0, e, col) {
       const tx = cl(e[0] + (e[0] > 0 ? -5 : 5)), tz = e[1];
-      slab((e[0] + tx) / 2, y0, tz, Math.abs(e[0] - tx) + 3, 3, col, { th: true });
+      slab((e[0] + tx) / 2, y0 - JOIN, tz, Math.abs(e[0] - tx) + 3, 3, col, { th: true });
       truss(tx, y0, tz, SEC_H);
       for (let k = 0; k < 2; k++) { const ph = r() * 6; part({ x: tx, y: y0 + 4 + k * 5, z: tz, sx: 6, sy: 0.8, sz: 0.8, c: 0xff2020, neon: true, kind: 'kill', th: true, solid: false, move: (t) => [0, 0, Math.sin(t * 1.2 + ph) * 3.5] }); }
       const x = [cl(tx + (tx > 0 ? -4 : 4)), tz];
@@ -63,7 +65,7 @@
     },
     'Bounce Pads'(r, y0, e, col) {
       const mid = [cl(-e[0] * 0.3 + (r() - 0.5) * 6), cl(-e[1] * 0.3 + (r() - 0.5) * 6)];
-      slab((e[0] + mid[0]) / 2, y0, (e[1] + mid[1]) / 2, 3, 3, col, { th: true });
+      slab((e[0] + mid[0]) / 2, y0 - JOIN, (e[1] + mid[1]) / 2, 3, 3, col, { th: true });
       slab(mid[0], y0 + 1, mid[1], 5, 5, col, { th: true });
       part({ x: mid[0], y: y0 + 1.2, z: mid[1], sx: 3, sy: 0.4, sz: 3, c: 0x22ff66, neon: true, kind: 'bounce', power: 78, th: true });
       const x = corner(r, mid);
@@ -83,7 +85,7 @@
       const hole = [idx(e[0]), idx(e[1] + (e[1] > 0 ? -4 : 4))];
       const start = [hole[0], clamp(hole[1] + (hole[1] >= n / 2 ? -1 : 1), 0, n - 1)];
       let end = [n - 1 - start[0], n - 1 - start[1]]; if (end[0] === hole[0] && end[1] === hole[1]) end = [start[0] < n / 2 ? n - 1 : 0, end[1]];
-      slab((e[0] + mid(hole[0])) / 2, y0, (e[1] + mid(hole[1])) / 2, Math.abs(e[0] - mid(hole[0])) + 2.5, Math.abs(e[1] - mid(hole[1])) + 2.5, col, { th: true });
+      slab((e[0] + mid(hole[0])) / 2, y0 - JOIN, (e[1] + mid(hole[1])) / 2, Math.abs(e[0] - mid(hole[0])) + 2.5, Math.abs(e[1] - mid(hole[1])) + 2.5, col, { th: true });
       truss(mid(hole[0]), y0, mid(hole[1]), SEC_H + 1);
       const safe = new Set(), key = (a, b) => a + ',' + b; let [cx, cz] = start; safe.add(key(cx, cz));
       while (cx !== end[0] || cz !== end[1]) { if (cx !== end[0] && (cz === end[1] || r() < 0.5)) cx += Math.sign(end[0] - cx); else cz += Math.sign(end[1] - cz); safe.add(key(cx, cz)); }
@@ -97,7 +99,7 @@
     'Wraparound'(r, y0, e, col) {
       part({ x: 0, y: y0 + SEC_H / 2, z: 0, sx: 4, sy: SEC_H, sz: 4, c: 0x6b7280, th: true });
       const a0 = Math.atan2(e[1], e[0]), dir = r() < 0.5 ? 1 : -1, d0 = Math.hypot(e[0], e[1]);
-      if (d0 > 5) slab(Math.cos(a0) * (d0 + 4.5) / 2, y0, Math.sin(a0) * (d0 + 4.5) / 2, Math.abs(Math.cos(a0)) * (d0 - 4.5) + 2.2, Math.abs(Math.sin(a0)) * (d0 - 4.5) + 2.2, col, { th: true });
+      if (d0 > 5) slab(Math.cos(a0) * (d0 + 4.5) / 2, y0 - JOIN, Math.sin(a0) * (d0 + 4.5) / 2, Math.abs(Math.cos(a0)) * (d0 - 4.5) + 2.2, Math.abs(Math.sin(a0)) * (d0 - 4.5) + 2.2, col, { th: true });
       for (let k = 1; k <= 7; k++) { const a = a0 + dir * k * 0.85, x = Math.cos(a) * 3.2, z = Math.sin(a) * 3.2; slab(x, y0 + (SEC_H * k) / 8, z, 2, 2, col, { th: true }); }
       const a = a0 + dir * 8 * 0.85, x = [cl(Math.cos(a) * 8), cl(Math.sin(a) * 8)];
       slab(Math.cos(a) * 5.4, y0 + SEC_H, Math.sin(a) * 5.4, 3, 3, col, { th: true });
@@ -137,15 +139,15 @@
         if (nm === 'Wraparound' && Math.hypot(e[0], e[1]) < 6) nm = 'Stairway';
         const col = COLS[Math.floor(r() * COLS.length)], y0 = i * SEC_H;
         const x = SECTIONS[nm](r, y0, e, col);
-        if (x[2] !== 'floor') exitPad(x[0], y0 + SEC_H, x[1], col);
+        if (x[2] !== 'floor' && i < n - 1) exitPad(x[0], y0 + SEC_H, x[1], col); // the last one's pad is the finish
         e = [x[0], x[1]];
         this.names.push(nm);
         const lab = label(nm, { size: 0.9, color: '#e5e7eb' }); lab.position.set(0, y0 + 2.5, -HALF - 0.5); place.add(lab); this.labels.push(lab);
       }
       // the top
       const top = n * SEC_H;
-      slab(e[0], top, e[1], 6, 6, 0xfbbf24, { th: true });
-      part({ x: e[0], y: top + 0.25, z: e[1], sx: 4, sy: 0.5, sz: 4, c: 0xfff3b0, neon: true, kind: 'finish', th: true });
+      slab(e[0], top + 2 * JOIN, e[1], 6, 6, 0xfbbf24, { th: true });
+      part({ x: e[0], y: top + 2 * JOIN + 0.25, z: e[1], sx: 4, sy: 0.5, sz: 4, c: 0xfff3b0, neon: true, kind: 'finish', th: true });
       const f = label('🏁 FINISH', { size: 2 }); f.position.set(e[0], top + 6, e[1]); place.add(f); this.labels.push(f);
       // the frame: corner pillars and see-through walls so you fall inside the tower
       for (const [x, z] of [[-HALF - 1, -HALF - 1], [HALF + 1, -HALF - 1], [HALF + 1, HALF + 1], [-HALF - 1, HALF + 1]]) part({ x, y: top / 2 + 2, z, sx: 2, sy: top + 4, sz: 2, c: 0x1f2937, th: true, plain: true });

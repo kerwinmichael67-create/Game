@@ -2604,6 +2604,8 @@ else globalThis.Realtime = Realtime;
     bell: [T(1319, 0.9, { type: 'sine', vol: 0.18 }), T(2637, 0.5, { type: 'sine', vol: 0.06 })],
     chat: [T(1568, 0.06, { type: 'sine', vol: 0.08 }), T(2093, 0.1, { type: 'sine', vol: 0.07, at: 0.05 })],
     thunder: [N(300, 1.6, { vol: 0.4, f2: 80, att: 0.05 }), N(1500, 0.2, { vol: 0.2 })],
+    groan: [T(105, 0.85, { type: 'sawtooth', vol: 0.07, f2: 72, att: 0.18 }), T(158, 0.7, { type: 'triangle', vol: 0.05, f2: 110, at: 0.08, att: 0.15 }), N(500, 0.5, { filter: 'lowpass', vol: 0.05, att: 0.2 })],
+    reload: [N(3000, 0.04, { filter: 'highpass', vol: 0.14 }), T(900, 0.05, { type: 'square', vol: 0.05, at: 0.12 }), N(2400, 0.05, { filter: 'highpass', vol: 0.16, at: 0.3 })],
     egg: [N(2500, 0.05, { filter: 'bandpass', q: 3, vol: 0.2 }), N(2000, 0.05, { filter: 'bandpass', q: 3, vol: 0.2, at: 0.12 }), ...arp([784, 1047, 1568], 0.06, { type: 'triangle', vol: 0.14, dur: 0.25 }).map((x) => Object.assign(x, { at: x.at + 0.25 }))],
   };
   const last = new Map(), recent = [];
@@ -7658,7 +7660,7 @@ else globalThis.Realtime = Realtime;
 What's in Game Chat:
 - Chats: the Global chat, group chats and direct messages, with photos and files, polls, reactions, replies, pins, a ⧉ pop-out window, and voice and video calls (on the website).
 - 🎮 Request a game: head-to-head games against a friend or a bot: Snake PvP, Chess, Checkers, Tetris Battle, Street Fighter, Pong, Connect Four, Tic-Tac-Toe, Battleship, Reversi, Dots & Boxes, Mancala, Five in a Row, Light Cycles, Air Hockey, Apex Rush 3D (racing) and Tower Defense.
-- 🕹️ Games: bigger online games with servers: Bloxverse (a Roblox-style world with Build a Boat for Treasure, Pet Simulator, Natural Disaster Survival, Obby, Tycoon, Tag, Floor is Lava, Tower of Hell, Grow a Garden, Tower Defense Simulator and Command an Army), Blockcraft (Minecraft-style building and survival), Tank Arena, Space Shooter, Tower Defense: Last Stand, Bumper Crop and Duel Yard, plus the party games Draw Phone, Trivia Rush, Odd One Out, Sketch & Guess and Majority Rules.
+- 🕹️ Games: bigger online games with servers: Bloxverse (a Roblox-style world with Zombie Outbreak, Steal an Egg, Build a Boat for Treasure, Pet Simulator, Natural Disaster Survival, Obby, Tycoon, Tag, Floor is Lava, Tower of Hell, Grow a Garden, Tower Defense Simulator and Command an Army), Blockcraft (Minecraft-style building and survival), Tank Arena, Space Shooter, Tower Defense: Last Stand, Bumper Crop and Duel Yard, plus the party games Draw Phone, Trivia Rush, Odd One Out, Sketch & Guess and Majority Rules.
 
 How to help:
 - Be friendly, upbeat and genuinely useful. Anyone might be using Game Chat, kids and teens included, so keep everything appropriate for all ages and gently steer away from anything that isn't.
