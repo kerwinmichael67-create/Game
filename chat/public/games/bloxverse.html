@@ -1829,14 +1829,15 @@ function frame(t) {
   const tx = P.x, ty = P.y + 4.4 - stepLift, tz = P.z, cp = Math.cos(cam.pitch), ux = Math.sin(cam.yaw) * cp, uy = -Math.sin(cam.pitch), uz = Math.cos(cam.yaw) * cp;
   // a wall or roof between you and the camera: the camera comes in front of it (and eases back out after)
   const want = exp.camClip === false ? cam.dist : Math.min(cam.dist, Math.max(2.5, camRoom(tx, ty, tz, ux, uy, uz, cam.dist) - 0.6));
-  camD = want < camD ? want : camD + (want - camD) * Math.min(1, dt * 4);
+  if (want < cam.dist - 0.01) camClipAt = t;
+  camD = want < camD || t - camClipAt > 1500 ? want : camD + (want - camD) * Math.min(1, dt * 4); // zooming is instant; only coming back out from behind a wall eases
   camera.position.set(tx + ux * camD, ty + uy * camD, tz + uz * camD);
   camera.lookAt(tx, ty, tz);
   netTick(t);
   if (t > hudAt) { hudAt = t + 200; drawHud(); }
   if (!fullOpen()) renderer.render(scene, camera); // a full-screen menu hides the world: skip drawing it
 }
-let camD = 20;
+let camD = 20, camClipAt = -1e9;
 function camRoom(ox, oy, oz, dx, dy, dz, max) {
   let best = max; const o = [ox, oy, oz], d = [dx, dy, dz];
   for (const p of parts) {
