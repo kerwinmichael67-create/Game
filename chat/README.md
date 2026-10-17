@@ -7,7 +7,11 @@ An online chat where you can talk to whoever is online, make your own chats, and
 - **Accounts**: sign up with a username and password. You stay signed in on that browser.
 - **Global chat** for everyone, plus **New chat** for your own private or public group chats. You can add people to a chat or leave it.
 - **Direct messages**: click anyone's name and press **Message**.
-- **🤖 AI helper**: the first entry in your chats list is a private chat with Claude, an AI from Anthropic. Ask it anything: game tips and strategy, rules, homework, ideas, jokes, quizzes, help writing a message. Answers appear as they're written; ⏹ stops one part-way, **↻ Try again** asks for a different answer, 📋 copies one, and **🧹 New chat** starts over. Only you can see it, and the conversation is kept in your browser. Claude is told about Game Chat and its games and keeps things suitable for all ages. On the website the server needs an Anthropic API key (see [Turn on the AI helper](#turn-on-the-ai-helper)); on claude.ai it uses each person's own Claude plan, and claude.ai asks them once to allow it.
+- **🤖 AI helper**: the first entry in your chats list is a private chat with an AI helper. Pick who answers at the top:
+  - **🧩 Buddy** (the default) is Game Chat's own small AI. It runs right in your browser, so it's free, works without a server key, and uses no AI usage at all. It knows how to play and win every game in Game Chat (Bloxverse experiences included) and where everything is, and it does maths (`15% of 240`, fractions, `2x + 3 = 11`, primes, times tables, averages, shapes), unit conversions, dates and countdowns (days until Christmas or your birthday), word tools (definitions, synonyms, rhymes, spelling, counting letters), jokes, facts, riddles, stories, poems, gamer names, dice and coin flips, and help writing invites and messages. You can play games with it right in the chat: a trivia quiz, a math quiz, hangman, riddles, word scramble, guess the number (either way round), rock paper scissors and would you rather. It remembers your name, birthday and favorite things (say "my name is…", "what do you remember about me?" or "forget everything"). Its answers often come with quick-reply buttons, and when it doesn't know something it offers **✨ Ask Claude instead**.
+  - **✨ Claude** is a much bigger AI from Anthropic. Ask it anything: game tips and strategy, rules, homework, ideas, jokes, quizzes, help writing a message. It uses Claude usage. On the website the server needs an Anthropic API key (see [Turn on the AI helper](#turn-on-the-ai-helper)); on claude.ai it uses each person's own Claude plan, and claude.ai asks them once to allow it. Claude is told about Game Chat and its games and keeps things suitable for all ages.
+
+  Answers appear as they're written; ⏹ stops one part-way, **↻ Try again** asks for a different answer, 📋 copies one, and **🧹 New chat** starts over. Only you can see it, and the conversation, your choice of helper and what Buddy remembers are kept in your browser.
 - **🧰 Tools** (button in the top bar; press it again to go back to the chat). Everything you make is kept in your browser:
   - **🌐 HTML previewer**: write HTML, CSS and JavaScript and see the page live as you type (or press ▶ Run / Ctrl+Enter). `console.log` and errors (with line numbers) show under the preview. Start from a template (starter page, bouncing ball, profile card, quiz), switch to a big preview, or download it as a `.html` file. The page runs walled off from the chat, so it can't see your chats or sign-in.
   - **🧮 Calculator**: type or tap. + − × ÷, powers, roots, %, n!, sin/cos/tan (degrees or radians), log, ln, π, e and Ans, with brackets and `2π`-style multiplication. History of your answers; click one to reuse it.
@@ -135,7 +139,7 @@ The same app also runs as a claude.ai artifact. There, chats and profiles are st
 - Rebuild it with `node scripts/build-artifact.js`, which writes `dist/game-chat.html`.
 - Everyone who uses it needs a claude.ai account. The owner invites each friend by email from the artifact's **Share** menu, as an **Editor**. That's the access level that lets people post, save their profile and play.
 - The code lives in `artifact/backend.js`. It stands in for `server.js` and speaks the same message protocol, so the web client runs unchanged.
-- The 🤖 AI helper asks Claude straight from the page (the artifact's `sample` capability), so no API key is needed. Each person's questions use their own Claude plan, and claude.ai asks them to allow it the first time. It also works in the ⧉ popped-out window, which asks through the claude.ai tab (keep that tab open).
+- The 🤖 AI helper's 🧩 Buddy runs in the page and needs nothing. Its ✨ Claude asks Claude straight from the page (the artifact's `sample` capability), so no API key is needed. Each person's questions use their own Claude plan, and claude.ai asks them to allow it the first time. It also works in the ⧉ popped-out window, which asks through the claude.ai tab (keep that tab open).
 
 ## Run it
 
@@ -157,12 +161,12 @@ Accounts, chats and messages are saved to `chat/data/db.json`. Set `DATA_DIR` to
 
 ### Turn on the AI helper
 
-On the website, the 🤖 AI helper's questions go through your server to Claude, so the server needs an Anthropic API key:
+On the website, the 🤖 AI helper's ✨ Claude questions go through your server to Claude, so the server needs an Anthropic API key:
 
 1. Make a key at [platform.claude.com](https://platform.claude.com) (API keys). Questions are billed to that account.
 2. Set it as the `ANTHROPIC_API_KEY` environment variable and restart the server, for example `ANTHROPIC_API_KEY=sk-ant-... npm start`. On Render, add it under your service's **Environment** tab.
 
-Without a key everything else works, and the AI helper says it isn't switched on yet. The model is set by `AI_MODEL` in `server.js`. If Claude declines a question, Anthropic's server-side fallback retries it on the model Anthropic recommends for that case. To keep costs in check each person can ask up to 30 questions every 15 minutes, one at a time, and only the latest part of a long conversation is sent.
+Without a key everything else works, 🧩 Buddy included, and choosing ✨ Claude says it isn't switched on yet. The model is set by `AI_MODEL` in `server.js`. If Claude declines a question, Anthropic's server-side fallback retries it on the model Anthropic recommends for that case. To keep costs in check each person can ask up to 30 questions every 15 minutes, one at a time, and only the latest part of a long conversation is sent.
 
 ## Tests
 
@@ -170,12 +174,12 @@ Without a key everything else works, and the AI helper says it isn't switched on
 npm test
 ```
 
-This checks the game rules, then runs two simulated players against a real server. They sign up, chat, create rooms, and play chess, tetris and snake.
+This checks the game rules, then runs two simulated players against a real server. They sign up, chat, create rooms, and play chess, tetris and snake. It also checks the bots, and asks 🧩 Buddy a long list of questions (maths, units, dates, words, Game Chat help, games in the chat, memory and safety).
 
 ## How it's built
 
 - `server.js`: HTTP server plus WebSocket (`ws`). It handles accounts, rooms, presence, challenges and game sessions. Passwords are hashed with scrypt.
 - `shared/rules.js`: chess, checkers, connect four and tic-tac-toe rules. The server uses them to validate every move, and the browser uses them to highlight legal moves.
 - `realtime.js`: snake, pong and the fighting game run on the server (server-authoritative), so neither player can cheat. For Tetris, each player's board runs in their own browser and the server passes junk rows between them.
-- `public/`: the web client (`index.html`, `style.css`, `app.js` for the chat, `games.js` for the game renderers, `ai.js` for the 🤖 AI helper, `tools.js` for the 🧰 Tools).
+- `public/`: the web client (`index.html`, `style.css`, `app.js` for the chat, `games.js` for the game renderers, `ai.js` for the 🤖 AI helper, `buddy.js` and `buddy-data.js` for its built-in 🧩 Buddy, `tools.js` for the 🧰 Tools).
 - `shared/ai-guide.js`: what the AI helper is told about itself and Game Chat. The server's `POST /ai` sends it with each question to Claude (using `@anthropic-ai/sdk`) and streams the answer back.

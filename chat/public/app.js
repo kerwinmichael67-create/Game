@@ -559,9 +559,10 @@
   function renderRooms() {
     if (!S.me) return;
     const list = $('#roomList'), ai = AIChat.isOpen(), away = ai || ToolsUI.isOpen();
-    list.replaceChildren(h('li', { class: 'ai-room' + (ai ? ' active' : ''), id: 'aiRoom', title: 'A private chat with Claude, an AI', onclick: openAI },
+    const who = AIChat.who();
+    list.replaceChildren(h('li', { class: 'ai-room' + (ai ? ' active' : ''), id: 'aiRoom', title: 'A private chat with an AI helper: Buddy (free) or Claude', onclick: openAI },
       h('span', { class: 'room-icon ai-icon' }, '🤖'),
-      h('span', { class: 'grow' }, 'AI helper ', h('small', {}, AIChat.busy() ? 'Claude is writing…' : 'Ask Claude anything'))));
+      h('span', { class: 'grow' }, 'AI helper ', h('small', {}, AIChat.busy() ? `${who} is writing…` : who === 'Buddy' ? 'Ask Buddy · free' : 'Ask Claude anything'))));
     for (const r of sortedRooms()) {
       const n = S.unread[r.id], muted = isMuted(r.id), fav = isFav(r.id);
       const other = r.dm && r.members.find((m) => m !== S.me.username);
@@ -602,7 +603,7 @@
     if (AIChat.isOpen() || ToolsUI.isOpen()) {
       const ai = AIChat.isOpen();
       $('#roomName').textContent = ai ? '🤖 AI helper' : '🧰 Tools';
-      $('#roomMeta').textContent = ai ? 'Claude · only you see this chat' : 'Saved in this browser';
+      $('#roomMeta').textContent = ai ? `${AIChat.who()} · only you see this chat` : 'Saved in this browser';
       $('#callBtn').classList.add('hidden');
       $('#videoBtn').classList.add('hidden');
       return;

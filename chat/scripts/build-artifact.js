@@ -22,7 +22,7 @@ body = body.slice(0, formStart) +
 body = body.replace('<div id="auth" class="auth hidden">', '<div id="auth" class="auth">');
 
 const css = read('public/style.css');
-const scripts = ['shared/rules.js', 'realtime.js', 'public/games/sfx.js', 'public/td.js', 'public/td-icons.js', 'public/td-ui.js', 'public/games.js', 'public/party.js', 'public/gamenet.js', 'public/tables.js', 'public/bots.js', 'artifact/backend.js', 'shared/ai-guide.js', 'public/ai.js', 'public/tools.js', 'public/app.js'];
+const scripts = ['shared/rules.js', 'realtime.js', 'public/games/sfx.js', 'public/td.js', 'public/td-icons.js', 'public/td-ui.js', 'public/games.js', 'public/party.js', 'public/gamenet.js', 'public/tables.js', 'public/bots.js', 'artifact/backend.js', 'shared/ai-guide.js', 'public/games/trivia-q.js', 'public/buddy-data.js', 'public/buddy.js', 'public/ai.js', 'public/tools.js', 'public/app.js'];
 
 // (data-gc marks the chat's own style and scripts, and #gcBody keeps a clean copy of the page: ⧉ Pop out
 // copies them into a small window of its own, since claude.ai won't open its pages in one)
