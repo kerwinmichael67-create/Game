@@ -100,11 +100,12 @@
 <script>
 "use strict";
 /* =====================================================================
-   BLOCKCRAFT — a blocky building game. Every server is its own world,
-   generated from that server's seed; what people build or dig is shared
-   live with everyone on the server and saved, so it's there next time.
+   BLOCKCRAFT — a blocky building game. Every server is its own endless
+   world, generated from that server's seed as people explore it; what
+   people build or dig is shared live with everyone on the server and
+   saved, so it's there next time.
    ===================================================================== */
-const CX = 16, H = 48, NCH = 8, W = CX * NCH, SEA = 15;
+const CX = 16, H = 64, SEA = 15, SPAWN = 64; // chunk size, world height, sea level, where everyone starts
 const $ = (s) => document.querySelector(s);
 
 /* ---------------- blocks ---------------- */
@@ -139,8 +140,10 @@ const B = [
   { n: 'TNT', tex: [29, 28, 30] },
   { n: 'Pumpkin', tex: [32, 31, 32] },
   { n: 'Slime Block', tex: [33, 33, 33], bouncy: true },
+  { n: 'Cactus', tex: [34, 35, 34] },
+  { n: 'Ice', tex: [36, 36, 36] },
 ];
-const AIR = 0, WATER = 9, BEDROCK = 13, SLIME = 28;
+const AIR = 0, WATER = 9, BEDROCK = 13, SLIME = 28, CACTUS = 29, ICE = 30;
 const solid = (b) => b !== AIR && b !== WATER;
 const seeThrough = (b) => b === AIR || B[b].cut || B[b].liquid;
 const PLACEABLE = B.map((b, i) => i).filter((i) => i && i !== BEDROCK && i !== WATER).concat([WATER]);
@@ -170,9 +173,10 @@ const RECIPES = [
   { o: [27, 1], i: [[7, 4], [124, 1]] },
   { o: [129, 1], i: [[128, 1], [101, 1]], smelt: 1 }, { o: [135, 1], i: [[134, 1], [101, 1]], smelt: 1 },
   { o: [139, 1], i: [[133, 3], [100, 3]] }, { o: [140, 4], i: [[132, 1], [100, 1], [4, 1]] }, { o: [22, 1], i: [[133, 4]] }, { o: [SLIME, 1], i: [[136, 4]] },
+  { o: [21, 1], i: [[22, 1], [CACTUS, 1]] },
 ];
 // how long a block takes to break by hand (seconds), and what pickaxe it needs to drop anything
-const HARD = { 1: 0.6, 2: 0.5, 3: 7.5, 4: 10, 5: 2, 6: 2, 7: 0.3, 8: 0.5, 10: 0.3, 11: 10, 12: 0.5, 14: 15, 15: 15, 16: 15, 17: 15, 18: 0.8, 19: 0.8, 20: 0.8, 21: 0.8, 22: 0.8, 23: 1.5, 24: 0.3, 25: 7.5, 26: 0.1, 27: 1, 28: 0.1 };
+const HARD = { 1: 0.6, 2: 0.5, 3: 7.5, 4: 10, 5: 2, 6: 2, 7: 0.3, 8: 0.5, 10: 0.3, 11: 10, 12: 0.5, 14: 15, 15: 15, 16: 15, 17: 15, 18: 0.8, 19: 0.8, 20: 0.8, 21: 0.8, 22: 0.8, 23: 1.5, 24: 0.3, 25: 7.5, 26: 0.1, 27: 1, 28: 0.1, 29: 0.4, 30: 0.5 };
 const NEEDS = { 3: 1, 4: 1, 11: 1, 14: 1, 15: 2, 16: 3, 17: 3, 25: 1 };
 const PICK_SPEED = { 1: 4, 2: 7, 3: 10, 4: 14 };
 function breakTime(b, pick) { const base = HARD[b] || 1; if (NEEDS[b]) return pick ? base / PICK_SPEED[pick] : base * 1.5; return base; }
@@ -183,7 +187,7 @@ function dropsOf(b, pick) {
   if (b === 14) return [[101, 1]];
   if (b === 17) return [[104, 1]];
   if (b === 7) return Math.random() < 0.1 ? [[124, 1]] : [];
-  if (b === 10 || b === WATER || b === BEDROCK) return [];
+  if (b === 10 || b === WATER || b === BEDROCK || b === ICE) return [];
   return [[b, 1]];
 }
 // survival: health and food are out of 20 (10 hearts, 10 drumsticks)
@@ -232,6 +236,9 @@ function drawAtlas() {
   noisy(31, '#d9822b', 14); for (let x = 2; x < TS; x += 4) for (let y = 0; y < TS; y++) px(31, x, y, '#b7681c'); // pumpkin side
   noisy(32, '#d9822b', 10); for (let x = 6; x < 10; x++) for (let y = 6; y < 10; y++) px(32, x, y, '#5a8a2a'); // pumpkin top
   noisy(33, '#7cd44a', 16); for (let k = 0; k < TS; k++) { px(33, k, 0, '#4f9e2c'); px(33, k, 15, '#4f9e2c'); px(33, 0, k, '#4f9e2c'); px(33, 15, k, '#4f9e2c'); } for (let y = 4; y < 12; y++) for (let x = 4; x < 12; x++) px(33, x, y, '#5bb33a', Math.round((rr() - 0.5) * 10)); // slime block
+  noisy(34, '#5a9a3a', 14); for (let k = 0; k < TS; k++) { px(34, k, 0, '#3f7a28'); px(34, k, 15, '#3f7a28'); px(34, 0, k, '#3f7a28'); px(34, 15, k, '#3f7a28'); } for (let k = 5; k < 11; k++) px(34, k, k, '#8fca5a'); // cactus top
+  noisy(35, '#4f8f32', 12); for (let x = 1; x < TS; x += 4) for (let y = 0; y < TS; y++) px(35, x, y, '#3a7224'); for (let k = 0; k < 12; k++) px(35, 2 + Math.floor(rr() * 4) * 4, Math.floor(rr() * 16), '#ece6c4'); // cactus side (spines)
+  noisy(36, '#9fcdf4', 10); for (let k = 0; k < 4; k++) { const x0 = Math.floor(rr() * 9), y0 = 2 + k * 4; for (let a = 0; a < 7; a++) px(36, x0 + a, y0 + (a >> 2), '#e6f5ff'); } // ice
 }
 drawAtlas();
 const tileUV = (t) => [(t % AT) / AT, 1 - (Math.floor(t / AT) + 1) / AT];
@@ -269,11 +276,27 @@ function icon(b, size = 34) {
   return c;
 }
 
-/* ---------------- the world ---------------- */
-const world = new Uint8Array(W * H * W);
-const idx = (x, y, z) => (y * W + z) * W + x;
-const inWorld = (x, y, z) => x >= 0 && y >= 0 && z >= 0 && x < W && y < H && z < W;
-const get = (x, y, z) => (inWorld(x, y, z) ? world[idx(x, y, z)] : y < 0 ? BEDROCK : AIR);
+/* ---------------- the world ----------------
+   It goes on and on: the ground is worked out from the server's seed one 16×16 chunk at a time, when
+   someone comes near it, and a chunk comes out the same every time and for everyone. What people
+   change is kept on its own (edits) and laid over each chunk as it's made. */
+const LIMIT = 30000; // a long, long way out there's a wall
+const ckey = (cx, cz) => (cx + 4096) * 8192 + (cz + 4096);
+const lidx = (x, y, z) => (y << 8) | ((z & 15) << 4) | (x & 15); // a block inside its chunk
+const bkey = (x, y, z) => (y * 65536 + (z + 32768)) * 65536 + (x + 32768); // a block anywhere (for saving)
+const inWorld = (x, y, z) => y >= 0 && y < H && x > -LIMIT && x < LIMIT && z > -LIMIT && z < LIMIT;
+const CH = new Map();         // chunk key -> { cx, cz, d: its blocks, top: 1 + its highest block, solid, water: meshes, dirty }
+const edits = new Map();      // bkey -> block: everything anyone changed from the generated world
+const chunkEdits = new Map(); // chunk key -> (lidx -> block): the same, sorted by chunk
+let lastK = -1, lastC = null;
+function chunkOf(cx, cz) {
+  const k = ckey(cx, cz);
+  if (k === lastK) return lastC;
+  const c = CH.get(k) || genChunk(cx, cz);
+  lastK = k; lastC = c;
+  return c;
+}
+const get = (x, y, z) => (y < 0 ? BEDROCK : y >= H ? AIR : chunkOf(x >> 4, z >> 4).d[lidx(x, y, z)]);
 function mulberry(a) { return () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 function makeNoise(seed) {
   const r = mulberry(seed), G = new Float32Array(512 * 2);
@@ -287,45 +310,133 @@ function makeNoise(seed) {
     return a + sy * (b - a); };
   return (x, y, oct = 4) => { let s = 0, amp = 1, f = 1, norm = 0; for (let o = 0; o < oct; o++) { s += n2(x * f, y * f) * amp; norm += amp; amp *= 0.5; f *= 2; } return s / norm; };
 }
-function generate(seed) {
-  world.fill(0);
-  const hn = makeNoise(seed), mn = makeNoise(seed + 77), fn = makeNoise(seed + 313), rnd = mulberry(seed * 31 + 5);
-  const heights = new Int16Array(W * W);
-  for (let z = 0; z < W; z++) for (let x = 0; x < W; x++) {
-    const hills = hn(x / 64, z / 64, 4), mount = Math.max(0, mn(x / 90, z / 90, 3)) * 30;
-    let h = Math.floor(SEA + 2 + hills * 14 + mount);
-    // gentle edges so the world ends in a beach
-    const edge = Math.min(x, z, W - 1 - x, W - 1 - z);
-    if (edge < 8) h = Math.round(h - (8 - edge) * 1.2);
-    h = Math.max(3, Math.min(H - 8, h));
-    heights[z * W + x] = h;
+let SEED = 0, hn, mn, fn, tn, on;
+// a new world: nothing made yet, nothing changed yet
+function setSeed(seed) {
+  SEED = seed; hn = makeNoise(seed); mn = makeNoise(seed + 77); fn = makeNoise(seed + 313); tn = makeNoise(seed + 911); on = makeNoise(seed + 555);
+  for (const c of CH.values()) dropMesh(c);
+  CH.clear(); lastK = -1; lastC = null; cabins.clear(); edits.clear(); chunkEdits.clear(); editsDirty = false;
+}
+// a number from 0 to 1 for any spot (and what it's for), the same every time
+function hash3(x, y, z, s) {
+  let h = Math.imul(SEED * 31 + s, 0x9E3779B1);
+  h = Math.imul(h ^ x, 0x85EBCA77); h ^= h >>> 13;
+  h = Math.imul(h ^ y, 0xC2B2AE3D); h ^= h >>> 16;
+  h = Math.imul(h ^ z, 0x27D4EB2F); h ^= h >>> 15;
+  h = Math.imul(h, 0x165667B1); h ^= h >>> 16;
+  return (h >>> 0) / 4294967296;
+}
+const BIOMES = { ocean: '🌊 Ocean', beach: '🏖️ Shore', plains: '🌾 Plains', forest: '🌳 Forest', desert: '🏜️ Desert', snow: '❄️ Snowy taiga', peaks: '⛰️ Mountains' };
+// one column of the world: how high the ground is, what kind of place it is, what's on top
+function column(x, z) {
+  // seas, high mountains, hot and cold places: they start a little way out from the middle, where the world began
+  const far = Math.min(1, Math.hypot(x - SPAWN, z - SPAWN) / 220), cont = on(x / 420, z / 420, 3) * far;
+  const hills = hn(x / 64, z / 64, 4), mount = Math.max(0, mn(x / 90, z / 90, 3)) * (30 + 34 * far);
+  const h = Math.max(3, Math.min(H - 8, Math.floor(SEA + 2 + hills * 14 + mount + (cont < -0.22 ? (cont + 0.22) * 80 : 0))));
+  const temp = tn(x / 260, z / 260, 3) * 1.8 * far, snowLine = 32 + Math.max(0, temp) * 40; // (only the highest peaks have snow where it's hot)
+  const biome = h < SEA - 4 ? 'ocean' : h <= SEA + 1 ? 'beach' : temp < -0.3 ? 'snow' : h > snowLine ? 'peaks' : temp > 0.3 ? 'desert' : fn(x / 40, z / 40, 2) > 0.15 ? 'forest' : 'plains';
+  const top = biome === 'ocean' || biome === 'beach' || biome === 'desert' ? 8 : biome === 'snow' || biome === 'peaks' ? 12 : 1;
+  return { h, biome, top, fill: top === 8 ? 8 : 2, cold: temp < -0.3 };
+}
+// cabins here and there: at most one in each 48×48 square (none where the first, smaller world was)
+const cabins = new Map();
+function cabinIn(gx, gz) {
+  const k = ckey(gx, gz);
+  if (cabins.has(k)) return cabins.get(k);
+  let cab = null;
+  if (hash3(gx, 7, gz, 6) < 0.22) {
+    const x = gx * 48 + 8 + Math.floor(hash3(gx, 8, gz, 7) * 30), z = gz * 48 + 8 + Math.floor(hash3(gx, 9, gz, 8) * 30), c = column(x + 3, z + 3);
+    const old = x > -10 && z > -10 && x < 136 && z < 136;
+    if (!old && (c.biome === 'plains' || c.biome === 'forest')) cab = { x, z, y: c.h, door: Math.floor(hash3(gx, 10, gz, 9) * 4) };
+  }
+  cabins.set(k, cab);
+  return cab;
+}
+const nearCabin = (x, z) => { const c = cabinIn(Math.floor(x / 48), Math.floor(z / 48)); return !!c && x >= c.x - 3 && x <= c.x + 9 && z >= c.z - 3 && z <= c.z + 9; };
+function genChunk(cx, cz) {
+  const d = new Uint8Array(CX * CX * H), x0 = cx * CX, z0 = cz * CX;
+  const ch = { cx, cz, d, top: 0, solid: null, water: null, dirty: true };
+  CH.set(ckey(cx, cz), ch);
+  // its columns, and two more all round: a tree just over the edge can reach in
+  const cols = [], M = CX + 4;
+  for (let z = z0 - 2; z < z0 + CX + 2; z++) for (let x = x0 - 2; x < x0 + CX + 2; x++) cols.push(column(x, z));
+  const col = (x, z) => cols[(z - z0 + 2) * M + (x - x0 + 2)];
+  // soft: only into air, water or leaves
+  const put = (x, y, z, b, soft) => {
+    if (x < x0 || z < z0 || x >= x0 + CX || z >= z0 + CX || y < 1 || y >= H) return;
+    const i = lidx(x, y, z);
+    if (!soft || d[i] === AIR || d[i] === WATER || d[i] === 7) d[i] = b;
+  };
+  for (let z = z0; z < z0 + CX; z++) for (let x = x0; x < x0 + CX; x++) {
+    const { h, top, fill, cold } = col(x, z);
     for (let y = 0; y <= h; y++) {
       let b = 3;
       if (y === 0) b = BEDROCK;
-      else if (y === h) b = h <= SEA + 1 ? 8 : h > 32 ? 12 : 1;
-      else if (y > h - 4) b = h <= SEA + 1 ? 8 : 2;
-      else { const o = rnd(); if (o < 0.012) b = 14; else if (o < 0.018 && y < 24) b = 15; else if (o < 0.021 && y < 14) b = 16; else if (o < 0.0225 && y < 9) b = 17; }
-      world[idx(x, y, z)] = b;
+      else if (y === h) b = top;
+      else if (y > h - 4) b = fill;
+      else { const o = hash3(x, y, z, 1); if (o < 0.012) b = 14; else if (o < 0.018 && y < 24) b = 15; else if (o < 0.021 && y < 14) b = 16; else if (o < 0.0225 && y < 9) b = 17; }
+      d[lidx(x, y, z)] = b;
     }
-    for (let y = h + 1; y <= SEA; y++) world[idx(x, y, z)] = WATER;
+    for (let y = h + 1; y <= SEA; y++) d[lidx(x, y, z)] = y === SEA && cold ? ICE : WATER;
   }
-  // trees
-  for (let z = 3; z < W - 3; z++) for (let x = 3; x < W - 3; x++) {
-    const h = heights[z * W + x];
-    // forests come in patches, with open meadows between them
-    const forest = fn(x / 40, z / 40, 2);
-    if (world[idx(x, h, z)] !== 1 || rnd() > (forest > 0.15 ? 0.03 : 0.002)) continue;
-    const th = 4 + Math.floor(rnd() * 3);
-    for (let y = h + 1; y <= h + th && y < H; y++) world[idx(x, y, z)] = 6;
+  // trees (oaks, and spruces where it snows), cactuses in the desert, the odd pumpkin
+  for (let z = z0 - 2; z < z0 + CX + 2; z++) for (let x = x0 - 2; x < x0 + CX + 2; x++) {
+    const { h, biome, top } = col(x, z), r = hash3(x, 0, z, 2);
+    if (biome === 'desert') {
+      if (r < 0.006) for (let k = 1, n = 1 + Math.floor(hash3(x, 1, z, 3) * 3); k <= n; k++) put(x, h + k, z, CACTUS);
+      continue;
+    }
+    const spruce = top === 12, chance = { forest: 0.03, plains: 0.002, snow: 0.014, peaks: 0.003 }[biome] || 0;
+    if (r >= chance || nearCabin(x, z)) continue;
+    if (spruce) {
+      const th = 6 + Math.floor(hash3(x, 1, z, 4) * 3);
+      for (let y = h + 1; y <= h + th; y++) put(x, y, z, 6);
+      // a cone of leaves, wider and narrower down to the bottom
+      for (let k = 0; k <= th - 2; k++) {
+        const y = h + th + 1 - k, rad = k === 0 ? 0 : Math.min(k % 2 ? 1 : 2, 1 + (k >> 1));
+        for (let dz = -rad; dz <= rad; dz++) for (let dx = -rad; dx <= rad; dx++) if (!(rad && Math.abs(dx) === rad && Math.abs(dz) === rad)) put(x + dx, y, z + dz, 7, true);
+      }
+      continue;
+    }
+    const th = 4 + Math.floor(hash3(x, 1, z, 4) * 3);
+    for (let y = h + 1; y <= h + th; y++) put(x, y, z, 6);
     for (let dy = -2; dy <= 1; dy++) for (let dz = -2; dz <= 2; dz++) for (let dx = -2; dx <= 2; dx++) {
-      const r = dy >= 0 ? 1 : 2;
-      if (Math.abs(dx) > r || Math.abs(dz) > r || (Math.abs(dx) === r && Math.abs(dz) === r && rnd() < 0.5)) continue;
-      const X = x + dx, Y = h + th + dy, Z = z + dz;
-      if (inWorld(X, Y, Z) && world[idx(X, Y, Z)] === AIR) world[idx(X, Y, Z)] = 7;
+      const rad = dy >= 0 ? 1 : 2;
+      if (Math.abs(dx) > rad || Math.abs(dz) > rad || (Math.abs(dx) === rad && Math.abs(dz) === rad && hash3(x + dx, h + th + dy, z + dz, 5) < 0.5)) continue;
+      put(x + dx, h + th + dy, z + dz, 7, true);
     }
-    if (rnd() < 0.08) { const px2 = x + 2, pz = z; if (inWorld(px2, h + 1, pz) && world[idx(px2, h + 1, pz)] === AIR && world[idx(px2, h, pz)] === 1) world[idx(px2, h + 1, pz)] = 27; }
+    if (hash3(x, 2, z, 5) < 0.08 && x + 2 >= x0 && x + 2 < x0 + CX && z >= z0 && z < z0 + CX) { const c2 = col(x + 2, z); if (c2.top === 1 && d[lidx(x + 2, c2.h + 1, z)] === AIR) put(x + 2, c2.h + 1, z, 27); }
   }
-  return heights;
+  for (let gz = Math.floor((z0 - 1) / 48); gz <= Math.floor((z0 + CX) / 48); gz++)
+    for (let gx = Math.floor((x0 - 1) / 48); gx <= Math.floor((x0 + CX) / 48); gx++) { const cab = cabinIn(gx, gz); if (cab) buildCabin(cab, put); }
+  // and then whatever people have done to it
+  const ce = chunkEdits.get(ckey(cx, cz));
+  if (ce) for (const [i, b] of ce) d[i] = b;
+  for (let i = d.length - 1; i >= 0; i--) if (d[i]) { ch.top = (i >> 8) + 1; break; }
+  return ch;
+}
+// a little wooden cabin, on a cobblestone floor dug or built up to be level
+function buildCabin(cab, put) {
+  const { x, z, y, door } = cab;
+  for (let dz = -1; dz <= 7; dz++) for (let dx = -1; dx <= 7; dx++) {
+    const X = x + dx, Z = z + dz;
+    for (let Y = y + 1; Y <= y + 8; Y++) put(X, Y, Z, AIR);
+    if (dx < 0 || dz < 0 || dx > 6 || dz > 6) continue;
+    for (let Y = y; Y > Math.max(0, y - 6); Y--) put(X, Y, Z, 4, Y < y);
+    const wall = dx === 0 || dz === 0 || dx === 6 || dz === 6, corner = (dx === 0 || dx === 6) && (dz === 0 || dz === 6);
+    if (wall) for (let Y = y + 1; Y <= y + 3; Y++) put(X, Y, Z, corner ? 6 : 5);
+    // the roof steps in towards the middle
+    put(X, y + 4, Z, dx === 3 && dz === 3 ? 24 : 5);
+    if (dx > 0 && dz > 0 && dx < 6 && dz < 6) put(X, y + 5, Z, 5);
+    if (dx > 1 && dz > 1 && dx < 5 && dz < 5) put(X, y + 6, Z, 5);
+  }
+  // windows in the middle of each wall, one of them a doorway
+  [[3, 0], [3, 6], [0, 3], [6, 3]].forEach(([dx, dz], side) => {
+    if (side === door) { put(x + dx, y + 1, z + dz, AIR); put(x + dx, y + 2, z + dz, AIR); }
+    else put(x + dx, y + 2, z + dz, 10);
+  });
+  // a bookshelf and a bed
+  put(x + 1, y + 1, z + 1, 23); put(x + 1, y + 2, z + 1, 23); put(x + 5, y + 1, z + 4, 18); put(x + 5, y + 1, z + 5, 18);
 }
 
 /* ---------------- three.js scene ---------------- */
@@ -352,22 +463,20 @@ const FACES = [
   { d: [0, 0, 1], s: 0.65, c: [[0, 0, 1], [1, 0, 1], [1, 1, 1], [0, 1, 1]], t: 1 },
   { d: [0, 0, -1], s: 0.65, c: [[1, 0, 0], [0, 0, 0], [0, 1, 0], [1, 1, 0]], t: 1 },
 ];
-const chunks = []; // [cx][cz] -> { solid, water, dirty }
-for (let i = 0; i < NCH * NCH; i++) chunks.push({ solid: null, water: null, dirty: true });
-const chunkAt = (cx, cz) => chunks[cz * NCH + cx];
-function buildChunk(cx, cz) {
-  const ch = chunkAt(cx, cz);
+function buildChunk(ch) {
   ch.dirty = false;
   const S = { p: [], u: [], c: [], i: [] }, Wt = { p: [], u: [], c: [], i: [] };
-  const e = 0.0008;
-  for (let y = 0; y < H; y++) for (let z = cz * CX; z < cz * CX + CX; z++) for (let x = cx * CX; x < cx * CX + CX; x++) {
-    const b = world[idx(x, y, z)];
+  const e = 0.0008, d = ch.d, x0 = ch.cx * CX, z0 = ch.cz * CX;
+  for (let y = 0; y < ch.top; y++) for (let lz = 0; lz < CX; lz++) for (let lx = 0; lx < CX; lx++) {
+    const b = d[(y << 8) | (lz << 4) | lx];
     if (!b) continue;
-    const def = B[b], liquid = def.liquid;
+    const x = x0 + lx, z = z0 + lz, def = B[b], liquid = def.liquid;
     for (const f of FACES) {
-      const n = get(x + f.d[0], y + f.d[1], z + f.d[2]);
+      const nx = lx + f.d[0], ny = y + f.d[1], nz = lz + f.d[2];
+      if (ny < 0) continue;
+      // (the next chunk over has to be made to know if this side shows)
+      const n = ny >= H ? AIR : nx >= 0 && nx < CX && nz >= 0 && nz < CX ? d[(ny << 8) | (nz << 4) | nx] : get(x + f.d[0], ny, z + f.d[2]);
       if (liquid ? n !== AIR && !(B[n] && B[n].cut) : !(n === AIR || (seeThrough(n) && n !== b))) continue;
-      if (y + f.d[1] < 0) continue;
       const T = liquid ? Wt : S, base = T.p.length / 3, t = def.tex[f.t], [u0, v0] = tileUV(t), du = 1 / AT;
       const top = liquid && f.d[1] === 1 ? 0.88 : 1; // water sits a little lower
       for (const [a, bb, cc] of f.c) T.p.push(x + a, y + (bb ? top : 0), z + cc);
@@ -391,31 +500,81 @@ function buildChunk(cx, cz) {
     ch[key] = m;
   }
 }
+function dropMesh(ch) {
+  for (const key of ['solid', 'water']) if (ch[key]) { scene.remove(ch[key]); ch[key].geometry.dispose(); ch[key] = null; }
+  ch.dirty = true;
+}
+// a block changed: its chunk needs drawing again, and the one next door if it's on the edge
 function markDirty(x, z) {
-  const cx = Math.floor(x / CX), cz = Math.floor(z / CX);
-  for (const [dx, dz] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]]) {
-    const X = Math.floor((x + dx) / CX), Z = Math.floor((z + dz) / CX);
-    if (X >= 0 && Z >= 0 && X < NCH && Z < NCH && (X !== cx || Z !== cz || (dx === 0 && dz === 0))) chunkAt(X, Z).dirty = true;
+  const cx = x >> 4, cz = z >> 4, lx = x & 15, lz = z & 15;
+  const mark = (X, Z) => { const c = CH.get(ckey(X, Z)); if (c) c.dirty = true; };
+  mark(cx, cz);
+  if (lx === 0) mark(cx - 1, cz); if (lx === 15) mark(cx + 1, cz); if (lz === 0) mark(cx, cz - 1); if (lz === 15) mark(cx, cz + 1);
+}
+/* ---- what gets drawn: the chunks in a circle around you, nearest first ---- */
+const VIEWS = [['Near', 4], ['Normal', 6], ['Far', 9]];
+let VIEW = 6, RING = [], tidyAt = 0;
+function setView(v, picked) {
+  VIEW = v;
+  RING = [];
+  for (let dz = -v; dz <= v; dz++) for (let dx = -v; dx <= v; dx++) { const r = Math.hypot(dx, dz); if (r <= v + 0.5) RING.push([dx, dz, r]); }
+  RING.sort((a, b) => a[2] - b[2]);
+  scene.fog.far = v * CX - 6; scene.fog.near = scene.fog.far * 0.45;
+  if (picked) try { localStorage.setItem('bc.view', v); } catch (e) {}
+}
+try { setView(+localStorage.getItem('bc.view') || 6); } catch (e) { setView(6); }
+// on a slow computer, see less so the game keeps moving (unless you've picked how far to see yourself)
+let slowFor = 0;
+function autoView(fps) {
+  slowFor = fps < 20 && VIEW > 4 && !document.hidden ? slowFor + 1 : 0;
+  let picked = null; try { picked = localStorage.getItem('bc.view'); } catch (e) {}
+  if (slowFor >= 6 && !picked) { slowFor = 0; setView(4); toast('View set to Near to keep things smooth (Esc → 👁️ View to change it)'); }
+}
+// make and draw what's missing near (x, z), for up to ms milliseconds (always at least one chunk)
+function stream(x, z, ms, now) {
+  const pcx = Math.floor(x) >> 4, pcz = Math.floor(z) >> 4, until = performance.now() + ms;
+  for (const [dx, dz] of RING) {
+    const ch = chunkOf(pcx + dx, pcz + dz);
+    if (!ch.dirty) continue;
+    buildChunk(ch);
+    if (performance.now() > until) break;
+  }
+  if (now - tidyAt > 1000) { tidyAt = now; tidy(pcx, pcz); }
+}
+// forget the meshes too far away to see, and the blocks of chunks nobody is near (they can be made again)
+function tidy(pcx, pcz) {
+  const near = [[pcx, pcz]];
+  for (const p of Net.peers) { const q = !p.isMe && p.presence && p.presence.p; if (Array.isArray(q) && isFinite(q[0]) && isFinite(q[2])) near.push([Math.floor(q[0]) >> 4, Math.floor(q[2]) >> 4]); }
+  for (const [k, ch] of CH) {
+    if ((ch.solid || ch.water) && Math.hypot(ch.cx - pcx, ch.cz - pcz) > VIEW + 1.5) dropMesh(ch);
+    if (near.every(([x, z]) => Math.max(Math.abs(ch.cx - x), Math.abs(ch.cz - z)) > VIEW + 4)) { dropMesh(ch); CH.delete(k); if (lastC === ch) { lastK = -1; lastC = null; } }
   }
 }
 
 /* ---------------- placing and breaking ---------------- */
-const edits = new Map(); // block index -> block: everything anyone changed from the generated world
 let editsDirty = false;
 // sounds (sfx.js): sfx3 is one somewhere in the world, quieter further away
 const sfx = (name, opt) => { if (window.Sfx) window.Sfx.play(name, opt); };
 const sfx3 = (name, x, y, z, far, opt) => { if (window.Sfx) window.Sfx.at(name, Math.hypot(x - P.x, y - P.y, z - P.z), far || 32, opt); };
 function setBlock(x, y, z, b, fromNet) {
   if (!inWorld(x, y, z)) return false;
-  const i = idx(x, y, z);
-  if (world[i] === b) return false;
+  const ch = chunkOf(x >> 4, z >> 4), i = lidx(x, y, z);
+  if (ch.d[i] === b) return false;
   if (fromNet !== true || Net.loaded) { const o = { pitch: 0.85 + Math.random() * 0.3 }; if (fromNet) sfx3(b === AIR ? 'break' : 'place', x, y, z, 28, Object.assign(o, { vol: 0.7 })); else sfx(b === AIR ? 'break' : 'place', o); }
-  world[i] = b;
-  edits.set(i, b);
+  ch.d[i] = b;
+  if (b && y >= ch.top) ch.top = y + 1;
+  keepEdit(x, y, z, b);
   editsDirty = true;
   markDirty(x, z);
   if (!fromNet) Net.edit(x, y, z, b);
   return true;
+}
+function keepEdit(x, y, z, b) {
+  edits.set(bkey(x, y, z), b);
+  const k = ckey(x >> 4, z >> 4);
+  let m = chunkEdits.get(k);
+  if (!m) chunkEdits.set(k, (m = new Map()));
+  m.set(lidx(x, y, z), b);
 }
 function raycast(maxD = 6) {
   const o = camera.position, d = new THREE.Vector3(); camera.getWorldDirection(d);
@@ -437,14 +596,14 @@ const hl = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(
 hl.visible = false; scene.add(hl);
 
 /* ---------------- the player ---------------- */
-const P = { x: W / 2, y: 40, z: W / 2, vx: 0, vy: 0, vz: 0, yaw: 0, pitch: -0.2, ground: false, fly: false, w: 0.3, h: 1.8, eye: 1.62 };
+const P = { x: SPAWN, y: 40, z: SPAWN, vx: 0, vy: 0, vz: 0, yaw: 0, pitch: -0.2, ground: false, fly: false, w: 0.3, h: 1.8, eye: 1.62 };
 const keys = {};
 let mouseDown = { l: false, r: false }, clicked = { l: false, r: false }, nextBreak = 0, nextPlace = 0, lastSpace = 0;
 function collides(x, y, z) {
   for (let X = Math.floor(x - P.w); X <= Math.floor(x + P.w); X++)
     for (let Y = Math.floor(y); Y <= Math.floor(y + P.h - 0.01); Y++)
       for (let Z = Math.floor(z - P.w); Z <= Math.floor(z + P.w); Z++) {
-        if (X < 0 || Z < 0 || X >= W || Z >= W) return true; // the edge of the world
+        if (X <= -LIMIT || Z <= -LIMIT || X >= LIMIT || Z >= LIMIT) return true; // the edge of the world
         if (solid(get(X, Y, Z))) return true;
       }
   return false;
@@ -468,7 +627,8 @@ function physics(dt) {
   let wx = (-sin * fw + cos * st), wz = (-cos * fw - sin * st);
   const len = Math.hypot(wx, wz) || 1;
   wx = wx / len * speed * (fw || st ? 1 : 0); wz = wz / len * speed * (fw || st ? 1 : 0);
-  const acc = P.ground || P.fly ? 14 : 4;
+  const under = get(Math.floor(P.x), Math.floor(P.y - 0.1), Math.floor(P.z));
+  const acc = P.fly ? 14 : P.ground ? (under === ICE ? 2.2 : 14) : 4; // (ice is slippery)
   P.vx += (wx - P.vx) * Math.min(1, acc * dt); P.vz += (wz - P.vz) * Math.min(1, acc * dt);
   if (P.fly) {
     const up = (keys.Space ? 1 : 0) - (keys.ShiftLeft || keys.ShiftRight ? 1 : 0);
@@ -495,14 +655,13 @@ function physics(dt) {
 }
 function surface(x, z) { for (let y = H - 1; y >= 0; y--) { const b = get(x, y, z); if (solid(b)) return y + 1; if (b === WATER) return y + 1; } return H; }
 function respawn() {
-  // somewhere near the middle, standing on grass or sand with room to stand (never on a tree)
-  for (let tries = 0; tries < 400; tries++) {
-    const r = 6 + tries / 8, x = Math.floor(W / 2 + (Math.random() - 0.5) * r * 2), z = Math.floor(W / 2 + (Math.random() - 0.5) * r * 2);
-    if (x < 2 || z < 2 || x >= W - 2 || z >= W - 2) continue;
+  // somewhere near the spawn, standing on grass, sand or snow with room to stand (never on a tree)
+  for (let tries = 0; tries < 600; tries++) {
+    const r = 6 + tries / 4, x = Math.floor(SPAWN + (Math.random() - 0.5) * r * 2), z = Math.floor(SPAWN + (Math.random() - 0.5) * r * 2);
     const y = surface(x, z), top = get(x, y - 1, z);
     if ((top === 1 || top === 8 || top === 12) && get(x, y, z) === AIR && get(x, y + 1, z) === AIR) { P.x = x + 0.5; P.z = z + 0.5; P.y = y + 0.05; P.vx = P.vy = P.vz = 0; return; }
   }
-  const x = W / 2, z = W / 2; P.x = x + 0.5; P.z = z + 0.5; P.y = surface(x, z) + 0.2; P.vx = P.vy = P.vz = 0;
+  const x = SPAWN, z = SPAWN; P.x = x + 0.5; P.z = z + 0.5; P.y = surface(x, z) + 0.2; P.vx = P.vy = P.vz = 0;
 }
 
 /* ---------------- hotbar and block picker ---------------- */
@@ -588,6 +747,14 @@ function survivalTick(dt, moving, sprint) {
   if (S.foodT > 40) { S.foodT = 0; S.food = Math.max(0, S.food - 1); drawBars(); S.dirty = true; }
   if (S.food >= 17 && S.hp < 20) { S.regenT += dt; if (S.regenT > 3) { S.regenT = 0; S.hp = Math.min(20, S.hp + 1); S.foodT += 10; drawBars(); } }
   if (S.food === 0) { S.starveT += dt; if (S.starveT > 4) { S.starveT = 0; if (S.hp > 1) hurt(1, 0, 0, 'You starved.'); } }
+  S.prickT = Math.max(0, (S.prickT || 0) - dt);
+  if (!S.prickT && touching(CACTUS)) { S.prickT = 0.6; hurt(1, 0, 0, 'You were pricked to death by a cactus.'); }
+}
+// is a block of this kind right up against you (or under your feet)?
+function touching(b) {
+  const r = P.w + 0.08;
+  for (let X = Math.floor(P.x - r); X <= Math.floor(P.x + r); X++) for (let Y = Math.floor(P.y - 0.08); Y <= Math.floor(P.y + P.h); Y++) for (let Z = Math.floor(P.z - r); Z <= Math.floor(P.z + r); Z++) if (get(X, Y, Z) === b) return true;
+  return false;
 }
 /* ---- your things, kept per world (in the chat's saves, so they follow you) ---- */
 async function meKey() {
@@ -621,7 +788,7 @@ async function saveMe() {
 // back where you left off, if it's still a safe place to stand
 function placeAt(pos) {
   const [x, y, z] = pos;
-  if (!(x > 1 && z > 1 && x < W - 1 && z < W - 1 && y > 1 && y < H - 2)) return false;
+  if (!(inWorld(x, y, z) && y > 1 && y < H - 2)) return false;
   if (boxHits(x, y, z, P.w, P.h)) return false;
   P.x = x; P.y = y; P.z = z; P.vx = P.vy = P.vz = 0; S.fallFrom = null;
   return true;
@@ -824,7 +991,7 @@ const Mobs = { list: new Map(), next: 1, views: new Map(), seen: new Map(), ev: 
 const myPeer = () => { const m = Net.peers.find((p) => p.isMe); return m ? m.peer : 'me'; };
 function boxHits(x, y, z, w, h) {
   for (let X = Math.floor(x - w); X <= Math.floor(x + w); X++) for (let Y = Math.floor(y); Y <= Math.floor(y + h - 0.01); Y++) for (let Z = Math.floor(z - w); Z <= Math.floor(z + w); Z++) {
-    if (X < 0 || Z < 0 || X >= W || Z >= W) return true;
+    if (X <= -LIMIT || Z <= -LIMIT || X >= LIMIT || Z >= LIMIT) return true;
     if (solid(get(X, Y, Z))) return true;
   }
   return false;
@@ -874,7 +1041,6 @@ function trySpawn(players) {
   const def = MOBS[type], tame = def.passive || type === 'wolf';
   for (let tries = 0; tries < 12; tries++) {
     const a = Math.random() * 6.283, d = 14 + Math.random() * 18, x = Math.floor(pl.x + Math.cos(a) * d), z = Math.floor(pl.z + Math.sin(a) * d);
-    if (x < 2 || z < 2 || x >= W - 2 || z >= W - 2) continue;
     const y = surface(x, z), top = get(x, y - 1, z);
     if (get(x, y, z) !== AIR || get(x, y + 1, z) !== AIR) continue;
     if (tame ? !(top === 1 || ((type === 'rabbit' || type === 'wolf') && (top === 8 || top === 12))) : !solid(top) || top === 7) continue;
@@ -924,7 +1090,6 @@ function teleportMob(m, near) {
   const cx = near ? near.x : m.x, cz = near ? near.z : m.z, r = near ? 3 : 12;
   for (let tries = 0; tries < 16; tries++) {
     const x = Math.floor(cx + (Math.random() - 0.5) * 2 * r), z = Math.floor(cz + (Math.random() - 0.5) * 2 * r);
-    if (x < 1 || z < 1 || x >= W - 1 || z >= W - 1) continue;
     const y = surface(x, z), top = get(x, y - 1, z);
     if (!solid(top) || get(x, y, z) !== AIR || get(x, y + 1, z) !== AIR || get(x, y + 2, z) !== AIR) continue;
     mobEv(['n', +m.x.toFixed(1), +(m.y + 1.4).toFixed(1), +m.z.toFixed(1)]);
@@ -1258,10 +1423,12 @@ const sky = new THREE.Color(), DAY = new THREE.Color(0x9fd3ff), NIGHT = new THRE
 const sun = new THREE.Mesh(new THREE.PlaneGeometry(14, 14), new THREE.MeshBasicMaterial({ color: 0xfff2a8, fog: false }));
 const moon = new THREE.Mesh(new THREE.PlaneGeometry(9, 9), new THREE.MeshBasicMaterial({ color: 0xe8ecff, fog: false }));
 scene.add(sun, moon);
-const clouds = new THREE.Group();
+// clouds drift by overhead, wherever you go (each one comes round again on the far side)
+const clouds = new THREE.Group(), CLOUDS = 360;
 { const cm = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.85, fog: false }); const r = mulberry(99);
-  for (let k = 0; k < 40; k++) { const c = new THREE.Mesh(new THREE.BoxGeometry(8 + r() * 14, 1.2, 6 + r() * 10), cm); c.position.set(r() * 260 - 66, 62, r() * 260 - 66); clouds.add(c); } }
+  for (let k = 0; k < 56; k++) { const c = new THREE.Mesh(new THREE.BoxGeometry(8 + r() * 14, 1.2, 6 + r() * 10), cm); c.userData = { x: r() * CLOUDS, z: r() * CLOUDS }; c.position.y = H + 10; clouds.add(c); } }
 scene.add(clouds);
+const wrapC = (v) => ((v % CLOUDS) + CLOUDS) % CLOUDS - CLOUDS / 2;
 function skyUpdate() {
   const day = (Date.now() / 1000 % 900) / 900; // a 15-minute day, the same for everyone
   const a = day * Math.PI * 2, h = Math.sin(a);
@@ -1274,7 +1441,8 @@ function skyUpdate() {
   const c = camera.position;
   sun.position.set(c.x + Math.cos(a) * 150, c.y + h * 150, c.z); sun.lookAt(c);
   moon.position.set(c.x - Math.cos(a) * 150, c.y - h * 150, c.z); moon.lookAt(c);
-  clouds.position.x = (Date.now() / 1000 * 0.6) % 60;
+  const drift = Date.now() / 1000 * 0.6;
+  for (const k of clouds.children) { k.position.x = c.x + wrapC(k.userData.x + drift - c.x); k.position.z = c.z + wrapC(k.userData.z - c.z); }
 }
 
 /* ---------------- chat and messages ---------------- */
@@ -1339,7 +1507,7 @@ const iAmHost = () => { const c = crew(); return !!(c[0] && c[0].isMe); };
 let menuStatus = '';
 function menu() {
   const c = counts();
-  $('#menuPanel').innerHTML = `<div class="logo">BLOCK<b>CRAFT</b></div><p class="sub">Build and explore together. Every server is its own world, and it's saved.</p>
+  $('#menuPanel').innerHTML = `<div class="logo">BLOCK<b>CRAFT</b></div><p class="sub">Build and explore together. Every server is its own endless world, and it's saved.</p>
     ${menuStatus ? `<div class="status">${menuStatus}</div>` : ''}
     ${modeButtons()}
     <button class="mbtn green" id="rnd">🎲 Join a random world</button>
@@ -1358,10 +1526,13 @@ function showPause() {
   $('#pausePanel').innerHTML = `<div class="logo" style="font-size:36px">Paused</div>
     <button class="mbtn green" id="resume">Back to the game</button>
     ${modeButtons()}
+    <div class="modes"><button class="mbtn" id="home">🏠 Back to spawn</button><button class="mbtn" id="view">👁️ View: ${(VIEWS.find((v) => v[1] === VIEW) || VIEWS[1])[0]}</button></div>
     <button class="mbtn" id="switch">Switch world</button>
-    <p class="note">You're in <b>${WORLD_NAMES[Net.srv - 1] || 'a world'}</b> with ${Math.max(1, crew().length)} player${crew().length === 1 ? '' : 's'}. Click the game to look around with the mouse; <kbd>Esc</kbd> lets go of it.</p>`;
+    <p class="note">You're in <b>${WORLD_NAMES[Net.srv - 1] || 'a world'}</b>, ${Math.round(Math.hypot(P.x - SPAWN, P.z - SPAWN))} blocks from the spawn, with ${Math.max(1, crew().length)} player${crew().length === 1 ? '' : 's'}. Click the game to look around with the mouse; <kbd>Esc</kbd> lets go of it.</p>`;
   $('#pause').hidden = false;
   $('#resume').onclick = () => lock();
+  $('#home').onclick = () => { respawn(); S.fallFrom = null; lock(); toast('Back at the spawn'); };
+  $('#view').onclick = () => { const i = VIEWS.findIndex((v) => v[1] === VIEW); setView(VIEWS[(i + 1) % VIEWS.length][1], true); $('#view').textContent = `👁️ View: ${(VIEWS.find((v) => v[1] === VIEW) || VIEWS[1])[0]}`; };
   $('#switch').onclick = () => leave().then(() => { $('#pause').hidden = true; $('#menu').hidden = false; menu(); });
   wireModes($('#pausePanel'), () => { const title = $('#pausePanel .logo').textContent, play = $('#resume').textContent; showPause(); $('#pausePanel .logo').textContent = title; $('#resume').textContent = play; });
 }
@@ -1372,13 +1543,11 @@ async function join(n) {
   if (!lob) { menuStatus = 'Live rooms aren’t switched on for your access to this page. The owner can share it with you as a Contributor (Share menu).'; menu(); return; }
   $('#menu').hidden = true; $('#loading').hidden = false; $('#loadText').textContent = `Generating ${WORLD_NAMES[n - 1]}…`; $('#loadBar').style.width = '10%';
   await new Promise((r) => setTimeout(r, 30));
-  // the world from its seed
-  generate(1000 + n * 7919);
-  edits.clear(); editsDirty = false;
-  chunks.forEach((c) => (c.dirty = true));
+  // the world from its seed (made bit by bit as people go)
+  setSeed(1000 + n * 7919);
   let room;
   try { room = await lob.join('w-' + n); } catch (e) { $('#loading').hidden = true; $('#menu').hidden = false; menuStatus = 'Couldn’t reach that world. Try another.'; menu(); return; }
-  Object.assign(Net, { room, srv: n, peers: [], t0: Date.now(), joinAt: performance.now(), claimed: false, out: [], seq: 0, chats: [], cseq: 0, hits: [], hseq: 0, seen: new Map(), loaded: false, mbAt: 0, mbKey: '' });
+  Object.assign(Net, { room, srv: n, peers: [], t0: Date.now(), joinAt: performance.now(), claimed: false, out: [], seq: 0, chats: [], cseq: 0, hits: [], hseq: 0, seen: new Map(), loaded: false, mbAt: 0, mbKey: '', bx: null });
   resetMobs();
   room.onPeers(onPeers, () => {});
   send({ nm: Net.name, c: Net.color, t: Net.t0, md: survival() ? 's' : 'c' });
@@ -1386,13 +1555,15 @@ async function join(n) {
   // then everything people built there: the saved world, after the host has had a moment to save it
   $('#loadText').textContent = 'Loading what people built…'; $('#loadBar').style.width = '45%';
   await new Promise((r) => setTimeout(r, 1500));
-  try { const saved = await window.ChatKV.get('world-' + n); if (saved) await applySave(saved); } catch (e) { /* no save yet, or none here */ }
+  // (open worlds save under world2-; a world saved before they were open is in world-, and is read once from there)
+  try { const saved = (await window.ChatKV.get('world2-' + n)) || (await window.ChatKV.get('world-' + n)); if (saved) await applySave(saved); } catch (e) { /* no save yet, or none here */ }
   await loadMe();
   Net.loaded = true;
   for (const p of Net.peers) if (!p.isMe) applyPeer(p);
   $('#loadBar').style.width = '80%';
-  for (let cz = 0; cz < NCH; cz++) for (let cx = 0; cx < NCH; cx++) buildChunk(cx, cz);
   if (!S.pos || !placeAt(S.pos)) respawn();
+  // the ground right around you, before you can see it; the rest comes in as you play
+  { const pcx = Math.floor(P.x) >> 4, pcz = Math.floor(P.z) >> 4; for (const [dx, dz, r] of RING) if (r <= 2.5) buildChunk(chunkOf(pcx + dx, pcz + dz)); }
   S.dead = false; $('#dead').hidden = true; drawBars();
   $('#loading').hidden = true;
   playing = true;
@@ -1458,24 +1629,32 @@ function netTick(t) {
   if (S.dirty && survival() && t > (Net.meAt || 0)) { Net.meAt = t + 15000; saveMe(); }
   if (iAmHost() && Net.loaded && editsDirty && t > Net.saveAt) { Net.saveAt = t + 5000; saveWorld(); }
 }
-// the saved world: every changed block as "where:what" in base 36, squeezed
+// the saved world: every changed block as "where:what" in base 36 (where: how far on from the last one), squeezed
 async function saveWorld(force) {
   if (!Net.room || !Net.loaded || (!editsDirty && !force) || !iAmHost() || !window.ChatKV) return;
   editsDirty = false;
   const parts = []; let last = 0;
   [...edits.entries()].sort((a, b) => a[0] - b[0]).forEach(([i, b]) => { parts.push((i - last).toString(36) + ':' + b.toString(36)); last = i; });
-  try { await window.ChatKV.set('world-' + Net.srv, 'v1|' + await squeeze(parts.join(','))); Net.savedAt = Date.now(); }
+  try { await window.ChatKV.set('world2-' + Net.srv, 'v2|' + await squeeze(parts.join(','))); Net.savedAt = Date.now(); }
   catch (e) { editsDirty = true; }
 }
 async function applySave(text) {
-  if (!text.startsWith('v1|')) return;
+  const v = text.slice(0, 3);
+  if (v !== 'v1|' && v !== 'v2|') return;
   const list = (await unsqueeze(text.slice(3))).split(',');
   let at = 0;
   for (const part of list) {
     if (!part) continue;
     const [d, b] = part.split(':'); at += parseInt(d, 36);
     const blk = parseInt(b, 36);
-    if (at >= 0 && at < world.length && B[blk] !== undefined) { world[at] = blk; edits.set(at, blk); }
+    if (!(at >= 0) || B[blk] === undefined) continue;
+    // (v1: the first, 128×128 world, which is now the part around the spawn)
+    const x = v === 'v1|' ? at % 128 : (at % 65536) - 32768, z = v === 'v1|' ? Math.floor(at / 128) % 128 : (Math.floor(at / 65536) % 65536) - 32768;
+    const y = v === 'v1|' ? Math.floor(at / 16384) : Math.floor(at / 4294967296);
+    if (!inWorld(x, y, z)) continue;
+    keepEdit(x, y, z, blk);
+    const ch = CH.get(ckey(x >> 4, z >> 4));
+    if (ch) { ch.d[lidx(x, y, z)] = blk; if (blk && y >= ch.top) ch.top = y + 1; markDirty(x, z); }
   }
 }
 async function squeeze(text) {
@@ -1504,8 +1683,7 @@ function frame(t) {
     camera.position.set(P.x, P.y + P.eye, P.z);
     camera.rotation.set(P.pitch, P.yaw, 0, 'YXZ');
     if (locked || dragLook) act(t); else hl.visible = false;
-    let built = 0;
-    for (let cz = 0; cz < NCH && built < 3; cz++) for (let cx = 0; cx < NCH && built < 3; cx++) if (chunkAt(cx, cz).dirty) { buildChunk(cx, cz); built++; }
+    stream(P.x, P.z, 6, t);
     for (const a of Net.avatars.values()) {
       if (!a.target) continue;
       const [x, y, z, yaw] = a.target, g = a.g, k = Math.min(1, dt * 12);
@@ -1521,15 +1699,16 @@ function frame(t) {
     drawMobs(dt);
     for (let i = bits.length - 1; i >= 0; i--) { const m = bits[i], u = m.userData; u.life -= dt; u.v.y -= 12 * dt; m.position.addScaledVector(u.v, dt); if (u.life <= 0) { scene.remove(m); m.geometry.dispose(); bits.splice(i, 1); } }
     netTick(t);
-    fpsN++; if (t - fpsT > 1000) { fps = fpsN; fpsN = 0; fpsT = t; }
-    $('#info').innerHTML = `<b>${WORLD_NAMES[Net.srv - 1] || ''}</b> · ${Math.max(1, crew().length)} online${survival() ? ' · ⚔️ survival' : P.fly ? ' · ✈️ flying' : ''}${Mobs.snap && Mobs.snap.length ? ` · ${Mobs.snap.length} mobs` : ''}<br><small>T chat · ${survival() ? 'E inventory' : 'E blocks · F fly'} · Esc pause${showCoords ? ` · ${P.x.toFixed(1)} ${P.y.toFixed(1)} ${P.z.toFixed(1)} · ${fps} fps` : ''}</small>`;
+    fpsN++; if (t - fpsT > 1000) { fps = fpsN; fpsN = 0; fpsT = t; autoView(fps); }
+    const bx = Math.floor(P.x), bz = Math.floor(P.z);
+    if (bx !== Net.bx || bz !== Net.bz) { Net.bx = bx; Net.bz = bz; Net.biome = BIOMES[column(bx, bz).biome]; }
+    $('#info').innerHTML = `<b>${WORLD_NAMES[Net.srv - 1] || ''}</b> · ${Math.max(1, crew().length)} online${survival() ? ' · ⚔️ survival' : P.fly ? ' · ✈️ flying' : ''}${Mobs.snap && Mobs.snap.length ? ` · ${Mobs.snap.length} mobs` : ''}<br>${Net.biome} · 📍 ${bx}, ${bz}<br><small>T chat · ${survival() ? 'E inventory' : 'E blocks · F fly'} · Esc pause${showCoords ? ` · ${P.x.toFixed(1)} ${P.y.toFixed(1)} ${P.z.toFixed(1)} · ${CH.size} chunks · ${fps} fps` : ''}</small>`;
   } else {
     // the menu: a slow fly-around of the world
     const a = t / 9000;
-    camera.position.set(W / 2 + Math.cos(a) * 50, 42, W / 2 + Math.sin(a) * 50);
-    camera.lookAt(W / 2, 18, W / 2);
-    let built = 0;
-    for (let cz = 0; cz < NCH && built < 2; cz++) for (let cx = 0; cx < NCH && built < 2; cx++) if (chunkAt(cx, cz).dirty) { buildChunk(cx, cz); built++; }
+    camera.position.set(SPAWN + Math.cos(a) * 50, 44, SPAWN + Math.sin(a) * 50);
+    camera.lookAt(SPAWN, 18, SPAWN);
+    stream(SPAWN, SPAWN, 4, t);
   }
   skyUpdate();
   renderer.render(scene, camera);
@@ -1538,9 +1717,9 @@ function frame(t) {
 /* ---------------- start ---------------- */
 try { setMode(localStorage.getItem('bc.mode') || 'creative'); } catch (e) { setMode('creative'); }
 drawHotbar();
-generate(1000 + 7919); // a world to look at behind the menu
+setSeed(1000 + 7919); // a world to look at behind the menu
 requestAnimationFrame(frame);
-window.__bc = { P, Net, world, get, setBlock, raycast, edits, keys, idx, mouse: mouseDown, physics, act, lock, saveWorld, S, Mobs, MOBS, give, take, setMode, spawnMob, hitMob, tameMob, teleportMob, trySpawn, shoot, throwPearl, hurt, eat, RECIPES, drawInventory, openInventory, survival, iAmHost, saveMe, loadMe, held, select, get dayLight() { return dayLight; }, set dayLight(v) { dayLight = v; } }; // for tests
+window.__bc = { P, Net, CH, chunkOf, get, setBlock, raycast, edits, chunkEdits, keys, column, cabinIn, stream, setView, get VIEW() { return VIEW; }, SPAWN, respawn, applySave, showPause, mouse: mouseDown, physics, act, lock, saveWorld, S, Mobs, MOBS, give, take, setMode, spawnMob, hitMob, tameMob, teleportMob, trySpawn, shoot, throwPearl, hurt, eat, RECIPES, drawInventory, openInventory, survival, iAmHost, saveMe, loadMe, held, select, get dayLight() { return dayLight; }, set dayLight(v) { dayLight = v; } }; // for tests
 if (!Net.api()) { menuStatus = 'Open Blockcraft from 🕹️ Games in the chat to play online.'; menu(); }
 else { menuStatus = 'Connecting…'; menu(); lobby().then((r) => { menuStatus = r ? '' : 'Live rooms aren’t switched on for your access to this page. The owner can share it with you as a Contributor (Share menu).'; menu(); }); }
 </script>
