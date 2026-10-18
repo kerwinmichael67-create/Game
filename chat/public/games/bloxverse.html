@@ -539,9 +539,14 @@ function physics(dt) {
   let mx = fx * f + rx * r, mz = fz * f + rz * r; const l = Math.hypot(mx, mz);
   if (l > 1) { mx /= l; mz /= l; }
   const sp = exp && exp.speed ? exp.speed() : 16, acc = P.ground ? 22 : 12, jp = exp && exp.jumpPower ? exp.jumpPower() : JUMP, gr = exp && exp.gravity ? exp.gravity() : GRAV;
-  P.vx += (mx * sp - P.vx) * Math.min(1, acc * dt); P.vz += (mz * sp - P.vz) * Math.min(1, acc * dt);
-  if (l > 0.1) { let d = Math.atan2(-mx, -mz) - P.yaw; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; P.yaw += d * Math.min(1, 14 * dt); }
-  if ((keys.Space || jumpHeld) && P.ground && !P.frozen && !chatOpen()) { P.vy = jp; P.ground = null; sfx('jump'); }
+  // an experience can steer you itself (a kart): drive(dt, forward, right) gives [vx, vz, yaw]
+  const drive = exp && exp.drive;
+  if (drive) { const d = exp.drive(dt, f, r); P.vx = d[0]; P.vz = d[1]; P.yaw = d[2]; }
+  else {
+    P.vx += (mx * sp - P.vx) * Math.min(1, acc * dt); P.vz += (mz * sp - P.vz) * Math.min(1, acc * dt);
+    if (l > 0.1) { let d = Math.atan2(-mx, -mz) - P.yaw; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; P.yaw += d * Math.min(1, 14 * dt); }
+  }
+  if ((keys.Space || jumpHeld) && P.ground && !P.frozen && !chatOpen() && !drive) { P.vy = jp; P.ground = null; sfx('jump'); }
   // trusses: walk into one and you climb it
   if (!P.frozen && (f > 0.1 || keys.Space || jumpHeld) && onTruss()) P.vy = 13;
   else P.vy = Math.max(-170, P.vy - gr * dt);
@@ -549,7 +554,7 @@ function physics(dt) {
   moveP((P.vx + (cv ? cv[0] : 0)) * dt, P.vy * dt, (P.vz + (cv ? cv[1] : 0)) * dt);
   if (air && P.ground && vy0 < -24) sfx('land', { vol: Math.min(1, -vy0 / 70) });
   // footsteps
-  if (P.ground && Math.hypot(P.vx, P.vz) > 5) { stepT -= dt; if (stepT <= 0) { stepT = 0.3; sfx('step', { vol: 0.6, pitch: 0.9 + Math.random() * 0.25 }); } } else stepT = 0.08;
+  if (P.ground && Math.hypot(P.vx, P.vz) > 5 && !drive) { stepT -= dt; if (stepT <= 0) { stepT = 0.3; sfx('step', { vol: 0.6, pitch: 0.9 + Math.random() * 0.25 }); } } else stepT = 0.08;
   if (exp && P.y < exp.killY) die();
 }
 function onTruss() {
@@ -1248,7 +1253,12 @@ const OBBY = {
 /* =====================================================================
    EXPERIENCE 2 — CUBE FACTORY TYCOON: claim a plot; droppers make cubes,
    the conveyor takes them to the collector, cash buys more machines.
+   After the rocket comes a second line up on the second floor (the sky
+   line), and after the space station you can rebirth: start again with
+   more cash for every cube, for good.
    ===================================================================== */
+// (in the order you buy them; the list only ever grows at the end, since what you own is saved as one bit each)
+// line: 0 the ground floor, 1 the sky line; bonus: more cash for every cube (decorations)
 const TY = [
   { n: 'Dropper', price: 0, kind: 'dropper', v: 2, every: 1.6, slot: 0, col: 0x9ca3af },
   { n: 'Dropper 2', price: 25, kind: 'dropper', v: 3, every: 1.6, slot: 1, col: 0xb45309 },
@@ -1260,17 +1270,34 @@ const TY = [
   { n: 'Upgrader 2', price: 1600, kind: 'up', slot: 1 },
   { n: 'Second Floor', price: 2600, kind: 'floor' },
   { n: 'Mega Dropper', price: 4500, kind: 'dropper', v: 35, every: 1.6, slot: 4, col: 0xa855f7 },
-  { n: 'Golden Statue', price: 8000, kind: 'statue' },
+  { n: 'Golden Statue', price: 8000, kind: 'statue', bonus: 0.1 },
   { n: 'Diamond Dropper', price: 14000, kind: 'dropper', v: 110, every: 1.4, slot: 5, col: 0x22d3ee },
   { n: 'Rocket', price: 40000, kind: 'rocket' },
+  { n: 'Upgrader 3', price: 60000, kind: 'up', slot: 2 },
+  { n: 'Sky Conveyor', price: 90000, kind: 'sky' },
+  { n: 'Sky Dropper', price: 110000, kind: 'dropper', v: 500, every: 1.5, slot: 0, line: 1, col: 0x60a5fa },
+  { n: 'Neon Lights', price: 170000, kind: 'neon', bonus: 0.15 },
+  { n: 'Sky Dropper 2', price: 250000, kind: 'dropper', v: 1200, every: 1.5, slot: 1, line: 1, col: 0x34d399 },
+  { n: 'Sky Upgrader', price: 380000, kind: 'up', slot: 0, line: 1 },
+  { n: 'Fountain', price: 600000, kind: 'fountain', bonus: 0.2 },
+  { n: 'Sky Dropper 3', price: 850000, kind: 'dropper', v: 2600, every: 1.4, slot: 2, line: 1, col: 0xf472b6 },
+  { n: 'Turbo Conveyors', price: 1300000, kind: 'turbo' },
+  { n: 'Sky Upgrader 2', price: 1900000, kind: 'up', slot: 1, line: 1 },
+  { n: 'Rainbow Dropper', price: 2800000, kind: 'dropper', v: 6000, every: 1.4, slot: 3, line: 1, col: 0xffffff, rainbow: true },
+  { n: 'Galaxy Dropper', price: 4500000, kind: 'dropper', v: 12000, every: 1.3, slot: 4, line: 1, col: 0x312e81 },
+  { n: 'Space Station', price: 9000000, kind: 'station' },
 ];
+const TY_TURBO = TY.findIndex((it) => it.kind === 'turbo'), TY_LAST = TY.length - 1;
+const LINE_Y = 13; // the sky line is this much higher (on the second floor)
+const tyBonus = (b) => TY.reduce((s, it, i) => s + (it.bonus && has(b, i) ? it.bonus : 0), 0);
+const tyMult = (b, rb) => (1 + tyBonus(b)) * (1 + 0.5 * (rb || 0)); // cash for every cube: decorations, then rebirths
 const PLOT_COLS = [0x3b82f6, 0xef4444, 0x22c55e, 0xf59e0b];
 const PLOT_NAMES = ['Blue', 'Red', 'Green', 'Yellow'];
 const has = (b, i) => ((b >> i) & 1) === 1;
 const TYCOON = {
   id: 'tycoon', code: 'ty', genre: 'Tycoon', rank: 6, name: 'Cube Factory Tycoon', emoji: '💰', max: 4, stat: 'Cash', killY: -40,
   color: 'linear-gradient(135deg,#16a34a,#ca8a04)',
-  desc: 'Claim a factory, buy droppers, upgraders and more, and watch the cash roll in. Your factory is saved for next time.',
+  desc: 'Claim a factory, buy droppers, upgraders and more, and watch the cash roll in. After the rocket, build a second line up on the second floor; after the space station, rebirth for more cash for good. Your factory is saved for next time.',
   welcome: 'Step on a claim pad to get a factory!',
   build() {
     sky('#6cb8ff', '#e3f4ff');
@@ -1281,18 +1308,18 @@ const TYCOON = {
       const fz = oz < 0 ? 1 : -1;
       slab(ox, 0.4, oz, 48, 48, 0x6b7280, { sy: 0.4 });
       for (const [x, z, sx, sz] of [[0, -24, 48, 0.6], [0, 24, 48, 0.6], [-24, 0, 0.6, 48], [24, 0, 0.6, 48]]) part({ x: ox + x, y: 0.55, z: oz + z, sx, sy: 0.3, sz, c: PLOT_COLS[k], neon: true, solid: false });
-      return { k, ox, oz, fz, owner: null, b: 0, cash: 0, name: '', cubes: [], tm: {}, decor: [], sign: null, shown: null };
+      return { k, ox, oz, fz, owner: null, b: 0, rb: 0, cash: 0, name: '', cubes: [], tm: {}, decor: [], sign: null, shown: null };
     });
     // paths
     for (const [ox, oz] of [[-62, -62], [62, -62], [-62, 62], [62, 62]]) { const len = Math.abs(oz) - 24 - 7; part({ x: ox, y: 0.075, z: Math.sign(oz) * (7 + len / 2), sx: 6, sy: 0.15, sz: len, c: 0xb0b5bb, plain: true }); if (oz < 0) part({ x: ox / 2 + Math.sign(ox) * 3, y: 0.075, z: 0, sx: Math.abs(ox) + 0, sy: 0.15, sz: 6, c: 0xb0b5bb, plain: true }); }
     this.cubeGeo = new THREE.BoxGeometry(1, 1, 1);
-    this.cubeMat = {}; this.upMat = new THREE.MeshBasicMaterial({ color: 0x7cfc00 });
+    this.cubeMat = {}; this.upMat = new THREE.MeshBasicMaterial({ color: 0x7cfc00 }); this.rainMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
     for (const k of [0, 1, 2, 3]) this.buildPlot(k);
   },
   W(pl, lx, lz) { return [pl.ox + lx, pl.oz + lz * pl.fz]; },
   buildPlot(k) {
     const pl = this.plots[k];
-    pl.shown = { owner: pl.owner, b: pl.b };
+    pl.shown = { owner: pl.owner, b: pl.b, rb: pl.rb }; pl.spray = null;
     removeParts((p) => p.plot === k);
     for (const c of pl.cubes) place.remove(c.m); pl.cubes = [];
     for (const d of pl.decor) place.remove(d); pl.decor = [];
@@ -1300,28 +1327,56 @@ const TYCOON = {
     const add = (lx, top, lz, sx, sy, sz, c, o = {}) => { const [x, z] = this.W(pl, lx, lz); return part(Object.assign({ x, y: top - sy / 2, z, sx, sy, sz, c, plot: k }, o)); };
     const lab = (p, text, y) => { p.lab = label(text, { size: 1.1 }); p.lab.position.set(p.x, y, p.z); place.add(p.lab); };
     const [sx, sz] = this.W(pl, 0, 27);
-    pl.sign = label(pl.owner ? `${pl.name}’s Factory` : `${PLOT_NAMES[k]} Factory — free!`, { size: 2.2, color: pl.owner ? '#fff' : '#d1fae5' }); pl.sign.position.set(sx, 9, sz); place.add(pl.sign);
+    pl.sign = label(pl.owner ? `${pl.name}’s Factory${pl.rb ? ` 🔁${pl.rb}` : ''}` : `${PLOT_NAMES[k]} Factory — free!`, { size: 2.2, color: pl.owner ? '#fff' : '#d1fae5' }); pl.sign.position.set(sx, 9, sz); place.add(pl.sign);
     if (!pl.owner) {
       const p = add(0, 0.8, 21, 6, 0.4, 6, 0xffffff, { neon: true, kind: 'claim', solid: false });
       lab(p, 'Touch to claim!', 3.2);
       return;
     }
-    const b = pl.b, conv = has(b, 2);
-    add(-3.5, 2.4, -12, 39, 2, 4, 0xffffff, { stripes: conv ? '#22d3ee' : '#facc15', conv: [conv ? 9 : 6, 0] });
-    add(19, 5.4, -12, 6, 5, 6, 0x374151, { plain: true });
-    add(19, 5.5, -12, 4, 0.2, 4, 0x22c55e, { neon: true, solid: false });
+    const b = pl.b, turbo = has(b, TY_TURBO), conv = has(b, 2), lines = TY.some((it, i) => it.kind === 'sky' && has(b, i)) ? [0, 1] : [0];
+    // a conveyor and a collector on each line
+    for (const ln of lines) {
+      const y = ln * LINE_Y;
+      add(-3.5, 2.4 + y, -12, 39, 2, 4, 0xffffff, { stripes: turbo ? '#e879f9' : conv ? '#22d3ee' : '#facc15', conv: [turbo ? 12 : conv ? 9 : 6, 0] });
+      add(19, 5.4 + y, -12, 6, 5, 6, 0x374151, { plain: true });
+      add(19, 5.5 + y, -12, 4, 0.2, 4, 0x22c55e, { neon: true, solid: false });
+    }
     TY.forEach((it, i) => {
       if (!has(b, i)) return;
+      const y = (it.line || 0) * LINE_Y;
       if (it.kind === 'dropper') {
         const lx = -21 + it.slot * 5;
-        add(lx, 12, -12, 3, 3, 3, it.col);
-        add(lx, 9, -12, 1.4, 1, 1.4, 0x111111, { plain: true });
-        add(lx, 11.5, -15.5, 1, 11.1, 1, 0x555555, { plain: true });
-        add(lx, 11, -14.3, 1, 1, 2.6, 0x555555, { plain: true });
+        const box = add(lx, 12 + y, -12, 3, 3, 3, it.col, it.rainbow ? { neon: true } : {});
+        if (it.rainbow) box.rainbow = true;
+        add(lx, 9 + y, -12, 1.4, 1, 1.4, 0x111111, { plain: true });
+        add(lx, 11.5 + y, -15.5, 1, 11.1, 1, 0x555555, { plain: true });
+        add(lx, 11 + y, -14.3, 1, 1, 2.6, 0x555555, { plain: true });
       } else if (it.kind === 'up') {
         const lx = 8.5 + it.slot * 3.5;
-        add(lx, 7.4, -14.6, 0.8, 5, 0.8, 0x9ca3af); add(lx, 7.4, -9.4, 0.8, 5, 0.8, 0x9ca3af); add(lx, 8.2, -12, 0.8, 0.8, 6, 0x9ca3af);
-        add(lx, 7.3, -12, 0.25, 4.8, 4.4, 0x7cfc00, { neon: true, solid: false, alpha: 0.45 });
+        add(lx, 7.4 + y, -14.6, 0.8, 5, 0.8, 0x9ca3af); add(lx, 7.4 + y, -9.4, 0.8, 5, 0.8, 0x9ca3af); add(lx, 8.2 + y, -12, 0.8, 0.8, 6, 0x9ca3af);
+        add(lx, 7.3 + y, -12, 0.25, 4.8, 4.4, 0x7cfc00, { neon: true, solid: false, alpha: 0.45 });
+      } else if (it.kind === 'neon') {
+        // glowing strips along the tops of the walls and the edge of the second floor
+        const c = new THREE.Color(PLOT_COLS[k]).lerp(new THREE.Color(0xffffff), 0.35).getHex(), o = { neon: true, solid: false };
+        add(0, 9.7, -24, 48, 0.3, 1.2, c, o); add(-24, 9.7, 0, 1.2, 0.3, 48, c, o); add(24, 9.7, 0, 1.2, 0.3, 48, c, o);
+        add(-14.5, 9.7, 24, 19, 0.3, 1.2, c, o); add(14.5, 9.7, 24, 19, 0.3, 1.2, c, o);
+        add(0, 13.6, -2, 48, 0.25, 0.4, 0xffffff, o);
+        for (const lx of [-23.4, 23.4]) for (const lz of [-23.4, 23.4]) add(lx, 9.6, lz, 0.6, 9, 0.6, c, o);
+      } else if (it.kind === 'fountain') {
+        add(13, 1.6, 12.6, 7, 1.2, 0.8, 0xe5e7eb); add(13, 1.6, 19.4, 7, 1.2, 0.8, 0xe5e7eb); add(9.9, 1.6, 16, 0.8, 1.2, 6, 0xe5e7eb); add(16.1, 1.6, 16, 0.8, 1.2, 6, 0xe5e7eb);
+        add(13, 1.25, 16, 5.4, 0.3, 6, 0x38bdf8, { neon: true, solid: false, alpha: 0.8 });
+        add(13, 4.2, 16, 0.8, 3, 0.8, 0xe5e7eb); add(13, 4.8, 16, 2.2, 0.6, 2.2, 0x7dd3fc, { neon: true });
+        pl.spray = this.W(pl, 13, 16);
+      } else if (it.kind === 'station') {
+        // a space station turning slowly high over the factory
+        const [x, z] = this.W(pl, 0, -2), g = new THREE.Group(), M = (c) => new THREE.MeshLambertMaterial({ color: c });
+        const hub = new THREE.Mesh(new THREE.CylinderGeometry(3, 3, 6, 16), M(0xe5e7eb));
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(12, 1.3, 10, 40), M(0xcbd5e1)); ring.rotation.x = Math.PI / 2;
+        g.add(hub, ring);
+        for (let s = 0; s < 4; s++) { const sp = new THREE.Mesh(BOX, M(0x94a3b8)); sp.scale.set(24, 0.6, 0.6); sp.rotation.y = s * Math.PI / 4; g.add(sp); }
+        for (const sx of [-1, 1]) { const pan = new THREE.Mesh(BOX, M(0x1d4ed8)); pan.scale.set(10, 0.3, 5); pan.position.set(sx * 19, 0, 0); g.add(pan); }
+        const top = new THREE.Mesh(new THREE.SphereGeometry(1.4, 12, 10), new THREE.MeshBasicMaterial({ color: PLOT_COLS[k] })); top.position.y = 4.2; g.add(top);
+        g.position.set(x, 46, z); g.userData.spin = 0.15; place.add(g); pl.decor.push(g);
       } else if (it.kind === 'walls') {
         const c = new THREE.Color(PLOT_COLS[k]).multiplyScalar(0.7).getHex();
         add(0, 9.4, -24, 48, 9, 1, c); add(-24, 9.4, 0, 1, 9, 48, c); add(24, 9.4, 0, 1, 9, 48, c);
@@ -1330,11 +1385,12 @@ const TYCOON = {
         add(0, 13.4, -13, 48, 1, 22, 0x8b5e3c);
         for (let j = 0; j < 6; j++) add(20, 0.4 + 2.1 * (j + 1), 10 - j * 2.2, 4, 2.1 * (j + 1), 2.2, 0x8b5e3c);
       } else if (it.kind === 'statue') {
-        const top = has(b, 8) ? 13.4 : 0.4;
-        add(0, top + 2, -13, 4, 2, 4, 0x9ca3af);
+        // (at the front of the second floor, out of the sky line's way)
+        const top = has(b, 8) ? 13.4 : 0.4, sz = -5;
+        add(0, top + 2, sz, 4, 2, 4, 0x9ca3af);
         const gold = { neon: false, plain: true }; const G = 0xffd23a;
-        add(-0.5, top + 4, -13, 0.95, 2, 0.95, G, gold); add(0.5, top + 4, -13, 0.95, 2, 0.95, G, gold); add(0, top + 6, -13, 2, 2, 1, G, gold);
-        add(-1.5, top + 6, -13, 1, 2, 1, G, gold); add(1.5, top + 8.6, -13, 1, 2, 1, G, gold); add(0, top + 7.2, -13, 1.2, 1.2, 1.2, G, gold);
+        add(-0.5, top + 4, sz, 0.95, 2, 0.95, G, gold); add(0.5, top + 4, sz, 0.95, 2, 0.95, G, gold); add(0, top + 6, sz, 2, 2, 1, G, gold);
+        add(-1.5, top + 6, sz, 1, 2, 1, G, gold); add(1.5, top + 8.6, sz, 1, 2, 1, G, gold); add(0, top + 7.2, sz, 1.2, 1.2, 1.2, G, gold);
       } else if (it.kind === 'rocket') {
         const [x, z] = this.W(pl, -19, 18), g = new THREE.Group();
         const white = new THREE.MeshLambertMaterial({ color: 0xf3f4f6 }), red = new THREE.MeshLambertMaterial({ color: 0xdc2626 });
@@ -1347,20 +1403,20 @@ const TYCOON = {
         part({ x, y: 11.4, z, sx: 4, sy: 22, sz: 4, c: 0, plot: k, plain: true, alpha: 0 }); // so you can't walk through it
       }
     });
-    // buttons: the next two things you can buy
-    const first = TY.findIndex((_, i) => !has(b, i));
-    TY.forEach((it, i) => {
-      if (has(b, i) || i === 0 || first < 0 || i > first + 1) return;
-      const col = (i - 1) % 4, row = Math.floor((i - 1) / 4), lx = -15 + col * 10, lz = 3 + row * 6.5;
-      const p = add(lx, 0.8, lz, 4, 0.4, 4, 0x22c55e, { neon: true, kind: 'buy', item: i, solid: false });
+    // buttons: the next two things you can buy, side by side; with everything bought, the rebirth
+    const left = TY.map((_, i) => i).filter((i) => !has(b, i)).slice(0, 2);
+    left.forEach((i, n) => {
+      const it = TY[i], p = add(n ? 6 : -6, 0.8, 6, 4, 0.4, 4, 0x22c55e, { neon: true, kind: 'buy', item: i, solid: false });
       lab(p, `${it.n}\n${money(it.price)}`, 3.6);
     });
+    if (!left.length) { const p = add(0, 0.8, 6, 5, 0.4, 5, 0xa855f7, { neon: true, kind: 'rebirth', solid: false }); lab(p, `🔁 Rebirth\n×${(1 + 0.5 * (pl.rb + 1)).toFixed(1)} cash`, 3.8); }
   },
-  pres() { return { pl: -1, cash: 0, b: 0 }; },
+  pres() { return { pl: -1, cash: 0, b: 0, rb: 0 }; },
   async enter() {
-    this.cash = 0; this.b = 1; this.myPlot = null; this.ct = 0; this.buyCd = 0; this.earned = []; this.sentCash = -1; this.saveAt = performance.now() + 10000; this.btnAt = 0;
+    this.cash = 0; this.b = 1; this.rb = 0; this.myPlot = null; this.ct = 0; this.buyCd = 0; this.earned = []; this.sentCash = -1; this.saveAt = performance.now() + 10000; this.btnAt = 0; this.rbAt = 0;
     const s = await kvGet('ty');
-    if (s) { this.cash = Math.max(0, +s.cash || 0); this.b = (s.b | 0) | 1; }
+    if (s) { this.cash = Math.max(0, +s.cash || 0); this.b = (s.b | 0) | 1; this.rb = Math.max(0, s.rb | 0); }
+    send({ rb: this.rb });
     this.peers();
   },
   spawn() {
@@ -1372,18 +1428,18 @@ const TYCOON = {
   peers() {
     if (!this.plots) return;
     const claims = [];
-    for (const p of Net.peers) { if (p.isMe || !p.presence || !p.presence.t) continue; const pr = p.presence; if (pr.pl >= 0 && pr.pl < 4) claims.push({ peer: p.peer, k: pr.pl | 0, ct: +pr.ct || 0, b: (pr.b | 0) | 1, cash: +pr.cash || 0, name: String(pr.nm || 'Player').slice(0, 20) }); }
-    if (this.myPlot != null) claims.push({ peer: myPeer(), k: this.myPlot, ct: this.ct, b: this.b, cash: this.cash, name: Net.name, me: true });
+    for (const p of Net.peers) { if (p.isMe || !p.presence || !p.presence.t) continue; const pr = p.presence; if (pr.pl >= 0 && pr.pl < 4) claims.push({ peer: p.peer, k: pr.pl | 0, ct: +pr.ct || 0, b: (pr.b | 0) | 1, rb: Math.max(0, pr.rb | 0), cash: +pr.cash || 0, name: String(pr.nm || 'Player').slice(0, 20) }); }
+    if (this.myPlot != null) claims.push({ peer: myPeer(), k: this.myPlot, ct: this.ct, b: this.b, rb: this.rb, cash: this.cash, name: Net.name, me: true });
     for (const pl of this.plots) {
       const c = claims.filter((x) => x.k === pl.k).sort((a, b) => a.ct - b.ct || (a.peer < b.peer ? -1 : 1))[0];
-      pl.owner = c ? c.peer : null; pl.b = c ? c.b : 0; pl.cash = c ? c.cash : 0; pl.name = c ? c.name : ''; pl.mine = !!(c && c.me);
-      if (!pl.shown || pl.shown.owner !== pl.owner || pl.shown.b !== pl.b) this.buildPlot(pl.k);
+      pl.owner = c ? c.peer : null; pl.b = c ? c.b : 0; pl.rb = c ? c.rb : 0; pl.cash = c ? c.cash : 0; pl.name = c ? c.name : ''; pl.mine = !!(c && c.me);
+      if (!pl.shown || pl.shown.owner !== pl.owner || pl.shown.b !== pl.b || pl.shown.rb !== pl.rb) this.buildPlot(pl.k);
     }
     if (this.myPlot != null && !this.plots[this.myPlot].mine) { this.myPlot = null; send({ pl: -1 }); toast('Someone else got that factory first!'); }
   },
   claim(k) {
     this.myPlot = k; this.ct = Date.now();
-    send({ pl: k, ct: this.ct, b: this.b, cash: Math.floor(this.cash) });
+    send({ pl: k, ct: this.ct, b: this.b, rb: this.rb, cash: Math.floor(this.cash) });
     this.peers();
     toast(`It’s yours! ${PLOT_NAMES[k]} Factory`, '#86efac'); puffAt(P.x, P.y + 2, P.z, CONFETTI, 30); sfx('unlock');
   },
@@ -1394,12 +1450,28 @@ const TYCOON = {
     if (this.cash < it.price) { toast(`You need ${money(it.price - this.cash)} more`, '#fca5a5'); sfx('error', { gap: 600 }); return; }
     this.cash -= it.price; this.b |= 1 << i;
     send({ b: this.b, cash: Math.floor(this.cash) }); this.peers(); this.save();
-    toast(`Bought ${it.n}!`, '#86efac'); puffAt(P.x, P.y + 2, P.z, 0x22c55e, 18); sfx('buy');
-    if (it.kind === 'rocket') { toast('🚀 You finished the tycoon!', '#fde68a'); sfx('win'); puffAt(P.x, P.y + 4, P.z, CONFETTI, 80); Net.chat('🚀 finished Cube Factory Tycoon!'); }
+    toast(it.bonus ? `Bought ${it.n}! +${Math.round(it.bonus * 100)}% cash` : `Bought ${it.n}!`, '#86efac'); puffAt(P.x, P.y + 2, P.z, 0x22c55e, 18); sfx('buy');
+    if (it.kind === 'rocket') { toast('🚀 Rocket! Next up: the sky line on your second floor', '#fde68a'); sfx('win'); puffAt(P.x, P.y + 4, P.z, CONFETTI, 50); }
+    if (i === TY_LAST) { toast('🛰️ You finished the tycoon! Rebirth for more cash', '#fde68a'); sfx('win'); puffAt(P.x, P.y + 4, P.z, CONFETTI, 80); Net.chat('🛰️ finished Cube Factory Tycoon!'); }
+  },
+  rebirthPanel() {
+    const next = 1 + 0.5 * (this.rb + 1);
+    const html = `<div class="xp-row"><span>✅ <b>×${next.toFixed(1)} cash for every cube</b>, for good<br><small style="color:var(--muted)">now ×${(1 + 0.5 * this.rb).toFixed(1)}, and it adds up with every rebirth</small></span></div>
+      <div class="xp-row"><span>❌ <b>Your factory and cash start again</b><br><small style="color:var(--muted)">back to one dropper and $0</small></span></div>
+      <button class="xp-btn purple" data-rb="1" style="width:100%">🔁 Rebirth ${this.rb + 1}</button>`;
+    openPanel('🔁 Rebirth', html, (btn) => { if (btn.dataset.rb) { closePanel(); this.rebirth(); } });
+  },
+  rebirth() {
+    if (TY.some((_, i) => !has(this.b, i))) return;
+    this.rb++; this.b = 1; this.cash = 0; this.tmReset = true;
+    send({ b: this.b, rb: this.rb, cash: 0 }); this.peers(); this.save();
+    toast(`🔁 Rebirth ${this.rb}! Every cube is worth ×${(1 + 0.5 * this.rb).toFixed(1)} now`, '#d8b4fe'); sfx('unlock'); puffAt(P.x, P.y + 3, P.z, CONFETTI, 60);
+    Net.chat(`🔁 rebirthed the factory (×${(1 + 0.5 * this.rb).toFixed(1)} cash)`);
   },
   touch(p) {
     if (p.kind === 'claim' && this.myPlot == null && !this.plots[p.plot].owner) this.claim(p.plot);
     else if (p.kind === 'buy' && p.plot === this.myPlot) this.buy(p.item);
+    else if (p.kind === 'rebirth' && p.plot === this.myPlot && !panelOpen() && performance.now() > this.rbAt) { this.rbAt = performance.now() + 2500; this.rebirthPanel(); }
   },
   tick(dt) {
     const t = performance.now();
@@ -1409,40 +1481,53 @@ const TYCOON = {
       if (t > this.saveAt) { this.saveAt = t + 10000; this.save(); }
       if (t > this.btnAt) { this.btnAt = t + 300; for (const p of parts) if (p.kind === 'buy' && p.plot === this.myPlot) p.m.material.color.set(this.cash >= TY[p.item].price ? 0x22c55e : 0xef4444); }
     }
+    // the rainbow dropper's colours; the space stations turn; fountains splash
+    const hueT = (t / 3000) % 1;
+    for (const p of parts) if (p.rainbow) p.m.material.color.setHSL(hueT, 0.85, 0.6);
+    this.rainMat.color.setHSL((hueT + 0.5) % 1, 0.85, 0.6);
+    for (const pl of this.plots) {
+      for (const d of pl.decor) if (d.userData.spin) d.rotation.y += d.userData.spin * dt;
+      if (pl.spray && pl.owner && Math.random() < dt * 4) puffAt(pl.spray[0] + (Math.random() - 0.5) * 2, 5.4, pl.spray[1] + (Math.random() - 0.5) * 2, [0x7dd3fc, 0xe0f2fe], 1);
+    }
   },
   sim(pl, dt) {
     if (!pl.owner) return;
-    const b = pl.b, speed = has(b, 2) ? 9 : 6;
+    const b = pl.b, speed = has(b, TY_TURBO) ? 12 : has(b, 2) ? 9 : 6, extra = has(b, TY_TURBO) ? 5 : has(b, 2) ? 1 : 0;
+    if (pl.mine && this.tmReset) { this.tmReset = false; for (const c of pl.cubes) place.remove(c.m); pl.cubes = []; pl.tm = {}; }
     TY.forEach((it, i) => {
       if (it.kind !== 'dropper' || !has(b, i)) return;
       pl.tm[i] = (pl.tm[i] == null ? Math.random() * it.every : pl.tm[i]) - dt;
-      if (pl.tm[i] <= 0 && pl.cubes.length < 70) {
+      if (pl.tm[i] <= 0 && pl.cubes.length < 140) {
         pl.tm[i] += it.every;
-        if (!this.cubeMat[i]) this.cubeMat[i] = new THREE.MeshLambertMaterial({ color: it.col });
+        if (!this.cubeMat[i]) this.cubeMat[i] = it.rainbow ? this.rainMat : new THREE.MeshLambertMaterial({ color: it.col });
         const m = new THREE.Mesh(this.cubeGeo, this.cubeMat[i]); place.add(m);
-        pl.cubes.push({ lx: -21 + it.slot * 5, y: 8.2, v: it.v, up: 0, m });
+        const ln = it.line || 0;
+        pl.cubes.push({ lx: -21 + it.slot * 5, ln, y: 8.2 + ln * LINE_Y, v: it.v, up: 0, m });
       }
     });
+    // the upgraders on each line, in order along the conveyor (each doubles what a cube is worth)
+    if (pl.upsB !== b) { pl.upsB = b; pl.ups = [[], []]; TY.forEach((it, i) => { if (it.kind === 'up' && has(b, i)) pl.ups[it.line || 0].push(8.5 + it.slot * 3.5); }); }
     for (let j = pl.cubes.length - 1; j >= 0; j--) {
-      const c = pl.cubes[j];
-      if (c.y > 2.9) c.y = Math.max(2.9, c.y - 16 * dt); else c.lx += speed * dt;
-      for (const u of [0, 1]) { const idx = u ? 7 : 3; if (has(b, idx) && !(c.up & (1 << u)) && c.lx >= 8.5 + u * 3.5) { c.up |= 1 << u; c.v *= 2; c.m.material = this.upMat; } }
+      const c = pl.cubes[j], floor = 2.9 + c.ln * LINE_Y;
+      if (c.y > floor) c.y = Math.max(floor, c.y - 16 * dt); else c.lx += speed * dt;
+      pl.ups[c.ln].forEach((ux, u) => { if (!(c.up & (1 << u)) && c.lx >= ux) { c.up |= 1 << u; c.v *= 2; c.m.material = this.upMat; } });
       if (c.lx >= 16.5) {
         place.remove(c.m); pl.cubes.splice(j, 1);
-        if (pl.mine) { const v = c.v + (has(b, 2) ? 1 : 0); this.cash += v; sfx3('coin', c.m.position.x, c.m.position.z, 50, { vol: 0.25, gap: 350, pitch: 1.3 }); this.earned.push([performance.now(), v]); this.dirty = true; this.coinAcc = (this.coinAcc || 0) + v / 200; if (this.coinAcc >= 1) { earn(Math.floor(this.coinAcc)); this.coinAcc %= 1; } }
+        if (pl.mine) { const v = (c.v + extra) * tyMult(b, this.rb); this.cash += v; sfx3('coin', c.m.position.x, c.m.position.z, 50, { vol: 0.25, gap: 350, pitch: 1.3 }); this.earned.push([performance.now(), v]); this.dirty = true; this.coinAcc = (this.coinAcc || 0) + v / 200; if (this.coinAcc >= 1) { earn(Math.floor(this.coinAcc)); this.coinAcc %= 1; } }
         continue;
       }
       const [x, z] = this.W(pl, c.lx, -12); c.m.position.set(x, c.y, z);
     }
   },
-  save() { if (this.dirty || this.myPlot != null) { this.dirty = false; return kvSet('ty', { cash: Math.floor(this.cash), b: this.b }); } },
+  save() { if (this.dirty || this.myPlot != null) { this.dirty = false; return kvSet('ty', { cash: Math.floor(this.cash), b: this.b, rb: this.rb }); } },
   leave() { return this.save(); },
   statOf(pr, isMe) { return money(isMe ? this.cash : pr.cash); },
   sortKey(pr, isMe) { return isMe ? this.cash : +pr.cash || 0; },
   hud() {
     const t = performance.now(); this.earned = this.earned.filter((e) => t - e[0] < 5000);
     const rate = this.earned.reduce((s, e) => s + e[1], 0) / 5;
-    return `💵 ${money(this.cash)}${rate ? ` <small>+$${rate < 10 ? rate.toFixed(1) : Math.round(rate).toLocaleString('en-US')}/s</small>` : ''}${this.myPlot == null ? ' · find a free factory' : ''}`;
+    const mult = tyMult(this.b, this.rb);
+    return `💵 ${money(this.cash)}${rate ? ` <small>+$${rate < 10 ? rate.toFixed(1) : Math.round(rate).toLocaleString('en-US')}/s</small>` : ''}${mult > 1 ? ` · ×${mult.toFixed(2).replace(/\.?0+$/, '')} cash` : ''}${this.rb ? ` · 🔁 ${this.rb}` : ''}${this.myPlot == null ? ' · find a free factory' : ''}`;
   },
 };
 
@@ -1896,5 +1981,8 @@ else {
 <script src="blox-fish.js"></script>
 <script src="blox-blade.js"></script>
 <script src="blox-murder.js"></script>
+<script src="blox-kart.js"></script>
+<script src="blox-rlgl.js"></script>
+<script src="blox-color.js"></script>
 </body>
 </html>
