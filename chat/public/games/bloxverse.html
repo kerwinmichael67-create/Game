@@ -279,6 +279,24 @@
   .thumb .pill{position:absolute;z-index:2;left:8px;bottom:8px;font-size:11px;padding:3px 8px}
   .thumb .genre{left:auto;bottom:auto;right:8px;top:8px;background:rgba(255,255,255,.9);color:#0f172a;border:0;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase}
   .ecard .info{padding:10px 12px 12px}
+  /* sorting and filtering the experiences */
+  .xtools{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 10px}
+  .xsearch{flex:1 1 200px;min-width:160px;display:flex;align-items:center;gap:8px;background:var(--solid);border:1px solid var(--line);border-radius:999px;padding:0 14px;box-shadow:var(--hi)}
+  .xsearch input{flex:1;min-width:0;background:none;border:0;outline:0;color:#fff;font:700 14px var(--fb);padding:9px 0}
+  .xsearch input::placeholder{color:var(--dim)}
+  .xsearch:focus-within{border-color:rgba(255,255,255,.35)}
+  .xchips{display:flex;flex-wrap:wrap;gap:6px}
+  .xchip{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:999px;color:#cbd5e1;font:600 12.5px var(--fh);padding:6px 12px;cursor:pointer;transition:background .12s,border-color .12s,color .12s;white-space:nowrap}
+  .xchip:hover{background:rgba(255,255,255,.12);color:#fff}
+  .xchip.on{background:linear-gradient(180deg,#fff,#e2e8f0);color:#0f172a;border-color:#fff;box-shadow:0 2px 0 rgba(0,0,0,.3)}
+  .xchip small{opacity:.65;font:700 11px var(--fb)}
+  .xgenres{margin:0 0 14px}
+  .xempty{grid-column:1/-1;text-align:center;color:var(--muted);font:700 14px var(--fb);padding:28px 10px;border:1px dashed var(--line);border-radius:18px}
+  .thumb .fav{position:absolute;z-index:3;left:8px;top:8px;width:30px;height:30px;display:grid;place-items:center;border-radius:50%;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.2);font-size:15px;line-height:1;transition:transform .12s,background .12s}
+  .thumb .fav:hover{transform:scale(1.15);background:rgba(0,0,0,.6)}
+  .thumb .new{position:absolute;z-index:2;right:8px;bottom:8px;background:linear-gradient(180deg,#fde047,#f59e0b);color:#422006;border-radius:999px;padding:2px 8px;font:700 10.5px var(--fh);letter-spacing:.08em;box-shadow:0 2px 0 #92400e}
+  .favbig{background:rgba(255,255,255,.08);border:1px solid var(--line);border-radius:999px;color:#fff;font:600 14px var(--fh);padding:10px 16px;cursor:pointer;margin-left:8px}
+  .favbig:hover{background:rgba(255,255,255,.14)}
   .ecard b{display:block;font:600 16px/1.15 var(--fh);letter-spacing:.01em}
   .ecard small{display:block;margin-top:3px;color:var(--muted);font:700 12px var(--fb)}
   .edetail{background:var(--solid);border:1px solid var(--line);border-radius:22px;padding:18px;box-shadow:var(--drop),var(--hi);animation:rise .2s ease-out}
@@ -1010,7 +1028,7 @@ async function join(id, n) {
   document.documentElement.style.setProperty('--exp', E.color);
   $('#home').hidden = true; $('#loading').hidden = false; $('#loadThumb').innerHTML = `<span>${E.emoji}</span>`; $('#loadTitle').textContent = E.name; $('#loadText').textContent = `Joining server ${n}…`;
   clearPlace(); for (const a of Net.avatars.values()) dropAvatar(a); Net.avatars.clear();
-  exp = E; resetXUI(); $('#chatlog').innerHTML = ''; E.build(); P.frozen = false; setBanner(''); cam.dist = camD = E.camDist || 20;
+  exp = E; playedNow(E.id); resetXUI(); $('#chatlog').innerHTML = ''; E.build(); P.frozen = false; setBanner(''); cam.dist = camD = E.camDist || 20;
   let room;
   try { room = await lob.join(`${E.code}-${n}`); } catch (e) { joining = false; backHome('Couldn’t reach that server. Try another one.'); return; }
   Object.assign(Net, { room, srv: `${E.code}-${n}`, srvN: n, peers: [], t0: Date.now(), joinAt: performance.now(), claimed: false, chats: [], cseq: 0, seen: new Map(), lastPos: '', dd: 0 });
@@ -1740,28 +1758,83 @@ function drawAvatarOpts() {
     drawAvatarOpts(); pvAvatar(); saveAv();
   }));
 }
+// the order experiences were added (the newest get a ✨ NEW badge; "Newest" sorts by it)
+const ADDED = ['obby', 'tycoon', 'tag', 'lava', 'toh', 'garden', 'tds', 'army', 'nds', 'pets', 'boat', 'zombie', 'egg', 'speed', 'fish', 'blade', 'murder', 'kart', 'rlgl', 'color', 'golf', 'bee', 'hide'];
+const addedAt = (E) => (E.added != null ? E.added : ADDED.indexOf(E.id));
+const SORTS = [['featured', '⭐ Featured'], ['popular', '🔥 Popular'], ['new', '✨ Newest'], ['az', '🔤 A–Z'], ['recent', '🕒 Recently played']];
+// how the list is sorted and filtered, your favourites and what you played when (kept on this device)
+const homeLoad = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } };
+const homeSave = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+const LIST = Object.assign({ sort: 'featured', genre: 'All', q: '' }, homeLoad('rb.list', {}));
+let FAVS = new Set(homeLoad('rb.favs', [])), RECENT = homeLoad('rb.recent', {});
+function toggleFav(id) { if (FAVS.has(id)) FAVS.delete(id); else FAVS.add(id); homeSave('rb.favs', [...FAVS]); sfx(FAVS.has(id) ? 'select' : 'click'); }
+function playedNow(id) { RECENT[id] = Date.now(); homeSave('rb.recent', RECENT); }
+function listed() {
+  const c = counts(), total = (E) => Array.from({ length: SERVERS }, (_, k) => c[`${E.code}-${k + 1}`] || 0).reduce((a, b) => a + b, 0);
+  const q = LIST.q.trim().toLowerCase();
+  let list = Object.values(EXPS).filter((E) => (LIST.genre === 'All' || (LIST.genre === '❤️' ? FAVS.has(E.id) : E.genre === LIST.genre)) && (!q || `${E.name} ${E.genre || ''} ${E.desc}`.toLowerCase().includes(q)));
+  const byRank = (a, b) => (a.rank || 9) - (b.rank || 9);
+  const sorts = {
+    featured: byRank,
+    popular: (a, b) => total(b) - total(a) || byRank(a, b),
+    new: (a, b) => addedAt(b) - addedAt(a),
+    az: (a, b) => a.name.localeCompare(b.name),
+    recent: (a, b) => (RECENT[b.id] || 0) - (RECENT[a.id] || 0) || byRank(a, b),
+  };
+  return list.sort(sorts[LIST.sort] || byRank);
+}
 function drawExps() {
   if (playing) return;
   const c = counts(), total = (E) => Array.from({ length: SERVERS }, (_, k) => c[`${E.code}-${k + 1}`] || 0).reduce((a, b) => a + b, 0);
   const live = (E) => `<span class="pill"><span class="dot"></span>${total(E)} playing</span>`;
   if (!homeView || !EXPS[homeView]) {
-    const list = Object.values(EXPS).sort((a, b) => (a.rank || 9) - (b.rank || 9)), F = list[0];
+    // (typing in the search box: just the cards change, so the box keeps its place)
+    if ($('#expQ') && document.activeElement === $('#expQ')) { drawGrid(); return; }
+    const all = Object.values(EXPS), F = all.slice().sort((a, b) => (a.rank || 9) - (b.rank || 9))[0];
+    const genres = [...new Set(all.map((E) => E.genre).filter(Boolean))].sort();
+    if (LIST.genre !== 'All' && LIST.genre !== '❤️' && !genres.includes(LIST.genre)) LIST.genre = 'All';
+    const chip = (k, v, label, n) => `<button class="xchip${LIST[k] === v ? ' on' : ''}" data-${k}="${esc(v)}">${label}${n != null ? ` <small>${n}</small>` : ''}</button>`;
     $('#expArea').innerHTML = (F ? `<div class="feat" data-e="${F.id}" role="button" tabindex="0" style="--exp:${F.color}"><div><span class="tag">⭐ Featured</span><h2>${esc(F.name)}</h2><p>${esc(F.desc.split('. ').slice(0, 2).join('. ').replace(/\.?$/, '.'))}</p><div class="meta">${live(F)}<span class="pill">👥 up to ${F.max}</span>${F.genre ? `<span class="pill">${esc(F.genre)}</span>` : ''}</div></div><span class="art">${F.emoji}</span><button class="playbig" data-play="${F.id}" title="Play"><span class="tri"></span>Play</button></div>` : '')
-      + `<h3 class="sect">🎮 Experiences <small>${list.length} to play</small></h3><div class="egrid">${list.map((E) => `<button class="ecard" data-e="${E.id}"><div class="thumb" style="background:${E.color}"><span class="em">${E.emoji}</span>${E.genre ? `<span class="pill genre">${esc(E.genre)}</span>` : ''}${live(E)}</div><div class="info"><b>${esc(E.name)}</b><small>Up to ${E.max} per server</small></div></button>`).join('')}</div>
+      + `<h3 class="sect">🎮 Experiences <small id="expCount"></small></h3>
+      <div class="xtools"><label class="xsearch">🔍<input id="expQ" type="search" placeholder="Search experiences" value="${esc(LIST.q)}" autocomplete="off"></label>
+        <div class="xchips" id="expSorts">${SORTS.map(([v, l]) => chip('sort', v, l)).join('')}</div></div>
+      <div class="xchips xgenres" id="expGenres">${chip('genre', 'All', '🎮 All', all.length)}${chip('genre', '❤️', '❤️ Favourites', all.filter((E) => FAVS.has(E.id)).length)}${genres.map((g) => chip('genre', g, esc(g), all.filter((E) => E.genre === g).length)).join('')}</div>
+      <div class="egrid" id="expGrid"></div>
       <p class="note">Move with <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, jump with <kbd>Space</kbd>, drag the mouse to turn the camera, scroll to zoom. <kbd>/</kbd> chats, <kbd>R</kbd> resets your character, <kbd>Esc</kbd> opens the menu.</p>`;
-    $('#expArea').querySelectorAll('[data-e]').forEach((b) => (b.onclick = (e) => { if (e.target.closest('[data-play]')) return; homeView = b.dataset.e; drawExps(); }));
-    $('#expArea').querySelectorAll('[data-play]').forEach((b) => (b.onclick = () => join(b.dataset.play)));
+    const feat = $('#expArea').querySelector('.feat');
+    if (feat) feat.onclick = (e) => { if (e.target.closest('[data-play]')) return; homeView = F.id; drawExps(); };
+    $('#expArea').querySelectorAll('.feat [data-play]').forEach((b) => (b.onclick = () => join(b.dataset.play)));
+    $('#expQ').oninput = (e) => { LIST.q = e.target.value; homeSave('rb.list', LIST); drawGrid(); };
+    $('#expSorts').onclick = (e) => { const b = e.target.closest('[data-sort]'); if (!b) return; LIST.sort = b.dataset.sort; homeSave('rb.list', LIST); drawExps(); };
+    $('#expGenres').onclick = (e) => { const b = e.target.closest('[data-genre]'); if (!b) return; LIST.genre = b.dataset.genre; homeSave('rb.list', LIST); drawExps(); };
+    drawGrid();
     return;
   }
   const E = EXPS[homeView];
   const rows = Array.from({ length: SERVERS }, (_, k) => { const n = c[`${E.code}-${k + 1}`] || 0; return `<div class="srow"><b>Server ${k + 1}</b><span class="cnt">👥 ${n}/${E.max}</span><div class="bar"><i style="width:${n / E.max * 100}%"></i></div><button data-n="${k + 1}" ${n >= E.max ? 'disabled' : ''}>${n >= E.max ? 'Full' : 'Join'}</button></div>`; }).join('');
   $('#expArea').innerHTML = `<div class="edetail" style="--exp:${E.color}"><button class="back" id="backBtn">← All experiences</button>
-    <div class="top"><div class="thumb" style="background:${E.color}"><span class="em">${E.emoji}</span></div><div><h2>${esc(E.name)}</h2><div class="meta">${live(E)}<span class="pill">👥 up to ${E.max} per server</span>${E.genre ? `<span class="pill">${esc(E.genre)}</span>` : ''}</div><p>${esc(E.desc)}</p><button class="playbig" id="playBtn" title="Play"><span class="tri"></span>Play</button></div></div>
+    <div class="top"><div class="thumb" style="background:${E.color}"><span class="em">${E.emoji}</span></div><div><h2>${esc(E.name)}</h2><div class="meta">${live(E)}<span class="pill">👥 up to ${E.max} per server</span>${E.genre ? `<span class="pill">${esc(E.genre)}</span>` : ''}</div><p>${esc(E.desc)}</p><button class="playbig" id="playBtn" title="Play"><span class="tri"></span>Play</button><button class="favbig" id="favBtn">${FAVS.has(E.id) ? '❤️ Favourite' : '🤍 Add to favourites'}</button></div></div>
     <h3 style="margin-top:20px">🖥️ Servers</h3><div class="slist">${rows}</div></div>`;
   $('#backBtn').onclick = () => { homeView = null; drawExps(); };
   $('#playBtn').onclick = () => join(E.id);
+  $('#favBtn').onclick = () => { toggleFav(E.id); drawExps(); };
   $('#expArea').querySelectorAll('[data-n]').forEach((b) => (b.onclick = () => join(E.id, +b.dataset.n)));
 }
+// the cards, sorted and filtered
+function drawGrid() {
+  const grid = $('#expGrid'); if (!grid) return;
+  const c = counts(), total = (E) => Array.from({ length: SERVERS }, (_, k) => c[`${E.code}-${k + 1}`] || 0).reduce((a, b) => a + b, 0);
+  const list = listed(), newest = Object.values(EXPS).sort((a, b) => addedAt(b) - addedAt(a)).slice(0, 3).map((E) => E.id), all = Object.keys(EXPS).length;
+  $('#expCount').textContent = list.length === all ? `${all} to play` : `${list.length} of ${all}`;
+  grid.innerHTML = list.length ? list.map((E) => `<button class="ecard" data-e="${E.id}"><div class="thumb" style="background:${E.color}"><span class="em">${E.emoji}</span><span class="fav" role="button" data-fav="${E.id}" title="${FAVS.has(E.id) ? 'Remove from favourites' : 'Add to favourites'}">${FAVS.has(E.id) ? '❤️' : '🤍'}</span>${E.genre ? `<span class="pill genre">${esc(E.genre)}</span>` : ''}<span class="pill"><span class="dot"></span>${total(E)} playing</span>${newest.includes(E.id) ? '<span class="new">✨ NEW</span>' : ''}</div><div class="info"><b>${esc(E.name)}</b><small>${LIST.sort === 'recent' && RECENT[E.id] ? `Played ${ago(RECENT[E.id])}` : `Up to ${E.max} per server`}</small></div></button>`).join('')
+    : `<div class="xempty">${LIST.genre === '❤️' && !LIST.q ? 'No favourites yet — tap the 🤍 on an experience to add it here.' : 'No experiences match that. Try another search or genre.'}</div>`;
+  grid.onclick = (e) => {
+    const f = e.target.closest('[data-fav]');
+    if (f) { e.stopPropagation(); toggleFav(f.dataset.fav); if (LIST.genre === '❤️') drawExps(); else { f.textContent = FAVS.has(f.dataset.fav) ? '❤️' : '🤍'; const g = $('#expGenres [data-genre="❤️"] small'); if (g) g.textContent = FAVS.size; } return; }
+    const b = e.target.closest('[data-e]'); if (b) { homeView = b.dataset.e; drawExps(); }
+  };
+}
+const ago = (t) => { const s = (Date.now() - t) / 1000; return s < 90 ? 'just now' : s < 5400 ? `${Math.round(s / 60)} min ago` : s < 129600 ? `${Math.round(s / 3600)} h ago` : `${Math.round(s / 86400)} days ago`; };
 // the turning avatar on the home screen
 const pv = { r: null, scene: new THREE.Scene(), cam: new THREE.PerspectiveCamera(32, 240 / 260, 0.1, 100), a: null };
 pv.scene.add(new THREE.HemisphereLight(0xffffff, 0x777788, 0.9)); { const d = new THREE.DirectionalLight(0xffffff, 0.45); d.position.set(4, 7, -6); pv.scene.add(d); }
@@ -1984,5 +2057,8 @@ else {
 <script src="blox-kart.js"></script>
 <script src="blox-rlgl.js"></script>
 <script src="blox-color.js"></script>
+<script src="blox-golf.js"></script>
+<script src="blox-bee.js"></script>
+<script src="blox-hide.js"></script>
 </body>
 </html>
