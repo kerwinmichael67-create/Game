@@ -29,6 +29,7 @@
 
   const BB = {
     id: 'boat', code: 'bb', genre: 'Building', rank: 0.5, name: 'Build a Boat for Treasure', emoji: '⛵', max: 6, stat: 'Best', killY: -60,
+    land: { theme: 'forest', mode: 'sea', sea: -0.15, holes: [[-42, END_Z - 100, 42, 2]], ridges: [-58, 58, END_Z - 100, -10], cliffs: [[-42, -25, END_Z - 100, -30, 25, END_Z], [30, -25, END_Z - 100, 42, 25, END_Z], [-42, -25, END_Z - 100, 42, 25, END_Z - 90]], extras: ['boats'] }, // a canyon through the hills, out of a lake
     color: 'linear-gradient(135deg,#0284c7,#a16207)',
     desc: 'Build a boat out of blocks on your plot, then launch it down the river: ten stages of rocks, logs, a waterfall, a whirlpool, ice, cannons and lava. Wood and plastic float, stone and metal are tough, balloons lift, motors push. Every stage pays gold for more blocks; the treasure waits at the end.',
     welcome: 'Build a boat, then ⛵ Launch!',

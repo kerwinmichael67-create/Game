@@ -192,6 +192,7 @@
   /* ---------------- the experience ---------------- */
   const SP = {
     id: 'speed', code: 'sp', genre: 'Simulator', rank: 0.2, name: '+1 Speed Every Step', emoji: '⚡', max: 12, stat: 'Speed', killY: -30, camDist: 22,
+    land: { theme: 'meadow', box: [-62, END - 34, 62, 0], keep: [[-56, -2, 56, 96]], under: [[-62, END - 34, 62, 0], [-320, 0, 320, 240]], bands: ['meadow', 'desert', 'snow', 'volcano', 'candy', 'space'].map((t, k) => [k === 5 ? -1e9 : -(k + 1) * ZL, k ? -k * ZL : 1e9, t]) }, // the land changes with the zones
     color: 'linear-gradient(135deg,#facc15,#ef4444)',
     desc: 'Every second you keep walking you get +1 speed, and the wait for the next one drops by 10% each time. Run six zones for wins, do quests and convert speed for money, hatch pets that multiply your speed per step, and rebirth for even more. Your progress is saved.',
     welcome: 'Keep walking to get faster! Try the treadmills, or run the track ➜',

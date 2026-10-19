@@ -25,6 +25,7 @@
 
   const CB = {
     id: 'color', code: 'cb', genre: 'Party', rank: 0.08, name: 'Color Block', emoji: '🎨', max: 12, stat: 'Wins', killY: -30, banner: true, camDist: 24, respawnDelay: 1600, noReset: true,
+    land: { theme: 'night', mode: 'sky', low: -80, extras: ['crystals'] },
     color: 'linear-gradient(135deg,#ef4444,#facc15 33%,#22c55e 66%,#3b82f6)',
     desc: 'A colour is called — get onto a tile of that colour before the countdown ends, because every other tile vanishes! The floor comes back in a new pattern, each call quicker than the last. Last one standing wins.',
     welcome: 'Listen for the colour, and get on a tile of it before time runs out!',

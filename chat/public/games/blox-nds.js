@@ -110,6 +110,7 @@
 
   const ND = {
     id: 'nds', code: 'nd', genre: 'Survival', rank: 0.7, name: 'Natural Disaster Survival', emoji: '🌪️', max: 12, stat: 'Survived', killY: -14, banner: true,
+    land: { theme: 'beach', mode: 'sea', sea: -4.05, holes: [[-450, -450, 450, 450]], water: [0x1f6db3, 0x2273b8, 0x1b68ad], extras: ['boats'] },
     color: 'linear-gradient(135deg,#0ea5e9,#b45309)',
     desc: 'Wait on the lobby, then get dropped onto an island, a city or a farm moments before a disaster: floods, tornadoes, meteors, earthquakes, lightning, blizzards, acid rain, sandstorms or a volcano. Find somewhere safe, keep your health up and survive to win.',
     welcome: 'Survive the disaster!',

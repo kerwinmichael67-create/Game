@@ -21,6 +21,7 @@
 
   const BB = {
     id: 'blade', code: 'bl', genre: 'PvP', rank: 0.1, name: 'Blade Ball', emoji: '⚔️', max: 10, stat: 'Wins', killY: -30, banner: true, camDist: 22,
+    land: { theme: 'night', fence: 'none', under: [[-47, -47, 47, 47]], extras: ['crystals'] },
     color: 'linear-gradient(135deg,#ef4444,#1e1b4b)',
     desc: 'A glowing ball hunts one player at a time. Parry it (F or click) just before it hits and it flies at someone else, faster every time. Miss and you’re out — the last one standing wins. Bots join in when there aren’t enough players.',
     welcome: 'When the ball turns red and comes for you, press F (or click) to parry!',
@@ -283,5 +284,5 @@
     },
   };
   addExp(BB);
-  window.__rbBB = BB;
+  window.__rbBL = BB; // for tests (__rbBB is the boat)
 })();

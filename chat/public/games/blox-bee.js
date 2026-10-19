@@ -50,6 +50,7 @@
 
   const BS = {
     id: 'bee', code: 'bs', genre: 'Simulator', rank: 0.03, name: 'Bee Swarm Simulator', emoji: '🐝', max: 10, stat: 'Honey', killY: -30, camDist: 20,
+    land: { theme: 'meadow', fence: 'wood' },
     color: 'linear-gradient(135deg,#facc15,#f59e0b 55%,#78350f)',
     desc: 'Grow a swarm of bees! Walk into a flower field and your bees collect pollen (click to collect some yourself). When your bag’s full, make honey at the hive. Spend honey on bigger bags, better tools and eggs that hatch new bees — more bees open the Clover and Rose fields. Your hive is saved.',
     welcome: 'Walk into the Sunflower Field — your bees will collect pollen. Then make honey at the hive!',

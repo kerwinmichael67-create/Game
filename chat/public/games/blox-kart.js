@@ -79,6 +79,7 @@
 
   const KR = {
     id: 'kart', code: 'kr', genre: 'Racing', rank: 0.05, name: 'Kart Racing', emoji: '🏎️', max: 8, stat: 'Wins', killY: -30, banner: true, camDist: 20, respawnDelay: 700, stepHeight: 0.6,
+    land: { theme: 'meadow', fence: 'hedge' },
     color: 'linear-gradient(135deg,#f97316,#dc2626 55%,#1f2937)',
     desc: `Race karts round a twisty track: ${LAPS} laps against everyone on the server, with bots when there aren’t enough drivers. W to go, A/D to steer, hold Space while turning to drift and let go for a boost. Hit the orange boost pads and stay off the grass!`,
     welcome: 'W to go, A/D to steer, Space to drift. The next race starts soon!',

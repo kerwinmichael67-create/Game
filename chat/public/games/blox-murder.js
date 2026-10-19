@@ -31,6 +31,7 @@
 
   const MM = {
     id: 'murder', code: 'mm', genre: 'Mystery', rank: 0.12, name: 'Murder Mystery', emoji: '🔪', max: 12, stat: 'Wins', killY: -30, banner: true, camDist: 18, respawnDelay: 3000, noReset: true,
+    land: { theme: 'night', fence: 'stone', fences: [[-46, -36, 46, 36]], under: [[-46, -36, 46, 36]], extras: ['graves', 'pumpkins'] },
     color: 'linear-gradient(135deg,#7f1d1d,#1e293b)',
     desc: 'Each round one player is secretly the Murderer, one the Sheriff, and everyone else is Innocent. Innocents hide and collect coins; the sheriff has to find and shoot the murderer (but shoot an innocent and you’re both out); the murderer has to get everyone. Needs 2 or more players.',
     welcome: 'A round starts when 2 or more players are here. Who’s the murderer?',

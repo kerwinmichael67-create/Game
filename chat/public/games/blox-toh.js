@@ -118,6 +118,7 @@
 
   const TOH = {
     id: 'toh', code: 'th', genre: 'Obby', rank: 4, name: 'Tower of Hell', emoji: '🔥', max: 12, stat: 'Wins', killY: -30, banner: true,
+    land: { theme: 'snow', mode: 'sky', low: -100, extras: ['stars'] },
     color: 'linear-gradient(135deg,#1f2937,#dc2626)',
     desc: 'A new randomly stacked tower every round, often with a twist (speed, low gravity, fog…). No checkpoints: touch red and it’s back to the bottom. Reach the top before the timer runs out.',
     welcome: 'Climb! No checkpoints!',

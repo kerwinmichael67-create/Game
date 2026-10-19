@@ -32,6 +32,7 @@
 
   const RL = {
     id: 'rlgl', code: 'rl', genre: 'Party', rank: 0.07, name: 'Red Light, Green Light', emoji: '🚦', max: 12, stat: 'Wins', killY: -30, banner: true, camDist: 22, respawnDelay: 1500,
+    land: { theme: 'blossom', mode: 'sky', low: -90 },
     color: 'linear-gradient(135deg,#22c55e,#facc15 50%,#ef4444)',
     desc: 'Run up the field while the robot looks away, and freeze when it turns round: move on a red light and you’re back at the start. Then cross the glass bridge — in every row one panel holds and the other breaks! Everyone who gets across in time wins the round.',
     welcome: 'Green light: run! Red light: don’t move a muscle!',

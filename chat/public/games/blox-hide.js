@@ -26,6 +26,7 @@
 
   const HS = {
     id: 'hide', code: 'hs', genre: 'Party', rank: 0.02, name: 'Hide and Seek', emoji: '🙈', max: 12, stat: 'Points', killY: -30, banner: true, camDist: 16, noReset: true,
+    land: { theme: 'autumn', fence: 'wood' },
     color: 'linear-gradient(135deg,#7c3aed,#db2777 55%,#f59e0b)',
     desc: 'One player seeks while everyone else hides — in wardrobes, the shower, behind the sofa, in the bushes or the shed. The seeker counts with a blindfold on, then comes looking: touch a hider to find them, and they seek too. Find everyone before time runs out, or stay hidden to win! Bots join in when there aren’t enough players.',
     welcome: 'When the round starts, find a good hiding place — or count, if you’re the seeker!',

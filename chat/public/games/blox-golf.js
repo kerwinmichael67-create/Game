@@ -43,6 +43,7 @@
 
   const GF = {
     id: 'golf', code: 'gf', genre: 'Sports', rank: 0.04, name: 'Mini Golf', emoji: '⛳', max: 10, stat: 'Score', killY: -30, camDist: 15, noReset: true,
+    land: { theme: 'meadow', fence: 'wood', g: -0.6 },
     color: 'linear-gradient(135deg,#22c55e,#15803d 55%,#facc15)',
     desc: 'Nine holes of mini golf at your own pace: aim with the camera (drag, or A/D), hold the mouse or Space to charge your putt and let go. Walls bounce, sand slows you down, water costs a stroke, and watch out for the spinners! Fewest strokes wins.',
     welcome: 'Aim with the camera (drag or A/D); hold the mouse or Space, let go to putt!',

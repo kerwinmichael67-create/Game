@@ -145,6 +145,7 @@
   /* ---------------- the experience ---------------- */
   const SE = {
     id: 'egg', code: 'se', genre: 'Tycoon', rank: 0.3, name: 'Steal an Egg', emoji: '🥚', max: 8, stat: 'Cash', killY: -30, banner: true, camDist: 22,
+    land: { theme: 'beach', mode: 'sea', sea: -1.2, under: [[-88, -188, 88, 188]], extras: ['boats'] },
     color: 'linear-gradient(135deg,#f59e0b,#ec4899)',
     desc: 'Eggs ride the red carpet: buy one and it earns cash every second in your base. Rare eggs earn far more, and Gold, Diamond and Rainbow ones even more. Or sneak into someone else’s base, grab their egg and carry it home before they bonk you with a bat! Lock your base with lasers, buy gear, rebirth for bigger earnings. Saved.',
     welcome: 'Buy eggs off the carpet — or steal them!',

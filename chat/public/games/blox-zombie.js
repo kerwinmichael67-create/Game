@@ -608,6 +608,7 @@
   /* ---------------- the experience ---------------- */
   const ZS = {
     id: 'zombie', code: 'zs', genre: 'Survival', rank: 0.4, name: 'Zombie Outbreak', emoji: '🧟', max: 12, stat: 'Kills', killY: -20, banner: true, noReset: true, respawnDelay: 4200, camDist: 18,
+    land: { theme: 'forest' },
     color: 'linear-gradient(135deg,#365314,#7f1d1d)',
     desc: 'An open world overrun by zombies. Leave the Safe Zone to search houses, shops, cars and the military base for weapons, ammo, food and medkits. Level up, take on missions, buy gear from the trader and survive the nights — every fourth is a Blood Moon with a giant boss. Your gear and level are saved.',
     welcome: 'Grab a weapon and stay alive!',

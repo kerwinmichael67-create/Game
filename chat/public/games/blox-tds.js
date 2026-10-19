@@ -94,6 +94,7 @@
 
   const TDS = {
     id: 'tds', code: 'ts', genre: 'Tower Defense', rank: 3, name: 'Tower Defense Simulator', emoji: '🗼', max: 4, stat: 'Cash', killY: -30, banner: true, camDist: 40, camClip: false,
+    land: { theme: 'forest', fence: 'wood' },
     color: 'linear-gradient(135deg,#334155,#16a34a)',
     desc: 'Co-op tower defense for up to 4. Vote a difficulty, then place Scouts, Snipers, Demomen, Farms and more along the path and upgrade them. Hidden, armored and boss enemies; unlock more towers with Blox Coins.',
     welcome: 'Vote a difficulty and get ready!',
