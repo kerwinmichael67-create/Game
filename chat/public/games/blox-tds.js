@@ -172,6 +172,8 @@
       return !parts.some((p) => p.sy >= 3 && Math.abs(p.x - x) < p.sx / 2 + 1.6 && Math.abs(p.z - z) < p.sz / 2 + 1.6 && p.y < 8);
     },
     host(dt) {
+      // real time, not the frame's step (that's capped, so a slow computer would slow the game down for everyone)
+      const t = performance.now(); dt = this.hostT && t - this.hostT < 2000 ? (t - this.hostT) / 1000 : dt; this.hostT = t;
       const H = this.H, pl = players(), here = new Set(pl.map((p) => p.peer));
       H.left = Math.max(0, H.left - dt);
       // requests from everyone
@@ -196,7 +198,7 @@
         for (const p of pl) if (H.cash[p.peer] == null) { H.cash[p.peer] = DIFF[H.diff].cash; this.ownerIdx(H, p.peer); }
         if (H.skip && [...H.skip].filter((x) => here.has(x)).length * 2 > pl.length) H.left = 0;
         if (H.left <= 0) { H.skip = null; H.wave++; H.q = waveList(H.wave, DIFF[H.diff].waves); H.spawnT = 0; H.ph = 'wave'; }
-      } else if (H.ph === 'wave') this.sim(H, dt);
+      } else if (H.ph === 'wave') for (let k = Math.ceil(dt / 0.1), i = 0; i < k && H.ph === 'wave'; i++) this.sim(H, dt / k); // in small steps
       else if (H.ph === 'end' && H.left <= 0) { Object.assign(H, { ph: 'lobby', left: 25, e: [], tw: [], res: '' }); }
       if (!pl.length) return;
       if (performance.now() - (this.sentAt || 0) > 150) { this.sentAt = performance.now(); this.publish(H); }
