@@ -148,6 +148,15 @@
   .r1{color:#cbd5e1}.r2{color:#4ade80}.r3{color:#60a5fa}.r4{color:#c084fc}.r5{color:#fbbf24}.r6{color:#f87171}
 
   /* ---------- leaderboard, banner, stats, toasts, chat ---------- */
+  #meter{position:absolute;right:12px;top:60px;display:flex;align-items:center;gap:12px;height:30px;padding:0 12px;border-radius:999px;font:600 13px var(--fh);white-space:nowrap;pointer-events:auto;cursor:default}
+  #meter[hidden]{display:none}
+  #meter span{display:flex;align-items:center;gap:5px}
+  #meter i{width:8px;height:8px;border-radius:50%;background:#94a3b8}
+  #meter .good i{background:#4ade80;box-shadow:0 0 6px #4ade80}
+  #meter .ok i{background:#facc15;box-shadow:0 0 6px #facc15}
+  #meter .bad i{background:#f87171;box-shadow:0 0 6px #f87171}
+  #meter small{font:700 10.5px var(--fb);color:var(--dim);letter-spacing:.03em}
+  #meter.phone{left:12px;right:auto;top:106px;height:26px;gap:9px;padding:0 10px;font-size:12px}
   #board{position:absolute;right:12px;top:12px;min-width:210px;max-width:46vw;border-radius:16px;font:700 13.5px var(--fb);overflow:hidden}
   #board table{border-collapse:collapse;width:100%}
   #board th{font:600 11px var(--fh);text-transform:uppercase;letter-spacing:.09em;color:#cbd5e1;text-align:left;padding:8px 12px 7px;background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.02));border-bottom:1px solid var(--line)}
@@ -333,7 +342,7 @@
     #board{min-width:140px;font-size:12px}
     #board td{max-width:84px;padding:4px 8px}
     #banner{top:66px;font-size:14.5px;padding:8px 14px;max-width:calc(100vw - 24px)}
-    #chatlog{top:132px;width:calc(100vw - 24px)}
+    #chatlog{top:138px;width:calc(100vw - 24px)}
     #xside{transform:translateY(-45%) scale(.78);transform-origin:left center}
     #toast{font-size:26px;white-space:normal;width:90vw}
   }
@@ -348,6 +357,7 @@
   <div id="prompt" class="glass"></div>
   <div id="xbar"></div>
   <div id="board" class="glass"></div>
+  <div id="meter" class="glass" title="Frames per second · ping: the round trip to the server and back"></div>
   <div id="banner" class="glass"></div>
   <div id="stat" class="glass"></div>
   <div id="toast"></div>
@@ -1035,6 +1045,7 @@ async function join(id, n) {
   try { room = await lob.join(`${E.code}-${n}`); } catch (e) { joining = false; backHome('Couldn’t reach that server. Try another one.'); return; }
   Object.assign(Net, { room, srv: `${E.code}-${n}`, srvN: n, peers: [], t0: Date.now(), joinAt: performance.now(), claimed: false, chats: [], cseq: 0, seen: new Map(), lastPos: '', dd: 0 });
   room.onPeers(onPeers, () => {});
+  meterReset(); room.on('ev', onPingEcho, () => {});
   send(Object.assign({ nm: Net.name, av: avArr(), t: Net.t0 }, E.pres ? E.pres() : {}));
   lob.presence({ srv: Net.srv }).catch(() => {});
   await new Promise((r) => setTimeout(r, 1300));
@@ -1878,6 +1889,48 @@ function pvDraw(t) {
   pv.r.render(pv.scene, pv.cam);
 }
 
+/* ---------------- the FPS and ping meter ---------------- */
+// frames: counted over half a second. Ping: every two seconds a tiny message goes out on the room's 'ev' topic, and the
+// server sends it back to everyone, us included: the time it took is the round trip (smoothed a little)
+const Meter = { fps: 0, n: 0, t0: 0, ping: null, seq: 0, sent: new Map(), last: 0, sentAt: 0, off: false, shown: true, html: '' };
+try { Meter.shown = localStorage.getItem('bv-meter') !== '0'; } catch (e) {}
+// back from another tab: start again (nothing ran while it was hidden, so the old pings would read as huge)
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { Meter.sent.clear(); Meter.ping = null; Meter.n = 0; Meter.t0 = 0; } });
+function meterReset() { Object.assign(Meter, { ping: null, seq: 0, last: 0, sentAt: 0, off: false }); Meter.sent.clear(); }
+function onPingEcho(m) {
+  if (!m || !m.isMe || !m.sameTab || !m.data || typeof m.data.pg !== 'number') return;
+  const t0 = Meter.sent.get(m.data.pg); if (t0 == null) return;
+  Meter.sent.delete(m.data.pg);
+  const rtt = performance.now() - t0; if (rtt > 10000) return; // that one was lost, not slow
+  Meter.ping = Meter.ping == null ? rtt : Meter.ping * 0.6 + rtt * 0.4; Meter.last = performance.now();
+}
+function meterTick(t) {
+  Meter.n++;
+  if (!Meter.t0) Meter.t0 = t;
+  if (Net.room && Meter.shown && !Meter.off && t - Meter.sentAt > 2000 && performance.now() - Net.joinAt > 3000) { // (not while it's still loading)
+    Meter.sentAt = t; const n = ++Meter.seq; Meter.sent.set(n, performance.now());
+    for (const k of Meter.sent.keys()) if (k < n - 4) Meter.sent.delete(k);
+    Net.room.emit('ev', { pg: n }).catch((e) => { if (e && e.code === 'not_permitted') Meter.off = true; });
+  }
+  if (t - Meter.t0 < 500) return;
+  Meter.fps = (Meter.n * 1000) / (t - Meter.t0); Meter.n = 0; Meter.t0 = t;
+  drawMeter();
+}
+function drawMeter() {
+  const el = $('#meter'); el.hidden = !Meter.shown; if (!Meter.shown) return;
+  const f = Math.round(Meter.fps), fq = f >= 50 ? 'good' : f >= 30 ? 'ok' : 'bad';
+  const stale = Meter.sent.size >= 3 && performance.now() - Meter.last > 6000; // three in a row not back: the connection's in trouble
+  const p = Meter.ping == null || stale ? null : Math.round(Meter.ping), pq = p == null ? (stale ? 'bad' : '') : p < 100 ? 'good' : p < 200 ? 'ok' : 'bad';
+  const html = `<span class="${fq}"><i></i>${f}<small>FPS</small></span><span class="${pq}"><i></i>${p == null ? (Meter.off ? '—' : '…') : p}<small>${p == null ? (Meter.off ? 'no ping' : 'PING') : 'MS'}</small></span>`;
+  if (html !== Meter.html) { Meter.html = html; el.innerHTML = html; }
+  placeMeter();
+}
+// just under the leaderboard, however tall it is (on a phone the banner's in the way there: top left instead, above the chat)
+function placeMeter() {
+  const el = $('#meter'), b = $('#board'), phone = innerWidth <= 640;
+  el.classList.toggle('phone', phone); el.style.top = phone ? '' : b.offsetTop + b.offsetHeight + 6 + 'px';
+}
+
 /* ---------------- pause menu ---------------- */
 function showPause() {
   if (!playing) return;
@@ -1886,12 +1939,14 @@ function showPause() {
     <button class="btn play" id="pResume">▶ Resume</button>${exp.noReset ? '' : '<button class="btn" id="pReset">🔄 Reset character <kbd>R</kbd></button>'}
     ${extra.map((x, i) => `<button class="btn blue" data-x="${i}">${esc(x[0])}</button>`).join('')}
     <button class="btn" id="pSound">${window.Sfx && !Sfx.on ? '🔇 Sound: off' : '🔊 Sound: on'}</button>
+    <button class="btn" id="pMeter">${Meter.shown ? '📊 FPS & ping: shown' : '📊 FPS & ping: hidden'}</button>
     <button class="btn red" id="pLeave">🚪 Leave</button>`;
   $('#pause').hidden = false; sfx('open');
   $('#pResume').onclick = () => { $('#pause').hidden = true; };
   if ($('#pReset')) $('#pReset').onclick = () => { $('#pause').hidden = true; die(); };
   $('#pLeave').onclick = () => leave();
   $('#pSound').onclick = () => { if (!window.Sfx) return; Sfx.toggle(); $('#pSound').textContent = Sfx.on ? '🔊 Sound: on' : '🔇 Sound: off'; };
+  $('#pMeter').onclick = () => { Meter.shown = !Meter.shown; Meter.sentAt = 0; Meter.ping = null; try { localStorage.setItem('bv-meter', Meter.shown ? '1' : '0'); } catch (e) {} $('#pMeter').textContent = Meter.shown ? '📊 FPS & ping: shown' : '📊 FPS & ping: hidden'; drawMeter(); };
   $('#pausePanel').querySelectorAll('[data-x]').forEach((b) => (b.onclick = () => { $('#pause').hidden = true; extra[+b.dataset.x][1](); }));
 }
 $('#menuBtn').onclick = showPause;
@@ -1999,6 +2054,7 @@ function frame(t) {
   camera.position.set(tx + ux * camD, ty + uy * camD, tz + uz * camD);
   camera.lookAt(tx, ty, tz);
   netTick(t);
+  meterTick(t);
   if (t > hudAt) { hudAt = t + 200; drawHud(); }
   if (typeof scenery === 'function' && scenery.tick) scenery.tick(dt); // the land all round: clouds drift, far-off land isn't drawn
   if (!fullOpen()) renderer.render(scene, camera); // a full-screen menu hides the world: skip drawing it
@@ -2023,6 +2079,7 @@ function drawHud() {
   $('#board').innerHTML = `<table><tr><th>👥 ${rows.length} player${rows.length === 1 ? '' : 's'}</th><th>${exp.stat}</th></tr>${rows.map((r, i) => `<tr class="${r.c.isMe ? 'me' : ''}"><td><span class="rk">${i + 1}</span>${esc(r.name)}</td><td>${esc(String(r.v))}</td></tr>`).join('')}</table>`;
   $('#stat').innerHTML = exp.hud ? exp.hud() : '';
   if (!exp.banner) setBanner('');
+  if (Meter.shown) placeMeter(); // the leaderboard may have grown or shrunk
 }
 
 // every button in the HUD, menus and home screen clicks
@@ -2032,7 +2089,7 @@ document.addEventListener('click', (e) => { const b = e.target.closest('button')
 try { loadAvFrom(JSON.parse(localStorage.getItem('rb.av') || 'null')); } catch (e) {}
 drawAvatarOpts(); drawExps();
 requestAnimationFrame(frame);
-window.__rb = { P, Net, cam, camera, scene, renderer, keys, EXPS, join, leave, die, respawn, parts: () => parts, exp: () => exp, me: () => me, iAmHost, crew, players, get AV() { return AV; }, W, earn, spend, roundState, openPanel, closePanel, pickPlane, myPeer, grantCosmetic, snapshot }; // for tests
+window.__rb = { P, Net, cam, camera, scene, renderer, keys, EXPS, Meter, join, leave, die, respawn, parts: () => parts, exp: () => exp, me: () => me, iAmHost, crew, players, get AV() { return AV; }, W, earn, spend, roundState, openPanel, closePanel, pickPlane, myPeer, grantCosmetic, snapshot }; // for tests
 if (!Net.api()) homeStatus('Open Bloxverse from 🕹️ Games in the chat to play online.');
 else {
   $('#hi').textContent = 'Connecting…';
