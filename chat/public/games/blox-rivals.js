@@ -107,6 +107,7 @@
   const dropModel = (o) => { if (!o) return; if (o.parent) o.parent.remove(o); for (const geo of o.userData.own || []) geo.dispose(); };
 
   const RV = {
+    ownFov: true, // (scoping in; it starts from the engine's, which sprinting widens)
     id: 'rivals', code: 'rv', genre: 'PvP', rank: 0.005, name: 'Rivals', emoji: '🎯', max: 12, stat: 'Wins', killY: -40, banner: true, camDist: 16, noReset: true, respawnDelay: 2500,
     land: { theme: 'meadow', mode: 'sky', low: -100 },
     color: 'linear-gradient(135deg,#1d4ed8,#7c3aed 55%,#dc2626)',
@@ -772,7 +773,7 @@
       cam.yaw -= this.sy0 || 0; cam.pitch -= this.sp0 || 0; this.sy0 = this.sp0 = 0;
       if (this.shake > 0) { this.shake = Math.max(0, this.shake - dt * 1.6); this.sy0 = (Math.random() - 0.5) * this.shake * 0.04; this.sp0 = (Math.random() - 0.5) * this.shake * 0.04; cam.yaw += this.sy0; cam.pitch += this.sp0; }
       const W = WP[this.cw()] || WP.ar, scoped = this.ads && W === WP.sniper && !P.dead;
-      const fov = scoped ? 24 : this.ads ? 55 : this.fov0 || 70;
+      const fov = scoped ? 24 : this.ads ? 55 : viewFov();
       if (Math.abs(camera.fov - fov) > 0.1) { camera.fov += (fov - camera.fov) * Math.min(1, dt * 14); camera.updateProjectionMatrix(); }
       this.blind = Math.max(0, this.blind - dt);
       const fl = $('#rvFlash'); if (fl) fl.style.opacity = Math.min(1, this.blind / 1.4).toFixed(2);

@@ -607,6 +607,7 @@
 
   /* ---------------- the experience ---------------- */
   const ZS = {
+    noSprint: true, // (its own, with stamina, hunger and the 🏃 button; the sprint key comes from the engine)
     id: 'zombie', code: 'zs', genre: 'Survival', rank: 0.4, name: 'Zombie Outbreak', emoji: '🧟', max: 12, stat: 'Kills', killY: -20, banner: true, noReset: true, respawnDelay: 4200, camDist: 18,
     land: { theme: 'forest' },
     color: 'linear-gradient(135deg,#365314,#7f1d1d)',
@@ -1008,8 +1009,7 @@
       this.fireOnce(this.aimFrom(e.x, e.y));
     },
     key(code, down) {
-      if (!down) { if (code === 'KeyF') this.firing = false; if (code === 'ShiftLeft' || code === 'ShiftRight') this.sprintKey = false; return; }
-      if (code === 'ShiftLeft' || code === 'ShiftRight') { this.sprintKey = true; return; }
+      if (!down) { if (code === 'KeyF') this.firing = false; return; }
       if (code === 'KeyF') { this.firing = 'auto'; this.trigger(); return true; }
       if (code === 'KeyR') { this.reload(); return true; }
       if (code === 'Digit1' || code === 'Digit2' || code === 'Digit3') { this.pick(['m', 's', 'p'][+code.slice(5) - 1]); return true; }
@@ -1207,7 +1207,7 @@
       if (P.dead || this.dead) return;
       const safe = inSafe(P.x, P.z), moving = Math.hypot(P.vx, P.vz) > 2;
       // sprinting
-      this.sprint = (this.sprintKey || this.runToggle) && moving && this.stam > 1;
+      this.sprint = (sprintHeld() || this.runToggle) && moving && this.stam > 1;
       this.stam = clamp(this.stam + (this.sprint ? -22 : 16) * dt, 0, 100);
       if (this.boost > 0) this.boost -= dt;
       // hunger, and healing

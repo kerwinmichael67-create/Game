@@ -93,6 +93,7 @@
   const OWN_COL = [0x3b82f6, 0xef4444, 0x22c55e, 0xf59e0b];
 
   const TDS = {
+    noLock: true, // (you look down on the map)
     id: 'tds', code: 'ts', genre: 'Tower Defense', rank: 3, name: 'Tower Defense Simulator', emoji: '🗼', max: 4, stat: 'Cash', killY: -30, banner: true, camDist: 40, camClip: false,
     land: { theme: 'forest', fence: 'wood' },
     color: 'linear-gradient(135deg,#334155,#16a34a)',

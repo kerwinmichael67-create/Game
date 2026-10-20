@@ -78,6 +78,7 @@
   }
 
   const KR = {
+    noLock: true, // (the camera follows the kart)
     id: 'kart', code: 'kr', genre: 'Racing', rank: 0.05, name: 'Kart Racing', emoji: '🏎️', max: 8, stat: 'Wins', killY: -30, banner: true, camDist: 20, respawnDelay: 700, stepHeight: 0.6,
     land: { theme: 'meadow', fence: 'hedge' },
     color: 'linear-gradient(135deg,#f97316,#dc2626 55%,#1f2937)',

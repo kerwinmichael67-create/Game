@@ -191,6 +191,7 @@
 
   /* ---------------- the experience ---------------- */
   const SP = {
+    noSprint: true, ownFov: true, // (speed is the game, and it sets the field of view itself)
     id: 'speed', code: 'sp', genre: 'Simulator', rank: 0.2, name: '+1 Speed Every Step', emoji: '⚡', max: 12, stat: 'Speed', killY: -30, camDist: 22,
     land: { theme: 'meadow', box: [-62, END - 34, 62, 0], keep: [[-56, -2, 56, 96]], under: [[-62, END - 34, 62, 0], [-320, 0, 320, 240]], bands: ['meadow', 'desert', 'snow', 'volcano', 'candy', 'space'].map((t, k) => [k === 5 ? -1e9 : -(k + 1) * ZL, k ? -k * ZL : 1e9, t]) }, // the land changes with the zones
     color: 'linear-gradient(135deg,#facc15,#ef4444)',

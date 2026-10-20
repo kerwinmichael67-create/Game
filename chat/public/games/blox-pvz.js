@@ -191,6 +191,7 @@
   }
 
   const PZ = {
+    noLock: true, // (you look down on the lawn)
     id: 'pvz', code: 'pz', genre: 'Tower Defense', rank: 0.01, name: 'Plants vs Zombies', emoji: '🌻', max: 4, stat: 'Level', killY: -30, banner: true, camDist: 30, camClip: false, noReset: true,
     land: { theme: 'meadow', fence: 'wood' },
     color: 'linear-gradient(135deg,#65a30d,#facc15 55%,#7c2d12)',

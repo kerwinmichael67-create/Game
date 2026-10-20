@@ -42,6 +42,7 @@
   }
 
   const GF = {
+    noLock: true, noSprint: true, // (the camera goes round the ball)
     id: 'golf', code: 'gf', genre: 'Sports', rank: 0.04, name: 'Mini Golf', emoji: '⛳', max: 10, stat: 'Score', killY: -30, camDist: 15, noReset: true,
     land: { theme: 'meadow', fence: 'wood', g: -0.6 },
     color: 'linear-gradient(135deg,#22c55e,#15803d 55%,#facc15)',

@@ -191,6 +191,19 @@
   #jumpBtn,#chatBtn{position:absolute;border-radius:50%;border:2px solid rgba(255,255,255,.35);background:radial-gradient(circle at 40% 35%,rgba(255,255,255,.3),rgba(255,255,255,.1));color:#fff;pointer-events:auto;font-family:var(--fh);box-shadow:0 6px 18px rgba(0,0,0,.3)}
   #jumpBtn{right:26px;bottom:30px;width:90px;height:90px;font-size:32px}
   #chatBtn{right:128px;bottom:40px;width:54px;height:54px;font-size:21px}
+  #runBtn,#lockBtn{position:absolute;width:58px;height:58px;border-radius:50%;border:2px solid rgba(255,255,255,.35);background:radial-gradient(circle at 40% 35%,rgba(255,255,255,.3),rgba(255,255,255,.1));color:#fff;font-size:24px;pointer-events:auto;box-shadow:0 6px 18px rgba(0,0,0,.3)}
+  #runBtn{right:42px;bottom:136px}#lockBtn{right:126px;bottom:106px;font-size:21px}
+  #runBtn.on,#lockBtn.on{background:radial-gradient(circle at 40% 35%,#fde047,#ca8a04);border-color:#fff}
+  #runBtn[hidden],#lockBtn[hidden]{display:none}
+  /* shift lock / first person: the middle of the screen is where you point */
+  #reticle{position:absolute;left:50%;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;border:2px solid rgba(255,255,255,.9);box-shadow:0 0 0 1px rgba(0,0,0,.45),inset 0 0 0 1px rgba(0,0,0,.35);pointer-events:none;display:none}
+  #reticle::after{content:'';position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px;border-radius:50%;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.5)}
+  #reticle span{position:absolute;left:50%;top:30px;transform:translateX(-50%);white-space:nowrap;font:600 13px var(--fh);color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.8)}
+  #stam{position:absolute;left:50%;bottom:62px;transform:translateX(-50%);width:170px;height:9px;border-radius:6px;background:rgba(0,0,0,.45);box-shadow:inset 0 1px 2px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.12);overflow:hidden;opacity:0;transition:opacity .3s;pointer-events:none}
+  #stam i{display:block;height:100%;width:100%;border-radius:6px;background:linear-gradient(90deg,#facc15,#fde68a)}
+  #stam.tired i{background:linear-gradient(90deg,#ef4444,#f97316)}
+  .hasbar #stam{bottom:calc(var(--barH,84px) + 62px)}
+  .touchy #stam{bottom:200px}.touchy.hasbar #stam{bottom:calc(var(--barH,84px) + 184px)}
 
   /* ---------- pause & loading ---------- */
   .screen{position:fixed;inset:0;z-index:5;display:grid;place-items:center;background:radial-gradient(ellipse at center,rgba(8,10,15,.5),rgba(4,6,10,.82));padding:16px;overflow:auto;-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px)}
@@ -364,7 +377,7 @@
   <div id="chatbox"><input id="chatin" maxlength="100" placeholder="Say something (Enter to send)"></div>
   <div id="chatlog"></div>
   <div id="xpanel" hidden><div class="xp-head"><b id="xpTitle"></b><div id="xpExtra"></div><button id="xpClose" title="Close (Esc)">✕</button></div><div id="xpBody"></div></div>
-  <div id="touch"><div id="stick"><i></i></div><button id="jumpBtn">⤒</button><button id="chatBtn">💬</button></div>
+  <div id="touch"><div id="stick"><i></i></div><button id="jumpBtn">⤒</button><button id="chatBtn">💬</button><button id="runBtn" title="Sprint">🏃</button><button id="lockBtn" title="Shift lock">🔒</button></div><div id="reticle"></div><div id="stam"><i></i></div>
 </div>
 <div id="home" class="screen">
   <div class="homewrap">
@@ -622,13 +635,14 @@ function physics(dt) {
   const cy = cam.yaw, fx = -Math.sin(cy), fz = -Math.cos(cy), rx = Math.cos(cy), rz = -Math.sin(cy);
   let mx = fx * f + rx * r, mz = fz * f + rz * r; const l = Math.hypot(mx, mz);
   if (l > 1) { mx /= l; mz /= l; }
-  const sp = exp && exp.speed ? exp.speed() : 16, acc = P.ground ? 22 : 12, jp = exp && exp.jumpPower ? exp.jumpPower() : JUMP, gr = exp && exp.gravity ? exp.gravity() : GRAV;
+  const sp = (exp && exp.speed ? exp.speed() : 16) * (View.sprinting ? SPRINT : 1), acc = P.ground ? 22 : 12, jp = exp && exp.jumpPower ? exp.jumpPower() : JUMP, gr = exp && exp.gravity ? exp.gravity() : GRAV;
   // an experience can steer you itself (a kart): drive(dt, forward, right) gives [vx, vz, yaw]
   const drive = exp && exp.drive;
   if (drive) { const d = exp.drive(dt, f, r); P.vx = d[0]; P.vz = d[1]; P.yaw = d[2]; }
   else {
     P.vx += (mx * sp - P.vx) * Math.min(1, acc * dt); P.vz += (mz * sp - P.vz) * Math.min(1, acc * dt);
-    if (l > 0.1) { let d = Math.atan2(-mx, -mz) - P.yaw; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; P.yaw += d * Math.min(1, 14 * dt); }
+    if (lockFacing()) P.yaw = cam.yaw; // shift lock, first person: you face where the camera looks
+    else if (l > 0.1) { let d = Math.atan2(-mx, -mz) - P.yaw; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; P.yaw += d * Math.min(1, 14 * dt); }
   }
   if ((keys.Space || jumpHeld) && P.ground && !P.frozen && !chatOpen() && !drive) { P.vy = jp; P.ground = null; sfx('jump'); }
   // trusses: walk into one and you climb it
@@ -1030,7 +1044,7 @@ function openPanel(title, html, onClick, onClose, opts = {}) {
 function closePanel() { if ($('#xpanel').hidden) return; sfx('close'); $('#xpanel').hidden = true; $('#xpanel').classList.remove('full'); panelClick = null; const f = panelOnClose; panelOnClose = null; if (f) f(); }
 const panelOpen = () => !$('#xpanel').hidden;
 const fullOpen = () => panelOpen() && $('#xpanel').classList.contains('full');
-$('#xpClose').onclick = closePanel;
+$('#xpClose').onclick = () => { closePanel(); tryLock(); };
 $('#xpanel').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b && b.id !== 'xpClose' && !b.disabled && panelClick) panelClick(b, e); });
 // a hotbar along the bottom; clicks go to onClick(button)
 let barClick = null;
@@ -1160,7 +1174,7 @@ async function join(id, n) {
   clearPlace(); for (const a of Net.avatars.values()) dropAvatar(a); Net.avatars.clear();
   exp = E; playedNow(E.id); resetXUI(); $('#chatlog').innerHTML = ''; gfxApply(); E.build(); P.frozen = false;
   try { if (typeof scenery === 'function') scenery(E); } catch (e) { console.warn('scenery', e); } // the land all round (blox-land.js)
-  setBanner(''); cam.dist = camD = E.camDist || 20;
+  setBanner(''); cam.dist = camD = E.camDist || 20; View.fp = false; View.st = 1; View.tired = false; View.touchRun = false;
   let room;
   try { room = await lob.join(`${E.code}-${n}`); } catch (e) { joining = false; backHome('Couldn’t reach that server. Try another one.'); return; }
   Object.assign(Net, { room, srv: `${E.code}-${n}`, srvN: n, peers: [], t0: Date.now(), joinAt: performance.now(), claimed: false, chats: [], cseq: 0, seen: new Map(), lastPos: '', dd: 0 });
@@ -1185,6 +1199,7 @@ async function join(id, n) {
   canvas.focus();
 }
 async function leave(quiet) {
+  unlock(); View.fp = false; $('#reticle').style.display = 'none'; $('#stam').style.opacity = 0; canvas.style.cursor = '';
   if (exp && exp.leave && playing) await exp.leave();
   const r = Net.room;
   Net.room = null; Net.srv = ''; playing = false;
@@ -1937,7 +1952,7 @@ function drawExps() {
         <div class="xchips" id="expSorts">${SORTS.map(([v, l]) => chip('sort', v, l)).join('')}</div></div>
       <div class="xchips xgenres" id="expGenres">${chip('genre', 'All', '🎮 All', all.length)}${chip('genre', '❤️', '❤️ Favourites', all.filter((E) => FAVS.has(E.id)).length)}${genres.map((g) => chip('genre', g, esc(g), all.filter((E) => E.genre === g).length)).join('')}</div>
       <div class="egrid" id="expGrid"></div>
-      <p class="note">Move with <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, jump with <kbd>Space</kbd>, drag the mouse to turn the camera, scroll to zoom. <kbd>/</kbd> chats, <kbd>R</kbd> resets your character, <kbd>Esc</kbd> opens the menu.</p>`;
+      <p class="note">Move with <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, jump with <kbd>Space</kbd>, hold <kbd>Shift</kbd> to sprint, drag the mouse to turn the camera, scroll to zoom (all the way in for first person), <kbd>Ctrl</kbd> for shift lock. <kbd>/</kbd> chats, <kbd>R</kbd> resets your character, <kbd>Esc</kbd> opens the menu.</p>`;
     const feat = $('#expArea').querySelector('.feat');
     if (feat) feat.onclick = (e) => { if (e.target.closest('[data-play]')) return; homeView = F.id; drawExps(); };
     $('#expArea').querySelectorAll('.feat [data-play]').forEach((b) => (b.onclick = () => join(b.dataset.play)));
@@ -2052,8 +2067,10 @@ function placeMeter() {
 }
 
 /* ---------------- pause menu ---------------- */
+const keysLabel = () => (View.keys === 'lock' ? '⌨️ Shift: shift lock · Ctrl: sprint' : '⌨️ Shift: sprint · Ctrl: shift lock');
 function showPause() {
   if (!playing) return;
+  unlock();
   const extra = exp.menu ? exp.menu() : [];
   $('#pausePanel').innerHTML = `<div class="phead"><div class="pthumb"><span>${exp.emoji}</span></div></div><h2>${esc(exp.name)}</h2><p>Server ${Net.srvN} · 👥 ${Math.max(1, crew().length)} playing</p>
     <button class="btn play" id="pResume">▶ Resume</button>${exp.noReset ? '' : '<button class="btn" id="pReset">🔄 Reset character <kbd>R</kbd></button>'}
@@ -2061,44 +2078,140 @@ function showPause() {
     <button class="btn" id="pSound">${window.Sfx && !Sfx.on ? '🔇 Sound: off' : '🔊 Sound: on'}</button>
     <button class="btn" id="pMeter">${Meter.shown ? '📊 FPS & ping: shown' : '📊 FPS & ping: hidden'}</button>
     <button class="btn" id="pGfx">${gfxLabel()}</button>
+    ${exp.noLock ? '' : `<button class="btn" id="pLock">${View.lock ? '🔒 Shift lock: on' : '🔓 Shift lock: off'} <kbd>${lockKeyName()}</kbd></button>`}
+    <button class="btn" id="pKeys">${keysLabel()}</button>
     <button class="btn red" id="pLeave">🚪 Leave</button>`;
   $('#pause').hidden = false; sfx('open');
-  $('#pResume').onclick = () => { $('#pause').hidden = true; };
+  $('#pResume').onclick = () => { $('#pause').hidden = true; tryLock(); };
   if ($('#pReset')) $('#pReset').onclick = () => { $('#pause').hidden = true; die(); };
   $('#pLeave').onclick = () => leave();
   $('#pSound').onclick = () => { if (!window.Sfx) return; Sfx.toggle(); $('#pSound').textContent = Sfx.on ? '🔊 Sound: on' : '🔇 Sound: off'; };
   $('#pMeter').onclick = () => { Meter.shown = !Meter.shown; Meter.sentAt = 0; Meter.ping = null; try { localStorage.setItem('bv-meter', Meter.shown ? '1' : '0'); } catch (e) {} $('#pMeter').textContent = Meter.shown ? '📊 FPS & ping: shown' : '📊 FPS & ping: hidden'; drawMeter(); };
+  if ($('#pLock')) $('#pLock').onclick = () => { $('#pause').hidden = true; setLock(!View.lock); };
+  $('#pKeys').onclick = () => { View.keys = View.keys === 'lock' ? 'sprint' : 'lock'; try { localStorage.setItem('bv-keys', View.keys); } catch (e) {} $('#pKeys').textContent = keysLabel(); if ($('#pLock')) $('#pLock').innerHTML = `${View.lock ? '🔒 Shift lock: on' : '🔓 Shift lock: off'} <kbd>${lockKeyName()}</kbd>`; };
   $('#pGfx').onclick = () => { GFX.pick = { auto: 'high', high: 'low', low: 'auto' }[GFX.pick]; if (GFX.pick === 'auto') { GFX.hi = !touchy && !softGL; GFX.slow = 0; GFX.since = 0; } try { localStorage.setItem('bv-gfx', GFX.pick); } catch (e) {} gfxApply(); $('#pGfx').textContent = gfxLabel(); };
   $('#pausePanel').querySelectorAll('[data-x]').forEach((b) => (b.onclick = () => { $('#pause').hidden = true; extra[+b.dataset.x][1](); }));
 }
 $('#menuBtn').onclick = showPause;
 
+/* ---------------- shift lock, first person and sprinting ----------------
+   Ctrl turns shift lock on and off (or Shift: the keys swap in the menu). The mouse turns the camera (the pointer is
+   locked to the middle of the screen, and clicks go where the dot in the middle is), you face where the camera
+   looks, and the camera sits over your right shoulder. Zoom all the way in and you're in first person. Hold Shift
+   to sprint, until you run out of stamina. Experiences can say noLock (no shift lock or first person: karts, golf,
+   the lawn and tower games), noSprint (they have their own, or speed is the game) and ownFov (they set the
+   camera's field of view themselves, from viewFov()). */
+const SPRINT = 1.45, MIN_DIST = 7, MOUSE_TURN = 0.0032;
+const View = { lock: false, fp: false, skip: 0, keys: 'sprint', st: 1, rest: 0, tired: false, sprinting: false, touchRun: false, fov: 70, plFails: 0, noPL: false, selfExit: false, lostAt: 0 };
+try { if (localStorage.getItem('bv-keys') === 'lock') View.keys = 'lock'; } catch (e) {}
+const isShift = (c) => c === 'ShiftLeft' || c === 'ShiftRight', isCtrl = (c) => c === 'ControlLeft' || c === 'ControlRight';
+const lockKeyCode = (c) => (View.keys === 'lock' ? isShift(c) : isCtrl(c));
+const sprintHeld = () => (View.keys === 'lock' ? keys.ControlLeft || keys.ControlRight : keys.ShiftLeft || keys.ShiftRight) || View.touchRun;
+const lockKeyName = () => (View.keys === 'lock' ? 'Shift' : 'Ctrl');
+const lockAllowed = () => !!(playing && exp && !exp.noLock);
+const lockFacing = () => lockAllowed() && (View.lock || View.fp) && !(exp && exp.drive);
+// the mouse turns the camera (on a computer; on a phone you drag, as always)
+const mouseLook = () => !touchy && lockAllowed() && (View.lock || View.fp) && !panelOpen() && $('#pause').hidden && !chatOpen();
+const plOn = () => document.pointerLockElement === canvas;
+const pitchRange = () => (View.fp ? [-1.45, 1.45] : [-1.35, 0.6]);
+const viewFov = () => View.fov; // for experiences that set the field of view themselves (sprinting widens it)
+// ask for the pointer lock (only works from a click or a key press); if the page isn't allowed it, the mouse still
+// turns the camera as it moves over the game, with the pointer hidden
+function tryLock() {
+  if (!mouseLook() || plOn() || View.noPL || !canvas.requestPointerLock) return;
+  const fail = () => { if (++View.plFails >= 2) View.noPL = true; };
+  try { const r = canvas.requestPointerLock(); if (r && r.catch) r.catch(fail); } catch (e) { fail(); }
+}
+document.addEventListener('pointerlockerror', () => { if (++View.plFails >= 2) View.noPL = true; });
+document.addEventListener('pointerlockchange', () => {
+  if (plOn()) { View.plFails = 0; View.skip = 1; return; } // (browsers report one bogus jump right after the lock: skip it)
+  if (View.selfExit) { View.selfExit = false; return; }
+  // Esc let go of the pointer: that's the menu, like in Roblox
+  View.lostAt = performance.now();
+  if (mouseLook()) showPause();
+});
+function unlock() { if (plOn()) { View.selfExit = true; document.exitPointerLock(); } }
+function setLock(on) {
+  if (!lockAllowed()) return;
+  View.lock = on; $('#lockBtn').classList.toggle('on', on);
+  toast(on ? `🔒 Shift lock on (${touchy ? 'tap 🔒' : lockKeyName()} to turn off)` : '🔓 Shift lock off', '#e2e8f0'); sfx('toggle');
+  if (on) tryLock(); else if (!View.fp) unlock();
+}
+// zooming: all the way in is first person; out again and you're back behind yourself
+function zoomBy(k) {
+  if (View.fp) { if (k > 1) { View.fp = false; cam.dist = MIN_DIST; cam.pitch = clamp(cam.pitch, -1.35, 0.6); if (!View.lock) unlock(); } return; }
+  if (k < 1 && cam.dist <= MIN_DIST + 0.01 && lockAllowed()) { View.fp = true; cam.pitch = clamp(cam.pitch + 0.25, -1.45, 1.45); return; }
+  cam.dist = clamp(cam.dist * k, MIN_DIST, 70);
+}
+function lookBy(dx, dy) { const [lo, hi] = pitchRange(); cam.yaw -= dx * MOUSE_TURN; cam.pitch = clamp(cam.pitch - dy * MOUSE_TURN, lo, hi); }
+const center = () => ({ x: innerWidth / 2, y: innerHeight / 2 });
+// once a frame: stamina, the field of view, hiding your body in first person, the pointer lock, the dot in the middle
+function viewTick(dt) {
+  if (!lockAllowed()) View.fp = false;
+  const f = (keys.KeyW || keys.ArrowUp || keys.KeyS || keys.ArrowDown || keys.KeyA || keys.ArrowLeft || keys.KeyD || keys.ArrowRight) || Math.hypot(joy.x, joy.y) > 0.2;
+  const want = sprintHeld() && f && exp && !exp.noSprint && !exp.drive && !P.frozen && !P.dead && !chatOpen() && !fullOpen();
+  if (View.tired && View.st >= 0.3) View.tired = false;
+  View.sprinting = !!(want && !View.tired && View.st > 0);
+  if (View.sprinting) { View.st = Math.max(0, View.st - dt / 7); View.rest = 0; if (View.st <= 0) View.tired = true; }
+  else { View.rest += dt; if (View.rest > 0.6) View.st = Math.min(1, View.st + dt / 4); }
+  const st = $('#stam'); st.style.opacity = View.st < 0.999 && exp && !exp.noSprint ? 1 : 0; st.firstChild.style.width = (View.st * 100).toFixed(1) + '%'; st.classList.toggle('tired', View.tired);
+  View.fov += ((View.sprinting ? 77 : 70) - View.fov) * Math.min(1, dt * 6);
+  if (!(exp && exp.ownFov) && Math.abs(camera.fov - View.fov) > 0.05) { camera.fov = View.fov; camera.updateProjectionMatrix(); }
+  // first person: your body's hidden (whatever's in your hands stays)
+  if (me) {
+    const fp = View.fp && !P.dead;
+    if (me.fpOn !== fp) { me.fpOn = fp; for (const c of me.body.children) c.visible = !fp || c === me.armL || c === me.armR; }
+    if (fp) for (const arm of [me.armL, me.armR]) for (const c of arm.children) c.visible = !c.isMesh; // (tools are groups; the arm itself is plain blocks)
+    else if (me.armsHidden) for (const arm of [me.armL, me.armR]) for (const c of arm.children) c.visible = true;
+    me.armsHidden = fp;
+  }
+  if (plOn() && !mouseLook()) unlock();
+  const ml = mouseLook(), r = $('#reticle');
+  r.style.display = ml ? 'block' : 'none';
+  const hint = ml && !plOn() && !View.noPL ? 'Click to look around' : '';
+  if (r.dataset.h !== hint) { r.dataset.h = hint; r.innerHTML = hint ? `<span>${hint}</span>` : ''; }
+  canvas.style.cursor = ml && View.noPL ? 'none' : '';
+  $('#runBtn').hidden = !(exp && !exp.noSprint); $('#runBtn').classList.toggle('on', View.touchRun);
+  $('#lockBtn').hidden = !lockAllowed(); $('#lockBtn').classList.toggle('on', View.lock);
+}
+
 /* ---------------- input ---------------- */
 let drag = null;
 canvas.tabIndex = 0;
-canvas.addEventListener('mousedown', (e) => { drag = { x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, moved: false, btn: e.button }; canvas.focus(); e.preventDefault(); if (playing && exp && exp.press) exp.press(e.button, true); });
+canvas.addEventListener('mousedown', (e) => {
+  canvas.focus(); e.preventDefault();
+  if (mouseLook() && !plOn() && !View.noPL) { tryLock(); return; } // (that click just takes the pointer)
+  drag = { x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, moved: false, btn: e.button, look: mouseLook() };
+  if (playing && exp && exp.press) exp.press(e.button, true);
+});
 addEventListener('mouseup', (e) => {
   const d = drag; drag = null;
   if (!d || !playing || !exp) return;
   if (exp.press) exp.press(d.btn, false);
-  if (!d.moved && exp.click) exp.click({ x: e.clientX, y: e.clientY, button: d.btn });
+  if (!d.moved && exp.click) exp.click(d.look ? Object.assign(center(), { button: d.btn }) : { x: e.clientX, y: e.clientY, button: d.btn }); // (looking with the mouse: at the dot in the middle)
 });
 addEventListener('mousemove', (e) => {
+  if (mouseLook() && (plOn() || (View.noPL && e.target === canvas))) {
+    const dx = e.movementX || 0, dy = e.movementY || 0;
+    if (View.skip) View.skip--; else if (Math.abs(dx) < 300 && Math.abs(dy) < 300) lookBy(dx, dy); // (and any other jump no hand could make)
+    if (exp.hover) exp.hover(center()); return;
+  }
   if (playing && exp && exp.hover) exp.hover({ x: e.clientX, y: e.clientY });
   if (!drag || !playing) return;
   if (Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 5) drag.moved = true;
   if (!drag.moved) return;
-  cam.yaw -= (e.clientX - drag.x) * 0.007; cam.pitch = clamp(cam.pitch - (e.clientY - drag.y) * 0.005, -1.35, 0.6);
+  cam.yaw -= (e.clientX - drag.x) * 0.007; cam.pitch = clamp(cam.pitch - (e.clientY - drag.y) * 0.005, ...pitchRange());
   drag.x = e.clientX; drag.y = e.clientY;
 });
 canvas.addEventListener('contextmenu', (e) => e.preventDefault());
-canvas.addEventListener('wheel', (e) => { cam.dist = clamp(cam.dist * (e.deltaY > 0 ? 1.12 : 0.89), 7, 70); e.preventDefault(); }, { passive: false });
+canvas.addEventListener('wheel', (e) => { zoomBy(e.deltaY > 0 ? 1.12 : 0.89); e.preventDefault(); }, { passive: false });
 addEventListener('keydown', (e) => {
   if (document.activeElement === $('#chatin') || !playing) return;
   // a full-screen menu takes the keyboard: Esc closes it
   if (fullOpen()) { if (e.code === 'Escape') closePanel(); else if (exp && exp.menuKey && !e.repeat) exp.menuKey(e.code); return; }
   if (e.code === 'Slash' || e.code === 'Enter') { e.preventDefault(); openChat(); return; }
-  if (e.code === 'Escape') { if (panelOpen()) closePanel(); else if ($('#pause').hidden) showPause(); else $('#pause').hidden = true; return; }
+  if (e.code === 'Escape') { if (performance.now() - View.lostAt < 400) return; if (panelOpen()) closePanel(); else if ($('#pause').hidden) showPause(); else $('#pause').hidden = true; return; } // (Esc that let go of the pointer has opened the menu already)
+  if (lockKeyCode(e.code) && !e.repeat && lockAllowed()) { setLock(!View.lock); return; }
   if (exp && exp.key && !e.repeat && exp.key(e.code, true) === true) { e.preventDefault(); return; }
   if (e.code === 'KeyE' && promptCur && !e.repeat) { sfx('select'); promptCur.fn(); return; }
   if (e.code === 'KeyR' && !P.dead && !(exp && exp.noReset)) die();
@@ -2118,15 +2231,24 @@ function moveStick(t) {
 addEventListener('touchmove', (e) => {
   for (const t of e.changedTouches) {
     if (t.identifier === stickId) moveStick(t);
-    else if (camTouch && t.identifier === camTouch.id) { cam.yaw -= (t.clientX - camTouch.x) * 0.009; cam.pitch = clamp(cam.pitch - (t.clientY - camTouch.y) * 0.006, -1.35, 0.6); camTouch.x = t.clientX; camTouch.y = t.clientY; }
+    else if (camTouch && t.identifier === camTouch.id && !pinch) { cam.yaw -= (t.clientX - camTouch.x) * 0.009; cam.pitch = clamp(cam.pitch - (t.clientY - camTouch.y) * 0.006, ...pitchRange()); camTouch.x = t.clientX; camTouch.y = t.clientY; }
   }
+  // two fingers on the game: pinch to zoom (all the way in for first person)
+  if (pinch) { const a = [...e.touches].filter((t) => pinch.ids.includes(t.identifier)); if (a.length === 2) { const d = Math.hypot(a[0].clientX - a[1].clientX, a[0].clientY - a[1].clientY); if (Math.abs(d - pinch.d) > 14) { zoomBy(d > pinch.d ? 0.89 : 1.12); pinch.d = d; } } }
 }, { passive: true });
-addEventListener('touchend', (e) => { for (const t of e.changedTouches) { if (t.identifier === stickId) { stickId = null; joy.x = joy.y = 0; knob.style.transform = ''; } if (camTouch && t.identifier === camTouch.id) camTouch = null; } });
-canvas.addEventListener('touchstart', (e) => { const t = e.changedTouches[0]; camTouch = { id: t.identifier, x: t.clientX, y: t.clientY, sx: t.clientX, sy: t.clientY, at: performance.now() }; }, { passive: true });
+let pinch = null;
+addEventListener('touchend', (e) => { if (pinch && [...e.changedTouches].some((t) => pinch.ids.includes(t.identifier))) { pinch = null; camTouch = null; } for (const t of e.changedTouches) { if (t.identifier === stickId) { stickId = null; joy.x = joy.y = 0; knob.style.transform = ''; } if (camTouch && t.identifier === camTouch.id) camTouch = null; } });
+canvas.addEventListener('touchstart', (e) => {
+  const on = [...e.touches].filter((t) => t.target === canvas);
+  if (on.length >= 2) { pinch = { ids: [on[0].identifier, on[1].identifier], d: Math.hypot(on[0].clientX - on[1].clientX, on[0].clientY - on[1].clientY) }; return; }
+  const t = e.changedTouches[0]; camTouch = { id: t.identifier, x: t.clientX, y: t.clientY, sx: t.clientX, sy: t.clientY, at: performance.now() };
+}, { passive: true });
 // a tap (short, without dragging) is a click
 canvas.addEventListener('touchend', (e) => { const t = e.changedTouches[0], c = camTouch; if (c && t && performance.now() - c.at < 350 && Math.hypot(t.clientX - c.sx, t.clientY - c.sy) < 12 && playing && exp && exp.click) exp.click({ x: t.clientX, y: t.clientY, button: 0 }); });
 $('#jumpBtn').addEventListener('touchstart', (e) => { jumpHeld = true; e.preventDefault(); }, { passive: false });
 $('#jumpBtn').addEventListener('touchend', () => (jumpHeld = false));
+$('#runBtn').addEventListener('touchstart', (e) => { e.preventDefault(); View.touchRun = !View.touchRun; sfx('toggle'); }, { passive: false });
+$('#lockBtn').addEventListener('touchstart', (e) => { e.preventDefault(); setLock(!View.lock); }, { passive: false });
 $('#chatBtn').addEventListener('click', openChat);
 
 /* ---------------- the loop ---------------- */
@@ -2156,7 +2278,7 @@ function frame(t) {
   if (me) {
     if (me.dead) updateDead(me, dt);
     me.g.position.set(P.x, P.y, P.z); me.g.rotation.y = P.yaw;
-    animateAvatar(me, dt, Math.hypot(P.vx, P.vz) > 1, !P.ground); placeShadow(me); updatePet(me, dt); auraTick(me, dt); trailTick(me, dt, Math.hypot(P.vx, P.vz) > 1 && P.ground);
+    animateAvatar(me, View.sprinting ? dt * 1.4 : dt, Math.hypot(P.vx, P.vz) > 1, !P.ground); placeShadow(me); updatePet(me, dt); auraTick(me, dt); trailTick(me, dt, Math.hypot(P.vx, P.vz) > 1 && P.ground);
     if (me.bub) { me.bubT -= dt; if (me.bubT <= 0) { me.g.remove(me.bub); me.bub.material.map.dispose(); me.bub = null; } }
   }
   // everyone else, sliding towards where they say they are
@@ -2175,14 +2297,23 @@ function frame(t) {
   updatePrompt();
   // the camera, behind and above you
   stepLift = stepLift > 0.01 ? stepLift * Math.exp(-dt * 12) : 0;
-  const tx = P.x, ty = P.y + 4.4 - stepLift, tz = P.z, cp = Math.cos(cam.pitch), ux = Math.sin(cam.yaw) * cp, uy = -Math.sin(cam.pitch), uz = Math.cos(cam.yaw) * cp;
-  // a wall or roof between you and the camera: the camera comes in front of it (and eases back out after)
-  const want = exp.camClip === false ? cam.dist : Math.min(cam.dist, Math.max(2.5, camRoom(tx, ty, tz, ux, uy, uz, cam.dist) - 0.6));
-  if (want < cam.dist - 0.01) camClipAt = t;
-  const zoomed = cam.dist !== camLastDist; camLastDist = cam.dist;
-  camD = want < camD || zoomed || t - camClipAt > 1500 ? want : camD + (want - camD) * Math.min(1, dt * 4); // zooming is instant; only coming back out from behind a wall eases
-  camera.position.set(tx + ux * camD, ty + uy * camD, tz + uz * camD);
-  camera.lookAt(tx, ty, tz);
+  viewTick(dt);
+  const cp = Math.cos(cam.pitch);
+  if (View.fp && !P.dead) {
+    // first person: your eyes, looking where the camera points
+    const ey = P.y + 4.8 - stepLift, ex = P.x + Math.sin(cam.yaw) * 0.6, ez = P.z + Math.cos(cam.yaw) * 0.6; // (a touch behind the middle of the head, so what you hold isn't right in your face)
+    camera.position.set(ex, ey, ez); camera.lookAt(ex - Math.sin(cam.yaw) * cp, ey + Math.sin(cam.pitch), ez - Math.cos(cam.yaw) * cp);
+  } else {
+    // shift lock: over your right shoulder
+    const sh = lockFacing() ? 1.7 : 0, tx = P.x + Math.cos(cam.yaw) * sh, ty = P.y + 4.4 - stepLift, tz = P.z - Math.sin(cam.yaw) * sh, ux = Math.sin(cam.yaw) * cp, uy = -Math.sin(cam.pitch), uz = Math.cos(cam.yaw) * cp;
+    // a wall or roof between you and the camera: the camera comes in front of it (and eases back out after)
+    const want = exp.camClip === false ? cam.dist : Math.min(cam.dist, Math.max(2.5, camRoom(tx, ty, tz, ux, uy, uz, cam.dist) - 0.6));
+    if (want < cam.dist - 0.01) camClipAt = t;
+    const zoomed = cam.dist !== camLastDist; camLastDist = cam.dist;
+    camD = want < camD || zoomed || t - camClipAt > 1500 ? want : camD + (want - camD) * Math.min(1, dt * 4); // zooming is instant; only coming back out from behind a wall eases
+    camera.position.set(tx + ux * camD, ty + uy * camD, tz + uz * camD);
+    camera.lookAt(tx, ty, tz);
+  }
   netTick(t);
   meterTick(t);
   if (t > hudAt) { hudAt = t + 200; drawHud(); }
@@ -2220,7 +2351,7 @@ document.addEventListener('click', (e) => { const b = e.target.closest('button')
 try { loadAvFrom(JSON.parse(localStorage.getItem('rb.av') || 'null')); } catch (e) {}
 drawAvatarOpts(); drawExps();
 requestAnimationFrame(frame);
-window.__rb = { P, Net, cam, camera, scene, renderer, keys, EXPS, Meter, GFX, gfxApply, softGL, sunL, sunSprite, makeAvatar, join, leave, die, respawn, parts: () => parts, exp: () => exp, me: () => me, iAmHost, crew, players, get AV() { return AV; }, W, earn, spend, roundState, openPanel, closePanel, pickPlane, myPeer, grantCosmetic, snapshot }; // for tests
+window.__rb = { P, Net, cam, camera, scene, renderer, keys, EXPS, Meter, GFX, gfxApply, softGL, View, setLock, zoomBy, lookBy, joy, sunL, sunSprite, makeAvatar, join, leave, die, respawn, parts: () => parts, exp: () => exp, me: () => me, iAmHost, crew, players, get AV() { return AV; }, W, earn, spend, roundState, openPanel, closePanel, pickPlane, myPeer, grantCosmetic, snapshot }; // for tests
 if (!Net.api()) homeStatus('Open Bloxverse from 🕹️ Games in the chat to play online.');
 else {
   $('#hi').textContent = 'Connecting…';
