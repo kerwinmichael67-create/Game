@@ -66,6 +66,8 @@
   .hasbar #stat{bottom:calc(var(--barH,84px) + 16px)}
   .touchy.hasbar #xbar{bottom:130px}
   .touchy.hasbar #stat{bottom:calc(var(--barH,84px) + 138px)}
+  /* a phone held upright: the bar spans the screen, so it sits above the joystick */
+  @media (max-width:640px){.touchy.hasbar #xbar{bottom:166px}.touchy.hasbar #stat{bottom:calc(var(--barH,84px) + 174px)}}
   .xslot{flex:none;min-width:72px;height:72px;border-radius:17px;background:linear-gradient(180deg,rgba(55,65,84,.94),rgba(25,31,42,.96));border:2px solid rgba(255,255,255,.14);color:#fff;font:600 11.5px/1.05 var(--fh);letter-spacing:.01em;text-shadow:0 1px 0 rgba(0,0,0,.5);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;position:relative;padding:7px 8px 6px;text-align:center;gap:4px;box-shadow:0 4px 0 rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.14),0 10px 18px rgba(0,0,0,.25);transition:transform .12s,border-color .12s,box-shadow .12s}
   .xslot:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.32)}
   .xslot:active{transform:translateY(1px)}
@@ -204,6 +206,7 @@
   #stam.tired i{background:linear-gradient(90deg,#ef4444,#f97316)}
   .hasbar #stam{bottom:calc(var(--barH,84px) + 62px)}
   .touchy #stam{bottom:200px}.touchy.hasbar #stam{bottom:calc(var(--barH,84px) + 184px)}
+  @media (max-width:640px){.touchy.hasbar #stam{bottom:calc(var(--barH,84px) + 220px)}}
 
   /* ---------- pause & loading ---------- */
   .screen{position:fixed;inset:0;z-index:5;display:grid;place-items:center;background:radial-gradient(ellipse at center,rgba(8,10,15,.5),rgba(4,6,10,.82));padding:16px;overflow:auto;-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px)}
@@ -1049,9 +1052,33 @@ $('#xpanel').addEventListener('click', (e) => { const b = e.target.closest('butt
 // a hotbar along the bottom; clicks go to onClick(button)
 let barClick = null;
 let barHtml = '';
-function setBar(html, onClick) { if (html !== barHtml) { barHtml = html; $('#xbar').innerHTML = html; } barClick = onClick || barClick; document.body.classList.toggle('hasbar', !!html); }
+function setBar(html, onClick) { if (html !== barHtml) { barHtml = html; $('#xbar').innerHTML = html; } barClick = onClick || barClick; if (document.body.classList.contains('hasbar') !== !!html) { document.body.classList.toggle('hasbar', !!html); placeTouch(); } }
 // the status line sits just above the hotbar, however tall it is
-if (window.ResizeObserver) new ResizeObserver(() => { const h = $('#xbar').offsetHeight; if (h) document.body.style.setProperty('--barH', h + 'px'); }).observe($('#xbar'));
+if (window.ResizeObserver) new ResizeObserver(() => { const h = $('#xbar').offsetHeight; if (h) document.body.style.setProperty('--barH', h + 'px'); placeTouch(); }).observe($('#xbar'));
+// on a phone, an experience's bar can cover the sprint and shift lock buttons (a narrow screen, or a long bar): each goes
+// to the first of a few spots that's clear of the bar, the hint over it, the joystick, the other buttons and the board
+function placeTouch() {
+  if (!touchy) return;
+  const bar = $('#xbar'), on = document.body.classList.contains('hasbar') && bar.offsetWidth > 0, W = innerWidth, H = innerHeight;
+  const btns = [$('#runBtn'), $('#lockBtn')];
+  for (const b of btns) { b.style.right = b.style.bottom = ''; }
+  if (!on) return;
+  const br = bar.getBoundingClientRect(), up = H - br.top + 46; // (above the bar and the hint over it)
+  const box = (el) => { const r = el.getBoundingClientRect(); return r.width ? [r.left - 6, r.top - 6, r.right + 6, r.bottom + 6] : null; };
+  const taken = [[br.left, br.top - 42, br.right, br.bottom], box($('#stick')), box($('#jumpBtn')), box($('#chatBtn')), box($('#board'))].filter(Boolean);
+  const spots = [null, [190, 34], [252, 34], [16, up], [82, up], [148, up], [16, up + 66], [82, up + 66]];
+  for (const b of btns) {
+    if (b.hidden) continue;
+    const fits = (sp) => {
+      if (sp) { b.style.right = sp[0] + 'px'; b.style.bottom = sp[1] + 'px'; } else b.style.right = b.style.bottom = '';
+      const r = b.getBoundingClientRect(), q = [r.left, r.top, r.right, r.bottom];
+      return q[0] >= 0 && q[1] >= 50 && q[2] <= W && q[3] <= H && !taken.some((t) => q[0] < t[2] && q[2] > t[0] && q[1] < t[3] && q[3] > t[1]);
+    };
+    if (!spots.some(fits)) b.style.right = b.style.bottom = ''; // (nowhere's clear: where it always is)
+    taken.push(box(b));
+  }
+}
+addEventListener('resize', () => setTimeout(placeTouch, 50));
 $('#xbar').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b && !b.disabled && barClick) barClick(b, e); });
 // a column of big buttons on the left (menus, orders); clicks go to onClick(button)
 let sideClick = null;
@@ -1911,7 +1938,7 @@ function drawAvatarOpts() {
   }));
 }
 // the order experiences were added (the newest get a ✨ NEW badge; "Newest" sorts by it)
-const ADDED = ['obby', 'tycoon', 'tag', 'lava', 'toh', 'garden', 'tds', 'army', 'nds', 'pets', 'boat', 'zombie', 'egg', 'speed', 'fish', 'blade', 'murder', 'kart', 'rlgl', 'color', 'golf', 'bee', 'hide', 'pvz', 'rivals'];
+const ADDED = ['obby', 'tycoon', 'tag', 'lava', 'toh', 'garden', 'tds', 'army', 'nds', 'pets', 'boat', 'zombie', 'egg', 'speed', 'fish', 'blade', 'murder', 'kart', 'rlgl', 'color', 'golf', 'bee', 'hide', 'pvz', 'rivals', 'fruits'];
 const addedAt = (E) => (E.added != null ? E.added : ADDED.indexOf(E.id));
 const SORTS = [['featured', '⭐ Featured'], ['popular', '🔥 Popular'], ['new', '✨ Newest'], ['az', '🔤 A–Z'], ['recent', '🕒 Recently played']];
 // how the list is sorted and filtered, your favourites and what you played when (kept on this device)
@@ -2171,8 +2198,9 @@ function viewTick(dt) {
   const hint = ml && !plOn() && !View.noPL ? 'Click to look around' : '';
   if (r.dataset.h !== hint) { r.dataset.h = hint; r.innerHTML = hint ? `<span>${hint}</span>` : ''; }
   canvas.style.cursor = ml && View.noPL ? 'none' : '';
-  $('#runBtn').hidden = !(exp && !exp.noSprint); $('#runBtn').classList.toggle('on', View.touchRun);
-  $('#lockBtn').hidden = !lockAllowed(); $('#lockBtn').classList.toggle('on', View.lock);
+  const rh = !(exp && !exp.noSprint), lh = !lockAllowed();
+  if (rh !== $('#runBtn').hidden || lh !== $('#lockBtn').hidden) { $('#runBtn').hidden = rh; $('#lockBtn').hidden = lh; placeTouch(); }
+  $('#runBtn').classList.toggle('on', View.touchRun); $('#lockBtn').classList.toggle('on', View.lock);
 }
 
 /* ---------------- input ---------------- */
@@ -2389,5 +2417,6 @@ else {
 <script src="blox-hide.js"></script>
 <script src="blox-pvz.js"></script>
 <script src="blox-rivals.js"></script>
+<script src="blox-fruits.js"></script>
 </body>
 </html>

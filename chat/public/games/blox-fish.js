@@ -32,7 +32,8 @@
     .fi-card img{width:100%;height:64px;object-fit:contain}
     .fi-card.unk img{filter:brightness(0) opacity(.5)}
     .fi-card .v{color:#86efac;font:700 12px var(--fh)}
-    .touchy #fiGame{bottom:calc(var(--barH,84px) + 150px)}`;
+    .touchy #fiGame{bottom:calc(var(--barH,84px) + 150px)}
+    @media (max-width:640px){.touchy #fiGame{bottom:calc(var(--barH,84px) + 186px)}}`;
   document.head.append(style);
 
   /* ---------------- fish ---------------- */
