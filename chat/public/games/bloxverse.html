@@ -405,7 +405,7 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(70, 1, 0.5, 1500); // a near plane that isn't too near keeps the depth buffer sharp far away
 function resize() { renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
 addEventListener('resize', resize); resize();
-scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8a9a, 0.78));
+const hemiL = new THREE.HemisphereLight(0xffffff, 0x8a8a9a, 0.78); scene.add(hemiL);
 const sunL = new THREE.DirectionalLight(0xffffff, 0.5); sunL.position.set(40, 100, 25); scene.add(sunL);
 /* ---------------- graphics: real shadows from the sun, and the sun in the sky ----------------
    Graphics in the pause menu: High (shadows), Low (none, and fewer pixels: for slow computers), or Auto
@@ -423,12 +423,18 @@ const sunSprite = (() => {
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), fog: false, depthWrite: false, transparent: true }));
   sp.scale.setScalar(300); sp.renderOrder = -1; scene.add(sp); return sp;
 })();
-const GFX = { pick: 'auto', hi: !touchy, slow: 0, castAt: 0, since: 0 };
+// shadows fall on everything. (Set on each thing just before it's drawn: three.js keeps "takes shadows" per program, so one
+// new thing that didn't would switch them off for everything drawn with the same shader after it.)
+THREE.Mesh.prototype.onBeforeRender = function () { this.receiveShadow = true; };
+// no graphics card (the browser draws in software): shadows would be far too slow, so Auto starts low
+const softGL = (() => { try { const gl = renderer.getContext(), ext = gl.getExtension('WEBGL_debug_renderer_info'); return /swiftshader|llvmpipe|softpipe|software|basic render/i.test(String(gl.getParameter(ext ? ext.UNMASKED_RENDERER_WEBGL : gl.RENDERER))); } catch (e) { return false; } })();
+const GFX = { pick: 'auto', hi: !touchy && !softGL, slow: 0, castAt: 0, since: 0 };
 try { const v = localStorage.getItem('bv-gfx'); if (['auto', 'high', 'low'].includes(v)) GFX.pick = v; } catch (e) {}
 const gfxHigh = () => GFX.pick === 'high' || (GFX.pick === 'auto' && GFX.hi);
 function gfxApply() {
   const hi = gfxHigh();
   if (renderer.shadowMap.enabled !== hi) { renderer.shadowMap.enabled = hi; scene.traverse((o) => { for (const m of [].concat(o.material || [])) m.needsUpdate = true; }); GFX.castAt = 0; }
+  hemiL.intensity = hi ? 0.64 : 0.78; sunL.intensity = hi ? 0.68 : 0.5; // with shadows, more of the light comes from the sun (lit things stay as bright, shadows show)
   const pr = hi ? Math.min(2, devicePixelRatio || 1) : 1;
   if (renderer.getPixelRatio() !== pr) { renderer.setPixelRatio(pr); resize(); }
 }
@@ -446,14 +452,14 @@ function gfxTick(t, dt) {
   if (!renderer.shadowMap.enabled) return;
   const sx = Math.round(P.x / 4) * 4, sz = Math.round(P.z / 4) * 4, sy = Math.round(P.y / 4) * 4; // (moved in steps, or the shadows' edges crawl)
   sunL.target.position.set(sx, sy, sz); sunL.position.set(sx, sy, sz).addScaledVector(SUN_DIR, 180); sunL.target.updateMatrixWorld();
-  // everything solid casts a shadow and has them fall on it (checked every so often: experiences add things as they go)
+  // everything solid casts a shadow (checked every so often: experiences add things as they go)
   if (t - GFX.castAt > 1000) {
     GFX.castAt = t;
     scene.traverse((o) => {
       if (!o.isMesh || o.userData.noShadow) return;
       const m = Array.isArray(o.material) ? o.material[0] : o.material;
       if (!m || !(m.isMeshLambertMaterial || m.isMeshPhongMaterial || m.isMeshStandardMaterial)) return;
-      o.receiveShadow = true; o.castShadow = !m.transparent || m.opacity > 0.9;
+      o.castShadow = !m.transparent || m.opacity > 0.9;
     });
   }
 }
@@ -1152,7 +1158,7 @@ async function join(id, n) {
   document.documentElement.style.setProperty('--exp', E.color);
   $('#home').hidden = true; $('#loading').hidden = false; $('#loadThumb').innerHTML = `<span>${E.emoji}</span>`; $('#loadTitle').textContent = E.name; $('#loadText').textContent = `Joining server ${n}…`;
   clearPlace(); for (const a of Net.avatars.values()) dropAvatar(a); Net.avatars.clear();
-  exp = E; playedNow(E.id); resetXUI(); $('#chatlog').innerHTML = ''; E.build(); P.frozen = false;
+  exp = E; playedNow(E.id); resetXUI(); $('#chatlog').innerHTML = ''; gfxApply(); E.build(); P.frozen = false;
   try { if (typeof scenery === 'function') scenery(E); } catch (e) { console.warn('scenery', e); } // the land all round (blox-land.js)
   setBanner(''); cam.dist = camD = E.camDist || 20;
   let room;
@@ -2062,7 +2068,7 @@ function showPause() {
   $('#pLeave').onclick = () => leave();
   $('#pSound').onclick = () => { if (!window.Sfx) return; Sfx.toggle(); $('#pSound').textContent = Sfx.on ? '🔊 Sound: on' : '🔇 Sound: off'; };
   $('#pMeter').onclick = () => { Meter.shown = !Meter.shown; Meter.sentAt = 0; Meter.ping = null; try { localStorage.setItem('bv-meter', Meter.shown ? '1' : '0'); } catch (e) {} $('#pMeter').textContent = Meter.shown ? '📊 FPS & ping: shown' : '📊 FPS & ping: hidden'; drawMeter(); };
-  $('#pGfx').onclick = () => { GFX.pick = { auto: 'high', high: 'low', low: 'auto' }[GFX.pick]; if (GFX.pick === 'auto') { GFX.hi = !touchy; GFX.slow = 0; GFX.since = 0; } try { localStorage.setItem('bv-gfx', GFX.pick); } catch (e) {} gfxApply(); $('#pGfx').textContent = gfxLabel(); };
+  $('#pGfx').onclick = () => { GFX.pick = { auto: 'high', high: 'low', low: 'auto' }[GFX.pick]; if (GFX.pick === 'auto') { GFX.hi = !touchy && !softGL; GFX.slow = 0; GFX.since = 0; } try { localStorage.setItem('bv-gfx', GFX.pick); } catch (e) {} gfxApply(); $('#pGfx').textContent = gfxLabel(); };
   $('#pausePanel').querySelectorAll('[data-x]').forEach((b) => (b.onclick = () => { $('#pause').hidden = true; extra[+b.dataset.x][1](); }));
 }
 $('#menuBtn').onclick = showPause;
@@ -2214,7 +2220,7 @@ document.addEventListener('click', (e) => { const b = e.target.closest('button')
 try { loadAvFrom(JSON.parse(localStorage.getItem('rb.av') || 'null')); } catch (e) {}
 drawAvatarOpts(); drawExps();
 requestAnimationFrame(frame);
-window.__rb = { P, Net, cam, camera, scene, renderer, keys, EXPS, Meter, GFX, gfxApply, sunL, sunSprite, makeAvatar, join, leave, die, respawn, parts: () => parts, exp: () => exp, me: () => me, iAmHost, crew, players, get AV() { return AV; }, W, earn, spend, roundState, openPanel, closePanel, pickPlane, myPeer, grantCosmetic, snapshot }; // for tests
+window.__rb = { P, Net, cam, camera, scene, renderer, keys, EXPS, Meter, GFX, gfxApply, softGL, sunL, sunSprite, makeAvatar, join, leave, die, respawn, parts: () => parts, exp: () => exp, me: () => me, iAmHost, crew, players, get AV() { return AV; }, W, earn, spend, roundState, openPanel, closePanel, pickPlane, myPeer, grantCosmetic, snapshot }; // for tests
 if (!Net.api()) homeStatus('Open Bloxverse from 🕹️ Games in the chat to play online.');
 else {
   $('#hi').textContent = 'Connecting…';

@@ -39,7 +39,7 @@
     .rv-sb i{font-style:normal;font-size:13px;color:#cbd5e1}.rv-sb u{text-decoration:none;opacity:.3}
     .rv-st{font-size:11px;color:#94a3b8}
     .xslot small{display:block;font-size:10.5px;color:#fde68a;margin-top:2px}
-    @media (max-width:640px){#rvFeed{display:none}#rvBig{font-size:38px}}`;
+    @media (max-width:640px){#rvFeed{display:none}#rvBig{font-size:38px}.rv-nm,.rv-ft{display:none}.rv-sb b{font-size:20px}}`;
   document.head.append(style);
 
   /* ---------------- the weapons ---------------- */
@@ -308,7 +308,7 @@
         const full = a.length === pd.md && b.length === pd.md;
         if (sig !== q.sig) { q.sig = sig; q.t = full ? 3 : -1; q.w = full ? 0 : BOT_WAIT; } // someone stepped on or off: start over
         if (q.t < 0) { q.w = Math.max(0, q.w - dt); if (q.w <= 0) q.t = 3; } // waited long enough: bots take the empty spots
-        else { q.t -= dt; if (q.t <= 0) { this.startMatch(i, a, b, pl); q.s = [[], []]; q.sig = ''; q.t = -1; q.w = 0; } }
+        else { q.t = Math.max(0, q.t - dt); q.busy = H.M.length >= ARENAS.length ? 1 : 0; if (q.t <= 0 && !q.busy) { this.startMatch(i, a, b, pl); q.s = [[], []]; q.sig = ''; q.t = -1; q.w = 0; } } // (every arena in use: wait for one)
       });
     },
     startMatch(pad, a, b, pl) {
@@ -965,7 +965,7 @@
       PADS.forEach((pd, i) => {
         const q = pq[i], sp = this.spots && this.spots[i]; if (!sp) return;
         for (const s of [0, 1]) sp[s].forEach((mesh, k) => { const on = !!(q && q.s && q.s[s] && q.s[s][k]); mesh.material.opacity = on ? 0.95 : 0.3 + Math.sin(performance.now() / 300 + k) * 0.05; });
-        const txt = !q || !q.s || (!q.s[0].length && !q.s[1].length) ? '' : q.t >= 0 ? `Starting in ${Math.ceil(q.t)}…` : `${Math.min(pd.md, q.s[0].length)} vs ${Math.min(pd.md, q.s[1].length)} · bots in ${Math.ceil(q.w)}`;
+        const txt = !q || !q.s || (!q.s[0].length && !q.s[1].length) ? '' : q.busy ? 'Waiting for an arena…' : q.t >= 0 ? `Starting in ${Math.ceil(q.t)}…` : `${Math.min(pd.md, q.s[0].length)} vs ${Math.min(pd.md, q.s[1].length)} · bots in ${Math.ceil(q.w)}`;
         if (txt !== (this.padTxt || [])[i]) {
           (this.padTxt = this.padTxt || [])[i] = txt;
           if (this.padLab[i]) { place.remove(this.padLab[i]); this.padLab[i].material.map.dispose(); this.padLab[i].material.dispose(); this.padLab[i] = null; }
@@ -996,15 +996,15 @@
       if (!g) { setBanner('Getting the server…'); return; }
       if (!m) {
         const mine = myPeer(), qi = (g.pq || []).findIndex((q) => q && q.s && (q.s[0].includes(mine) || q.s[1].includes(mine)));
-        if (qi >= 0) { const q = g.pq[qi]; setBanner(q.t >= 0 ? `⚔️ Match starting in ${Math.ceil(q.t)}…` : `⏳ Waiting for an opponent — a 🤖 bot takes the empty spots in ${Math.ceil(q.w)}s`); }
+        if (qi >= 0) { const q = g.pq[qi]; setBanner(q.busy ? '⏳ All three arenas are in use — your match starts as soon as one is free' : q.t >= 0 ? `⚔️ Match starting in ${Math.ceil(q.t)}…` : `⏳ Waiting for an opponent — a 🤖 bot takes the empty spots in ${Math.ceil(q.w)}s`); }
         else setBanner('⚔️ Stand on a 1v1 or 2v2 pad to duel · 🎒 <b>L</b> loadout · 🎯 dummies behind you');
         return;
       }
       const t = this.myTeam, dots = (tm) => m.tm[tm].map((id) => ((m.al || []).includes(id) || m.ph === 'pre' ? '●' : '<u>●</u>')).join('');
-      const names = (tm) => (m.md === 1 ? esc(this.nameOfId(m.tm[tm][0] || '')) : dots(tm));
+      const names = (tm) => (m.md === 1 ? `<span class="rv-nm">${esc(this.nameOfId(m.tm[tm][0] || ''))}</span>` : dots(tm));
       const sb = `<span class="rv-sb"><i>${names(t)}</i><b class="t0">${m.s[t]}</b><i>—</i><b class="t1">${m.s[1 - t]}</b><i>${names(1 - t)}</i></span>`;
       const ph = m.ph === 'pre' ? `Round ${m.rd}` : m.ph === 'fight' ? `${alive ? '' : '👻 out · '}${mmss(left)}` : m.ph === 'rend' ? (m.w < 0 ? 'Draw' : m.w === t ? 'Round won' : 'Round lost') : m.w === t ? '🏆 Victory!' : 'Defeat';
-      setBanner(`${sb} <span style="font-size:14px;color:#cbd5e1;margin-left:8px">${ph} · first to ${TO}</span>`);
+      setBanner(`${sb} <span style="font-size:14px;color:#cbd5e1;margin-left:8px">${ph}<span class="rv-ft"> · first to ${TO}</span></span>`);
     },
     statOf(pr, isMe) { return isMe ? (this.save ? this.save.wins | 0 : 0) : +pr.rw || 0; },
     sortKey(pr, isMe) { return this.statOf(pr, isMe); },

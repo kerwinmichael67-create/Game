@@ -660,7 +660,7 @@
       if (this.myHeld && this.myHeld.m.parent) this.myHeld.m.parent.remove(this.myHeld.m);
       for (const m of baked) { m.geometry.dispose(); m.material.dispose(); } baked = [];
       for (const a of this.npcs || []) dropAvatar(a);
-      const hemi = scene.children.find((o) => o.isHemisphereLight); if (hemi) hemi.intensity = 0.78; sunL.intensity = 0.5;
+      gfxApply(); // the usual light again (it depends on the graphics setting)
       this.zv = new Map(); this.fx = []; this.nades = []; this.H = null;
     },
     save() { if (!this.S) return; this.S.hp = Math.round(this.hp); this.S.food = Math.round(this.food); this.dirty = false; return kvSet('zs', this.S); },
@@ -1435,11 +1435,11 @@
 
     /* ---------------- day, night and the sky ---------------- */
     light(ck) {
-      const k = Math.round(ck.dark * 40) / 40, b = ck.blood && ck.night ? 1 : 0;
-      if (k === this.skyK && b === this.skyB) return;
-      this.skyK = k; this.skyB = b;
+      const k = Math.round(ck.dark * 40) / 40, b = ck.blood && ck.night ? 1 : 0, hi = gfxHigh();
+      if (k === this.skyK && b === this.skyB && hi === this.skyHi) return;
+      this.skyK = k; this.skyB = b; this.skyHi = hi;
       const hemi = scene.children.find((o) => o.isHemisphereLight);
-      if (hemi) hemi.intensity = lerp(0.8, b ? 0.36 : 0.3, k); sunL.intensity = lerp(0.55, 0.06, k);
+      if (hemi) hemi.intensity = lerp(hi ? 0.66 : 0.8, b ? 0.36 : 0.3, k); sunL.intensity = lerp(hi ? 0.7 : 0.55, 0.06, k); // (with shadows on, more of the daylight comes from the sun)
       const mix = (a, c) => new THREE.Color(a).lerp(new THREE.Color(c), k);
       const top = mix('#5aaef5', b ? '#1f0306' : '#04060d'), bot = mix('#d6ecfb', b ? '#5c0d12' : '#18213b');
       if (!this.skyCv) { this.skyCv = document.createElement('canvas'); this.skyCv.width = 2; this.skyCv.height = 256; }
