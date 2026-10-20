@@ -392,6 +392,7 @@
       else if (w === 'Thunderstorm' && R() < 0.04) m = 3; else if (w === 'Frost' && R() < 0.05) m = 4; else if (w === 'Frost' && R() < 0.25) m = 2;
       else if ((w === 'Rain' || w === 'Thunderstorm') && R() < 0.3) m = 1; else if (this.has('Bee') && R() < 0.05) m = 7;
       const crop = () => [p.s, +(0.75 + R() * 0.9).toFixed(2), m];
+      quest('garden.harvest'); if (m === 5 || m === 6) quest('garden.gold');
       this.G.bag.push(crop()); if (this.has('Raccoon') && R() < 0.1 && this.G.bag.length < MAX_BAG) this.G.bag.push(crop());
       if (s[4]) { this.fruits(p); const k = this.ripeFruits(p)[0]; p.f[k] = nowMs() + s[4] * 1000; }
       else this.G.plants.splice(this.G.plants.indexOf(p), 1);
@@ -459,7 +460,7 @@
         const k = btn.dataset.sell; let got = 0;
         this.G.bag = this.G.bag.filter((c) => { if (k === 'all' || c[0] + ':' + c[2] === k) { got += this.value(c); return false; } return true; });
         if (!got) return;
-        this.G.sh += got; this.dirty = true; toast(`+${fmt(got)}`, '#fde68a'); sfx('sell'); this.drawBar(); this.sendGarden(true);
+        this.G.sh += got; this.dirty = true; toast(`+${fmt(got)}`, '#fde68a'); sfx('sell'); this.drawBar(); this.sendGarden(true); quest('garden.sold', got);
         this.coinAcc += got / 60; if (this.coinAcc >= 1) { earn(Math.min(300, Math.floor(this.coinAcc)), 'sold crops'); this.coinAcc = 0; }
         this.openSell();
       });

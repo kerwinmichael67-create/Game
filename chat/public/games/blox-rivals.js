@@ -228,6 +228,7 @@
       this.dummies = DUMMIES.map(([x, z], i) => { const a = makeAvatar(okAv([4, 7, 5, 0, 0, 0, 0, 0, 0, 0]), '🎯 Dummy', false); a.g.position.set(x, 0, z); scene.add(a.g); return { id: 'dummy:' + i, a, x0: x, z, hurtT: 0 }; });
       const s = await kvGet('rv');
       this.save = Object.assign({ own: START.slice(), lo: START.slice(), wins: 0, kills: 0, played: 0 }, s && typeof s === 'object' ? s : {});
+      questMax('rivals.win', this.save.wins | 0); questMax('rivals.kill', this.save.kills | 0);
       if (!Array.isArray(this.save.own)) this.save.own = START.slice();
       for (const id of START) if (!this.save.own.includes(id)) this.save.own.push(id);
       this.save.lo = SLOTS.map((t, sl) => { const id = Array.isArray(this.save.lo) ? this.save.lo[sl] : null; return WP[id] && WP[id].sl === sl && this.save.own.includes(id) ? id : START[sl]; });
@@ -817,7 +818,7 @@
           if (feed) { const side = (id) => (m.tm[this.myTeam].includes(id) ? 'a' : 'e'), div = document.createElement('div'); div.className = by === mine ? 'mine' : vic === mine ? 'died' : ''; div.innerHTML = `<span class="${side(by)}">${esc(this.nameOfId(by))}</span> ${W.e}${head ? '🎯' : ''} <span class="${side(vic)}">${esc(this.nameOfId(vic))}</span>`; feed.append(div); while (feed.children.length > 5) feed.firstChild.remove(); setTimeout(() => div.remove(), 6000); }
           if (by === mine) {
             sfx('kill'); toast(`💀 You eliminated ${this.nameOfId(vic)}${head ? ' (headshot!)' : ''}`, '#fde68a');
-            this.mk++; if (this.save) this.save.kills = (this.save.kills | 0) + 1; if (this.mk <= (this.mBots ? 3 : 5)) earn(1);
+            this.mk++; if (this.save) this.save.kills = (this.save.kills | 0) + 1; if (this.mk <= (this.mBots ? 3 : 5)) earn(1); quest('rivals.kill');
           } else if (vic === mine) { toast(`☠️ ${this.nameOfId(by)} got you`, '#fca5a5'); }
           if (isBot(vic)) { const a = this.botAv.get(vic); if (a) { puffAt(a.g.position.x, a.g.position.y + 3, a.g.position.z, [0xef4444, 0xffffff], 12); scatter(a); sfx3('oof', a.g.position.x, a.g.position.z, 70); } }
         }
@@ -830,7 +831,7 @@
           this.big(won ? '🏆 VICTORY' : 'DEFEAT', `${m.s[this.myTeam]} – ${m.s[1 - this.myTeam]}`, won ? '#fde047' : '#fca5a5');
           sfx(won ? 'win' : 'lose');
           this.save.played = (this.save.played | 0) + 1;
-          if (won) { this.save.wins = (this.save.wins | 0) + 1; send({ rw: this.save.wins }); earn(vsBots ? 6 : 15, vsBots ? 'beat the bots in Rivals' : 'won a Rivals duel'); for (let i = 0; i < 24; i++) puffAt(P.x + (Math.random() - 0.5) * 8, P.y + 6, P.z + (Math.random() - 0.5) * 8, CONFETTI, 1); }
+          if (won) { this.save.wins = (this.save.wins | 0) + 1; send({ rw: this.save.wins }); questMax('rivals.win', this.save.wins); earn(vsBots ? 6 : 15, vsBots ? 'beat the bots in Rivals' : 'won a Rivals duel'); for (let i = 0; i < 24; i++) puffAt(P.x + (Math.random() - 0.5) * 8, P.y + 6, P.z + (Math.random() - 0.5) * 8, CONFETTI, 1); }
           else earn(vsBots ? 1 : 3, 'played a Rivals duel');
           this.saveNow();
         }

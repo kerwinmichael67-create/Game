@@ -163,7 +163,7 @@
     pres() { return { fin: 0, wn: 0 }; },
     async enter() {
       this.H = null; this.lastG = null; this.gSeen = null; this.fin = 0; this.built = null; this.muts = [];
-      const s = await kvGet('th'); this.wins = (s && s.wins | 0) || 0;
+      const s = await kvGet('th'); this.wins = (s && s.wins | 0) || 0; questMax('toh.win', this.wins);
       send({ wn: this.wins });
     },
     spawn() { return [(Math.random() - 0.5) * 6, 0.5, HALF + 6 + Math.random() * 4, 0]; },
@@ -183,6 +183,7 @@
     },
     tick(dt) {
       const g = this.g = roundState(this);
+      if (this.built && !P.dead && P.y > this.top * 0.5) questMax('toh.half', 1);
       if (g && g.seed && g.seed !== this.built) {
         this.tower(g.seed, Array.isArray(g.mut) ? g.mut.filter((k) => MUTS[k]) : []);
         if (this.shown) { respawn(); sfx('teleport'); if (this.muts.length) sfx('magic'); toast(this.muts.length ? `New tower! ${this.muts.map((k) => MUTS[k].n).join(' + ')}` : 'New tower!', '#fecaca'); }
@@ -199,7 +200,7 @@
       const g = this.g;
       if (p.kind !== 'finish' || !g || this.fin === g.rd) return;
       const first = !players().some((x) => !x.me && x.pr.fin === g.rd);
-      this.fin = g.rd; this.wins++; send({ fin: g.rd, wn: this.wins }); kvSet('th', { wins: this.wins });
+      this.fin = g.rd; this.wins++; send({ fin: g.rd, wn: this.wins }); kvSet('th', { wins: this.wins }); questMax('toh.win', this.wins);
       toast('🔥 You beat the tower!', '#fde68a'); puffAt(P.x, P.y + 3, P.z, CONFETTI, 60); sfx('win');
       Net.chat(`🔥 beat the tower${first ? ' first' : ''}!`); say(`${Net.name} beat the tower!`, '#fde68a');
       earn(first ? 60 : 40, first ? 'first to beat the tower' : 'beat the tower');

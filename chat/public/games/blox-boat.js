@@ -79,6 +79,7 @@
     async enter() {
       const s = await kvGet('bb');
       this.S = Object.assign({ gold: 100, inv: [40, 10, 0, 0, 0, 0, 1, 0], d: '', best: 0, tr: 0 }, s && typeof s === 'object' ? s : {});
+      questMax('boat.treasure', this.S.tr | 0); questMax('boat.stage', Math.min(10, (this.S.best | 0) + 1));
       const S = this.S;
       S.inv = BLK.map((b, t) => Math.max(0, (Array.isArray(S.inv) ? S.inv[t] : 0) | 0));
       this.design = dec(S.d);
@@ -268,10 +269,11 @@
         this.S.gold += g; B.gold += g; earn(2);
         toast(`Stage ${s + 1} · ${STAGES[s]} · +${g} gold`, '#fde68a'); sfx('reward');
         if (s > (this.S.best | 0)) { this.S.best = s; send({ best: s }); }
+        questMax('boat.stage', s + 1);
         this.save();
       }
       if (B.z < END_Z - 4 && !B.won) {
-        B.won = true; this.S.gold += 300; this.S.tr = (this.S.tr | 0) + 1; this.S.best = 10; send({ best: 10 }); this.save();
+        B.won = true; this.S.gold += 300; this.S.tr = (this.S.tr | 0) + 1; this.S.best = 10; send({ best: 10 }); this.save(); questMax('boat.treasure', this.S.tr); questMax('boat.stage', 10);
         earn(40, 'found the treasure'); toast('🏆 TREASURE! +300 gold', '#fde68a'); sfx('win'); puffAt(P.x, P.y + 3, P.z, CONFETTI, 60);
         Net.chat('🏆 sailed all the way to the treasure!');
         setTimeout(() => { if (this.sail === B) this.endRun(''); }, 5000);

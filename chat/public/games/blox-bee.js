@@ -89,6 +89,7 @@
         S.eggs = Math.max(0, s.eggs | 0); S.made = Math.max(0, +s.made || 0);
         if (Array.isArray(s.bees) && s.bees.length) S.bees = s.bees.slice(0, MAX_BEES).map((b) => [clamp(b[0] | 0, 0, BEES.length - 1), b[1] ? 1 : 0]);
       }
+      questMax('bee.bees', this.S.bees.length); questMax('bee.honey', this.S.made);
       this.swarm = []; this.others = new Map(); this.held = new Map(); this.swingT = 0; this.toolCd = 0; this.making = false; this.saveAt = performance.now() + 10000; this.coinAcc = 0; this.gainShow = 0;
       for (const b of this.S.bees) this.addBee(b);
       this.fences();
@@ -150,7 +151,7 @@
       const total = BEES.reduce((s, b) => s + b.w, 0); let r = Math.random() * total, k = 0;
       for (; k < BEES.length - 1; k++) { r -= BEES[k].w; if (r < 0) break; }
       const bee = [k, Math.random() < GIFT ? 1 : 0];
-      S.bees.push(bee); this.addBee(bee); this.fences(); this.save();
+      S.bees.push(bee); this.addBee(bee); this.fences(); this.save(); questMax('bee.bees', S.bees.length);
       send({ bz: [S.bees.length, Math.floor(S.honey)] });
       const B = BEES[k];
       sfx(B.w <= 5 || bee[1] ? 'win' : 'egg'); puffAt(P.x, P.y + 3, P.z, B.w <= 5 || bee[1] ? CONFETTI : [B.c, 0xffffff], 30);
@@ -222,7 +223,7 @@
         if (!onPad || S.pollen <= 0) { if (onPad && S.pollen <= 0) { toast('🍯 All your pollen is honey now!', '#fde68a'); sfx('reward'); } this.making = false; }
         else {
           const rate = 120 + 40 * S.bees.length, n = Math.min(S.pollen, rate * dt);
-          S.pollen -= n; S.honey += n; S.made += n;
+          S.pollen -= n; S.honey += n; S.made += n; questMax('bee.honey', S.made);
           this.coinAcc += n / 1500; if (this.coinAcc >= 1) { earn(Math.floor(this.coinAcc)); this.coinAcc %= 1; }
           if (Math.random() < dt * 8) puffAt(PAD[0] + (Math.random() - 0.5) * 6, 1 + Math.random() * 3, PAD[1] + (Math.random() - 0.5) * 4, [0xfbbf24, 0xf59e0b], 1);
           if (Math.random() < dt * 3) sfx('coin', { vol: 0.2, pitch: 1.4, gap: 200 });

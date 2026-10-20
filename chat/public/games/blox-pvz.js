@@ -231,6 +231,7 @@
       this.save = Object.assign({ best: 0, endless: 0, wins: 0, seeds: [0] }, s && typeof s === 'object' ? s : {});
       this.save.seeds = (Array.isArray(this.save.seeds) ? this.save.seeds : [0]).filter((t) => PL[t] && this.unlocked(t)).slice(0, 6);
       if (!this.save.seeds.length) this.save.seeds = [0];
+      questMax('pvz.lvl', this.save.best | 0);
       this.vote = Math.min(LEVELS, this.save.best + 1);
       send({ vt: this.vote, rdy: 0, bl: this.save.best });
       this.drawBar();
@@ -672,7 +673,7 @@
       sfx(win ? 'win' : 'lose');
       if (g.lvl) {
         if (win) {
-          S.wins = (S.wins | 0) + 1;
+          S.wins = (S.wins | 0) + 1; questMax('pvz.lvl', g.lvl);
           if (g.lvl > S.best) {
             S.best = g.lvl; const nu = PL.findIndex((d) => d.un === g.lvl);
             if (nu >= 0) { if (S.seeds.length < 6) S.seeds.push(nu); setTimeout(() => toast(`🌱 You got a new plant: ${PL[nu].n}!`, '#86efac'), 1600); }

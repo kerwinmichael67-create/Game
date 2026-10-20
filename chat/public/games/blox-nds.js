@@ -146,7 +146,7 @@
     async enter() {
       this.H = null; this.lastG = null; this.gSeen = null; this.inr = 0; this.out = 0; this.hp = 100; this.lastPh = ''; this.hurtAt = 0;
       const s = await kvGet('nd'); this.sv = (s && s.sv | 0) || 0; this.rounds = (s && s.rounds | 0) || 0; this.streak = (s && s.streak | 0) || 0; this.best = (s && s.best | 0) || 0;
-      send({ sv: this.sv });
+      send({ sv: this.sv }); questMax('nds.survive', this.sv); questMax('nds.streak', this.best);
       if (!$('#ndHurt')) { const d = document.createElement('div'); d.id = 'ndHurt'; $('#xhud').append(d); }
       if (this.mapI < 0) this.buildMap(0, 0);
     },
@@ -220,6 +220,7 @@
           const won = this.inr === g.rd && this.out !== g.rd && !P.dead;
           if (won) {
             this.sv++; this.streak++; this.best = Math.max(this.best, this.streak); send({ sv: this.sv }); this.save();
+            questMax('nds.survive', this.sv); questMax('nds.streak', this.streak); if ((g.dis || []).length > 1) quest('nds.double');
             sfx('win'); puffAt(P.x, P.y + 3, P.z, CONFETTI, 50);
             earn(25 + ((g.dis || []).length > 1 ? 15 : 0) + Math.min(20, this.streak * 2), `survived the ${names.replace(/^\S+ /, '').toLowerCase()}`);
             toast(`🏆 You survived!${this.streak > 1 ? ` ${this.streak} in a row!` : ''}`, '#86efac');

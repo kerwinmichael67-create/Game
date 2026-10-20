@@ -334,7 +334,7 @@
       // coins: collected ones go; yours count up
       this.drawCoins(g, dt);
       const got = g && g.cc ? g.cc[mine] || 0 : 0;
-      if (g && g.ph === 'play' && got > (this.coinsGot || 0)) { for (let i = this.coinsGot || 0; i < got; i++) earn(1); sfx('coin'); this.coinsGot = got; }
+      if (g && g.ph === 'play' && got > (this.coinsGot || 0)) { for (let i = this.coinsGot || 0; i < got; i++) earn(1); sfx('coin'); quest('murder.coin', got - (this.coinsGot || 0)); this.coinsGot = got; }
       // the dropped gun
       if (g && g.ph === 'play' && g.gd) {
         if (!this.gunM) { this.gunM = gunMesh(); this.gunM.scale.setScalar(1.5); const l = label('🔫 GUN', { size: 1.1, color: '#93c5fd' }); l.position.y = 2; this.gunM.add(l); scene.add(this.gunM); }
@@ -350,7 +350,7 @@
         if (g.ph === 'end' && this.coinPh === 'play') {
           const won = (g.winners || []).includes(mine);
           sfx(won ? 'win' : 'lose');
-          if (won) earn(g.hero === mine ? 25 : g.w === 'm' ? 20 : 10, g.hero === mine ? 'you were the hero!' : g.w === 'm' ? 'won as the murderer' : 'the innocents won');
+          if (won) { earn(g.hero === mine ? 25 : g.w === 'm' ? 20 : 10, g.hero === mine ? 'you were the hero!' : g.w === 'm' ? 'won as the murderer' : 'the innocents won'); quest('murder.win'); if (g.hero === mine) quest('murder.hero'); }
         }
         this.coinPh = g.ph;
       }

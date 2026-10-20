@@ -186,6 +186,7 @@
       this.S = Object.assign(D, s && typeof s === 'object' ? s : {});
       const S = this.S;
       S.cash = Math.max(0, +S.cash || 0); S.caught = Math.max(0, S.caught | 0);
+      questMax('fish.catch', S.caught); if (S.dex && typeof S.dex === 'object') questMax('fish.dex', Object.keys(S.dex).length);
       S.rods = (Array.isArray(S.rods) ? S.rods : [0]).map((i) => i | 0).filter((i, n, a) => RODS[i] && a.indexOf(i) === n); if (!S.rods.includes(0)) S.rods.unshift(0);
       S.rod = S.rods.includes(S.rod | 0) ? S.rod | 0 : 0;
       S.bag = (Array.isArray(S.bag) ? S.bag : []).filter((b) => Array.isArray(b) && FISH[b[0]] && b[1] > 0).slice(0, BAG);
@@ -283,6 +284,7 @@
       this.reelIn();
       if (S.bag.length >= BAG) { toast('🎒 Your bag is full! Sell some fish at the merchant (B).', '#fca5a5'); sfx('error'); return; }
       S.bag.push([f, +kg.toFixed(3), shiny ? 1 : 0]); S.caught++; S.dex[f] = Math.max(S.dex[f] || 0, +kg.toFixed(3)); S.best = Math.max(S.best || 0, val);
+      questMax('fish.catch', S.caught); questMax('fish.dex', Object.keys(S.dex).length); if (rar >= 5) quest('fish.legend');
       this.dirty = true; this.save(); this.send(true);
       sfx(rar >= 5 ? 'win' : rar >= 3 ? 'reward' : 'coin');
       puffAt(P.x, P.y + 4, P.z, rar >= 5 ? CONFETTI : [0xffffff, 0x93c5fd], rar >= 4 ? 30 : 10);

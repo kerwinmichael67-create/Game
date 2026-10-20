@@ -290,7 +290,7 @@
       if (g && g.ph === 'end' && this.coinRd !== g.rd && (g.res || []).length) {
         this.coinRd = g.rd;
         const k = g.res.findIndex((r) => r[0] === mine);
-        if (k >= 0 && g.res[k][2] > 0) { const c = [25, 15, 10][k] || 5; earn(c, k === 0 ? 'won a kart race' : 'finished a kart race'); }
+        if (k >= 0 && g.res[k][2] > 0) { const c = [25, 15, 10][k] || 5; earn(c, k === 0 ? 'won a kart race' : 'finished a kart race'); quest('kart.finish'); if (k === 0) quest('kart.win'); }
       }
       this.drawBots(g, dt);
       this.drawMap(g);

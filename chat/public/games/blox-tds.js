@@ -441,6 +441,7 @@
       const D = DIFF[g.diff] || DIFF.normal, win = g.res === 'win';
       sfx(win ? 'win' : 'lose');
       earn(g.wave * 3 + (win ? D.coins : 0), win ? `won ${D.n}` : `survived ${g.wave} waves`);
+      questMax('tds.wave', win ? D.waves : g.wave); if (win) { quest('tds.win'); if (g.diff === 'hard') quest('tds.hard'); }
       if (win) { this.save.wins = (this.save.wins | 0) + 1; kvSet('ts', this.save); puffAt(P.x, P.y + 3, P.z, CONFETTI, 60); }
       this.ready = false; send({ rdy: 0 });
     },

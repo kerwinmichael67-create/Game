@@ -334,6 +334,7 @@
       this.S = Object.assign(this.fresh(), sv && typeof sv === 'object' ? sv : {});
       const S = this.S; S.lv = clamp(S.lv | 0, 1, MAXLV); S.st = Object.assign({ m: 0, d: 0, s: 0, f: 0 }, S.st || {}); S.inv = Array.isArray(S.inv) ? S.inv.filter((i) => FR[i]).slice(0, 8) : []; S.swords = Array.isArray(S.swords) ? S.swords.filter((k) => SW[SWI[k]]) : []; S.vis = Array.isArray(S.vis) && S.vis.length ? S.vis : [0]; S.mas = S.mas || {}; S.ab = S.ab || {};
       if (!FR[S.fruit]) S.fruit = -1;
+      questMax('fruits.lv', S.lv); if (S.fruit >= 0) questMax('fruits.eat', 1);
       this.hp = this.maxHp(); this.en = this.maxEn();
       send({ lv: S.lv, hd: 'combat' });
       this.drawBar();
@@ -532,7 +533,7 @@
         sfx('unlock'); puffAt(P.x, P.y + 3, P.z, [0xfde047, 0xffffff, 0x86efac], 26);
         this.hp = this.maxHp(); this.en = this.maxEn();
         earn(1, `reached level ${S.lv} in Blox Fruits`);
-        send({ lv: S.lv });
+        send({ lv: S.lv }); questMax('fruits.lv', S.lv);
       }
       if (S.lv >= MAXLV) S.xp = Math.min(S.xp, need(MAXLV));
       if (why) say(why, '#fde68a');
@@ -869,6 +870,7 @@
             S.kills = (S.kills | 0) + (meK ? 1 : 0);
             if (S.q && S.q.t === t) { S.q.n = Math.min(S.q.need, S.q.n + 1); if (S.q.n >= S.q.need) this.questDone(); }
             if (meK && this.fruit() && performance.now() - (this.lastFruitHit || 0) < 1500) { const F = this.fruit(); S.mas[F.k] = Math.min(600, (S.mas[F.k] | 0) + 4); }
+            if (E.k === 'vadmiral') quest('fruits.vadmiral');
             if (E.boss && meK) {
               earn(3, `defeated ${E.n}`);
               if (Math.random() < 0.08) this.addFruit(pickFruit(Math.random), `🍎 ${E.n} dropped a Blox Fruit!`);
@@ -1070,7 +1072,7 @@
       const html = `<div class="xp-card ${F ? 'on' : ''}" style="margin-bottom:10px"><div class="big">${F ? F.e : '🚫'}</div><b>${F ? `${F.n} Fruit (eaten)` : 'No fruit eaten'}</b>${F ? `<span>Mastery ${this.mastery()} / 600 · ${F.mv.map((m) => `${m.n} (${m.m})`).join(' · ')}</span>` : '<span>Eat one to get its powers (3 to use them).</span>'}</div><h4>🎒 Your fruits (${S.inv.length} / 8)</h4><div class="xp-grid">`
         + (S.inv.length ? S.inv.map((i, k) => { const G = FR[i]; return `<div class="xp-card"><div class="big">${G.e}</div><b>${G.n}</b><span class="bf-rar" style="background:${RAR[G.r].c}">${RAR[G.r].n}</span><button class="xp-btn" data-e="${k}">Eat</button><button class="xp-btn alt" data-d="${k}">Drop</button></div>`; }).join('') : '<p style="color:#94a3b8">None yet: buy one from the 🍎 Fruit Dealer, roll the 🎲 Gacha, or find one under a tree.</p>') + '</div>';
       openPanel('🍎 Blox Fruits', html, (b) => {
-        if (b.dataset.e != null) { const k = +b.dataset.e, i = S.inv[k]; S.inv.splice(k, 1); S.fruit = i; this.tool = 'fruit'; this.buddhaT = 0; send({ hd: 'fruit', bz: 0 }); this.big(`${FR[i].e} You ate the ${FR[i].n} Fruit!`, 'Press 3, then Z X C'); sfx('chomp'); puffAt(P.x, P.y + 3, P.z, [FR[i].c, FR[i].c2], 18); this.dirty = true; this.saveNow(); this.bagPanel(); }
+        if (b.dataset.e != null) { const k = +b.dataset.e, i = S.inv[k]; S.inv.splice(k, 1); S.fruit = i; quest('fruits.eat'); this.tool = 'fruit'; this.buddhaT = 0; send({ hd: 'fruit', bz: 0 }); this.big(`${FR[i].e} You ate the ${FR[i].n} Fruit!`, 'Press 3, then Z X C'); sfx('chomp'); puffAt(P.x, P.y + 3, P.z, [FR[i].c, FR[i].c2], 18); this.dirty = true; this.saveNow(); this.bagPanel(); }
         else if (b.dataset.d != null) { S.inv.splice(+b.dataset.d, 1); sfx('click'); this.dirty = true; this.bagPanel(); }
       });
     },

@@ -207,10 +207,10 @@
       for (const e of (g && g.ev) || []) {
         if (!(e[0] > (this.evN || 0))) continue;
         this.evN = e[0];
-        if (e[1] === 'p') { const p = this.where(e[2]); if (p) puffAt(p.x, p.y + 3, p.z, [0xffffff, 0xfde047], 10); sfx3('block', p ? p.x : 0, p ? p.z : 0, 80); if (e[2] === mine) { this.parries++; if (this.parries <= 10) earn(1); } }
+        if (e[1] === 'p') { const p = this.where(e[2]); if (p) puffAt(p.x, p.y + 3, p.z, [0xffffff, 0xfde047], 10); sfx3('block', p ? p.x : 0, p ? p.z : 0, 80); if (e[2] === mine) { this.parries++; if (this.parries <= 10) earn(1); quest('blade.parry'); } }
         if (e[1] === 'x') { puffAt(e[3], 3, e[4], [0xef4444, 0xfde047, 0x111111], 24); sfx3('boom', e[3], e[4], 120); if (this.isBot(e[2])) { const a = this.botAv.get(e[2]); if (a) scatter(a); } }
       }
-      if (g && g.ph !== this.coinPh) { if (g.ph === 'end' && this.coinPh === 'play') { sfx(g.wp === mine ? 'win' : 'bell'); if (g.wp === mine) earn(20, 'won Blade Ball'); } this.coinPh = g.ph; }
+      if (g && g.ph !== this.coinPh) { if (g.ph === 'end' && this.coinPh === 'play') { sfx(g.wp === mine ? 'win' : 'bell'); if (g.wp === mine) { earn(20, 'won Blade Ball'); quest('blade.win'); } } this.coinPh = g.ph; }
       this.drawBall(g, dt);
       this.drawBots(g, dt);
       // who the ball's after glows red

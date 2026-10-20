@@ -342,6 +342,7 @@
       const S = this.S, num = (v) => (Number.isFinite(+v) && +v > 0 ? +v : 0);
       for (const k of ['sp', 'best', 'total', 'cash', 'wins', 'eggs']) S[k] = num(S[k]);
       S.rb = Math.floor(num(S.rb)); S.zMax = clamp(Math.floor(num(S.zMax)), 0, ZONES.length - 1); S.lim = clamp(S.lim | 0, 0, LIMITS.length - 1);
+      questMax('speed.rebirth', S.rb); questMax('speed.zone', S.zMax + 1);
       S.pets = (Array.isArray(S.pets) ? S.pets : []).map((p) => p | 0).filter((p) => SPECIES[p]).slice(0, MAX_PETS);
       S.eq = (Array.isArray(S.eq) ? S.eq : []).map((i) => i | 0).filter((i, n, a) => S.pets[i] != null && a.indexOf(i) === n).slice(0, this.slots());
       S.ql = S.ql && typeof S.ql === 'object' ? S.ql : {};
@@ -395,7 +396,7 @@
       const zone = zoneAt(P.z);
       if (zone !== this.zoneSky) {
         this.zoneSky = zone; const Z = ZONES[Math.max(0, zone)]; sky(Z.sky[0], Z.sky[1]);
-        if (zone > S.zMax) { S.zMax = zone; this.dirty = true; toast(`${Z.e} Welcome to ${Z.n}!`, '#fde68a'); earn(10 * zone, `reached ${Z.n}`); Net.chat(`${Z.e} reached ${Z.n}!`); }
+        if (zone > S.zMax) { S.zMax = zone; this.dirty = true; questMax('speed.zone', zone + 1); toast(`${Z.e} Welcome to ${Z.n}!`, '#fde68a'); earn(10 * zone, `reached ${Z.n}`); Net.chat(`${Z.e} reached ${Z.n}!`); }
       }
       if (P.z > 4) this.run = -1; // back in the hub: the next run's wins count again
       // walking? (pushing to move, and actually moving: walking into a wall doesn't count)
@@ -465,7 +466,7 @@
       toast(`🏆 +${Z.win} win${Z.win > 1 ? 's' : ''} · +${cash(pay)}`, '#fde68a'); sfx(last ? 'win' : 'reward');
       puffAt(P.x, P.y + 3, P.z, last ? CONFETTI : [0x22c55e, 0xfde047], last ? 40 : 14);
       if (last) {
-        earn(15, 'finished the whole track!'); Net.chat('🏁 finished the whole speed track!');
+        earn(15, 'finished the whole track!'); quest('speed.finish'); Net.chat('🏁 finished the whole speed track!');
         setBanner('🏁 You finished the whole track! Back to the hub…');
         setTimeout(() => { setBanner(''); if (exp === SP && P.z < END + 40) this.tp(-1); }, 1800);
       }
@@ -565,7 +566,7 @@
     rebirth() {
       const S = this.S, need = rebirthNeed(S.rb);
       if (S.sp < need) { sfx('error'); return; }
-      S.rb++; S.sp = 0; this.delay = 1; this.acc = 0; this.dirty = true;
+      S.rb++; S.sp = 0; this.delay = 1; this.acc = 0; this.dirty = true; questMax('speed.rebirth', S.rb);
       this.prog('rebirth', 1);
       closePanel(); sfx('levelup'); puffAt(P.x, P.y + 3, P.z, CONFETTI, 40);
       toast(`🔁 Rebirth ${S.rb}! Now +${1 + S.rb} speed every step`, '#e9d5ff');

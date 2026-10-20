@@ -211,7 +211,7 @@
       // found someone (or you were found)
       for (const e of (g && g.ev) || []) {
         if (!(e[0] > (this.evN || 0))) continue; this.evN = e[0];
-        if (e[1] === 'f') { puffAt(e[4], 3, e[5], [0xfde047, 0xffffff, 0xf472b6], 16); sfx3('pop', e[4], e[5], 80); if (e[2] === mine) { toast('🙈 You were found! Now help seek', '#fca5a5'); sfx('oof'); } if (e[3] === mine) { toast(`🎯 Found ${this.nameOfId(e[2], g)}!`, '#86efac'); sfx('reward'); earn(3); } }
+        if (e[1] === 'f') { puffAt(e[4], 3, e[5], [0xfde047, 0xffffff, 0xf472b6], 16); sfx3('pop', e[4], e[5], 80); if (e[2] === mine) { toast('🙈 You were found! Now help seek', '#fca5a5'); sfx('oof'); } if (e[3] === mine) { toast(`🎯 Found ${this.nameOfId(e[2], g)}!`, '#86efac'); sfx('reward'); earn(3); quest('hide.find'); } }
       }
       // seekers glow red; during the round, nobody's name shows (it would give hiders away)
       const glow = (id) => (g && active && (g.sk || []).includes(id) ? 0x991b1b : null);
@@ -222,7 +222,7 @@
       if (g && g.ph === 'end' && this.coinRd !== g.rd) {
         this.coinRd = g.rd;
         const hid = (g.hd || []).includes(mine), sk = (g.sk || []).includes(mine);
-        if (hid) { earn(15, 'stayed hidden'); sfx('win'); } else if (sk && g.win === 'seekers') earn(10, 'found everyone');
+        if (hid) { earn(15, 'stayed hidden'); sfx('win'); quest('hide.hid'); } else if (sk && g.win === 'seekers') earn(10, 'found everyone');
       }
       this.drawBots(g, dt);
       const hiders = g ? (g.hd || []).length : 0, left = g ? Math.ceil(g.left) : 0;

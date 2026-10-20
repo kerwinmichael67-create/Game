@@ -169,12 +169,12 @@
       // a countdown tick each second
       if (playing && st === 'show') { const left = Math.ceil(dur(call) - (g.el - g.t0)); if (left !== this.tickS && left > 0) { sfx('tick', { vol: 0.5, pitch: left <= 1 ? 1.5 : 1.1 }); this.tickS = left; } }
       // made it through a call
-      if (playing && st === 'show' && call > 0 && call !== this.callSeen) { if (this.callSeen >= 0 && !this.out) { this.survived++; if (this.survived <= 15) earn(1); } this.callSeen = call; }
+      if (playing && st === 'show' && call > 0 && call !== this.callSeen) { if (this.callSeen >= 0 && !this.out) { this.survived++; if (this.survived <= 15) earn(1); quest('color.call'); } this.callSeen = call; }
       else if (playing && this.callSeen < 0) this.callSeen = call;
       // fell: out for this round
       if (playing && !this.out && (P.dead || P.y < -4)) { this.out = true; send({ co: [g.rd, 1] }); toast(`💥 You’re out! You lasted ${this.survived} call${this.survived === 1 ? '' : 's'}`, '#fca5a5'); }
       // coins when a round ends
-      if (g && g.ph === 'end' && this.coinRd !== g.rd) { this.coinRd = g.rd; if (g.w === mine) { earn(15, 'won Color Block'); sfx('win'); puffAt(P.x, P.y + 3, P.z, CONFETTI, 50); } }
+      if (g && g.ph === 'end' && this.coinRd !== g.rd) { this.coinRd = g.rd; if (g.w === mine) { earn(15, 'won Color Block'); quest('color.win'); sfx('win'); puffAt(P.x, P.y + 3, P.z, CONFETTI, 50); } }
       this.drawBots(g, dt);
       // the banner: the colour called, and how long is left
       if (!g) setBanner('Getting the round…');

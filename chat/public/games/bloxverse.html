@@ -324,6 +324,60 @@
   .favbig:hover{background:rgba(255,255,255,.14)}
   .ecard b{display:block;font:600 16px/1.15 var(--fh);letter-spacing:.01em}
   .ecard small{display:block;margin-top:3px;color:var(--muted);font:700 12px var(--fb)}
+  /* achievements: the popup, the lists */
+  #achPop{position:fixed;left:50%;top:104px;transform:translate(-50%,-160%);z-index:60;pointer-events:none;width:min(420px,calc(100vw - 24px));opacity:0}
+  #achPop.go{animation:achIn 4.5s cubic-bezier(.2,.9,.3,1.2) forwards}
+  @keyframes achIn{0%{transform:translate(-50%,-160%);opacity:0}9%{transform:translate(-50%,0);opacity:1}88%{transform:translate(-50%,0);opacity:1}100%{transform:translate(-50%,-160%);opacity:0}}
+  #achPop .ap{display:flex;align-items:center;gap:14px;padding:12px 16px 12px 12px;border-radius:20px;background:linear-gradient(180deg,#2b3446,#1a2030);border:2px solid var(--tc,#cbd5e1);box-shadow:0 14px 40px rgba(0,0,0,.5),0 0 0 4px rgba(0,0,0,.25),0 0 30px var(--tg,transparent)}
+  #achPop .ic{flex:none;width:58px;height:58px;border-radius:16px;display:grid;place-items:center;font-size:34px;background:radial-gradient(circle at 40% 30%,rgba(255,255,255,.28),rgba(255,255,255,.06));box-shadow:inset 0 0 0 2px var(--tc,#cbd5e1)}
+  #achPop .tx{display:flex;flex-direction:column;gap:2px;min-width:0}
+  #achPop small{font:700 11px var(--fb);letter-spacing:.08em;text-transform:uppercase;color:var(--tc,#cbd5e1)}
+  #achPop b{font:600 19px/1.1 var(--fh);color:#fff}
+  #achPop span{font:700 12.5px/1.3 var(--fb);color:#cbd5e1}
+  #achPop em{font:600 13.5px var(--fh);font-style:normal;color:#fde68a;display:flex;align-items:center;gap:5px;margin-top:2px}
+  .t0{--tc:#d6a26a;--tg:rgba(214,162,106,.25)}.t1{--tc:#cbd5e1;--tg:rgba(203,213,225,.25)}.t2{--tc:#fde047;--tg:rgba(253,224,71,.35)}.tb{--tc:#c4b5fd;--tg:rgba(196,181,253,.3)}
+  .achbtn{border:1px solid rgba(253,224,71,.3);border-radius:999px;padding:7px 14px;background:linear-gradient(180deg,#3a2f12,#2a210b);color:#fde68a;font:600 14px var(--fh);cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:var(--drop)}
+  .achbtn:hover{filter:brightness(1.15)}
+  .achcols{columns:2 250px;column-gap:10px}
+  .achcols .achg{break-inside:avoid;margin-bottom:10px}
+  .achpage .achg.bv{margin-bottom:10px}
+  .achpage .achg.bv .achrows{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));column-gap:8px}
+  .achpage .ach{padding:6px;gap:8px;margin-top:5px}
+  .achpage .ach .ic{width:34px;height:34px;font-size:19px;border-radius:10px}
+  .achpage .ach .tx b{font-size:12.5px}
+  .achpage .ach .tx span{font-size:10.5px}
+  .achpage .ach .bar{height:11px}
+  .achpage .ach .bar small{font-size:9px;line-height:11px}
+  .achpage .ach .rw{font-size:11.5px}
+  .achpage .ach .rw .it{font-size:17px}
+  .achpage .ach .rw .ok{font-size:0}.achpage .ach .rw .ok::before{content:'✓';font-size:13px}
+  .achpage .achg{padding:8px}
+  .achhead>div{flex:1;min-width:220px}
+  .achg{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:18px;padding:10px}
+  .achg h4{margin:2px 4px 8px;font:600 15px var(--fh);display:flex;align-items:center;gap:8px}
+  .achg h4 small{margin-left:auto;color:var(--dim);font:700 12px var(--fb)}
+  .ach{display:flex;align-items:center;gap:10px;padding:8px;border-radius:14px;background:linear-gradient(180deg,#283143,#1d2431);border:1px solid rgba(255,255,255,.06);margin-top:6px}
+  .ach .ic{flex:none;width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:24px;background:rgba(0,0,0,.25);box-shadow:inset 0 0 0 2px var(--tc);filter:grayscale(.85);opacity:.7}
+  .ach.got .ic{filter:none;opacity:1;background:radial-gradient(circle at 40% 30%,rgba(255,255,255,.22),rgba(255,255,255,.05))}
+  .ach.got{border-color:var(--tc);box-shadow:0 0 14px var(--tg) inset}
+  .ach .tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .ach .tx b{font:600 14px/1.15 var(--fh);color:#fff}
+  .ach .tx span{font:700 11.5px/1.3 var(--fb);color:#94a3b8}
+  .ach .bar{position:relative;height:13px;border-radius:7px;background:rgba(0,0,0,.4);overflow:hidden;margin-top:3px}
+  .ach .bar i{position:absolute;left:0;top:0;bottom:0;border-radius:7px;background:linear-gradient(90deg,var(--tc),#fff8)}
+  .ach .bar small{position:relative;display:block;text-align:center;font:600 10px/13px var(--fh);color:#fff;text-shadow:0 1px 2px #000}
+  .ach .rw{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:3px;font:600 12.5px var(--fh);color:#fde68a}
+  .ach .rw span{display:flex;align-items:center;gap:4px}
+  .ach .rw .it{font-size:20px;line-height:1}
+  .ach .rw .ok{color:#86efac;font-size:12px}
+  .achhead{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:6px 0 14px}
+  .achhead .big{font-size:54px;line-height:1}
+  .achhead h2{margin:0}
+  .achhead .meter{flex:1;min-width:200px;height:14px;border-radius:8px;background:rgba(0,0,0,.4);overflow:hidden}
+  .achhead .meter i{display:block;height:100%;background:linear-gradient(90deg,#f59e0b,#fde047)}
+  .shop button{min-width:0}.shop button .pr{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .avnote{margin-top:9px;padding:9px 11px;border-radius:12px;background:rgba(253,224,71,.08);border:1px solid rgba(253,224,71,.25);color:#fde68a;font:700 12.5px/1.35 var(--fb)}
+  .edetail.still{animation:none}
   .edetail{background:var(--solid);border:1px solid var(--line);border-radius:22px;padding:18px;box-shadow:var(--drop),var(--hi);animation:rise .2s ease-out}
   .edetail .top{display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start}
   @media (max-width:640px){.edetail .top{grid-template-columns:1fr}}
@@ -384,7 +438,7 @@
 </div>
 <div id="home" class="screen">
   <div class="homewrap">
-    <header class="hbar"><div class="logo">BL<span class="sq"></span>XVERSE</div><div class="hright"><div id="hi"></div></div></header>
+    <header class="hbar"><div class="logo">BL<span class="sq"></span>XVERSE</div><div class="hright"><div id="hi"></div><button id="achBtn" class="achbtn" title="Achievements">🏆 <span id="achN">0</span></button></div></header>
     <div id="homeStatus" class="status" hidden></div>
     <div class="hcols">
       <section class="hcard"><h3>🧍 Your avatar</h3><div class="avstage"><canvas id="avPrev" width="240" height="260"></canvas></div><div id="avOpts"></div></section>
@@ -392,6 +446,7 @@
     </div>
   </div>
 </div>
+<div id="achPop"></div>
 <div id="pause" class="screen" hidden><div class="panel" id="pausePanel"></div></div>
 <div id="loading" class="screen" hidden><div class="panel"><div class="phead"><div class="pthumb" id="loadThumb"></div></div><h2 id="loadTitle">Joining…</h2><p id="loadText"></p><div class="lbar"><i></i></div></div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -717,23 +772,24 @@ const SKINS = ['#f5cd9b', '#e0ac69', '#c68642', '#8d5524', '#ffe0bd', '#f2c94c']
 const SHIRTS = ['#1e88e5', '#e53935', '#43a047', '#fdd835', '#8e24aa', '#fb8c00', '#212121', '#f5f5f5', '#00acc1', '#d81b60'];
 const PANTS = ['#1565c0', '#2e7d32', '#424242', '#6d4c41', '#c62828', '#eeeeee', '#283593', '#9e9d24'];
 const HATS = ['None', 'Cap', 'Top hat', 'Crown', 'Party hat', 'Cowboy hat', 'Viking helmet', 'Wizard hat', 'Headphones', 'Halo', 'Bunny ears', 'Chef hat', 'Pirate hat', 'Traffic cone', 'Shadow hood', 'Warlord helmet',
-  'Beanie', 'Santa hat', 'Propeller cap', 'Fedora', 'Graduation cap', 'Flower crown', 'Devil horns', 'Ninja headband', 'Astronaut helmet', 'Valkyrie helm'];
-const FACES = ['Smile', 'Grin', 'Shades', 'Wink', 'Angry', 'Surprised', 'Sleepy', 'Heart eyes', 'Star eyes', 'Robot', 'Super happy', 'Smirk', 'Tongue out', 'Laughing tears', 'Monocle', 'Zombie', 'Cat'];
-const BACKS = ['None', 'Red cape', 'Angel wings', 'Bat wings', 'Sword', 'Backpack', 'Jetpack', 'Guitar', 'Dragon wings', 'Butterfly wings', 'Knight shield', 'Bow and quiver', 'Skateboard'];
-const AURAS = ['None', 'Sparkles', 'Fire', 'Hearts', 'Snow', 'Lightning', 'Rainbow', 'Bubbles', 'Leaves', 'Galaxy', 'Toxic', 'Money'];
-const PATTERNS = ['Plain', 'Stripes', 'Star', 'Heart', 'Lightning', 'Checkers', 'Number 1', 'Suit', 'Skull', 'Flames', 'Camo', 'Rainbow', 'Galaxy'];
-const PETS = ['None', 'Puppy', 'Kitty', 'Bunny', 'Mini Dragon', 'Robot', 'Unicorn', 'Penguin', 'Fox', 'Panda', 'Phoenix'];
-const TRAILS = ['None', 'Rainbow', 'Fire', 'Ice', 'Neon', 'Gold', 'Hearts'];
+  'Beanie', 'Santa hat', 'Propeller cap', 'Fedora', 'Graduation cap', 'Flower crown', 'Devil horns', 'Ninja headband', 'Astronaut helmet', 'Valkyrie helm',
+  'Laurel wreath', 'Straw hat', 'Racing helmet', 'Bee antennae', 'Sheriff hat', 'Bucket hat', 'Champion crown'];
+const FACES = ['Smile', 'Grin', 'Shades', 'Wink', 'Angry', 'Surprised', 'Sleepy', 'Heart eyes', 'Star eyes', 'Robot', 'Super happy', 'Smirk', 'Tongue out', 'Laughing tears', 'Monocle', 'Zombie', 'Cat', 'Determined', 'Gold tooth'];
+const BACKS = ['None', 'Red cape', 'Angel wings', 'Bat wings', 'Sword', 'Backpack', 'Jetpack', 'Guitar', 'Dragon wings', 'Butterfly wings', 'Knight shield', 'Bow and quiver', 'Skateboard', 'Golden wings', 'Surfboard', 'Twin katanas'];
+const AURAS = ['None', 'Sparkles', 'Fire', 'Hearts', 'Snow', 'Lightning', 'Rainbow', 'Bubbles', 'Leaves', 'Galaxy', 'Toxic', 'Money', 'Stardust', 'Shadow', 'Storm'];
+const PATTERNS = ['Plain', 'Stripes', 'Star', 'Heart', 'Lightning', 'Checkers', 'Number 1', 'Suit', 'Skull', 'Flames', 'Camo', 'Rainbow', 'Galaxy', 'Trophy', 'Paw print', 'Sunflower'];
+const PETS = ['None', 'Puppy', 'Kitty', 'Bunny', 'Mini Dragon', 'Robot', 'Unicorn', 'Penguin', 'Fox', 'Panda', 'Phoenix', 'Baby Zombie', 'Peashooter'];
+const TRAILS = ['None', 'Rainbow', 'Fire', 'Ice', 'Neon', 'Gold', 'Hearts', 'Stars', 'Lightning'];
 // the shop: what each costs in Blox Coins (0 = free, -1 = only as a reward)
 const COSMETICS = {
-  h: { title: 'Hats', list: HATS, price: [0, 0, 0, 0, 0, 100, 250, 300, 150, 800, 200, 120, 220, 80, 1500, -1, 100, 200, 350, 180, 220, 260, 400, 150, 1200, 3000],
-    icon: ['🚫', '🧢', '🎩', '👑', '🥳', '🤠', '⛑️', '🧙', '🎧', '😇', '🐰', '👨‍🍳', '🏴‍☠️', '🚧', '🥷', '⚔️', '🧶', '🎅', '🌀', '🕵️', '🎓', '🌸', '😈', '🎌', '👨‍🚀', '⚜️'] },
-  f: { title: 'Faces', list: FACES, price: [0, 0, 0, 50, 50, 50, 80, 150, 200, 300, 120, 60, 80, 120, 200, 250, 150], icon: ['🙂', '😁', '😎', '😉', '😠', '😮', '😴', '😍', '🤩', '🤖', '😆', '😏', '😛', '😂', '🧐', '🧟', '🐱'] },
-  b: { title: 'Back', list: BACKS, price: [0, 150, 600, 500, 250, 100, 750, 300, 1800, 900, 400, 450, 300], icon: ['🚫', '🦸', '🪽', '🦇', '🗡️', '🎒', '🚀', '🎸', '🐲', '🦋', '🛡️', '🏹', '🛹'] },
-  a: { title: 'Auras', list: AURAS, price: [0, 300, 800, 400, 350, 1000, 1500, 300, 350, 2000, 600, 2500], icon: ['🚫', '✨', '🔥', '💖', '❄️', '⚡', '🌈', '🫧', '🍃', '🌌', '☢️', '💸'] },
-  pt: { title: 'Shirts', list: PATTERNS, price: [0, 60, 80, 80, 120, 100, 90, 250, 150, 150, 120, 200, 300], icon: ['⬜', '〰️', '⭐', '❤️', '⚡', '🏁', '1️⃣', '👔', '💀', '🔥', '🪖', '🌈', '🌌'] },
-  pet: { title: 'Pets', list: PETS, price: [0, 400, 400, 350, 1500, 900, 2500, 600, 800, 1200, 4000], icon: ['🚫', '🐶', '🐱', '🐰', '🐉', '🤖', '🦄', '🐧', '🦊', '🐼', '🦅'] },
-  tr: { title: 'Trails', list: TRAILS, price: [0, 1500, 800, 600, 500, 2000, 700], icon: ['🚫', '🌈', '🔥', '🧊', '💠', '🪙', '💕'] },
+  h: { title: 'Hats', list: HATS, price: [0, 0, 0, 0, 0, 100, 250, 300, 150, 800, 200, 120, 220, 80, 1500, -1, 100, 200, 350, 180, 220, 260, 400, 150, 1200, 3000, -1, -1, -1, -1, -1, -1, -1],
+    icon: ['🚫', '🧢', '🎩', '👑', '🥳', '🤠', '⛑️', '🧙', '🎧', '😇', '🐰', '👨‍🍳', '🏴‍☠️', '🚧', '🥷', '⚔️', '🧶', '🎅', '🌀', '🕵️', '🎓', '🌸', '😈', '🎌', '👨‍🚀', '⚜️', '🌿', '👒', '🏁', '🐝', '⭐', '🎣', '🏆'] },
+  f: { title: 'Faces', list: FACES, price: [0, 0, 0, 50, 50, 50, 80, 150, 200, 300, 120, 60, 80, 120, 200, 250, 150, -1, -1], icon: ['🙂', '😁', '😎', '😉', '😠', '😮', '😴', '😍', '🤩', '🤖', '😆', '😏', '😛', '😂', '🧐', '🧟', '🐱', '😤', '😬'] },
+  b: { title: 'Back', list: BACKS, price: [0, 150, 600, 500, 250, 100, 750, 300, 1800, 900, 400, 450, 300, -1, -1, -1], icon: ['🚫', '🦸', '🪽', '🦇', '🗡️', '🎒', '🚀', '🎸', '🐲', '🦋', '🛡️', '🏹', '🛹', '🥇', '🏄', '⚔️'] },
+  a: { title: 'Auras', list: AURAS, price: [0, 300, 800, 400, 350, 1000, 1500, 300, 350, 2000, 600, 2500, -1, -1, -1], icon: ['🚫', '✨', '🔥', '💖', '❄️', '⚡', '🌈', '🫧', '🍃', '🌌', '☢️', '💸', '💫', '🌑', '⛈️'] },
+  pt: { title: 'Shirts', list: PATTERNS, price: [0, 60, 80, 80, 120, 100, 90, 250, 150, 150, 120, 200, 300, -1, -1, -1], icon: ['⬜', '〰️', '⭐', '❤️', '⚡', '🏁', '1️⃣', '👔', '💀', '🔥', '🪖', '🌈', '🌌', '🏆', '🐾', '🌻'] },
+  pet: { title: 'Pets', list: PETS, price: [0, 400, 400, 350, 1500, 900, 2500, 600, 800, 1200, 4000, -1, -1], icon: ['🚫', '🐶', '🐱', '🐰', '🐉', '🤖', '🦄', '🐧', '🦊', '🐼', '🦅', '🧟', '🌱'] },
+  tr: { title: 'Trails', list: TRAILS, price: [0, 1500, 800, 600, 500, 2000, 700, -1, -1], icon: ['🚫', '🌈', '🔥', '🧊', '💠', '🪙', '💕', '⭐', '⚡'] },
 };
 let AV = { s: 5, sh: 0, p: 1, h: 0, f: 0, b: 0, a: 0, pt: 0, pet: 0, tr: 0 };
 const AV_KEYS = ['s', 'sh', 'p', 'h', 'f', 'b', 'a', 'pt', 'pet', 'tr'], AV_LISTS = [SKINS, SHIRTS, PANTS, HATS, FACES, BACKS, AURAS, PATTERNS, PETS, TRAILS];
@@ -766,6 +822,8 @@ const FACE_TEX = FACES.map((_, k) => {
   else if (k === 13) { for (const x of [44, 84]) { g.beginPath(); g.arc(x, 56, 10, 1.1 * Math.PI, 1.9 * Math.PI); g.stroke(); } g.beginPath(); g.moveTo(36, 72); g.quadraticCurveTo(64, 118, 92, 72); g.closePath(); g.fill(); g.fillStyle = '#38bdf8'; for (const x of [24, 104]) { g.beginPath(); g.ellipse(x, 66, 6, 10, 0, 0, 7); g.fill(); } } // laughing tears
   else if (k === 14) { eyes(); g.strokeStyle = '#ca8a04'; g.lineWidth = 4; g.beginPath(); g.arc(84, 52, 17, 0, 7); g.stroke(); g.beginPath(); g.moveTo(98, 62); g.quadraticCurveTo(104, 90, 96, 112); g.stroke(); g.strokeStyle = '#111'; g.lineWidth = 6; g.beginPath(); g.moveTo(50, 86); g.lineTo(78, 86); g.stroke(); } // monocle
   else if (k === 15) { g.beginPath(); g.arc(44, 52, 13, 0, 7); g.fill(); g.fillStyle = '#fef08a'; g.beginPath(); g.arc(44, 52, 5, 0, 7); g.fill(); g.fillStyle = '#111'; g.beginPath(); g.arc(84, 54, 6, 0, 7); g.fill(); g.beginPath(); g.moveTo(38, 88); g.lineTo(92, 84); g.stroke(); g.lineWidth = 3; for (let x = 44; x <= 86; x += 9) { g.beginPath(); g.moveTo(x, 80); g.lineTo(x + 1, 94); g.stroke(); } } // zombie
+  else if (k === 17) { for (const x of [44, 84]) { g.beginPath(); g.ellipse(x, 57, 8, 8, 0, 0, 7); g.fill(); } g.lineWidth = 7; g.beginPath(); g.moveTo(30, 36); g.lineTo(56, 46); g.moveTo(98, 36); g.lineTo(72, 46); g.stroke(); g.lineWidth = 6; g.beginPath(); g.moveTo(46, 92); g.lineTo(82, 88); g.stroke(); } // determined
+  else if (k === 18) { eyes(); g.beginPath(); g.moveTo(34, 76); g.quadraticCurveTo(64, 114, 94, 76); g.closePath(); g.fill(); g.fillStyle = '#fff'; g.fillRect(42, 77, 44, 9); g.fillStyle = '#facc15'; g.fillRect(67, 77, 10, 11); g.fillStyle = '#111'; } // gold tooth
   else { eyes(); g.fillStyle = '#f472b6'; g.beginPath(); g.moveTo(58, 68); g.lineTo(70, 68); g.lineTo(64, 76); g.closePath(); g.fill(); g.fillStyle = '#111'; g.beginPath(); g.moveTo(50, 82); g.quadraticCurveTo(57, 92, 64, 80); g.quadraticCurveTo(71, 92, 78, 82); g.stroke(); g.lineWidth = 3; for (const [x1, y1, x2, y2] of [[14, 70, 40, 74], [14, 82, 40, 80], [114, 70, 88, 74], [114, 82, 88, 80]]) { g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke(); } } // cat
   return new THREE.CanvasTexture(c);
 });
@@ -789,6 +847,9 @@ function patternTex(pt, col) {
   else if (pt === 10) { const r = mulberry(7); for (let i = 0; i < 22; i++) { g.fillStyle = ['#3f6212', '#4d7c0f', '#57534e', '#a3a380', '#1c1917'][i % 5]; g.beginPath(); g.ellipse(r() * 64, r() * 64, 6 + r() * 9, 4 + r() * 6, r() * 3, 0, 7); g.fill(); } } // camo
   else if (pt === 11) { ['#ef4444', '#f97316', '#facc15', '#22c55e', '#3b82f6', '#a855f7'].forEach((c2, i) => { g.fillStyle = c2; g.fillRect(0, i * 11, 64, 11); }); } // rainbow
   else if (pt === 12) { const gr = g.createLinearGradient(0, 0, 64, 64); gr.addColorStop(0, '#1e1b4b'); gr.addColorStop(0.5, '#6d28d9'); gr.addColorStop(1, '#0f172a'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); const r = mulberry(3); g.fillStyle = '#fff'; for (let i = 0; i < 30; i++) g.fillRect(r() * 64, r() * 64, r() < 0.2 ? 2 : 1, r() < 0.2 ? 2 : 1); } // galaxy
+  else if (pt === 13) { g.fillStyle = '#facc15'; g.beginPath(); g.moveTo(19, 12); g.lineTo(45, 12); g.quadraticCurveTo(45, 36, 32, 40); g.quadraticCurveTo(19, 36, 19, 12); g.fill(); g.fillRect(29, 38, 6, 10); g.fillRect(21, 48, 22, 7); g.strokeStyle = '#facc15'; g.lineWidth = 4; g.beginPath(); g.arc(18, 22, 7, Math.PI * 0.5, Math.PI * 1.5); g.stroke(); g.beginPath(); g.arc(46, 22, 7, -Math.PI * 0.5, Math.PI * 0.5); g.stroke(); } // trophy
+  else if (pt === 14) { g.fillStyle = w; g.beginPath(); g.ellipse(32, 41, 12, 10, 0, 0, 7); g.fill(); for (const [x, y] of [[17, 27], [27, 18], [37, 18], [47, 27]]) { g.beginPath(); g.ellipse(x, y, 5, 6.5, 0, 0, 7); g.fill(); } } // paw print
+  else if (pt === 15) { g.fillStyle = '#facc15'; for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6; g.beginPath(); g.ellipse(32 + Math.cos(a) * 15, 32 + Math.sin(a) * 15, 8, 4, a, 0, 7); g.fill(); } g.fillStyle = '#78350f'; g.beginPath(); g.arc(32, 32, 10, 0, 7); g.fill(); } // sunflower
   const t = new THREE.CanvasTexture(c); PAT_TEX.set(key, t); return t;
 }
 const HEAD_GEO = new THREE.CylinderGeometry(0.66, 0.66, 1.25, 20);
@@ -836,6 +897,13 @@ function makeAvatar(av, name, mine) {
   else if (hat === 23) { const m = lam('#dc2626', { side: THREE.DoubleSide }); mesh(new THREE.CylinderGeometry(0.69, 0.69, 0.24, 20, 1, true), m, 0, 0.32, 0, head); for (const s2 of [-1, 1]) { const t = box(m, 0.16, 0.6, 0.06, s2 * 0.18, 0.05, 0.75, head); t.rotation.z = s2 * 0.4; t.rotation.x = 0.3; } } // ninja headband
   else if (hat === 24) { const w = lam('#f8fafc'); mesh(new THREE.SphereGeometry(1.0, 20, 14), w, 0, 0.05, 0.06, head); const v = mesh(new THREE.SphereGeometry(0.86, 20, 14, Math.PI * 0.62, Math.PI * 0.76, Math.PI * 0.28, Math.PI * 0.42), lam('#f59e0b', { emissive: '#3a2400' }), 0, 0.05, -0.02, head); v.scale.set(1, 1, 1.08); mesh(cyl(0.9, 0.9, 0.18, 20), lam('#cbd5e1'), 0, -0.85, 0, head); } // astronaut helmet
   else if (hat === 25) { const st = lam('#e2e8f0', { emissive: '#1e293b' }), gold = lam('#facc15', { emissive: '#3a2a00' }); const d = mesh(new THREE.SphereGeometry(0.74, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2), st, 0, 0.42, 0, head); d.scale.y = 1.1; box(gold, 0.16, 0.9, 0.12, 0, 0.6, -0.72, head); for (const s2 of [-1, 1]) for (let k = 0; k < 3; k++) { const f = box(lam('#f8fafc'), 0.08, 0.95 - k * 0.2, 0.32, s2 * (0.78 + k * 0.05), 1.05 + k * 0.32, 0.25 + k * 0.12, head); f.rotation.z = -s2 * (0.55 + k * 0.15); f.rotation.x = 0.35; } } // valkyrie helm
+  else if (hat === 26) { const m = lam('#facc15', { emissive: '#3a2a00' }); const ring = mesh(new THREE.TorusGeometry(0.7, 0.045, 6, 24), m, 0, 0.66, 0, head); ring.rotation.x = Math.PI / 2; for (let k = 0; k < 16; k++) { const t = (k / 16) * Math.PI * 2; if (Math.abs(Math.cos(t / 2)) < 0.22) continue; const lf = mesh(new THREE.SphereGeometry(0.15, 8, 6), m, Math.sin(t) * 0.72, 0.7 + (k % 2) * 0.07, Math.cos(t) * 0.72, head); lf.scale.set(0.6, 0.42, 1.6); lf.rotation.y = t + Math.PI / 2; lf.rotation.z = (k % 2 ? 1 : -1) * 0.4; } } // laurel wreath (open at the front)
+  else if (hat === 27) { const st = lam('#e9c46a'); mesh(cyl(1.3, 1.3, 0.08, 24), st, 0, 0.66, 0, head); mesh(cyl(0.6, 0.68, 0.6, 20), st, 0, 0.98, 0, head); mesh(cyl(0.69, 0.69, 0.18, 20), lam('#dc2626'), 0, 0.78, 0, head); mesh(cyl(0.61, 0.61, 0.04, 20), lam('#c9a24a'), 0, 1.29, 0, head); } // straw hat
+  else if (hat === 28) { const m = lam(['#dc2626', '#2563eb', '#16a34a', '#f59e0b'][av[1] % 4]); mats.push(m); const d = mesh(new THREE.SphereGeometry(0.86, 18, 12, 0, Math.PI * 2, 0, Math.PI * 0.62), m, 0, 0.12, 0, head); d.scale.y = 1.05; box(lam('#111827', { emissive: '#0b1220' }), 1.15, 0.42, 0.1, 0, 0.08, -0.8, head); box(lam('#f8fafc'), 0.2, 0.12, 1.75, 0, 0.98, 0.02, head); } // racing helmet
+  else if (hat === 29) { const k2 = lam('#111827'), y2 = lam('#facc15', { emissive: '#3a2a00' }); for (const s2 of [-1, 1]) { const st2 = mesh(cyl(0.04, 0.04, 0.9, 6), k2, s2 * 0.3, 1.0, -0.1, head); st2.rotation.z = -s2 * 0.35; st2.rotation.x = -0.2; mesh(new THREE.SphereGeometry(0.14, 10, 8), y2, s2 * 0.46, 1.44, -0.19, head); } const band = mesh(new THREE.CylinderGeometry(0.685, 0.685, 0.16, 20, 1, true), lam('#facc15', { side: THREE.DoubleSide }), 0, 0.5, 0, head); band.renderOrder = 1; } // bee antennae
+  else if (hat === 30) { const m = lam('#b07a3c'); mesh(cyl(1.15, 1.15, 0.1, 20), m, 0, 0.66, 0, head); mesh(cyl(0.55, 0.66, 0.62), m, 0, 0.99, 0, head); mesh(cyl(0.67, 0.67, 0.14), lam('#3f2a14'), 0, 0.76, 0, head); const sh = new THREE.Shape(); for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + k * Math.PI / 5, r = k % 2 ? 0.1 : 0.24; sh[k ? 'lineTo' : 'moveTo'](Math.cos(a) * r, -Math.sin(a) * r); } mesh(new THREE.ShapeGeometry(sh), new THREE.MeshBasicMaterial({ color: '#facc15', side: THREE.DoubleSide }), 0, 1.02, -0.64, head); } // sheriff hat
+  else if (hat === 31) { const m = lam('#6b7f4a'); mesh(cyl(0.6, 0.7, 0.55, 20), m, 0, 0.98, 0, head); mesh(new THREE.CylinderGeometry(0.72, 1.05, 0.28, 22, 1, true), lam('#6b7f4a', { side: THREE.DoubleSide }), 0, 0.62, 0, head); mesh(cyl(0.71, 0.71, 0.1, 20), lam('#3f4a2a'), 0, 0.78, 0, head); mesh(new THREE.SphereGeometry(0.09, 8, 6), lam('#ef4444'), 0.68, 0.86, 0.1, head); } // bucket hat
+  else if (hat === 32) { const m = lam('#fbbf24', { emissive: '#4a3000' }); const c1 = mesh(new THREE.CylinderGeometry(0.78, 0.7, 0.55, 18, 1, true), m, 0, 0.9, 0, head); c1.material.side = THREE.DoubleSide; mesh(cyl(0.68, 0.68, 0.32, 18), lam('#991b1b'), 0, 0.96, 0, head); for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2; mesh(new THREE.ConeGeometry(0.15, 0.5, 6), m, Math.sin(a) * 0.76, 1.42, Math.cos(a) * 0.76, head); mesh(new THREE.SphereGeometry(0.1, 8, 6), new THREE.MeshBasicMaterial({ color: ['#ef4444', '#3b82f6', '#22c55e', '#a855f7'][k % 4] }), Math.sin(a) * 0.8, 0.88, Math.cos(a) * 0.8, head); } mesh(new THREE.SphereGeometry(0.17, 10, 8), m, 0, 1.24, 0, head); } // champion crown
   // on the back (the character faces -z, so the back is +z)
   const back = av[5];
   if (back === 1) { const c = box(lam('#dc2626', { side: THREE.DoubleSide }), 1.9, 2.8, 0.08, 0, 2.6, 0.58); c.rotation.x = 0.1; }
@@ -849,6 +917,9 @@ function makeAvatar(av, name, mine) {
   else if (back === 10) { const st = lam('#94a3b8'), red = lam('#b91c1c'); box(st, 1.7, 2.1, 0.2, 0, 3.0, 0.64); box(red, 0.32, 1.8, 0.04, 0, 3.0, 0.76); box(red, 1.4, 0.32, 0.04, 0, 3.25, 0.76); box(lam('#facc15'), 1.8, 0.14, 0.24, 0, 4.05, 0.64); } // knight shield
   else if (back === 11) { const wood = lam('#92400e'); mesh(cyl(0.32, 0.28, 2.0), wood, 0.45, 3.2, 0.82).rotation.z = 0.35; for (let k = 0; k < 3; k++) { const ar = box(lam('#e5e7eb'), 0.06, 0.9, 0.06, 0.12 + k * 0.14, 4.45, 0.82); ar.rotation.z = 0.35; box(lam(['#ef4444', '#22c55e', '#3b82f6'][k]), 0.2, 0.3, 0.04, -0.05 + k * 0.14, 4.85, 0.82).rotation.z = 0.35; } const bow = mesh(new THREE.TorusGeometry(1.5, 0.06, 6, 20, Math.PI), lam('#78350f'), -0.2, 3.0, 0.7); bow.rotation.z = -Math.PI / 2 + 0.35; } // bow and quiver
   else if (back === 12) { const d = box(lam(['#ef4444', '#3b82f6', '#22c55e', '#f59e0b'][av[1] % 4]), 0.9, 0.1, 3.2, 0, 3.0, 0.72); d.rotation.x = Math.PI / 2; d.rotation.y = 0.5; for (const [y, x] of [[1.6, -0.7], [1.6, 0.7], [4.4, -0.7], [4.4, 0.7]]) { const wh = mesh(cyl(0.16, 0.16, 0.2, 10), lam('#facc15'), x * 0.3 + (y - 3) * 0.24, y, 0.84); wh.rotation.x = Math.PI / 2; } } // skateboard
+  else if (back === 13) { const m = lam('#facc15', { side: THREE.DoubleSide, emissive: '#2a1e00' }); for (const s of [-1, 1]) { const w = box(m, 2.4, 1.5, 0.08, s * 1.4, 3.7, 0.7); w.rotation.z = s * 0.4; w.rotation.y = -s * 0.35; const w2 = box(m, 1.7, 1.0, 0.08, s * 1.85, 2.9, 0.82); w2.rotation.z = s * 0.15; w2.rotation.y = -s * 0.35; const w3 = box(m, 1.1, 0.7, 0.08, s * 2.1, 2.2, 0.92); w3.rotation.z = -s * 0.1; w3.rotation.y = -s * 0.35; } } // golden wings
+  else if (back === 14) { const b2 = mesh(new THREE.SphereGeometry(1, 16, 10), lam(['#06b6d4', '#f97316', '#ec4899', '#22c55e'][av[1] % 4]), 0, 3.0, 0.72); b2.scale.set(0.75, 2.4, 0.1); b2.rotation.z = 0.35; const st2 = box(lam('#f8fafc'), 0.18, 4.0, 0.04, 0, 3.0, 0.82); st2.rotation.z = 0.35; } // surfboard
+  else if (back === 15) { for (const s2 of [-1, 1]) { const piv = new THREE.Group(); piv.position.set(0, 3.0, 0.68); piv.rotation.z = s2 * 0.62; body.add(piv); box(lam('#e5e7eb'), 0.16, 2.8, 0.05, 0, -0.3, s2 * 0.04, piv); box(lam('#facc15'), 0.62, 0.1, 0.16, 0, 1.14, s2 * 0.04, piv); box(lam('#7f1d1d'), 0.2, 0.85, 0.14, 0, 1.62, s2 * 0.04, piv); } } // twin katanas
   const a = { g, body, legL, legR, armL, armR, head, mats, walk: 0, name, av, tag: null, glow: null, aura: av[6], trail: av[9], spin: a_spin, pet: null };
   if (!mine && name) { a.tag = label(name, { size: 0.85 }); a.tag.position.y = 6.7; g.add(a.tag); }
   // a soft shadow on the ground under them
@@ -897,6 +968,20 @@ function petModel(type) {
     for (const s of [-1, 1]) { const w = box('#f59e0b', 1.3, 0.08, 0.75, s * 0.95, 1.2, 0); w.userData.wing = s; }
     ['#facc15', '#f97316', '#ef4444'].forEach((c, i) => { const t = box(c, 0.25, 0.08, 1.0, (i - 1) * 0.22, 0.95, 0.95); t.rotation.y = (i - 1) * 0.35; });
     const crest = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.45, 6), new THREE.MeshBasicMaterial({ color: '#fde047' })); crest.position.set(0, 1.95, -0.65); g.add(crest);
+  } else if (type === 11) { // baby zombie, arms out in front
+    const sk = '#6aa84f';
+    box('#2563eb', 0.8, 0.8, 0.5, 0, 1.0, 0); box('#1e3a8a', 0.82, 0.18, 0.52, 0, 0.66, 0); box(sk, 0.75, 0.75, 0.75, 0, 1.78, 0);
+    box('#4b5563', 0.32, 0.6, 0.32, -0.2, 0.3, 0); box('#4b5563', 0.32, 0.6, 0.32, 0.2, 0.3, 0);
+    for (const s of [-1, 1]) box(sk, 0.24, 0.24, 0.7, s * 0.52, 1.25, -0.35);
+    box('#111', 0.14, 0.1, 0.04, -0.17, 1.86, -0.39); box('#111', 0.14, 0.1, 0.04, 0.17, 1.86, -0.39); box('#3f1d0b', 0.34, 0.08, 0.04, 0, 1.6, -0.39);
+  } else if (type === 12) { // peashooter
+    const gr = '#22c55e', dk = '#15803d';
+    const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 1.2, 8), lam(dk)); stem.position.set(0, 0.6, 0); g.add(stem);
+    const hd = new THREE.Mesh(new THREE.SphereGeometry(0.45, 14, 10), lam(gr)); hd.position.set(0, 1.45, 0); g.add(hd);
+    const sn = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.16, 0.5, 12, 1, true), new THREE.MeshLambertMaterial({ color: gr, side: THREE.DoubleSide })); sn.rotation.x = Math.PI / 2; sn.position.set(0, 1.45, -0.55); g.add(sn);
+    eyes(1.62, -0.43, 0.14);
+    for (const s of [-1, 1]) { const lf = new THREE.Mesh(new THREE.SphereGeometry(0.3, 10, 6), lam(gr)); lf.scale.set(1.4, 0.18, 0.7); lf.position.set(s * 0.35, 0.12, 0); lf.rotation.z = s * 0.2; g.add(lf); }
+    const tuft = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.35, 6), lam(dk)); tuft.position.set(0, 1.95, 0.25); tuft.rotation.x = -0.6; g.add(tuft);
   }
   g.scale.setScalar(0.85);
   return g;
@@ -923,7 +1008,10 @@ const AURA = [null,
   { c: [0xffffff, 0xd6f1ff], at: 'top', up: -3 }, { c: [0x7dd3fc, 0xffffff, 0x60a5fa], at: 'body', up: 2.5, life: 0.15, every: 0.12, thin: 1 }, { rainbow: 1, at: 'feet', up: 0.5, r: 1.6 },
   { c: [0x7dd3fc, 0xbae6fd, 0xffffff], at: 'body', up: 1.4, life: 1.5, every: 0.1, size: 0.32 }, { c: [0x16a34a, 0x65a30d, 0xf59e0b, 0xb45309], at: 'top', up: -2, life: 1.8, every: 0.1 },
   { c: [0xa855f7, 0x6366f1, 0xf0abfc, 0xffffff], at: 'body', up: 0.6, r: 1.9, every: 0.05, size: 0.16 }, { c: [0x84cc16, 0xa3e635, 0x4d7c0f], at: 'feet', up: 3.2, every: 0.06 },
-  { c: [0xfacc15, 0x22c55e, 0x16a34a], at: 'top', up: -4, every: 0.08, flat: 1 }];
+  { c: [0xfacc15, 0x22c55e, 0x16a34a], at: 'top', up: -4, every: 0.08, flat: 1 },
+  { c: [0xfde047, 0xffffff, 0xfacc15], at: 'body', up: 1.2, life: 1.4, every: 0.04, size: 0.12, r: 1.6 }, // stardust
+  { c: [0x111827, 0x312e81, 0x1f2937, 0x4c1d95], at: 'feet', up: 1.6, life: 1.3, every: 0.05, size: 0.38 }, // shadow
+  { c: [0x93c5fd, 0xbfdbfe, 0x60a5fa], at: 'top', up: -9, life: 0.55, every: 0.03, thin: 1, r: 1.2 }]; // storm: rain over you
 function auraTick(a, dt) {
   const A = AURA[a.aura];
   if (!A || a.dead) return;
@@ -940,7 +1028,7 @@ function auraTick(a, dt) {
   scene.add(m); bits.push(m);
 }
 // trails: tiles left behind your feet as you move (and the propeller cap's blades turn)
-const TRAIL_COLS = [null, null, [0xff6a00, 0xffc400, 0xff2a00], [0xbae6fd, 0x7dd3fc, 0xffffff], [0x22d3ee, 0xa855f7, 0x22c55e], [0xfacc15, 0xfde68a, 0xeab308], [0xf472b6, 0xfb7185, 0xffffff]];
+const TRAIL_COLS = [null, null, [0xff6a00, 0xffc400, 0xff2a00], [0xbae6fd, 0x7dd3fc, 0xffffff], [0x22d3ee, 0xa855f7, 0x22c55e], [0xfacc15, 0xfde68a, 0xeab308], [0xf472b6, 0xfb7185, 0xffffff], [0xfde047, 0xffffff, 0xfacc15], [0x60a5fa, 0xe0f2fe, 0x22d3ee]];
 function trailTick(a, dt, moving) {
   for (const s of a.spin || []) s.rotation.y += dt * 14;
   if (!a.trail || a.dead || !moving) return;
@@ -1027,7 +1115,7 @@ function openChat() { const box = $('#chatbox'), inp = $('#chatin'); box.style.d
 function closeChat() { $('#chatbox').style.display = 'none'; $('#chatin').blur(); }
 $('#chatin').addEventListener('keydown', (e) => {
   e.stopPropagation();
-  if (e.key === 'Enter') { const t = e.target.value.trim(); if (t) { Net.chat(t); say(`${Net.name}: ${t}`); if (me) bubble(me, t); sfx('chat'); } closeChat(); }
+  if (e.key === 'Enter') { const t = e.target.value.trim(); if (t) { Net.chat(t); say(`${Net.name}: ${t}`); if (me) bubble(me, t); sfx('chat'); quest('bv.chat'); } closeChat(); }
   if (e.key === 'Escape') closeChat();
 });
 
@@ -1111,11 +1199,148 @@ function earn(n, why) {
   n = Math.floor(n); if (!(n > 0)) return;
   W.coins += n; drawCoins(n); saveAv(); sfx('coin', { gap: 120 });
   if (why) say(`🪙 +${n} — ${why}`, '#fde68a');
+  quest('bv.earned', n);
 }
 function spend(n) { if (W.coins < n) { sfx('error'); return false; } W.coins -= n; drawCoins(); saveAv(); sfx('buy'); return true; }
-function grantCosmetic(slot, i, why) { if (W.own.has(slot + i)) return; W.own.add(slot + i); saveAv(); sfx('unlock'); if (why) say(`🎁 ${COSMETICS[slot].list[i]} unlocked — ${why}`, '#fde68a'); }
+function grantCosmetic(slot, i, why) { if (W.own.has(slot + i)) return; W.own.add(slot + i); saveAv(); sfx('unlock'); if (why) say(`🎁 ${COSMETICS[slot].list[i]} unlocked — ${why}`, '#fde68a'); questMax('bv.items', W.own.size); }
+
+/* ---------------- achievements ----------------
+   Three in every experience (bronze, silver, gold) and a few for Bloxverse itself. Experiences count things with
+   quest('fish.catch') (adds one, or n) and questMax('fish.dex', 12) (keeps the best); when a count reaches an
+   achievement's target it's yours: Blox Coins, sometimes an avatar item that can't be bought, and a popup. The counts
+   and achievements are saved with your coins. */
+// [experience, what's counted, target ('all': every experience), name, how, Blox Coins, avatar item, icon]
+const ACH = [
+  ['bv', 'exps', 5, 'Explorer', 'Play 5 different experiences', 50, null, '🧭'],
+  ['bv', 'exps', 'all', 'World Tour', 'Play every experience', 300, ['h', 26], '🌍'],
+  ['bv', 'chat', 25, 'Chatterbox', 'Send 25 chat messages', 30, null, '💬'],
+  ['bv', 'items', 15, 'Fashionista', 'Own 15 avatar items', 100, null, '👗'],
+  ['bv', 'earned', 10000, 'Coin Hoarder', 'Earn 10,000 Blox Coins', 250, null, '💰'],
+  ['bv', 'ach', 25, 'Achiever', 'Earn 25 achievements', 300, ['b', 13], '🏅'],
+  ['bv', 'ach', 60, 'Legend', 'Earn 60 achievements', 1000, ['h', 32], '👑'],
+  ['obby', 'stage', 10, 'Getting Somewhere', 'Reach stage 10', 30, null, '🪜'],
+  ['obby', 'win', 1, 'Obby Champion', 'Beat the Mega Obby', 120, null, '🏁'],
+  ['obby', 'fast', 1, 'Speedrunner', 'Beat it from stage 1 in under 6 minutes', 300, ['a', 12], '⏱️'],
+  ['tycoon', 'buy', 10, 'Factory Owner', 'Buy 10 things for your factory', 30, null, '🏭'],
+  ['tycoon', 'rocket', 1, 'Rocket Scientist', 'Build the rocket', 120, null, '🚀'],
+  ['tycoon', 'rebirth', 1, 'Born Again', 'Rebirth your factory', 300, ['f', 18], '🔁'],
+  ['tag', 'tag', 1, 'Tag, You’re It', 'Tag someone', 30, null, '🫵'],
+  ['tag', 'win', 1, 'Tag Winner', 'Win a round', 120, null, '🏃'],
+  ['tag', 'win', 5, 'Untouchable', 'Win 5 rounds', 300, null, '🥇'],
+  ['lava', 'alive', 120, 'Hot Feet', 'Stay alive for 2 minutes in rounds', 30, null, '🔥'],
+  ['lava', 'win', 1, 'Lava Survivor', 'Survive a round', 120, null, '🌋'],
+  ['lava', 'win', 5, 'Fireproof', 'Survive 5 rounds', 300, null, '🧯'],
+  ['toh', 'half', 1, 'Halfway There', 'Climb halfway up the tower', 40, null, '🧗'],
+  ['toh', 'win', 1, 'Tower Conqueror', 'Beat the tower', 120, null, '🗼'],
+  ['toh', 'win', 5, 'Hellish', 'Beat the tower 5 times', 300, ['f', 17], '😤'],
+  ['garden', 'harvest', 50, 'Green Thumb', 'Harvest 50 crops', 30, null, '🥕'],
+  ['garden', 'sold', 100000, 'Market Day', 'Sell $100,000 of crops', 120, null, '💵'],
+  ['garden', 'gold', 1, 'Golden Harvest', 'Harvest a Gold or Rainbow crop', 300, ['pt', 15], '🌻'],
+  ['tds', 'wave', 10, 'Defender', 'Survive 10 waves', 40, null, '🛡️'],
+  ['tds', 'win', 1, 'Victory', 'Win a game', 120, null, '🏰'],
+  ['tds', 'hard', 1, 'Hardcore', 'Win on Hard', 300, ['pt', 13], '🏆'],
+  ['army', 'fought', 1, 'Recruit', 'Fight a battle', 30, null, '🪖'],
+  ['army', 'win', 5, 'Conqueror', 'Win 5 battles', 120, null, '⚔️'],
+  ['army', 'kills', 500, 'Warmonger', 'Defeat 500 enemy soldiers', 300, null, '💀'],
+  ['nds', 'survive', 1, 'Survivor', 'Survive a disaster', 30, null, '🌪️'],
+  ['nds', 'double', 1, 'Double Trouble', 'Survive two disasters at once', 120, null, '⛈️'],
+  ['nds', 'streak', 5, 'Unstoppable', 'Survive 5 disasters in a row', 300, ['a', 14], '🌩️'],
+  ['pets', 'hatch', 10, 'Pet Collector', 'Hatch 10 pets', 30, null, '🥚'],
+  ['pets', 'zone', 3, 'Trailblazer', 'Unlock 3 zones', 120, null, '🗺️'],
+  ['pets', 'legend', 1, 'Legendary!', 'Hatch a Legendary or Mythical pet', 300, ['pt', 14], '🐾'],
+  ['boat', 'stage', 5, 'Seaworthy', 'Sail to stage 5', 30, null, '⛵'],
+  ['boat', 'treasure', 1, 'Treasure Hunter', 'Find the treasure', 120, null, '💰'],
+  ['boat', 'treasure', 5, 'Master Shipwright', 'Find the treasure 5 times', 300, ['b', 14], '🏄'],
+  ['zombie', 'kill', 100, 'Zombie Slayer', 'Defeat 100 zombies', 40, null, '🧟'],
+  ['zombie', 'night', 3, 'Night Owl', 'Survive 3 nights', 120, null, '🌙'],
+  ['zombie', 'boss', 1, 'Giant Killer', 'Help take down the Abomination', 300, ['pet', 11], '👹'],
+  ['egg', 'steal', 1, 'Egg Thief', 'Steal an egg', 30, null, '🥷'],
+  ['egg', 'legend', 1, 'Golden Egg', 'Buy a Legendary egg or better', 120, null, '🥚'],
+  ['egg', 'rebirth', 1, 'Hatched Anew', 'Rebirth', 300, null, '♻️'],
+  ['speed', 'zone', 3, 'Picking Up Speed', 'Reach the third zone', 30, null, '💨'],
+  ['speed', 'finish', 1, 'Finish Line', 'Finish the whole track', 120, null, '🏁'],
+  ['speed', 'rebirth', 3, 'Speed Demon', 'Rebirth 3 times', 300, ['tr', 7], '⭐'],
+  ['fish', 'catch', 25, 'Gone Fishing', 'Catch 25 fish', 30, null, '🎣'],
+  ['fish', 'dex', 15, 'Fish Finder', 'Discover 15 kinds of fish', 120, null, '📖'],
+  ['fish', 'legend', 1, 'The Big One', 'Catch a Legendary or Mythical fish', 300, ['h', 31], '🐋'],
+  ['blade', 'parry', 25, 'Parry!', 'Parry the ball 25 times', 40, null, '🛡️'],
+  ['blade', 'win', 1, 'Last One Standing', 'Win a round', 120, null, '⚔️'],
+  ['blade', 'win', 10, 'Blade Master', 'Win 10 rounds', 300, ['tr', 8], '⚡'],
+  ['murder', 'coin', 50, 'Coin Collector', 'Pick up 50 coins', 30, null, '🪙'],
+  ['murder', 'hero', 1, 'Hero', 'Stop the murderer', 150, ['h', 30], '🤠'],
+  ['murder', 'win', 10, 'Mastermind', 'Be on the winning side 10 times', 300, null, '🔪'],
+  ['kart', 'finish', 1, 'Racer', 'Finish a race', 30, null, '🏎️'],
+  ['kart', 'win', 1, 'Pole Position', 'Win a race', 120, null, '🥇'],
+  ['kart', 'win', 10, 'Kart King', 'Win 10 races', 300, ['h', 28], '🏆'],
+  ['rlgl', 'finish', 1, 'Green Light', 'Make it across', 40, null, '🟢'],
+  ['rlgl', 'win', 1, 'First Across', 'Be the first across', 120, null, '🥇'],
+  ['rlgl', 'win', 5, 'Frozen Solid', 'Be first across 5 times', 300, null, '🧊'],
+  ['color', 'call', 10, 'Quick Feet', 'Survive 10 calls', 30, null, '🟥'],
+  ['color', 'win', 1, 'Colour Champ', 'Win a round', 120, null, '🌈'],
+  ['color', 'win', 5, 'Spectrum Master', 'Win 5 rounds', 300, null, '🎨'],
+  ['golf', 'birdie', 1, 'Birdie', 'Finish a hole under par', 40, null, '🐦'],
+  ['golf', 'round', 1, 'Full Course', 'Finish all the holes', 120, null, '⛳'],
+  ['golf', 'ace', 1, 'Hole in One', 'Get a hole in one', 300, null, '🎯'],
+  ['bee', 'honey', 2000, 'Busy Bee', 'Make 2,000 honey', 30, null, '🍯'],
+  ['bee', 'bees', 10, 'Hive Builder', 'Have 10 bees', 120, null, '🐝'],
+  ['bee', 'bees', 20, 'Queen of the Hive', 'Have 20 bees', 300, ['h', 29], '👑'],
+  ['hide', 'find', 1, 'Found You!', 'Find someone hiding', 30, null, '🔦'],
+  ['hide', 'hid', 1, 'Hidden', 'Stay hidden for a whole round', 120, null, '🙈'],
+  ['hide', 'hid', 5, 'Master of Disguise', 'Stay hidden 5 times', 300, ['a', 13], '🥷'],
+  ['pvz', 'lvl', 1, 'Lawn Defender', 'Beat level 1', 40, null, '🌱'],
+  ['pvz', 'lvl', 5, 'Green Fingers', 'Beat level 5', 120, null, '🌻'],
+  ['pvz', 'lvl', 10, 'Zombie Proof', 'Beat level 10', 300, ['pet', 12], '🧠'],
+  ['rivals', 'kill', 1, 'First Blood', 'Eliminate someone', 30, null, '🎯'],
+  ['rivals', 'win', 1, 'Duelist', 'Win a match', 120, null, '🏆'],
+  ['rivals', 'win', 10, 'Rival Champion', 'Win 10 matches', 300, ['b', 15], '⚔️'],
+  ['fruits', 'eat', 1, 'Fruit Eater', 'Eat a Blox Fruit', 40, null, '🍎'],
+  ['fruits', 'lv', 30, 'Pirate', 'Reach level 30', 150, null, '🏴‍☠️'],
+  ['fruits', 'vadmiral', 1, 'Admiral Down', 'Defeat the Vice Admiral', 400, ['h', 27], '⚓'],
+].map(([e, k, n, nm, d, c, item, ic], i, all) => ({ i, id: `${e}.${k}.${n}`, e, key: `${e}.${k}`, n, nm, d, c, item, ic, tier: e === 'bv' ? 'b' : all.slice(0, i).filter((a) => a[0] === e).length }));
+W.ach = { c: {}, got: new Set() };
+const achTarget = (A) => (A.n === 'all' ? Object.keys(EXPS).length : A.n);
+const achOf = (key) => W.ach.c[key] || 0;
+const achFor = (slot, i) => ACH.find((A) => A.item && A.item[0] === slot && A.item[1] === i);
+function quest(key, n = 1) { if (!(n > 0)) return; W.ach.c[key] = achOf(key) + n; achCheck(key); }
+function questMax(key, v) { if (!(v > achOf(key))) return; W.ach.c[key] = v; achCheck(key); }
+function achCheck(key) {
+  for (const A of ACH) if (A.key === key && !W.ach.got.has(A.id) && achOf(key) >= achTarget(A)) achAward(A);
+  if (!achCheck.t) achCheck.t = setTimeout(() => { achCheck.t = 0; saveAv(); }, 1500); // (counts change often: saved now and then)
+}
+function achAward(A) {
+  W.ach.got.add(A.id);
+  if (A.item) W.own.add(A.item[0] + A.item[1]);
+  earn(A.c);
+  achQ.push(A); if (!achQ.on) achNext();
+  if (playing && A.tier !== 0) Net.chat(`🏆 earned the “${A.nm}” achievement!`);
+  questMax('bv.ach', W.ach.got.size);
+  if (A.item) questMax('bv.items', W.own.size);
+  saveAv(); achNum();
+}
+// the popup: one at a time
+const achQ = [];
+function achNext() {
+  const A = achQ.shift(), el = $('#achPop');
+  if (!A) { achQ.on = false; return; }
+  achQ.on = true; sfx('levelup');
+  const C = A.item && COSMETICS[A.item[0]], where = A.e !== 'bv' && EXPS[A.e] ? ` · ${EXPS[A.e].emoji} ${EXPS[A.e].name}` : '';
+  el.innerHTML = `<div class="ap t${A.tier}"><div class="ic">${A.ic}</div><div class="tx"><small>🏆 Achievement unlocked</small><b>${esc(A.nm)}</b><span>${esc(A.d)}${esc(where)}</span><em><span class="coin sm"></span>+${A.c}${C ? ` · 🎁 ${C.icon[A.item[1]]} ${esc(C.list[A.item[1]])}` : ''}</em></div></div>`;
+  el.classList.remove('go'); void el.offsetWidth; el.classList.add('go');
+  setTimeout(achNext, 4700);
+}
+function achNum() { const n = $('#achN'); if (n) n.textContent = `${W.ach.got.size} / ${ACH.length}`; }
+// the lists: an experience's (or Bloxverse's) achievements with how far you've got
+function achRow(A) {
+  const got = W.ach.got.has(A.id), t = achTarget(A), v = Math.min(t, achOf(A.key)), C = A.item && COSMETICS[A.item[0]];
+  return `<div class="ach t${A.tier}${got ? ' got' : ''}"><div class="ic">${A.ic}</div><div class="tx"><b>${esc(A.nm)}</b><span>${esc(A.d)}</span>${got ? '' : `<div class="bar"><i style="width:${(100 * v / t).toFixed(1)}%"></i><small>${v.toLocaleString('en-US')} / ${t.toLocaleString('en-US')}</small></div>`}</div>
+    <div class="rw"><span><span class="coin sm"></span>${A.c}</span>${C ? `<span class="it" title="${esc(C.list[A.item[1]])} (${esc(C.title.toLowerCase())})">${C.icon[A.item[1]]}</span>` : ''}${got ? '<span class="ok">✓ Earned</span>' : ''}</div></div>`;
+}
+function achGroup(e) {
+  const list = ACH.filter((A) => A.e === e), E = EXPS[e], n = list.filter((A) => W.ach.got.has(A.id)).length;
+  return `<div class="achg${e === 'bv' ? ' bv' : ''}"><h4>${e === 'bv' ? '🧱 Bloxverse' : `${E ? E.emoji : ''} ${esc(E ? E.name : e)}`}<small>${n} / ${list.length}</small></h4><div class="achrows">${list.map(achRow).join('')}</div></div>`;
+}
 function saveAv() {
-  const d = Object.assign({}, AV, { coins: W.coins, own: [...W.own], day: W.day, at: Date.now() });
+  const d = Object.assign({}, AV, { coins: W.coins, own: [...W.own], day: W.day, at: Date.now(), ach: { c: W.ach.c, got: [...W.ach.got] } });
   try { localStorage.setItem('rb.av', JSON.stringify(d)); } catch (e) {}
   clearTimeout(avSaveT); avSaveT = setTimeout(() => { if (W.loaded) kvSet('av', d); }, 800);
 }
@@ -1123,6 +1348,10 @@ function loadAvFrom(d) {
   if (!d || typeof d !== 'object') return;
   AV = avFrom(d);
   W.coins = Math.max(0, Math.floor(+d.coins || 0)); W.own = new Set(Array.isArray(d.own) ? d.own.filter((x) => typeof x === 'string').slice(0, 300) : []); W.day = String(d.day || ''); W.at = +d.at || 0;
+  const a = d.ach && typeof d.ach === 'object' ? d.ach : {}, c = {};
+  if (a.c && typeof a.c === 'object') for (const k in a.c) if (+a.c[k] > 0) c[k] = +a.c[k];
+  W.ach = { c, got: new Set(Array.isArray(a.got) ? a.got.filter((x) => ACH.some((A) => A.id === x)) : []) };
+  achNum();
 }
 // experiences in their own files call this
 function addExp(E) { EXPS[E.id] = E; if (!playing) drawExps(); }
@@ -1199,7 +1428,7 @@ async function join(id, n) {
   document.documentElement.style.setProperty('--exp', E.color);
   $('#home').hidden = true; $('#loading').hidden = false; $('#loadThumb').innerHTML = `<span>${E.emoji}</span>`; $('#loadTitle').textContent = E.name; $('#loadText').textContent = `Joining server ${n}…`;
   clearPlace(); for (const a of Net.avatars.values()) dropAvatar(a); Net.avatars.clear();
-  exp = E; playedNow(E.id); resetXUI(); $('#chatlog').innerHTML = ''; gfxApply(); E.build(); P.frozen = false;
+  exp = E; playedNow(E.id); W.ach.c['bv.p.' + E.id] = 1; questMax('bv.exps', Object.keys(W.ach.c).filter((k) => k.startsWith('bv.p.')).length); resetXUI(); $('#chatlog').innerHTML = ''; gfxApply(); E.build(); P.frozen = false;
   try { if (typeof scenery === 'function') scenery(E); } catch (e) { console.warn('scenery', e); } // the land all round (blox-land.js)
   setBanner(''); cam.dist = camD = E.camDist || 20; View.fp = false; View.st = 1; View.tired = false; View.touchRun = false;
   let room;
@@ -1419,11 +1648,12 @@ const OBBY = {
     const s = await kvGet('ob');
     if (s) { this.stage = clamp(s.st | 0, 0, this.total); this.won = !!s.won; this.best = +s.best || 0; }
     send({ st: this.won ? this.total + 1 : this.stage });
+    this.st0 = this.won ? -1 : this.stage; questMax('obby.stage', this.won ? this.total : this.stage); if (this.won) questMax('obby.win', 1); // (the timer only counts for a run from stage 1)
   },
   spawn() { const s = this.checks[clamp(this.stage, 0, this.total)]; return [s[0], s[1], s[2], 0]; },
   touch(p) {
     if (p.kind === 'check' && p.n > this.stage) {
-      this.stage = p.n; toast(`Stage ${p.n}!`, '#86efac'); puffAt(P.x, P.y + 2, P.z, hue(p.n), 10); sfx('reward'); earn(3);
+      this.stage = p.n; toast(`Stage ${p.n}!`, '#86efac'); puffAt(P.x, P.y + 2, P.z, hue(p.n), 10); sfx('reward'); earn(3); questMax('obby.stage', p.n);
       send({ st: this.won ? this.total + 1 : this.stage }); this.save();
     } else if (p.kind === 'win' && !this.won) {
       this.won = true; this.time = (performance.now() - this.t0) / 1000;
@@ -1431,6 +1661,7 @@ const OBBY = {
       toast('🏆 You beat the Mega Obby!', '#fde68a'); puffAt(P.x, P.y + 3, P.z, CONFETTI, 60); sfx('win');
       Net.chat(`🏆 beat the Mega Obby in ${mmss(this.time)}!`); say(`${Net.name} beat the Mega Obby in ${mmss(this.time)}!`, '#fde68a');
       send({ st: this.total + 1 }); this.save(); earn(100, 'beat the Mega Obby');
+      quest('obby.win'); if (this.st0 === 0 && this.time < 360) quest('obby.fast');
     }
   },
   save() { return kvSet('ob', { st: this.stage, won: this.won, best: this.best }); },
@@ -1441,7 +1672,7 @@ const OBBY = {
     const t = this.won ? this.time : (performance.now() - this.t0) / 1000;
     return `Stage ${this.won ? '🏆' : `${this.stage}/${this.total}`} · ⏱ ${mmss(t)}${this.best ? ` <small>best ${mmss(this.best)}</small>` : ''}`;
   },
-  menu() { return [['↩️ Back to Stage 1', () => { this.stage = 0; this.won = false; this.t0 = performance.now(); send({ st: 0 }); this.save(); respawn(); }]]; },
+  menu() { return [['↩️ Back to Stage 1', () => { this.stage = 0; this.won = false; this.t0 = performance.now(); this.st0 = 0; send({ st: 0 }); this.save(); respawn(); }]]; },
 };
 
 /* =====================================================================
@@ -1612,6 +1843,7 @@ const TYCOON = {
     const s = await kvGet('ty');
     if (s) { this.cash = Math.max(0, +s.cash || 0); this.b = (s.b | 0) | 1; this.rb = Math.max(0, s.rb | 0); }
     send({ rb: this.rb });
+    questMax('tycoon.rebirth', this.rb); questMax('tycoon.buy', TY.filter((_, i) => i && has(this.b, i)).length); if (TY.some((it, i) => it.kind === 'rocket' && has(this.b, i))) questMax('tycoon.rocket', 1);
     this.peers();
   },
   spawn() {
@@ -1646,6 +1878,7 @@ const TYCOON = {
     this.cash -= it.price; this.b |= 1 << i;
     send({ b: this.b, cash: Math.floor(this.cash) }); this.peers(); this.save();
     toast(it.bonus ? `Bought ${it.n}! +${Math.round(it.bonus * 100)}% cash` : `Bought ${it.n}!`, '#86efac'); puffAt(P.x, P.y + 2, P.z, 0x22c55e, 18); sfx('buy');
+    quest('tycoon.buy'); if (it.kind === 'rocket') quest('tycoon.rocket');
     if (it.kind === 'rocket') { toast('🚀 Rocket! Next up: the sky line on your second floor', '#fde68a'); sfx('win'); puffAt(P.x, P.y + 4, P.z, CONFETTI, 50); }
     if (i === TY_LAST) { toast('🛰️ You finished the tycoon! Rebirth for more cash', '#fde68a'); sfx('win'); puffAt(P.x, P.y + 4, P.z, CONFETTI, 80); Net.chat('🛰️ finished Cube Factory Tycoon!'); }
   },
@@ -1658,7 +1891,7 @@ const TYCOON = {
   },
   rebirth() {
     if (TY.some((_, i) => !has(this.b, i))) return;
-    this.rb++; this.b = 1; this.cash = 0; this.tmReset = true;
+    this.rb++; this.b = 1; this.cash = 0; this.tmReset = true; questMax('tycoon.rebirth', this.rb);
     send({ b: this.b, rb: this.rb, cash: 0 }); this.peers(); this.save();
     toast(`🔁 Rebirth ${this.rb}! Every cube is worth ×${(1 + 0.5 * this.rb).toFixed(1)} now`, '#d8b4fe'); sfx('unlock'); puffAt(P.x, P.y + 3, P.z, CONFETTI, 60);
     Net.chat(`🔁 rebirthed the factory (×${(1 + 0.5 * this.rb).toFixed(1)} cash)`);
@@ -1786,11 +2019,11 @@ const TAG = {
     if (g && g.ph === 'play' && g.rd !== this.rd) { this.rd = g.rd; respawn(); sfx('go'); if (g.it === mine) toast('You’re IT! Tag someone!', '#fca5a5'); }
     if (g && g.ph === 'count') { const c = Math.ceil(g.left); if (c !== this.cdS && c <= 5) sfx('count'); this.cdS = c; } else this.cdS = null;
     if (g && g.ph === 'play' && this.lastIt !== g.it && this.lastIt && (g.it === mine || this.lastIt === mine)) { sfx('hit'); sfx(g.it === mine ? 'alarm' : 'reward'); }
-    if (g && g.ph === 'play' && this.lastIt !== g.it) { if (this.lastIt && g.it === mine) toast('Tagged! You’re IT!', '#fca5a5'); else if (this.lastIt === mine && g.it !== mine) toast('You tagged them!', '#86efac'); this.lastIt = g.it; }
+    if (g && g.ph === 'play' && this.lastIt !== g.it) { if (this.lastIt && g.it === mine) toast('Tagged! You’re IT!', '#fca5a5'); else if (this.lastIt === mine && g.it !== mine) { toast('You tagged them!', '#86efac'); quest('tag.tag'); } this.lastIt = g.it; }
     if (!g || g.ph !== 'play') this.lastIt = null;
     P.frozen = !!(g && g.ph === 'play' && g.it === mine && g.fz > 0);
     if (g && g.ph === 'play' && g.it !== mine) { this.freeT = (this.freeT || 0) + dt; if (this.freeT >= 10) { this.freeT -= 10; earn(1); } }
-    if (g && g.ph !== this.coinPh) { if (g.ph === 'end' && this.coinPh === 'play') sfx(g.wp === mine ? 'win' : 'bell'); if (g.ph === 'end' && this.coinPh === 'play' && g.wp === mine) earn(25, 'won the round'); this.coinPh = g.ph; }
+    if (g && g.ph !== this.coinPh) { if (g.ph === 'end' && this.coinPh === 'play') sfx(g.wp === mine ? 'win' : 'bell'); if (g.ph === 'end' && this.coinPh === 'play' && g.wp === mine) { earn(25, 'won the round'); quest('tag.win'); } this.coinPh = g.ph; }
     const itPeer = g && g.ph === 'play' ? g.it : null;
     setGlow(me, itPeer === mine ? 0x991b1b : null);
     for (const [peer, a] of Net.avatars) setGlow(a, itPeer === peer ? 0x991b1b : null);
@@ -1881,8 +2114,8 @@ const LAVA = {
     if (g && g.ph === 'play' && this.inr === g.rd && this.out !== g.rd && !P.dead && P.y < L - 0.2) {
       this.out = g.rd; send({ out: g.rd }); toast(`🔥 You lasted ${Math.floor(g.el)}s`, '#fdba74'); sfx('hiss'); die();
     }
-    if (g && g.ph === 'play' && this.inr === g.rd && this.out !== g.rd && !P.dead) { this.aliveT = (this.aliveT || 0) + dt; if (this.aliveT >= 10) { this.aliveT -= 10; earn(2); } }
-    if (g && g.ph !== this.lastPh) { if (g.ph === 'end' && this.lastPh === 'play') sfx(Array.isArray(g.wps) && g.wps.includes(myPeer()) ? 'win' : 'bell'); if (g.ph === 'end' && this.lastPh === 'play' && Array.isArray(g.wps) && g.wps.includes(myPeer())) earn(30, 'survived the lava'); if (g.ph === 'count' && this.lastPh === 'end' && P.z < 30) respawn(); this.lastPh = g.ph; }
+    if (g && g.ph === 'play' && this.inr === g.rd && this.out !== g.rd && !P.dead) { this.aliveT = (this.aliveT || 0) + dt; if (this.aliveT >= 10) { this.aliveT -= 10; earn(2); quest('lava.alive', 10); } }
+    if (g && g.ph !== this.lastPh) { if (g.ph === 'end' && this.lastPh === 'play') sfx(Array.isArray(g.wps) && g.wps.includes(myPeer()) ? 'win' : 'bell'); if (g.ph === 'end' && this.lastPh === 'play' && Array.isArray(g.wps) && g.wps.includes(myPeer())) { earn(30, 'survived the lava'); quest('lava.win'); } if (g.ph === 'count' && this.lastPh === 'end' && P.z < 30) respawn(); this.lastPh = g.ph; }
     if (!g) setBanner('Getting the round…');
     else if (g.ph === 'wait') setBanner('Waiting for players…');
     else if (g.ph === 'count') setBanner(`Next tower in ${Math.ceil(g.left)}…`);
@@ -1916,10 +2149,14 @@ function drawAvatarOpts() {
     const C = COSMETICS[avTab];
     body = `<div class="shop">${C.list.map((nm, i) => {
       const own = owns(avTab, i), price = C.price[i], on = AV[avTab] === i, ask = avAsk === avTab + i;
-      const pr = on ? '<span class="pr own">✓ Wearing</span>' : own ? '<span class="pr own">Owned</span>' : price < 0 ? '<span class="pr">🎖️ Reward</span>' : ask ? `<span class="pr">Buy? ${price}</span>` : `<span class="pr"><span class="coin sm"></span> ${price}</span>`;
+      const A = price < 0 ? achFor(avTab, i) : null;
+      const pr = on ? '<span class="pr own">✓ Wearing</span>' : own ? '<span class="pr own">Owned</span>' : price < 0 ? `<span class="pr">${A ? '🏆 Earn it' : '🎖️ Reward'}</span>` : ask ? `<span class="pr">Buy? ${price}</span>` : `<span class="pr"><span class="coin sm"></span> ${price}</span>`;
       const cant = !own && (price < 0 || W.coins < price);
-      return `<button data-k="${avTab}" data-i="${i}" class="${on ? 'on' : ''} ${cant ? 'cant' : ''} ${ask ? 'ask' : ''}" title="${esc(nm)}${price < 0 && !own ? ' — earned in Command an Army’s battle pass' : ''}"><span class="i">${C.icon[i]}</span>${esc(nm)}${pr}</button>`;
+      return `<button data-k="${avTab}" data-i="${i}" class="${on ? 'on' : ''} ${cant ? 'cant' : ''} ${ask ? 'ask' : ''}" title="${esc(nm)}${price < 0 && !own ? (A ? ` — earn the “${A.nm}” achievement` : ' — earned in Command an Army’s battle pass') : ''}"><span class="i">${C.icon[i]}</span>${esc(nm)}${pr}</button>`;
     }).join('')}</div>`;
+    // (a reward you haven't got, tapped: how to get it)
+    const ak = avAsk && avAsk.startsWith(avTab) ? +avAsk.slice(avTab.length) : -1, AA = ak >= 0 && C.price[ak] < 0 && !owns(avTab, ak) ? achFor(avTab, ak) : null;
+    if (ak >= 0 && C.price[ak] < 0 && !owns(avTab, ak)) body += `<div class="avnote">${AA ? `🏆 <b>${esc(C.list[ak])}</b> comes with the “${esc(AA.nm)}” achievement${AA.e !== 'bv' && EXPS[AA.e] ? ` in ${esc(EXPS[AA.e].name)}` : ''}: ${esc(AA.d.charAt(0).toLowerCase() + AA.d.slice(1))}.` : `🎖️ <b>${esc(C.list[ak])}</b> is a reward in Command an Army’s battle pass.`}</div>`;
   }
   $('#avOpts').innerHTML = `<div class="coinbar"><span><span class="coin"></span><span id="homeCoins">${W.coins.toLocaleString('en-US')}</span></span><small>Blox Coins · earn them<br>in every experience</small></div>
     <div class="avtabs">${tabs.map(([k, t]) => `<button data-tab="${k}" class="${avTab === k ? 'on' : ''}">${t}</button>`).join('')}</div>${body}`;
@@ -1930,9 +2167,10 @@ function drawAvatarOpts() {
     else if (owns(k, i)) { AV[k] = i; avAsk = ''; }
     else {
       const price = COSMETICS[k].price[i];
-      if (price < 0 || W.coins < price) { avAsk = ''; drawAvatarOpts(); return; }
+      if (price < 0) { avAsk = avAsk === k + i ? '' : k + i; sfx('click'); drawAvatarOpts(); return; } // (how to earn it)
+      if (W.coins < price) { avAsk = ''; drawAvatarOpts(); return; }
       if (avAsk !== k + i) { avAsk = k + i; drawAvatarOpts(); return; } // tap again to buy
-      W.coins -= price; W.own.add(k + i); AV[k] = i; avAsk = ''; sfx('buy');
+      W.coins -= price; W.own.add(k + i); AV[k] = i; avAsk = ''; sfx('buy'); questMax('bv.items', W.own.size);
     }
     drawAvatarOpts(); pvAvatar(); saveAv();
   }));
@@ -1966,6 +2204,21 @@ function drawExps() {
   if (playing) return;
   const c = counts(), total = (E) => Array.from({ length: SERVERS }, (_, k) => c[`${E.code}-${k + 1}`] || 0).reduce((a, b) => a + b, 0);
   const live = (E) => `<span class="pill"><span class="dot"></span>${total(E)} playing</span>`;
+  // (the lobby redraws this whenever anyone comes or goes: the same page again doesn't fade in again)
+  const again = drawExps.view === (homeView || ''); drawExps.view = homeView || '';
+  if (homeView === 'ach') {
+    const sig = `${W.ach.got.size}:${Object.values(W.ach.c).reduce((a, b) => a + b, 0)}`;
+    if (again && drawExps.sig === sig && $('#expArea .achcols')) return;
+    drawExps.sig = sig;
+    const got = W.ach.got.size, items = ACH.filter((A) => A.item), gotI = items.filter((A) => W.ach.got.has(A.id)).length;
+    const order = Object.values(EXPS).sort((a, b) => addedAt(b) - addedAt(a)).map((E) => E.id).filter((e) => ACH.some((A) => A.e === e));
+    $('#expArea').innerHTML = `<div class="edetail still achpage"><button class="back" id="backBtn">← All experiences</button>
+      <div class="achhead"><span class="big">🏆</span><div><h2>Achievements</h2><p style="margin:0">Three in every experience — bronze, silver and gold — and more for Bloxverse itself. Each pays Blox Coins, and some give an avatar item you can’t buy.</p></div></div>
+      <div class="achhead"><b>${got} / ${ACH.length} earned</b><div class="meter"><i style="width:${(100 * got / ACH.length).toFixed(1)}%"></i></div><b>🎁 ${gotI} / ${items.length} reward items</b></div>
+      ${achGroup('bv')}<div class="achcols">${order.map(achGroup).join('')}</div></div>`;
+    $('#backBtn').onclick = () => { homeView = null; drawExps(); };
+    return;
+  }
   if (!homeView || !EXPS[homeView]) {
     // (typing in the search box: just the cards change, so the box keeps its place)
     if ($('#expQ') && document.activeElement === $('#expQ')) { drawGrid(); return; }
@@ -1993,10 +2246,12 @@ function drawExps() {
   const rows = Array.from({ length: SERVERS }, (_, k) => { const n = c[`${E.code}-${k + 1}`] || 0; return `<div class="srow"><b>Server ${k + 1}</b><span class="cnt">👥 ${n}/${E.max}</span><div class="bar"><i style="width:${n / E.max * 100}%"></i></div><button data-n="${k + 1}" ${n >= E.max ? 'disabled' : ''}>${n >= E.max ? 'Full' : 'Join'}</button></div>`; }).join('');
   $('#expArea').innerHTML = `<div class="edetail" style="--exp:${E.color}"><button class="back" id="backBtn">← All experiences</button>
     <div class="top"><div class="thumb" style="background:${E.color}"><span class="em">${E.emoji}</span></div><div><h2>${esc(E.name)}</h2><div class="meta">${live(E)}<span class="pill">👥 up to ${E.max} per server</span>${E.genre ? `<span class="pill">${esc(E.genre)}</span>` : ''}</div><p>${esc(E.desc)}</p><button class="playbig" id="playBtn" title="Play"><span class="tri"></span>Play</button><button class="favbig" id="favBtn">${FAVS.has(E.id) ? '❤️ Favourite' : '🤍 Add to favourites'}</button></div></div>
-    <h3 style="margin-top:20px">🖥️ Servers</h3><div class="slist">${rows}</div></div>`;
+    <h3 style="margin-top:20px">🖥️ Servers</h3><div class="slist">${rows}</div>
+    ${ACH.some((A) => A.e === E.id) ? `<h3 style="margin-top:20px">🏆 Achievements</h3>${achGroup(E.id)}` : ''}</div>`;
   $('#backBtn').onclick = () => { homeView = null; drawExps(); };
   $('#playBtn').onclick = () => join(E.id);
   $('#favBtn').onclick = () => { toggleFav(E.id); drawExps(); };
+  if (again) $('#expArea .edetail').classList.add('still');
   $('#expArea').querySelectorAll('[data-n]').forEach((b) => (b.onclick = () => join(E.id, +b.dataset.n)));
 }
 // the cards, sorted and filtered
@@ -2102,6 +2357,7 @@ function showPause() {
   $('#pausePanel').innerHTML = `<div class="phead"><div class="pthumb"><span>${exp.emoji}</span></div></div><h2>${esc(exp.name)}</h2><p>Server ${Net.srvN} · 👥 ${Math.max(1, crew().length)} playing</p>
     <button class="btn play" id="pResume">▶ Resume</button>${exp.noReset ? '' : '<button class="btn" id="pReset">🔄 Reset character <kbd>R</kbd></button>'}
     ${extra.map((x, i) => `<button class="btn blue" data-x="${i}">${esc(x[0])}</button>`).join('')}
+    <button class="btn" id="pAch">🏆 Achievements · ${ACH.filter((A) => A.e === exp.id && W.ach.got.has(A.id)).length} / ${ACH.filter((A) => A.e === exp.id).length}</button>
     <button class="btn" id="pSound">${window.Sfx && !Sfx.on ? '🔇 Sound: off' : '🔊 Sound: on'}</button>
     <button class="btn" id="pMeter">${Meter.shown ? '📊 FPS & ping: shown' : '📊 FPS & ping: hidden'}</button>
     <button class="btn" id="pGfx">${gfxLabel()}</button>
@@ -2112,6 +2368,7 @@ function showPause() {
   $('#pResume').onclick = () => { $('#pause').hidden = true; tryLock(); };
   if ($('#pReset')) $('#pReset').onclick = () => { $('#pause').hidden = true; die(); };
   $('#pLeave').onclick = () => leave();
+  $('#pAch').onclick = () => { $('#pause').hidden = true; openPanel('🏆 Achievements', (ACH.some((A) => A.e === exp.id) ? achGroup(exp.id) : '') + achGroup('bv')); };
   $('#pSound').onclick = () => { if (!window.Sfx) return; Sfx.toggle(); $('#pSound').textContent = Sfx.on ? '🔊 Sound: on' : '🔇 Sound: off'; };
   $('#pMeter').onclick = () => { Meter.shown = !Meter.shown; Meter.sentAt = 0; Meter.ping = null; try { localStorage.setItem('bv-meter', Meter.shown ? '1' : '0'); } catch (e) {} $('#pMeter').textContent = Meter.shown ? '📊 FPS & ping: shown' : '📊 FPS & ping: hidden'; drawMeter(); };
   if ($('#pLock')) $('#pLock').onclick = () => { $('#pause').hidden = true; setLock(!View.lock); };
@@ -2120,6 +2377,7 @@ function showPause() {
   $('#pausePanel').querySelectorAll('[data-x]').forEach((b) => (b.onclick = () => { $('#pause').hidden = true; extra[+b.dataset.x][1](); }));
 }
 $('#menuBtn').onclick = showPause;
+$('#achBtn').onclick = () => { homeView = 'ach'; sfx('open'); drawExps(); window.scrollTo(0, 0); };
 
 /* ---------------- shift lock, first person and sprinting ----------------
    Ctrl turns shift lock on and off (or Shift: the keys swap in the menu). The mouse turns the camera (the pointer is
@@ -2377,6 +2635,7 @@ document.addEventListener('click', (e) => { const b = e.target.closest('button')
 
 /* ---------------- start ---------------- */
 try { loadAvFrom(JSON.parse(localStorage.getItem('rb.av') || 'null')); } catch (e) {}
+achNum();
 drawAvatarOpts(); drawExps();
 requestAnimationFrame(frame);
 window.__rb = { P, Net, cam, camera, scene, renderer, keys, EXPS, Meter, GFX, gfxApply, softGL, View, setLock, zoomBy, lookBy, joy, sunL, sunSprite, makeAvatar, join, leave, die, respawn, parts: () => parts, exp: () => exp, me: () => me, iAmHost, crew, players, get AV() { return AV; }, W, earn, spend, roundState, openPanel, closePanel, pickPlane, myPeer, grantCosmetic, snapshot }; // for tests

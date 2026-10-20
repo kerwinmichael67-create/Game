@@ -293,6 +293,7 @@
     async enter() {
       const s = await kvGet('ca');
       this.S = Object.assign(S0(), s || {});
+      questMax('army.win', this.S.wins | 0); if ((this.S.wins | 0) + (this.S.losses | 0) > 0) questMax('army.fought', 1);
       const S = this.S, today = new Date().toISOString().slice(0, 10);
       if (S.quest.day !== today) S.quest = { day: today, wins: 0, kills: 0, caps: 0, claimed: [] };
       S.eq = (S.eq || []).filter((u) => S.units[u]).slice(0, 4); if (!S.eq.length) S.eq = [0];
@@ -1050,6 +1051,7 @@
       this.saveS();
       const coins = win ? 40 : 15;
       earn(coins, win ? 'won a battle' : 'fought a battle');
+      quest('army.fought'); questMax('army.win', S.wins); quest('army.kills', s.k || 0);
       const L = levelOf(S.xp), after = L.L;
       const tile = (e, n, v, k) => `<div class="ca-tile" style="animation-delay:${k * 80}ms"><span class="e">${e}</span><b>${v}</b><span>${n}</span></div>`;
       const html = `<div class="ca-end"><div class="ca-big ${win ? 'win' : 'lose'}">${win ? 'VICTORY' : 'DEFEAT'}</div>

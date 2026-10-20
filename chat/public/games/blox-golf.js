@@ -180,6 +180,7 @@
       sfx(d <= 0 ? 'win' : 'reward'); puffAt(this.B.x, 1, this.B.z, d <= 0 ? CONFETTI : [0xffffff, 0x4ade80], d <= 0 ? 40 : 14);
       toast(`${WORD(d, this.strokes)} ${this.strokes} stroke${this.strokes === 1 ? '' : 's'} on hole ${this.hole + 1}`, d <= 0 ? '#fde68a' : '#fff');
       earn(this.strokes === 1 ? 10 : d < 0 ? 5 : d === 0 ? 3 : 1);
+      if (d < 0) quest('golf.birdie'); if (this.strokes === 1) quest('golf.ace');
       this.nextT = setTimeout(() => this.next(), 2200);
     },
     // picked up after too many strokes
@@ -189,7 +190,7 @@
       if (this.hole + 1 < HOLES.length) { this.newHole(this.hole + 1); sfx('teleport'); toast(`Hole ${this.hole + 1}: ${HOLES[this.hole].n} (par ${HOLES[this.hole].par})`, '#fde68a'); return; }
       // the end of the round
       const total = this.cards.reduce((s, v) => s + v, 0);
-      earn(10, 'finished Mini Golf');
+      earn(10, 'finished Mini Golf'); quest('golf.round');
       if (!this.best || total < this.best) { this.best = total; kvSet('golf', { best: total }); say(`⛳ New best round: ${total} (${total - PAR >= 0 ? '+' : ''}${total - PAR})`, '#86efac'); }
       Net.chat(`⛳ finished Mini Golf in ${total} (${total - PAR >= 0 ? '+' : ''}${total - PAR})`);
       this.finished = total; this.cardPanel(true);

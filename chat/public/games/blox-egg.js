@@ -210,6 +210,7 @@
       const D = { cash: 100, eggs: [], acc: [], reb: 0, gear: {}, stolen: 0, lost: 0, bought: 0, best: 0, at: 0 };
       const S = this.S = Object.assign(D, s && typeof s === 'object' ? s : {});
       S.cash = Math.max(0, +S.cash || 0); S.reb = clamp(S.reb | 0, 0, 20); S.gear = S.gear && typeof S.gear === 'object' ? S.gear : {};
+      questMax('egg.rebirth', S.reb); questMax('egg.steal', S.stolen | 0);
       S.eggs = (Array.isArray(S.eggs) ? S.eggs : []).slice(0, SLOTS(S.reb)).map((e) => (Array.isArray(e) && EGGS[e[0]] ? [e[0] | 0, clamp(e[1] | 0, 0, 3)] : null));
       while (S.eggs.length < SLOTS(S.reb)) S.eggs.push(null);
       S.acc = S.eggs.map((_, k) => Math.max(0, +(S.acc || [])[k] || 0));
@@ -382,7 +383,7 @@
         if (S.cash < pb.price || free < 0) return;
         S.cash -= pb.price; S.eggs[free] = [pb.type, pb.mut]; S.acc[free] = 0; S.bought++; this.dirty = true;
         sfx('egg'); toast(`🥚 ${eggName(pb.type, pb.mut)}!`, RAR[EGGS[pb.type][1]].c);
-        const r = EGGS[pb.type][1]; if (r >= 3) earn([0, 0, 0, 3, 6, 15, 40][r], `bought a ${RAR[r].n.toLowerCase()} egg`);
+        const r = EGGS[pb.type][1]; if (r >= 3) earn([0, 0, 0, 3, 6, 15, 40][r], `bought a ${RAR[r].n.toLowerCase()} egg`); if (r >= 4) quest('egg.legend');
         // it hops over to your base
         const g = eggMesh(pb.type, pb.mut), [x, z] = slotPos(this.b, free); g.position.set(0, 0.4, ROAD0 + (now() - pb.i * GAP) * RSP); scene.add(g); this.flies.push({ g, from: g.position.clone(), to: new THREE.Vector3(x, 1.5, z), t: 0, slot: free });
         this.send(); this.drawBar();
@@ -474,7 +475,7 @@
         S.eggs[free] = [c.t, c.m]; S.acc[free] = 0; S.stolen++; this.dirty = true;
         this.stoList.push([c.owner, c.slot, c.n]); this.stoList = this.stoList.slice(-5);
         send({ cr: null, sto: this.stoList }); this.send();
-        sfx('win'); toast(`🥷 Stolen: ${eggName(c.t, c.m)}!`, '#86efac'); earn(5, 'stole an egg'); puffAt(P.x, P.y + 3, P.z, CONFETTI, 18); this.drawBar();
+        sfx('win'); toast(`🥷 Stolen: ${eggName(c.t, c.m)}!`, '#86efac'); earn(5, 'stole an egg'); quest('egg.steal'); puffAt(P.x, P.y + 3, P.z, CONFETTI, 18); this.drawBar();
       }
     },
     // someone's after your eggs
@@ -638,7 +639,7 @@
         <button class="xp-btn ${can ? 'gold' : 'alt'}" data-rb="1" ${can ? '' : 'disabled'} style="width:100%">${can ? 'Rebirth!' : `Need ${cash(cost - S.cash)} more`}</button>`, (b) => {
         if (!b.dataset.rb || S.cash < cost) return;
         S.reb++; S.cash = 0; S.eggs = Array(SLOTS(S.reb)).fill(null); S.acc = S.eggs.map(() => 0); this.dirty = true; this.save(); this.send(); this.drawBar();
-        closePanel(); toast(`♻️ Rebirth ${S.reb}! Earnings ×${this.mult().toFixed(1)}`, '#fde68a'); sfx('levelup'); earn(100, `rebirth ${S.reb} in Steal an Egg`);
+        closePanel(); toast(`♻️ Rebirth ${S.reb}! Earnings ×${this.mult().toFixed(1)}`, '#fde68a'); sfx('levelup'); earn(100, `rebirth ${S.reb} in Steal an Egg`); questMax('egg.rebirth', S.reb);
       }, null, { extra: `<span class="chip">♻️ ${S.reb}</span>` });
     },
     index() {

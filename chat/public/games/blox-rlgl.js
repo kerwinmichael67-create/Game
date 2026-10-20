@@ -219,7 +219,7 @@
       // the host's news: bots caught on a red light
       for (const e of (g && g.ev) || []) { if (!(e[0] > (this.evN || 0))) continue; this.evN = e[0]; if (e[1] === 'c') { const a = this.botAv.get(e[2]); if (a) puffAt(a.g.position.x, 2, a.g.position.z, [0xef4444, 0xffffff], 10); } }
       // coins when a round ends
-      if (g && g.ph === 'end' && this.coinRd !== g.rd) { this.coinRd = g.rd; const k = (g.fin || []).findIndex((f) => f[0] === mine); if (k >= 0) earn(k === 0 ? 20 : 10, k === 0 ? 'won Red Light, Green Light' : 'crossed the glass bridge'); }
+      if (g && g.ph === 'end' && this.coinRd !== g.rd) { this.coinRd = g.rd; const k = (g.fin || []).findIndex((f) => f[0] === mine); if (k >= 0) { earn(k === 0 ? 20 : 10, k === 0 ? 'won Red Light, Green Light' : 'crossed the glass bridge'); quest('rlgl.finish'); if (k === 0) quest('rlgl.win'); } }
       this.drawBots(g, dt);
       // the banner
       const left = g ? Math.ceil(g.left) : 0;

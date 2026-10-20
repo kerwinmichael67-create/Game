@@ -630,6 +630,7 @@
       S.w = (Array.isArray(S.w) ? S.w : []).filter((w) => WP[w]); if (!S.w.includes('fists')) S.w.unshift('fists');
       S.slot = Object.assign({ m: 'fists', s: '', p: '' }, S.slot || {}); for (const k of ['m', 's', 'p']) if (S.slot[k] && (!S.w.includes(S.slot[k]) || WP[S.slot[k]].slot !== k)) S.slot[k] = k === 'm' ? 'fists' : '';
       if (!S.slot[S.cur]) S.cur = 'm';
+      questMax('zombie.kill', S.kills | 0); questMax('zombie.night', S.nights | 0);
       S.ammo = Object.assign({ light: 0, shells: 0, rifle: 0 }, S.ammo || {}); S.it = Object.assign({ bandage: 0, medkit: 0, beans: 0, chips: 0, soda: 0, energy: 0, grenade: 0 }, S.it || {}); S.mag = Object.assign({}, S.mag || {});
       for (const k of ['cash', 'xp', 'kills', 'nights', 'best']) S[k] = Math.max(0, Math.floor(+S[k] || 0));
       S.lvl = clamp(S.lvl | 0, 1, 99); S.hp = clamp(+S.hp || 100, 40, 100); S.food = clamp(+S.food || 80, 30, 100);
@@ -850,12 +851,12 @@
         if (this.killSeen.size > 300) this.killSeen = new Set([...this.killSeen].slice(-150));
         const T = ZT[k[2]]; if (!T) continue;
         if (k[1] === myPeer()) this.reward(k[0], k[2]);
-        else if (T.boss && this.bossHit.has(k[0])) { this.gain(T.xp / 2, T.cash / 2); earn(25, 'helped take down the Abomination'); toast('🏆 The Abomination is down!', '#fde047'); }
+        else if (T.boss && this.bossHit.has(k[0])) { this.gain(T.xp / 2, T.cash / 2); earn(25, 'helped take down the Abomination'); quest('zombie.boss'); toast('🏆 The Abomination is down!', '#fde047'); }
       }
     },
     reward(id, t) {
       const T = ZT[t], S = this.S, melee = this.lastHit.get(id) === 'm';
-      S.kills++; this.gain(T.xp, T.cash);
+      S.kills++; this.gain(T.xp, T.cash); questMax('zombie.kill', S.kills); if (T.boss) quest('zombie.boss');
       this.prog('kill', 1); if (t >= 1 && t <= 3) this.prog('kill' + t, 1); if (melee) this.prog('melee', 1);
       if (T.boss) { earn(60, 'defeated the Abomination'); toast('🏆 You defeated the Abomination!', '#fde047'); sfx('win'); }
       else if (S.kills % 25 === 0) earn(5, `${S.kills} zombies`);
@@ -1228,7 +1229,7 @@
       if (this.nightWas !== null && this.nightWas !== ck.night) {
         if (ck.night) { toast(ck.blood ? '🩸 Blood Moon! A boss is coming…' : '🌙 Night falls — they’re faster now', ck.blood ? '#fca5a5' : '#c7d2fe'); sfx(ck.blood ? 'thunder' : 'horn'); this.nightDied = false; this.nightOut = 0; }
         else {
-          if (!this.nightDied) { const S = this.S; S.nights++; this.gain(60, 120); earn(15, 'survived the night'); toast('☀️ You survived the night!', '#fde68a'); sfx('win'); if (this.nightOut > DAY * (1 - DUSK) * 0.5) this.prog('night', 1); }
+          if (!this.nightDied) { const S = this.S; S.nights++; questMax('zombie.night', S.nights); this.gain(60, 120); earn(15, 'survived the night'); toast('☀️ You survived the night!', '#fde68a'); sfx('win'); if (this.nightOut > DAY * (1 - DUSK) * 0.5) this.prog('night', 1); }
         }
       }
       this.nightWas = ck.night;

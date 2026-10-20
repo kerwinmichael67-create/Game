@@ -214,6 +214,7 @@
       if (!S.pets.length) S.pets = [[0, 0], [1, 0]];
       S.up = Object.assign({ slots: 0, dmg: 0, coin: 0, speed: 0, luck: 0, triple: 0 }, S.up || {});
       S.z = clamp(S.z | 0 || 1, 1, ZONES.length); S.c = Math.max(0, +S.c || 0); S.g = Math.max(0, +S.g || 0);
+      questMax('pets.zone', S.z - 1);
       S.eq = (Array.isArray(S.eq) ? S.eq : []).filter((i) => S.pets[i]).slice(0, this.slots());
       this.myPets = []; this.others = new Map(); this.target = null; this.auto = S.auto !== false; this.dirty = false;
       for (const gt of this.gates) if (gt.k < S.z) this.openGate(gt, true);
@@ -435,6 +436,7 @@
       $('#xhud').append(el); this.hatchEl = el;
       sfx('magic');
       const best = Math.max(...got.map(rarOf));
+      quest('pets.hatch', got.length); if (best >= 4) quest('pets.legend');
       clearTimeout(this.hatchT);
       this.hatchT = setTimeout(() => {
         if (this.hatchEl !== el) return;
@@ -530,7 +532,7 @@
     unlock(k) {
       const S = this.S, Z = ZONES[k];
       if (k !== S.z || S.c < Z.cost) { sfx('error'); toast(`You need ${short(Z.cost)} coins`, '#fca5a5'); return; }
-      S.c -= Z.cost; S.z = k + 1; this.dirty = true; this.save();
+      S.c -= Z.cost; S.z = k + 1; this.dirty = true; this.save(); questMax('pets.zone', S.z - 1);
       const gt = this.gates.find((g) => g.k === k); if (gt) this.openGate(gt);
       sfx('unlock'); puffAt(0, 4, ZC(k) + 37.5, CONFETTI, 50); toast(`${Z.e} ${Z.n} unlocked!`, '#86efac');
       earn(20, `unlocked ${Z.n}`); Net.chat(`🔓 unlocked ${Z.n}!`);
