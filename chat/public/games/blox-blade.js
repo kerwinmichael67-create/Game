@@ -25,6 +25,7 @@
     color: 'linear-gradient(135deg,#ef4444,#1e1b4b)',
     desc: 'A glowing ball hunts one player at a time. Parry it (F or click) just before it hits and it flies at someone else, faster every time. Miss and you’re out — the last one standing wins. Bots join in when there aren’t enough players.',
     welcome: 'When the ball turns red and comes for you, press F (or click) to parry!',
+    welcomeTouch: 'When the ball turns red and comes for you, tap ⚔️ Parry!',
     build() {
       sky('#1e1b4b', '#7c3aed');
       // the arena: a floor, glass walls, a ring in the middle
@@ -222,7 +223,7 @@
       if (!g) setBanner('Getting the round…');
       else if (g.ph === 'wait') setBanner('Waiting for players…');
       else if (g.ph === 'count') setBanner(`Next round in ${Math.ceil(g.left)}…`);
-      else if (g.ph === 'play') setBanner(!alive ? `👀 You’re out — ${left} left · ball speed ${speed}` : tg === mine ? `🔴 THE BALL IS COMING FOR YOU — press F to parry! · speed ${speed}` : `⚔️ ${left} left · ball speed ${speed}${tg ? ` · after ${esc(this.nameOfId(tg))}` : ''}`);
+      else if (g.ph === 'play') setBanner(!alive ? `👀 You’re out — ${left} left · ball speed ${speed}` : tg === mine ? `🔴 THE BALL IS COMING FOR YOU — ${touchy ? 'tap ⚔️ Parry' : 'press F'}! · speed ${speed}` : `⚔️ ${left} left · ball speed ${speed}${tg ? ` · after ${esc(this.nameOfId(tg))}` : ''}`);
       else setBanner(`🏆 ${esc(g.w || 'Nobody')} wins!`);
     },
     nameOfId(id) { if (this.isBot(id)) { const b = ((this.g && this.g.bots) || []).find((b) => b[0] === id); return b ? b[3] : 'a bot'; } return nameOf(id); },

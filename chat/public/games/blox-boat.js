@@ -97,7 +97,7 @@
       if (this.pl < 0) this.pl = 0;
       send({ pl: this.pl });
     },
-    spawn() { return [PLOTS[this.pl == null ? 0 : this.pl], DOCK + 0.6, PZ + 9.5, 0]; },
+    spawn() { const x = PLOTS[this.pl == null ? 0 : this.pl]; return [x, DOCK + 0.6, PZ + 9.5, Math.atan2(x, PZ + 50)]; }, // (facing down the river, not into the canyon wall)
     count() { return this.design.length; },
 
     /* ---- building ---- */
@@ -169,7 +169,7 @@
     drawBar() {
       const S = this.S;
       if (this.sail) {
-        setBar(`<button class="xslot" data-k="home" title="Back to your plot (L)"><span class="k">L</span><span class="e">🏠</span>Return</button>${this.seated ? '<button class="xslot info"><b>💺</b>A/D steer · W go<br>Space to stand</button>' : '<button class="xslot" data-k="sit"><span class="e">💺</span>Sit (E)</button>'}`, (b) => {
+        setBar(`<button class="xslot" data-k="home" title="Back to your plot (L)"><span class="k">L</span><span class="e">🏠</span>Return</button>${this.seated ? `<button class="xslot info"><b>💺</b>${touchy ? 'Stick to steer<br>Jump to stand' : 'A/D steer · W go<br>Space to stand'}</button>` : `<button class="xslot" data-k="sit"><span class="e">💺</span>${touchy ? 'Sit' : 'Sit (E)'}</button>`}`, (b) => {
           if (b.dataset.k === 'home') this.endRun('🏠 Back to your plot');
           if (b.dataset.k === 'sit') this.sit();
         });
@@ -202,7 +202,7 @@
     /* ---- sailing ---- */
     launch() {
       if (this.sail) return;
-      if (!this.design.length) { toast('Build a boat first! Click your plot to place blocks.', '#fca5a5'); sfx('error'); return; }
+      if (!this.design.length) { toast(`Build a boat first! ${touchy ? 'Tap' : 'Click'} your plot to place blocks.`, '#fca5a5'); sfx('error'); return; }
       closePanel();
       const kmin = Math.min(...this.design.map((b) => b.k));
       const B = { x: clamp(PLOTS[this.pl], -18, 18), y: -1, z: -8, vx: 0, vy: 0, vz: 0, blocks: [], best: 0, inWater: false, gold: 0 };
@@ -421,9 +421,9 @@
       const B = this.sail;
       if (B) {
         const alive = B.blocks.filter((b) => b.alive).length, s = stageAt(B.z);
-        return `⛵ Stage <b>${s + 1}/10</b> · ${STAGES[s]} · 🧱 ${alive}/${B.blocks.length} · 💰 +${B.gold}${this.seated ? '' : ' · <span style="color:#fde68a">Press E at your seat to steer</span>'}`;
+        return `⛵ Stage <b>${s + 1}/10</b> · ${STAGES[s]} · 🧱 ${alive}/${B.blocks.length} · 💰 +${B.gold}${this.seated ? '' : ` · <span style="color:#fde68a">${touchy ? 'Tap 💺 Sit' : 'Press E at your seat'} to steer</span>`}`;
       }
-      return `💰 <b>${this.S.gold}</b> gold · 🧱 ${this.design.length} blocks · ${this.del ? '🔨 Click blocks to remove' : `${BLK[this.sel].e} Click your plot to build`} · best ${this.S.best >= 10 ? '🏆' : `stage ${(this.S.best | 0) + 1}`}`;
+      return `💰 <b>${this.S.gold}</b> gold · 🧱 ${this.design.length} blocks · ${this.del ? `🔨 ${touchy ? 'Tap' : 'Click'} blocks to remove` : `${BLK[this.sel].e} ${touchy ? 'Tap' : 'Click'} your plot to build`} · best ${this.S.best >= 10 ? '🏆' : `stage ${(this.S.best | 0) + 1}`}`;
     },
   };
   addExp(BB);

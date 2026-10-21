@@ -75,7 +75,7 @@
       part({ x: CAGE[0], y: 8.3, z: CAGE[1], sx: 11, sy: 0.6, sz: 11, c: 0x334155 });
       this.door = part({ x: CAGE[0] - 5, y: 4, z: CAGE[1], sx: 1, sy: 8, sz: 9, c: 0x94a3b8 });
       const lb = label('🙈 SEEKER', { size: 1.6, color: '#fca5a5' }); lb.position.set(CAGE[0], 10.5, CAGE[1]); place.add(lb);
-      const sg = label('🙈 HIDE AND SEEK', { size: 3.4, color: '#fde68a' }); sg.position.set(0, 16, 30); place.add(sg);
+      const sg = label('🙈 HIDE AND SEEK', { size: 3.4, color: '#fde68a' }); sg.position.set(0, 11.5, 30); place.add(sg);
     },
     // a wardrobe: three sides and a top, and doors you can walk through (to hide inside)
     wardrobe(x, z, open) {

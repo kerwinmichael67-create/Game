@@ -3,8 +3,9 @@
    Murderer (a knife: stab, or throw it), one the Sheriff (a gun), the
    rest Innocent. Innocents hide, collect coins and pick up the gun if
    the sheriff falls. The sheriff shoots the murderer to win, but shoot
-   an innocent and you're both out. Needs 2 or more players.
-   The host runs the round and checks every stab and shot.
+   an innocent and you're both out. With only one or two people here,
+   bots make up the numbers. The host runs the round, the bots, and
+   checks every stab and shot.
    ===================================================================== */
 (() => {
   const style = document.createElement('style');
@@ -19,8 +20,8 @@
   document.head.append(style);
 
   const ROLE = {
-    m: { n: 'MURDERER', e: '🔪', c: '#ef4444', d: 'Eliminate everyone without getting shot. Click to stab someone close; F (or right-click) throws your knife.' },
-    s: { n: 'SHERIFF', e: '🔫', c: '#3b82f6', d: 'Find the murderer and shoot them (click where to shoot, or F). Shoot an innocent and you’re both out!' },
+    m: { n: 'MURDERER', e: '🔪', c: '#ef4444', d: 'Eliminate everyone without getting shot. Click to stab someone close; F (or right-click) throws your knife.', dt: 'Eliminate everyone without getting shot. Tap to stab someone close; 🎯 Throw throws your knife.' },
+    s: { n: 'SHERIFF', e: '🔫', c: '#3b82f6', d: 'Find the murderer and shoot them (click where to shoot, or F). Shoot an innocent and you’re both out!', dt: 'Find the murderer and shoot them (tap where to shoot, or 💥 Shoot). Shoot an innocent and you’re both out!' },
     i: { n: 'INNOCENT', e: '😇', c: '#22c55e', d: 'Stay alive, collect coins, and watch for the knife. If the sheriff falls, grab their gun!' },
   };
   const ROUND = 180, KNIFE_CD = 3, GUN_CD = 2, STAB = 6.5, NCOINS = 24;
@@ -33,8 +34,8 @@
     id: 'murder', code: 'mm', genre: 'Mystery', rank: 0.12, name: 'Murder Mystery', emoji: '🔪', max: 12, stat: 'Wins', killY: -30, banner: true, camDist: 18, respawnDelay: 3000, noReset: true,
     land: { theme: 'night', fence: 'stone', fences: [[-46, -36, 46, 36]], under: [[-46, -36, 46, 36]], extras: ['graves', 'pumpkins'] },
     color: 'linear-gradient(135deg,#7f1d1d,#1e293b)',
-    desc: 'Each round one player is secretly the Murderer, one the Sheriff, and everyone else is Innocent. Innocents hide and collect coins; the sheriff has to find and shoot the murderer (but shoot an innocent and you’re both out); the murderer has to get everyone. Needs 2 or more players.',
-    welcome: 'A round starts when 2 or more players are here. Who’s the murderer?',
+    desc: 'Each round one player is secretly the Murderer, one the Sheriff, and everyone else is Innocent. Innocents hide and collect coins; the sheriff has to find and shoot the murderer (but shoot an innocent and you’re both out); the murderer has to get everyone. With only one or two of you, 🤖 bots join in.',
+    welcome: 'Who’s the murderer? Watch for the knife…',
     build() {
       sky('#334155', '#94a3b8');
       this.walls = [];
@@ -81,13 +82,23 @@
       this.coinSpots = [];
       const r = mulberry(4242);
       for (let i = 0; i < 80; i++) { const x = (r() - 0.5) * 86, z = (r() - 0.5) * 66; if (groundBelow(x, 3, z) < 0.2) this.coinSpots.push([+x.toFixed(1), +z.toFixed(1)]); }
+      // for the bots: a grid of where you can walk on the mansion floor, and what blocks the view at chest height
+      const boxes = parts.filter((p) => p.solid).map(boxOf), NX = 62, NZ = 48, CS = 1.5, grid = new Uint8Array(NX * NZ);
+      for (let j = 0; j < NZ; j++) for (let i = 0; i < NX; i++) {
+        const x = -46 + (i + 0.5) * CS, z = -36 + (j + 0.5) * CS;
+        grid[j * NX + i] = boxes.some((b) => b[4] > 0.9 && b[1] < 3 && x > b[0] - 1 && x < b[3] + 1 && z > b[2] - 1 && z < b[5] + 1) ? 1 : 0;
+      }
+      this.nav = { NX, NZ, CS, grid, free: [] };
+      for (let k = 0; k < NX * NZ; k++) if (!grid[k]) this.nav.free.push(k);
+      this.tall = boxes.filter((b) => b[1] < 3 && b[4] > 3 && b[1] > -1);
     },
     pres() { return { mk: 0, hd: '' }; },
     enter() {
-      this.H = null; this.lastG = null; this.gSeen = null; this.rd = 0; this.evN = null; this.mk = 0; this.cd = 0; this.hd = ''; this.held = new Map(); this.coinM = []; this.fx = []; this.gunM = null; this.seenMk = new Map(); this.tc = {};
+      this.H = null; this.lastG = null; this.gSeen = null; this.rd = 0; this.evN = null; this.mk = 0; this.cd = 0; this.hd = ''; this.held = new Map(); this.coinM = []; this.fx = []; this.gunM = null; this.seenMk = new Map(); this.tc = {}; this.T = {}; this.botAv = new Map();
       this.drawBar();
     },
     leave() {
+      for (const a of this.botAv.values()) dropAvatar(a); this.botAv = new Map();
       for (const c of this.coinM) scene.remove(c);
       this.coinM = [];
       for (const f of this.fx) scene.remove(f.m);
@@ -108,25 +119,29 @@
     adopt() {
       const g = this.lastG;
       this.evSeq = Math.max(this.evSeq || 0, ...((g && g.ev) || []).map((e) => e[0]));
-      return g ? JSON.parse(JSON.stringify(g)) : { ph: 'wait', left: 0, rd: 0, roles: {}, al: [], order: [], gun: null, gd: null, cg: [], cc: {}, sc: {}, w: '', gs: 0, ev: [] };
+      return g ? JSON.parse(JSON.stringify(g)) : { ph: 'wait', left: 0, rd: 0, roles: {}, al: [], order: [], gun: null, gd: null, cg: [], cc: {}, sc: {}, w: '', gs: 0, ev: [], bots: [], bp: [] };
     },
 
     /* ---- the host: rounds, and checking every stab and shot ---- */
     host(dt) {
-      const H = this.H, pl = players(), n = pl.length;
+      const H = this.H, humans = players(), n = humans.length;
+      if (!H.bp) { H.bots = []; H.bp = []; }
+      if (!this.T) this.T = {};
       H.left = Math.max(0, H.left - dt);
-      if (H.ph === 'wait') { if (n >= 2) { H.ph = 'count'; H.left = 10; } }
-      else if (H.ph === 'count') { if (n < 2) H.ph = 'wait'; else if (H.left <= 0) this.startRound(pl); }
+      if (H.ph === 'wait') { if (n >= 1) { H.ph = 'count'; H.left = 10; } }
+      else if (H.ph === 'count') { if (n < 1) H.ph = 'wait'; else if (H.left <= 0) this.startRound(humans); }
       else if (H.ph === 'play') {
-        H.al = H.al.filter((id) => pl.some((p) => p.peer === id)); // left the server: out
+        H.al = H.al.filter((id) => this.isBot(id) || humans.some((p) => p.peer === id)); // left the server: out
+        let pl = this.everyone(humans);
         if (H.gun && !H.al.includes(H.gun)) this.dropGun(H.gun, pl);
-        for (const p of pl) {
+        for (const p of humans) {
           if (p.me) continue;
           const mk = p.pr && Array.isArray(p.pr.mk) ? p.pr.mk : null;
           if (!mk || mk[0] === this.seenMk.get(p.peer)) continue;
           this.seenMk.set(p.peer, mk[0]);
           this.act(p.peer, mk[1], mk[2], [+mk[3] || 0, +mk[4] || 0], pl);
         }
+        if (H.ph === 'play') { this.moveBots(dt, pl); pl = this.everyone(humans); }
         // coins and the dropped gun get picked up by walking over them
         for (const p of pl) {
           if (!H.al.includes(p.peer)) continue;
@@ -135,15 +150,24 @@
         }
         this.checkWin();
         if (H.ph === 'play' && H.left <= 0) this.endRound('i', null);
-      } else if (H.ph === 'end' && H.left <= 0) { H.ph = n >= 2 ? 'count' : 'wait'; H.left = 10; }
-      if (performance.now() - (this.sentAt || 0) > 150) { this.sentAt = performance.now(); hostSend(this); }
+      } else if (H.ph === 'end' && H.left <= 0) { H.ph = n >= 1 ? 'count' : 'wait'; H.left = 10; H.bots = []; H.bp = []; }
+      if (performance.now() - (this.sentAt || 0) > (H.bp.length ? 120 : 150)) { this.sentAt = performance.now(); hostSend(this, { bp: H.bp.map((b) => [b[0], +b[1].toFixed(1), +b[2].toFixed(1), b[3], b[4]]) }); }
     },
+    isBot: (id) => typeof id === 'string' && id.startsWith('bot:'),
+    nameOfId(id, g) { if (this.isBot(id)) { const b = ((g || this.g || {}).bots || []).find((b) => b[0] === id); return b ? '🤖 ' + b[1] : 'a bot'; } return nameOf(id); },
+    // the people here and the bots still in the round, with where they are
+    everyone(humans) { const H = this.H; return humans.concat(H.bp.filter((b) => H.al.includes(b[0])).map((b) => ({ peer: b[0], x: b[1], y: 0, z: b[2], bot: true, hd: b[4] }))); },
     ev(e) { const H = this.H; this.evSeq = (this.evSeq || 0) + 1; H.ev = (H.ev || []).concat([[this.evSeq].concat(e)]).slice(-8); },
     startRound(pl) {
-      const H = this.H, ids = pl.map((p) => p.peer).sort(() => Math.random() - 0.5);
+      // one or two people: bots make it four (and they get roles like anyone)
+      const H = this.H, n = pl.length, nb = n >= 3 ? 0 : 4 - n, rd = (H.rd | 0) + 1, names = ['Sam', 'Pip', 'Max', 'Ivy', 'Rex', 'Lou'];
+      H.bots = []; H.bp = []; this.T = {};
+      for (let i = 0; i < nb; i++) H.bots.push([`bot:${rd}:${i}`, names[(i + rd) % names.length], Math.floor(Math.random() * 1e6)]);
+      const ids = pl.map((p) => p.peer).concat(H.bots.map((b) => b[0])).sort(() => Math.random() - 0.5);
       H.ph = 'play'; H.left = ROUND; H.rd = (H.rd | 0) + 1; H.w = ''; H.hero = null;
       H.roles = {}; ids.forEach((id, i) => (H.roles[id] = i === 0 ? 'm' : i === 1 ? 's' : 'i'));
       H.al = ids.slice(); H.order = ids.slice().sort(); H.gun = ids[1]; H.gd = null; H.cc = {}; H.cg = [];
+      for (const [id] of H.bots) { const s = this.spawns[(H.order.indexOf(id) + H.rd * 5) % this.spawns.length]; H.bp.push([id, s[0], s[1], 0, '']); }
       const r = mulberry(H.rd * 977 + 13), spots = this.coinSpots.slice();
       H.coins = [];
       for (let i = 0; i < NCOINS && spots.length; i++) H.coins.push(spots.splice(Math.floor(r() * spots.length), 1)[0]);
@@ -174,6 +198,7 @@
       if (!H.al.includes(victim)) return;
       H.al = H.al.filter((x) => x !== victim);
       this.ev(['k', victim, by, how]);
+      if (H.roles[by] === 'm' && how !== 'oops') { const k = pl.find((p) => p.peer === by); if (k) for (const b of H.bp) if (b[0] !== by && H.al.includes(b[0]) && Math.hypot(b[1] - k.x, b[2] - k.z) < 40 && this.see(b[1], b[2], k.x, k.z)) (this.T[b[0]] || (this.T[b[0]] = {})).knows = by; }
       if (H.gun === victim) this.dropGun(victim, pl);
     },
     dropGun(peer, pl) {
@@ -196,6 +221,119 @@
       H.winners = winners;
     },
 
+    /* ---- the bots (run by the host) ---- */
+    // can a bot at (x0, z0) see (x1, z1)? (walls and tall things block it)
+    see(x0, z0, x1, z1) {
+      const n = Math.ceil(Math.hypot(x1 - x0, z1 - z0));
+      for (let k = 1; k < n; k++) { const x = x0 + ((x1 - x0) * k) / n, z = z0 + ((z1 - z0) * k) / n; for (const b of this.tall) if (x > b[0] && x < b[3] && z > b[2] && z < b[5]) return false; }
+      return true;
+    },
+    cell(x, z) { const N = this.nav; return [clamp(Math.floor((x + 46) / N.CS), 0, N.NX - 1), clamp(Math.floor((z + 36) / N.CS), 0, N.NZ - 1)]; },
+    // the way from one place to another, round walls and furniture (a search over the grid, then straightened out)
+    route(x0, z0, x1, z1) {
+      const N = this.nav, { NX, NZ, CS, grid } = N, key = (c) => c[1] * NX + c[0], mid = (k) => [-46 + ((k % NX) + 0.5) * CS, -36 + (Math.floor(k / NX) + 0.5) * CS];
+      const a = key(this.cell(x0, z0)), gc = this.cell(x1, z1);
+      let goal = key(gc);
+      if (grid[goal]) { // (right by a wall or furniture: the nearest square you can stand on)
+        let best = -1, bd = 1e9;
+        for (let dj = -2; dj <= 2; dj++) for (let di = -2; di <= 2; di++) { const i = gc[0] + di, j = gc[1] + dj; if (i < 0 || j < 0 || i >= NX || j >= NZ || grid[j * NX + i]) continue; if (di * di + dj * dj < bd) { bd = di * di + dj * dj; best = j * NX + i; } }
+        if (best < 0) return null; goal = best; [x1, z1] = mid(best);
+      }
+      const prev = new Int32Array(NX * NZ).fill(-1), q = [a]; prev[a] = a;
+      for (let h = 0; h < q.length && prev[goal] < 0; h++) {
+        const k = q[h], i = k % NX, j = Math.floor(k / NX);
+        for (const [di, dj] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]]) {
+          const ni = i + di, nj = j + dj; if (ni < 0 || nj < 0 || ni >= NX || nj >= NZ) continue;
+          const nk = nj * NX + ni; if (prev[nk] >= 0 || grid[nk] || (di && dj && (grid[j * NX + ni] || grid[nj * NX + i]))) continue;
+          prev[nk] = k; q.push(nk);
+        }
+      }
+      if (prev[goal] < 0) return null;
+      const cells = []; for (let k = goal; k !== a; k = prev[k]) cells.push(k); cells.reverse();
+      const pts = cells.map(mid); pts.push([x1, z1]);
+      // straighten: skip ahead to the furthest point there's a clear walk to
+      const out = []; let from = [x0, z0];
+      for (let i = 0; i < pts.length;) { let j = pts.length - 1; while (j > i && !this.walkable(from, pts[j])) j--; out.push(pts[j]); from = pts[j]; i = j + 1; }
+      return out;
+    },
+    walkable(a, b) { const n = Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / 0.7); for (let k = 1; k <= n; k++) { const c = this.cell(a[0] + ((b[0] - a[0]) * k) / n, a[1] + ((b[1] - a[1]) * k) / n); if (this.nav.grid[c[1] * this.nav.NX + c[0]]) return false; } return true; },
+    anywhere() { const N = this.nav, k = N.free[Math.floor(Math.random() * N.free.length)]; return [-46 + ((k % N.NX) + 0.5) * N.CS, -36 + (Math.floor(k / N.NX) + 0.5) * N.CS]; },
+    moveBots(dt, all) {
+      const H = this.H, el = ROUND - H.left, m = Object.keys(H.roles).find((id) => H.roles[id] === 'm');
+      for (const b of H.bp) {
+        const id = b[0]; if (!H.al.includes(id)) continue;
+        const t = this.T[id] || (this.T[id] = {}), role = H.roles[id], x = b[1], z = b[2];
+        t.look = (t.look || 0) - dt; t.cd = (t.cd == null ? 2 : t.cd) - dt; t.re = (t.re || 0) - dt;
+        const others = all.filter((p) => p.peer !== id && H.al.includes(p.peer) && p.y < 6), dist = (p) => Math.hypot(p.x - x, p.z - z);
+        // anyone with the knife out, in sight: that's the murderer
+        if (role !== 'm' && t.look <= 0) { const k = others.find((p) => p.peer === m && (p.bot ? p.hd === 'k' : p.pr && p.pr.hd === 'k') && dist(p) < 35 && this.see(x, z, p.x, p.z)); if (k) t.knows = m; }
+        let goal = null, sp = 8, hd = '';
+        if (role === 'm') {
+          // the murderer: a quiet start, then after whoever's nearest in sight; stabs up close, sometimes throws
+          if (el > 15) {
+            if (t.look <= 0) { let best = null, bd = 30; for (const p of others) { const d = dist(p); if (d < bd && this.see(x, z, p.x, p.z)) { bd = d; best = p.peer; } } t.prey = best; }
+            const pr = others.find((p) => p.peer === t.prey);
+            if (pr) {
+              const d = dist(pr); goal = [pr.x, pr.z]; sp = 13; hd = d < 16 ? 'k' : '';
+              if (t.cd <= 0 && d < 3.6) { t.cd = 5; this.act(id, 's', pr.peer, [pr.x, pr.z], all); t.prey = null; } // (then a breather before the next one)
+              else if (t.cd <= 0 && d > 8 && d < 26 && Math.random() < dt * 0.2 && this.see(x, z, pr.x, pr.z)) {
+                t.cd = KNIFE_CD + 3; hd = 'k'; const hit = Math.random() < 0.5;
+                this.act(id, 't', hit ? pr.peer : null, hit ? [pr.x, pr.z] : [pr.x + (Math.random() - 0.5) * 8, pr.z + (Math.random() - 0.5) * 8], all);
+              }
+            }
+          }
+        } else if (H.gun === id) {
+          // the sheriff (or whoever picked up the gun): once it knows who the murderer is, it goes after them
+          const k = t.knows && others.find((p) => p.peer === t.knows);
+          if (k) {
+            const d = dist(k), sees = d < 45 && this.see(x, z, k.x, k.z); hd = 'g';
+            goal = d > 16 || !sees ? [k.x, k.z] : null; sp = 12;
+            if (sees && t.re <= 0 && t.cd <= 0) {
+              t.cd = GUN_CD + 0.8; const hit = Math.random() < 0.6;
+              this.act(id, 'g', hit ? k.peer : null, hit ? [k.x, k.z] : [k.x + (Math.random() - 0.5) * 6, k.z + (Math.random() - 0.5) * 6], all);
+            } else if (!sees) t.re = 0.7; // (a moment to aim once it can see them)
+          }
+        }
+        if (!goal && role !== 'm' && !(H.gun === id && t.knows)) {
+          const k = t.knows && others.find((p) => p.peer === t.knows);
+          if (k && dist(k) < 20) { // run from the murderer
+            if (!t.away || t.re <= 0) { let best = null, bd = -1; for (let i = 0; i < 6; i++) { const c = this.anywhere(), d = Math.hypot(c[0] - k.x, c[1] - k.z); if (d > bd) { bd = d; best = c; } } t.away = best; t.re = 2; }
+            goal = t.away; sp = 13;
+          } else if (H.gd) { goal = H.gd; sp = 12; } // the dropped gun!
+          else {
+            let best = null, bd = 22; (H.coins || []).forEach((c, i) => { if (H.cg.includes(i)) return; const d = Math.hypot(c[0] - x, c[1] - z); if (d < bd) { bd = d; best = c; } });
+            goal = best;
+          }
+        }
+        if (!goal) { if (!t.wander || Math.hypot(t.wander[0] - x, t.wander[1] - z) < 1.5 || (t.wt = (t.wt || 0) - dt) < 0) { t.wander = this.anywhere(); t.wt = 9; } goal = t.wander; }
+        if (t.look <= 0) t.look = 0.3;
+        b[3] = this.walk(b, t, goal, sp, dt) ? 1 : 0; b[4] = hd;
+      }
+    },
+    walk(b, t, goal, sp, dt) {
+      const gk = Math.round(goal[0] / 3) + ',' + Math.round(goal[1] / 3);
+      t.rt = (t.rt || 0) - dt;
+      if (t.gk !== gk || t.rt <= 0 || !t.path) { t.path = this.route(b[1], b[2], goal[0], goal[1]); t.gk = gk; t.rt = 0.8; if (!t.path) { t.wander = null; return false; } }
+      const w = t.path[0]; if (!w) return false;
+      const dx = w[0] - b[1], dz = w[1] - b[2], d = Math.hypot(dx, dz), s = Math.min(d, sp * dt);
+      if (d > 0.01) { b[1] += (dx / d) * s; b[2] += (dz / d) * s; }
+      if (d < 0.4) t.path.shift();
+      return d > 0.05;
+    },
+    drawBots(g, dt) {
+      const want = new Map(g && g.ph === 'play' ? (g.bp || []).filter((b) => (g.al || []).includes(b[0])).map((b) => [b[0], b]) : []);
+      for (const [id, a] of this.botAv) if (!want.has(id)) { if (g && g.ph === 'play') puffAt(a.g.position.x, 3, a.g.position.z, [0x991b1b, 0xffffff], 12); dropAvatar(a); this.botAv.delete(id); const h = this.held.get(id); if (h && h.m && h.m.parent) h.m.parent.remove(h.m); this.held.delete(id); }
+      for (const [id, b] of want) {
+        let a = this.botAv.get(id);
+        const info = (g.bots || []).find((x) => x[0] === id) || [id, 'Bot', 1];
+        if (!a) { const r = mulberry(info[2] | 0), av = okAv([Math.floor(r() * 6), Math.floor(r() * 10), Math.floor(r() * 8), Math.floor(r() * 12), Math.floor(r() * 9), 0, 0, Math.floor(r() * 7), 0]); a = makeAvatar(av, '🤖 ' + info[1], false); a.g.position.set(b[1], 0.02, b[2]); scene.add(a.g); this.botAv.set(id, a); }
+        const p = a.g.position, k = Math.min(1, dt * 10), dx = b[1] - p.x, dz = b[2] - p.z;
+        if (Math.hypot(dx, dz) > 25) p.set(b[1], 0.02, b[2]); else { p.x += dx * k; p.z += dz * k; }
+        if (Math.hypot(dx, dz) > 0.05) a.g.rotation.y = Math.atan2(-dx, -dz);
+        animateAvatar(a, dt, b[3] === 1, false); placeShadow(a);
+      }
+    },
+
     /* ---- you: stabbing, throwing, shooting ---- */
     myRole() { const g = this.g; return g && g.ph === 'play' && g.roles ? g.roles[myPeer()] : null; },
     alive() { const g = this.g; return !!(g && g.ph === 'play' && (g.al || []).includes(myPeer())); },
@@ -204,6 +342,7 @@
     targets() {
       const g = this.g, out = [];
       for (const [peer, a] of Net.avatars) if ((g.al || []).includes(peer) && !a.dead) out.push({ peer, x: a.g.position.x, y: a.g.position.y, z: a.g.position.z });
+      for (const [id, a] of this.botAv) if ((g.al || []).includes(id)) out.push({ peer: id, x: a.g.position.x, y: a.g.position.y, z: a.g.position.z });
       return out;
     },
     // nothing solid in the way at chest height?
@@ -227,7 +366,7 @@
     report(kind, victim, at) {
       this.mk++;
       send({ mk: [this.mk, kind, victim || 0, +at.x.toFixed(1), +at.z.toFixed(1)] });
-      if (this.H) this.act(myPeer(), kind, victim, [+at.x.toFixed(1), +at.z.toFixed(1)], players()); // the host's own go straight in
+      if (this.H) this.act(myPeer(), kind, victim, [+at.x.toFixed(1), +at.z.toFixed(1)], this.everyone(players())); // the host's own go straight in
     },
     stab() {
       if (this.cd > 0) return;
@@ -254,7 +393,7 @@
     // which way: towards what you clicked (a person, or a spot on the floor), or the way the camera faces
     aimAt(e) {
       if (e) {
-        const meshes = []; for (const [, a] of Net.avatars) meshes.push(a.g);
+        const meshes = []; for (const [, a] of Net.avatars) meshes.push(a.g); for (const [, a] of this.botAv) meshes.push(a.g);
         const hit = pickObjects(e.x, e.y, meshes);
         const at = hit ? hit.point : pickPlane(e.x, e.y, P.y + 2);
         if (at) { const dx = at.x - P.x, dz = at.z - P.z; if (Math.hypot(dx, dz) > 0.5) return { x: dx, z: dz }; }
@@ -320,13 +459,14 @@
           const how = e[4];
           if (e[2] === mine) toast(how === 'oops' ? '😬 You shot an innocent — you’re out too!' : how === 'g' ? '💥 You were shot!' : '🔪 The murderer got you!', '#fca5a5');
           else if (e[3] === mine && how !== 'oops') toast(how === 'g' ? '🎯 Got them!' : '🔪 Got one!', '#fde68a');
-          const a = Net.avatars.get(e[2]); if (a) puffAt(a.g.position.x, a.g.position.y + 3, a.g.position.z, [0x991b1b, 0xffffff], 12);
+          const a = Net.avatars.get(e[2]) || this.botAv.get(e[2]); if (a) puffAt(a.g.position.x, a.g.position.y + 3, a.g.position.z, [0x991b1b, 0xffffff], 12);
         }
         if (k === 'kt' && !(Math.abs(e[2] - P.x) < 0.6 && Math.abs(e[3] - P.z) < 0.6)) { this.flyFx('k', e[2], e[3], e[4], e[5]); sfx3('whoosh', e[2], e[3], 60); } // (your own throw is drawn already)
         if (k === 'gs' && !(Math.abs(e[2] - P.x) < 0.6 && Math.abs(e[3] - P.z) < 0.6)) { this.flyFx('g', e[2], e[3], e[4], e[5]); sfx3('gun', e[2], e[3], 100); }
         if (k === 'gd') { toast('🔫 The sheriff’s gun has dropped! Innocents: grab it!', '#93c5fd'); sfx('alarm', { vol: 0.5 }); }
         if (k === 'gp') { if (e[2] === mine) { toast('🔫 You picked up the gun! Shoot the murderer!', '#93c5fd'); sfx('reload'); } else toast('🔫 Someone picked up the gun…', '#93c5fd'); }
       }
+      this.drawBots(g, dt);
       // knocked out
       if (g && g.ph === 'play' && this.wasAlive && !alive && !P.dead) die();
       this.wasAlive = alive;
@@ -357,16 +497,16 @@
       this.drawBar();
       const role = this.myRole(), m = g && g.roles ? Object.keys(g.roles).find((id) => g.roles[id] === 'm') : null, sh = g && g.roles ? Object.keys(g.roles).find((id) => g.roles[id] === 's') : null;
       if (!g) setBanner('Getting the round…');
-      else if (g.ph === 'wait') setBanner('Waiting for players — Murder Mystery needs 2 or more');
+      else if (g.ph === 'wait') setBanner('Waiting for players…');
       else if (g.ph === 'count') setBanner(`Next round in ${Math.ceil(g.left)}… (who will be the murderer?)`);
       else if (g.ph === 'play') setBanner(!alive ? `👻 You’re out — watching · ${mmss(g.left)}` : `${ROLE[role].e} You’re the ${ROLE[role].n.toLowerCase()}${role === 'i' && this.hasGun() ? ' with the gun' : ''} · ${mmss(g.left)}`);
-      else setBanner(g.w === 'm' ? `🔪 The murderer (${esc(nameOf(m))}) wins!` : `😇 Innocents win!${g.hero ? ` 🦸 ${esc(nameOf(g.hero))} stopped the murderer (${esc(nameOf(m))})` : ` The murderer was ${esc(nameOf(m))}`}${sh ? ` · sheriff: ${esc(nameOf(sh))}` : ''}`);
+      else { const nm = (id) => esc(this.nameOfId(id, g)); setBanner(g.w === 'm' ? `🔪 The murderer (${nm(m)}) wins!` : `😇 Innocents win!${g.hero ? ` 🦸 ${nm(g.hero)} stopped the murderer (${nm(m)})` : ` The murderer was ${nm(m)}`}${sh ? ` · sheriff: ${nm(sh)}` : ''}`); }
     },
     showRole(role) {
       if (!role) return;
       if (this.roleEl) this.roleEl.remove();
       const R = ROLE[role], el = document.createElement('div'); el.id = 'mmRole';
-      el.innerHTML = `<div class="card" style="--rc:${R.c}"><i>${R.e}</i><b>${R.n}</b><span>${R.d}</span></div>`;
+      el.innerHTML = `<div class="card" style="--rc:${R.c}"><i>${R.e}</i><b>${R.n}</b><span>${(touchy && R.dt) || R.d}</span></div>`;
       $('#xhud').append(el); this.roleEl = el;
       sfx(role === 'm' ? 'alarm' : 'reward');
       setTimeout(() => { if (this.roleEl === el) { el.remove(); this.roleEl = null; } }, 3600);
@@ -380,6 +520,7 @@
     pose() {
       this.hold(me, 'me', this.hd);
       for (const [peer, a] of Net.avatars) { const p = Net.peers.find((q) => q.peer === peer); this.hold(a, peer, p && p.presence ? String(p.presence.hd || '') : ''); }
+      const bp = (this.g && this.g.bp) || []; for (const [id, a] of this.botAv) { const b = bp.find((x) => x[0] === id); this.hold(a, id, b && (b[4] === 'k' || b[4] === 'g') ? b[4] : ''); }
     },
     hold(a, key, what) {
       if (!a || a.dead) return;
@@ -399,7 +540,7 @@
       const g = this.g;
       if (!g || g.ph !== 'play' || !this.alive()) return '';
       const role = this.myRole(), coins = (g.cc || {})[myPeer()] || 0, cd = this.cd > 0 ? ` · ⏳ ${this.cd.toFixed(1)}s` : '';
-      return `🪙 ${coins} coins · ${role === 'm' ? `🔪 click: stab · F / right-click: throw${cd}` : this.hasGun() ? `🔫 click where to shoot · F: shoot ahead${cd}` : '😇 hide and collect coins'} · ${(g.al || []).length} alive`;
+      return `🪙 ${coins} coins · ${role === 'm' ? (touchy ? `🔪 tap: stab · 🎯 throw${cd}` : `🔪 click: stab · F / right-click: throw${cd}`) : this.hasGun() ? (touchy ? `🔫 tap where to shoot${cd}` : `🔫 click where to shoot · F: shoot ahead${cd}`) : '😇 hide and collect coins'} · ${(g.al || []).length} alive`;
     },
   };
   addExp(MM);

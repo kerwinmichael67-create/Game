@@ -189,7 +189,7 @@
     signFor(pl) {
       if (pl.sign) { place.remove(pl.sign); pl.sign.material.map.dispose(); }
       pl.sign = label(pl.owner ? `${pl.name}’s Garden` : 'Free plot', { size: 1.7, color: pl.owner ? '#fff' : '#d9f99d' });
-      pl.sign.position.set(pl.ox, 5, pl.oz + pl.fz * (PD / 2 + 1.5)); place.add(pl.sign);
+      pl.sign.position.set(pl.ox, 6.5, pl.oz - pl.fz * (PD / 2 + 1)); place.add(pl.sign); // over the back of the plot: you see it across your garden, not in your face
     },
     // other people's gardens, from the short string in their presence
     drawRemote(pl, pr) {

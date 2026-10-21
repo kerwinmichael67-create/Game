@@ -948,7 +948,7 @@
         : at >= 0 ? `<button class="xp-btn alt" data-eq="${pk}">Unequip</button>${cur !== pk ? `<button class="xp-btn gold" data-cmd="${at}">⚔️ Command</button>` : '<button class="xp-btn gold" disabled>⚔️ Commanding</button>'}`
           : `<button class="xp-btn" data-eq="${pk}">${full ? `Equip · swaps ${esc(full)}` : 'Equip'}</button>`;
       const html = `<div class="ca-wrap ${still ? 'still' : ''}"><div>
-        <div class="ca-h">⚔️ Your army <small>— up to 4 units. In battle, press 1–4 in your camp to switch.</small></div>
+        <div class="ca-h">⚔️ Your army <small>— up to 4 units. In battle, ${touchy ? 'tap a unit on the bar' : 'press 1–4'} in your camp to switch.</small></div>
         <div class="ca-load">${slots}</div>
         <div class="ca-h" style="justify-content:space-between">🪖 All units <small>${Object.keys(S.units).length}/${UNITS.length} unlocked</small></div>
         <div class="xp-tabs">${[['all', 'All'], ['owned', 'Unlocked'], ['melee', '⚔️ Melee'], ['ranged', '🏹 Ranged'], ['cav', '🐎 Cavalry']].map(([k, n]) => `<button data-f="${k}" class="${f === k ? 'on' : ''}">${n}</button>`).join('')}</div>
@@ -1068,7 +1068,7 @@
     },
     hud() {
       const g = this.g; if (!g) return '';
-      if (g.ph !== 'battle' || this.ci < 0) return `🪖 Commanding <b>${esc(UNITS[this.unitNow()].n)}</b> <small>press 1–4 to switch</small>`;
+      if (g.ph !== 'battle' || this.ci < 0) return `🪖 Commanding <b>${esc(UNITS[this.unitNow()].n)}</b> <small>${touchy ? 'tap a unit below' : 'press 1–4'} to switch</small>`;
       const s = (g.sc || [])[this.ci] || {};
       return `<span style="color:${TEAM_CSS[this.team] || '#fff'}">${TEAM_NAME[this.team] || ''}</span> · ☠️ ${s.k || 0} · 👑 ${s.hk || 0} <small>Tab: scoreboard</small>`;
     },

@@ -113,6 +113,7 @@
     color: 'linear-gradient(135deg,#1d4ed8,#7c3aed 55%,#dc2626)',
     desc: 'Competitive duels. Step onto a 1v1 or 2v2 pad and fight in an arena: 100 health, one life a round, first team to 5 rounds wins. Build your loadout (assault rifle, shotgun, sniper, minigun, katana, grenades, flashbangs and more) and unlock weapons with Blox Coins. Bots play you when nobody else is around.',
     welcome: 'Stand on a duel pad to fight! 🎒 L changes your loadout · try your weapons on the dummies behind you.',
+    welcomeTouch: 'Stand on a duel pad to fight! Try your weapons on the dummies behind you.',
     build() {
       sky('#3b82f6', '#dbeafe');
       const blk = (x, y0, z, sx, sy, sz, c, o) => part(Object.assign({ x, y: y0 + sy / 2, z, sx, sy, sz, c }, o || {}));
@@ -999,7 +1000,7 @@
       if (!m) {
         const mine = myPeer(), qi = (g.pq || []).findIndex((q) => q && q.s && (q.s[0].includes(mine) || q.s[1].includes(mine)));
         if (qi >= 0) { const q = g.pq[qi]; setBanner(q.busy ? '⏳ All three arenas are in use — your match starts as soon as one is free' : q.t >= 0 ? `⚔️ Match starting in ${Math.ceil(q.t)}…` : `⏳ Waiting for an opponent — a 🤖 bot takes the empty spots in ${Math.ceil(q.w)}s`); }
-        else setBanner('⚔️ Stand on a 1v1 or 2v2 pad to duel · 🎒 <b>L</b> loadout · 🎯 dummies behind you');
+        else setBanner(touchy ? '⚔️ Stand on a 1v1 or 2v2 pad to duel' : '⚔️ Stand on a 1v1 or 2v2 pad to duel · 🎒 <b>L</b> loadout · 🎯 dummies behind you');
         return;
       }
       const t = this.myTeam, dots = (tm) => m.tm[tm].map((id) => ((m.al || []).includes(id) || m.ph === 'pre' ? '●' : '<u>●</u>')).join('');
@@ -1014,7 +1015,7 @@
     hud() {
       const m = this.mm, W = WP[this.cw()] || WP.ar;
       const ammo = W.sl < 2 ? (this.rl && this.rl.wid === this.cw() ? '⏳ reloading…' : `${W.e} ${this.ammo[this.cw()] ?? W.mag} / ${W.mag}`) : W.sl === 3 ? `${W.e} ${W.n}` : `${W.e} ${W.n}`;
-      if (!m) return `${ammo} · 🖱️ click to shoot · R reload · 1–4 weapons · G utility`;
+      if (!m) return touchy ? `${ammo} · 🔥 Fire to shoot` : `${ammo} · 🖱️ click to shoot · R reload · 1–4 weapons · G utility`;
       if (!(m.al || []).includes(myPeer())) return '👻 You’re out this round — watching from the balcony';
       const hp = m.hp[myPeer()] != null ? m.hp[myPeer()] : 100, c = hp > 60 ? '#22c55e' : hp > 30 ? '#f59e0b' : '#ef4444';
       return `<span class="rv-hp"><i style="width:${hp}%;background:${c}"></i></span><b style="color:${c}">${hp}</b> ❤️ · ${ammo}${this.healT > 0 ? ' · 🩹 healing…' : ''}`;

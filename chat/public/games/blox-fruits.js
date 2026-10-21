@@ -244,6 +244,7 @@
     color: 'linear-gradient(135deg,#0ea5e9,#f97316 55%,#dc2626)',
     desc: 'Sail between six islands, defeat bandits, monkeys, pirates, snowmen and marines (and their bosses), take quests and level up. Eat a Blox Fruit for its powers: Bomb, Flame, Ice, Light, Magma, Quake, Buddha, Dough, Dragon and more, each with three moves you unlock with mastery. Buy swords, Geppo, Buso Haki and Soru, get a boat — but fruit users can’t swim! Co-op with everyone on the server.',
     welcome: 'Talk to the ❗ Quest Giver (E) and defeat Bandits! Click to attack · 1–3 tools · Z X C fruit moves · K stats.',
+    welcomeTouch: 'Talk to the ❗ Quest Giver and defeat Bandits! Tap to attack · moves on the bar.',
     build() {
       sky('#38bdf8', '#e0f2fe');
       const blk = (x, y0, z, sx, sy, sz, c, o) => part(Object.assign({ x, y: y0 + sy / 2, z, sx, sy, sz, c }, o || {}));

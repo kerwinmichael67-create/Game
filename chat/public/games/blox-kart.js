@@ -78,12 +78,13 @@
   }
 
   const KR = {
-    noLock: true, // (the camera follows the kart)
+    noLock: true, noSprint: true, // (the camera follows the kart)
     id: 'kart', code: 'kr', genre: 'Racing', rank: 0.05, name: 'Kart Racing', emoji: '🏎️', max: 8, stat: 'Wins', killY: -30, banner: true, camDist: 20, respawnDelay: 700, stepHeight: 0.6,
     land: { theme: 'meadow', fence: 'hedge' },
     color: 'linear-gradient(135deg,#f97316,#dc2626 55%,#1f2937)',
     desc: `Race karts round a twisty track: ${LAPS} laps against everyone on the server, with bots when there aren’t enough drivers. W to go, A/D to steer, hold Space while turning to drift and let go for a boost. Hit the orange boost pads and stay off the grass!`,
     welcome: 'W to go, A/D to steer, Space to drift. The next race starts soon!',
+    welcomeTouch: 'The stick drives and steers; hold 💨 Drift while turning. The next race starts soon!',
     build() {
       sky('#60a5fa', '#e0f2fe');
       slab(20, 0, 70, 470, 380, 0x4ade80, { sy: 2 });
@@ -120,9 +121,12 @@
       this.mapBg = null; this.K = { sp: 0, yaw: 0, boostT: 0, drift: false, driftT: 0, bumpAt: 0, exp: null }; this.offT = 0; this.wrongT = 0; this.sentAt = 0; this.karts = new Map(); this.botAv = new Map(); this.coinRd = -1; this.best = 0;
       kvGet('kart').then((s) => { if (s && +s.best > 0) this.best = +s.best; });
       const el = document.createElement('canvas'); el.width = el.height = 300; el.id = 'krMap';
-      el.style.cssText = 'position:absolute;right:12px;bottom:140px;width:150px;height:150px;border-radius:16px;background:rgba(15,23,42,.55);box-shadow:0 4px 14px rgba(0,0,0,.3)';
+      el.style.cssText = `position:absolute;right:12px;${touchy ? 'top:160px;width:110px;height:110px' : 'bottom:140px;width:150px;height:150px'};border-radius:16px;background:rgba(15,23,42,.55);box-shadow:0 4px 14px rgba(0,0,0,.3)`; // (a phone: up top, away from the thumbs)
       $('#xhud').append(el); this.map = el;
       setBar('<button class="xslot" data-k="drift" title="Drift (Space)"><span class="k">␣</span><span class="e">💨</span>Drift</button><button class="xslot" data-k="horn" title="Horn (H)"><span class="k">H</span><span class="e">📯</span>Horn</button>', (b) => { if (b.dataset.k === 'horn') this.honk(); });
+      // the 💨 button drifts while it's held (a tap on the bar alone would do nothing)
+      this.driftBtn = false; const db = $('#xbar [data-k="drift"]');
+      if (db) { const hold = (v) => (e) => { e.preventDefault(); this.driftBtn = v; }; db.addEventListener('pointerdown', hold(true)); for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) db.addEventListener(ev, hold(false)); }
     },
     leave() {
       for (const a of this.botAv.values()) dropAvatar(a);
@@ -219,7 +223,7 @@
       else if (throttle < 0) K.sp = Math.max(-REV, K.sp + 55 * throttle * dt);
       else { K.sp *= Math.exp(-dt * 0.9); if (Math.abs(K.sp) < 0.5) K.sp = 0; }
       // drifting: hold Space while turning at speed; let go after a while for a boost
-      const wantDrift = (keys.Space || jumpHeld) && Math.abs(steer) > 0.3 && K.sp > 25 && !held;
+      const wantDrift = (keys.Space || jumpHeld || this.driftBtn) && Math.abs(steer) > 0.3 && K.sp > 25 && !held;
       if (wantDrift) { if (!K.drift) { K.drift = true; K.driftT = 0; K.driftDir = Math.sign(steer); } K.driftT += dt; }
       else if (K.drift) {
         K.drift = false;
@@ -299,7 +303,7 @@
       if (!g) setBanner('Getting the race…');
       else if (g.ph === 'wait') setBanner('Waiting for drivers…');
       else if (g.ph === 'count') setBanner(g.grid.includes(mine) ? `🏁 Race starts in ${Math.ceil(g.left)}…` : 'A race is about to start — you’re in the next one');
-      else if (g.ph === 'play') setBanner(!g.grid.includes(mine) ? '🏁 Race on — you’re in the next one (drive around for now)' : this.finT ? `🏁 Finished ${PLACE[place - 1] || ''} · ${fmt(this.finT)} · waiting for the others…` : this.wrongT > 1 ? '⚠️ Wrong way! Turn around' : this.offT > 0.3 ? '↩️ Get back on the track!' : `Lap ${Math.min(LAPS, this.lap)}/${LAPS} · ${MEDAL[place - 1] || ''} ${PLACE[place - 1] || ''} of ${g.st.length} · ⏱ ${fmt(g.el)}`);
+      else if (g.ph === 'play') setBanner(!g.grid.includes(mine) ? '🏁 Race on — you’re in the next one (drive around for now)' : this.finT ? `🏁 Finished ${PLACE[place - 1] || ''} · ${fmt(this.finT)} · waiting for the others…` : this.wrongT > 1 ? '⚠️ Wrong way! Turn around' : this.offT > 0.3 ? '↩️ Get back on the track!' : `Lap ${Math.min(LAPS, this.lap)}/${LAPS} · ${MEDAL[place - 1] ? MEDAL[place - 1] + ' ' : ''}${PLACE[place - 1] || ''} of ${g.st.length} · ⏱ ${fmt(g.el)}`);
       else setBanner(`🏆 ${(g.res || []).slice(0, 3).map((r, k) => `${MEDAL[k]} ${esc(r[1])}${r[2] ? ` ${fmt(r[2])}` : ''}`).join(' · ') || 'Race over'}`);
     },
     // the bots: where the host says, carried on at their speed since

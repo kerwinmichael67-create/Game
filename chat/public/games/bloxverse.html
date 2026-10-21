@@ -162,7 +162,7 @@
   #meter.phone{left:12px;right:auto;top:106px;height:26px;gap:9px;padding:0 10px;font-size:12px}
   #board{position:absolute;right:12px;top:12px;min-width:210px;max-width:46vw;border-radius:16px;font:700 13.5px var(--fb);overflow:hidden}
   #board table{border-collapse:collapse;width:100%}
-  #board th{font:600 11px var(--fh);text-transform:uppercase;letter-spacing:.09em;color:#cbd5e1;text-align:left;padding:8px 12px 7px;background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.02));border-bottom:1px solid var(--line)}
+  #board th{font:600 11px var(--fh);text-transform:uppercase;letter-spacing:.09em;color:#cbd5e1;text-align:left;padding:8px 12px 7px;background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.02));border-bottom:1px solid var(--line);white-space:nowrap}
   #board td{padding:5px 12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}
   #board tr:nth-child(odd) td{background:rgba(255,255,255,.025)}
   #board td:last-child,#board th:last-child{text-align:right;font-family:var(--fh);font-weight:600}
@@ -412,7 +412,9 @@
     #coins{font-size:15px;padding:0 10px 0 7px}
     #board{min-width:140px;font-size:12px}
     #board td{max-width:84px;padding:4px 8px}
+    #board th{padding:7px 8px 6px;letter-spacing:.04em}
     #banner{top:66px;font-size:14.5px;padding:8px 14px;max-width:calc(100vw - 24px)}
+    #stat{white-space:normal;text-align:center;width:max-content;max-width:calc(100vw - 24px);border-radius:18px;font-size:14.5px;padding:7px 14px}
     #chatlog{top:138px;width:calc(100vw - 24px)}
     #xside{transform:translateY(-45%) scale(.78);transform-origin:left center}
     #toast{font-size:26px;white-space:normal;width:90vw}
@@ -587,7 +589,19 @@ function label(text, o = {}) {
   const t = new THREE.CanvasTexture(c); t.minFilter = THREE.LinearFilter;
   const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthTest: o.depthTest !== false }));
   const k = (o.size || 1) / (fs * 1.2); s.scale.set(w * k, h * k, 1);
+  // never more than a slice of the screen: up close, or on a narrow phone, it shrinks to fit (big signs a bit bigger than name tags)
+  if (o.fit !== false) { const big = (o.size || 1) >= 2; fitSprite(s, (big ? 0.085 : (o.size || 1) >= 1 ? 0.055 : 0.032) * lines.length, big ? 0.62 : 0.8); }
   return s;
+}
+const _fv = new THREE.Vector3(), _fd = new THREE.Vector3();
+function fitSprite(s, maxH, maxW = 0.8) { s.userData.fit = [s.scale.x, s.scale.y, maxH, maxW]; s.onBeforeRender = fitTick; return s; }
+function fitTick(r, sc, cam) {
+  const [w, h, maxH, maxW] = this.userData.fit, d = _fv.setFromMatrixPosition(this.matrixWorld).sub(cam.position).dot(cam.getWorldDirection(_fd));
+  if (d <= 0.1 || !cam.isPerspectiveCamera) return;
+  const up = _fv.setFromMatrixColumn(this.matrixWorld, 0).length() / (this.scale.x || 1); // a scaled parent makes it bigger too
+  const vh = 2 * d * Math.tan((cam.fov * Math.PI) / 360), k = Math.min(1, (maxH * vh) / (h * up), (maxW * vh * cam.aspect) / (w * up));
+  if (Math.abs(this.scale.x - w * k) < 1e-4) return;
+  this.scale.set(w * k, h * k, 1); this.updateMatrixWorld();
 }
 
 /* ---------------- the place: parts ---------------- */
@@ -1455,7 +1469,7 @@ async function join(id, n) {
   for (const p of Net.peers) if (!p.isMe) applyPeer(p);
   say(`Welcome to ${E.name}! ${touchy ? '' : 'Press / to chat.'}`, '#fde68a');
   sfx('teleport');
-  if (E.welcome) setTimeout(() => toast(E.welcome), 400);
+  if (E.welcome) setTimeout(() => toast((touchy && E.welcomeTouch) || E.welcome), 400); // (welcomeTouch: the same tip, for fingers instead of keys)
   canvas.focus();
 }
 async function leave(quiet) {
@@ -1733,7 +1747,7 @@ const TYCOON = {
     sky('#6cb8ff', '#e3f4ff');
     slab(0, 0, 0, 330, 330, 0x4caf50, { sy: 2 });
     slab(0, 0.2, 0, 14, 14, 0x9ca3af, { sy: 0.4 });
-    const s = label('CUBE FACTORY\nTYCOON', { size: 3 }); s.position.set(0, 10, 0); place.add(s);
+    const s = label('CUBE FACTORY\nTYCOON', { size: 3 }); s.position.set(0, 12, -8); place.add(s);
     this.plots = [[-62, -62], [62, -62], [-62, 62], [62, 62]].map(([ox, oz], k) => {
       const fz = oz < 0 ? 1 : -1;
       slab(ox, 0.4, oz, 48, 48, 0x6b7280, { sy: 0.4 });
@@ -1971,7 +1985,7 @@ const TAG = {
   id: 'tag', code: 'tg', genre: 'PvP', rank: 7, name: 'Tag Arena', emoji: '🏷️', max: 10, stat: 'Score', killY: -40, banner: true,
   land: { theme: 'meadow' },
   color: 'linear-gradient(135deg,#ec4899,#7c3aed)',
-  desc: 'One player is IT. Run, jump and climb to stay free — every second counts. Get tagged and you’re IT. Rounds start when two or more are here.',
+  desc: 'One player is IT. Run, jump and climb to stay free — every second counts. Get tagged and you’re IT. With fewer than four here, 🤖 bots join in.',
   build() {
     sky('#7c9dff', '#f1e8ff');
     slab(0, 0, 0, 150, 150, 0xd6d3d1, { sy: 2 });
@@ -1988,35 +2002,100 @@ const TAG = {
     slab(0, 12, 0, 16, 16, 0x7c3aed, { sy: 1 });
     for (const [x, z] of [[-7, -7], [7, -7], [-7, 7], [7, 7]]) part({ x, y: 5.75, z, sx: 1.5, sy: 11.5, sz: 1.5, c: 0x5b21b6 });
     for (let k = 0; k < 5; k++) { slab(10 + k * 0.01, 2.4 * (k + 1) - 0.1, 9 - k * 4.2, 4, 4, 0xddd6fe, { sy: 1 }); slab(-10, 2.4 * (k + 1) - 0.1, -9 + k * 4.2, 4, 4, 0xddd6fe, { sy: 1 }); }
+    // what a bot (on the ground) has to go round
+    this.walls = parts.filter((p) => p.solid && p.sx < 100 && p.sz < 100).map(boxOf).filter((b) => b[4] > 0.8 && b[1] < 3);
   },
   pres() { return {}; },
-  enter() { this.H = null; this.lastG = null; this.gSeen = null; this.rd = 0; },
+  enter() { this.H = null; this.lastG = null; this.gSeen = null; this.rd = 0; this.T = {}; this.botAv = new Map(); },
+  leave() { for (const a of this.botAv.values()) dropAvatar(a); this.botAv = new Map(); },
+  isBot: (id) => typeof id === 'string' && id.startsWith('bot:'),
+  nameOfId(id, g) { if (this.isBot(id)) { const b = ((g || this.g || {}).bots || []).find((b) => b[0] === id); return b ? '🤖 ' + b[1] : 'a bot'; } return nameOf(id); },
   spawn() { const i = Math.max(0, crew().findIndex((c) => c.isMe)) % 10, s = this.spawns[(i + (this.rd | 0)) % 10]; return [s[0] + (Math.random() - 0.5) * 3, s[1], s[2] + (Math.random() - 0.5) * 3, Math.atan2(s[0], s[2])]; },
-  adopt() { const g = this.lastG; return g ? Object.assign({}, g, { sc: Object.assign({}, g.sc || {}) }) : { ph: 'wait', left: 0, it: null, sc: {}, rd: 0, w: '', fz: 0, im: null, iml: 0, gs: 0 }; },
+  adopt() { const g = this.lastG; return g ? Object.assign({}, g, { sc: Object.assign({}, g.sc || {}), bots: (g.bots || []).slice(), bp: (g.bp || []).map((b) => b.slice()) }) : { ph: 'wait', left: 0, it: null, sc: {}, rd: 0, w: '', fz: 0, im: null, iml: 0, gs: 0, bots: [], bp: [] }; },
   host(dt) {
     const H = this.H, pl = players(), n = pl.length;
+    if (!H.bp) { H.bots = []; H.bp = []; }
     H.left = Math.max(0, H.left - dt);
-    if (H.ph === 'wait') { if (n >= 2) { H.ph = 'count'; H.left = 5; } }
-    else if (H.ph === 'count') { if (n < 2) H.ph = 'wait'; else if (H.left <= 0) { H.ph = 'play'; H.left = 90; H.rd = (H.rd | 0) + 1; H.sc = {}; H.it = pl[Math.floor(Math.random() * n)].peer; H.fz = 2; H.im = null; H.iml = 0; } }
+    if (H.ph === 'wait') { if (n >= 1) { H.ph = 'count'; H.left = 5; } }
+    else if (H.ph === 'count') { if (n < 1) H.ph = 'wait'; else if (H.left <= 0) this.startRound(pl); }
     else if (H.ph === 'play') {
-      if (n < 2) { H.ph = 'wait'; }
-      else {
-        if (!pl.some((p) => p.peer === H.it)) { H.it = pl[Math.floor(Math.random() * n)].peer; H.fz = 1.5; }
-        H.fz = Math.max(0, H.fz - dt); H.iml = Math.max(0, H.iml - dt);
-        for (const p of pl) if (p.peer !== H.it) H.sc[p.peer] = (H.sc[p.peer] || 0) + dt;
-        const it = pl.find((p) => p.peer === H.it);
-        if (it && H.fz <= 0) for (const p of pl) {
-          if (p.peer === H.it || (p.peer === H.im && H.iml > 0)) continue;
-          if (Math.hypot(p.x - it.x, p.z - it.z) < 3.4 && Math.abs(p.y - it.y) < 5) { H.im = H.it; H.iml = 1.5; H.it = p.peer; H.fz = 1.5; H.tags = (H.tags | 0) + 1; break; }
-        }
-        if (H.left <= 0) {
-          H.ph = 'end'; H.left = 7;
-          const best = pl.map((p) => [p.peer, H.sc[p.peer] || 0]).sort((a, b) => b[1] - a[1])[0];
-          H.w = best ? nameOf(best[0]) : ''; H.wp = best ? best[0] : null;
-        }
+      // everyone in the round: the people here, and the bots
+      const all = pl.concat(H.bp.map((b) => ({ peer: b[0], x: b[1], y: 0, z: b[3], bot: true })));
+      if (!all.some((p) => p.peer === H.it)) { H.it = pl[Math.floor(Math.random() * n)].peer; H.fz = 1.5; }
+      H.fz = Math.max(0, H.fz - dt); H.iml = Math.max(0, H.iml - dt);
+      for (const p of all) if (p.peer !== H.it) H.sc[p.peer] = (H.sc[p.peer] || 0) + dt;
+      this.moveBots(dt, all);
+      const it = all.find((p) => p.peer === H.it);
+      if (it && H.fz <= 0) for (const p of all) {
+        if (p.peer === H.it || (p.peer === H.im && H.iml > 0)) continue;
+        if (Math.hypot(p.x - it.x, p.z - it.z) < 3.4 && Math.abs(p.y - it.y) < 5) { H.im = H.it; H.iml = 1.5; H.it = p.peer; H.fz = 1.5; H.tags = (H.tags | 0) + 1; break; }
       }
-    } else if (H.ph === 'end' && H.left <= 0) { H.ph = n >= 2 ? 'count' : 'wait'; H.left = 5; }
-    if (performance.now() - (this.sentAt || 0) > 250) { this.sentAt = performance.now(); const sc = {}; for (const k in H.sc) sc[k] = Math.floor(H.sc[k]); hostSend(this, { sc }); }
+      if (H.left <= 0) {
+        H.ph = 'end'; H.left = 7;
+        const best = all.map((p) => [p.peer, H.sc[p.peer] || 0]).sort((a, b) => b[1] - a[1])[0];
+        H.w = best ? this.nameOfId(best[0], H) : ''; H.wp = best ? best[0] : null;
+      }
+    } else if (H.ph === 'end' && H.left <= 0) { H.ph = n >= 1 ? 'count' : 'wait'; H.left = 5; H.bots = []; H.bp = []; }
+    if (performance.now() - (this.sentAt || 0) > (H.bp.length ? 120 : 250)) {
+      this.sentAt = performance.now(); const sc = {}; for (const k in H.sc) sc[k] = Math.floor(H.sc[k]);
+      hostSend(this, { sc, bp: H.bp.map((b) => [b[0], +b[1].toFixed(1), 0, +b[3].toFixed(1), b[4]]) });
+    }
+  },
+  // a new round: with fewer than four people, bots make up the numbers; IT is one of the people (alone, sometimes a bot)
+  startRound(pl) {
+    const H = this.H, n = pl.length, nb = Math.max(0, 4 - n), names = ['Dodger', 'Zippy', 'Blitz', 'Turbo', 'Sneaky', 'Bolt'];
+    H.ph = 'play'; H.left = 90; H.rd = (H.rd | 0) + 1; H.sc = {}; H.fz = 2; H.im = null; H.iml = 0; H.bots = []; H.bp = []; this.T = {};
+    for (let i = 0; i < nb; i++) {
+      const id = `bot:${H.rd}:${i}`, s = this.spawns[(i * 3 + 5 + H.rd) % 10];
+      H.bots.push([id, names[(i + H.rd) % names.length], Math.floor(Math.random() * 1e6)]);
+      H.bp.push([id, s[0] + (Math.random() - 0.5) * 4, 0, s[2] + (Math.random() - 0.5) * 4, 0]);
+    }
+    H.it = n >= 2 || !nb || Math.random() < 0.5 ? pl[Math.floor(Math.random() * n)].peer : H.bp[Math.floor(Math.random() * nb)][0];
+  },
+  // the bots: IT chases whoever's nearest it can reach; the rest run from IT, or wander about
+  moveBots(dt, all) {
+    const H = this.H, itP = all.find((p) => p.peer === H.it);
+    for (const b of H.bp) {
+      const id = b[0], t = this.T[id] || (this.T[id] = { side: Math.random() < 0.5 ? 1 : -1, wx: b[1], wz: b[3], wt: 0 });
+      let dx = 0, dz = 0, sp = 0;
+      if (id === H.it) {
+        if (H.fz <= 0) {
+          let best = null, bd = 1e9;
+          for (const p of all) { if (p.peer === id || (p.peer === H.im && H.iml > 0) || p.y > 4.5) continue; const d = Math.hypot(p.x - b[1], p.z - b[3]); if (d < bd) { bd = d; best = p; } }
+          if (best) { dx = best.x - b[1]; dz = best.z - b[3]; sp = 16; }
+        }
+      } else if (itP && Math.hypot(itP.x - b[1], itP.z - b[3]) < 24) { dx = b[1] - itP.x; dz = b[3] - itP.z; sp = 15; }
+      if (!sp && id !== H.it) {
+        t.wt -= dt;
+        if (t.wt <= 0 || Math.hypot(t.wx - b[1], t.wz - b[3]) < 3) { t.wx = (Math.random() - 0.5) * 120; t.wz = (Math.random() - 0.5) * 120; t.wt = 6; }
+        dx = t.wx - b[1]; dz = t.wz - b[3]; sp = 8;
+      }
+      b[4] = sp && (dx || dz) && this.steer(b, t, dx, dz, sp * dt) ? 1 : 0;
+    }
+  },
+  // a step towards (dx, dz), turning round blocks and the walls (to its own favourite side first)
+  blocked(x, z) { return Math.abs(x) > 68 || Math.abs(z) > 68 || this.walls.some((w) => x > w[0] - 1 && x < w[3] + 1 && z > w[2] - 1 && z < w[5] + 1); },
+  steer(b, t, dx, dz, step) {
+    const a0 = Math.atan2(dx, dz);
+    for (const da of [0, 0.45, -0.45, 0.9, -0.9, 1.5, -1.5, 2.2, -2.2, Math.PI]) {
+      const a = a0 + da * t.side, sx = Math.sin(a), sz = Math.cos(a);
+      if (this.blocked(b[1] + sx * 2.4, b[3] + sz * 2.4)) continue;
+      b[1] += sx * step; b[3] += sz * step; if (Math.abs(da) > 1.4) t.side = -t.side; return true;
+    }
+    return false;
+  },
+  drawBots(g, dt) {
+    const want = new Map(g && (g.ph === 'play' || g.ph === 'end') ? (g.bp || []).map((b) => [b[0], b]) : []);
+    for (const [id, a] of this.botAv) if (!want.has(id)) { dropAvatar(a); this.botAv.delete(id); }
+    for (const [id, b] of want) {
+      let a = this.botAv.get(id);
+      const info = (g.bots || []).find((x) => x[0] === id) || [id, 'Bot', 1];
+      if (!a) { const r = mulberry(info[2] | 0), av = okAv([Math.floor(r() * 6), Math.floor(r() * 10), Math.floor(r() * 8), Math.floor(r() * 12), Math.floor(r() * 9), 0, 0, Math.floor(r() * 7), 0]); a = makeAvatar(av, '🤖 ' + info[1], false); a.g.position.set(b[1], 0.02, b[3]); scene.add(a.g); this.botAv.set(id, a); }
+      const p = a.g.position, k = Math.min(1, dt * 10), dx = b[1] - p.x, dz = b[3] - p.z;
+      if (Math.hypot(dx, dz) > 25) p.set(b[1], 0.02, b[3]); else { p.x += dx * k; p.z += dz * k; }
+      if (Math.hypot(dx, dz) > 0.05) a.g.rotation.y = Math.atan2(-dx, -dz);
+      animateAvatar(a, dt, b[4] === 1, false); placeShadow(a);
+    }
   },
   tick(dt) {
     const g = this.g = roundState(this), mine = myPeer();
@@ -2031,10 +2110,12 @@ const TAG = {
     const itPeer = g && g.ph === 'play' ? g.it : null;
     setGlow(me, itPeer === mine ? 0x991b1b : null);
     for (const [peer, a] of Net.avatars) setGlow(a, itPeer === peer ? 0x991b1b : null);
+    this.drawBots(g, dt);
+    for (const [id, a] of this.botAv) setGlow(a, itPeer === id ? 0x991b1b : null);
     if (!g) setBanner('Getting the round…');
-    else if (g.ph === 'wait') setBanner('Waiting for players — Tag needs 2 or more');
+    else if (g.ph === 'wait') setBanner('Waiting for players…');
     else if (g.ph === 'count') setBanner(`Round starts in ${Math.ceil(g.left)}…`);
-    else if (g.ph === 'play') setBanner(g.it === mine ? `🔴 You’re IT! Tag someone · ${mmss(g.left)}` : `🔴 ${esc(nameOf(g.it))} is IT! Run! · ${mmss(g.left)}`);
+    else if (g.ph === 'play') setBanner(g.it === mine ? `🔴 You’re IT! Tag someone · ${mmss(g.left)}` : `🔴 ${esc(this.nameOfId(g.it, g))} is IT! Run! · ${mmss(g.left)}`);
     else setBanner(`🏆 ${esc(g.w || 'Nobody')} wins the round!`);
   },
   speed() { const g = this.g; return g && g.ph === 'play' && g.it === myPeer() ? 18.5 : 16; },

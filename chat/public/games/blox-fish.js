@@ -32,8 +32,8 @@
     .fi-card img{width:100%;height:64px;object-fit:contain}
     .fi-card.unk img{filter:brightness(0) opacity(.5)}
     .fi-card .v{color:#86efac;font:700 12px var(--fh)}
-    .touchy #fiGame{bottom:calc(var(--barH,84px) + 150px)}
-    @media (max-width:640px){.touchy #fiGame{bottom:calc(var(--barH,84px) + 186px)}}`;
+    .touchy #fiGame{bottom:calc(var(--barH,84px) + 188px)}
+    @media (max-width:640px){.touchy #fiGame{bottom:calc(var(--barH,84px) + 224px)}}`;
   document.head.append(style);
 
   /* ---------------- fish ---------------- */
@@ -134,6 +134,7 @@
     color: 'linear-gradient(135deg,#0ea5e9,#14b8a6)',
     desc: 'Cast into the lake, the ocean, a frozen pond or a lake of lava. When a fish bites, hook it and reel it in by keeping it inside your bar. 37 kinds of fish from Trash to Mythical, heavier and ✨ shiny ones worth more. Sell your catch, buy better rods, and fill your fish book.',
     welcome: 'Hold the mouse (or the 🎣 Cast button) and let go to cast!',
+    welcomeTouch: 'Hold the 🎣 Cast button and let go to cast!',
     build() {
       sky('#7dd3fc', '#e0f2fe');
       this.stands = []; this.lines = new Map();

@@ -46,7 +46,7 @@
     .sp-sub{text-align:center;color:#cbd5e1;font:700 13px var(--fb);margin-bottom:8px}
     .touchy #spQ{transform:translateY(-75%) scale(.78);transform-origin:left center}
     .touchy #spMeter{top:60px;transform:translateX(-50%) scale(.85)}
-    @media (max-width:640px){#spQ{transform:translateY(-70%) scale(.72);transform-origin:left center}#spMeter{transform:translateX(-50%) scale(.82)}}`;
+    @media (max-width:640px){#spQ{transform:translateY(-70%) scale(.72);transform-origin:left center}#spQ .q ~ .q{display:none}#spMeter{transform:translateX(-50%) scale(.82)}}`;
   document.head.append(style);
 
   /* ---------------- numbers ---------------- */

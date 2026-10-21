@@ -128,6 +128,7 @@
     color: 'linear-gradient(135deg,#22c55e,#a855f7)',
     desc: 'Your pets break coins, crates, crystals and chests for you. Hatch eggs for stronger pets (Common to Mythical), unlock six zones from the Meadow to Outer Space, make pets Golden and Rainbow, and buy upgrades. Everything you collect is saved.',
     welcome: 'Click coins and chests — your pets break them!',
+    welcomeTouch: 'Tap coins and chests — your pets break them!',
     build() {
       sky(ZONES[0].sky[0], ZONES[0].sky[1]);
       this.brk = []; this.gates = []; this.orbs = []; this.zoneSky = -2;
@@ -143,7 +144,7 @@
       for (const m of this.machines) {
         part({ x: m.x, y: 2.5, z: m.z, sx: 6, sy: 5, sz: 4, c: m.c });
         part({ x: m.x, y: 5.4, z: m.z, sx: 6.4, sy: 0.8, sz: 4.4, c: 0xffffff, neon: true });
-        const l = label(`${m.e} ${m.n}`, { size: 1.4 }); l.position.set(m.x, 8, m.z); place.add(l);
+        const l = label(`${m.e} ${m.n}`, { size: 1.15 }); l.position.set(m.x, 7.6, m.z); place.add(l);
       }
       // the zones, each with a wall and a gate before it
       ZONES.forEach((Z, k) => {

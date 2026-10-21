@@ -120,7 +120,7 @@
       // the lobby, floating far above the sea
       slab(LOBBY[0], LOBBY[1], LOBBY[2], 34, 34, 0xcbd5e1, { sy: 2 });
       for (const [x, z, sx, sz] of [[0, -17, 34, 1], [0, 17, 34, 1], [-17, 0, 1, 34], [17, 0, 1, 34]]) part({ x: LOBBY[0] + x, y: LOBBY[1] + 1.5, z: LOBBY[2] + z, sx, sy: 3, sz, c: 0x94a3b8 });
-      const s = label('NATURAL DISASTER\nSURVIVAL', { size: 3 }); s.position.set(LOBBY[0], LOBBY[1] + 14, LOBBY[2] - 16); place.add(s);
+      const s = label('NATURAL DISASTER\nSURVIVAL', { size: 3 }); s.position.set(LOBBY[0], LOBBY[1] + 13.5, LOBBY[2] - 17); place.add(s);
       this.board = null;
       this.sea = part({ x: 0, y: -54, z: 0, sx: 900, sy: 100, sz: 900, c: 0x1d70b8, alpha: 0.85, solid: false, plain: true });
     },
@@ -128,7 +128,7 @@
       if (this.boardT === t) return;
       this.boardT = t;
       if (this.board) { place.remove(this.board); this.board.material.map.dispose(); this.board.material.dispose(); }
-      this.board = label(t, { size: 1.5, bg: 'rgba(15,23,42,.85)' }); this.board.position.set(LOBBY[0], LOBBY[1] + 7, LOBBY[2] - 15); place.add(this.board);
+      this.board = label(t, { size: 1.5, bg: 'rgba(15,23,42,.85)' }); this.board.position.set(LOBBY[0], LOBBY[1] + 8, LOBBY[2] - 17); place.add(this.board);
     },
     buildMap(i, seed) {
       this.stopDisaster();

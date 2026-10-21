@@ -688,7 +688,7 @@
       this.sel = null; this.shovel = false;
     },
     prompts() { const g = this.g; return g && g.ph === 'lobby' ? [{ x: 0, z: 34, r: 30, text: 'Seeds & level', fn: () => this.openLobby() }] : []; },
-    hud() { const g = this.g; return g && g.ph === 'play' ? (this.shovel ? '⛏️ Click a plant to dig it up (Esc to stop)' : this.sel != null ? `${PL[this.sel].e} Click the lawn to plant a ${PL[this.sel].n} (Shift to plant more)` : 'Pick a seed (1–6) and click the lawn · click ☀️ sun to collect it') : ''; },
+    hud() { const g = this.g; return g && g.ph === 'play' ? (touchy ? (this.shovel ? '⛏️ Tap a plant to dig it up' : this.sel != null ? `${PL[this.sel].e} Tap the lawn to plant a ${PL[this.sel].n}` : 'Pick a seed and tap the lawn · tap ☀️ sun to collect it') : this.shovel ? '⛏️ Click a plant to dig it up (Esc to stop)' : this.sel != null ? `${PL[this.sel].e} Click the lawn to plant a ${PL[this.sel].n} (Shift to plant more)` : 'Pick a seed (1–6) and click the lawn · click ☀️ sun to collect it') : ''; },
     statOf(pr) { return pr && pr.bl ? `⭐ ${pr.bl}` : '—'; },
     sortKey(pr) { return (pr && pr.bl) | 0; },
     menu() { return [['🌱 Seeds & level', () => this.openLobby()]]; },

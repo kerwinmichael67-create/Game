@@ -47,7 +47,9 @@
         part({ x: s * (HALF + 1), y: 9, z: -FIELD / 2 + 12, sx: 2, sy: 18, sz: FIELD + 26, c: s < 0 ? 0xf9a8d4 : 0x93c5fd });
         for (let k = 0; k < 8; k++) part({ x: s * HALF, y: 13 + (k % 2) * 2, z: 20 - k * 23, sx: 0.4, sy: 3, sz: 6, c: 0xffffff, solid: false, plain: true });
       }
-      part({ x: 0, y: 9, z: 26, sx: HALF * 2 + 4, sy: 18, sz: 2, c: 0xfde68a });
+      // the back of the pen: low, with glass above, so the camera behind you sees over it
+      part({ x: 0, y: 1, z: 26, sx: HALF * 2 + 4, sy: 2, sz: 2, c: 0xfde68a });
+      part({ x: 0, y: 10, z: 26, sx: HALF * 2 + 4, sy: 16, sz: 1, c: 0xfef9c3, alpha: 0.18, plain: true });
       // the gate that holds everyone in the pen before the start
       this.gate = part({ x: 0, y: 3, z: 0.6, sx: HALF * 2, sy: 6, sz: 0.4, c: 0xfca5a5, alpha: 0.35, plain: true });
       // the glass bridge over the drop (from a little deck at the end of the field), and the finish deck past it
@@ -79,7 +81,7 @@
       const g = this.g || roundState(this), r = Math.random;
       if (g && g.ph === 'play' && g.rd === this.rd && this.finT) return [(r() - 0.5) * 16, 0.5, DECK - 12 - r() * 8, 0];
       if (g && g.ph === 'play' && g.rd === this.rd && this.onBridge) return [(r() - 0.5) * 8, 0.5, -FIELD - 2.5, 0];
-      return [(r() - 0.5) * (HALF * 2 - 10), 0.5, 6 + r() * 14, 0];
+      return [(r() - 0.5) * (HALF * 2 - 10), 0.5, 3 + r() * 10, 0]; // (near the front of the pen, so the camera behind you is still inside it)
     },
     adopt() {
       const g = this.lastG;

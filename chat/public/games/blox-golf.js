@@ -48,6 +48,7 @@
     color: 'linear-gradient(135deg,#22c55e,#15803d 55%,#facc15)',
     desc: 'Nine holes of mini golf at your own pace: aim with the camera (drag, or A/D), hold the mouse or Space to charge your putt and let go. Walls bounce, sand slows you down, water costs a stroke, and watch out for the spinners! Fewest strokes wins.',
     welcome: 'Aim with the camera (drag or A/D); hold the mouse or Space, let go to putt!',
+    welcomeTouch: 'Drag to aim; hold the ⤒ jump button and let go to putt!',
     build() {
       sky('#7dd3fc', '#f0fdf4');
       slab(0, -0.6, 0, HOLES.length * SPACING + 60, 90, 0x65a30d, { sy: 1 });
