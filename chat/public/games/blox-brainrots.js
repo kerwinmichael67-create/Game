@@ -305,8 +305,8 @@
   function heldModel(sel, reb) {
     const g = new THREE.Group();
     if (sel === 'bat') { const c = BATS[Math.min(reb, BATS.length - 1)][2]; bx(g, 0x3f2a1e, 0.13, 1.0, 0.13, 0, -1.95, -0.25, CYL, -1.25); bx(g, c, 0.15, 1.2, 0.15, 0, -2.25, -1.25, CYL, -1.25); bx(g, c, 0.24, 1.5, 0.24, 0, -2.65, -2.55, CYL, -1.25); }
-    else if (sel[0] === 's') { const t = +sel.slice(1); bx(g, 0xfef3c7, 0.7, 0.9, 0.12, 0, -2.1, -0.4); bx(g, SEEDS[t][9], 0.5, 0.45, 0.13, 0, -2.0, -0.4); }
-    else if (sel[0] === 'r') { const [t, m, f] = unkey(sel.slice(1)); if (BR[t]) { const r = rotModel(t, m, f); r.scale.multiplyScalar(0.32); r.position.set(0, -2.3, -0.9); r.rotation.x = Math.PI / 2; g.add(r); } }
+    else if (sel[0] === 's') { const t = +sel.slice(1); if (SEEDS[t]) { bx(g, 0xfef3c7, 0.7, 0.9, 0.12, 0, -2.1, -0.4); bx(g, SEEDS[t][9], 0.5, 0.45, 0.13, 0, -2.0, -0.4); } } // (someone else's: whatever they say they hold)
+    else if (sel[0] === 'r') { const [t, m, f] = unkey(sel.slice(1)); if (BR[t] && MUT[m] && (f === -1 || SEEDS[f])) { const r = rotModel(t, m, f); r.scale.multiplyScalar(0.32); r.position.set(0, -2.3, -0.9); r.rotation.x = Math.PI / 2; g.add(r); } }
     else if (sel === 'gbanana') { bx(g, 0xfacc15, 0.3, 0.35, 1.3, 0, -2, -0.8); bx(g, 0x854d0e, 0.2, 0.5, 0.2, 0, -2.3, -0.4); }
     else if (sel === 'gblower') { bx(g, 0xe0f2fe, 0.4, 0.4, 1.4, 0, -2, -0.8); bx(g, 0x38bdf8, 0.5, 0.5, 0.3, 0, -2, -1.5); }
     else if (sel === 'gcarrot') { bx(g, 0xf97316, 0.3, 1.6, 0.3, 0, -2, -0.8, CYL, Math.PI / 2); bx(g, 0x16a34a, 0.2, 0.4, 0.2, 0, -2, 0.1, CONE, -Math.PI / 2); }
