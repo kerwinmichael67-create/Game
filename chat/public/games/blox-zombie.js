@@ -40,7 +40,25 @@
     #zsFire{right:24px;bottom:140px;width:88px;height:88px;font-size:34px;background:radial-gradient(circle at 40% 35%,rgba(248,113,113,.75),rgba(185,28,28,.6))}
     #zsRel{right:124px;bottom:150px;width:56px;height:56px;font-size:22px;background:radial-gradient(circle at 40% 35%,rgba(255,255,255,.3),rgba(255,255,255,.1))}
     #zsRun{right:130px;bottom:214px;width:56px;height:56px;font-size:22px;background:radial-gradient(circle at 40% 35%,rgba(125,211,252,.55),rgba(2,132,199,.4))}
-    #zsRun.on{border-color:#fde047;box-shadow:0 0 0 3px rgba(253,224,71,.5)}
+    #zsRun.on,#zsAim.on{border-color:#fde047;box-shadow:0 0 0 3px rgba(253,224,71,.5)}
+    #zsAim{right:40px;bottom:244px;width:60px;height:60px;font-size:24px;background:radial-gradient(circle at 40% 35%,rgba(253,224,71,.45),rgba(161,98,7,.4))}
+    #zsScope{position:absolute;inset:0;pointer-events:none;display:none}
+    #zsScope::before,#zsScope::after{content:'';position:absolute;left:50%;top:50%;background:rgba(0,0,0,.85)}
+    #zsScope::before{width:2px;height:60vmin;margin:-30vmin 0 0 -1px}#zsScope::after{height:2px;width:60vmin;margin:-1px 0 0 -30vmin}
+    .touchy #xbar.zs{max-width:calc(100vw - 400px)}
+    @media (max-width:640px){
+      .touchy #xbar.zs{max-width:calc(100vw - 20px);gap:4px;padding-top:16px}
+      .touchy #xbar.zs .xslot .k{display:none}.touchy #xbar.zs .xslot .n{right:-2px;top:-7px;font-size:9px;padding:2px 5px 1px}
+      .touchy #xbar.zs .xslot{width:50px;min-width:0;height:60px;padding-left:2px;padding-right:2px;font-size:9px;white-space:normal;overflow:hidden;border-radius:14px}
+      .touchy #xbar.zs .xslot .e{font-size:20px}.touchy #xbar.zs .xslot .pic{width:38px;height:30px}
+      .touchy #zsFire{bottom:300px;right:14px;width:80px;height:80px;font-size:30px}
+      .touchy #zsRel{bottom:300px;right:104px;width:52px;height:52px}
+      .touchy #zsRun{bottom:362px;right:104px;width:52px;height:52px}
+      .touchy #zsAim{bottom:390px;right:20px;width:56px;height:56px}
+      .touchy #zsMap{bottom:462px;transform:scale(.62)}
+      .touchy #zsV{bottom:300px;transform:scale(.75)}
+    }
+    #zsCross.aim{width:16px;height:16px;margin:-8px 0 0 -8px}#zsCross.aim::before{left:7px;top:0;height:16px}#zsCross.aim::after{top:7px;left:0;width:16px}
     .zs-w{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
     .zs-w .xp-card img{width:100%;height:84px;object-fit:contain}
     .zs-lock{color:#fca5a5;font-size:12px}
@@ -82,19 +100,29 @@
     energy: { n: 'Energy Drink', e: '🔋', food: 8, boost: 25, price: 60 },
     grenade: { n: 'Grenade', e: '💣', price: 120 },
   };
+  // building: walls and barricades keep zombies out (a barricade is low enough for you to step over), spike traps hurt and
+  // slow the ones that walk over them, turrets shoot the ones nearby. cw × cd: the footprint in 2-stud cells (before turning)
+  const BP = {
+    wall: { n: 'Wooden Wall', e: '🧱', cw: 3, cd: 1, h: 5.5, hp: 900, wood: 8, block: 1, d: 'Keeps zombies (and bullets) out' },
+    barricade: { n: 'Barricade', e: '🚧', cw: 2, cd: 1, h: 1.8, hp: 450, wood: 5, block: 1, d: 'Zombies can’t get past; you can step over it' },
+    spikes: { n: 'Spike Trap', e: '📍', cw: 2, cd: 2, h: 0.6, hp: 320, wood: 6, trap: 1, d: 'Hurts and slows zombies that walk on it' },
+    turret: { n: 'Auto Turret', e: '🔫', cw: 1, cd: 1, h: 3.2, hp: 500, wood: 20, cash: 400, lvl: 4, block: 1, gun: 1, d: 'Shoots zombies near it (two each)' },
+  };
+  const BKEYS = Object.keys(BP), MAX_OWN = 30, MAX_ALL = 120, MAX_TURRETS = 2; // (what's built travels in the host's presence, which the room keeps under 4 KiB)
+  const NOPE = ['', 'Not in the Safe Zone', 'Something’s in the way', 'The ground isn’t flat there', 'Someone’s standing there', 'A zombie’s in the way', 'Too far away', 'You’ve built as much as you can (30)', 'Two turrets each at most', 'The server’s full of builds', 'Too close to the edge', 'Not on the water', 'That’s gone already', 'That’s someone else’s'];
   const AMMO = { light: { n: 'Light ammo', e: '🟡', pack: 30, price: 40 }, shells: { n: 'Shells', e: '🔴', pack: 12, price: 60 }, rifle: { n: 'Rifle ammo', e: '🟢', pack: 30, price: 90 } };
   // what turns up where: [thing, weight]; $ is cash
   const LOOT = {
-    house: [['beans', 30], ['chips', 25], ['soda', 25], ['bandage', 18], ['$', 24], ['light', 14], ['shells', 6], ['bat', 3], ['pistol', 2], ['energy', 4]],
+    house: [['wood', 12], ['beans', 30], ['chips', 25], ['soda', 25], ['bandage', 18], ['$', 24], ['light', 14], ['shells', 6], ['bat', 3], ['pistol', 2], ['energy', 4]],
     fridge: [['beans', 30], ['soda', 35], ['chips', 20], ['energy', 8]],
     grocery: [['beans', 35], ['chips', 30], ['soda', 30], ['energy', 10], ['$', 10]],
     pharmacy: [['bandage', 45], ['medkit', 18], ['energy', 8], ['$', 8]],
     hospital: [['medkit', 30], ['bandage', 40], ['$', 10], ['energy', 6]],
     police: [['light', 40], ['shells', 22], ['pistol', 5], ['revolver', 3], ['shotgun', 3], ['bandage', 12], ['grenade', 5]],
     guns: [['light', 35], ['shells', 30], ['rifle', 18], ['shotgun', 4], ['smg', 3], ['revolver', 4], ['grenade', 6]],
-    car: [['$', 35], ['soda', 20], ['chips', 18], ['light', 14], ['bandage', 10], ['energy', 6]],
-    farm: [['beans', 30], ['shells', 25], ['machete', 4], ['shotgun', 3], ['$', 18], ['soda', 12]],
-    camp: [['beans', 30], ['bandage', 20], ['rifle', 12], ['machete', 4], ['soda', 15], ['$', 12]],
+    car: [['wood', 5], ['$', 35], ['soda', 20], ['chips', 18], ['light', 14], ['bandage', 10], ['energy', 6]],
+    farm: [['wood', 24], ['beans', 30], ['shells', 25], ['machete', 4], ['shotgun', 3], ['$', 18], ['soda', 12]],
+    camp: [['wood', 22], ['beans', 30], ['bandage', 20], ['rifle', 12], ['machete', 4], ['soda', 15], ['$', 12]],
     military: [['rifle', 40], ['shells', 18], ['grenade', 18], ['medkit', 12], ['ar', 4], ['smg', 4], ['sniper', 2], ['minigun', 1], ['$', 10]],
   };
   const LOOT_BACK = 240; // seconds until a container you searched has something again
@@ -129,6 +157,8 @@
     { k: 'visit', at: 'farm', t: 'Check on Sunny Acres Farm', n: () => 1, cash: 110 },
     { k: 'visit', at: 'hospital', t: 'Raid St. Mercy Hospital', n: () => 1, cash: 120 },
     { k: 'visit', at: 'grave', t: 'Visit the Old Graveyard at night', n: () => 1, cash: 180, night: 1 },
+    { k: 'build', t: 'Build {n} things', n: () => 6, cash: 130 },
+    { k: 'chop', t: 'Chop {n} wood from trees', n: () => 12, cash: 90 },
   ];
   const need = (l) => Math.round(80 * Math.pow(l, 1.5));
 
@@ -141,6 +171,7 @@
 
   /* ---------------- the zombies' map: which 2-stud cells they can walk ---------------- */
   const blocked = new Uint8Array(GN * GN), floorY = new Float32Array(GN * GN), BFSQ = new Int32Array(GN * GN);
+  const pieceAt = new Int16Array(GN * GN), TREES = []; // (a built piece's id + 1 in each of its cells: 2 in blocked is a piece, 1 the world)
   const ci = (v) => Math.floor((v + HALF) / CELL), cc = (i) => -HALF + (i + 0.5) * CELL;
   const cell = (x, z) => { const i = ci(x), j = ci(z); return i < 0 || j < 0 || i >= GN || j >= GN ? -1 : j * GN + i; };
   function cellsIn(x0, z0, x1, z1, m, fn) {
@@ -155,6 +186,40 @@
     const n = Math.ceil(Math.hypot(x1 - x0, z1 - z0) / 1.5);
     for (let s = 1; s < n; s++) { const c = cell(x0 + (x1 - x0) * s / n, z0 + (z1 - z0) * s / n); if (c < 0 || blocked[c]) return false; }
     return true;
+  }
+
+  // what players build: a piece covers whole cells (turned, its footprint the other way round)
+  const bdims = (k, r) => { const B = BP[BKEYS[k]]; return r ? [B.cd, B.cw] : [B.cw, B.cd]; };
+  const bbox = (k, i, j, r) => { const [w, d] = bdims(k, r); return [-HALF + i * CELL, -HALF + j * CELL, -HALF + (i + w) * CELL, -HALF + (j + d) * CELL]; };
+  function bcells(k, i, j, r, fn) { const [w, d] = bdims(k, r); for (let jj = j; jj < j + d; jj++) for (let ii = i; ii < i + w; ii++) fn(jj * GN + ii); }
+  const boxDist = (x, z, b) => Math.hypot(Math.max(b[0] - x, 0, x - b[2]), Math.max(b[1] - z, 0, z - b[3]));
+  const pieceFloor = (k, i, j, r) => { let y = 0; bcells(k, i, j, r, (c) => (y = Math.max(y, floorY[c]))); return y; };
+  function markCells(pc, on) { // (taking one away leaves alone any cell another has taken since)
+    const B = BP[BKEYS[pc.k]];
+    bcells(pc.k, pc.i, pc.j, pc.r, (c) => { if (on) { pieceAt[c] = pc.id + 1; if (B.block) blocked[c] = 2; } else if (pieceAt[c] === pc.id + 1) { pieceAt[c] = 0; if (blocked[c] === 2) blocked[c] = 0; } });
+  }
+  // why a piece can't go there (0: it can). by: whoever's building it (it must be near them), zs: the zombies
+  function fits(k, i, j, r, by, zs) {
+    const B = BP[BKEYS[k]], [w, d] = bdims(k, r), b = bbox(k, i, j, r);
+    if (i < 3 || j < 3 || i + w > GN - 3 || j + d > GN - 3) return 10;
+    if (b[0] < SAFE + 1 && b[2] > -SAFE - 1 && b[1] < SAFE + 1 && b[3] > -SAFE - 1) return 1;
+    if (inLake(b[0], b[1]) || inLake(b[2], b[1]) || inLake(b[0], b[3]) || inLake(b[2], b[3])) return 11;
+    let why = 0, lo = 1e9, hi = -1e9;
+    bcells(k, i, j, r, (c) => { if (blocked[c] || pieceAt[c]) why = 2; lo = Math.min(lo, floorY[c]); hi = Math.max(hi, floorY[c]); });
+    if (why) return why;
+    if (hi - lo > 0.3) return 3;
+    if (B.block) {
+      for (const p of players()) if (p.x > b[0] - 0.95 && p.x < b[2] + 0.95 && p.z > b[1] - 0.95 && p.z < b[3] + 0.95 && p.y < hi + B.h - 0.2) return 4;
+      for (const z of zs) if (!z.dead && z.x > b[0] - 1 && z.x < b[2] + 1 && z.z > b[1] - 1 && z.z < b[3] + 1) return 5;
+    }
+    if (by && Math.hypot((b[0] + b[2]) / 2 - by.x, (b[1] + b[3]) / 2 - by.z) > 20) return 6;
+    return 0;
+  }
+  // the first piece that blocks the way between two points: its id, or -1
+  function pieceBetween(x0, z0, x1, z1) {
+    const n = Math.ceil(Math.hypot(x1 - x0, z1 - z0) / 0.7);
+    for (let s = 1; s < n; s++) { const c = cell(x0 + (x1 - x0) * s / n, z0 + (z1 - z0) * s / n); if (c >= 0 && blocked[c] === 2 && pieceAt[c]) return pieceAt[c] - 1; }
+    return -1;
   }
 
   /* ---------------- building the world, baked into a few big meshes ---------------- */
@@ -373,6 +438,7 @@
     if (ax) loot('car', x, z + hz + 1.4, 'Car', 0); else loot('car', x + hx + 1.4, z, 'Car', 0);
   }
   function tree(x, z, s, pine) {
+    TREES.push([x, z, s]);
     blk(x - 0.45 * s, 0, z - 0.45 * s, x + 0.45 * s, 5 * s, z + 0.45 * s, 0x6b4423);
     if (pine) { for (let i = 0; i < 4; i++) { const w = (3.1 - i * 0.7) * s; blk(x - w, (3 + i * 1.9) * s, z - w, x + w, (5 + i * 1.9) * s, z + w, 0x2f6b3a + i * 0x020400, { ghost: true }); } }
     else { blk(x - 2.6 * s, 4.2 * s, z - 2.6 * s, x + 2.6 * s, 7.4 * s, z + 2.6 * s, 0x3f8f3a, { ghost: true }); blk(x - 1.7 * s, 7.4 * s, z - 1.7 * s, x + 1.7 * s, 9.3 * s, z + 1.7 * s, 0x4aa043, { ghost: true }); }
@@ -385,7 +451,7 @@
   }
 
   function world() {
-    BK = baker(); LOOTS = []; MAPBOX = []; ROADS = []; BUILT.length = 0; roadN = padN = 0;
+    BK = baker(); LOOTS = []; MAPBOX = []; ROADS = []; BUILT.length = 0; roadN = padN = 0; TREES.length = 0; pieceAt.fill(0);
     blocked.fill(0); floorY.fill(0);
     const r = mulberry(4242);
     // the ground, the edge of the world and mountains beyond it
@@ -596,6 +662,38 @@
   }
   const portrait = (id) => snapshot('zs-w-' + id, () => weaponModel(id), { w: 180, h: 110, dir: [1, 0.35, -0.15], zoom: 0.8 });
   // a number or word that floats up and fades (damage)
+  // what's been built: planks, posts and spikes (w × d studs on the ground; a turret's head turns)
+  const BAR_WOOD = new THREE.MeshBasicMaterial({ color: 0xf59e0b, transparent: true }), SPIKE = new THREE.ConeGeometry(0.3, 0.95, 6);
+  function pieceModel(k, w, d) {
+    const g = new THREE.Group(), key = BKEYS[k], B = BP[key], along = w >= d, L = Math.max(w, d), T = Math.min(w, d);
+    const b = (c, sx, sy, sz, x, y, z, par) => { const o = new THREE.Mesh(BOX, wmat(c)); if (along || par) { o.scale.set(sx, sy, sz); o.position.set(x, y, z); } else { o.scale.set(sz, sy, sx); o.position.set(z, y, x); } (par || g).add(o); return o; };
+    if (key === 'wall') {
+      for (let n = 0; n < 4; n++) b(n % 2 ? 0x8a5a2e : 0x9c6b3a, L - 0.5, B.h / 4 - 0.1, T * 0.6, 0, (n + 0.5) * (B.h / 4), 0);
+      for (const s of [-1, 1]) b(0x5c3b1e, 0.75, B.h + 0.3, T * 0.82, s * (L / 2 - 0.38), (B.h + 0.3) / 2, 0);
+      for (const s of [-1, 1]) b(0x6b4423, L - 1.4, 0.45, 0.2, 0, B.h * 0.62, s * T * 0.32);
+    }
+    if (key === 'barricade') {
+      for (const s of [-1, 1]) b(0x5c3b1e, 0.5, B.h, 0.5, s * (L / 2 - 0.4), B.h / 2, 0);
+      b(0xa0703f, L - 0.2, 0.4, 0.4, 0, 0.55, 0); b(0xa0703f, L - 0.2, 0.4, 0.4, 0, 1.45, 0);
+      const len = Math.hypot(L - 1.1, 1.3), a = Math.atan2(1.3, L - 1.1);
+      for (const s of [-1, 1]) { const o = b(0x8a5a2e, len, 0.34, 0.26, 0, 1, s * 0.3); o.rotation[along ? 'z' : 'x'] = s * a; }
+    }
+    if (key === 'spikes') {
+      b(0x5c3b1e, L - 0.2, 0.26, T - 0.2, 0, 0.13, 0);
+      for (let a = 0; a < 3; a++) for (let c = 0; c < 3; c++) { const o = new THREE.Mesh(SPIKE, wmat(0xa1a1aa)); o.position.set((a - 1) * L / 3.2, 0.73, (c - 1) * T / 3.2); g.add(o); }
+    }
+    let head = null;
+    if (key === 'turret') {
+      b(0x8a5a2e, 1.9, 1.3, 1.9, 0, 0.65, 0); b(0x5c3b1e, 2, 0.24, 2, 0, 1.3, 0); b(0x4b5563, 0.5, 0.9, 0.5, 0, 1.85, 0);
+      head = new THREE.Group(); head.position.y = 2.65; g.add(head);
+      b(0x374151, 1.1, 0.8, 1.3, 0, 0, 0, head); b(0x111827, 0.26, 0.26, 1.6, 0, 0.05, -1.3, head); b(0x65a30d, 0.4, 0.5, 0.6, 0.76, -0.05, 0.1, head);
+    }
+    const bar = new THREE.Group(); bar.position.y = B.h + 1.1; g.add(bar);
+    const bg = new THREE.Mesh(PLANE, BAR_BG); bg.scale.set(2.6, 0.34, 1); bg.renderOrder = 5; bar.add(bg);
+    const fg = new THREE.Mesh(PLANE, BAR_WOOD); fg.scale.set(2.5, 0.24, 1); fg.position.z = 0.01; fg.renderOrder = 6; bar.add(fg);
+    bar.visible = false;
+    return { g, head, bar, fg };
+  }
   const NUMTEX = new Map();
   function numTex(text, color) {
     const k = text + color; if (NUMTEX.has(k)) return NUMTEX.get(k);
@@ -608,10 +706,11 @@
   /* ---------------- the experience ---------------- */
   const ZS = {
     noSprint: true, // (its own, with stamina, hunger and the 🏃 button; the sprint key comes from the engine)
+    ownFov: true, aimDist: 10, // (aiming zooms in)
     id: 'zombie', code: 'zs', genre: 'Survival', rank: 0.4, name: 'Zombie Outbreak', emoji: '🧟', max: 12, stat: 'Kills', killY: -20, banner: true, noReset: true, respawnDelay: 4200, camDist: 18,
     land: { theme: 'forest' },
     color: 'linear-gradient(135deg,#365314,#7f1d1d)',
-    desc: 'An open world overrun by zombies. Leave the Safe Zone to search houses, shops, cars and the military base for weapons, ammo, food and medkits. Level up, take on missions, buy gear from the trader and survive the nights — every fourth is a Blood Moon with a giant boss. Your gear and level are saved.',
+    desc: 'An open world overrun by zombies. Leave the Safe Zone to search houses, shops, cars and the military base for weapons, ammo, food and medkits. Level up, take on missions, buy gear from the trader and survive the nights — every fourth is a Blood Moon with a giant boss. Aim down the sights, and build walls, barricades, spike traps and turrets from wood to hold them off. Your gear, level and base are saved.',
     welcome: 'Grab a weapon and stay alive!',
     build() {
       sky('#5aaef5', '#d6ecfb');
@@ -638,18 +737,25 @@
       const nowS = Date.now() / 1000; for (const k in S.looted) if (!(S.looted[k] > nowS)) delete S.looted[k];
       S.q = (Array.isArray(S.q) ? S.q : []).filter((q) => Array.isArray(q) && MISSIONS[q[0]] && q[2] > 0).slice(0, 3); S.st = S.st && typeof S.st === 'object' ? S.st : {};
       while (S.q.length < 3) S.q.push(this.newMission());
+      S.wood = Math.max(0, S.wood == null ? 12 : S.wood | 0);
+      S.base = (Array.isArray(S.base) ? S.base : []).filter((b) => Array.isArray(b) && BKEYS[b[0]] && b[1] > 0 && b[2] > 0).slice(0, MAX_OWN);
       this.hp = S.hp; this.food = S.food; this.stam = 100; this.boost = 0; this.dead = false;
       this.zv = new Map(); this.killSet = new Set(); this.killSeen = null; this.evSeen = null; this.hq = []; this.zh = []; this.hn = 0; this.zcd = {}; this.bossHit = new Set(); this.lastHit = new Map();
       this.H = null; this.lastG = null; this.list = []; this.nextShot = 0; this.reloading = null; this.firing = false; this.swingT = 0; this.faceT = 0; this.aimYaw = 0;
       this.fx = []; this.nades = []; this.searching = null; this.mouse = null; this.shotN = 0; this.grN = 0; this.peerSeen = new Map(); this.held = new Map(); this.myHeld = null;
       this.sprint = false; this.runToggle = false; this.area = null; this.nightWas = null; this.nightDied = false; this.nightOut = 0; this.saveT = 0; this.alive0 = performance.now();
       this.groanT = 2; this.dirty = false;
+      this.bm = new Map(); this.rmAsk = new Map(); this.pend = new Map(); this.bq = []; this.bqn = 0; this.bpSeen = null; this.lastBP = null; this.tsSeen = null; this.chop = new Map();
+      this.building = false; this.tool = 0; this.brot = 0; this.ghost = null; this.spot = null; this.bT = 0;
+      this.restoreAt = performance.now() / 1000 + 4; this.restoring = false; this.baseLive = false; // (your base from last time goes back up once the server's settled)
       $('#xhud').insertAdjacentHTML('beforeend', `<div id="zsV" class="glass"></div><div id="zsMap"><canvas width="156" height="156"></canvas></div><div id="zsHurt"></div><div id="zsSearch" class="glass"></div><div id="zsCross"></div>
-        <div id="zsTouch"><button id="zsFire">🔫</button><button id="zsRel">🔄</button><button id="zsRun">🏃</button></div>`);
+        <div id="zsScope"></div><div id="zsTouch"><button id="zsFire">🔫</button><button id="zsRel">🔄</button><button id="zsRun">🏃</button><button id="zsAim">🎯</button></div>`);
+      this.aim = false; this.fov0 = camera.fov; $('#xbar').classList.add('zs');
+      $('#zsAim').addEventListener('click', () => { this.aim = !this.aim; sfx(this.aim ? 'select' : 'click'); });
       const fireBtn = $('#zsFire');
-      fireBtn.addEventListener('touchstart', (e) => { e.preventDefault(); this.firing = 'auto'; this.trigger(); }, { passive: false });
+      fireBtn.addEventListener('touchstart', (e) => { e.preventDefault(); if (this.building) { this.buildAct(); return; } this.firing = 'auto'; this.trigger(); }, { passive: false });
       fireBtn.addEventListener('touchend', () => { this.firing = false; });
-      $('#zsRel').addEventListener('click', () => this.reload());
+      $('#zsRel').addEventListener('click', () => { if (this.building) this.turn(); else this.reload(); });
       $('#zsRun').addEventListener('click', () => { this.runToggle = !this.runToggle; $('#zsRun').classList.toggle('on', this.runToggle); });
       this.drawBar(); this.send(); this.vitals();
     },
@@ -663,6 +769,9 @@
       for (const m of baked) { m.geometry.dispose(); m.material.dispose(); } baked = [];
       for (const a of this.npcs || []) dropAvatar(a);
       gfxApply(); // the usual light again (it depends on the graphics setting)
+      this.aim = false; camera.fov = this.fov0 || 70; camera.updateProjectionMatrix(); if (this.laser) { scene.remove(this.laser); this.laser = null; } if (me) me.g.visible = true;
+      for (const v of this.bm.values()) scene.remove(v.m.g);
+      this.setGhost(null); this.building = false; this.bm = new Map(); $('#xbar').classList.remove('zs');
       this.zv = new Map(); this.fx = []; this.nades = []; this.H = null;
     },
     save() { if (!this.S) return; this.S.hp = Math.round(this.hp); this.S.food = Math.round(this.food); this.dirty = false; return kvSet('zs', this.S); },
@@ -672,11 +781,13 @@
       return [(Math.random() - 0.5) * 8, 0.2, -6 + Math.random() * 4, 0]; // the camera behind you stays inside the walls
     },
     cur() { return this.S ? this.S.slot[this.S.cur] || 'fists' : 'fists'; },
-    loots() { return LOOTS; }, // for tests
+    // aiming down the sights: right mouse button held (or 🎯 on a phone) with a gun out
+    aiming() { return !!(this.aim && this.S && !P.dead && !this.dead && WP[this.cur()] && WP[this.cur()].gun && !this.building && !this.searching && !panelOpen()); },
+    loots() { return LOOTS; }, trees() { return TREES; }, grid() { return { blocked, pieceAt, floorY, cell, bbox, GN, fits }; }, // for tests
     speed() {
       if (!this.S) return 16;
       const W = WP[this.cur()], slow = (W && W.slow) || 1, wet = inLake(P.x, P.z) ? 0.55 : 1, run = this.sprint ? 1.55 : 1;
-      return 16 * slow * wet * run * (this.boost > 0 ? 1.2 : 1);
+      return 16 * slow * wet * (this.aiming() ? 0.55 : run) * (this.boost > 0 ? 1.2 : 1);
     },
     statOf(pr, isMe) { return isMe ? (this.S ? this.S.kills : 0) : pr.kc || 0; },
     sortKey(pr, isMe) { return isMe ? (this.S ? this.S.kills : 0) : pr.kc || 0; },
@@ -684,12 +795,19 @@
 
     /* ---------------- the host: the zombies ---------------- */
     adopt() {
-      const g = this.lastG, H = { zs: [], nid: 1, kl: [], ev: [], evn: 0, gs: 0, seen: {}, bossDay: -1, flows: new Map(), spT: {}, noise: {} };
+      const g = this.lastG, H = { zs: [], nid: 1, kl: [], ev: [], evn: 0, gs: 0, seen: {}, bossDay: -1, flows: new Map(), spT: {}, noise: {}, bp: new Map(), bid: 1, bv: 0, bseen: {}, bdirty: false, ts: [], tsn: 0 };
       if (g) {
         for (const z of this.parse(g)) { const T = ZT[z.t]; if (T) H.zs.push({ id: z.id, t: z.t, x: z.x, z: z.z, yaw: z.yaw, max: T.hp, hp: Math.max(1, z.hp * T.hp), st: 0, tgt: null, w: null, losT: 0, seeT: 0, stuck: 0 }); }
         H.nid = 1 + Math.max(0, ...H.zs.map((z) => z.id)); H.kl = Array.isArray(g.k) ? g.k.slice() : []; H.ev = Array.isArray(g.ev) ? g.ev.slice() : [];
         H.evn = Math.max(0, ...H.ev.map((e) => +e[0] || 0)); H.gs = g.gs || 0; H.bossDay = g.bd != null ? g.bd : -1;
+        H.ts = Array.isArray(g.ts) ? g.ts.slice() : []; H.tsn = Math.max(0, ...H.ts.map((e) => +e[0] || 0));
       }
+      // what's been built carries on as it was
+      if (this.lastBP) {
+        for (const q of this.parseB(this.lastBP)) H.bp.set(q.id, { id: q.id, k: q.k, i: q.i, j: q.j, r: q.r, hp: Math.max(1, q.hp * BP[BKEYS[q.k]].hp), o: q.o, fireT: 0 });
+        H.bv = (+this.lastBP.v || 0) + 1; H.bid = (Math.max(0, ...H.bp.keys()) % 4095) + 1; H.bdirty = true;
+      }
+      for (const p of players()) if (!p.me) H.bseen[p.peer] = { t: p.pr.t, n: Math.max(0, ...(Array.isArray(p.pr.bq) ? p.pr.bq.map((q) => (Array.isArray(q) ? +q[0] || 0 : 0)) : [0])) };
       for (const p of players()) if (!p.me) H.seen[p.peer] = { t: p.pr.t, n: Math.max(0, ...(Array.isArray(p.pr.zh) ? p.pr.zh.map((h) => (Array.isArray(h) ? +h[0] || 0 : 0)) : [0])) };
       return H;
     },
@@ -714,6 +832,7 @@
       const H = this.H;
       H.ev.push([++H.evn, 1, Math.round(x * 4) / 4, Math.round(z * 4) / 4]); if (H.ev.length > 10) H.ev.shift();
       for (const q of H.zs.slice()) if (q.id !== from && Math.hypot(q.x - x, q.z - z) < 7) this.damage(q.id, 110, peer);
+      for (const pc of [...H.bp.values()]) { const d = boxDist(x, z, bbox(pc.k, pc.i, pc.j, pc.r)); if (d < 6) this.hurtB(H, pc, 320 * (1 - d / 8)); }
     },
     host(dt) {
       if (!this.S) return;
@@ -726,6 +845,10 @@
         if (p.pr.t !== seen.t) { seen.t = p.pr.t; seen.n = 0; }
         for (const h of Array.isArray(p.pr.zh) ? p.pr.zh : []) { if (!Array.isArray(h) || !(h[0] > seen.n)) continue; seen.n = h[0]; this.damage(h[1] | 0, +h[2] || 0, p.peer); }
         const sh = Array.isArray(p.pr.sh) ? p.pr.sh[0] : 0; if (sh && sh !== (H.noise[p.peer] || {}).n) H.noise[p.peer] = { n: sh, until: tnow + 2.5 };
+        // what they want built (or taken down, or mended)
+        const bs = H.bseen[p.peer] || (H.bseen[p.peer] = { t: p.pr.t, n: 0 });
+        if (p.pr.t !== bs.t) { bs.t = p.pr.t; bs.n = 0; }
+        for (const q of Array.isArray(p.pr.bq) ? p.pr.bq : []) { if (!Array.isArray(q) || !(q[0] > bs.n)) continue; bs.n = q[0]; const why = this.bReq(H, p.peer, q); if (why) this.bNope(H, p.peer, q[0], why); }
       }
       if (this.shotN && this.shotN !== (H.noise[myPeer()] || {}).n) H.noise[myPeer()] = { n: this.shotN, until: tnow + 2.5 };
       // who they can chase: alive, outside the Safe Zone
@@ -751,16 +874,30 @@
           if (d < sense && d < bd && Math.abs(p.y - floorAt(z.x, z.z)) < 30) { bd = d; best = p; }
         }
         z.tgt = best ? best.peer : null;
-        let vx = 0, vz = 0, sp = Z.sp * fast * (inLake(z.x, z.z) ? 0.55 : 1);
-        if (best) {
+        let vx = 0, vz = 0, sp = Z.sp * fast * (inLake(z.x, z.z) ? 0.55 : 1) * (this.onTrap(H, z) ? 0.45 : 1);
+        let siege = null; // something that's been built, in its way: it tears into it
+        if (best && z.sg && tnow < z.sgT && H.bp.has(z.sg)) siege = H.bp.get(z.sg); // (still at it)
+        if (best && !siege) {
           if (Z.boom && bd < 3.1) { booms.push(z); continue; }
-          if (bd < Z.reach * 0.85 + 0.3) { z.st = 2; z.yaw = Math.atan2(-(best.x - z.x), -(best.z - z.z)); continue; }
+          // close enough to bite, unless there's a wall (or a barricade) in between, or you're up on one
+          if (bd < Z.reach * 0.85 + 0.3) { const w = H.bp.size ? this.blocker(z, best) : -1; if (w < 0) { z.st = 2; z.yaw = Math.atan2(-(best.x - z.x), -(best.z - z.z)); continue; } siege = H.bp.get(w); }
+        }
+        if (best && !siege) {
           z.st = 1;
           if (tnow > z.losT) { z.losT = tnow + 0.35; z.see = clearLine(z.x, z.z, best.x, best.z); }
           let dx = best.x - z.x, dz = best.z - z.z;
-          if (!z.see) { const f = this.flow(H, best.peer, best.x, best.z), c = cell(z.x, z.z); if (f && c >= 0) { const i = c % GN, j = (c / GN) | 0, here = f.d[c]; let bv = here >= 0 ? here : 1e9, bx = 0, bz = 0; for (const [di, dj] of DIRS) { const ii = i + di, jj = j + dj; if (ii < 0 || jj < 0 || ii >= GN || jj >= GN) continue; const kk = jj * GN + ii, v = f.d[kk]; if (v < 0 || blocked[kk] || v >= bv) continue; if (di && dj && (blocked[j * GN + ii] || blocked[jj * GN + i])) continue; bv = v; bx = di; bz = dj; } if (bx || bz) { dx = cc(i + bx) - z.x; dz = cc(j + bz) - z.z; } } }
+          if (!z.see) {
+            // the way round; and if there isn't one (you've walled yourself in), the way through what's been built
+            let f = this.flow(H, best.peer, best.x, best.z), c = cell(z.x, z.z), thru = false;
+            if (f && c >= 0 && f.d[c] < 0 && H.bp.size) { f = this.flow(H, best.peer, best.x, best.z, true); thru = true; }
+            if (f && c >= 0) { const i = c % GN, j = (c / GN) | 0, here = f.d[c]; let bv = here >= 0 ? here : 1e9, bx = 0, bz = 0, bk = -1; for (const [di, dj] of DIRS) { const ii = i + di, jj = j + dj; if (ii < 0 || jj < 0 || ii >= GN || jj >= GN) continue; const kk = jj * GN + ii, v = f.d[kk]; if (v < 0 || (blocked[kk] && !(thru && blocked[kk] === 2)) || v >= bv) continue; if (di && dj && (blocked[j * GN + ii] || blocked[jj * GN + i])) continue; bv = v; bx = di; bz = dj; bk = kk; } if (bx || bz) { dx = cc(i + bx) - z.x; dz = cc(j + bz) - z.z; if (thru && blocked[bk] === 2 && pieceAt[bk]) { const pc = H.bp.get(pieceAt[bk] - 1); if (pc && boxDist(z.x, z.z, bbox(pc.k, pc.i, pc.j, pc.r)) < Z.reach + 0.4) siege = pc; } } }
+          }
           const l = Math.hypot(dx, dz) || 1; vx = (dx / l) * sp; vz = (dz / l) * sp;
-        } else {
+          // pushing against something that's been built and getting nowhere: break it
+          if (!siege && z.stuck > 0.4 && H.bp.size) siege = this.pieceNear(H, z, Z.reach + 0.4);
+        }
+        if (siege) { this.siegeHit(H, z, siege, tnow, booms); continue; }
+        if (!best) {
           z.st = 0;
           if (!z.w || Math.hypot(z.w[0] - z.x, z.w[1] - z.z) < 2 || tnow > z.wT) { const a = Math.random() * TAU, d = 6 + Math.random() * 18; z.w = [z.x + Math.cos(a) * d, z.z + Math.sin(a) * d]; z.wT = tnow + 8; }
           const dx = z.w[0] - z.x, dz = z.w[1] - z.z, l = Math.hypot(dx, dz) || 1; vx = (dx / l) * sp * 0.32; vz = (dz / l) * sp * 0.32;
@@ -774,7 +911,107 @@
         if (best && Math.hypot(z.x - ox, z.z - oz) < sp * dt * 0.15) { z.stuck += dt; if (z.stuck > 1.2) { z.stuck = 0; const a = Math.random() * TAU; const sx = z.x + Math.cos(a) * 2, sz = z.z + Math.sin(a) * 2; if (walkable(sx, sz)) { z.x = sx; z.z = sz; } } } else z.stuck = 0;
       }
       for (const z of booms) if (H.zs.includes(z)) this.kill(z, '');
+      if (H.bp.size) this.defend(H, dt, tnow);
       if (tnow - (this.sentAt || 0) > 0.2) { this.sentAt = tnow; this.publish(H); }
+      if (H.bdirty && tnow - (H.bpAt || 0) > 0.3) { H.bdirty = false; H.bpAt = tnow; this.publishB(H); }
+    },
+    /* ---------------- the host: what's been built ---------------- */
+    onTrap(H, z) { const c = cell(z.x, z.z), pc = c >= 0 && pieceAt[c] ? H.bp.get(pieceAt[c] - 1) : null; return pc && BP[BKEYS[pc.k]].trap ? pc : null; },
+    // a piece between a zombie and whoever it's after (or the one they're standing on, out of its reach): its id, or -1
+    blocker(z, p) {
+      const w = pieceBetween(z.x, z.z, p.x, p.z); if (w >= 0) return w;
+      const c = cell(p.x, p.z);
+      return c >= 0 && blocked[c] === 2 && pieceAt[c] && p.y - floorAt(z.x, z.z) > 3.2 + ZT[z.t].s ? pieceAt[c] - 1 : -1;
+    },
+    pieceNear(H, z, reach) {
+      let best = null, bd = reach;
+      const i0 = ci(z.x), j0 = ci(z.z), m = Math.ceil(reach / CELL);
+      for (let j = j0 - m; j <= j0 + m; j++) for (let i = i0 - m; i <= i0 + m; i++) {
+        if (i < 0 || j < 0 || i >= GN || j >= GN) continue;
+        const c = j * GN + i; if (blocked[c] !== 2 || !pieceAt[c]) continue;
+        const pc = H.bp.get(pieceAt[c] - 1); if (!pc) continue;
+        const d = boxDist(z.x, z.z, bbox(pc.k, pc.i, pc.j, pc.r)); if (d < bd) { bd = d; best = pc; }
+      }
+      return best;
+    },
+    // a zombie at something that's been built tears into it (an exploder just goes off)
+    siegeHit(H, z, pc, tnow, booms) {
+      const Z = ZT[z.t], b = bbox(pc.k, pc.i, pc.j, pc.r);
+      z.st = 2; z.yaw = Math.atan2(-((b[0] + b[2]) / 2 - z.x), -((b[1] + b[3]) / 2 - z.z));
+      if (z.sg !== pc.id) { z.sg = pc.id; z.sgT = tnow + 1.5; }
+      if (Z.boom) { booms.push(z); return; }
+      if (tnow < (z.hitT || 0)) return;
+      z.hitT = tnow + Z.cd; z.sgT = tnow + Z.cd + 0.3;
+      this.hurtB(H, pc, Z.dmg * (Z.boss ? 4 : 1.5));
+    },
+    hurtB(H, pc, n) { if (!H.bp.has(pc.id)) return; pc.hp -= n; if (pc.hp <= 0) this.unbuild(H, pc, true); else this.bChanged(H); },
+    bChanged(H, layout) { H.bv++; H.bdirty = true; if (layout) H.flows.clear(); },
+    unbuild(H, pc, broke) {
+      H.bp.delete(pc.id); markCells(pc, false); this.bChanged(H, true);
+      if (broke) { const b = bbox(pc.k, pc.i, pc.j, pc.r); H.ev.push([++H.evn, 3, Math.round((b[0] + b[2]) * 2) / 4, Math.round((b[1] + b[3]) * 2) / 4, pc.k]); if (H.ev.length > 10) H.ev.shift(); }
+    },
+    bNope(H, peer, seq, why) { H.ev.push([++H.evn, 4, peer, seq, why]); if (H.ev.length > 10) H.ev.shift(); },
+    present(peer) { return players().some((p) => p.peer === peer); },
+    // a request: [seq, 'p', piece, i, j, turned, free (your saved base going back up)] | [seq, 'x', id] | [seq, 'f', id, hp]
+    bReq(H, peer, q) {
+      const op = q[1];
+      if (op === 'p') {
+        const k = q[2] | 0, i = q[3] | 0, j = q[4] | 0, r = q[5] ? 1 : 0, free = !!q[6], B = BP[BKEYS[k]];
+        if (!B) return 2;
+        if (free) { // the same piece left standing where it was: it's yours again
+          for (const pc of H.bp.values()) if (pc.k === k && pc.i === i && pc.j === j && pc.r === r) { if (pc.o === peer) return 0; if (!this.present(pc.o)) { pc.o = peer; this.bChanged(H); return 0; } }
+        }
+        let mine = 0, guns = 0; for (const pc of H.bp.values()) if (pc.o === peer) { mine++; if (BP[BKEYS[pc.k]].gun) guns++; }
+        if (mine >= MAX_OWN) return 7;
+        if (B.gun && guns >= MAX_TURRETS) return 8;
+        if (H.bp.size >= MAX_ALL) return 9;
+        const why = fits(k, i, j, r, free ? null : players().find((p) => p.peer === peer), H.zs); if (why) return why;
+        let id = H.bid; while (H.bp.has(id)) id = (id % 4095) + 1;
+        H.bid = (id % 4095) + 1;
+        const pc = { id, k, i, j, r, hp: B.hp, o: peer, fireT: 0 };
+        H.bp.set(id, pc); markCells(pc, true); this.bChanged(H, true);
+        return 0;
+      }
+      const pc = H.bp.get(q[2] | 0); if (!pc) return 12;
+      if (op === 'x') { if (pc.o !== peer && this.present(pc.o)) return 13; this.unbuild(H, pc, false); return 0; }
+      if (op === 'f') { pc.hp = Math.min(BP[BKEYS[pc.k]].hp, pc.hp + clamp(+q[3] || 0, 0, 300)); this.bChanged(H); return 0; }
+      return 2;
+    },
+    // spikes hurt the zombies on them (the kill is the builder's) and wear down; turrets shoot the nearest one they can see
+    defend(H, dt, tnow) {
+      for (const z of H.zs.slice()) {
+        const pc = this.onTrap(H, z); if (!pc) continue;
+        z.hp -= 55 * dt * (ZT[z.t].boss ? 0.5 : 1); if (z.hp <= 0) this.kill(z, pc.o);
+        this.hurtB(H, pc, 6 * dt);
+      }
+      for (const pc of H.bp.values()) {
+        if (!BP[BKEYS[pc.k]].gun || tnow < pc.fireT) continue;
+        const b = bbox(pc.k, pc.i, pc.j, pc.r), x = (b[0] + b[2]) / 2, z0 = (b[1] + b[3]) / 2;
+        let tg = null, td = 36;
+        for (const z of H.zs) { const d = Math.hypot(z.x - x, z.z - z0); if (d < td && this.turretSees(H, pc, x, z0, z.x, z.z)) { td = d; tg = z; } }
+        if (!tg) { pc.fireT = tnow + 0.25; continue; }
+        pc.fireT = tnow + 0.4;
+        H.ts.push([++H.tsn, pc.id, Math.round(tg.x * 4) / 4, Math.round(tg.z * 4) / 4]); if (H.ts.length > 16) H.ts.shift();
+        tg.hp -= ZT[tg.t].boss ? 30 : 22; if (tg.hp <= 0) this.kill(tg, pc.o);
+      }
+    },
+    // a turret fires over barricades, spikes and other turrets, not through walls or anything else
+    turretSees(H, me, x0, z0, x1, z1) {
+      const n = Math.ceil(Math.hypot(x1 - x0, z1 - z0) / 1.2);
+      for (let s = 1; s < n; s++) {
+        const c = cell(x0 + (x1 - x0) * s / n, z0 + (z1 - z0) * s / n); if (c < 0 || blocked[c] === 1) return false;
+        if (blocked[c] === 2 && pieceAt[c] !== me.id + 1) { const pc = H.bp.get(pieceAt[c] - 1); if (pc && BKEYS[pc.k] === 'wall') return false; }
+      }
+      return true;
+    },
+    publishB(H) {
+      const o = [''], here = new Set(players().map((p) => p.peer)); let s = ''; // (owners who've gone are all just '')
+      for (const pc of H.bp.values()) {
+        let oi = here.has(pc.o) ? o.indexOf(pc.o) : 0; if (oi < 0) { oi = o.length < 63 ? o.length : 0; if (oi) o.push(pc.o); }
+        s += AL[pc.k + pc.r * 4] + e2(pc.id) + e2(pc.i) + e2(pc.j) + e1((Math.max(0, pc.hp) / BP[BKEYS[pc.k]].hp) * 63) + AL[oi];
+      }
+      const bp = { v: H.bv, s, o };
+      this.sentAt = performance.now() / 1000; this.publish(H, bp); this.lastBP = bp; this.applyB(bp);
     },
     spawnNear(H, p, ck, pl, type) {
       for (let tries = 0; tries < 12; tries++) {
@@ -787,11 +1024,12 @@
         return;
       }
     },
-    flow(H, peer, px, pz) {
-      let f = H.flows.get(peer); const c = cell(px, pz), t = performance.now();
+    flow(H, peer, px, pz, thru) { // thru: as if what's been built weren't there (to find the way through it)
+      const key = thru ? peer + '#' : peer;
+      let f = H.flows.get(key); const c = cell(px, pz), t = performance.now();
       if (f && ((f.c === c && t - f.at < 3000) || t - f.at < 450)) return f;
       if (c < 0) return null;
-      if (!f) { f = { d: new Int16Array(GN * GN) }; H.flows.set(peer, f); }
+      if (!f) { f = { d: new Int16Array(GN * GN) }; H.flows.set(key, f); }
       f.c = c; f.at = t; f.d.fill(-1);
       let h = 0, n = 0; BFSQ[n++] = c; f.d[c] = 0;
       while (h < n) {
@@ -799,18 +1037,22 @@
         const i = k % GN, j = (k / GN) | 0;
         for (const [di, dj] of DIRS) {
           const ii = i + di, jj = j + dj; if (ii < 0 || jj < 0 || ii >= GN || jj >= GN) continue;
-          const kk = jj * GN + ii; if (f.d[kk] >= 0 || blocked[kk]) continue;
+          const kk = jj * GN + ii; if (f.d[kk] >= 0 || (blocked[kk] && !(thru && blocked[kk] === 2))) continue;
           if (di && dj && (blocked[j * GN + ii] || blocked[jj * GN + i])) continue;
           f.d[kk] = dk + 1; BFSQ[n++] = kk;
         }
       }
       return f;
     },
-    publish(H) {
+    publish(H, bp) { // (bp: what's been built, when that's changed too)
       let zs = '';
       for (const z of H.zs.slice(0, 60)) zs += AL[z.t] + e2(z.id) + e2((z.x + HALF) * 7.5) + e2((z.z + HALF) * 7.5) + e1(((((z.yaw % TAU) + TAU) % TAU) / TAU) * 64 % 64) + e1((Math.max(0, z.hp) / z.max) * 63) + AL[z.st];
       H.gs = (H.gs || 0) + 1;
-      send({ g: { gs: H.gs, z: zs, k: H.kl.slice(-16), ev: H.ev.slice(-8), bd: H.bossDay } });
+      const g = { gs: H.gs, z: zs, k: H.kl.slice(-16), ev: H.ev.slice(-8), bd: H.bossDay, ts: H.ts.slice(-8) }, patch = bp ? { g, bp } : { g };
+      // the room keeps each presence under 4 KiB: with a lot going on, the least important goes first
+      const size = () => new TextEncoder().encode(JSON.stringify(Object.assign({}, (Net.peers.find((p) => p.isMe) || {}).presence, Net.queued, patch))).length;
+      for (let n = 0; n < 6 && size() > 3900; n++) { if (n === 0) g.ts = g.ts.slice(-2); else if (n === 1) g.k = g.k.slice(-6); else if (n === 2) g.ev = g.ev.slice(-3); else g.z = g.z.slice(0, Math.floor(g.z.length * 0.06) * 10); }
+      send(patch);
     },
 
     /* ---------------- everyone: drawing the zombies ---------------- */
@@ -818,18 +1060,24 @@
       if (!this.S) return;
       const ck = clock(), tnow = performance.now() / 1000;
       this.light(ck);
-      let list, kills, evs;
+      let list, kills, evs, shots;
       if (iAmHost()) {
         if (!this.H) this.H = this.adopt();
         list = this.H.zs.map((z) => ({ id: z.id, t: z.t, x: z.x, z: z.z, yaw: z.yaw, hp: Math.max(0, z.hp) / z.max, st: z.st }));
-        kills = this.H.kl; evs = this.H.ev;
+        kills = this.H.kl; evs = this.H.ev; shots = this.H.ts;
       } else {
         if (this.H) { this.H = null; }
         const h = crew()[0], g = h && h.pr && h.pr.g;
         if (g && typeof g === 'object' && g.gs !== this.gsSeen) { this.gsSeen = g.gs; this.lastG = g; this.list = this.parse(g); }
-        list = this.list || []; kills = (this.lastG && this.lastG.k) || []; evs = (this.lastG && this.lastG.ev) || [];
+        list = this.list || []; kills = (this.lastG && this.lastG.k) || []; evs = (this.lastG && this.lastG.ev) || []; shots = (this.lastG && this.lastG.ts) || [];
+        // what's been built, as the host has it
+        const bp = h && h.pr && h.pr.bp, key = h ? h.peer + ':' + (bp && typeof bp === 'object' ? bp.v : '-') : '';
+        if (h && key !== this.bpSeen) { this.bpSeen = key; const ok = bp && typeof bp === 'object'; this.lastBP = ok ? bp : null; this.applyB(ok ? bp : { s: '' }); }
       }
-      this.takeKills(kills); this.takeEvents(evs);
+      this.takeKills(kills); this.takeEvents(evs); this.takeShots(shots);
+      this.drawPieces(dt); this.buildView();
+      if (!this.baseLive && tnow > this.restoreAt) this.restoreBase(tnow);
+      for (const [n, q] of this.pend) if (tnow - q.at > 20) this.pend.delete(n);
       this.drawZombies(list, dt, iAmHost());
       this.bites(dt);
       this.others(dt);
@@ -871,7 +1119,12 @@
       if (!Array.isArray(list)) return;
       const top = Math.max(0, ...list.map((e) => +e[0] || 0));
       if (this.evSeen == null) { this.evSeen = top; return; }
-      for (const e of list) { if (!Array.isArray(e) || !(e[0] > this.evSeen)) continue; if (e[1] === 1) this.boom(e[2], e[3], true); }
+      for (const e of list) {
+        if (!Array.isArray(e) || !(e[0] > this.evSeen)) continue;
+        if (e[1] === 1) this.boom(e[2], e[3], true);
+        if (e[1] === 3) { puffAt(e[2], floorAt(e[2], e[3]) + 1.5, e[3], [0x8a5a2e, 0x5c3b1e, 0xa0703f, 0x9ca3af], 20); sfx3('break', e[2], e[3], 90); }
+        if (e[1] === 4 && e[2] === myPeer()) this.nope(e[3], e[4]);
+      }
       this.evSeen = Math.max(this.evSeen, top);
     },
     boom(x, z, hurtsMe) {
@@ -934,6 +1187,7 @@
         if (d > reach || Math.abs(P.y - v.y) > 3.6 + Z.s) continue;
         if (!(v.st === 2 || d < reach * 0.7)) continue;
         if (t < (this.zcd[v.id] || 0)) continue;
+        if (this.bm.size && pieceBetween(v.x, v.z, P.x, P.z) >= 0) continue; // a wall (or a barricade) in between
         this.zcd[v.id] = t + Z.cd;
         const night = clock().night;
         this.hurt(Z.dmg * (night ? 1.15 : 1), `🧟 Got by a ${Z.n.toLowerCase()}`);
@@ -949,7 +1203,7 @@
       if (this.hp <= 0) this.died(why);
     },
     died(why) {
-      this.hp = 0; this.dead = true; this.firing = false; this.reloading = null;
+      this.hp = 0; this.dead = true; this.firing = false; this.reloading = null; if (this.building) this.toggleBuild(false);
       const S = this.S, lost = Math.floor(S.cash * 0.1), lived = (performance.now() - this.alive0) / 1000;
       S.cash -= lost; S.best = Math.max(S.best, Math.floor(lived)); this.dirty = true;
       if (clock().night) this.nightDied = true;
@@ -998,19 +1252,28 @@
     // a click shoots (or swings) where you click; holding the button down without dragging the camera keeps
     // automatic weapons firing; dragging just turns the camera
     press(btn, down) {
+      if (btn === 2) { if (this.building) { if (down) this.turn(); return; } this.aim = !!down && !!WP[this.cur()].gun; return; } // aim (the right button); building: turn it
       if (btn !== 0) return;
       if (down) { this.hold = { at: performance.now() / 1000, auto: false }; }
       else { if (this.hold) this.hold.up = true; if (this.firing === 'mouse') this.firing = false; }
     },
     click(e) {
-      if (e.button === 2) { this.throwNade(this.aimFrom(e.x, e.y)); return; }
+      if (e.button === 2) return; // (that was aiming; grenades are G)
       const h = this.hold; this.hold = null;
+      if (this.building) { this.mouse = { x: e.x, y: e.y }; this.buildAct(); return; }
       if (h && h.auto) return; // it was already firing while held
       this.mouse = { x: e.x, y: e.y };
       this.fireOnce(this.aimFrom(e.x, e.y));
     },
     key(code, down) {
       if (!down) { if (code === 'KeyF') this.firing = false; return; }
+      if (code === 'KeyQ') { this.toggleBuild(); return true; }
+      if (this.building) {
+        const n = ['Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'Digit6'].indexOf(code);
+        if (n >= 0) { this.pickTool(n); return true; }
+        if (code === 'KeyR') { this.turn(); return true; }
+        if (code === 'KeyF') { this.buildAct(); return true; }
+      }
       if (code === 'KeyF') { this.firing = 'auto'; this.trigger(); return true; }
       if (code === 'KeyR') { this.reload(); return true; }
       if (code === 'Digit1' || code === 'Digit2' || code === 'Digit3') { this.pick(['m', 's', 'p'][+code.slice(5) - 1]); return true; }
@@ -1036,11 +1299,12 @@
       cam.yaw += this.sy0; cam.pitch += this.sp0;
     },
     // where a click points: at a zombie (or near one on screen), else at whatever's there
-    aimFrom(sx, sy) {
+    aimFrom(sx, sy, exact) {
       const rc = rayAt(sx, sy), o = [rc.ray.origin.x, rc.ray.origin.y, rc.ray.origin.z], d = [rc.ray.direction.x, rc.ray.direction.y, rc.ray.direction.z];
       let best = null, bt = 1e9;
       for (const v of this.zv.values()) { if (v.dead || !v.m.g.visible) continue; const s = ZT[v.t].s, r = 1.1 * s, t = rayBox(o, d, [v.x - r, v.y, v.z - r, v.x + r, v.y + 5.4 * s, v.z + r], 400); if (t < bt) { bt = t; best = v; } }
       if (best) return { x: o[0] + d[0] * bt, y: o[1] + d[1] * bt + 0.2, z: o[2] + d[2] * bt, v: best };
+      if (exact) { const w = wallHit(o, d, 320, true); return { x: o[0] + d[0] * w, y: o[1] + d[1] * w, z: o[2] + d[2] * w }; } // (aiming: exactly where you point)
       let bd = 70;
       for (const v of this.zv.values()) { if (v.dead || !v.m.g.visible) continue; const p = new THREE.Vector3(v.x, v.y + 3 * ZT[v.t].s, v.z).project(camera); if (p.z > 1) continue; const dd = Math.hypot((p.x + 1) / 2 * innerWidth - sx, (1 - p.y) / 2 * innerHeight - sy); if (dd < bd && Math.hypot(v.x - P.x, v.z - P.z) < 130) { bd = dd; best = v; } }
       if (best) return { x: best.x, y: best.y + 3.1 * ZT[best.t].s, z: best.z, v: best };
@@ -1081,14 +1345,35 @@
         n.m.position.set(n.x, n.y, n.z); n.m.rotation.x += dt * 8;
         if (n.t <= 0) { scene.remove(n.m); this.nades.splice(i, 1); this.nadeBoom(n.x, n.z); }
       }
-      // the crosshair follows the mouse when you've got a gun out
-      const cr = $('#zsCross'); if (cr) { const W = WP[this.cur()], show = !!(W && W.gun && this.mouse && !touchy && !panelOpen()); cr.style.display = show ? 'block' : 'none'; if (show) { cr.style.left = this.mouse.x + 'px'; cr.style.top = this.mouse.y + 'px'; } }
+      // the crosshair follows the mouse when you've got a gun out (aiming on a computer, the dot in the middle is it)
+      const aiming = this.aiming(), cr = $('#zsCross');
+      if (cr) { const W = WP[this.cur()], show = !!(W && W.gun && !panelOpen() && (aiming ? touchy : this.mouse && !touchy)); cr.style.display = show ? 'block' : 'none'; cr.classList.toggle('aim', aiming); if (show) { cr.style.left = (aiming ? innerWidth / 2 : this.mouse.x) + 'px'; cr.style.top = (aiming ? innerHeight / 2 : this.mouse.y) + 'px'; } }
+      this.aimView(dt, aiming);
+    },
+    // aiming: the view zooms in (the sniper's scope much further), and a laser shows where the shot will go
+    aimView(dt, aiming) {
+      const scoped = aiming && this.cur() === 'sniper', fov = scoped ? 18 : aiming ? 46 : viewFov();
+      if (Math.abs(camera.fov - fov) > 0.05) { camera.fov += (fov - camera.fov) * Math.min(1, dt * 12); camera.updateProjectionMatrix(); }
+      const sc = $('#zsScope'), inScope = scoped && camera.fov < 28;
+      if (sc) { sc.style.display = inScope ? 'block' : 'none'; if (inScope) { const r = Math.min(innerWidth, innerHeight) * 0.36; sc.style.background = `radial-gradient(circle at 50% 50%,transparent 0 ${r}px,rgba(0,0,0,.95) ${r + 3}px)`; } }
+      if (me) me.g.visible = !inScope; // (looking through the scope: you're not in the way)
+      if (!aiming) { if (this.laser) this.laser.visible = false; return; }
+      if (!this.laser) {
+        const g = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3(0, 0, -1)]);
+        this.laser = new THREE.Line(g, new THREE.LineBasicMaterial({ color: 0xff2a2a, transparent: true, opacity: 0.75 }));
+        this.laser.add(new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), new THREE.MeshBasicMaterial({ color: 0xff3b3b })));
+        this.laser.frustumCulled = false; scene.add(this.laser);
+      }
+      const a = this.aimFrom(innerWidth / 2, innerHeight / 2, true), yaw = P.yaw, o = [P.x - Math.sin(yaw) * 1.4 + Math.cos(yaw) * 1.4, P.y + 3.7, P.z - Math.cos(yaw) * 1.4 - Math.sin(yaw) * 1.4];
+      const pos = this.laser.geometry.attributes.position; pos.setXYZ(0, o[0], o[1], o[2]); pos.setXYZ(1, a.x, a.y, a.z); pos.needsUpdate = true;
+      this.laser.children[0].position.set(a.x, a.y, a.z); this.laser.visible = !scoped;
     },
     fireOnce(at) {
-      if (P.dead || this.dead || !this.S || fullOpen()) return;
+      if (P.dead || this.dead || !this.S || fullOpen() || this.building) return;
       const t = performance.now() / 1000, wid = this.cur(), W = WP[wid];
       if (t < this.nextShot || this.reloading || this.searching) return;
-      const aim = at || (this.firing === 'mouse' && this.mouse ? this.aimFrom(this.mouse.x, this.mouse.y) : this.autoAim());
+      const aiming = this.aiming();
+      const aim = aiming ? this.aimFrom(innerWidth / 2, innerHeight / 2, true) : at || (this.firing === 'mouse' && this.mouse ? this.aimFrom(this.mouse.x, this.mouse.y) : this.autoAim());
       if (!W.gun) { this.nextShot = t + 1 / W.rate; this.swing(W, aim); return; }
       const S = this.S, m = S.mag[wid] | 0;
       if (m <= 0) { if (S.ammo[W.ammo] > 0) this.reload(); else { sfx('error', { gap: 400 }); toast('Out of ammo', '#fca5a5'); this.firing = false; } this.nextShot = t + 0.35; return; }
@@ -1099,7 +1384,7 @@
       let dx = aim.x - o[0], dy = aim.y - o[1], dz = aim.z - o[2]; const l = Math.hypot(dx, dy, dz) || 1; dx /= l; dy /= l; dz /= l;
       const hits = new Map(), ends = [], moving = Math.hypot(P.vx, P.vz) > 2;
       for (let k = 0; k < (W.pellets || 1); k++) {
-        const sp = W.spread * (moving ? 1.6 : 1), d = [dx + (Math.random() - 0.5) * 2 * sp, dy + (Math.random() - 0.5) * 2 * sp, dz + (Math.random() - 0.5) * 2 * sp], dl = Math.hypot(...d); d[0] /= dl; d[1] /= dl; d[2] /= dl;
+        const sp = W.spread * (aiming ? (wid === 'sniper' ? 0 : 0.3) * (moving ? 1.3 : 1) : moving ? 1.6 : 1), d = [dx + (Math.random() - 0.5) * 2 * sp, dy + (Math.random() - 0.5) * 2 * sp, dz + (Math.random() - 0.5) * 2 * sp], dl = Math.hypot(...d); d[0] /= dl; d[1] /= dl; d[2] /= dl;
         const wall = wallHit(o, d, W.range);
         const zs = [];
         for (const v of this.zv.values()) { if (v.dead) continue; const s = ZT[v.t].s, r = 1.05 * s, tz = rayBox(o, d, [v.x - r, v.y, v.z - r, v.x + r, v.y + 5.4 * s, v.z + r], wall); if (tz < wall) zs.push([tz, v]); }
@@ -1133,7 +1418,20 @@
         if (d > 1.6 && (dx * fx + dz * fz) / d < 0.3) continue;
         this.hitZ(v, W.dmg, true); any = true;
       }
-      if (any) sfx('hit');
+      if (any) sfx('hit'); else this.chopAt(W, fx, fz);
+    },
+    // a melee swing at a tree: wood (a tree has 8 to give, then it grows back)
+    chopAt(W, fx, fz) {
+      let best = -1, bd = 1e9;
+      TREES.forEach((t, n) => { const dx = t[0] - P.x, dz = t[1] - P.z, l = Math.hypot(dx, dz), d = l - 0.45 * t[2]; if (d < W.range && d < bd && (d < 1.4 || (dx * fx + dz * fz) / l > 0.45)) { bd = d; best = n; } });
+      if (best < 0) return;
+      const t = TREES[best], nowS = Date.now() / 1000, c = this.chop.get(best) || { left: 8, back: 0 };
+      if (c.back > nowS) { toast('🌲 Nothing left to chop on that tree for now'); return; }
+      const n = Math.min(c.left, W.dmg >= 45 ? 2 : 1); c.left -= n; if (c.left <= 0) { c.left = 8; c.back = nowS + 150; }
+      this.chop.set(best, c);
+      this.S.wood += n; this.dirty = true; this.prog('chop', n);
+      puffAt(t[0], 2.5, t[1], [0x6b4423, 0x8a5a2e, 0x3f8f3a], 6); sfx('dig', { vol: 0.7 });
+      this.dmgNum(t[0], 4.5 * t[2], t[1], `+${n} 🪵`, '#fcd34d'); this.drawBarSoon();
     },
     faceAt(x, z) { this.aimYaw = Math.atan2(-(x - P.x), -(z - P.z)); this.faceT = 0.6; P.yaw = this.aimYaw; },
     hitZ(v, dmg, melee, head) {
@@ -1203,12 +1501,186 @@
       this.shakeCam(dt);
     },
 
+    /* ---------------- you: building ---------------- */
+    toggleBuild(on) {
+      on = on == null ? !this.building : !!on;
+      if (on && (P.dead || this.dead)) return;
+      if (on === this.building) return;
+      this.building = on; this.aim = false; this.firing = false; this.hold = null; this.spot = null;
+      if (on) {
+        if (this.searching) this.cancelSearch();
+        sfx('select');
+        if (!this.S.seenBuild) { this.S.seenBuild = 1; this.dirty = true; say(`🔨 Building: pick a piece, then ${touchy ? 'tap 🔨' : 'click'} to put it down (${touchy ? '↻' : 'R or right-click'} turns it). Walls and barricades keep zombies out, spike traps hurt them and turrets shoot them. Get 🪵 wood by searching houses, farms and camps, chopping trees with a melee weapon, or from the trader.`, '#fde68a'); }
+      } else { sfx('click'); this.setGhost(null); }
+      const f = $('#zsFire'), r = $('#zsRel'); if (f) f.textContent = on ? '🔨' : '🔫'; if (r) r.textContent = on ? '↻' : '🔄';
+      this.drawBar();
+    },
+    pickTool(n) { this.tool = n; sfx('select'); if (!this.building) this.toggleBuild(true); else this.drawBar(); },
+    turn() { this.brot ^= 1; sfx('rotate'); },
+    // which way a piece goes: across where you're looking (R turns it)
+    rotOf(k) { const B = BP[BKEYS[k]]; if (B.cw === B.cd) return 0; return (Math.abs(Math.sin(cam.yaw)) > Math.abs(Math.cos(cam.yaw)) ? 1 : 0) ^ this.brot; },
+    // where you're pointing on the ground (a phone: a little way in front of you)
+    buildAim() {
+      const fx = -Math.sin(cam.yaw), fz = -Math.cos(cam.yaw), ahead = this.tool >= 4 ? 5 : 8;
+      let x = P.x + fx * ahead, z = P.z + fz * ahead;
+      if (!touchy && this.mouse) { const ray = rayAt(this.mouse.x, this.mouse.y).ray, o = ray.origin, d = ray.direction, gy = Math.max(0, P.y); if (d.y < -0.02) { const t = (gy - o.y) / d.y; x = o.x + d.x * t; z = o.z + d.z * t; } }
+      const dx = x - P.x, dz = z - P.z, l = Math.hypot(dx, dz); if (l > 16) { x = P.x + (dx / l) * 16; z = P.z + (dz / l) * 16; }
+      return { x, z };
+    },
+    // what's wrong with building piece k there ('' if nothing)
+    canBuild(k, i, j, r) {
+      const S = this.S, B = BP[BKEYS[k]], me = myPeer();
+      if (B.lvl && S.lvl < B.lvl) return `Turrets unlock at level ${B.lvl}`;
+      if (S.wood < B.wood) return `Not enough wood (${B.wood} 🪵)`;
+      if (B.cash && S.cash < B.cash) return `Not enough cash (${money(B.cash)})`;
+      let mine = 0, guns = 0; for (const v of this.bm.values()) if (v.o === me) { mine++; if (BP[BKEYS[v.k]].gun) guns++; }
+      if (mine >= MAX_OWN) return NOPE[7];
+      if (B.gun && guns >= MAX_TURRETS) return NOPE[8];
+      if (this.bm.size >= MAX_ALL) return NOPE[9];
+      return NOPE[fits(k, i, j, r, P, this.zv.values())] || '';
+    },
+    // the piece you're pointing at (to mend or take down)
+    aimedPiece(a) {
+      let best = null, bt = 1e9;
+      if (!touchy && this.mouse) {
+        const ray = rayAt(this.mouse.x, this.mouse.y).ray, o = [ray.origin.x, ray.origin.y, ray.origin.z], d = [ray.direction.x, ray.direction.y, ray.direction.z];
+        for (const v of this.bm.values()) { const b = v.b, t = rayBox(o, d, [b[0], v.y, b[1], b[2], v.y + BP[BKEYS[v.k]].h, b[3]], 300); if (t < bt) { bt = t; best = v; } }
+        if (best) return best;
+      }
+      let bd = 3.5; for (const v of this.bm.values()) { const d = boxDist(a.x, a.z, v.b); if (d < bd) { bd = d; best = v; } }
+      return best;
+    },
+    setGhost(on) {
+      if (!on) { if (this.ghost) { scene.remove(this.ghost.g); this.ghost.g.material.dispose(); this.ghost = null; } return null; }
+      if (!this.ghost) { const g = new THREE.Mesh(BOX, new THREE.MeshBasicMaterial({ color: 0x22c55e, transparent: true, opacity: 0.4, depthWrite: false })); g.renderOrder = 4; scene.add(g); this.ghost = { g }; }
+      return this.ghost;
+    },
+    // every frame while building: a see-through piece where it'd go (green: fine, red: not there), or a box round the one you'd mend or take down
+    buildView() {
+      if (!this.building) return;
+      if (P.dead || this.dead) { this.toggleBuild(false); return; }
+      const a = this.buildAim(), t = this.tool, G = this.setGhost(true).g;
+      if (t < 4) {
+        const r = this.rotOf(t), [w, d] = bdims(t, r), i = Math.round((a.x + HALF) / CELL - w / 2), j = Math.round((a.z + HALF) / CELL - d / 2);
+        const B = BP[BKEYS[t]], b = bbox(t, i, j, r), y = pieceFloor(t, i, j, r), why = this.canBuild(t, i, j, r);
+        this.spot = { k: t, i, j, r, why };
+        G.visible = true; G.scale.set(b[2] - b[0], B.h, b[3] - b[1]); G.position.set((b[0] + b[2]) / 2, y + B.h / 2, (b[1] + b[3]) / 2); G.material.color.setHex(why ? 0xef4444 : 0x22c55e);
+        return;
+      }
+      const v = this.aimedPiece(a); this.spot = { v };
+      G.visible = !!v;
+      if (v) { const B = BP[BKEYS[v.k]], b = v.b; G.scale.set(b[2] - b[0] + 0.3, B.h + 0.3, b[3] - b[1] + 0.3); G.position.set((b[0] + b[2]) / 2, v.y + B.h / 2, (b[1] + b[3]) / 2); G.material.color.setHex(t === 4 ? 0xfacc15 : v.o === myPeer() || !this.present(v.o) ? 0xef4444 : 0x64748b); }
+    },
+    buildAct() {
+      if (!this.building || P.dead || this.dead || !this.spot) return;
+      const S = this.S, t = this.tool, s = this.spot, nowT = performance.now() / 1000;
+      if (nowT < this.bT) return;
+      this.bT = nowT + 0.22;
+      if (t < 4) {
+        if (s.why) { toast('🔨 ' + s.why, '#fca5a5'); sfx('error'); return; }
+        const B = BP[BKEYS[t]]; S.wood -= B.wood; S.cash -= B.cash || 0; this.dirty = true;
+        this.ask(['p', t, s.i, s.j, s.r, 0], { wood: B.wood, cash: B.cash || 0 });
+        sfx('place'); this.prog('build', 1); this.drawBarSoon();
+        return;
+      }
+      const v = s.v; if (!v) { toast(touchy ? 'Face something you’ve built' : 'Point at something that’s been built', '#fca5a5'); sfx('error'); return; }
+      if (t === 5 && v.o !== myPeer() && this.present(v.o)) { toast(`That’s ${nameOf(v.o)}’s`, '#fca5a5'); sfx('error'); return; }
+      if (boxDist(P.x, P.z, v.b) > 20) { toast(NOPE[6], '#fca5a5'); sfx('error'); return; }
+      if (t === 4) { // mend it: 1 wood for every 125 health
+        const miss = (1 - v.hp) * BP[BKEYS[v.k]].hp; if (miss < 8) { toast('That’s in one piece'); return; }
+        const n = Math.min(miss, 250), wood = Math.max(1, Math.ceil(n / 125));
+        if (S.wood < wood) { toast(`Not enough wood (${wood} 🪵)`, '#fca5a5'); sfx('error'); return; }
+        S.wood -= wood; this.dirty = true; this.ask(['f', v.id, Math.round(n)], { wood }); sfx('dig'); this.drawBarSoon();
+        return;
+      }
+      // take it down (half the wood back)
+      if (this.rmAsk.has(v.id)) return;
+      this.rmAsk.set(v.id, Math.floor(BP[BKEYS[v.k]].wood / 2)); this.ask(['x', v.id], { rm: v.id }); sfx('break');
+    },
+    // ask the host (if that's you, it's done straight away); what it cost comes back if it can't be done
+    ask(q, cost) {
+      const seq = ++this.bqn; q = [seq].concat(q);
+      if (cost) this.pend.set(seq, Object.assign({ at: performance.now() / 1000 }, cost));
+      if (iAmHost()) { if (!this.H) this.H = this.adopt(); const why = this.bReq(this.H, myPeer(), q); if (why) this.nope(seq, why); return; }
+      this.bq.push(q); if (this.bq.length > 48) this.bq.shift();
+      send({ bq: this.bq });
+    },
+    nope(seq, why) {
+      const q = this.pend.get(seq); if (!q) return;
+      this.pend.delete(seq);
+      if (q.rm) this.rmAsk.delete(q.rm);
+      if (q.free) return;
+      this.S.wood += q.wood || 0; this.S.cash += q.cash || 0; this.dirty = true; this.drawBarSoon();
+      toast(`🔨 ${NOPE[why] || 'That can’t be built there'}`, '#fca5a5'); sfx('error');
+    },
+    // your base from last time goes back up (free); after that, what you've built is remembered as it is
+    restoreBase(tnow) {
+      if (!this.restoring) { this.restoring = true; for (const b of this.S.base) this.ask(['p', b[0], b[1], b[2], b[3] ? 1 : 0, 1], { free: 1 }); this.liveAt = tnow + (this.S.base.length ? 6 : 0); return; }
+      if (tnow > this.liveAt) this.baseLive = true;
+    },
+    parseB(bp) {
+      const s = bp && typeof bp.s === 'string' ? bp.s : '', o = bp && Array.isArray(bp.o) ? bp.o : [], out = [];
+      for (let n = 0; n + 9 <= s.length; n += 9) { const kr = d1(s, n), k = kr & 3; if (kr < 0 || !BKEYS[k]) continue; out.push({ id: d2(s, n + 1), k, r: (kr >> 2) & 1, i: d2(s, n + 3), j: d2(s, n + 5), hp: d1(s, n + 7) / 63, o: String(o[d1(s, n + 8)] || '') }); }
+      return out;
+    },
+    // everyone: what's been built, from the host's list (models, what you bump into, the zombies' map)
+    applyB(bp) {
+      const list = this.parseB(bp), ids = new Map(list.map((q) => [q.id, q]));
+      for (const [id, v] of this.bm) {
+        const q = ids.get(id);
+        if (q && q.k === v.k && q.i === v.i && q.j === v.j && q.r === v.r) continue;
+        this.dropB(v); this.bm.delete(id);
+        if (!q && this.rmAsk.has(id)) { this.S.wood += this.rmAsk.get(id); this.rmAsk.delete(id); this.dirty = true; this.drawBarSoon(); toast(`🪓 Taken down (+${BP[BKEYS[v.k]].wood >> 1} 🪵)`, '#fde68a'); }
+      }
+      for (const q of list) {
+        let v = this.bm.get(q.id);
+        if (!v) { v = this.makeB(q); this.bm.set(q.id, v); }
+        v.hp = q.hp; v.o = q.o;
+      }
+      if (this.baseLive) { const me = myPeer(), base = list.filter((q) => q.o === me).map((q) => [q.k, q.i, q.j, q.r]); if (JSON.stringify(base) !== JSON.stringify(this.S.base)) { this.S.base = base; this.dirty = true; } }
+    },
+    makeB(q) {
+      const B = BP[BKEYS[q.k]], b = bbox(q.k, q.i, q.j, q.r), y = pieceFloor(q.k, q.i, q.j, q.r), m = pieceModel(q.k, b[2] - b[0], b[3] - b[1]);
+      m.g.position.set((b[0] + b[2]) / 2, y, (b[1] + b[3]) / 2); scene.add(m.g);
+      const part = B.trap ? null : solid(b[0] + 0.05, y, b[1] + 0.05, b[2] - 0.05, y + B.h, b[3] - 0.05, { built: q.id });
+      markCells(q, true);
+      return { id: q.id, k: q.k, i: q.i, j: q.j, r: q.r, hp: q.hp, o: q.o, b, y, m, part, yaw: 0, aimYaw: 0 };
+    },
+    dropB(v) {
+      scene.remove(v.m.g);
+      if (v.part) { const n = parts.indexOf(v.part); if (n >= 0) parts.splice(n, 1); }
+      markCells(v, false);
+    },
+    drawPieces(dt) {
+      for (const v of this.bm.values()) {
+        const M = v.m, near = Math.hypot((v.b[0] + v.b[2]) / 2 - P.x, (v.b[1] + v.b[3]) / 2 - P.z);
+        M.bar.visible = v.hp < 0.995 && (near < 55 || this.building);
+        if (M.bar.visible) { M.bar.quaternion.copy(camera.quaternion); M.fg.scale.x = 2.5 * v.hp; M.fg.position.x = -1.25 * (1 - v.hp); }
+        if (M.head) { let d = v.aimYaw - v.yaw; while (d > Math.PI) d -= TAU; while (d < -Math.PI) d += TAU; v.yaw += d * Math.min(1, dt * 10); M.head.rotation.y = v.yaw; }
+      }
+    },
+    // turrets firing (the host says which, and at what)
+    takeShots(list) {
+      if (!Array.isArray(list)) return;
+      const top = Math.max(0, ...list.map((e) => +e[0] || 0));
+      if (this.tsSeen == null || top < this.tsSeen - 40) { this.tsSeen = top; return; }
+      for (const e of list) {
+        if (!Array.isArray(e) || !(e[0] > this.tsSeen)) continue;
+        const v = this.bm.get(e[1]); if (!v || !v.m.head) continue;
+        const x = (v.b[0] + v.b[2]) / 2, z = (v.b[1] + v.b[3]) / 2; v.aimYaw = Math.atan2(-(e[2] - x), -(e[3] - z));
+        const fx = -Math.sin(v.aimYaw), fz = -Math.cos(v.aimYaw), o = [x + fx * 2, v.y + 2.7, z + fz * 2];
+        this.tracer(o, [e[2], floorAt(e[2], e[3]) + 3, e[3]], 0xfde68a); this.flash(o);
+        sfx3('gun', x, z, 90, { vol: 0.45, pitch: 1.3, gap: 60 });
+      }
+      this.tsSeen = Math.max(this.tsSeen, top);
+    },
+
     /* ---------------- you: staying alive ---------------- */
     survive(dt, ck) {
       if (P.dead || this.dead) return;
       const safe = inSafe(P.x, P.z), moving = Math.hypot(P.vx, P.vz) > 2;
       // sprinting
-      this.sprint = (sprintHeld() || this.runToggle) && moving && this.stam > 1;
+      this.sprint = (sprintHeld() || this.runToggle) && moving && this.stam > 1 && !this.aiming();
       this.stam = clamp(this.stam + (this.sprint ? -22 : 16) * dt, 0, 100);
       if (this.boost > 0) this.boost -= dt;
       // hunger, and healing
@@ -1299,6 +1771,7 @@
     },
     give(k, where) {
       const S = this.S;
+      if (k === 'wood') { const n = 3 + Math.floor(Math.random() * 4); S.wood += n; return `🪵 ${n} planks`; }
       if (k === '$') { const n = Math.round((8 + Math.random() * 30) * (where === 'military' ? 2.5 : 1) * (1 + S.lvl * 0.05)); S.cash += n; return `💵 $${n}`; }
       if (AMMO[k]) { const n = Math.round(AMMO[k].pack * (0.45 + Math.random() * 0.55)); S.ammo[k] += n; return `${AMMO[k].e} ${n} ${AMMO[k].n.toLowerCase()}`; }
       if (IT[k]) { const n = k === 'beans' || k === 'soda' || k === 'chips' ? 1 + (Math.random() < 0.3 ? 1 : 0) : 1; S.it[k] += n; return `${IT[k].e} ${IT[k].n}${n > 1 ? ' ×' + n : ''}`; }
@@ -1319,10 +1792,19 @@
     drawBar() {
       clearTimeout(this.barT); this.barT = 0;
       const S = this.S; if (!S) return;
+      if (this.building) {
+        const tb = (n, key, e, label, cost, lock) => `<button class="xslot ${this.tool === n ? 'on' : ''}" data-t="${n}" title="${label} (${key})"><span class="k">${key}</span><span class="e">${lock ? '🔒' : e}</span>${label}${cost ? `<span class="n">${cost}</span>` : ''}</button>`;
+        setBar(BKEYS.map((k, n) => { const B = BP[k]; return tb(n, n + 1, B.e, B.n.replace(/^(Wooden|Auto) /, ''), B.lvl && S.lvl < B.lvl ? `Lv ${B.lvl}` : `${B.wood}🪵${B.cash ? ' $' + B.cash : ''}`, B.lvl && S.lvl < B.lvl); }).join('')
+          + tb(4, 5, '🔧', 'Repair') + tb(5, 6, '🪓', 'Remove') + `<button class="xslot" data-k="done" title="Stop building (Q)"><span class="k">Q</span><span class="e">✅</span>Done<span class="n">${S.wood}🪵</span></button>`, (b) => {
+          if (b.dataset.k === 'done') this.toggleBuild(false); else if (b.dataset.t != null) this.pickTool(+b.dataset.t);
+        });
+        return;
+      }
       const slotBtn = (k, key) => { const id = S.slot[k], W = WP[id]; if (!W) return `<button class="xslot" data-k="${k}" title="Nothing here yet" disabled><span class="k">${key}</span><span class="e">➖</span>${k === 'p' ? 'Main gun' : 'Sidearm'}</button>`; const pic = W.gun || id !== 'fists' ? portrait(id) : ''; const amt = W.gun ? `<span class="n">${S.mag[id] | 0}/${S.ammo[W.ammo] | 0}</span>` : ''; return `<button class="xslot ${S.cur === k ? 'on' : ''}" data-k="${k}" title="${esc(W.n)}"><span class="k">${key}</span>${pic ? `<img class="pic" src="${pic}" alt="">` : `<span class="e">${W.e}</span>`}${esc(W.n)}${amt}</button>`; };
       const item = (k, key, label, n) => `<button class="xslot" data-k="${k}" title="${label} (${key})"><span class="k">${key}</span><span class="e">${k === 'heal' ? '🩹' : k === 'eat' ? '🥫' : '💣'}</span>${label}<span class="n">${n}</span></button>`;
       setBar(slotBtn('m', '1') + slotBtn('s', '2') + slotBtn('p', '3')
         + item('nade', 'G', 'Grenade', S.it.grenade) + item('heal', 'H', 'Heal', S.it.bandage + S.it.medkit) + item('eat', 'C', 'Eat', S.it.beans + S.it.chips + S.it.soda + S.it.energy)
+        + `<button class="xslot" data-k="build" title="Build (Q)"><span class="k">Q</span><span class="e">🔨</span>Build<span class="n">${S.wood}🪵</span></button>`
         + `<button class="xslot" data-k="bag" title="Backpack (B)"><span class="k">B</span><span class="e">🎒</span>Backpack</button><button class="xslot" data-k="map" title="Map (M)"><span class="k">M</span><span class="e">🗺️</span>Map</button>`, (b) => {
         const k = b.dataset.k;
         if (k === 'm' || k === 's' || k === 'p') this.pick(k);
@@ -1331,6 +1813,7 @@
         if (k === 'eat') this.eat();
         if (k === 'bag') this.backpack();
         if (k === 'map') this.mapPanel();
+        if (k === 'build') this.toggleBuild(true);
       });
     },
     drawBarSoon() { if (!this.barT) this.barT = setTimeout(() => this.drawBar(), 150); },
@@ -1338,7 +1821,7 @@
       const el = $('#zsV'); if (!el || !this.S) return;
       const S = this.S, row = (e, cls, v, txt) => `<div class="row"><span>${e}</span><div class="meter ${cls}"><i style="width:${clamp(v, 0, 100)}%"></i></div><b style="min-width:30px;text-align:right">${txt}</b></div>`;
       el.innerHTML = row('❤️', 'hp', this.hp, Math.ceil(this.hp)) + row('🍖', 'fd', this.food, Math.ceil(this.food)) + row('🏃', 'st', this.stam, Math.ceil(this.stam))
-        + `<div class="lv"><span>⭐ Level ${S.lvl}</span><span>💵 ${money(S.cash)}</span></div>` + row('✨', 'xp', (S.xp / need(S.lvl)) * 100, '');
+        + `<div class="lv"><span>⭐ Level ${S.lvl}</span><span>🪵 ${S.wood}</span><span>💵 ${money(S.cash)}</span></div>` + row('✨', 'xp', (S.xp / need(S.lvl)) * 100, '');
       const sr = $('#zsSearch');
       if (sr) { if (this.searching) { sr.style.display = 'block'; sr.innerHTML = `🔍 Searching the ${esc(this.searching.l.lab.toLowerCase())}…<div class="meter"><i style="width:${(this.searching.t / this.searching.need) * 100}%"></i></div>`; } else sr.style.display = 'none'; }
     },
@@ -1350,9 +1833,15 @@
     hud() {
       if (!this.S) return '';
       const W = WP[this.cur()], S = this.S;
+      if (this.building) {
+        const t = this.tool, s = this.spot, name = t < 4 ? BP[BKEYS[t]].e + ' ' + BP[BKEYS[t]].n : t === 4 ? '🔧 Repair' : '🪓 Remove';
+        const tip = t < 4 ? (s && s.why ? `⛔ ${s.why}` : `${touchy ? 'tap 🔨' : 'click'} to build · ${touchy ? '↻' : 'R'} turns it`) : s && s.v ? `${BP[BKEYS[s.v.k]].n}${s.v.o ? ' · ' + (s.v.o === myPeer() ? 'yours' : nameOf(s.v.o) + '’s') : ''} · ${Math.round(s.v.hp * BP[BKEYS[s.v.k]].hp)}/${BP[BKEYS[s.v.k]].hp}` : t === 4 ? 'point at something to mend it' : 'point at something of yours';
+        if (touchy) return `🔨 ${name} · 🪵 ${S.wood}${t < 4 && s && s.why ? ' · ⛔ ' + s.why : ''}`; // (the screen's narrow)
+        return `🔨 ${name} · 🪵 ${S.wood} · ${tip} · Q done`;
+      }
       const gun = W.gun ? `${W.e} ${W.n} <b>${S.mag[this.cur()] | 0}</b>/${S.ammo[W.ammo] | 0}${this.reloading ? ' · reloading…' : ''}` : `${W.e} ${W.n}`;
       const a = areaAt(P.x, P.z);
-      return `${gun} · ${a ? a.e + ' ' + a.n : '🌾 The wilds'}${this.boost > 0 ? ' · 🔋' : ''}`;
+      return `${this.aiming() ? '🎯 ' : ''}${gun} · ${a ? a.e + ' ' + a.n : '🌾 The wilds'}${this.boost > 0 ? ' · 🔋' : ''}`;
     },
     // the map: drawn once from the world's blocks, then you and everyone on top
     mapCanvas(size) {
@@ -1377,6 +1866,7 @@
       g.save(); g.clearRect(0, 0, 156, 156);
       g.translate(78, 78); g.rotate(cam.yaw); g.scale(sc, sc); g.translate(-(P.x + HALF), -(P.z + HALF));
       g.drawImage(img, 0, 0);
+      g.fillStyle = '#c08a4a'; for (const v of this.bm.values()) if (Math.abs(v.b[0] - P.x) < R * 1.5 && Math.abs(v.b[1] - P.z) < R * 1.5) g.fillRect(v.b[0] + HALF, v.b[1] + HALF, v.b[2] - v.b[0], v.b[3] - v.b[1]);
       g.fillStyle = '#ef4444'; for (const v of this.zv.values()) if (!v.dead && Math.hypot(v.x - P.x, v.z - P.z) < R * 1.5) { g.beginPath(); g.arc(v.x + HALF, v.z + HALF, ZT[v.t].boss ? 4 : 1.8, 0, TAU); g.fill(); }
       g.fillStyle = '#38bdf8'; for (const p of players()) if (!p.me) { g.beginPath(); g.arc(p.x + HALF, p.z + HALF, 2.6, 0, TAU); g.fill(); }
       g.restore();
@@ -1388,19 +1878,22 @@
       g.drawImage(img, 0, 0);
       g.font = '700 11px sans-serif'; g.textAlign = 'center';
       for (const a of AREAS) { const x = (a.r[0] + a.r[2]) / 2 + HALF, y = (a.r[1] + a.r[3]) / 2 + HALF; g.fillStyle = 'rgba(15,23,42,.72)'; const w = g.measureText(a.n).width + 22; g.fillRect(x - w / 2, y - 9, w, 18); g.fillStyle = '#fff'; g.fillText(`${a.e} ${a.n}`, x, y + 4); }
+      g.fillStyle = '#c08a4a'; for (const v of this.bm.values()) g.fillRect(v.b[0] + HALF, v.b[1] + HALF, Math.max(2, v.b[2] - v.b[0]), Math.max(2, v.b[3] - v.b[1]));
       g.fillStyle = '#ef4444'; for (const v of this.zv.values()) if (!v.dead) { g.beginPath(); g.arc(v.x + HALF, v.z + HALF, ZT[v.t].boss ? 6 : 2.5, 0, TAU); g.fill(); }
       g.fillStyle = '#38bdf8'; for (const p of players()) if (!p.me) { g.beginPath(); g.arc(p.x + HALF, p.z + HALF, 4.5, 0, TAU); g.fill(); }
       g.fillStyle = '#fff'; g.strokeStyle = '#000'; g.lineWidth = 2; g.beginPath(); g.arc(P.x + HALF, P.z + HALF, 6, 0, TAU); g.fill(); g.stroke();
-      openPanel('🗺️ Map', `<div class="zs-map"><img src="${c.toDataURL()}" alt="Map" style="width:100%;height:100%;display:block"></div><div class="zs-legend"><span class="pill">⚪ You</span><span class="pill">🔵 Players</span><span class="pill">🔴 Zombies</span><span class="pill">🟩 Safe Zone</span></div>`, null, null, { full: true });
+      openPanel('🗺️ Map', `<div class="zs-map"><img src="${c.toDataURL()}" alt="Map" style="width:100%;height:100%;display:block"></div><div class="zs-legend"><span class="pill">⚪ You</span><span class="pill">🔵 Players</span><span class="pill">🔴 Zombies</span><span class="pill">🟩 Safe Zone</span><span class="pill">🟫 Built</span></div>`, null, null, { full: true });
     },
     backpack() {
       const S = this.S, ws = S.w.slice().sort((a, b) => WP[a].price - WP[b].price);
       const wcard = (id) => { const W = WP[id], on = S.slot[W.slot] === id; return `<div class="xp-card ${on ? 'on' : ''}">${W.gun || id !== 'fists' ? `<img src="${portrait(id)}" alt="">` : `<div class="big">${W.e}</div>`}<b>${esc(W.n)}</b><small>${W.gun ? `${W.dmg}${W.pellets ? '×' + W.pellets : ''} dmg · ${W.mag} rounds · ${AMMO[W.ammo].e}` : `${W.dmg} dmg · melee`}</small>${on ? '<button class="xp-btn alt" disabled>Equipped</button>' : `<button class="xp-btn" data-eq="${id}">Equip</button>`}</div>`; };
-      const ic = (k) => `<div class="xp-row"><span class="lft"><span class="ico">${IT[k].e}</span><span><b>${IT[k].n}</b><br><small>${IT[k].heal ? '+' + IT[k].heal + ' health' : IT[k].food ? '+' + IT[k].food + ' food' + (IT[k].boost ? ', speed boost' : '') : 'Right-click or G to throw'}</small></span></span><span><b>×${S.it[k] | 0}</b> <button class="xp-btn ${k === 'grenade' ? 'red' : ''}" data-use="${k}" ${S.it[k] > 0 ? '' : 'disabled'}>${k === 'grenade' ? 'Throw' : 'Use'}</button></span></div>`;
+      const ic = (k) => `<div class="xp-row"><span class="lft"><span class="ico">${IT[k].e}</span><span><b>${IT[k].n}</b><br><small>${IT[k].heal ? '+' + IT[k].heal + ' health' : IT[k].food ? '+' + IT[k].food + ' food' + (IT[k].boost ? ', speed boost' : '') : 'G to throw'}</small></span></span><span><b>×${S.it[k] | 0}</b> <button class="xp-btn ${k === 'grenade' ? 'red' : ''}" data-use="${k}" ${S.it[k] > 0 ? '' : 'disabled'}>${k === 'grenade' ? 'Throw' : 'Use'}</button></span></div>`;
       openPanel('🎒 Backpack', `<div class="xp-note">⭐ Level ${S.lvl} · 🧟 ${S.kills} kills · 🌙 ${S.nights} nights survived · ⏱️ best life ${mmss(S.best)}</div>
         <h4>Weapons</h4><div class="zs-w">${ws.map(wcard).join('')}</div>
         <h4>Ammo</h4>${Object.entries(AMMO).map(([k, A]) => `<div class="xp-row"><span class="lft"><span class="ico">${A.e}</span><b>${A.n}</b></span><b>${S.ammo[k] | 0}</b></div>`).join('')}
-        <h4>Supplies</h4>${Object.keys(IT).map(ic).join('')}`, (b) => {
+        <h4>Supplies</h4>${Object.keys(IT).map(ic).join('')}
+        <h4>Building</h4><div class="xp-row"><span class="lft"><span class="ico">🪵</span><span><b>Wood</b><br><small>Search houses, farms and camps, chop trees (melee) or buy planks</small></span></span><b>${S.wood}</b></div>
+        <div class="xp-row"><span class="lft"><span class="ico">🔨</span><span><b>Your builds</b><br><small>Q to build: ${BKEYS.map((k) => BP[k].e + ' ' + BP[k].n.replace(/^(Wooden|Auto) /, '')).join(', ')}</small></span></span><b>${[...this.bm.values()].filter((v) => v.o === myPeer()).length}/${MAX_OWN}</b></div>`, (b) => {
         if (b.dataset.eq) { const W = WP[b.dataset.eq]; S.slot[W.slot] = b.dataset.eq; S.cur = W.slot; if (W.gun && S.mag[b.dataset.eq] == null) S.mag[b.dataset.eq] = 0; this.reloading = null; this.dirty = true; sfx('select'); this.drawBar(); this.send(); this.backpack(); }
         if (b.dataset.use) { this.use(b.dataset.use); if (panelOpen()) this.backpack(); }
       }, null, { full: true, extra: `<span class="chip">💵 ${money(S.cash)}</span>` });
@@ -1411,12 +1904,14 @@
       let body = '';
       if (tab === 'guns') body = `<div class="zs-w">${Object.entries(WP).filter(([id]) => id !== 'fists').map(([id, W]) => { const own = S.w.includes(id), lock = S.lvl < W.lvl; return `<div class="xp-card ${own ? 'on' : ''}"><img src="${portrait(id)}" alt=""><b>${W.e} ${esc(W.n)}</b><small>${esc(W.d)}</small><small>${W.gun ? `${W.dmg}${W.pellets ? '×' + W.pellets : ''} dmg · ${W.mag} rounds · ${AMMO[W.ammo].n}` : `${W.dmg} dmg · melee`}</small>${own ? '<button class="xp-btn alt" disabled>Owned</button>' : lock ? `<span class="zs-lock">🔒 Level ${W.lvl}</span>` : `<button class="xp-btn gold" data-buy="${id}" ${S.cash < W.price ? 'disabled' : ''}>${money(W.price)}</button>`}</div>`; }).join('')}</div>`;
       else body = Object.entries(AMMO).map(([k, A]) => `<div class="xp-row"><span class="lft"><span class="ico">${A.e}</span><span><b>${A.n} ×${A.pack}</b><br><small>You have ${S.ammo[k] | 0}</small></span></span><button class="xp-btn gold" data-ammo="${k}" ${S.cash < A.price ? 'disabled' : ''}>${money(A.price)}</button></div>`).join('')
-        + Object.entries(IT).map(([k, I]) => `<div class="xp-row"><span class="lft"><span class="ico">${I.e}</span><span><b>${I.n}</b><br><small>You have ${S.it[k] | 0}</small></span></span><button class="xp-btn gold" data-item="${k}" ${S.cash < I.price ? 'disabled' : ''}>${money(I.price)}</button></div>`).join('');
+        + Object.entries(IT).map(([k, I]) => `<div class="xp-row"><span class="lft"><span class="ico">${I.e}</span><span><b>${I.n}</b><br><small>You have ${S.it[k] | 0}</small></span></span><button class="xp-btn gold" data-item="${k}" ${S.cash < I.price ? 'disabled' : ''}>${money(I.price)}</button></div>`).join('')
+        + `<div class="xp-row"><span class="lft"><span class="ico">🪵</span><span><b>Planks ×10</b><br><small>For building · you have ${S.wood}</small></span></span><button class="xp-btn gold" data-wood="1" ${S.cash < 50 ? 'disabled' : ''}>${money(50)}</button></div>`;
       openPanel('🛒 Trader', tabs + body, (b) => {
         if (b.dataset.tab) { this.shop(b.dataset.tab); return; }
         if (b.dataset.buy) { const W = WP[b.dataset.buy]; if (S.cash < W.price || S.lvl < W.lvl || S.w.includes(b.dataset.buy)) return; S.cash -= W.price; this.giveWeapon(b.dataset.buy); if (W.gun) S.ammo[W.ammo] += AMMO[W.ammo].pack; sfx('buy'); toast(`${W.e} ${W.n}!`, '#fde68a'); }
         if (b.dataset.ammo) { const A = AMMO[b.dataset.ammo]; if (S.cash < A.price) return; S.cash -= A.price; S.ammo[b.dataset.ammo] += A.pack; sfx('buy'); }
         if (b.dataset.item) { const I = IT[b.dataset.item]; if (S.cash < I.price) return; S.cash -= I.price; S.it[b.dataset.item]++; sfx('buy'); }
+        if (b.dataset.wood) { if (S.cash < 50) return; S.cash -= 50; S.wood += 10; sfx('buy'); }
         this.dirty = true; this.drawBar(); this.shop();
       }, null, { full: true, extra: `<span class="chip">💵 ${money(S.cash)}</span><span class="chip">⭐ Lv ${S.lvl}</span>` });
     },

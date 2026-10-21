@@ -2394,9 +2394,12 @@ const lockKeyCode = (c) => (View.keys === 'lock' ? isShift(c) : isCtrl(c));
 const sprintHeld = () => (View.keys === 'lock' ? keys.ControlLeft || keys.ControlRight : keys.ShiftLeft || keys.ShiftRight) || View.touchRun;
 const lockKeyName = () => (View.keys === 'lock' ? 'Shift' : 'Ctrl');
 const lockAllowed = () => !!(playing && exp && !exp.noLock);
-const lockFacing = () => lockAllowed() && (View.lock || View.fp) && !(exp && exp.drive);
+// an experience aiming down the sights (exp.aiming(), while you hold the button): like shift lock while it lasts,
+// with the camera in closer (exp.aimDist)
+const aimOn = () => !!(playing && exp && exp.aiming && exp.aiming());
+const lockFacing = () => lockAllowed() && (View.lock || View.fp || aimOn()) && !(exp && exp.drive);
 // the mouse turns the camera (on a computer; on a phone you drag, as always)
-const mouseLook = () => !touchy && lockAllowed() && (View.lock || View.fp) && !panelOpen() && $('#pause').hidden && !chatOpen();
+const mouseLook = () => !touchy && lockAllowed() && (View.lock || View.fp || aimOn()) && !panelOpen() && $('#pause').hidden && !chatOpen();
 const plOn = () => document.pointerLockElement === canvas;
 const pitchRange = () => (View.fp ? [-1.45, 1.45] : [-1.35, 0.6]);
 const viewFov = () => View.fov; // for experiences that set the field of view themselves (sprinting widens it)
@@ -2469,6 +2472,7 @@ canvas.addEventListener('mousedown', (e) => {
   if (mouseLook() && !plOn() && !View.noPL) { tryLock(); return; } // (that click just takes the pointer)
   drag = { x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, moved: false, btn: e.button, look: mouseLook() };
   if (playing && exp && exp.press) exp.press(e.button, true);
+  if (mouseLook() && !plOn() && !View.noPL) tryLock(); // (that press started aiming: the mouse takes the camera)
 });
 addEventListener('mouseup', (e) => {
   const d = drag; drag = null;
@@ -2590,12 +2594,14 @@ function frame(t) {
     const ey = P.y + 4.8 - stepLift, ex = P.x + Math.sin(cam.yaw) * 0.6, ez = P.z + Math.cos(cam.yaw) * 0.6; // (a touch behind the middle of the head, so what you hold isn't right in your face)
     camera.position.set(ex, ey, ez); camera.lookAt(ex - Math.sin(cam.yaw) * cp, ey + Math.sin(cam.pitch), ez - Math.cos(cam.yaw) * cp);
   } else {
-    // shift lock: over your right shoulder
-    const sh = lockFacing() ? 1.7 : 0, tx = P.x + Math.cos(cam.yaw) * sh, ty = P.y + 4.4 - stepLift, tz = P.z - Math.sin(cam.yaw) * sh, ux = Math.sin(cam.yaw) * cp, uy = -Math.sin(cam.pitch), uz = Math.cos(cam.yaw) * cp;
+    // shift lock: over your right shoulder (aiming: further over, and closer in)
+    View.aimK = clamp((View.aimK || 0) + (aimOn() ? dt : -dt) * 8, 0, 1); // (easing in and out of aiming)
+    const ak = View.aimK, dist = cam.dist + (Math.min(cam.dist, exp.aimDist || 8) - cam.dist) * ak;
+    const sh = Math.max(lockFacing() ? 1.7 : 0, 2.5 * ak), tx = P.x + Math.cos(cam.yaw) * sh, ty = P.y + 4.4 - stepLift, tz = P.z - Math.sin(cam.yaw) * sh, ux = Math.sin(cam.yaw) * cp, uy = -Math.sin(cam.pitch), uz = Math.cos(cam.yaw) * cp;
     // a wall or roof between you and the camera: the camera comes in front of it (and eases back out after)
-    const want = exp.camClip === false ? cam.dist : Math.min(cam.dist, Math.max(2.5, camRoom(tx, ty, tz, ux, uy, uz, cam.dist) - 0.6));
-    if (want < cam.dist - 0.01) camClipAt = t;
-    const zoomed = cam.dist !== camLastDist; camLastDist = cam.dist;
+    const want = exp.camClip === false ? dist : Math.min(dist, Math.max(2.5, camRoom(tx, ty, tz, ux, uy, uz, dist) - 0.6));
+    if (want < dist - 0.01) camClipAt = t;
+    const zoomed = dist !== camLastDist; camLastDist = dist;
     camD = want < camD || zoomed || t - camClipAt > 1500 ? want : camD + (want - camD) * Math.min(1, dt * 4); // zooming is instant; only coming back out from behind a wall eases
     camera.position.set(tx + ux * camD, ty + uy * camD, tz + uz * camD);
     camera.lookAt(tx, ty, tz);
