@@ -57,6 +57,7 @@
       .touchy #zsAim{bottom:390px;right:20px;width:56px;height:56px}
       .touchy #zsMap{bottom:462px;transform:scale(.62)}
       .touchy #zsV{bottom:300px;transform:scale(.75)}
+      .zs-on.touchy.hasbar #prompt{left:12px;transform:none;bottom:400px}
     }
     #zsCross.aim{width:16px;height:16px;margin:-8px 0 0 -8px}#zsCross.aim::before{left:7px;top:0;height:16px}#zsCross.aim::after{top:7px;left:0;width:16px}
     .zs-w{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
@@ -750,7 +751,7 @@
       this.restoreAt = performance.now() / 1000 + 4; this.restoring = false; this.baseLive = false; // (your base from last time goes back up once the server's settled)
       $('#xhud').insertAdjacentHTML('beforeend', `<div id="zsV" class="glass"></div><div id="zsMap"><canvas width="156" height="156"></canvas></div><div id="zsHurt"></div><div id="zsSearch" class="glass"></div><div id="zsCross"></div>
         <div id="zsScope"></div><div id="zsTouch"><button id="zsFire">🔫</button><button id="zsRel">🔄</button><button id="zsRun">🏃</button><button id="zsAim">🎯</button></div>`);
-      this.aim = false; this.fov0 = camera.fov; $('#xbar').classList.add('zs');
+      this.aim = false; this.fov0 = camera.fov; $('#xbar').classList.add('zs'); document.body.classList.add('zs-on');
       $('#zsAim').addEventListener('click', () => { this.aim = !this.aim; sfx(this.aim ? 'select' : 'click'); });
       const fireBtn = $('#zsFire');
       fireBtn.addEventListener('touchstart', (e) => { e.preventDefault(); if (this.building) { this.buildAct(); return; } this.firing = 'auto'; this.trigger(); }, { passive: false });
@@ -772,7 +773,7 @@
       gfxApply(); // the usual light again (it depends on the graphics setting)
       this.aim = false; camera.fov = this.fov0 || 70; camera.updateProjectionMatrix(); if (this.laser) { scene.remove(this.laser); this.laser = null; } if (me) me.g.visible = true;
       for (const v of this.bm.values()) scene.remove(v.m.g);
-      this.setGhost(null); this.building = false; this.bm = new Map(); $('#xbar').classList.remove('zs');
+      this.setGhost(null); this.building = false; this.bm = new Map(); $('#xbar').classList.remove('zs'); document.body.classList.remove('zs-on');
       this.zv = new Map(); this.fx = []; this.nades = []; this.H = null;
     },
     save() { if (!this.S) return; this.S.hp = Math.round(this.hp); this.S.food = Math.round(this.food); this.dirty = false; return kvSet('zs', this.S); },

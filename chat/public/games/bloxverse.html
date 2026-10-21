@@ -60,14 +60,15 @@
   #prompt{position:absolute;left:50%;bottom:168px;transform:translateX(-50%);display:none;align-items:center;gap:12px;padding:8px 18px 8px 8px;border-radius:16px;font:600 16px var(--fh);pointer-events:auto;cursor:pointer;white-space:nowrap;animation:rise .18s ease-out}
   #prompt kbd{display:grid;place-items:center;width:36px;height:36px;margin:0;padding:0;background:linear-gradient(180deg,#fff,#e2e8f0);color:#0f172a;border-radius:10px;font:700 18px var(--fh);box-shadow:0 3px 0 #94a3b8}
   #prompt:hover{border-color:rgba(255,255,255,.35)}
-  #xbar{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);display:flex;gap:8px;align-items:flex-end;pointer-events:auto;max-width:calc(100vw - 20px);overflow-x:auto;overflow-y:hidden;padding:12px 10px 8px;scrollbar-width:none}
+  #xbar{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);display:flex;gap:8px;align-items:flex-end;pointer-events:auto;width:max-content;max-width:calc(100vw - 20px);overflow-x:auto;overflow-y:hidden;padding:12px 10px 8px;scrollbar-width:none}
   #xbar::-webkit-scrollbar{display:none}
   #xbar:empty{display:none}
   .hasbar #stat{bottom:calc(var(--barH,84px) + 16px)}
   .touchy.hasbar #xbar{bottom:130px}
   .touchy.hasbar #stat{bottom:calc(var(--barH,84px) + 138px)}
+  .touchy.hasbar #prompt{bottom:calc(var(--barH,84px) + 186px)} /* (a phone: the bar's up off the bottom, so what you can do goes above it) */
   /* a phone held upright: the bar spans the screen, so it sits above the joystick */
-  @media (max-width:640px){.touchy.hasbar #xbar{bottom:166px}.touchy.hasbar #stat{bottom:calc(var(--barH,84px) + 174px)}}
+  @media (max-width:640px){.touchy.hasbar #xbar{bottom:166px}.touchy.hasbar #stat{bottom:calc(var(--barH,84px) + 174px)}.touchy.hasbar #prompt{bottom:calc(var(--barH,84px) + 222px)}}
   .xslot{flex:none;min-width:72px;height:72px;border-radius:17px;background:linear-gradient(180deg,rgba(55,65,84,.94),rgba(25,31,42,.96));border:2px solid rgba(255,255,255,.14);color:#fff;font:600 11.5px/1.05 var(--fh);letter-spacing:.01em;text-shadow:0 1px 0 rgba(0,0,0,.5);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;position:relative;padding:7px 8px 6px;text-align:center;gap:4px;box-shadow:0 4px 0 rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.14),0 10px 18px rgba(0,0,0,.25);transition:transform .12s,border-color .12s,box-shadow .12s}
   .xslot:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.32)}
   .xslot:active{transform:translateY(1px)}
@@ -1251,6 +1252,9 @@ const ACH = [
   ['boat', 'stage', 5, 'Seaworthy', 'Sail to stage 5', 30, null, '⛵'],
   ['boat', 'treasure', 1, 'Treasure Hunter', 'Find the treasure', 120, null, '💰'],
   ['boat', 'treasure', 5, 'Master Shipwright', 'Find the treasure 5 times', 300, ['b', 14], '🏄'],
+  ['pvb', 'catch', 100, 'Brainrot Catcher', 'Catch 100 brainrots', 40, null, '🧠'],
+  ['pvb', 'mythic', 1, 'Mythic Catch', 'Catch a Mythic brainrot or rarer', 120, null, '✨'],
+  ['pvb', 'rebirth', 1, 'Brainrot Rebirth', 'Rebirth in Plants vs Brainrots', 300, null, '♻️'],
   ['zombie', 'kill', 100, 'Zombie Slayer', 'Defeat 100 zombies', 40, null, '🧟'],
   ['zombie', 'night', 3, 'Night Owl', 'Survive 3 nights', 120, null, '🌙'],
   ['zombie', 'boss', 1, 'Giant Killer', 'Help take down the Abomination', 300, ['pet', 11], '👹'],
@@ -2176,7 +2180,7 @@ function drawAvatarOpts() {
   }));
 }
 // the order experiences were added (the newest get a ✨ NEW badge; "Newest" sorts by it)
-const ADDED = ['obby', 'tycoon', 'tag', 'lava', 'toh', 'garden', 'tds', 'army', 'nds', 'pets', 'boat', 'zombie', 'egg', 'speed', 'fish', 'blade', 'murder', 'kart', 'rlgl', 'color', 'golf', 'bee', 'hide', 'pvz', 'rivals', 'fruits'];
+const ADDED = ['obby', 'tycoon', 'tag', 'lava', 'toh', 'garden', 'tds', 'army', 'nds', 'pets', 'boat', 'zombie', 'egg', 'speed', 'fish', 'blade', 'murder', 'kart', 'rlgl', 'color', 'golf', 'bee', 'hide', 'pvz', 'rivals', 'fruits', 'pvb'];
 const addedAt = (E) => (E.added != null ? E.added : ADDED.indexOf(E.id));
 const SORTS = [['featured', '⭐ Featured'], ['popular', '🔥 Popular'], ['new', '✨ Newest'], ['az', '🔤 A–Z'], ['recent', '🕒 Recently played']];
 // how the list is sorted and filtered, your favourites and what you played when (kept on this device)
@@ -2683,5 +2687,6 @@ else {
 <script src="blox-pvz.js"></script>
 <script src="blox-rivals.js"></script>
 <script src="blox-fruits.js"></script>
+<script src="blox-brainrots.js"></script>
 </body>
 </html>
