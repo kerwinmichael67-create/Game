@@ -758,6 +758,7 @@
       $('#zsRel').addEventListener('click', () => { if (this.building) this.turn(); else this.reload(); });
       $('#zsRun').addEventListener('click', () => { this.runToggle = !this.runToggle; $('#zsRun').classList.toggle('on', this.runToggle); });
       this.drawBar(); this.send(); this.vitals();
+      if (!touchy && !S.seenAim) { S.seenAim = 1; this.dirty = true; say('🎯 Aim down the sights with the right mouse button or R (tap R to aim and again to stop, or hold it). T reloads, Q builds.', '#e2e8f0'); }
     },
     leave() {
       this.save();
@@ -781,7 +782,7 @@
       return [(Math.random() - 0.5) * 8, 0.2, -6 + Math.random() * 4, 0]; // the camera behind you stays inside the walls
     },
     cur() { return this.S ? this.S.slot[this.S.cur] || 'fists' : 'fists'; },
-    // aiming down the sights: right mouse button held (or 🎯 on a phone) with a gun out
+    // aiming down the sights: right mouse button held, or R (a trackpad has no easy right button), or 🎯 on a phone, with a gun out
     aiming() { return !!(this.aim && this.S && !P.dead && !this.dead && WP[this.cur()] && WP[this.cur()].gun && !this.building && !this.searching && !panelOpen()); },
     loots() { return LOOTS; }, trees() { return TREES; }, grid() { return { blocked, pieceAt, floorY, cell, bbox, GN, fits }; }, // for tests
     speed() {
@@ -1203,7 +1204,7 @@
       if (this.hp <= 0) this.died(why);
     },
     died(why) {
-      this.hp = 0; this.dead = true; this.firing = false; this.reloading = null; if (this.building) this.toggleBuild(false);
+      this.hp = 0; this.dead = true; this.firing = false; this.reloading = null; this.aim = false; if (this.building) this.toggleBuild(false);
       const S = this.S, lost = Math.floor(S.cash * 0.1), lived = (performance.now() - this.alive0) / 1000;
       S.cash -= lost; S.best = Math.max(S.best, Math.floor(lived)); this.dirty = true;
       if (clock().night) this.nightDied = true;
@@ -1266,7 +1267,11 @@
       this.fireOnce(this.aimFrom(e.x, e.y));
     },
     key(code, down) {
-      if (!down) { if (code === 'KeyF') this.firing = false; return; }
+      if (!down) {
+        if (code === 'KeyF') this.firing = false;
+        if (code === 'KeyR' && this.rAt && performance.now() - this.rAt > 350) this.aim = false; // (held down: aimed only while it was)
+        this.rAt = 0; return;
+      }
       if (code === 'KeyQ') { this.toggleBuild(); return true; }
       if (this.building) {
         const n = ['Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'Digit6'].indexOf(code);
@@ -1275,7 +1280,14 @@
         if (code === 'KeyF') { this.buildAct(); return true; }
       }
       if (code === 'KeyF') { this.firing = 'auto'; this.trigger(); return true; }
-      if (code === 'KeyR') { this.reload(); return true; }
+      // R aims: tap it to aim until you tap it again, or hold it (handy on a trackpad); T reloads
+      if (code === 'KeyR') {
+        if (this.aim) { this.aim = false; this.rAt = 0; sfx('click'); return true; }
+        if (!WP[this.cur()].gun) { toast('Get a gun out to aim', '#fca5a5'); sfx('error'); return true; }
+        this.aim = true; this.rAt = performance.now(); sfx('select'); tryLock(); // (the mouse turns the camera while you aim)
+        return true;
+      }
+      if (code === 'KeyT') { this.reload(); return true; }
       if (code === 'Digit1' || code === 'Digit2' || code === 'Digit3') { this.pick(['m', 's', 'p'][+code.slice(5) - 1]); return true; }
       if (code === 'KeyG' || code === 'Digit4') { this.throwNade(this.mouse ? this.aimFrom(this.mouse.x, this.mouse.y) : this.autoAim()); return true; }
       if (code === 'KeyH' || code === 'Digit5') { this.heal(); return true; }
@@ -1287,7 +1299,7 @@
     pick(slot) {
       const S = this.S; if (!S.slot[slot]) { toast(slot === 'p' ? 'No main gun yet — find or buy one' : 'Nothing in that slot', '#fca5a5'); sfx('error'); return; }
       if (S.cur === slot) return;
-      S.cur = slot; this.reloading = null; this.dirty = true; sfx('select'); this.drawBar(); this.send();
+      S.cur = slot; this.reloading = null; this.aim = false; this.dirty = true; sfx('select'); this.drawBar(); this.send();
     },
     trigger() { this.fireOnce(); },
     // the camera shakes a little (applied to its angles, then taken back next frame)
