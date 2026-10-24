@@ -224,12 +224,14 @@
       this.tile = new THREE.Mesh(new THREE.PlaneGeometry(T - 0.3, T - 0.3), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.35, depthWrite: false, ...DECAL }));
       this.tile.rotation.x = -Math.PI / 2; this.tile.visible = false; place.add(this.tile);
     },
-    pres() { return { tq: [], vt: 1, rdy: 0, bl: 0 }; },
+    pres() { return { tq: [], vt: 1, rdy: 0, bl: 0, sb: 0 }; },
+    maxSeeds() { return hasItem('slot') ? 7 : 6; }, // (an Extra Seed Slot from the shop)
     async enter() {
       Object.assign(this, { H: null, lastG: null, gSeen: null, q: [], qn: 0, sel: null, shovel: false, ready: false, lobbyShown: false, lastPh: null, camSet: false, ccSeen: null, msgSeen: null, barKey: '' });
       const s = await kvGet('pz');
       this.save = Object.assign({ best: 0, endless: 0, wins: 0, seeds: [0] }, s && typeof s === 'object' ? s : {});
-      this.save.seeds = (Array.isArray(this.save.seeds) ? this.save.seeds : [0]).filter((t) => PL[t] && this.unlocked(t)).slice(0, 6);
+      this.save.seeds = (Array.isArray(this.save.seeds) ? this.save.seeds : [0]).filter((t) => PL[t] && this.unlocked(t)).slice(0, this.maxSeeds());
+      send({ sb: hasItem('sun') ? 1 : 0 }); // (the host adds a Sunny Start's sun)
       if (!this.save.seeds.length) this.save.seeds = [0];
       questMax('pvz.lvl', this.save.best | 0);
       this.vote = Math.min(LEVELS, this.save.best + 1);
@@ -297,7 +299,7 @@
           const votes = {}; for (const p of pl) { const v = p.me ? this.vote : p.pr.vt; if (v >= 0 && v <= LEVELS) votes[v] = (votes[v] || 0) + 1; }
           const lvl = +(Object.keys(votes).sort((a, b) => votes[b] - votes[a] || a - b)[0] || 1);
           const s = this.fresh(); s.seen = H.seen;
-          Object.assign(H, s, { ph: 'play', lvl, sun: (lvl === 1 ? 150 : 75) + 25 * (pl.length - 1), waveT: lvl === 1 ? 24 : 20, waves: wavesOf(lvl), msgN: H.msgN + 1, msg: 'ready' });
+          Object.assign(H, s, { ph: 'play', lvl, sun: (lvl === 1 ? 150 : 75) + 25 * (pl.length - 1) + 75 * pl.filter((p) => (p.me ? hasItem('sun') : p.pr && p.pr.sb === 1)).length, waveT: lvl === 1 ? 24 : 20, waves: wavesOf(lvl), msgN: H.msgN + 1, msg: 'ready' });
           // the slow seeds start recharging, the rest are ready
           for (const p of pl) { H.cd[p.peer] = {}; PL.forEach((d, t) => { if (d.cd >= 30 && d.k !== 'nut') H.cd[p.peer][t] = d.cd * 0.6; }); }
         }
@@ -527,8 +529,9 @@
       for (const [id, m] of this.cv) if (!ck.has(id)) { place.remove(m.g); this.cv.delete(id); }
       // walk into sun or a coin to pick it up
       if (g && g.ph === 'play' && !P.dead) {
-        for (const [id, m] of this.sv) if (Math.hypot(m.x - P.x, m.z - P.z) < 2.6 && m.y < 6) this.grab('sun', id);
-        for (const [id, m] of this.cv) if (Math.hypot(m.x - P.x, m.z - P.z) < 2.6) this.grab('coin', id);
+        const reach = hasItem('magnet') ? 6 : 2.6; // (a Sun Magnet)
+        for (const [id, m] of this.sv) if (Math.hypot(m.x - P.x, m.z - P.z) < reach && m.y < 6) this.grab('sun', id);
+        for (const [id, m] of this.cv) if (Math.hypot(m.x - P.x, m.z - P.z) < reach) this.grab('coin', id);
       }
       // shots, booms and mowers
       if (g && Array.isArray(g.fx)) for (const f of g.fx) {
@@ -596,7 +599,7 @@
     },
     key(code, down) {
       if (!down) return false;
-      const m = /^Digit([1-6])$/.exec(code);
+      const m = /^Digit([1-7])$/.exec(code);
       if (m) { const t = this.save.seeds[+m[1] - 1]; if (t != null) this.pick(t); return true; }
       if (code === 'KeyX') { this.pick(null, true); return true; }
       if (code === 'Escape' && (this.sel != null || this.shovel)) { this.sel = null; this.shovel = false; this.drawBar(); return true; }
@@ -654,16 +657,16 @@
     openLobby() {
       const S = this.save, best = S.best;
       const lv = Array.from({ length: LEVELS }, (_, i) => i + 1).map((n) => `<button data-lv="${n}" class="${this.vote === n ? 'on' : ''}" ${n > best + 1 ? 'disabled' : ''}>${n <= best ? '⭐' : n > best + 1 ? '🔒' : ''}${n}</button>`).join('');
-      const html = `<p class="xp-note">🧟 Zombies are coming down five lanes to eat your brains. Vote for a level, choose up to 6 seeds and press Ready. The sun is shared; each of you has your own seed packets.</p>
+      const html = `<p class="xp-note">🧟 Zombies are coming down five lanes to eat your brains. Vote for a level, choose up to ${this.maxSeeds()} seeds and press Ready. The sun is shared; each of you has your own seed packets.</p>
         <h4>🗺️ Level</h4><div class="pz-lv">${lv}</div>
         <button class="xp-btn ${this.vote === 0 ? '' : 'alt'}" data-lv="0" style="width:100%" ${best >= 5 ? '' : 'disabled'}>🔁 Endless${best >= 5 ? (S.endless ? ` · best ${S.endless} waves` : '') : ' · beat level 5'}</button>
         <button class="xp-btn ${this.ready ? 'alt' : ''}" data-ready="1" style="width:100%;padding:13px;font-size:17px;margin-top:8px">${this.ready ? '✅ Ready' : 'Ready'}</button>
-        <h4>🌱 Seeds <small style="color:var(--muted);font:700 12px var(--fb)">— ${S.seeds.length}/6 picked</small></h4>
+        <h4>🌱 Seeds <small style="color:var(--muted);font:700 12px var(--fb)">— ${S.seeds.length}/${this.maxSeeds()} picked</small></h4>
         <div class="xp-grid pz-seeds">${PL.map((d, t) => { const has = this.unlocked(t), on = S.seeds.includes(t); return `<div class="xp-card ${on ? 'on' : ''} ${has ? '' : 'locked'}"><div class="big">${has ? d.e : '🔒'}</div><b>${d.n}</b><span>☀️ ${d.cost} · ${d.cd}s</span><span style="font-weight:600;color:#94a3b8">${has ? d.d : `Beat level ${d.un} to unlock`}</span>${has ? `<button class="xp-btn ${on ? 'alt' : ''}" data-seed="${t}">${on ? 'Remove' : 'Pick'}</button>` : ''}</div>`; }).join('')}</div>`;
       openPanel('🌻 Plants vs Zombies', html, (b) => {
         if (b.dataset.lv != null) { this.vote = +b.dataset.lv; send({ vt: this.vote }); }
         else if (b.dataset.ready) { this.ready = !this.ready; send({ rdy: this.ready ? 1 : 0 }); }
-        else if (b.dataset.seed != null) { const t = +b.dataset.seed, i = S.seeds.indexOf(t); if (i >= 0) { if (S.seeds.length > 1) S.seeds.splice(i, 1); } else { if (S.seeds.length >= 6) S.seeds.shift(); S.seeds.push(t); } kvSet('pz', S); this.drawBar(); }
+        else if (b.dataset.seed != null) { const t = +b.dataset.seed, i = S.seeds.indexOf(t); if (i >= 0) { if (S.seeds.length > 1) S.seeds.splice(i, 1); } else { if (S.seeds.length >= this.maxSeeds()) S.seeds.shift(); S.seeds.push(t); } kvSet('pz', S); this.drawBar(); }
         this.openLobby();
       }, () => { this.panelKind = null; });
       this.panelKind = 'lobby';
@@ -676,7 +679,7 @@
           S.wins = (S.wins | 0) + 1; questMax('pvz.lvl', g.lvl);
           if (g.lvl > S.best) {
             S.best = g.lvl; const nu = PL.findIndex((d) => d.un === g.lvl);
-            if (nu >= 0) { if (S.seeds.length < 6) S.seeds.push(nu); setTimeout(() => toast(`🌱 You got a new plant: ${PL[nu].n}!`, '#86efac'), 1600); }
+            if (nu >= 0) { if (S.seeds.length < this.maxSeeds()) S.seeds.push(nu); setTimeout(() => toast(`🌱 You got a new plant: ${PL[nu].n}!`, '#86efac'), 1600); }
             else setTimeout(() => toast('🏆 You beat every level! Try Endless.', '#fde68a'), 1600);
             this.vote = Math.min(LEVELS, S.best + 1);
           }
@@ -693,6 +696,12 @@
     sortKey(pr) { return (pr && pr.bl) | 0; },
     menu() { return [['🌱 Seeds & level', () => this.openLobby()]]; },
     leave() { this.sel = null; this.shovel = false; this.zv = new Map(); this.pv = new Map(); this.sv = new Map(); this.cv = new Map(); this.peas = []; this.ghost = null; },
+    coinShop: [
+      { id: 'sun', e: '☀️', n: 'Sunny Start', d: 'Every game starts with 75 more sun (for everyone), for good', price: 500, kind: 'pass' },
+      { id: 'slot', e: '🌱', n: 'Extra Seed Slot', d: 'Take 7 seeds into a game instead of 6, for good', price: 600, kind: 'pass' },
+      { id: 'magnet', e: '🧲', n: 'Sun Magnet', d: 'Pick up sun and coins from further away, for good', price: 400, kind: 'pass' },
+    ],
+    onBuy(id) { if (id === 'sun') send({ sb: 1 }); },
   };
   addExp(PZ);
   window.__rbPZ = Object.assign(PZ, { PL, ZB, waveList, wavesOf, tx, tz });

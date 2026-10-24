@@ -249,7 +249,7 @@
       if (performance.now() - (this.crunchAt || 0) > 120) { this.crunchAt = performance.now(); sfx(why === 'boom' ? 'explode' : 'crunch', { vol: 0.6 }); }
       if (b.t === SEAT && this.seated) { this.seated = false; P.frozen = false; this.drawBar(); toast('💥 Your seat broke!', '#fca5a5'); }
     },
-    hurtBlock(b, dmg, why) { if (!b.alive || dmg <= 0) return; b.hp -= dmg; if (b.hp <= 0) this.destroy(b, why); },
+    hurtBlock(b, dmg, why) { if (!b.alive || dmg <= 0) return; b.hp -= dmg * (hasItem('tough') ? 0.7 : 1); if (b.hp <= 0) this.destroy(b, why); },
     tick(dt) {
       if (!this.S) return;
       // others: their boats on their plots, or sailing
@@ -265,7 +265,7 @@
       const s = stageAt(B.z);
       if (s > B.best) {
         B.best = s;
-        const g = 10 * s;
+        const g = 10 * s * (hasItem('gold2') ? 2 : 1);
         this.S.gold += g; B.gold += g; earn(2);
         toast(`Stage ${s + 1} · ${STAGES[s]} · +${g} gold`, '#fde68a'); sfx('reward');
         if (s > (this.S.best | 0)) { this.S.best = s; send({ best: s }); }
@@ -273,7 +273,7 @@
         this.save();
       }
       if (B.z < END_Z - 4 && !B.won) {
-        B.won = true; this.S.gold += 300; this.S.tr = (this.S.tr | 0) + 1; this.S.best = 10; send({ best: 10 }); this.save(); questMax('boat.treasure', this.S.tr); questMax('boat.stage', 10);
+        B.won = true; this.S.gold += hasItem('gold2') ? 600 : 300; this.S.tr = (this.S.tr | 0) + 1; this.S.best = 10; send({ best: 10 }); this.save(); questMax('boat.treasure', this.S.tr); questMax('boat.stage', 10);
         earn(40, 'found the treasure'); toast('🏆 TREASURE! +300 gold', '#fde68a'); sfx('win'); puffAt(P.x, P.y + 3, P.z, CONFETTI, 60);
         Net.chat('🏆 sailed all the way to the treasure!');
         setTimeout(() => { if (this.sail === B) this.endRun(''); }, 5000);
@@ -425,6 +425,13 @@
       }
       return `💰 <b>${this.S.gold}</b> gold · 🧱 ${this.design.length} blocks · ${this.del ? `🔨 ${touchy ? 'Tap' : 'Click'} blocks to remove` : `${BLK[this.sel].e} ${touchy ? 'Tap' : 'Click'} your plot to build`} · best ${this.S.best >= 10 ? '🏆' : `stage ${(this.S.best | 0) + 1}`}`;
     },
+    coinShop: [
+      { id: 'gold2', e: '💰', n: '2× Gold', d: 'Twice the gold from every stage and the treasure, for good', price: 600, kind: 'pass' },
+      { id: 'tough', e: '🛡️', n: 'Tough Blocks', d: 'Your boat takes 30% less damage, for good', price: 500, kind: 'pass' },
+      { id: 'crate', e: '📦', n: 'Block Crate', d: '20 wood, 10 stone, 5 metal and a balloon, right now', price: 30, kind: 'now' },
+    ],
+    shopCan(id) { return id === 'crate' && !this.S ? 'Loading…' : ''; },
+    onBuy(id) { if (id !== 'crate') return; const I = this.S.inv; I[0] += 20; I[2] += 10; I[3] += 5; I[5] += 1; this.save(); this.drawBar(); toast('📦 +20 🪵 +10 🪨 +5 🔩 +1 🎈', '#86efac'); },
   };
   addExp(BB);
   window.__rbBB = BB;

@@ -242,7 +242,7 @@
     },
     hurt(n, why) {
       if (!this.inRound() || P.dead) return;
-      this.hp -= n; this.hurtAt = performance.now();
+      this.hp -= n * (hasItem('vest') ? 0.75 : 1); this.hurtAt = performance.now();
       if (performance.now() - (this.ouchAt || 0) > 600) { this.ouchAt = performance.now(); sfx('hurt', { vol: 0.6 }); }
       if (this.hp <= 0) { this.hp = 0; this.why = why; toast(why || '💀 Out!', '#fca5a5'); die(); }
     },
@@ -446,6 +446,12 @@
       if (g.ph === 'play' || g.ph === 'prep') return this.inr === g.rd ? `💀 ${esc(this.why || 'Out')} — watching from the lobby` : '👀 Watching — you’re in next round';
       return `🏆 Survived ${this.sv} · best streak ${this.best}`;
     },
+    coinShop: [
+      shopSpeed(250, 1.15), shopJump(300, 1.2),
+      { id: 'vest', e: '🦺', n: 'Safety Vest', d: 'Disasters hurt you 25% less, for good', price: 600, kind: 'pass' },
+      { id: 'kit', e: '🩹', n: 'Medkit', d: 'Use it in a round: back to full health', price: 25, kind: 'use', tap: true },
+    ],
+    shopUse(id) { if (id !== 'kit' || !this.inRound() || P.dead || this.hp >= 100) return false; this.hp = 100; sfx('heal'); return true; },
   };
   addExp(ND);
   window.__rbND = ND;

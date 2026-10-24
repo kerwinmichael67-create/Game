@@ -526,7 +526,8 @@
     /* ---------------- you: progress ---------------- */
     gain(xp, beli, why) {
       const S = this.S; if (!S) return;
-      S.beli = Math.round(S.beli + (beli || 0)); S.xp += Math.round(xp || 0);
+      xp = (xp || 0) * (hasItem('xp2') ? 2 : 1); beli = (beli || 0) * (beli > 0 && hasItem('beli2') ? 2 : 1);
+      S.beli = Math.round(S.beli + beli); S.xp += Math.round(xp);
       if (xp > 0) this.numAt(P.x, P.y + 7, P.z, `+${Math.round(xp)} XP`, false);
       while (S.lv < MAXLV && S.xp >= need(S.lv)) {
         S.xp -= need(S.lv); S.lv++; S.pts += 3;
@@ -1082,6 +1083,13 @@
       const html = ISL.map((I, i) => { const d = Math.round(Math.hypot(I.x - P.x, I.z - P.z)), a = Math.atan2(I.x - P.x, -(I.z - P.z)) - (Math.PI - cam.yaw); return `<div class="bf-isl"><b>${esc(I.n)}</b><span style="color:#94a3b8">${I.lv ? `Lv. ${I.lv}+` : 'start'} · ${S.vis.includes(i) ? '✓ visited' : 'not yet'}</span><span style="display:inline-block;transform:rotate(${a.toFixed(2)}rad)">⬆️</span><span style="color:#cbd5e1;width:60px;text-align:right">${d} m</span></div>`; }).join('') + '<p style="color:#94a3b8;font:700 12.5px var(--fb)">Sail there with a boat (the ⚓ Captain at any dock), or have the Captain take you to islands you’ve already been to.</p>';
       openPanel('🗺️ The Sea', html);
     },
+    coinShop: [
+      { id: 'fruit', e: '🎲', n: 'Mystery Fruit', d: 'A random Blox Fruit in your bag, right now (no 15 minute wait)', price: 80, kind: 'now' },
+      { id: 'xp2', e: '⭐', n: '2× XP', d: 'Twice the XP from everything, for good', price: 700, kind: 'pass' },
+      { id: 'beli2', e: '💰', n: '2× Beli', d: 'Twice the beli from everything, for good', price: 600, kind: 'pass' },
+    ],
+    shopCan(id) { return id === 'fruit' && (!this.S || this.S.inv.length >= 8) ? 'Your fruit bag is full' : ''; },
+    onBuy(id) { if (id === 'fruit') this.addFruit(pickFruit(Math.random), '🎲 The shop’s Mystery Fruit is'); },
   };
   const BAR_BG = new THREE.MeshBasicMaterial({ color: 0x111827 }), BAR_FG = new THREE.MeshBasicMaterial({ color: 0x22c55e });
   function makeWeapon() { const g = new THREE.Group(), o = new THREE.Mesh(BOX, mat(0x6b7280)); o.scale.set(0.3, 0.3, 2.6); o.position.set(0, -1.9, -1.2); g.add(o); const h = new THREE.Mesh(BOX, mat(0x44403c)); h.scale.set(0.9, 0.9, 0.9); h.position.set(0, -1.9, -2.6); g.add(h); g.rotation.x = -0.3; return g; }

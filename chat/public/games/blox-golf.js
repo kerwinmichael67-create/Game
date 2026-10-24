@@ -90,7 +90,7 @@
       bar.style.cssText = 'position:absolute;left:50%;bottom:calc(var(--barH,0px) + 64px);transform:translateX(-50%);width:260px;height:16px;border-radius:999px;background:rgba(15,23,42,.6);box-shadow:0 0 0 2px rgba(255,255,255,.6);overflow:hidden;display:none';
       bar.innerHTML = '<i style="display:block;height:100%;width:100%;background:linear-gradient(90deg,#22c55e,#facc15,#ef4444);border-radius:999px;transform-origin:left;transform:scaleX(0);will-change:transform"></i>';
       $('#xhud').append(bar); this.powEl = bar;
-      setBar('<button class="xslot" data-k="card" title="Scorecard (C)"><span class="k">C</span><span class="e">📋</span>Card</button>', () => this.cardPanel());
+      this.drawBar();
       cam.pitch = -0.5;
     },
     leave() {
@@ -119,6 +119,11 @@
     rolling() { return Math.hypot(this.B.vx, this.B.vz) > 0; },
     // the putt: power swings up and down while you hold; let go to hit
     startCharge() { if (this.done || this.rolling() || this.charge || fullOpen()) return; this.charge = { t: 0 }; },
+    drawBar() {
+      const n = itemCount('mull');
+      setBar('<button class="xslot" data-k="card" title="Scorecard (C)"><span class="k">C</span><span class="e">📋</span>Card</button>' + (n ? `<button class="xslot" data-k="mull" title="Mulligan: take your last shot again (U)"><span class="k">U</span><span class="e">↩️</span>Redo<span class="n">${n}</span></button>` : ''),
+        (b) => { if (b.dataset.k === 'mull') { if (this.shopUse('mull')) useItem('mull'); } else this.cardPanel(); });
+    },
     release() {
       if (!this.charge) return;
       const pw = this.power(); this.charge = null;
@@ -130,6 +135,7 @@
     power() { if (!this.charge) return 0; const t = this.charge.t % 2.4; return t < 1.2 ? t / 1.2 : 2 - t / 1.2; },
     press(btn, down) { if (btn !== 0) return; if (down) this.startCharge(); else this.release(); },
     key(code, down) {
+      if (code === 'KeyU' && down && itemCount('mull')) { if (this.shopUse('mull')) useItem('mull'); return true; }
       if (code === 'Space') { if (down) this.startCharge(); else this.release(); return; } // (not "handled": the engine still marks Space as held)
       if (down && code === 'KeyC') { this.cardPanel(); return true; }
     },
@@ -157,7 +163,7 @@
         // the cup: in if it's not going too fast
         const cx = ox + H.cup[0], cz = H.cup[1], dc = Math.hypot(B.x - cx, B.z - cz);
         if (dc < CUP && Math.hypot(B.vx, B.vz) < 26) { this.holed(); return; }
-        if (dc < CUP * 1.6 && Math.hypot(B.vx, B.vz) < 9) { B.vx += (cx - B.x) * 6 * h; B.vz += (cz - B.z) * 6 * h; } // it rolls towards the hole when it's close and slow
+        if (dc < CUP * (hasItem('magnet') ? 3 : 1.6) && Math.hypot(B.vx, B.vz) < (hasItem('magnet') ? 14 : 9)) { B.vx += (cx - B.x) * 6 * h; B.vz += (cz - B.z) * 6 * h; } // it rolls towards the hole when it's close and slow
         if (Math.hypot(B.vx, B.vz) < 0.35) { B.vx = B.vz = 0; }
       }
     },
@@ -220,7 +226,7 @@
       this.ballM.position.set(B.x, R + sink + 0.02, B.z); this.ballM.visible = !this.done;
       const pw = this.charge ? this.power() : 0.35, show = !this.rolling() && !this.done && !P.dead;
       this.aimG.visible = show;
-      if (show) { const fx = -Math.sin(cam.yaw), fz = -Math.cos(cam.yaw); this.aimG.children.forEach((d, k) => { const t = (k + 1) / 8 * (2 + pw * 9); d.position.set(B.x + fx * t, 0.25, B.z + fz * t); d.material.color.setHex(this.charge ? (pw > 0.75 ? 0xef4444 : pw > 0.4 ? 0xfacc15 : 0x22c55e) : 0xffffff); }); }
+      if (show) { const fx = -Math.sin(cam.yaw), fz = -Math.cos(cam.yaw); this.aimG.children.forEach((d, k) => { const t = (k + 1) / 8 * (2 + pw * 9) * (hasItem('aim') ? 2 : 1); d.position.set(B.x + fx * t, 0.25, B.z + fz * t); d.material.color.setHex(this.charge ? (pw > 0.75 ? 0xef4444 : pw > 0.4 ? 0xfacc15 : 0x22c55e) : 0xffffff); }); }
       const pv = this.charge ? Math.round(pw * 50) / 50 : -1; // (only when it changes: redrawing the page over the game is slow on some computers)
       if (pv !== this.powShown) { this.powShown = pv; this.powEl.style.display = pv < 0 ? 'none' : 'block'; if (pv >= 0) this.powEl.firstChild.style.transform = `scaleX(${pv})`; }
       this.swingT = Math.max(0, this.swingT - dt);
@@ -261,6 +267,17 @@
       const H = HOLES[this.hole], tot = this.cards.reduce((s, v) => s + (v || 0), 0), parSoFar = HOLES.reduce((s, h, k) => s + (this.cards[k] ? h.par : 0), 0), d = tot - parSoFar;
       return `⛳ Hole <b>${this.hole + 1}</b>/${HOLES.length} · par ${H.par} · strokes <b>${this.strokes}</b> · total ${tot} (${d > 0 ? '+' : ''}${d || 'E'})${this.best ? ` · best ${this.best}` : ''}`;
     },
+    coinShop: [
+      { id: 'mull', e: '↩️', n: 'Mulligans', d: '3 do-overs: take your last shot again, stroke and all (↩️ on your bar, or U)', price: 30, kind: 'use', pack: 3, tap: true },
+      { id: 'aim', e: '🎯', n: 'Pro Aim', d: 'An aim line twice as long, for good', price: 400, kind: 'pass', toggle: true },
+      { id: 'magnet', e: '🧲', n: 'Magnet Cup', d: 'The cup pulls your ball in from further away, for good', price: 600, kind: 'pass' },
+    ],
+    shopUse(id) {
+      const B = this.B; if (id !== 'mull' || this.done || !B || !B.from || this.strokes <= 0) return false;
+      B.x = B.from[0]; B.z = B.from[1]; B.vx = B.vz = 0; B.from = null; this.strokes--; this.charge = null;
+      sfx('whoosh'); toast('↩️ Take it again!', '#fde68a'); setTimeout(() => this.drawBar(), 0); return true;
+    },
+    onBuy(id) { if (id === 'mull') this.drawBar(); },
   };
   // (the engine tells experiences about the mouse button through press(); remember whether it's still down)
   const press0 = GF.press;

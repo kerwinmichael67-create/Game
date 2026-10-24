@@ -79,6 +79,14 @@
 
   const KR = {
     noLock: true, noSprint: true, // (the camera follows the kart)
+    drawBar() {
+      const n = itemCount('shroom');
+      setBar('<button class="xslot" data-k="drift" title="Drift (Space)"><span class="k">␣</span><span class="e">💨</span>Drift</button><button class="xslot" data-k="horn" title="Horn (H)"><span class="k">H</span><span class="e">📯</span>Horn</button>'
+        + (n ? `<button class="xslot" data-k="shroom" title="Mushroom boost (M)"><span class="k">M</span><span class="e">🍄</span>Boost<span class="n">${n}</span></button>` : ''), (b) => { if (b.dataset.k === 'horn') this.honk(); if (b.dataset.k === 'shroom' && this.shopUse('shroom') && useItem('shroom')) this.drawBar(); });
+      // the 💨 button drifts while it's held (a tap on the bar alone would do nothing)
+      const db = $('#xbar [data-k="drift"]');
+      if (db && !db.hold) { db.hold = true; const hold = (v) => (e) => { e.preventDefault(); this.driftBtn = v; }; db.addEventListener('pointerdown', hold(true)); for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) db.addEventListener(ev, hold(false)); }
+    },
     id: 'kart', code: 'kr', genre: 'Racing', rank: 0.05, name: 'Kart Racing', emoji: '🏎️', max: 8, stat: 'Wins', killY: -30, banner: true, camDist: 20, respawnDelay: 700, stepHeight: 0.6,
     land: { theme: 'meadow', fence: 'hedge' },
     color: 'linear-gradient(135deg,#f97316,#dc2626 55%,#1f2937)',
@@ -123,10 +131,8 @@
       const el = document.createElement('canvas'); el.width = el.height = 300; el.id = 'krMap';
       el.style.cssText = `position:absolute;right:12px;${touchy ? 'top:160px;width:110px;height:110px' : 'bottom:140px;width:150px;height:150px'};border-radius:16px;background:rgba(15,23,42,.55);box-shadow:0 4px 14px rgba(0,0,0,.3)`; // (a phone: up top, away from the thumbs)
       $('#xhud').append(el); this.map = el;
-      setBar('<button class="xslot" data-k="drift" title="Drift (Space)"><span class="k">␣</span><span class="e">💨</span>Drift</button><button class="xslot" data-k="horn" title="Horn (H)"><span class="k">H</span><span class="e">📯</span>Horn</button>', (b) => { if (b.dataset.k === 'horn') this.honk(); });
-      // the 💨 button drifts while it's held (a tap on the bar alone would do nothing)
-      this.driftBtn = false; const db = $('#xbar [data-k="drift"]');
-      if (db) { const hold = (v) => (e) => { e.preventDefault(); this.driftBtn = v; }; db.addEventListener('pointerdown', hold(true)); for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) db.addEventListener(ev, hold(false)); }
+      this.drawBar();
+      this.driftBtn = false;
     },
     leave() {
       for (const a of this.botAv.values()) dropAvatar(a);
@@ -216,7 +222,7 @@
       // ran into something: lose most of the speed
       if (K.exp) { const want = Math.hypot(K.exp[0], K.exp[1]), got = Math.hypot(P.x - K.exp[2], P.z - K.exp[3]); if (want > 0.03 && got < want * 0.35 && now > K.bumpAt) { K.bumpAt = now + 400; K.sp *= 0.35; sfx('crash', { vol: 0.5, gap: 300 }); } }
       K.boostT = Math.max(0, K.boostT - dt);
-      const cap = K.boostT > 0 ? BOOST : this.offRoad ? GRASS : TOP;
+      const cap = K.boostT > 0 ? BOOST : this.offRoad ? GRASS : TOP * (hasItem('turbo') ? 1.06 : 1);
       if (held) K.sp = 0;
       else if (K.sp > cap) K.sp += (cap - K.sp) * Math.min(1, dt * (this.offRoad ? 3 : 1.5));
       else if (throttle > 0) K.sp = Math.min(cap, K.sp + ACC * throttle * dt * (K.sp < 20 ? 1.4 : 1));
@@ -237,7 +243,10 @@
       return [vx, vz, K.yaw];
     },
     honk() { if (performance.now() > (this.hornAt || 0)) { this.hornAt = performance.now() + 700; sfx('horn'); send({ hk: ((this.hk = (this.hk || 0) + 1)) }); } },
-    key(code, down) { if (down && code === 'KeyH') { this.honk(); return true; } },
+    key(code, down) {
+      if (down && code === 'KeyH') { this.honk(); return true; }
+      if (down && code === 'KeyM' && itemCount('shroom')) { if (this.shopUse('shroom')) useItem('shroom'); return true; }
+    },
     tick(dt) {
       const g = this.g = roundState(this), mine = myPeer(), K = this.K, now = performance.now();
       const racing = !!(g && g.ph === 'play' && g.grid && g.grid.includes(mine));
@@ -255,6 +264,7 @@
       if (racing && !this.started) {
         this.started = true; this.prog = this.si > N / 2 ? this.si - N : this.si; this.lap = 1;
         sfx('go'); toast('GO! 🏁', '#86efac');
+        if (hasItem('rocket')) { this.K.boostT = 1.2; this.K.sp = Math.max(this.K.sp, BOOST); sfx('whoosh', { pitch: 1.3 }); } // a Rocket Start
       }
       if (racing && this.started && !this.finT && !P.dead) {
         let delta = this.si - wrap(Math.round(this.prog));
@@ -360,6 +370,13 @@
       const K = this.K;
       return `⚡ <b>${Math.round(Math.abs(K.sp) * 1.2)}</b> mph${K.boostT > 0 ? ' · 🔥 BOOST' : K.drift ? ` · 💨 ${K.driftT > 1.8 ? 'super drift!' : K.driftT > 0.8 ? 'drift ready' : 'drifting'}` : ''}${this.best ? ` · ⏱️ best ${fmt(this.best)}` : ''}`;
     },
+    coinShop: [
+      { id: 'turbo', e: '⚡', n: 'Turbo Engine', d: 'A 6% higher top speed, for good', price: 600, kind: 'pass' },
+      { id: 'rocket', e: '🚀', n: 'Rocket Start', d: 'A burst of speed the moment every race starts, for good', price: 500, kind: 'pass' },
+      { id: 'shroom', e: '🍄', n: 'Mushrooms', d: '3 boosts to use whenever you like (🍄 on your bar, or M)', price: 30, kind: 'use', pack: 3, tap: true },
+    ],
+    shopUse(id) { if (id !== 'shroom' || P.dead) return false; const K = this.K; K.boostT = Math.max(K.boostT, 1.2); K.sp = Math.max(K.sp, BOOST); sfx('powerup'); puffAt(P.x, P.y + 1, P.z, [0xef4444, 0xffffff], 10); setTimeout(() => this.drawBar(), 0); return true; },
+    onBuy(id) { if (id === 'shroom') this.drawBar(); },
   };
   addExp(KR);
   window.__rbKR = KR;

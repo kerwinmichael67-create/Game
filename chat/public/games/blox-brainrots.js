@@ -407,7 +407,7 @@
     save() { if (!this.S) return; this.S.at = Date.now(); this.dirty = false; return kvSet('pvb', this.S); },
     luck() { return 1 + 0.5 * this.S.reb; },
     mult() { return 1 + 0.5 * this.S.reb; },
-    rate() { const S = this.S; let r = 0; S.pods.forEach((e, k) => { if (e && k < SLOTS(S.reb)) r += income(e[0], e[1], e[2]); }); return r * this.mult(); },
+    rate() { const S = this.S; let r = 0; S.pods.forEach((e, k) => { if (e && k < SLOTS(S.reb)) r += income(e[0], e[1], e[2]); }); return r * this.mult() * (hasItem('cash2') ? 2 : 1); },
     bat() { return BATS[Math.min(this.S.reb, BATS.length - 1)]; },
     send() {
       const S = this.S, nowMs = Date.now();
@@ -559,7 +559,7 @@
       const tp = performance.now() / 1000; if (tp < this.hitCd || P.dead) return;
       this.hitCd = tp + 0.42; this.swingT = 0.3; this.swN++; send({ sw: this.swN }); sfx('swing');
       if (this.b < 0) return;
-      const fx = -Math.sin(P.yaw), fz = -Math.cos(P.yaw), dmg = this.bat()[1]; let any = false;
+      const fx = -Math.sin(P.yaw), fz = -Math.cos(P.yaw), dmg = this.bat()[1] * (hasItem('swing') ? 2 : 1); let any = false;
       for (const r of this.rots.slice()) {
         const x = laneX(this.b, r.lane), dx = x - P.x, dz = r.z - P.z, d = Math.hypot(dx, dz), reach = 4.5 + RSCALE[BR[r.t][1]];
         if (d > reach || Math.abs(P.y) > 6) continue;
@@ -968,6 +968,18 @@
       const S = this.S, sel = this.sel || 'bat';
       const holding = sel === 'bat' ? `🏏 ${this.bat()[0]}` : sel[0] === 's' ? `${SEEDS[+sel.slice(1)][7]} ${SEEDS[+sel.slice(1)][0]} seed` : sel[0] === 'r' ? `🧠 ${rotName(...unkey(sel.slice(1)))}` : `${GEAR[sel.slice(1)].e} ${GEAR[sel.slice(1)].n}`;
       return `💰 <b>${cash(S.cash)}</b> · 📈 ${cash(this.rate())}/s · ${holding}${S.reb ? ` · ♻️ ${S.reb}` : ''}`;
+    },
+    coinShop: [
+      { id: 'cash2', e: '💰', n: '2× Money', d: 'Your brainrots make twice the cash, for good', price: 700, kind: 'pass' },
+      { id: 'swing', e: '🏏', n: 'Mighty Swing', d: 'Your bat hits twice as hard, for good', price: 500, kind: 'pass' },
+      { id: 'crate', e: '🌱', n: 'Seed Crate', d: '3 surprise seeds, sometimes a rare one, right now', price: 40, kind: 'now' },
+    ],
+    shopCan(id) { return id === 'crate' && !this.S ? 'Loading…' : ''; },
+    onBuy(id) {
+      if (id !== 'crate') return;
+      const got = [];
+      for (let i = 0; i < 3; i++) { const r = Math.random(), t = r < 0.05 ? 6 + Math.floor(Math.random() * 2) : r < 0.2 ? 4 + Math.floor(Math.random() * 2) : r < 0.5 ? 2 + Math.floor(Math.random() * 2) : Math.floor(Math.random() * 2); this.S.seeds[t] = (this.S.seeds[t] || 0) + 1; got.push(SEEDS[t][7]); }
+      this.dirty = true; this.drawBar(); toast(`🌱 ${got.join(' ')} seeds!`, '#86efac');
     },
   };
   addExp(PB);

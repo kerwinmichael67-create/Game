@@ -176,6 +176,8 @@
 
     /* ---- everyone ---- */
     tick(dt) {
+      // a Glass Sense from the shop: the panels that hold glow green for you this round
+      { const g0 = this.g, on = !!(g0 && g0.ph === 'play' && this.senseRd === g0.rd); for (const p of this.panels || []) { const want = on && ((g0.glass >> p.row) & 1) === p.side ? 0x4ade80 : 0xbae6fd; if (p.tint !== want) { p.tint = want; p.m.material.color.setHex(want); } } }
       const g = this.g = roundState(this), mine = myPeer();
       if (g && g.ph === 'play' && g.rd !== this.rd) {
         this.rd = g.rd; this.onBridge = false; this.finT = 0; this.broken = 0; this.myBr = 0; this.caught = 0; this.evN = Math.max(0, ...((g.ev || []).map((e) => e[0])));
@@ -258,6 +260,11 @@
       const togo = Math.max(0, Math.round(P.z - DECK));
       return this.finT ? `🏆 Across in ${this.finT.toFixed(1)}s` : `📏 ${togo} studs to go${this.caught ? ` · 🔴 caught ×${this.caught}` : ''}`;
     },
+    coinShop: [
+      { id: 'sense', e: '🔮', n: 'Glass Sense', d: 'Use it in a round: the glass panels that hold glow green for you', price: 45, kind: 'use', tap: true },
+      shopSpeed(350, 1.1), shopJump(250, 1.15),
+    ],
+    shopUse(id) { const g = this.g; if (id !== 'sense' || !g || g.ph !== 'play' || this.senseRd === g.rd) return false; this.senseRd = g.rd; sfx('magic'); return true; },
   };
   addExp(RL);
   window.__rbRL = RL;

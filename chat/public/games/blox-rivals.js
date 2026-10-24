@@ -533,7 +533,7 @@
     reload() {
       const wid = this.cw(), W = WP[wid];
       if (!W || W.sl > 1 || this.rl || (this.ammo[wid] ?? W.mag) >= W.mag) return;
-      this.rl = { wid, t: W.rl }; this.burstQ = 0; sfx('reload'); this.drawBar();
+      this.rl = { wid, t: W.rl * (hasItem('fast') ? 0.7 : 1) }; this.burstQ = 0; sfx('reload'); this.drawBar();
     },
     // one pull of the trigger
     trigger(at) {
@@ -604,7 +604,7 @@
       this.faceAt(aim.x, aim.z);
       const o = this.gunTip();
       let dx = aim.x - o[0], dy = aim.y - o[1], dz = aim.z - o[2]; const l = Math.hypot(dx, dy, dz) || 1; dx /= l; dy /= l; dz /= l;
-      const moving = Math.hypot(P.vx, P.vz) > 2 || !P.ground, sp = (this.ads && W.zsp != null ? W.zsp : W.sp * (this.ads ? 0.7 : 1)) * (moving ? 1.7 : 1);
+      const moving = Math.hypot(P.vx, P.vz) > 2 || !P.ground, sp = (this.ads && W.zsp != null ? W.zsp : W.sp * (this.ads ? 0.7 : 1)) * (moving ? 1.7 : 1) * (hasItem('steady') ? 0.65 : 1);
       const tgs = this.targets(), hits = new Map(), ends = [];
       for (let k = 0; k < (W.pel || 1); k++) {
         const d = [dx + (Math.random() - 0.5) * 2 * sp, dy + (Math.random() - 0.5) * 2 * sp, dz + (Math.random() - 0.5) * 2 * sp], dl = Math.hypot(...d); d[0] /= dl; d[1] /= dl; d[2] /= dl;
@@ -1020,6 +1020,11 @@
       const hp = m.hp[myPeer()] != null ? m.hp[myPeer()] : 100, c = hp > 60 ? '#22c55e' : hp > 30 ? '#f59e0b' : '#ef4444';
       return `<span class="rv-hp"><i style="width:${hp}%;background:${c}"></i></span><b style="color:${c}">${hp}</b> ❤️ · ${ammo}${this.healT > 0 ? ' · 🩹 healing…' : ''}`;
     },
+    coinShop: [
+      { id: 'fast', e: '⚡', n: 'Fast Hands', d: 'Reload 30% faster, for good', price: 500, kind: 'pass' },
+      { id: 'steady', e: '🎯', n: 'Steady Aim', d: 'Your shots spread 35% less, for good', price: 600, kind: 'pass' },
+      shopSpeed(500, 1.06),
+    ],
   };
   const SMOKE_GEO = new THREE.IcosahedronGeometry(1, 1), TAG_GEO = new THREE.ConeGeometry(0.45, 0.8, 4);
   const TAG_ALLY = new THREE.MeshBasicMaterial({ color: 0x3b82f6 }), TAG_FOE = new THREE.MeshBasicMaterial({ color: 0xef4444 });

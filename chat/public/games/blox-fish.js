@@ -71,7 +71,7 @@
     { n: 'Magma Rod', price: 16000, luck: 0.5, lure: 0.75, control: 0.32, reel: 1.4, lava: true, c: 0xb91c1c },
     { n: 'Rod of the Depths', price: 60000, luck: 1.4, lure: 0.6, control: 0.36, reel: 1.6, lava: true, c: 0x4c1d95 },
   ];
-  const BAG = 40;
+  const BAG = 40, bagMax = () => BAG + (hasItem('bag') ? 40 : 0); // (a Big Bag from the shop holds more)
   const valueOf = (f, kg, shiny) => Math.max(1, Math.round(FISH[f][3] * Math.pow(kg / FISH[f][2], 0.85) * (shiny ? 2 : 1)));
 
   /* ---------------- the water ---------------- */
@@ -190,7 +190,7 @@
       questMax('fish.catch', S.caught); if (S.dex && typeof S.dex === 'object') questMax('fish.dex', Object.keys(S.dex).length);
       S.rods = (Array.isArray(S.rods) ? S.rods : [0]).map((i) => i | 0).filter((i, n, a) => RODS[i] && a.indexOf(i) === n); if (!S.rods.includes(0)) S.rods.unshift(0);
       S.rod = S.rods.includes(S.rod | 0) ? S.rod | 0 : 0;
-      S.bag = (Array.isArray(S.bag) ? S.bag : []).filter((b) => Array.isArray(b) && FISH[b[0]] && b[1] > 0).slice(0, BAG);
+      S.bag = (Array.isArray(S.bag) ? S.bag : []).filter((b) => Array.isArray(b) && FISH[b[0]] && b[1] > 0).slice(0, bagMax());
       S.dex = S.dex && typeof S.dex === 'object' ? S.dex : {};
       this.st = 'idle'; this.safe = [0, 1, 52]; this.held = null; this.heldOthers = new Map(); this.bobber = null; this.pw = 0; this.holdT = 0; this.holding = false;
       const hud = $('#xhud');
@@ -256,7 +256,7 @@
       const place = placeOf(b.w, b.z);
       if (place === 'lava' && !this.rod().lava) { puffAt(b.x, b.y + 0.5, b.z, [0xff6a00, 0x444444], 8); sfx('hiss'); this.reelIn('🔥 Your line burned! Only the Magma Rod can fish in lava.'); return; }
       puffAt(b.x, b.y + 0.2, b.z, place === 'lava' ? [0xff6a00, 0xfde047] : [0xffffff, 0x93c5fd], 6); sfx('splash', { vol: 0.5 });
-      this.place = place; this.st = 'wait'; this.waitT = (2.5 + Math.random() * 6) * this.rod().lure;
+      this.place = place; this.st = 'wait'; this.waitT = (2.5 + Math.random() * 6) * this.rod().lure * (useItem('bait') ? 0.3 : 1); // (Magic Bait: a bite much sooner)
     },
     hook() {
       const b = this.bobber; if (b && b.mark) { b.m.remove(b.mark); b.mark = null; }
@@ -268,7 +268,7 @@
       sfx('select'); this.send(true);
     },
     pick(place) {
-      const pool = poolOf(place), luck = this.rod().luck + (place === 'deep' ? 0.4 : 0);
+      const pool = poolOf(place), luck = this.rod().luck + (place === 'deep' ? 0.4 : 0) + (hasItem('lure') ? 0.5 : 0);
       const w = RAR.map((r, i) => (pool.some((f) => FISH[f][1] === i) ? r[2] * (i >= 3 ? 1 + luck * (i - 2) : 1) : 0));
       let x = Math.random() * w.reduce((a, b) => a + b, 0), r = 0;
       while (r < w.length - 1 && x >= w[r]) { x -= w[r]; r++; }
@@ -283,7 +283,7 @@
     caught() {
       const S = this.S, { f, kg, shiny } = this.fish, first = !S.dex[f], val = valueOf(f, kg, shiny), rar = FISH[f][1];
       this.reelIn();
-      if (S.bag.length >= BAG) { toast('🎒 Your bag is full! Sell some fish at the merchant (B).', '#fca5a5'); sfx('error'); return; }
+      if (S.bag.length >= bagMax()) { toast('🎒 Your bag is full! Sell some fish at the merchant (B).', '#fca5a5'); sfx('error'); return; }
       S.bag.push([f, +kg.toFixed(3), shiny ? 1 : 0]); S.caught++; S.dex[f] = Math.max(S.dex[f] || 0, +kg.toFixed(3)); S.best = Math.max(S.best || 0, val);
       questMax('fish.catch', S.caught); questMax('fish.dex', Object.keys(S.dex).length); if (rar >= 5) quest('fish.legend');
       this.dirty = true; this.save(); this.send(true);
@@ -404,7 +404,7 @@
     sellPanel(fromBar) {
       const S = this.S, total = S.bag.reduce((a, b) => a + valueOf(b[0], b[1], b[2]), 0), near = Math.hypot(P.x + 14, P.z - 34) < 9;
       const order = S.bag.map((b, i) => i).sort((a, b) => valueOf(...S.bag[b]) - valueOf(...S.bag[a]));
-      const html = `<div class="xp-row"><span>🎒 <b>${S.bag.length}/${BAG}</b> fish</span><span>💰 <b>C$${short(S.cash)}</b></span></div>
+      const html = `<div class="xp-row"><span>🎒 <b>${S.bag.length}/${bagMax()}</b> fish</span><span>💰 <b>C$${short(S.cash)}</b></span></div>
         ${near ? `<button class="xp-btn gold" data-all="1" style="width:100%;margin:6px 0" ${S.bag.length ? '' : 'disabled'}>Sell all for C$${short(total)}</button>` : `<p class="xp-note">Sell your fish at the 💰 Fish Merchant in town (they’re worth C$${short(total)}).</p>`}
         <div class="xp-grid">${order.map((i) => { const [f, kg, sh] = S.bag[i], r = FISH[f][1]; return `<div class="xp-card fi-card" style="border-color:${RAR[r][3]}55"><img src="${portrait(f)}" alt=""><b>${sh ? '✨ ' : ''}${esc(FISH[f][0])}</b><span style="color:${RAR[r][3]}">${RAR[r][0]}</span><span>⚖️ ${kgs(kg)}</span><span class="v">C$${short(valueOf(f, kg, sh))}</span>${near ? `<button class="xp-btn" data-sell="${i}">Sell</button>` : ''}</div>`; }).join('') || '<p class="xp-note">Your bag is empty. Go fishing!</p>'}</div>`;
       openPanel(near ? '💰 Fish Merchant' : '🎒 Your Fish', html, (btn) => {
@@ -453,10 +453,15 @@
       if (!this.S) return '';
       const S = this.S, w = waterNear();
       if (S.bag.length !== this.bagN) { this.bagN = S.bag.length; this.drawBar(); }
-      return `💰 <b>C$${short(S.cash)}</b> · 🎒 ${S.bag.length}/${BAG} · 📖 ${Object.keys(S.dex).length}/${FISH.length}${w ? ` · ${PLACES[w].e} ${PLACES[w].n}` : ''}`;
+      return `💰 <b>C$${short(S.cash)}</b> · 🎒 ${S.bag.length}/${bagMax()} · 📖 ${Object.keys(S.dex).length}/${FISH.length}${w ? ` · ${PLACES[w].e} ${PLACES[w].n}` : ''}`;
     },
     statOf(pr, isMe) { return short(isMe ? this.S && this.S.caught : pr.cc || 0); },
     sortKey(pr, isMe) { return isMe ? (this.S ? this.S.caught : 0) : +pr.cc || 0; },
+    coinShop: [
+      { id: 'lure', e: '🍀', n: 'Lucky Lure', d: 'Rare fish bite more often, for good', price: 600, kind: 'pass' },
+      { id: 'bag', e: '🎒', n: 'Big Bag', d: 'Hold 80 fish instead of 40, for good', price: 400, kind: 'pass' },
+      { id: 'bait', e: '🪱', n: 'Magic Bait', d: '10 casts where a fish bites much sooner', price: 25, kind: 'use', pack: 10 },
+    ],
   };
   // the water you're facing: where a cast would land (for the status line)
   function waterNear() {

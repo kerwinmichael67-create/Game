@@ -230,8 +230,8 @@
       this.eggs = new Map(); this.slotV = new Map(); this.carryV = new Map(); this.flies = []; this.ice = new Map();
     },
     save() { if (!this.S) return; this.S.at = Date.now(); this.dirty = false; return kvSet('se', this.S); },
-    rate() { const S = this.S; let r = 0; S.eggs.forEach((e) => { if (e) r += income(e[0], e[1]); }); return r * (1 + 0.6 * S.reb); },
-    mult() { return 1 + 0.6 * this.S.reb; },
+    rate() { const S = this.S; let r = 0; S.eggs.forEach((e) => { if (e) r += income(e[0], e[1]); }); return r * this.mult(); },
+    mult() { return (1 + 0.6 * this.S.reb) * (hasItem('cash2') ? 2 : 1); },
     send() {
       const S = this.S;
       send({ sl: SLOTS(S.reb), b: this.b, eg: S.eggs.map((e, k) => (e ? `${k}.${e[0]}.${e[1]}` : '')).filter(Boolean).join(','), cs: Math.floor(S.cash), ps: Math.floor(this.rate()), lk: this.lockUntil || 0 });
@@ -423,7 +423,7 @@
     lock() {
       if (this.b < 0 || !inBase(this.b, P.x, P.z)) { toast('Lock your base from the red button inside it'); return; }
       const nowS = Date.now() / 1000; if ((this.lockUntil || 0) > nowS) { toast(`Already locked (${Math.ceil(this.lockUntil - nowS)}s)`); return; }
-      this.lockUntil = nowS + 60 + 15 * this.S.reb; this.send(); sfx('lock'); toast('🔒 Base locked!', '#fca5a5');
+      this.lockUntil = nowS + (60 + 15 * this.S.reb) * (hasItem('lock2') ? 2 : 1); this.send(); sfx('lock'); toast('🔒 Base locked!', '#fca5a5');
     },
     sell(k) {
       const S = this.S, e = S.eggs[k]; if (!e) return;
@@ -652,6 +652,14 @@
       const S = this.S, waiting = S.acc.reduce((a, b) => a + (b || 0), 0);
       return `💰 <b>${cash(S.cash)}</b> · 📈 ${cash(this.rate())}/s · 🏦 ${cash(waiting)} waiting${this.carry ? ` · 🥷 <b>Carrying the ${esc(eggName(this.carry.t, this.carry.m).toLowerCase())} — get it home!</b>` : ''}${this.S.reb ? ` · ♻️ ${this.S.reb}` : ''}`;
     },
+    coinShop: [
+      { id: 'cash2', e: '💰', n: '2× Cash', d: 'Your eggs earn twice as much, for good', price: 700, kind: 'pass' },
+      { id: 'lock2', e: '🔒', n: 'Super Lock', d: 'Your base stays locked twice as long, for good', price: 400, kind: 'pass' },
+      shopSpeed(300, 1.15),
+      { id: 'bag', e: '💵', n: 'Cash Bag', d: 'Two minutes of your eggs’ income (at least $500), right now', price: 30, kind: 'now' },
+    ],
+    shopCan(id) { return id === 'bag' && !this.S ? 'Loading…' : ''; },
+    onBuy(id) { if (id !== 'bag') return; const v = Math.max(500, Math.round(this.rate() * 120)); this.S.cash += v; this.S.best = Math.max(this.S.best, this.S.cash); this.dirty = true; toast(`💵 +${cash(v)}`, '#86efac'); this.send(); this.drawBar(); },
   };
   addExp(SE);
   window.__rbSE = SE; // for tests

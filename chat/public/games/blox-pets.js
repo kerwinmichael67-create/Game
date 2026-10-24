@@ -225,7 +225,7 @@
     },
     leave() { this.save(); for (const o of this.orbs) { scene.remove(o.m); } this.orbs = []; this.clearPetMeshes(); this.hatchClose(); },
     save() { this.dirty = false; this.S.auto = this.auto; return kvSet('ps', this.S); },
-    slots() { return 3 + (this.S.up.slots | 0); },
+    slots() { return 3 + (this.S.up.slots | 0) + (hasItem('slot') ? 1 : 0); },
     send() { send({ pt: this.S.eq.map((i) => this.S.pets[i].join('.')).join(','), cc: Math.floor(this.S.c), pz: zoneAt(P.z) }); },
     spawn() { return [0, 0.6, 45, 0]; },
     speed() { return 16 * (1 + 0.1 * (this.S ? this.S.up.speed : 0)); },
@@ -318,7 +318,7 @@
     breakIt(b) {
       b.alive = false; b.g.visible = false; b.back = performance.now() + KINDS[b.kind].resp * 1000;
       if (this.target === b) { this.target = null; send({ tg: 0 }); }
-      const coins = b.v * (1 + 0.2 * this.S.up.coin), n = b.kind === 'giant' ? 24 : b.kind === 'chest' ? 14 : b.kind === 'pile' ? 4 : 7;
+      const coins = b.v * (1 + 0.2 * this.S.up.coin) * (hasItem('coins2') ? 2 : 1), n = b.kind === 'giant' ? 24 : b.kind === 'chest' ? 14 : b.kind === 'pile' ? 4 : 7;
       for (let i = 0; i < n; i++) this.orb(b, 'c', coins / n);
       if (b.gem) for (let i = 0; i < Math.min(8, b.gem); i++) this.orb(b, 'g', b.gem / Math.min(8, b.gem));
       puffAt(b.x, 1.5, b.z, b.kind === 'crystal' ? [0x67e8f9, 0xffffff] : [0xfacc15, 0x92400e], 8);
@@ -408,13 +408,13 @@
 
     /* ---- eggs ---- */
     roll(k) {
-      const luck = 1 + 0.25 * this.S.up.luck, w = CHANCE.map((c, i) => (i >= 2 ? c * luck : c)), tot = w.reduce((a, b) => a + b, 0);
+      const luck = (1 + 0.25 * this.S.up.luck) * (hasItem('lucky') ? 1.5 : 1), w = CHANCE.map((c, i) => (i >= 2 ? c * luck : c)), tot = w.reduce((a, b) => a + b, 0);
       let x = Math.random() * tot, r = 0;
       while (r < 5 && x >= w[r]) { x -= w[r]; r++; }
       return k * 6 + r;
     },
     eggPanel(k) {
-      const Z = ZONES[k], S = this.S, luck = 1 + 0.25 * S.up.luck, w = CHANCE.map((c, i) => (i >= 2 ? c * luck : c)), tot = w.reduce((a, b) => a + b, 0);
+      const Z = ZONES[k], S = this.S, luck = (1 + 0.25 * S.up.luck) * (hasItem('lucky') ? 1.5 : 1), w = CHANCE.map((c, i) => (i >= 2 ? c * luck : c)), tot = w.reduce((a, b) => a + b, 0);
       const odds = [0, 1, 2, 3, 4, 5].map((r) => { const sp = k * 6 + r; return `<div style="--rc:${RAR[r][1]}"><img src="${portrait(sp, 0)}" alt=""><b>${esc(SPECIES[sp][0])}</b><span style="color:${RAR[r][1]}">${RAR[r][0]}</span><br>${(100 * w[r] / tot).toFixed(w[r] / tot < 0.01 ? 2 : 1)}% · ⚔️ ${short(power(sp, 0))}</div>`; }).join('');
       const full = S.pets.length >= MAX_PETS;
       const html = `<div class="xp-row"><span>💰 <b>${short(S.c)}</b></span><span>🐾 <b>${S.pets.length}/${MAX_PETS}</b></span></div><div class="ps-odds">${odds}</div>
@@ -546,6 +546,13 @@
       const S = this.S, z = zoneAt(P.z), tg = this.target;
       return `💰 <b>${short(S.c)}</b> · 💎 <b>${short(S.g)}</b> · ${z < 0 ? '🏠 Spawn' : `${ZONES[z].e} ${ZONES[z].n}`}${tg ? ` · ${KINDS[tg.kind].n} ${short(Math.max(0, tg.hp))}/${short(tg.max)}` : ''}`;
     },
+    coinShop: [
+      { id: 'coins2', e: '💰', n: '2× Coins', d: 'Everything your pets break gives twice the coins, for good', price: 700, kind: 'pass' },
+      { id: 'lucky', e: '🍀', n: 'Lucky Eggs', d: 'Rare, epic and legendary pets hatch 50% more often, for good', price: 600, kind: 'pass' },
+      { id: 'slot', e: '🐾', n: 'Extra Pet Slot', d: 'Equip one more pet, for good', price: 500, kind: 'pass' },
+      shopSpeed(200, 1.2),
+    ],
+    onBuy(id) { if (id === 'slot' && this.S) this.drawBar(); },
   };
   function m_dispose(m) { if (m.geometry) m.geometry.dispose(); if (m.material) m.material.dispose(); }
   addExp(PS);

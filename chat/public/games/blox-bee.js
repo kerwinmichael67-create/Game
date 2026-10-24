@@ -102,7 +102,7 @@
     addBee(b) { const m = beeMesh(BEES[b[0]].c, b[1]); m.position.set(P.x, P.y + 4, P.z); scene.add(m); this.swarm.push({ type: b[0], gifted: b[1], m, st: 'idle', t: 0, a: Math.random() * 6.283, tile: null, x: P.x, y: P.y + 4, z: P.z }); },
     // open the fields you have enough bees for
     fences() { FIELDS.forEach((F) => { if (!F.fence) return; const open = this.S.bees.length >= F.need; for (const p of F.fence) { p.solid = !open; p.m.visible = !open; } }); },
-    cap() { return BAGS[this.S.bag][1]; },
+    cap() { return BAGS[this.S.bag][1] * (hasItem('bag') ? 2 : 1); },
     fieldAt(x, z) { return FIELDS.findIndex((F) => Math.abs(x - F.x) < (FW * TS) / 2 && Math.abs(z - F.z) < (FD * TS) / 2); },
     open(f) { return f >= 0 && this.S.bees.length >= FIELDS[f].need; },
     // pollen from one flower: how much, by its field and how much it has left (it grows back)
@@ -223,7 +223,7 @@
         if (!onPad || S.pollen <= 0) { if (onPad && S.pollen <= 0) { toast('🍯 All your pollen is honey now!', '#fde68a'); sfx('reward'); } this.making = false; }
         else {
           const rate = 120 + 40 * S.bees.length, n = Math.min(S.pollen, rate * dt);
-          S.pollen -= n; S.honey += n; S.made += n; questMax('bee.honey', S.made);
+          S.pollen -= n; S.honey += n * (hasItem('honey') ? 1.5 : 1); S.made += n; questMax('bee.honey', S.made);
           this.coinAcc += n / 1500; if (this.coinAcc >= 1) { earn(Math.floor(this.coinAcc)); this.coinAcc %= 1; }
           if (Math.random() < dt * 8) puffAt(PAD[0] + (Math.random() - 0.5) * 6, 1 + Math.random() * 3, PAD[1] + (Math.random() - 0.5) * 4, [0xfbbf24, 0xf59e0b], 1);
           if (Math.random() < dt * 3) sfx('coin', { vol: 0.2, pitch: 1.4, gap: 200 });
@@ -262,6 +262,20 @@
       const S = this.S; if (!S) return '';
       const f = this.fieldAt(P.x, P.z), cap = this.cap(), pct = Math.round(S.pollen / cap * 100);
       return `🍯 <b>${short(S.honey)}</b> honey · 🎒 ${short(S.pollen)}/${short(cap)}${pct >= 100 ? ' <b style="color:#fca5a5">FULL</b>' : ''} · 🐝 ${S.bees.length} bees${f >= 0 ? ` · ${FIELDS[f].n}${this.open(f) ? '' : ` 🔒 ${FIELDS[f].need} bees`}` : ''}${this.making ? ' · making honey…' : ''}`;
+    },
+    coinShop: [
+      { id: 'bag', e: '🎒', n: 'Double Bag', d: 'Your bag holds twice the pollen, for good', price: 500, kind: 'pass' },
+      { id: 'honey', e: '🍯', n: 'Honey Boost', d: '50% more honey from your pollen, for good', price: 600, kind: 'pass' },
+      { id: 'bee', e: '🌟', n: 'Rare Bee', d: 'A brave, cool, rad, bomber or lion bee joins your hive, right now', price: 60, kind: 'now' },
+    ],
+    shopCan(id) { return id === 'bee' && this.S && this.S.bees.length >= MAX_BEES ? 'Your hive is full' : ''; },
+    onBuy(id) {
+      if (id !== 'bee') return;
+      const S = this.S, pool = [2, 3, 4, 5, 6], tot = pool.reduce((a, k) => a + BEES[k].w, 0); let r = Math.random() * tot, k = pool[0];
+      for (const q of pool) { r -= BEES[q].w; if (r < 0) { k = q; break; } }
+      const bee = [k, Math.random() < GIFT ? 1 : 0];
+      S.bees.push(bee); this.addBee(bee); this.fences(); this.save(); questMax('bee.bees', S.bees.length); send({ bz: [S.bees.length, Math.floor(S.honey)] });
+      toast(`${BEES[k].e} A ${BEES[k].n} joined your hive!`, '#fde68a');
     },
   };
   addExp(BS);

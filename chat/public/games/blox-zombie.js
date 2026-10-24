@@ -1113,7 +1113,7 @@
       this.send(); this.dirty = true;
     },
     gain(xp, cash) {
-      const S = this.S; S.xp += Math.round(xp); S.cash += Math.round(cash);
+      const S = this.S; S.xp += Math.round(xp * (hasItem('xp2') ? 2 : 1)); S.cash += Math.round(cash);
       while (S.xp >= need(S.lvl) && S.lvl < 99) { S.xp -= need(S.lvl); S.lvl++; S.cash += 50 * S.lvl; toast(`⭐ Level ${S.lvl}!`, '#fde047'); sfx('levelup'); earn(10, `reached level ${S.lvl} in Zombie Outbreak`); this.send(); }
       this.dirty = true;
     },
@@ -1198,7 +1198,7 @@
     },
     hurt(n, why) {
       if (P.dead || this.dead) return;
-      this.hp -= n; sfx('hurt', { gap: 120 });
+      this.hp -= n * (hasItem('vest') ? 0.75 : 1); sfx('hurt', { gap: 120 });
       const el = $('#zsHurt'); if (el) { el.style.opacity = Math.min(1, 0.35 + n / 40); clearTimeout(this.hurtT); this.hurtT = setTimeout(() => (el.style.opacity = 0), 220); }
       this.shake = Math.max(this.shake || 0, 0.25);
       if (this.searching) this.cancelSearch();
@@ -1956,6 +1956,19 @@
       if (!this.skyTex || scene.background !== this.skyTex) { if (scene.background && scene.background.dispose && scene.background !== this.skyTex) scene.background.dispose(); this.skyTex = new THREE.CanvasTexture(this.skyCv); scene.background = this.skyTex; } else this.skyTex.needsUpdate = true;
       if (!scene.fog) scene.fog = new THREE.Fog(bot, 200, 700);
       scene.fog.color.copy(bot); scene.fog.near = lerp(200, 25, k); scene.fog.far = lerp(720, b ? 190 : 230, k);
+    },
+    coinShop: [
+      { id: 'vest', e: '🦺', n: 'Kevlar Vest', d: 'Zombies and blasts hurt you 25% less, for good', price: 600, kind: 'pass' },
+      { id: 'xp2', e: '⭐', n: 'Double XP', d: 'Twice the XP from everything, for good', price: 500, kind: 'pass' },
+      { id: 'drop', e: '🪂', n: 'Supply Drop', d: '2 medkits, 2 grenades, 60 light rounds and 30 rifle rounds, right now', price: 45, kind: 'now' },
+      { id: 'crate', e: '🎁', n: 'Weapon Crate', d: 'A weapon you don’t have yet, whatever your level (or ammo, if you have them all)', price: 120, kind: 'now' },
+    ],
+    shopCan() { return this.S ? '' : 'Loading…'; },
+    onBuy(id) {
+      const S = this.S;
+      if (id === 'drop') { S.it.medkit += 2; S.it.grenade += 2; S.ammo.light += 60; S.ammo.rifle += 30; toast('🪂 Supplies!', '#86efac'); }
+      if (id === 'crate') { const left = Object.keys(WP).filter((k) => k !== 'fists' && !S.w.includes(k)), k = left.length ? left[Math.floor(Math.random() * left.length)] : 'ar'; toast(`🎁 ${this.giveWeapon(k)}`, '#fde68a'); }
+      this.dirty = true; this.drawBar();
     },
   };
   // the first box a ray (unit dir) meets among the world's blocks: how far along it, or max

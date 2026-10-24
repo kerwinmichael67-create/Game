@@ -50,6 +50,7 @@
       const glow = new THREE.Mesh(new THREE.SphereGeometry(1.6, 18, 12), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.25, depthWrite: false }));
       m.add(glow); m.visible = false; scene.add(m); this.ball = { m, glow, x: 0, y: TARGET_Y, z: 0 };
       setBar('<button class="xslot" data-k="parry" title="Parry (F)"><span class="k">F</span><span class="e">⚔️</span>Parry</button>', () => this.parry());
+      send({ wp: hasItem('wide') ? 1 : 0 });
     },
     leave() {
       if (this.ball) { scene.remove(this.ball.m); this.ball = null; }
@@ -146,7 +147,7 @@
         B.seen.set(p.peer, pk[0]);
         if (B.t !== p.peer || B.hold > 0) continue; // not you it's after: a whiff
         const d = Math.hypot(B.x - p.x, B.y - (p.y + TARGET_Y), B.z - p.z);
-        if (d < reach(B.s) * 1.8 || B.grace > 0) this.deflect(p.peer, +pk[1] || 0, humans);
+        if (d < reach(B.s) * 1.8 * (p.pr.wp ? 1.35 : 1) || B.grace > 0) this.deflect(p.peer, +pk[1] || 0, humans); // (wp: a Wide Parry)
       }
     },
     moveBots(dt) {
@@ -186,9 +187,9 @@
       if (this.coolT > 0 || P.dead) return;
       const g = this.g, mine = myPeer();
       if (!g || g.ph !== 'play' || !(g.al || []).includes(mine)) return;
-      this.coolT = COOL; this.swingT = 0.3;
+      this.coolT = COOL * (hasItem('quick') ? 0.6 : 1); this.swingT = 0.3;
       this.pk++; send({ pk: [this.pk, +cam.yaw.toFixed(2)] });
-      if (this.H && this.hb) { const B = this.hb; if (B.t === mine && B.hold <= 0 && (B.grace > 0 || Math.hypot(B.x - P.x, B.y - (P.y + TARGET_Y), B.z - P.z) < reach(B.s) * 1.3)) this.deflect(mine, cam.yaw, players()); }
+      if (this.H && this.hb) { const B = this.hb; if (B.t === mine && B.hold <= 0 && (B.grace > 0 || Math.hypot(B.x - P.x, B.y - (P.y + TARGET_Y), B.z - P.z) < reach(B.s) * 1.3 * (hasItem('wide') ? 1.35 : 1))) this.deflect(mine, cam.yaw, players()); }
       sfx('swing', { pitch: 1.2 });
       puffAt(P.x - Math.sin(P.yaw) * 2, P.y + 3, P.z - Math.cos(P.yaw) * 2, [0xffffff, 0x93c5fd], 6);
     },
@@ -283,6 +284,12 @@
       if (!g || g.ph !== 'play') return '';
       return `⚔️ Parry: <b>F</b> or click${this.coolT > 0 ? ` · ⏳ ${this.coolT.toFixed(1)}s` : ' · ✅ ready'} · your parries: ${this.parries}`;
     },
+    coinShop: [
+      { id: 'wide', e: '🛡️', n: 'Wide Parry', d: 'You can parry the ball from further away, for good', price: 600, kind: 'pass' },
+      { id: 'quick', e: '⚡', n: 'Quick Hands', d: 'Your parry is ready again 40% sooner, for good', price: 500, kind: 'pass' },
+      shopSpeed(300, 1.12),
+    ],
+    onBuy(id) { if (id === 'wide') send({ wp: 1 }); },
   };
   addExp(BB);
   window.__rbBL = BB; // for tests (__rbBB is the boat)

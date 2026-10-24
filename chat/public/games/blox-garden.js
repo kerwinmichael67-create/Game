@@ -250,7 +250,7 @@
     has(n) { return this.eqTypes().some((t) => PETS[t].n === n); },
     growBonus() {
       const w = this.weather.w, pl = this.myPlot != null;
-      let b = (w === 'Rain' || w === 'Thunderstorm' ? 0.5 : 0) + (this.has('Cat') ? 0.1 : 0) + (this.has('Dragonfly') ? 0.15 : 0);
+      let b = (w === 'Rain' || w === 'Thunderstorm' ? 0.5 : 0) + (this.has('Cat') ? 0.1 : 0) + (this.has('Dragonfly') ? 0.15 : 0) + (hasItem('thumb') ? 0.25 : 0);
       return pl ? b : 0;
     },
     tick(dt) {
@@ -387,8 +387,8 @@
       // what kind of crop: weight and mutation
       const godly = this.G.sprk.some((q) => q.type === 'gsprk' && q.until > nowMs() && Math.hypot(q.x - p.x, q.z - p.z) < 12);
       let m = 0;
-      const gold = (w === 'Golden Hour' ? 0.12 : 0.015) * (this.has('Golden Lab') ? 2 : 1) * (godly ? 2 : 1);
-      if (R() < 0.002 * (this.has('Unicorn') ? 3 : 1)) m = 6; else if (R() < gold) m = 5;
+      const gold = (w === 'Golden Hour' ? 0.12 : 0.015) * (this.has('Golden Lab') ? 2 : 1) * (godly ? 2 : 1) * (hasItem('lucky') ? 2 : 1);
+      if (R() < 0.002 * (this.has('Unicorn') ? 3 : 1) * (hasItem('lucky') ? 2 : 1)) m = 6; else if (R() < gold) m = 5;
       else if (w === 'Thunderstorm' && R() < 0.04) m = 3; else if (w === 'Frost' && R() < 0.05) m = 4; else if (w === 'Frost' && R() < 0.25) m = 2;
       else if ((w === 'Rain' || w === 'Thunderstorm') && R() < 0.3) m = 1; else if (this.has('Bee') && R() < 0.05) m = 7;
       const crop = () => [p.s, +(0.75 + R() * 0.9).toFixed(2), m];
@@ -448,7 +448,7 @@
         this.dirty = true; this.drawBar(); this.openShop(true); toast(`+1 ${s[0]} Seed`, '#86efac'); sfx('buy');
       }, () => (this.panel = null));
     },
-    value(c) { const s = SEEDS[c[0]]; return Math.round(s[6] * c[1] * c[1] * MUT[c[2]][1] * (1 + (this.has('Bunny') ? 0.1 : 0) + (this.has('Owl') ? 0.2 : 0))); },
+    value(c) { const s = SEEDS[c[0]]; return Math.round(s[6] * c[1] * c[1] * MUT[c[2]][1] * (1 + (this.has('Bunny') ? 0.1 : 0) + (this.has('Owl') ? 0.2 : 0) + (hasItem('basket') ? 0.25 : 0))); },
     openSell() {
       const groups = {};
       for (const c of this.G.bag) { const k = c[0] + ':' + c[2]; (groups[k] = groups[k] || { s: c[0], m: c[2], n: 0, v: 0 }); groups[k].n++; groups[k].v += this.value(c); }
@@ -511,6 +511,19 @@
       for (const v of this.petViews || []) scene.remove(v.g); this.petViews = []; this.petSig = '';
       for (const a of Net.avatars.values()) for (const g of a.gpets || []) scene.remove(g);
       sky('#58a9ff', '#cfeaff');
+    },
+    coinShop: [
+      { id: 'thumb', e: '🌿', n: 'Green Thumb', d: 'Your plants grow 25% faster, for good', price: 500, kind: 'pass' },
+      { id: 'basket', e: '🧺', n: 'Golden Basket', d: 'Crops sell for 25% more, for good', price: 600, kind: 'pass' },
+      { id: 'lucky', e: '🍀', n: 'Lucky Clover', d: 'Gold and Rainbow crops twice as often, for good', price: 800, kind: 'pass' },
+      { id: 'pack', e: '🎁', n: 'Seed Pack', d: '3 surprise seeds: mostly uncommon and rare, sometimes legendary', price: 35, kind: 'now' },
+    ],
+    shopCan(id) { return id === 'pack' && !this.G ? 'Loading…' : ''; },
+    onBuy(id) {
+      if (id !== 'pack') return;
+      const got = [];
+      for (let i = 0; i < 3; i++) { const r = Math.random(), s = r < 0.08 ? 6 + Math.floor(Math.random() * 3) : r < 0.45 ? 3 + Math.floor(Math.random() * 3) : 1 + Math.floor(Math.random() * 2); this.G.seeds[s] = (this.G.seeds[s] || 0) + 1; got.push(SEEDS[s][7]); }
+      toast(`🎁 ${got.join(' ')} seeds!`, '#86efac'); this.dirty = true; this.save(); this.drawBar();
     },
   };
   addExp(GARDEN);

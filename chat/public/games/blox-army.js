@@ -304,7 +304,7 @@
     },
     stats() {
       const S = this.S, C = CLASSES[S.cls] || CLASSES[0], M = MOUNTS[S.mount] || MOUNTS[0], sk = S.skills;
-      return { maxHp: Math.round((C.hp + (this.mounted ? M.hp : 0)) * (1 + 0.1 * (sk.guard || 0))), dmg: C.dmg * (1 + 0.08 * (sk.reck || 0)), cd: C.cd * (1 - 0.06 * (sk.duel || 0)), block: C.block, sp: this.mounted ? M.sp : C.sp, armyMul: 1 + 0.08 * (sk.war || 0), hits: C.hits };
+      return { maxHp: Math.round((C.hp + (this.mounted ? M.hp : 0)) * (1 + 0.1 * (sk.guard || 0))), dmg: C.dmg * (1 + 0.08 * (sk.reck || 0)) * (hasItem('blade') ? 1.15 : 1), cd: C.cd * (1 - 0.06 * (sk.duel || 0)), block: C.block, sp: this.mounted ? M.sp : C.sp, armyMul: 1 + 0.08 * (sk.war || 0), hits: C.hits };
     },
     unitNow() { return this.S.eq[this.sel] != null ? this.S.eq[this.sel] : this.S.eq[0]; },
     sendMe(force) {
@@ -1041,7 +1041,7 @@
       this.shownEnd = g.gs;
       const ci = this.ci, I = ci >= 0 ? this.cmInfo(g, ci) : null; if (!I) return;
       const s = (g.sc || [])[ci] || {}, win = g.win === I.team, S = this.S;
-      const xp = (s.k || 0) * 2 + (s.hk || 0) * 25 + (s.cap || 0) * 50 + (win ? 200 : 60);
+      const xp = ((s.k || 0) * 2 + (s.hk || 0) * 25 + (s.cap || 0) * 50 + (win ? 200 : 60)) * (hasItem('xp2') ? 2 : 1);
       const gems = (win ? 25 : 10) + Math.floor((s.k || 0) / 10), before = levelOf(S.xp).L;
       S.xp += xp; S.bpXp += xp; S.gems += gems;
       S.quest.kills = (S.quest.kills || 0) + (s.k || 0); S.quest.caps = (S.quest.caps || 0) + (s.cap || 0); if (win) S.quest.wins = (S.quest.wins || 0) + 1;
@@ -1081,6 +1081,12 @@
       for (const o of this.podium || []) if (o.a) dropAvatar(o.a); this.podium = []; this.podSig = '';
       return kvSet('ca', this.S);
     },
+    coinShop: [
+      { id: 'gems', e: '💎', n: 'Gem Pouch', d: '+250 gems, right now', price: 40, kind: 'now' },
+      { id: 'xp2', e: '⭐', n: 'Double XP', d: 'Twice the XP from every battle, for good', price: 500, kind: 'pass' },
+      { id: 'blade', e: '⚔️', n: 'Hero’s Blade', d: 'Your own attacks hit 15% harder, for good', price: 600, kind: 'pass' },
+    ],
+    onBuy(id) { if (id === 'gems' && this.S) { this.S.gems += 250; this.saveS(); toast('💎 +250 gems', '#a5f3fc'); } },
   };
   addExp(ARMY);
   window.__rbArmy = ARMY;

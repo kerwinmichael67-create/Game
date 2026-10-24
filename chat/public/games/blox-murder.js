@@ -92,11 +92,13 @@
       for (let k = 0; k < NX * NZ; k++) if (!grid[k]) this.nav.free.push(k);
       this.tall = boxes.filter((b) => b[1] < 3 && b[4] > 3 && b[1] > -1);
     },
-    pres() { return { mk: 0, hd: '' }; },
+    pres() { return { mk: 0, hd: '', pk: 0 }; }, // pk: perks from the shop (1 murderer, 2 sheriff, 4 coin magnet)
     enter() {
       this.H = null; this.lastG = null; this.gSeen = null; this.rd = 0; this.evN = null; this.mk = 0; this.cd = 0; this.hd = ''; this.held = new Map(); this.coinM = []; this.fx = []; this.gunM = null; this.seenMk = new Map(); this.tc = {}; this.T = {}; this.botAv = new Map();
-      this.drawBar();
+      this.drawBar(); this.sendPerks();
     },
+    sendPerks() { send({ pk: (hasItem('mperk') ? 1 : 0) | (hasItem('sperk') ? 2 : 0) | (hasItem('magnet') ? 4 : 0) }); },
+    perks(p) { return p.bot ? 0 : p.me ? (hasItem('mperk') ? 1 : 0) | (hasItem('sperk') ? 2 : 0) | (hasItem('magnet') ? 4 : 0) : (p.pr && +p.pr.pk) | 0; },
     leave() {
       for (const a of this.botAv.values()) dropAvatar(a); this.botAv = new Map();
       for (const c of this.coinM) scene.remove(c);
@@ -145,7 +147,8 @@
         // coins and the dropped gun get picked up by walking over them
         for (const p of pl) {
           if (!H.al.includes(p.peer)) continue;
-          H.coins.forEach((c, i) => { if (!H.cg.includes(i) && Math.hypot(c[0] - p.x, c[1] - p.z) < 2.2 && p.y < 6) { H.cg.push(i); H.cc[p.peer] = (H.cc[p.peer] || 0) + 1; } });
+          const reach = this.perks(p) & 4 ? 4.5 : 2.2; // (a Coin Magnet)
+          H.coins.forEach((c, i) => { if (!H.cg.includes(i) && Math.hypot(c[0] - p.x, c[1] - p.z) < reach && p.y < 6) { H.cg.push(i); H.cc[p.peer] = (H.cc[p.peer] || 0) + 1; } });
           if (H.gd && H.roles[p.peer] !== 'm' && Math.hypot(H.gd[0] - p.x, H.gd[1] - p.z) < 3 && p.y < 6) { H.gun = p.peer; H.gd = null; this.ev(['gp', p.peer]); }
         }
         this.checkWin();
@@ -164,6 +167,11 @@
       H.bots = []; H.bp = []; this.T = {};
       for (let i = 0; i < nb; i++) H.bots.push([`bot:${rd}:${i}`, names[(i + rd) % names.length], Math.floor(Math.random() * 1e6)]);
       const ids = pl.map((p) => p.peer).concat(H.bots.map((b) => b[0])).sort(() => Math.random() - 0.5);
+      // a perk from the shop makes you twice as likely to get that role: the murderer, then the sheriff, picked by weight
+      const wt = (id, bit) => { const p = pl.find((q) => q.peer === id); return p && this.perks(p) & bit ? 2 : 1; };
+      const pick = (from, bit) => { let r = Math.random() * from.reduce((a, id) => a + wt(id, bit), 0); for (const id of from) { r -= wt(id, bit); if (r <= 0) return id; } return from[from.length - 1]; };
+      const mu = pick(ids, 1), sh = pick(ids.filter((x) => x !== mu), 2);
+      ids.splice(ids.indexOf(mu), 1); ids.splice(ids.indexOf(sh), 1); ids.unshift(mu, sh);
       H.ph = 'play'; H.left = ROUND; H.rd = (H.rd | 0) + 1; H.w = ''; H.hero = null;
       H.roles = {}; ids.forEach((id, i) => (H.roles[id] = i === 0 ? 'm' : i === 1 ? 's' : 'i'));
       H.al = ids.slice(); H.order = ids.slice().sort(); H.gun = ids[1]; H.gd = null; H.cc = {}; H.cg = [];
@@ -542,6 +550,13 @@
       const role = this.myRole(), coins = (g.cc || {})[myPeer()] || 0, cd = this.cd > 0 ? ` · ⏳ ${this.cd.toFixed(1)}s` : '';
       return `🪙 ${coins} coins · ${role === 'm' ? (touchy ? `🔪 tap: stab · 🎯 throw${cd}` : `🔪 click: stab · F / right-click: throw${cd}`) : this.hasGun() ? (touchy ? `🔫 tap where to shoot${cd}` : `🔫 click where to shoot · F: shoot ahead${cd}`) : '😇 hide and collect coins'} · ${(g.al || []).length} alive`;
     },
+    coinShop: [
+      { id: 'mperk', e: '🔪', n: 'Murderer Perk', d: 'Twice as likely to be the murderer, for good', price: 600, kind: 'pass', toggle: true },
+      { id: 'sperk', e: '🔫', n: 'Sheriff Perk', d: 'Twice as likely to be the sheriff, for good', price: 600, kind: 'pass', toggle: true },
+      { id: 'magnet', e: '🧲', n: 'Coin Magnet', d: 'Pick up coins from twice as far away, for good', price: 400, kind: 'pass' },
+    ],
+    onBuy() { this.sendPerks(); },
+    onToggle() { this.sendPerks(); },
   };
   addExp(MM);
   window.__rbMM = MM;

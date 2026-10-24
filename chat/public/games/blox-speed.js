@@ -386,7 +386,7 @@
     slots() { return 3 + Math.min(3, Math.floor((this.S ? this.S.rb : 0) / 5)); },
     petBoost() { const S = this.S; return 1 + S.eq.reduce((a, i) => a + petMult(S.pets[i]) - 1, 0); },
     // speed you get each gain: +1, +1 more for every rebirth, times your pets, times the treadmill you're on
-    perStep(tm) { return (1 + this.S.rb) * this.petBoost() * (tm ? tm.mult : 1); },
+    perStep(tm) { return (1 + this.S.rb) * this.petBoost() * (tm ? tm.mult : 1) * (hasItem('sp2') ? 2 : 1); },
     onTread() { const g = P.ground; return g && g.tm && this.S.rb >= g.tm.rb ? g.tm : null; },
 
     tick(dt) {
@@ -461,7 +461,7 @@
     },
     win(k) {
       const S = this.S, Z = ZONES[k], pay = Z.pay * (1 + 0.25 * S.rb), last = k === ZONES.length - 1;
-      this.run = k; S.wins += Z.win; S.cash += pay; this.dirty = true;
+      this.run = k; S.wins += Z.win * (hasItem('win2') ? 2 : 1); S.cash += pay; this.dirty = true;
       this.prog('wins', Z.win);
       toast(`🏆 +${Z.win} win${Z.win > 1 ? 's' : ''} · +${cash(pay)}`, '#fde68a'); sfx(last ? 'win' : 'reward');
       puffAt(P.x, P.y + 3, P.z, last ? CONFETTI : [0x22c55e, 0xfde047], last ? 40 : 14);
@@ -727,6 +727,13 @@
         this.tp(k); closePanel();
       });
     },
+    coinShop: [
+      { id: 'sp2', e: '⚡', n: '2× Speed', d: 'Every gain gives twice the speed, for good', price: 700, kind: 'pass' },
+      { id: 'win2', e: '🏆', n: '2× Wins', d: 'Twice the wins from every finish line, for good', price: 600, kind: 'pass' },
+      { id: 'cash', e: '💵', n: 'Cash Bundle', d: '$1,000 (more for every rebirth), right now', price: 30, kind: 'now' },
+    ],
+    shopCan(id) { return id === 'cash' && !this.S ? 'Loading…' : ''; },
+    onBuy(id) { if (id !== 'cash') return; const v = 1000 * (1 + this.S.rb); this.S.cash += v; this.dirty = true; toast(`💵 +$${v.toLocaleString('en-US')}`, '#86efac'); },
   };
   addExp(SP);
   window.__rbSP = SP;

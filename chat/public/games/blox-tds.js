@@ -119,12 +119,13 @@
       this.disc = new THREE.Mesh(new THREE.CircleGeometry(1, 48), new THREE.MeshBasicMaterial({ color: 0x60a5fa, transparent: true, opacity: 0.15, side: THREE.DoubleSide, depthWrite: false, ...DECAL }));
       this.disc.rotation.x = -Math.PI / 2; this.disc.visible = false; place.add(this.disc);
     },
-    pres() { return { tq: [], vt: 'normal', rdy: 0 }; },
+    pres() { return { tq: [], vt: 'normal', rdy: 0, wc: 0 }; },
     async enter() {
       Object.assign(this, { H: null, lastG: null, gSeen: null, q: [], qn: 0, placing: null, selT: null, vote: 'normal', ready: false, lobbyShown: false, lastPh: null });
       const s = await kvGet('ts');
       this.save = Object.assign({ unlocked: [0, 1, 2, 3, 4], loadout: [0, 1, 2, 3, 4], wins: 0 }, s || {});
       this.save.loadout = this.save.loadout.filter((t) => TW[t] && this.save.unlocked.includes(t)).slice(0, 5);
+      send({ wc: hasItem('chest') ? 1 : 0 }); // (the host gives a War Chest's cash at the start)
       this.drawBar();
     },
     spawn() { return [(Math.random() - 0.5) * 20, 0.5, 62, 0]; },
@@ -147,6 +148,7 @@
       return { ph: g.ph, left: +g.left || 5, gs: g.gs || 0, diff: g.diff, wave: g.wave | 0, hp: +g.hp || 1, e, tw: (g.tw || []).map((w) => ({ id: w[0], o: w[1], t: w[2], x: w[3], z: w[4], lvl: w[5], tg: w[6] || 0, cd: 0 })), cash: Object.assign({}, g.cash || {}), pl: (g.pl || []).slice(), nid: 1 + Math.max(0, ...e.map((x) => x.id)), tid: 1 + Math.max(0, ...(g.tw || []).map((w) => w[0])), q: [], spawnT: 0, fx: [], res: g.res || '' };
     },
     hpOf(t, wave, diff) { return EN[t].hp * (1 + (wave - 1) * 0.12) * (DIFF[diff] || DIFF.normal).hp * (EN[t].boss ? 1 + wave * 0.05 : 1); },
+    chest(p) { return (p.me ? hasItem('chest') : p.pr && p.pr.wc === 1) ? 300 : 0; }, // a War Chest: more cash to start with
     ownerIdx(H, peer) { let i = H.pl.indexOf(peer); if (i < 0) { i = H.pl.length; H.pl.push(peer); } return i; },
     apply(peer, req) {
       const H = this.H, [op, ...a] = req, oi = this.ownerIdx(H, peer);
@@ -164,6 +166,8 @@
         H.cash[peer] = cash + Math.floor((H.tw[i].spent || TW[H.tw[i].t].price) / 3); H.tw.splice(i, 1);
       } else if (op === 'tgt') { const w = H.tw.find((q) => q.id === a[0]); if (w && w.o === oi) w.tg = (a[1] | 0) % 4; }
       else if (op === 'skip') { if (H.ph === 'break') H.skip = (H.skip || new Set()).add(peer); }
+      else if (op === 'bonus' && H.ph !== 'end') H.cash[peer] = cash + 250; // 💸 from the shop
+      else if (op === 'heal' && H.ph !== 'end') H.hp = Math.min((DIFF[H.diff] || DIFF.normal).base, H.hp + 50);
     },
     canPlace(x, z, H) {
       H = H || this.H || this.g;
@@ -193,10 +197,10 @@
           H.diff = Object.keys(votes).sort((a, b) => votes[b] - votes[a])[0] || 'normal';
           const D = DIFF[H.diff];
           Object.assign(H, { ph: 'break', left: 10, wave: 0, hp: D.base, e: [], tw: [], cash: {}, pl: [], q: [], fx: [], res: '' });
-          for (const p of pl) { H.cash[p.peer] = D.cash; this.ownerIdx(H, p.peer); }
+          for (const p of pl) { H.cash[p.peer] = D.cash + this.chest(p); this.ownerIdx(H, p.peer); }
         }
       } else if (H.ph === 'break') {
-        for (const p of pl) if (H.cash[p.peer] == null) { H.cash[p.peer] = DIFF[H.diff].cash; this.ownerIdx(H, p.peer); }
+        for (const p of pl) if (H.cash[p.peer] == null) { H.cash[p.peer] = DIFF[H.diff].cash + this.chest(p); this.ownerIdx(H, p.peer); }
         if (H.skip && [...H.skip].filter((x) => here.has(x)).length * 2 > pl.length) H.left = 0;
         if (H.left <= 0) { H.skip = null; H.wave++; H.q = waveList(H.wave, DIFF[H.diff].waves); H.spawnT = 0; H.ph = 'wave'; }
       } else if (H.ph === 'wave') for (let k = Math.ceil(dt / 0.1), i = 0; i < k && H.ph === 'wave'; i++) this.sim(H, dt / k); // in small steps
@@ -450,6 +454,17 @@
     sortKey(pr, isMe, peer) { const g = this.g; return g && g.cash ? g.cash[peer] || 0 : 0; },
     menu() { return [['🗼 Loadout & difficulty', () => this.openLobby()]]; },
     leave() { this.placing = null; this.views = new Map(); this.tviews = new Map(); },
+    coinShop: [
+      { id: 'chest', e: '💰', n: 'War Chest', d: 'Start every game with $300 more, for good', price: 500, kind: 'pass' },
+      { id: 'cash', e: '💸', n: 'Cash Drop', d: 'Use it in a game: +$250 for you', price: 30, kind: 'use', tap: true },
+      { id: 'heal', e: '🧱', n: 'Base Repair', d: 'Use it in a game: the base gets 50 health back', price: 40, kind: 'use', tap: true },
+    ],
+    onBuy(id) { if (id === 'chest') send({ wc: 1 }); },
+    shopUse(id) {
+      const g = this.g; if (!g || g.ph === 'lobby' || g.ph === 'end') return false;
+      if (id === 'heal' && g.hp >= (DIFF[g.diff] || DIFF.normal).base) return false;
+      this.ask(id === 'cash' ? 'bonus' : 'heal'); return true;
+    },
   };
   addExp(TDS);
   window.__rbTDS = TDS;

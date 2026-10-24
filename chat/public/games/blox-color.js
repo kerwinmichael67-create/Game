@@ -172,6 +172,14 @@
       if (playing && st === 'show' && call > 0 && call !== this.callSeen) { if (this.callSeen >= 0 && !this.out) { this.survived++; if (this.survived <= 15) earn(1); quest('color.call'); } this.callSeen = call; }
       else if (playing && this.callSeen < 0) this.callSeen = call;
       // fell: out for this round
+      // a Parachute from the shop: fall, and it puts you back on a tile of the called colour (once)
+      if (playing && !this.out && !P.dead && P.y < -4 && useItem('chute')) {
+        let best = null, bd = 1e9; for (const p of this.tiles) if (p.solid && p.m.visible) { const d = Math.hypot(p.x - P.x, p.z - P.z); if (d < bd) { bd = d; best = p; } }
+        if (best) { P.x = best.x; P.z = best.z; P.y = best.y + 3; P.vx = P.vy = P.vz = 0; toast(`🪂 Caught! ${itemCount('chute') ? `(${itemCount('chute')} left)` : '(that was your last)'}`, '#93c5fd'); sfx('magic'); }
+      }
+      // a Colour Hint: the called colour's tiles glow while you look for one
+      { const hint = hasItem('hint') && playing && st === 'show', k = hint ? 0.25 + 0.25 * Math.sin(performance.now() / 120) : 0;
+        if (hint || this.hinted) { this.hinted = hint; const pt = playing ? pattern(g.seed, call) : null; for (const p of this.tiles) p.m.material.emissive.setScalar(hint && pt && pt[p.tile] === g.cc ? k : 0); } }
       if (playing && !this.out && (P.dead || P.y < -4)) { this.out = true; send({ co: [g.rd, 1] }); toast(`💥 You’re out! You lasted ${this.survived} call${this.survived === 1 ? '' : 's'}`, '#fca5a5'); }
       // coins when a round ends
       if (g && g.ph === 'end' && this.coinRd !== g.rd) { this.coinRd = g.rd; if (g.w === mine) { earn(15, 'won Color Block'); quest('color.win'); sfx('win'); puffAt(P.x, P.y + 3, P.z, CONFETTI, 50); } }
@@ -208,6 +216,11 @@
       const k = tileAt(P.x, P.z), pt = pattern(g.seed, g.call), on = k >= 0 && !this.out ? COLS[pt[k]] : null;
       return this.out ? `👀 Watching · you lasted ${this.survived} call${this.survived === 1 ? '' : 's'}` : `${on ? `You’re on ${on[2]} ${on[1]}${pt[k] === g.cc ? ' ✅' : ' ❌'}` : ''} · ✅ ${this.survived} survived`;
     },
+    coinShop: [
+      { id: 'hint', e: '👁️', n: 'Colour Hint', d: 'Tiles of the called colour glow, for good', price: 500, kind: 'pass', toggle: true },
+      { id: 'chute', e: '🪂', n: 'Parachute', d: 'Fall through the floor and it puts you back on the right colour (once)', price: 40, kind: 'use' },
+      shopSpeed(300, 1.12),
+    ],
   };
   addExp(CB);
   window.__rbCB = CB;

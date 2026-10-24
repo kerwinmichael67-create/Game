@@ -216,6 +216,7 @@
       const n = this.names ? this.names.length : 6, sec = clamp(Math.floor(P.y / SEC_H) + 1, 1, n);
       return P.y < 1 ? 'Walk into the tower and climb!' : `Section ${sec}/${n} · ${esc(this.names ? this.names[sec - 1] : '')}`;
     },
+    coinShop: [shopJump(350, 1.18), shopSpeed(250, 1.15), shopShield(40, 'Touch a kill brick and it saves you (once), bouncing you up')],
   };
   addExp(TOH);
   window.__rbTOH = TOH;

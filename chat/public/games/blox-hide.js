@@ -183,7 +183,7 @@
         } else if (H.ph === 'seek') {
           // a seeker: room to room; anyone it can see, it chases
           let prey = null, pd = 26;
-          for (const h of H.hd) { const hp = this.posOf(h, humans); if (!hp) continue; const d = Math.hypot(hp.x - b[1], hp.z - b[2]); if (d < pd && this.clear({ x: b[1], z: b[2] }, hp)) { pd = d; prey = hp; } }
+          for (const h of H.hd) { const hp = this.posOf(h, humans), hu = humans.find((q) => q.peer === h); if (!hp || (hu && (hu.me ? this.ghostUntil || 0 : +hu.pr.gh || 0) > now())) continue; /* (a Ghost Cloak: bots can't see you) */ const d = Math.hypot(hp.x - b[1], hp.z - b[2]); if (d < pd && this.clear({ x: b[1], z: b[2] }, hp)) { pd = d; prey = hp; } }
           if (prey) { go(prey.x, prey.z, 15); t.path = null; }
           else if (walkTo(t.room || (t.room = ROOMS[Math.floor(Math.random() * ROOMS.length)]), 12)) { t.room = ROOMS[Math.floor(Math.random() * ROOMS.length)]; t.path = null; }
           b[3] = 1;
@@ -225,6 +225,13 @@
         if (hid) { earn(15, 'stayed hidden'); sfx('win'); quest('hide.hid'); } else if (sk && g.win === 'seekers') earn(10, 'found everyone');
       }
       this.drawBots(g, dt);
+      // a Seeker Radar: a marker over every hider for a few seconds, seen through walls
+      this.radarT = Math.max(0, (this.radarT || 0) - dt);
+      for (const [id, a] of [...Net.avatars, ...this.botAv]) {
+        const want = this.radarT > 0 && g && (g.hd || []).includes(id);
+        if (want && !a.radar) { a.radar = label('📍', { size: 1.8, depthTest: false }); a.radar.position.y = 8.5; a.g.add(a.radar); }
+        if (a.radar) a.radar.visible = want;
+      }
       const hiders = g ? (g.hd || []).length : 0, left = g ? Math.ceil(g.left) : 0;
       if (!g) setBanner('Getting the round…');
       else if (g.ph === 'wait') setBanner('Waiting for players…');
@@ -252,6 +259,17 @@
       const g = this.g, mine = myPeer();
       if (!g || (g.ph !== 'hide' && g.ph !== 'seek')) return '';
       return (g.sk || []).includes(mine) ? `🔎 You’re a <b>seeker</b> · found so far: ${(g.fd || []).length}` : `🤫 You’re <b>hiding</b> · ${(g.sk || []).length} seeker${(g.sk || []).length === 1 ? '' : 's'} looking`;
+    },
+    coinShop: [
+      { id: 'radar', e: '📡', n: 'Seeker Radar', d: 'Use it while you seek: every hider shows through the walls for 5 seconds', price: 35, kind: 'use', tap: true },
+      { id: 'ghost', e: '👻', n: 'Ghost Cloak', d: 'Use it while you hide: bot seekers can’t see you for 20 seconds', price: 30, kind: 'use', tap: true },
+      shopSpeed(300, 1.1),
+    ],
+    shopUse(id) {
+      const g = this.g, mine = myPeer(); if (!g || g.ph !== 'seek') return false;
+      if (id === 'radar') { if (!(g.sk || []).includes(mine) || this.radarT > 0) return false; this.radarT = 5; sfx('magic'); return true; }
+      if (id === 'ghost') { if (!(g.hd || []).includes(mine)) return false; this.ghostUntil = now() + 20; send({ gh: this.ghostUntil }); sfx('magic'); return true; }
+      return false;
     },
   };
   addExp(HS);

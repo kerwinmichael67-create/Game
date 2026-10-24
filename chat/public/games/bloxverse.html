@@ -53,6 +53,15 @@
   #title small{font:800 11px var(--fb);color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
   #coins{display:flex;align-items:center;gap:8px;height:46px;padding:0 14px 0 8px;border-radius:14px;font:600 17px var(--fh);color:#fde68a;white-space:nowrap}
   #coins i{font-style:normal;color:#86efac;font-size:14px;transition:opacity .6s}
+  #coins{cursor:pointer}#coins:hover{border-color:rgba(253,230,138,.45)}
+  #coins .cart{display:grid;place-items:center;width:28px;height:28px;margin-right:-6px;border-radius:9px;font-size:15px;background:linear-gradient(180deg,#22c55e,#15803d);box-shadow:0 2px 0 rgba(0,0,0,.3)}
+  .shophead{display:flex;flex-direction:column;gap:3px;margin:-2px 0 12px;font:600 17px var(--fh);color:#fde68a}
+  .shophead small{font:700 12.5px/1.35 var(--fb);color:var(--muted)}
+  .shopc>span{font:700 12px/1.35 var(--fb);color:#cbd5e1}
+  .shopc .stag{font:800 10.5px var(--fb);color:#94a3b8;text-transform:uppercase;letter-spacing:.04em}
+  .shopc .xp-btn+.xp-btn{margin-top:4px}
+  #shopFab{position:absolute;left:12px;top:64px;width:38px;height:36px;padding:0;border-radius:12px;font-size:19px;color:#fff;pointer-events:auto;cursor:pointer;display:none;background:linear-gradient(180deg,#22c55e,#15803d);border-color:rgba(255,255,255,.3)}
+  @media (max-width:640px){#coins .cart{display:none}.hasshop #shopFab{display:block}} /* (a phone: no room by the coins, so the shop gets its own button) */
   .coin{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;flex:none;background:radial-gradient(circle at 34% 30%,#fff7c2 0 12%,#fcd34d 34%,#f59e0b 70%,#d97706);box-shadow:inset 0 -2px 0 rgba(146,64,14,.45),0 2px 0 rgba(0,0,0,.35);font:700 13px/1 var(--fh);color:#92400e;text-shadow:0 1px 0 rgba(255,255,255,.4)}
   .coin::before{content:'B'}
   .coin.sm{width:18px;height:18px;font-size:10px;vertical-align:-3px}
@@ -425,6 +434,7 @@
 <canvas id="view"></canvas>
 <div id="hud" hidden>
   <div id="topbar"><button id="menuBtn" class="glass" title="Menu (Esc)"><span class="mark"></span></button><div id="title" class="glass"></div><div id="coins" class="glass" title="Blox Coins"></div></div>
+  <button id="shopFab" class="glass" title="Shop">🛒</button>
   <div id="xhud"></div>
   <div id="xside"></div>
   <div id="prompt" class="glass"></div>
@@ -708,7 +718,7 @@ function physics(dt) {
   const cy = cam.yaw, fx = -Math.sin(cy), fz = -Math.cos(cy), rx = Math.cos(cy), rz = -Math.sin(cy);
   let mx = fx * f + rx * r, mz = fz * f + rz * r; const l = Math.hypot(mx, mz);
   if (l > 1) { mx /= l; mz /= l; }
-  const sp = (exp && exp.speed ? exp.speed() : 16) * (View.sprinting ? SPRINT : 1), acc = P.ground ? 22 : 12, jp = exp && exp.jumpPower ? exp.jumpPower() : JUMP, gr = exp && exp.gravity ? exp.gravity() : GRAV;
+  const sp = (exp && exp.speed ? exp.speed() : 16) * (View.sprinting ? SPRINT : 1) * coilK('speed'), acc = P.ground ? 22 : 12, jp = (exp && exp.jumpPower ? exp.jumpPower() : JUMP) * coilK('jump'), gr = exp && exp.gravity ? exp.gravity() : GRAV;
   // an experience can steer you itself (a kart): drive(dt, forward, right) gives [vx, vz, yaw]
   const drive = exp && exp.drive;
   if (drive) { const d = exp.drive(dt, f, r); P.vx = d[0]; P.vz = d[1]; P.yaw = d[2]; }
@@ -755,7 +765,7 @@ function touching() {
 function triggers() {
   if (P.dead) return;
   for (const p of touching()) {
-    if (p.kind === 'kill') { die(); return; }
+    if (p.kind === 'kill') { if (!shieldSaves()) die(); return; }
     if (p.kind === 'bounce') { if (P.vy <= 1) { P.vy = p.power; P.ground = null; sfx('bounce'); } }
     else if (exp && exp.touch) exp.touch(p);
   }
@@ -812,7 +822,7 @@ const avArr = () => AV_KEYS.map((k) => AV[k] | 0);
 const okAv = (a) => { const d = [5, 0, 1, 0, 0, 0, 0, 0, 0, 0]; return AV_LISTS.map((l, i) => (Array.isArray(a) && a[i] != null ? clamp(a[i] | 0, 0, l.length - 1) : d[i])); };
 const avFrom = (o) => { const v = okAv(AV_KEYS.map((k) => o && o[k])); const r = {}; AV_KEYS.forEach((k, i) => (r[k] = v[i])); return r; };
 // Blox Coins: earned in every experience, spent on cosmetics (and a few things inside experiences)
-const W = { coins: 0, own: new Set(), day: '', loaded: false };
+const W = { coins: 0, own: new Set(), day: '', loaded: false, items: {} }; // items: what you bought in experiences' shops ({ 'obby.speed': 1 })
 const owns = (slot, i) => COSMETICS[slot] ? COSMETICS[slot].price[i] === 0 || W.own.has(slot + i) : true;
 const FACE_TEX = FACES.map((_, k) => {
   const c = document.createElement('canvas'); c.width = 128; c.height = 128; const g = c.getContext('2d');
@@ -1206,9 +1216,10 @@ function pickObjects(sx, sy, list) { return rayAt(sx, sy).intersectObjects(list,
 let coinPopT = 0, avSaveT = 0;
 function drawCoins(gain) {
   const t = W.coins.toLocaleString('en-US');
-  $('#coins').innerHTML = `<span class="coin"></span>${t}` + (gain ? `<i>+${gain}</i>` : '');
+  $('#coins').innerHTML = `<span class="coin"></span>${t}` + (gain ? `<i>+${gain}</i>` : '') + (playing && exp && exp.coinShop && exp.coinShop.length ? '<b class="cart">🛒</b>' : '');
   if (gain) { clearTimeout(coinPopT); coinPopT = setTimeout(() => { const i = $('#coins i'); if (i) i.style.opacity = 0; }, 1600); }
   const hc = document.getElementById('homeCoins'); if (hc) hc.textContent = t;
+  document.body.classList.toggle('hasshop', !!(playing && exp && exp.coinShop && exp.coinShop.length));
 }
 function earn(n, why) {
   n = Math.floor(n); if (!(n > 0)) return;
@@ -1217,6 +1228,73 @@ function earn(n, why) {
   quest('bv.earned', n);
 }
 function spend(n) { if (W.coins < n) { sfx('error'); return false; } W.coins -= n; drawCoins(); saveAv(); sfx('buy'); return true; }
+/* ---------------- shops ----------------
+   Every experience has its own shop (E.coinShop) of things for that game, bought with Blox Coins:
+   { id, e, n, d, price, kind } where kind is 'pass' (yours for good), 'use' (they stack: the game uses
+   them up, by itself, or when you press Use if it's tap: true) or 'now' (it happens as you buy it). k is how strong a coil is.
+   An experience asks hasItem(id) / itemCount(id), spends one with useItem(id), and can have
+   shopUse(id) (a Use button: true if it worked), shopCan(id) ('' if you can buy it now, or why not),
+   onBuy(id) and onToggle(id) (a pass switched on or off). Speed Coil, Gravity Coil and Shield work by themselves in any experience that sells them. */
+const shopItem = (id, E = exp) => (E && E.coinShop ? E.coinShop.find((it) => it.id === id) : null);
+const itemKey = (id, E = exp) => `${E.id}.${id}`;
+const itemCount = (id, E = exp) => (E ? W.items[itemKey(id, E)] | 0 : 0);
+const hasItem = (id, E = exp) => itemCount(id, E) > 0 && !(shopItem(id, E) && shopItem(id, E).kind === 'pass' && itemOff(id, E));
+const offCache = new Map(); // (switched-off passes: asked every physics step, so kept in memory)
+function itemOff(id, E = exp) { const k = itemKey(id, E); if (!offCache.has(k)) { let v = false; try { v = localStorage.getItem('bv-off.' + k) === '1'; } catch (e) {} offCache.set(k, v); } return offCache.get(k); }
+function setItemOff(id, off, E = exp) { const k = itemKey(id, E); offCache.set(k, off); try { localStorage.setItem('bv-off.' + k, off ? '1' : '0'); } catch (e) {} }
+function useItem(id, E = exp) { const k = itemKey(id, E); if (!(W.items[k] > 0)) return false; if (--W.items[k] <= 0) delete W.items[k]; saveAv(); drawCoins(); return true; }
+function giveItem(id, n = 1, E = exp) { const k = itemKey(id, E); W.items[k] = Math.min(999, (W.items[k] | 0) + n); saveAv(); drawCoins(); }
+// the ones the engine looks after
+const shopSpeed = (price, k = 1.25) => ({ id: 'speed', e: '🌀', n: 'Speed Coil', d: `Run ${Math.round((k - 1) * 100)}% faster, for good (switch it off any time)`, price, kind: 'pass', k, toggle: true });
+const shopJump = (price, k = 1.22) => ({ id: 'jump', e: '🪶', n: 'Gravity Coil', d: `Jump ${Math.round((k * k - 1) * 100)}% higher, for good (switch it off any time)`, price, kind: 'pass', k, toggle: true });
+const shopShield = (price, d, n, e) => ({ id: 'shield', e: e || '🛡️', n: n || 'Shield', d: d || 'Touch something deadly and it saves you (once), bouncing you up out of trouble', price, kind: 'use' });
+const coilK = (id) => { const it = shopItem(id); return it && it.k && hasItem(id) ? it.k : 1; };
+let shieldT = 0;
+// about to die from something deadly: a shield (if you have one) saves you instead
+function shieldSaves() {
+  if (performance.now() < shieldT) return true; // (just saved: a moment's grace)
+  if (!shopItem('shield') || !useItem('shield')) return false;
+  shieldT = performance.now() + 1500; P.vy = 70; P.ground = null; sfx('magic'); sfx('bounce');
+  if (me) puffAt(P.x, P.y + 2, P.z, [0x93c5fd, 0xffffff, 0xfde047], 16);
+  toast(`🛡️ Saved! ${itemCount('shield') ? `(${itemCount('shield')} left)` : '(that was your last)'}`, '#93c5fd');
+  return true;
+}
+let shopAsk = '';
+function openShop() {
+  if (!playing || !exp || !exp.coinShop || !exp.coinShop.length) return;
+  shopAsk = ''; drawShop();
+}
+function drawShop() {
+  const E = exp, card = (it) => {
+    const n = itemCount(it.id), own = it.kind === 'pass' && n > 0, off = own && itemOff(it.id), why = !own && E.shopCan ? E.shopCan(it.id) || '' : '';
+    let btn;
+    if (own && it.toggle) btn = `<button class="xp-btn ${off ? '' : 'buy'}" data-tog="${it.id}">${off ? '⏸️ Off — turn on' : '✅ On — turn off'}</button>`;
+    else if (own) btn = '<button class="xp-btn" disabled>✓ Yours</button>';
+    else if (why) btn = `<button class="xp-btn" disabled>${esc(why)}</button>`;
+    else if (shopAsk === it.id) btn = `<button class="xp-btn buy" data-ok="${it.id}">Buy for <span class="coin sm"></span> ${it.price.toLocaleString('en-US')}?</button>`;
+    else btn = `<button class="xp-btn ${W.coins >= it.price ? 'buy' : ''}" data-buy="${it.id}"><span class="coin sm"></span> ${it.price.toLocaleString('en-US')}</button>`;
+    const use = it.kind === 'use' && it.tap && n > 0 && E.shopUse ? `<button class="xp-btn" data-use="${it.id}">Use (${n})</button>` : '';
+    const tag = it.kind === 'pass' ? '♾️ Pass · yours for good' : it.kind === 'use' ? `🎒 You have ${n}` : '⚡ Right away';
+    return `<div class="xp-card shopc ${own ? 'on' : ''}"><div class="big">${it.e}</div><b>${esc(it.n)}</b><span>${esc(it.d)}</span><small class="stag">${tag}</small>${btn}${use}</div>`;
+  };
+  openPanel(`🛒 ${E.name} Shop`, `<div class="shophead"><span><span class="coin"></span> <b>${W.coins.toLocaleString('en-US')}</b> Blox Coins</span><small>Things you can only get here, for ${esc(E.name)}. Earn coins by playing any experience.</small></div><div class="xp-grid">${E.coinShop.map(card).join('')}</div>`, (b) => {
+    const it = shopItem(b.dataset.buy || b.dataset.ok || b.dataset.use || b.dataset.tog); if (!it) return;
+    if (b.dataset.buy) { shopAsk = W.coins >= it.price ? it.id : ''; if (!shopAsk) { sfx('error'); toast('Not enough Blox Coins', '#fca5a5'); } drawShop(); return; }
+    if (b.dataset.ok) { buyItem(it); return; }
+    if (b.dataset.tog) { setItemOff(it.id, !itemOff(it.id)); sfx('toggle'); if (E.onToggle) E.onToggle(it.id); drawShop(); return; }
+    if (b.dataset.use) { if (E.shopUse(it.id) && useItem(it.id)) { sfx('select'); toast(`${it.e} ${it.n}!`, '#fde68a'); } else sfx('error'); if (panelOpen() && $('#xpTitle').textContent.startsWith('🛒')) drawShop(); }
+  });
+}
+function buyItem(it) {
+  shopAsk = '';
+  const why = exp.shopCan ? exp.shopCan(it.id) || '' : '';
+  if (why || (it.kind === 'pass' && itemCount(it.id) > 0) || !spend(it.price)) { drawShop(); return; }
+  if (it.kind !== 'now') giveItem(it.id, it.pack || 1); // (pack: some come several at a time)
+  quest('bv.shop');
+  say(`🛒 You bought ${it.e} ${it.n}!`, '#fde68a'); toast(`${it.e} ${it.n}!`, '#fde68a'); sfx('unlock');
+  if (exp.onBuy) exp.onBuy(it.id);
+  if (panelOpen() && $('#xpTitle').textContent.startsWith('🛒')) drawShop();
+}
 function grantCosmetic(slot, i, why) { if (W.own.has(slot + i)) return; W.own.add(slot + i); saveAv(); sfx('unlock'); if (why) say(`🎁 ${COSMETICS[slot].list[i]} unlocked — ${why}`, '#fde68a'); questMax('bv.items', W.own.size); }
 
 /* ---------------- achievements ----------------
@@ -1231,6 +1309,7 @@ const ACH = [
   ['bv', 'chat', 25, 'Chatterbox', 'Send 25 chat messages', 30, null, '💬'],
   ['bv', 'items', 15, 'Fashionista', 'Own 15 avatar items', 100, null, '👗'],
   ['bv', 'earned', 10000, 'Coin Hoarder', 'Earn 10,000 Blox Coins', 250, null, '💰'],
+  ['bv', 'shop', 10, 'Big Spender', 'Buy 10 things in experience shops', 100, null, '🛒'],
   ['bv', 'ach', 25, 'Achiever', 'Earn 25 achievements', 300, ['b', 13], '🏅'],
   ['bv', 'ach', 60, 'Legend', 'Earn 60 achievements', 1000, ['h', 32], '👑'],
   ['obby', 'stage', 10, 'Getting Somewhere', 'Reach stage 10', 30, null, '🪜'],
@@ -1358,7 +1437,7 @@ function achGroup(e) {
   return `<div class="achg${e === 'bv' ? ' bv' : ''}"><h4>${e === 'bv' ? '🧱 Bloxverse' : `${E ? E.emoji : ''} ${esc(E ? E.name : e)}`}<small>${n} / ${list.length}</small></h4><div class="achrows">${list.map(achRow).join('')}</div></div>`;
 }
 function saveAv() {
-  const d = Object.assign({}, AV, { coins: W.coins, own: [...W.own], day: W.day, at: Date.now(), ach: { c: W.ach.c, got: [...W.ach.got] } });
+  const d = Object.assign({}, AV, { coins: W.coins, own: [...W.own], day: W.day, at: Date.now(), ach: { c: W.ach.c, got: [...W.ach.got] }, items: W.items });
   try { localStorage.setItem('rb.av', JSON.stringify(d)); } catch (e) {}
   clearTimeout(avSaveT); avSaveT = setTimeout(() => { if (W.loaded) kvSet('av', d); }, 800);
 }
@@ -1369,6 +1448,8 @@ function loadAvFrom(d) {
   const a = d.ach && typeof d.ach === 'object' ? d.ach : {}, c = {};
   if (a.c && typeof a.c === 'object') for (const k in a.c) if (+a.c[k] > 0) c[k] = +a.c[k];
   W.ach = { c, got: new Set(Array.isArray(a.got) ? a.got.filter((x) => ACH.some((A) => A.id === x)) : []) };
+  W.items = {};
+  if (d.items && typeof d.items === 'object') for (const k of Object.keys(d.items).slice(0, 400)) { const n = Math.floor(+d.items[k]); if (/^[a-z0-9]+\.[a-z0-9]+$/.test(k) && n > 0) W.items[k] = Math.min(n, 999); }
   achNum();
 }
 // experiences in their own files call this
@@ -1465,7 +1546,7 @@ async function join(id, n) {
   cam.yaw = P.yaw; cam.pitch = -0.32;
   $('#loading').hidden = true; $('#hud').hidden = false;
   $('#title').innerHTML = `<span class="tt">${E.emoji}</span><span class="tn"><b>${esc(E.name)}</b><small>Server ${n}</small></span>`; drawCoins();
-  playing = true; joining = false;
+  playing = true; joining = false; drawCoins(); // (now the shop cart shows)
   for (const p of Net.peers) if (!p.isMe) applyPeer(p);
   say(`Welcome to ${E.name}! ${touchy ? '' : 'Press / to chat.'}`, '#fde68a');
   sfx('teleport');
@@ -1691,6 +1772,12 @@ const OBBY = {
     return `Stage ${this.won ? '🏆' : `${this.stage}/${this.total}`} · ⏱ ${mmss(t)}${this.best ? ` <small>best ${mmss(this.best)}</small>` : ''}`;
   },
   menu() { return [['↩️ Back to Stage 1', () => { this.stage = 0; this.won = false; this.t0 = performance.now(); this.st0 = 0; send({ st: 0 }); this.save(); respawn(); }]]; },
+  coinShop: [shopSpeed(250, 1.2), shopJump(350, 1.15), shopShield(40, 'Touch lava or a spinner and it saves you (once)'), { id: 'skip', e: '⏭️', n: 'Skip Stage', d: 'Go straight to the next checkpoint', price: 75, kind: 'use', tap: true }],
+  shopUse(id) {
+    if (id !== 'skip' || this.won || this.stage >= this.total || P.dead) return false;
+    this.stage++; this.st0 = -1; questMax('obby.stage', this.stage); send({ st: this.stage }); this.save(); respawn(); // (a skipped run isn't a speedrun)
+    return true;
+  },
 };
 
 /* =====================================================================
@@ -1959,20 +2046,27 @@ const TYCOON = {
       pl.ups[c.ln].forEach((ux, u) => { if (!(c.up & (1 << u)) && c.lx >= ux) { c.up |= 1 << u; c.v *= 2; c.m.material = this.upMat; } });
       if (c.lx >= 16.5) {
         place.remove(c.m); pl.cubes.splice(j, 1);
-        if (pl.mine) { const v = (c.v + extra) * tyMult(b, this.rb); this.cash += v; sfx3('coin', c.m.position.x, c.m.position.z, 50, { vol: 0.25, gap: 350, pitch: 1.3 }); this.earned.push([performance.now(), v]); this.dirty = true; this.coinAcc = Math.min(3, (this.coinAcc || 0) + v / 1500); if (this.coinAcc >= 1 && performance.now() - (this.coinAt || 0) > 10000) { this.coinAt = performance.now(); earn(1); this.coinAcc -= 1; } } // Blox Coins: one per $1,500, at most one every 10 seconds (the cash grows much faster than the other games pay)
+        if (pl.mine) { const v = (c.v + extra) * tyMult(b, this.rb) * (hasItem('cash2') ? 2 : 1); this.cash += v; sfx3('coin', c.m.position.x, c.m.position.z, 50, { vol: 0.25, gap: 350, pitch: 1.3 }); this.earned.push([performance.now(), v]); this.dirty = true; this.coinAcc = Math.min(3, (this.coinAcc || 0) + v / 1500); if (this.coinAcc >= 1 && performance.now() - (this.coinAt || 0) > 10000) { this.coinAt = performance.now(); earn(1); this.coinAcc -= 1; } } // Blox Coins: one per $1,500, at most one every 10 seconds (the cash grows much faster than the other games pay)
         continue;
       }
       const [x, z] = this.W(pl, c.lx, -12); c.m.position.set(x, c.y, z);
     }
   },
   save() { if (this.dirty || this.myPlot != null) { this.dirty = false; return kvSet('ty', { cash: Math.floor(this.cash), b: this.b, rb: this.rb }); } },
+  coinShop: [{ id: 'cash2', e: '💵', n: '2× Cash', d: 'Every cube is worth double, for good', price: 700, kind: 'pass' }, shopSpeed(200, 1.25), { id: 'crate', e: '💰', n: 'Cash Crate', d: 'A minute of your factory’s cash (at least $300), right now', price: 40, kind: 'now' }],
+  shopCan(id) { return id === 'crate' && this.myPlot == null ? 'Claim a factory first' : ''; },
+  onBuy(id) {
+    if (id !== 'crate') return;
+    const t = performance.now(), rate = this.earned.filter((e) => t - e[0] < 5000).reduce((a, e) => a + e[1], 0) / 5, v = Math.max(300, Math.round(rate * 60));
+    this.cash += v; this.dirty = true; this.save(); toast(`💰 +${money(v)}`, '#86efac'); puffAt(P.x, P.y + 2, P.z, 0x22c55e, 18);
+  },
   leave() { return this.save(); },
   statOf(pr, isMe) { return money(isMe ? this.cash : pr.cash); },
   sortKey(pr, isMe) { return isMe ? this.cash : +pr.cash || 0; },
   hud() {
     const t = performance.now(); this.earned = this.earned.filter((e) => t - e[0] < 5000);
     const rate = this.earned.reduce((s, e) => s + e[1], 0) / 5;
-    const mult = tyMult(this.b, this.rb);
+    const mult = tyMult(this.b, this.rb) * (hasItem('cash2') ? 2 : 1);
     return `💵 ${money(this.cash)}${rate ? ` <small>+$${rate < 10 ? rate.toFixed(1) : Math.round(rate).toLocaleString('en-US')}/s</small>` : ''}${mult > 1 ? ` · ×${mult.toFixed(2).replace(/\.?0+$/, '')} cash` : ''}${this.rb ? ` · 🔁 ${this.rb}` : ''}${this.myPlot == null ? ' · find a free factory' : ''}`;
   },
 };
@@ -2005,8 +2099,8 @@ const TAG = {
     // what a bot (on the ground) has to go round
     this.walls = parts.filter((p) => p.solid && p.sx < 100 && p.sz < 100).map(boxOf).filter((b) => b[4] > 0.8 && b[1] < 3);
   },
-  pres() { return {}; },
-  enter() { this.H = null; this.lastG = null; this.gSeen = null; this.rd = 0; this.T = {}; this.botAv = new Map(); },
+  pres() { return { ts: 0 }; },
+  enter() { this.H = null; this.lastG = null; this.gSeen = null; this.rd = 0; this.T = {}; this.botAv = new Map(); this.tsRd = -1; this.blkN = null; },
   leave() { for (const a of this.botAv.values()) dropAvatar(a); this.botAv = new Map(); },
   isBot: (id) => typeof id === 'string' && id.startsWith('bot:'),
   nameOfId(id, g) { if (this.isBot(id)) { const b = ((g || this.g || {}).bots || []).find((b) => b[0] === id); return b ? '🤖 ' + b[1] : 'a bot'; } return nameOf(id); },
@@ -2028,7 +2122,11 @@ const TAG = {
       const it = all.find((p) => p.peer === H.it);
       if (it && H.fz <= 0) for (const p of all) {
         if (p.peer === H.it || (p.peer === H.im && H.iml > 0)) continue;
-        if (Math.hypot(p.x - it.x, p.z - it.z) < 3.4 && Math.abs(p.y - it.y) < 5) { H.im = H.it; H.iml = 1.5; H.it = p.peer; H.fz = 1.5; H.tags = (H.tags | 0) + 1; break; }
+        if (Math.hypot(p.x - it.x, p.z - it.z) < 3.4 && Math.abs(p.y - it.y) < 5) {
+          // a Tag Shield (bought in the shop, switched on for this round) takes the tag instead, once
+          if (p.pr && p.pr.ts === H.rd && !(H.tsu || (H.tsu = {}))[p.peer]) { H.tsu[p.peer] = 1; H.fz = 1.2; H.blk = [p.peer, (H.blk ? H.blk[1] : 0) + 1]; break; }
+          H.im = H.it; H.iml = 1.5; H.it = p.peer; H.fz = 1.5; H.tags = (H.tags | 0) + 1; break;
+        }
       }
       if (H.left <= 0) {
         H.ph = 'end'; H.left = 7;
@@ -2044,7 +2142,7 @@ const TAG = {
   // a new round: with fewer than four people, bots make up the numbers; IT is one of the people (alone, sometimes a bot)
   startRound(pl) {
     const H = this.H, n = pl.length, nb = Math.max(0, 4 - n), names = ['Dodger', 'Zippy', 'Blitz', 'Turbo', 'Sneaky', 'Bolt'];
-    H.ph = 'play'; H.left = 90; H.rd = (H.rd | 0) + 1; H.sc = {}; H.fz = 2; H.im = null; H.iml = 0; H.bots = []; H.bp = []; this.T = {};
+    H.ph = 'play'; H.left = 90; H.rd = (H.rd | 0) + 1; H.sc = {}; H.fz = 2; H.im = null; H.iml = 0; H.bots = []; H.bp = []; H.tsu = {}; this.T = {};
     for (let i = 0; i < nb; i++) {
       const id = `bot:${H.rd}:${i}`, s = this.spawns[(i * 3 + 5 + H.rd) % 10];
       H.bots.push([id, names[(i + H.rd) % names.length], Math.floor(Math.random() * 1e6)]);
@@ -2104,6 +2202,7 @@ const TAG = {
     if (g && g.ph === 'play' && this.lastIt !== g.it && this.lastIt && (g.it === mine || this.lastIt === mine)) { sfx('hit'); sfx(g.it === mine ? 'alarm' : 'reward'); }
     if (g && g.ph === 'play' && this.lastIt !== g.it) { if (this.lastIt && g.it === mine) toast('Tagged! You’re IT!', '#fca5a5'); else if (this.lastIt === mine && g.it !== mine) { toast('You tagged them!', '#86efac'); quest('tag.tag'); } this.lastIt = g.it; }
     if (!g || g.ph !== 'play') this.lastIt = null;
+    if (g && g.blk && g.blk[1] !== this.blkN) { if (this.blkN != null && g.ph === 'play') { if (g.blk[0] === mine) toast('🛡️ Your shield took the tag!', '#93c5fd'); else if (g.it === mine) toast('🛡️ Blocked by a Tag Shield!', '#93c5fd'); sfx('bounce'); } this.blkN = g.blk[1]; }
     P.frozen = !!(g && g.ph === 'play' && g.it === mine && g.fz > 0);
     if (g && g.ph === 'play' && g.it !== mine) { this.freeT = (this.freeT || 0) + dt; if (this.freeT >= 10) { this.freeT -= 10; earn(1); } }
     if (g && g.ph !== this.coinPh) { if (g.ph === 'end' && this.coinPh === 'play') sfx(g.wp === mine ? 'win' : 'bell'); if (g.ph === 'end' && this.coinPh === 'play' && g.wp === mine) { earn(25, 'won the round'); quest('tag.win'); } this.coinPh = g.ph; }
@@ -2121,7 +2220,13 @@ const TAG = {
   speed() { const g = this.g; return g && g.ph === 'play' && g.it === myPeer() ? 18.5 : 16; },
   statOf(pr, isMe, peer) { const g = this.g; return g && g.sc ? Math.floor(g.sc[peer] || 0) : 0; },
   sortKey(pr, isMe, peer) { const g = this.g; return g && g.sc ? g.sc[peer] || 0 : 0; },
-  hud() { const g = this.g; return g && g.ph === 'play' ? (g.it === myPeer() ? '🔴 You’re IT' : `🟢 Free · score ${Math.floor((g.sc || {})[myPeer()] || 0)}`) : ''; },
+  hud() { const g = this.g, mine = myPeer(); return g && g.ph === 'play' ? (g.it === mine ? '🔴 You’re IT' : `🟢 Free · score ${Math.floor((g.sc || {})[mine] || 0)}${this.tsRd === g.rd && !(g.tsu || {})[mine] ? ' · 🛡️ shielded' : ''}`) : ''; },
+  coinShop: [shopSpeed(400, 1.08), shopJump(300, 1.12), { id: 'tshield', e: '🛡️', n: 'Tag Shield', d: 'Use it in a round: the next tag on you bounces off (lasts the round)', price: 40, kind: 'use', tap: true }],
+  shopUse(id) {
+    const g = this.g, mine = myPeer();
+    if (id !== 'tshield' || !g || g.ph !== 'play' || g.it === mine || this.tsRd === g.rd) return false;
+    this.tsRd = g.rd; send({ ts: g.rd }); return true;
+  },
 };
 
 /* =====================================================================
@@ -2196,7 +2301,8 @@ const LAVA = {
     this.lava.y = L - 200; this.lava.m.position.y = this.lava.y;
     if (g && g.ph === 'play' && this.inr !== g.rd && g.el < 3.5 && !P.dead) { this.inr = g.rd; send({ inr: g.rd }); respawn(); toast('Climb! The lava is coming!', '#fdba74'); sfx('horn'); }
     if (g && g.ph === 'count') { const c = Math.ceil(g.left); if (c !== this.cdS && c <= 5) sfx('count'); this.cdS = c; } else this.cdS = null;
-    if (g && g.ph === 'play' && this.inr === g.rd && this.out !== g.rd && !P.dead && P.y < L - 0.2) {
+    if (g && g.ph === 'play' && this.inr === g.rd && this.out !== g.rd && !P.dead && P.y < L - 0.2 && shieldSaves()) { P.y = Math.max(P.y, L - 0.1); P.vy = 105; } // Lava Boots: way back up
+    else if (g && g.ph === 'play' && this.inr === g.rd && this.out !== g.rd && !P.dead && P.y < L - 0.2) {
       this.out = g.rd; send({ out: g.rd }); toast(`🔥 You lasted ${Math.floor(g.el)}s`, '#fdba74'); sfx('hiss'); die();
     }
     if (g && g.ph === 'play' && this.inr === g.rd && this.out !== g.rd && !P.dead) { this.aliveT = (this.aliveT || 0) + dt; if (this.aliveT >= 10) { this.aliveT -= 10; earn(2); quest('lava.alive', 10); } }
@@ -2212,6 +2318,7 @@ const LAVA = {
   statOf(pr, isMe, peer) { const g = this.g; return (g && g.wn && g.wn[peer]) || 0; },
   sortKey(pr, isMe, peer) { const g = this.g; return (g && g.wn && g.wn[peer]) || 0; },
   hud() { const g = this.g; if (!g || g.ph !== 'play') return ''; return this.inr === g.rd && this.out !== g.rd ? `⬆️ ${Math.max(0, Math.floor(P.y - lavaY(g.el)))} studs above the lava` : '👀 Watching — you’re in next round'; },
+  coinShop: [shopJump(300, 1.2), shopSpeed(200, 1.15), shopShield(45, 'Fall in the lava and they bounce you way back up (once)', 'Lava Boots', '🥾')],
 };
 
 const EXPS = { obby: OBBY, tycoon: TYCOON, tag: TAG, lava: LAVA };
@@ -2442,6 +2549,7 @@ function showPause() {
   $('#pausePanel').innerHTML = `<div class="phead"><div class="pthumb"><span>${exp.emoji}</span></div></div><h2>${esc(exp.name)}</h2><p>Server ${Net.srvN} · 👥 ${Math.max(1, crew().length)} playing</p>
     <button class="btn play" id="pResume">▶ Resume</button>${exp.noReset ? '' : '<button class="btn" id="pReset">🔄 Reset character <kbd>R</kbd></button>'}
     ${extra.map((x, i) => `<button class="btn blue" data-x="${i}">${esc(x[0])}</button>`).join('')}
+    ${exp.coinShop && exp.coinShop.length ? '<button class="btn blue" id="pShop">🛒 Shop</button>' : ''}
     <button class="btn" id="pAch">🏆 Achievements · ${ACH.filter((A) => A.e === exp.id && W.ach.got.has(A.id)).length} / ${ACH.filter((A) => A.e === exp.id).length}</button>
     <button class="btn" id="pSound">${window.Sfx && !Sfx.on ? '🔇 Sound: off' : '🔊 Sound: on'}</button>
     <button class="btn" id="pMeter">${Meter.shown ? '📊 FPS & ping: shown' : '📊 FPS & ping: hidden'}</button>
@@ -2453,6 +2561,7 @@ function showPause() {
   $('#pResume').onclick = () => { $('#pause').hidden = true; tryLock(); };
   if ($('#pReset')) $('#pReset').onclick = () => { $('#pause').hidden = true; die(); };
   $('#pLeave').onclick = () => leave();
+  if ($('#pShop')) $('#pShop').onclick = () => { $('#pause').hidden = true; openShop(); };
   $('#pAch').onclick = () => { $('#pause').hidden = true; openPanel('🏆 Achievements', (ACH.some((A) => A.e === exp.id) ? achGroup(exp.id) : '') + achGroup('bv')); };
   $('#pSound').onclick = () => { if (!window.Sfx) return; Sfx.toggle(); $('#pSound').textContent = Sfx.on ? '🔊 Sound: on' : '🔇 Sound: off'; };
   $('#pMeter').onclick = () => { Meter.shown = !Meter.shown; Meter.sentAt = 0; Meter.ping = null; try { localStorage.setItem('bv-meter', Meter.shown ? '1' : '0'); } catch (e) {} $('#pMeter').textContent = Meter.shown ? '📊 FPS & ping: shown' : '📊 FPS & ping: hidden'; drawMeter(); };
@@ -2462,6 +2571,7 @@ function showPause() {
   $('#pausePanel').querySelectorAll('[data-x]').forEach((b) => (b.onclick = () => { $('#pause').hidden = true; extra[+b.dataset.x][1](); }));
 }
 $('#menuBtn').onclick = showPause;
+$('#coins').onclick = $('#shopFab').onclick = () => { if (playing && exp && exp.coinShop && exp.coinShop.length) openShop(); };
 $('#achBtn').onclick = () => { homeView = 'ach'; sfx('open'); drawExps(); window.scrollTo(0, 0); };
 
 /* ---------------- shift lock, first person and sprinting ----------------
@@ -2729,7 +2839,7 @@ try { loadAvFrom(JSON.parse(localStorage.getItem('rb.av') || 'null')); } catch (
 achNum();
 drawAvatarOpts(); drawExps();
 requestAnimationFrame(frame);
-window.__rb = { P, Net, cam, camera, scene, renderer, keys, EXPS, Meter, GFX, gfxApply, softGL, View, setLock, zoomBy, lookBy, joy, sunL, sunSprite, makeAvatar, join, leave, die, respawn, parts: () => parts, exp: () => exp, me: () => me, iAmHost, crew, players, get AV() { return AV; }, W, earn, spend, roundState, openPanel, closePanel, pickPlane, myPeer, grantCosmetic, snapshot }; // for tests
+window.__rb = { P, Net, cam, camera, scene, renderer, keys, EXPS, Meter, GFX, gfxApply, softGL, View, setLock, zoomBy, lookBy, joy, sunL, sunSprite, makeAvatar, join, leave, die, respawn, openShop, buyItem, hasItem, itemCount, giveItem, useItem, shopItem, setItemOff, parts: () => parts, exp: () => exp, me: () => me, iAmHost, crew, players, get AV() { return AV; }, W, earn, spend, roundState, openPanel, closePanel, pickPlane, myPeer, grantCosmetic, snapshot }; // for tests
 if (!Net.api()) homeStatus('Open Bloxverse from 🕹️ Games in the chat to play online.');
 else {
   $('#hi').textContent = 'Connecting…';
