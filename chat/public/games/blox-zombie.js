@@ -1970,6 +1970,31 @@
       if (id === 'crate') { const left = Object.keys(WP).filter((k) => k !== 'fists' && !S.w.includes(k)), k = left.length ? left[Math.floor(Math.random() * left.length)] : 'ar'; toast(`🎁 ${this.giveWeapon(k)}`, '#fde68a'); }
       this.dirty = true; this.drawBar();
     },
+    // trading: supplies (one at a time) and weapons (not your fists or first pistol)
+    tradeName: 'Supplies & weapons',
+    tradeItems() {
+      const S = this.S; if (!S) return [];
+      const out = [];
+      for (const k in S.it) if (S.it[k] > 0 && IT[k]) out.push({ k: 'i:' + k, e: IT[k].e, n: `${IT[k].n} (you have ${S.it[k]})`, d: { i: k } });
+      for (const k of S.w) if (WP[k] && k !== 'fists' && k !== 'pistol') out.push({ k: 'w:' + k, e: WP[k].e, n: WP[k].n, d: { w: k } });
+      return out;
+    },
+    tradeTake(k) {
+      const S = this.S, id = k.slice(2);
+      if (k[0] === 'i' && S.it[id] > 0) S.it[id]--;
+      if (k[0] === 'w' && S.w.includes(id)) {
+        S.w = S.w.filter((x) => x !== id);
+        for (const sl in S.slot) if (S.slot[sl] === id) S.slot[sl] = S.w.filter((x) => WP[x].slot === sl).sort((a, b) => WP[b].price - WP[a].price)[0] || (sl === 'm' ? 'fists' : sl === 's' ? 'pistol' : '');
+        this.send();
+      }
+      this.dirty = true; this.drawBar(); this.save();
+    },
+    tradeGive(d) {
+      const S = this.S; if (!d || typeof d !== 'object') return;
+      if (IT[d.i] && Object.prototype.hasOwnProperty.call(IT, d.i)) S.it[d.i] = (S.it[d.i] || 0) + 1;
+      else if (WP[d.w] && Object.prototype.hasOwnProperty.call(WP, d.w)) this.giveWeapon(d.w);
+      this.dirty = true; this.drawBar(); this.save();
+    },
   };
   // the first box a ray (unit dir) meets among the world's blocks: how far along it, or max
   function rayBox(o, d, b, max) {

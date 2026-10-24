@@ -60,6 +60,20 @@
   .shopc>span{font:700 12px/1.35 var(--fb);color:#cbd5e1}
   .shopc .stag{font:800 10.5px var(--fb);color:#94a3b8;text-transform:uppercase;letter-spacing:.04em}
   .shopc .xp-btn+.xp-btn{margin-top:4px}
+  #board tr[data-peer]{pointer-events:auto;cursor:pointer}#board tr[data-peer]:hover td{background:rgba(255,255,255,.08)}
+  #tradeAsk{position:absolute;left:50%;top:118px;transform:translateX(-50%);display:flex;align-items:center;gap:10px;padding:10px 12px 10px 16px;border-radius:16px;pointer-events:auto;font:600 15px var(--fh);z-index:6;animation:rise .2s;max-width:calc(100vw - 24px);flex-wrap:wrap;justify-content:center}
+  #tradeAsk .xp-btn{padding:8px 14px}
+  .trcols{display:grid;grid-template-columns:1fr 1fr;gap:10px}.trcols h4{margin:0 0 6px;font:600 14px var(--fh);color:#cbd5e1}
+  .trlist{min-height:64px;display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;background:rgba(0,0,0,.22);border-radius:12px;padding:8px}
+  .trlist .xp-note{margin:4px}
+  .trchip{border:1px solid rgba(255,255,255,.14);background:linear-gradient(180deg,#2a3344,#1c222d);color:#e2e8f0;border-radius:10px;padding:6px 9px;font:600 12.5px var(--fh);cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+  .trchip i{font-style:normal;color:#fca5a5}.trchip.their{cursor:default;opacity:1;border-color:rgba(147,197,253,.35)}.trchip small{color:#94a3b8;font-weight:700}
+  .trchip.add:hover{border-color:#86efac}
+  .trstat{margin:10px 0 8px;font:600 14px var(--fh);color:#fde68a;text-align:center}
+  .trbtns{display:flex;gap:8px}.trbtns .xp-btn{flex:1;padding:11px}
+  .trtabs{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 8px}.trtabs button{border:0;border-radius:999px;padding:7px 12px;background:rgba(255,255,255,.08);color:#e2e8f0;font:600 12.5px var(--fh);cursor:pointer}.trtabs button.on{background:#f8fafc;color:#0f172a}
+  .trpick{display:flex;flex-wrap:wrap;gap:6px}
+  .trcoins{display:flex;flex-wrap:wrap;align-items:center;gap:8px}.trcoins>span{font:600 15px var(--fh);color:#fde68a;margin-right:6px}.trcoins .xp-btn{padding:8px 12px}
   #shopFab{position:absolute;left:12px;top:64px;width:38px;height:36px;padding:0;border-radius:12px;font-size:19px;color:#fff;pointer-events:auto;cursor:pointer;display:none;background:linear-gradient(180deg,#22c55e,#15803d);border-color:rgba(255,255,255,.3)}
   @media (max-width:640px){#coins .cart{display:none}.hasshop #shopFab{display:block}} /* (a phone: no room by the coins, so the shop gets its own button) */
   .coin{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;flex:none;background:radial-gradient(circle at 34% 30%,#fff7c2 0 12%,#fcd34d 34%,#f59e0b 70%,#d97706);box-shadow:inset 0 -2px 0 rgba(146,64,14,.45),0 2px 0 rgba(0,0,0,.35);font:700 13px/1 var(--fh);color:#92400e;text-shadow:0 1px 0 rgba(255,255,255,.4)}
@@ -1295,6 +1309,159 @@ function buyItem(it) {
   if (exp.onBuy) exp.onBuy(it.id);
   if (panelOpen() && $('#xpTitle').textContent.startsWith('🛒')) drawShop();
 }
+/* ---------------- trading ----------------
+   Tap someone on the leaderboard → 🤝 Trade. They get a popup to accept; then you both see the trade window and put
+   things in: avatar items, Blox Coins, shop items (the stacking kind), and the experience's own things (pets, fruits,
+   fish…: E.tradeItems() lists them as { k, e, n, d }, E.tradeTake(k) takes one away, E.tradeGive(d) gives one).
+   Both press Accept (any change takes the accepts back), a 3 second countdown on the shared clock, and then each of
+   you swaps your own side. It all goes through presence: tr = { id, to, st: ask | open | x | done, off, ok, at }. */
+const Trade = { id: '', with: null, st: '', off: [], ok: '', at: 0, tab: 'g', seen: '', asked: new Set(), done: new Set(), askEl: null, t0: 0 };
+const trPeer = (peer) => Net.peers.find((q) => q.peer === peer && !q.isMe);
+const trOf = (peer) => { const p = trPeer(peer), t = p && p.presence && p.presence.tr; return t && typeof t === 'object' ? t : null; };
+const trHash = (a, b) => { const s = JSON.stringify(myPeer() < Trade.with ? [a, b] : [b, a]); let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36); };
+const trSafe = (o) => o && typeof o === 'object' && ['c', 'a', 's', 'g'].includes(o.t);
+// for experiences: a key for a thing in a list (where it is and what it is), and finding it again (it may have moved)
+const trKey = (i, v) => i + ':' + JSON.stringify(v);
+function trFind(list, k) { k = String(k); const j = k.indexOf(':'), i = +k.slice(0, j), v = k.slice(j + 1); if (list[i] != null && JSON.stringify(list[i]) === v) return i; return list.findIndex((x) => JSON.stringify(x) === v); }
+const RAR_DOT = ['⚪', '🟢', '🔵', '🟣', '🟡', '🔴', '🌈'];
+function trSend() { send({ tr: Trade.st ? { id: Trade.id, to: Trade.with, st: Trade.st, off: Trade.off, ok: Trade.ok, at: Trade.at } : null }); }
+function trReset(msg, color) {
+  if (msg) toast(msg, color || '#fca5a5');
+  const was = Trade.st === 'open'; Trade.st = ''; Trade.with = null; Trade.off = []; Trade.ok = ''; Trade.at = 0; Trade.seen = '';
+  trSend(); if (was && panelOpen() && $('#xpTitle').textContent.startsWith('🤝')) { panelOnClose = null; closePanel(); }
+}
+function startTrade(peer) {
+  if (!playing || !trPeer(peer)) return;
+  if (Trade.st) { toast('Finish your trade first', '#fca5a5'); return; }
+  Object.assign(Trade, { id: Math.random().toString(36).slice(2, 9), with: peer, st: 'ask', off: [], ok: '', at: 0, t0: performance.now() });
+  trSend(); toast(`🤝 Asked ${nameOf(peer)} to trade…`, '#fde68a'); sfx('select');
+}
+// what you can put in (by tab), and checks that you still have each thing
+function trChoices(tab) {
+  if (tab === 'g') return exp && exp.tradeItems ? exp.tradeItems().slice(0, 60).map((x) => ({ t: 'g', k: String(x.k), e: x.e, nm: String(x.n).slice(0, 30), d: x.d })) : [];
+  if (tab === 'a') { const out = []; for (const k of W.own) { const m = /^([a-z]+)(\d+)$/.exec(k), C = m && COSMETICS[m[1]]; if (C && C.list[+m[2]] && C.price[+m[2]] !== 0) out.push({ t: 'a', k, e: C.icon[+m[2]], nm: C.list[+m[2]] }); } return out; }
+  if (tab === 's') { const out = []; for (const k in W.items) { const [e, id] = k.split('.'), it = EXPS[e] && shopItem(id, EXPS[e]); if (it && it.kind === 'use') out.push({ t: 's', k, nm: it.n, e: it.e, max: W.items[k], from: EXPS[e].name }); } return out; }
+  return [];
+}
+function trCan(o) {
+  if (o.t === 'c') return W.coins >= o.n;
+  if (o.t === 'a') return W.own.has(o.k);
+  if (o.t === 's') return (W.items[o.k] | 0) >= o.n;
+  return !!(exp && exp.tradeItems && exp.tradeItems().some((x) => String(x.k) === o.k));
+}
+const trLabel = (o) => o.t === 'c' ? `<span class="coin sm"></span> ${(+o.n || 0).toLocaleString('en-US')}` : `${esc(o.e || '❔')} ${esc(String(o.nm || '').slice(0, 30))}${o.t === 's' && o.n > 1 ? ` ×${o.n | 0}` : ''}`;
+function trAdd(c) {
+  if (Trade.off.length >= 8 && !(c.t === 's' && Trade.off.some((o) => o.t === 's' && o.k === c.k))) { toast('Up to 8 things a trade', '#fca5a5'); return; }
+  if (c.t === 's') { const o = Trade.off.find((x) => x.t === 's' && x.k === c.k); if (o) { if (o.n < c.max) o.n++; } else Trade.off.push({ t: 's', k: c.k, n: 1, e: c.e, nm: c.nm }); }
+  else if (!Trade.off.some((x) => x.t === c.t && x.k === c.k)) Trade.off.push(c.t === 'g' ? { t: 'g', k: c.k, e: c.e, nm: c.nm, d: c.d } : { t: 'a', k: c.k, e: c.e, nm: c.nm });
+  trChanged();
+}
+function trCoins(n) {
+  let o = Trade.off.find((x) => x.t === 'c');
+  if (!o) { if (n <= 0) return; if (Trade.off.length >= 8) { toast('Up to 8 things a trade', '#fca5a5'); return; } o = { t: 'c', n: 0 }; Trade.off.push(o); }
+  o.n = n === 0 ? 0 : Math.max(0, Math.min(W.coins, o.n + n));
+  if (!o.n) Trade.off = Trade.off.filter((x) => x !== o);
+  trChanged();
+}
+function trChanged() { Trade.ok = ''; Trade.at = 0; trSend(); drawTrade(); sfx('tick', { vol: 0.4 }); }
+function drawTrade() {
+  if (Trade.st !== 'open') return;
+  const T = trOf(Trade.with) || {}, theirs = (Array.isArray(T.off) ? T.off : []).filter(trSafe).slice(0, 8), who = esc(nameOf(Trade.with));
+  const h = trHash(Trade.off, theirs), meOk = Trade.ok === h, themOk = T.ok === h, count = meOk && themOk ? Math.max(0, Math.ceil(Math.max(Trade.at, +T.at || 0) + 3 - now())) : -1;
+  const chips = (list, mine) => list.length ? list.map((o, i) => `<button class="trchip ${mine ? '' : 'their'}" ${mine ? `data-rm="${i}"` : 'disabled'}>${trLabel(o)}${mine ? ' <i>✕</i>' : o.t === 'a' && W.own.has(o.k) ? ' <small>(you have it)</small>' : ''}</button>`).join('') : '<p class="xp-note">Nothing yet</p>';
+  const tabs = [['g', exp && exp.tradeItems ? `${exp.emoji} ${exp.tradeName || 'Game items'}` : ''], ['a', '👕 Avatar'], ['c', '🪙 Coins'], ['s', '🛒 Shop items']].filter((t) => t[1]);
+  if (!tabs.some((t) => t[0] === Trade.tab)) Trade.tab = tabs[0][0];
+  let pick;
+  if (Trade.tab === 'c') { const o = Trade.off.find((x) => x.t === 'c'); pick = `<div class="trcoins"><span><span class="coin"></span> <b>${(o ? o.n : 0).toLocaleString('en-US')}</b> of ${W.coins.toLocaleString('en-US')}</span>${[10, 100, 1000].map((n) => `<button class="xp-btn" data-coin="${n}">+${n}</button>`).join('')}<button class="xp-btn" data-coin="0">Clear</button></div>`; }
+  else { const list = trChoices(Trade.tab).filter((c) => c.t === 's' || !Trade.off.some((o) => o.t === c.t && o.k === c.k)); Trade.list = list; pick = list.length ? `<div class="trpick">${list.map((c, i) => `<button class="trchip add" data-add="${i}">${esc(c.e || '❔')} ${esc(c.nm)}${c.t === 's' ? ` <small>×${c.max} · ${esc(c.from)}</small>` : ''}</button>`).join('')}</div>` : `<p class="xp-note">${Trade.tab === 'g' ? 'Nothing here to trade right now' : Trade.tab === 'a' ? 'No avatar items to trade (the free ones can’t be traded)' : 'No shop items to trade (passes stay with you)'}</p>`; }
+  const status = count >= 0 ? `⏳ Trading in <b>${count}</b>…` : meOk ? `✅ You accepted · waiting for ${who}` : themOk ? `✅ ${who} accepted — your turn` : 'Put things in, then both press Accept';
+  const again = panelOpen() && $('#xpTitle').textContent.startsWith('🤝'), top = again ? $('#xpBody').scrollTop : 0;
+  if (again) panelOnClose = null;
+  openPanel(`🤝 Trade with ${nameOf(Trade.with)}`, `<div class="trcols"><div><h4>You give</h4><div class="trlist">${chips(Trade.off, true)}</div></div><div><h4>${who} gives</h4><div class="trlist">${chips(theirs, false)}</div></div></div>
+    <div class="trstat">${status}</div>
+    <div class="trbtns"><button class="xp-btn buy" data-acc="1" ${meOk || count >= 0 ? 'disabled' : ''}>✅ Accept</button><button class="xp-btn red" data-cx="1">✖ Cancel</button></div>
+    <div class="trtabs">${tabs.map((t) => `<button class="${Trade.tab === t[0] ? 'on' : ''}" data-tab="${t[0]}">${t[1]}</button>`).join('')}</div>${pick}`, (b) => {
+    if (b.dataset.tab) { Trade.tab = b.dataset.tab; drawTrade(); }
+    else if (b.dataset.add != null) { const c = Trade.list[+b.dataset.add]; if (c) trAdd(c); }
+    else if (b.dataset.rm != null) { Trade.off.splice(+b.dataset.rm, 1); trChanged(); }
+    else if (b.dataset.coin != null) trCoins(+b.dataset.coin);
+    else if (b.dataset.acc) { const T2 = trOf(Trade.with) || {}; if (!Trade.off.every(trCan)) { toast('You don’t have all of that any more', '#fca5a5'); return; } Trade.ok = trHash(Trade.off, (T2.off || []).filter(trSafe).slice(0, 8)); Trade.at = now(); trSend(); sfx('select'); drawTrade(); }
+    else if (b.dataset.cx) trReset('🤝 Trade cancelled', '#e2e8f0');
+  }, () => { if (Trade.st === 'open') trReset('🤝 Trade cancelled', '#e2e8f0'); });
+  if (again) $('#xpBody').scrollTop = top;
+}
+// both accepted the same offers and the countdown's over: swap your side
+function trApply(theirs) {
+  if (Trade.done.has(Trade.id)) return;
+  if (!Trade.off.every(trCan)) { trReset('🤝 Trade cancelled: something you offered is gone'); return; }
+  Trade.done.add(Trade.id);
+  for (const o of Trade.off) {
+    if (o.t === 'c') W.coins -= o.n;
+    else if (o.t === 'a') { W.own.delete(o.k); const m = /^([a-z]+)(\d+)$/.exec(o.k); if (m && AV[m[1]] === +m[2]) { AV[m[1]] = 0; if (me && !P.dead) { dropAvatar(me); me = makeAvatar(avArr(), Net.name, true); scene.add(me.g); } send({ av: avArr() }); } }
+    else if (o.t === 's') { W.items[o.k] -= o.n; if (W.items[o.k] <= 0) delete W.items[o.k]; }
+    else if (exp.tradeTake) exp.tradeTake(o.k);
+  }
+  const got = [];
+  for (const o of theirs) {
+    if (o.t === 'c') { const n = clamp(Math.floor(+o.n || 0), 0, 1e7); W.coins += n; got.push(`🪙 ${n}`); }
+    else if (o.t === 'a') { const m = /^([a-z]+)(\d+)$/.exec(String(o.k)); if (m && COSMETICS[m[1]] && COSMETICS[m[1]].list[+m[2]]) { W.own.add(m[1] + m[2]); got.push(COSMETICS[m[1]].icon[+m[2]]); } }
+    else if (o.t === 's') { const k = String(o.k), [e, id] = k.split('.'), it = EXPS[e] && shopItem(id, EXPS[e]); if (it && it.kind === 'use') { W.items[k] = Math.min(999, (W.items[k] | 0) + clamp(o.n | 0, 1, 99)); got.push(it.e); } }
+    else if (exp.tradeGive && o.d != null) { exp.tradeGive(o.d); got.push(String(o.e || '🎁').slice(0, 4)); }
+  }
+  drawCoins(); saveAv(); questMax('bv.items', W.own.size); quest('bv.trade');
+  const who = nameOf(Trade.with);
+  Trade.st = 'done'; trSend(); Trade.st = ''; Trade.with = null; Trade.off = []; Trade.ok = '';
+  if (panelOpen() && $('#xpTitle').textContent.startsWith('🤝')) { panelOnClose = null; closePanel(); }
+  toast(`🤝 Traded with ${who}!${got.length ? ' Got ' + got.join(' ') : ''}`, '#86efac'); sfx('unlock'); say(`🤝 You traded with ${who}`, '#86efac');
+  if (me) puffAt(P.x, P.y + 3, P.z, CONFETTI, 30);
+}
+function tradeTick() {
+  if (!playing) return;
+  const mine = myPeer();
+  // someone asking you
+  if (!Trade.st) for (const p of Net.peers) {
+    const t = !p.isMe && p.presence && p.presence.tr;
+    if (!t || t.to !== mine || t.st !== 'ask' || Trade.asked.has(t.id)) continue;
+    Trade.asked.add(t.id); trAsked(p.peer, t.id); break;
+  }
+  if (Trade.askEl && !Trade.st) { const t = trOf(Trade.askEl.peer); if (!t || t.id !== Trade.askEl.id || t.st !== 'ask') trHideAsk(); }
+  if (!Trade.st) return;
+  const T = trOf(Trade.with);
+  if (!trPeer(Trade.with)) return trReset(`🤝 ${nameOf(Trade.with)} left`);
+  if (Trade.st === 'ask') {
+    if (T && T.id === Trade.id && T.to === mine && T.st === 'open') { Trade.st = 'open'; trSend(); drawTrade(); sfx('open'); }
+    else if (T && T.id === Trade.id && T.st === 'x') trReset(`🤝 ${nameOf(Trade.with)} said no`);
+    else if (performance.now() - Trade.t0 > 30000) trReset('🤝 No answer', '#e2e8f0');
+    return;
+  }
+  if (!T || T.id !== Trade.id || T.st === 'x' || T.to !== mine) return trReset(`🤝 ${nameOf(Trade.with)} cancelled the trade`);
+  const theirs = (Array.isArray(T.off) ? T.off : []).filter(trSafe).slice(0, 8), sig = JSON.stringify(theirs) + T.ok + T.at;
+  const h = trHash(Trade.off, theirs);
+  if (Trade.ok && Trade.ok !== h) { Trade.ok = ''; Trade.at = 0; trSend(); toast(`🤝 ${nameOf(Trade.with)} changed their side`, '#fde68a'); }
+  if (Trade.ok === h && T.ok === h && now() >= Math.max(Trade.at, +T.at || 0) + 3) return trApply(theirs);
+  const c = Trade.ok === h && T.ok === h ? Math.ceil(Math.max(Trade.at, +T.at || 0) + 3 - now()) : -1;
+  if (sig + c !== Trade.seen) { Trade.seen = sig + c; if (panelOpen() && $('#xpTitle').textContent.startsWith('🤝')) drawTrade(); }
+}
+function trAsked(peer, id) {
+  trHideAsk();
+  const el = document.createElement('div'); el.id = 'tradeAsk'; el.className = 'glass';
+  el.innerHTML = `<b>🤝 ${esc(nameOf(peer))} wants to trade</b><button class="xp-btn buy" data-y="1">Trade</button><button class="xp-btn" data-n="1">No thanks</button>`;
+  el.onclick = (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    trHideAsk();
+    if (b.dataset.y) { if (Trade.st || !trPeer(peer)) return; Object.assign(Trade, { id, with: peer, st: 'open', off: [], ok: '', at: 0 }); trSend(); drawTrade(); sfx('open'); }
+    else { send({ tr: { id, to: peer, st: 'x' } }); setTimeout(() => { if (!Trade.st) send({ tr: null }); }, 3000); }
+  };
+  $('#xhud').append(el); Trade.askEl = { el, peer, id }; sfx('chat');
+  setTimeout(() => { if (Trade.askEl && Trade.askEl.el === el) trHideAsk(); }, 30000);
+}
+function trHideAsk() { if (Trade.askEl) { Trade.askEl.el.remove(); Trade.askEl = null; } }
+// tap someone on the leaderboard
+function playerMenu(peer) {
+  if (!trPeer(peer)) return;
+  const n = esc(nameOf(peer));
+  openPanel(`👤 ${nameOf(peer)}`, `<p class="xp-note">${n} is playing ${esc(exp.name)} on this server.</p><button class="xp-btn buy" data-t="1" style="width:100%;padding:13px">🤝 Trade with ${n}</button>`, (b) => { if (b.dataset.t) { closePanel(); startTrade(peer); } });
+}
 function grantCosmetic(slot, i, why) { if (W.own.has(slot + i)) return; W.own.add(slot + i); saveAv(); sfx('unlock'); if (why) say(`🎁 ${COSMETICS[slot].list[i]} unlocked — ${why}`, '#fde68a'); questMax('bv.items', W.own.size); }
 
 /* ---------------- achievements ----------------
@@ -1310,6 +1477,7 @@ const ACH = [
   ['bv', 'items', 15, 'Fashionista', 'Own 15 avatar items', 100, null, '👗'],
   ['bv', 'earned', 10000, 'Coin Hoarder', 'Earn 10,000 Blox Coins', 250, null, '💰'],
   ['bv', 'shop', 10, 'Big Spender', 'Buy 10 things in experience shops', 100, null, '🛒'],
+  ['bv', 'trade', 1, 'Trader', 'Trade with another player', 50, null, '🤝'],
   ['bv', 'ach', 25, 'Achiever', 'Earn 25 achievements', 300, ['b', 13], '🏅'],
   ['bv', 'ach', 60, 'Legend', 'Earn 60 achievements', 1000, ['h', 32], '👑'],
   ['obby', 'stage', 10, 'Getting Somewhere', 'Reach stage 10', 30, null, '🪜'],
@@ -1557,6 +1725,7 @@ async function leave(quiet) {
   unlock(); View.fp = false; $('#reticle').style.display = 'none'; $('#stam').style.opacity = 0; canvas.style.cursor = '';
   if (exp && exp.leave && playing) await exp.leave();
   const r = Net.room;
+  if (Trade.st) trReset(); trHideAsk(); Trade.asked.clear();
   Net.room = null; Net.srv = ''; playing = false;
   for (const a of Net.avatars.values()) dropAvatar(a); Net.avatars.clear();
   dropAvatar(me); me = null;
@@ -2550,6 +2719,7 @@ function showPause() {
     <button class="btn play" id="pResume">▶ Resume</button>${exp.noReset ? '' : '<button class="btn" id="pReset">🔄 Reset character <kbd>R</kbd></button>'}
     ${extra.map((x, i) => `<button class="btn blue" data-x="${i}">${esc(x[0])}</button>`).join('')}
     ${exp.coinShop && exp.coinShop.length ? '<button class="btn blue" id="pShop">🛒 Shop</button>' : ''}
+    ${crew().length > 1 ? '<button class="btn blue" id="pTrade">🤝 Trade</button>' : ''}
     <button class="btn" id="pAch">🏆 Achievements · ${ACH.filter((A) => A.e === exp.id && W.ach.got.has(A.id)).length} / ${ACH.filter((A) => A.e === exp.id).length}</button>
     <button class="btn" id="pSound">${window.Sfx && !Sfx.on ? '🔇 Sound: off' : '🔊 Sound: on'}</button>
     <button class="btn" id="pMeter">${Meter.shown ? '📊 FPS & ping: shown' : '📊 FPS & ping: hidden'}</button>
@@ -2562,6 +2732,7 @@ function showPause() {
   if ($('#pReset')) $('#pReset').onclick = () => { $('#pause').hidden = true; die(); };
   $('#pLeave').onclick = () => leave();
   if ($('#pShop')) $('#pShop').onclick = () => { $('#pause').hidden = true; openShop(); };
+  if ($('#pTrade')) $('#pTrade').onclick = () => { $('#pause').hidden = true; openPanel('🤝 Trade with…', `<p class="xp-note">Who do you want to trade with?</p>${crew().filter((c) => !c.isMe).map((c) => `<button class="xp-row" style="width:100%;cursor:pointer;color:inherit" data-p="${esc(c.peer)}"><b>👤 ${esc(nameOf(c.peer))}</b><span>🤝</span></button>`).join('')}`, (b) => { if (b.dataset.p) { closePanel(); startTrade(b.dataset.p); } }); };
   $('#pAch').onclick = () => { $('#pause').hidden = true; openPanel('🏆 Achievements', (ACH.some((A) => A.e === exp.id) ? achGroup(exp.id) : '') + achGroup('bv')); };
   $('#pSound').onclick = () => { if (!window.Sfx) return; Sfx.toggle(); $('#pSound').textContent = Sfx.on ? '🔊 Sound: on' : '🔇 Sound: off'; };
   $('#pMeter').onclick = () => { Meter.shown = !Meter.shown; Meter.sentAt = 0; Meter.ping = null; try { localStorage.setItem('bv-meter', Meter.shown ? '1' : '0'); } catch (e) {} $('#pMeter').textContent = Meter.shown ? '📊 FPS & ping: shown' : '📊 FPS & ping: hidden'; drawMeter(); };
@@ -2571,6 +2742,7 @@ function showPause() {
   $('#pausePanel').querySelectorAll('[data-x]').forEach((b) => (b.onclick = () => { $('#pause').hidden = true; extra[+b.dataset.x][1](); }));
 }
 $('#menuBtn').onclick = showPause;
+$('#board').addEventListener('click', (e) => { const r = e.target.closest('tr[data-peer]'); if (r && playing) playerMenu(r.dataset.peer); });
 $('#coins').onclick = $('#shopFab').onclick = () => { if (playing && exp && exp.coinShop && exp.coinShop.length) openShop(); };
 $('#achBtn').onclick = () => { homeView = 'ach'; sfx('open'); drawExps(); window.scrollTo(0, 0); };
 
@@ -2802,6 +2974,7 @@ function frame(t) {
     camera.lookAt(tx, ty, tz);
   }
   netTick(t);
+  if (t - (Trade.tickAt || 0) > 200) { Trade.tickAt = t; tradeTick(); }
   meterTick(t);
   if (t > hudAt) { hudAt = t + 200; drawHud(); }
   if (typeof scenery === 'function' && scenery.tick) scenery.tick(dt); // the land all round: clouds drift, far-off land isn't drawn
@@ -2825,7 +2998,7 @@ function camRoom(ox, oy, oz, dx, dy, dz, max) {
 }
 function drawHud() {
   const rows = crew().map((c) => ({ c, name: c.isMe ? Net.name : String(c.pr.nm || 'Player').slice(0, 20), v: exp.statOf(c.pr, c.isMe, c.peer), k: exp.sortKey(c.pr, c.isMe, c.peer) })).sort((a, b) => b.k - a.k);
-  $('#board').innerHTML = `<table><tr><th>👥 ${rows.length} player${rows.length === 1 ? '' : 's'}</th><th>${exp.stat}</th></tr>${rows.map((r, i) => `<tr class="${r.c.isMe ? 'me' : ''}"><td><span class="rk">${i + 1}</span>${esc(r.name)}</td><td>${esc(String(r.v))}</td></tr>`).join('')}</table>`;
+  $('#board').innerHTML = `<table><tr><th>👥 ${rows.length} player${rows.length === 1 ? '' : 's'}</th><th>${exp.stat}</th></tr>${rows.map((r, i) => `<tr class="${r.c.isMe ? 'me' : ''}"${r.c.isMe ? '' : ` data-peer="${esc(r.c.peer)}" title="Tap to trade"`}><td><span class="rk">${i + 1}</span>${esc(r.name)}</td><td>${esc(String(r.v))}</td></tr>`).join('')}</table>`;
   $('#stat').innerHTML = exp.hud ? exp.hud() : '';
   if (!exp.banner) setBanner('');
   if (Meter.shown) placeMeter(); // the leaderboard may have grown or shrunk
@@ -2839,7 +3012,7 @@ try { loadAvFrom(JSON.parse(localStorage.getItem('rb.av') || 'null')); } catch (
 achNum();
 drawAvatarOpts(); drawExps();
 requestAnimationFrame(frame);
-window.__rb = { P, Net, cam, camera, scene, renderer, keys, EXPS, Meter, GFX, gfxApply, softGL, View, setLock, zoomBy, lookBy, joy, sunL, sunSprite, makeAvatar, join, leave, die, respawn, openShop, buyItem, hasItem, itemCount, giveItem, useItem, shopItem, setItemOff, parts: () => parts, exp: () => exp, me: () => me, iAmHost, crew, players, get AV() { return AV; }, W, earn, spend, roundState, openPanel, closePanel, pickPlane, myPeer, grantCosmetic, snapshot }; // for tests
+window.__rb = { P, Net, cam, camera, scene, renderer, keys, EXPS, Meter, GFX, gfxApply, softGL, View, setLock, zoomBy, lookBy, joy, sunL, sunSprite, makeAvatar, join, leave, die, respawn, openShop, buyItem, hasItem, itemCount, giveItem, useItem, shopItem, setItemOff, Trade, startTrade, tradeTick, parts: () => parts, exp: () => exp, me: () => me, iAmHost, crew, players, get AV() { return AV; }, W, earn, spend, roundState, openPanel, closePanel, pickPlane, myPeer, grantCosmetic, snapshot }; // for tests
 if (!Net.api()) homeStatus('Open Bloxverse from 🕹️ Games in the chat to play online.');
 else {
   $('#hi').textContent = 'Connecting…';

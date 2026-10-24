@@ -734,6 +734,11 @@
     ],
     shopCan(id) { return id === 'cash' && !this.S ? 'Loading…' : ''; },
     onBuy(id) { if (id !== 'cash') return; const v = 1000 * (1 + this.S.rb); this.S.cash += v; this.dirty = true; toast(`💵 +$${v.toLocaleString('en-US')}`, '#86efac'); },
+    // trading: your pets
+    tradeName: 'Pets',
+    tradeItems() { const S = this.S; return S ? S.pets.map((sp, i) => SPECIES[sp] && { k: trKey(i, sp), e: RAR_DOT[rarOf(sp)], n: `${SPECIES[sp][0]} (×${petMult(sp).toFixed(1)})`, d: sp }).filter(Boolean) : []; },
+    tradeTake(k) { const S = this.S, i = trFind(S.pets, k); if (i < 0) return; S.pets.splice(i, 1); S.eq = S.eq.filter((x) => x !== i).map((x) => (x > i ? x - 1 : x)); this.dirty = true; this.syncPets(); this.send(true); this.drawBar(); this.save(); },
+    tradeGive(d) { const S = this.S; if (!Number.isInteger(d) || !SPECIES[d] || S.pets.length >= MAX_PETS * 2) return; S.pets.push(d); this.dirty = true; this.drawBar(); this.save(); },
   };
   addExp(SP);
   window.__rbSP = SP;

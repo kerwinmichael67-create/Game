@@ -981,6 +981,26 @@
       for (let i = 0; i < 3; i++) { const r = Math.random(), t = r < 0.05 ? 6 + Math.floor(Math.random() * 2) : r < 0.2 ? 4 + Math.floor(Math.random() * 2) : r < 0.5 ? 2 + Math.floor(Math.random() * 2) : Math.floor(Math.random() * 2); this.S.seeds[t] = (this.S.seeds[t] || 0) + 1; got.push(SEEDS[t][7]); }
       this.dirty = true; this.drawBar(); toast(`🌱 ${got.join(' ')} seeds!`, '#86efac');
     },
+    // trading: brainrots from your bag, and seeds (one at a time)
+    tradeName: 'Brainrots & seeds',
+    tradeItems() {
+      const S = this.S; if (!S) return [];
+      const out = S.inv.map((e, i) => ({ k: 'r' + trKey(i, e), e: '🧠', n: `${rotName(...e)} (${RAR[rarOf(e[0], e[2])].n})`, d: { r: e } }));
+      for (const t in S.seeds) if (S.seeds[t] > 0 && SEEDS[t]) out.push({ k: 's:' + t, e: SEEDS[t][7], n: `${SEEDS[t][0]} seed (you have ${S.seeds[t]})`, d: { s: +t } });
+      return out;
+    },
+    tradeTake(k) {
+      const S = this.S;
+      if (k[0] === 'r') { const i = trFind(S.inv, k.slice(1)); if (i >= 0) S.inv.splice(i, 1); }
+      else if (k.startsWith('s:')) { const t = k.slice(2); if (S.seeds[t] > 0) { S.seeds[t]--; if (!S.seeds[t]) delete S.seeds[t]; if (this.sel === 's' + t && !S.seeds[t]) this.sel = 'bat'; } }
+      this.dirty = true; this.save(); this.drawBar();
+    },
+    tradeGive(d) {
+      const S = this.S; if (!d || typeof d !== 'object') return;
+      const e = d.r; if (Array.isArray(e) && BR[e[0] | 0] && MUT[e[1] | 0] && (e[2] === -1 || SEEDS[e[2] | 0]) && S.inv.length < 120) S.inv.push([e[0] | 0, e[1] | 0, e[2] | 0]);
+      else if (SEEDS[d.s]) S.seeds[d.s] = (S.seeds[d.s] || 0) + 1;
+      this.dirty = true; this.save(); this.drawBar();
+    },
   };
   addExp(PB);
   PB.W = WEATHER; PB.consts = { SEEDS, BR, GEAR, REB, PX, spotPos, podPos, laneX }; window.__rbPB = PB; // for tests

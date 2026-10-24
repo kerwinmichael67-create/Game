@@ -277,6 +277,15 @@
       S.bees.push(bee); this.addBee(bee); this.fences(); this.save(); questMax('bee.bees', S.bees.length); send({ bz: [S.bees.length, Math.floor(S.honey)] });
       toast(`${BEES[k].e} A ${BEES[k].n} joined your hive!`, '#fde68a');
     },
+    // trading: your bees
+    tradeName: 'Bees',
+    tradeItems() { const S = this.S; return S ? S.bees.map((b, i) => BEES[b[0]] && { k: trKey(i, b), e: BEES[b[0]].e, n: `${b[1] ? '🎁 Gifted ' : ''}${BEES[b[0]].n}`, d: b }).filter(Boolean) : []; },
+    tradeTake(k) {
+      const S = this.S, i = trFind(S.bees, k); if (i < 0) return;
+      const b = S.bees.splice(i, 1)[0], j = this.swarm.findIndex((q) => q.type === b[0] && q.gifted === b[1]); if (j >= 0) { scene.remove(this.swarm[j].m); this.swarm.splice(j, 1); }
+      this.fences(); this.save(); send({ bz: [S.bees.length, Math.floor(S.honey)] });
+    },
+    tradeGive(d) { const S = this.S; if (!Array.isArray(d) || !BEES[d[0] | 0] || S.bees.length >= MAX_BEES) return; const b = [d[0] | 0, d[1] ? 1 : 0]; S.bees.push(b); this.addBee(b); this.fences(); this.save(); questMax('bee.bees', S.bees.length); send({ bz: [S.bees.length, Math.floor(S.honey)] }); },
   };
   addExp(BS);
   window.__rbBS = BS;

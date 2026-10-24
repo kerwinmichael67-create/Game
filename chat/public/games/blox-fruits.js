@@ -1090,6 +1090,11 @@
     ],
     shopCan(id) { return id === 'fruit' && (!this.S || this.S.inv.length >= 8) ? 'Your fruit bag is full' : ''; },
     onBuy(id) { if (id === 'fruit') this.addFruit(pickFruit(Math.random), '🎲 The shop’s Mystery Fruit is'); },
+    // trading: the fruits in your bag
+    tradeName: 'Fruits',
+    tradeItems() { const S = this.S; return S ? S.inv.map((fi, i) => FR[fi] && { k: trKey(i, fi), e: FR[fi].e, n: `${FR[fi].n} Fruit (${RAR[FR[fi].r].n})`, d: fi }).filter(Boolean) : []; },
+    tradeTake(k) { const S = this.S, i = trFind(S.inv, k); if (i >= 0) { S.inv.splice(i, 1); this.dirty = true; this.saveNow(); } },
+    tradeGive(d) { const S = this.S; if (FR[d | 0] && Number.isInteger(d) && S.inv.length < 12) { S.inv.push(d); this.dirty = true; this.saveNow(); } },
   };
   const BAR_BG = new THREE.MeshBasicMaterial({ color: 0x111827 }), BAR_FG = new THREE.MeshBasicMaterial({ color: 0x22c55e });
   function makeWeapon() { const g = new THREE.Group(), o = new THREE.Mesh(BOX, mat(0x6b7280)); o.scale.set(0.3, 0.3, 2.6); o.position.set(0, -1.9, -1.2); g.add(o); const h = new THREE.Mesh(BOX, mat(0x44403c)); h.scale.set(0.9, 0.9, 0.9); h.position.set(0, -1.9, -2.6); g.add(h); g.rotation.x = -0.3; return g; }

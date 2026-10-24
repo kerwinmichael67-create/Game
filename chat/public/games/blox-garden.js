@@ -525,6 +525,30 @@
       for (let i = 0; i < 3; i++) { const r = Math.random(), s = r < 0.08 ? 6 + Math.floor(Math.random() * 3) : r < 0.45 ? 3 + Math.floor(Math.random() * 3) : 1 + Math.floor(Math.random() * 2); this.G.seeds[s] = (this.G.seeds[s] || 0) + 1; got.push(SEEDS[s][7]); }
       toast(`🎁 ${got.join(' ')} seeds!`, '#86efac'); this.dirty = true; this.save(); this.drawBar();
     },
+    // trading: seeds (one at a time), crops from your bag, and pets
+    tradeName: 'Seeds, crops & pets',
+    tradeItems() {
+      const G = this.G; if (!G) return [];
+      const out = [];
+      for (const i in G.seeds) if (G.seeds[i] > 0 && SEEDS[i]) out.push({ k: 's:' + i, e: SEEDS[i][7], n: `${SEEDS[i][0]} seed (you have ${G.seeds[i]})`, d: { s: +i } });
+      G.bag.forEach((c, i) => { if (SEEDS[c[0]]) out.push({ k: 'c' + trKey(i, c), e: SEEDS[c[0]][7], n: `${MUT[c[2]] && MUT[c[2]][0] ? MUT[c[2]][0] + ' ' : ''}${SEEDS[c[0]][0]} (${c[1]} kg)`, d: { c } }); });
+      G.pets.forEach((t, i) => { if (PETS[t]) out.push({ k: 'p' + trKey(i, t), e: PETS[t].e, n: `${PETS[t].n} pet`, d: { p: t } }); });
+      return out;
+    },
+    tradeTake(k) {
+      const G = this.G;
+      if (k.startsWith('s:')) { const i = k.slice(2); if (G.seeds[i] > 0) { G.seeds[i]--; if (!G.seeds[i]) delete G.seeds[i]; } }
+      else if (k[0] === 'c') { const i = trFind(G.bag, k.slice(1)); if (i >= 0) G.bag.splice(i, 1); }
+      else if (k[0] === 'p') { const i = trFind(G.pets, k.slice(1)); if (i >= 0) { G.pets.splice(i, 1); G.eq = G.eq.filter((x) => x !== i).map((x) => (x > i ? x - 1 : x)); } }
+      this.dirty = true; this.save(); this.drawBar();
+    },
+    tradeGive(d) {
+      const G = this.G; if (!d || typeof d !== 'object') return;
+      if (SEEDS[d.s]) G.seeds[d.s] = (G.seeds[d.s] || 0) + 1;
+      else if (Array.isArray(d.c) && SEEDS[d.c[0] | 0] && MUT[d.c[2] | 0] && G.bag.length < MAX_BAG) G.bag.push([d.c[0] | 0, clamp(+d.c[1] || 1, 0.1, 20), d.c[2] | 0]);
+      else if (PETS[d.p]) G.pets.push(d.p | 0);
+      this.dirty = true; this.save(); this.drawBar();
+    },
   };
   addExp(GARDEN);
   window.__rbGarden = GARDEN;

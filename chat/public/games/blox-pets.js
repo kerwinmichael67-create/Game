@@ -553,6 +553,11 @@
       shopSpeed(200, 1.2),
     ],
     onBuy(id) { if (id === 'slot' && this.S) this.drawBar(); },
+    // trading: your pets
+    tradeName: 'Pets',
+    tradeItems() { const S = this.S; return S ? S.pets.map((p, i) => ({ k: trKey(i, p), e: RAR_DOT[rarOf(p[0])], n: `${VAR[p[1]][0] ? VAR[p[1]][0] + ' ' : ''}${SPECIES[p[0]][0]} (${RAR[rarOf(p[0])][0]})`, d: p })) : []; },
+    tradeTake(k) { const S = this.S, i = trFind(S.pets, k); if (i < 0) return; S.pets.splice(i, 1); S.eq = S.eq.filter((x) => x !== i).map((x) => (x > i ? x - 1 : x)); this.syncPets(); this.send(); this.drawBar(); this.save(); },
+    tradeGive(d) { const S = this.S; if (!Array.isArray(d) || !SPECIES[d[0] | 0] || S.pets.length >= MAX_PETS * 2) return; S.pets.push([d[0] | 0, clamp(d[1] | 0, 0, 2)]); this.drawBar(); this.save(); },
   };
   function m_dispose(m) { if (m.geometry) m.geometry.dispose(); if (m.material) m.material.dispose(); }
   addExp(PS);

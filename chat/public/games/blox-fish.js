@@ -462,6 +462,11 @@
       { id: 'bag', e: '🎒', n: 'Big Bag', d: 'Hold 80 fish instead of 40, for good', price: 400, kind: 'pass' },
       { id: 'bait', e: '🪱', n: 'Magic Bait', d: '10 casts where a fish bites much sooner', price: 25, kind: 'use', pack: 10 },
     ],
+    // trading: the fish in your bag
+    tradeName: 'Fish',
+    tradeItems() { const S = this.S; return S ? S.bag.map((b, i) => FISH[b[0]] && { k: trKey(i, b), e: RAR_DOT[FISH[b[0]][1]] || '🐟', n: `${b[2] ? '✨ ' : ''}${FISH[b[0]][0]} (${kgs(b[1])})`, d: b }).filter(Boolean) : []; },
+    tradeTake(k) { const S = this.S, i = trFind(S.bag, k); if (i >= 0) { S.bag.splice(i, 1); this.dirty = true; this.save(); } },
+    tradeGive(d) { const S = this.S; if (!Array.isArray(d) || !FISH[d[0] | 0] || S.bag.length >= bagMax() * 2) return; S.bag.push([d[0] | 0, clamp(+d[1] || 0.1, 0.01, 9999), d[2] ? 1 : 0]); this.dirty = true; this.save(); },
   };
   // the water you're facing: where a cast would land (for the status line)
   function waterNear() {
