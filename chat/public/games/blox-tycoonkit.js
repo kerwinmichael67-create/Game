@@ -26,6 +26,10 @@
    s = where on the path, drop = how high it falls from, batch), 'up'
    (s, mul), 'pay' (v, every), 'speed' (sp: the path's speed), 'deco'
    (bonus: more cash for every sale) or anything of the tycoon's own.
+   An item's buy pad goes where it'll be built: pad: [lx, lz, top] (top:
+   the floor there, 0.4 if not said), or, for a thing on the path, beside
+   the path where it is; a faster belt's by the start of the belt (or at
+   E.speedPad).
    ===================================================================== */
 function tycoonKit(E) {
   const T = E.items, LAST = T.length - 1;
@@ -45,6 +49,19 @@ function tycoonKit(E) {
   // how far along the path is the nearest point to (lx, lz)
   const sNear = (lx, lz) => { let best = 0, bd = 1e9; for (const g of path.segs) { const d = clamp((lx - g.x0) * g.dx + (lz - g.z0) * g.dz, 0, g.len), e = Math.hypot(g.x0 + g.dx * d - lx, g.z0 + g.dz * d - lz); if (e < bd) { bd = e; best = g.s0 + d; } } return best; };
   for (const it of T) if (it.at && it.s == null) it.s = sNear(it.at[0], it.at[1]);
+  // where each thing's buy pad goes: [lx, lz, the floor's top, and which way to move it if another pad's there]
+  const PAD = 3.6, FLOOR = 0.4;
+  const beside = (s) => {
+    const [x, z, g] = pathAt(s); let nx = -g.dz, nz = g.dx;
+    if (-x * nx - z * nz < 0) { nx = -nx; nz = -nz; } // (the side towards the middle of the plot: where you walk)
+    return [x + nx * 5, z + nz * 5, FLOOR, nx, nz];
+  };
+  const start = T[0].s != null ? beside(T[0].s) : null; // (the first thing's always yours: its spot's free)
+  for (const it of T) {
+    if (it.pad) { const [x, z, top] = it.pad, d = Math.hypot(x, z) || 1; it.spot = [x, z, top != null ? top : FLOOR, -x / d, -z / d]; }
+    else if (it.kind === 'speed' && (E.speedPad || start)) it.spot = E.speedPad ? [E.speedPad[0], E.speedPad[1], FLOOR, 0, 1] : start;
+    else if (it.s != null) it.spot = beside(it.s);
+  }
   if (!document.getElementById('tyCss')) {
     const st = document.createElement('style'); st.id = 'tyCss';
     st.textContent = `.tyTime{position:absolute;left:50%;bottom:150px;transform:translateX(-50%);width:min(420px,86vw);background:rgba(15,23,42,.82);border:2px solid rgba(255,255,255,.2);border-radius:16px;padding:10px 14px 12px;text-align:center;color:#fff;pointer-events:auto;font-weight:800}
@@ -104,12 +121,16 @@ function tycoonKit(E) {
       }
       if (this.tyBase) this.tyBase(pl, add);
       T.forEach((it, i) => { if (has(b, i) && this.tyItem) this.tyItem(pl, it, i, add); });
-      // buy pads: the next two things, side by side; with everything bought, the rebirth
+      // buy pads: the next two things, each where it'll be built (moved along a bit if the other's there);
+      // with everything bought, the rebirth
       const [px, pz] = E.padAt || [0, 6];
-      const left = T.map((_, i) => i).filter((i) => !has(b, i)).slice(0, 2);
+      const left = T.map((_, i) => i).filter((i) => !has(b, i)).slice(0, 2), used = [];
       left.forEach((i, n) => {
-        const it = T[i], p = add(px + (n ? 6 : -6), 0.8, pz, 4, 0.4, 4, 0x22c55e, { neon: true, kind: 'buy', item: i, solid: false });
-        lab(p, `${it.n}\n${money(it.price)}`, 3.6);
+        const it = T[i]; let [lx, lz, top, ox, oz] = it.spot || [px + (n ? 6 : -6), pz, FLOOR, 0, 1];
+        for (const [ux, uz, ut] of used) if (ut === top && Math.abs(ux - lx) < PAD + 0.6 && Math.abs(uz - lz) < PAD + 0.6) { lx += ox * (PAD + 1); lz += oz * (PAD + 1); }
+        used.push([lx, lz, top]);
+        const p = add(lx, top + 0.4, lz, PAD, 0.4, PAD, 0x22c55e, { neon: true, kind: 'buy', item: i, solid: false });
+        lab(p, `${it.n}\n${money(it.price)}`, top + 3.2);
       });
       if (!left.length) { const p = add(px, 0.8, pz, 5, 0.4, 5, 0xa855f7, { neon: true, kind: 'rebirth', solid: false }); lab(p, `🔁 Rebirth\n×${(1 + 0.5 * (pl.rb + 1)).toFixed(1)} cash`, 3.8); }
       this.drawCase(pl);
@@ -172,10 +193,11 @@ function tycoonKit(E) {
       toast(`It’s yours! The ${PLOT_NAMES[k]} ${noun}`, '#86efac'); puffAt(P.x, P.y + 2, P.z, CONFETTI, 30); sfx('unlock');
     },
     buy(i) {
-      const it = T[i];
-      if (has(this.b, i) || performance.now() < this.buyCd) return;
-      this.buyCd = performance.now() + 700;
-      if (this.cash < it.price) { toast(`You need ${money(it.price - this.cash)} more`, '#fca5a5'); sfx('error', { gap: 600 }); return; }
+      const it = T[i], now = performance.now(), still = this.onPad === i && now - this.onPadT < 400; // (still standing on it)
+      this.onPad = i; this.onPadT = now;
+      if (has(this.b, i) || now < this.buyCd) return;
+      if (this.cash < it.price) { if (!still) { toast(`You need ${money(it.price - this.cash)} more`, '#fca5a5'); sfx('error', { gap: 600 }); } return; }
+      this.buyCd = now + 700;
       this.cash -= it.price; this.b |= 1 << i;
       send({ b: this.b, cash: Math.floor(this.cash) }); this.peers(); this.save();
       toast(`${it.e ? it.e + ' ' : ''}Bought ${it.n}!${it.bonus ? ` +${Math.round(it.bonus * 100)}% cash` : ''}${it.say ? ' ' + it.say : ''}`, '#86efac'); puffAt(P.x, P.y + 2, P.z, 0x22c55e, 18); sfx('buy');

@@ -2011,6 +2011,25 @@ const TY = [
   { n: 'Space Station', price: 9000000, kind: 'station' },
 ];
 const TY_TURBO = TY.findIndex((it) => it.kind === 'turbo'), TY_LAST = TY.length - 1;
+const TY_FLOOR = TY.findIndex((it) => it.kind === 'floor'), TY_STATUE = TY.findIndex((it) => it.kind === 'statue');
+// where a thing's buy pad goes: where it'll be built (the sky line's up on the second floor, once you have it):
+// [x, z, the floor's top]
+function tySpot(it, b) {
+  const up = has(b, TY_FLOOR) ? 13.4 : 0.4;
+  switch (it.kind) {
+    case 'dropper': { const x = -21 + it.slot * 5; return [it.line && has(b, TY_FLOOR) && has(b, TY_STATUE) && Math.abs(x) < 3.8 ? 3.8 : x, -7, it.line ? up : 0.4]; } // (in front of the conveyor, under the dropper; up there, not on the statue)
+    case 'up': return [8.5 + it.slot * 3.5, -7, it.line ? up : 0.4];
+    case 'conv': case 'turbo': return [-21, -7, 0.4]; // (by the start of the conveyor)
+    case 'sky': return [19, -6, up]; // (at the top of the stairs)
+    case 'walls': return [-14.5, 20, 0.4];
+    case 'neon': return [19.5, 20, 0.4];
+    case 'floor': return [20, 10, 0.4]; // (where the stairs start)
+    case 'statue': return [0, -5, up];
+    case 'rocket': return [-19, 18, 0.4];
+    case 'fountain': return [13, 16, 0.4];
+    default: return [0, 4, 0.4]; // (the space station: high over the middle)
+  }
+}
 const LINE_Y = 13; // the sky line is this much higher (on the second floor)
 const tyBonus = (b) => TY.reduce((s, it, i) => s + (it.bonus && has(b, i) ? it.bonus : 0), 0);
 const tyMult = (b, rb) => (1 + tyBonus(b)) * (1 + 0.5 * (rb || 0)); // cash for every cube: decorations, then rebirths
@@ -2127,11 +2146,15 @@ const TYCOON = {
         part({ x, y: 11.4, z, sx: 4, sy: 22, sz: 4, c: 0, plot: k, plain: true, alpha: 0 }); // so you can't walk through it
       }
     });
-    // buttons: the next two things you can buy, side by side; with everything bought, the rebirth
-    const left = TY.map((_, i) => i).filter((i) => !has(b, i)).slice(0, 2);
-    left.forEach((i, n) => {
-      const it = TY[i], p = add(n ? 6 : -6, 0.8, 6, 4, 0.4, 4, 0x22c55e, { neon: true, kind: 'buy', item: i, solid: false });
-      lab(p, `${it.n}\n${money(it.price)}`, 3.6);
+    // buttons: the next two things you can buy, each where it'll be built (moved along a bit if the other's
+    // there); with everything bought, the rebirth
+    const left = TY.map((_, i) => i).filter((i) => !has(b, i)).slice(0, 2), used = [];
+    left.forEach((i) => {
+      const it = TY[i]; let [lx, lz, top] = tySpot(it, b);
+      for (const [ux, uz, ut] of used) if (ut === top && Math.abs(ux - lx) < 4.2 && Math.abs(uz - lz) < 4.2) { if (lz < 0) lz += 4.6; else lx += lx < 0 ? 4.6 : -4.6; }
+      used.push([lx, lz, top]);
+      const p = add(lx, top + 0.4, lz, 3.6, 0.4, 3.6, 0x22c55e, { neon: true, kind: 'buy', item: i, solid: false });
+      lab(p, `${it.n}\n${money(it.price)}`, top + 3.2);
     });
     if (!left.length) { const p = add(0, 0.8, 6, 5, 0.4, 5, 0xa855f7, { neon: true, kind: 'rebirth', solid: false }); lab(p, `🔁 Rebirth\n×${(1 + 0.5 * (pl.rb + 1)).toFixed(1)} cash`, 3.8); }
   },
@@ -2169,10 +2192,11 @@ const TYCOON = {
     toast(`It’s yours! ${PLOT_NAMES[k]} Factory`, '#86efac'); puffAt(P.x, P.y + 2, P.z, CONFETTI, 30); sfx('unlock');
   },
   buy(i) {
-    const it = TY[i];
-    if (has(this.b, i) || performance.now() < this.buyCd) return;
-    this.buyCd = performance.now() + 700;
-    if (this.cash < it.price) { toast(`You need ${money(it.price - this.cash)} more`, '#fca5a5'); sfx('error', { gap: 600 }); return; }
+    const it = TY[i], now = performance.now(), still = this.onPad === i && now - this.onPadT < 400; // (still standing on it)
+    this.onPad = i; this.onPadT = now;
+    if (has(this.b, i) || now < this.buyCd) return;
+    if (this.cash < it.price) { if (!still) { toast(`You need ${money(it.price - this.cash)} more`, '#fca5a5'); sfx('error', { gap: 600 }); } return; }
+    this.buyCd = now + 700;
     this.cash -= it.price; this.b |= 1 << i;
     send({ b: this.b, cash: Math.floor(this.cash) }); this.peers(); this.save();
     toast(it.bonus ? `Bought ${it.n}! +${Math.round(it.bonus * 100)}% cash` : `Bought ${it.n}!`, '#86efac'); puffAt(P.x, P.y + 2, P.z, 0x22c55e, 18); sfx('buy');
