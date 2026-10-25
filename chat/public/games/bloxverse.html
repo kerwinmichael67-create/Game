@@ -2135,7 +2135,7 @@ const TYCOON = {
   id: 'tycoon', code: 'ty', genre: 'Tycoon', rank: 6, name: 'Cube Factory Tycoon', emoji: '💰', max: 4, stat: 'Cash', killY: -40,
   land: { theme: 'meadow', fence: 'wood' },
   color: 'linear-gradient(135deg,#16a34a,#ca8a04)',
-  desc: 'Claim a factory, buy droppers, upgraders and more, and watch the cash roll in. After the rocket, build a second line up on the second floor; after the space station, rebirth for more cash for good. Your factory is saved for next time.',
+  desc: 'Claim a factory, buy droppers, upgraders and more, and watch the cash pile up in your collector: step on 💵 Collect to bank it, like the classic tycoons. After the rocket, build a second line up on the second floor; after the space station, rebirth for more cash for good. Your factory is saved for next time.',
   welcome: 'Step on a claim pad to get a factory!',
   build() {
     sky('#6cb8ff', '#e3f4ff');
@@ -2178,6 +2178,12 @@ const TYCOON = {
       add(-3.5, 2.4 + y, -12, 39, 2, 4, 0xffffff, { stripes: turbo ? '#e879f9' : conv ? '#22d3ee' : '#facc15', conv: [turbo ? 12 : conv ? 9 : 6, 0] });
       add(19, 5.4 + y, -12, 6, 5, 6, 0x374151, { plain: true });
       add(19, 5.5 + y, -12, 4, 0.2, 4, 0x22c55e, { neon: true, solid: false });
+    }
+    // the cash piles up in the collector till you step on 💵 Collect (with Auto Collect, it goes straight in)
+    pl.pile = pl.binLab = null;
+    if (!(pl.mine && hasItem('autocol'))) {
+      const p = add(20, 0.8, -6.5, 3.6, 0.4, 3.6, 0x22c55e, { neon: true, kind: 'collect', solid: false }); lab(p, '💵 Collect', 3.6);
+      if (pl.mine) { pl.pile = add(19, 5.6, -12, 3.6, 0.2, 3.6, 0x16a34a, { solid: false }); pl.binShown = -1; }
     }
     TY.forEach((it, i) => {
       if (!has(b, i)) return;
@@ -2256,8 +2262,8 @@ const TYCOON = {
   pres() { return { pl: -1, cash: 0, b: 0, rb: 0 }; },
   async enter() {
     this.cash = 0; this.b = 1; this.rb = 0; this.myPlot = null; this.ct = 0; this.buyCd = 0; this.earned = []; this.sentCash = -1; this.saveAt = performance.now() + 10000; this.btnAt = 0; this.rbAt = 0;
-    const s = await kvGet('ty');
-    if (s) { this.cash = Math.max(0, +s.cash || 0); this.b = (s.b | 0) | 1; this.rb = Math.max(0, s.rb | 0); }
+    const s = await kvGet('ty'); this.bin = 0; this.fullSaid = false;
+    if (s) { this.cash = Math.max(0, +s.cash || 0); this.b = (s.b | 0) | 1; this.rb = Math.max(0, s.rb | 0); this.bin = Math.max(0, +s.bin || 0); }
     send({ rb: this.rb });
     questMax('tycoon.rebirth', this.rb); questMax('tycoon.buy', TY.filter((_, i) => i && has(this.b, i)).length); if (TY.some((it, i) => it.kind === 'rocket' && has(this.b, i))) questMax('tycoon.rocket', 1);
     this.peers();
@@ -2333,7 +2339,7 @@ const TYCOON = {
   },
   rebirth() {
     if (TY.some((_, i) => !has(this.b, i))) return;
-    this.rb++; this.b = 1; this.cash = 0; this.tmReset = true; questMax('tycoon.rebirth', this.rb);
+    this.rb++; this.b = 1; this.cash = 0; this.bin = 0; this.tmReset = true; questMax('tycoon.rebirth', this.rb);
     send({ b: this.b, rb: this.rb, cash: 0 }); this.peers(); this.save();
     toast(`🔁 Rebirth ${this.rb}! Every cube is worth ×${(1 + 0.5 * this.rb).toFixed(1)} now`, '#d8b4fe'); sfx('unlock'); puffAt(P.x, P.y + 3, P.z, CONFETTI, 60);
     Net.chat(`🔁 rebirthed the factory (×${(1 + 0.5 * this.rb).toFixed(1)} cash)`);
@@ -2341,6 +2347,7 @@ const TYCOON = {
   touch(p) {
     if (p.kind === 'claim' && this.myPlot == null && !this.plots[p.plot].owner) this.claim(p.plot);
     else if (p.kind === 'buy' && p.plot === this.myPlot) this.buy(p.item);
+    else if (p.kind === 'collect' && p.plot === this.myPlot) this.collect();
     else if (p.kind === 'rebirth' && p.plot === this.myPlot && !panelOpen() && performance.now() > this.rbAt) { this.rbAt = performance.now() + 2500; this.rebirthPanel(); }
   },
   tick(dt) {
@@ -2348,6 +2355,7 @@ const TYCOON = {
     for (const pl of this.plots) this.sim(pl, dt);
     if (t > (this.boostAt || 0)) { this.boostAt = t + 150; padBoost(this); }
     if (this.myPlot != null) {
+      this.drawBin(t);
       if (Math.floor(this.cash) !== this.sentCash && t - (this.cashAt || 0) > 1000) { this.cashAt = t; this.sentCash = Math.floor(this.cash); send({ cash: this.sentCash }); }
       if (t > this.saveAt) { this.saveAt = t + 10000; this.save(); }
       if (t > this.btnAt) { this.btnAt = t + 300; for (const p of parts) if (p.kind === 'buy' && p.plot === this.myPlot) p.m.material.color.set(this.cash >= TY[p.item].price ? 0x22c55e : 0xef4444); }
@@ -2384,16 +2392,49 @@ const TYCOON = {
       pl.ups[c.ln].forEach((ux, u) => { if (!(c.up & (1 << u)) && c.lx >= ux) { c.up |= 1 << u; c.v *= 2; c.m.material = this.upMat; } });
       if (c.lx >= 16.5) {
         place.remove(c.m); pl.cubes.splice(j, 1);
-        if (pl.mine) { const v = (c.v + extra) * tyMult(b, this.rb) * (hasItem('cash2') ? 2 : 1); this.cash += v; sfx3('coin', c.m.position.x, c.m.position.z, 50, { vol: 0.25, gap: 350, pitch: 1.3 }); this.earned.push([performance.now(), v]); this.dirty = true; this.coinAcc = Math.min(3, (this.coinAcc || 0) + v / 1500); if (this.coinAcc >= 1 && performance.now() - (this.coinAt || 0) > 10000) { this.coinAt = performance.now(); earn(1); this.coinAcc -= 1; } } // Blox Coins: one per $1,500, at most one every 10 seconds (the cash grows much faster than the other games pay)
+        if (pl.mine) { const v = (c.v + extra) * tyMult(b, this.rb) * (hasItem('cash2') ? 2 : 1); this.bank(v); sfx3('coin', c.m.position.x, c.m.position.z, 50, { vol: 0.25, gap: 350, pitch: 1.3 }); this.earned.push([performance.now(), v]); this.dirty = true; this.coinAcc = Math.min(3, (this.coinAcc || 0) + v / 1500); if (this.coinAcc >= 1 && performance.now() - (this.coinAt || 0) > 10000) { this.coinAt = performance.now(); earn(1); this.coinAcc -= 1; } } // Blox Coins: one per $1,500, at most one every 10 seconds (the cash grows much faster than the other games pay)
         continue;
       }
       const [x, z] = this.W(pl, c.lx, -12); c.m.position.set(x, c.y, z);
     }
   },
-  save() { if (this.dirty || this.myPlot != null) { this.dirty = false; return kvSet('ty', { cash: Math.floor(this.cash), b: this.b, rb: this.rb }); } },
-  coinShop: [{ id: 'cash2', e: '💵', n: '2× Cash', d: 'Every cube is worth double, for good', price: 700, kind: 'pass' }, shopSpeed(200, 1.25), { id: 'crate', e: '💰', n: 'Cash Crate', d: 'A minute of your factory’s cash (at least $300), right now', price: 40, kind: 'now' }],
+  save() { if (this.dirty || this.myPlot != null) { this.dirty = false; return kvSet('ty', { cash: Math.floor(this.cash), b: this.b, rb: this.rb, bin: Math.floor(this.bin || 0) }); } },
+  // a cube's cash: into the collector (it holds three minutes of what the factory makes), or your pocket with Auto Collect
+  bank(v) {
+    if (hasItem('autocol')) { this.cash += v; return; }
+    const cap = this.binCap();
+    if (this.bin >= cap) { if (!this.fullSaid) { this.fullSaid = true; toast('💵 Your collector’s full! Step on Collect', '#fde68a'); sfx('error', { gap: 600 }); } return; }
+    this.bin = Math.min(cap, (this.bin || 0) + v);
+  },
+  rateNow() {
+    const b = this.b, M = tyMult(b, this.rb) * (hasItem('cash2') ? 2 : 1), extra = has(b, TY_TURBO) ? 5 : has(b, 2) ? 1 : 0;
+    const ups = (ln) => TY.filter((u, k) => u.kind === 'up' && (u.line || 0) === ln && has(b, k)).length;
+    return TY.reduce((r, d, k) => (d.kind === 'dropper' && has(b, k) ? r + (d.v * 2 ** ups(d.line || 0) + extra) / d.every : r), 0) * M;
+  },
+  binCap() { return Math.max(400, Math.round(this.rateNow() * 180)); },
+  collect() {
+    const v = Math.floor(this.bin || 0), t = performance.now(), still = t - (this.colAt || 0) < 1500; // (still standing on it: it keeps collecting, quietly)
+    if (v < 1) return;
+    this.colAt = t; this.cash += v; this.bin -= v; this.fullSaid = false; this.dirty = true;
+    if (still) return;
+    this.save(); toast(`💵 +${money(v)}`, '#86efac'); sfx('coin'); sfx('buy'); puffAt(P.x, P.y + 2, P.z, [0x22c55e, 0x86efac, 0xfde047], 24);
+  },
+  // the pile on your collector and the sign over Collect: what's waiting (red when it's full)
+  drawBin(t) {
+    const pl = this.plots[this.myPlot]; if (!pl || !pl.pile || t < (this.binAt || 0)) return;
+    this.binAt = t + 300;
+    const cap = this.binCap(), f = Math.min(1, (this.bin || 0) / cap), h = 0.2 + f * 3, m = pl.pile.m;
+    m.scale.y = h; m.position.y = 5.5 + h / 2;
+    const txt = this.bin >= cap ? `💵 ${money(this.bin)} · FULL` : `💵 ${money(this.bin || 0)}`;
+    if (txt === pl.binShown) return;
+    pl.binShown = txt;
+    if (pl.binLab) { place.remove(pl.binLab); pl.binLab.material.map.dispose(); pl.decor.splice(pl.decor.indexOf(pl.binLab), 1); }
+    const [x, z] = this.W(pl, 20, -6.5); pl.binLab = label(txt, { size: 1.3, color: this.bin >= cap ? '#fca5a5' : '#86efac', bg: 'rgba(15,23,42,.7)' }); pl.binLab.position.set(x, 5.6, z); place.add(pl.binLab); pl.decor.push(pl.binLab);
+  },
+  coinShop: [{ id: 'cash2', e: '💵', n: '2× Cash', d: 'Every cube is worth double, for good', price: 700, kind: 'pass' }, { id: 'autocol', e: '🤖', n: 'Auto Collect', d: 'Your cash goes straight into your pocket: no walking to the collector', price: 350, kind: 'pass' }, shopSpeed(200, 1.25), { id: 'crate', e: '💰', n: 'Cash Crate', d: 'A minute of your factory’s cash (at least $300), right now', price: 40, kind: 'now' }],
   shopCan(id) { return id === 'crate' && this.myPlot == null ? 'Claim a factory first' : ''; },
   onBuy(id) {
+    if (id === 'autocol') { this.collect(); if (this.myPlot != null) this.buildPlot(this.myPlot); return; }
     if (id !== 'crate') return;
     const t = performance.now(), rate = this.earned.filter((e) => t - e[0] < 5000).reduce((a, e) => a + e[1], 0) / 5, v = Math.max(300, Math.round(rate * 60));
     this.cash += v; this.dirty = true; this.save(); toast(`💰 +${money(v)}`, '#86efac'); puffAt(P.x, P.y + 2, P.z, 0x22c55e, 18);
@@ -2405,7 +2446,7 @@ const TYCOON = {
     const t = performance.now(); this.earned = this.earned.filter((e) => t - e[0] < 5000);
     const rate = this.earned.reduce((s, e) => s + e[1], 0) / 5;
     const mult = tyMult(this.b, this.rb) * (hasItem('cash2') ? 2 : 1);
-    return `💵 ${money(this.cash)}${rate ? ` <small>+$${rate < 10 ? rate.toFixed(1) : Math.round(rate).toLocaleString('en-US')}/s</small>` : ''}${mult > 1 ? ` · ×${mult.toFixed(2).replace(/\.?0+$/, '')} cash` : ''}${this.rb ? ` · 🔁 ${this.rb}` : ''}${this.myPlot == null ? ' · find a free factory' : ''}`;
+    return `💵 ${money(this.cash)}${rate ? ` <small>+$${rate < 10 ? rate.toFixed(1) : Math.round(rate).toLocaleString('en-US')}/s</small>` : ''}${mult > 1 ? ` · ×${mult.toFixed(2).replace(/\.?0+$/, '')} cash` : ''}${this.rb ? ` · 🔁 ${this.rb}` : ''}${this.myPlot == null ? ' · find a free factory' : this.bin >= 1 ? ` · ${this.bin >= this.binCap() ? '<b style="color:#fca5a5">' : ''}🧺 ${money(this.bin)} waiting${this.bin >= this.binCap() ? ' (full!)</b>' : ''}` : ''}`;
   },
 };
 
