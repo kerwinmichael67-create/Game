@@ -204,13 +204,14 @@ function tycoonKit(E) {
       quest(`${E.id}.buy`);
       if (i === LAST) { toast(`🏆 You finished the ${E.name}! Rebirth for more cash`, '#fde68a'); sfx('win'); puffAt(P.x, P.y + 4, P.z, CONFETTI, 80); Net.chat(`🏆 finished ${E.name}!`); }
     },
+    rebirthReady() { return T.every((_, i) => has(this.b, i)); },
     rebirthPanel() {
-      const next = 1 + 0.5 * (this.rb + 1);
+      const next = 1 + 0.5 * (this.rb + 1), got = T.filter((_, i) => has(this.b, i)).length, ready = got === T.length;
       const html = `<div class="xp-row"><span>✅ <b>×${next.toFixed(1)} cash for every sale</b>, for good<br><small style="color:var(--muted)">now ×${(1 + 0.5 * this.rb).toFixed(1)}, and it adds up with every rebirth</small></span></div>
         <div class="xp-row"><span>✅ <b>You keep your ${E.caseName ? E.caseName.replace(/^\S+\s/, '').toLowerCase() : 'rare finds'}</b></span></div>
         <div class="xp-row"><span>❌ <b>Your ${noun.toLowerCase()} and cash start again</b><br><small style="color:var(--muted)">back to the first thing and $0</small></span></div>
-        <button class="xp-btn purple" data-rb="1" style="width:100%">🔁 Rebirth ${this.rb + 1}</button>`;
-      openPanel('🔁 Rebirth', html, (btn) => { if (btn.dataset.rb) { closePanel(); this.rebirth(); } });
+        ${ready ? `<button class="xp-btn purple" data-rb="1" style="width:100%">🔁 Rebirth ${this.rb + 1}</button>` : `<button class="xp-btn alt" disabled style="width:100%">Buy everything first: ${got} of ${T.length} bought</button>`}`;
+      openPanel('🔁 Rebirth', html, (btn) => { if (btn.dataset.rb && this.rebirthReady()) { closePanel(); this.rebirth(); } });
     },
     rebirth() {
       if (T.some((_, i) => !has(this.b, i))) return;
@@ -293,7 +294,7 @@ function tycoonKit(E) {
       return `💵 ${money(this.cash)}${rate ? ` <small>+$${rate < 10 ? rate.toFixed(1) : Math.round(rate).toLocaleString('en-US')}/s</small>` : ''}${mult > 1 ? ` · ×${mult.toFixed(2).replace(/\.?0+$/, '')} cash` : ''}${this.rb ? ` · 🔁 ${this.rb}` : ''}${this.myPlot == null ? ` · find a free ${noun.toLowerCase()}` : ''}${extra ? ' · ' + extra : ''}`;
     },
     prompts() { return this.tyPrompts ? this.tyPrompts() : []; },
-    menu() { return E.FINDS ? [[`${E.caseName || '💎 Rare finds'} (${this.col.length})`, () => this.casePanel()]] : []; },
+    menu() { return E.FINDS ? [[`${E.caseName || '💎 Rare finds'} (${this.col.length})`, () => this.casePanel(), E.caseShort]] : []; },
 
     /* ---- rare finds: kept in your case, each adds a little to every sale; sell them or trade them ---- */
     bestFinds() { return (this.col || []).slice().sort((a, b) => E.FINDS[b].r - E.FINDS[a].r || b - a).slice(0, CASE_MAX); },

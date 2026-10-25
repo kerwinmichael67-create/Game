@@ -452,7 +452,7 @@
     hud() { const g = this.g; return g && g.ph !== 'lobby' ? `💵 ${fmt(this.myCash(g))}${this.placing != null ? ` · placing ${TW[this.placing].n} (Q to cancel, Shift to place more)` : ''}` : ''; },
     statOf(pr, isMe, peer) { const g = this.g; return g && g.cash ? fmt(g.cash[peer] || 0) : '—'; },
     sortKey(pr, isMe, peer) { const g = this.g; return g && g.cash ? g.cash[peer] || 0 : 0; },
-    menu() { return [['🗼 Loadout & difficulty', () => this.openLobby()]]; },
+    menu() { return [['🗼 Loadout & difficulty', () => this.openLobby(), 'Loadout']]; },
     leave() { this.placing = null; this.views = new Map(); this.tviews = new Map(); },
     coinShop: [
       { id: 'chest', e: '💰', n: 'War Chest', d: 'Start every game with $300 more, for good', price: 500, kind: 'pass' },

@@ -60,6 +60,7 @@ has('how do I rebirth in the speed game', 'rebirth');
 has('how do i make a poll', '📊');
 has('what is bloxverse', 'Roblox-style');
 has('how do I trade with someone in bloxverse', 'Trading in Bloxverse', 'Accept');
+has('where is the rebirth button', 'Bloxverse buttons');
 has('fishing tycoon tips', 'Fishing Tycoon tips');
 has('how do I catch fish in the fishing game', 'Fishing tips');
 has('how do I deliver pizza', 'Pizza Place tips');

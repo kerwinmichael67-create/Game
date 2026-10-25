@@ -59,6 +59,7 @@
       .touchy #zsV{bottom:300px;transform:scale(.75)}
       .zs-on.touchy.hasbar #prompt{left:12px;transform:none;bottom:400px}
     }
+    @media (max-height:520px){.touchy #zsV{left:176px;bottom:8px;transform:scale(.7)}} /* (a phone on its side: by the stick, out of the way of the buttons down the left) */
     #zsCross.aim{width:16px;height:16px;margin:-8px 0 0 -8px}#zsCross.aim::before{left:7px;top:0;height:16px}#zsCross.aim::after{top:7px;left:0;width:16px}
     .zs-w{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
     .zs-w .xp-card img{width:100%;height:84px;object-fit:contain}

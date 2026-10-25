@@ -245,7 +245,7 @@
     jumpPower() { if (!this.S || performance.now() / 1000 < this.frozenUntil) return 0; return 50 * (this.S.gear.grav ? 1.42 : 1) * (this.carry ? 0.85 : 1); },
     statOf(pr, isMe) { return cash(isMe ? (this.S ? this.S.cash : 0) : pr.cs || 0); },
     sortKey(pr, isMe) { return isMe ? (this.S ? this.S.cash : 0) : +pr.cs || 0; },
-    menu() { return [['📖 Egg index', () => this.index()], ['🛍️ Gear shop', () => this.gearShop()]]; },
+    menu() { return [['📖 Egg index', () => this.index(), 'Index'], ['🛍️ Gear shop', () => this.gearShop(), 'Gear']]; },
 
     /* ---------------- whose base is whose ---------------- */
     others() { return Net.peers.filter((p) => !p.isMe && p.presence && p.presence.t); },
@@ -631,6 +631,7 @@
         S.cash -= GEAR[k].price; S.gear[k] = 1; this.dirty = true; sfx('buy'); toast(`${GEAR[k].e} ${GEAR[k].n}!`, '#fde68a'); this.drawBar(); this.gearShop();
       }, null, { extra: `<span class="chip">💰 ${cash(S.cash)}</span>` });
     },
+    rebirthReady() { return !!this.S && this.S.cash >= rebirthCost(this.S.reb); },
     rebirthPanel() {
       const S = this.S, cost = rebirthCost(S.reb), can = S.cash >= cost;
       openPanel('♻️ Rebirth', `<div class="xp-row"><span class="lft"><span class="ico">♻️</span><span><b>Rebirth ${S.reb + 1}</b><br><small>Costs ${cash(cost)} (you have ${cash(S.cash)})</small></span></span></div>

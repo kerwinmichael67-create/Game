@@ -701,7 +701,7 @@
       this.barHtml = html;
       setBar(html, (b) => { const k = b.dataset.k; if (k === 'a') this.swing(); else if (k === 'q' || k === 'f') this.ability(k); else if (k === 'pick') this.pickPanel(); else if (k === 'med') { if (this.shopUse('medkit')) useItem('medkit'); } });
     },
-    menu() { return [['🎭 Characters', () => this.pickPanel()]]; },
+    menu() { return [['🎭 Characters', () => this.pickPanel(), 'Chars']]; },
     pickPanel() {
       const card = (C, i, kind) => { const own = kind === 's' ? this.ownS(i) : this.ownK(i), on = (kind === 's' ? this.S.sv : this.S.kl) === i;
         return `<div class="xp-row"><span>${C.e} <b>${esc(C.n)}</b>${kind === 's' ? ` <small style="color:var(--muted)">❤️ ${C.hp}</small>` : ` <small style="color:var(--muted)">🔪 ${C.dmg}</small>`}<br><small style="color:var(--muted)">Q ${C.q.e} ${esc(C.q.n)}: ${esc(C.q.d)}<br>F ${C.f.e} ${esc(C.f.n)}: ${esc(C.f.d)}</small></span>${own ? `<button class="xp-btn${on ? ' purple' : ''}" data-${kind}="${i}">${on ? '✓ Picked' : 'Pick'}</button>` : `<button class="xp-btn" data-shop="1">🛒 In the shop</button>`}</div>`; };

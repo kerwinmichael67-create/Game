@@ -419,7 +419,7 @@
     spawn() { if (this.b >= 0) return [PX(this.b), 0.5, 16, Math.PI]; return [(Math.random() - 0.5) * 30, 2.2, -26, 0]; },
     statOf(pr, isMe) { return cash(isMe ? (this.S ? this.S.cash : 0) : pr.cs || 0); },
     sortKey(pr, isMe) { return isMe ? (this.S ? this.S.cash : 0) : +pr.cs || 0; },
-    menu() { return [['🎒 Bag', () => this.bag()], ['📖 Brainrot index', () => this.index()]]; },
+    menu() { return [['🎒 Bag', () => this.bag()], ['📖 Brainrot index', () => this.index(), 'Index']]; },
 
     /* ---------------- whose plot is whose ---------------- */
     others() { return Net.peers.filter((p) => !p.isMe && p.presence && p.presence.t); },
@@ -943,6 +943,7 @@
       }, null, { full: true });
     },
     has2(t) { const S = this.S; return S.inv.some((e) => e[0] === t && e[2] < 0) || S.pods.some((e) => e && e[0] === t && e[2] < 0); },
+    rebirthReady() { const S = this.S, R0 = S && REB[S.reb]; return !!R0 && S.cash >= R0[0] && R0[1].every((t) => this.has2(t)); },
     rebirthPanel() {
       const S = this.S, R0 = REB[S.reb];
       if (!R0) { openPanel('♻️ Rebirth', `<p class="xp-note">You’ve rebirthed ${S.reb} times — that’s all of them! Your bat is the ${this.bat()[0]}.</p>`, null, null, {}); return; }

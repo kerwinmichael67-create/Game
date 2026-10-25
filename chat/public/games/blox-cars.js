@@ -50,7 +50,7 @@
     welcome: 'Step on a claim pad to get a car factory!',
     land: { theme: 'autumn', fence: 'wood' },
     skyCols: ['#93c5fd', '#f1f5f9'], ground: 0x7cb342, speed0: 8, prodLift: 0,
-    path: [[-22, -15], [18, -15], [18, -3], [-2, -3]], padAt: [-6, 11], speedPad: [21.75, -14], caseAt: [-15, 19], caseName: '🏆 Trophy cabinet',
+    path: [[-22, -15], [18, -15], [18, -3], [-2, -3]], padAt: [-6, 11], speedPad: [21.75, -14], caseAt: [-15, 19], caseName: '🏆 Trophy cabinet', caseShort: 'Trophies',
     findHow: 'Trophies come from laps of the test track (the quicker the lap, the likelier).',
     FINDS,
     items: [

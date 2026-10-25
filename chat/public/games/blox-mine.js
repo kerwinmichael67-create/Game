@@ -22,7 +22,7 @@
   const rainbow = new THREE.MeshBasicMaterial({ color: 0xffffff });
   const reset = (g) => { while (g.children.length) g.remove(g.children[0]); };
   const PICKS = ['Stone Pickaxe', 'Iron Pickaxe', 'Diamond Pickaxe'], HITS = [5, 3, 2];
-  const VEIN_SPOTS = [[-21, -6], [-16, -3], [-21, 2], [-14, 5], [-19, 8]];
+  const VEIN_SPOTS = [[-22, -2], [-16, -3], [-21, 2], [-14, 5], [-19, 8]]; // (clear of the buy pads in front of the belt)
 
   const MT = tycoonKit({
     id: 'mine', code: 'mt', saveKey: 'mt', rank: 0.0008, name: 'Mining Tycoon', emoji: '⛏️', noun: 'Mine', camDist: 22,
@@ -31,7 +31,7 @@
     welcome: 'Step on a claim pad to get a mine!',
     land: { theme: 'desert', fence: 'stone', extras: ['crystals'] },
     skyCols: ['#7dd3fc', '#fef3c7'], ground: 0xc8a97a, speed0: 7,
-    path: [[-22, -12], [16, -12], [16, 4]], padAt: [-4, 12], caseAt: [-15, 20], caseName: '💎 Gem case',
+    path: [[-22, -12], [16, -12], [16, 4]], padAt: [-4, 12], caseAt: [-15, 20], caseName: '💎 Gem case', caseShort: 'Gems',
     findHow: 'Gems turn up in the veins you mine with your pickaxe.',
     FINDS,
     items: [
@@ -43,7 +43,7 @@
       { n: 'Lanterns', price: 500, kind: 'deco', look: 'lanterns', bonus: 0.05, pad: [21, 0] },
       { n: 'Copper Drill', price: 900, kind: 'src', ore: 'copper', v: 12, every: 1.6, at: [-9, -12], drop: 2.5 },
       { n: 'Furnace', price: 1600, kind: 'up', look: 'furnace', at: [16, -7] },
-      { n: 'Iron Pickaxe', price: 2600, kind: 'pick', lvl: 1, say: '⛏️ Veins break in 3 hits!', pad: [-17, 6] },
+      { n: 'Iron Pickaxe', price: 2600, kind: 'pick', lvl: 1, say: '⛏️ Veins break in 3 hits!', pad: [-7.5, 2] },
       { n: 'Silver Drill', price: 4500, kind: 'src', ore: 'silver', v: 35, every: 1.6, at: [-5, -12], drop: 2.5 },
       { n: 'Mine Level 2', price: 8000, kind: 'deco', look: 'depth', lvl: 1, bonus: 0.1, say: '✨ Rarer ores!', pad: [20.5, -19.5] },
       { n: 'Gold Drill', price: 14000, kind: 'src', ore: 'gold', v: 110, every: 1.4, at: [-1, -12], drop: 2.5 },
@@ -52,7 +52,7 @@
       { n: 'Turbo Belt', price: 90000, kind: 'speed', sp: 14 },
       { n: 'Mine Level 3', price: 110000, kind: 'deco', look: 'depth', lvl: 2, bonus: 0.15, say: '✨ Even rarer ores!', pad: [20.5, -19.5] },
       { n: 'Diamond Drill', price: 170000, kind: 'src', ore: 'diamond', v: 500, every: 1.5, at: [3, -12], drop: 2.5 },
-      { n: 'Diamond Pickaxe', price: 250000, kind: 'pick', lvl: 2, say: '⛏️ Veins break in 2 hits!', pad: [-17, 6] },
+      { n: 'Diamond Pickaxe', price: 250000, kind: 'pick', lvl: 2, say: '⛏️ Veins break in 2 hits!', pad: [-7.5, 2] },
       { n: 'Coin Mint', price: 380000, kind: 'up', look: 'mint', at: [16, 3] },
       { n: 'Emerald Drill', price: 600000, kind: 'src', ore: 'emerald', v: 1200, every: 1.5, at: [7, -12], drop: 2.5 },
       { n: 'Mine Level 4', price: 850000, kind: 'deco', look: 'depth', lvl: 3, bonus: 0.2, say: '✨ The rarest ores!', pad: [20.5, -19.5] },

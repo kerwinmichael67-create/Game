@@ -10,7 +10,8 @@
 (() => {
   const style = document.createElement('style');
   style.textContent = `
-    #spQ{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:230px;display:flex;flex-direction:column;gap:6px;pointer-events:auto;cursor:pointer}
+    /* (on the right: the game's buttons are down the left) */
+    #spQ{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:230px;display:flex;flex-direction:column;gap:6px;pointer-events:auto;cursor:pointer}
     #spQ .qh{font:600 15px var(--fh);text-shadow:0 2px 0 rgba(0,0,0,.45);display:flex;justify-content:space-between;align-items:center}
     #spQ .qh small{font:700 11px var(--fb);opacity:.8}
     #spQ .q{background:linear-gradient(180deg,rgba(30,41,59,.88),rgba(15,23,42,.9));border:2px solid rgba(255,255,255,.12);border-radius:14px;padding:7px 10px 8px;font:700 12px/1.25 var(--fb);color:#e2e8f0;box-shadow:0 3px 0 rgba(0,0,0,.35)}
@@ -44,9 +45,9 @@
     .sp-odds b{display:block;color:#fff;font:600 11.5px var(--fh)}
     .sp-big{font:600 26px var(--fh);text-align:center;margin:6px 0 2px}
     .sp-sub{text-align:center;color:#cbd5e1;font:700 13px var(--fb);margin-bottom:8px}
-    .touchy #spQ{transform:translateY(-75%) scale(.78);transform-origin:left center}
+    .touchy #spQ{transform:translateY(-75%) scale(.78);transform-origin:right center}
     .touchy #spMeter{top:60px;transform:translateX(-50%) scale(.85)}
-    @media (max-width:640px){#spQ{transform:translateY(-70%) scale(.72);transform-origin:left center}#spQ .q ~ .q{display:none}#spMeter{transform:translateX(-50%) scale(.82)}}`;
+    @media (max-width:640px){#spQ{transform:translateY(-70%) scale(.72);transform-origin:right center}#spQ .q ~ .q{display:none}#spMeter{transform:translateX(-50%) scale(.82)}}`;
   document.head.append(style);
 
   /* ---------------- numbers ---------------- */
@@ -435,7 +436,6 @@
       // finish lines: wins and money, once per run
       const done = Math.min(ZONES.length - 1, Math.floor((3 - P.z) / ZL) - 1); // the last finish line you're past
       if (done > this.run && !P.dead) this.win(done);
-      if ((S.sp >= rebirthNeed(S.rb)) !== this.barRb) this.drawBar();
       // pets follow you
       this.myPets.forEach((pt, i) => { const [x, z] = this.slot(i, this.myPets.length, P.x, P.z, P.yaw); this.movePet(pt, x, z, P.y, dt, FLY[SPECIES[pt.sp][1]], ws); });
       this.drawOthers(dt);
@@ -524,17 +524,14 @@
       const S = this.S, need = rebirthNeed(S.rb), lim = LIMITS[S.lim];
       setBar(`<button class="xslot" data-k="pets" title="Pets (P)"><span class="k">P</span><span class="e">🐾</span>Pets<span class="n">${S.eq.length}/${this.slots()}</span></button>`
         + `<button class="xslot" data-k="eggs" title="Eggs (B)"><span class="k">B</span><span class="e">🥚</span>Eggs</button>`
-        + `<button class="xslot ${S.sp >= need ? 'on' : ''}" data-k="rb" title="Rebirth"><span class="e">🔁</span>Rebirth${S.sp >= need ? '<span class="n">!</span>' : ''}</button>`
         + `<button class="xslot" data-k="cv" title="Convert speed to money (C)"><span class="k">C</span><span class="e">💱</span>Convert</button>`
         + `<button class="xslot" data-k="q" title="Quests (Q)"><span class="k">Q</span><span class="e">📜</span>Quests</button>`
         + `<button class="xslot" data-k="tp" title="Teleport (T)"><span class="k">T</span><span class="e">🗺️</span>Teleport</button>`
         + `<button class="xslot ${lim ? 'on' : ''}" data-k="lim" title="Speed limit (L): walk slower when you need to"><span class="k">L</span><span class="e">${lim ? '🐢' : '🏎️'}</span>${lim ? `Max ${lim}` : 'No limit'}</button>`, (b) => this.barKey(b.dataset.k));
-      this.barRb = S.sp >= need;
     },
     barKey(k) {
       if (k === 'pets') this.petsPanel();
       if (k === 'eggs') this.eggsPanel();
-      if (k === 'rb') this.rebirthPanel();
       if (k === 'cv') this.convertPanel();
       if (k === 'q') this.questPanel();
       if (k === 'tp') this.teleports();
@@ -552,6 +549,7 @@
     },
 
     /* ---- rebirth and convert ---- */
+    rebirthReady() { return !!this.S && this.S.sp >= rebirthNeed(this.S.rb); },
     rebirthPanel() {
       const S = this.S, need = rebirthNeed(S.rb), ok = S.sp >= need, next = TREADS.find((t) => t.rb === S.rb + 1);
       const html = `<div class="sp-big">🔁 Rebirth ${S.rb + 1}</div><div class="sp-sub">Needs ⚡ <b>${short(need)}</b> speed · you have <b>${short(S.sp)}</b></div>

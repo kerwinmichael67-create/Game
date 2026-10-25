@@ -54,7 +54,6 @@
   #coins{display:flex;align-items:center;gap:8px;height:46px;padding:0 14px 0 8px;border-radius:14px;font:600 17px var(--fh);color:#fde68a;white-space:nowrap}
   #coins i{font-style:normal;color:#86efac;font-size:14px;transition:opacity .6s}
   #coins{cursor:pointer}#coins:hover{border-color:rgba(253,230,138,.45)}
-  #coins .cart{display:grid;place-items:center;width:28px;height:28px;margin-right:-6px;border-radius:9px;font-size:15px;background:linear-gradient(180deg,#22c55e,#15803d);box-shadow:0 2px 0 rgba(0,0,0,.3)}
   .shophead{display:flex;flex-direction:column;gap:3px;margin:-2px 0 12px;font:600 17px var(--fh);color:#fde68a}
   .shophead small{font:700 12.5px/1.35 var(--fb);color:var(--muted)}
   .shopc>span{font:700 12px/1.35 var(--fb);color:#cbd5e1}
@@ -74,8 +73,6 @@
   .trtabs{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 8px}.trtabs button{border:0;border-radius:999px;padding:7px 12px;background:rgba(255,255,255,.08);color:#e2e8f0;font:600 12.5px var(--fh);cursor:pointer}.trtabs button.on{background:#f8fafc;color:#0f172a}
   .trpick{display:flex;flex-wrap:wrap;gap:6px}
   .trcoins{display:flex;flex-wrap:wrap;align-items:center;gap:8px}.trcoins>span{font:600 15px var(--fh);color:#fde68a;margin-right:6px}.trcoins .xp-btn{padding:8px 12px}
-  #shopFab{position:absolute;left:12px;top:64px;width:38px;height:36px;padding:0;border-radius:12px;font-size:19px;color:#fff;pointer-events:auto;cursor:pointer;display:none;background:linear-gradient(180deg,#22c55e,#15803d);border-color:rgba(255,255,255,.3)}
-  @media (max-width:640px){#coins .cart{display:none}.hasshop #shopFab{display:block}} /* (a phone: no room by the coins, so the shop gets its own button) */
   .coin{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;flex:none;background:radial-gradient(circle at 34% 30%,#fff7c2 0 12%,#fcd34d 34%,#f59e0b 70%,#d97706);box-shadow:inset 0 -2px 0 rgba(146,64,14,.45),0 2px 0 rgba(0,0,0,.35);font:700 13px/1 var(--fh);color:#92400e;text-shadow:0 1px 0 rgba(255,255,255,.4)}
   .coin::before{content:'B'}
   .coin.sm{width:18px;height:18px;font-size:10px;vertical-align:-3px}
@@ -114,8 +111,24 @@
   .sbtn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--c3),inset 0 2px 0 rgba(255,255,255,.3)}
   .sbtn .e{font-size:27px;line-height:1;filter:drop-shadow(0 2px 0 rgba(0,0,0,.3))}
   .sbtn .k{position:absolute;left:4px;top:4px;font:600 10px/1 var(--fh);background:rgba(0,0,0,.35);border-radius:5px;padding:2px 4px;text-shadow:none}
-  .sbtn .n{position:absolute;right:-7px;top:-7px;min-width:22px;height:22px;border-radius:11px;background:#ef4444;border:2px solid #fff;font:700 11px/18px var(--fh);padding:0 5px;text-shadow:none}
+  .sbtn .n,.mbtn .n{position:absolute;right:-7px;top:-7px;min-width:22px;height:22px;border-radius:11px;background:#ef4444;border:2px solid #fff;font:700 11px/18px var(--fh);padding:0 5px;text-shadow:none}
   .sbtn.on{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.35),0 4px 0 var(--c3),inset 0 2px 0 rgba(255,255,255,.3),0 0 22px rgba(255,255,255,.35)}
+  /* the game's own buttons down the left (the shop, rebirth, its menus, trading, achievements): wide ones with a
+     word on a computer; on a phone, small squares down from just under the top bar (in a row if the screen's short),
+     with the chat moved out of their way (placeSide) */
+  #xside.list{display:flex;flex-direction:column;align-items:flex-start;gap:9px;top:calc(50% + 50px)}
+  .mbtn{--c1:#64748b;--c2:#475569;--c3:#1e293b;height:46px;min-width:140px;padding:0 16px 0 10px;border-radius:15px;border:2px solid rgba(0,0,0,.28);background:linear-gradient(180deg,var(--c1),var(--c2));box-shadow:0 4px 0 var(--c3),inset 0 2px 0 rgba(255,255,255,.3),0 8px 16px rgba(0,0,0,.25);color:#fff;font:600 15.5px/1 var(--fh);text-shadow:0 1.5px 0 rgba(0,0,0,.45);display:flex;align-items:center;gap:9px;cursor:pointer;position:relative;white-space:nowrap;transition:transform .1s,filter .15s}
+  .mbtn:hover{transform:translateX(3px);filter:brightness(1.08)}
+  .mbtn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--c3),inset 0 2px 0 rgba(255,255,255,.3)}
+  .mbtn .e{font-size:22px;line-height:1;filter:drop-shadow(0 2px 0 rgba(0,0,0,.3))}
+  .mbtn .s{display:none}
+  .touchy #xside.list{display:grid;grid-template-columns:48px;gap:6px;top:112px;transform:none}
+  .touchy .mbtn{width:48px;height:48px;min-width:0;padding:0;flex-direction:column;justify-content:center;gap:3px;font-size:9px;border-radius:14px;box-shadow:0 3px 0 var(--c3),inset 0 2px 0 rgba(255,255,255,.3),0 6px 12px rgba(0,0,0,.25)}
+  .touchy .mbtn .t{display:none}
+  .touchy .mbtn .s{display:block;max-width:44px;overflow:hidden;text-overflow:ellipsis}
+  .touchy .mbtn .e{font-size:20px}
+  .touchy .mbtn .n{right:-5px;top:-5px;min-width:18px;height:18px;font-size:10px;line-height:14px}
+  @media (max-height:520px){.touchy #xside.list{grid-auto-flow:column;grid-template-columns:none;grid-auto-columns:48px}.touchy #xside.list.many{grid-auto-flow:row;grid-template-columns:repeat(3,48px)}.touchy #xside:not(.list){grid-template-columns:repeat(4,66px);top:66px;transform:scale(.6);transform-origin:left top}}
   .c-red{--c1:#f87171;--c2:#dc2626;--c3:#7f1d1d}.c-purple{--c1:#c084fc;--c2:#9333ea;--c3:#581c87}.c-blue{--c1:#60a5fa;--c2:#2563eb;--c3:#1e3a8a}
   .c-brown{--c1:#d6a06b;--c2:#a16207;--c3:#5b3410}.c-green{--c1:#4ade80;--c2:#16a34a;--c3:#14532d}.c-gold{--c1:#fde047;--c2:#f59e0b;--c3:#92400e}
   .c-teal{--c1:#2dd4bf;--c2:#0d9488;--c3:#134e4a}.c-pink{--c1:#f9a8d4;--c2:#db2777;--c3:#831843}.c-orange{--c1:#fdba74;--c2:#ea580c;--c3:#7c2d12}.c-slate{--c1:#94a3b8;--c2:#475569;--c3:#1e293b}
@@ -448,7 +461,6 @@
 <canvas id="view"></canvas>
 <div id="hud" hidden>
   <div id="topbar"><button id="menuBtn" class="glass" title="Menu (Esc)"><span class="mark"></span></button><div id="title" class="glass"></div><div id="coins" class="glass" title="Blox Coins"></div></div>
-  <button id="shopFab" class="glass" title="Shop">🛒</button>
   <div id="xhud"></div>
   <div id="xside"></div>
   <div id="prompt" class="glass"></div>
@@ -1213,10 +1225,56 @@ function placeTouch() {
 }
 addEventListener('resize', () => setTimeout(placeTouch, 50));
 $('#xbar').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b && !b.disabled && barClick) barClick(b, e); });
-// a column of big buttons on the left (menus, orders); clicks go to onClick(button)
-let sideClick = null;
-function setSide(html, onClick, cols) { const el = $('#xside'); if (el.innerHTML !== html) el.innerHTML = html; el.classList.toggle('one', cols === 1); sideClick = onClick || sideClick; }
-$('#xside').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b && !b.disabled && sideClick) sideClick(b, e); });
+// a column of big buttons on the left: a game's own (Command an Army's menus and orders: clicks on them go to
+// onClick(button)), and what every game has, all here rather than in the menu: the Blox Coin shop, rebirth, the
+// game's own menus (exp.menu: [label, open, short name for a phone]), trading and achievements
+let sideClick = null, sideGame = '', sideCols = 2, sideHtml = null;
+function setSide(html, onClick, cols) { sideGame = html || ''; sideCols = cols; sideClick = onClick || sideClick; drawSide(); }
+const SIDE_COLS = ['c-blue', 'c-orange', 'c-pink', 'c-brown'];
+function sideItems() {
+  if (!playing || !exp) return [];
+  const t = []; // [what, emoji, label, short label, colour, badge]
+  if (exp.coinShop && exp.coinShop.length) t.push(['shop', '🛒', 'Shop', 'Shop', 'c-green']);
+  if (exp.rebirthPanel) t.push(['rebirth', '🔁', 'Rebirth', 'Rebirth', 'c-purple', exp.rebirthReady && exp.rebirthReady() ? '!' : '']);
+  if (!sideGame && exp.menu) exp.menu().forEach(([label, , short], i) => { const m = String(label).match(/^(\S+)\s+(.+)$/) || [0, '•', String(label)]; t.push(['x' + i, m[1], m[2], short || m[2], SIDE_COLS[i % SIDE_COLS.length]]); });
+  if (crew().length > 1) t.push(['trade', '🤝', 'Trade', 'Trade', 'c-teal']);
+  t.push(['ach', '🏆', 'Achievements', 'Awards', 'c-gold']);
+  return t;
+}
+function drawSide() {
+  const items = sideItems(), badge = (n) => (n ? `<span class="n">${n}</span>` : '');
+  const html = sideGame
+    ? sideGame + items.map(([k, e, , s, c, n]) => `<button class="sbtn ${c}" data-side="${k}" title="${esc(s)}"><span class="e">${e}</span>${esc(s)}${badge(n)}</button>`).join('')
+    : items.map(([k, e, l, s, c, n]) => `<button class="mbtn ${c}" data-side="${k}" title="${esc(l)}"><span class="e">${e}</span><span class="t">${esc(l)}</span><span class="s">${esc(s)}</span>${badge(n)}</button>`).join('');
+  if (html === sideHtml) return;
+  const el = $('#xside'); sideHtml = html; el.innerHTML = html;
+  el.classList.toggle('list', !sideGame && !!html); el.classList.toggle('one', !!sideGame && sideCols === 1); el.classList.toggle('many', items.length > 4);
+  placeSide();
+}
+// on a phone: the buttons go just under what's at the top on the left, and the chat to the right of them (under
+// them on a short screen, where they're in a row)
+function placeSide() {
+  const el = $('#xside'), log = $('#chatlog'), list = el.classList.contains('list');
+  log.style.left = log.style.width = log.style.top = '';
+  if (!touchy || !el.innerHTML) { el.style.top = ''; return; }
+  if (list) {
+    let top = $('#topbar').getBoundingClientRect().bottom;
+    for (const id of ['#meter', '#banner']) { const r = $(id).getBoundingClientRect(); if (r.width && r.left < 70 && r.top < top + 50 && r.bottom > top) top = r.bottom; }
+    el.style.top = Math.round(top + 8) + 'px';
+  }
+  const r = el.getBoundingClientRect();
+  if (innerHeight <= 520) log.style.top = Math.round(r.bottom + 6) + 'px';
+  else { log.style.left = Math.round(r.right + 8) + 'px'; log.style.width = `calc(100vw - ${Math.round(r.right + 20)}px)`; }
+}
+addEventListener('resize', () => setTimeout(placeSide, 60));
+function sideDo(k) {
+  if (k === 'shop') openShop();
+  else if (k === 'rebirth') exp.rebirthPanel();
+  else if (k === 'trade') tradePick();
+  else if (k === 'ach') openAch();
+  else if (k[0] === 'x') { const m = exp.menu ? exp.menu()[+k.slice(1)] : null; if (m) m[1](); }
+}
+$('#xside').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b || b.disabled) return; if (b.dataset.side) sideDo(b.dataset.side); else if (sideClick) sideClick(b, e); });
 // "press E" prompts near things: experiences list them as { x, z, r, text, fn }
 let promptCur = null;
 function updatePrompt() {
@@ -1236,10 +1294,9 @@ function pickObjects(sx, sy, list) { return rayAt(sx, sy).intersectObjects(list,
 let coinPopT = 0, avSaveT = 0;
 function drawCoins(gain) {
   const t = W.coins.toLocaleString('en-US');
-  $('#coins').innerHTML = `<span class="coin"></span>${t}` + (gain ? `<i>+${gain}</i>` : '') + (playing && exp && exp.coinShop && exp.coinShop.length ? '<b class="cart">🛒</b>' : '');
+  $('#coins').innerHTML = `<span class="coin"></span>${t}` + (gain ? `<i>+${gain}</i>` : '');
   if (gain) { clearTimeout(coinPopT); coinPopT = setTimeout(() => { const i = $('#coins i'); if (i) i.style.opacity = 0; }, 1600); }
   const hc = document.getElementById('homeCoins'); if (hc) hc.textContent = t;
-  document.body.classList.toggle('hasshop', !!(playing && exp && exp.coinShop && exp.coinShop.length));
 }
 function earn(n, why) {
   n = Math.floor(n); if (!(n > 0)) return;
@@ -1964,7 +2021,8 @@ const OBBY = {
     const t = this.won ? this.time : (performance.now() - this.t0) / 1000;
     return `Stage ${this.won ? '🏆' : `${this.stage}/${this.total}`} · ⏱ ${mmss(t)}${this.best ? ` <small>best ${mmss(this.best)}</small>` : ''}`;
   },
-  menu() { return [['↩️ Back to Stage 1', () => { this.stage = 0; this.won = false; this.t0 = performance.now(); this.st0 = 0; send({ st: 0 }); this.save(); respawn(); }]]; },
+  // (it's a button on the screen now, so it asks first)
+  menu() { return [['↩️ Back to Stage 1', () => openPanel('↩️ Back to Stage 1?', `<p class="xp-note">You're on stage ${this.stage + 1}. Go back to the start? Your checkpoint goes.</p><button class="xp-btn red" data-go="1" style="width:100%">↩️ Back to Stage 1</button>`, (btn) => { if (!btn.dataset.go) return; closePanel(); this.stage = 0; this.won = false; this.t0 = performance.now(); this.st0 = 0; send({ st: 0 }); this.save(); respawn(); }), 'Stage 1']]; },
   coinShop: [shopSpeed(250, 1.2), shopJump(350, 1.15), shopShield(40, 'Touch lava or a spinner and it saves you (once)'), { id: 'skip', e: '⏭️', n: 'Skip Stage', d: 'Go straight to the next checkpoint', price: 75, kind: 'use', tap: true }],
   shopUse(id) {
     if (id !== 'skip' || this.won || this.stage >= this.total || P.dead) return false;
@@ -2204,12 +2262,13 @@ const TYCOON = {
     if (it.kind === 'rocket') { toast('🚀 Rocket! Next up: the sky line on your second floor', '#fde68a'); sfx('win'); puffAt(P.x, P.y + 4, P.z, CONFETTI, 50); }
     if (i === TY_LAST) { toast('🛰️ You finished the tycoon! Rebirth for more cash', '#fde68a'); sfx('win'); puffAt(P.x, P.y + 4, P.z, CONFETTI, 80); Net.chat('🛰️ finished Cube Factory Tycoon!'); }
   },
+  rebirthReady() { return TY.every((_, i) => has(this.b, i)); },
   rebirthPanel() {
-    const next = 1 + 0.5 * (this.rb + 1);
+    const next = 1 + 0.5 * (this.rb + 1), got = TY.filter((_, i) => has(this.b, i)).length, ready = got === TY.length;
     const html = `<div class="xp-row"><span>✅ <b>×${next.toFixed(1)} cash for every cube</b>, for good<br><small style="color:var(--muted)">now ×${(1 + 0.5 * this.rb).toFixed(1)}, and it adds up with every rebirth</small></span></div>
       <div class="xp-row"><span>❌ <b>Your factory and cash start again</b><br><small style="color:var(--muted)">back to one dropper and $0</small></span></div>
-      <button class="xp-btn purple" data-rb="1" style="width:100%">🔁 Rebirth ${this.rb + 1}</button>`;
-    openPanel('🔁 Rebirth', html, (btn) => { if (btn.dataset.rb) { closePanel(); this.rebirth(); } });
+      ${ready ? `<button class="xp-btn purple" data-rb="1" style="width:100%">🔁 Rebirth ${this.rb + 1}</button>` : `<button class="xp-btn alt" disabled style="width:100%">Buy everything first: ${got} of ${TY.length} bought</button>`}`;
+    openPanel('🔁 Rebirth', html, (btn) => { if (btn.dataset.rb && this.rebirthReady()) { closePanel(); this.rebirth(); } });
   },
   rebirth() {
     if (TY.some((_, i) => !has(this.b, i))) return;
@@ -2762,13 +2821,8 @@ const keysLabel = () => (View.keys === 'lock' ? '⌨️ Shift: shift lock · dou
 function showPause() {
   if (!playing) return;
   unlock();
-  const extra = exp.menu ? exp.menu() : [];
   $('#pausePanel').innerHTML = `<div class="phead"><div class="pthumb"><span>${exp.emoji}</span></div></div><h2>${esc(exp.name)}</h2><p>Server ${Net.srvN} · 👥 ${Math.max(1, crew().length)} playing</p>
     <button class="btn play" id="pResume">▶ Resume</button>${exp.noReset ? '' : '<button class="btn" id="pReset">🔄 Reset character <kbd>R</kbd></button>'}
-    ${extra.map((x, i) => `<button class="btn blue" data-x="${i}">${esc(x[0])}</button>`).join('')}
-    ${exp.coinShop && exp.coinShop.length ? '<button class="btn blue" id="pShop">🛒 Shop</button>' : ''}
-    ${crew().length > 1 ? '<button class="btn blue" id="pTrade">🤝 Trade</button>' : ''}
-    <button class="btn" id="pAch">🏆 Achievements · ${ACH.filter((A) => A.e === exp.id && W.ach.got.has(A.id)).length} / ${ACH.filter((A) => A.e === exp.id).length}</button>
     <button class="btn" id="pSound">${window.Sfx && !Sfx.on ? '🔇 Sound: off' : '🔊 Sound: on'}</button>
     <button class="btn" id="pMeter">${Meter.shown ? '📊 FPS & ping: shown' : '📊 FPS & ping: hidden'}</button>
     <button class="btn" id="pGfx">${gfxLabel()}</button>
@@ -2779,19 +2833,18 @@ function showPause() {
   $('#pResume').onclick = () => { $('#pause').hidden = true; tryLock(); };
   if ($('#pReset')) $('#pReset').onclick = () => { $('#pause').hidden = true; die(); };
   $('#pLeave').onclick = () => leave();
-  if ($('#pShop')) $('#pShop').onclick = () => { $('#pause').hidden = true; openShop(); };
-  if ($('#pTrade')) $('#pTrade').onclick = () => { $('#pause').hidden = true; openPanel('🤝 Trade with…', `<p class="xp-note">Who do you want to trade with?</p>${crew().filter((c) => !c.isMe).map((c) => `<button class="xp-row" style="width:100%;cursor:pointer;color:inherit" data-p="${esc(c.peer)}"><b>👤 ${esc(nameOf(c.peer))}</b><span>🤝</span></button>`).join('')}`, (b) => { if (b.dataset.p) { closePanel(); startTrade(b.dataset.p); } }); };
-  $('#pAch').onclick = () => { $('#pause').hidden = true; openPanel('🏆 Achievements', (ACH.some((A) => A.e === exp.id) ? achGroup(exp.id) : '') + achGroup('bv')); };
   $('#pSound').onclick = () => { if (!window.Sfx) return; Sfx.toggle(); $('#pSound').textContent = Sfx.on ? '🔊 Sound: on' : '🔇 Sound: off'; };
   $('#pMeter').onclick = () => { Meter.shown = !Meter.shown; Meter.sentAt = 0; Meter.ping = null; try { localStorage.setItem('bv-meter', Meter.shown ? '1' : '0'); } catch (e) {} $('#pMeter').textContent = Meter.shown ? '📊 FPS & ping: shown' : '📊 FPS & ping: hidden'; drawMeter(); };
   if ($('#pLock')) $('#pLock').onclick = () => { $('#pause').hidden = true; setLock(!View.lock); };
   $('#pKeys').onclick = () => { View.keys = View.keys === 'lock' ? 'sprint' : 'lock'; try { localStorage.setItem('bv-keys', View.keys); } catch (e) {} $('#pKeys').textContent = keysLabel(); if ($('#pLock')) $('#pLock').innerHTML = `${View.lock ? '🔒 Shift lock: on' : '🔓 Shift lock: off'} <kbd>${lockKeyName()}</kbd>`; };
   $('#pGfx').onclick = () => { GFX.pick = { auto: 'high', high: 'low', low: 'auto' }[GFX.pick]; if (GFX.pick === 'auto') { GFX.hi = !touchy && !softGL; GFX.slow = 0; GFX.since = 0; } try { localStorage.setItem('bv-gfx', GFX.pick); } catch (e) {} gfxApply(); $('#pGfx').textContent = gfxLabel(); };
-  $('#pausePanel').querySelectorAll('[data-x]').forEach((b) => (b.onclick = () => { $('#pause').hidden = true; extra[+b.dataset.x][1](); }));
 }
+// who to trade with; this game's achievements (and Bloxverse's)
+function tradePick() { openPanel('🤝 Trade with…', `<p class="xp-note">Who do you want to trade with?</p>${crew().filter((c) => !c.isMe).map((c) => `<button class="xp-row" style="width:100%;cursor:pointer;color:inherit" data-p="${esc(c.peer)}"><b>👤 ${esc(nameOf(c.peer))}</b><span>🤝</span></button>`).join('')}`, (b) => { if (b.dataset.p) { closePanel(); startTrade(b.dataset.p); } }); }
+function openAch() { openPanel(`🏆 Achievements · ${ACH.filter((A) => A.e === exp.id && W.ach.got.has(A.id)).length} / ${ACH.filter((A) => A.e === exp.id).length}`, (ACH.some((A) => A.e === exp.id) ? achGroup(exp.id) : '') + achGroup('bv')); }
 $('#menuBtn').onclick = showPause;
 $('#board').addEventListener('click', (e) => { const r = e.target.closest('tr[data-peer]'); if (r && playing) playerMenu(r.dataset.peer); });
-$('#coins').onclick = $('#shopFab').onclick = () => { if (playing && exp && exp.coinShop && exp.coinShop.length) openShop(); };
+$('#coins').onclick = () => { if (playing && exp && exp.coinShop && exp.coinShop.length) openShop(); };
 $('#achBtn').onclick = () => { homeView = 'ach'; sfx('open'); drawExps(); window.scrollTo(0, 0); };
 
 /* ---------------- shift lock, first person and sprinting ----------------
@@ -3070,6 +3123,7 @@ function drawHud() {
   const rows = crew().map((c) => ({ c, name: c.isMe ? Net.name : String(c.pr.nm || 'Player').slice(0, 20), v: exp.statOf(c.pr, c.isMe, c.peer), k: exp.sortKey(c.pr, c.isMe, c.peer) })).sort((a, b) => b.k - a.k);
   $('#board').innerHTML = `<table><tr><th>👥 ${rows.length} player${rows.length === 1 ? '' : 's'}</th><th>${exp.stat}</th></tr>${rows.map((r, i) => `<tr class="${r.c.isMe ? 'me' : ''}"${r.c.isMe ? '' : ` data-peer="${esc(r.c.peer)}" title="Tap to trade"`}><td><span class="rk">${i + 1}</span>${esc(r.name)}</td><td>${esc(String(r.v))}</td></tr>`).join('')}</table>`;
   $('#stat').innerHTML = exp.hud ? exp.hud() : '';
+  drawSide(); placeSide();
   if (!exp.banner) setBanner('');
   if (Meter.shown) placeMeter(); // the leaderboard may have grown or shrunk
 }
@@ -3082,7 +3136,7 @@ try { loadAvFrom(JSON.parse(localStorage.getItem('rb.av') || 'null')); } catch (
 achNum();
 drawAvatarOpts(); drawExps();
 requestAnimationFrame(frame);
-window.__rb = { P, Net, cam, camera, scene, renderer, keys, EXPS, Meter, GFX, gfxApply, softGL, View, setLock, zoomBy, lookBy, joy, sunL, sunSprite, makeAvatar, join, leave, die, respawn, openShop, buyItem, hasItem, itemCount, giveItem, useItem, shopItem, setItemOff, Trade, startTrade, tradeTick, parts: () => parts, exp: () => exp, me: () => me, iAmHost, crew, players, get AV() { return AV; }, W, earn, spend, roundState, openPanel, closePanel, pickPlane, myPeer, grantCosmetic, snapshot }; // for tests
+window.__rb = { P, Net, cam, camera, scene, renderer, keys, EXPS, Meter, GFX, gfxApply, softGL, View, setLock, zoomBy, lookBy, joy, sunL, sunSprite, makeAvatar, join, leave, die, respawn, openShop, buyItem, hasItem, itemCount, giveItem, useItem, shopItem, setItemOff, Trade, startTrade, tradeTick, parts: () => parts, exp: () => exp, me: () => me, iAmHost, crew, players, get AV() { return AV; }, W, earn, spend, roundState, openPanel, closePanel, pickPlane, myPeer, grantCosmetic, snapshot, say }; // for tests
 if (!Net.api()) homeStatus('Open Bloxverse from 🕹️ Games in the chat to play online.');
 else {
   $('#hi').textContent = 'Connecting…';

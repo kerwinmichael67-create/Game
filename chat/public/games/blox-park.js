@@ -40,7 +40,7 @@
     welcome: 'Step on a claim pad to get a park!',
     land: { theme: 'meadow', fence: 'hedge' },
     skyCols: ['#60a5fa', '#fdf2f8'], ground: 0x66bb6a, speed0: 11, belt: false, beltTop: 0.4, prodLift: 0,
-    path: [[-6, 25], [-6, 8], [-20, 8], [-20, -20], [20, -20], [20, 8], [8, 8], [8, 25]], padAt: [-15, 17], caseAt: [15, 21], caseName: '🧸 Prize shelf',
+    path: [[-6, 25], [-6, 8], [-20, 8], [-20, -20], [20, -20], [20, 8], [8, 8], [8, 25]], padAt: [-15, 17], caseAt: [15, 21], caseName: '🧸 Prize shelf', caseShort: 'Prizes',
     findHow: 'Plushies you win at the ring toss sit on your prize shelf.',
     FINDS,
     items: [
