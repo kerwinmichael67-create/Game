@@ -6,11 +6,11 @@
    what they're worth) to your market. Fish off the end of your dock
    with your own rod for rare catches: they swim in your aquarium and
    add to every sale (or sell them, or trade them). Rebirth at the end.
-   ================================================================   What makes it a harbour: sail your own boat out past the shallows to
+   What makes it a harbour: sail your own boat out past the shallows to
    the fishing spots (bubbling, with a beam of light over them; they move
    every couple of minutes, the same for everyone) and fish there for
    bigger, rarer catches: rare spots, and deep-sea spots further out.
-   ===== */
+   ===================================================================== */
 (() => {
   const NET_Z = -21.5, BOAT_Z = -31, DOCK_X = 23;
   // common fish on the conveyor
