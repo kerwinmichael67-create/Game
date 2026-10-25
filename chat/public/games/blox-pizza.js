@@ -238,7 +238,7 @@
       const beam = part({ x: h.x, y: 20, z: h.z, sx: 2.4, sy: 40, sz: 2.4, c: 0xfde047, neon: true, solid: false, alpha: 0.35 });
       beam.lab = label('🍕 Deliver here!', { size: 1.4, bg: 'rgba(220,38,38,.85)' }); beam.lab.position.set(h.x, 9, h.z); place.add(beam.lab);
       this.dv = { h: k, left: time, total: time, beam };
-      send({ dv: 1 }); sfx('pickup', { vol: 0.8 });
+      send({ dv: 1 }); sfx('pop', { vol: 0.8 });
       toast(`🛵 Take it to the ${h.name} — follow the yellow light! ${time} s`, '#fde68a');
     },
     deliver() {

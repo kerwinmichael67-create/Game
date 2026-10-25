@@ -1570,6 +1570,12 @@ const ACH = [
   ['park', 'buy', 10, 'Park Builder', 'Buy 10 things for your theme park', 30, null, '🎠'],
   ['park', 'ride', 3, 'Thrill Seeker', 'Ride 3 rides (the Ferris wheel, the drop tower, the roller coaster)', 120, null, '🎢'],
   ['park', 'rebirth', 1, 'Grand Reopening', 'Rebirth your theme park', 300, null, '🔁'],
+  ['mine', 'buy', 10, 'Mine Owner', 'Buy 10 things for your mine', 30, null, '⛏️'],
+  ['mine', 'find', 1, 'Gem Hunter', 'Dig up a gem with your pickaxe', 120, null, '💎'],
+  ['mine', 'rebirth', 1, 'Strike It Rich', 'Rebirth your mine', 300, null, '🔁'],
+  ['cars', 'buy', 10, 'Car Maker', 'Buy 10 things for your car factory', 30, null, '🏭'],
+  ['cars', 'lap', 1, 'Test Driver', 'Drive a lap of the test track', 120, null, '🏁'],
+  ['cars', 'rebirth', 1, 'New Model Year', 'Rebirth your car factory', 300, null, '🔁'],
 ].map(([e, k, n, nm, d, c, item, ic], i, all) => ({ i, id: `${e}.${k}.${n}`, e, key: `${e}.${k}`, n, nm, d, c, item, ic, tier: e === 'bv' ? 'b' : all.slice(0, i).filter((a) => a[0] === e).length }));
 W.ach = { c: {}, got: new Set() };
 const achTarget = (A) => (A.n === 'all' ? Object.keys(EXPS).length : A.n);
@@ -2546,7 +2552,7 @@ function drawAvatarOpts() {
   }));
 }
 // the order experiences were added (the newest get a ✨ NEW badge; "Newest" sorts by it)
-const ADDED = ['obby', 'tycoon', 'tag', 'lava', 'toh', 'garden', 'tds', 'army', 'nds', 'pets', 'boat', 'zombie', 'egg', 'speed', 'fish', 'blade', 'murder', 'kart', 'rlgl', 'color', 'golf', 'bee', 'hide', 'pvz', 'rivals', 'fruits', 'pvb', 'fishty', 'pizza', 'park'];
+const ADDED = ['obby', 'tycoon', 'tag', 'lava', 'toh', 'garden', 'tds', 'army', 'nds', 'pets', 'boat', 'zombie', 'egg', 'speed', 'fish', 'blade', 'murder', 'kart', 'rlgl', 'color', 'golf', 'bee', 'hide', 'pvz', 'rivals', 'fruits', 'pvb', 'fishty', 'pizza', 'park', 'mine', 'cars'];
 const addedAt = (E) => (E.added != null ? E.added : ADDED.indexOf(E.id));
 const SORTS = [['featured', '⭐ Featured'], ['popular', '🔥 Popular'], ['new', '✨ Newest'], ['az', '🔤 A–Z'], ['recent', '🕒 Recently played']];
 // how the list is sorted and filtered, your favourites and what you played when (kept on this device)
@@ -3065,5 +3071,7 @@ else {
 <script src="blox-fishtycoon.js"></script>
 <script src="blox-pizza.js"></script>
 <script src="blox-park.js"></script>
+<script src="blox-mine.js"></script>
+<script src="blox-cars.js"></script>
 </body>
 </html>

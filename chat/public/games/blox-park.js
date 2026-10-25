@@ -79,6 +79,7 @@
       for (let i = 0; i < 10; i++) { const b = new THREE.Mesh(new THREE.SphereGeometry(0.9, 10, 8), M(SHIRTS[i % SHIRTS.length])); b.position.set((r() - 0.5) * 12, 9 + r() * 4, (r() - 0.5) * 12); place.add(b); }
     },
     tyBase(pl, add) {
+      pl.ferris = pl.drop = pl.coaster = null; // (set again by the rides still standing)
       // the path round the park, and the gate
       const fast = this.speedOf(pl.b) >= 20;
       for (const g of this.ty.path.segs) { const ax = Math.abs(g.dx) > 0.5; add((g.x0 + g.x1) / 2, 0.5, (g.z0 + g.z1) / 2, ax ? g.len + 3.4 : 3.4, 0.1, ax ? 3.4 : g.len + 3.4, fast ? 0x94a3b8 : 0xd6b98c, { plain: true, solid: false }); }
@@ -248,7 +249,7 @@
     tyTick(dt) {
       const R = this.rideOn; if (!R) return;
       const pl = R.pl, v = new THREE.Vector3();
-      if (!pl.owner || P.dead) { this.getOff(true); return; }
+      if (!pl.owner || P.dead || !(R.kind === 'ferris' ? pl.ferris : R.kind === 'drop' ? pl.drop : pl.coaster)) { this.getOff(true); return; }
       R.t += dt;
       if (R.kind === 'ferris' && pl.ferris) { const c = pl.ferris.cars[0]; c.updateMatrixWorld(true); c.getWorldPosition(v); v.y -= 1.6; }
       else if (R.kind === 'drop' && pl.drop) { pl.drop.car.updateMatrixWorld(true); pl.drop.car.getWorldPosition(v); v.x += 2.4; v.y += 0.4; }

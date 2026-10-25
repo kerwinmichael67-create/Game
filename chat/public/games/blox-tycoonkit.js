@@ -15,6 +15,7 @@
      tyBase(pl, add)           an owned plot's fixed things (a market…)
      tyItem(pl, it, i, add)    one thing that's been bought
      tyProd(pl, it, i)         a new product (an Object3D) from source i
+                               (userData.vk: worth that many times more)
      tyUp(pl, pr, it, i)       a product just passed upgrader i
      tySold(pl, pr)            a product was sold (true: E took its mesh)
      tyAnim(pl, dt, t)         every frame, each owned plot
@@ -236,7 +237,7 @@ function tycoonKit(E) {
         if (it.kind === 'pay') { if (pl.mine) { const v = it.v * this.mult(pl), [x, z] = this.W(pl, 0, 0); this.gain(v, x, z); } if (this.tyPay) this.tyPay(pl, it, i); return; }
         for (let n = 0; n < (it.batch || 1) && pl.prods.length < 120; n++) {
           const m = this.tyProd(pl, it, i); place.add(m);
-          pl.prods.push({ s: Math.max(0, it.s - n * 1.6), y: top + (it.drop != null ? it.drop : 6) + n * 0.8, v: it.v, up: 0, m, it: i });
+          pl.prods.push({ s: Math.max(0, it.s - n * 1.6), y: top + (it.drop != null ? it.drop : 6) + n * 0.8, v: it.v * (m.userData.vk || 1), up: 0, m, it: i }); // (vk: a rarer one, worth more)
         }
       });
       // the upgraders, in order along the path
@@ -282,7 +283,7 @@ function tycoonKit(E) {
       if (this.col.length > KEEP_MAX) { const lo = this.col.reduce((m, x, i, a) => (E.FINDS[x].r < E.FINDS[a[m]].r ? i : m), 0), x = this.col.splice(lo, 1)[0]; this.gain(this.findValue(x), null, null, true); }
       this.dirty = true; this.save(); send({ cl: this.bestFinds() }); this.peers();
       quest(`${E.id}.find`); if (F.r >= 4) quest(`${E.id}.legend`);
-      say(`${F.e} ${how || 'You found'} ${/^[AEIOU]/.test(F.n) ? 'an' : 'a'} ${RAR[F.r][0]} ${F.n}! +${Math.round((F.bonus != null ? F.bonus : FIND_BONUS[F.r]) * 100)}% cash`, RAR[F.r][1]);
+      say(`${F.e} ${how || 'You found'} ${/^[AEIOU]/.test(RAR[F.r][0]) ? 'an' : 'a'} ${RAR[F.r][0]} ${F.n}! +${Math.round((F.bonus != null ? F.bonus : FIND_BONUS[F.r]) * 100)}% cash`, RAR[F.r][1]);
       sfx(F.r >= 3 ? 'win' : 'unlock'); puffAt(P.x, P.y + 2.5, P.z, F.r >= 3 ? CONFETTI : [0xffffff, 0x93c5fd], F.r >= 3 ? 40 : 14);
       if (F.r >= 4) Net.chat(`${F.e} found a ${RAR[F.r][0]} ${F.n}!`);
     },
