@@ -44,7 +44,7 @@
   const TR = 112, TW = 12, CORNERS = [[TR, TR], [TR, -TR], [-TR, -TR], [-TR, TR]];
 
   const CF = tycoonKit({
-    id: 'cars', code: 'cf', key: 'cf', rank: 0.0009, name: 'Car Factory Tycoon', emoji: '🚗', noun: 'Car Factory', camDist: 22,
+    id: 'cars', code: 'cf', saveKey: 'cf', rank: 0.0009, name: 'Car Factory Tycoon', emoji: '🚗', noun: 'Car Factory', camDist: 22,
     color: 'linear-gradient(135deg,#334155,#ef4444)',
     desc: 'Claim a car factory. Presses stamp out frames and the assembly line adds the engine, wheels, paint and chrome before every car drives off sold. Build hatchbacks up to hypercars and rocket cars, then take your best one for a test drive round the track for lap times, cash and trophies. Rebirth for more cash for good.',
     welcome: 'Step on a claim pad to get a car factory!',

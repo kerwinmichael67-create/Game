@@ -32,7 +32,7 @@ function tycoonKit(E) {
   const has = (b, i) => ((b >>> i) & 1) === 1;
   const RAR = [['Common', '#cbd5e1'], ['Uncommon', '#86efac'], ['Rare', '#60a5fa'], ['Epic', '#c084fc'], ['Legendary', '#fbbf24'], ['Mythical', '#f87171']];
   const FIND_BONUS = [0.01, 0.02, 0.04, 0.08, 0.15, 0.3], FIND_CAP = 1, CASE_MAX = 8, KEEP_MAX = 40;
-  const key = E.key || E.code, noun = E.noun || 'Tycoon';
+  const key = E.saveKey || E.code, noun = E.noun || 'Tycoon'; // (where it's saved: not "key", that's the keyboard hook)
   const PLOT_COLS = [0x3b82f6, 0xef4444, 0x22c55e, 0xf59e0b], PLOT_NAMES = ['Blue', 'Red', 'Green', 'Yellow'];
   const bonusOf = (b) => T.reduce((s, it, i) => s + (it.bonus && has(b, i) ? it.bonus : 0), 0);
   // the path the products ride: straight bits, one after the other

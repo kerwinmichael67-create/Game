@@ -34,7 +34,7 @@
   const COASTER = [[22.5, 14, 5.5], [22.5, -4, 5.5], [22.5, -16, 15], [16, -22.5, 16], [6, -22.5, 4.5], [-6, -22.5, 12], [-16, -22.5, 6], [-22.5, -14, 5], [-22.5, 4, 13], [-22.5, 16, 7], [-14, 22.5, 6.5], [6, 22.5, 6.5], [18, 22.5, 6]];
 
   const TP = tycoonKit({
-    id: 'park', code: 'tp', key: 'tp', rank: 0.0007, name: 'Theme Park Tycoon', emoji: '🎢', noun: 'Park', camDist: 24,
+    id: 'park', code: 'tp', saveKey: 'tp', rank: 0.0007, name: 'Theme Park Tycoon', emoji: '🎢', noun: 'Park', camDist: 24,
     color: 'linear-gradient(135deg,#ec4899,#8b5cf6)',
     desc: 'Claim a park. Guests walk the path past your rides and food stands and pay on the way out; every ride makes them worth more. Build a carousel, teacups, a swing ride, a Ferris wheel, a drop tower, bumper cars and a roller coaster round the whole park, and ride the big ones yourself. Win plushies at the ring toss. Rebirth for more cash for good.',
     welcome: 'Step on a claim pad to get a park!',

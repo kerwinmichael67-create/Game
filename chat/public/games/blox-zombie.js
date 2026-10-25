@@ -767,7 +767,7 @@
       for (const f of this.fx) { scene.remove(f.m); if (f.own) f.m.material.dispose(); }
       for (const n of this.nades) scene.remove(n.m);
       for (const [, h] of this.held) if (h.m && h.m.parent) h.m.parent.remove(h.m);
-      if (this.myHeld && this.myHeld.m.parent) this.myHeld.m.parent.remove(this.myHeld.m);
+      if (this.myHeld && this.myHeld.m && this.myHeld.m.parent) this.myHeld.m.parent.remove(this.myHeld.m); // (fists: nothing in your hand)
       for (const m of baked) { m.geometry.dispose(); m.material.dispose(); } baked = [];
       for (const a of this.npcs || []) dropAvatar(a);
       gfxApply(); // the usual light again (it depends on the graphics setting)

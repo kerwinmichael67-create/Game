@@ -44,7 +44,7 @@
   const HOUSE_COLS = [0xfca5a5, 0x93c5fd, 0xfde68a, 0x86efac, 0xc4b5fd, 0xfdba74], HOUSE_NAMES = ['pink', 'blue', 'yellow', 'green', 'purple', 'orange'];
 
   const PZ = tycoonKit({
-    id: 'pizza', code: 'pp', key: 'pp', rank: 0.0006, name: 'Pizza Place', emoji: '🍕', noun: 'Pizzeria', camDist: 22,
+    id: 'pizza', code: 'pp', saveKey: 'pp', rank: 0.0006, name: 'Pizza Place', emoji: '🍕', noun: 'Pizzeria', camDist: 22,
     color: 'linear-gradient(135deg,#dc2626,#f59e0b)',
     desc: 'Claim a pizzeria. Ovens bake pizzas onto the counter, toppings make them worth more, and customers queue up to take them away. Buy delivery scooters, vans, drones and a pizza rocket, or take a pizza out to a house yourself for a big tip and a secret recipe. Grow it into a bigger restaurant, then rebirth.',
     welcome: 'Step on a claim pad to get a pizzeria!',

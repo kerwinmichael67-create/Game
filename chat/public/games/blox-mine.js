@@ -25,7 +25,7 @@
   const VEIN_SPOTS = [[-21, -6], [-16, -3], [-21, 2], [-14, 5], [-19, 8]];
 
   const MT = tycoonKit({
-    id: 'mine', code: 'mt', key: 'mt', rank: 0.0008, name: 'Mining Tycoon', emoji: '⛏️', noun: 'Mine', camDist: 22,
+    id: 'mine', code: 'mt', saveKey: 'mt', rank: 0.0008, name: 'Mining Tycoon', emoji: '⛏️', noun: 'Mine', camDist: 22,
     color: 'linear-gradient(135deg,#78350f,#0ea5e9)',
     desc: 'Claim a mine. Drills dig coal, iron, gold, diamonds and more; the ore rides your conveyor through the washer, furnace, refinery and coin mint to the bank. Dig deeper for rarer, sparkly ores, add a mine railway and dynamite, and swing your own pickaxe in the quarry for cash and gems. Rebirth for more cash for good.',
     welcome: 'Step on a claim pad to get a mine!',

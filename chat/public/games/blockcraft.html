@@ -622,7 +622,7 @@ function physics(dt) {
   const inWater = get(Math.floor(P.x), Math.floor(P.y + 0.5), Math.floor(P.z)) === WATER;
   const fw = (keys.KeyW || keys.ArrowUp ? 1 : 0) - (keys.KeyS || keys.ArrowDown ? 1 : 0);
   const st = (keys.KeyD ? 1 : 0) - (keys.KeyA ? 1 : 0);
-  const speed = P.fly ? 11 : (keys.ControlLeft || keys.ControlRight ? 6.2 : 4.4) * (inWater ? 0.55 : 1) * (keys.ShiftLeft && !P.fly ? 0.4 : 1);
+  const speed = P.fly ? 11 : (sprinting() ? 6.2 : 4.4) * (inWater ? 0.55 : 1) * (keys.ShiftLeft && !P.fly ? 0.4 : 1);
   const sin = Math.sin(P.yaw), cos = Math.cos(P.yaw);
   let wx = (-sin * fw + cos * st), wz = (-cos * fw - sin * st);
   const len = Math.hypot(wx, wz) || 1;
@@ -650,7 +650,7 @@ function physics(dt) {
   if (inWater || P.fly) S.fallFrom = null;
   else if (!P.ground) S.fallFrom = S.fallFrom === null ? P.y : Math.max(S.fallFrom, P.y);
   else if (!wasGround && S.fallFrom !== null) { const d = S.fallFrom - P.y; S.fallFrom = null; if (d > 1.2) sfx('land', { vol: Math.min(1, d / 6) }); if (d > 3.4) hurt(Math.floor(d - 3), 0, 0, 'You fell from a high place.'); }
-  survivalTick(dt, !!(fw || st), !!(keys.ControlLeft || keys.ControlRight));
+  survivalTick(dt, !!(fw || st), sprinting());
   if (P.y < -20) { if (survival()) { S.hp = 0; die('You fell out of the world.'); } else respawn(); }
 }
 function surface(x, z) { for (let y = H - 1; y >= 0; y--) { const b = get(x, y, z); if (solid(b)) return y + 1; if (b === WATER) return y + 1; } return H; }
@@ -855,9 +855,13 @@ addEventListener('mousemove', (e) => {
   P.yaw -= mx * 0.0025; P.pitch = Math.max(-1.55, Math.min(1.55, P.pitch - my * 0.0025));
 });
 addEventListener('wheel', (e) => { if (playing) select(sel + (e.deltaY > 0 ? 1 : -1)); }, { passive: true });
+// sprint: double-tap W and keep holding it (Ctrl works too, but Ctrl with W is the browser's close-tab shortcut)
+let wTap = 0, dblRun = false;
+const sprinting = () => !!(keys.ControlLeft || keys.ControlRight || dblRun);
 addEventListener('keydown', (e) => {
   if (document.activeElement === $('#chatin')) return;
   if (!playing) return;
+  if (e.code === 'KeyW' && !e.repeat) { const t = performance.now(); if (t - wTap < 300) dblRun = true; wTap = t; }
   keys[e.code] = true;
   if (/^Digit[1-9]$/.test(e.code)) select(+e.code.slice(5) - 1);
   if (e.code === 'KeyF' && !survival()) { P.fly = !P.fly; toast(P.fly ? 'Flying (Space up, Shift down)' : 'Walking'); }
@@ -874,8 +878,8 @@ addEventListener('keydown', (e) => {
   if (['Space', 'ArrowUp', 'ArrowDown'].includes(e.code)) e.preventDefault();
   if (e.code === 'Escape' && !$('#pick').hidden) closePicker();
 });
-addEventListener('keyup', (e) => { keys[e.code] = false; });
-addEventListener('blur', () => { for (const k in keys) keys[k] = false; mouseDown.l = mouseDown.r = false; });
+addEventListener('keyup', (e) => { keys[e.code] = false; if (e.code === 'KeyW') dblRun = false; });
+addEventListener('blur', () => { for (const k in keys) keys[k] = false; mouseDown.l = mouseDown.r = false; dblRun = false; });
 let showCoords = false;
 
 const mineBox = new THREE.Mesh(new THREE.BoxGeometry(1.012, 1.012, 1.012), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0, depthWrite: false }));
@@ -1512,7 +1516,7 @@ function menu() {
     ${modeButtons()}
     <button class="mbtn green" id="rnd">🎲 Join a random world</button>
     <div class="worlds">${WORLD_NAMES.map((nm, i) => `<button class="world" data-w="${i + 1}" ${c[i + 1] >= MAXP ? 'disabled' : ''}><b>${nm}</b><small>Server ${i + 1} · ${c[i + 1] >= MAXP ? 'Full' : c[i + 1] ? c[i + 1] + ' playing' : 'Nobody here'}</small></button>`).join('')}</div>
-    <p class="note"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move · mouse to look · <kbd>Space</kbd> jump (double-tap or <kbd>F</kbd> to fly) · <b>left click</b> break · <b>right click</b> place · <kbd>1</kbd>–<kbd>9</kbd> or wheel pick a block · <kbd>E</kbd> blocks (survival: inventory and crafting) · <kbd>T</kbd> chat · <kbd>Ctrl</kbd> sprint</p>`;
+    <p class="note"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move · mouse to look · <kbd>Space</kbd> jump (double-tap or <kbd>F</kbd> to fly) · <b>left click</b> break · <b>right click</b> place · <kbd>1</kbd>–<kbd>9</kbd> or wheel pick a block · <kbd>E</kbd> blocks (survival: inventory and crafting) · <kbd>T</kbd> chat · double-tap <kbd>W</kbd> to sprint</p>`;
   $('#rnd').onclick = () => { const open = []; for (let n = 1; n <= SERVERS; n++) if (c[n] < MAXP) open.push(n); join(open[Math.floor(Math.random() * open.length)] || 1); };
   $('#menuPanel').querySelectorAll('[data-w]').forEach((b) => (b.onclick = () => join(+b.dataset.w)));
   wireModes($('#menuPanel'), menu);

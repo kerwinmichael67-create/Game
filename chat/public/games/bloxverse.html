@@ -723,12 +723,17 @@ function moveP(dx, dy, dz) {
   }
 }
 const keys = {}, joy = { x: 0, y: 0 }, cam = { yaw: 0, pitch: -0.32, dist: 20 };
-let jumpHeld = false;
+// a jump press counts for a moment (a quick tap between two frames isn't lost, and one just before landing still jumps),
+// and you can still jump for a moment after walking off an edge
+let jumpHeld = false, jumpQ = -1, physT = 0, groundT = -1, jumpedT = -1;
+const JUMP_BUFFER = 0.15, COYOTE = 0.12;
+const queueJump = () => { jumpQ = physT; };
 function physics(dt) {
   if (P.dead) return;
+  physT += dt; if (P.ground) groundT = physT;
   let f = (keys.KeyW || keys.ArrowUp ? 1 : 0) - (keys.KeyS || keys.ArrowDown ? 1 : 0) - joy.y;
   let r = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0) + joy.x;
-  if (P.frozen || chatOpen()) f = r = 0;
+  if (P.frozen || chatOpen() || !$('#pause').hidden) f = r = 0;
   const cy = cam.yaw, fx = -Math.sin(cy), fz = -Math.cos(cy), rx = Math.cos(cy), rz = -Math.sin(cy);
   let mx = fx * f + rx * r, mz = fz * f + rz * r; const l = Math.hypot(mx, mz);
   if (l > 1) { mx /= l; mz /= l; }
@@ -741,7 +746,8 @@ function physics(dt) {
     if (lockFacing()) P.yaw = cam.yaw; // shift lock, first person: you face where the camera looks
     else if (l > 0.1) { let d = Math.atan2(-mx, -mz) - P.yaw; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; P.yaw += d * Math.min(1, 14 * dt); }
   }
-  if ((keys.Space || jumpHeld) && P.ground && !P.frozen && !chatOpen() && !drive) { P.vy = jp; P.ground = null; sfx('jump'); }
+  const wantJump = keys.Space || jumpHeld || physT - jumpQ < JUMP_BUFFER, canJump = P.ground || (physT - groundT < COYOTE && jumpedT < groundT && P.vy <= 0);
+  if (wantJump && canJump && !P.frozen && !chatOpen() && !drive && $('#pause').hidden) { P.vy = jp; P.ground = null; jumpQ = -1; jumpedT = physT; sfx('jump'); }
   // trusses: walk into one and you climb it
   if (!P.frozen && (f > 0.1 || keys.Space || jumpHeld) && onTruss()) P.vy = 13;
   else P.vy = Math.max(-170, P.vy - gr * dt);
@@ -1738,7 +1744,7 @@ async function join(id, n) {
 }
 async function leave(quiet) {
   unlock(); View.fp = false; $('#reticle').style.display = 'none'; $('#stam').style.opacity = 0; canvas.style.cursor = '';
-  if (exp && exp.leave && playing) await exp.leave();
+  if (exp && exp.leave && playing) { try { await exp.leave(); } catch (e) { oops('leave', e); } } // (a game that trips up on the way out never keeps you in)
   const r = Net.room;
   if (Trade.st) trReset(); trHideAsk(); Trade.asked.clear();
   Net.room = null; Net.srv = ''; playing = false;
@@ -2725,7 +2731,7 @@ function placeMeter() {
 }
 
 /* ---------------- pause menu ---------------- */
-const keysLabel = () => (View.keys === 'lock' ? '⌨️ Shift: shift lock · Ctrl: sprint' : '⌨️ Shift: sprint · Ctrl: shift lock');
+const keysLabel = () => (View.keys === 'lock' ? '⌨️ Shift: shift lock · double-tap W: sprint' : '⌨️ Shift (or double-tap W): sprint · Ctrl: shift lock');
 function showPause() {
   if (!playing) return;
   unlock();
@@ -2773,7 +2779,8 @@ const View = { lock: false, fp: false, skip: 0, keys: 'sprint', st: 1, rest: 0, 
 try { if (localStorage.getItem('bv-keys') === 'lock') View.keys = 'lock'; } catch (e) {}
 const isShift = (c) => c === 'ShiftLeft' || c === 'ShiftRight', isCtrl = (c) => c === 'ControlLeft' || c === 'ControlRight';
 const lockKeyCode = (c) => (View.keys === 'lock' ? isShift(c) : isCtrl(c));
-const sprintHeld = () => (View.keys === 'lock' ? keys.ControlLeft || keys.ControlRight : keys.ShiftLeft || keys.ShiftRight) || View.touchRun;
+// (never Ctrl held down: Ctrl with W, S, D or A is the browser's close tab, save, bookmark, select all)
+const sprintHeld = () => (View.keys === 'lock' ? false : keys.ShiftLeft || keys.ShiftRight) || View.dblRun || View.touchRun;
 const lockKeyName = () => (View.keys === 'lock' ? 'Shift' : 'Ctrl');
 const lockAllowed = () => !!(playing && exp && !exp.noLock);
 // an experience aiming down the sights (exp.aiming(), while you hold the button): like shift lock while it lasts,
@@ -2877,21 +2884,37 @@ addEventListener('mousemove', (e) => {
 });
 canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 canvas.addEventListener('wheel', (e) => { zoomBy(e.deltaY > 0 ? 1.12 : 0.89); e.preventDefault(); }, { passive: false });
+// typing in a box (the chat, a code, a search) isn't moving, jumping or pressing E
+const typing = (e) => { const t = e.target; return !!(t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))); };
 addEventListener('keydown', (e) => {
   if (document.activeElement === $('#chatin') || !playing) return;
+  if (typing(e)) { if (e.code === 'Escape') e.target.blur(); return; }
   // a full-screen menu takes the keyboard: Esc closes it
   if (fullOpen()) { if (e.code === 'Escape') closePanel(); else if (exp && exp.menuKey && !e.repeat) exp.menuKey(e.code); return; }
   if (e.code === 'Slash' || e.code === 'Enter') { e.preventDefault(); openChat(); return; }
   if (e.code === 'Escape') { if (performance.now() - View.lostAt < 400) return; if (panelOpen()) closePanel(); else if ($('#pause').hidden) showPause(); else $('#pause').hidden = true; return; } // (Esc that let go of the pointer has opened the menu already)
+  if (!$('#pause').hidden) return; // (the menu's open: nothing else happens in the game)
+  // Ctrl toggles shift lock when it's tapped on its own (with another key it's the browser's shortcut, not ours)
+  if (isCtrl(e.code)) { View.ctrlTap = !e.repeat && lockKeyCode(e.code); return; }
+  View.ctrlTap = false;
   if (lockKeyCode(e.code) && !e.repeat && lockAllowed()) { setLock(!View.lock); return; }
+  // double-tap W (or ↑) to sprint, for as long as you keep holding it
+  if ((e.code === 'KeyW' || e.code === 'ArrowUp') && !e.repeat) { const t = performance.now(); if (t - (View.wAt || 0) < 300) View.dblRun = true; View.wAt = t; }
   if (exp && exp.key && !e.repeat && exp.key(e.code, true) === true) { e.preventDefault(); return; }
   if (e.code === 'KeyE' && promptCur && !e.repeat) { sfx('select'); promptCur.fn(); return; }
   if (e.code === 'KeyR' && !P.dead && !(exp && exp.noReset)) die();
+  if (e.code === 'Space' && !e.repeat) queueJump();
   keys[e.code] = true;
   if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault();
 });
-addEventListener('keyup', (e) => { keys[e.code] = false; if (playing && exp && exp.key) exp.key(e.code, false); });
-addEventListener('blur', () => { for (const k in keys) keys[k] = false; drag = null; jumpHeld = false; });
+addEventListener('keyup', (e) => {
+  keys[e.code] = false;
+  if (e.code === 'KeyW' || e.code === 'ArrowUp') View.dblRun = false;
+  if (isCtrl(e.code) && View.ctrlTap && playing && lockAllowed() && $('#pause').hidden && !typing(e)) setLock(!View.lock);
+  if (isCtrl(e.code)) View.ctrlTap = false;
+  if (playing && exp && exp.key) exp.key(e.code, false);
+});
+addEventListener('blur', () => { for (const k in keys) keys[k] = false; drag = null; jumpHeld = false; View.dblRun = false; View.ctrlTap = false; });
 // touch: a stick on the left, drag anywhere else to turn the camera, a jump button
 const stick = $('#stick'), knob = $('#stick i'); let stickId = null, camTouch = null;
 stick.addEventListener('touchstart', (e) => { const t = e.changedTouches[0]; stickId = t.identifier; e.preventDefault(); moveStick(t); }, { passive: false });
@@ -2909,7 +2932,9 @@ addEventListener('touchmove', (e) => {
   if (pinch) { const a = [...e.touches].filter((t) => pinch.ids.includes(t.identifier)); if (a.length === 2) { const d = Math.hypot(a[0].clientX - a[1].clientX, a[0].clientY - a[1].clientY); if (Math.abs(d - pinch.d) > 14) { zoomBy(d > pinch.d ? 0.89 : 1.12); pinch.d = d; } } }
 }, { passive: true });
 let pinch = null;
-addEventListener('touchend', (e) => { if (pinch && [...e.changedTouches].some((t) => pinch.ids.includes(t.identifier))) { pinch = null; camTouch = null; } for (const t of e.changedTouches) { if (t.identifier === stickId) { stickId = null; joy.x = joy.y = 0; knob.style.transform = ''; } if (camTouch && t.identifier === camTouch.id) camTouch = null; } });
+// (a touch the browser cancels, say for a system gesture, lets go of the stick too)
+const touchUp = (e) => { if (pinch && [...e.changedTouches].some((t) => pinch.ids.includes(t.identifier))) { pinch = null; camTouch = null; } for (const t of e.changedTouches) { if (t.identifier === stickId) { stickId = null; joy.x = joy.y = 0; knob.style.transform = ''; } if (camTouch && t.identifier === camTouch.id) camTouch = null; } };
+addEventListener('touchend', touchUp); addEventListener('touchcancel', touchUp);
 canvas.addEventListener('touchstart', (e) => {
   const on = [...e.touches].filter((t) => t.target === canvas);
   if (on.length >= 2) { pinch = { ids: [on[0].identifier, on[1].identifier], d: Math.hypot(on[0].clientX - on[1].clientX, on[0].clientY - on[1].clientY) }; return; }
@@ -2917,8 +2942,8 @@ canvas.addEventListener('touchstart', (e) => {
 }, { passive: true });
 // a tap (short, without dragging) is a click
 canvas.addEventListener('touchend', (e) => { const t = e.changedTouches[0], c = camTouch; if (c && t && performance.now() - c.at < 350 && Math.hypot(t.clientX - c.sx, t.clientY - c.sy) < 12 && playing && exp && exp.click) exp.click({ x: t.clientX, y: t.clientY, button: 0 }); });
-$('#jumpBtn').addEventListener('touchstart', (e) => { jumpHeld = true; e.preventDefault(); }, { passive: false });
-$('#jumpBtn').addEventListener('touchend', () => (jumpHeld = false));
+$('#jumpBtn').addEventListener('touchstart', (e) => { jumpHeld = true; queueJump(); e.preventDefault(); }, { passive: false });
+for (const ev of ['touchend', 'touchcancel']) $('#jumpBtn').addEventListener(ev, () => (jumpHeld = false));
 $('#runBtn').addEventListener('touchstart', (e) => { e.preventDefault(); View.touchRun = !View.touchRun; sfx('toggle'); }, { passive: false });
 $('#lockBtn').addEventListener('touchstart', (e) => { e.preventDefault(); setLock(!View.lock); }, { passive: false });
 $('#chatBtn').addEventListener('click', openChat);
@@ -2933,6 +2958,9 @@ function hostStep(dt) {
   const n = Math.max(1, Math.min(8, Math.ceil(real / 0.1 - 1e-6)));
   for (let i = 0; i < n; i++) exp.host(real / n);
 }
+// a game's code going wrong mustn't stop the world (the camera, your character, the Leave button): it's reported once
+const oopsSeen = new Set();
+function oops(where, e) { const k = where + ':' + (e && e.message); if (oopsSeen.has(k)) return; oopsSeen.add(k); console.error(`Bloxverse ${exp ? exp.id : ''} ${where}:`, e); }
 function frame(t) {
   requestAnimationFrame(frame);
   const dt = Math.min(0.1, (t - last) / 1000); last = t; // physics takes small steps, so a slow frame still moves at the right speed
@@ -2944,8 +2972,8 @@ function frame(t) {
   const n = Math.ceil(dt / (1 / 120)); for (let i = 0; i < n; i++) physics(dt / n);
   triggers();
   if (P.dead && t - P.deadAt > (exp.respawnDelay || 2200)) respawn();
-  if (exp.tick) exp.tick(dt);
-  if (exp.host && iAmHost() && Net.loaded !== false) hostStep(dt);
+  if (exp.tick) { try { exp.tick(dt); } catch (e) { oops('tick', e); } }
+  if (exp.host && iAmHost() && Net.loaded !== false) { try { hostStep(dt); } catch (e) { oops('host', e); } }
   // me
   if (me) {
     if (me.dead) updateDead(me, dt);
@@ -2964,7 +2992,7 @@ function frame(t) {
     animateAvatar(a, dt, a.anim === 1, a.anim === 2); placeShadow(a); updatePet(a, dt); auraTick(a, dt); trailTick(a, dt, a.anim === 1);
     if (a.bub) { a.bubT -= dt; if (a.bubT <= 0) { a.g.remove(a.bub); a.bub.material.map.dispose(); a.bub = null; } }
   }
-  if (exp.pose) exp.pose(dt); // after the walk animation: an experience can pose arms (holding a gun) and the like
+  if (exp.pose) { try { exp.pose(dt); } catch (e) { oops('pose', e); } } // after the walk animation: an experience can pose arms (holding a gun) and the like
   for (let i = bits.length - 1; i >= 0; i--) { const m = bits[i], u = m.userData; u.life -= dt; u.v.y -= (u.g != null ? u.g : 30) * dt; m.position.addScaledVector(u.v, dt); if (!u.spinless) m.rotation.x += dt * 5; if (u.fade) m.material.opacity = Math.max(0, Math.min(0.9, u.life * 1.5)); if (u.life <= 0) { scene.remove(m); m.material.dispose(); bits.splice(i, 1); } }
   updatePrompt();
   // the camera, behind and above you
@@ -2991,7 +3019,7 @@ function frame(t) {
   netTick(t);
   if (t - (Trade.tickAt || 0) > 200) { Trade.tickAt = t; tradeTick(); }
   meterTick(t);
-  if (t > hudAt) { hudAt = t + 200; drawHud(); }
+  if (t > hudAt) { hudAt = t + 200; try { drawHud(); } catch (e) { oops('hud', e); } }
   if (typeof scenery === 'function' && scenery.tick) scenery.tick(dt); // the land all round: clouds drift, far-off land isn't drawn
   gfxTick(t, dt);
   if (!fullOpen()) renderer.render(scene, camera); // a full-screen menu hides the world: skip drawing it

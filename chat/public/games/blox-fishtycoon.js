@@ -50,7 +50,7 @@
   const UPS = { ice: [0xe0f2fe, '❄️ Ice Box'], fillet: [0xfecaca, '🔪 Fillet Table'], smoke: [0x78350f, '🔥 Smokehouse'], can: [0x64748b, '🥫 Cannery'] };
 
   const FT = tycoonKit({
-    id: 'fishty', code: 'ft', key: 'ft', rank: 0.0005, name: 'Fishing Tycoon', emoji: '🐟', noun: 'Harbour', camDist: 22,
+    id: 'fishty', code: 'ft', saveKey: 'ft', rank: 0.0005, name: 'Fishing Tycoon', emoji: '🐟', noun: 'Harbour', camDist: 22,
     color: 'linear-gradient(135deg,#0284c7,#f59e0b)',
     desc: 'Claim a harbour on the beach. Buy fishing nets, then boats that sail out and come back full; the fish ride your conveyor through the ice box, fillet table, smokehouse and cannery to your market. Fish off your dock with your own rod for rare catches that swim in your aquarium and add to every sale. Rebirth for more cash for good.',
     welcome: 'Step on a claim pad to get a harbour!',
