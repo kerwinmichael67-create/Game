@@ -7,6 +7,10 @@
    out to a house yourself for a big tip (quick ones tip more) and, now
    and then, a secret recipe. Grow it into a bigger restaurant: walls,
    tables, a rooftop patio; then rebirth.
+   What makes it a pizzeria: cook orders yourself at the kitchen table
+   (dough, sauce, cheese, the toppings on the ticket, then out of the oven
+   when it's golden), and keep your ⭐ rating up: it's what every pizza
+   sells for, and it slips back if you stop cooking.
    ===================================================================== */
 (() => {
   const FINDS = [
@@ -41,12 +45,27 @@
     return g;
   }
   const TOP = { cheese: [0xfde68a, '🧀 Cheese'], pep: [0xb91c1c, '🍕 Pepperoni'], veg: [0x16a34a, '🫑 Veggies'], gold: [0xfacc15, '✨ Gold Leaf'] };
+  // cooking: what goes on (in this order: the base, then the toppings on the ticket, any order)
+  const ING = { dough: ['🫓', 'Dough'], sauce: ['🍅', 'Sauce'], cheese: ['🧀', 'Cheese'], pep: ['🍕', 'Pepperoni'], veg: ['🫑', 'Veggies'], mush: ['🍄', 'Mushrooms'], pine: ['🍍', 'Pineapple'], gold: ['✨', 'Gold leaf'] };
+  const BASE = ['dough', 'sauce', 'cheese'], TOPS = ['pep', 'veg', 'mush', 'pine'];
+  const STARS = (r) => '⭐'.repeat(Math.round(r)) + '☆'.repeat(5 - Math.round(r));
+  if (!document.getElementById('pzCss')) {
+    const st = document.createElement('style'); st.id = 'pzCss';
+    st.textContent = `.pzTicket{background:#fef3c7;color:#78350f;border-radius:12px;padding:9px 12px;font:600 15px var(--fh);box-shadow:0 3px 0 #d97706;margin-bottom:10px}
+.pzTicket small{display:block;font:700 12px var(--fb);opacity:.75;margin-bottom:2px}
+.pzPie{width:132px;height:132px;border-radius:50%;margin:4px auto 10px;position:relative;background:rgba(255,255,255,.06);border:2px dashed rgba(255,255,255,.2)}
+.pzPie i{position:absolute;inset:0;border-radius:50%}.pzPie .d{background:#e9b872;box-shadow:inset 0 0 0 7px #d4a05a}.pzPie .s{inset:12px;background:#dc2626}.pzPie .c{inset:16px;background:#fde68a}
+.pzPie b{position:absolute;font-size:19px;line-height:1}
+.pzBtns{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.pzBtns .xp-btn{padding:9px 4px;font-size:13px}.pzBtns .xp-btn.on{opacity:.45}
+.pzBake{width:100%;margin-top:8px}`;
+    document.head.append(st);
+  }
   const HOUSE_COLS = [0xfca5a5, 0x93c5fd, 0xfde68a, 0x86efac, 0xc4b5fd, 0xfdba74], HOUSE_NAMES = ['pink', 'blue', 'yellow', 'green', 'purple', 'orange'];
 
   const PZ = tycoonKit({
     id: 'pizza', code: 'pp', saveKey: 'pp', rank: 0.0006, name: 'Pizza Place', emoji: '🍕', noun: 'Pizzeria', camDist: 22,
     color: 'linear-gradient(135deg,#dc2626,#f59e0b)',
-    desc: 'Claim a pizzeria. Ovens bake pizzas onto the counter, toppings make them worth more, and customers queue up to take them away. Buy delivery scooters, vans, drones and a pizza rocket, or take a pizza out to a house yourself for a big tip and a secret recipe. Grow it into a bigger restaurant, then rebirth.',
+    desc: 'Claim a pizzeria and cook the customers’ orders yourself: dough, sauce, cheese, the toppings on the ticket, then out of the oven when it’s golden. Your ⭐ rating is what every pizza sells for. Ovens bake pizzas onto the counter, toppings make them worth more, and customers queue up to take them away. Buy delivery scooters, vans, drones and a pizza rocket, or take a pizza out to a house yourself for a big tip and a secret recipe. Grow it into a bigger restaurant, then rebirth.',
     welcome: 'Step on a claim pad to get a pizzeria!',
     land: { theme: 'blossom', fence: 'wood' },
     skyCols: ['#7cc4ff', '#fff1e0'], ground: 0x8bc34a, speed0: 7,
@@ -99,6 +118,9 @@
     },
     tyBase(pl, add) {
       pl.cust = [];
+      // the kitchen table where you cook orders
+      add(11, 1.6, 1, 3.4, 1.2, 2.2, 0xf8fafc); add(11, 1.68, 1, 3.2, 0.1, 2, 0xdc2626, { plain: true, solid: false });
+      { const [x, z] = this.W(pl, 11, 1), l = label('👨‍🍳 Cook orders', { size: 0.9, bg: 'rgba(15,23,42,.6)' }); l.position.set(x, 3.6, z); place.add(l); pl.decor.push(l); }
       // the order counter and the kitchen floor
       add(16, 2.2, 6.2, 6, 1.8, 2.2, 0xf8fafc); add(16, 2.4, 6.2, 6.2, 0.2, 2.4, 0xdc2626);
       add(-1, 0.45, -16, 46, 0.1, 14, 0xf1f5f9, { plain: true, solid: false });
@@ -195,12 +217,13 @@
     },
     // the customer at the front of the queue takes it
     tySold(pl, pr) {
-      const c = (pl.cust || []).find((c) => c.st === 'queue' && c.q === 0 && Math.abs(c.lz - c.tz) < 0.6);
+      const c = (pl.cust || []).find((c) => c.st === 'queue' && c.q === 0 && Math.abs(c.lz - c.tz) < 0.6 && !(this.ck && this.ck.c === c)); // (not the one you're cooking for)
       if (!c) return false;
       place.remove(pr.m); pr.m.position.set(0, 2.9, -0.9); pr.m.rotation.set(0, 0, 0); c.m.add(pr.m); c.st = 'leave'; c.lx = 16 + (Math.random() < 0.5 ? -1 : 1) * 3.2;
       return true;
     },
     tyAnim(pl, dt, t) {
+      if (t > (pl.starAt || 0)) { pl.starAt = t + 600; this.drawStars(pl); }
       if (!pl.cust) return;
       const q = pl.cust.filter((c) => c.st === 'queue');
       if (q.length < 5 && t > (pl.custAt || 0)) {
@@ -219,18 +242,81 @@
       }
     },
 
+    /* ---- your ⭐ rating: what every pizza sells for (it slips back towards ⭐2.5 unless you keep cooking) ---- */
+    tyMult(pl) { return pl.mine ? 0.6 + 0.2 * this.stars : 1; },
+    starsOf(pl) { if (pl.mine) return this.stars; const p = Net.peers.find((q) => q.peer === pl.owner); return p && p.presence && p.presence.st != null ? clamp(+p.presence.st || 3, 1, 5) : 3; },
+    rate1(d) {
+      const old = this.stars; this.stars = clamp(this.stars + d, 1, 5);
+      if (Math.abs(Math.round(this.stars * 10) - Math.round((this.sentSt || 0) * 10)) >= 1) { this.sentSt = Math.round(this.stars * 10) / 10; send({ st: this.sentSt }); }
+      return this.stars - old;
+    },
+    // over each counter: its pizzeria's stars
+    drawStars(pl) {
+      const txt = `${STARS(this.starsOf(pl))} ${this.starsOf(pl).toFixed(1)}`;
+      if (pl.starTxt === txt && pl.starLab && pl.starLab.parent) return;
+      if (pl.starLab) { place.remove(pl.starLab); pl.starLab.material.map.dispose(); }
+      pl.starTxt = txt; const [x, z] = this.W(pl, 16, 6.2); pl.starLab = label(txt, { size: 0.85, bg: 'rgba(15,23,42,.6)' }); pl.starLab.position.set(x, 7, z); place.add(pl.starLab); pl.decor.push(pl.starLab);
+    },
+
+    /* ---- cook an order: the customer at the front of the queue says what they want ---- */
+    startCook() {
+      if (this.ck || this.tg) return;
+      const pl = this.plots[this.myPlot], goldOk = this.items.some((it, i) => it.look === 'gold' && this.ty.has(this.b, i));
+      const n = 1 + (Math.random() < 0.45 ? 1 : 0) + (this.cooked > 10 && Math.random() < 0.25 ? 1 : 0), tops = TOPS.slice().sort(() => Math.random() - 0.5).slice(0, n);
+      if (goldOk && Math.random() < 0.25) tops.push('gold');
+      const c = (pl.cust || []).find((q) => q.st === 'queue' && q.q === 0);
+      if (c) { const b = label(tops.map((t) => ING[t][0]).join(''), { size: 0.9, bg: 'rgba(255,255,255,.9)', color: '#111' }); b.position.set(0, 5.4, 0); c.m.add(b); c.bubble = b; }
+      this.ck = { tops, done: [], miss: 0, c };
+      sfx('pop'); this.cookPanel();
+    },
+    cookPanel() {
+      const K = this.ck; if (!K) return;
+      const need = BASE.length + K.tops.length, ready = K.done.length === need;
+      const pie = (K.done.includes('dough') ? '<i class="d"></i>' : '') + (K.done.includes('sauce') ? '<i class="s"></i>' : '') + (K.done.includes('cheese') ? '<i class="c"></i>' : '')
+        + K.done.filter((t) => !BASE.includes(t)).map((t, k) => [0, 1, 2, 3, 4].map((j) => { const a = j * 1.26 + k * 0.7, r = 26 + (j % 2) * 14; return `<b style="left:${56 + Math.cos(a) * r}px;top:${56 + Math.sin(a) * r}px">${ING[t][0]}</b>`; }).join('')).join('');
+      const btn = (k) => `<button class="xp-btn ${K.done.includes(k) ? 'on' : ''}" data-ing="${k}" ${K.done.includes(k) ? 'disabled' : ''}>${ING[k][0]} ${ING[k][1]}</button>`;
+      const goldOk = this.items.some((it, i) => it.look === 'gold' && this.ty.has(this.b, i));
+      openPanel('👨‍🍳 Cook the order', `<div class="pzTicket"><small>🧾 Order ${this.cooked + 1} · ${STARS(this.stars)} ${this.stars.toFixed(1)}</small>${K.tops.map((t) => `${ING[t][0]} ${ING[t][1]}`).join(' + ')}</div>
+        <div class="pzPie">${pie}</div>
+        <div class="pzBtns">${[...BASE, ...TOPS, ...(goldOk ? ['gold'] : [])].map(btn).join('')}</div>
+        ${ready ? '<button class="xp-btn gold pzBake" data-bake="1">🔥 Into the oven!</button>' : `<p class="xp-note" style="margin:8px 0 0">${K.done.length < BASE.length ? `Next: <b>${ING[BASE[K.done.length]][0]} ${ING[BASE[K.done.length]][1]}</b>` : 'Now the toppings on the ticket'}${K.miss ? ` · ${K.miss} mistake${K.miss > 1 ? 's' : ''}` : ''}</p>`}`, (b) => {
+        if (b.dataset.bake) { closePanel(); this.bake(); return; }
+        const k = b.dataset.ing; if (!k || !this.ck) return;
+        const next = K.done.length < BASE.length ? BASE[K.done.length] : null, ok = next ? k === next : K.tops.includes(k) && !K.done.includes(k);
+        if (ok) { K.done.push(k); sfx('pop', { gap: 30 }); }
+        else { K.miss++; this.rate1(-0.05); toast(next ? `Oops! ${ING[next][1]} goes on first` : `Oops! That’s not on the ticket`, '#fca5a5'); sfx('error', { gap: 200 }); }
+        this.cookPanel();
+      }); // (closed without baking it: tyTick drops the order)
+    },
+    bake() {
+      sfx('whoosh');
+      this.timing({ title: '🔥 Take it out when it’s golden!', btn: '🍕 Take it out!', zone: 0.22, speed: 1.2, time: 6, done: (sc) => this.serve(sc) });
+    },
+    // served: the customer pays for it (more for more toppings, a perfect bake and no mistakes) and your stars go up
+    serve(sc) {
+      const K = this.ck; if (!K) return;
+      this.ck = null;
+      const q = [0.3, 1, 1.5][sc + 1], pay = Math.round(this.worth(25, 40) * (1 + 0.3 * (K.tops.length - 1)) * (K.tops.includes('gold') ? 2 : 1) * q * 0.75 ** K.miss);
+      const d = this.rate1(sc < 0 ? -0.2 : (sc > 0 ? 0.15 : 0.08) - 0.03 * K.miss);
+      this.cooked++; this.gain(pay, null, null, true); this.dirty = true; this.save();
+      if (K.c) { if (K.c.bubble) { K.c.m.remove(K.c.bubble); K.c.bubble = null; } const p = pizzaMesh(K.tops.includes('gold')); p.position.set(0, 2.9, -0.9); K.c.m.add(p); K.c.st = 'leave'; K.c.lx = 16 + (Math.random() < 0.5 ? -1 : 1) * 3.2; }
+      toast(`${sc < 0 ? '🔥 Burnt! ' : sc > 0 ? '😋 Perfect! ' : '🍕 Served! '}+${money(pay)} · ⭐ ${d >= 0 ? '+' : ''}${d.toFixed(2)}`, sc < 0 ? '#fca5a5' : '#86efac');
+      sfx(sc < 0 ? 'error' : 'coin'); if (sc > 0) puffAt(P.x, P.y + 3, P.z, CONFETTI, 20);
+    },
+    dropCook() { const K = this.ck; if (!K) return; this.ck = null; if (K.c && K.c.bubble) { K.c.m.remove(K.c.bubble); K.c.bubble = null; } },
+
     /* ---- deliver it yourself ---- */
-    async tyEnter(s) { this.delivered = Math.max(0, s.dl | 0); this.dv = null; this.boxes = new Map(); },
-    tySave() { return { dl: this.delivered }; },
-    tyLeave() { this.dropDelivery(); for (const b of this.boxes.values()) if (b.parent) b.parent.remove(b); this.boxes.clear(); },
+    async tyEnter(s) { this.delivered = Math.max(0, s.dl | 0); this.dv = null; this.boxes = new Map(); this.stars = clamp(s.st == null ? 3 : +s.st || 3, 1, 5); this.cooked = Math.max(0, s.ck | 0); this.ck = null; this.sentSt = Math.round(this.stars * 10) / 10; send({ st: this.sentSt }); },
+    tySave() { return { dl: this.delivered, st: Math.round(this.stars * 100) / 100, ck: this.cooked }; },
+    tyLeave() { this.dropCook(); this.dropDelivery(); for (const b of this.boxes.values()) if (b.parent) b.parent.remove(b); this.boxes.clear(); },
     tyPrompts() {
       if (this.dv) {
         const h = this.houses[this.dv.h];
         return Math.hypot(P.x - h.x, P.z - h.z) < 5 ? [{ x: h.x, z: h.z, r: 5, text: '🍕 Hand over the pizza', fn: () => this.deliver() }] : [];
       }
       if (this.myPlot == null || P.dead) return [];
-      const pl = this.plots[this.myPlot], [x, z] = this.W(pl, 11, 9);
-      return [{ x, z, r: 3.5, text: '🛵 Take a pizza out', fn: () => this.takeDelivery() }];
+      const pl = this.plots[this.myPlot], [x, z] = this.W(pl, 11, 9), [cx, cz] = this.W(pl, 11, 3);
+      return [{ x, z, r: 3.5, text: '🛵 Take a pizza out', fn: () => this.takeDelivery() }, { x: cx, z: cz, r: 3, text: '👨‍🍳 Cook an order', fn: () => this.startCook() }];
     },
     takeDelivery() {
       const all = this.houses.map((h, k) => [h, k]), far = all.filter(([h]) => Math.hypot(h.x - P.x, h.z - P.z) > 40), [h, k] = (far.length ? far : all)[Math.floor(Math.random() * (far.length || all.length))];
@@ -258,6 +344,8 @@
       if (msg) { toast(msg, '#fca5a5'); sfx('error'); }
     },
     tyTick(dt) {
+      if (this.stars != null && this.myPlot != null) this.rate1((2.5 - this.stars) * 0.004 * dt);
+      if (this.ck && !this.tg && !panelOpen()) this.dropCook(); // (walked off without cooking it)
       const dv = this.dv;
       if (dv) { dv.left -= dt; if (dv.left <= 0) this.dropDelivery('🥶 Too slow — the pizza went cold!'); else dv.beam.m.material.opacity = 0.25 + Math.sin(performance.now() / 200) * 0.1; }
     },
@@ -273,7 +361,10 @@
       if (b) b.visible = on;
       if (on) { a.armL.rotation.x = a.armR.rotation.x = Math.PI; }
     },
-    tyHud() { const dv = this.dv; return dv ? `🛵 to the ${this.houses[dv.h].name}: <b>${Math.ceil(dv.left)} s</b>` : ''; },
+    tyHud() {
+      const dv = this.dv; if (dv) return `🛵 to the ${this.houses[dv.h].name}: <b>${Math.ceil(dv.left)} s</b>`;
+      return this.myPlot == null ? '' : `⭐ ${this.stars.toFixed(1)} (pizzas ×${this.tyMult(this.plots[this.myPlot]).toFixed(2)})${this.stars < 3.5 ? ' · 👨‍🍳 cook orders to raise it' : ''}`;
+    },
     coinShop: [
       { id: 'cash2', e: '💵', n: '2× Cash', d: 'Every pizza you sell is worth double, for good', price: 700, kind: 'pass' },
       { id: 'hotbag', e: '🎒', n: 'Hot Bag', d: 'Your own deliveries stay hot 50% longer and tip 50% more, for good', price: 450, kind: 'pass' },
