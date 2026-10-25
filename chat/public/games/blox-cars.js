@@ -95,7 +95,7 @@
       { n: 'Robot Arms', price: 600000, kind: 'pay', look: 'robots', v: 15000, every: 8, pad: [-9, -11] },
       { n: 'Test Track Lights', price: 850000, kind: 'deco', look: 'lights', bonus: 0.2, pad: [21.5, 13] },
       { n: 'Rocket Car Press', price: 1300000, kind: 'src', model: 6, v: 12000, every: 2.8, at: [-25, -15], back: true, drop: 1 },
-      { n: 'Car Show', price: 2800000, kind: 'pay', look: 'show', v: 60000, every: 12, say: '📸 The crowds love it!', pad: [-14, -7] },
+      { n: 'Car Show', price: 2800000, kind: 'pay', look: 'show', v: 60000, every: 12, say: '📸 The crowds love it!', pad: [-14, -6] },
       { n: 'Golden Car', price: 9000000, kind: 'deco', look: 'golden', bonus: 0.25, pad: [-9, 4] },
     ],
 
@@ -191,9 +191,9 @@
         for (const lx of [-19, -9, 1]) { const g = new THREE.Group(); box(g, 0x334155, 1.6, 1, 1.6, 0, 0.5, 0); const a = new THREE.Group(); box(a, 0xf97316, 0.5, 4, 0.5, 0, 2, 0); box(a, 0xf97316, 0.4, 0.4, 2.4, 0, 4, 1.2); a.position.y = 1; g.add(a); this.deco(pl, g, lx, 0.4, -11.5); anim((dt, t) => { a.rotation.y = Math.sin(t / 500 + lx) * 1.2; a.rotation.x = 0.2 + Math.sin(t / 300 + lx) * 0.2; }); }
       } else if (it.look === 'show') {
         // the car show: a stage with spotlights and a crowd taking pictures
-        add(-14, 1, -7, 10, 0.6, 4, 0x7c3aed);
-        const c = carMesh(5); c.scale.setScalar(1.2); this.deco(pl, c, -14, 1.1, -7);
-        anim((dt, t) => { c.rotation.y += dt * 0.7; if (Math.random() < dt * 2) { const [x, z] = this.W(pl, -14 + (Math.random() - 0.5) * 8, -4.6); puffAt(x, 3, z, [0xffffff, 0xfef9c3], 2); } });
+        add(-14, 1, -6, 10, 0.6, 4, 0x7c3aed);
+        const c = carMesh(5); c.scale.setScalar(1.2); this.deco(pl, c, -14, 1.1, -6);
+        anim((dt, t) => { c.rotation.y += dt * 0.7; if (Math.random() < dt * 2) { const [x, z] = this.W(pl, -14 + (Math.random() - 0.5) * 8, -3.6); puffAt(x, 3, z, [0xffffff, 0xfef9c3], 2); } });
       } else if (it.look === 'flags') {
         for (let k = 0; k < 6; k++) { add(-22 + k * 8.8, 5.4, 23, 0.25, 5, 0.25, 0xe5e7eb); add(-21.1 + k * 8.8, 7.2, 23, 1.6, 1.1, 0.08, CONFETTI[k % CONFETTI.length], { solid: false }); }
       } else if (it.look === 'walls') {

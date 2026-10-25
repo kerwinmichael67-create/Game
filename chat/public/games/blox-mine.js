@@ -99,9 +99,9 @@
       const [bx, bz] = this.W(pl, 16, 9.3), l = label('🏦 Bank', { size: 1.2 }); l.position.set(bx, 10.4, bz); place.add(l); pl.decor.push(l);
       // the quarry, with the lift down to the caves
       add(-17, 0.5, 1, 14, 0.1, 18, 0x6b5b4b, { plain: true, solid: false });
-      for (const [x, z] of [[-19.4, -1.4], [-14.6, -1.4], [-19.4, 3.4], [-14.6, 3.4]]) add(x, 7, z, 0.5, 6.6, 0.5, 0x7c2d12);
-      add(-17, 7.4, 1, 5.4, 0.5, 5.4, 0x9a3412); add(-17, 0.6, 1, 4.2, 0.2, 4.2, 0x1c1917, { plain: true, solid: false });
-      const [qx, qz] = this.W(pl, -17, 1), q = label('🛗 Mine lift', { size: 1, bg: 'rgba(15,23,42,.6)' }); q.position.set(qx, 8.6, qz); place.add(q); pl.decor.push(q);
+      for (const [x, z] of [[-18.4, 2.6], [-13.6, 2.6], [-18.4, 7.4], [-13.6, 7.4]]) add(x, 7, z, 0.5, 6.6, 0.5, 0x7c2d12);
+      add(-16, 7.4, 5, 5.4, 0.5, 5.4, 0x9a3412); add(-16, 0.6, 5, 4.2, 0.2, 4.2, 0x1c1917, { plain: true, solid: false });
+      const [qx, qz] = this.W(pl, -16, 5), q = label('🛗 Mine lift', { size: 1, bg: 'rgba(15,23,42,.6)' }); q.position.set(qx, 8.6, qz); place.add(q); pl.decor.push(q);
     },
     tyItem(pl, it, i, add) {
       const anim = (f) => pl.anim.push(f);
@@ -199,7 +199,7 @@
     },
     goUp() {
       this.closeCave();
-      if (this.myPlot != null) { const pl = this.plots[this.myPlot], [x, z] = this.W(pl, -17, 5); Object.assign(P, { x, y: 0.6, z, vx: 0, vy: 0, vz: 0 }); P.ground = null; }
+      if (this.myPlot != null) { const pl = this.plots[this.myPlot], [x, z] = this.W(pl, -16, 1); Object.assign(P, { x, y: 0.6, z, vx: 0, vy: 0, vz: 0 }); P.ground = null; }
       sfx('whoosh');
     },
     // a cave: a rock room under your mine (only yours is built, only while you're in it), with crystals and the lift
@@ -242,7 +242,7 @@
         if (best) return [{ x: best.x, z: best.z, y: best.y, r: 3.4, text: this.bag.length >= this.bagCap() ? '🎒 Your backpack’s full: sell it at the bank' : `⛏️ Mine the ${ORES[best.ore][1].toLowerCase()} vein (${this.hitsLeft(best)})`, fn: () => this.hit(best) }];
         return [{ x: pl.ox + LIFT[0], z: pl.oz + LIFT[1], y: CAVE_Y(this.cave), r: 3, text: '🛗 Lift', fn: () => this.liftPanel() }];
       }
-      const [lx, lz] = this.W(pl, -17, 1), [bx, bz] = this.W(pl, 10.5, 10);
+      const [lx, lz] = this.W(pl, -16, 5), [bx, bz] = this.W(pl, 10.5, 10);
       out.push({ x: lx, z: lz, r: 3.4, text: '🛗 Down the mine', fn: () => this.liftPanel() });
       if (this.bag.length) out.push({ x: bx, z: bz, r: 3.4, text: `🏦 Sell your ore: ${money(this.bagValue())}`, fn: () => this.sellBag() });
       return out;
