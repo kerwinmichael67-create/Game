@@ -7,6 +7,9 @@
    in your showroom: take it for a test drive round the track that runs
    round the whole place, for lap times, cash and trophies. A car
    carrier and a racing team bring in more. Rebirth at the end.
+   What makes it a car factory: pick the paint your Paint Shop sprays
+   (the hot colour, a new one every 3 minutes, sells double), and race
+   your best car against three bots round the track for prizes.
    ===================================================================== */
 (() => {
   const MODELS = [
@@ -23,25 +26,41 @@
   const mats = new Map(), M = (c, o) => { const k = c + (o ? JSON.stringify(o) : ''); let m = mats.get(k); if (!m) { m = new THREE.MeshLambertMaterial(Object.assign({ color: c }, o || {})); mats.set(k, m); } return m; };
   const box = (g, c, sx, sy, sz, x, y, z) => { const m = new THREE.Mesh(BOX, typeof c === 'number' ? M(c) : c); m.scale.set(sx, sy, sz); m.position.set(x, y, z); g.add(m); return m; };
   const WHEEL = new THREE.CylinderGeometry(0.42, 0.42, 0.3, 12);
-  // a car along +x, built up stage by stage: 0 frame, 1 + engine, 2 + wheels, 3 + body and paint, 4 + chrome
-  function carParts(g, k, stage) {
-    const D = MODELS[k], L = D.len, W = D.wide ? 1.9 : 1.75, low = D.low ? 0.75 : 1;
+  // paint: what your Paint Shop sprays; the hot colour (the same for everyone, a new one every 3 minutes) sells double
+  const PAINTS = [['Red', 0xdc2626], ['Blue', 0x2563eb], ['Green', 0x16a34a], ['Yellow', 0xfacc15], ['Orange', 0xf97316], ['Purple', 0x9333ea], ['Pink', 0xec4899], ['Black', 0x1f2937], ['White', 0xf1f5f9]];
+  const HOT_MS = 180000, hotAt = (n) => ((n * 2654435761) >>> 0) % PAINTS.length;
+  const hotIdx = (t = Date.now()) => { const n = Math.floor(t / HOT_MS), h = hotAt(n); return h === hotAt(n - 1) ? (h + 1) % PAINTS.length : h; };
+  const hex = (c) => '#' + c.toString(16).padStart(6, '0'), ord = (n) => n + (['th', 'st', 'nd', 'rd'][n] || 'th');
+  if (!document.getElementById('cfCss')) { const st = document.createElement('style'); st.id = 'cfCss'; st.textContent = '.cfSws{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.cfSw{color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.7);padding:12px 4px}.cfSw.on{outline:3px solid #fff;outline-offset:1px}'; document.head.append(st); }
+  // a car along +x, built up stage by stage: 0 frame, 1 + engine, 2 + wheels, 3 + body and paint (col: its paint), 4 + chrome
+  function carParts(g, k, stage, col) {
+    const D = MODELS[k], L = D.len, W = D.wide ? 1.9 : 1.75, low = D.low ? 0.75 : 1, C = col != null ? col : D.c;
     if (stage === 0) { box(g, 0x374151, L, 0.3, W - 0.2, 0, 0.5, 0); box(g, 0x4b5563, 0.2, 0.3, W - 0.3, L / 2 - 0.3, 0.75, 0); box(g, 0x4b5563, 0.2, 0.3, W - 0.3, -L / 2 + 0.3, 0.75, 0); }
     if (stage === 1) box(g, D.rocket ? 0x0ea5e9 : 0x6b7280, 0.9, 0.55, 1, L / 2 - 0.7, 0.9, 0);
     if (stage === 2) for (const sx of [-1, 1]) for (const sz of [-1, 1]) { const w = new THREE.Mesh(WHEEL, M(0x111827)); w.rotation.x = Math.PI / 2; w.position.set(sx * (L / 2 - 0.65), 0.42, sz * W / 2); g.add(w); }
     if (stage === 3) {
-      box(g, D.c, L, 0.62 * low, W, 0, 0.98, 0);
-      if (D.bed) { box(g, 0xbae6fd, L * 0.32, 0.6, W - 0.2, L * 0.12, 1.6, 0); box(g, D.c, L * 0.32, 0.6, W, L * 0.12 + 0.02, 1.25, 0); }
+      box(g, C, L, 0.62 * low, W, 0, 0.98, 0);
+      if (D.bed) { box(g, 0xbae6fd, L * 0.32, 0.6, W - 0.2, L * 0.12, 1.6, 0); box(g, C, L * 0.32, 0.6, W, L * 0.12 + 0.02, 1.25, 0); }
       else box(g, 0xbae6fd, L * (D.low ? 0.38 : 0.48), 0.6 * low, W - 0.25, -L * 0.05, 1.28 + 0.3 * low, 0);
-      if (D.fins) for (const sz of [-1, 1]) box(g, D.c, 1, 0.7, 0.1, -L / 2 + 0.5, 1.5, sz * (W / 2 - 0.1));
+      if (D.fins) for (const sz of [-1, 1]) box(g, C, 1, 0.7, 0.1, -L / 2 + 0.5, 1.5, sz * (W / 2 - 0.1));
       if (D.rocket) { const r = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.5, 1.4, 10), M(0x94a3b8)); r.rotation.z = Math.PI / 2; r.position.set(-L / 2 - 0.4, 1.1, 0); g.add(r); const f = new THREE.Mesh(new THREE.ConeGeometry(0.35, 1, 8), new THREE.MeshBasicMaterial({ color: 0xf97316 })); f.rotation.z = Math.PI / 2; f.position.set(-L / 2 - 1.5, 1.1, 0); g.add(f); }
     }
     if (stage === 4) { box(g, M(0xfacc15, { emissive: 0x5a4500 }), L + 0.05, 0.1, W + 0.05, 0, 0.75, 0); if (D.low || D.bed) { box(g, 0x111827, 0.5, 0.1, W, -L / 2 + 0.25, 1.75, 0); for (const sz of [-0.6, 0.6]) box(g, 0x111827, 0.1, 0.4, 0.1, -L / 2 + 0.25, 1.5, sz); } }
   }
-  function carMesh(k, upTo = 4) { const g = new THREE.Group(); for (let s = 0; s <= upTo; s++) carParts(g, k, s); g.userData.k = k; return g; }
+  function carMesh(k, upTo = 4, col) { const g = new THREE.Group(); for (let s = 0; s <= upTo; s++) carParts(g, k, s, col); g.userData.k = k; return g; }
   const STATION = { engine: [0x6b7280, '🔧 Engine', 1], wheels: [0x111827, '🛞 Wheels', 2], paint: [0xec4899, '🎨 Paint Shop', 3], chrome: [0xfacc15, '✨ Chrome', 4] };
   // the test track, round the outside of everything (counter-clockwise from the start line)
   const TR = 112, TW = 12, CORNERS = [[TR, TR], [TR, -TR], [-TR, -TR], [-TR, TR]];
+  // races: twice round, against three bots; the track as distances from the start line, the way a lap goes
+  const LAPS = 2, LEN = 8 * TR, TRACK = [[0, TR], [TR, TR], [TR, -TR], [-TR, -TR], [-TR, TR], [0, TR]];
+  const trackAt = (d, lane) => {
+    d = ((d % LEN) + LEN) % LEN; let acc = 0;
+    for (let i = 1; i < TRACK.length; i++) {
+      const [x0, z0] = TRACK[i - 1], [x1, z1] = TRACK[i], len = Math.hypot(x1 - x0, z1 - z0), dx = (x1 - x0) / len, dz = (z1 - z0) / len;
+      if (d <= acc + len || i === TRACK.length - 1) { const u = d - acc; return [x0 + dx * u - dz * lane, z0 + dz * u + dx * lane, dx, dz]; }
+      acc += len;
+    }
+  };
 
   const CF = tycoonKit({
     id: 'cars', code: 'cf', saveKey: 'cf', rank: 0.0009, name: 'Car Factory Tycoon', emoji: '🚗', noun: 'Car Factory', camDist: 22,
@@ -93,6 +112,9 @@
       for (const sx of [-1, 1]) part({ x: 0, y: 4, z: TR + sx * (TW / 2 + 0.6), sx: 0.6, sy: 8, sz: 0.6, c: 0xe5e7eb });
       part({ x: 0, y: 8.3, z: TR, sx: 0.8, sy: 1.2, sz: TW + 1.8, c: 0x111827 });
       const st = label('🏁 TEST TRACK', { size: 1.2 }); st.position.set(0, 10, TR); place.add(st);
+      // the hot colour, for everyone, by the middle
+      for (const x of [-4.4, 4.4]) part({ x, y: 3.5, z: 9, sx: 0.5, sy: 7, sz: 0.5, c: 0x475569 });
+      this.hotBoard = part({ x: 0, y: 6.4, z: 9, sx: 9, sy: 3, sz: 0.5, c: PAINTS[hotIdx()][1] }); this.hotLab = null; this.hotTxt = '';
     },
     tyBase(pl, add) {
       pl.leaving = [];
@@ -102,13 +124,37 @@
       add(12, 6.9, 12, 10.4, 0.5, 8.4, 0x1e293b);
       const [sx, sz] = this.W(pl, 12, 16.4), l = label('🚗 Showroom', { size: 1 }); l.position.set(sx, 8.2, sz); place.add(l); pl.decor.push(l);
       const best = this.bestModel(pl.b), turn = new THREE.Group(), table = new THREE.Mesh(new THREE.CylinderGeometry(3, 3, 0.3, 20), M(0x475569)); turn.add(table);
-      const car = carMesh(best); car.scale.setScalar(1.25); car.position.y = 0.15; turn.add(car);
+      const car = carMesh(best, 4, this.paintOf(pl)); car.scale.setScalar(1.25); car.position.y = 0.15; turn.add(car);
       this.deco(pl, turn, 12, 0.85, 12);
       pl.anim.push((dt) => { turn.rotation.y += dt * 0.5; });
       // the SOLD lot at the end of the line
       add(-4, 0.5, -3, 4, 0.1, 4, 0xfacc15, { plain: true, solid: false });
       const [gx, gz] = this.W(pl, -4, -3), g = label('💲 SOLD!', { size: 0.9, bg: 'rgba(22,163,74,.85)' }); g.position.set(gx, 4, gz); place.add(g); pl.decor.push(g);
     },
+    /* ---- paint: what your Paint Shop sprays (the hot colour sells double) ---- */
+    paintOf(pl) { if (pl.mine) return this.paint >= 0 ? PAINTS[this.paint][1] : null; const p = Net.peers.find((q) => q.peer === pl.owner), v = p && p.presence ? p.presence.pc : null; return v != null && v >= 0 && PAINTS[v] ? PAINTS[v][1] : null; },
+    paintPanel() {
+      const hot = hotIdx(), left = (HOT_MS - (Date.now() % HOT_MS)) / 1000, shop = this.items.some((it, i) => it.look === 'paint' && this.ty.has(this.b, i));
+      const sw = ([n, c], i) => `<button class="xp-btn cfSw ${i === this.paint ? 'on' : ''}" data-pc="${i}" style="background:${hex(c)}">${i === hot ? '🔥 ' : ''}${n}${i === this.paint ? ' ✓' : ''}</button>`;
+      openPanel('🎨 Paint your cars', `<p class="xp-note">🔥 Hot colour now: <b>${PAINTS[hot][0]}</b> (for ${mmss(left)} more). Cars painted it sell for <b>×2</b>. ${shop ? 'Your 🎨 Paint Shop sprays the colour you pick here.' : 'First buy the 🎨 Paint Shop for your line: it’s what paints them.'}</p><div class="cfSws">${PAINTS.map(sw).join('')}</div><button class="xp-btn ${this.paint < 0 ? 'on' : ''}" data-pc="-1" style="width:100%;margin-top:8px">🏭 Each model’s own colour${this.paint < 0 ? ' ✓' : ''}</button>`, (b) => {
+        if (b.dataset.pc == null) return;
+        this.paint = +b.dataset.pc; send({ pc: this.paint }); this.dirty = true; this.save(); sfx('select');
+        if (this.myPlot != null) this.buildPlot(this.myPlot); // (the showroom car too)
+        this.paintPanel();
+      });
+    },
+    // the board in the middle: the hot colour and how long it's got
+    drawHot() {
+      if (!this.hotBoard) return;
+      const hot = hotIdx(), left = (HOT_MS - (Date.now() % HOT_MS)) / 1000, txt = `🔥 HOT COLOUR: ${PAINTS[hot][0].toUpperCase()} ×2 · ${mmss(left)}`;
+      this.hotBoard.m.material.color.setHex(PAINTS[hot][1]);
+      if (txt === this.hotTxt) return;
+      this.hotTxt = txt; if (this.hotLab) { place.remove(this.hotLab); this.hotLab.material.map.dispose(); }
+      this.hotLab = label(txt, { size: 1.2, bg: 'rgba(15,23,42,.75)' }); this.hotLab.position.set(0, 9.2, 9); place.add(this.hotLab);
+    },
+    tyBoost(it) { return it.look === 'paint' ? '🎨 Paints your cars the colour you pick: the 🔥 hot colour sells ×2' : ''; },
+    menu() { return [['🎨 Paint', () => this.paintPanel(), 'Paint'], ['🏁 Race 3 bots', () => this.startRace(), 'Race'], [`${this.caseName} (${this.col.length})`, () => this.casePanel(), this.caseShort]]; },
+
     bestModel(b) { let k = 0; this.items.forEach((it, i) => { if (it.kind === 'src' && this.ty.has(b, i)) k = Math.max(k, it.model); }); return k; },
     tyItem(pl, it, i, add) {
       const anim = (f) => pl.anim.push(f), ph = () => 1 - (pl.tm[i] == null ? 0 : pl.tm[i]) / it.every;
@@ -171,9 +217,15 @@
         pl.anim.push((dt, t) => { c.position.y = 1.6 + Math.sin(t / 700) * 0.2; c.rotation.y = Math.sin(t / 2000) * 0.5; });
       }
     },
-    tyProd(pl, it) { const g = carMesh(it.model, 0); g.userData.stage = 0; return g; },
+    tyProd(pl, it) { const g = carMesh(it.model, 0); g.userData.stage = 0; g.userData.col = this.paintOf(pl); return g; },
     // each station adds its part (and everything before it, for a line that's just been built up)
-    tyUp(pl, pr, it) { const g = pr.m, s = STATION[it.look][2]; for (let k = g.userData.stage + 1; k <= s; k++) carParts(g, g.userData.k, k); g.userData.stage = Math.max(g.userData.stage, s); },
+    tyUp(pl, pr, it) {
+      const g = pr.m, s = STATION[it.look][2], was = g.userData.stage;
+      for (let k = was + 1; k <= s; k++) carParts(g, g.userData.k, k, g.userData.col);
+      g.userData.stage = Math.max(was, s);
+      // painted the hot colour: it sells double
+      if (was < 3 && s >= 3 && pl.mine && this.paint >= 0 && this.paint === hotIdx()) { pr.v *= 2; const [x, z] = this.W(pl, ...this.ty.pathAt(pr.s)); puffAt(x, 3, z, [0xfde047, 0xffffff, PAINTS[this.paint][1]], 8); }
+    },
     // sold: it drives off the lot
     tySold(pl, pr) { if (pl.leaving.length > 12) return false; pl.leaving.push({ m: pr.m, lx: -2 }); return true; },
     tyAnim(pl, dt) {
@@ -185,9 +237,9 @@
     },
 
     /* ---- the test drive ---- */
-    async tyEnter(s) { this.laps = Math.max(0, s.laps | 0); this.bestLap = +s.bl || 0; this.dr = null; this.cars = new Map(); },
-    tySave() { return { laps: this.laps, bl: this.bestLap }; },
-    tyLeave() { if (this.dr) this.stopDrive(true); for (const c of this.cars.values()) if (c.parent) c.parent.remove(c); this.cars.clear(); },
+    async tyEnter(s) { this.laps = Math.max(0, s.laps | 0); this.bestLap = +s.bl || 0; this.dr = null; this.cars = new Map(); this.paint = clamp(s.pc == null ? -1 : s.pc | 0, -1, PAINTS.length - 1); this.wins = Math.max(0, s.wins | 0); send({ pc: this.paint }); },
+    tySave() { return { laps: this.laps, bl: this.bestLap, pc: this.paint, wins: this.wins }; },
+    tyLeave() { this.endRace(); if (this.dr) this.stopDrive(true); for (const c of this.cars.values()) if (c.parent) c.parent.remove(c); this.cars.clear(); },
     get drive() { return this.dr ? this.driveFn : null; },
     driveFn(dt, f, r) {
       const D = this.dr, top = MODELS[D.k].top * (hasItem('nitro') ? 1.12 : 1);
@@ -199,24 +251,75 @@
       D.yaw -= steer * 2.1 * grip * (D.sp < 0 ? -1 : 1) * dt;
       return [-Math.sin(D.yaw) * D.sp, -Math.cos(D.yaw) * D.sp, D.yaw];
     },
-    startDrive() {
+    startDrive(race) {
       const k = this.bestModel(this.b);
       Object.assign(P, { x: -6, y: 0.6, z: TR, vx: 0, vy: 0, vz: 0 }); P.yaw = -Math.PI / 2; cam.yaw = P.yaw;
       this.dr = { k, sp: 0, yaw: -Math.PI / 2, cp: 0, t0: 0, lapT: 0 };
       send({ dr: k + 1 }); sfx('engine');
-      toast(`🏁 Your ${MODELS[k].n}! Drive round the track (W / ↑ to go) — the lap starts at the line`, '#fde68a');
+      if (!race) toast(`🏁 Your ${MODELS[k].n}! Drive round the track (W / ↑ to go) — the lap starts at the line`, '#fde68a');
     },
-    stopDrive(quiet) { if (!this.dr) return; this.dr = null; send({ dr: 0 }); P.vx = P.vz = 0; if (!quiet) sfx('pop'); },
+    stopDrive(quiet) { if (!this.dr) return; this.endRace(); this.dr = null; send({ dr: 0 }); P.vx = P.vz = 0; P.frozen = false; if (!quiet) sfx('pop'); },
+
+    /* ---- races: your best car against three bots, twice round the track ---- */
+    startRace() {
+      if (this.myPlot == null) { toast('Claim a car factory first', '#fca5a5'); return; }
+      if (this.dr) this.stopDrive(true);
+      this.startDrive(true);
+      const D = this.dr, top = MODELS[D.k].top * (hasItem('nitro') ? 1.12 : 1), f = [0.84, 0.9, 0.96].sort(() => Math.random() - 0.5);
+      Object.assign(P, { x: -2, z: TR - 3.5, vx: 0, vz: 0 }); P.frozen = true;
+      const bots = [0, 1, 2].map((n) => {
+        const k = Math.max(0, D.k - (n === 0 ? 0 : Math.floor(Math.random() * 2))), g = new THREE.Group(), c = carMesh(k, 4, PAINTS[Math.floor(Math.random() * PAINTS.length)][1]);
+        c.scale.setScalar(1.6); g.add(c); const helmet = new THREE.Mesh(BOX, M(0xf8fafc)); helmet.scale.set(0.9, 0.9, 0.9); helmet.position.set(-0.6, 2.8, 0); g.add(helmet); place.add(g);
+        return { g, d: -4 - n * 3.5, sp: 0, v: top * (f[n] + (Math.random() - 0.5) * 0.04), lane: [0, 3.5, -3.5][n], done: 0 };
+      });
+      D.race = { t: -3.5, said: 4, bots, laps: 0, fin: 0 };
+      toast('🏁 Race! Twice round: get ready…', '#fde68a');
+    },
+    // how far round you are (from your corners and where you are along the next bit)
+    raceDist() {
+      const D = this.dr, R = D.race, cp = Math.min(D.cp, 4), a = cp === 0 ? TRACK[0] : TRACK[cp], b = TRACK[cp + 1] || TRACK[0];
+      const len = Math.hypot(b[0] - a[0], b[1] - a[1]), u = clamp(((P.x - a[0]) * (b[0] - a[0]) + (P.z - a[1]) * (b[1] - a[1])) / len, 0, len);
+      return R.laps * LEN + (cp === 0 ? 0 : TR + 2 * TR * (cp - 1)) + u;
+    },
+    racePlace() { const R = this.dr && this.dr.race; if (!R) return 0; const me = this.raceDist(); return 1 + R.bots.filter((b) => b.done || b.d > me).length; },
+    raceTick(dt) {
+      const R = this.dr.race;
+      R.t += dt;
+      if (R.t < 0) { const n = Math.ceil(-R.t); if (n < R.said && n <= 3) { R.said = n; toast(String(n), '#fde68a'); sfx('select'); } }
+      else if (P.frozen && !R.over) { P.frozen = false; toast('GO!', '#86efac'); sfx('win'); }
+      for (const b of R.bots) {
+        if (R.t > 0 && !b.done) { b.sp = Math.min(b.v, b.sp + 30 * dt); b.d += b.sp * dt; if (b.d >= LAPS * LEN) { b.done = ++R.fin; } }
+        const [x, z, dx, dz] = trackAt(b.done ? LAPS * LEN : b.d, b.lane);
+        b.g.position.set(x, 0.2, z); b.g.rotation.y = Math.atan2(-dz, dx);
+      }
+      if (R.over && R.t > R.over + 3) this.endRace();
+    },
+    raceLap() {
+      const R = this.dr.race; R.laps++;
+      if (R.laps < LAPS) { toast(`🏁 Last lap! You're ${ord(this.racePlace())}`, '#fde68a'); sfx('select'); return; }
+      const place = 1 + R.bots.filter((b) => b.done).length, prize = Math.round(this.worth([60, 30, 15, 5][place - 1], [400, 200, 100, 50][place - 1]) * (1 + 0.5 * this.rb));
+      R.over = R.t; R.place = place; this.gain(prize, null, null, true); this.laps++; quest('cars.lap');
+      if (place === 1) { this.wins++; Net.chat(`🏆 won a race in a ${MODELS[this.dr.k].n}!`); }
+      toast(`${['🏆 You won!', '🥈 2nd place', '🥉 3rd place', '4th place'][place - 1]} +${money(prize)}`, place === 1 ? '#fde047' : '#86efac'); sfx(place === 1 ? 'win' : 'coin'); puffAt(P.x, P.y + 3, P.z, CONFETTI, place === 1 ? 50 : 15);
+      if (place === 1 && Math.random() < 0.45) {
+        const w = [0, 0, 50, 32, 13, 5]; let roll = Math.random() * 100, r = 2; while (r < 5 && roll >= w[r]) { roll -= w[r]; r++; }
+        const opts = FINDS.map((F, f) => [F, f]).filter(([F]) => F.r === r); this.gotFind(opts[Math.floor(Math.random() * opts.length)][1], 'You won');
+      }
+      this.save();
+    },
+    endRace() { const R = this.dr && this.dr.race; if (!R) return; for (const b of R.bots) place.remove(b.g); this.dr.race = null; P.frozen = false; },
     tyPrompts() {
       if (P.dead) return [];
       if (this.dr) return [{ x: P.x, z: P.z, r: 99, text: '🚪 Get out', fn: () => this.stopDrive() }];
       if (this.myPlot == null) return [];
-      const pl = this.plots[this.myPlot], [x, z] = this.W(pl, 12, 17.6);
-      return [{ x, z, r: 3.5, text: `🏁 Test drive your ${MODELS[this.bestModel(this.b)].n}`, fn: () => this.startDrive() }];
+      const pl = this.plots[this.myPlot], [x, z] = this.W(pl, 12, 17.6), [rx, rz] = this.W(pl, 3, 17.6), [px, pz] = this.W(pl, 12, 6.4);
+      return [{ x, z, r: 3.5, text: `🏁 Test drive your ${MODELS[this.bestModel(this.b)].n}`, fn: () => this.startDrive() }, { x: rx, z: rz, r: 3, text: '🏁 Race 3 bots', fn: () => this.startRace() }, { x: px, z: pz, r: 3, text: `🎨 Paint your cars (🔥 ${PAINTS[hotIdx()][0]})`, fn: () => this.paintPanel() }];
     },
     // the lap: past every corner in turn, then over the line
-    tyTick(dt) {
+    tyTick(dt, t) {
+      if (t > (this.hotAt || 0)) { this.hotAt = t + 1000; this.drawHot(); }
       const D = this.dr; if (!D) return;
+      if (D.race) this.raceTick(dt);
       if (P.dead) { this.stopDrive(true); return; }
       D.lapT += dt;
       const onLine = Math.abs(P.z - TR) < TW / 2 + 1 && Math.abs(P.x) < 3;
@@ -224,7 +327,7 @@
       if (D.started) {
         const c = CORNERS[D.cp];
         if (D.cp < 4 && c && Math.hypot(P.x - c[0], P.z - c[1]) < TW * 1.6) { D.cp++; sfx('tick'); }
-        if (D.cp === 4 && onLine && P.x > -3) this.lapDone();
+        if (D.cp === 4 && onLine && P.x > -3) { if (D.race && !D.race.over) { D.cp = 0; D.lapT = 0; this.raceLap(); } else this.lapDone(); }
       }
     },
     lapDone() {
@@ -254,7 +357,12 @@
       if (a.dead) return;
       a.body.position.y = -0.4; a.legL.rotation.x = a.legR.rotation.x = Math.PI / 2; a.armL.rotation.x = a.armR.rotation.x = 1.2;
     },
-    tyHud() { const D = this.dr; return D ? `🏁 <b>${Math.round(Math.abs(D.sp) * 1.4)}</b> mph${D.started ? ` · lap ${D.lapT.toFixed(1)} s · corner ${Math.min(D.cp, 4)}/4` : ' · drive to the line'}${this.bestLap ? ` · best ${this.bestLap.toFixed(1)} s` : ''}` : ''; },
+    tyHud() {
+      const D = this.dr, R = D && D.race;
+      if (R) return R.t < 0 ? '🏁 Race: get ready…' : `🏁 Race · lap ${Math.min(R.laps + 1, LAPS)}/${LAPS} · <b>${ord(R.over ? R.place : this.racePlace())}</b> · <b>${Math.round(Math.abs(D.sp) * 1.4)}</b> mph`;
+      if (!D) return this.myPlot == null ? '' : `🔥 hot colour: ${PAINTS[hotIdx()][0]}${this.paint >= 0 ? ` · 🎨 yours: ${PAINTS[this.paint][0]}${this.paint === hotIdx() ? ' (×2!)' : ''}` : ''}`;
+      return `🏁 <b>${Math.round(Math.abs(D.sp) * 1.4)}</b> mph${D.started ? ` · lap ${D.lapT.toFixed(1)} s · corner ${Math.min(D.cp, 4)}/4` : ' · drive to the line'}${this.bestLap ? ` · best ${this.bestLap.toFixed(1)} s` : ''}`;
+    },
     coinShop: [
       { id: 'cash2', e: '💵', n: '2× Cash', d: 'Every car you sell is worth double, for good', price: 700, kind: 'pass' },
       { id: 'nitro', e: '🔥', n: 'Nitro', d: 'Your test drives go 12% faster, for good', price: 450, kind: 'pass' },
