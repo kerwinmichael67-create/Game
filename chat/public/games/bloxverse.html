@@ -1833,6 +1833,7 @@ async function join(id, n) {
   $('#loading').hidden = true; $('#hud').hidden = false;
   $('#title').innerHTML = `<span class="tt">${E.emoji}</span><span class="tn"><b>${esc(E.name)}</b><small>Server ${n}</small></span>`; drawCoins();
   playing = true; joining = false; drawCoins(); // (now the shop cart shows)
+  if (E.music) musicNew();
   for (const p of Net.peers) if (!p.isMe) applyPeer(p);
   say(`Welcome to ${E.name}! ${touchy ? '' : 'Press / to chat.'}`, '#fde68a');
   sfx('teleport');
@@ -2920,18 +2921,30 @@ function placeMeter() {
 }
 
 /* ---------------- music: calm classical pieces in the peaceful experiences (the ones with music: true) ---------------- */
-// Vivaldi's Spring and Autumn (The Four Seasons) and Grieg's Morning Mood (Peer Gynt), one after the other, under the
-// game's sounds; off when the sound is off, or with 🎵 Music in the menu (remembered)
+// Vivaldi's Spring and Autumn (The Four Seasons) and Grieg's Morning Mood (Peer Gynt) under the game's sounds, in a new
+// shuffled order every time you join a game (then shuffled again, never the same one twice running); off when the
+// sound is off, or with 🎵 Music in the menu (remembered)
 const MUSIC = [['vivaldi-spring.mp3', 'Vivaldi · Spring'], ['grieg-morning-mood.mp3', 'Grieg · Morning Mood'], ['vivaldi-autumn.mp3', 'Vivaldi · Autumn']];
-const Music = { on: true, el: null, i: Math.floor(Math.random() * MUSIC.length), tryAt: 0, vol: 0.35 };
+const Music = { on: true, el: null, i: -1, order: [], k: 0, tryAt: 0, vol: 0.35 };
 try { if (localStorage.getItem('bv-music') === '0') Music.on = false; } catch (e) { /* no storage here */ }
+function musicShuffle() {
+  const o = MUSIC.map((m, i) => i);
+  for (let k = o.length - 1; k > 0; k--) { const j = Math.floor(Math.random() * (k + 1)); [o[k], o[j]] = [o[j], o[k]]; }
+  if (o[0] === Music.i && o.length > 1) [o[0], o[1]] = [o[1], o[0]];
+  Music.order = o; Music.k = 0;
+}
+function musicTrack() { Music.i = Music.order[Music.k]; if (Music.el) { Music.el.src = 'music/' + MUSIC[Music.i][0]; Music.el.volume = 0; } }
+// joining a game: a new order, from the start of its first piece
+function musicNew() { musicShuffle(); musicTrack(); }
+function musicNext() { if (++Music.k >= Music.order.length) musicShuffle(); musicTrack(); Music.el.play().catch(() => {}); }
 function musicTick(dt) {
   const want = playing && exp && exp.music && Music.on && window.Sfx && Sfx.on && !document.hidden, el = Music.el;
   if (!want) { if (el && !el.paused) el.pause(); return; }
   if (!el) {
-    Music.el = new Audio(); Music.el.preload = 'auto'; Music.el.volume = 0;
-    Music.el.addEventListener('ended', () => { Music.i = (Music.i + 1) % MUSIC.length; Music.el.src = 'music/' + MUSIC[Music.i][0]; Music.el.play().catch(() => {}); });
-    Music.el.src = 'music/' + MUSIC[Music.i][0];
+    Music.el = new Audio(); Music.el.preload = 'auto';
+    Music.el.addEventListener('ended', musicNext);
+    if (!Music.order.length) musicShuffle();
+    musicTrack();
     return;
   }
   const to = clamp(Music.vol * Sfx.volume, 0, 1);
