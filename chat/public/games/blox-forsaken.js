@@ -162,7 +162,7 @@
         if (g.k === mine) return [0, 0.5, 6, 0];
         if ((g.al || []).includes(mine)) { const i = Math.max(0, (g.order || []).indexOf(mine)), s = this.spawns[(i + g.rd * 3) % this.spawns.length]; return [s[0], 0.5, s[1], Math.atan2(s[0], s[1])]; }
       }
-      return [(Math.random() - 0.5) * 30, 15.5, B + 22, Math.PI]; // the lobby
+      return [(Math.random() - 0.5) * 30, 15.5, B + 22, 0]; // the lobby, looking down over the town
     },
     adopt() {
       const g = this.lastG;
