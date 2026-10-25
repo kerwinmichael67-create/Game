@@ -67,6 +67,8 @@ has('how do I ride the roller coaster', 'Theme Park Tycoon tips');
 has('mining tycoon pickaxe', 'Mining Tycoon tips');
 has('how do I test drive in car factory', 'Car Factory Tycoon tips');
 has('cube factory tycoon rebirth', 'Cube Factory Tycoon tips');
+has('how do I fix generators in forsaken', 'Forsaken tips');
+has('how do I become the killer', 'malice');
 has('why is the sky blue', 'scatter');
 has('capital of france', 'Paris');
 has('I want to know how photosynthesis works because I have a test', 'sunlight');

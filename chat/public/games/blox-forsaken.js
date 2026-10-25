@@ -55,7 +55,7 @@
     { id: 'john', n: 'John Doe', e: '👤', c: 0x1f2937, dmg: 30, shop: 'kl_john', q: { n: 'Corrupt Energy', e: '⚡', cd: 14, d: 'Spikes burst out where you aim, a moment later' }, f: { n: 'Digital Footprint', e: '👣', cd: 30, d: 'See every survivor through walls for 6 seconds' } },
     { id: '1x', n: '1x1x1x1', e: '🟩', c: 0x16a34a, dmg: 25, shop: 'kl_1x', q: { n: 'Mass Infection', e: '🗡️', cd: 16, d: 'Throw a sword: the first survivor it hits is hurt and slowed' }, f: { n: 'Unstable Eye', e: '👁️', cd: 30, d: 'See everyone through walls and run faster for 6 seconds' } },
   ];
-  const ROUND = 180, GEN_NEED = 3, GEN_CUT = 25, FREEZE = 6, SWING = 6.5, SWING_CD = 1.4, LMS = 45;
+  const ROUND = 180, GEN_NEED = 3, GEN_CUT = 15, BOT_FIX = 13, FREEZE = 6, SWING = 6.5, SWING_CD = 1.4, LMS = 45;
   const GENS = [[-33, -31], [33, -28], [-29, 31], [31, 30], [-46, 2], [46, -1]];
   const WIRE = ['#ef4444', '#3b82f6', '#facc15', '#22c55e'];
   const B = 55; // the map: −B…B both ways
@@ -285,6 +285,7 @@
     },
     genStep(i, by) {
       const H = this.H;
+      if (H.gens[i] >= GEN_NEED) return; // (already running)
       H.gens[i]++; H.gn[i] = H.el; H.gw[by] = (H.gw[by] || 0) + 1;
       this.ev(['gp', i, H.gens[i], by]);
       if (H.gens[i] >= GEN_NEED) { H.left = Math.max(10, H.left - GEN_CUT); this.ev(['gd', i]); }
@@ -454,7 +455,7 @@
             let gi = -1, gd = 1e9; GENS.forEach((G, i) => { if (H.gens[i] >= GEN_NEED) return; const d = Math.hypot(G[0] - x, G[1] - z) + (t.gen === i ? -8 : 0); if (d < gd) { gd = d; gi = i; } });
             if (gi >= 0) {
               t.gen = gi; const G = GENS[gi];
-              if (Math.hypot(G[0] - x, G[1] - z) < 3.4) { goal = null; hd = 'fix'; t.work = (t.work || 0) + dt; if (t.work > 8) { t.work = 0; this.genStep(gi, id); } }
+              if (Math.hypot(G[0] - x, G[1] - z) < 3.4) { goal = null; hd = 'fix'; t.work = (t.work || 0) + dt; if (t.work > BOT_FIX) { t.work = Math.random() * 2; this.genStep(gi, id); } } // (bots are a lot slower at the wires than people)
               else goal = [G[0] + 2.4, G[1] + 0.5];
             } else { if (!t.wander || Math.hypot(t.wander[0] - x, t.wander[1] - z) < 2) t.wander = this.anywhere(); goal = t.wander; }
           }
@@ -635,7 +636,8 @@
         if (k === 'sl') { const p = at(e[2]); if (p) puffAt(p.x, 3, p.z, [0xe5e7eb, 0x94a3b8], 8); }
       }
       // knocked out
-      if (g && g.ph === 'play' && this.wasAlive && !alive && !P.dead) die();
+      // (the last one down ends the round at once: that counts too)
+      if (g && this.wasAlive && !alive && !P.dead && (g.ph === 'play' || (g.ph === 'end' && !(g.winners || []).includes(mine)))) die();
       this.wasAlive = alive;
       // the end of a round
       if (g && g.ph !== this.lastPh) {
@@ -653,7 +655,7 @@
       const vig = clamp((28 - d) / 22, 0, 1) * (el > FREEZE - 1 ? 1 : 0) + (this.flash || 0);
       this.flash = Math.max(0, (this.flash || 0) - dt * 1.5);
       if (this.vig) this.vig.style.opacity = vig.toFixed(2);
-      if (K && d < 28 && el > FREEZE - 1) { this.beat = (this.beat || 0) - dt; if (this.beat <= 0) { this.beat = 0.35 + d / 40; sfx('land', { vol: 0.35 + (28 - d) / 50, pitch: 0.55 }); // (a heartbeat) } }
+      if (K && d < 28 && el > FREEZE - 1) { this.beat = (this.beat || 0) - dt; if (this.beat <= 0) { this.beat = 0.35 + d / 40; sfx('land', { vol: 0.35 + (28 - d) / 50, pitch: 0.55 }); /* a heartbeat */ } }
       if (this.tagEl) { const t = g && g.ph === 'play' && g.lms ? '⚠️ LAST MAN STANDING' : ''; if (this.tagEl.textContent !== t) this.tagEl.textContent = t; }
       // the banner
       if (!g) setBanner('Getting the round…');
@@ -678,6 +680,9 @@
     drawHp(g) {
       if (!this.hpEl) return;
       const m = myPeer(), on = !!(g && g.ph === 'play' && (g.al || []).includes(m));
+      // (just under the banner, however tall it is: two lines on a phone)
+      const now = performance.now();
+      if (now > (this.placeAt || 0)) { this.placeAt = now + 400; const bn = $('#banner').getBoundingClientRect(), top = bn.height ? Math.round(bn.bottom + 6) : 64; this.hpEl.style.top = top + 'px'; if (this.tagEl) this.tagEl.style.top = top + 20 + 'px'; }
       this.hpEl.hidden = !on; if (!on) return;
       const C = SURV[(g.ch || {})[m]] || SURV[0], hp = Math.max(0, (g.hp || {})[m] || 0), w = Math.round((hp / C.hp) * 100) + '%';
       const i = this.hpEl.querySelector('i'), b = this.hpEl.querySelector('b'); if (i.style.width !== w) i.style.width = w; const t = `❤️ ${Math.ceil(hp)} / ${C.hp}`; if (b.textContent !== t) b.textContent = t;
