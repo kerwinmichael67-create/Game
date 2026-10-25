@@ -81,7 +81,7 @@ function tycoonKit(E) {
   }
 
   const kit = {
-    max: 4, stat: 'Cash', killY: -40, genre: 'Tycoon',
+    max: 4, stat: 'Cash', killY: -40, genre: 'Tycoon', music: true,
     build() {
       sky(...(E.skyCols || ['#6cb8ff', '#e3f4ff']));
       if (E.ground !== false) slab(0, 0, 0, 330, 330, E.ground || 0x4caf50, { sy: 2 });

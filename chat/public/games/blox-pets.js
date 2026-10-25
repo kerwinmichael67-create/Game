@@ -123,7 +123,7 @@
 
   /* ---------------- the experience ---------------- */
   const PS = {
-    id: 'pets', code: 'ps', genre: 'Simulator', rank: 0.6, name: 'Pet Simulator', emoji: '🐾', max: 12, stat: 'Coins', killY: -30,
+    id: 'pets', code: 'ps', music: true, genre: 'Simulator', rank: 0.6, name: 'Pet Simulator', emoji: '🐾', max: 12, stat: 'Coins', killY: -30,
     land: { theme: 'meadow', fence: 'none', floor: true, under: ZONES.map((Z, k) => [-35, ZC(k) - 35, 35, ZC(k) + 35]).concat([[-35, 10, 35, 60]]), bands: ZONES.map((Z, k) => [k === ZONES.length - 1 ? -1e9 : ZC(k) - 37.5, k ? ZC(k) + 37.5 : 1e9, ['meadow', 'beach', 'snow', 'volcano', 'candy', 'space'][k]]) }, // the land changes with the zones
     color: 'linear-gradient(135deg,#22c55e,#a855f7)',
     desc: 'Your pets break coins, crates, crystals and chests for you. Hatch eggs for stronger pets (Common to Mythical), unlock six zones from the Meadow to Outer Space, make pets Golden and Rainbow, and buy upgrades. Everything you collect is saved.',

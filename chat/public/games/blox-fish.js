@@ -129,7 +129,7 @@
 
   /* ---------------- the experience ---------------- */
   const FI = {
-    id: 'fish', code: 'fi', genre: 'Simulator', rank: 0.15, name: 'Fishing', emoji: '🎣', max: 12, stat: 'Caught', killY: -30, camDist: 20,
+    id: 'fish', code: 'fi', music: true, genre: 'Simulator', rank: 0.15, name: 'Fishing', emoji: '🎣', max: 12, stat: 'Caught', killY: -30, camDist: 20,
     land: { theme: 'beach', mode: 'sea', sea: -0.6, holes: [[-240, -260, 240, -12], [-130, -12, -62, 62]], water: [0x467ca2, 0x4a80a6, 0x43789d], extras: ['boats'] },
     color: 'linear-gradient(135deg,#0ea5e9,#14b8a6)',
     desc: 'Cast into the lake, the ocean, a frozen pond or a lake of lava. When a fish bites, hook it and reel it in by keeping it inside your bar. 37 kinds of fish from Trash to Mythical, heavier and ✨ shiny ones worth more. Sell your catch, buy better rods, and fill your fish book.',

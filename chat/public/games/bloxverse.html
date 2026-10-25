@@ -2132,7 +2132,7 @@ const PLOT_COLS = [0x3b82f6, 0xef4444, 0x22c55e, 0xf59e0b];
 const PLOT_NAMES = ['Blue', 'Red', 'Green', 'Yellow'];
 const has = (b, i) => ((b >> i) & 1) === 1;
 const TYCOON = {
-  id: 'tycoon', code: 'ty', genre: 'Tycoon', rank: 6, name: 'Cube Factory Tycoon', emoji: '💰', max: 4, stat: 'Cash', killY: -40,
+  id: 'tycoon', code: 'ty', genre: 'Tycoon', rank: 6, name: 'Cube Factory Tycoon', emoji: '💰', max: 4, stat: 'Cash', killY: -40, music: true,
   land: { theme: 'meadow', fence: 'wood' },
   color: 'linear-gradient(135deg,#16a34a,#ca8a04)',
   desc: 'Claim a factory, buy droppers, upgraders and more, and watch the cash pile up in your collector: step on 💵 Collect to bank it, like the classic tycoons. After the rocket, build a second line up on the second floor; after the space station, rebirth for more cash for good. Your factory is saved for next time.',
@@ -2919,6 +2919,28 @@ function placeMeter() {
   el.classList.toggle('phone', phone); el.style.top = phone ? '' : b.offsetTop + b.offsetHeight + 6 + 'px';
 }
 
+/* ---------------- music: calm classical pieces in the peaceful experiences (the ones with music: true) ---------------- */
+// Vivaldi's Spring and Autumn (The Four Seasons) and Grieg's Morning Mood (Peer Gynt), one after the other, under the
+// game's sounds; off when the sound is off, or with 🎵 Music in the menu (remembered)
+const MUSIC = [['vivaldi-spring.mp3', 'Vivaldi · Spring'], ['grieg-morning-mood.mp3', 'Grieg · Morning Mood'], ['vivaldi-autumn.mp3', 'Vivaldi · Autumn']];
+const Music = { on: true, el: null, i: Math.floor(Math.random() * MUSIC.length), tryAt: 0, vol: 0.35 };
+try { if (localStorage.getItem('bv-music') === '0') Music.on = false; } catch (e) { /* no storage here */ }
+function musicTick(dt) {
+  const want = playing && exp && exp.music && Music.on && window.Sfx && Sfx.on && !document.hidden, el = Music.el;
+  if (!want) { if (el && !el.paused) el.pause(); return; }
+  if (!el) {
+    Music.el = new Audio(); Music.el.preload = 'auto'; Music.el.volume = 0;
+    Music.el.addEventListener('ended', () => { Music.i = (Music.i + 1) % MUSIC.length; Music.el.src = 'music/' + MUSIC[Music.i][0]; Music.el.play().catch(() => {}); });
+    Music.el.src = 'music/' + MUSIC[Music.i][0];
+    return;
+  }
+  const to = clamp(Music.vol * Sfx.volume, 0, 1);
+  el.volume = el.volume < to ? Math.min(to, el.volume + dt * 0.15) : to; // (fades in)
+  if (el.paused && performance.now() > Music.tryAt) { Music.tryAt = performance.now() + 2000; el.play().catch(() => {}); } // (the browser lets it play after a click or key)
+}
+document.addEventListener('visibilitychange', () => musicTick(0));
+const musicLabel = () => (Music.on ? `🎵 Music: on${Music.el && !Music.el.paused ? ` · ${MUSIC[Music.i][1]}` : ''}` : '🎵 Music: off');
+
 /* ---------------- pause menu ---------------- */
 const keysLabel = () => (View.keys === 'lock' ? '⌨️ Shift: shift lock · double-tap W: sprint' : '⌨️ Shift (or double-tap W): sprint · Ctrl: shift lock');
 function showPause() {
@@ -2926,7 +2948,7 @@ function showPause() {
   unlock();
   $('#pausePanel').innerHTML = `<div class="phead"><div class="pthumb"><span>${exp.emoji}</span></div></div><h2>${esc(exp.name)}</h2><p>Server ${Net.srvN} · 👥 ${Math.max(1, crew().length)} playing</p>
     <button class="btn play" id="pResume">▶ Resume</button>${exp.noReset ? '' : '<button class="btn" id="pReset">🔄 Reset character <kbd>R</kbd></button>'}
-    <button class="btn" id="pSound">${window.Sfx && !Sfx.on ? '🔇 Sound: off' : '🔊 Sound: on'}</button>
+    <button class="btn" id="pSound">${window.Sfx && !Sfx.on ? '🔇 Sound: off' : '🔊 Sound: on'}</button>${exp.music ? `<button class="btn" id="pMusic">${musicLabel()}</button>` : ''}
     <button class="btn" id="pMeter">${Meter.shown ? '📊 FPS & ping: shown' : '📊 FPS & ping: hidden'}</button>
     <button class="btn" id="pGfx">${gfxLabel()}</button>
     ${exp.noLock ? '' : `<button class="btn" id="pLock">${View.lock ? '🔒 Shift lock: on' : '🔓 Shift lock: off'} <kbd>${lockKeyName()}</kbd></button>`}
@@ -2937,6 +2959,7 @@ function showPause() {
   if ($('#pReset')) $('#pReset').onclick = () => { $('#pause').hidden = true; die(); };
   $('#pLeave').onclick = () => leave();
   $('#pSound').onclick = () => { if (!window.Sfx) return; Sfx.toggle(); $('#pSound').textContent = Sfx.on ? '🔊 Sound: on' : '🔇 Sound: off'; };
+  if ($('#pMusic')) $('#pMusic').onclick = () => { Music.on = !Music.on; try { localStorage.setItem('bv-music', Music.on ? '1' : '0'); } catch (e) {} musicTick(0); $('#pMusic').textContent = musicLabel(); };
   $('#pMeter').onclick = () => { Meter.shown = !Meter.shown; Meter.sentAt = 0; Meter.ping = null; try { localStorage.setItem('bv-meter', Meter.shown ? '1' : '0'); } catch (e) {} $('#pMeter').textContent = Meter.shown ? '📊 FPS & ping: shown' : '📊 FPS & ping: hidden'; drawMeter(); };
   if ($('#pLock')) $('#pLock').onclick = () => { $('#pause').hidden = true; setLock(!View.lock); };
   $('#pKeys').onclick = () => { View.keys = View.keys === 'lock' ? 'sprint' : 'lock'; try { localStorage.setItem('bv-keys', View.keys); } catch (e) {} $('#pKeys').textContent = keysLabel(); if ($('#pLock')) $('#pLock').innerHTML = `${View.lock ? '🔒 Shift lock: on' : '🔓 Shift lock: off'} <kbd>${lockKeyName()}</kbd>`; };
@@ -3147,6 +3170,7 @@ function oops(where, e) { const k = where + ':' + (e && e.message); if (oopsSeen
 function frame(t) {
   requestAnimationFrame(frame);
   const dt = Math.min(0.1, (t - last) / 1000); last = t; // physics takes small steps, so a slow frame still moves at the right speed
+  musicTick(dt);
   if (!playing) { if (!$('#home').hidden) pvDraw(t); return; }
   const T = now();
   updateParts(T, dt);
