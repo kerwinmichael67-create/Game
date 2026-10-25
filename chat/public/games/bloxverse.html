@@ -136,7 +136,7 @@
   .touchy .mbtn .s{display:block;max-width:44px;overflow:hidden;text-overflow:ellipsis}
   .touchy .mbtn .e{font-size:20px}
   .touchy .mbtn .n{right:-5px;top:-5px;min-width:18px;height:18px;font-size:10px;line-height:14px}
-  @media (max-height:520px){.touchy #xside.list{grid-auto-flow:column;grid-template-columns:none;grid-auto-columns:48px}.touchy #xside.list.many{grid-auto-flow:row;grid-template-columns:repeat(3,48px)}.touchy #xside:not(.list){grid-template-columns:repeat(4,66px);top:66px;transform:scale(.6);transform-origin:left top}}
+  @media (max-height:520px){.touchy #xside.list{grid-auto-flow:column;grid-template-columns:none;grid-auto-columns:48px}.touchy #xside.list.many{grid-auto-flow:row;grid-template-columns:repeat(3,48px)}.touchy #xside.list.lots{grid-template-columns:repeat(4,48px)}.touchy #xside:not(.list){grid-template-columns:repeat(4,66px);top:66px;transform:scale(.6);transform-origin:left top}}
   .c-red{--c1:#f87171;--c2:#dc2626;--c3:#7f1d1d}.c-purple{--c1:#c084fc;--c2:#9333ea;--c3:#581c87}.c-blue{--c1:#60a5fa;--c2:#2563eb;--c3:#1e3a8a}
   .c-brown{--c1:#d6a06b;--c2:#a16207;--c3:#5b3410}.c-green{--c1:#4ade80;--c2:#16a34a;--c3:#14532d}.c-gold{--c1:#fde047;--c2:#f59e0b;--c3:#92400e}
   .c-teal{--c1:#2dd4bf;--c2:#0d9488;--c3:#134e4a}.c-pink{--c1:#f9a8d4;--c2:#db2777;--c3:#831843}.c-orange{--c1:#fdba74;--c2:#ea580c;--c3:#7c2d12}.c-slate{--c1:#94a3b8;--c2:#475569;--c3:#1e293b}
@@ -1256,7 +1256,7 @@ function drawSide() {
     : items.map(([k, e, l, s, c, n]) => `<button class="mbtn ${c}" data-side="${k}" title="${esc(l)}"><span class="e">${e}</span><span class="t">${esc(l)}</span><span class="s">${esc(s)}</span>${badge(n)}</button>`).join('');
   if (html === sideHtml) return;
   const el = $('#xside'); sideHtml = html; el.innerHTML = html;
-  el.classList.toggle('list', !sideGame && !!html); el.classList.toggle('one', !!sideGame && sideCols === 1); el.classList.toggle('many', items.length > 4);
+  el.classList.toggle('list', !sideGame && !!html); el.classList.toggle('one', !!sideGame && sideCols === 1); el.classList.toggle('many', items.length > 4); el.classList.toggle('lots', items.length > 6);
   placeSide();
 }
 // on a phone: the buttons go just under what's at the top on the left, and the chat to the right of them (under
@@ -1679,6 +1679,9 @@ const ACH = [
   ['forsaken', 'gen', 10, 'Mechanic', 'Fix 10 generator puzzles in Forsaken', 40, null, '⚙️'],
   ['forsaken', 'survive', 1, 'Survivor', 'Survive a round of Forsaken', 120, null, '🏃'],
   ['forsaken', 'kill', 10, 'The Forsaken One', 'Take down 10 survivors as the killer', 300, null, '🩸'],
+  ['shaft', 'layer', 50, 'Fifty Down', 'Reach layer 50 of your Deep Shaft', 40, null, '⛏️'],
+  ['shaft', 'warden', 1, 'Seal Breaker', 'Beat a Seal warden in the Deep Shaft', 120, null, '🛡️'],
+  ['shaft', 'rebirth', 3, 'Eternal Shift', 'Rebirth your Deep Shaft 3 times', 300, null, '🔁'],
 ].map(([e, k, n, nm, d, c, item, ic], i, all) => ({ i, id: `${e}.${k}.${n}`, e, key: `${e}.${k}`, n, nm, d, c, item, ic, tier: e === 'bv' ? 'b' : all.slice(0, i).filter((a) => a[0] === e).length }));
 W.ach = { c: {}, got: new Set() };
 const achTarget = (A) => (A.n === 'all' ? Object.keys(EXPS).length : A.n);
@@ -2748,7 +2751,7 @@ function drawAvatarOpts() {
   }));
 }
 // the order experiences were added (the newest get a ✨ NEW badge; "Newest" sorts by it)
-const ADDED = ['obby', 'tycoon', 'tag', 'lava', 'toh', 'garden', 'tds', 'army', 'nds', 'pets', 'boat', 'zombie', 'egg', 'speed', 'fish', 'blade', 'murder', 'kart', 'rlgl', 'color', 'golf', 'bee', 'hide', 'pvz', 'rivals', 'fruits', 'pvb', 'fishty', 'pizza', 'park', 'mine', 'cars', 'forsaken'];
+const ADDED = ['obby', 'tycoon', 'tag', 'lava', 'toh', 'garden', 'tds', 'army', 'nds', 'pets', 'boat', 'zombie', 'egg', 'speed', 'fish', 'blade', 'murder', 'kart', 'rlgl', 'color', 'golf', 'bee', 'hide', 'pvz', 'rivals', 'fruits', 'pvb', 'fishty', 'pizza', 'park', 'mine', 'cars', 'forsaken', 'shaft'];
 const addedAt = (E) => (E.added != null ? E.added : ADDED.indexOf(E.id));
 const SORTS = [['featured', '⭐ Featured'], ['popular', '🔥 Popular'], ['new', '✨ Newest'], ['az', '🔤 A–Z'], ['recent', '🕒 Recently played']];
 // how the list is sorted and filtered, your favourites and what you played when (kept on this device)
@@ -3323,5 +3326,6 @@ else {
 <script src="blox-mine.js"></script>
 <script src="blox-cars.js"></script>
 <script src="blox-forsaken.js"></script>
+<script src="blox-shaft.js"></script>
 </body>
 </html>
