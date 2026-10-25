@@ -1561,6 +1561,15 @@ const ACH = [
   ['fruits', 'eat', 1, 'Fruit Eater', 'Eat a Blox Fruit', 40, null, '🍎'],
   ['fruits', 'lv', 30, 'Pirate', 'Reach level 30', 150, null, '🏴‍☠️'],
   ['fruits', 'vadmiral', 1, 'Admiral Down', 'Defeat the Vice Admiral', 400, ['h', 27], '⚓'],
+  ['fishty', 'buy', 10, 'Harbour Master', 'Buy 10 things for your harbour', 30, null, '⚓'],
+  ['fishty', 'legend', 1, 'Sea Legend', 'Catch a Legendary or Mythical fish with your rod', 300, null, '🐋'],
+  ['fishty', 'rebirth', 1, 'Back to Sea', 'Rebirth your harbour', 300, null, '🔁'],
+  ['pizza', 'buy', 10, 'Pizza Chef', 'Buy 10 things for your pizzeria', 30, null, '👨‍🍳'],
+  ['pizza', 'deliver', 10, 'Speedy Delivery', 'Deliver 10 pizzas yourself', 120, null, '🛵'],
+  ['pizza', 'rebirth', 1, 'Pizza Empire', 'Rebirth your pizzeria', 300, null, '🔁'],
+  ['park', 'buy', 10, 'Park Builder', 'Buy 10 things for your theme park', 30, null, '🎠'],
+  ['park', 'ride', 3, 'Thrill Seeker', 'Ride 3 rides (the Ferris wheel, the drop tower, the roller coaster)', 120, null, '🎢'],
+  ['park', 'rebirth', 1, 'Grand Reopening', 'Rebirth your theme park', 300, null, '🔁'],
 ].map(([e, k, n, nm, d, c, item, ic], i, all) => ({ i, id: `${e}.${k}.${n}`, e, key: `${e}.${k}`, n, nm, d, c, item, ic, tier: e === 'bv' ? 'b' : all.slice(0, i).filter((a) => a[0] === e).length }));
 W.ach = { c: {}, got: new Set() };
 const achTarget = (A) => (A.n === 'all' ? Object.keys(EXPS).length : A.n);
@@ -2537,7 +2546,7 @@ function drawAvatarOpts() {
   }));
 }
 // the order experiences were added (the newest get a ✨ NEW badge; "Newest" sorts by it)
-const ADDED = ['obby', 'tycoon', 'tag', 'lava', 'toh', 'garden', 'tds', 'army', 'nds', 'pets', 'boat', 'zombie', 'egg', 'speed', 'fish', 'blade', 'murder', 'kart', 'rlgl', 'color', 'golf', 'bee', 'hide', 'pvz', 'rivals', 'fruits', 'pvb'];
+const ADDED = ['obby', 'tycoon', 'tag', 'lava', 'toh', 'garden', 'tds', 'army', 'nds', 'pets', 'boat', 'zombie', 'egg', 'speed', 'fish', 'blade', 'murder', 'kart', 'rlgl', 'color', 'golf', 'bee', 'hide', 'pvz', 'rivals', 'fruits', 'pvb', 'fishty', 'pizza', 'park'];
 const addedAt = (E) => (E.added != null ? E.added : ADDED.indexOf(E.id));
 const SORTS = [['featured', '⭐ Featured'], ['popular', '🔥 Popular'], ['new', '✨ Newest'], ['az', '🔤 A–Z'], ['recent', '🕒 Recently played']];
 // how the list is sorted and filtered, your favourites and what you played when (kept on this device)
@@ -3052,5 +3061,9 @@ else {
 <script src="blox-rivals.js"></script>
 <script src="blox-fruits.js"></script>
 <script src="blox-brainrots.js"></script>
+<script src="blox-tycoonkit.js"></script>
+<script src="blox-fishtycoon.js"></script>
+<script src="blox-pizza.js"></script>
+<script src="blox-park.js"></script>
 </body>
 </html>
