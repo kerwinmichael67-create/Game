@@ -31,7 +31,7 @@
     welcome: 'Step on a claim pad to get a mine!',
     land: { theme: 'desert', fence: 'stone', extras: ['crystals'] },
     skyCols: ['#7dd3fc', '#fef3c7'], ground: 0xc8a97a, speed0: 7,
-    path: [[-22, -12], [16, -12], [16, 4]], padAt: [-4, 12], caseAt: [-15, 20], caseName: '💎 Gem case', caseShort: 'Gems',
+    path: [[-22, -12], [16, -12], [16, 4]], padAt: [-4, 12], caseAt: [-15, 20], caseName: '💎 Gem case', caseShort: 'Gems', prod: 'chunk of ore', make: 'Digs more ore',
     findHow: 'Gems turn up in the veins you mine with your pickaxe.',
     FINDS,
     items: [

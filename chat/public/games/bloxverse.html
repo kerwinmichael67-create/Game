@@ -77,6 +77,14 @@
   .coin::before{content:'B'}
   .coin.sm{width:18px;height:18px;font-size:10px;vertical-align:-3px}
   #xhud{position:absolute;inset:0;pointer-events:none}
+  /* next to a tycoon's buy pad: what it gives you */
+  #boost{position:absolute;left:0;right:0;margin:auto;width:max-content;min-width:240px;max-width:min(400px,calc(100vw - 24px));padding:10px 15px 11px;border-radius:16px;pointer-events:none;animation:rise .15s ease-out}
+  #boost .bh{display:flex;justify-content:space-between;align-items:baseline;gap:16px;font:600 17px var(--fh)}
+  #boost .bh b{color:#86efac;font-size:16px}#boost .bh b.no{color:#fca5a5}
+  #boost .bb{margin-top:5px;font:700 13.5px/1.35 var(--fb);color:#e2e8f0}
+  #boost .bb .up{color:#fde047;white-space:nowrap}
+  #boost .bs{margin-top:7px;font:700 12.5px var(--fb);color:#86efac}#boost .bs.no{color:#fca5a5}
+  .touchy #boost{min-width:0;padding:8px 12px 9px}.touchy #boost .bh{font-size:15px}.touchy #boost .bb{font-size:12.5px}
   #prompt{position:absolute;left:50%;bottom:168px;transform:translateX(-50%);display:none;align-items:center;gap:12px;padding:8px 18px 8px 8px;border-radius:16px;font:600 16px var(--fh);pointer-events:auto;cursor:pointer;white-space:nowrap;animation:rise .18s ease-out}
   #prompt kbd{display:grid;place-items:center;width:36px;height:36px;margin:0;padding:0;background:linear-gradient(180deg,#fff,#e2e8f0);color:#0f172a;border-radius:10px;font:700 18px var(--fh);box-shadow:0 3px 0 #94a3b8}
   #prompt:hover{border-color:rgba(255,255,255,.35)}
@@ -1277,6 +1285,32 @@ function sideDo(k) {
 $('#xside').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b || b.disabled) return; if (b.dataset.side) sideDo(b.dataset.side); else if (sideClick) sideClick(b, e); });
 // "press E" prompts near things: experiences list them as { x, z, r, text, fn }
 let promptCur = null;
+// a card over the bottom of the screen about what you're standing next to (a tycoon's buy pad: what it gives you)
+function showBoost(html) {
+  let el = $('#boost');
+  if (!html) { if (el) el.remove(); return; }
+  if (!el) { el = document.createElement('div'); el.id = 'boost'; el.className = 'glass'; $('#xhud').append(el); }
+  if (el.dataset.h !== html) { el.innerHTML = html; el.dataset.h = html; }
+  const st = $('#stat').getBoundingClientRect(), pr = $('#prompt').getBoundingClientRect(); // (over the cash, and over a "press E" if there is one)
+  el.style.bottom = Math.round(innerHeight - Math.min(st.height ? st.top : innerHeight - 12, pr.height ? pr.top : innerHeight) + 10) + 'px';
+}
+const perSec = (v) => '$' + (v < 10 ? (Math.round(v * 10) / 10).toString() : Math.round(v).toLocaleString('en-US')) + '/s';
+// the card: its name and price, what it gives (lines of our own HTML), and whether you can buy it
+function boostHtml(title, price, lines, need) {
+  return `<div class="bh"><span>${esc(title)}</span>${price != null ? `<b class="${need > 0 ? 'no' : ''}">${price ? money(price) : 'Free'}</b>` : ''}</div>`
+    + lines.filter(Boolean).map((l) => `<div class="bb">${l}</div>`).join('')
+    + (need != null ? `<div class="bs ${need > 0 ? 'no' : ''}">${need > 0 ? `You need ${money(need)} more` : '✅ Step on the pad to buy it'}</div>` : '');
+}
+// next to one of your tycoon's buy pads (or its rebirth pad): its card (E.boostCard(item), E.rebirthCard())
+function padBoost(E) {
+  let best = null, bd = 7;
+  if (E.myPlot != null && !P.dead) for (const p of parts) {
+    if ((p.kind !== 'buy' && p.kind !== 'rebirth') || p.plot !== E.myPlot) continue;
+    const d = Math.hypot(p.x - P.x, p.z - P.z);
+    if (d < bd && Math.abs(P.y - (p.y + p.sy / 2)) < 3) { bd = d; best = p; }
+  }
+  showBoost(best ? (best.kind === 'rebirth' ? E.rebirthCard() : E.boostCard(best.item)) : null);
+}
 function updatePrompt() {
   let best = null, bd = 1e9;
   if (!P.dead && exp && exp.prompts) for (const q of exp.prompts()) { const d = Math.hypot(P.x - q.x, P.z - q.z); if (d < q.r && d < bd && (q.y == null || Math.abs(P.y - q.y) < 8)) { bd = d; best = q; } }
@@ -2263,6 +2297,30 @@ const TYCOON = {
     if (i === TY_LAST) { toast('🛰️ You finished the tycoon! Rebirth for more cash', '#fde68a'); sfx('win'); puffAt(P.x, P.y + 4, P.z, CONFETTI, 80); Net.chat('🛰️ finished Cube Factory Tycoon!'); }
   },
   rebirthReady() { return TY.every((_, i) => has(this.b, i)); },
+  // what a pad gives you, on a card when you're next to it: the cash a second it adds, with what you have now
+  // (a cube's worth its dropper's value, doubled by each upgrader on its line, +$1 or +$5 from the conveyors, then
+  // the bonuses)
+  boostCard(i) {
+    const it = TY[i], b = this.b, M = tyMult(b, this.rb) * (hasItem('cash2') ? 2 : 1), extra = has(b, TY_TURBO) ? 5 : has(b, 2) ? 1 : 0;
+    const ups = (ln) => TY.filter((u, k) => u.kind === 'up' && (u.line || 0) === ln && has(b, k)).length;
+    const drops = TY.filter((d, k) => d.kind === 'dropper' && has(b, k));
+    const rate = (ex, ln) => drops.filter((d) => ln == null || (d.line || 0) === ln).reduce((r, d) => r + (d.v * 2 ** ups(d.line || 0) + ex) / d.every, 0) * M;
+    const ps = (v) => `<span class="up">+${perSec(v)}</span>`, ln = it.line || 0;
+    const line = {
+      dropper: () => `A cube worth ${money((it.v * 2 ** ups(ln) + extra) * M)} every ${it.every}s: ${ps((it.v * 2 ** ups(ln) + extra) / it.every * M)}`,
+      up: () => `×2 for every cube on its conveyor: ${ps(rate(0, ln))}`, // (what the droppers on that line put in, doubled)
+      conv: () => `Conveyor speed 6 → 9, and every cube +$1: ${ps(rate(1) - rate(extra))}`,
+      turbo: () => `Both conveyors speed up (→ 12), and every cube +$5: ${ps(rate(5) - rate(extra))}`,
+      walls: () => 'Walls all round your factory',
+      floor: () => 'A second floor with stairs up to it (the sky line goes up there)',
+      rocket: () => '🚀 A rocket by your factory. After it comes the sky line!',
+      sky: () => 'A second conveyor up on the second floor, for the sky droppers',
+      station: () => '🛰️ A space station turning over your factory: the last one, then you can rebirth',
+    }[it.kind];
+    const bonus = it.bonus ? `+${Math.round(it.bonus * 100)}% cash for every cube: ${ps(rate(extra) * it.bonus / (1 + tyBonus(b)))}` : '';
+    return boostHtml(it.n, it.price, [bonus || (line && line())], it.price - this.cash);
+  },
+  rebirthCard() { return boostHtml('🔁 Rebirth', null, [`Every cube worth <span class="up">×${(1 + 0.5 * (this.rb + 1)).toFixed(1)}</span> for good (now ×${(1 + 0.5 * this.rb).toFixed(1)})`, 'Your factory and cash start again'], null); },
   rebirthPanel() {
     const next = 1 + 0.5 * (this.rb + 1), got = TY.filter((_, i) => has(this.b, i)).length, ready = got === TY.length;
     const html = `<div class="xp-row"><span>✅ <b>×${next.toFixed(1)} cash for every cube</b>, for good<br><small style="color:var(--muted)">now ×${(1 + 0.5 * this.rb).toFixed(1)}, and it adds up with every rebirth</small></span></div>
@@ -2285,6 +2343,7 @@ const TYCOON = {
   tick(dt) {
     const t = performance.now();
     for (const pl of this.plots) this.sim(pl, dt);
+    if (t > (this.boostAt || 0)) { this.boostAt = t + 150; padBoost(this); }
     if (this.myPlot != null) {
       if (Math.floor(this.cash) !== this.sentCash && t - (this.cashAt || 0) > 1000) { this.cashAt = t; this.sentCash = Math.floor(this.cash); send({ cash: this.sentCash }); }
       if (t > this.saveAt) { this.saveAt = t + 10000; this.save(); }

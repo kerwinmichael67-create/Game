@@ -57,7 +57,7 @@
     land: { theme: 'beach', mode: 'sea', sea: -0.6, holes: [[-131, -131, 131, -6]], extras: ['boats'] },
     skyCols: ['#5eb6ff', '#e0f2fe'], ground: false, speed0: 8,
     plotsAt: [[-84, 6, 1], [-28, 6, 1], [28, 6, 1], [84, 6, 1]],
-    path: [[-22, -16], [20, -16], [20, 6]], padAt: [-6, 12], caseAt: [-14, -6], caseName: '🐠 Aquarium', caseShort: 'Aquarium',
+    path: [[-22, -16], [20, -16], [20, 6]], padAt: [-6, 12], caseAt: [-14, -6], caseName: '🐠 Aquarium', caseShort: 'Aquarium', prod: 'fish', make: 'Catches more fish',
     findHow: 'Rare fish you catch with your rod (Rare and up) swim in your aquarium.',
     FINDS,
     items: [

@@ -26,6 +26,9 @@
    s = where on the path, drop = how high it falls from, batch), 'up'
    (s, mul), 'pay' (v, every), 'speed' (sp: the path's speed), 'deco'
    (bonus: more cash for every sale) or anything of the tycoon's own.
+   Next to a pad, a card says what it gives you: E.prod (what's made, one
+   of them: 'fish'), E.make ('Catches more fish'), and tyBoost(it, i) for a
+   line of the tycoon's own; an item's say is shown on it too.
    An item's buy pad goes where it'll be built: pad: [lx, lz, top] (top:
    the floor there, 0.4 if not said), or, for a thing on the path, beside
    the path where it is; a faster belt's by the start of the belt (or at
@@ -205,6 +208,24 @@ function tycoonKit(E) {
       if (i === LAST) { toast(`🏆 You finished the ${E.name}! Rebirth for more cash`, '#fde68a'); sfx('win'); puffAt(P.x, P.y + 4, P.z, CONFETTI, 80); Net.chat(`🏆 finished ${E.name}!`); }
     },
     rebirthReady() { return T.every((_, i) => has(this.b, i)); },
+    // what a pad gives you, on a card when you're next to it: the cash a second it adds, with what you have now
+    // (everything made is worth its source's value, times each upgrader, times the plot's bonuses)
+    boostCard(i) {
+      const it = T[i], pl = this.plots[this.myPlot], b = this.b, M = this.mult(pl), prod = E.prod || 'thing';
+      const ups = T.reduce((m, u, k) => (u.kind === 'up' && has(b, k) ? m * (u.mul || 2) : m), 1);
+      const made = T.reduce((r, s, k) => (s.kind === 'src' && has(b, k) ? r + s.v * (s.batch || 1) / s.every : r), 0) * ups * M;
+      const paid = T.reduce((r, s, k) => (s.kind === 'pay' && has(b, k) ? r + s.v / s.every : r), 0) * M;
+      const ps = (v) => `<span class="up">+${perSec(v)}</span>`, lines = [];
+      if (it.kind === 'src') lines.push(`${E.make || 'Makes more to sell'} (${it.batch > 1 ? `${it.batch} at a time ` : ''}every ${it.every}s): ${ps(it.v * (it.batch || 1) / it.every * ups * M)}`);
+      else if (it.kind === 'up') lines.push(`×${it.mul || 2} for every ${prod} that goes past it: ${ps(made * ((it.mul || 2) - 1))}`);
+      else if (it.kind === 'pay') lines.push(`Brings in ${money(it.v * M)} every ${it.every}s: ${ps(it.v / it.every * M)}`);
+      else if (it.kind === 'speed') lines.push(`Everything moves faster: speed ${this.speedOf(b)} → <span class="up">${it.sp}</span>`);
+      if (it.bonus) lines.push(`+${Math.round(it.bonus * 100)}% cash on every sale: ${ps((made + paid) * it.bonus / (1 + bonusOf(b)))}`);
+      if (this.tyBoost) lines.push(this.tyBoost(it, i));
+      if (it.say) lines.push(esc(it.say));
+      return boostHtml(`${it.e ? it.e + ' ' : ''}${it.n}`, it.price, lines, it.price - this.cash);
+    },
+    rebirthCard() { return boostHtml('🔁 Rebirth', null, [`Every sale worth <span class="up">×${(1 + 0.5 * (this.rb + 1)).toFixed(1)}</span> for good (now ×${(1 + 0.5 * this.rb).toFixed(1)})`, `Your ${noun.toLowerCase()} and cash start again${E.FINDS ? `; you keep your ${E.caseShort ? E.caseShort.toLowerCase() : 'finds'}` : ''}`], null); },
     rebirthPanel() {
       const next = 1 + 0.5 * (this.rb + 1), got = T.filter((_, i) => has(this.b, i)).length, ready = got === T.length;
       const html = `<div class="xp-row"><span>✅ <b>×${next.toFixed(1)} cash for every sale</b>, for good<br><small style="color:var(--muted)">now ×${(1 + 0.5 * this.rb).toFixed(1)}, and it adds up with every rebirth</small></span></div>
@@ -239,6 +260,7 @@ function tycoonKit(E) {
     worth(sec, min) { return Math.max(min || 0, Math.round(this.rate() * sec)); },
     tick(dt) {
       const t = performance.now();
+      if (t > (this.boostAt || 0)) { this.boostAt = t + 150; padBoost(this); }
       for (const pl of this.plots) { this.sim(pl, dt); if (pl.owner) { for (const f of pl.anim) f(dt, t); if (this.tyAnim) this.tyAnim(pl, dt, t); } if (pl.caseG) pl.caseG.children.forEach((m) => { if (m.userData.bob != null) { m.position.y += Math.sin(t / 500 + m.userData.bob) * 0.004; m.rotation.y += dt * 0.8; } }); }
       if (this.myPlot != null) {
         if (Math.floor(this.cash) !== this.sentCash && t - (this.cashAt || 0) > 1000) { this.cashAt = t; this.sentCash = Math.floor(this.cash); send({ cash: this.sentCash }); }

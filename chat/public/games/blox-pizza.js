@@ -50,7 +50,7 @@
     welcome: 'Step on a claim pad to get a pizzeria!',
     land: { theme: 'blossom', fence: 'wood' },
     skyCols: ['#7cc4ff', '#fff1e0'], ground: 0x8bc34a, speed0: 7,
-    path: [[-22, -13], [16, -13], [16, 3]], padAt: [-6, 12], caseAt: [-16, -5], caseName: '📜 Secret recipes', caseShort: 'Recipes',
+    path: [[-22, -13], [16, -13], [16, 3]], padAt: [-6, 12], caseAt: [-16, -5], caseName: '📜 Secret recipes', caseShort: 'Recipes', prod: 'pizza', make: 'Bakes more pizzas',
     findHow: 'Secret recipes turn up when you deliver pizzas yourself (the quicker, the likelier).',
     FINDS,
     items: [
