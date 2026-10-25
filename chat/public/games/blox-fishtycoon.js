@@ -6,7 +6,11 @@
    what they're worth) to your market. Fish off the end of your dock
    with your own rod for rare catches: they swim in your aquarium and
    add to every sale (or sell them, or trade them). Rebirth at the end.
-   ===================================================================== */
+   ================================================================   What makes it a harbour: sail your own boat out past the shallows to
+   the fishing spots (bubbling, with a beam of light over them; they move
+   every couple of minutes, the same for everyone) and fish there for
+   bigger, rarer catches: rare spots, and deep-sea spots further out.
+   ===== */
 (() => {
   const NET_Z = -21.5, BOAT_Z = -31, DOCK_X = 23;
   // common fish on the conveyor
@@ -47,12 +51,20 @@
     else { box(g, 0x1e3a8a, 4.4, 2, 11, 0, 0.6, 0); box(g, 0xf8fafc, 4.5, 0.4, 11.1, 0, 1.7, 0); box(g, 0xf8fafc, 3.4, 3, 4, 0, 3.4, 2); box(g, 0x0ea5e9, 3.5, 0.7, 1, 0, 4.3, -0.1); box(g, 0xdc2626, 1, 2.4, 1, 0, 6, 3); box(g, 0x78716c, 0.3, 6, 0.3, 0, 4.5, -3.5); }
     return g;
   }
+  // your own boat (the best you've bought: a rowboat till then) and how fast it goes; the fishing spots at sea
+  const SAIL = { row: 14, motor: 20, trawler: 24, sub: 28, mega: 32 }, SAIL_Y = -0.55;
+  const SPOT_MS = 120000, SPOT_TIER = [1, 1, 2, 3], SPOT_NAME = ['', '🐟 Fishing spot', '✨ Rare spot', '🦈 Deep-sea spot'], SPOT_COL = [0, 0x7dd3fc, 0xc084fc, 0x1d4ed8];
+  const spotsAt = (n) => {
+    const r = mulberry(n * 7919 + 31), out = [];
+    for (const tier of SPOT_TIER) { let sp; for (let k = 0; k < 20; k++) { sp = { tier, x: -115 + r() * 230, z: tier === 3 ? -118 + r() * 25 : -100 + r() * 45 }; if (out.every((o) => Math.hypot(o.x - sp.x, o.z - sp.z) > 35)) break; } out.push(sp); } // (well apart)
+    return out;
+  };
   const UPS = { ice: [0xe0f2fe, '❄️ Ice Box'], fillet: [0xfecaca, '🔪 Fillet Table'], smoke: [0x78350f, '🔥 Smokehouse'], can: [0x64748b, '🥫 Cannery'] };
 
   const FT = tycoonKit({
     id: 'fishty', code: 'ft', saveKey: 'ft', rank: 0.0005, name: 'Fishing Tycoon', emoji: '🐟', noun: 'Harbour', camDist: 22,
     color: 'linear-gradient(135deg,#0284c7,#f59e0b)',
-    desc: 'Claim a harbour on the beach. Buy fishing nets, then boats that sail out and come back full; the fish ride your conveyor through the ice box, fillet table, smokehouse and cannery to your market. Fish off your dock with your own rod for rare catches that swim in your aquarium and add to every sale. Rebirth for more cash for good.',
+    desc: 'Claim a harbour on the beach and sail your own boat out to the bubbling fishing spots for rare catches. Buy fishing nets, then boats that sail out and come back full; the fish ride your conveyor through the ice box, fillet table, smokehouse and cannery to your market. Fish off your dock with your own rod for rare catches that swim in your aquarium and add to every sale. Rebirth for more cash for good.',
     welcome: 'Step on a claim pad to get a harbour!',
     land: { theme: 'beach', mode: 'sea', sea: -0.6, holes: [[-131, -131, 131, -6]], extras: ['boats'] },
     skyCols: ['#5eb6ff', '#e0f2fe'], ground: false, speed0: 8,
@@ -98,7 +110,8 @@
       slab(0, -12, -88, 262, 88, 0x8a7350, { sy: 2 });
       part({ x: 0, y: -0.9, z: -68.5, sx: 262, sy: 0.6, sz: 125, c: 0x1f7fc4, alpha: 0.72, plain: true, solid: false });
       // walls you can't see: the edges of the beach and the shallows
-      const wall = (x, z, sx, sz) => { const p = part({ x, y: 8, z, sx, sy: 24, sz, alpha: 0, plain: true }); p.m.visible = false; };
+      this.walls = []; // (your boat sails through them: the deep water's only for boats)
+      const wall = (x, z, sx, sz) => { const p = part({ x, y: 8, z, sx, sy: 24, sz, alpha: 0, plain: true }); p.m.visible = false; this.walls.push(p); };
       wall(-122, 54, 2, 122); wall(122, 54, 2, 122); wall(0, 115, 246, 2); wall(-131, -25, 2, 40); wall(131, -25, 2, 40); wall(0, -45, 264, 2);
       // the public pier, for anyone to fish from
       slab(0, 0.4, -24, 6, 36, 0x8b5a2b, { sy: 0.6 }); slab(0, 0.4, -40, 14, 6, 0x8b5a2b, { sy: 0.6 });
@@ -222,13 +235,57 @@
     tySold(pl) { if (Math.random() < 0.25) { const [x, z] = this.W(pl, 20, 7.6); puffAt(x, 2.2, z, [0xe0f2fe, 0xffffff], 2); } },
     tyCase(pl, f) { const F = FINDS[f]; const m = fishMesh(F.rainbow ? 'rainbow' : F.c, F.r >= 4 ? 0.95 : 0.75); return m; },
 
+    /* ---- your own boat: sail out to the fishing spots ---- */
+    boatLook(b) { let l = 'row'; this.items.forEach((it, i) => { if (it.kind === 'src' && it.look !== 'net' && this.ty.has(b, i)) l = it.look; }); return l; },
+    get drive() { return this.sl ? this.sailFn : null; },
+    sailFn(dt, f, r) {
+      const S = this.sl, top = SAIL[S.look] || 14, fishing = this.R && this.R.st !== 'idle';
+      const thr = P.frozen || chatOpen() || fishing ? 0 : clamp(f, -1, 1), steer = clamp(r, -1, 1);
+      if (thr > 0) S.sp = Math.min(top, S.sp + 12 * thr * dt); else if (thr < 0) S.sp = Math.max(-5, S.sp + 18 * thr * dt); else S.sp *= Math.exp(-dt * (fishing ? 4 : 0.7));
+      S.yaw -= steer * 1.4 * clamp(Math.abs(S.sp) / 5, 0.3, 1) * dt;
+      return [-Math.sin(S.yaw) * S.sp, -Math.cos(S.yaw) * S.sp, S.yaw];
+    },
+    gravity() { return this.sl ? 0 : GRAV; },
+    // where your boat's tied up: off the corner of your dock
+    mooring() { const pl = this.plots[this.myPlot]; return [this.W(pl, 22, -23), this.W(pl, 23, -28)]; },
+    sail() {
+      if (this.myPlot == null || this.sl) return;
+      const [, [x, z]] = this.mooring(), look = this.boatLook(this.b);
+      this.endFish(); this.sl = { look, sp: 0, yaw: 0 }; Object.assign(P, { x, z, y: SAIL_Y, vx: 0, vy: 0, vz: 0 }); P.yaw = 0; cam.yaw = 0;
+      for (const w of this.walls || []) w.solid = false;
+      send({ sl: Object.keys(SAIL).indexOf(look) + 1 }); sfx('splash'); this.drawSpots(true);
+      toast(`⛵ Out to sea! The fishing spots have beams of light over them (W to go, A/D to steer)`, '#7dd3fc');
+    },
+    dock(quiet) {
+      if (!this.sl) return;
+      this.endFish(); this.sl = null; send({ sl: 0 });
+      for (const w of this.walls || []) w.solid = true;
+      if (this.myPlot != null) { const [[x, z]] = this.mooring(); Object.assign(P, { x, z, y: 0.6, vx: 0, vy: 0, vz: 0 }); }
+      if (!quiet) { sfx('pop'); toast('⚓ Back at your dock', '#86efac'); }
+    },
+    // the fishing spots: the same for everyone, somewhere new every couple of minutes
+    drawSpots(force) {
+      const n = Math.floor(Date.now() / SPOT_MS);
+      if (!force && n === this.spotN) return;
+      this.spotN = n; for (const o of this.spotObjs || []) place.remove(o.g);
+      this.spotObjs = spotsAt(n).map((sp) => {
+        const g = new THREE.Group(), c = SPOT_COL[sp.tier];
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(3.6, 0.35, 6, 24), new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 0.8 })); ring.rotation.x = Math.PI / 2; ring.position.y = -0.5; g.add(ring);
+        const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 40, 10, 1, true), new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 0.22, depthWrite: false, side: THREE.DoubleSide })); beam.position.y = 19.5; g.add(beam);
+        const l = label(SPOT_NAME[sp.tier], { size: 1.1, bg: 'rgba(15,23,42,.65)' }); l.position.y = 4; g.add(l);
+        g.position.set(sp.x, 0, sp.z); place.add(g);
+        return Object.assign({ g, ring }, sp);
+      });
+    },
+    nearSpot(r = 7) { return (this.spotObjs || []).find((o) => Math.hypot(o.x - P.x, o.z - P.z) < r); },
+
     /* ---- your own rod ---- */
     rodLvl() { let l = 0; this.items.forEach((it, i) => { if (it.kind === 'rod' && this.ty.has(this.b, i)) l = Math.max(l, it.lvl); }); return l; },
     async tyEnter(s) {
-      this.caught = Math.max(0, s.caught | 0); this.R = { st: 'idle' }; this.rodM = null; this.others = new Map();
+      this.caught = Math.max(0, s.caught | 0); this.R = { st: 'idle' }; this.rodM = null; this.others = new Map(); this.sl = null; this.seats = new Map(); send({ sl: 0 }); this.drawSpots(true);
     },
     tySave() { return { caught: this.caught }; },
-    tyLeave() { this.endFish(); for (const o of this.others.values()) { scene.remove(o.bob); scene.remove(o.line); } this.others.clear(); },
+    tyLeave() { this.dock(true); for (const o of this.spotObjs || []) place.remove(o.g); this.spotObjs = []; this.spotN = null; for (const b of (this.seats || new Map()).values()) if (b.parent) b.parent.remove(b); for (const o of this.others.values()) { scene.remove(o.bob); scene.remove(o.line); } this.others.clear(); },
     // where you can fish: the back of your dock, or the end of the public pier
     fishSpot() {
       if (P.dead || P.y < 0) return false;
@@ -240,20 +297,26 @@
     tyPrompts() {
       if (this.tg) return [];
       const R = this.R;
+      if (this.sl) {
+        if (R.st === 'wait') return [{ x: P.x, z: P.z, r: 3, text: '🎣 Reel in', fn: () => this.endFish('You reeled in.') }];
+        const o = R.st === 'idle' && this.nearSpot();
+        return o ? [{ x: P.x, z: P.z, r: 3, text: `🎣 Fish the ${SPOT_NAME[o.tier].replace(/^\S+ /, '')}`, fn: () => this.cast(o) }] : [{ x: P.x, z: P.z, r: 99, text: '⚓ Back to your dock', fn: () => this.dock() }];
+      }
+      if (R.st === 'idle' && this.myPlot != null && !P.dead) { const [[mx, mz]] = this.mooring(); if (Math.hypot(P.x - mx, P.z - mz) < 3) return [{ x: mx, z: mz, r: 3, text: `⛵ Sail your ${this.boatLook(this.b) === 'row' ? 'rowboat' : 'boat'} out to the fishing spots`, fn: () => this.sail() }]; }
       if (R.st === 'idle' && this.fishSpot()) return [{ x: P.x, z: P.z, r: 2, text: `🎣 Cast your ${RODS[this.rodLvl()]}`, fn: () => this.cast() }];
       if (R.st === 'wait') return [{ x: P.x, z: P.z, r: 3, text: '🎣 Reel in', fn: () => this.endFish('You reeled in.') }];
       if (R.st === 'idle' && this.myPlot == null && Math.abs(P.x) < 7 && P.z < -6 && P.z > -36) return [{ x: P.x, z: P.z, r: 2, text: '🎣 Walk to the end of the pier to fish', fn: () => {} }];
       return [];
     },
-    cast() {
+    cast(spot) {
       const lvl = this.rodLvl(), bob = new THREE.Group(), a = new THREE.Mesh(new THREE.SphereGeometry(0.32, 10, 8), M(0xef4444)); bob.add(a);
       const w = new THREE.Mesh(new THREE.SphereGeometry(0.33, 10, 6, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), M(0xffffff)); bob.add(w);
-      const x = P.x, z = P.z - 9;
+      const x = spot ? spot.x + (Math.random() - 0.5) * 2 : P.x, z = spot ? spot.z + (Math.random() - 0.5) * 2 : P.z - 9;
       bob.position.set(x, -0.5, z); scene.add(bob);
       const geo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]), line = new THREE.Line(geo, new THREE.LineBasicMaterial({ color: 0xf8fafc })); scene.add(line);
-      P.yaw = 0; // face the sea
+      P.yaw = spot ? Math.atan2(-(x - P.x), -(z - P.z)) : 0; // face the sea (or the spot)
       const bait = useItem('bait');
-      this.R = { st: 'wait', bob, line, x, z, px: P.x, pz: P.z, t: (2 + Math.random() * 4) * (1 - 0.15 * lvl) * (bait ? 0.6 : 1), bait, lvl };
+      this.R = { st: 'wait', bob, line, x, z, px: P.x, pz: P.z, t: (2 + Math.random() * 4) * (1 - 0.15 * lvl) * (bait ? 0.6 : 1), bait, lvl, spot: spot ? spot.tier : 0 };
       puffAt(x, -0.4, z, [0xffffff, 0x93c5fd], 6); sfx('swing'); setTimeout(() => sfx('splash', { vol: 0.5 }), 250);
       send({ fb: [+x.toFixed(1), +z.toFixed(1)] });
       if (bait) toast(`🪱 Lucky Bait on! (${itemCount('bait')} left)`, '#fde68a');
@@ -274,10 +337,10 @@
     hooked(sc) {
       const R = this.R;
       if (sc < 0) { this.endFish('🐟 It got away!'); sfx('error', { gap: 300 }); return; }
-      const lvl = R.lvl, w = [60, 25, 10, 4, 0.9, 0.12].map((x, r) => x * (r >= 2 ? (1 + 0.7 * lvl) * (R.bait ? 3 : 1) * (sc > 0 ? 1.5 : 1) : 1) * (r >= 4 ? 1 + lvl : 1));
+      const lvl = R.lvl, sp = R.spot || 0, w = [60, 25, 10, 4, 0.9, 0.12].map((x, r) => x * (r >= 2 ? (1 + 0.7 * lvl) * (R.bait ? 3 : 1) * (sc > 0 ? 1.5 : 1) * (1 + sp) : 1) * (r >= 4 ? (1 + lvl) * (1 + sp) : 1)); // (a spot at sea: rarer fish)
       let roll = Math.random() * w.reduce((a, b) => a + b, 0), r = 0;
       while (r < 5 && roll >= w[r]) { roll -= w[r]; r++; }
-      const cash = this.worth(SEC[r], MIN[r]) * (1 + 0.5 * this.rb);
+      const cash = this.worth(SEC[r], MIN[r]) * (1 + 0.5 * this.rb) * (1 + 0.5 * sp);
       this.caught++; quest('fishty.catch');
       if (r < 2) {
         const [n] = CATCH[r][Math.floor(Math.random() * CATCH[r].length)];
@@ -291,6 +354,12 @@
       this.endFish();
     },
     tyTick(dt, t) {
+      this.drawSpots();
+      for (const o of this.spotObjs || []) { o.ring.rotation.z += dt * 0.6; if (Math.random() < dt * 4) puffAt(o.x + (Math.random() - 0.5) * 5, -0.3, o.z + (Math.random() - 0.5) * 5, [0xffffff, 0xbae6fd], 1); }
+      if (this.sl) {
+        if (P.dead || this.myPlot == null) this.dock(true);
+        else { P.y = SAIL_Y + Math.sin(t / 500) * 0.08; P.vy = 0; P.x = clamp(P.x, -126, 126); P.z = clamp(P.z, -126, -8); if (Math.abs(this.sl.sp) > 3 && Math.random() < dt * 6) puffAt(P.x, -0.4, P.z, [0xffffff, 0xe0f2fe], 1); }
+      }
       const R = this.R;
       if (R && R.st !== 'idle') {
         if (P.dead || Math.hypot(P.x - R.px, P.z - R.pz) > 4) { this.endFish(P.dead ? null : 'You walked away from your line.'); }
@@ -314,8 +383,19 @@
     tip(a) { const r = a && a.ftRod; if (r) { r.updateMatrixWorld(true); return r.userData.tip.getWorldPosition(new THREE.Vector3()); } const p = a ? a.g.position : new THREE.Vector3(P.x, P.y, P.z); return new THREE.Vector3(p.x, p.y + 5, p.z - 2); },
     // a rod in your hand while you fish (and in everyone else's)
     pose() {
+      this.boatSeat(me, 'me', this.sl ? this.sl.look : null);
+      for (const p of Net.peers) { if (p.isMe) continue; const a = Net.avatars.get(p.peer), v = p.presence && p.presence.sl; if (a) this.boatSeat(a, p.peer, v > 0 ? Object.keys(SAIL)[v - 1] : null); }
       this.holdRod(me, this.R && this.R.st !== 'idle', this.rodLvl());
       for (const p of Net.peers) { if (p.isMe) continue; const a = Net.avatars.get(p.peer); if (a) this.holdRod(a, !!(p.presence && Array.isArray(p.presence.fb)), 0); }
+    },
+    boatSeat(a, key, look) {
+      if (!a) return;
+      let b = this.seats.get(key);
+      if (!look) { if (b) b.visible = false; return; }
+      if (!b || b.parent !== a.g || b.userData.look !== look) { if (b && b.parent) b.parent.remove(b); b = boatMesh(look); b.userData.look = look; b.position.y = 0.2; a.g.add(b); this.seats.set(key, b); }
+      b.visible = true;
+      if (a.dead) return;
+      a.body.position.y = -0.4; a.legL.rotation.x = a.legR.rotation.x = Math.PI / 2;
     },
     holdRod(a, on, lvl) {
       if (!a || a.dead) return;
@@ -329,7 +409,13 @@
       if (r) r.visible = on;
       if (on) a.armR.rotation.x = 1.25;
     },
-    tyHud() { const R = this.R; return R && R.st === 'wait' ? '🎣 waiting for a bite…' : this.fishSpot() ? `🎣 ${touchy ? 'Tap' : 'Press E'} to fish` : ''; },
+    tyHud() {
+      const R = this.R;
+      if (R && R.st === 'wait') return '🎣 waiting for a bite…';
+      if (this.sl) { const o = (this.spotObjs || []).slice().sort((a, b) => Math.hypot(a.x - P.x, a.z - P.z) - Math.hypot(b.x - P.x, b.z - P.z))[0]; return `⛵ ${Math.round(Math.abs(this.sl.sp) * 1.5)} knots${o ? ` · nearest: ${SPOT_NAME[o.tier]} ${Math.round(Math.hypot(o.x - P.x, o.z - P.z))} m` : ''}`; }
+      return this.fishSpot() ? `🎣 ${touchy ? 'Tap' : 'Press E'} to fish` : '';
+    },
+    menu() { return [['⛵ Sail your boat', () => (this.sl ? this.dock() : this.sail()), 'Sail'], [`${this.caseName} (${this.col.length})`, () => this.casePanel(), this.caseShort]]; },
     coinShop: [
       { id: 'cash2', e: '💵', n: '2× Cash', d: 'Every fish you sell is worth double, for good', price: 700, kind: 'pass' },
       { id: 'bait', e: '🪱', n: 'Lucky Bait', d: '5 casts with 3× the chance of a rare fish (and quicker bites)', price: 25, kind: 'use', pack: 5 },
