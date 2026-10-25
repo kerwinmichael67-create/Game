@@ -2921,10 +2921,10 @@ function placeMeter() {
 }
 
 /* ---------------- music: calm classical pieces in the peaceful experiences (the ones with music: true) ---------------- */
-// Vivaldi's Spring and Autumn (The Four Seasons) and Grieg's Morning Mood (Peer Gynt) under the game's sounds, in a new
+// Vivaldi's Spring and Autumn (The Four Seasons), Grieg's Morning Mood (Peer Gynt) and Classic Easter under the game's sounds, in a new
 // shuffled order every time you join a game (then shuffled again, never the same one twice running); off when the
 // sound is off, or with 🎵 Music in the menu (remembered)
-const MUSIC = [['vivaldi-spring.mp3', 'Vivaldi · Spring'], ['grieg-morning-mood.mp3', 'Grieg · Morning Mood'], ['vivaldi-autumn.mp3', 'Vivaldi · Autumn']];
+const MUSIC = [['vivaldi-spring.mp3', 'Vivaldi · Spring'], ['grieg-morning-mood.mp3', 'Grieg · Morning Mood'], ['vivaldi-autumn.mp3', 'Vivaldi · Autumn'], ['classic-easter.mp3', 'Classic Easter']];
 const Music = { on: true, el: null, i: -1, order: [], k: 0, tryAt: 0, vol: 0.35 };
 try { if (localStorage.getItem('bv-music') === '0') Music.on = false; } catch (e) { /* no storage here */ }
 function musicShuffle() {
