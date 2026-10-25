@@ -7,6 +7,9 @@
    tower, bumper cars and a roller coaster round the whole park; ride
    the big ones yourself (in anyone's park). Win plushies at the ring
    toss for your prize shelf. Rebirth at the end.
+   What makes it a park: you set the ticket price at the gate, and your
+   park's ★ rating (its rides, food stands and decorations) says what
+   guests think it's worth: ask more than that and some turn away.
    ===================================================================== */
 (() => {
   const FINDS = [
@@ -26,6 +29,10 @@
     box(b, 0x1f2937, 0.8, 1.4, 0.45, 0, 0.7, 0); box(b, c, 1.1, 1.4, 0.55, 0, 2.1, 0); box(b, 0xfcd34d, 0.75, 0.75, 0.75, 0, 3.2, 0);
     return g;
   }
+  // ticket prices: what a guest pays (×), and the ★ rating a park needs for everyone to think it's worth it
+  const TICKETS = [['$', 0.6, 0], ['$$', 1, 1.5], ['$$$', 1.4, 2.5], ['$$$$', 1.9, 3.5], ['$$$$$', 2.5, 4.5]];
+  const keepOf = (rating, tk) => (rating >= TICKETS[tk][2] ? 1 : Math.max(0.05, 1 - (TICKETS[tk][2] - rating) * 0.6)); // (how many still come in)
+  const stars = (r) => '★'.repeat(Math.round(r)) + '☆'.repeat(5 - Math.round(r));
   // the rides, round the inside of the path, and where guests ride them (the path goes round them)
   const RIDE = { carousel: [-13, 1], swing: [-13, -13], ferris: [0, -13], drop: [13, -13], teacups: [13, 1], bumper: [0, 1] };
   // the roller coaster's track (the same in every park: made once)
@@ -36,7 +43,7 @@
   const TP = tycoonKit({
     id: 'park', code: 'tp', saveKey: 'tp', rank: 0.0007, name: 'Theme Park Tycoon', emoji: '🎢', noun: 'Park', camDist: 24,
     color: 'linear-gradient(135deg,#ec4899,#8b5cf6)',
-    desc: 'Claim a park. Guests walk the path past your rides and food stands and pay on the way out; every ride makes them worth more. Build a carousel, teacups, a swing ride, a Ferris wheel, a drop tower, bumper cars and a roller coaster round the whole park, and ride the big ones yourself. Win plushies at the ring toss. Rebirth for more cash for good.',
+    desc: 'Claim a park and set the ticket price: the better your park’s ★ rating, the more guests will pay (ask too much and they turn away at the gate). Guests walk the path past your rides and food stands and pay on the way out; every ride makes them worth more. Build a carousel, teacups, a swing ride, a Ferris wheel, a drop tower, bumper cars and a roller coaster round the whole park, and ride the big ones yourself. Win plushies at the ring toss. Rebirth for more cash for good.',
     welcome: 'Step on a claim pad to get a park!',
     land: { theme: 'meadow', fence: 'hedge' },
     skyCols: ['#60a5fa', '#fdf2f8'], ground: 0x66bb6a, speed0: 11, belt: false, beltTop: 0.4, prodLift: 0,
@@ -209,15 +216,54 @@
       this.deco(pl, g, x, 0.4, z);
     },
     // (half a ticket at the gate; what they're worth by the end on the way out)
-    tyProd(pl, it) { if (pl.mine) { const [x, z] = this.W(pl, -6, 23); this.gain(it.v * this.mult(pl) * 0.5, x, z); } return guest(SHIRTS[Math.floor(Math.random() * SHIRTS.length)]); },
+    tyProd(pl, it) {
+      const tk = TICKETS[this.tkOf(pl)][1], g = guest(SHIRTS[Math.floor(Math.random() * SHIRTS.length)]); g.userData.vk = tk;
+      if (pl.mine) { const [x, z] = this.W(pl, -6, 23); this.gain(it.v * this.mult(pl) * tk * 0.5, x, z); }
+      return g;
+    },
     // a guest who's just been on a ride jumps for joy
     tyUp(pl, pr) { pr.hop = 0.6; },
-    tyAnim(pl, dt, t) { for (const c of pl.prods) { if (c.hop > 0) { c.hop -= dt; c.m.position.y += Math.sin((0.6 - c.hop) / 0.6 * Math.PI) * 1.4; } else c.m.position.y += Math.abs(Math.sin(t / 140 + c.s)) * 0.18; } },
+    /* ---- tickets and the park's rating ---- */
+    // ★1 to ★5: how much of the park's rides, food stands and decorations it has
+    rating(b) { const all = this.items.filter((it) => it.kind === 'up' || it.kind === 'deco'), got = all.filter((it) => this.ty.has(b, this.items.indexOf(it))).length; return 1 + 4 * got / all.length; },
+    // a plot's ticket price (yours, or what its owner has set)
+    tkOf(pl) { if (pl.mine) return this.tk; const p = Net.peers.find((q) => q.peer === pl.owner), v = p && p.presence ? p.presence.tk : null; return v == null ? 1 : clamp(v | 0, 0, TICKETS.length - 1); },
+    // (each guest pays the price on their ticket when they came in, whatever it is when they leave)
+    tyFlow(pl) { const tk = this.tkOf(pl); return keepOf(this.rating(pl.b), tk) * TICKETS[tk][1]; },
+    // a guest who thinks it's too dear turns round at the gate
+    tySpawn(pl) {
+      if (Math.random() < keepOf(this.rating(pl.b), this.tkOf(pl))) return true;
+      if (!pl.away) pl.away = [];
+      if (pl.away.length < 6) { const g = guest(SHIRTS[Math.floor(Math.random() * SHIRTS.length)]), l = label('😠', { size: 0.9, fit: false }); l.position.y = 4.4; g.add(l); this.deco(pl, g, -6 + (Math.random() - 0.5) * 2, 0.5, 25); pl.decor.pop(); pl.away.push({ m: g, t: 0 }); }
+      if (pl.mine) this.turned = (this.turned || 0) + 1;
+      return false;
+    },
+    ticketPanel() {
+      const r = this.rating(this.b);
+      const row = ([n, k, need], i) => { const keep = keepOf(r, i), on = i === this.tk; return `<div class="xp-row"${on ? ' style="border-color:#fde047"' : ''}><span><b>🎟️ ${n}</b> · ×${k} for every guest<br><small style="color:${keep >= 1 ? '#86efac' : keep > 0.5 ? '#fde68a' : '#fca5a5'}">${keep >= 1 ? 'Everyone comes in' : keep < 0.15 ? 'Almost everyone turns away' : `${Math.max(1, Math.round((1 - keep) * 10))} in 10 turn away`} (fair at ★${need || 1})</small></span>${on ? '<b style="color:#fde047">✓ Now</b>' : `<button class="xp-btn" data-tk="${i}">Set</button>`}</div>`; };
+      openPanel('🎟️ Ticket prices', `<p class="xp-note">Your park: <b style="color:#fde047">${stars(r)} ${r.toFixed(1)}</b>. Build rides, food stands and decorations to make it better. The more you ask, the more each guest pays, but ask more than your park's worth and some turn round at the gate.</p>${TICKETS.map(row).join('')}`, (b) => {
+        if (b.dataset.tk == null) return;
+        this.tk = +b.dataset.tk; this.turned = 0; send({ tk: this.tk }); this.dirty = true; this.save(); sfx('select'); this.ticketPanel();
+      });
+    },
+    tyBoost(it) { if (it.kind !== 'up' && it.kind !== 'deco') return ''; const r = this.rating(this.b), all = this.items.filter((x) => x.kind === 'up' || x.kind === 'deco').length; return `Park rating: ${r.toFixed(1)} → <span class="up">★${(r + 4 / all).toFixed(1)}</span> (guests will pay more)`; },
+    // over the gate: the rating and the price; the guests who turned round walk off
+    drawGate(pl) {
+      const r = this.rating(pl.b), tk = this.tkOf(pl), txt = `${stars(r)} · 🎟️ ${TICKETS[tk][0]}`;
+      if (pl.gateTxt === txt && pl.gateLab && pl.gateLab.parent) return;
+      if (pl.gateLab) { place.remove(pl.gateLab); pl.gateLab.material.map.dispose(); }
+      pl.gateTxt = txt; const [x, z] = this.W(pl, -6, 23.5); pl.gateLab = label(txt, { size: 0.85, color: '#fde047', bg: 'rgba(15,23,42,.6)' }); pl.gateLab.position.set(x, 10, z); place.add(pl.gateLab); pl.decor.push(pl.gateLab);
+    },
+    tyAnim(pl, dt, t) {
+      if (!pl.away) pl.away = [];
+      for (let k = pl.away.length - 1; k >= 0; k--) { const a = pl.away[k]; a.t += dt; a.m.position.z += pl.fz * dt * 5; a.m.rotation.y = pl.fz > 0 ? Math.PI / 2 : -Math.PI / 2; if (a.t > 2.2) { place.remove(a.m); pl.away.splice(k, 1); } }
+      if (t > (pl.gateAt || 0)) { pl.gateAt = t + 500; this.drawGate(pl); }
+      for (const c of pl.prods) { if (c.hop > 0) { c.hop -= dt; c.m.position.y += Math.sin((0.6 - c.hop) / 0.6 * Math.PI) * 1.4; } else c.m.position.y += Math.abs(Math.sin(t / 140 + c.s)) * 0.18; } },
 
     /* ---- ride the big rides yourself; the ring toss ---- */
-    async tyEnter(s) { this.rides = Math.max(0, s.rides | 0); this.rideOn = null; this.tossAt = 0; },
-    tySave() { return { rides: this.rides }; },
-    tyLeave() { if (this.rideOn) this.getOff(true); },
+    async tyEnter(s) { this.rides = Math.max(0, s.rides | 0); this.rideOn = null; this.tossAt = 0; this.tk = clamp(s.tk == null ? 1 : s.tk | 0, 0, TICKETS.length - 1); this.turned = 0; send({ tk: this.tk }); for (const pl of this.plots) pl.away = pl.away || []; },
+    tySave() { return { rides: this.rides, tk: this.tk }; },
+    tyLeave() { if (this.rideOn) this.getOff(true); for (const pl of this.plots) { for (const a of pl.away || []) place.remove(a.m); pl.away = []; } },
     speed() { return this.rideOn ? 0 : 16; },
     gravity() { return this.rideOn ? 0 : GRAV; },
     tyPrompts() {
@@ -232,6 +278,7 @@
         if (has('drop') && pl.drop) at(RIDE.drop[0], RIDE.drop[1] + 3, '🗼 Ride the drop tower', () => this.ride(pl, 'drop'));
         if (has('coaster') && pl.coaster) at(21, 17, '🎢 Ride the roller coaster', () => this.ride(pl, 'coaster'));
         if (pl.mine) at(15, 15, `🎯 Ring toss · ${money(this.tossCost())}`, () => this.toss());
+        if (pl.mine) at(-9.5, 18.5, `🎟️ Tickets: ${TICKETS[this.tk][0]} · change`, () => this.ticketPanel());
       }
       return out;
     },
@@ -272,7 +319,13 @@
         } else { toast(sc > 0 ? '🎯 Ringer! …but no prize this time' : '🎯 Close! It bounced off', '#fde68a'); sfx('bounce'); }
       } });
     },
-    tyHud() { return this.rideOn ? '🎢 riding!' : ''; },
+    tyHud() {
+      if (this.rideOn) return '🎢 riding!';
+      if (this.myPlot == null) return '';
+      const r = this.rating(this.b), keep = keepOf(r, this.tk);
+      return `${stars(r)} ${r.toFixed(1)} · 🎟️ ${TICKETS[this.tk][0]}${keep < 1 ? ` · <span style="color:#fca5a5">😠 ${keep < 0.15 ? 'almost everyone turns' : `${Math.max(1, Math.round((1 - keep) * 10))} in 10 turn`} away</span>` : ''}`;
+    },
+    menu() { return [['🎟️ Ticket prices', () => this.ticketPanel(), 'Tickets'], [`${this.caseName} (${this.col.length})`, () => this.casePanel(), this.caseShort]]; },
     coinShop: [
       { id: 'cash2', e: '💵', n: '2× Cash', d: 'Every guest pays double, for good', price: 700, kind: 'pass' },
       { id: 'rings', e: '💍', n: 'Lucky Rings', d: 'The ring toss gives a plushie every time you land a ringer, for good', price: 400, kind: 'pass' },

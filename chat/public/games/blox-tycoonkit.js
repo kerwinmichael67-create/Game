@@ -26,6 +26,10 @@
    s = where on the path, drop = how high it falls from, batch), 'up'
    (s, mul), 'pay' (v, every), 'speed' (sp: the path's speed), 'deco'
    (bonus: more cash for every sale) or anything of the tycoon's own.
+   And to make a tycoon play its own way: tyMult(pl) (more for every sale
+   on a plot), tySpawn(pl, it, i) (false: that one doesn't come), tyFlow(pl)
+   (for the cards: what each thing made is worth, as a share: how many come,
+   at what price).
    Next to a pad, a card says what it gives you: E.prod (what's made, one
    of them: 'fish'), E.make ('Catches more fish'), and tyBoost(it, i) for a
    line of the tycoon's own; an item's say is shown on it too.
@@ -158,7 +162,7 @@ function tycoonKit(E) {
     },
     speedOf(b) { let sp = E.speed0 || 6; T.forEach((it, i) => { if (it.kind === 'speed' && has(b, i)) sp = Math.max(sp, it.sp); }); return sp; },
     // cash for every sale: decorations, rebirths (and, for you, 2× Cash and your finds)
-    mult(pl) { return (1 + bonusOf(pl.b)) * (1 + 0.5 * (pl.rb || 0)) * (pl.mine ? (hasItem('cash2') ? 2 : 1) * (1 + this.findBonus()) : 1); },
+    mult(pl) { return (1 + bonusOf(pl.b)) * (1 + 0.5 * (pl.rb || 0)) * (pl.mine ? (hasItem('cash2') ? 2 : 1) * (1 + this.findBonus()) : 1) * (this.tyMult ? this.tyMult(pl) : 1); },
     findBonus() { return Math.min(FIND_CAP, (this.col || []).reduce((s, f) => s + (E.FINDS[f] ? (E.FINDS[f].bonus != null ? E.FINDS[f].bonus : FIND_BONUS[E.FINDS[f].r]) : 0), 0)); },
     pres() { return { pl: -1, cash: 0, b: 0, rb: 0, cl: [] }; },
     async enter() {
@@ -213,10 +217,10 @@ function tycoonKit(E) {
     boostCard(i) {
       const it = T[i], pl = this.plots[this.myPlot], b = this.b, M = this.mult(pl), prod = E.prod || 'thing';
       const ups = T.reduce((m, u, k) => (u.kind === 'up' && has(b, k) ? m * (u.mul || 2) : m), 1);
-      const made = T.reduce((r, s, k) => (s.kind === 'src' && has(b, k) ? r + s.v * (s.batch || 1) / s.every : r), 0) * ups * M;
+      const flow = this.tyFlow ? this.tyFlow(pl) : 1, made = T.reduce((r, s, k) => (s.kind === 'src' && has(b, k) ? r + s.v * (s.batch || 1) / s.every : r), 0) * ups * M * flow;
       const paid = T.reduce((r, s, k) => (s.kind === 'pay' && has(b, k) ? r + s.v / s.every : r), 0) * M;
       const ps = (v) => `<span class="up">+${perSec(v)}</span>`, lines = [];
-      if (it.kind === 'src') lines.push(`${E.make || 'Makes more to sell'} (${it.batch > 1 ? `${it.batch} at a time ` : ''}every ${it.every}s): ${ps(it.v * (it.batch || 1) / it.every * ups * M)}`);
+      if (it.kind === 'src') lines.push(`${E.make || 'Makes more to sell'} (${it.batch > 1 ? `${it.batch} at a time ` : ''}every ${it.every}s): ${ps(it.v * (it.batch || 1) / it.every * ups * M * flow)}`);
       else if (it.kind === 'up') lines.push(`×${it.mul || 2} for every ${prod} that goes past it: ${ps(made * ((it.mul || 2) - 1))}`);
       else if (it.kind === 'pay') lines.push(`Brings in ${money(it.v * M)} every ${it.every}s: ${ps(it.v / it.every * M)}`);
       else if (it.kind === 'speed') lines.push(`Everything moves faster: speed ${this.speedOf(b)} → <span class="up">${it.sp}</span>`);
@@ -281,6 +285,7 @@ function tycoonKit(E) {
         pl.tm[i] += it.every;
         if (it.kind === 'pay') { if (pl.mine) { const v = it.v * this.mult(pl), [x, z] = this.W(pl, 0, 0); this.gain(v, x, z); } if (this.tyPay) this.tyPay(pl, it, i); return; }
         for (let n = 0; n < (it.batch || 1) && pl.prods.length < 120; n++) {
+          if (this.tySpawn && this.tySpawn(pl, it, i) === false) continue;
           const m = this.tyProd(pl, it, i); place.add(m);
           pl.prods.push({ s: Math.max(0, it.s - n * 1.6), y: top + (it.drop != null ? it.drop : 6) + n * 0.8, v: it.v * (m.userData.vk || 1), up: 0, m, it: i }); // (vk: a rarer one, worth more)
         }
