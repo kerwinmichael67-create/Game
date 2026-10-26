@@ -575,6 +575,7 @@
   .xrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:linear-gradient(180deg,#283143,#1d2431);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:7px 9px;margin-bottom:6px;font:700 13px var(--fb);color:#cbd5e1}
   .xrow b{font:600 15px var(--fh);color:#fde68a;min-width:30px}
   .xrow>span{flex:1;min-width:0}
+  .xrefund{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:10px 0 2px}.xrefund small{color:#94a3b8}
   .xrow .pr{flex:none;display:inline-flex;align-items:center;gap:4px;color:#fde68a;font:600 14px var(--fh)}
   .xrow .xp-btn{padding:7px 12px;font-size:13px}
   .xin{flex:1 1 120px;padding:0 10px}.xin input{padding:7px 0;min-width:0}.xin .coin{flex:none}
@@ -1031,10 +1032,32 @@ const avFrom = (o) => { const v = okAv(AV_KEYS.map((k) => o && o[k])); const r =
 // Blox Coins: earned in every experience, spent on cosmetics (and a few things inside experiences)
 const W = { coins: 0, own: new Set(), day: '', loaded: false, items: {}, // items: what you bought in experiences' shops ({ 'obby.speed': 1 })
   fr: { f: {}, out: {}, no: {} }, fits: [null, null, null, null, null, null], // fr: friends (see "friends" below); fits: saved outfits
-  made: {}, xown: [], wear: { h: '', pt: '', f: '', acc: [] } }; // items you made, catalog items you bought, and which made/limited items you're wearing
-const axArr = () => XSLOTS.map((k) => W.wear[k] || '').concat((W.wear.acc || []).slice(0, 6));
-const isWearing = (I) => (I.k === 'acc' ? (W.wear.acc || []).includes(I.id) : W.wear[I.k] === I.id);
+  made: {}, xown: [], wear: { h: '', pt: '', f: '', acc: [], hx: [] } }; // items you made, catalog items you bought, and which made/limited items you're wearing (hx: more hats)
+const axArr = () => XSLOTS.map((k) => W.wear[k] || '').concat((W.wear.acc || []).slice(0, 6), (W.wear.hx || []).slice(0, HAT_MAX - 1));
+const isWearing = (I) => (I.k === 'acc' ? (W.wear.acc || []).includes(I.id) : I.k === 'h' ? hatsOn().includes(I.id) : W.wear[I.k] === I.id);
+// hats: HAT_MAX at once — your shop hat (AV.h), a made or limited one (W.wear.h) and more in W.wear.hx (shop hats there as
+// 'H<n>', made and limited ones by id). Taking one off moves the next of its kind up into its place.
+const HAT_MAX = 3;
+const hatsOn = () => (AV.h ? ['H' + AV.h] : []).concat(W.wear.h ? [W.wear.h] : [], W.wear.hx || []);
+const isShopHat = (r) => /^H\d{1,2}$/.test(r);
+function toggleHat(ref) { // ('' when done, or why not)
+  const hx = W.wear.hx || (W.wear.hx = []);
+  if (hatsOn().includes(ref)) {
+    if (ref === 'H' + AV.h) { const j = hx.findIndex(isShopHat); AV.h = j < 0 ? 0 : +hx.splice(j, 1)[0].slice(1); }
+    else if (ref === W.wear.h) { const j = hx.findIndex((r) => !isShopHat(r)); W.wear.h = j < 0 ? '' : hx.splice(j, 1)[0]; }
+    else W.wear.hx = hx.filter((r) => r !== ref);
+    return '';
+  }
+  if (hatsOn().length >= HAT_MAX) return `You can wear ${HAT_MAX} hats at once — take one off first.`;
+  if (isShopHat(ref)) { if (!AV.h) AV.h = +ref.slice(1); else hx.push(ref); }
+  else if (!W.wear.h) W.wear.h = ref; else hx.push(ref);
+  return '';
+}
+const hatsOff = () => { AV.h = 0; W.wear.h = ''; W.wear.hx = []; };
+// take a shop item off if it's on (sold, traded or refunded)
+function takeOff(k, i) { if (k === 'h') { if (hatsOn().includes('H' + i)) toggleHat('H' + i); } else if (AV[k] === i) AV[k] = 0; }
 const owns = (slot, i) => COSMETICS[slot] ? COSMETICS[slot].price[i] === 0 || W.own.has(slot + i) : true;
+function putOn(k, i) { if (k === 'h') { if (!i) hatsOff(); else if (!hatsOn().includes('H' + i)) return toggleHat('H' + i); } else { AV[k] = i; if (XKINDS[k]) W.wear[k] = ''; } return ''; }
 const FACE_TEX = FACES.map((_, k) => {
   const c = document.createElement('canvas'); c.width = 128; c.height = 128; const g = c.getContext('2d');
   g.fillStyle = '#111'; g.strokeStyle = '#111'; g.lineCap = 'round'; g.lineWidth = 6;
@@ -1104,12 +1127,17 @@ const OFFICIAL = [
   { id: 'L2', nm: 'Valkyrie Helm', look: { s: 10, c: 12, d: 8, e: 0, gl: 0 }, price: 750 },
   { id: 'L3', nm: 'Sparkle Fedora', look: { s: 11, c: 9, d: 1, e: 0, gl: 1 }, price: 350 },
   { id: 'L4', nm: 'Fiery Horns', look: { s: 12, c: 15, d: 4, e: 0, gl: 1 }, price: 1000 },
-].map((I) => Object.assign({ k: 'h', by: '', byNm: 'Bloxverse', lim: 2, pub: true, at: 0, off: true }, I)); // (shapes 10 to 12 are only for these)
+  { id: 'L5', nm: 'Frost Dominus', look: { s: 7, c: 2, d: 8, e: 0, gl: 1, c1: '#bfe6ff', c2: '#38bdf8', eye: '#a5f3fc', trim: '#f2fbff' }, price: 2000 },
+  { id: 'L6', nm: 'Shadow Dominus', look: { s: 7, c: 1, d: 3, e: 0, gl: 1, c1: '#25232c', c2: '#ef4444', eye: '#ff3b3b', trim: '#9f1d1d' }, price: 2500 },
+  { id: 'L7', nm: 'Domino Crown', look: { s: 13, c: 1, d: 2, e: 0, gl: 1 }, price: 1500 },
+  { id: 'L8', nm: 'Gearwork Headphones', look: { s: 14, c: 2, d: 5, e: 0, gl: 0 }, price: 600 },
+  { id: 'L9', nm: "Jack-o'-Lantern", look: { s: 15, c: 4, d: 5, e: 0, gl: 1 }, price: 300 },
+].map((I) => Object.assign({ k: 'h', by: '', byNm: 'Bloxverse', lim: 2, pub: true, at: 0, off: true }, I)); // (shapes 10 to 15, and c1, c2, eye and trim, are only for these)
 // [hat, shirt, face, …3D items]: what someone wears on top of their avatar (ids)
 const okAx = (a) => {
   const id = (i) => (Array.isArray(a) && typeof a[i] === 'string' && /^[A-Za-z0-9]{1,20}$/.test(a[i]) ? a[i] : '');
   const r = XSLOTS.map((_, i) => id(i));
-  for (let i = 3; i < 3 + 6; i++) if (id(i)) r.push(id(i));
+  for (let i = 3; i < 3 + 8; i++) if (id(i)) r.push(id(i)); // (3D items, then more hats)
   return r;
 };
 const xName = (n) => String(n || '').replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 24) || 'My item';
@@ -1124,16 +1152,20 @@ function xItem(id) {
   if (!id) return null;
   return OFFICIAL.find((I) => I.id === id) || Market.items.get(id) || (Object.prototype.hasOwnProperty.call(W.made, id) ? Object.assign({ id, by: myId(), byNm: Net.name, price: 0, lim: 0, pub: false }, W.made[id]) : null);
 }
-// what each slot looks like; miss: an item we don't know yet (the avatar's made again once it loads)
+// what each slot looks like; hats: every made or limited hat (the first is h), hs: more shop hats (by number);
+// miss: an item we don't know yet (the avatar's made again once it loads)
 function xLooks(ax) {
-  const out = { h: null, pt: null, f: null, acc: [], miss: false };
+  const out = { h: null, hats: [], hs: [], pt: null, f: null, acc: [], miss: false };
   if (!Array.isArray(ax)) return out;
   ax.slice(0, 3 + 8).forEach((v, i) => {
     if (!v) return;
-    const k = i < 3 ? XSLOTS[i] : 'acc', put = (L) => { if (L) { if (k === 'acc') out.acc.push(L); else out[k] = L; } };
-    if (typeof v === 'object') { if (v.k === k) put(okLook(k, v.look)); return; }
-    const I = xItem(v); if (I && I.k === k) put(I.look); else out.miss = true;
+    if (i >= 3 && typeof v === 'string' && isShopHat(v)) { const n = +v.slice(1); if (n > 0 && n < HATS.length && out.hs.length < HAT_MAX - 1 && !out.hs.includes(n)) out.hs.push(n); return; }
+    const ok = (k) => (i < 3 ? k === XSLOTS[i] : k === 'acc' || k === 'h');
+    const put = (k, L) => { if (!L) return; if (k === 'acc') { if (out.acc.length < ACC_WEAR) out.acc.push(L); } else if (k === 'h') { if (out.hats.length < HAT_MAX) out.hats.push(L); } else out[k] = L; };
+    if (typeof v === 'object') { if (ok(v.k)) put(v.k, okLook(v.k, v.look)); return; }
+    const I = xItem(v); if (I && ok(I.k)) put(I.k, I.look); else out.miss = true;
   });
+  out.h = out.hats[0] || null;
   return out;
 }
 const PIX_TEX = new Map();
@@ -1238,13 +1270,48 @@ function hornGeo(c1, c2) {
   g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); g.computeVertexNormals();
   HORN_GEO.set(key, g); return g;
 }
+// a domino tile (the domino crown): black with white pips, and a face drawn for each one
+const DOMINO_GEO = new THREE.BoxGeometry(0.36, 0.68, 0.09), DOMINO_TEX = [];
+function dominoTex(k) {
+  k %= 3; if (DOMINO_TEX[k]) return DOMINO_TEX[k];
+  const c = document.createElement('canvas'); c.width = 64; c.height = 128; const g = c.getContext('2d');
+  g.fillStyle = '#0b0b0f'; g.fillRect(0, 0, 64, 128); g.fillStyle = '#e5e7eb'; g.fillRect(6, 62, 52, 4);
+  const PIPS = { 1: [[1, 1]], 2: [[0, 0], [2, 2]], 3: [[0, 0], [1, 1], [2, 2]], 4: [[0, 0], [2, 0], [0, 2], [2, 2]], 5: [[0, 0], [2, 0], [1, 1], [0, 2], [2, 2]], 6: [[0, 0], [2, 0], [0, 1], [2, 1], [0, 2], [2, 2]] };
+  [[6, 3], [5, 2], [4, 1]][k].forEach((n, half) => { for (const [x, y] of PIPS[n]) { g.beginPath(); g.arc(14 + x * 18, 12 + half * 64 + y * 19, 6, 0, Math.PI * 2); g.fill(); } });
+  return (DOMINO_TEX[k] = new THREE.CanvasTexture(c));
+}
+// a gear (the gearwork headphones): twelve teeth round a hub with a hole
+const GEAR_GEO = (() => {
+  const sh = new THREE.Shape(), n = 12;
+  for (let i = 0; i < n * 4; i++) { const a = i / (n * 4) * Math.PI * 2, r = i % 4 < 2 ? 0.3 : 0.24; if (i) sh.lineTo(Math.cos(a) * r, Math.sin(a) * r); else sh.moveTo(r, 0); }
+  sh.closePath(); const hole = new THREE.Path(); hole.absarc(0, 0, 0.07, 0, Math.PI * 2, true); sh.holes.push(hole);
+  const g = new THREE.ExtrudeGeometry(sh, { depth: 0.05, bevelEnabled: true, bevelThickness: 0.012, bevelSize: 0.012, bevelSegments: 1 }); g.translate(0, 0, -0.025); return g;
+})();
+// the jack-o'-lantern: a pumpkin with ribs, and its skin (or, for the glow, just the carved face) drawn round it
+const PUMPKIN_GEO = (() => {
+  const g = new THREE.SphereGeometry(0.95, 40, 24), p = g.attributes.position;
+  for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i), z = p.getZ(i), f = 1 - 0.07 * (0.5 - 0.5 * Math.cos(10 * Math.atan2(x, z))); p.setXYZ(i, x * f, y * 0.86 * (1 - 0.1 * Math.pow(Math.abs(y) / 0.95, 6)), z * f); }
+  g.computeVertexNormals(); return g;
+})();
+const PUMPKIN_TEX = new Map();
+function pumpkinTex(c1, glow) {
+  const key = c1 + glow; if (PUMPKIN_TEX.has(key)) return PUMPKIN_TEX.get(key);
+  const c = document.createElement('canvas'); c.width = 512; c.height = 256; const g = c.getContext('2d');
+  g.fillStyle = glow ? '#000' : c1; g.fillRect(0, 0, 512, 256);
+  if (!glow) { g.fillStyle = 'rgba(80,30,0,0.28)'; for (let k = 0; k < 10; k++) g.fillRect(k * 51.2 - 3, 0, 6, 256); }
+  g.fillStyle = glow ? '#ffc23a' : '#ffd36b'; // (the face looks out at -z: u = 0.75 round the sphere)
+  const tri = (pts) => { g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.fill(); };
+  tri([[330, 112], [372, 112], [356, 78]]); tri([[396, 112], [438, 112], [412, 78]]); tri([[374, 132], [394, 132], [384, 116]]);
+  tri([[318, 150], [450, 150], [436, 176], [416, 162], [402, 182], [384, 164], [366, 182], [352, 162], [332, 176]]);
+  const t = new THREE.CanvasTexture(c); PUMPKIN_TEX.set(key, t); return t;
+}
 // a feather (the valkyrie helm's wings), and the fedora's crown and brim (turned outlines)
 const FEATHER = (() => { const sh = new THREE.Shape(); sh.moveTo(0, 0); sh.quadraticCurveTo(0.16, 0.42, 0.02, 1); sh.quadraticCurveTo(-0.1, 0.5, 0, 0); const g = new THREE.ExtrudeGeometry(sh, { depth: 0.02, bevelEnabled: true, bevelThickness: 0.012, bevelSize: 0.012, bevelSegments: 1, curveSegments: 8 }); g.translate(0, 0, -0.01); return g; })();
 const FEDORA_CROWN = new THREE.LatheGeometry([[0.67, 0], [0.66, 0.28], [0.62, 0.52], [0.54, 0.66], [0.38, 0.69], [0.22, 0.6], [0.001, 0.62]].map(([x, y]) => new THREE.Vector2(x, y)), 32);
 const FEDORA_BRIM = new THREE.LatheGeometry([[0.62, 0.03], [0.9, 0], [1.08, 0.03], [1.17, 0.11], [1.18, 0.14]].map(([x, y]) => new THREE.Vector2(x, y)), 36);
 // a made hat on a head (lam, mesh, box and cyl are makeAvatar's helpers)
 function xHat(L, head, lam, mesh, box, cyl) {
-  const c1 = XPAL[L.c] || '#ef4444', c2 = XPAL[L.d] || '#facc15';
+  const c1 = L.c1 || XPAL[L.c] || '#ef4444', c2 = L.c2 || XPAL[L.d] || '#facc15';
   const mat = (c, o) => lam(c, Object.assign(L.gl ? { emissive: new THREE.Color(c).multiplyScalar(0.45) } : {}, o || {}));
   const m1 = mat(c1), m2 = mat(c2), dome = (r) => new THREE.SphereGeometry(r, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2);
   let badge = null; // [height, how far forward] for the emoji
@@ -1257,8 +1324,8 @@ function xHat(L, head, lam, mesh, box, cyl) {
   else if (L.s === 6) { for (const [r, t, c] of [[0.55, 0.08, c1], [0.4, 0.035, c2]]) { const o = mesh(new THREE.TorusGeometry(r, t, 8, 24), new THREE.MeshBasicMaterial({ color: c }), 0, 1.3, 0, head); o.rotation.x = Math.PI / 2; } } // halo
   else if (L.s === 7) { // dominus: a tall metal hood swept back to a point, dark inside, a trimmed pointed arch round the face, glowing eyes in the void, a gem on the brow, feathered wings and a cape
     const col = new THREE.Color(c1), shell = metalMat(col, { emissive: col.clone().multiplyScalar(L.gl ? 0.1 : 0.02) }), cape = metalMat(col, { emissive: col.clone().multiplyScalar(L.gl ? 0.1 : 0.02), side: THREE.DoubleSide });
-    const trim = metalMat(col.clone().lerp(new THREE.Color('#fff7dc'), 0.4), { shininess: 140, emissive: col.clone().multiplyScalar(L.gl ? 0.12 : 0) });
-    const inside = new THREE.MeshPhongMaterial({ color: col.clone().multiplyScalar(0.1), shininess: 8, side: THREE.BackSide }), eyeC = L.gl ? '#fff3a0' : '#e0f2fe', gemC = c2;
+    const trim = metalMat(L.trim ? new THREE.Color(L.trim) : col.clone().lerp(new THREE.Color('#fff7dc'), 0.4), { shininess: 140, emissive: col.clone().multiplyScalar(L.gl ? 0.12 : 0) });
+    const inside = new THREE.MeshPhongMaterial({ color: col.clone().multiplyScalar(0.1), shininess: 8, side: THREE.BackSide }), eyeC = L.eye || (L.gl ? '#fff3a0' : '#e0f2fe'), gemC = c2;
     for (const [geo, m] of [[DOMINUS.hood, shell], [DOMINUS.hood, inside], [DOMINUS.arch, trim], [DOMINUS.crest, trim], [DOMINUS.hem, trim]]) mesh(geo, m, 0, 0.62, 0, head);
     mesh(new THREE.CylinderGeometry(0.71, 0.71, 1.06, 20), new THREE.MeshBasicMaterial({ color: '#030308' }), 0, -0.17, 0.01, head); // (the face vanishes into the dark)
     for (const s2 of [-1, 1]) {
@@ -1311,6 +1378,32 @@ function xHat(L, head, lam, mesh, box, cyl) {
       }
       fxCard('glow', c2, 0.75, 0.75, s2 * tip.x, tip.y, tip.z, head, (o, m, t) => { m.opacity = 0.55 + 0.25 * Math.sin(t * 7 + s2); });
     }
+  } else if (L.s === 13) { // domino crown (Bloxverse's own): a ring of dominoes leaning out from a gold band, with a white glow and twinkles
+    const gold = metalMat('#e8b53a', { shininess: 120 }), edge = new THREE.MeshPhongMaterial({ color: c1, shininess: 60, specular: '#555555' });
+    const band = mesh(new THREE.TorusGeometry(0.72, 0.06, 8, 32), gold, 0, 0.6, 0, head); band.rotation.x = Math.PI / 2;
+    for (let k = 0; k < 10; k++) {
+      const a = k * Math.PI / 5, face = new THREE.MeshPhongMaterial({ map: dominoTex(k), shininess: 70, specular: '#666666' });
+      const t = mesh(DOMINO_GEO, [edge, edge, edge, edge, face, face], Math.sin(a) * 0.72, 0.97, Math.cos(a) * 0.72, head); t.rotation.order = 'YXZ'; t.rotation.set(0.2, a, 0);
+      fxCard('twinkle', '#ffffff', 0.4, 0.4, Math.sin(a + 0.3) * 0.95, 1.45 + 0.12 * (k % 3), Math.cos(a + 0.3) * 0.95, head, twinkle(0.4, k * 1.3, 1.5 + (k % 3) * 0.4));
+    }
+    fxCard('glow', '#ffffff', 2.4, 1.3, 0, 1.0, 0, head, (o, m, t) => { m.opacity = 0.16 + 0.06 * Math.sin(t * 1.4); });
+  } else if (L.s === 14) { // gearwork headphones (Bloxverse's own): a gold band over the top, white ear cups, and gold gears that turn
+    const gold = metalMat(c2, { shininess: 120 }), cup = new THREE.MeshPhongMaterial({ color: c1, shininess: 80, specular: '#94a3b8' });
+    const band = mesh(new THREE.TorusGeometry(0.8, 0.07, 10, 36, Math.PI), gold, 0, 0.02, 0, head); band.scale.y = 1.05;
+    for (const s2 of [-1, 1]) {
+      const c = mesh(new THREE.CylinderGeometry(0.36, 0.36, 0.24, 28), cup, s2 * 0.8, 0, 0, head); c.rotation.z = Math.PI / 2;
+      const rim = mesh(new THREE.TorusGeometry(0.36, 0.035, 8, 28), gold, s2 * 0.93, 0, 0, head); rim.rotation.y = Math.PI / 2;
+      for (const [r, y, z, dir, sp] of [[1, 0, 0, 1, 0.9], [0.55, 0.3, -0.24, -1, 1.65]]) {
+        const g = mesh(GEAR_GEO, gold, s2 * (0.95 + 0.02 * (r < 1)), y, z, head); g.scale.set(r, r, 1); g.rotation.order = 'YXZ'; g.rotation.y = s2 * Math.PI / 2;
+        g.onBeforeRender = () => { g.rotation.z = dir * s2 * performance.now() / 1000 * sp; g.updateMatrixWorld(); };
+      }
+    }
+  } else if (L.s === 15) { // jack-o'-lantern (Bloxverse's own): a ribbed pumpkin over the head, a carved face glowing from a flickering candle, a stem and a leaf
+    const m = new THREE.MeshPhongMaterial({ map: pumpkinTex(c1, false), emissiveMap: pumpkinTex(c1, true), emissive: '#ffffff', shininess: 25, specular: '#4a2a10' });
+    const pk = mesh(PUMPKIN_GEO, m, 0, 0.02, 0, head); pk.onBeforeRender = () => { m.emissiveIntensity = 0.85 + 0.15 * Math.sin(performance.now() / 90) * Math.sin(performance.now() / 233); };
+    const stem = mesh(new THREE.CylinderGeometry(0.07, 0.12, 0.34, 10), new THREE.MeshPhongMaterial({ color: '#4d6b1f', shininess: 10 }), 0.04, 0.95, 0.02, head); stem.rotation.z = -0.25;
+    const leaf = mesh(new THREE.SphereGeometry(0.2, 10, 6), new THREE.MeshPhongMaterial({ color: '#3f8f2a', shininess: 20 }), -0.18, 0.86, 0.08, head); leaf.scale.set(1.2, 0.18, 0.7); leaf.rotation.z = 0.35;
+    fxCard('glow', '#ffb020', 1.3, 1.0, 0, 0.05, -0.95, head, (o, m2, t) => { m2.opacity = 0.35 + 0.15 * Math.sin(t * 11) * Math.sin(t * 3.7); });
   }
   if (badge && L.e) { const b = mesh(new THREE.PlaneGeometry(0.42, 0.42), new THREE.MeshBasicMaterial({ map: emoTex(XEMO[L.e]), transparent: true }), 0, badge[0], badge[1] - 0.02, head); b.rotation.y = Math.PI; }
 }
@@ -1404,8 +1497,9 @@ function makeAvatar(av, name, mine, ax) {
   head.add(new THREE.Mesh(HEAD_GEO, skin));
   head.add(new THREE.Mesh(FACE_GEO, new THREE.MeshBasicMaterial({ map: X.f ? pixTex(X.f.px, '') : FACE_TEX[av[4]], transparent: true })));
   // hats
-  const hat = X.h ? -1 : av[3], cyl = (rt, rb, h, seg) => new THREE.CylinderGeometry(rt, rb, h, seg || 16), a_spin = [];
-  if (X.h) xHat(X.h, head, lam, mesh, box, cyl);
+  const cyl = (rt, rb, h, seg) => new THREE.CylinderGeometry(rt, rb, h, seg || 16), a_spin = [];
+  for (const L of X.hats) xHat(L, head, lam, mesh, box, cyl); // (made and limited hats; a few can be worn at once)
+  const shopHat = (hat) => {
   if (hat === 1) { const m = lam(SHIRTS[av[1]]); mats.push(m); box(m, 1.42, 0.5, 1.42, 0, 0.75, 0, head); box(m, 1.3, 0.12, 0.8, 0, 0.56, -0.95, head); }
   else if (hat === 2) { const m = lam('#1a1a1a'), band = lam('#b91c1c'); mesh(cyl(0.58, 0.58, 1.2), m, 0, 1.2, 0, head); mesh(cyl(0.95, 0.95, 0.1, 18), m, 0, 0.66, 0, head); mesh(cyl(0.6, 0.6, 0.22), band, 0, 0.82, 0, head); }
   else if (hat === 3) { const m = lam('#ffd23a', { emissive: '#4a3500' }); const c1 = mesh(new THREE.CylinderGeometry(0.7, 0.66, 0.42, 16, 1, true), m, 0, 0.84, 0, head); c1.material.side = THREE.DoubleSide; for (let k = 0; k < 6; k++) mesh(new THREE.ConeGeometry(0.16, 0.42, 6), m, Math.sin(k * 1.047) * 0.66, 1.24, Math.cos(k * 1.047) * 0.66, head); }
@@ -1438,6 +1532,8 @@ function makeAvatar(av, name, mine, ax) {
   else if (hat === 30) { const m = lam('#b07a3c'); mesh(cyl(1.15, 1.15, 0.1, 20), m, 0, 0.66, 0, head); mesh(cyl(0.55, 0.66, 0.62), m, 0, 0.99, 0, head); mesh(cyl(0.67, 0.67, 0.14), lam('#3f2a14'), 0, 0.76, 0, head); const sh = new THREE.Shape(); for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + k * Math.PI / 5, r = k % 2 ? 0.1 : 0.24; sh[k ? 'lineTo' : 'moveTo'](Math.cos(a) * r, -Math.sin(a) * r); } mesh(new THREE.ShapeGeometry(sh), new THREE.MeshBasicMaterial({ color: '#facc15', side: THREE.DoubleSide }), 0, 1.02, -0.64, head); } // sheriff hat
   else if (hat === 31) { const m = lam('#6b7f4a'); mesh(cyl(0.6, 0.7, 0.55, 20), m, 0, 0.98, 0, head); mesh(new THREE.CylinderGeometry(0.72, 1.05, 0.28, 22, 1, true), lam('#6b7f4a', { side: THREE.DoubleSide }), 0, 0.62, 0, head); mesh(cyl(0.71, 0.71, 0.1, 20), lam('#3f4a2a'), 0, 0.78, 0, head); mesh(new THREE.SphereGeometry(0.09, 8, 6), lam('#ef4444'), 0.68, 0.86, 0.1, head); } // bucket hat
   else if (hat === 32) { const m = lam('#fbbf24', { emissive: '#4a3000' }); const c1 = mesh(new THREE.CylinderGeometry(0.78, 0.7, 0.55, 18, 1, true), m, 0, 0.9, 0, head); c1.material.side = THREE.DoubleSide; mesh(cyl(0.68, 0.68, 0.32, 18), lam('#991b1b'), 0, 0.96, 0, head); for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2; mesh(new THREE.ConeGeometry(0.15, 0.5, 6), m, Math.sin(a) * 0.76, 1.42, Math.cos(a) * 0.76, head); mesh(new THREE.SphereGeometry(0.1, 8, 6), new THREE.MeshBasicMaterial({ color: ['#ef4444', '#3b82f6', '#22c55e', '#a855f7'][k % 4] }), Math.sin(a) * 0.8, 0.88, Math.cos(a) * 0.8, head); } mesh(new THREE.SphereGeometry(0.17, 10, 8), m, 0, 1.24, 0, head); } // champion crown
+  };
+  for (const hat of new Set([av[3]].concat(X.hs))) shopHat(hat); // (your shop hat, and any more)
   // on the back (the character faces -z, so the back is +z)
   const back = av[5];
   if (back === 1) { const c = box(lam('#dc2626', { side: THREE.DoubleSide }), 1.9, 2.8, 0.08, 0, 2.6, 0.58); c.rotation.x = 0.1; }
@@ -1969,7 +2065,7 @@ function trApply(theirs) {
   Trade.done.add(Trade.id);
   for (const o of Trade.off) {
     if (o.t === 'c') W.coins -= o.n;
-    else if (o.t === 'a') { W.own.delete(o.k); const m = /^([a-z]+)(\d+)$/.exec(o.k); if (m && AV[m[1]] === +m[2]) { AV[m[1]] = 0; if (me && !P.dead) { dropAvatar(me); me = makeAvatar(avArr(), Net.name, true, axArr()); scene.add(me.g); } send({ av: avArr() }); } }
+    else if (o.t === 'a') { W.own.delete(o.k); const m = /^([a-z]+)(\d+)$/.exec(o.k), was = String(avArr()) + axArr(); if (m) takeOff(m[1], +m[2]); if (String(avArr()) + axArr() !== was) { if (me && !P.dead) { dropAvatar(me); me = makeAvatar(avArr(), Net.name, true, axArr()); scene.add(me.g); } send({ av: avArr(), ax: axArr() }); } }
     else if (o.t === 's') { W.items[o.k] -= o.n; if (W.items[o.k] <= 0) delete W.items[o.k]; }
     else if (exp.tradeTake) exp.tradeTake(o.k);
   }
@@ -2222,7 +2318,8 @@ function loadAvFrom(d) {
   W.made = {};
   if (d.made && typeof d.made === 'object') for (const id of Object.keys(d.made).slice(0, 60)) { const M = d.made[id]; if (!/^u[a-z0-9]{6,16}$/.test(id) || !M || !Object.prototype.hasOwnProperty.call(XKINDS, M.k)) continue; const look = okLook(M.k, M.look); if (look) W.made[id] = { nm: xName(M.nm), k: M.k, look, at: +M.at || 0, pub: !!M.pub }; }
   W.xown = Array.isArray(d.xown) ? d.xown.filter((x) => typeof x === 'string' && /^[A-Za-z0-9]{1,20}$/.test(x)).slice(0, 300) : [];
-  { const w = okAx(d.wear ? [d.wear.h, d.wear.pt, d.wear.f].concat(Array.isArray(d.wear.acc) ? d.wear.acc : []) : []); W.wear = { h: w[0], pt: w[1], f: w[2], acc: w.slice(3) }; }
+  { const w = okAx(d.wear ? [d.wear.h, d.wear.pt, d.wear.f].concat(Array.isArray(d.wear.acc) ? d.wear.acc.slice(0, ACC_WEAR) : []) : []); W.wear = { h: w[0], pt: w[1], f: w[2], acc: w.slice(3), hx: [] }; }
+  if (d.wear && Array.isArray(d.wear.hx)) for (const r of d.wear.hx) if (typeof r === 'string' && /^[A-Za-z0-9]{1,20}$/.test(r) && !hatsOn().includes(r) && hatsOn().length < HAT_MAX && (!isShopHat(r) || (+r.slice(1) > 0 && +r.slice(1) < HATS.length && owns('h', +r.slice(1))))) W.wear.hx.push(r);
   achNum();
 }
 // experiences in their own files call this
@@ -3283,7 +3380,7 @@ function wearHtml() {
   else {
     const C = COSMETICS[avTab];
     body = `<div class="shop">${C.list.map((nm, i) => {
-      const own = owns(avTab, i), price = C.price[i], on = AV[avTab] === i && !W.wear[avTab], ask = avAsk === avTab + i, tr = ED.open && ED.try[avTab] === i;
+      const own = owns(avTab, i), price = C.price[i], on = avTab === 'h' ? (i ? hatsOn().includes('H' + i) : !hatsOn().length) : AV[avTab] === i && !W.wear[avTab], ask = avAsk === avTab + i, tr = ED.open && ED.try[avTab] === i;
       if (ED.own && !own) return '';
       const A = price < 0 ? achFor(avTab, i) : null;
       const pr = on ? '<span class="pr own">✓ Wearing</span>' : own ? '<span class="pr own">Owned</span>' : price < 0 ? `<span class="pr">${A ? '🏆 Earn it' : '🎖️ Reward'}</span>` : ask && W.coins < price ? `<span class="pr">Need ${price - W.coins} more</span>` : ask ? `<span class="pr">Buy? ${price}</span>` : `<span class="pr"><span class="coin sm"></span> ${price}</span>`;
@@ -3293,7 +3390,8 @@ function wearHtml() {
     // (a reward you haven't got, tapped: how to get it)
     const ak = avAsk && avAsk.startsWith(avTab) ? +avAsk.slice(avTab.length) : -1, AA = ak >= 0 && C.price[ak] < 0 && !owns(avTab, ak) ? achFor(avTab, ak) : null;
     if (ak >= 0 && C.price[ak] < 0 && !owns(avTab, ak)) body += `<div class="avnote">${AA ? `🏆 <b>${esc(C.list[ak])}</b> comes with the “${esc(AA.nm)}” achievement${AA.e !== 'bv' && EXPS[AA.e] ? ` in ${esc(EXPS[AA.e].name)}` : ''}: ${esc(AA.d.charAt(0).toLowerCase() + AA.d.slice(1))}.` : `🎖️ <b>${esc(C.list[ak])}</b> is a reward in Command an Army’s battle pass.`}</div>`;
-    if (XKINDS[avTab] && W.wear[avTab]) { const I = xItem(W.wear[avTab]); body = `<div class="avnote">You're wearing <b>${esc(I ? I.nm : 'an item')}</b> over these. Pick one to wear it instead, or take it off in 🎒 My items.</div>` + body; }
+    if (avTab === 'h') body = `<div class="avnote">🎩 You're wearing <b>${hatsOn().length}</b> of ${HAT_MAX} hats. Tap a hat to put it on or take it off; 🚫 None takes them all off. Made and limited hats count too (in 🎒 My items).</div>` + body;
+    else if (XKINDS[avTab] && W.wear[avTab]) { const I = xItem(W.wear[avTab]); body = `<div class="avnote">You're wearing <b>${esc(I ? I.nm : 'an item')}</b> over these. Pick one to wear it instead, or take it off in 🎒 My items.</div>` + body; }
   }
   return `<div class="avtabs">${tabs.map(([k, t]) => `<button data-tab="${k}" class="${avTab === k ? 'on' : ''}">${t}</button>`).join('')}</div>${body}`;
 }
@@ -3310,13 +3408,16 @@ $('#avOpts').onclick = (e) => {
   else if (d.k) {
     const k = d.k, i = +d.i;
     if (k === 's' || k === 'sh' || k === 'p') { AV[k] = i; }
-    else if (owns(k, i)) { AV[k] = i; delete ED.try[k]; if (XKINDS[k]) { W.wear[k] = ''; delete ED.tryX[k]; } avAsk = ''; }
+    else if (owns(k, i)) {
+      const why = k === 'h' && i && hatsOn().includes('H' + i) ? toggleHat('H' + i) : putOn(k, i); // (a hat that's on: take it off)
+      delete ED.try[k]; if (XKINDS[k]) delete ED.tryX[k]; avAsk = ''; ED.note = why;
+    }
     else {
       const price = COSMETICS[k].price[i];
       if (ED.open) ED.try[k] = i; // (on you in the editor, to see how it looks)
       if (price < 0) { avAsk = avAsk === k + i ? '' : k + i; sfx('click'); drawAvatarOpts(); pvAvatar(); return; } // (how to earn it)
       if (W.coins < price || avAsk !== k + i) { avAsk = k + i; drawAvatarOpts(); pvAvatar(); return; } // tap again to buy
-      W.coins -= price; W.own.add(k + i); AV[k] = i; delete ED.try[k]; if (XKINDS[k]) W.wear[k] = ''; avAsk = ''; sfx('buy'); questMax('bv.items', W.own.size);
+      W.coins -= price; W.own.add(k + i); ED.note = putOn(k, i); delete ED.try[k]; avAsk = ''; sfx('buy'); questMax('bv.items', W.own.size);
     }
   } else return;
   drawAvatarOpts(); pvAvatar(); saveAv(); drawMe();
@@ -3337,7 +3438,7 @@ $('#avTry').onclick = (e) => {
   if (b.dataset.buyall) {
     const t = Object.entries(ED.try).filter(([k, i]) => !owns(k, i)), cost = t.reduce((a, [k, i]) => a + COSMETICS[k].price[i], 0);
     if (W.coins < cost || t.some(([k, i]) => COSMETICS[k].price[i] < 0)) return;
-    W.coins -= cost; for (const [k, i] of t) { W.own.add(k + i); AV[k] = i; if (XKINDS[k]) W.wear[k] = ''; }
+    W.coins -= cost; for (const [k, i] of t) { W.own.add(k + i); ED.note = putOn(k, i) || ED.note; }
     sfx('buy'); questMax('bv.items', W.own.size);
   } else sfx('click');
   ED.try = {}; ED.tryX = {}; avAsk = ''; drawAvatarOpts(); pvAvatar(); saveAv(); drawMe();
@@ -3361,7 +3462,7 @@ function randomAv() {
   const pick = (k, n) => { const ok = Array.from({ length: n }, (_, i) => i).filter((i) => owns(k, i)); return ok[Math.floor(Math.random() * ok.length)] || 0; };
   AV.s = Math.floor(Math.random() * SKINS.length); AV.sh = Math.floor(Math.random() * SHIRTS.length); AV.p = Math.floor(Math.random() * PANTS.length);
   for (const k of Object.keys(COSMETICS)) AV[k] = k === 'h' || k === 'f' || k === 'pt' || Math.random() < 0.6 ? pick(k, COSMETICS[k].list.length) : 0;
-  Object.assign(W.wear, { h: '', pt: '', f: '' }); ED.try = {}; ED.tryX = {}; avAsk = ''; sfx('select'); drawAvatarOpts(); pvAvatar(); saveAv(); drawMe();
+  Object.assign(W.wear, { h: '', pt: '', f: '', hx: [] }); ED.try = {}; ED.tryX = {}; avAsk = ''; sfx('select'); drawAvatarOpts(); pvAvatar(); saveAv(); drawMe();
 }
 $('#avStage').onclick = () => openEditor();
 $('#avedBack').onclick = $('#avDone').onclick = closeEditor;
@@ -3930,6 +4031,25 @@ function ownsX(id) {
   if (Object.prototype.hasOwnProperty.call(W.made, id)) return true;
   return I.lim ? copiesOf(id).some((c) => c.owner === myId()) : W.xown.includes(id);
 }
+/* refunds: a regular avatar item you bought (in the avatar shop, or a regular catalog item) goes back for REFUND of
+   what it cost; it comes off and it's gone. Limiteds can't be refunded (sell yours instead), and nor can rewards, free
+   things or what you made. key: 'c:h6' for the avatar shop's, 'x:<id>' for the catalog's. */
+const REFUND = 0.65;
+function refundOf(key) { // (coins you'd get back; 0: it can't be refunded)
+  const m = /^c:([a-z]+)(\d+)$/.exec(key);
+  if (m) { const C = COSMETICS[m[1]], p = C ? C.price[+m[2]] : 0; return C && W.own.has(m[1] + m[2]) && p > 0 ? Math.floor(p * REFUND) : 0; }
+  const id = key.slice(2), I = key.startsWith('x:') && xItem(id);
+  return I && !I.lim && !Object.prototype.hasOwnProperty.call(W.made, id) && W.xown.includes(id) && I.price > 0 ? Math.floor(I.price * REFUND) : 0;
+}
+function refund(key) {
+  const n = refundOf(key); if (!n) return 0;
+  const m = /^c:([a-z]+)(\d+)$/.exec(key);
+  if (m) { takeOff(m[1], +m[2]); W.own.delete(m[1] + m[2]); delete ED.try[m[1]]; }
+  else { const id = key.slice(2); if (isWearing(xItem(id))) wearX(id); W.xown = W.xown.filter((x) => x !== id); }
+  W.coins += n; sfx('sell'); saveAv(); drawMe(); if (ED.open) pvAvatar();
+  toast(`↩️ Refunded — +${n.toLocaleString('en-US')} Blox Coins`, '#fde68a');
+  return n;
+}
 // a picture of an item: on a plain avatar (a head and shoulders for hats and faces)
 const XAV = [5, 0, 1, 0, 0, 0, 0, 0, 0, 0];
 const xPic = (I) => (I.k === 'acc' ? avPic(XAV, ['head', 'face', 'neck'].includes(I.look.at) ? 'item' : false, ['', '', '', I.id]) : avPic(XAV, I.k === 'h' ? 'item' : I.k === 'f', XSLOTS.map((k) => (k === I.k ? I.id : ''))));
@@ -3941,7 +4061,8 @@ function wearX(id) {
     if (j >= 0) L.splice(j, 1);
     else if (L.length >= ACC_WEAR) { ED.note = `You can wear ${ACC_WEAR} 3D items at once — take one off first.`; return true; }
     else L.push(I.id);
-  } else W.wear[I.k] = W.wear[I.k] === I.id ? '' : I.id;
+  } else if (I.k === 'h') { const why = toggleHat(I.id); if (why) { if (ED.open) ED.note = why; else toast(why, '#fca5a5'); return true; } }
+  else W.wear[I.k] = W.wear[I.k] === I.id ? '' : I.id;
   delete ED.tryX[I.k]; sfx('select'); saveAv(); pvAvatar(); drawMe();
   return true;
 }
@@ -3987,6 +4108,7 @@ function xCheckWear() {
   for (const k of XSLOTS) { const id = W.wear[k], I = id && xItem(id); if (I && I.lim && !ownsX(id)) { W.wear[k] = ''; off = true; } }
   const keep = (W.wear.acc || []).filter((id) => { const I = xItem(id); return !I || !I.lim || ownsX(id); });
   if (keep.length !== (W.wear.acc || []).length) { W.wear.acc = keep; off = true; }
+  for (const id of (W.wear.hx || []).slice()) { const I = !isShopHat(id) && xItem(id); if (I && I.lim && !ownsX(id)) { toggleHat(id); off = true; } }
   if (off) { saveAv(); drawMe(); if (ED.open) pvAvatar(); }
 }
 // coins owed to you: each one taken once (a short lease, so two tabs don't both take it), then deleted
@@ -4023,7 +4145,7 @@ async function lease(ref, ttlMs) {
 const say2 = (t) => { ED.note = t; drawAvatarOpts(); };
 
 // buying: a copy from the stock (the first number nobody has), or a regular item
-async function buyItem(id) {
+async function buyX(id) {
   const I = xItem(id), db = Market.db;
   if (!I || !I.pub || !db || Market.busy) return;
   if (W.coins < I.price) { say2(`You need <b>${(I.price - W.coins).toLocaleString('en-US')}</b> more Blox Coins.`); return; }
@@ -4242,6 +4364,9 @@ function itemHtml(I) {
     <div class="xprice"><span class="coin"></span>${I.price ? I.price.toLocaleString('en-US') : 'Free'}</div></div></div>
     <div class="pbtns">${owned ? `<button class="xp-btn ${wearing ? 'alt' : ''}" data-xwear="${esc(I.id)}">${wearing ? 'Take off' : '👕 Wear'}</button>` : `<button class="xp-btn alt" data-xtry="${esc(I.id)}">${trying ? 'Take off' : '👀 Try on'}</button>`}
     ${I.lim ? (left > 0 ? `<button class="xp-btn gold" data-xbuy="${esc(I.id)}" ${W.coins < I.price || Market.busy ? 'disabled' : ''}>🛒 Buy #${cs.length + 1} · ${I.price.toLocaleString('en-US')}</button>` : '') : owned ? '' : `<button class="xp-btn gold" data-xbuy="${esc(I.id)}" ${W.coins < I.price || Market.busy ? 'disabled' : ''}>🛒 Buy · ${I.price ? I.price.toLocaleString('en-US') : 'Free'}</button>`}</div>`;
+  const back = refundOf('x:' + I.id);
+  if (back) h += `<div class="xrefund"><button class="xp-btn ${ED.refAsk === I.id ? 'gold' : 'alt'}" data-xrefund="${esc(I.id)}">${ED.refAsk === I.id ? `Sure? Refund for ${back.toLocaleString('en-US')}` : `↩️ Refund · get ${back.toLocaleString('en-US')} back`}</button><small>${REFUND * 100}% of what you paid</small></div>`;
+  else if (I.lim && ownsX(I.id)) h += `<div class="xrefund"><small>⭐ Limiteds can't be refunded — sell your copy below instead.</small></div>`;
   if (I.lim) {
     h += `<div class="fsub">🏷️ For sale by players</div>` + (sales.length ? sales.map((c) => `<div class="xrow"><b>#${c.n}</b><span>${esc(c.nm)}</span><span class="pr"><span class="coin sm"></span> ${c.sale.toLocaleString('en-US')}</span><button class="xp-btn gold" data-xresale="${esc(c.key)}" ${W.coins < c.sale || Market.busy ? 'disabled' : ''}>Buy</button></div>`).join('') : `<div class="fempty">${left > 0 ? 'Still in stock — nobody’s selling theirs yet.' : 'Nobody’s selling one right now.'}</div>`);
     if (mine.length) h += `<div class="fsub">🎒 Your copies</div>` + mine.map((c) => `<div class="xrow"><b>#${c.n}</b>${c.sale
@@ -4320,12 +4445,14 @@ function pxBind() {
 function marketClick(b) {
   if (builderClick(b)) return true;
   const d = b.dataset, D = ED.draft;
+  if (!d.xrefund) ED.refAsk = '';
   if (d.xcat) { ED.cat = d.xcat; }
   else if (d.xview !== undefined) { ED.view = d.xview; ED.note = ''; if (d.xview) sfx('open'); }
   else if (d.xview2) { ED.mode = 'shop'; ED.view = d.xview2; ED.note = ''; }
   else if (d.xtry) { const I = xItem(d.xtry); if (!I) return true; if (ED.tryX[I.k] === I.id) delete ED.tryX[I.k]; else ED.tryX[I.k] = I.id; sfx('click'); pvAvatar(); }
   else if (d.xwear) { if (!wearX(d.xwear)) return true; }
-  else if (d.xbuy) { buyItem(d.xbuy); return true; }
+  else if (d.xrefund) { if (ED.refAsk === d.xrefund) { refund('x:' + d.xrefund); ED.refAsk = ''; } else { ED.refAsk = d.xrefund; sfx('click'); } }
+  else if (d.xbuy) { buyX(d.xbuy); return true; }
   else if (d.xresale) { buyCopy(d.xresale); return true; }
   else if (d.xsell) { sellCopy(d.xsell, ED['sell_' + d.xsell]); return true; }
   else if (d.xunsell) { sellCopy(d.xunsell, 0); return true; }
@@ -4351,7 +4478,7 @@ function marketClick(b) {
 /* ---------------- 🎒 the inventory: everything you own, in one place ----------------
    Avatar items you've bought or earned, items you made, catalog items you bought, your limited copies (with their
    numbers), and what you've bought in experiences' shops. Wear or take off, sell a limited, publish what you made. */
-const INV = { cat: 'all', sort: 'type', q: '' };
+const INV = { cat: 'all', sort: 'type', q: '', ask: '' }; // (ask: the refund waiting for a second tap)
 const INV_CATS = [['all', '🎒 All'], ['wear', '✅ Wearing'], ['acc', '🧩 3D items'], ['h', '🎩 Hats'], ['f', '🙂 Faces'], ['b', '🪽 Back'], ['au', '✨ Auras'], ['pt', '👕 Shirts'], ['pet', '🐶 Pets'], ['tr', '🌈 Trails'], ['lim', '⭐ Limiteds'], ['made', '✏️ Made by you'], ['game', '🎮 Game items']];
 const INV_ORDER = INV_CATS.map(([k]) => k);
 function invEntries() {
@@ -4359,7 +4486,7 @@ function invEntries() {
   for (const code of W.own) {
     const m = /^([a-z]+)(\d+)$/.exec(code), C = m && COSMETICS[m[1]], i = m ? +m[2] : -1;
     if (!C || i < 0 || i >= C.list.length) continue;
-    out.push({ key: 'c:' + code, cat: m[1] === 'a' ? 'au' : m[1], nm: C.list[i], ic: C.icon[i], tag: C.price[i] < 0 ? '🏆 Reward' : C.title, value: Math.max(0, C.price[i]), worn: AV[m[1]] === i && !(XSLOTS.includes(m[1]) && W.wear[m[1]]), slot: m[1], i });
+    out.push({ key: 'c:' + code, cat: m[1] === 'a' ? 'au' : m[1], nm: C.list[i], ic: C.icon[i], tag: C.price[i] < 0 ? '🏆 Reward' : C.title, value: Math.max(0, C.price[i]), worn: m[1] === 'h' ? hatsOn().includes('H' + i) : AV[m[1]] === i && !(XSLOTS.includes(m[1]) && W.wear[m[1]]), slot: m[1], i });
   }
   const x = (I, extra) => Object.assign({ key: 'x:' + I.id, cat: I.k === 'h' ? 'h' : I.k, nm: I.nm, I, value: I.price, worn: isWearing(I) }, extra);
   for (const id of Object.keys(W.made)) { const I = xItem(id); if (I) out.push(x(I, { made: true, tag: `✏️ Made by you · ${I.pub ? (I.lim ? `⭐ limited of ${I.lim}` : 'in the catalog') : 'not published'}` })); }
@@ -4381,18 +4508,20 @@ function invPage(again) {
   let list = all.filter((e) => has(e, INV.cat) && (!q || `${e.nm} ${e.tag}`.toLowerCase().includes(q)));
   const sorts = { type: (a, b) => INV_ORDER.indexOf(a.cat) - INV_ORDER.indexOf(b.cat) || a.nm.localeCompare(b.nm), az: (a, b) => a.nm.localeCompare(b.nm), value: (a, b) => b.value - a.value || a.nm.localeCompare(b.nm) };
   list.sort(sorts[INV.sort] || sorts.type);
+  for (const e of list) e.back = e.lim || e.made ? 0 : refundOf(e.key);
   const value = all.reduce((s, e) => s + (e.value || 0), 0), lims = all.filter((e) => e.lim).length;
   const card = (e) => {
     const pic = e.I ? `<img src="${xPic(e.I)}" alt="">` : `<span class="ic">${e.ic}</span>`;
     const act = e.cat === 'game' ? '' : `<button class="xp-btn ${e.worn ? 'alt' : ''}" data-iwear="${esc(e.key)}">${e.worn ? 'Take off' : '👕 Wear'}</button>`
       + (e.lim ? `<button class="xp-btn gold" data-iopen="${esc(e.I.id)}">🏷️ ${e.sale ? 'On sale' : 'Sell'}</button>` : '')
       + (e.made && !e.I.pub ? `<button class="xp-btn gold" data-ipub="${esc(e.I.id)}">📣 Publish</button>` : '')
-      + (e.I && e.I.pub && !e.lim ? `<button class="xp-btn alt" data-iopen="${esc(e.I.id)}">🛍️</button>` : '');
+      + (e.I && e.I.pub && !e.lim ? `<button class="xp-btn alt" data-iopen="${esc(e.I.id)}">🛍️</button>` : '')
+      + (e.back ? `<button class="xp-btn ${INV.ask === e.key ? 'gold' : 'alt'}" data-irefund="${esc(e.key)}" title="Refund it: get ${REFUND * 100}% of what you paid back (${e.back.toLocaleString('en-US')} Blox Coins)">${INV.ask === e.key ? `Sure? +${e.back.toLocaleString('en-US')}` : '↩️ Refund'}</button>` : '');
     return `<div class="icard${e.worn ? ' on' : ''}${e.lim ? ' lim' : ''}">${e.lim ? '<span class="xbadge">⭐ LIMITED</span>' : ''}${pic}<b>${esc(e.nm)}</b><small>${esc(e.tag)}</small>${e.value ? `<span class="pr"><span class="coin sm"></span> ${e.value.toLocaleString('en-US')}</span>` : ''}<div class="iacts">${act}</div></div>`;
   };
   const counts = Object.fromEntries(INV_CATS.map(([k]) => [k, all.filter((e) => has(e, k)).length]));
   return `<div class="edetail social inv"><button class="back" id="backBtn">${backLabel()}</button>
-    <div class="achhead"><span class="big">🎒</span><div><h2>Inventory</h2><p style="margin:0">Everything you own: avatar items, things you made or bought in the catalog, your limiteds and what you've bought in experiences.</p></div></div>
+    <div class="achhead"><span class="big">🎒</span><div><h2>Inventory</h2><p style="margin:0">Everything you own: avatar items, things you made or bought in the catalog, your limiteds and what you've bought in experiences. ↩️ Refund an avatar item you bought for ${REFUND * 100}% of what you paid — limiteds can't be refunded.</p></div></div>
     <div class="pstats"><div class="pstat"><b>${all.length}</b><small>🎒 Items</small></div><div class="pstat"><b>${all.filter((e) => e.worn).length}</b><small>✅ Wearing</small></div><div class="pstat"><b>${lims}</b><small>⭐ Limiteds</small></div><div class="pstat"><b>${value.toLocaleString('en-US')}</b><small>🪙 Worth about</small></div></div>
     <div class="xtools"><label class="xsearch">🔍<input id="invQ" type="search" placeholder="Search your inventory" value="${esc(INV.q)}" autocomplete="off"></label>
       <div class="xchips">${[['type', '🗂️ By type'], ['az', '🔤 A–Z'], ['value', '🪙 Worth']].map(([k, l]) => `<button class="xchip${INV.sort === k ? ' on' : ''}" data-isort="${k}">${l}</button>`).join('')}</div></div>
@@ -4403,11 +4532,18 @@ function invPage(again) {
 // its buttons (on the home screen's page)
 function invClick(b) {
   const d = b.dataset;
+  if (!d.irefund) INV.ask = ''; // (a refund waits for a second tap)
   if (d.icat) INV.cat = d.icat;
   else if (d.isort) INV.sort = d.isort;
+  else if (d.irefund) { if (INV.ask === d.irefund) { refund(d.irefund); INV.ask = ''; } else { INV.ask = d.irefund; sfx('click'); } }
   else if (d.iwear) {
     const k = d.iwear;
-    if (k.startsWith('c:')) { const m = /^c:([a-z]+)(\d+)$/.exec(k); if (m) { const slot = m[1], i = +m[2], worn = AV[slot] === i && !(XSLOTS.includes(slot) && W.wear[slot]); AV[slot] = worn ? 0 : i; if (XSLOTS.includes(slot)) W.wear[slot] = ''; sfx('select'); saveAv(); pvAvatar(); drawMe(); } }
+    if (k.startsWith('c:')) {
+      const m = /^c:([a-z]+)(\d+)$/.exec(k); if (!m) return true;
+      const slot = m[1], i = +m[2], worn = slot === 'h' ? hatsOn().includes('H' + i) : AV[slot] === i && !(XSLOTS.includes(slot) && W.wear[slot]);
+      const why = worn ? (takeOff(slot, i), '') : putOn(slot, i); if (why) toast(why, '#fca5a5'); else sfx('select');
+      saveAv(); pvAvatar(); drawMe();
+    }
     else wearX(k.slice(2).split('~')[0]);
   } else if (d.iopen) { openEditor('shop', d.iopen); return true; }
   else if (d.ipub) { avTab = 'mine'; ED.pub = d.ipub; openEditor('wear'); return true; }
@@ -4821,6 +4957,7 @@ window.__rb = { P, Net, cam, camera, scene, renderer, keys, EXPS, Meter, GFX, gf
   Social, Inv, ED, myId, myCode, fcOf, openEditor, closeEditor, socialScan, avPic, Market, OFFICIAL, xItem, ownsX, copiesOf, drawAvatarOpts, axArr,
   pvSel: () => (pv.selBox ? { inScene: pv.selBox.parent === pv.scene, r: pv.selBox.geometry.boundingSphere && pv.selBox.geometry.boundingSphere.radius, vis: pv.selBox.visible, n: pv.selBox.geometry.attributes.position.count, c: pv.selBox.geometry.attributes.position.array.slice(0, 6) } : null),
   pvGhost: () => { let g = false; if (pv.a) pv.a.g.traverse((o) => { if (o.isMesh && o.material === GHOST_MAT) g = true; }); return g; },
+  hatsOn, toggleHat, refundOf, refund, xLooks,
   pvFx: () => { const n = [0, 0]; if (pv.a) pv.a.g.traverse((o) => { if (o.userData.fx) { n[0]++; if (o.visible) n[1]++; } }); return n; },
   pvPartScreen: (i) => { const m = pv.accG && pv.accG.children[0].children[i]; if (!m) return null; const v = new THREE.Vector3(); m.getWorldPosition(v); v.project(pv.cam); const r = $('#avPrev').getBoundingClientRect(); return [r.left + (v.x + 1) / 2 * r.width, r.top + (1 - v.y) / 2 * r.height]; }, get homeView() { return homeView; }, set homeView(v) { homeView = v; drawExps(); } }; // for tests
 if (!Net.api()) homeStatus('Open Bloxverse from 🕹️ Games in the chat to play online.');
