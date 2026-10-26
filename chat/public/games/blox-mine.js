@@ -97,6 +97,10 @@
       for (const x of [12.6, 14.9, 17.1, 19.4]) add(x, 7.6, 9.3, 0.8, 7.2, 0.8, 0xf5f5f4);
       add(16, 8.6, 11.6, 10, 1, 6, 0xd6d3d1);
       const [bx, bz] = this.W(pl, 16, 9.3), l = label('🏦 Bank', { size: 1.2 }); l.position.set(bx, 10.4, bz); place.add(l); pl.decor.push(l);
+      // the gem cutter's bench, by the gem case
+      add(-8.5, 1.6, 20, 3.4, 1.2, 2.2, 0x57534e); add(-8.5, 2.3, 20, 3.6, 0.2, 2.4, 0x78716c);
+      const [wx, wz] = this.W(pl, -8.5, 20), wh = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 0.25, 18), M(0x93c5fd, { emissive: 0x1e3a8a })); wh.rotation.x = Math.PI / 2; wh.position.set(wx, 3.3, wz); place.add(wh); pl.decor.push(wh); pl.wheel = wh;
+      const wl = label('💎 Gem cutter', { size: 0.9, bg: 'rgba(15,23,42,.6)' }); wl.position.set(wx, 5.4, wz); place.add(wl); pl.decor.push(wl);
       // the quarry, with the lift down to the caves
       add(-17, 0.5, 1, 14, 0.1, 18, 0x6b5b4b, { plain: true, solid: false });
       for (const [x, z] of [[-18.4, 2.6], [-13.6, 2.6], [-18.4, 7.4], [-13.6, 7.4]]) add(x, 7, z, 0.5, 6.6, 0.5, 0x7c2d12);
@@ -177,8 +181,8 @@
     pickLvl() { let l = 0; this.items.forEach((it, i) => { if (it.kind === 'pick' && this.ty.has(this.b, i)) l = Math.max(l, it.lvl); }); return l; },
     bagCap() { return BAG[this.pickLvl()] * (hasItem('bag2') ? 2 : 1); },
     bagValue() { return this.bag.reduce((v, o) => v + o.v, 0); },
-    async tyEnter(s) { this.mined = Math.max(0, s.mined | 0); this.veins = []; this.veinAt = 0; this.swingT = 0; this.hitAt = 0; this.picks = new Map(); this.cave = -1; this.bag = (Array.isArray(s.bag) ? s.bag : []).filter((o) => ORES[o.o]).map((o) => ({ o: o.o, v: Math.max(0, +o.v || 0) })).slice(0, 150); },
-    tySave() { return { mined: this.mined, bag: this.bag.map((o) => ({ o: o.o, v: Math.round(o.v) })) }; },
+    async tyEnter(s) { this.cuts = Math.max(0, s.cuts | 0); this.mined = Math.max(0, s.mined | 0); this.veins = []; this.veinAt = 0; this.swingT = 0; this.hitAt = 0; this.picks = new Map(); this.cave = -1; this.bag = (Array.isArray(s.bag) ? s.bag : []).filter((o) => ORES[o.o]).map((o) => ({ o: o.o, v: Math.max(0, +o.v || 0) })).slice(0, 150); },
+    tySave() { return { mined: this.mined, cuts: this.cuts || 0, bag: this.bag.map((o) => ({ o: o.o, v: Math.round(o.v) })) }; },
     tyLeave() { this.closeCave(); for (const p of this.picks.values()) if (p.parent) p.parent.remove(p); this.picks.clear(); },
     // the lift: the levels you've opened
     liftPanel() {
@@ -219,6 +223,7 @@
     // veins come up in the cave you're in, a few at a time
     tyTick(dt, t) {
       this.swingT = Math.max(0, this.swingT - dt);
+      for (const pl of this.plots) if (pl.wheel) pl.wheel.rotation.y += dt * (pl.mine && this.tg ? 18 : 2);
       if (this.cave >= 0 && (this.myPlot == null || P.y > CAVE_Y(this.cave) + 25 || this.cave > this.depthOf(this.b))) { if (this.myPlot != null && this.cave > this.depthOf(this.b) && P.y < 0) this.goUp(); else this.closeCave(); }
       if (this.cave < 0) return;
       const pl = this.plots[this.myPlot], C = CAVES[this.cave], y = CAVE_Y(this.cave);
@@ -242,8 +247,9 @@
         if (best) return [{ x: best.x, z: best.z, y: best.y, r: 3.4, text: this.bag.length >= this.bagCap() ? '🎒 Your backpack’s full: sell it at the bank' : `⛏️ Mine the ${ORES[best.ore][1].toLowerCase()} vein (${this.hitsLeft(best)})`, fn: () => this.hit(best) }];
         return [{ x: pl.ox + LIFT[0], z: pl.oz + LIFT[1], y: CAVE_Y(this.cave), r: 3, text: '🛗 Lift', fn: () => this.liftPanel() }];
       }
-      const [lx, lz] = this.W(pl, -16, 5), [bx, bz] = this.W(pl, 10.5, 10);
+      const [lx, lz] = this.W(pl, -16, 5), [bx, bz] = this.W(pl, 10.5, 10), [cx, cz] = this.W(pl, -8.5, 17.6);
       out.push({ x: lx, z: lz, r: 3.4, text: '🛗 Down the mine', fn: () => this.liftPanel() });
+      out.push({ x: cx, z: cz, r: 3, text: '💎 Cut a gem', fn: () => this.cutPanel() });
       if (this.bag.length) out.push({ x: bx, z: bz, r: 3.4, text: `🏦 Sell your ore: ${money(this.bagValue())}`, fn: () => this.sellBag() });
       return out;
     },
@@ -275,7 +281,36 @@
       const by = {}; for (const o of this.bag) { by[o.o] = by[o.o] || [0, 0]; by[o.o][0]++; by[o.o][1] += o.v; }
       openPanel(`🎒 Backpack · ${this.bag.length}/${this.bagCap()}`, `${Object.keys(by).length ? ORDER.filter((o) => by[o]).map((o) => `<div class="xp-row"><span>${ORES[o][1]} ×${by[o][0]}</span><b>${money(by[o][1])}</b></div>`).join('') : '<p class="xp-note">Empty. Ride the 🛗 lift in your quarry down to the caves and mine the veins.</p>'}<p class="xp-note">Sell it at your 🏦 bank. A better pickaxe holds more.</p>`);
     },
-    menu() { return [['🛗 Mine lift', () => this.liftPanel(), 'Lift'], [`🎒 Backpack (${this.bag.length}/${this.bagCap()})`, () => this.bagPanel(), 'Bag'], [`${this.caseName} (${this.col.length})`, () => this.casePanel(), this.caseShort]]; },
+    /* ---- 💎 gem cutting: take a gem from your case to the cutter's wheel and cut it; a clean cut makes it the next
+       rarity up, a good one might, and a slip cracks it (you keep a little gem dust) ---- */
+    cutCost(f) { return Math.round(FINDS[f].v * 0.2 * (1 + 0.5 * this.rb)); },
+    cutPanel() {
+      const gems = this.col.map((f, i) => [f, i]).filter(([f]) => FINDS[f].r < 5).sort((a, b) => FINDS[b[0]].r - FINDS[a[0]].r || b[0] - a[0]);
+      const RN = ['', '', 'Rare', 'Epic', 'Legendary', 'Mythical'], RC = ['', '', '#60a5fa', '#c084fc', '#fbbf24', '#f87171'];
+      openPanel('💎 Gem cutter', `<p class="xp-note">Cut a gem to make it rarer: stop the marker in the green. <b>Right in the middle</b>: it becomes a gem of the next rarity up. <b>In the green</b>: a 50% chance it does. <b>Miss</b>: it cracks (you get some gem dust for it). Mythical gems can’t be cut any finer.</p>
+        ${gems.length ? gems.map(([f, i]) => { const F = FINDS[f], c = this.cutCost(f); return `<div class="xp-row"><span>${F.e} <b>${F.n}</b> <small style="color:${RC[F.r]}">${RN[F.r]}</small><br><small style="color:var(--muted)">→ ${RN[F.r + 1]} if it goes well</small></span><button class="xp-btn blue" data-cut="${i}"${this.cash < c ? ' disabled' : ''}>💎 Cut · ${money(c)}</button></div>`; }).join('') : '<p class="xp-note">No gems to cut: dig some up in the caves!</p>'}`,
+      (b) => { if (b.dataset.cut == null) return; closePanel(); this.cut(+b.dataset.cut); });
+    },
+    cut(i) {
+      const f = this.col[i]; if (f == null || FINDS[f].r >= 5) return;
+      const c = this.cutCost(f); if (this.cash < c) { toast(`You need ${money(c - this.cash)} more`, '#fca5a5'); return; }
+      this.cash -= c; this.dirty = true;
+      const F = FINDS[f];
+      this.timing({ title: `💎 Cut the ${F.n}: steady…`, btn: '💎 Cut!', zone: 0.2, speed: 1.45, time: 5, done: (sc) => {
+        const k = this.col.indexOf(f); if (k < 0) return;
+        const pl = this.plots[this.myPlot], [x, z] = this.W(pl, -8.5, 20);
+        if (sc < 0) {
+          this.col.splice(k, 1); const dust = Math.round(this.findValue(f) * 0.3); this.gain(dust, null, null, true);
+          toast(`💥 Crack! The ${F.n} shattered: +${money(dust)} of gem dust`, '#fca5a5'); sfx('break'); puffAt(x, 3.5, z, [F.c, 0xffffff, 0x94a3b8], 20);
+        } else if (sc > 0 || Math.random() < 0.5) {
+          this.col.splice(k, 1); const opts = FINDS.map((G, g) => [G, g]).filter(([G]) => G.r === F.r + 1);
+          this.cuts = (this.cuts || 0) + 1; this.gotFind(opts[Math.floor(Math.random() * opts.length)][1], `Cut it into`); puffAt(x, 3.5, z, CONFETTI, 30);
+        } else { toast(`💎 A fair cut, but the ${F.n} is no rarer`, '#fde68a'); sfx('select'); }
+        this.dirty = true; this.save(); send({ cl: this.bestFinds() }); this.peers();
+      } });
+      sfx('whoosh');
+    },
+    menu() { return [['🛗 Mine lift', () => this.liftPanel(), 'Lift'], ['💎 Cut gems', () => this.cutPanel(), 'Cut'], [`🎒 Backpack (${this.bag.length}/${this.bagCap()})`, () => this.bagPanel(), 'Bag'], [`${this.caseName} (${this.col.length})`, () => this.casePanel(), this.caseShort]]; },
     // a pickaxe in your hand in the quarry, swung when you mine (and everyone else's)
     pose() {
       const inQ = this.cave >= 0;

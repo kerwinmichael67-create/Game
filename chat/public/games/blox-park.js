@@ -35,6 +35,7 @@
   const stars = (r) => '★'.repeat(Math.round(r)) + '☆'.repeat(5 - Math.round(r));
   // the rides, round the inside of the path, and where guests ride them (the path goes round them)
   const RIDE = { carousel: [-13, 1], swing: [-13, -13], ferris: [0, -13], drop: [13, -13], teacups: [13, 1], bumper: [0, 1] };
+  const BREAKS = ['carousel', 'teacups', 'swing', 'ferris', 'drop', 'bumper', 'coaster']; // (the rides that can break down)
   // the roller coaster's track (the same in every park: made once)
   let coaster = null;
   const coasterGeo = () => { if (!coaster) { const curve = new THREE.CatmullRomCurve3(COASTER.map(([x, z, y]) => new THREE.Vector3(x, y, z)), true, 'catmullrom', 0.3); coaster = { curve, tube: new THREE.TubeGeometry(curve, 260, 0.35, 6, true) }; } return coaster; };
@@ -225,7 +226,7 @@
     tyUp(pl, pr) { pr.hop = 0.6; },
     /* ---- tickets and the park's rating ---- */
     // ★1 to ★5: how much of the park's rides, food stands and decorations it has
-    rating(b) { const all = this.items.filter((it) => it.kind === 'up' || it.kind === 'deco'), got = all.filter((it) => this.ty.has(b, this.items.indexOf(it))).length; return 1 + 4 * got / all.length; },
+    rating(b) { const all = this.items.filter((it) => it.kind === 'up' || it.kind === 'deco'), got = all.filter((it) => this.ty.has(b, this.items.indexOf(it))).length - (b === this.b && this.broken ? this.broken.size : 0); return 1 + 4 * Math.max(0, got) / all.length; },
     // a plot's ticket price (yours, or what its owner has set)
     tkOf(pl) { if (pl.mine) return this.tk; const p = Net.peers.find((q) => q.peer === pl.owner), v = p && p.presence ? p.presence.tk : null; return v == null ? 1 : clamp(v | 0, 0, TICKETS.length - 1); },
     // (each guest pays the price on their ticket when they came in, whatever it is when they leave)
@@ -258,21 +259,69 @@
       if (!pl.away) pl.away = [];
       for (let k = pl.away.length - 1; k >= 0; k--) { const a = pl.away[k]; a.t += dt; a.m.position.z += pl.fz * dt * 5; a.m.rotation.y = pl.fz > 0 ? Math.PI / 2 : -Math.PI / 2; if (a.t > 2.2) { place.remove(a.m); pl.away.splice(k, 1); } }
       if (t > (pl.gateAt || 0)) { pl.gateAt = t + 500; this.drawGate(pl); }
+      this.drawBroken(pl, dt);
       for (const c of pl.prods) { if (c.hop > 0) { c.hop -= dt; c.m.position.y += Math.sin((0.6 - c.hop) / 0.6 * Math.PI) * 1.4; } else c.m.position.y += Math.abs(Math.sin(t / 140 + c.s)) * 0.18; } },
 
+    /* ---- breakdowns: now and then one of your rides breaks down (smoke, a warning sign, and guests get nothing from it
+       till you fix it); walk over and tighten the bolt. With the Park Mechanic, they fix themselves ---- */
+    brokenOf(pl) { if (pl.mine) return this.broken || new Map(); const p = Net.peers.find((q) => q.peer === pl.owner), v = p && p.presence && p.presence.bk; return new Map((Array.isArray(v) ? v : []).map((i) => [i | 0, 0])); },
+    tyUpOk(pl, i) { return !this.brokenOf(pl).has(i); },
+    rideIdx() { return this.items.map((it, i) => i).filter((i) => BREAKS.includes(this.items[i].look) && this.ty.has(this.b, i)); },
+    breakTick() {
+      if (this.myPlot == null || !this.broken) return;
+      const now = performance.now();
+      if (!this.bkAt) this.bkAt = now + 50000 + Math.random() * 40000;
+      if (now > this.bkAt) {
+        this.bkAt = now + 60000 + Math.random() * 50000;
+        const ok = this.rideIdx().filter((i) => !this.broken.has(i));
+        if (ok.length && this.broken.size < 2) this.breakDown(ok[Math.floor(Math.random() * ok.length)]);
+      }
+      if (hasItem('mech')) for (const [i, at] of this.broken) if (now - at > 15000) this.fixRide(i, true);
+    },
+    breakDown(i) {
+      this.broken.set(i, performance.now()); send({ bk: [...this.broken.keys()] });
+      const it = this.items[i], pl = this.plots[this.myPlot], [x, z] = this.W(pl, ...it.at);
+      toast(`⚠️ Your ${it.n} broke down! Go and fix it 🔧`, '#fca5a5'); sfx('crash'); puffAt(x, 5, z, [0x334155, 0x64748b, 0xf97316], 24);
+    },
+    fixRide(i, auto) {
+      if (!this.broken.delete(i)) return;
+      send({ bk: [...this.broken.keys()] }); this.fixed = (this.fixed || 0) + 1; this.dirty = true;
+      const it = this.items[i], pl = this.plots[this.myPlot], [x, z] = this.W(pl, ...it.at);
+      toast(`🔧 ${it.n} fixed${auto ? ' by your mechanic' : ''}! Good as new`, '#86efac'); sfx('unlock'); puffAt(x, 4, z, [0x22c55e, 0xffffff, 0xfde047], 18);
+    },
+    repair(i) {
+      const it = this.items[i];
+      this.timing({ title: `🔧 Fix the ${it.n}: tighten the bolt!`, btn: '🔧 Tighten!', zone: 0.24, speed: 1.3, time: 6, done: (sc) => {
+        if (sc < 0) { toast('🔩 It slipped! Try again', '#fca5a5'); sfx('error', { gap: 300 }); return; }
+        this.fixRide(i);
+      } });
+    },
+    // smoke and a warning sign over every broken ride (yours and other people's)
+    drawBroken(pl, dt) {
+      const bk = this.brokenOf(pl); if (!pl.bkLab) pl.bkLab = new Map();
+      for (const [i, l] of pl.bkLab) if (!bk.has(i) || !pl.owner) { place.remove(l); l.material.map.dispose(); pl.bkLab.delete(i); }
+      for (const i of bk.keys()) {
+        const it = this.items[i]; if (!it || !it.at) continue;
+        const [x, z] = this.W(pl, ...it.at), y = it.look === 'ferris' ? 16 : it.look === 'drop' ? 20 : it.look === 'coaster' ? 9 : 7;
+        if (!pl.bkLab.has(i)) { const l = label(`⚠️ BROKEN${pl.mine ? ' · 🔧 fix it!' : ''}`, { size: 1, color: '#fca5a5', bg: 'rgba(127,29,29,.8)' }); l.position.set(x, y + 1.5, z); place.add(l); pl.bkLab.set(i, l); }
+        if (Math.random() < dt * 6) puffAt(x + (Math.random() - 0.5) * 3, y - 2 + Math.random() * 2, z + (Math.random() - 0.5) * 3, [0x334155, 0x475569, 0x64748b], 2);
+      }
+    },
+
     /* ---- ride the big rides yourself; the ring toss ---- */
-    async tyEnter(s) { this.rides = Math.max(0, s.rides | 0); this.rideOn = null; this.tossAt = 0; this.tk = clamp(s.tk == null ? 1 : s.tk | 0, 0, TICKETS.length - 1); this.turned = 0; send({ tk: this.tk }); for (const pl of this.plots) pl.away = pl.away || []; },
-    tySave() { return { rides: this.rides, tk: this.tk }; },
-    tyLeave() { if (this.rideOn) this.getOff(true); for (const pl of this.plots) { for (const a of pl.away || []) place.remove(a.m); pl.away = []; } },
+    async tyEnter(s) { this.broken = new Map(); this.bkAt = 0; this.fixed = Math.max(0, s.fx | 0); send({ bk: [] }); this.rides = Math.max(0, s.rides | 0); this.rideOn = null; this.tossAt = 0; this.tk = clamp(s.tk == null ? 1 : s.tk | 0, 0, TICKETS.length - 1); this.turned = 0; send({ tk: this.tk }); for (const pl of this.plots) pl.away = pl.away || []; },
+    tySave() { return { rides: this.rides, tk: this.tk, fx: this.fixed || 0 }; },
+    tyLeave() { for (const pl of this.plots) { for (const l of (pl.bkLab || new Map()).values()) place.remove(l); pl.bkLab = new Map(); } if (this.rideOn) this.getOff(true); for (const pl of this.plots) { for (const a of pl.away || []) place.remove(a.m); pl.away = []; } },
     speed() { return this.rideOn ? 0 : 16; },
     gravity() { return this.rideOn ? 0 : GRAV; },
     tyPrompts() {
       if (this.tg || P.dead) return [];
       if (this.rideOn) return [{ x: P.x, z: P.z, r: 99, y: P.y, text: '🚪 Get off', fn: () => this.getOff() }];
       const out = [];
+      if (this.myPlot != null && this.broken) for (const i of this.broken.keys()) { const it = this.items[i], [x, z] = this.W(this.plots[this.myPlot], ...(it.pad || it.at)); out.push({ x, z, r: 4.5, text: `🔧 Repair the ${it.n}`, fn: () => this.repair(i) }); }
       for (const pl of this.plots) {
         if (!pl.owner) continue;
-        const has = (look) => this.items.some((it, i) => it.look === look && this.ty.has(pl.b, i));
+        const has = (look) => this.items.some((it, i) => it.look === look && this.ty.has(pl.b, i) && !this.brokenOf(pl).has(i));
         const at = (lx, lz, text, fn) => { const [x, z] = this.W(pl, lx, lz); out.push({ x, z, r: 3, text, fn }); };
         if (has('ferris') && pl.ferris) at(RIDE.ferris[0], RIDE.ferris[1] + 3.5, '🎡 Ride the Ferris wheel', () => this.ride(pl, 'ferris'));
         if (has('drop') && pl.drop) at(RIDE.drop[0], RIDE.drop[1] + 3, '🗼 Ride the drop tower', () => this.ride(pl, 'drop'));
@@ -283,6 +332,7 @@
       return out;
     },
     ride(pl, kind) {
+      if ([...this.brokenOf(pl).keys()].some((i) => this.items[i].look === kind)) { toast('⚠️ It’s broken! It needs fixing first', '#fca5a5'); sfx('error'); return; }
       this.rideOn = { pl, kind, t: 0, len: kind === 'ferris' ? 14 : kind === 'drop' ? 9 : 0, u0: kind === 'coaster' ? pl.coaster.u : 0, laps: 0 };
       this.rides++; quest('park.ride'); sfx('whoosh'); toast(kind === 'coaster' ? '🎢 Hold on tight!' : kind === 'drop' ? '🗼 Going up…' : '🎡 Enjoy the view!', '#fde68a');
     },
@@ -294,6 +344,7 @@
       if (!quiet) { sfx('pop'); puffAt(x, 2, z, CONFETTI, 12); }
     },
     tyTick(dt) {
+      this.breakTick();
       const R = this.rideOn; if (!R) return;
       const pl = R.pl, v = new THREE.Vector3();
       if (!pl.owner || P.dead || !(R.kind === 'ferris' ? pl.ferris : R.kind === 'drop' ? pl.drop : pl.coaster)) { this.getOff(true); return; }
@@ -323,12 +374,14 @@
       if (this.rideOn) return '🎢 riding!';
       if (this.myPlot == null) return '';
       const r = this.rating(this.b), keep = keepOf(r, this.tk);
-      return `${stars(r)} ${r.toFixed(1)} · 🎟️ ${TICKETS[this.tk][0]}${keep < 1 ? ` · <span style="color:#fca5a5">😠 ${keep < 0.15 ? 'almost everyone turns' : `${Math.max(1, Math.round((1 - keep) * 10))} in 10 turn`} away</span>` : ''}`;
+      const bk = this.broken ? this.broken.size : 0;
+      return `${bk ? `<span style="color:#fca5a5">⚠️ ${bk} ride${bk > 1 ? 's' : ''} broken: fix ${bk > 1 ? 'them' : 'it'}! · </span>` : ''}${stars(r)} ${r.toFixed(1)} · 🎟️ ${TICKETS[this.tk][0]}${keep < 1 ? ` · <span style="color:#fca5a5">😠 ${keep < 0.15 ? 'almost everyone turns' : `${Math.max(1, Math.round((1 - keep) * 10))} in 10 turn`} away</span>` : ''}`;
     },
     menu() { return [['🎟️ Ticket prices', () => this.ticketPanel(), 'Tickets'], [`${this.caseName} (${this.col.length})`, () => this.casePanel(), this.caseShort]]; },
     coinShop: [
       { id: 'cash2', e: '💵', n: '2× Cash', d: 'Every guest pays double, for good', price: 700, kind: 'pass' },
       { id: 'rings', e: '💍', n: 'Lucky Rings', d: 'The ring toss gives a plushie every time you land a ringer, for good', price: 400, kind: 'pass' },
+      { id: 'mech', e: '🔧', n: 'Park Mechanic', d: 'Broken rides fix themselves after 15 seconds, for good', price: 350, kind: 'pass' },
       shopSpeed(200, 1.25),
       { id: 'crate', e: '💰', n: 'Cash Crate', d: 'A minute of your park’s cash (at least $300), right now', price: 40, kind: 'now' },
     ],

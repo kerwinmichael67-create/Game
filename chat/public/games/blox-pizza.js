@@ -49,6 +49,8 @@
   const ING = { dough: ['🫓', 'Dough'], sauce: ['🍅', 'Sauce'], cheese: ['🧀', 'Cheese'], pep: ['🍕', 'Pepperoni'], veg: ['🫑', 'Veggies'], mush: ['🍄', 'Mushrooms'], pine: ['🍍', 'Pineapple'], gold: ['✨', 'Gold leaf'] };
   const BASE = ['dough', 'sauce', 'cheese'], TOPS = ['pep', 'veg', 'mush', 'pine'];
   const STARS = (r) => '⭐'.repeat(Math.round(r)) + '☆'.repeat(5 - Math.round(r));
+  // 🔥 rush hour: every five minutes (the same for everyone), 45 seconds of a crowd, every pizza ×2 and cooked orders ×2
+  const RUSH_PER = 300000, RUSH_LEN = 45000;
   if (!document.getElementById('pzCss')) {
     const st = document.createElement('style'); st.id = 'pzCss';
     st.textContent = `.pzTicket{background:#fef3c7;color:#78350f;border-radius:12px;padding:9px 12px;font:600 15px var(--fh);box-shadow:0 3px 0 #d97706;margin-bottom:10px}
@@ -225,9 +227,9 @@
     tyAnim(pl, dt, t) {
       if (t > (pl.starAt || 0)) { pl.starAt = t + 600; this.drawStars(pl); }
       if (!pl.cust) return;
-      const q = pl.cust.filter((c) => c.st === 'queue');
-      if (q.length < 5 && t > (pl.custAt || 0)) {
-        pl.custAt = t + 900;
+      const q = pl.cust.filter((c) => c.st === 'queue'), rush = this.rushLeft() > 0;
+      if (q.length < (rush ? 8 : 5) && t > (pl.custAt || 0)) {
+        pl.custAt = t + (rush ? 350 : 900);
         const m = person(SHIRTS[Math.floor(Math.random() * SHIRTS.length)]); this.deco(pl, m, 16, 0.4, 27);
         pl.cust.push({ m, st: 'queue', lx: 16, lz: 27, tz: 27, q: 9 });
       }
@@ -243,7 +245,21 @@
     },
 
     /* ---- your ⭐ rating: what every pizza sells for (it slips back towards ⭐2.5 unless you keep cooking) ---- */
-    tyMult(pl) { return pl.mine ? 0.6 + 0.2 * this.stars : 1; },
+    tyMult(pl) { return pl.mine ? (0.6 + 0.2 * this.stars) * (this.rushLeft() > 0 ? 2 : 1) : 1; },
+    // how long rush hour has left (ms; 0 when it's not on), and how long till the next
+    rushPhase() { return (Date.now() + (this.rushShift || 0)) % RUSH_PER; },
+    rushLeft() { return Math.max(0, RUSH_LEN - this.rushPhase()); },
+    rushIn() { return RUSH_PER - this.rushPhase(); },
+    // over the street: the rush hour sign
+    drawRush() {
+      const left = this.rushLeft(), txt = left > 0 ? `🔥 RUSH HOUR! Pizzas ×2 · ${Math.ceil(left / 1000)}s` : `🔥 Rush hour in ${mmss(this.rushIn() / 1000)}`;
+      if (left > 0 && !this.rushOn) { this.rushOn = true; if (this.myPlot != null) { toast('🔥 RUSH HOUR! Every pizza ×2 for 45s: cook orders for double!', '#fb923c'); sfx('horn'); } }
+      if (left <= 0 && this.rushOn) { this.rushOn = false; if (this.myPlot != null) toast('Rush hour’s over: phew!', '#fde68a'); }
+      if (txt === this.rushTxt) return;
+      this.rushTxt = txt;
+      if (this.rushLab) { place.remove(this.rushLab); this.rushLab.material.map.dispose(); }
+      this.rushLab = label(txt, { size: left > 0 ? 2.6 : 1.6, color: left > 0 ? '#fb923c' : '#fde68a', bg: left > 0 ? 'rgba(127,29,29,.85)' : 'rgba(15,23,42,.6)' }); this.rushLab.position.set(0, 18, 0); place.add(this.rushLab);
+    },
     starsOf(pl) { if (pl.mine) return this.stars; const p = Net.peers.find((q) => q.peer === pl.owner); return p && p.presence && p.presence.st != null ? clamp(+p.presence.st || 3, 1, 5) : 3; },
     rate1(d) {
       const old = this.stars; this.stars = clamp(this.stars + d, 1, 5);
@@ -296,11 +312,11 @@
     serve(sc) {
       const K = this.ck; if (!K) return;
       this.ck = null;
-      const q = [0.3, 1, 1.5][sc + 1], pay = Math.round(this.worth(25, 40) * (1 + 0.3 * (K.tops.length - 1)) * (K.tops.includes('gold') ? 2 : 1) * q * 0.75 ** K.miss);
+      const rush = this.rushLeft() > 0, q = [0.3, 1, 1.5][sc + 1], pay = Math.round(this.worth(25, 40) * (1 + 0.3 * (K.tops.length - 1)) * (K.tops.includes('gold') ? 2 : 1) * q * 0.75 ** K.miss * (rush ? 2 : 1));
       const d = this.rate1(sc < 0 ? -0.2 : (sc > 0 ? 0.15 : 0.08) - 0.03 * K.miss);
       this.cooked++; this.gain(pay, null, null, true); this.dirty = true; this.save();
       if (K.c) { if (K.c.bubble) { K.c.m.remove(K.c.bubble); K.c.bubble = null; } const p = pizzaMesh(K.tops.includes('gold')); p.position.set(0, 2.9, -0.9); K.c.m.add(p); K.c.st = 'leave'; K.c.lx = 16 + (Math.random() < 0.5 ? -1 : 1) * 3.2; }
-      toast(`${sc < 0 ? '🔥 Burnt! ' : sc > 0 ? '😋 Perfect! ' : '🍕 Served! '}+${money(pay)} · ⭐ ${d >= 0 ? '+' : ''}${d.toFixed(2)}`, sc < 0 ? '#fca5a5' : '#86efac');
+      toast(`${sc < 0 ? '🔥 Burnt! ' : sc > 0 ? '😋 Perfect! ' : '🍕 Served! '}+${money(pay)}${rush ? ' (rush ×2!)' : ''} · ⭐ ${d >= 0 ? '+' : ''}${d.toFixed(2)}`, sc < 0 ? '#fca5a5' : '#86efac');
       sfx(sc < 0 ? 'error' : 'coin'); if (sc > 0) puffAt(P.x, P.y + 3, P.z, CONFETTI, 20);
     },
     dropCook() { const K = this.ck; if (!K) return; this.ck = null; if (K.c && K.c.bubble) { K.c.m.remove(K.c.bubble); K.c.bubble = null; } },
@@ -308,7 +324,7 @@
     /* ---- deliver it yourself ---- */
     async tyEnter(s) { this.delivered = Math.max(0, s.dl | 0); this.dv = null; this.boxes = new Map(); this.stars = clamp(s.st == null ? 3 : +s.st || 3, 1, 5); this.cooked = Math.max(0, s.ck | 0); this.ck = null; this.sentSt = Math.round(this.stars * 10) / 10; send({ st: this.sentSt }); },
     tySave() { return { dl: this.delivered, st: Math.round(this.stars * 100) / 100, ck: this.cooked }; },
-    tyLeave() { this.dropCook(); this.dropDelivery(); for (const b of this.boxes.values()) if (b.parent) b.parent.remove(b); this.boxes.clear(); },
+    tyLeave() { if (this.rushLab) { place.remove(this.rushLab); this.rushLab = null; } this.rushTxt = ''; this.rushOn = false; this.dropCook(); this.dropDelivery(); for (const b of this.boxes.values()) if (b.parent) b.parent.remove(b); this.boxes.clear(); },
     tyPrompts() {
       if (this.dv) {
         const h = this.houses[this.dv.h];
@@ -343,7 +359,8 @@
       removeParts((p) => p === dv.beam); this.dv = null; send({ dv: 0 });
       if (msg) { toast(msg, '#fca5a5'); sfx('error'); }
     },
-    tyTick(dt) {
+    tyTick(dt, t) {
+      if (t > (this.rushAt || 0)) { this.rushAt = t + 500; this.drawRush(); }
       if (this.stars != null && this.myPlot != null) this.rate1((2.5 - this.stars) * 0.004 * dt);
       if (this.ck && !this.tg && !panelOpen()) this.dropCook(); // (walked off without cooking it)
       const dv = this.dv;
@@ -363,7 +380,8 @@
     },
     tyHud() {
       const dv = this.dv; if (dv) return `🛵 to the ${this.houses[dv.h].name}: <b>${Math.ceil(dv.left)} s</b>`;
-      return this.myPlot == null ? '' : `⭐ ${this.stars.toFixed(1)} (pizzas ×${this.tyMult(this.plots[this.myPlot]).toFixed(2)})${this.stars < 3.5 ? ' · 👨‍🍳 cook orders to raise it' : ''}`;
+      const left = this.rushLeft(), rush = left > 0 ? `<b style="color:#fb923c">🔥 RUSH HOUR ×2 · ${Math.ceil(left / 1000)}s</b>` : `🔥 rush in ${mmss(this.rushIn() / 1000)}`;
+      return this.myPlot == null ? rush : `${rush} · ⭐ ${this.stars.toFixed(1)} (pizzas ×${this.tyMult(this.plots[this.myPlot]).toFixed(2)})${this.stars < 3.5 && left <= 0 ? ' · 👨‍🍳 cook orders to raise it' : ''}`;
     },
     coinShop: [
       { id: 'cash2', e: '💵', n: '2× Cash', d: 'Every pizza you sell is worth double, for good', price: 700, kind: 'pass' },

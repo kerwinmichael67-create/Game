@@ -2183,6 +2183,11 @@ const TYCOON = {
       add(19, 5.4 + y, -12, 6, 5, 6, 0x374151, { plain: true });
       add(19, 5.5 + y, -12, 4, 0.2, 4, 0x22c55e, { neon: true, solid: false });
     }
+    // the generator by the left wall: pull its lever for ⚡ Overdrive (every dropper ×3 for a while, then it cools down)
+    add(-21.5, 3.4, 4, 3, 3, 3, 0x334155); add(-21.5, 4.6, 4, 2.2, 1.2, 2.2, 0x475569);
+    pl.gen = add(-21.5, 4.9, 4, 2.4, 0.3, 2.4, 0x22c55e, { neon: true, solid: false });
+    pl.lever = add(-19.7, 3, 4, 0.35, 2, 0.35, 0xdc2626, { solid: false }); add(-19.7, 3.2, 4, 0.7, 0.7, 0.7, 0xfde047, { solid: false });
+    pl.genAt = 0; pl.genTxt = '';
     // the cash piles up in the collector till you step on 💵 Collect (with Auto Collect, it goes straight in)
     pl.pile = pl.binLab = null;
     if (!(pl.mine && hasItem('autocol'))) {
@@ -2195,7 +2200,7 @@ const TYCOON = {
       if (it.kind === 'dropper') {
         const lx = -21 + it.slot * 5;
         const box = add(lx, 12 + y, -12, 3, 3, 3, it.col, it.rainbow ? { neon: true } : {});
-        if (it.rainbow) box.rainbow = true;
+        if (it.rainbow) box.rainbow = true; box.droppy = true;
         add(lx, 9 + y, -12, 1.4, 1, 1.4, 0x111111, { plain: true });
         add(lx, 11.5 + y, -15.5, 1, 11.1, 1, 0x555555, { plain: true });
         add(lx, 11 + y, -14.3, 1, 1, 2.6, 0x555555, { plain: true });
@@ -2268,6 +2273,7 @@ const TYCOON = {
     this.cash = 0; this.b = 1; this.rb = 0; this.myPlot = null; this.ct = 0; this.buyCd = 0; this.earned = []; this.sentCash = -1; this.saveAt = performance.now() + 10000; this.btnAt = 0; this.rbAt = 0;
     const s = await kvGet('ty'); this.bin = 0; this.fullSaid = false;
     if (s) { this.cash = Math.max(0, +s.cash || 0); this.b = (s.b | 0) | 1; this.rb = Math.max(0, s.rb | 0); this.bin = Math.max(0, +s.bin || 0); }
+    this.odUntil = s && +s.od > Date.now() ? +s.od : 0; this.odReady = s && +s.odr > Date.now() ? Math.min(+s.odr, Date.now() + 120000) : 0; this.odSaid = '';
     send({ rb: this.rb });
     questMax('tycoon.rebirth', this.rb); questMax('tycoon.buy', TY.filter((_, i) => i && has(this.b, i)).length); if (TY.some((it, i) => it.kind === 'rocket' && has(this.b, i))) questMax('tycoon.rocket', 1);
     this.peers();
@@ -2281,11 +2287,11 @@ const TYCOON = {
   peers() {
     if (!this.plots) return;
     const claims = [];
-    for (const p of Net.peers) { if (p.isMe || !p.presence || !p.presence.t) continue; const pr = p.presence; if (pr.pl >= 0 && pr.pl < 4) claims.push({ peer: p.peer, k: pr.pl | 0, ct: +pr.ct || 0, b: (pr.b | 0) | 1, rb: Math.max(0, pr.rb | 0), cash: +pr.cash || 0, name: String(pr.nm || 'Player').slice(0, 20) }); }
-    if (this.myPlot != null) claims.push({ peer: myPeer(), k: this.myPlot, ct: this.ct, b: this.b, rb: this.rb, cash: this.cash, name: Net.name, me: true });
+    for (const p of Net.peers) { if (p.isMe || !p.presence || !p.presence.t) continue; const pr = p.presence; if (pr.pl >= 0 && pr.pl < 4) claims.push({ peer: p.peer, k: pr.pl | 0, ct: +pr.ct || 0, b: (pr.b | 0) | 1, rb: Math.max(0, pr.rb | 0), cash: +pr.cash || 0, name: String(pr.nm || 'Player').slice(0, 20), od: +pr.od || 0 }); }
+    if (this.myPlot != null) claims.push({ peer: myPeer(), k: this.myPlot, ct: this.ct, b: this.b, rb: this.rb, cash: this.cash, name: Net.name, me: true, od: this.odUntil });
     for (const pl of this.plots) {
       const c = claims.filter((x) => x.k === pl.k).sort((a, b) => a.ct - b.ct || (a.peer < b.peer ? -1 : 1))[0];
-      pl.owner = c ? c.peer : null; pl.b = c ? c.b : 0; pl.rb = c ? c.rb : 0; pl.cash = c ? c.cash : 0; pl.name = c ? c.name : ''; pl.mine = !!(c && c.me);
+      pl.owner = c ? c.peer : null; pl.b = c ? c.b : 0; pl.rb = c ? c.rb : 0; pl.cash = c ? c.cash : 0; pl.name = c ? c.name : ''; pl.mine = !!(c && c.me); pl.od = c ? c.od : 0;
       if (!pl.shown || pl.shown.owner !== pl.owner || pl.shown.b !== pl.b || pl.shown.rb !== pl.rb) this.buildPlot(pl.k);
     }
     if (this.myPlot != null && !this.plots[this.myPlot].mine) { this.myPlot = null; send({ pl: -1 }); toast('Someone else got that factory first!'); }
@@ -2368,6 +2374,7 @@ const TYCOON = {
     const hueT = (t / 3000) % 1;
     for (const p of parts) if (p.rainbow) p.m.material.color.setHSL(hueT, 0.85, 0.6);
     this.rainMat.color.setHSL((hueT + 0.5) % 1, 0.85, 0.6);
+    for (const pl of this.plots) if (pl.owner && pl.gen) this.drawGen(pl, t);
     for (const pl of this.plots) {
       for (const d of pl.decor) if (d.userData.spin) d.rotation.y += d.userData.spin * dt;
       if (pl.spray && pl.owner && Math.random() < dt * 4) puffAt(pl.spray[0] + (Math.random() - 0.5) * 2, 5.4, pl.spray[1] + (Math.random() - 0.5) * 2, [0x7dd3fc, 0xe0f2fe], 1);
@@ -2377,9 +2384,10 @@ const TYCOON = {
     if (!pl.owner) return;
     const b = pl.b, speed = has(b, TY_TURBO) ? 12 : has(b, 2) ? 9 : 6, extra = has(b, TY_TURBO) ? 5 : has(b, 2) ? 1 : 0;
     if (pl.mine && this.tmReset) { this.tmReset = false; for (const c of pl.cubes) place.remove(c.m); pl.cubes = []; pl.tm = {}; }
+    const od = (pl.mine ? this.odUntil : pl.od) > Date.now() ? 3 : 1; // (⚡ Overdrive)
     TY.forEach((it, i) => {
       if (it.kind !== 'dropper' || !has(b, i)) return;
-      pl.tm[i] = (pl.tm[i] == null ? Math.random() * it.every : pl.tm[i]) - dt;
+      pl.tm[i] = (pl.tm[i] == null ? Math.random() * it.every : pl.tm[i]) - dt * od;
       if (pl.tm[i] <= 0 && pl.cubes.length < 140) {
         pl.tm[i] += it.every;
         if (!this.cubeMat[i]) this.cubeMat[i] = it.rainbow ? this.rainMat : new THREE.MeshLambertMaterial({ color: it.col });
@@ -2402,7 +2410,40 @@ const TYCOON = {
       const [x, z] = this.W(pl, c.lx, -12); c.m.position.set(x, c.y, z);
     }
   },
-  save() { if (this.dirty || this.myPlot != null) { this.dirty = false; return kvSet('ty', { cash: Math.floor(this.cash), b: this.b, rb: this.rb, bin: Math.floor(this.bin || 0) }); } },
+  /* ⚡ Overdrive: pull the generator's lever and every dropper drops three times as fast for 20 seconds (30 with the
+     Super Generator); then it has to cool down for a minute (40 seconds) before you can pull it again */
+  odLen() { return hasItem('gen2') ? 30000 : 20000; },
+  odCool() { return hasItem('gen2') ? 40000 : 60000; },
+  overdrive() {
+    const now = Date.now();
+    if (this.myPlot == null || now < this.odUntil) return;
+    if (now < this.odReady) { toast(`❄️ The generator’s still cooling: ${Math.ceil((this.odReady - now) / 1000)}s`, '#93c5fd'); sfx('error', { gap: 500 }); return; }
+    this.odUntil = now + this.odLen(); this.odReady = this.odUntil + this.odCool();
+    send({ od: this.odUntil }); this.peers(); this.dirty = true; this.save();
+    const pl = this.plots[this.myPlot], [x, z] = this.W(pl, -21.5, 4);
+    toast('⚡ OVERDRIVE! Every dropper ×3', '#fde047'); sfx('zap'); sfx('magic'); puffAt(x, 6, z, [0xfde047, 0xffffff, 0x60a5fa], 30);
+  },
+  drawGen(pl, t) {
+    const now = Date.now(), until = pl.mine ? this.odUntil : pl.od, on = until > now, cool = pl.mine && !on && now < this.odReady, k = pl.k;
+    pl.gen.m.material.color.setHex(on ? ((t / 120) % 2 < 1 ? 0xfde047 : 0xf97316) : cool ? 0x60a5fa : pl.mine ? 0x22c55e : 0x64748b);
+    pl.lever.m.rotation.z = on || cool ? -0.9 : 0;
+    if (on && Math.random() < 0.25) { const [x, z] = this.W(pl, -21.5 + (Math.random() - 0.5) * 2, 4 + (Math.random() - 0.5) * 2); puffAt(x, 5.4, z, [0xfde047, 0xffffff, 0x60a5fa], 2); }
+    if (on) for (const p of parts) if (p.plot === k && p.droppy && Math.random() < 0.02) puffAt(p.x, p.y + 1.6, p.z, [0xfde047, 0x60a5fa], 2);
+    if (t < pl.genAt) return;
+    pl.genAt = t + 400;
+    const txt = on ? `⚡ OVERDRIVE ×3 · ${Math.ceil((until - now) / 1000)}s` : cool ? `❄️ Cooling · ${Math.ceil((this.odReady - now) / 1000)}s` : pl.mine ? '⚡ Overdrive: ready!' : '⚡ Generator';
+    if (txt === pl.genTxt) return;
+    pl.genTxt = txt;
+    if (pl.genLab) { place.remove(pl.genLab); pl.genLab.material.map.dispose(); const i = pl.decor.indexOf(pl.genLab); if (i >= 0) pl.decor.splice(i, 1); }
+    const [x, z] = this.W(pl, -21.5, 4); pl.genLab = label(txt, { size: 1, color: on ? '#fde047' : cool ? '#93c5fd' : '#86efac', bg: 'rgba(15,23,42,.7)' }); pl.genLab.position.set(x, 7.6, z); place.add(pl.genLab); pl.decor.push(pl.genLab);
+  },
+  prompts() {
+    if (this.myPlot == null || P.dead) return [];
+    const pl = this.plots[this.myPlot], [x, z] = this.W(pl, -19.7, 4), now = Date.now();
+    const text = now < this.odUntil ? `⚡ Overdrive! ${Math.ceil((this.odUntil - now) / 1000)}s left` : now < this.odReady ? `❄️ Cooling down · ${Math.ceil((this.odReady - now) / 1000)}s` : `⚡ Pull the Overdrive lever (×3 for ${this.odLen() / 1000}s)`;
+    return [{ x, z, r: 3.6, text, fn: () => this.overdrive() }];
+  },
+  save() { if (this.dirty || this.myPlot != null) { this.dirty = false; return kvSet('ty', { cash: Math.floor(this.cash), b: this.b, rb: this.rb, bin: Math.floor(this.bin || 0), od: this.odUntil || 0, odr: this.odReady || 0 }); } },
   // a cube's cash: into the collector (it holds three minutes of what the factory makes), or your pocket with Auto Collect
   bank(v) {
     if (hasItem('autocol')) { this.cash += v; return; }
@@ -2435,7 +2476,7 @@ const TYCOON = {
     if (pl.binLab) { place.remove(pl.binLab); pl.binLab.material.map.dispose(); pl.decor.splice(pl.decor.indexOf(pl.binLab), 1); }
     const [x, z] = this.W(pl, 20, -6.5); pl.binLab = label(txt, { size: 1.3, color: this.bin >= cap ? '#fca5a5' : '#86efac', bg: 'rgba(15,23,42,.7)' }); pl.binLab.position.set(x, 5.6, z); place.add(pl.binLab); pl.decor.push(pl.binLab);
   },
-  coinShop: [{ id: 'cash2', e: '💵', n: '2× Cash', d: 'Every cube is worth double, for good', price: 700, kind: 'pass' }, { id: 'autocol', e: '🤖', n: 'Auto Collect', d: 'Your cash goes straight into your pocket: no walking to the collector', price: 350, kind: 'pass' }, shopSpeed(200, 1.25), { id: 'crate', e: '💰', n: 'Cash Crate', d: 'A minute of your factory’s cash (at least $300), right now', price: 40, kind: 'now' }],
+  coinShop: [{ id: 'cash2', e: '💵', n: '2× Cash', d: 'Every cube is worth double, for good', price: 700, kind: 'pass' }, { id: 'autocol', e: '🤖', n: 'Auto Collect', d: 'Your cash goes straight into your pocket: no walking to the collector', price: 350, kind: 'pass' }, { id: 'gen2', e: '⚡', n: 'Super Generator', d: 'Overdrive lasts 30 seconds and cools down in 40, for good', price: 300, kind: 'pass' }, shopSpeed(200, 1.25), { id: 'crate', e: '💰', n: 'Cash Crate', d: 'A minute of your factory’s cash (at least $300), right now', price: 40, kind: 'now' }],
   shopCan(id) { return id === 'crate' && this.myPlot == null ? 'Claim a factory first' : ''; },
   onBuy(id) {
     if (id === 'autocol') { this.collect(); if (this.myPlot != null) this.buildPlot(this.myPlot); return; }
@@ -2450,7 +2491,7 @@ const TYCOON = {
     const t = performance.now(); this.earned = this.earned.filter((e) => t - e[0] < 5000);
     const rate = this.earned.reduce((s, e) => s + e[1], 0) / 5;
     const mult = tyMult(this.b, this.rb) * (hasItem('cash2') ? 2 : 1);
-    return `💵 ${money(this.cash)}${rate ? ` <small>+$${rate < 10 ? rate.toFixed(1) : Math.round(rate).toLocaleString('en-US')}/s</small>` : ''}${mult > 1 ? ` · ×${mult.toFixed(2).replace(/\.?0+$/, '')} cash` : ''}${this.rb ? ` · 🔁 ${this.rb}` : ''}${this.myPlot == null ? ' · find a free factory' : this.bin >= 1 ? ` · ${this.bin >= this.binCap() ? '<b style="color:#fca5a5">' : ''}🧺 ${money(this.bin)} waiting${this.bin >= this.binCap() ? ' (full!)</b>' : ''}` : ''}`;
+    return `💵 ${money(this.cash)}${rate ? ` <small>+$${rate < 10 ? rate.toFixed(1) : Math.round(rate).toLocaleString('en-US')}/s</small>` : ''}${mult > 1 ? ` · ×${mult.toFixed(2).replace(/\.?0+$/, '')} cash` : ''}${this.rb ? ` · 🔁 ${this.rb}` : ''}${this.odUntil > Date.now() ? ` · <b style="color:#fde047">⚡ ×3 · ${Math.ceil((this.odUntil - Date.now()) / 1000)}s</b>` : ''}${this.myPlot == null ? ' · find a free factory' : this.bin >= 1 ? ` · ${this.bin >= this.binCap() ? '<b style="color:#fca5a5">' : ''}🧺 ${money(this.bin)} waiting${this.bin >= this.binCap() ? ' (full!)</b>' : ''}` : ''}`;
   },
 };
 

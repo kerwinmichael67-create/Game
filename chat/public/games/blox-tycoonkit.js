@@ -18,6 +18,7 @@
                                (userData.vk: worth that many times more)
      tyUp(pl, pr, it, i)       a product just passed upgrader i
      tySold(pl, pr)            a product was sold (true: E took its mesh)
+     tyUpOk(pl, i)             false: upgrader i isn't working (products go past it as they are)
      tyAnim(pl, dt, t)         every frame, each owned plot
      tyTick(dt, t)             every frame
      tyHud() tyPrompts() tyEnter(saved) tySave() tyLeave() tyBuy(id)
@@ -295,7 +296,7 @@ function tycoonKit(E) {
       for (let j = pl.prods.length - 1; j >= 0; j--) {
         const c = pl.prods[j];
         if (c.y > top) c.y = Math.max(top, c.y - 16 * dt); else c.s += sp * (E.walkK || 1) * dt;
-        for (const i of pl.ups) { if (c.up & (1 << (i & 31))) continue; if (c.s >= T[i].s) { c.up |= 1 << (i & 31); c.v *= T[i].mul || 2; if (this.tyUp) this.tyUp(pl, c, T[i], i); } }
+        for (const i of pl.ups) { if (c.up & (1 << (i & 31))) continue; if (c.s >= T[i].s) { c.up |= 1 << (i & 31); if (this.tyUpOk && !this.tyUpOk(pl, i)) continue; c.v *= T[i].mul || 2; if (this.tyUp) this.tyUp(pl, c, T[i], i); } }
         if (c.s >= path.L) {
           pl.prods.splice(j, 1);
           if (pl.mine) { const [x, z] = this.W(pl, ...pathAt(path.L)); this.gain(c.v * this.mult(pl), x, z); }

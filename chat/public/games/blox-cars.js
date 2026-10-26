@@ -153,7 +153,7 @@
       this.hotLab = label(txt, { size: 1.2, bg: 'rgba(15,23,42,.75)' }); this.hotLab.position.set(0, 9.2, 9); place.add(this.hotLab);
     },
     tyBoost(it) { return it.look === 'paint' ? '🎨 Paints your cars the colour you pick: the 🔥 hot colour sells ×2' : ''; },
-    menu() { return [['🎨 Paint', () => this.paintPanel(), 'Paint'], ['🏁 Race 3 bots', () => this.startRace(), 'Race'], [`${this.caseName} (${this.col.length})`, () => this.casePanel(), this.caseShort]]; },
+    menu() { return [['🎨 Paint', () => this.paintPanel(), 'Paint'], [`📋 Order${this.order ? ` (${this.order.got}/${this.order.n})` : ''}`, () => this.orderPanel(), 'Order'], ['🏁 Race 3 bots', () => this.startRace(), 'Race'], [`${this.caseName} (${this.col.length})`, () => this.casePanel(), this.caseShort]]; },
 
     bestModel(b) { let k = 0; this.items.forEach((it, i) => { if (it.kind === 'src' && this.ty.has(b, i)) k = Math.max(k, it.model); }); return k; },
     tyItem(pl, it, i, add) {
@@ -227,7 +227,55 @@
       if (was < 3 && s >= 3 && pl.mine && this.paint >= 0 && this.paint === hotIdx()) { pr.v *= 2; const [x, z] = this.W(pl, ...this.ty.pathAt(pr.s)); puffAt(x, 3, z, [0xfde047, 0xffffff, PAINTS[this.paint][1]], 8); }
     },
     // sold: it drives off the lot
-    tySold(pl, pr) { if (pl.leaving.length > 12) return false; pl.leaving.push({ m: pr.m, lx: -2 }); return true; },
+    tySold(pl, pr) { if (pl.mine) this.orderCar(pr.m); if (pl.leaving.length > 12) return false; pl.leaving.push({ m: pr.m, lx: -2 }); return true; },
+
+    /* ---- 📋 custom orders: a customer wants so many of one of your models, in one colour (once you have the Paint
+       Shop), before the clock runs out; every car off the line that matches counts, and a filled order pays big ---- */
+    hasShop() { return this.items.some((it, i) => it.look === 'paint' && this.ty.has(this.b, i)); },
+    newOrder() {
+      const models = [...new Set(this.items.filter((it, i) => it.kind === 'src' && this.ty.has(this.b, i)).map((it) => it.model))];
+      if (!models.length) { this.order = null; return; }
+      const k = models[Math.floor(Math.random() * models.length)], n = 2 + Math.floor(Math.random() * 3), pc = this.hasShop() ? Math.floor(Math.random() * PAINTS.length) : -1;
+      const time = 120 + n * 25, pay = Math.round(this.worth(25 + n * 12, 300) * (pc >= 0 ? 1.5 : 1) * (1 + 0.5 * this.rb));
+      this.order = { k, n, pc, got: 0, left: time, total: time, pay };
+      toast(`📋 A new order: ${n} ${pc >= 0 ? PAINTS[pc][0] + ' ' : ''}${MODELS[k].n}${n > 1 ? 's' : ''} in ${mmss(time)}!`, '#93c5fd'); sfx('bell');
+    },
+    orderCar(m) {
+      const O = this.order; if (!O || O.left <= 0 || O.got >= O.n || m.userData.k !== O.k) return;
+      if (O.pc >= 0 && (m.userData.stage < 3 || m.userData.col !== PAINTS[O.pc][1])) return;
+      O.got++; sfx('tick');
+      const pl = this.plots[this.myPlot], [x, z] = this.W(pl, ...this.ty.pathAt(this.ty.path.L)); puffAt(x, 3, z, [0x93c5fd, 0xffffff], 10);
+      if (O.got < O.n) return;
+      this.gain(O.pay, null, null, true); this.orders = (this.orders || 0) + 1; this.dirty = true; this.save();
+      toast(`📋 Order filled! +${money(O.pay)}`, '#86efac'); sfx('win'); puffAt(P.x, P.y + 3, P.z, CONFETTI, 24);
+      if (Math.random() < 0.35) { const w = [0, 0, 60, 28, 9, 3]; let roll = Math.random() * 100, r = 2; while (r < 5 && roll >= w[r]) { roll -= w[r]; r++; } const opts = FINDS.map((F, f) => [F, f]).filter(([F]) => F.r === r); this.gotFind(opts[Math.floor(Math.random() * opts.length)][1], 'The customer gave you'); }
+      this.order = null; this.orderAt = performance.now() + 15000;
+    },
+    orderTick(dt, t) {
+      if (this.myPlot == null) { this.order = null; return; }
+      const O = this.order;
+      if (!O) { if (t > (this.orderAt || 0)) this.newOrder(); if (!this.order) this.orderAt = t + 10000; }
+      else if ((O.left -= dt) <= 0) { toast('📋 The customer gave up waiting', '#fca5a5'); sfx('error'); this.order = null; this.orderAt = t + 15000; }
+      if (t > (this.ordAt || 0)) { this.ordAt = t + 500; this.drawOrder(); }
+    },
+    orderText(O) { return `${O.n} ${O.pc >= 0 ? PAINTS[O.pc][0] + ' ' : ''}${MODELS[O.k].n}${O.n > 1 ? 's' : ''}`; },
+    // over the lot's way out: the order (only you see your own)
+    drawOrder() {
+      const O = this.order, pl = this.myPlot != null ? this.plots[this.myPlot] : null;
+      const txt = pl && O ? `📋 WANTED: ${this.orderText(O)}\n${O.got}/${O.n} · ${mmss(Math.max(0, O.left))} · pays ${money(O.pay)}` : '';
+      if (txt === this.ordTxt) return;
+      this.ordTxt = txt;
+      if (this.ordLab) { place.remove(this.ordLab); this.ordLab.material.map.dispose(); this.ordLab = null; }
+      if (!txt) return;
+      const [x, z] = this.W(pl, -6, -3); this.ordLab = label(txt, { size: 1, color: '#bfdbfe', bg: 'rgba(30,58,138,.8)' }); this.ordLab.position.set(x, 8, z); place.add(this.ordLab);
+    },
+    orderPanel() {
+      const O = this.order, hot = hotIdx();
+      openPanel('📋 Custom order', O ? `<p class="xp-note">A customer wants <b>${this.orderText(O)}</b>. Every one that comes off your line counts${O.pc >= 0 ? `: set your Paint Shop to <b>${PAINTS[O.pc][0]}</b>` : ''}.</p>
+        <div class="xp-row"><span>🚗 <b>${O.got} / ${O.n}</b> done<br><small style="color:var(--muted)">${mmss(Math.max(0, O.left))} left</small></span><b style="color:#86efac">${money(O.pay)}</b></div>
+        ${O.pc >= 0 ? `<p class="xp-note">${this.paint === O.pc ? '✅ Your Paint Shop sprays ' + PAINTS[O.pc][0] + '.' : `🎨 Your Paint Shop sprays ${this.paint >= 0 ? PAINTS[this.paint][0] : 'nothing yet'}.`}${O.pc !== hot ? ` (The 🔥 hot colour is ${PAINTS[hot][0]}: you can’t have both!)` : ' It’s the 🔥 hot colour too: double!'}</p><button class="xp-btn blue" data-paint="1" style="width:100%">🎨 Paint ${PAINTS[O.pc][0]}</button>` : ''}`
+        : `<p class="xp-note">No order right now: the next customer is on the way.</p>`, (b) => { if (b.dataset.paint && this.order && this.order.pc >= 0) { this.paint = this.order.pc; send({ pc: this.paint }); this.dirty = true; this.save(); sfx('select'); this.orderPanel(); } });
+    },
     tyAnim(pl, dt) {
       for (let k = pl.leaving.length - 1; k >= 0; k--) {
         const c = pl.leaving[k]; c.lx -= dt * 14;
@@ -237,9 +285,9 @@
     },
 
     /* ---- the test drive ---- */
-    async tyEnter(s) { this.laps = Math.max(0, s.laps | 0); this.bestLap = +s.bl || 0; this.dr = null; this.cars = new Map(); this.paint = clamp(s.pc == null ? -1 : s.pc | 0, -1, PAINTS.length - 1); this.wins = Math.max(0, s.wins | 0); send({ pc: this.paint }); },
-    tySave() { return { laps: this.laps, bl: this.bestLap, pc: this.paint, wins: this.wins }; },
-    tyLeave() { this.endRace(); if (this.dr) this.stopDrive(true); for (const c of this.cars.values()) if (c.parent) c.parent.remove(c); this.cars.clear(); },
+    async tyEnter(s) { this.order = null; this.orderAt = performance.now() + 20000; this.orders = Math.max(0, s.ord | 0); this.ordTxt = ''; this.laps = Math.max(0, s.laps | 0); this.bestLap = +s.bl || 0; this.dr = null; this.cars = new Map(); this.paint = clamp(s.pc == null ? -1 : s.pc | 0, -1, PAINTS.length - 1); this.wins = Math.max(0, s.wins | 0); send({ pc: this.paint }); },
+    tySave() { return { laps: this.laps, bl: this.bestLap, pc: this.paint, wins: this.wins, ord: this.orders || 0 }; },
+    tyLeave() { if (this.ordLab) { place.remove(this.ordLab); this.ordLab = null; } this.ordTxt = ''; this.order = null; this.endRace(); if (this.dr) this.stopDrive(true); for (const c of this.cars.values()) if (c.parent) c.parent.remove(c); this.cars.clear(); },
     get drive() { return this.dr ? this.driveFn : null; },
     driveFn(dt, f, r) {
       const D = this.dr, top = MODELS[D.k].top * (hasItem('nitro') ? 1.12 : 1);
@@ -318,6 +366,7 @@
     // the lap: past every corner in turn, then over the line
     tyTick(dt, t) {
       if (t > (this.hotAt || 0)) { this.hotAt = t + 1000; this.drawHot(); }
+      this.orderTick(dt, t);
       const D = this.dr; if (!D) return;
       if (D.race) this.raceTick(dt);
       if (P.dead) { this.stopDrive(true); return; }
@@ -360,7 +409,7 @@
     tyHud() {
       const D = this.dr, R = D && D.race;
       if (R) return R.t < 0 ? '🏁 Race: get ready…' : `🏁 Race · lap ${Math.min(R.laps + 1, LAPS)}/${LAPS} · <b>${ord(R.over ? R.place : this.racePlace())}</b> · <b>${Math.round(Math.abs(D.sp) * 1.4)}</b> mph`;
-      if (!D) return this.myPlot == null ? '' : `🔥 hot colour: ${PAINTS[hotIdx()][0]}${this.paint >= 0 ? ` · 🎨 yours: ${PAINTS[this.paint][0]}${this.paint === hotIdx() ? ' (×2!)' : ''}` : ''}`;
+      if (!D) return this.myPlot == null ? '' : `${this.order ? `📋 ${this.order.got}/${this.order.n} ${this.orderText(this.order).replace(/^\d+ /, '')} · ${mmss(Math.max(0, this.order.left))} · ` : ''}🔥 hot colour: ${PAINTS[hotIdx()][0]}${this.paint >= 0 ? ` · 🎨 yours: ${PAINTS[this.paint][0]}${this.paint === hotIdx() ? ' (×2!)' : ''}` : ''}`;
       return `🏁 <b>${Math.round(Math.abs(D.sp) * 1.4)}</b> mph${D.started ? ` · lap ${D.lapT.toFixed(1)} s · corner ${Math.min(D.cp, 4)}/4` : ' · drive to the line'}${this.bestLap ? ` · best ${this.bestLap.toFixed(1)} s` : ''}`;
     },
     coinShop: [

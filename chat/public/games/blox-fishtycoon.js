@@ -30,6 +30,17 @@
   ];
   const RODS = ['Old Rod', 'Better Rod', 'Pro Rod', 'Golden Rod'], ROD_COL = [0x8b5a2b, 0x2563eb, 0x7c3aed, 0xfacc15];
   const SEC = [4, 10, 25, 60, 180, 500], MIN = [10, 25, 80, 250, 1000, 4000]; // a catch's cash: that many seconds of your harbour's income (at least)
+  // 🏆 fishing tournaments: every six minutes (the same for everyone), two minutes to land the heaviest fish; bot anglers
+  // fish too (the same bots and catches for everyone, from the round's number)
+  const TOUR_PER = 360000, TOUR_LEN = 120000, WEIGHT = [[0.4, 3], [2, 14], [5, 40], [20, 260], [150, 1800], [500, 5000]];
+  const BOTS = ['Old Pete', 'Captain Cod', 'Reel Rita'];
+  const kg = (w) => (w < 100 ? w.toFixed(1) : Math.round(w).toLocaleString('en-US')) + ' kg';
+  // a bot's catches in a round: [when (s in), how heavy]
+  function botCatches(round, b) {
+    const r = mulberry(round * 977 + b * 131 + 7), out = [];
+    for (let t = 6 + r() * 14; t < TOUR_LEN / 1000; t += 14 + r() * 22) { const x = r(), rar = x < 0.55 ? 1 : x < 0.85 ? 2 : x < 0.97 ? 3 : 4, [lo, hi] = WEIGHT[rar]; out.push([t, lo + (hi - lo) * Math.pow(r(), 2.2) * 0.8]); }
+    return out;
+  }
   const mats = new Map(), M = (c) => { let m = mats.get(c); if (!m) { m = new THREE.MeshLambertMaterial({ color: c }); mats.set(c, m); } return m; };
   const box = (g, c, sx, sy, sz, x, y, z) => { const m = new THREE.Mesh(BOX, typeof c === 'number' ? M(c) : c); m.scale.set(sx, sy, sz); m.position.set(x, y, z); g.add(m); return m; };
   const rainbowMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
@@ -282,10 +293,10 @@
     /* ---- your own rod ---- */
     rodLvl() { let l = 0; this.items.forEach((it, i) => { if (it.kind === 'rod' && this.ty.has(this.b, i)) l = Math.max(l, it.lvl); }); return l; },
     async tyEnter(s) {
-      this.caught = Math.max(0, s.caught | 0); this.R = { st: 'idle' }; this.rodM = null; this.others = new Map(); this.sl = null; this.seats = new Map(); send({ sl: 0 }); this.drawSpots(true);
+      this.tWins = Math.max(0, s.tw | 0); this.myBest = Math.max(0, +s.mb || 0); this.tour = null; this.tourRound = null; this.tourTxt = ''; this.caught = Math.max(0, s.caught | 0); this.R = { st: 'idle' }; this.rodM = null; this.others = new Map(); this.sl = null; this.seats = new Map(); send({ sl: 0 }); this.drawSpots(true);
     },
-    tySave() { return { caught: this.caught }; },
-    tyLeave() { this.dock(true); for (const o of this.spotObjs || []) place.remove(o.g); this.spotObjs = []; this.spotN = null; for (const b of (this.seats || new Map()).values()) if (b.parent) b.parent.remove(b); for (const o of this.others.values()) { scene.remove(o.bob); scene.remove(o.line); } this.others.clear(); },
+    tySave() { return { caught: this.caught, tw: this.tWins || 0, mb: Math.round((this.myBest || 0) * 10) / 10 }; },
+    tyLeave() { if (this.tourLab) { place.remove(this.tourLab); this.tourLab = null; } this.dock(true); for (const o of this.spotObjs || []) place.remove(o.g); this.spotObjs = []; this.spotN = null; for (const b of (this.seats || new Map()).values()) if (b.parent) b.parent.remove(b); for (const o of this.others.values()) { scene.remove(o.bob); scene.remove(o.line); } this.others.clear(); },
     // where you can fish: the back of your dock, or the end of the public pier
     fishSpot() {
       if (P.dead || P.y < 0) return false;
@@ -342,6 +353,8 @@
       while (r < 5 && roll >= w[r]) { roll -= w[r]; r++; }
       const cash = this.worth(SEC[r], MIN[r]) * (1 + 0.5 * this.rb) * (1 + 0.5 * sp);
       this.caught++; quest('fishty.catch');
+      const [lo, hi] = WEIGHT[r], wt = (lo + (hi - lo) * Math.pow(Math.random(), 1.8)) * (1 + 0.25 * sp) * (sc > 0 ? 1.15 : 1);
+      this.tourCatch(wt);
       if (r < 2) {
         const [n] = CATCH[r][Math.floor(Math.random() * CATCH[r].length)];
         this.gain(cash, null, null, true); toast(`🐟 ${sc > 0 ? 'Perfect! ' : ''}You caught a ${n}! +${money(cash)}`, r ? '#86efac' : '#e2e8f0'); sfx('coin');
@@ -353,7 +366,65 @@
       puffAt(P.x, P.y + 4, P.z, r >= 2 ? CONFETTI : [0x93c5fd, 0xffffff], r >= 2 ? 30 : 10);
       this.endFish();
     },
+    /* ---- 🏆 tournaments ---- */
+    tourNow() { const n = Date.now() + (this.tShift || 0); return { round: Math.floor(n / TOUR_PER), ph: n % TOUR_PER }; },
+    tourOn() { return this.tourNow().ph < TOUR_LEN; },
+    tourCatch(wt) {
+      const { round, ph } = this.tourNow();
+      if (ph >= TOUR_LEN) { setTimeout(() => toast(`🐟 That one weighed ${kg(wt)}${this.myBest ? ` (your best: ${kg(this.myBest)})` : ''}`, '#bae6fd'), 1400); this.myBest = Math.max(this.myBest || 0, wt); this.dirty = true; return; }
+      const T = this.tour && this.tour.round === round ? this.tour : (this.tour = { round, w: 0 });
+      this.myBest = Math.max(this.myBest || 0, wt); this.dirty = true;
+      if (wt > T.w) { T.w = wt; send({ tw: [round, Math.round(wt * 10) / 10] }); setTimeout(() => toast(`🏆 ${kg(wt)}! Your heaviest this tournament (${this.tourRank().place}${['st', 'nd', 'rd'][this.tourRank().place - 1] || 'th'})`, '#fde047'), 1400); }
+      else setTimeout(() => toast(`🐟 ${kg(wt)} (your heaviest is ${kg(T.w)})`, '#bae6fd'), 1400);
+    },
+    // everyone's heaviest this round: you, the others here who've caught something, and the bots so far
+    tourBoard(round, secs) {
+      const rows = [];
+      if (this.tour && this.tour.round === round && this.tour.w > 0) rows.push({ n: Net.name, w: this.tour.w, me: true });
+      for (const p of Net.peers) { if (p.isMe || !p.presence) continue; const tw = p.presence.tw; if (Array.isArray(tw) && tw[0] === round && tw[1] > 0) rows.push({ n: String(p.presence.nm || 'Player').slice(0, 20), w: +tw[1] }); }
+      BOTS.forEach((n, b) => { const w = botCatches(round, b).filter(([t]) => t <= secs).reduce((m, [, x]) => Math.max(m, x), 0); if (w > 0) rows.push({ n: '🤖 ' + n, w, bot: true }); });
+      return rows.sort((a, b) => b.w - a.w);
+    },
+    tourRank() { const { round, ph } = this.tourNow(), rows = this.tourBoard(round, Math.min(ph, TOUR_LEN) / 1000); return { rows, place: rows.findIndex((r) => r.me) + 1 }; },
+    tourTick(t) {
+      if (t < (this.tourAt || 0)) return;
+      this.tourAt = t + 500;
+      const { round, ph } = this.tourNow(), on = ph < TOUR_LEN;
+      if (on && this.tourRound !== round) { this.tourRound = round; this.tourEnded = false; if (this.myPlot != null) { toast('🏆 FISHING TOURNAMENT! Land the heaviest fish in 2 minutes', '#fde047'); sfx('horn'); } }
+      // over: prizes for the top three (whoever caught something)
+      if (!on && this.tourRound === round && !this.tourEnded) {
+        this.tourEnded = true;
+        const rows = this.tourBoard(round, TOUR_LEN / 1000), place = rows.findIndex((r) => r.me) + 1;
+        if (place > 0) {
+          const prize = place <= 3 ? Math.round(this.worth([150, 70, 30][place - 1], [3000, 1200, 500][place - 1]) * (1 + 0.5 * this.rb)) : 0;
+          if (prize) this.gain(prize, null, null, true);
+          toast(place === 1 ? `🏆 You won the tournament with ${kg(rows[0].w)}! +${money(prize)}` : place <= 3 ? `🏆 ${['', '🥈 2nd', '🥉 3rd'][place - 1]} place! +${money(prize)}` : `🏆 You came ${place}th of ${rows.length}`, place === 1 ? '#fde047' : '#86efac');
+          sfx(place === 1 ? 'win' : place <= 3 ? 'coin' : 'lose');
+          if (place === 1) { this.tWins = (this.tWins || 0) + 1; this.dirty = true; Net.chat(`🏆 won the fishing tournament with a ${kg(rows[0].w)} catch!`); const opts = FINDS.map((F, f) => [F, f]).filter(([F]) => F.r === 3); this.gotFind(opts[Math.floor(Math.random() * opts.length)][1], 'The tournament prize:'); puffAt(P.x, P.y + 4, P.z, CONFETTI, 40); }
+          this.save();
+        }
+      }
+      // the leaderboard over the pier
+      const rows = on ? this.tourBoard(round, ph / 1000).slice(0, 3) : [];
+      const txt = on ? `🏆 TOURNAMENT · ${mmss((TOUR_LEN - ph) / 1000)}\n${rows.length ? rows.map((r, i) => `${['🥇', '🥈', '🥉'][i]} ${r.n} ${kg(r.w)}`).join('\n') : 'Nothing caught yet!'}` : `🏆 Next tournament in ${mmss((TOUR_PER - ph) / 1000)}`;
+      if (txt === this.tourTxt) return;
+      this.tourTxt = txt;
+      if (this.tourLab) { place.remove(this.tourLab); this.tourLab.material.map.dispose(); }
+      this.tourLab = label(txt, { size: on ? 1.5 : 1.2, color: '#fde047', bg: 'rgba(15,23,42,.75)' }); this.tourLab.position.set(0, 12, -24); place.add(this.tourLab);
+    },
+    tourHud() {
+      const { ph } = this.tourNow(); if (ph >= TOUR_LEN) return '';
+      const { place } = this.tourRank();
+      return `<b style="color:#fde047">🏆 ${mmss((TOUR_LEN - ph) / 1000)}</b>${this.tour && this.tour.w ? ` · your best ${kg(this.tour.w)} (${place}${['st', 'nd', 'rd'][place - 1] || 'th'})` : ' · catch something!'}`;
+    },
+    tourPanel() {
+      const { round, ph } = this.tourNow(), on = ph < TOUR_LEN, rows = on ? this.tourBoard(round, ph / 1000) : [];
+      openPanel('🏆 Fishing tournament', `<p class="xp-note">Every 6 minutes, everyone on the server (and three bot anglers) has <b>2 minutes</b> to land the heaviest fish, from your dock, the pier or your boat. Rarer fish are heavier, and deep-sea spots grow them bigger. 🥇 1st: a big prize and a Rare fish for your aquarium · 🥈 2nd · 🥉 3rd.</p>
+        <p class="xp-note">${on ? `<b style="color:#fde047">On now: ${mmss((TOUR_LEN - ph) / 1000)} left!</b>` : `Next one in <b>${mmss((TOUR_PER - ph) / 1000)}</b>.`} You’ve won ${this.tWins || 0}. Your heaviest ever: ${this.myBest ? kg(this.myBest) : 'nothing yet'}.</p>
+        ${rows.map((r, i) => `<div class="xp-row"${r.me ? ' style="border-color:#fde047"' : ''}><span>${['🥇', '🥈', '🥉'][i] || `${i + 1}.`} <b>${esc(r.n)}</b></span><b>${kg(r.w)}</b></div>`).join('') || (on ? '<p class="xp-note">Nobody’s caught anything yet!</p>' : '')}`);
+    },
     tyTick(dt, t) {
+      this.tourTick(t);
       this.drawSpots();
       for (const o of this.spotObjs || []) { o.ring.rotation.z += dt * 0.6; if (Math.random() < dt * 4) puffAt(o.x + (Math.random() - 0.5) * 5, -0.3, o.z + (Math.random() - 0.5) * 5, [0xffffff, 0xbae6fd], 1); }
       if (this.sl) {
@@ -410,12 +481,13 @@
       if (on) a.armR.rotation.x = 1.25;
     },
     tyHud() {
-      const R = this.R;
+      const R = this.R, tour = this.tourHud();
+      if (tour && !(R && R.st === 'wait') && !this.sl) return tour + (this.fishSpot() ? ` · 🎣 ${touchy ? 'Tap' : 'Press E'} to fish` : '');
       if (R && R.st === 'wait') return '🎣 waiting for a bite…';
       if (this.sl) { const o = (this.spotObjs || []).slice().sort((a, b) => Math.hypot(a.x - P.x, a.z - P.z) - Math.hypot(b.x - P.x, b.z - P.z))[0]; return `⛵ ${Math.round(Math.abs(this.sl.sp) * 1.5)} knots${o ? ` · nearest: ${SPOT_NAME[o.tier]} ${Math.round(Math.hypot(o.x - P.x, o.z - P.z))} m` : ''}`; }
       return this.fishSpot() ? `🎣 ${touchy ? 'Tap' : 'Press E'} to fish` : '';
     },
-    menu() { return [['⛵ Sail your boat', () => (this.sl ? this.dock() : this.sail()), 'Sail'], [`${this.caseName} (${this.col.length})`, () => this.casePanel(), this.caseShort]]; },
+    menu() { return [['⛵ Sail your boat', () => (this.sl ? this.dock() : this.sail()), 'Sail'], [`🏆 Tournament${this.tourOn() ? ' (on now!)' : ''}`, () => this.tourPanel(), 'Contest'], [`${this.caseName} (${this.col.length})`, () => this.casePanel(), this.caseShort]]; },
     coinShop: [
       { id: 'cash2', e: '💵', n: '2× Cash', d: 'Every fish you sell is worth double, for good', price: 700, kind: 'pass' },
       { id: 'bait', e: '🪱', n: 'Lucky Bait', d: '5 casts with 3× the chance of a rare fish (and quicker bites)', price: 25, kind: 'use', pack: 5 },
