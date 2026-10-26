@@ -93,7 +93,7 @@
     search: () => Promise.resolve([]),
   };
 
-  // ---------------------------------------------------------------- saved data (claude.ai only)
+  // ---------------------------------------------------------------- saved data (claude.ai, and Bloxverse on the website)
   const docSnap = (s) => ({ id: s.id, exists: s.exists, data: () => s.data, metadata: { fromCache: s.fromCache, hasPendingWrites: false } });
   const collSnap = (s) => {
     const docs = s.docs.map((d) => ({ id: d.id, exists: true, data: () => d.data }));
@@ -116,6 +116,7 @@
       set: (data) => call('db.set', { path, data }),
       update: (data) => call('db.update', { path, data }),
       delete: () => call('db.delete', { path }),
+      acquire: (opts) => call('db.acquire', { path, opts: opts || {} }),
       onSnapshot: (next, onErr) => subscribe({ path, doc: true }, 'doc', next, onErr),
       collection: (c) => collRef(path + '/' + c),
     };

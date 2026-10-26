@@ -539,6 +539,42 @@
   .fit .row{display:flex;gap:4px;padding:0 6px 6px}
   .fit .row button{flex:1;border:1px solid var(--line);border-radius:9px;background:rgba(255,255,255,.06);color:#e2e8f0;font:600 12px var(--fh);padding:5px 0;cursor:pointer}
   .fit .row button:hover{background:rgba(255,255,255,.14)}
+  .xp-btn.pink{--c1:#f9a8d4;--c2:#db2777;--c3:#831843}
+  .avmodes{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:0 0 12px}
+  .avmodes button{border:1px solid var(--line);border-radius:14px;padding:9px 6px;background:rgba(255,255,255,.05);color:#cbd5e1;font:600 14px var(--fh);cursor:pointer}
+  .avmodes button.on{background:linear-gradient(180deg,#60a5fa,#2563eb);color:#fff;border-color:#93c5fd;box-shadow:0 3px 0 #1e3a8a}
+  .xgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px}
+  .xcard{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;background:linear-gradient(180deg,#283143,#1c222d);border:2px solid rgba(255,255,255,.07);border-radius:14px;color:#e2e8f0;padding:6px 6px 8px;cursor:pointer;font:600 12.5px/1.15 var(--fh);text-align:center;transition:transform .12s,border-color .12s}
+  .xcard:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.2)}
+  .xcard.lim{border-color:rgba(250,204,21,.45);background:linear-gradient(180deg,#3a3112,#1f1b0e)}
+  .xcard img{width:84px;height:84px;object-fit:contain;border-radius:12px;background:radial-gradient(circle at 50% 35%,rgba(125,211,252,.28),transparent 70%)}
+  .xcard small{color:var(--muted);font:700 11px var(--fb)}
+  .xcard .pr{margin-top:3px;color:#fde68a;font:600 11px var(--fh);background:rgba(0,0,0,.35);border-radius:999px;padding:2px 8px;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+  .xcard .pr.own{color:#86efac}.xcard .pr.so{color:#fca5a5}
+  .xbadge{position:absolute;left:6px;top:6px;background:linear-gradient(180deg,#fde047,#f59e0b);color:#422006;border-radius:999px;padding:1px 7px;font:700 9.5px var(--fh);letter-spacing:.06em}
+  .xmine{display:flex;flex-direction:column;gap:4px}
+  .xmine.on .xcard{border-color:#22c55e}
+  .xmini{border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.06);color:#e2e8f0;font:600 11.5px var(--fh);padding:5px 4px;cursor:pointer}
+  .xmini.gold{background:linear-gradient(180deg,#fcd34d,#f59e0b);color:#422006;border-color:#fde68a}
+  .xdet{display:flex;gap:14px;align-items:center;margin:4px 0 12px}
+  .xdet img{width:130px;height:130px;object-fit:contain;flex:none;border-radius:16px;background:radial-gradient(circle at 50% 35%,rgba(125,211,252,.3),transparent 70%),#1e293b}
+  .xdet h3{margin:0 0 2px;font:600 22px var(--fh)}
+  .xdet small{color:var(--muted);font:700 12.5px var(--fb)}
+  .xlim{display:inline-block;margin-top:8px;background:linear-gradient(180deg,#fde047,#f59e0b);color:#422006;border-radius:999px;padding:3px 10px;font:700 12px var(--fh);letter-spacing:.04em}
+  .xprice{display:flex;align-items:center;gap:7px;margin-top:8px;color:#fde68a;font:600 22px var(--fh)}
+  .xrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:linear-gradient(180deg,#283143,#1d2431);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:7px 9px;margin-bottom:6px;font:700 13px var(--fb);color:#cbd5e1}
+  .xrow b{font:600 15px var(--fh);color:#fde68a;min-width:30px}
+  .xrow>span{flex:1;min-width:0}
+  .xrow .pr{flex:none;display:inline-flex;align-items:center;gap:4px;color:#fde68a;font:600 14px var(--fh)}
+  .xrow .xp-btn{padding:7px 12px;font-size:13px}
+  .xin{flex:1 1 120px;padding:0 10px}.xin input{padding:7px 0;min-width:0}.xin .coin{flex:none}
+  .xpub{background:rgba(250,204,21,.07);border:1px solid rgba(250,204,21,.3);border-radius:14px;padding:10px 12px;margin-bottom:12px}
+  .xpub h4{margin:0 0 4px;font:600 16px var(--fh)}
+  .xform{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:8px 0}
+  .xform label{display:flex;align-items:center;gap:8px;color:#cbd5e1;font:600 13px var(--fh)}
+  .pxwrap{display:flex;justify-content:center;margin:4px 0 8px}
+  #pxCan{width:min(240px,70vw);height:auto;aspect-ratio:1;border-radius:12px;box-shadow:0 0 0 2px rgba(255,255,255,.15);touch-action:none;cursor:crosshair;image-rendering:pixelated}
+  .sw.emo button{width:34px;height:34px;font-size:18px;background:rgba(255,255,255,.08)}
   @media (max-width:760px){.aved{padding:10px 12px;gap:8px}.avedhead h2{font-size:20px}.avedhead .xchip{padding:5px 9px}.avedbody{grid-template-columns:1fr;grid-template-rows:minmax(200px,36vh) 1fr;gap:10px}#avOpts .shop{grid-template-columns:repeat(auto-fill,minmax(84px,1fr))}}
   @media (max-height:520px) and (min-width:600px){.avedbody{grid-template-columns:minmax(200px,.8fr) 1.4fr;grid-template-rows:none}.aved{padding:8px 12px}}
   /* phones (last, so these win) */
@@ -926,7 +962,7 @@ function respawn(quiet) {
   P.x = s[0]; P.y = s[1]; P.z = s[2]; P.yaw = s[3] || 0; P.vx = P.vy = P.vz = 0; P.dead = false; P.ground = null;
   cam.yaw = P.yaw;
   dropAvatar(me);
-  me = makeAvatar(avArr(), Net.name, true); scene.add(me.g);
+  me = makeAvatar(avArr(), Net.name, true, axArr()); scene.add(me.g);
   if (!quiet) { puffAt(P.x, P.y + 2, P.z, 0xffffff); sfx('pop', { vol: 0.6 }); }
 }
 // the shadow under someone: the top of whatever is below them
@@ -967,7 +1003,9 @@ const okAv = (a) => { const d = [5, 0, 1, 0, 0, 0, 0, 0, 0, 0]; return AV_LISTS.
 const avFrom = (o) => { const v = okAv(AV_KEYS.map((k) => o && o[k])); const r = {}; AV_KEYS.forEach((k, i) => (r[k] = v[i])); return r; };
 // Blox Coins: earned in every experience, spent on cosmetics (and a few things inside experiences)
 const W = { coins: 0, own: new Set(), day: '', loaded: false, items: {}, // items: what you bought in experiences' shops ({ 'obby.speed': 1 })
-  fr: { f: {}, out: {}, no: {} }, fits: [null, null, null, null, null, null] }; // fr: friends (see "friends" below); fits: saved outfits
+  fr: { f: {}, out: {}, no: {} }, fits: [null, null, null, null, null, null], // fr: friends (see "friends" below); fits: saved outfits
+  made: {}, xown: [], wear: { h: '', pt: '', f: '' } }; // items you made, catalog items you bought, and which made/limited items you're wearing
+const axArr = () => XSLOTS.map((k) => W.wear[k] || '');
 const owns = (slot, i) => COSMETICS[slot] ? COSMETICS[slot].price[i] === 0 || W.own.has(slot + i) : true;
 const FACE_TEX = FACES.map((_, k) => {
   const c = document.createElement('canvas'); c.width = 128; c.height = 128; const g = c.getContext('2d');
@@ -1022,10 +1060,86 @@ function patternTex(pt, col) {
   else if (pt === 15) { g.fillStyle = '#facc15'; for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6; g.beginPath(); g.ellipse(32 + Math.cos(a) * 15, 32 + Math.sin(a) * 15, 8, 4, a, 0, 7); g.fill(); } g.fillStyle = '#78350f'; g.beginPath(); g.arc(32, 32, 10, 0, 7); g.fill(); } // sunflower
   const t = new THREE.CanvasTexture(c); PAT_TEX.set(key, t); return t;
 }
+/* ---------------- items players make, and limiteds: what they look like ----------------
+   A made item is a look: a hat (one of XHATS's shapes, two colours from XPAL, a badge from XEMO, maybe glowing), or a
+   12×12 pixel picture for a shirt's front or a face (each pixel a digit 0–f: 0 is see-through, 1–f a colour in XPAL).
+   What someone wears on top of their avatar is ax: [hat, shirt, face], each an item's id ('' for none) or, in the
+   editor, a look itself ({ k, look }). The catalog itself (who made what, limiteds, buying) is further down. */
+const XPAL = ['', '#111827', '#f8fafc', '#ef4444', '#f97316', '#facc15', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899', '#92400e', '#9ca3af', '#f9a8d4', '#14532d', '#7f1d1d'];
+const XHATS = [['Top hat', '🎩'], ['Crown', '👑'], ['Cone', '🔺'], ['Cap', '🧢'], ['Beanie', '🧶'], ['Horns', '😈'], ['Halo', '😇'], ['Dominus', '🦹'], ['Bucket hat', '🪣'], ['Bow', '🎀']];
+const XEMO = ['', '⭐', '❤️', '🔥', '💎', '⚡', '🌈', '💀', '🍀', '👁️', '🌙', '🎵'];
+const XKINDS = { h: ['Hat', '🎩'], pt: ['Shirt', '👕'], f: ['Face', '🙂'] };
+const XSLOTS = ['h', 'pt', 'f'];
+// the first limited, Bloxverse's own: a stock of 2
+const OFFICIAL = [{ id: 'L1', nm: 'Golden Dominus', k: 'h', look: { s: 7, c: 5, d: 1, e: 0, gl: 1 }, by: '', byNm: 'Bloxverse', price: 500, lim: 2, pub: true, at: 0, off: true }];
+const okAx = (a) => XSLOTS.map((_, i) => (Array.isArray(a) && typeof a[i] === 'string' && /^[A-Za-z0-9]{1,20}$/.test(a[i]) ? a[i] : ''));
+const xName = (n) => String(n || '').replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 24) || 'My item';
+function okLook(k, l) {
+  if (!l || typeof l !== 'object') return null;
+  if (k === 'h') return { s: clamp(l.s | 0, 0, XHATS.length - 1), c: clamp(l.c | 0, 1, 15), d: clamp(l.d | 0, 1, 15), e: clamp(l.e | 0, 0, XEMO.length - 1), gl: l.gl ? 1 : 0 };
+  return XKINDS[k] && typeof l.px === 'string' && /^[0-9a-f]{144}$/.test(l.px) ? { px: l.px } : null;
+}
+// the item with this id: Bloxverse's, one in the catalog, or one you made (null: not loaded yet)
+function xItem(id) {
+  if (!id) return null;
+  return OFFICIAL.find((I) => I.id === id) || Market.items.get(id) || (Object.prototype.hasOwnProperty.call(W.made, id) ? Object.assign({ id, by: myId(), byNm: Net.name, price: 0, lim: 0, pub: false }, W.made[id]) : null);
+}
+// what each slot looks like; miss: an item we don't know yet (the avatar's made again once it loads)
+function xLooks(ax) {
+  const out = { h: null, pt: null, f: null, miss: false };
+  if (!Array.isArray(ax)) return out;
+  XSLOTS.forEach((k, i) => {
+    const v = ax[i]; if (!v) return;
+    if (typeof v === 'object') { if (v.k === k) out[k] = okLook(k, v.look); return; }
+    const I = xItem(v); if (I && I.k === k) out[k] = I.look; else out.miss = true;
+  });
+  return out;
+}
+const PIX_TEX = new Map();
+function pixTex(px, bg) {
+  const key = px + (bg || '');
+  if (PIX_TEX.has(key)) return PIX_TEX.get(key);
+  const c = document.createElement('canvas'); c.width = c.height = 96; const g = c.getContext('2d');
+  if (bg) { g.fillStyle = bg; g.fillRect(0, 0, 96, 96); }
+  for (let i = 0; i < 144; i++) { const v = parseInt(px[i], 16); if (v) { g.fillStyle = XPAL[v]; g.fillRect((i % 12) * 8, Math.floor(i / 12) * 8, 8, 8); } }
+  const t = new THREE.CanvasTexture(c); t.magFilter = t.minFilter = THREE.NearestFilter;
+  if (PIX_TEX.size > 400) PIX_TEX.delete(PIX_TEX.keys().next().value); // (the oldest; anything wearing it keeps its own)
+  PIX_TEX.set(key, t); return t;
+}
+const EMO_TEX = new Map();
+function emoTex(e) {
+  if (!EMO_TEX.has(e)) { const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'); g.font = '48px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(e, 32, 36); EMO_TEX.set(e, new THREE.CanvasTexture(c)); }
+  return EMO_TEX.get(e);
+}
+// a made hat on a head (lam, mesh, box and cyl are makeAvatar's helpers)
+function xHat(L, head, lam, mesh, box, cyl) {
+  const c1 = XPAL[L.c] || '#ef4444', c2 = XPAL[L.d] || '#facc15';
+  const mat = (c, o) => lam(c, Object.assign(L.gl ? { emissive: new THREE.Color(c).multiplyScalar(0.45) } : {}, o || {}));
+  const m1 = mat(c1), m2 = mat(c2), dome = (r) => new THREE.SphereGeometry(r, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2);
+  let badge = null; // [height, how far forward] for the emoji
+  if (L.s === 0) { mesh(cyl(0.58, 0.58, 1.2), m1, 0, 1.2, 0, head); mesh(cyl(0.95, 0.95, 0.1, 18), m1, 0, 0.66, 0, head); mesh(cyl(0.6, 0.6, 0.22), m2, 0, 0.82, 0, head); badge = [1.25, -0.6]; } // top hat
+  else if (L.s === 1) { mesh(new THREE.CylinderGeometry(0.7, 0.66, 0.42, 16, 1, true), mat(c1, { side: THREE.DoubleSide }), 0, 0.84, 0, head); for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3; mesh(new THREE.ConeGeometry(0.16, 0.42, 6), m1, Math.sin(a) * 0.66, 1.24, Math.cos(a) * 0.66, head); mesh(new THREE.SphereGeometry(0.09, 8, 6), m2, Math.sin(a + 0.52) * 0.71, 0.84, Math.cos(a + 0.52) * 0.71, head); } badge = [0.86, -0.73]; } // crown
+  else if (L.s === 2) { mesh(new THREE.ConeGeometry(0.62, 1.6, 16), m1, 0, 1.45, 0, head); const r = mesh(new THREE.TorusGeometry(0.66, 0.08, 6, 20), m2, 0, 0.68, 0, head); r.rotation.x = Math.PI / 2; mesh(new THREE.SphereGeometry(0.15, 8, 6), m2, 0, 2.28, 0, head); badge = [1.05, -0.52]; } // cone
+  else if (L.s === 3) { const d = mesh(dome(0.72), m1, 0, 0.45, 0, head); d.scale.y = 0.9; box(m2, 1.3, 0.1, 0.8, 0, 0.5, -0.9, head); badge = [0.82, -0.64]; } // cap
+  else if (L.s === 4) { const d = mesh(dome(0.74), m1, 0, 0.42, 0, head); d.scale.y = 1.05; mesh(cyl(0.76, 0.76, 0.32), m2, 0, 0.5, 0, head); mesh(new THREE.SphereGeometry(0.22, 10, 8), m2, 0, 1.22, 0, head); badge = [0.5, -0.78]; } // beanie
+  else if (L.s === 5) { for (const s2 of [-1, 1]) { const h = mesh(new THREE.ConeGeometry(0.17, 0.85, 10), m1, s2 * 0.44, 0.98, 0, head); h.rotation.z = -s2 * 0.35; const r = mesh(new THREE.TorusGeometry(0.17, 0.05, 6, 12), m2, s2 * 0.38, 0.62, 0, head); r.rotation.x = Math.PI / 2; } } // horns
+  else if (L.s === 6) { for (const [r, t, c] of [[0.55, 0.08, c1], [0.4, 0.035, c2]]) { const o = mesh(new THREE.TorusGeometry(r, t, 8, 24), new THREE.MeshBasicMaterial({ color: c }), 0, 1.3, 0, head); o.rotation.x = Math.PI / 2; } } // halo
+  else if (L.s === 7) { // dominus: a hood with a dark face, two glowing eyes and a crest
+    mesh(new THREE.CylinderGeometry(0.8, 0.84, 1.5, 18, 1, true, -2.2, 4.4), mat(c1, { side: THREE.DoubleSide }), 0, 0.12, 0, head);
+    mesh(new THREE.ConeGeometry(0.8, 1.0, 18), m1, 0, 1.37, 0, head);
+    box(lam(c2), 1.25, 1.1, 0.06, 0, 0.02, -0.7, head);
+    const eye = new THREE.MeshBasicMaterial({ color: L.gl ? '#fde047' : '#f8fafc' });
+    for (const s2 of [-1, 1]) { mesh(new THREE.SphereGeometry(0.09, 8, 6), eye, s2 * 0.24, 0.12, -0.75, head); const sp = mesh(new THREE.ConeGeometry(0.12, 0.65, 6), m1, s2 * 0.52, 1.45, 0.05, head); sp.rotation.z = -s2 * 0.55; }
+    box(m1, 0.16, 0.7, 0.3, 0, 1.05, -0.55, head).rotation.x = -0.3;
+  } else if (L.s === 8) { mesh(cyl(0.6, 0.7, 0.55, 20), m1, 0, 0.98, 0, head); mesh(new THREE.CylinderGeometry(0.72, 1.05, 0.28, 22, 1, true), mat(c1, { side: THREE.DoubleSide }), 0, 0.62, 0, head); mesh(cyl(0.71, 0.71, 0.12, 20), m2, 0, 0.78, 0, head); badge = [1.02, -0.69]; } // bucket hat
+  else if (L.s === 9) { box(m2, 0.3, 0.3, 0.3, 0, 0.82, -0.1, head); for (const s2 of [-1, 1]) { const lp = mesh(new THREE.SphereGeometry(0.34, 12, 8), m1, s2 * 0.42, 0.85, -0.1, head); lp.scale.set(1.25, 0.8, 0.45); lp.rotation.z = s2 * 0.3; } } // bow
+  if (badge && L.e) { const b = mesh(new THREE.PlaneGeometry(0.42, 0.42), new THREE.MeshBasicMaterial({ map: emoTex(XEMO[L.e]), transparent: true }), 0, badge[0], badge[1] - 0.02, head); b.rotation.y = Math.PI; }
+}
 const HEAD_GEO = new THREE.CylinderGeometry(0.66, 0.66, 1.25, 20);
 const FACE_GEO = new THREE.CylinderGeometry(0.675, 0.675, 1.2, 16, 1, true, Math.PI - 0.95, 1.9);
-function makeAvatar(av, name, mine) {
+function makeAvatar(av, name, mine, ax) {
   av = okAv(av);
+  const X = xLooks(ax); // (made and limited items on top: a hat, a shirt's front, a face)
   const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
   const lam = (c, o) => new THREE.MeshLambertMaterial(Object.assign({ color: c }, o || {}));
   const skin = lam(SKINS[av[0]]), shirt = lam(SHIRTS[av[1]]), pants = lam(PANTS[av[2]]), mats = [skin, shirt, pants];
@@ -1033,15 +1147,16 @@ function makeAvatar(av, name, mine) {
   const mesh = (geo, m, x, y, z, parent) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); (parent || body).add(o); return o; };
   const limb = (m, x, y) => { const piv = new THREE.Group(); piv.position.set(x, y, 0); body.add(piv); box(m, 0.98, 2, 0.98, 0, -1, 0, piv); return piv; };
   const legL = limb(pants, -0.5, 2), legR = limb(pants, 0.5, 2);
-  if (av[7]) { const front = lam('#ffffff', { map: patternTex(av[7], SHIRTS[av[1]]) }); mats.push(front); const t = new THREE.Mesh(BOX, [shirt, shirt, shirt, shirt, shirt, front]); t.scale.set(2, 2, 1); t.position.set(0, 3, 0); body.add(t); }
+  if (X.pt || av[7]) { const front = lam('#ffffff', { map: X.pt ? pixTex(X.pt.px, SHIRTS[av[1]]) : patternTex(av[7], SHIRTS[av[1]]) }); mats.push(front); const t = new THREE.Mesh(BOX, [shirt, shirt, shirt, shirt, shirt, front]); t.scale.set(2, 2, 1); t.position.set(0, 3, 0); body.add(t); }
   else box(shirt, 2, 2, 1, 0, 3, 0);
   const armL = limb(skin, -1.5, 4), armR = limb(skin, 1.5, 4);
   box(shirt, 1.02, 0.84, 1.02, 0, -0.4, 0, armL); box(shirt, 1.02, 0.84, 1.02, 0, -0.4, 0, armR); // a hair above the arm's top, or the two tops flicker
   const head = new THREE.Group(); head.position.set(0, 4.66, 0); body.add(head);
   head.add(new THREE.Mesh(HEAD_GEO, skin));
-  head.add(new THREE.Mesh(FACE_GEO, new THREE.MeshBasicMaterial({ map: FACE_TEX[av[4]], transparent: true })));
+  head.add(new THREE.Mesh(FACE_GEO, new THREE.MeshBasicMaterial({ map: X.f ? pixTex(X.f.px, '') : FACE_TEX[av[4]], transparent: true })));
   // hats
-  const hat = av[3], cyl = (rt, rb, h, seg) => new THREE.CylinderGeometry(rt, rb, h, seg || 16), a_spin = [];
+  const hat = X.h ? -1 : av[3], cyl = (rt, rb, h, seg) => new THREE.CylinderGeometry(rt, rb, h, seg || 16), a_spin = [];
+  if (X.h) xHat(X.h, head, lam, mesh, box, cyl);
   if (hat === 1) { const m = lam(SHIRTS[av[1]]); mats.push(m); box(m, 1.42, 0.5, 1.42, 0, 0.75, 0, head); box(m, 1.3, 0.12, 0.8, 0, 0.56, -0.95, head); }
   else if (hat === 2) { const m = lam('#1a1a1a'), band = lam('#b91c1c'); mesh(cyl(0.58, 0.58, 1.2), m, 0, 1.2, 0, head); mesh(cyl(0.95, 0.95, 0.1, 18), m, 0, 0.66, 0, head); mesh(cyl(0.6, 0.6, 0.22), band, 0, 0.82, 0, head); }
   else if (hat === 3) { const m = lam('#ffd23a', { emissive: '#4a3500' }); const c1 = mesh(new THREE.CylinderGeometry(0.7, 0.66, 0.42, 16, 1, true), m, 0, 0.84, 0, head); c1.material.side = THREE.DoubleSide; for (let k = 0; k < 6; k++) mesh(new THREE.ConeGeometry(0.16, 0.42, 6), m, Math.sin(k * 1.047) * 0.66, 1.24, Math.cos(k * 1.047) * 0.66, head); }
@@ -1090,7 +1205,7 @@ function makeAvatar(av, name, mine) {
   else if (back === 13) { const m = lam('#facc15', { side: THREE.DoubleSide, emissive: '#2a1e00' }); for (const s of [-1, 1]) { const w = box(m, 2.4, 1.5, 0.08, s * 1.4, 3.7, 0.7); w.rotation.z = s * 0.4; w.rotation.y = -s * 0.35; const w2 = box(m, 1.7, 1.0, 0.08, s * 1.85, 2.9, 0.82); w2.rotation.z = s * 0.15; w2.rotation.y = -s * 0.35; const w3 = box(m, 1.1, 0.7, 0.08, s * 2.1, 2.2, 0.92); w3.rotation.z = -s * 0.1; w3.rotation.y = -s * 0.35; } } // golden wings
   else if (back === 14) { const b2 = mesh(new THREE.SphereGeometry(1, 16, 10), lam(['#06b6d4', '#f97316', '#ec4899', '#22c55e'][av[1] % 4]), 0, 3.0, 0.72); b2.scale.set(0.75, 2.4, 0.1); b2.rotation.z = 0.35; const st2 = box(lam('#f8fafc'), 0.18, 4.0, 0.04, 0, 3.0, 0.82); st2.rotation.z = 0.35; } // surfboard
   else if (back === 15) { for (const s2 of [-1, 1]) { const piv = new THREE.Group(); piv.position.set(0, 3.0, 0.68); piv.rotation.z = s2 * 0.62; body.add(piv); box(lam('#e5e7eb'), 0.16, 2.8, 0.05, 0, -0.3, s2 * 0.04, piv); box(lam('#facc15'), 0.62, 0.1, 0.16, 0, 1.14, s2 * 0.04, piv); box(lam('#7f1d1d'), 0.2, 0.85, 0.14, 0, 1.62, s2 * 0.04, piv); } } // twin katanas
-  const a = { g, body, legL, legR, armL, armR, head, mats, walk: 0, name, av, tag: null, glow: null, aura: av[6], trail: av[9], spin: a_spin, pet: null };
+  const a = { g, body, legL, legR, armL, armR, head, mats, walk: 0, name, av, ax: Array.isArray(ax) ? ax.slice() : null, axMiss: X.miss, tag: null, glow: null, aura: av[6], trail: av[9], spin: a_spin, pet: null };
   if (!mine && name) { a.tag = label(name, { size: 0.85 }); a.tag.position.y = 6.7; g.add(a.tag); }
   // a soft shadow on the ground under them
   a.shadow = new THREE.Mesh(new THREE.CircleGeometry(1.25, 18), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.25, depthWrite: false, ...DECAL }));
@@ -1604,7 +1719,7 @@ function trApply(theirs) {
   Trade.done.add(Trade.id);
   for (const o of Trade.off) {
     if (o.t === 'c') W.coins -= o.n;
-    else if (o.t === 'a') { W.own.delete(o.k); const m = /^([a-z]+)(\d+)$/.exec(o.k); if (m && AV[m[1]] === +m[2]) { AV[m[1]] = 0; if (me && !P.dead) { dropAvatar(me); me = makeAvatar(avArr(), Net.name, true); scene.add(me.g); } send({ av: avArr() }); } }
+    else if (o.t === 'a') { W.own.delete(o.k); const m = /^([a-z]+)(\d+)$/.exec(o.k); if (m && AV[m[1]] === +m[2]) { AV[m[1]] = 0; if (me && !P.dead) { dropAvatar(me); me = makeAvatar(avArr(), Net.name, true, axArr()); scene.add(me.g); } send({ av: avArr() }); } }
     else if (o.t === 's') { W.items[o.k] -= o.n; if (W.items[o.k] <= 0) delete W.items[o.k]; }
     else if (exp.tradeTake) exp.tradeTake(o.k);
   }
@@ -1688,6 +1803,8 @@ const ACH = [
   ['bv', 'friends', 1, 'Friendly', 'Make a friend', 50, null, '👋'],
   ['bv', 'friends', 5, 'Squad', 'Have 5 friends', 200, null, '👯'],
   ['bv', 'invite', 1, 'Party Starter', 'Invite a friend to your server', 40, null, '📨'],
+  ['bv', 'create', 1, 'Designer', 'Make your own avatar item', 100, null, '✏️'],
+  ['bv', 'limited', 1, 'Collector', 'Own a limited item', 150, null, '⭐'],
   ['bv', 'ach', 25, 'Achiever', 'Earn 25 achievements', 300, ['b', 13], '🏅'],
   ['bv', 'ach', 60, 'Legend', 'Earn 60 achievements', 1000, ['h', 32], '👑'],
   ['obby', 'stage', 10, 'Getting Somewhere', 'Reach stage 10', 30, null, '🪜'],
@@ -1836,7 +1953,7 @@ function achGroup(e) {
   return `<div class="achg${e === 'bv' ? ' bv' : ''}"><h4>${e === 'bv' ? '🧱 Bloxverse' : `${E ? E.emoji : ''} ${esc(E ? E.name : e)}`}<small>${n} / ${list.length}</small></h4><div class="achrows">${list.map(achRow).join('')}</div></div>`;
 }
 function saveAv() {
-  const d = Object.assign({}, AV, { coins: W.coins, own: [...W.own], day: W.day, at: Date.now(), ach: { c: W.ach.c, got: [...W.ach.got] }, items: W.items, fr: W.fr, fits: W.fits, who: Net.uid || W.who || '' });
+  const d = Object.assign({}, AV, { coins: W.coins, own: [...W.own], day: W.day, at: Date.now(), ach: { c: W.ach.c, got: [...W.ach.got] }, items: W.items, fr: W.fr, fits: W.fits, who: Net.uid || W.who || '', made: W.made, xown: W.xown, wear: W.wear });
   try { localStorage.setItem('rb.av', JSON.stringify(d)); } catch (e) {}
   clearTimeout(avSaveT); avSaveT = setTimeout(() => { if (W.loaded) kvSet('av', d); }, 800);
   pubProfile();
@@ -1852,6 +1969,10 @@ function loadAvFrom(d) {
   if (d.items && typeof d.items === 'object') for (const k of Object.keys(d.items).slice(0, 400)) { const n = Math.floor(+d.items[k]); if (/^[a-z0-9]+\.[a-z0-9]+$/.test(k) && n > 0) W.items[k] = Math.min(n, 999); }
   W.fr = frFrom(d.fr); W.who = typeof d.who === 'string' ? d.who : ''; // (who: whose save it is — a shared computer keeps one for everyone)
   W.fits = Array.from({ length: 6 }, (_, i) => (Array.isArray(d.fits) && Array.isArray(d.fits[i]) ? okAv(d.fits[i]) : null));
+  W.made = {};
+  if (d.made && typeof d.made === 'object') for (const id of Object.keys(d.made).slice(0, 60)) { const M = d.made[id]; if (!/^u[a-z0-9]{6,16}$/.test(id) || !M || !XKINDS[M.k]) continue; const look = okLook(M.k, M.look); if (look) W.made[id] = { nm: xName(M.nm), k: M.k, look, at: +M.at || 0, pub: !!M.pub }; }
+  W.xown = Array.isArray(d.xown) ? d.xown.filter((x) => typeof x === 'string' && /^[A-Za-z0-9]{1,20}$/.test(x)).slice(0, 300) : [];
+  { const w = okAx(d.wear ? [d.wear.h, d.wear.pt, d.wear.f] : []); W.wear = { h: w[0], pt: w[1], f: w[2] }; }
   achNum();
 }
 // experiences in their own files call this
@@ -1937,7 +2058,7 @@ async function join(id, n) {
   Object.assign(Net, { room, srv: `${E.code}-${n}`, srvN: n, peers: [], t0: Date.now(), joinAt: performance.now(), claimed: false, chats: [], cseq: 0, seen: new Map(), lastPos: '', dd: 0 });
   room.onPeers(onPeers, () => {});
   meterReset(); room.on('ev', onPingEcho, () => {});
-  send(Object.assign({ nm: Net.name, av: avArr(), t: Net.t0, id: myId() }, E.pres ? E.pres() : {})); // (id: so people here can add you as a friend)
+  send(Object.assign({ nm: Net.name, av: avArr(), ax: axArr(), t: Net.t0, id: myId() }, E.pres ? E.pres() : {})); // (id: so people here can add you as a friend)
   lob.presence({ srv: Net.srv }).catch(() => {});
   await new Promise((r) => setTimeout(r, 1300));
   // a full server: the last ones in step back out
@@ -1981,7 +2102,7 @@ function applyPeer(p) {
   const pr = p.presence || {}, seen = Net.seen.get(p.peer) || { c: 0, t: 0, dd: null };
   if (pr.t && pr.t !== seen.t) { seen.t = pr.t; seen.c = 0; seen.dd = null; }
   let a = Net.avatars.get(p.peer);
-  if (!a && Array.isArray(pr.p)) { a = makeAvatar(pr.av, String(pr.nm || 'Player').slice(0, 20)); a.g.position.set(pr.p[0], pr.p[1], pr.p[2]); scene.add(a.g); Net.avatars.set(p.peer, a); }
+  if (!a && Array.isArray(pr.p)) { a = makeAvatar(pr.av, String(pr.nm || 'Player').slice(0, 20), false, okAx(pr.ax)); a.g.position.set(pr.p[0], pr.p[1], pr.p[2]); scene.add(a.g); Net.avatars.set(p.peer, a); }
   for (const c of Array.isArray(pr.ch) ? pr.ch : []) {
     if (!Array.isArray(c) || c[0] <= seen.c) continue;
     seen.c = c[0]; const text = String(c[1]).slice(0, 100);
@@ -2868,14 +2989,33 @@ function backHome(msg) {
   homeStatus(msg || ''); drawExps();
 }
 let avTab = 'colors', avAsk = '';
-// the avatar editor (full screen, from your card or your profile): tap something you don't own to try it on,
-// tap again to buy it; ED.try holds what you're only trying on (it comes off when you leave)
-const ED = { open: false, try: {}, own: false, yaw: 0, drag: null };
+// the avatar editor (full screen, from your card or your profile), in three modes: 👕 Avatar (what you wear: tap
+// something you don't own to try it on, tap again to buy it), 🛍️ Catalog (items players made, and limiteds) and
+// ✏️ Create (make your own item). ED.try / ED.tryX hold what you're only trying on (it comes off when you leave).
+const ED = { open: false, try: {}, tryX: {}, own: false, yaw: 0, drag: null, mode: 'wear', view: '', cat: 'all', pub: '', note: '',
+  draft: { k: 'h', nm: '', h: { s: 0, c: 3, d: 5, e: 1, gl: 0 }, pt: '0'.repeat(144), f: null, col: 1 } };
 const pvArr = () => AV_KEYS.map((k) => (ED.open && k in ED.try ? ED.try[k] : AV[k]) | 0);
+// what's worn on top in the preview: the item you're making, then anything you're trying on, then what you wear
+const pvAx = () => XSLOTS.map((k) => (ED.open && ED.mode === 'make' && ED.draft.k === k ? { k, look: draftLook() } : ED.open && k in ED.tryX ? ED.tryX[k] : W.wear[k]));
 const sameAv = (a, b) => String(okAv(a)) === String(okAv(b));
 function drawAvatarOpts() {
+  const modes = [['wear', '👕 Avatar'], ['shop', '🛍️ Catalog'], ['make', '✏️ Create']];
+  let body = `<div class="avmodes">${modes.map(([m, l]) => `<button data-mode="${m}" class="${ED.mode === m ? 'on' : ''}">${l}</button>`).join('')}</div>`;
+  if (ED.mode === 'shop') body += catalogHtml();
+  else if (ED.mode === 'make') body += makerHtml();
+  else body += wearHtml();
+  if (ED.note) body += `<div class="avnote">${ED.note}</div>`;
+  const focus = document.activeElement && document.activeElement.closest && document.activeElement.closest('#avOpts') ? document.activeElement.id : '';
+  $('#avOpts').innerHTML = body;
+  if (focus && $('#' + focus)) { const el = $('#' + focus); el.focus(); if (el.setSelectionRange && el.type === 'text') el.setSelectionRange(el.value.length, el.value.length); }
+  $('#edCoins').textContent = W.coins.toLocaleString('en-US');
+  $('#avOwn').classList.toggle('on', ED.own);
+  drawTry();
+  if (ED.mode === 'make') pxBind();
+}
+function wearHtml() {
   const TI = { h: '🎩', f: '🙂', b: '🪽', a: '✨', pt: '👕', pet: '🐶', tr: '🌈' };
-  const tabs = [['colors', '🎨 Colors']].concat(Object.entries(COSMETICS).map(([k, c]) => [k, `${TI[k] || ''} ${c.title}`]), [['fits', '👗 Outfits']]);
+  const tabs = [['colors', '🎨 Colors']].concat(Object.entries(COSMETICS).map(([k, c]) => [k, `${TI[k] || ''} ${c.title}`]), [['fits', '👗 Outfits'], ['mine', '🎒 My items']]);
   let body = '';
   if (avTab === 'colors') {
     const row = (title, list, key) => `<div class="opt"><small>${title}</small><div class="sw">${list.map((c, i) => `<button data-k="${key}" data-i="${i}" class="${AV[key] === i ? 'on' : ''}" style="background:${c}" title="${title} ${i + 1}"></button>`).join('')}</div></div>`;
@@ -2884,10 +3024,11 @@ function drawAvatarOpts() {
     body = `<p class="xp-note">Save what you're wearing in a slot, then switch outfits in one tap.</p><div class="fits">${W.fits.map((f, i) => f
       ? `<div class="fit${sameAv(f, avArr()) ? ' on' : ''}"><button class="wear" data-fit="${i}" title="Wear outfit ${i + 1}"><img src="${avPic(f)}" alt="">Outfit ${i + 1}</button><div class="row"><button data-fitsave="${i}" title="Save what you're wearing here instead">💾 Save</button><button data-fitx="${i}" title="Delete this outfit">🗑️</button></div></div>`
       : `<div class="fit empty"><button class="wear" data-fitsave="${i}" title="Save what you're wearing"><b>＋</b>Save outfit ${i + 1}</button></div>`).join('')}</div>`;
-  } else {
+  } else if (avTab === 'mine') body = mineHtml();
+  else {
     const C = COSMETICS[avTab];
     body = `<div class="shop">${C.list.map((nm, i) => {
-      const own = owns(avTab, i), price = C.price[i], on = AV[avTab] === i, ask = avAsk === avTab + i, tr = ED.open && ED.try[avTab] === i;
+      const own = owns(avTab, i), price = C.price[i], on = AV[avTab] === i && !W.wear[avTab], ask = avAsk === avTab + i, tr = ED.open && ED.try[avTab] === i;
       if (ED.own && !own) return '';
       const A = price < 0 ? achFor(avTab, i) : null;
       const pr = on ? '<span class="pr own">✓ Wearing</span>' : own ? '<span class="pr own">Owned</span>' : price < 0 ? `<span class="pr">${A ? '🏆 Earn it' : '🎖️ Reward'}</span>` : ask && W.coins < price ? `<span class="pr">Need ${price - W.coins} more</span>` : ask ? `<span class="pr">Buy? ${price}</span>` : `<span class="pr"><span class="coin sm"></span> ${price}</span>`;
@@ -2897,60 +3038,65 @@ function drawAvatarOpts() {
     // (a reward you haven't got, tapped: how to get it)
     const ak = avAsk && avAsk.startsWith(avTab) ? +avAsk.slice(avTab.length) : -1, AA = ak >= 0 && C.price[ak] < 0 && !owns(avTab, ak) ? achFor(avTab, ak) : null;
     if (ak >= 0 && C.price[ak] < 0 && !owns(avTab, ak)) body += `<div class="avnote">${AA ? `🏆 <b>${esc(C.list[ak])}</b> comes with the “${esc(AA.nm)}” achievement${AA.e !== 'bv' && EXPS[AA.e] ? ` in ${esc(EXPS[AA.e].name)}` : ''}: ${esc(AA.d.charAt(0).toLowerCase() + AA.d.slice(1))}.` : `🎖️ <b>${esc(C.list[ak])}</b> is a reward in Command an Army’s battle pass.`}</div>`;
+    if (XKINDS[avTab] && W.wear[avTab]) { const I = xItem(W.wear[avTab]); body = `<div class="avnote">You're wearing <b>${esc(I ? I.nm : 'an item')}</b> over these. Pick one to wear it instead, or take it off in 🎒 My items.</div>` + body; }
   }
-  $('#avOpts').innerHTML = `<div class="avtabs">${tabs.map(([k, t]) => `<button data-tab="${k}" class="${avTab === k ? 'on' : ''}">${t}</button>`).join('')}</div>${body}`;
-  $('#edCoins').textContent = W.coins.toLocaleString('en-US');
-  $('#avOwn').classList.toggle('on', ED.own);
-  drawTry();
-  $('#avOpts').querySelectorAll('button').forEach((b) => (b.onclick = () => {
-    const d = b.dataset;
-    if (d.tab) { avTab = d.tab; avAsk = ''; drawAvatarOpts(); return; }
-    if (d.fitsave) { W.fits[+d.fitsave] = avArr(); sfx('select'); saveAv(); drawAvatarOpts(); return; }
-    if (d.fitx) { W.fits[+d.fitx] = null; sfx('click'); saveAv(); drawAvatarOpts(); return; }
-    if (d.fit) { const v = okAv(W.fits[+d.fit]); AV_KEYS.forEach((k, j) => { if (owns(k, v[j])) AV[k] = v[j]; }); ED.try = {}; sfx('select'); }
-    else {
-      const k = d.k, i = +d.i;
-      if (k === 's' || k === 'sh' || k === 'p') { AV[k] = i; }
-      else if (owns(k, i)) { AV[k] = i; delete ED.try[k]; avAsk = ''; }
-      else {
-        const price = COSMETICS[k].price[i];
-        if (ED.open) ED.try[k] = i; // (on you in the editor, to see how it looks)
-        if (price < 0) { avAsk = avAsk === k + i ? '' : k + i; sfx('click'); drawAvatarOpts(); pvAvatar(); return; } // (how to earn it)
-        if (W.coins < price || avAsk !== k + i) { avAsk = k + i; drawAvatarOpts(); pvAvatar(); return; } // tap again to buy
-        W.coins -= price; W.own.add(k + i); AV[k] = i; delete ED.try[k]; avAsk = ''; sfx('buy'); questMax('bv.items', W.own.size);
-      }
-    }
-    drawAvatarOpts(); pvAvatar(); saveAv(); drawMe();
-  }));
+  return `<div class="avtabs">${tabs.map(([k, t]) => `<button data-tab="${k}" class="${avTab === k ? 'on' : ''}">${t}</button>`).join('')}</div>${body}`;
 }
+// every button in the editor's side
+$('#avOpts').onclick = (e) => {
+  const b = e.target.closest('button'); if (!b || b.disabled) return;
+  const d = b.dataset;
+  if (d.mode) { ED.mode = d.mode; ED.view = ''; ED.pub = ''; ED.note = ''; sfx('click'); drawAvatarOpts(); pvAvatar(); return; }
+  if (marketClick(b)) return;
+  if (d.tab) { avTab = d.tab; avAsk = ''; ED.note = ''; drawAvatarOpts(); return; }
+  if (d.fitsave) { W.fits[+d.fitsave] = avArr(); sfx('select'); saveAv(); drawAvatarOpts(); return; }
+  if (d.fitx) { W.fits[+d.fitx] = null; sfx('click'); saveAv(); drawAvatarOpts(); return; }
+  if (d.fit) { const v = okAv(W.fits[+d.fit]); AV_KEYS.forEach((k, j) => { if (owns(k, v[j])) AV[k] = v[j]; }); ED.try = {}; sfx('select'); }
+  else if (d.k) {
+    const k = d.k, i = +d.i;
+    if (k === 's' || k === 'sh' || k === 'p') { AV[k] = i; }
+    else if (owns(k, i)) { AV[k] = i; delete ED.try[k]; if (XKINDS[k]) { W.wear[k] = ''; delete ED.tryX[k]; } avAsk = ''; }
+    else {
+      const price = COSMETICS[k].price[i];
+      if (ED.open) ED.try[k] = i; // (on you in the editor, to see how it looks)
+      if (price < 0) { avAsk = avAsk === k + i ? '' : k + i; sfx('click'); drawAvatarOpts(); pvAvatar(); return; } // (how to earn it)
+      if (W.coins < price || avAsk !== k + i) { avAsk = k + i; drawAvatarOpts(); pvAvatar(); return; } // tap again to buy
+      W.coins -= price; W.own.add(k + i); AV[k] = i; delete ED.try[k]; if (XKINDS[k]) W.wear[k] = ''; avAsk = ''; sfx('buy'); questMax('bv.items', W.own.size);
+    }
+  } else return;
+  drawAvatarOpts(); pvAvatar(); saveAv(); drawMe();
+};
+$('#avOpts').oninput = (e) => { const t = e.target; if (t.id === 'mkName') ED.draft.nm = t.value; else if (t.dataset && t.dataset.v) ED[t.dataset.v] = t.value; };
+$('#avOpts').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.dataset && e.target.dataset.go) { e.preventDefault(); const b = $('#' + e.target.dataset.go); if (b && !b.disabled) b.click(); } });
 // over the avatar in the editor: what you're only trying on, and buying it all at once
 function drawTry() {
-  const el = $('#avTry'), t = Object.entries(ED.try).filter(([k, i]) => !owns(k, i));
-  if (!ED.open || !t.length) { el.hidden = true; return; }
-  const cost = t.reduce((a, [k, i]) => a + Math.max(0, COSMETICS[k].price[i]), 0), canBuy = t.every(([k, i]) => COSMETICS[k].price[i] >= 0);
+  const el = $('#avTry'), t = Object.entries(ED.try).filter(([k, i]) => !owns(k, i)), tx = Object.entries(ED.tryX).filter(([k, id]) => id && !ownsX(id) && !(ED.mode === 'make' && ED.draft.k === k)).map(([, id]) => xItem(id)).filter(Boolean);
+  if (!ED.open || (!t.length && !tx.length)) { el.hidden = true; return; }
+  const cost = t.reduce((a, [k, i]) => a + Math.max(0, COSMETICS[k].price[i]), 0), canBuy = t.length && t.every(([k, i]) => COSMETICS[k].price[i] >= 0);
   el.hidden = false;
-  el.innerHTML = `<span>👀 Trying on ${t.map(([k, i]) => `<b>${esc(COSMETICS[k].list[i])}</b>`).join(', ')}</span>${canBuy ? `<button class="xp-btn gold" data-buyall="1" ${W.coins < cost ? 'disabled' : ''}>🛒 Buy${t.length > 1 ? ' all' : ''} · ${cost.toLocaleString('en-US')}</button>` : ''}<button class="xp-btn alt" data-off="1">Take off</button>`;
+  el.innerHTML = `<span>👀 Trying on ${t.map(([k, i]) => `<b>${esc(COSMETICS[k].list[i])}</b>`).concat(tx.map((I) => `<b>${esc(I.nm)}</b>`)).join(', ')}</span>${canBuy ? `<button class="xp-btn gold" data-buyall="1" ${W.coins < cost ? 'disabled' : ''}>🛒 Buy${t.length > 1 ? ' all' : ''} · ${cost.toLocaleString('en-US')}</button>` : ''}<button class="xp-btn alt" data-off="1">Take off</button>`;
 }
 $('#avTry').onclick = (e) => {
   const b = e.target.closest('button'); if (!b || b.disabled) return;
   if (b.dataset.buyall) {
     const t = Object.entries(ED.try).filter(([k, i]) => !owns(k, i)), cost = t.reduce((a, [k, i]) => a + COSMETICS[k].price[i], 0);
     if (W.coins < cost || t.some(([k, i]) => COSMETICS[k].price[i] < 0)) return;
-    W.coins -= cost; for (const [k, i] of t) { W.own.add(k + i); AV[k] = i; }
+    W.coins -= cost; for (const [k, i] of t) { W.own.add(k + i); AV[k] = i; if (XKINDS[k]) W.wear[k] = ''; }
     sfx('buy'); questMax('bv.items', W.own.size);
   } else sfx('click');
-  ED.try = {}; avAsk = ''; drawAvatarOpts(); pvAvatar(); saveAv(); drawMe();
+  ED.try = {}; ED.tryX = {}; avAsk = ''; drawAvatarOpts(); pvAvatar(); saveAv(); drawMe();
 };
-function openEditor() {
+// mode: open the editor on the catalog ('shop'); view: and on one item in it
+function openEditor(mode, view) {
   if (playing || ED.open) return;
-  ED.open = true; ED.try = {}; ED.yaw = 0; avAsk = '';
+  ED.open = true; ED.try = {}; ED.tryX = {}; ED.yaw = 0; avAsk = ''; ED.mode = typeof mode === 'string' ? mode : 'wear'; ED.view = view || ''; ED.pub = ''; ED.note = '';
   $('#avEdit').hidden = false; $('#avedStage').prepend($('#avPrev'));
   pvFit(); pvAvatar(); drawAvatarOpts(); sfx('whoosh');
 }
 function closeEditor() {
   if (!ED.open) return;
-  const left = Object.entries(ED.try).filter(([k, i]) => !owns(k, i)).length;
-  ED.open = false; ED.try = {}; avAsk = ''; ED.drag = null;
+  const left = Object.entries(ED.try).filter(([k, i]) => !owns(k, i)).length + Object.values(ED.tryX).filter((id) => id && !ownsX(id)).length;
+  ED.open = false; ED.try = {}; ED.tryX = {}; avAsk = ''; ED.drag = null; ED.mode = 'wear'; ED.view = ''; ED.note = '';
   $('#avEdit').hidden = true; $('#avStage').prepend($('#avPrev'));
   pvFit(); pvAvatar(); drawAvatarOpts(); drawMe(); drawExps(); sfx('close');
   if (left) socialPop(`<div class="tx">👕 What you were only trying on came off — buy it in the editor to keep it.</div>`, null, 4000);
@@ -2959,9 +3105,9 @@ function randomAv() {
   const pick = (k, n) => { const ok = Array.from({ length: n }, (_, i) => i).filter((i) => owns(k, i)); return ok[Math.floor(Math.random() * ok.length)] || 0; };
   AV.s = Math.floor(Math.random() * SKINS.length); AV.sh = Math.floor(Math.random() * SHIRTS.length); AV.p = Math.floor(Math.random() * PANTS.length);
   for (const k of Object.keys(COSMETICS)) AV[k] = k === 'h' || k === 'f' || k === 'pt' || Math.random() < 0.6 ? pick(k, COSMETICS[k].list.length) : 0;
-  ED.try = {}; avAsk = ''; sfx('select'); drawAvatarOpts(); pvAvatar(); saveAv(); drawMe();
+  W.wear = { h: '', pt: '', f: '' }; ED.try = {}; ED.tryX = {}; avAsk = ''; sfx('select'); drawAvatarOpts(); pvAvatar(); saveAv(); drawMe();
 }
-$('#avStage').onclick = openEditor;
+$('#avStage').onclick = () => openEditor();
 $('#avedBack').onclick = $('#avDone').onclick = closeEditor;
 $('#avRand').onclick = randomAv;
 $('#avOwn').onclick = () => { ED.own = !ED.own; drawAvatarOpts(); };
@@ -3076,7 +3222,7 @@ pv.scene.add(new THREE.HemisphereLight(0xffffff, 0x777788, 0.9)); { const d = ne
 pv.cam.position.set(0.8, 4.4, -16); pv.cam.lookAt(0.8, 3.3, 0);
 function pvAvatar() {
   if (pv.a) { pv.scene.remove(pv.a.g); if (pv.a.pet) pv.scene.remove(pv.a.pet.g); }
-  pv.a = makeAvatar(pvArr(), '', true); scene.remove(pv.a.shadow); pv.scene.add(pv.a.g);
+  pv.a = makeAvatar(pvArr(), '', true, pvAx()); scene.remove(pv.a.shadow); pv.scene.add(pv.a.g);
   if (pv.a.pet) { scene.remove(pv.a.pet.g); pv.a.pet.g.position.set(2.6, FLYING_PET[pv.a.pet.type] ? 3 : 0, 0.5); pv.a.pet.g.rotation.y = -0.5; pv.scene.add(pv.a.pet.g); }
 }
 // a picture of a 3D model, for menus (unit portraits and the like); cached by key
@@ -3100,10 +3246,10 @@ function snapshot(key, make, o = {}) {
   return url;
 }
 // a picture of an avatar (yours, a friend's) for lists and profiles; head: just the head and shoulders, for little circles
-function avPic(av, head) {
-  const v = okAv(av);
-  return snapshot((head ? 'avh:' : 'av:') + v.join(','), () => {
-    const a = makeAvatar(v, '', true); scene.remove(a.shadow);
+function avPic(av, head, ax) {
+  const v = okAv(av), x = Array.isArray(ax) ? ax.map((e) => (e && typeof e === 'object' ? JSON.stringify(e) : e || '')) : [], miss = xLooks(ax).miss;
+  return snapshot((head ? 'avh:' : 'av:') + v.join(',') + (x.join('') ? '|' + x.join('|') + (miss ? '?' : '') : ''), () => {
+    const a = makeAvatar(v, '', true, ax); scene.remove(a.shadow);
     if (a.pet) { scene.remove(a.pet.g); if (!head) { a.pet.g.position.set(2.5, FLYING_PET[a.pet.type] ? 3 : 0, 0.4); a.pet.g.rotation.y = -0.5; a.g.add(a.pet.g); } }
     a.armR.rotation.x = -0.12; a.armL.rotation.x = 0.12;
     return a.g;
@@ -3155,14 +3301,14 @@ const okId = (k) => typeof k === 'string' && k.length > 0 && k.length <= 200 && 
 const expOf = (id) => (typeof id === 'string' && Object.prototype.hasOwnProperty.call(EXPS, id) ? EXPS[id] : null);
 function frFrom(d) {
   const F = { f: {}, out: {}, no: {} }; if (!d || typeof d !== 'object') return F;
-  const card = (c) => ({ nm: cleanName(c && c.nm), av: okAv(c && c.av), at: Math.max(0, +(c && c.at) || 0) });
+  const card = (c) => ({ nm: cleanName(c && c.nm), av: okAv(c && c.av), ax: okAx(c && c.ax), at: Math.max(0, +(c && c.at) || 0) });
   const ok = okId;
   if (d.f && typeof d.f === 'object') for (const k of Object.keys(d.f).slice(0, 200)) if (ok(k)) F.f[k] = card(d.f[k]);
   if (d.out && typeof d.out === 'object') for (const k of Object.keys(d.out).slice(0, 60)) if (ok(k) && (k[0] !== '#' || okCode(k.slice(1)))) F.out[k] = card(d.out[k]);
   if (d.no && typeof d.no === 'object') for (const k of Object.keys(d.no).slice(-60)) if (ok(k) && Date.now() - +d.no[k] < NO_FOR) F.no[k] = +d.no[k];
   return F;
 }
-const cardOf = (pr) => ({ nm: cleanName(pr.nm), av: okAv(pr.av), at: Date.now() });
+const cardOf = (pr) => ({ nm: cleanName(pr.nm), av: okAv(pr.av), ax: okAx(pr.ax), at: Date.now() });
 // who's where: a server name ('ty-2') as [experience, server]
 function srvOf(srv) { const m = /^(.+)-(\d+)$/.exec(typeof srv === 'string' ? srv : ''); const E = m && Object.values(EXPS).find((x) => x.code === m[1]); return E ? [E, +m[2]] : null; }
 function statusOf(id) {
@@ -3188,7 +3334,7 @@ function pubProfile() {
     const F = W.fr, t = Date.now();
     Inv.out = Inv.out.filter((v) => t - v[4] < INV_TTL);
     const keys = Object.keys(F.f).concat(Object.keys(F.out));
-    const p = { id: myId(), nm: Net.name, av: avArr(), fc: myCode(), fv: [...FAVS].filter(expOf).slice(0, 12), ac: W.ach ? W.ach.got.size : 0,
+    const p = { id: myId(), nm: Net.name, av: avArr(), ax: axArr(), fc: myCode(), fv: [...FAVS].filter(expOf).slice(0, 12), ac: W.ach ? W.ach.got.size : 0,
       fr: [...new Set(keys.map((k) => (k[0] === '#' ? k.slice(1) : fcOf(k))))].slice(0, 200), no: Object.keys(F.no).map(fcOf).slice(-40), iv: Inv.out.map((v) => v.slice(0, 4)) };
     while (JSON.stringify(p).length > 3500 && p.fr.length) p.fr.pop(); // (a presence holds 4 KB at most)
     const s = JSON.stringify(p); if (s === profSent) return; profSent = s;
@@ -3211,7 +3357,7 @@ function socialScan() {
     const pr = o.pr, fc = fcOf(id), lists = (a) => Array.isArray(a) && a.includes(mc), card = cardOf(pr);
     if (F.out['#' + fc]) { F.out[id] = card; delete F.out['#' + fc]; changed = true; } // (asked by code: now we know who it is)
     if (lists(pr.no)) { if (F.f[id] || F.out[id]) { delete F.f[id]; delete F.out[id]; changed = true; } continue; } // they said no, or removed you
-    if (F.f[id]) { const c = F.f[id]; if (c.nm !== card.nm || String(c.av) !== String(card.av)) changed = true; Object.assign(c, card); continue; }
+    if (F.f[id]) { const c = F.f[id]; if (c.nm !== card.nm || String(c.av) !== String(card.av) || String(c.ax) !== String(card.ax)) changed = true; Object.assign(c, card); continue; }
     if (!lists(pr.fr)) continue;
     if (F.out[id]) { F.f[id] = card; delete F.out[id]; changed = true; Social.seen.add(id); newFriend(id); continue; } // they said yes
     if (F.no[id]) continue;
@@ -3237,7 +3383,7 @@ function socialRedraw(auto) {
   if (playing) { drawSide(); if (Social.panel && panelOpen()) Social.panel(); }
   else if (!auto && (homeView === 'me' || homeView === 'friends' || String(homeView).startsWith('u:'))) drawExps();
 }
-function newFriend(id) { const c = W.fr.f[id]; sfx('unlock'); questMax('bv.friends', Object.keys(W.fr.f).length); socialPop(`<img class="avimg" src="${avPic(c.av, true)}" alt=""><div class="tx">🎉 You and <b>${esc(c.nm)}</b> are now friends!</div>`, null, 6000); }
+function newFriend(id) { const c = W.fr.f[id]; sfx('unlock'); questMax('bv.friends', Object.keys(W.fr.f).length); socialPop(`<img class="avimg" src="${avPic(c.av, true, c.ax)}" alt=""><div class="tx">🎉 You and <b>${esc(c.nm)}</b> are now friends!</div>`, null, 6000); }
 function addFriend(id) {
   if (!id || id === myId() || W.fr.f[id]) return;
   if (Social.inc.has(id)) { acceptFriend(id); return; }
@@ -3297,13 +3443,13 @@ function socialPop(html, onClick, ttl) {
 }
 function reqPop(id, c) {
   sfx('chat');
-  socialPop(`<img class="avimg" src="${avPic(c.av, true)}" alt=""><div class="tx"><b>${esc(c.nm)}</b><br>wants to be your friend</div><div class="bt"><button class="xp-btn" data-acc="1">✅ Accept</button><button class="xp-btn alt">Later</button></div>`, (b) => { if (b.dataset.acc) acceptFriend(id); }, 30000);
+  socialPop(`<img class="avimg" src="${avPic(c.av, true, c.ax)}" alt=""><div class="tx"><b>${esc(c.nm)}</b><br>wants to be your friend</div><div class="bt"><button class="xp-btn" data-acc="1">✅ Accept</button><button class="xp-btn alt">Later</button></div>`, (b) => { if (b.dataset.acc) acceptFriend(id); }, 30000);
 }
 function invPop(id, eid, n) {
   const E = expOf(eid), c = W.fr.f[id]; if (!E || !c) return;
   if (playing && exp && exp.id === eid && Net.srvN === n) return; // (here already)
   sfx('unlock');
-  socialPop(`<img class="avimg" src="${avPic(c.av, true)}" alt=""><div class="tx"><b>${esc(c.nm)}</b> invited you to play<br><b>${E.emoji} ${esc(E.name)}</b> · server ${n}</div><div class="bt"><button class="xp-btn" data-go="1">▶ Join</button><button class="xp-btn alt">No thanks</button></div>`, (b) => { if (b.dataset.go) goJoin(eid, n); }, INV_TTL);
+  socialPop(`<img class="avimg" src="${avPic(c.av, true, c.ax)}" alt=""><div class="tx"><b>${esc(c.nm)}</b> invited you to play<br><b>${E.emoji} ${esc(E.name)}</b> · server ${n}</div><div class="bt"><button class="xp-btn" data-go="1">▶ Join</button><button class="xp-btn alt">No thanks</button></div>`, (b) => { if (b.dataset.go) goJoin(eid, n); }, INV_TTL);
 }
 // a button for being friends with someone: add, accept, waiting, or friends already
 function friendBtn(id) {
@@ -3315,7 +3461,7 @@ function friendBtn(id) {
 }
 // a row in a list of people: their face, name, how they are, and buttons
 function frRow(id, c, s, btns) {
-  return `<div class="frow"><img class="avimg" src="${avPic(c.av, true)}" alt=""><button class="who" data-prof="${esc(id)}" title="See their profile"><b>${esc(c.nm)}</b><small class="${s.on ? 'on' : ''}">${esc(s.t)}</small></button>${btns}</div>`;
+  return `<div class="frow"><img class="avimg" src="${avPic(c.av, true, c.ax)}" alt=""><button class="who" data-prof="${esc(id)}" title="See their profile"><b>${esc(c.nm)}</b><small class="${s.on ? 'on' : ''}">${esc(s.t)}</small></button>${btns}</div>`;
 }
 // every friends button, wherever it is
 // (true: done, draw it again; 'go': went somewhere else)
@@ -3343,16 +3489,16 @@ function goView(v) { if (ED.open) closeEditor(); Social.back = homeView === v ? 
 // your card on the home screen, and the chip at the top
 function drawMe() {
   const inc = Social.inc.size, onl = onlineFriends().length, conn = !!Net.lobby;
-  const sig = [Net.name, avArr().join(), W.coins, inc, onl, conn, Net.uid].join('|');
+  const sig = [Net.name, avArr().join(), axArr().join(), Market.items.size, W.coins, inc, onl, conn, Net.uid].join('|');
   if (drawMe.sig === sig) return; drawMe.sig = sig;
-  $('#meImg').src = avPic(avArr(), true); $('#meNm').textContent = Net.name;
+  $('#meImg').src = avPic(avArr(), true, axArr()); $('#meNm').textContent = Net.name;
   $('#frN').hidden = !inc; $('#frN').textContent = inc;
   $('#meInfo').innerHTML = `<div class="mename"><b>${esc(Net.name)}</b>${conn ? `<small title="Your friend code: give it to a friend so they can add you">🔖 ${myCode()}</small>` : ''}</div>
     <div class="coinbar"><span><span class="coin"></span><span id="homeCoins">${W.coins.toLocaleString('en-US')}</span></span><small>Blox Coins · earn them<br>in every experience</small></div>
-    <div class="mebtns"><button class="xp-btn gold wide" data-me="edit">✏️ Edit Avatar</button><button class="xp-btn blue" data-me="me">👤 Profile</button><button class="xp-btn purple" data-me="friends">👥 Friends${inc ? `<span class="badge">${inc}</span>` : ''}</button></div>
+    <div class="mebtns"><button class="xp-btn gold wide" data-me="edit">✏️ Edit Avatar</button><button class="xp-btn blue" data-me="me">👤 Profile</button><button class="xp-btn purple" data-me="friends">👥 Friends${inc ? `<span class="badge">${inc}</span>` : ''}</button><button class="xp-btn pink wide" data-me="shop">🛍️ Catalog &amp; Limiteds</button></div>
     ${onl ? `<div class="meon">🟢 ${onl} friend${onl === 1 ? '' : 's'} online</div>` : ''}`;
 }
-$('#meInfo').onclick = (e) => { const b = e.target.closest('[data-me]'); if (!b) return; if (b.dataset.me === 'edit') openEditor(); else goView(b.dataset.me); };
+$('#meInfo').onclick = (e) => { const b = e.target.closest('[data-me]'); if (!b) return; if (b.dataset.me === 'edit') openEditor(); else if (b.dataset.me === 'shop') openEditor('shop'); else goView(b.dataset.me); };
 $('#meChip').onclick = () => goView('me');
 $('#frBtn').onclick = () => goView('friends');
 
@@ -3369,6 +3515,7 @@ function socialPage(again) {
     const b = e.target.closest('button'); if (!b || b.disabled) return;
     if (b.id === 'backBtn') { homeView = Social.back && Social.back !== homeView ? Social.back : null; Social.back = null; drawExps(); return; }
     if (b.dataset.edit) { openEditor(); return; }
+    if (b.dataset.xopen) { openEditor('shop', b.dataset.xopen); return; }
     if (b.dataset.goto) { goView(b.dataset.goto); return; }
     if (b.dataset.e && expOf(b.dataset.e)) { Social.back = null; homeView = b.dataset.e; drawExps(); window.scrollTo(0, 0); return; }
     if (socialDo(b) === true) drawExps();
@@ -3383,20 +3530,22 @@ function expCards(ids) {
 function profilePage(id) {
   const mine = !id, o = mine ? null : Social.on.get(id), f = mine ? null : W.fr.f[id], out = mine ? null : W.fr.out[id];
   if (!mine && !o && !f && !out) return `<div class="edetail social"><button class="back" id="backBtn">${backLabel()}</button><div class="fempty">That player isn’t online right now.</div></div>`;
-  const pr = mine ? { nm: Net.name, av: avArr(), fv: [...FAVS], ac: W.ach ? W.ach.got.size : 0 } : Object.assign({}, f || out || {}, o ? o.pr : {});
+  const pr = mine ? { nm: Net.name, av: avArr(), ax: axArr(), fv: [...FAVS], ac: W.ach ? W.ach.got.size : 0 } : Object.assign({}, f || out || {}, o ? o.pr : {});
   const nm = cleanName(pr.nm), favs = (Array.isArray(pr.fv) ? pr.fv : []).filter(expOf).slice(0, 12);
   const s = mine ? { t: '🟢 Online', on: true } : statusOf(id), nf = Object.keys(W.fr.f).length;
   const stat = (v, l) => `<div class="pstat"><b>${v}</b><small>${l}</small></div>`;
   let h = `<div class="edetail social profile"><button class="back" id="backBtn">${backLabel()}</button>
-    <div class="ptop"><button class="pav${mine ? ' mine' : ''}" ${mine ? 'data-edit="1" title="Edit your avatar"' : 'disabled'}><img src="${avPic(pr.av)}" alt="">${mine ? '<span class="avedit">✏️ Edit avatar</span>' : ''}</button>
+    <div class="ptop"><button class="pav${mine ? ' mine' : ''}" ${mine ? 'data-edit="1" title="Edit your avatar"' : 'disabled'}><img src="${avPic(pr.av, false, okAx(pr.ax))}" alt="">${mine ? '<span class="avedit">✏️ Edit avatar</span>' : ''}</button>
     <div><h2>${esc(nm)}</h2><div class="meta"><span class="pill">${esc(s.t)}</span><span class="pill" title="Friend code">🔖 ${mine ? myCode() : fcOf(id)}</span>${!mine && f ? '<span class="pill">🤝 Friends</span>' : ''}</div>`;
   if (mine) {
-    h += `<div class="pstats">${stat(`${pr.ac} / ${ACH.length}`, '🏆 Achievements')}${stat(nf, '👥 Friends')}${stat(W.own.size, '🧥 Items owned')}${stat(Object.keys(RECENT).filter((x) => EXPS[x]).length, '🎮 Games played')}${stat(W.coins.toLocaleString('en-US'), '🪙 Blox Coins')}</div>
+    h += `<div class="pstats">${stat(`${pr.ac} / ${ACH.length}`, '🏆 Achievements')}${stat(nf, '👥 Friends')}${stat(W.own.size, '🧥 Items owned')}${stat(copiesOwnedBy(myId()).length, '⭐ Limiteds')}${stat(Object.keys(RECENT).filter((x) => EXPS[x]).length, '🎮 Games played')}${stat(W.coins.toLocaleString('en-US'), '🪙 Blox Coins')}</div>
       <div class="pbtns"><button class="xp-btn gold" data-edit="1">✏️ Edit avatar</button><button class="xp-btn purple" data-goto="friends">👥 Friends${Social.inc.size ? ` · ${Social.inc.size} new` : ''}</button></div></div></div>`;
   } else {
-    h += `<div class="pstats">${stat(o ? (+pr.ac || 0) : '—', '🏆 Achievements')}${stat(favs.length, '❤️ Favourites')}</div>
+    h += `<div class="pstats">${stat(o ? (+pr.ac || 0) : '—', '🏆 Achievements')}${stat(favs.length, '❤️ Favourites')}${stat(copiesOwnedBy(id).length, '⭐ Limiteds')}</div>
       <div class="pbtns">${friendBtn(id)}${f && s.play ? `<button class="xp-btn blue" data-join="${esc(id)}">▶ Join them</button>` : ''}${f ? `<button class="xp-btn ${Social.rmAsk === id ? 'red' : 'alt'}" data-rm="${esc(id)}">${Social.rmAsk === id ? 'Tap again to remove' : 'Remove friend'}</button>` : ''}${Social.inc.has(id) ? `<button class="xp-btn alt" data-dec="${esc(id)}">Decline</button>` : ''}</div></div></div>`;
   }
+  const lims = copiesOwnedBy(mine ? myId() : id);
+  if (lims.length) h += `<h3 style="margin-top:20px">⭐ Limiteds</h3><div class="fmini">${lims.slice(0, 24).map((c) => { const I = xItem(c.item); return I ? `<button data-xopen="${esc(I.id)}" title="${esc(I.nm)} #${c.n}"><img class="avimg" src="${xPic(I)}" alt=""><span>${esc(I.nm)} #${c.n}</span></button>` : ''; }).join('')}</div>`;
   h += `<h3 style="margin-top:20px">❤️ ${mine ? 'Your favourites' : 'Favourite experiences'}</h3>` + (favs.length ? expCards(favs) : `<div class="fempty">${mine ? 'No favourites yet — tap the 🤍 on an experience to add it here.' : o ? 'No favourites yet.' : 'Their favourites show when they’re online.'}</div>`);
   if (mine) {
     const rec = Object.keys(RECENT).filter((x) => EXPS[x]).sort((a, b) => RECENT[b] - RECENT[a]).slice(0, 6);
@@ -3443,16 +3592,356 @@ function profilePanel(id, peer) {
   const sp = peer ? trPeer(peer) : null, spr = sp ? sp.presence || {} : {};
   if (!peer && id) { const c = crew().find((x) => !x.isMe && x.pr.id === id); if (c) { peer = c.peer; return profilePanel(id, peer); } }
   const o = id && Social.on.get(id), f = id && W.fr.f[id], pr = Object.assign({}, f || {}, o ? o.pr : {}, spr), mine = !id && !peer;
-  if (mine) { Object.assign(pr, { nm: Net.name, av: avArr(), fv: [...FAVS], ac: W.ach ? W.ach.got.size : 0 }); }
+  if (mine) { Object.assign(pr, { nm: Net.name, av: avArr(), ax: axArr(), fv: [...FAVS], ac: W.ach ? W.ach.got.size : 0 }); }
   const nm = cleanName(pr.nm), favs = (Array.isArray(pr.fv) ? pr.fv : []).filter(expOf).slice(0, 10);
   const s = mine ? { t: '🎮 That’s you!' } : peer ? { t: `🎮 Playing ${exp.name} here` } : statusOf(id);
-  const h = `<div class="pmini"><img class="avimg" src="${avPic(pr.av, true)}" alt=""><div><b>${esc(nm)}</b><small>${esc(s.t)}</small><small>🏆 ${o || mine ? (+pr.ac || 0) : '—'} achievements${id || mine ? ` · 🔖 ${mine ? myCode() : fcOf(id)}` : ''}</small></div></div>
+  const h = `<div class="pmini"><img class="avimg" src="${avPic(pr.av, true, okAx(pr.ax))}" alt=""><div><b>${esc(nm)}</b><small>${esc(s.t)}</small><small>🏆 ${o || mine ? (+pr.ac || 0) : '—'} achievements${id || mine ? ` · 🔖 ${mine ? myCode() : fcOf(id)}` : ''}</small></div></div>
     <div class="pbtns">${peer && sp ? '<button class="xp-btn blue" data-t="1">🤝 Trade</button>' : ''}${friendBtn(id)}${f && s.play ? `<button class="xp-btn blue" data-join="${esc(id)}">▶ Join them</button>` : ''}${f && o && !s.here && !peer ? (invited(id) ? '<button class="xp-btn alt" disabled>✓ Invited</button>' : `<button class="xp-btn" data-inv="${esc(id)}">📨 Invite here</button>`) : ''}</div>
     ${!id && peer ? '<p class="xp-note">They’re on an older version of Bloxverse, so they can’t be added as a friend yet.</p>' : ''}
     ${favs.length ? `<div class="fsub">❤️ Favourite experiences</div><div class="favchips">${favs.map((x) => `<span class="pill">${expOf(x).emoji} ${esc(expOf(x).name)}</span>`).join('')}</div>` : ''}`;
   const again = () => profilePanel(id, peer);
   openPanel(`👤 ${nm}`, h, (b) => { if (b.dataset.t) { closePanel(); startTrade(peer); return; } if (socialDo(b) === true) again(); }, () => { Social.panel = null; });
   Social.panel = again;
+}
+
+/* =====================================================================
+   THE CATALOG — avatar items players make, and LIMITEDs.
+   ✏️ Create: make a hat (a shape, two colours, a badge, a glow) or draw a shirt or a face, for 1,000 Blox Coins; it's
+   yours to wear. Publish it for 100 more and it's in the catalog for everyone at the price you set: for sale for
+   good, or as a LIMITED, only so many copies, each with its number (#1, #2…). Once a limited's sold out, its owners
+   can put their copy up for sale at any price, and anyone can buy it from them. Bloxverse's own first limited, the
+   Golden Dominus, is 500 with a stock of 2.
+   Shared documents (the db: claude.ai's, or the chat server's on the website):
+     items/<id>       an item: name, kind, look, maker, price, stock (0: not limited), published
+     copies/<id>~<n>  copy n of a limited: its owner, and its price while it's up for sale (sale)
+     pay/<random>     coins owed to someone (a maker whose item sold, a seller): collected next time they're on
+   Copies are claimed with a short lease ("acquire"), so two people can never both get the last one.
+   ===================================================================== */
+const MAKE_COST = 1000, PUB_COST = 100, TAB = Math.random().toString(36).slice(2, 10);
+const Market = { state: 'off', db: null, items: new Map(), copies: new Map(), copiesIn: false, paid: new Set(), busy: false };
+const xid = () => Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-4);
+function okItem(id, d) {
+  if (!/^u[a-z0-9]{6,16}$/.test(id) || !d || typeof d !== 'object' || !XKINDS[d.k]) return null;
+  const look = okLook(d.k, d.look); if (!look) return null;
+  return { id, nm: xName(d.nm), k: d.k, look, by: typeof d.by === 'string' ? d.by.slice(0, 200) : '', byNm: cleanName(d.byNm), price: clamp(Math.floor(+d.price || 0), 0, 1e6), lim: clamp(Math.floor(+d.lim || 0), 0, 100), pub: !!d.pub, at: +d.at || 0 };
+}
+function okCopy(key, d) {
+  const m = /^([A-Za-z0-9]{1,20})~(\d{1,3})$/.exec(key);
+  if (!m || !d || typeof d !== 'object' || typeof d.owner !== 'string' || !d.owner) return null;
+  return { key, item: m[1], n: +m[2], owner: d.owner.slice(0, 200), nm: cleanName(d.nm), sale: clamp(Math.floor(+d.sale || 0), 0, 1e7), at: +d.at || 0 };
+}
+const copiesOf = (id) => [...Market.copies.values()].filter((c) => c.item === id).sort((a, b) => a.n - b.n);
+const copiesOwnedBy = (uid) => [...Market.copies.values()].filter((c) => c.owner === uid && xItem(c.item)).sort((a, b) => a.item.localeCompare(b.item) || a.n - b.n);
+const stockLeft = (I) => (I.lim ? Math.max(0, I.lim - copiesOf(I.id).length) : Infinity);
+// is it yours to wear: you made it, you bought it, or you own a copy of the limited
+function ownsX(id) {
+  const I = xItem(id); if (!I) return false;
+  if (Object.prototype.hasOwnProperty.call(W.made, id)) return true;
+  return I.lim ? copiesOf(id).some((c) => c.owner === myId()) : W.xown.includes(id);
+}
+// a picture of an item: on a plain avatar (a head and shoulders for hats and faces)
+const XAV = [5, 0, 1, 0, 0, 0, 0, 0, 0, 0];
+const xPic = (I) => avPic(XAV, I.k !== 'pt', XSLOTS.map((k) => (k === I.k ? I.id : '')));
+
+// open the shared documents (once your save's loaded) and keep watching them
+async function marketStart() {
+  if (Market.state !== 'off') return;
+  const c = Net.api();
+  if (!c) { Market.state = 'none'; return; }
+  Market.state = 'wait';
+  let db = null; try { db = await c.use('db'); } catch (e) {}
+  if (!db) { Market.state = 'none'; marketRedraw(); return; }
+  Market.db = db; Market.state = 'on';
+  const lost = (e) => { console.warn('catalog', e); };
+  db.collection('items').onSnapshot((s) => {
+    const m = new Map(); for (const d of s.docs) { const I = okItem(d.id, d.data()); if (I) m.set(d.id, I); }
+    Market.items = m; xRefresh(); marketRedraw();
+  }, lost);
+  db.collection('copies').onSnapshot((s) => {
+    const m = new Map(); for (const d of s.docs) { const C = okCopy(d.id, d.data()); if (C) m.set(d.id, C); }
+    Market.copies = m; Market.copiesIn = true; xCheckWear(); marketRedraw();
+  }, lost);
+  db.collection('pay').where('to', '==', myId()).onSnapshot((s) => collectPay(s.docs), lost);
+}
+function marketRedraw() {
+  if (ED.open && ED.mode !== 'make' && !(document.activeElement && document.activeElement.closest && document.activeElement.closest('#avOpts input'))) drawAvatarOpts();
+  if (!playing) { drawMe(); if (homeView === 'me' || String(homeView).startsWith('u:')) drawExps(); }
+}
+// someone's avatar is wearing an item that's only just loaded: make it again
+function xRefresh() {
+  for (const [peer, a] of Net.avatars) {
+    if (!a.axMiss || a.dead || xLooks(a.ax).miss) continue;
+    const b = makeAvatar(a.av, a.name, false, a.ax); b.g.position.copy(a.g.position); b.g.rotation.y = a.g.rotation.y; b.target = a.target; b.anim = a.anim;
+    dropAvatar(a); scene.add(b.g); Net.avatars.set(peer, b);
+  }
+  if (me && me.axMiss && !P.dead && !xLooks(me.ax).miss) { const pos = me.g.position.clone(), ry = me.g.rotation.y; dropAvatar(me); me = makeAvatar(avArr(), Net.name, true, axArr()); me.g.position.copy(pos); me.g.rotation.y = ry; scene.add(me.g); }
+  if (pv.a && pv.a.axMiss && !xLooks(pv.a.ax).miss) pvAvatar();
+}
+// sold your copy: it comes off
+function xCheckWear() {
+  if (!Market.copiesIn) return;
+  let off = false;
+  for (const k of XSLOTS) { const id = W.wear[k], I = id && xItem(id); if (I && I.lim && !ownsX(id)) { W.wear[k] = ''; off = true; } }
+  if (off) { saveAv(); drawMe(); if (ED.open) pvAvatar(); }
+}
+// coins owed to you: each one taken once (a short lease, so two tabs don't both take it), then deleted
+async function collectPay(docs) {
+  for (const d of docs) {
+    const v = d.data() || {};
+    if (v.to !== myId() || Market.paid.has(d.id)) continue;
+    Market.paid.add(d.id);
+    try {
+      const ref = Market.db.doc('pay/' + d.id), L = await ref.acquire({ holder: TAB, ttlMs: 15000 });
+      if (!L.acquired) continue;
+      const s = await ref.get(); if (!s.exists) continue;
+      const amt = clamp(Math.floor(+s.data().amt || 0), 0, 1e7); await ref.delete();
+      if (!amt) continue;
+      W.coins += amt; saveAv(); drawCoins();
+      sfx('coin'); socialPop(`<div class="tx">💰 <b>${esc(cleanName(v.from))}</b> bought your <b>${esc(xName(v.what))}</b> — <b>+${amt.toLocaleString('en-US')}</b> Blox Coins!</div>`, null, 8000);
+      if (playing) say(`💰 ${cleanName(v.from)} bought your ${xName(v.what)}: +${amt.toLocaleString('en-US')} 🪙`, '#fde68a');
+      marketRedraw();
+    } catch (e) { Market.paid.delete(d.id); }
+  }
+}
+const pay = (to, amt, what) => Market.db.doc('pay/' + xid() + xid()).set({ to, amt, what, from: Net.name, at: Date.now() });
+// a short lease on a document; someone else's that's about to run out is waited for (a seller's lasts a second)
+async function lease(ref, ttlMs) {
+  for (let i = 0; i < 3; i++) {
+    const L = await ref.acquire({ holder: TAB, ttlMs });
+    if (L.acquired) return true;
+    const wait = L.expiresAt ? Date.parse(L.expiresAt) - Date.now() : 0;
+    if (!(wait > 0 && wait < 2500)) return false;
+    await new Promise((r) => setTimeout(r, wait + 60));
+  }
+  return false;
+}
+const say2 = (t) => { ED.note = t; drawAvatarOpts(); };
+
+// buying: a copy from the stock (the first number nobody has), or a regular item
+async function buyItem(id) {
+  const I = xItem(id), db = Market.db;
+  if (!I || !I.pub || !db || Market.busy) return;
+  if (W.coins < I.price) { say2(`You need <b>${(I.price - W.coins).toLocaleString('en-US')}</b> more Blox Coins.`); return; }
+  Market.busy = true; ED.note = '⏳ Buying…'; drawAvatarOpts();
+  try {
+    if (!I.lim) {
+      if (ownsX(id)) return;
+      W.coins -= I.price; W.xown.push(id); delete ED.tryX[I.k]; saveAv();
+      if (I.price && I.by && I.by !== myId()) await pay(I.by, I.price, I.nm);
+      sfx('buy'); ED.note = `🛍️ <b>${esc(I.nm)}</b> is yours — wear it from 🎒 My items.`; return;
+    }
+    for (let n = 1; n <= I.lim; n++) {
+      const key = `${id}~${n}`; if (Market.copies.has(key)) continue;
+      const ref = db.doc('copies/' + key);
+      if (!(await lease(ref, 3000))) continue; // (someone else is claiming this one right now)
+      const s = await ref.get(); if (s.exists && (s.data() || {}).owner) continue;
+      if (W.coins < I.price) break;
+      const doc = { item: id, n, owner: myId(), nm: Net.name, sale: 0, at: Date.now() };
+      await ref.set(doc);
+      W.coins -= I.price; Market.copies.set(key, okCopy(key, doc)); delete ED.tryX[I.k]; saveAv(); questMax('bv.limited', 1);
+      if (I.price && I.by && I.by !== myId()) await pay(I.by, I.price, `${I.nm} #${n}`);
+      sfx('buy'); ED.note = `⭐ You got <b>${esc(I.nm)} #${n}</b> of ${I.lim}!`; return;
+    }
+    ED.note = '😮 Sold out! Owners can still sell theirs below.';
+  } catch (e) { ED.note = '⚠️ That didn’t go through — try again.'; } finally { Market.busy = false; marketRedraw(); drawAvatarOpts(); drawMe(); }
+}
+// buying a copy someone's selling: still theirs, still that price, then it's yours and they get the coins
+async function buyCopy(key) {
+  const c = Market.copies.get(key), I = c && xItem(c.item), db = Market.db;
+  if (!c || !I || !c.sale || c.owner === myId() || !db || Market.busy) return;
+  if (W.coins < c.sale) { say2(`You need <b>${(c.sale - W.coins).toLocaleString('en-US')}</b> more Blox Coins.`); return; }
+  Market.busy = true; ED.note = '⏳ Buying…'; drawAvatarOpts();
+  try {
+    const ref = db.doc('copies/' + key);
+    if (!(await lease(ref, 3000))) { ED.note = 'Someone else is buying that one right now.'; return; }
+    const s = await ref.get(), d = s.exists && s.data();
+    if (!d || d.owner !== c.owner || Math.floor(+d.sale || 0) !== c.sale) { ED.note = 'That copy just changed — have another look.'; return; }
+    const doc = { item: c.item, n: c.n, owner: myId(), nm: Net.name, sale: 0, at: Date.now() };
+    await ref.set(doc);
+    W.coins -= c.sale; Market.copies.set(key, okCopy(key, doc)); delete ED.tryX[I.k]; saveAv(); questMax('bv.limited', 1);
+    await pay(c.owner, c.sale, `${I.nm} #${c.n}`);
+    sfx('buy'); ED.note = `⭐ You bought <b>${esc(I.nm)} #${c.n}</b> from ${esc(c.nm)}!`;
+  } catch (e) { ED.note = '⚠️ That didn’t go through — try again.'; } finally { Market.busy = false; marketRedraw(); drawAvatarOpts(); drawMe(); }
+}
+// putting your copy up for sale (any price), or taking it off
+async function sellCopy(key, price) {
+  const c = Market.copies.get(key), db = Market.db;
+  if (!c || c.owner !== myId() || !db) return;
+  price = Math.floor(+price || 0);
+  if (price && (price < 1 || price > 1e6)) { say2('A price is from 1 to 1,000,000 Blox Coins.'); return; }
+  try {
+    const ref = db.doc('copies/' + key);
+    if (!(await lease(ref, 1000))) { say2('Someone is buying it right now!'); return; }
+    const s = await ref.get(), d = s.exists && s.data(); if (!d || d.owner !== myId()) return;
+    await ref.update({ sale: price });
+    Market.copies.set(key, Object.assign({}, c, { sale: price })); sfx(price ? 'select' : 'click');
+    ED.note = price ? `🏷️ <b>#${c.n}</b> is up for sale for ${price.toLocaleString('en-US')} Blox Coins. You get them when someone buys it.` : 'Taken off sale.';
+  } catch (e) { ED.note = '⚠️ That didn’t go through — try again.'; }
+  drawAvatarOpts();
+}
+// ✏️ Create: what you're making, as a look
+function draftLook() {
+  const D = ED.draft;
+  if (D.k === 'h') return Object.assign({}, D.h);
+  if (D.k === 'f' && !D.f) D.f = DEFAULT_FACE;
+  return { px: D.k === 'f' ? D.f : D.pt };
+}
+const DEFAULT_FACE = (() => { const a = Array(144).fill('0'); for (const [x, y] of [[3, 3], [3, 4], [8, 3], [8, 4], [2, 7], [9, 7], [3, 8], [8, 8], [4, 9], [5, 9], [6, 9], [7, 9]]) a[y * 12 + x] = '1'; return a.join(''); })();
+function createItem() {
+  const D = ED.draft, k = D.k, look = okLook(k, draftLook()), nm = xName(D.nm || `My ${XKINDS[k][0].toLowerCase()}`);
+  if (!look) return;
+  if (W.coins < MAKE_COST) { say2(`Making an item costs ${MAKE_COST.toLocaleString('en-US')} Blox Coins — you need ${(MAKE_COST - W.coins).toLocaleString('en-US')} more.`); return; }
+  if (Object.keys(W.made).length >= 60) { say2('You’ve made 60 items — that’s the most for now.'); return; }
+  const id = 'u' + xid();
+  W.coins -= MAKE_COST; W.made[id] = { nm, k, look, at: Date.now(), pub: false }; W.wear[k] = id; delete ED.tryX[k];
+  saveAv(); quest('bv.create'); sfx('unlock');
+  if (Market.db) Market.db.doc('items/' + id).set({ nm, k, look, by: myId(), byNm: Net.name, price: 0, lim: 0, pub: false, at: Date.now() }).catch(() => {});
+  ED.mode = 'wear'; avTab = 'mine'; ED.pub = id; ED.note = `✨ You made <b>${esc(nm)}</b> and you're wearing it! Publish it to sell it in the catalog.`;
+  drawAvatarOpts(); pvAvatar(); drawMe();
+}
+async function publishItem(id) {
+  const M = W.made[id], db = Market.db;
+  if (!M || M.pub) return;
+  if (!db) { say2('Publishing needs Bloxverse’s shared catalog, which this view doesn’t have.'); return; }
+  const price = Math.floor(+ED.pubPrice), lim = ED.pubLim ? Math.floor(+ED.pubStock) : 0;
+  if (!(price >= 0 && price <= 1e6)) { say2('Pick a price from 0 to 1,000,000 Blox Coins.'); return; }
+  if (ED.pubLim && !(lim >= 1 && lim <= 100)) { say2('A limited’s stock is from 1 to 100 copies.'); return; }
+  if (W.coins < PUB_COST) { say2(`Publishing costs ${PUB_COST} Blox Coins.`); return; }
+  W.coins -= PUB_COST; M.pub = true; saveAv();
+  try {
+    await db.doc('items/' + id).set({ nm: M.nm, k: M.k, look: M.look, by: myId(), byNm: Net.name, price, lim, pub: true, at: Date.now() });
+    sfx('unlock'); ED.pub = ''; ED.note = `📣 <b>${esc(M.nm)}</b> is in the catalog${lim ? ` as a LIMITED (${lim} cop${lim === 1 ? 'y' : 'ies'})` : ''} for ${price ? price.toLocaleString('en-US') + ' Blox Coins' : 'free'}. You get the coins every time someone buys it.`;
+  } catch (e) { W.coins += PUB_COST; M.pub = false; saveAv(); ED.note = '⚠️ That didn’t go through — try again.'; }
+  drawAvatarOpts(); drawMe();
+}
+
+// the Catalog: every published item, Bloxverse's limiteds first
+function catalogHtml() {
+  if (ED.view) { const I = xItem(ED.view); if (I && I.pub) return itemHtml(I); ED.view = ''; }
+  if (Market.state !== 'on') return `<div class="fempty">${Market.state === 'wait' ? 'Opening the catalog…' : 'The catalog lives in Bloxverse’s shared items, which this view can’t reach. Open Bloxverse from 🕹️ Games in the chat (on claude.ai as a Contributor or above).'}</div>`;
+  const all = OFFICIAL.concat([...Market.items.values()].filter((I) => I.pub).sort((a, b) => b.at - a.at));
+  const cats = [['all', '🛍️ All'], ['lim', '⭐ Limited'], ['h', '🎩 Hats'], ['pt', '👕 Shirts'], ['f', '🙂 Faces']];
+  const list = all.filter((I) => ED.cat === 'all' || (ED.cat === 'lim' ? I.lim : I.k === ED.cat));
+  return `<div class="xchips" style="margin-bottom:10px">${cats.map(([k, l]) => `<button class="xchip${ED.cat === k ? ' on' : ''}" data-xcat="${k}">${l}</button>`).join('')}</div>
+    <div class="xgrid">${list.map((I) => `<button class="xcard${I.lim ? ' lim' : ''}" data-xview="${esc(I.id)}"><img src="${xPic(I)}" alt="">${I.lim ? '<span class="xbadge">⭐ LIMITED</span>' : ''}<b>${esc(I.nm)}</b><small>by ${esc(I.byNm)}</small>${xPriceTag(I)}</button>`).join('') || '<div class="fempty">Nothing here yet — make something in ✏️ Create!</div>'}</div>`;
+}
+function xPriceTag(I) {
+  if (ownsX(I.id) && !I.lim) return '<span class="pr own">✓ Owned</span>';
+  if (!I.lim) return `<span class="pr">${I.price ? `<span class="coin sm"></span> ${I.price.toLocaleString('en-US')}` : 'Free'}</span>`;
+  const left = stockLeft(I), sales = copiesOf(I.id).filter((c) => c.sale).map((c) => c.sale);
+  if (left > 0) return `<span class="pr"><span class="coin sm"></span> ${I.price.toLocaleString('en-US')} · ${left}/${I.lim} left</span>`;
+  return `<span class="pr so">${sales.length ? `Sold out · from ${Math.min(...sales).toLocaleString('en-US')}` : 'Sold out'}</span>`;
+}
+// one item: try it on, buy it, copies for sale, your copies
+function itemHtml(I) {
+  const cs = copiesOf(I.id), mine = cs.filter((c) => c.owner === myId()), left = stockLeft(I), owned = ownsX(I.id);
+  const sales = cs.filter((c) => c.sale && c.owner !== myId()).sort((a, b) => a.sale - b.sale), trying = ED.tryX[I.k] === I.id, wearing = W.wear[I.k] === I.id;
+  let h = `<button class="back" data-xview="">← Catalog</button>
+    <div class="xdet"><img src="${xPic(I)}" alt=""><div><h3>${esc(I.nm)}</h3><small>${XKINDS[I.k][1]} ${XKINDS[I.k][0]} · by ${esc(I.byNm)}</small>
+    ${I.lim ? `<div class="xlim">⭐ LIMITED · ${left > 0 ? `${left} of ${I.lim} left` : 'SOLD OUT'}</div>` : ''}
+    <div class="xprice"><span class="coin"></span>${I.price ? I.price.toLocaleString('en-US') : 'Free'}</div></div></div>
+    <div class="pbtns">${owned ? `<button class="xp-btn ${wearing ? 'alt' : ''}" data-xwear="${esc(I.id)}">${wearing ? 'Take off' : '👕 Wear'}</button>` : `<button class="xp-btn alt" data-xtry="${esc(I.id)}">${trying ? 'Take off' : '👀 Try on'}</button>`}
+    ${I.lim ? (left > 0 ? `<button class="xp-btn gold" data-xbuy="${esc(I.id)}" ${W.coins < I.price || Market.busy ? 'disabled' : ''}>🛒 Buy #${cs.length + 1} · ${I.price.toLocaleString('en-US')}</button>` : '') : owned ? '' : `<button class="xp-btn gold" data-xbuy="${esc(I.id)}" ${W.coins < I.price || Market.busy ? 'disabled' : ''}>🛒 Buy · ${I.price ? I.price.toLocaleString('en-US') : 'Free'}</button>`}</div>`;
+  if (I.lim) {
+    h += `<div class="fsub">🏷️ For sale by players</div>` + (sales.length ? sales.map((c) => `<div class="xrow"><b>#${c.n}</b><span>${esc(c.nm)}</span><span class="pr"><span class="coin sm"></span> ${c.sale.toLocaleString('en-US')}</span><button class="xp-btn gold" data-xresale="${esc(c.key)}" ${W.coins < c.sale || Market.busy ? 'disabled' : ''}>Buy</button></div>`).join('') : `<div class="fempty">${left > 0 ? 'Still in stock — nobody’s selling theirs yet.' : 'Nobody’s selling one right now.'}</div>`);
+    if (mine.length) h += `<div class="fsub">🎒 Your copies</div>` + mine.map((c) => `<div class="xrow"><b>#${c.n}</b>${c.sale
+      ? `<span>On sale for <b>${c.sale.toLocaleString('en-US')}</b></span><button class="xp-btn alt" data-xunsell="${esc(c.key)}">Take off sale</button>`
+      : `<label class="xsearch xin"><span class="coin sm"></span><input type="number" min="1" max="1000000" id="sell_${esc(c.key.replace('~', '_'))}" data-v="sell_${esc(c.key)}" data-go="sb_${esc(c.key.replace('~', '_'))}" placeholder="Any price" value="${esc(ED['sell_' + c.key] || '')}"></label><button class="xp-btn" id="sb_${esc(c.key.replace('~', '_'))}" data-xsell="${esc(c.key)}">🏷️ Sell</button>`}</div>`).join('');
+    if (cs.length) h += `<div class="fsub">👥 Owners</div><div class="favchips">${cs.map((c) => `<span class="pill">#${c.n} ${esc(c.owner === myId() ? 'You' : c.nm)}</span>`).join('')}</div>`;
+  }
+  return h;
+}
+// 🎒 My items: what you made, bought and own copies of
+function mineHtml() {
+  const made = Object.keys(W.made).map(xItem).filter(Boolean), bought = W.xown.map(xItem).filter((I) => I && !W.made[I.id]);
+  const lims = [...new Set(copiesOwnedBy(myId()).map((c) => c.item))].map(xItem).filter((I) => I && !W.made[I.id]);
+  const card = (I, tag, extra) => `<div class="xmine${W.wear[I.k] === I.id ? ' on' : ''}"><button class="xcard" data-xwear="${esc(I.id)}" title="${W.wear[I.k] === I.id ? 'Take it off' : 'Wear it'}"><img src="${xPic(I)}" alt=""><b>${esc(I.nm)}</b><small>${tag}</small><span class="pr ${W.wear[I.k] === I.id ? 'own' : ''}">${W.wear[I.k] === I.id ? '✓ Wearing' : 'Wear'}</span></button>${extra || ''}</div>`;
+  let h = '';
+  if (ED.pub && W.made[ED.pub] && !W.made[ED.pub].pub) h += publishHtml(ED.pub);
+  if (!made.length && !bought.length && !lims.length) return h + `<div class="fempty">Nothing here yet. Make your own item in <b>✏️ Create</b>, or get one in <b>🛍️ Catalog</b>.</div>`;
+  if (made.length) h += `<div class="fsub">✏️ Made by you</div><div class="xgrid">${made.map((I) => card(I, `${XKINDS[I.k][1]} ${I.pub ? 'Published' : 'Not published'}`, I.pub ? `<button class="xmini" data-xview2="${esc(I.id)}">🛍️ In the catalog</button>` : `<button class="xmini gold" data-xpub="${esc(I.id)}">📣 Publish · ${PUB_COST}</button>`)).join('')}</div>`;
+  if (lims.length) h += `<div class="fsub">⭐ Limiteds</div><div class="xgrid">${lims.map((I) => card(I, copiesOf(I.id).filter((c) => c.owner === myId()).map((c) => '#' + c.n).join(' '), `<button class="xmini" data-xview2="${esc(I.id)}">🏷️ Sell</button>`)).join('')}</div>`;
+  if (bought.length) h += `<div class="fsub">🛍️ From the catalog</div><div class="xgrid">${bought.map((I) => card(I, `by ${esc(I.byNm)}`)).join('')}</div>`;
+  return h;
+}
+function publishHtml(id) {
+  const M = W.made[id], lim = !!ED.pubLim;
+  return `<div class="xpub"><h4>📣 Publish “${esc(M.nm)}”</h4><p class="xp-note">It goes in the 🛍️ Catalog for everyone. Publishing costs <b>${PUB_COST}</b> Blox Coins; you get the price every time someone buys it.</p>
+    <div class="xform"><label>Price<span class="xsearch xin"><span class="coin sm"></span><input type="number" min="0" max="1000000" id="pubPrice" data-v="pubPrice" data-go="pubGo" value="${esc(ED.pubPrice != null ? ED.pubPrice : 100)}"></span></label>
+    <div class="xchips"><button class="xchip${lim ? '' : ' on'}" data-xlim="0">For sale for good</button><button class="xchip${lim ? ' on' : ''}" data-xlim="1">⭐ Limited</button></div>
+    ${lim ? `<label>Copies<span class="xsearch xin"><input type="number" min="1" max="100" id="pubStock" data-v="pubStock" data-go="pubGo" value="${esc(ED.pubStock != null ? ED.pubStock : 10)}"></span></label>` : ''}</div>
+    <div class="pbtns"><button class="xp-btn gold" id="pubGo" data-xpubgo="${esc(id)}" ${W.coins < PUB_COST ? 'disabled' : ''}>📣 Publish · ${PUB_COST}</button><button class="xp-btn alt" data-xpubx="1">Not now</button></div></div>`;
+}
+// ✏️ Create
+function makerHtml() {
+  const D = ED.draft, k = D.k;
+  let h = `<p class="xp-note">Make your own avatar item for <b>${MAKE_COST.toLocaleString('en-US')}</b> Blox Coins — it's yours to wear, and you can publish it to the 🛍️ Catalog for ${PUB_COST} more. You see it on your avatar as you make it.</p>
+    <div class="xchips" style="margin-bottom:10px">${XSLOTS.map((x) => `<button class="xchip${k === x ? ' on' : ''}" data-mk="${x}">${XKINDS[x][1]} ${XKINDS[x][0]}</button>`).join('')}</div>`;
+  const sw = (attr, cur, from) => `<div class="sw">${XPAL.map((c, i) => (i < from ? '' : `<button data-${attr}="${i}" class="${cur === i ? 'on' : ''}" style="background:${c || 'repeating-conic-gradient(#94a3b8 0 25%,#e2e8f0 0 50%) 0 0/10px 10px'}" title="${i ? 'Colour ' + i : 'See-through (rubber)'}"></button>`)).join('')}</div>`;
+  if (k === 'h') {
+    h += `<div class="opt"><small>Shape</small><div class="shop">${XHATS.map(([n, ic], i) => `<button data-mks="${i}" class="${D.h.s === i ? 'on' : ''}"><span class="i">${ic}</span>${n}</button>`).join('')}</div></div>
+      <div class="opt"><small>Colour</small>${sw('mkc', D.h.c, 1)}</div><div class="opt"><small>Second colour</small>${sw('mkd', D.h.d, 1)}</div>
+      <div class="opt"><small>Badge</small><div class="sw emo">${XEMO.map((e, i) => `<button data-mke="${i}" class="${D.h.e === i ? 'on' : ''}">${e || '🚫'}</button>`).join('')}</div></div>
+      <div class="opt"><button class="xchip${D.h.gl ? ' on' : ''}" data-mkg="1">✨ Glow ${D.h.gl ? 'on' : 'off'}</button></div>`;
+  } else {
+    h += `<div class="pxwrap"><canvas id="pxCan" width="240" height="240"></canvas></div>
+      <div class="opt"><small>Paint with</small>${sw('mkp', D.col, 0)}</div>
+      <div class="pbtns"><button class="xp-btn alt" data-mkfill="1">🪣 Fill all</button><button class="xp-btn alt" data-mkclear="1">🧽 Clear</button>${k === 'f' ? '<button class="xp-btn alt" data-mkreset="1">🙂 Start face</button>' : ''}</div>`;
+  }
+  h += `<div class="opt"><small>Name</small><label class="xsearch">🏷️<input id="mkName" maxlength="24" placeholder="My ${XKINDS[k][0].toLowerCase()}" value="${esc(D.nm)}" autocomplete="off" data-go="mkGo"></label></div>
+    <div class="pbtns"><button class="xp-btn gold" id="mkGo" data-mkgo="1" ${W.coins < MAKE_COST ? 'disabled' : ''}>✨ Create · ${MAKE_COST.toLocaleString('en-US')}</button></div>`;
+  return h;
+}
+// the pixel canvas: drag to paint (the skin or shirt colour shows through what you leave see-through)
+function pxBind() {
+  const cv = $('#pxCan'); if (!cv) return;
+  const D = ED.draft, g = cv.getContext('2d');
+  const draw = () => {
+    const px = draftLook().px; g.clearRect(0, 0, 240, 240);
+    g.fillStyle = D.k === 'f' ? SKINS[AV.s] : SHIRTS[AV.sh]; g.fillRect(0, 0, 240, 240);
+    for (let i = 0; i < 144; i++) { const v = parseInt(px[i], 16); if (v) { g.fillStyle = XPAL[v]; g.fillRect((i % 12) * 20, Math.floor(i / 12) * 20, 20, 20); } }
+    g.strokeStyle = 'rgba(0,0,0,.12)'; for (let i = 1; i < 12; i++) { g.beginPath(); g.moveTo(i * 20, 0); g.lineTo(i * 20, 240); g.moveTo(0, i * 20); g.lineTo(240, i * 20); g.stroke(); }
+  };
+  let down = false, t = 0;
+  const paint = (e) => {
+    const r = cv.getBoundingClientRect(), x = Math.floor((e.clientX - r.left) / r.width * 12), y = Math.floor((e.clientY - r.top) / r.height * 12);
+    if (x < 0 || y < 0 || x > 11 || y > 11) return;
+    const key = D.k === 'f' ? 'f' : 'pt', a = draftLook().px.split(''); a[y * 12 + x] = D.col.toString(16); D[key] = a.join('');
+    draw(); clearTimeout(t); t = setTimeout(pvAvatar, 120);
+  };
+  cv.onpointerdown = (e) => { down = true; try { cv.setPointerCapture(e.pointerId); } catch (er) {} paint(e); };
+  cv.onpointermove = (e) => { if (down) paint(e); };
+  cv.onpointerup = cv.onpointercancel = () => { down = false; pvAvatar(); };
+  draw();
+}
+// the catalog's, My items' and Create's buttons (true: it was one of them)
+function marketClick(b) {
+  const d = b.dataset, D = ED.draft;
+  if (d.xcat) { ED.cat = d.xcat; }
+  else if (d.xview !== undefined) { ED.view = d.xview; ED.note = ''; if (d.xview) sfx('open'); }
+  else if (d.xview2) { ED.mode = 'shop'; ED.view = d.xview2; ED.note = ''; }
+  else if (d.xtry) { const I = xItem(d.xtry); if (!I) return true; if (ED.tryX[I.k] === I.id) delete ED.tryX[I.k]; else ED.tryX[I.k] = I.id; sfx('click'); pvAvatar(); }
+  else if (d.xwear) { const I = xItem(d.xwear); if (!I || !ownsX(I.id)) return true; W.wear[I.k] = W.wear[I.k] === I.id ? '' : I.id; delete ED.tryX[I.k]; sfx('select'); saveAv(); pvAvatar(); drawMe(); }
+  else if (d.xbuy) { buyItem(d.xbuy); return true; }
+  else if (d.xresale) { buyCopy(d.xresale); return true; }
+  else if (d.xsell) { sellCopy(d.xsell, ED['sell_' + d.xsell]); return true; }
+  else if (d.xunsell) { sellCopy(d.xunsell, 0); return true; }
+  else if (d.xpub) { ED.pub = d.xpub; ED.note = ''; }
+  else if (d.xpubx) { ED.pub = ''; }
+  else if (d.xlim) { ED.pubLim = d.xlim === '1'; }
+  else if (d.xpubgo) { publishItem(d.xpubgo); return true; }
+  else if (d.mk) { D.k = d.mk; sfx('click'); pvAvatar(); }
+  else if (d.mks) { D.h.s = +d.mks; pvAvatar(); }
+  else if (d.mkc) { D.h.c = +d.mkc; pvAvatar(); }
+  else if (d.mkd) { D.h.d = +d.mkd; pvAvatar(); }
+  else if (d.mke) { D.h.e = +d.mke; pvAvatar(); }
+  else if (d.mkg) { D.h.gl = D.h.gl ? 0 : 1; pvAvatar(); }
+  else if (d.mkp) { D.col = +d.mkp; }
+  else if (d.mkfill || d.mkclear || d.mkreset) { const v = d.mkfill ? D.col.toString(16).repeat(144) : '0'.repeat(144); if (D.k === 'f') D.f = d.mkreset ? DEFAULT_FACE : v; else D.pt = v; pvAvatar(); }
+  else if (d.mkgo) { createItem(); return true; }
+  else return false;
+  drawAvatarOpts();
+  return true;
 }
 
 /* ---------------- the FPS and ping meter ---------------- */
@@ -3780,7 +4269,7 @@ function frame(t) {
   }
   // everyone else, sliding towards where they say they are
   for (const [peer, a] of Net.avatars) {
-    if (a.dead) { updateDead(a, dt); if (a.dead.t > 2.2) { const b = makeAvatar(a.av, a.name); b.target = a.target; b.glow = undefined; dropAvatar(a); if (a.target) b.g.position.set(a.target[0], a.target[1], a.target[2]); scene.add(b.g); Net.avatars.set(peer, b); } continue; }
+    if (a.dead) { updateDead(a, dt); if (a.dead.t > 2.2) { const b = makeAvatar(a.av, a.name, false, a.ax); b.target = a.target; b.glow = undefined; dropAvatar(a); if (a.target) b.g.position.set(a.target[0], a.target[1], a.target[2]); scene.add(b.g); Net.avatars.set(peer, b); } continue; }
     if (!a.target) continue;
     const [x, y, z, yaw] = a.target, g = a.g, k = Math.min(1, dt * 12);
     if (Math.hypot(x - g.position.x, y - g.position.y, z - g.position.z) > 30) g.position.set(x, y, z);
@@ -3854,7 +4343,7 @@ achNum();
 drawAvatarOpts(); drawMe(); drawExps();
 requestAnimationFrame(frame);
 window.__rb = { P, Net, cam, camera, scene, renderer, keys, EXPS, Meter, GFX, gfxApply, softGL, View, setLock, zoomBy, lookBy, joy, sunL, sunSprite, makeAvatar, join, leave, die, respawn, openShop, buyItem, hasItem, itemCount, giveItem, useItem, shopItem, setItemOff, Trade, startTrade, tradeTick, parts: () => parts, exp: () => exp, me: () => me, iAmHost, crew, players, get AV() { return AV; }, W, earn, spend, roundState, openPanel, closePanel, pickPlane, myPeer, grantCosmetic, snapshot, say,
-  Social, Inv, ED, myId, myCode, fcOf, openEditor, closeEditor, socialScan, avPic, get homeView() { return homeView; }, set homeView(v) { homeView = v; drawExps(); } }; // for tests
+  Social, Inv, ED, myId, myCode, fcOf, openEditor, closeEditor, socialScan, avPic, Market, OFFICIAL, xItem, ownsX, copiesOf, drawAvatarOpts, axArr, get homeView() { return homeView; }, set homeView(v) { homeView = v; drawExps(); } }; // for tests
 if (!Net.api()) homeStatus('Open Bloxverse from 🕹️ Games in the chat to play online.');
 else {
   $('#hi').textContent = 'Connecting…';
@@ -3867,7 +4356,7 @@ else {
     W.loaded = true;
     const today = new Date().toISOString().slice(0, 10);
     if (W.day !== today) { W.day = today; W.coins += 50; $('#hi').textContent = `Hi, ${Net.name}! Daily bonus: +50 🪙`; }
-    saveAv(); drawAvatarOpts(); pvAvatar(); socialScan(); drawMe(); drawExps();
+    saveAv(); drawAvatarOpts(); pvAvatar(); socialScan(); drawMe(); drawExps(); marketStart();
   });
 }
 </script>

@@ -89,7 +89,65 @@
       kvGet: (key) => kvCall({ op: 'get', key }),
       kvSet: (key, val) => kvCall({ op: 'set', key, val }),
       kvReply(m) { const p = kvWait.get(m.id); if (!p) return; kvWait.delete(m.id); if (m.err) p.rej({ code: 'failed', message: m.err }); else p.res(m.val === undefined ? true : m.val); },
+      // documents every player shares (Bloxverse's catalog and limited items), kept by the chat server
+      dbCall: (m) => new Promise((res, rej) => { const id = ++kvN; dbWait.set(id, { res, rej }); send(Object.assign({ t: 'nrdb', id }, m)); setTimeout(() => { if (dbWait.delete(id)) rej({ code: 'unavailable', message: 'no answer' }); }, 15000); }),
+      dbReply(m) { const p = dbWait.get(m.id); if (!p) return; dbWait.delete(m.id); if (m.err) p.rej({ code: m.code || 'invalid_argument', message: m.err }); else p.res(m); },
     };
+  }
+  const dbWait = new Map();
+
+  // ---------------------------------------------------------------- website: the db capability, over the chat socket
+  // Just what claude.ai's db does that games use: documents (get, set, update, delete, acquire) and collection queries
+  // (where, orderBy, limit). Listeners ask again every couple of seconds, and straight after a write from this page.
+  function wsDb(call) {
+    const watchers = new Set();
+    let timer = 0;
+    const poke = () => { for (const w of [...watchers]) w(); };
+    const watch = (w) => { watchers.add(w); if (!timer) timer = setInterval(() => { if (!watchers.size) { clearInterval(timer); timer = 0; } else poke(); }, 2500); setTimeout(w, 0); return () => watchers.delete(w); };
+    const wrote = (r) => { setTimeout(poke, 30); return r && undefined; };
+    const meta = { fromCache: false, hasPendingWrites: false };
+    const docSnap = (id, r) => ({ id, exists: !!r.exists, data: () => (r.exists ? r.data : undefined), metadata: meta });
+    function doc(path) {
+      const id = path.split('/').pop();
+      return {
+        id, path,
+        get: () => call({ op: 'get', path }).then((r) => docSnap(id, r)),
+        set: (data) => call({ op: 'set', path, data }).then(wrote),
+        update: (data) => call({ op: 'update', path, data }).then(wrote),
+        delete: () => call({ op: 'delete', path }).then(wrote),
+        acquire: (o) => call({ op: 'acquire', path, holder: o && o.holder, ttlMs: o && o.ttlMs }).then((r) => ({ acquired: !!r.acquired, expiresAt: r.expiresAt, holder: r.holder })),
+        onSnapshot(next, onErr) {
+          let last = null, live = true;
+          const un = watch(() => call({ op: 'get', path }).then((r) => { const j = JSON.stringify([r.exists, r.data]); if (live && j !== last) { last = j; next(docSnap(id, r)); } }, (e) => { if (e.code !== 'unavailable' && onErr && live) { live = false; un(); onErr(e); } }));
+          return () => { live = false; un(); };
+        },
+        collection: (c) => coll(path + '/' + c),
+      };
+    }
+    function coll(path, q = []) {
+      const run = () => call({ op: 'query', path, q }).then((r) => r.docs || []);
+      const snap = (docs, removed) => ({ docs: docs.map((d) => docSnap(d.id, { exists: true, data: d.data })), size: docs.length, empty: !docs.length, metadata: meta,
+        docChanges: () => removed.map((id) => ({ type: 'removed', doc: docSnap(id, { exists: true, data: {} }), oldIndex: -1, newIndex: -1 })) });
+      return {
+        path,
+        where: (f, op, v) => coll(path, q.concat([['where', f, op, v]])),
+        orderBy: (f, dir) => coll(path, q.concat([['orderBy', f, dir]])),
+        limit: (n) => coll(path, q.concat([['limit', n]])),
+        doc: (id) => doc(path + '/' + (id || rid(20))),
+        add: async (data) => { const d = doc(path + '/' + rid(20)); await d.set(data); return d; },
+        get: () => run().then((docs) => snap(docs, [])),
+        onSnapshot(next, onErr) {
+          let last = null, ids = [], live = true;
+          const un = watch(() => run().then((docs) => {
+            const j = JSON.stringify(docs); if (!live || j === last) return;
+            last = j; const now = docs.map((d) => d.id), removed = ids.filter((id) => !now.includes(id)); ids = now;
+            next(snap(docs, removed));
+          }, (e) => { if (e.code !== 'unavailable' && onErr && live) { live = false; un(); onErr(e); } }));
+          return () => { live = false; un(); };
+        },
+      };
+    }
+    return { doc, collection: (p) => coll(p) };
   }
 
   // ---------------------------------------------------------------- one game frame
@@ -168,12 +226,13 @@
       'user.profiles': (ids) => backend.user.profiles(ids),
       'user.isOwner': () => backend.user.isOwner(),
       'user.canEdit': () => backend.user.canEdit(),
-      db: async () => (await connected('db')) && !!backend.db,
+      db: async () => (await connected('db')) && !!backend.db && (!backend.dbFor || backend.dbFor.includes(code)),
       'db.get': async (a) => snapDoc(await backend.db.doc(dbPath(a.path)).get()),
       'db.query': async (a) => snapColl(await query(a).get()),
       'db.set': (a) => backend.db.doc(dbPath(a.path)).set(a.data),
       'db.update': (a) => backend.db.doc(dbPath(a.path)).update(a.data),
       'db.delete': (a) => backend.db.doc(dbPath(a.path)).delete(),
+      'db.acquire': async (a) => { const o = a.opts || {}, r = await backend.db.doc(dbPath(a.path)).acquire({ holder: String(o.holder || ''), ttlMs: +o.ttlMs || 0 }); return { acquired: !!r.acquired, expiresAt: r.expiresAt || null, holder: r.holder || null }; },
       'kv.get': async (a) => {
         const key = kvKey(a && a.key);
         if (!(await connected())) return null;
@@ -239,12 +298,13 @@
           isOwner: async () => false,
           canEdit: async () => true,
         },
-        db: null,
+        db: wsDb(ws.dbCall), dbFor: ['rb'], // (only the games written for it: others would start keeping accounts and boards here)
         kv: { get: (key) => ws.kvGet(key), set: (key, val) => ws.kvSet(key, val) },
       };
     },
     socketEvent(m) { if (ws) ws.event(m); },
     socketKv(m) { if (ws) ws.kvReply(m); },
+    socketDb(m) { if (ws) ws.dbReply(m); },
     socketUp() { if (ws) ws.reconnected(); },
     socketDown() { if (ws) ws.dropped(); },
     // the chat page's own game tables (tables.js): a live room under the "tb." prefix, or null when there are none here

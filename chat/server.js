@@ -314,6 +314,53 @@ function partyLeave(u) {
 // moments to everyone in it. Each open game page is one "peer".
 const NR_NAME = /^[a-z0-9][a-z0-9_.-]{0,63}$/, NR_PEER = /^[a-z0-9]{6,24}$/, NR_MAX = 8192;
 const nrooms = new Map(); // name -> Map(peer -> { u, ws, presence, at })
+// Documents a game's players share (Bloxverse's catalog, limited items and payouts), like claude.ai's db: JSON
+// documents at slash-separated paths, collections queried with where / orderBy / limit, and short leases ("acquire")
+// so only one player at a time can claim something. Kept in game-db.json, written a moment after a change.
+const GDB_FILE = path.join(DATA_DIR, 'game-db.json'), GDB_SEG = /^[A-Za-z0-9_\-.~:@+]{1,200}$/, GDB_MAX = 25000;
+let gdb = null, gdbTimer = 0;
+const gdbLeases = new Map(); // path -> { holder, exp }
+function gdbLoad() {
+  if (!gdb) { try { gdb = new Map(Object.entries(JSON.parse(fs.readFileSync(GDB_FILE, 'utf8')))); } catch { gdb = new Map(); } }
+  return gdb;
+}
+function gdbSave() {
+  if (gdbTimer) return;
+  gdbTimer = setTimeout(() => {
+    gdbTimer = 0;
+    try { fs.mkdirSync(DATA_DIR, { recursive: true }); fs.writeFileSync(GDB_FILE + '.tmp', JSON.stringify(Object.fromEntries(gdb))); fs.renameSync(GDB_FILE + '.tmp', GDB_FILE); } catch (e) { console.error('game db save failed', e.message); }
+  }, 400);
+}
+// a document path has an even number of segments, a collection an odd number
+function gdbPath(p, isDoc) {
+  if (typeof p !== 'string' || p.length > 1000) return false;
+  const seg = p.split('/');
+  return seg.length <= 16 && seg.length % 2 === (isDoc ? 0 : 1) && seg.every((x) => GDB_SEG.test(x) && x !== '.' && x !== '..');
+}
+const gdbPlain = (o) => o && typeof o === 'object' && !Array.isArray(o);
+function gdbMerge(t, src) {
+  for (const [k, v] of Object.entries(src)) {
+    if (k === '__proto__' || k === 'constructor' || k === 'prototype') continue;
+    t[k] = gdbPlain(v) && gdbPlain(t[k]) ? gdbMerge(t[k], v) : v;
+  }
+  return t;
+}
+function gdbQuery(path0, q) {
+  const pre = path0 + '/';
+  let docs = [];
+  for (const [k, v] of gdbLoad()) if (k.startsWith(pre) && !k.slice(pre.length).includes('/')) docs.push({ id: k.slice(pre.length), data: v });
+  const cmp = (a, b) => (a > b) - (a < b);
+  const ops = { '==': (a, b) => a === b, '!=': (a, b) => a !== b, '<': (a, b) => a < b, '<=': (a, b) => a <= b, '>': (a, b) => a > b, '>=': (a, b) => a >= b,
+    in: (a, b) => Array.isArray(b) && b.includes(a), 'not-in': (a, b) => Array.isArray(b) && !b.includes(a), 'array-contains': (a, b) => Array.isArray(a) && a.includes(b) };
+  let order = null, lim = 1000;
+  for (const [op, x, y, z] of Array.isArray(q) ? q.slice(0, 12) : []) {
+    if (op === 'where' && typeof x === 'string' && ops[y]) docs = docs.filter((d) => d.data[x] !== undefined && ops[y](d.data[x], z));
+    else if (op === 'orderBy' && typeof x === 'string') order = [x, y === 'desc' ? -1 : 1];
+    else if (op === 'limit') lim = Math.max(1, Math.min(1000, x | 0));
+  }
+  docs.sort(order ? (a, b) => (a.data[order[0]] === undefined) - (b.data[order[0]] === undefined) || cmp(a.data[order[0]], b.data[order[0]]) * order[1] : (a, b) => cmp(a.id, b.id));
+  return docs.slice(0, lim);
+}
 const nrTimers = new Map();
 function nrBroadcast(name) {
   if (nrTimers.has(name)) return;
@@ -472,6 +519,31 @@ const authed = {
         else send(ws, { t: 'nrkv', id, err: 'save failed' });
       });
     }
+  },
+  // the documents a game's players share (see gdbQuery above)
+  nrdb(ws, u, m) {
+    const id = typeof m.id === 'number' ? m.id : 0, reply = (o) => send(ws, Object.assign({ t: 'nrdb', id }, o)), D = gdbLoad(), p = m.path;
+    if (m.op === 'query') return gdbPath(p, false) ? reply({ docs: gdbQuery(p, m.q) }) : reply({ err: 'bad collection path' });
+    if (!gdbPath(p, true)) return reply({ err: 'bad document path' });
+    if (m.op === 'get') return reply({ exists: D.has(p), data: D.get(p) });
+    if (m.op === 'set' || m.op === 'update') {
+      if (!gdbPlain(m.data)) return reply({ err: 'a document is an object' });
+      if (m.op === 'update' && !D.has(p)) return reply({ err: 'no such document' });
+      const next = m.op === 'set' ? gdbMerge({}, m.data) : gdbMerge(structuredClone(D.get(p)), m.data);
+      if (JSON.stringify(next).length > 64 * 1024) return reply({ err: 'document too big' });
+      if (!D.has(p) && D.size >= GDB_MAX) return reply({ err: 'the database is full', code: 'quota_exceeded' });
+      D.set(p, next); gdbSave();
+      return reply({ ok: true });
+    }
+    if (m.op === 'delete') { if (D.delete(p)) gdbSave(); return reply({ ok: true }); }
+    if (m.op === 'acquire') {
+      const now = Date.now(), L = gdbLeases.get(p), holder = String(m.holder || u).slice(0, 200), ttl = Math.max(1000, Math.min(600000, +m.ttlMs || 30000));
+      if (L && L.exp > now && L.holder !== holder) return reply({ acquired: false, expiresAt: new Date(L.exp).toISOString() });
+      gdbLeases.set(p, { holder, exp: now + ttl });
+      if (gdbLeases.size > 5000) for (const [k, v] of gdbLeases) if (v.exp < now) gdbLeases.delete(k);
+      return reply({ acquired: true, expiresAt: new Date(now + ttl).toISOString(), holder });
+    }
+    return reply({ err: 'unknown operation' });
   },
   nr(ws, u, m) {
     const name = typeof m.room === 'string' ? m.room : '', peer = typeof m.peer === 'string' ? m.peer : '';
