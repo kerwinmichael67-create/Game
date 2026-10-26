@@ -1185,7 +1185,7 @@ function fxTex(k) {
 }
 // a glowing card on a hat that always faces the camera; fn(card, its material, seconds) twinkles or flickers it as it's drawn
 function fxCard(k, c, w, h, x, y, z, parent, fn) {
-  const m = new THREE.MeshBasicMaterial({ map: fxTex(k), color: c, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
+  const m = new THREE.MeshBasicMaterial({ map: fxTex(k), color: c, transparent: true, blending: k === 'flame' ? THREE.NormalBlending : THREE.AdditiveBlending, depthWrite: false }); // (flames keep their colour on a bright sky)
   const o = new THREE.Mesh(FX_PLANE, m); o.position.set(x, y, z); o.scale.set(w, h, 1); o.userData.fx = true; parent.add(o);
   o.onBeforeRender = (r, s, cam) => {
     o.parent.getWorldQuaternion(_fxq).invert(); o.quaternion.copy(_fxq).multiply(cam.quaternion);
