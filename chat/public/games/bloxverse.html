@@ -1157,7 +1157,7 @@ function xItem(id) {
 function xLooks(ax) {
   const out = { h: null, hats: [], hs: [], pt: null, f: null, acc: [], miss: false };
   if (!Array.isArray(ax)) return out;
-  ax.slice(0, 3 + 8).forEach((v, i) => {
+  ax.slice(0, 3 + 12).forEach((v, i) => {
     if (!v) return;
     if (i >= 3 && typeof v === 'string' && isShopHat(v)) { const n = +v.slice(1); if (n > 0 && n < HATS.length && out.hs.length < HAT_MAX - 1 && !out.hs.includes(n)) out.hs.push(n); return; }
     const ok = (k) => (i < 3 ? k === XSLOTS[i] : k === 'acc' || k === 'h');
@@ -3347,7 +3347,7 @@ const pvAx = () => {
   const r = XSLOTS.map((k) => (ED.open && ED.mode === 'make' && ED.draft.k === k ? { k, look: draftLook() } : ED.open && k in ED.tryX ? ED.tryX[k] : W.wear[k]));
   const acc = (W.wear.acc || []).slice();
   if (ED.open && ED.tryX.acc && !acc.includes(ED.tryX.acc)) acc.push(ED.tryX.acc);
-  return r.concat(acc); // (the 3D item you're making is drawn on its own: see pvAccUpdate)
+  return r.concat(acc, W.wear.hx || []); // (the 3D item you're making is drawn on its own: see pvAccUpdate)
 };
 const sameAv = (a, b) => String(okAv(a)) === String(okAv(b));
 function drawAvatarOpts() {
@@ -3404,7 +3404,7 @@ $('#avOpts').onclick = (e) => {
   if (d.tab) { avTab = d.tab; avAsk = ''; ED.note = ''; drawAvatarOpts(); return; }
   if (d.fitsave) { W.fits[+d.fitsave] = avArr(); sfx('select'); saveAv(); drawAvatarOpts(); return; }
   if (d.fitx) { W.fits[+d.fitx] = null; sfx('click'); saveAv(); drawAvatarOpts(); return; }
-  if (d.fit) { const v = okAv(W.fits[+d.fit]); AV_KEYS.forEach((k, j) => { if (owns(k, v[j])) AV[k] = v[j]; }); ED.try = {}; sfx('select'); }
+  if (d.fit) { const v = okAv(W.fits[+d.fit]); AV_KEYS.forEach((k, j) => { if (owns(k, v[j])) AV[k] = v[j]; }); W.wear.hx = []; ED.try = {}; sfx('select'); } // (an outfit has one shop hat)
   else if (d.k) {
     const k = d.k, i = +d.i;
     if (k === 's' || k === 'sh' || k === 'p') { AV[k] = i; }
