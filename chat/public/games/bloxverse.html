@@ -291,7 +291,7 @@
   .status{background:linear-gradient(180deg,#4a3410,#3b2a0e);border:1px solid rgba(252,211,77,.3);color:#fcd34d;border-radius:14px;padding:11px 15px;margin-bottom:14px;font:700 14px var(--fb)}
   .status[hidden]{display:none}
   .hcols{display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start}
-  @media (max-width:800px){.hcols{grid-template-columns:1fr}}
+  @media (max-width:800px){.hcols{grid-template-columns:1fr}#home.sub #meCard{display:none}}
   .hcard{background:var(--solid);border:1px solid var(--line);border-radius:22px;padding:16px;box-shadow:var(--drop),var(--hi)}
   .hcard h3,#expArea h3{margin:0 0 12px;font:600 19px var(--fh);letter-spacing:.01em;display:flex;align-items:center;gap:8px}
   .sect{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
@@ -444,6 +444,103 @@
   .srow button:active{transform:translateY(2px);box-shadow:0 1px 0 var(--c3)}
   .srow button:disabled{--c1:#64748b;--c2:#475569;--c3:#1e293b;opacity:.6;cursor:default}
   .note{color:var(--dim);font:700 12.5px/1.7 var(--fb);margin-top:16px}
+  /* you: the chip at the top, your card, profiles, friends, invites and the avatar editor */
+  .mechip{display:flex;align-items:center;gap:8px;max-width:220px;border:1px solid var(--line);border-radius:999px;padding:3px 14px 3px 3px;background:var(--solid);color:#fff;font:600 14px var(--fh);cursor:pointer;box-shadow:var(--drop)}
+  .mechip span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mechip:hover,.frbtn:hover{filter:brightness(1.15)}
+  .avimg{flex:none;border-radius:50%;object-fit:cover;background:radial-gradient(circle at 50% 35%,rgba(125,211,252,.35),transparent 70%),#1e293b;border:2px solid rgba(255,255,255,.16)}
+  .mechip .avimg{width:34px;height:34px}
+  .frbtn{position:relative;border:1px solid rgba(147,197,253,.3);border-radius:999px;padding:7px 14px;background:linear-gradient(180deg,#1e3a5f,#172a45);color:#bfdbfe;font:600 14px var(--fh);cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:var(--drop)}
+  .badge{position:absolute;right:-7px;top:-7px;min-width:21px;height:21px;border-radius:11px;background:#ef4444;border:2px solid #fff;color:#fff;font:700 11px/17px var(--fh);padding:0 4px;text-align:center;text-shadow:none}
+  .badge[hidden]{display:none}
+  .avstage.click{cursor:pointer}
+  .avedit{position:absolute;z-index:2;right:8px;top:8px;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:4px 10px;font:600 12.5px var(--fh);color:#fff;transition:background .12s,color .12s}
+  .avstage.click:hover .avedit,.pav.mine:hover .avedit{background:#fff;color:#0f172a}
+  .mename{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:0 0 10px}
+  .mename b{font:600 20px var(--fh);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mename small{flex:none;color:var(--muted);font:700 12px var(--fb)}
+  .mebtns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .mebtns .xp-btn{position:relative;padding:11px 6px;width:100%}
+  .mebtns .wide{grid-column:1/-1;font-size:16px;padding:13px}
+  .meon{margin-top:10px;color:#86efac;font:700 12.5px var(--fb);text-align:center}
+  .ptop{display:grid;grid-template-columns:230px 1fr;gap:20px;align-items:start}
+  @media (max-width:640px){.ptop{grid-template-columns:1fr}.pav{max-width:260px;margin:0 auto}}
+  .pav{position:relative;display:block;width:100%;aspect-ratio:150/190;border:0;border-radius:18px;padding:0;background:radial-gradient(circle at 50% 30%,rgba(125,211,252,.25),transparent 60%),linear-gradient(180deg,#1e293b,#0f172a);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);overflow:hidden;cursor:default}
+  .pav.mine{cursor:pointer}
+  .pav img{width:100%;height:100%;object-fit:contain}
+  .pstats{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px;margin:0 0 14px}
+  .pstat{background:linear-gradient(180deg,#283143,#1d2431);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:9px 12px}
+  .pstat b{display:block;font:600 21px var(--fh)}
+  .pstat small{color:var(--muted);font:700 11.5px var(--fb)}
+  .pbtns{display:flex;flex-wrap:wrap;gap:8px}
+  .pbtns .xp-btn{padding:11px 16px;font-size:15px}
+  .egrid.small{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+  .egrid.small .thumb{height:84px}.egrid.small .thumb .em{font-size:42px}
+  .flist{display:grid;gap:8px}
+  .frow{display:flex;align-items:center;gap:12px;background:linear-gradient(180deg,#283143,#1d2431);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:8px 10px;box-shadow:0 2px 0 rgba(0,0,0,.28)}
+  .frow .avimg{width:46px;height:46px}
+  .frow .who{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;background:none;border:0;padding:0;color:#fff;text-align:left;cursor:pointer}
+  .frow .who b{font:600 15.5px var(--fh);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .frow .who small{color:var(--muted);font:700 12px var(--fb);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .frow .who small.on{color:#86efac}
+  .frow .xp-btn{flex:none;padding:8px 12px;font-size:13px}
+  .fsub{margin:16px 0 8px;color:var(--muted);font:600 12px var(--fh);text-transform:uppercase;letter-spacing:.08em}
+  .fempty{color:var(--muted);font:700 13px/1.5 var(--fb);padding:16px;border:1px dashed var(--line);border-radius:14px;text-align:center}
+  .fcode{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:8px}
+  .fcode .xsearch{flex:0 1 240px}
+  .fcode input{text-transform:uppercase;letter-spacing:.14em}
+  .codebig{font:700 30px var(--fh);letter-spacing:.2em;color:#fde68a}
+  .fmini{display:flex;flex-wrap:wrap;gap:12px}
+  .fmini button{display:flex;flex-direction:column;align-items:center;gap:5px;width:70px;background:none;border:0;color:#cbd5e1;font:600 12px var(--fh);cursor:pointer;padding:0}
+  .fmini button span{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .fmini .avimg{width:58px;height:58px}
+  .fmini .avimg.on{border-color:#4ade80;box-shadow:0 0 10px rgba(74,222,128,.5)}
+  .pmini{display:flex;align-items:center;gap:12px;margin:0 0 12px}
+  .pmini .avimg{width:76px;height:76px}
+  .pmini b{display:block;font:600 20px var(--fh)}
+  .pmini small{display:block;color:var(--muted);font:700 12px/1.45 var(--fb)}
+  .favchips{display:flex;flex-wrap:wrap;gap:6px}
+  #xpBody .frow{margin-bottom:6px}
+  #social{position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:70;display:flex;flex-direction:column;gap:8px;width:min(440px,calc(100vw - 24px));pointer-events:none}
+  .spop{pointer-events:auto;display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:18px;background:linear-gradient(180deg,#2b3446,#1a2030);border:2px solid #93c5fd;box-shadow:0 14px 40px rgba(0,0,0,.5),0 0 0 4px rgba(0,0,0,.25);animation:rise .25s ease-out}
+  .spop .avimg{width:50px;height:50px}
+  .spop .tx{flex:1;min-width:0;font:700 13px/1.35 var(--fb);color:#cbd5e1}
+  .spop .tx b{color:#fff;font:600 15px var(--fh)}
+  .spop .bt{display:flex;flex-direction:column;gap:5px;flex:none}
+  .spop .xp-btn{padding:7px 12px;font-size:13px}
+  #avEdit{display:block;padding:0;z-index:20;overflow:hidden;-webkit-backdrop-filter:none;backdrop-filter:none;background:radial-gradient(900px 520px at 15% -5%,rgba(59,130,246,.18),transparent 60%),radial-gradient(800px 500px at 100% 100%,rgba(168,85,247,.12),transparent 60%),var(--bg)}
+  #avEdit[hidden]{display:none}
+  .aved{max-width:1200px;height:100%;margin:0 auto;padding:16px 20px;display:flex;flex-direction:column;gap:12px}
+  .avedhead{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .avedhead .back{margin:0}
+  .avedhead h2{margin:0 auto 0 4px;font:700 28px var(--fh);letter-spacing:.01em}
+  .edcoins{display:flex;align-items:center;gap:6px;color:#fde68a;font:600 16px var(--fh);padding:0 6px}
+  .avedhead .xp-btn{padding:9px 20px;font-size:16px}
+  .avedbody{flex:1;min-height:0;display:grid;grid-template-columns:minmax(260px,1fr) minmax(330px,1.2fr);gap:16px}
+  .avedstage{position:relative;min-height:0;border-radius:22px;overflow:hidden;background:radial-gradient(circle at 50% 35%,rgba(125,211,252,.24),transparent 60%),linear-gradient(180deg,#1e293b,#0b1120);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);cursor:grab;touch-action:none}
+  .avedstage:active{cursor:grabbing}
+  .avedstage::after{content:'';position:absolute;left:22%;right:22%;bottom:7%;height:9%;border-radius:50%;background:radial-gradient(ellipse,rgba(125,211,252,.35),transparent 70%);pointer-events:none}
+  .avedstage #avPrev{position:absolute;inset:0;width:100%;height:100%;max-width:none;aspect-ratio:auto;z-index:1}
+  .avedhint{position:absolute;z-index:2;left:50%;bottom:12px;transform:translateX(-50%);background:rgba(0,0,0,.45);border-radius:999px;padding:4px 12px;color:#cbd5e1;font:700 12px var(--fb);pointer-events:none;white-space:nowrap}
+  #avTry{position:absolute;z-index:3;left:10px;right:10px;top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 10px 9px 14px;border-radius:16px;background:rgba(15,23,42,.85);border:1px solid rgba(253,224,71,.35);color:#fde68a;font:700 13px/1.35 var(--fb);cursor:default}
+  #avTry[hidden]{display:none}
+  #avTry span{flex:1;min-width:150px}
+  #avTry .xp-btn{padding:8px 12px;font-size:13px}
+  .avedside{min-height:0;overflow:auto;background:var(--solid);border:1px solid var(--line);border-radius:22px;padding:14px}
+  #avOpts .shop{grid-template-columns:repeat(auto-fill,minmax(96px,1fr))}
+  .shop button.try{border-color:#f59e0b;background:linear-gradient(180deg,#4a3410,#2a210b)}
+  .fits{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:8px}
+  .fit{background:linear-gradient(180deg,#283143,#1c222d);border:2px solid rgba(255,255,255,.07);border-radius:14px;display:flex;flex-direction:column;overflow:hidden}
+  .fit.on{border-color:#22c55e}
+  .fit .wear{display:flex;flex-direction:column;align-items:center;gap:2px;border:0;background:none;padding:6px 6px 4px;cursor:pointer;color:#e2e8f0;font:600 12px var(--fh)}
+  .fit .wear img{width:100%;aspect-ratio:150/190;object-fit:contain}
+  .fit.empty .wear{aspect-ratio:128/190;justify-content:center;color:var(--muted);font-size:13px;line-height:1.4}
+  .fit.empty .wear b{font-size:30px;color:#cbd5e1}
+  .fit .row{display:flex;gap:4px;padding:0 6px 6px}
+  .fit .row button{flex:1;border:1px solid var(--line);border-radius:9px;background:rgba(255,255,255,.06);color:#e2e8f0;font:600 12px var(--fh);padding:5px 0;cursor:pointer}
+  .fit .row button:hover{background:rgba(255,255,255,.14)}
+  @media (max-width:760px){.aved{padding:10px 12px;gap:8px}.avedhead h2{font-size:20px}.avedhead .xchip{padding:5px 9px}.avedbody{grid-template-columns:1fr;grid-template-rows:minmax(200px,36vh) 1fr;gap:10px}#avOpts .shop{grid-template-columns:repeat(auto-fill,minmax(84px,1fr))}}
+  @media (max-height:520px) and (min-width:600px){.avedbody{grid-template-columns:minmax(200px,.8fr) 1.4fr;grid-template-rows:none}.aved{padding:8px 12px}}
   /* phones (last, so these win) */
   @media (max-width:640px){
     .xp-head{flex-wrap:wrap}
@@ -485,14 +582,21 @@
 </div>
 <div id="home" class="screen">
   <div class="homewrap">
-    <header class="hbar"><div class="logo">BL<span class="sq"></span>XVERSE</div><div class="hright"><div id="hi"></div><button id="achBtn" class="achbtn" title="Achievements">🏆 <span id="achN">0</span></button></div></header>
+    <header class="hbar"><div class="logo">BL<span class="sq"></span>XVERSE</div><div class="hright"><div id="hi"></div><button id="meChip" class="mechip" title="Your profile"><img id="meImg" class="avimg" alt=""><span id="meNm">Profile</span></button><button id="frBtn" class="frbtn" title="Friends">👥 Friends<span class="badge" id="frN" hidden></span></button><button id="achBtn" class="achbtn" title="Achievements">🏆 <span id="achN">0</span></button></div></header>
     <div id="homeStatus" class="status" hidden></div>
     <div class="hcols">
-      <section class="hcard"><h3>🧍 Your avatar</h3><div class="avstage"><canvas id="avPrev" width="240" height="260"></canvas></div><div id="avOpts"></div></section>
+      <section class="hcard" id="meCard"><h3>🧍 Your avatar</h3><div class="avstage click" id="avStage" title="Edit your avatar"><canvas id="avPrev" width="240" height="260"></canvas><span class="avedit">✏️ Edit</span></div><div id="meInfo"></div></section>
       <section id="expArea"></section>
     </div>
   </div>
 </div>
+<div id="avEdit" class="screen" hidden>
+  <div class="aved">
+    <div class="avedhead"><button class="back" id="avedBack">← Back</button><h2>✏️ Avatar Editor</h2><span class="edcoins" title="Blox Coins"><span class="coin sm"></span><span id="edCoins">0</span></span><button class="xchip" id="avRand" title="A random outfit from what you own">🎲 Randomize</button><button class="xchip" id="avOwn" title="Only show what you own">✓ Owned only</button><button class="xp-btn" id="avDone">Done</button></div>
+    <div class="avedbody"><div class="avedstage" id="avedStage"><div id="avTry" hidden></div><div class="avedhint">↔ Drag to turn</div></div><div class="avedside"><div id="avOpts"></div></div></div>
+  </div>
+</div>
+<div id="social"></div>
 <div id="achPop"></div>
 <div id="pause" class="screen" hidden><div class="panel" id="pausePanel"></div></div>
 <div id="loading" class="screen" hidden><div class="panel"><div class="phead"><div class="pthumb" id="loadThumb"></div></div><h2 id="loadTitle">Joining…</h2><p id="loadText"></p><div class="lbar"><i></i></div></div></div>
@@ -862,7 +966,8 @@ const avArr = () => AV_KEYS.map((k) => AV[k] | 0);
 const okAv = (a) => { const d = [5, 0, 1, 0, 0, 0, 0, 0, 0, 0]; return AV_LISTS.map((l, i) => (Array.isArray(a) && a[i] != null ? clamp(a[i] | 0, 0, l.length - 1) : d[i])); };
 const avFrom = (o) => { const v = okAv(AV_KEYS.map((k) => o && o[k])); const r = {}; AV_KEYS.forEach((k, i) => (r[k] = v[i])); return r; };
 // Blox Coins: earned in every experience, spent on cosmetics (and a few things inside experiences)
-const W = { coins: 0, own: new Set(), day: '', loaded: false, items: {} }; // items: what you bought in experiences' shops ({ 'obby.speed': 1 })
+const W = { coins: 0, own: new Set(), day: '', loaded: false, items: {}, // items: what you bought in experiences' shops ({ 'obby.speed': 1 })
+  fr: { f: {}, out: {}, no: {} }, fits: [null, null, null, null, null, null] }; // fr: friends (see "friends" below); fits: saved outfits
 const owns = (slot, i) => COSMETICS[slot] ? COSMETICS[slot].price[i] === 0 || W.own.has(slot + i) : true;
 const FACE_TEX = FACES.map((_, k) => {
   const c = document.createElement('canvas'); c.width = 128; c.height = 128; const g = c.getContext('2d');
@@ -1246,6 +1351,7 @@ function sideItems() {
   if (exp.rebirthPanel) t.push(['rebirth', '🔁', 'Rebirth', 'Rebirth', 'c-purple', exp.rebirthReady && exp.rebirthReady() ? '!' : '']);
   if (!sideGame && exp.menu) exp.menu().forEach(([label, , short], i) => { const m = String(label).match(/^(\S+)\s+(.+)$/) || [0, '•', String(label)]; t.push(['x' + i, m[1], m[2], short || m[2], SIDE_COLS[i % SIDE_COLS.length]]); });
   if (crew().length > 1) t.push(['trade', '🤝', 'Trade', 'Trade', 'c-teal']);
+  if (Net.lobby) t.push(['friends', '👥', 'Friends', 'Friends', 'c-pink', Social.inc.size || '']);
   t.push(['ach', '🏆', 'Achievements', 'Awards', 'c-gold']);
   return t;
 }
@@ -1279,6 +1385,7 @@ function sideDo(k) {
   if (k === 'shop') openShop();
   else if (k === 'rebirth') exp.rebirthPanel();
   else if (k === 'trade') tradePick();
+  else if (k === 'friends') friendsPanel();
   else if (k === 'ach') openAch();
   else if (k[0] === 'x') { const m = exp.menu ? exp.menu()[+k.slice(1)] : null; if (m) m[1](); }
 }
@@ -1556,11 +1663,11 @@ function trAsked(peer, id) {
   setTimeout(() => { if (Trade.askEl && Trade.askEl.el === el) trHideAsk(); }, 30000);
 }
 function trHideAsk() { if (Trade.askEl) { Trade.askEl.el.remove(); Trade.askEl = null; } }
-// tap someone on the leaderboard
+// tap someone on the leaderboard: their profile, to trade with them or add them as a friend
 function playerMenu(peer) {
-  if (!trPeer(peer)) return;
-  const n = esc(nameOf(peer));
-  openPanel(`👤 ${nameOf(peer)}`, `<p class="xp-note">${n} is playing ${esc(exp.name)} on this server.</p><button class="xp-btn buy" data-t="1" style="width:100%;padding:13px">🤝 Trade with ${n}</button>`, (b) => { if (b.dataset.t) { closePanel(); startTrade(peer); } });
+  const p = trPeer(peer); if (!p) return;
+  const pr = p.presence || {};
+  profilePanel(typeof pr.id === 'string' ? pr.id : '', peer);
 }
 function grantCosmetic(slot, i, why) { if (W.own.has(slot + i)) return; W.own.add(slot + i); saveAv(); sfx('unlock'); if (why) say(`🎁 ${COSMETICS[slot].list[i]} unlocked — ${why}`, '#fde68a'); questMax('bv.items', W.own.size); }
 
@@ -1578,6 +1685,9 @@ const ACH = [
   ['bv', 'earned', 10000, 'Coin Hoarder', 'Earn 10,000 Blox Coins', 250, null, '💰'],
   ['bv', 'shop', 10, 'Big Spender', 'Buy 10 things in experience shops', 100, null, '🛒'],
   ['bv', 'trade', 1, 'Trader', 'Trade with another player', 50, null, '🤝'],
+  ['bv', 'friends', 1, 'Friendly', 'Make a friend', 50, null, '👋'],
+  ['bv', 'friends', 5, 'Squad', 'Have 5 friends', 200, null, '👯'],
+  ['bv', 'invite', 1, 'Party Starter', 'Invite a friend to your server', 40, null, '📨'],
   ['bv', 'ach', 25, 'Achiever', 'Earn 25 achievements', 300, ['b', 13], '🏅'],
   ['bv', 'ach', 60, 'Legend', 'Earn 60 achievements', 1000, ['h', 32], '👑'],
   ['obby', 'stage', 10, 'Getting Somewhere', 'Reach stage 10', 30, null, '🪜'],
@@ -1726,9 +1836,10 @@ function achGroup(e) {
   return `<div class="achg${e === 'bv' ? ' bv' : ''}"><h4>${e === 'bv' ? '🧱 Bloxverse' : `${E ? E.emoji : ''} ${esc(E ? E.name : e)}`}<small>${n} / ${list.length}</small></h4><div class="achrows">${list.map(achRow).join('')}</div></div>`;
 }
 function saveAv() {
-  const d = Object.assign({}, AV, { coins: W.coins, own: [...W.own], day: W.day, at: Date.now(), ach: { c: W.ach.c, got: [...W.ach.got] }, items: W.items });
+  const d = Object.assign({}, AV, { coins: W.coins, own: [...W.own], day: W.day, at: Date.now(), ach: { c: W.ach.c, got: [...W.ach.got] }, items: W.items, fr: W.fr, fits: W.fits, who: Net.uid || W.who || '' });
   try { localStorage.setItem('rb.av', JSON.stringify(d)); } catch (e) {}
   clearTimeout(avSaveT); avSaveT = setTimeout(() => { if (W.loaded) kvSet('av', d); }, 800);
+  pubProfile();
 }
 function loadAvFrom(d) {
   if (!d || typeof d !== 'object') return;
@@ -1739,6 +1850,8 @@ function loadAvFrom(d) {
   W.ach = { c, got: new Set(Array.isArray(a.got) ? a.got.filter((x) => ACH.some((A) => A.id === x)) : []) };
   W.items = {};
   if (d.items && typeof d.items === 'object') for (const k of Object.keys(d.items).slice(0, 400)) { const n = Math.floor(+d.items[k]); if (/^[a-z0-9]+\.[a-z0-9]+$/.test(k) && n > 0) W.items[k] = Math.min(n, 999); }
+  W.fr = frFrom(d.fr); W.who = typeof d.who === 'string' ? d.who : ''; // (who: whose save it is — a shared computer keeps one for everyone)
+  W.fits = Array.from({ length: 6 }, (_, i) => (Array.isArray(d.fits) && Array.isArray(d.fits[i]) ? okAv(d.fits[i]) : null));
   achNum();
 }
 // experiences in their own files call this
@@ -1769,7 +1882,7 @@ function lobby() {
     const c = Net.api(), room = c && await c.use('room');
     if (!room) { lobbyP = null; return null; }
     Net.lobby = room;
-    room.onPeers((ch) => { Net.lobbyPeers = ch.peers; if (!playing) drawExps(); }, () => {});
+    room.onPeers((ch) => { Net.lobbyPeers = ch.peers; socialScan(); if (!playing) drawExps(); }, () => {});
     try {
       const u = await c.use('user'), m = u && await u.me();
       if (m && m.name) Net.name = String(m.name).slice(0, 20);
@@ -1824,7 +1937,7 @@ async function join(id, n) {
   Object.assign(Net, { room, srv: `${E.code}-${n}`, srvN: n, peers: [], t0: Date.now(), joinAt: performance.now(), claimed: false, chats: [], cseq: 0, seen: new Map(), lastPos: '', dd: 0 });
   room.onPeers(onPeers, () => {});
   meterReset(); room.on('ev', onPingEcho, () => {});
-  send(Object.assign({ nm: Net.name, av: avArr(), t: Net.t0 }, E.pres ? E.pres() : {}));
+  send(Object.assign({ nm: Net.name, av: avArr(), t: Net.t0, id: myId() }, E.pres ? E.pres() : {})); // (id: so people here can add you as a friend)
   lob.presence({ srv: Net.srv }).catch(() => {});
   await new Promise((r) => setTimeout(r, 1300));
   // a full server: the last ones in step back out
@@ -2755,41 +2868,111 @@ function backHome(msg) {
   homeStatus(msg || ''); drawExps();
 }
 let avTab = 'colors', avAsk = '';
+// the avatar editor (full screen, from your card or your profile): tap something you don't own to try it on,
+// tap again to buy it; ED.try holds what you're only trying on (it comes off when you leave)
+const ED = { open: false, try: {}, own: false, yaw: 0, drag: null };
+const pvArr = () => AV_KEYS.map((k) => (ED.open && k in ED.try ? ED.try[k] : AV[k]) | 0);
+const sameAv = (a, b) => String(okAv(a)) === String(okAv(b));
 function drawAvatarOpts() {
-  const tabs = [['colors', 'Colors']].concat(Object.entries(COSMETICS).map(([k, c]) => [k, c.title]));
+  const TI = { h: '🎩', f: '🙂', b: '🪽', a: '✨', pt: '👕', pet: '🐶', tr: '🌈' };
+  const tabs = [['colors', '🎨 Colors']].concat(Object.entries(COSMETICS).map(([k, c]) => [k, `${TI[k] || ''} ${c.title}`]), [['fits', '👗 Outfits']]);
   let body = '';
   if (avTab === 'colors') {
     const row = (title, list, key) => `<div class="opt"><small>${title}</small><div class="sw">${list.map((c, i) => `<button data-k="${key}" data-i="${i}" class="${AV[key] === i ? 'on' : ''}" style="background:${c}" title="${title} ${i + 1}"></button>`).join('')}</div></div>`;
     body = row('Skin', SKINS, 's') + row('Shirt', SHIRTS, 'sh') + row('Pants', PANTS, 'p');
+  } else if (avTab === 'fits') {
+    body = `<p class="xp-note">Save what you're wearing in a slot, then switch outfits in one tap.</p><div class="fits">${W.fits.map((f, i) => f
+      ? `<div class="fit${sameAv(f, avArr()) ? ' on' : ''}"><button class="wear" data-fit="${i}" title="Wear outfit ${i + 1}"><img src="${avPic(f)}" alt="">Outfit ${i + 1}</button><div class="row"><button data-fitsave="${i}" title="Save what you're wearing here instead">💾 Save</button><button data-fitx="${i}" title="Delete this outfit">🗑️</button></div></div>`
+      : `<div class="fit empty"><button class="wear" data-fitsave="${i}" title="Save what you're wearing"><b>＋</b>Save outfit ${i + 1}</button></div>`).join('')}</div>`;
   } else {
     const C = COSMETICS[avTab];
     body = `<div class="shop">${C.list.map((nm, i) => {
-      const own = owns(avTab, i), price = C.price[i], on = AV[avTab] === i, ask = avAsk === avTab + i;
+      const own = owns(avTab, i), price = C.price[i], on = AV[avTab] === i, ask = avAsk === avTab + i, tr = ED.open && ED.try[avTab] === i;
+      if (ED.own && !own) return '';
       const A = price < 0 ? achFor(avTab, i) : null;
-      const pr = on ? '<span class="pr own">✓ Wearing</span>' : own ? '<span class="pr own">Owned</span>' : price < 0 ? `<span class="pr">${A ? '🏆 Earn it' : '🎖️ Reward'}</span>` : ask ? `<span class="pr">Buy? ${price}</span>` : `<span class="pr"><span class="coin sm"></span> ${price}</span>`;
+      const pr = on ? '<span class="pr own">✓ Wearing</span>' : own ? '<span class="pr own">Owned</span>' : price < 0 ? `<span class="pr">${A ? '🏆 Earn it' : '🎖️ Reward'}</span>` : ask && W.coins < price ? `<span class="pr">Need ${price - W.coins} more</span>` : ask ? `<span class="pr">Buy? ${price}</span>` : `<span class="pr"><span class="coin sm"></span> ${price}</span>`;
       const cant = !own && (price < 0 || W.coins < price);
-      return `<button data-k="${avTab}" data-i="${i}" class="${on ? 'on' : ''} ${cant ? 'cant' : ''} ${ask ? 'ask' : ''}" title="${esc(nm)}${price < 0 && !own ? (A ? ` — earn the “${A.nm}” achievement` : ' — earned in Command an Army’s battle pass') : ''}"><span class="i">${C.icon[i]}</span>${esc(nm)}${pr}</button>`;
+      return `<button data-k="${avTab}" data-i="${i}" class="${on ? 'on' : ''} ${cant ? 'cant' : ''} ${ask ? 'ask' : ''} ${tr ? 'try' : ''}" title="${esc(nm)}${price < 0 && !own ? (A ? ` — earn the “${A.nm}” achievement` : ' — earned in Command an Army’s battle pass') : ''}"><span class="i">${C.icon[i]}</span>${esc(nm)}${pr}</button>`;
     }).join('')}</div>`;
     // (a reward you haven't got, tapped: how to get it)
     const ak = avAsk && avAsk.startsWith(avTab) ? +avAsk.slice(avTab.length) : -1, AA = ak >= 0 && C.price[ak] < 0 && !owns(avTab, ak) ? achFor(avTab, ak) : null;
     if (ak >= 0 && C.price[ak] < 0 && !owns(avTab, ak)) body += `<div class="avnote">${AA ? `🏆 <b>${esc(C.list[ak])}</b> comes with the “${esc(AA.nm)}” achievement${AA.e !== 'bv' && EXPS[AA.e] ? ` in ${esc(EXPS[AA.e].name)}` : ''}: ${esc(AA.d.charAt(0).toLowerCase() + AA.d.slice(1))}.` : `🎖️ <b>${esc(C.list[ak])}</b> is a reward in Command an Army’s battle pass.`}</div>`;
   }
-  $('#avOpts').innerHTML = `<div class="coinbar"><span><span class="coin"></span><span id="homeCoins">${W.coins.toLocaleString('en-US')}</span></span><small>Blox Coins · earn them<br>in every experience</small></div>
-    <div class="avtabs">${tabs.map(([k, t]) => `<button data-tab="${k}" class="${avTab === k ? 'on' : ''}">${t}</button>`).join('')}</div>${body}`;
+  $('#avOpts').innerHTML = `<div class="avtabs">${tabs.map(([k, t]) => `<button data-tab="${k}" class="${avTab === k ? 'on' : ''}">${t}</button>`).join('')}</div>${body}`;
+  $('#edCoins').textContent = W.coins.toLocaleString('en-US');
+  $('#avOwn').classList.toggle('on', ED.own);
+  drawTry();
   $('#avOpts').querySelectorAll('button').forEach((b) => (b.onclick = () => {
-    if (b.dataset.tab) { avTab = b.dataset.tab; avAsk = ''; drawAvatarOpts(); return; }
-    const k = b.dataset.k, i = +b.dataset.i;
-    if (k === 's' || k === 'sh' || k === 'p') { AV[k] = i; }
-    else if (owns(k, i)) { AV[k] = i; avAsk = ''; }
+    const d = b.dataset;
+    if (d.tab) { avTab = d.tab; avAsk = ''; drawAvatarOpts(); return; }
+    if (d.fitsave) { W.fits[+d.fitsave] = avArr(); sfx('select'); saveAv(); drawAvatarOpts(); return; }
+    if (d.fitx) { W.fits[+d.fitx] = null; sfx('click'); saveAv(); drawAvatarOpts(); return; }
+    if (d.fit) { const v = okAv(W.fits[+d.fit]); AV_KEYS.forEach((k, j) => { if (owns(k, v[j])) AV[k] = v[j]; }); ED.try = {}; sfx('select'); }
     else {
-      const price = COSMETICS[k].price[i];
-      if (price < 0) { avAsk = avAsk === k + i ? '' : k + i; sfx('click'); drawAvatarOpts(); return; } // (how to earn it)
-      if (W.coins < price) { avAsk = ''; drawAvatarOpts(); return; }
-      if (avAsk !== k + i) { avAsk = k + i; drawAvatarOpts(); return; } // tap again to buy
-      W.coins -= price; W.own.add(k + i); AV[k] = i; avAsk = ''; sfx('buy'); questMax('bv.items', W.own.size);
+      const k = d.k, i = +d.i;
+      if (k === 's' || k === 'sh' || k === 'p') { AV[k] = i; }
+      else if (owns(k, i)) { AV[k] = i; delete ED.try[k]; avAsk = ''; }
+      else {
+        const price = COSMETICS[k].price[i];
+        if (ED.open) ED.try[k] = i; // (on you in the editor, to see how it looks)
+        if (price < 0) { avAsk = avAsk === k + i ? '' : k + i; sfx('click'); drawAvatarOpts(); pvAvatar(); return; } // (how to earn it)
+        if (W.coins < price || avAsk !== k + i) { avAsk = k + i; drawAvatarOpts(); pvAvatar(); return; } // tap again to buy
+        W.coins -= price; W.own.add(k + i); AV[k] = i; delete ED.try[k]; avAsk = ''; sfx('buy'); questMax('bv.items', W.own.size);
+      }
     }
-    drawAvatarOpts(); pvAvatar(); saveAv();
+    drawAvatarOpts(); pvAvatar(); saveAv(); drawMe();
   }));
+}
+// over the avatar in the editor: what you're only trying on, and buying it all at once
+function drawTry() {
+  const el = $('#avTry'), t = Object.entries(ED.try).filter(([k, i]) => !owns(k, i));
+  if (!ED.open || !t.length) { el.hidden = true; return; }
+  const cost = t.reduce((a, [k, i]) => a + Math.max(0, COSMETICS[k].price[i]), 0), canBuy = t.every(([k, i]) => COSMETICS[k].price[i] >= 0);
+  el.hidden = false;
+  el.innerHTML = `<span>👀 Trying on ${t.map(([k, i]) => `<b>${esc(COSMETICS[k].list[i])}</b>`).join(', ')}</span>${canBuy ? `<button class="xp-btn gold" data-buyall="1" ${W.coins < cost ? 'disabled' : ''}>🛒 Buy${t.length > 1 ? ' all' : ''} · ${cost.toLocaleString('en-US')}</button>` : ''}<button class="xp-btn alt" data-off="1">Take off</button>`;
+}
+$('#avTry').onclick = (e) => {
+  const b = e.target.closest('button'); if (!b || b.disabled) return;
+  if (b.dataset.buyall) {
+    const t = Object.entries(ED.try).filter(([k, i]) => !owns(k, i)), cost = t.reduce((a, [k, i]) => a + COSMETICS[k].price[i], 0);
+    if (W.coins < cost || t.some(([k, i]) => COSMETICS[k].price[i] < 0)) return;
+    W.coins -= cost; for (const [k, i] of t) { W.own.add(k + i); AV[k] = i; }
+    sfx('buy'); questMax('bv.items', W.own.size);
+  } else sfx('click');
+  ED.try = {}; avAsk = ''; drawAvatarOpts(); pvAvatar(); saveAv(); drawMe();
+};
+function openEditor() {
+  if (playing || ED.open) return;
+  ED.open = true; ED.try = {}; ED.yaw = 0; avAsk = '';
+  $('#avEdit').hidden = false; $('#avedStage').prepend($('#avPrev'));
+  pvFit(); pvAvatar(); drawAvatarOpts(); sfx('whoosh');
+}
+function closeEditor() {
+  if (!ED.open) return;
+  const left = Object.entries(ED.try).filter(([k, i]) => !owns(k, i)).length;
+  ED.open = false; ED.try = {}; avAsk = ''; ED.drag = null;
+  $('#avEdit').hidden = true; $('#avStage').prepend($('#avPrev'));
+  pvFit(); pvAvatar(); drawAvatarOpts(); drawMe(); drawExps(); sfx('close');
+  if (left) socialPop(`<div class="tx">👕 What you were only trying on came off — buy it in the editor to keep it.</div>`, null, 4000);
+}
+function randomAv() {
+  const pick = (k, n) => { const ok = Array.from({ length: n }, (_, i) => i).filter((i) => owns(k, i)); return ok[Math.floor(Math.random() * ok.length)] || 0; };
+  AV.s = Math.floor(Math.random() * SKINS.length); AV.sh = Math.floor(Math.random() * SHIRTS.length); AV.p = Math.floor(Math.random() * PANTS.length);
+  for (const k of Object.keys(COSMETICS)) AV[k] = k === 'h' || k === 'f' || k === 'pt' || Math.random() < 0.6 ? pick(k, COSMETICS[k].list.length) : 0;
+  ED.try = {}; avAsk = ''; sfx('select'); drawAvatarOpts(); pvAvatar(); saveAv(); drawMe();
+}
+$('#avStage').onclick = openEditor;
+$('#avedBack').onclick = $('#avDone').onclick = closeEditor;
+$('#avRand').onclick = randomAv;
+$('#avOwn').onclick = () => { ED.own = !ED.own; drawAvatarOpts(); };
+addEventListener('keydown', (e) => { if (e.key === 'Escape' && ED.open) { e.stopPropagation(); closeEditor(); } }, true);
+{ // drag the avatar round
+  const st = $('#avedStage');
+  st.addEventListener('pointerdown', (e) => { if (e.target.closest('#avTry')) return; ED.drag = { x: e.clientX, yaw: ED.yaw }; try { st.setPointerCapture(e.pointerId); } catch (er) {} });
+  st.addEventListener('pointermove', (e) => { if (ED.drag) ED.yaw = ED.drag.yaw + (e.clientX - ED.drag.x) * 0.012; });
+  const up = () => { ED.drag = null; };
+  st.addEventListener('pointerup', up); st.addEventListener('pointercancel', up);
+  addEventListener('resize', () => { if (ED.open) pvFit(); });
 }
 // the order experiences were added (the newest get a ✨ NEW badge; "Newest" sorts by it)
 const ADDED = ['obby', 'tycoon', 'tag', 'lava', 'toh', 'garden', 'tds', 'army', 'nds', 'pets', 'boat', 'zombie', 'egg', 'speed', 'fish', 'blade', 'murder', 'kart', 'rlgl', 'color', 'golf', 'bee', 'hide', 'pvz', 'rivals', 'fruits', 'pvb', 'fishty', 'pizza', 'park', 'mine', 'cars', 'forsaken', 'shaft'];
@@ -2800,7 +2983,7 @@ const homeLoad = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k))
 const homeSave = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
 const LIST = Object.assign({ sort: 'featured', genre: 'All', q: '' }, homeLoad('rb.list', {}));
 let FAVS = new Set(homeLoad('rb.favs', [])), RECENT = homeLoad('rb.recent', {});
-function toggleFav(id) { if (FAVS.has(id)) FAVS.delete(id); else FAVS.add(id); homeSave('rb.favs', [...FAVS]); sfx(FAVS.has(id) ? 'select' : 'click'); }
+function toggleFav(id) { if (FAVS.has(id)) FAVS.delete(id); else FAVS.add(id); homeSave('rb.favs', [...FAVS]); sfx(FAVS.has(id) ? 'select' : 'click'); pubProfile(); }
 function playedNow(id) { RECENT[id] = Date.now(); homeSave('rb.recent', RECENT); }
 function listed() {
   const c = counts(), total = (E) => Array.from({ length: SERVERS }, (_, k) => c[`${E.code}-${k + 1}`] || 0).reduce((a, b) => a + b, 0);
@@ -2822,6 +3005,7 @@ function drawExps() {
   const live = (E) => `<span class="pill"><span class="dot"></span>${total(E)} playing</span>`;
   // (the lobby redraws this whenever anyone comes or goes: the same page again doesn't fade in again)
   const again = drawExps.view === (homeView || ''); drawExps.view = homeView || '';
+  $('#home').classList.toggle('sub', homeView === 'me' || homeView === 'friends' || String(homeView).startsWith('u:')); // (a phone: the page, not your card above it)
   if (homeView === 'ach') {
     const sig = `${W.ach.got.size}:${Object.values(W.ach.c).reduce((a, b) => a + b, 0)}`;
     if (again && drawExps.sig === sig && $('#expArea .achcols')) return;
@@ -2835,6 +3019,7 @@ function drawExps() {
     $('#backBtn').onclick = () => { homeView = null; drawExps(); };
     return;
   }
+  if (homeView === 'me' || homeView === 'friends' || String(homeView).startsWith('u:')) { socialPage(again); return; }
   if (!homeView || !EXPS[homeView]) {
     // (typing in the search box: just the cards change, so the box keeps its place)
     if ($('#expQ') && document.activeElement === $('#expQ')) { drawGrid(); return; }
@@ -2891,7 +3076,7 @@ pv.scene.add(new THREE.HemisphereLight(0xffffff, 0x777788, 0.9)); { const d = ne
 pv.cam.position.set(0.8, 4.4, -16); pv.cam.lookAt(0.8, 3.3, 0);
 function pvAvatar() {
   if (pv.a) { pv.scene.remove(pv.a.g); if (pv.a.pet) pv.scene.remove(pv.a.pet.g); }
-  pv.a = makeAvatar(avArr(), '', true); scene.remove(pv.a.shadow); pv.scene.add(pv.a.g);
+  pv.a = makeAvatar(pvArr(), '', true); scene.remove(pv.a.shadow); pv.scene.add(pv.a.g);
   if (pv.a.pet) { scene.remove(pv.a.pet.g); pv.a.pet.g.position.set(2.6, FLYING_PET[pv.a.pet.type] ? 3 : 0, 0.5); pv.a.pet.g.rotation.y = -0.5; pv.scene.add(pv.a.pet.g); }
 }
 // a picture of a 3D model, for menus (unit portraits and the like); cached by key
@@ -2905,7 +3090,7 @@ function snapshot(key, make, o = {}) {
     const w = o.w || 160, h = o.h || 160, obj = make();
     snap.r.setPixelRatio(1); snap.r.setSize(w, h, false); snap.r.setClearColor(0, 0);
     snap.scene.add(obj); obj.updateMatrixWorld(true);
-    const sph = new THREE.Box3().setFromObject(obj).getBoundingSphere(new THREE.Sphere()), dir = new THREE.Vector3(...(o.dir || [0.75, 0.42, -1])).normalize();
+    const sph = o.sphere ? new THREE.Sphere(new THREE.Vector3(...o.sphere[0]), o.sphere[1]) : new THREE.Box3().setFromObject(obj).getBoundingSphere(new THREE.Sphere()), dir = new THREE.Vector3(...(o.dir || [0.75, 0.42, -1])).normalize();
     snap.cam.aspect = w / h; snap.cam.updateProjectionMatrix();
     snap.cam.position.copy(sph.center).addScaledVector(dir, sph.radius / Math.sin(snap.cam.fov * Math.PI / 360) * (o.zoom || 0.92)); snap.cam.lookAt(sph.center);
     snap.r.render(snap.scene, snap.cam); url = snap.r.domElement.toDataURL('image/png');
@@ -2914,12 +3099,360 @@ function snapshot(key, make, o = {}) {
   snap.cache.set(key, url);
   return url;
 }
+// a picture of an avatar (yours, a friend's) for lists and profiles; head: just the head and shoulders, for little circles
+function avPic(av, head) {
+  const v = okAv(av);
+  return snapshot((head ? 'avh:' : 'av:') + v.join(','), () => {
+    const a = makeAvatar(v, '', true); scene.remove(a.shadow);
+    if (a.pet) { scene.remove(a.pet.g); if (!head) { a.pet.g.position.set(2.5, FLYING_PET[a.pet.type] ? 3 : 0, 0.4); a.pet.g.rotation.y = -0.5; a.g.add(a.pet.g); } }
+    a.armR.rotation.x = -0.12; a.armL.rotation.x = 0.12;
+    return a.g;
+  }, head ? { w: 96, h: 96, dir: [0.28, 0.12, -1], sphere: [[0, 5.15, 0], 1.75], zoom: 0.8 } : { w: 150, h: 190, dir: [0.3, 0.12, -1], zoom: 0.97 });
+}
+// the preview's canvas sits in your card on the home screen, or big in the editor
+function pvFit() {
+  if (!pv.r) return;
+  const c = $('#avPrev'), big = ED.open, w = big ? Math.max(1, c.clientWidth) : 240, h = big ? Math.max(1, c.clientHeight) : 260;
+  pv.r.setPixelRatio(big ? Math.min(2, devicePixelRatio || 1) : 1); pv.r.setSize(w, h, false);
+  pv.cam.aspect = w / h; pv.cam.updateProjectionMatrix();
+  const far = 16 * Math.max(1, 0.9 / pv.cam.aspect); // (a tall narrow stage: back off so the pet still fits)
+  pv.cam.position.set(0.8, 4.4, -far); pv.cam.lookAt(0.8, 3.3, 0);
+}
 function pvDraw(t) {
-  try { if (!pv.r) pv.r = new THREE.WebGLRenderer({ canvas: $('#avPrev'), antialias: true, alpha: true }); } catch (e) { return; }
+  try { if (!pv.r) { pv.r = new THREE.WebGLRenderer({ canvas: $('#avPrev'), antialias: true, alpha: true }); if (ED.open) pvFit(); } } catch (e) { return; }
   if (!pv.a) pvAvatar();
-  pv.a.g.rotation.y = Math.sin(t / 1600) * 0.7;
+  pv.a.g.rotation.y = ED.open ? ED.yaw + (ED.drag ? 0 : Math.sin(t / 2400) * 0.12) : Math.sin(t / 1600) * 0.7;
   pv.a.armR.rotation.x = Math.sin(t / 300) * 0.25 - 0.1; pv.a.armL.rotation.x = -Math.sin(t / 300) * 0.25 + 0.1;
   pv.r.render(pv.scene, pv.cam);
+}
+
+/* =====================================================================
+   YOU AND YOUR FRIENDS — your profile, other people's, friends and invites.
+   Everyone in Bloxverse is in the lobby room (even while playing), and their
+   lobby presence says who they are: id, name, avatar, friend code, favourite
+   experiences, achievements, who they've friended (fr) or turned down (no),
+   and their invites (iv). Friend codes are 6 letters made from an id, so the
+   lists stay small (a presence holds 4 KB at most).
+   Friends: you both list each other. Someone listing you who you don't list
+   is a friend request; accepting lists them back. Removing or declining puts
+   them on your "no" list for a day, and they drop you when they see it.
+   Your friends (with their name and avatar as last seen) are saved with your
+   coins: W.fr = { f: {id: card}, out: {id or '#CODE': card}, no: {id: when} }.
+   ===================================================================== */
+const FC_AB = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', NO_FOR = 86400000, INV_TTL = 60000;
+const Social = { on: new Map(), inc: new Map(), seen: new Set(), tab: 'list', code: '', codeMsg: '', rmAsk: '', panel: null, back: null };
+const Inv = { out: [], seen: new Set() }; // out: [code, experience, server, key, when]
+function myId() {
+  if (Net.uid) return Net.uid;
+  try { let id = localStorage.getItem('rb.me'); if (!id) { id = Math.random().toString(36).slice(2, 12); localStorage.setItem('rb.me', id); } return id; } catch (e) { return 'guest'; }
+}
+function fcOf(id) { let h = 2166136261; for (const ch of 'fc:' + id) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619) >>> 0; } let s = ''; for (let i = 0; i < 6; i++) { s += FC_AB[h & 31]; h = (h >>> 5) ^ Math.imul(h, 2654435761) >>> 27; } return s; }
+const myCode = () => fcOf(myId());
+const cleanName = (n) => String(n || '').replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 20) || 'Player';
+const okCode = (c) => /^[A-Z2-9]{6}$/.test(c);
+// (what others put in their presence is theirs to say: an id or an experience is only used if it's a real one)
+const okId = (k) => typeof k === 'string' && k.length > 0 && k.length <= 200 && !(k in Object.prototype);
+const expOf = (id) => (typeof id === 'string' && Object.prototype.hasOwnProperty.call(EXPS, id) ? EXPS[id] : null);
+function frFrom(d) {
+  const F = { f: {}, out: {}, no: {} }; if (!d || typeof d !== 'object') return F;
+  const card = (c) => ({ nm: cleanName(c && c.nm), av: okAv(c && c.av), at: Math.max(0, +(c && c.at) || 0) });
+  const ok = okId;
+  if (d.f && typeof d.f === 'object') for (const k of Object.keys(d.f).slice(0, 200)) if (ok(k)) F.f[k] = card(d.f[k]);
+  if (d.out && typeof d.out === 'object') for (const k of Object.keys(d.out).slice(0, 60)) if (ok(k) && (k[0] !== '#' || okCode(k.slice(1)))) F.out[k] = card(d.out[k]);
+  if (d.no && typeof d.no === 'object') for (const k of Object.keys(d.no).slice(-60)) if (ok(k) && Date.now() - +d.no[k] < NO_FOR) F.no[k] = +d.no[k];
+  return F;
+}
+const cardOf = (pr) => ({ nm: cleanName(pr.nm), av: okAv(pr.av), at: Date.now() });
+// who's where: a server name ('ty-2') as [experience, server]
+function srvOf(srv) { const m = /^(.+)-(\d+)$/.exec(typeof srv === 'string' ? srv : ''); const E = m && Object.values(EXPS).find((x) => x.code === m[1]); return E ? [E, +m[2]] : null; }
+function statusOf(id) {
+  const o = Social.on.get(id), f = W.fr.f[id];
+  if (!o) return { t: f && f.at ? `⚫ Offline · seen ${ago(f.at)}` : '⚫ Offline', on: false };
+  const w = srvOf(o.pr.srv);
+  if (w && playing && o.pr.srv === Net.srv) return { t: '🎮 Here with you', on: true, here: true };
+  return w ? { t: `🎮 Playing ${w[0].emoji} ${w[0].name} · server ${w[1]}`, on: true, play: w } : { t: '🟢 Online', on: true };
+}
+// your friends, the ones playing first, then online, then the rest by name
+function friendList() {
+  return Object.entries(W.fr.f).map(([id, c]) => ({ id, c, s: statusOf(id) }))
+    .sort((a, b) => (b.s.play ? 2 : b.s.on ? 1 : 0) - (a.s.play ? 2 : a.s.on ? 1 : 0) || a.c.nm.localeCompare(b.c.nm));
+}
+const onlineFriends = () => Object.keys(W.fr.f).filter((id) => Social.on.has(id));
+
+// what you show everyone in the lobby (only once your saved friends are loaded, so nobody sees an empty list)
+let profT = 0, profSent = '';
+function pubProfile() {
+  clearTimeout(profT);
+  profT = setTimeout(() => {
+    if (!Net.lobby || !W.loaded) return;
+    const F = W.fr, t = Date.now();
+    Inv.out = Inv.out.filter((v) => t - v[4] < INV_TTL);
+    const keys = Object.keys(F.f).concat(Object.keys(F.out));
+    const p = { id: myId(), nm: Net.name, av: avArr(), fc: myCode(), fv: [...FAVS].filter(expOf).slice(0, 12), ac: W.ach ? W.ach.got.size : 0,
+      fr: [...new Set(keys.map((k) => (k[0] === '#' ? k.slice(1) : fcOf(k))))].slice(0, 200), no: Object.keys(F.no).map(fcOf).slice(-40), iv: Inv.out.map((v) => v.slice(0, 4)) };
+    while (JSON.stringify(p).length > 3500 && p.fr.length) p.fr.pop(); // (a presence holds 4 KB at most)
+    const s = JSON.stringify(p); if (s === profSent) return; profSent = s;
+    Net.lobby.presence(p).catch(() => { profSent = ''; });
+  }, 150);
+}
+// the lobby changed: who's online, new requests, friends made, invites
+function socialScan() {
+  const me = myId(), mc = myCode(), on = new Map(), F = W.fr, t = Date.now();
+  for (const p of Net.lobbyPeers) {
+    const pr = p.presence || {};
+    if (p.isMe || !okId(pr.id) || pr.id === me) continue;
+    const o = on.get(pr.id); if (!o || (!o.pr.srv && pr.srv)) on.set(pr.id, { peer: p.peer, pr });
+  }
+  Social.on = on;
+  const inc = new Map(); let changed = false;
+  for (const k of Object.keys(F.no)) if (t - F.no[k] > NO_FOR) { delete F.no[k]; changed = true; }
+  if (F.f[me] || F.out[me] || F.out['#' + mc]) { delete F.f[me]; delete F.out[me]; delete F.out['#' + mc]; changed = true; }
+  if (W.loaded) for (const [id, o] of on) {
+    const pr = o.pr, fc = fcOf(id), lists = (a) => Array.isArray(a) && a.includes(mc), card = cardOf(pr);
+    if (F.out['#' + fc]) { F.out[id] = card; delete F.out['#' + fc]; changed = true; } // (asked by code: now we know who it is)
+    if (lists(pr.no)) { if (F.f[id] || F.out[id]) { delete F.f[id]; delete F.out[id]; changed = true; } continue; } // they said no, or removed you
+    if (F.f[id]) { const c = F.f[id]; if (c.nm !== card.nm || String(c.av) !== String(card.av)) changed = true; Object.assign(c, card); continue; }
+    if (!lists(pr.fr)) continue;
+    if (F.out[id]) { F.f[id] = card; delete F.out[id]; changed = true; Social.seen.add(id); newFriend(id); continue; } // they said yes
+    if (F.no[id]) continue;
+    inc.set(id, card);
+    if (!Social.seen.has(id)) { Social.seen.add(id); reqPop(id, card); }
+  }
+  Social.inc = inc;
+  // invites, from friends only
+  for (const [id, o] of on) {
+    if (!F.f[id] || !Array.isArray(o.pr.iv)) continue;
+    for (const v of o.pr.iv.slice(0, 8)) {
+      if (!Array.isArray(v) || v[0] !== mc) continue;
+      const key = id + ':' + String(v[3]).slice(0, 12); if (Inv.seen.has(key)) continue;
+      Inv.seen.add(key); invPop(id, String(v[1]), Math.max(1, Math.min(SERVERS, v[2] | 0)));
+    }
+  }
+  if (changed) saveAv();
+  socialRedraw(true);
+}
+// everything showing friends, drawn again
+function socialRedraw(auto) {
+  drawMe();
+  if (playing) { drawSide(); if (Social.panel && panelOpen()) Social.panel(); }
+  else if (!auto && (homeView === 'me' || homeView === 'friends' || String(homeView).startsWith('u:'))) drawExps();
+}
+function newFriend(id) { const c = W.fr.f[id]; sfx('unlock'); questMax('bv.friends', Object.keys(W.fr.f).length); socialPop(`<img class="avimg" src="${avPic(c.av, true)}" alt=""><div class="tx">🎉 You and <b>${esc(c.nm)}</b> are now friends!</div>`, null, 6000); }
+function addFriend(id) {
+  if (!id || id === myId() || W.fr.f[id]) return;
+  if (Social.inc.has(id)) { acceptFriend(id); return; }
+  if (Object.keys(W.fr.out).length >= 50) { socialPop('<div class="tx">You have 50 requests waiting already — cancel some first.</div>', null, 4000); return; }
+  const o = Social.on.get(id);
+  delete W.fr.no[id]; W.fr.out[id] = o ? cardOf(o.pr) : { nm: 'Player', av: okAv(), at: Date.now() };
+  sfx('select'); saveAv(); socialRedraw();
+}
+function acceptFriend(id) {
+  const c = Social.inc.get(id) || (Social.on.get(id) && cardOf(Social.on.get(id).pr)); if (!c) return;
+  if (Object.keys(W.fr.f).length >= 200) { socialPop('<div class="tx">You have 200 friends — that’s the most there can be.</div>', null, 4000); return; }
+  W.fr.f[id] = c; delete W.fr.out[id]; delete W.fr.no[id]; Social.inc.delete(id);
+  saveAv(); newFriend(id); socialRedraw();
+}
+function declineFriend(id) { W.fr.no[id] = Date.now(); Social.inc.delete(id); sfx('click'); saveAv(); socialRedraw(); }
+function cancelReq(k) { delete W.fr.out[k]; sfx('click'); saveAv(); socialRedraw(); }
+function removeFriend(id) { delete W.fr.f[id]; W.fr.no[id] = Date.now(); sfx('click'); saveAv(); socialRedraw(); }
+function addByCode(raw) {
+  const c = String(raw || '').toUpperCase().replace(/[^A-Z0-9]/g, '').replace(/O/g, '0').replace(/I/g, '1');
+  Social.code = '';
+  if (!okCode(c)) Social.codeMsg = '❌ A friend code is 6 letters and numbers, like ' + myCode() + '.';
+  else if (c === myCode()) Social.codeMsg = '🙃 That’s your own code!';
+  else {
+    const id = [...Social.on.keys()].find((k) => fcOf(k) === c) || Object.keys(W.fr.f).find((k) => fcOf(k) === c);
+    if (id && W.fr.f[id]) Social.codeMsg = `✓ ${W.fr.f[id].nm} is already your friend.`;
+    else if (id) { addFriend(id); Social.codeMsg = Social.inc.has(id) || W.fr.f[id] ? `🎉 You and ${W.fr.f[id] ? W.fr.f[id].nm : 'them'} are friends!` : `📨 Request sent to ${W.fr.out[id] ? W.fr.out[id].nm : c}.`; }
+    else { W.fr.out['#' + c] = { nm: 'Code ' + c, av: okAv(), at: Date.now() }; sfx('select'); saveAv(); Social.codeMsg = `📨 Request sent to ${c} — they’ll see it next time they’re on.`; }
+  }
+  socialRedraw();
+}
+// go where a friend is playing (from anywhere: the home screen, or another game)
+async function goJoin(id, n) {
+  if (!expOf(id) || joining) return;
+  if (playing && exp && exp.id === id && Net.srvN === n) { say('👋 You’re on that server already!', '#93c5fd'); return; }
+  closePanel(); if (ED.open) closeEditor();
+  if (playing) await leave(true);
+  join(id, n);
+}
+function joinFriend(id) { const s = statusOf(id); if (s.play) goJoin(s.play[0].id, s.play[1]); }
+function invite(id) {
+  if (!playing || !W.fr.f[id]) return;
+  const t = Date.now(), c = fcOf(id);
+  Inv.out = Inv.out.filter((v) => v[0] !== c && t - v[4] < INV_TTL);
+  Inv.out.push([c, exp.id, Net.srvN, Math.random().toString(36).slice(2, 8), t]);
+  pubProfile(); setTimeout(() => { pubProfile(); if (Social.panel && panelOpen()) Social.panel(); }, INV_TTL + 300);
+  quest('bv.invite'); sfx('select'); say(`📨 You invited ${W.fr.f[id].nm} to ${exp.name}`, '#93c5fd');
+}
+const invited = (id) => Inv.out.some((v) => v[0] === fcOf(id) && Date.now() - v[4] < INV_TTL);
+// the popups at the top: a friend request, an invite, a new friend
+function socialPop(html, onClick, ttl) {
+  const box = $('#social'), el = document.createElement('div');
+  el.className = 'spop'; el.innerHTML = html;
+  el.onclick = (e) => { const b = e.target.closest('button'); if (!b) return; el.remove(); if (onClick) onClick(b); };
+  box.append(el); while (box.children.length > 3) box.firstChild.remove();
+  setTimeout(() => el.remove(), ttl || 20000);
+  return el;
+}
+function reqPop(id, c) {
+  sfx('chat');
+  socialPop(`<img class="avimg" src="${avPic(c.av, true)}" alt=""><div class="tx"><b>${esc(c.nm)}</b><br>wants to be your friend</div><div class="bt"><button class="xp-btn" data-acc="1">✅ Accept</button><button class="xp-btn alt">Later</button></div>`, (b) => { if (b.dataset.acc) acceptFriend(id); }, 30000);
+}
+function invPop(id, eid, n) {
+  const E = expOf(eid), c = W.fr.f[id]; if (!E || !c) return;
+  if (playing && exp && exp.id === eid && Net.srvN === n) return; // (here already)
+  sfx('unlock');
+  socialPop(`<img class="avimg" src="${avPic(c.av, true)}" alt=""><div class="tx"><b>${esc(c.nm)}</b> invited you to play<br><b>${E.emoji} ${esc(E.name)}</b> · server ${n}</div><div class="bt"><button class="xp-btn" data-go="1">▶ Join</button><button class="xp-btn alt">No thanks</button></div>`, (b) => { if (b.dataset.go) goJoin(eid, n); }, INV_TTL);
+}
+// a button for being friends with someone: add, accept, waiting, or friends already
+function friendBtn(id) {
+  if (!id || id === myId()) return '';
+  if (W.fr.f[id]) return '<button class="xp-btn alt" disabled>✓ Friends</button>';
+  if (Social.inc.has(id)) return `<button class="xp-btn" data-acc="${esc(id)}">✅ Accept request</button>`;
+  if (W.fr.out[id]) return `<button class="xp-btn alt" data-cancel="${esc(id)}" title="Cancel the request">⏳ Requested</button>`;
+  return `<button class="xp-btn" data-add="${esc(id)}">➕ Add friend</button>`;
+}
+// a row in a list of people: their face, name, how they are, and buttons
+function frRow(id, c, s, btns) {
+  return `<div class="frow"><img class="avimg" src="${avPic(c.av, true)}" alt=""><button class="who" data-prof="${esc(id)}" title="See their profile"><b>${esc(c.nm)}</b><small class="${s.on ? 'on' : ''}">${esc(s.t)}</small></button>${btns}</div>`;
+}
+// every friends button, wherever it is
+// (true: done, draw it again; 'go': went somewhere else)
+function socialDo(b) {
+  const d = b.dataset;
+  if (d.prof) { openProfile(d.prof); return 'go'; }
+  if (d.join) { joinFriend(d.join); return 'go'; }
+  else if (d.add) addFriend(d.add);
+  else if (d.acc) acceptFriend(d.acc);
+  else if (d.dec) declineFriend(d.dec);
+  else if (d.cancel) cancelReq(d.cancel);
+  else if (d.rm) { if (Social.rmAsk === d.rm) { Social.rmAsk = ''; removeFriend(d.rm); } else { Social.rmAsk = d.rm; socialRedraw(); } }
+  else if (d.inv) { invite(d.inv); socialRedraw(); }
+  else if (d.code) addByCode(($('#frCode') || {}).value || Social.code);
+  else if (d.ftab) { Social.tab = d.ftab; Social.codeMsg = ''; sfx('click'); socialRedraw(); }
+  else return false;
+  return true;
+}
+function openProfile(id) {
+  if (playing) { profilePanel(id === myId() ? '' : id); return; }
+  Social.back = homeView; homeView = !id || id === myId() ? 'me' : 'u:' + id; sfx('open'); drawExps(); window.scrollTo(0, 0);
+}
+function goView(v) { if (ED.open) closeEditor(); Social.back = homeView === v ? Social.back : homeView; homeView = v; Social.rmAsk = ''; sfx('open'); drawExps(); window.scrollTo(0, 0); }
+
+// your card on the home screen, and the chip at the top
+function drawMe() {
+  const inc = Social.inc.size, onl = onlineFriends().length, conn = !!Net.lobby;
+  const sig = [Net.name, avArr().join(), W.coins, inc, onl, conn, Net.uid].join('|');
+  if (drawMe.sig === sig) return; drawMe.sig = sig;
+  $('#meImg').src = avPic(avArr(), true); $('#meNm').textContent = Net.name;
+  $('#frN').hidden = !inc; $('#frN').textContent = inc;
+  $('#meInfo').innerHTML = `<div class="mename"><b>${esc(Net.name)}</b>${conn ? `<small title="Your friend code: give it to a friend so they can add you">🔖 ${myCode()}</small>` : ''}</div>
+    <div class="coinbar"><span><span class="coin"></span><span id="homeCoins">${W.coins.toLocaleString('en-US')}</span></span><small>Blox Coins · earn them<br>in every experience</small></div>
+    <div class="mebtns"><button class="xp-btn gold wide" data-me="edit">✏️ Edit Avatar</button><button class="xp-btn blue" data-me="me">👤 Profile</button><button class="xp-btn purple" data-me="friends">👥 Friends${inc ? `<span class="badge">${inc}</span>` : ''}</button></div>
+    ${onl ? `<div class="meon">🟢 ${onl} friend${onl === 1 ? '' : 's'} online</div>` : ''}`;
+}
+$('#meInfo').onclick = (e) => { const b = e.target.closest('[data-me]'); if (!b) return; if (b.dataset.me === 'edit') openEditor(); else goView(b.dataset.me); };
+$('#meChip').onclick = () => goView('me');
+$('#frBtn').onclick = () => goView('friends');
+
+// the profile and friends pages (in the experiences' place on the home screen)
+function socialPage(again) {
+  const html = homeView === 'friends' ? friendsPage() : profilePage(homeView === 'me' ? '' : homeView.slice(2));
+  if (again && html === socialPage.last && $('#expArea .social')) return;
+  if (again && document.activeElement && document.activeElement.id === 'frCode') return; // (typing a code)
+  socialPage.last = html;
+  $('#expArea').innerHTML = html;
+  if (again) $('#expArea .edetail').classList.add('still');
+  const pg = $('#expArea .social');
+  pg.onclick = (e) => {
+    const b = e.target.closest('button'); if (!b || b.disabled) return;
+    if (b.id === 'backBtn') { homeView = Social.back && Social.back !== homeView ? Social.back : null; Social.back = null; drawExps(); return; }
+    if (b.dataset.edit) { openEditor(); return; }
+    if (b.dataset.goto) { goView(b.dataset.goto); return; }
+    if (b.dataset.e && expOf(b.dataset.e)) { Social.back = null; homeView = b.dataset.e; drawExps(); window.scrollTo(0, 0); return; }
+    if (socialDo(b) === true) drawExps();
+  };
+  const ci = $('#frCode');
+  if (ci) { ci.oninput = () => { Social.code = ci.value; }; ci.onkeydown = (e) => { if (e.key === 'Enter') { addByCode(ci.value); drawExps(); } }; }
+}
+const backLabel = () => (Social.back === 'friends' ? '← Friends' : Social.back === 'me' ? '← Your profile' : expOf(Social.back) ? `← ${expOf(Social.back).name}` : '← All experiences');
+function expCards(ids) {
+  return `<div class="egrid small">${ids.map(expOf).filter(Boolean).map((E) => `<button class="ecard" data-e="${E.id}"><div class="thumb" style="background:${E.color}"><span class="em">${E.emoji}</span></div><div class="info"><b>${esc(E.name)}</b>${RECENT[E.id] ? `<small>Played ${ago(RECENT[E.id])}</small>` : ''}</div></button>`).join('')}</div>`;
+}
+function profilePage(id) {
+  const mine = !id, o = mine ? null : Social.on.get(id), f = mine ? null : W.fr.f[id], out = mine ? null : W.fr.out[id];
+  if (!mine && !o && !f && !out) return `<div class="edetail social"><button class="back" id="backBtn">${backLabel()}</button><div class="fempty">That player isn’t online right now.</div></div>`;
+  const pr = mine ? { nm: Net.name, av: avArr(), fv: [...FAVS], ac: W.ach ? W.ach.got.size : 0 } : Object.assign({}, f || out || {}, o ? o.pr : {});
+  const nm = cleanName(pr.nm), favs = (Array.isArray(pr.fv) ? pr.fv : []).filter(expOf).slice(0, 12);
+  const s = mine ? { t: '🟢 Online', on: true } : statusOf(id), nf = Object.keys(W.fr.f).length;
+  const stat = (v, l) => `<div class="pstat"><b>${v}</b><small>${l}</small></div>`;
+  let h = `<div class="edetail social profile"><button class="back" id="backBtn">${backLabel()}</button>
+    <div class="ptop"><button class="pav${mine ? ' mine' : ''}" ${mine ? 'data-edit="1" title="Edit your avatar"' : 'disabled'}><img src="${avPic(pr.av)}" alt="">${mine ? '<span class="avedit">✏️ Edit avatar</span>' : ''}</button>
+    <div><h2>${esc(nm)}</h2><div class="meta"><span class="pill">${esc(s.t)}</span><span class="pill" title="Friend code">🔖 ${mine ? myCode() : fcOf(id)}</span>${!mine && f ? '<span class="pill">🤝 Friends</span>' : ''}</div>`;
+  if (mine) {
+    h += `<div class="pstats">${stat(`${pr.ac} / ${ACH.length}`, '🏆 Achievements')}${stat(nf, '👥 Friends')}${stat(W.own.size, '🧥 Items owned')}${stat(Object.keys(RECENT).filter((x) => EXPS[x]).length, '🎮 Games played')}${stat(W.coins.toLocaleString('en-US'), '🪙 Blox Coins')}</div>
+      <div class="pbtns"><button class="xp-btn gold" data-edit="1">✏️ Edit avatar</button><button class="xp-btn purple" data-goto="friends">👥 Friends${Social.inc.size ? ` · ${Social.inc.size} new` : ''}</button></div></div></div>`;
+  } else {
+    h += `<div class="pstats">${stat(o ? (+pr.ac || 0) : '—', '🏆 Achievements')}${stat(favs.length, '❤️ Favourites')}</div>
+      <div class="pbtns">${friendBtn(id)}${f && s.play ? `<button class="xp-btn blue" data-join="${esc(id)}">▶ Join them</button>` : ''}${f ? `<button class="xp-btn ${Social.rmAsk === id ? 'red' : 'alt'}" data-rm="${esc(id)}">${Social.rmAsk === id ? 'Tap again to remove' : 'Remove friend'}</button>` : ''}${Social.inc.has(id) ? `<button class="xp-btn alt" data-dec="${esc(id)}">Decline</button>` : ''}</div></div></div>`;
+  }
+  h += `<h3 style="margin-top:20px">❤️ ${mine ? 'Your favourites' : 'Favourite experiences'}</h3>` + (favs.length ? expCards(favs) : `<div class="fempty">${mine ? 'No favourites yet — tap the 🤍 on an experience to add it here.' : o ? 'No favourites yet.' : 'Their favourites show when they’re online.'}</div>`);
+  if (mine) {
+    const rec = Object.keys(RECENT).filter((x) => EXPS[x]).sort((a, b) => RECENT[b] - RECENT[a]).slice(0, 6);
+    if (rec.length) h += `<h3 style="margin-top:20px">🕒 Recently played</h3>${expCards(rec)}`;
+    const fl = friendList().slice(0, 18);
+    h += `<h3 style="margin-top:20px">👥 Friends <small style="color:var(--dim);font:700 12.5px var(--fb)">${nf}</small></h3>` + (fl.length ? `<div class="fmini">${fl.map((x) => `<button data-prof="${esc(x.id)}" title="${esc(x.s.t)}"><img class="avimg${x.s.on ? ' on' : ''}" src="${avPic(x.c.av, true)}" alt=""><span>${esc(x.c.nm)}</span></button>`).join('')}</div>` : `<div class="fempty">No friends yet. <button class="xp-btn blue" data-goto="friends" style="margin-left:6px">Find people</button></div>`);
+  }
+  return h + '</div>';
+}
+function friendsPage() {
+  const tab = Social.tab, fl = friendList(), inc = [...Social.inc], outs = Object.entries(W.fr.out);
+  const find = [...Social.on].filter(([id]) => !W.fr.f[id]);
+  const chip = (k, l, n) => `<button class="xchip${tab === k ? ' on' : ''}" data-ftab="${k}">${l}${n != null ? ` <small>${n}</small>` : ''}</button>`;
+  let body = '';
+  if (tab === 'list') {
+    body = fl.length ? `<div class="flist">${fl.map((x) => frRow(x.id, x.c, x.s, `${x.s.play ? `<button class="xp-btn blue" data-join="${esc(x.id)}">▶ Join</button>` : ''}<button class="xp-btn ${Social.rmAsk === x.id ? 'red' : 'alt'}" data-rm="${esc(x.id)}" title="Remove friend">${Social.rmAsk === x.id ? 'Remove?' : '✕'}</button>`)).join('')}</div>`
+      : `<div class="fempty">No friends yet. Add people who are online in <b>Find people</b>, or swap friend codes.</div>`;
+  } else if (tab === 'req') {
+    body = `<div class="fsub">Asking to be your friend</div>` + (inc.length ? `<div class="flist">${inc.map(([id, c]) => frRow(id, c, statusOf(id), `<button class="xp-btn" data-acc="${esc(id)}">✅ Accept</button><button class="xp-btn alt" data-dec="${esc(id)}">Decline</button>`)).join('')}</div>` : '<div class="fempty">No requests right now.</div>')
+      + `<div class="fsub">You asked</div>` + (outs.length ? `<div class="flist">${outs.map(([k, c]) => frRow(k[0] === '#' ? '' : k, c, k[0] === '#' ? { t: 'Waiting for them to come online' } : statusOf(k), `<button class="xp-btn alt" data-cancel="${esc(k)}">Cancel</button>`)).join('')}</div>` : '<div class="fempty">You haven’t asked anyone yet.</div>');
+  } else if (tab === 'find') {
+    body = `<p class="xp-note">Everyone in Bloxverse right now.</p>` + (find.length ? `<div class="flist">${find.map(([id, o]) => frRow(id, cardOf(o.pr), statusOf(id), friendBtn(id))).join('')}</div>` : '<div class="fempty">Nobody else is on right now. Give a friend your code instead!</div>');
+  } else {
+    body = `<div class="fcode"><div><div class="fsub" style="margin:0">Your friend code</div><div class="codebig">${myCode()}</div></div></div><p class="xp-note">Give your code to a friend so they can add you, or type theirs here. If they’re not on right now, they’ll get your request next time they are.</p>
+      <div class="fcode"><label class="xsearch">🔖<input id="frCode" maxlength="6" placeholder="Friend's code" value="${esc(Social.code)}" autocomplete="off" spellcheck="false"></label><button class="xp-btn" data-code="1">📨 Send request</button></div>${Social.codeMsg ? `<p class="xp-note" style="color:#e2e8f0">${esc(Social.codeMsg)}</p>` : ''}`;
+  }
+  return `<div class="edetail social friends"><button class="back" id="backBtn">${backLabel()}</button>
+    <div class="achhead"><span class="big">👥</span><div><h2>Friends</h2><p style="margin:0">Add people, see what your friends are playing and join them. In a game, the 👥 Friends button invites them to your server.</p></div></div>
+    <div class="xchips" style="margin-bottom:12px">${chip('list', '👥 Friends', fl.length)}${chip('req', '📨 Requests', inc.length ? `${inc.length} new` : outs.length || 0)}${chip('find', '🔍 Find people', find.length)}${chip('code', '🔖 Add by code')}</div>${body}</div>`;
+}
+// in a game: your friends (invite them here, or go to them) and the people on this server
+function friendsPanel() {
+  const fl = friendList().filter((x) => x.s.on), here = crew().filter((c) => !c.isMe), inc = [...Social.inc];
+  let h = `<p class="xp-note">Invite a friend to <b>${esc(exp.name)}</b> server ${Net.srvN}, or hop over to where they are. Your friend code is <b>${myCode()}</b>.</p>`;
+  if (inc.length) h += `<div class="fsub">📨 Friend requests</div>${inc.map(([id, c]) => frRow(id, c, statusOf(id), `<button class="xp-btn" data-acc="${esc(id)}">✅</button><button class="xp-btn alt" data-dec="${esc(id)}">✕</button>`)).join('')}`;
+  h += `<div class="fsub">🟢 Friends online</div>` + (fl.length ? fl.map((x) => frRow(x.id, x.c, x.s, x.s.here ? '' : `${x.s.play ? `<button class="xp-btn blue" data-join="${esc(x.id)}" title="Go to their server">▶</button>` : ''}${invited(x.id) ? '<button class="xp-btn alt" disabled>✓ Invited</button>' : `<button class="xp-btn" data-inv="${esc(x.id)}">📨 Invite</button>`}`)).join('')
+    : `<div class="fempty">${Object.keys(W.fr.f).length ? 'None of your friends are on right now.' : 'No friends yet — add people on this server below, or swap friend codes.'}</div>`);
+  h += `<div class="fsub">🎮 On this server</div>` + (here.length ? here.map((c) => { const id = typeof c.pr.id === 'string' ? c.pr.id : ''; return frRow(id, cardOf(c.pr), { t: id && W.fr.f[id] ? '🤝 Your friend' : '🎮 Here with you', on: true }, friendBtn(id)); }).join('') : '<div class="fempty">Just you here so far.</div>');
+  openPanel('👥 Friends', h, (b) => { if (socialDo(b) === true) friendsPanel(); }, () => { Social.panel = null; });
+  Social.panel = friendsPanel;
+}
+// in a game: someone's profile (tap them on the leaderboard, or a name in your friends)
+function profilePanel(id, peer) {
+  const sp = peer ? trPeer(peer) : null, spr = sp ? sp.presence || {} : {};
+  if (!peer && id) { const c = crew().find((x) => !x.isMe && x.pr.id === id); if (c) { peer = c.peer; return profilePanel(id, peer); } }
+  const o = id && Social.on.get(id), f = id && W.fr.f[id], pr = Object.assign({}, f || {}, o ? o.pr : {}, spr), mine = !id && !peer;
+  if (mine) { Object.assign(pr, { nm: Net.name, av: avArr(), fv: [...FAVS], ac: W.ach ? W.ach.got.size : 0 }); }
+  const nm = cleanName(pr.nm), favs = (Array.isArray(pr.fv) ? pr.fv : []).filter(expOf).slice(0, 10);
+  const s = mine ? { t: '🎮 That’s you!' } : peer ? { t: `🎮 Playing ${exp.name} here` } : statusOf(id);
+  const h = `<div class="pmini"><img class="avimg" src="${avPic(pr.av, true)}" alt=""><div><b>${esc(nm)}</b><small>${esc(s.t)}</small><small>🏆 ${o || mine ? (+pr.ac || 0) : '—'} achievements${id || mine ? ` · 🔖 ${mine ? myCode() : fcOf(id)}` : ''}</small></div></div>
+    <div class="pbtns">${peer && sp ? '<button class="xp-btn blue" data-t="1">🤝 Trade</button>' : ''}${friendBtn(id)}${f && s.play ? `<button class="xp-btn blue" data-join="${esc(id)}">▶ Join them</button>` : ''}${f && o && !s.here && !peer ? (invited(id) ? '<button class="xp-btn alt" disabled>✓ Invited</button>' : `<button class="xp-btn" data-inv="${esc(id)}">📨 Invite here</button>`) : ''}</div>
+    ${!id && peer ? '<p class="xp-note">They’re on an older version of Bloxverse, so they can’t be added as a friend yet.</p>' : ''}
+    ${favs.length ? `<div class="fsub">❤️ Favourite experiences</div><div class="favchips">${favs.map((x) => `<span class="pill">${expOf(x).emoji} ${esc(expOf(x).name)}</span>`).join('')}</div>` : ''}`;
+  const again = () => profilePanel(id, peer);
+  openPanel(`👤 ${nm}`, h, (b) => { if (b.dataset.t) { closePanel(); startTrade(peer); return; } if (socialDo(b) === true) again(); }, () => { Social.panel = null; });
+  Social.panel = again;
 }
 
 /* ---------------- the FPS and ping meter ---------------- */
@@ -3305,7 +3838,7 @@ function camRoom(ox, oy, oz, dx, dy, dz, max) {
 }
 function drawHud() {
   const rows = crew().map((c) => ({ c, name: c.isMe ? Net.name : String(c.pr.nm || 'Player').slice(0, 20), v: exp.statOf(c.pr, c.isMe, c.peer), k: exp.sortKey(c.pr, c.isMe, c.peer) })).sort((a, b) => b.k - a.k);
-  $('#board').innerHTML = `<table><tr><th>👥 ${rows.length} player${rows.length === 1 ? '' : 's'}</th><th>${exp.stat}</th></tr>${rows.map((r, i) => `<tr class="${r.c.isMe ? 'me' : ''}"${r.c.isMe ? '' : ` data-peer="${esc(r.c.peer)}" title="Tap to trade"`}><td><span class="rk">${i + 1}</span>${esc(r.name)}</td><td>${esc(String(r.v))}</td></tr>`).join('')}</table>`;
+  $('#board').innerHTML = `<table><tr><th>👥 ${rows.length} player${rows.length === 1 ? '' : 's'}</th><th>${exp.stat}</th></tr>${rows.map((r, i) => `<tr class="${r.c.isMe ? 'me' : ''}"${r.c.isMe ? '' : ` data-peer="${esc(r.c.peer)}" title="Tap for their profile"`}><td><span class="rk">${i + 1}</span>${esc(r.name)}</td><td>${esc(String(r.v))}</td></tr>`).join('')}</table>`;
   $('#stat').innerHTML = exp.hud ? exp.hud() : '';
   drawSide(); placeSide();
   if (!exp.banner) setBanner('');
@@ -3318,21 +3851,23 @@ document.addEventListener('click', (e) => { const b = e.target.closest('button')
 /* ---------------- start ---------------- */
 try { loadAvFrom(JSON.parse(localStorage.getItem('rb.av') || 'null')); } catch (e) {}
 achNum();
-drawAvatarOpts(); drawExps();
+drawAvatarOpts(); drawMe(); drawExps();
 requestAnimationFrame(frame);
-window.__rb = { P, Net, cam, camera, scene, renderer, keys, EXPS, Meter, GFX, gfxApply, softGL, View, setLock, zoomBy, lookBy, joy, sunL, sunSprite, makeAvatar, join, leave, die, respawn, openShop, buyItem, hasItem, itemCount, giveItem, useItem, shopItem, setItemOff, Trade, startTrade, tradeTick, parts: () => parts, exp: () => exp, me: () => me, iAmHost, crew, players, get AV() { return AV; }, W, earn, spend, roundState, openPanel, closePanel, pickPlane, myPeer, grantCosmetic, snapshot, say }; // for tests
+window.__rb = { P, Net, cam, camera, scene, renderer, keys, EXPS, Meter, GFX, gfxApply, softGL, View, setLock, zoomBy, lookBy, joy, sunL, sunSprite, makeAvatar, join, leave, die, respawn, openShop, buyItem, hasItem, itemCount, giveItem, useItem, shopItem, setItemOff, Trade, startTrade, tradeTick, parts: () => parts, exp: () => exp, me: () => me, iAmHost, crew, players, get AV() { return AV; }, W, earn, spend, roundState, openPanel, closePanel, pickPlane, myPeer, grantCosmetic, snapshot, say,
+  Social, Inv, ED, myId, myCode, fcOf, openEditor, closeEditor, socialScan, avPic, get homeView() { return homeView; }, set homeView(v) { homeView = v; drawExps(); } }; // for tests
 if (!Net.api()) homeStatus('Open Bloxverse from 🕹️ Games in the chat to play online.');
 else {
   $('#hi').textContent = 'Connecting…';
   lobby().then(async (r) => {
     if (!r) { $('#hi').textContent = ''; homeStatus('Live rooms aren’t switched on for your access to this page. The owner can share it with you as a Contributor (Share menu).'); return; }
     $('#hi').textContent = `Hi, ${Net.name}!`;
-    const saved = await kvGet('av');
-    if (saved && typeof saved === 'object' && (+saved.at || 0) >= (W.at || 0)) loadAvFrom(saved);
+    const saved = await kvGet('av'), other = !!(W.who && Net.uid && W.who !== Net.uid); // (other: the save on this computer is someone else's)
+    if (saved && typeof saved === 'object' && ((+saved.at || 0) >= (W.at || 0) || other)) loadAvFrom(saved);
+    else if (other) loadAvFrom({});
     W.loaded = true;
     const today = new Date().toISOString().slice(0, 10);
     if (W.day !== today) { W.day = today; W.coins += 50; $('#hi').textContent = `Hi, ${Net.name}! Daily bonus: +50 🪙`; }
-    saveAv(); drawAvatarOpts(); pvAvatar(); drawExps();
+    saveAv(); drawAvatarOpts(); pvAvatar(); socialScan(); drawMe(); drawExps();
   });
 }
 </script>
