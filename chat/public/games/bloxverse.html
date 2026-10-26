@@ -539,7 +539,17 @@
   .fit .row{display:flex;gap:4px;padding:0 6px 6px}
   .fit .row button{flex:1;border:1px solid var(--line);border-radius:9px;background:rgba(255,255,255,.06);color:#e2e8f0;font:600 12px var(--fh);padding:5px 0;cursor:pointer}
   .fit .row button:hover{background:rgba(255,255,255,.14)}
-  .xp-btn.pink{--c1:#f9a8d4;--c2:#db2777;--c3:#831843}
+  .xp-btn.pink{--c1:#f9a8d4;--c2:#db2777;--c3:#831843}.xp-btn.teal{--c1:#5eead4;--c2:#0d9488;--c3:#134e4a}
+  .igrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+  .icard{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;background:linear-gradient(180deg,#283143,#1c222d);border:2px solid rgba(255,255,255,.07);border-radius:16px;padding:8px 8px 10px;text-align:center}
+  .icard.on{border-color:#22c55e}.icard.lim{border-color:rgba(250,204,21,.45)}
+  .icard img{width:96px;height:96px;object-fit:contain;border-radius:12px;background:radial-gradient(circle at 50% 35%,rgba(125,211,252,.28),transparent 70%)}
+  .icard .ic{font-size:52px;line-height:96px;height:96px}
+  .icard b{font:600 14px/1.15 var(--fh)}
+  .icard small{color:var(--muted);font:700 11px/1.3 var(--fb)}
+  .icard .pr{color:#fde68a;font:600 11.5px var(--fh);background:rgba(0,0,0,.35);border-radius:999px;padding:2px 8px;display:inline-flex;align-items:center;gap:4px}
+  .iacts{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;margin-top:auto;padding-top:5px}
+  .iacts .xp-btn{padding:6px 10px;font-size:12px}
   .avmodes{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:0 0 12px}
   .avmodes button{border:1px solid var(--line);border-radius:14px;padding:9px 6px;background:rgba(255,255,255,.05);color:#cbd5e1;font:600 14px var(--fh);cursor:pointer}
   .avmodes button.on{background:linear-gradient(180deg,#60a5fa,#2563eb);color:#fff;border-color:#93c5fd;box-shadow:0 3px 0 #1e3a8a}
@@ -575,6 +585,23 @@
   .pxwrap{display:flex;justify-content:center;margin:4px 0 8px}
   #pxCan{width:min(240px,70vw);height:auto;aspect-ratio:1;border-radius:12px;box-shadow:0 0 0 2px rgba(255,255,255,.15);touch-action:none;cursor:crosshair;image-rendering:pixelated}
   .sw.emo button{width:34px;height:34px;font-size:18px;background:rgba(255,255,255,.08)}
+  .avmodes.steps button{font-size:13px}
+  .xshapes{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
+  .xshapes button{display:flex;flex-direction:column;align-items:center;gap:1px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.05);color:#e2e8f0;font-size:20px;padding:5px 2px;cursor:pointer}
+  .xshapes button small{font:600 10.5px var(--fh);color:#cbd5e1}
+  .xshapes button:hover{background:rgba(255,255,255,.12)}.xshapes button.on{border-color:#22c55e;background:rgba(34,197,94,.18)}
+  .xshapes button:disabled{opacity:.4;cursor:default}
+  .xshapes.sm{grid-template-columns:repeat(10,1fr)}.xshapes.sm button{font-size:16px;padding:4px 0}
+  .xpart{background:rgba(250,204,21,.06);border:1px solid rgba(250,204,21,.25);border-radius:14px;padding:8px 10px;margin:8px 0}
+  .sls{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;margin:6px 0}
+  .sl{display:grid;grid-template-columns:74px 1fr 38px;align-items:center;gap:6px;color:#cbd5e1;font:600 11.5px var(--fh)}
+  .sl input{width:100%;accent-color:#facc15}
+  .sl b{font:700 11px var(--fb);color:#fde68a;text-align:right}
+  .xfoot{margin-top:10px}
+  #avZoom{position:absolute;z-index:3;right:10px;bottom:10px;display:flex;flex-direction:column;gap:6px}
+  #avZoom[hidden]{display:none}
+  #avZoom button{width:38px;height:38px;border-radius:12px;border:1px solid rgba(255,255,255,.25);background:rgba(15,23,42,.8);color:#fff;font:700 20px var(--fh);cursor:pointer}
+  @media (max-width:760px){.sls{grid-template-columns:1fr}.xshapes.sm{grid-template-columns:repeat(5,1fr)}}
   @media (max-width:760px){.aved{padding:10px 12px;gap:8px}.avedhead h2{font-size:20px}.avedhead .xchip{padding:5px 9px}.avedbody{grid-template-columns:1fr;grid-template-rows:minmax(200px,36vh) 1fr;gap:10px}#avOpts .shop{grid-template-columns:repeat(auto-fill,minmax(84px,1fr))}}
   @media (max-height:520px) and (min-width:600px){.avedbody{grid-template-columns:minmax(200px,.8fr) 1.4fr;grid-template-rows:none}.aved{padding:8px 12px}}
   /* phones (last, so these win) */
@@ -629,7 +656,7 @@
 <div id="avEdit" class="screen" hidden>
   <div class="aved">
     <div class="avedhead"><button class="back" id="avedBack">← Back</button><h2>✏️ Avatar Editor</h2><span class="edcoins" title="Blox Coins"><span class="coin sm"></span><span id="edCoins">0</span></span><button class="xchip" id="avRand" title="A random outfit from what you own">🎲 Randomize</button><button class="xchip" id="avOwn" title="Only show what you own">✓ Owned only</button><button class="xp-btn" id="avDone">Done</button></div>
-    <div class="avedbody"><div class="avedstage" id="avedStage"><div id="avTry" hidden></div><div class="avedhint">↔ Drag to turn</div></div><div class="avedside"><div id="avOpts"></div></div></div>
+    <div class="avedbody"><div class="avedstage" id="avedStage"><div id="avTry" hidden></div><div id="avZoom" hidden><button data-z="-1" title="Closer">＋</button><button data-z="1" title="Further">－</button></div><div class="avedhint">↔ Drag to turn</div></div><div class="avedside"><div id="avOpts"></div></div></div>
   </div>
 </div>
 <div id="social"></div>
@@ -1004,8 +1031,9 @@ const avFrom = (o) => { const v = okAv(AV_KEYS.map((k) => o && o[k])); const r =
 // Blox Coins: earned in every experience, spent on cosmetics (and a few things inside experiences)
 const W = { coins: 0, own: new Set(), day: '', loaded: false, items: {}, // items: what you bought in experiences' shops ({ 'obby.speed': 1 })
   fr: { f: {}, out: {}, no: {} }, fits: [null, null, null, null, null, null], // fr: friends (see "friends" below); fits: saved outfits
-  made: {}, xown: [], wear: { h: '', pt: '', f: '' } }; // items you made, catalog items you bought, and which made/limited items you're wearing
-const axArr = () => XSLOTS.map((k) => W.wear[k] || '');
+  made: {}, xown: [], wear: { h: '', pt: '', f: '', acc: [] } }; // items you made, catalog items you bought, and which made/limited items you're wearing
+const axArr = () => XSLOTS.map((k) => W.wear[k] || '').concat((W.wear.acc || []).slice(0, 6));
+const isWearing = (I) => (I.k === 'acc' ? (W.wear.acc || []).includes(I.id) : W.wear[I.k] === I.id);
 const owns = (slot, i) => COSMETICS[slot] ? COSMETICS[slot].price[i] === 0 || W.own.has(slot + i) : true;
 const FACE_TEX = FACES.map((_, k) => {
   const c = document.createElement('canvas'); c.width = 128; c.height = 128; const g = c.getContext('2d');
@@ -1068,14 +1096,21 @@ function patternTex(pt, col) {
 const XPAL = ['', '#111827', '#f8fafc', '#ef4444', '#f97316', '#facc15', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899', '#92400e', '#9ca3af', '#f9a8d4', '#14532d', '#7f1d1d'];
 const XHATS = [['Top hat', '🎩'], ['Crown', '👑'], ['Cone', '🔺'], ['Cap', '🧢'], ['Beanie', '🧶'], ['Horns', '😈'], ['Halo', '😇'], ['Dominus', '🦹'], ['Bucket hat', '🪣'], ['Bow', '🎀']];
 const XEMO = ['', '⭐', '❤️', '🔥', '💎', '⚡', '🌈', '💀', '🍀', '👁️', '🌙', '🎵'];
-const XKINDS = { h: ['Hat', '🎩'], pt: ['Shirt', '👕'], f: ['Face', '🙂'] };
+const XKINDS = { h: ['Hat', '🎩'], pt: ['Shirt', '👕'], f: ['Face', '🙂'], acc: ['3D item', '🧩'] };
 const XSLOTS = ['h', 'pt', 'f'];
 // the first limited, Bloxverse's own: a stock of 2
-const OFFICIAL = [{ id: 'L1', nm: 'Golden Dominus', k: 'h', look: { s: 7, c: 5, d: 1, e: 0, gl: 1 }, by: '', byNm: 'Bloxverse', price: 500, lim: 2, pub: true, at: 0, off: true }];
-const okAx = (a) => XSLOTS.map((_, i) => (Array.isArray(a) && typeof a[i] === 'string' && /^[A-Za-z0-9]{1,20}$/.test(a[i]) ? a[i] : ''));
+const OFFICIAL = [{ id: 'L1', nm: 'Golden Dominus', k: 'h', look: { s: 7, c: 5, d: 7, e: 0, gl: 1 }, by: '', byNm: 'Bloxverse', price: 500, lim: 2, pub: true, at: 0, off: true }];
+// [hat, shirt, face, …3D items]: what someone wears on top of their avatar (ids)
+const okAx = (a) => {
+  const id = (i) => (Array.isArray(a) && typeof a[i] === 'string' && /^[A-Za-z0-9]{1,20}$/.test(a[i]) ? a[i] : '');
+  const r = XSLOTS.map((_, i) => id(i));
+  for (let i = 3; i < 3 + 6; i++) if (id(i)) r.push(id(i));
+  return r;
+};
 const xName = (n) => String(n || '').replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 24) || 'My item';
 function okLook(k, l) {
   if (!l || typeof l !== 'object') return null;
+  if (k === 'acc') return okAcc(l);
   if (k === 'h') return { s: clamp(l.s | 0, 0, XHATS.length - 1), c: clamp(l.c | 0, 1, 15), d: clamp(l.d | 0, 1, 15), e: clamp(l.e | 0, 0, XEMO.length - 1), gl: l.gl ? 1 : 0 };
   return XKINDS[k] && typeof l.px === 'string' && /^[0-9a-f]{144}$/.test(l.px) ? { px: l.px } : null;
 }
@@ -1086,12 +1121,13 @@ function xItem(id) {
 }
 // what each slot looks like; miss: an item we don't know yet (the avatar's made again once it loads)
 function xLooks(ax) {
-  const out = { h: null, pt: null, f: null, miss: false };
+  const out = { h: null, pt: null, f: null, acc: [], miss: false };
   if (!Array.isArray(ax)) return out;
-  XSLOTS.forEach((k, i) => {
-    const v = ax[i]; if (!v) return;
-    if (typeof v === 'object') { if (v.k === k) out[k] = okLook(k, v.look); return; }
-    const I = xItem(v); if (I && I.k === k) out[k] = I.look; else out.miss = true;
+  ax.slice(0, 3 + 8).forEach((v, i) => {
+    if (!v) return;
+    const k = i < 3 ? XSLOTS[i] : 'acc', put = (L) => { if (L) { if (k === 'acc') out.acc.push(L); else out[k] = L; } };
+    if (typeof v === 'object') { if (v.k === k) put(okLook(k, v.look)); return; }
+    const I = xItem(v); if (I && I.k === k) put(I.look); else out.miss = true;
   });
   return out;
 }
@@ -1111,6 +1147,21 @@ function emoTex(e) {
   if (!EMO_TEX.has(e)) { const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'); g.font = '48px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(e, 32, 36); EMO_TEX.set(e, new THREE.CanvasTexture(c)); }
   return EMO_TEX.get(e);
 }
+// the dominus's hood: rings from the shoulders to a point, bent back as they rise, open at the front up to the brow
+const DOMINUS_HOOD = (() => {
+  const R = 16, S = 30, pos = [], idx = [];
+  for (let j = 0; j <= R; j++) {
+    const t = j / R, y = -1.2 + 2.35 * t, r = 1.02 * Math.pow(Math.sin(Math.PI / 2 * (1 - t)), 0.62) + 0.015, back = 1.05 * Math.pow(t, 2.4), gap = 1.12 * Math.sqrt(Math.max(0, 1 - t / 0.41));
+    for (let i = 0; i <= S; i++) { const a = Math.PI + gap + (2 * Math.PI - 2 * gap) * i / S; pos.push(Math.sin(a) * r * (1 + 0.08 * Math.sin(t * Math.PI)), y, Math.cos(a) * r + back - 0.04); }
+  }
+  for (let j = 0; j < R; j++) for (let i = 0; i < S; i++) { const a = j * (S + 1) + i, b = a + S + 1; idx.push(a, b, a + 1, b, b + 1, a + 1); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals(); return g;
+})();
+// one of its swept-back fins: a curved blade
+const DOMINUS_FIN = (() => {
+  const sh = new THREE.Shape(); sh.moveTo(0, -0.05); sh.quadraticCurveTo(0.5, 0.22, 0.98, 0.78); sh.quadraticCurveTo(0.38, 0.58, 0, 0.32); sh.closePath();
+  const g = new THREE.ExtrudeGeometry(sh, { depth: 0.05, bevelEnabled: false }); g.translate(0, -0.1, -0.025); return g;
+})();
 // a made hat on a head (lam, mesh, box and cyl are makeAvatar's helpers)
 function xHat(L, head, lam, mesh, box, cyl) {
   const c1 = XPAL[L.c] || '#ef4444', c2 = XPAL[L.d] || '#facc15';
@@ -1124,17 +1175,93 @@ function xHat(L, head, lam, mesh, box, cyl) {
   else if (L.s === 4) { const d = mesh(dome(0.74), m1, 0, 0.42, 0, head); d.scale.y = 1.05; mesh(cyl(0.76, 0.76, 0.32), m2, 0, 0.5, 0, head); mesh(new THREE.SphereGeometry(0.22, 10, 8), m2, 0, 1.22, 0, head); badge = [0.5, -0.78]; } // beanie
   else if (L.s === 5) { for (const s2 of [-1, 1]) { const h = mesh(new THREE.ConeGeometry(0.17, 0.85, 10), m1, s2 * 0.44, 0.98, 0, head); h.rotation.z = -s2 * 0.35; const r = mesh(new THREE.TorusGeometry(0.17, 0.05, 6, 12), m2, s2 * 0.38, 0.62, 0, head); r.rotation.x = Math.PI / 2; } } // horns
   else if (L.s === 6) { for (const [r, t, c] of [[0.55, 0.08, c1], [0.4, 0.035, c2]]) { const o = mesh(new THREE.TorusGeometry(r, t, 8, 24), new THREE.MeshBasicMaterial({ color: c }), 0, 1.3, 0, head); o.rotation.x = Math.PI / 2; } } // halo
-  else if (L.s === 7) { // dominus: a hood with a dark face, two glowing eyes and a crest
-    mesh(new THREE.CylinderGeometry(0.8, 0.84, 1.5, 18, 1, true, -2.2, 4.4), mat(c1, { side: THREE.DoubleSide }), 0, 0.12, 0, head);
-    mesh(new THREE.ConeGeometry(0.8, 1.0, 18), m1, 0, 1.37, 0, head);
-    box(lam(c2), 1.25, 1.1, 0.06, 0, 0.02, -0.7, head);
-    const eye = new THREE.MeshBasicMaterial({ color: L.gl ? '#fde047' : '#f8fafc' });
-    for (const s2 of [-1, 1]) { mesh(new THREE.SphereGeometry(0.09, 8, 6), eye, s2 * 0.24, 0.12, -0.75, head); const sp = mesh(new THREE.ConeGeometry(0.12, 0.65, 6), m1, s2 * 0.52, 1.45, 0.05, head); sp.rotation.z = -s2 * 0.55; }
-    box(m1, 0.16, 0.7, 0.3, 0, 1.05, -0.55, head).rotation.x = -0.3;
+  else if (L.s === 7) { // dominus: a tall hood swept back to a point, a dark void inside with glowing eyes, a gold rim and gem, swept-back fins and a drape down the back
+    const shell = new THREE.MeshPhongMaterial({ color: c1, shininess: 45, specular: new THREE.Color('#9c8546'), emissive: new THREE.Color(c1).multiplyScalar(L.gl ? 0.28 : 0.05), side: THREE.DoubleSide });
+    const voidM = new THREE.MeshBasicMaterial({ color: '#04050a' }), eyeM = new THREE.MeshBasicMaterial({ color: L.gl ? '#fff3a0' : '#e0f2fe' });
+    mesh(DOMINUS_HOOD, shell, 0, 0.62, 0.0, head);
+    mesh(new THREE.CylinderGeometry(0.71, 0.71, 1.06, 20), voidM, 0, -0.17, 0.01, head); // (the face vanishes into the dark; above the brow the hood is closed)
+    mesh(new THREE.CylinderGeometry(0.77, 0.8, 0.22, 26, 1, true, Math.PI - 1.05, 2.1), shell, 0, 0.45, 0.0, head); // the brow
+    const rim = mesh(new THREE.TorusGeometry(0.56, 0.075, 8, 30, Math.PI * 1.2), shell, 0, -0.12, -0.74, head); rim.rotation.z = Math.PI / 2 - Math.PI * 0.6; rim.scale.set(1.0, 1.0, 0.6);
+    for (const s2 of [-1, 1]) { const e = box(eyeM, 0.22, 0.08, 0.02, s2 * 0.2, 0.0, -0.73, head); e.rotation.z = s2 * 0.3; }
+    const gem = mesh(new THREE.OctahedronGeometry(0.13, 0), new THREE.MeshPhongMaterial({ color: c2, shininess: 100, emissive: new THREE.Color(c2).multiplyScalar(0.35) }), 0, 0.56, -0.8, head); gem.scale.set(0.85, 1.3, 0.6);
+    for (const s2 of [-1, 1]) for (const [y, z, len, turn] of [[0.78, 0.28, 1.15, 0.75], [0.3, 0.42, 0.85, 0.95]]) {
+      const f = mesh(DOMINUS_FIN, shell, s2 * 0.58, y, z, head); f.scale.set(s2 * len, len, 1); f.rotation.y = -s2 * turn; // (pointing out and up, swept back)
+    }
+    mesh(new THREE.CylinderGeometry(0.92, 1.2, 1.45, 22, 1, true, -1.15, 2.3), shell, 0, -1.2, 0.08, head); // the drape over the shoulders and back
   } else if (L.s === 8) { mesh(cyl(0.6, 0.7, 0.55, 20), m1, 0, 0.98, 0, head); mesh(new THREE.CylinderGeometry(0.72, 1.05, 0.28, 22, 1, true), mat(c1, { side: THREE.DoubleSide }), 0, 0.62, 0, head); mesh(cyl(0.71, 0.71, 0.12, 20), m2, 0, 0.78, 0, head); badge = [1.02, -0.69]; } // bucket hat
   else if (L.s === 9) { box(m2, 0.3, 0.3, 0.3, 0, 0.82, -0.1, head); for (const s2 of [-1, 1]) { const lp = mesh(new THREE.SphereGeometry(0.34, 12, 8), m1, s2 * 0.42, 0.85, -0.1, head); lp.scale.set(1.25, 0.8, 0.45); lp.rotation.z = s2 * 0.3; } } // bow
   if (badge && L.e) { const b = mesh(new THREE.PlaneGeometry(0.42, 0.42), new THREE.MeshBasicMaterial({ map: emoTex(XEMO[L.e]), transparent: true }), 0, badge[0], badge[1] - 0.02, head); b.rotation.y = Math.PI; }
 }
+/* ---------------- made 3D items: parts put together, then placed on the body ----------------
+   An item's look is { at, o, r, s, p }: where on the body it goes (ACC_AT), how far it's moved (o), turned (r, in
+   degrees) and scaled (s) there, and its parts (p, up to 24): [shape, x, y, z, width, height, depth, turn x, turn y,
+   turn z, colour (XPAL), finish (ACC_FIN)]. You can wear ACC_WEAR of them at once. */
+const ACC_SHAPES = [['Block', '🧱'], ['Ball', '⚪'], ['Cylinder', '🥫'], ['Cone', '🔺'], ['Wedge', '📐'], ['Ring', '⭕'], ['Pyramid', '🔼'], ['Dome', '🌓'], ['Star', '⭐'], ['Heart', '❤️']];
+const ACC_SIZE = [[0.6, 0.6, 0.6], [0.6, 0.6, 0.6], [0.5, 0.7, 0.5], [0.5, 0.8, 0.5], [0.6, 0.6, 0.6], [0.7, 0.7, 1], [0.6, 0.7, 0.6], [0.7, 0.4, 0.7], [0.6, 0.6, 0.15], [0.6, 0.6, 0.15]];
+const ACC_FIN = [['Plastic', '🧱'], ['Glow', '💡'], ['Neon', '✨'], ['Glass', '🫧'], ['Metal', '🔩']];
+const ACC_AT = { head: ['🎩', 'Head'], face: ['🙂', 'Face'], neck: ['📿', 'Neck'], front: ['👕', 'Front'], back: ['🎒', 'Back'], waist: ['🩳', 'Waist'], shL: ['💪', 'Left shoulder'], shR: ['💪', 'Right shoulder'] };
+const ACC_MAX = 24, ACC_WEAR = 6, D2R = Math.PI / 180;
+// the shapes, each fitting a 1×1×1 box (a ring is as deep as it is thick)
+const ACC_GEO = (() => {
+  const ext = (sh) => {
+    const g = new THREE.ExtrudeGeometry(sh, { depth: 1, bevelEnabled: false }); g.computeBoundingBox();
+    const b = g.boundingBox, sz = new THREE.Vector3(); b.getSize(sz);
+    g.translate(-(b.min.x + b.max.x) / 2, -(b.min.y + b.max.y) / 2, -(b.min.z + b.max.z) / 2); g.scale(1 / sz.x, 1 / sz.y, 1 / sz.z); return g;
+  };
+  const wedge = new THREE.Shape(); wedge.moveTo(0, 0); wedge.lineTo(1, 0); wedge.lineTo(0, 1); wedge.closePath();
+  const star = new THREE.Shape(); for (let i = 0; i < 10; i++) { const a = Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? 0.42 : 1; star[i ? 'lineTo' : 'moveTo'](Math.cos(a) * r, Math.sin(a) * r); } star.closePath();
+  const heart = new THREE.Shape(); heart.moveTo(0, -0.9); heart.bezierCurveTo(-1.45, 0.1, -0.7, 1.15, 0, 0.45); heart.bezierCurveTo(0.7, 1.15, 1.45, 0.1, 0, -0.9);
+  const pyr = new THREE.ConeGeometry(Math.SQRT1_2, 1, 4); pyr.rotateY(Math.PI / 4);
+  const dome = new THREE.SphereGeometry(0.5, 18, 10, 0, Math.PI * 2, 0, Math.PI / 2); dome.scale(1, 2, 1); dome.translate(0, -0.5, 0);
+  return [new THREE.BoxGeometry(1, 1, 1), new THREE.SphereGeometry(0.5, 18, 14), new THREE.CylinderGeometry(0.5, 0.5, 1, 20), new THREE.ConeGeometry(0.5, 1, 20), ext(wedge),
+    new THREE.TorusGeometry(0.36, 0.14, 10, 28), pyr, dome, ext(star), ext(heart)];
+})();
+function accMat(col, fin, cache) {
+  const key = col + ':' + fin;
+  if (!cache[key]) {
+    const c = XPAL[col] || '#ef4444';
+    cache[key] = fin === 2 ? new THREE.MeshBasicMaterial({ color: c })
+      : fin === 3 ? new THREE.MeshLambertMaterial({ color: c, transparent: true, opacity: 0.5 })
+        : fin === 4 ? new THREE.MeshPhongMaterial({ color: c, shininess: 80, specular: new THREE.Color('#d1d5db') })
+          : new THREE.MeshLambertMaterial({ color: c, emissive: fin === 1 ? new THREE.Color(c).multiplyScalar(0.5) : new THREE.Color(0) });
+  }
+  return cache[key];
+}
+function accGroup(L) {
+  const g = new THREE.Group(), cache = {};
+  L.p.forEach((q, i) => {
+    const m = new THREE.Mesh(ACC_GEO[q[0]] || ACC_GEO[0], accMat(q[10], q[11], cache));
+    m.position.set(q[1], q[2], q[3]); m.scale.set(q[4], q[5], q[6]); m.rotation.set(q[7] * D2R, q[8] * D2R, q[9] * D2R); m.userData.pi = i; g.add(m);
+  });
+  return g;
+}
+// where each spot on the body is: the part it moves with, and the place on it
+function accAnchor(a, at) {
+  if (at === 'face') return [a.head, 0, 0, -0.7];
+  if (at === 'neck') return [a.body, 0, 4.05, 0];
+  if (at === 'front') return [a.body, 0, 3.1, -0.52];
+  if (at === 'back') return [a.body, 0, 3.1, 0.52];
+  if (at === 'waist') return [a.body, 0, 2.05, 0];
+  if (at === 'shL') return [a.armL, 0, 0.05, 0];
+  if (at === 'shR') return [a.armR, 0, 0.05, 0];
+  return [a.head, 0, 0.63, 0];
+}
+function xAttach(a, L) {
+  const [par, x, y, z] = accAnchor(a, L.at), piv = new THREE.Group();
+  piv.position.set(x + L.o[0], y + L.o[1], z + L.o[2]); piv.rotation.set(L.r[0] * D2R, L.r[1] * D2R, L.r[2] * D2R); piv.scale.setScalar(L.s);
+  piv.add(accGroup(L)); par.add(piv); return piv;
+}
+function okAcc(l) {
+  if (!l || typeof l !== 'object' || !Object.prototype.hasOwnProperty.call(ACC_AT, l.at) || !Array.isArray(l.p)) return null;
+  const n = (v, a, b, d) => { v = +v; return Number.isFinite(v) ? Math.round(clamp(v, a, b) * 100) / 100 : d; };
+  const p = l.p.filter(Array.isArray).slice(0, ACC_MAX).map((q) => [clamp(q[0] | 0, 0, ACC_SHAPES.length - 1), n(q[1], -3, 3, 0), n(q[2], -3, 3, 0), n(q[3], -3, 3, 0),
+    n(q[4], 0.05, 4, 0.5), n(q[5], 0.05, 4, 0.5), n(q[6], 0.05, 4, 0.5), n(q[7], -180, 180, 0), n(q[8], -180, 180, 0), n(q[9], -180, 180, 0), clamp(q[10] | 0, 1, 15), clamp(q[11] | 0, 0, ACC_FIN.length - 1)]);
+  if (!p.length) return null;
+  const v3 = (a, lo, hi) => [0, 1, 2].map((i) => n(Array.isArray(a) ? a[i] : 0, lo, hi, 0));
+  return { at: l.at, o: v3(l.o, -2, 2), r: v3(l.r, -180, 180), s: n(l.s, 0.2, 3, 1), p };
+}
+// a see-through body, to build against
+const GHOST_MAT = new THREE.MeshBasicMaterial({ color: '#93c5fd', transparent: true, opacity: 0.2, depthWrite: false });
 const HEAD_GEO = new THREE.CylinderGeometry(0.66, 0.66, 1.25, 20);
 const FACE_GEO = new THREE.CylinderGeometry(0.675, 0.675, 1.2, 16, 1, true, Math.PI - 0.95, 1.9);
 function makeAvatar(av, name, mine, ax) {
@@ -1206,6 +1333,7 @@ function makeAvatar(av, name, mine, ax) {
   else if (back === 14) { const b2 = mesh(new THREE.SphereGeometry(1, 16, 10), lam(['#06b6d4', '#f97316', '#ec4899', '#22c55e'][av[1] % 4]), 0, 3.0, 0.72); b2.scale.set(0.75, 2.4, 0.1); b2.rotation.z = 0.35; const st2 = box(lam('#f8fafc'), 0.18, 4.0, 0.04, 0, 3.0, 0.82); st2.rotation.z = 0.35; } // surfboard
   else if (back === 15) { for (const s2 of [-1, 1]) { const piv = new THREE.Group(); piv.position.set(0, 3.0, 0.68); piv.rotation.z = s2 * 0.62; body.add(piv); box(lam('#e5e7eb'), 0.16, 2.8, 0.05, 0, -0.3, s2 * 0.04, piv); box(lam('#facc15'), 0.62, 0.1, 0.16, 0, 1.14, s2 * 0.04, piv); box(lam('#7f1d1d'), 0.2, 0.85, 0.14, 0, 1.62, s2 * 0.04, piv); } } // twin katanas
   const a = { g, body, legL, legR, armL, armR, head, mats, walk: 0, name, av, ax: Array.isArray(ax) ? ax.slice() : null, axMiss: X.miss, tag: null, glow: null, aura: av[6], trail: av[9], spin: a_spin, pet: null };
+  for (const L of X.acc) xAttach(a, L); // (made 3D items, each where it goes on the body)
   if (!mine && name) { a.tag = label(name, { size: 0.85 }); a.tag.position.y = 6.7; g.add(a.tag); }
   // a soft shadow on the ground under them
   a.shadow = new THREE.Mesh(new THREE.CircleGeometry(1.25, 18), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.25, depthWrite: false, ...DECAL }));
@@ -1970,9 +2098,9 @@ function loadAvFrom(d) {
   W.fr = frFrom(d.fr); W.who = typeof d.who === 'string' ? d.who : ''; // (who: whose save it is — a shared computer keeps one for everyone)
   W.fits = Array.from({ length: 6 }, (_, i) => (Array.isArray(d.fits) && Array.isArray(d.fits[i]) ? okAv(d.fits[i]) : null));
   W.made = {};
-  if (d.made && typeof d.made === 'object') for (const id of Object.keys(d.made).slice(0, 60)) { const M = d.made[id]; if (!/^u[a-z0-9]{6,16}$/.test(id) || !M || !XKINDS[M.k]) continue; const look = okLook(M.k, M.look); if (look) W.made[id] = { nm: xName(M.nm), k: M.k, look, at: +M.at || 0, pub: !!M.pub }; }
+  if (d.made && typeof d.made === 'object') for (const id of Object.keys(d.made).slice(0, 60)) { const M = d.made[id]; if (!/^u[a-z0-9]{6,16}$/.test(id) || !M || !Object.prototype.hasOwnProperty.call(XKINDS, M.k)) continue; const look = okLook(M.k, M.look); if (look) W.made[id] = { nm: xName(M.nm), k: M.k, look, at: +M.at || 0, pub: !!M.pub }; }
   W.xown = Array.isArray(d.xown) ? d.xown.filter((x) => typeof x === 'string' && /^[A-Za-z0-9]{1,20}$/.test(x)).slice(0, 300) : [];
-  { const w = okAx(d.wear ? [d.wear.h, d.wear.pt, d.wear.f] : []); W.wear = { h: w[0], pt: w[1], f: w[2] }; }
+  { const w = okAx(d.wear ? [d.wear.h, d.wear.pt, d.wear.f].concat(Array.isArray(d.wear.acc) ? d.wear.acc : []) : []); W.wear = { h: w[0], pt: w[1], f: w[2], acc: w.slice(3) }; }
   achNum();
 }
 // experiences in their own files call this
@@ -2993,10 +3121,15 @@ let avTab = 'colors', avAsk = '';
 // something you don't own to try it on, tap again to buy it), 🛍️ Catalog (items players made, and limiteds) and
 // ✏️ Create (make your own item). ED.try / ED.tryX hold what you're only trying on (it comes off when you leave).
 const ED = { open: false, try: {}, tryX: {}, own: false, yaw: 0, drag: null, mode: 'wear', view: '', cat: 'all', pub: '', note: '',
-  draft: { k: 'h', nm: '', h: { s: 0, c: 3, d: 5, e: 1, gl: 0 }, pt: '0'.repeat(144), f: null, col: 1 } };
+  draft: { k: 'acc', nm: '', h: { s: 0, c: 3, d: 5, e: 1, gl: 0 }, pt: '0'.repeat(144), f: null, col: 1 } };
 const pvArr = () => AV_KEYS.map((k) => (ED.open && k in ED.try ? ED.try[k] : AV[k]) | 0);
 // what's worn on top in the preview: the item you're making, then anything you're trying on, then what you wear
-const pvAx = () => XSLOTS.map((k) => (ED.open && ED.mode === 'make' && ED.draft.k === k ? { k, look: draftLook() } : ED.open && k in ED.tryX ? ED.tryX[k] : W.wear[k]));
+const pvAx = () => {
+  const r = XSLOTS.map((k) => (ED.open && ED.mode === 'make' && ED.draft.k === k ? { k, look: draftLook() } : ED.open && k in ED.tryX ? ED.tryX[k] : W.wear[k]));
+  const acc = (W.wear.acc || []).slice();
+  if (ED.open && ED.tryX.acc && !acc.includes(ED.tryX.acc)) acc.push(ED.tryX.acc);
+  return r.concat(acc); // (the 3D item you're making is drawn on its own: see pvAccUpdate)
+};
 const sameAv = (a, b) => String(okAv(a)) === String(okAv(b));
 function drawAvatarOpts() {
   const modes = [['wear', '👕 Avatar'], ['shop', '🛍️ Catalog'], ['make', '✏️ Create']];
@@ -3066,7 +3199,8 @@ $('#avOpts').onclick = (e) => {
   } else return;
   drawAvatarOpts(); pvAvatar(); saveAv(); drawMe();
 };
-$('#avOpts').oninput = (e) => { const t = e.target; if (t.id === 'mkName') ED.draft.nm = t.value; else if (t.dataset && t.dataset.v) ED[t.dataset.v] = t.value; };
+$('#avOpts').oninput = (e) => { const t = e.target; if (t.id === 'mkName') ED.draft.nm = t.value; else if (t.dataset && (t.dataset.ap || t.dataset.pl)) builderInput(t); else if (t.dataset && t.dataset.v) ED[t.dataset.v] = t.value; };
+$('#avOpts').addEventListener('change', (e) => { if (e.target.dataset && (e.target.dataset.ap || e.target.dataset.pl)) { ED.acc.dragging = false; drawAvatarOpts(); } });
 $('#avOpts').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.dataset && e.target.dataset.go) { e.preventDefault(); const b = $('#' + e.target.dataset.go); if (b && !b.disabled) b.click(); } });
 // over the avatar in the editor: what you're only trying on, and buying it all at once
 function drawTry() {
@@ -3105,7 +3239,7 @@ function randomAv() {
   const pick = (k, n) => { const ok = Array.from({ length: n }, (_, i) => i).filter((i) => owns(k, i)); return ok[Math.floor(Math.random() * ok.length)] || 0; };
   AV.s = Math.floor(Math.random() * SKINS.length); AV.sh = Math.floor(Math.random() * SHIRTS.length); AV.p = Math.floor(Math.random() * PANTS.length);
   for (const k of Object.keys(COSMETICS)) AV[k] = k === 'h' || k === 'f' || k === 'pt' || Math.random() < 0.6 ? pick(k, COSMETICS[k].list.length) : 0;
-  W.wear = { h: '', pt: '', f: '' }; ED.try = {}; ED.tryX = {}; avAsk = ''; sfx('select'); drawAvatarOpts(); pvAvatar(); saveAv(); drawMe();
+  Object.assign(W.wear, { h: '', pt: '', f: '' }); ED.try = {}; ED.tryX = {}; avAsk = ''; sfx('select'); drawAvatarOpts(); pvAvatar(); saveAv(); drawMe();
 }
 $('#avStage').onclick = () => openEditor();
 $('#avedBack').onclick = $('#avDone').onclick = closeEditor;
@@ -3114,10 +3248,21 @@ $('#avOwn').onclick = () => { ED.own = !ED.own; drawAvatarOpts(); };
 addEventListener('keydown', (e) => { if (e.key === 'Escape' && ED.open) { e.stopPropagation(); closeEditor(); } }, true);
 { // drag the avatar round
   const st = $('#avedStage');
-  st.addEventListener('pointerdown', (e) => { if (e.target.closest('#avTry')) return; ED.drag = { x: e.clientX, yaw: ED.yaw }; try { st.setPointerCapture(e.pointerId); } catch (er) {} });
-  st.addEventListener('pointermove', (e) => { if (ED.drag) ED.yaw = ED.drag.yaw + (e.clientX - ED.drag.x) * 0.012; });
-  const up = () => { ED.drag = null; };
-  st.addEventListener('pointerup', up); st.addEventListener('pointercancel', up);
+  st.addEventListener('pointerdown', (e) => { if (e.target.closest('#avTry,#avZoom')) return; ED.drag = { x: e.clientX, y: e.clientY, yaw: ED.yaw, moved: 0 }; try { st.setPointerCapture(e.pointerId); } catch (er) {} });
+  st.addEventListener('pointermove', (e) => { if (ED.drag) { ED.drag.moved = Math.max(ED.drag.moved, Math.hypot(e.clientX - ED.drag.x, e.clientY - ED.drag.y)); ED.yaw = ED.drag.yaw + (e.clientX - ED.drag.x) * 0.012; } });
+  const ray = new THREE.Raycaster();
+  st.addEventListener('pointerup', (e) => {
+    const D = ED.drag; ED.drag = null;
+    if (!D || D.moved > 6 || !accBuilding() || ED.acc.step !== 'build' || !pv.accG) return;
+    // a tap: the part under it
+    const r = $('#avPrev').getBoundingClientRect();
+    ray.setFromCamera(new THREE.Vector2((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1), pv.cam);
+    const hit = ray.intersectObjects(pv.accG.children[0].children, false)[0];
+    if (hit) { ED.acc.sel = hit.object.userData.pi; sfx('click'); drawAvatarOpts(); pvAccUpdate(); }
+  });
+  st.addEventListener('pointercancel', () => { ED.drag = null; });
+  st.addEventListener('wheel', (e) => { if (!accBuilding()) return; e.preventDefault(); ED.acc.zoom = clamp(ED.acc.zoom + e.deltaY * 0.006, 2.5, 14); }, { passive: false });
+  $('#avZoom').onclick = (e) => { const b = e.target.closest('button'); if (b) ED.acc.zoom = clamp(ED.acc.zoom + +b.dataset.z * 1.2, 2.5, 14); };
   addEventListener('resize', () => { if (ED.open) pvFit(); });
 }
 // the order experiences were added (the newest get a ✨ NEW badge; "Newest" sorts by it)
@@ -3151,7 +3296,7 @@ function drawExps() {
   const live = (E) => `<span class="pill"><span class="dot"></span>${total(E)} playing</span>`;
   // (the lobby redraws this whenever anyone comes or goes: the same page again doesn't fade in again)
   const again = drawExps.view === (homeView || ''); drawExps.view = homeView || '';
-  $('#home').classList.toggle('sub', homeView === 'me' || homeView === 'friends' || String(homeView).startsWith('u:')); // (a phone: the page, not your card above it)
+  $('#home').classList.toggle('sub', homeView === 'me' || homeView === 'friends' || homeView === 'inv' || String(homeView).startsWith('u:')); // (a phone: the page, not your card above it)
   if (homeView === 'ach') {
     const sig = `${W.ach.got.size}:${Object.values(W.ach.c).reduce((a, b) => a + b, 0)}`;
     if (again && drawExps.sig === sig && $('#expArea .achcols')) return;
@@ -3165,7 +3310,7 @@ function drawExps() {
     $('#backBtn').onclick = () => { homeView = null; drawExps(); };
     return;
   }
-  if (homeView === 'me' || homeView === 'friends' || String(homeView).startsWith('u:')) { socialPage(again); return; }
+  if (homeView === 'me' || homeView === 'friends' || homeView === 'inv' || String(homeView).startsWith('u:')) { socialPage(again); return; }
   if (!homeView || !EXPS[homeView]) {
     // (typing in the search box: just the cards change, so the box keeps its place)
     if ($('#expQ') && document.activeElement === $('#expQ')) { drawGrid(); return; }
@@ -3222,8 +3367,12 @@ pv.scene.add(new THREE.HemisphereLight(0xffffff, 0x777788, 0.9)); { const d = ne
 pv.cam.position.set(0.8, 4.4, -16); pv.cam.lookAt(0.8, 3.3, 0);
 function pvAvatar() {
   if (pv.a) { pv.scene.remove(pv.a.g); if (pv.a.pet) pv.scene.remove(pv.a.pet.g); }
-  pv.a = makeAvatar(pvArr(), '', true, pvAx()); scene.remove(pv.a.shadow); pv.scene.add(pv.a.g);
+  const ghost = accBuilding() && ED.acc.step === 'build';
+  pv.a = ghost ? makeAvatar(XAV, '', true) : makeAvatar(pvArr(), '', true, pvAx()); scene.remove(pv.a.shadow); pv.scene.add(pv.a.g);
+  if (ghost) pv.a.g.traverse((o) => { if (o.isMesh) o.material = GHOST_MAT; }); // (building: a see-through body to build against)
   if (pv.a.pet) { scene.remove(pv.a.pet.g); pv.a.pet.g.position.set(2.6, FLYING_PET[pv.a.pet.type] ? 3 : 0, 0.5); pv.a.pet.g.rotation.y = -0.5; pv.scene.add(pv.a.pet.g); }
+  pvAccUpdate();
+  $('#avZoom').hidden = !accBuilding();
 }
 // a picture of a 3D model, for menus (unit portraits and the like); cached by key
 const snap = { r: null, scene: new THREE.Scene(), cam: new THREE.PerspectiveCamera(28, 1, 0.1, 400), cache: new Map() };
@@ -3236,7 +3385,7 @@ function snapshot(key, make, o = {}) {
     const w = o.w || 160, h = o.h || 160, obj = make();
     snap.r.setPixelRatio(1); snap.r.setSize(w, h, false); snap.r.setClearColor(0, 0);
     snap.scene.add(obj); obj.updateMatrixWorld(true);
-    const sph = o.sphere ? new THREE.Sphere(new THREE.Vector3(...o.sphere[0]), o.sphere[1]) : new THREE.Box3().setFromObject(obj).getBoundingSphere(new THREE.Sphere()), dir = new THREE.Vector3(...(o.dir || [0.75, 0.42, -1])).normalize();
+    const sph = o.sphere ? new THREE.Sphere(new THREE.Vector3(...o.sphere[0]), o.sphere[1]) : new THREE.Box3().setFromObject(obj.userData.focus || obj).getBoundingSphere(new THREE.Sphere()), dir = new THREE.Vector3(...(o.dir || [0.75, 0.42, -1])).normalize();
     snap.cam.aspect = w / h; snap.cam.updateProjectionMatrix();
     snap.cam.position.copy(sph.center).addScaledVector(dir, sph.radius / Math.sin(snap.cam.fov * Math.PI / 360) * (o.zoom || 0.92)); snap.cam.lookAt(sph.center);
     snap.r.render(snap.scene, snap.cam); url = snap.r.domElement.toDataURL('image/png');
@@ -3246,14 +3395,16 @@ function snapshot(key, make, o = {}) {
   return url;
 }
 // a picture of an avatar (yours, a friend's) for lists and profiles; head: just the head and shoulders, for little circles
+// (head 'item': framed round the head and whatever's on it, for a picture of a hat)
 function avPic(av, head, ax) {
   const v = okAv(av), x = Array.isArray(ax) ? ax.map((e) => (e && typeof e === 'object' ? JSON.stringify(e) : e || '')) : [], miss = xLooks(ax).miss;
-  return snapshot((head ? 'avh:' : 'av:') + v.join(',') + (x.join('') ? '|' + x.join('|') + (miss ? '?' : '') : ''), () => {
+  return snapshot((head === 'item' ? 'avi:' : head ? 'avh:' : 'av:') + v.join(',') + (x.join('') ? '|' + x.join('|') + (miss ? '?' : '') : ''), () => {
     const a = makeAvatar(v, '', true, ax); scene.remove(a.shadow);
+    if (head === 'item') a.g.userData.focus = a.head;
     if (a.pet) { scene.remove(a.pet.g); if (!head) { a.pet.g.position.set(2.5, FLYING_PET[a.pet.type] ? 3 : 0, 0.4); a.pet.g.rotation.y = -0.5; a.g.add(a.pet.g); } }
     a.armR.rotation.x = -0.12; a.armL.rotation.x = 0.12;
     return a.g;
-  }, head ? { w: 96, h: 96, dir: [0.28, 0.12, -1], sphere: [[0, 5.15, 0], 1.75], zoom: 0.8 } : { w: 150, h: 190, dir: [0.3, 0.12, -1], zoom: 0.97 });
+  }, head === 'item' ? { w: 120, h: 120, dir: [0.4, 0.2, -1], zoom: 0.95 } : head ? { w: 96, h: 96, dir: [0.28, 0.12, -1], sphere: [[0, 5.15, 0], 1.75], zoom: 0.8 } : { w: 150, h: 190, dir: [0.3, 0.12, -1], zoom: 0.97 });
 }
 // the preview's canvas sits in your card on the home screen, or big in the editor
 function pvFit() {
@@ -3261,14 +3412,29 @@ function pvFit() {
   const c = $('#avPrev'), big = ED.open, w = big ? Math.max(1, c.clientWidth) : 240, h = big ? Math.max(1, c.clientHeight) : 260;
   pv.r.setPixelRatio(big ? Math.min(2, devicePixelRatio || 1) : 1); pv.r.setSize(w, h, false);
   pv.cam.aspect = w / h; pv.cam.updateProjectionMatrix();
-  const far = 16 * Math.max(1, 0.9 / pv.cam.aspect); // (a tall narrow stage: back off so the pet still fits)
-  pv.cam.position.set(0.8, 4.4, -far); pv.cam.lookAt(0.8, 3.3, 0);
+  pv.far = Math.max(1, 0.9 / pv.cam.aspect); // (a tall narrow stage: back off so the pet still fits)
+  pv.ct = null; pvCam();
+}
+// the camera: the whole avatar; close up on the item while you build it
+const PV_DIR = new THREE.Vector3(0, 1.1, -16).normalize(), PV_T = new THREE.Vector3();
+function pvCam() {
+  const bld = accBuilding();
+  let d = 16 * (pv.far || 1);
+  PV_T.set(0.8, 3.3, 0);
+  if (bld && ED.acc.step === 'build' && pv.accG) { pv.accG.getWorldPosition(PV_T); d = ED.acc.zoom * (pv.far || 1); }
+  else if (bld) { PV_T.set(0.4, 4.1, 0); d = 13 * (pv.far || 1); }
+  if (!pv.ct) pv.ct = { t: PV_T.clone(), d };
+  pv.ct.t.lerp(PV_T, 0.18); pv.ct.d += (d - pv.ct.d) * 0.18;
+  pv.cam.position.copy(pv.ct.t).addScaledVector(PV_DIR, pv.ct.d); pv.cam.lookAt(pv.ct.t);
 }
 function pvDraw(t) {
   try { if (!pv.r) { pv.r = new THREE.WebGLRenderer({ canvas: $('#avPrev'), antialias: true, alpha: true }); if (ED.open) pvFit(); } } catch (e) { return; }
   if (!pv.a) pvAvatar();
-  pv.a.g.rotation.y = ED.open ? ED.yaw + (ED.drag ? 0 : Math.sin(t / 2400) * 0.12) : Math.sin(t / 1600) * 0.7;
-  pv.a.armR.rotation.x = Math.sin(t / 300) * 0.25 - 0.1; pv.a.armL.rotation.x = -Math.sin(t / 300) * 0.25 + 0.1;
+  const bld = accBuilding();
+  pv.a.g.rotation.y = ED.open ? ED.yaw + (ED.drag || bld ? 0 : Math.sin(t / 2400) * 0.12) : Math.sin(t / 1600) * 0.7;
+  pv.a.armR.rotation.x = bld ? 0 : Math.sin(t / 300) * 0.25 - 0.1; pv.a.armL.rotation.x = bld ? 0 : -Math.sin(t / 300) * 0.25 + 0.1; // (still while you build, so what's on a shoulder stays put)
+  if (pv.selBox) { pv.selBox.update(); SEL_MAT.opacity = 0.22 + 0.18 * Math.sin(t / 220); }
+  pvCam();
   pv.r.render(pv.scene, pv.cam);
 }
 
@@ -3495,7 +3661,7 @@ function drawMe() {
   $('#frN').hidden = !inc; $('#frN').textContent = inc;
   $('#meInfo').innerHTML = `<div class="mename"><b>${esc(Net.name)}</b>${conn ? `<small title="Your friend code: give it to a friend so they can add you">🔖 ${myCode()}</small>` : ''}</div>
     <div class="coinbar"><span><span class="coin"></span><span id="homeCoins">${W.coins.toLocaleString('en-US')}</span></span><small>Blox Coins · earn them<br>in every experience</small></div>
-    <div class="mebtns"><button class="xp-btn gold wide" data-me="edit">✏️ Edit Avatar</button><button class="xp-btn blue" data-me="me">👤 Profile</button><button class="xp-btn purple" data-me="friends">👥 Friends${inc ? `<span class="badge">${inc}</span>` : ''}</button><button class="xp-btn pink wide" data-me="shop">🛍️ Catalog &amp; Limiteds</button></div>
+    <div class="mebtns"><button class="xp-btn gold wide" data-me="edit">✏️ Edit Avatar</button><button class="xp-btn blue" data-me="me">👤 Profile</button><button class="xp-btn purple" data-me="friends">👥 Friends${inc ? `<span class="badge">${inc}</span>` : ''}</button><button class="xp-btn pink" data-me="shop">🛍️ Catalog</button><button class="xp-btn teal" data-me="inv">🎒 Inventory</button></div>
     ${onl ? `<div class="meon">🟢 ${onl} friend${onl === 1 ? '' : 's'} online</div>` : ''}`;
 }
 $('#meInfo').onclick = (e) => { const b = e.target.closest('[data-me]'); if (!b) return; if (b.dataset.me === 'edit') openEditor(); else if (b.dataset.me === 'shop') openEditor('shop'); else goView(b.dataset.me); };
@@ -3504,9 +3670,9 @@ $('#frBtn').onclick = () => goView('friends');
 
 // the profile and friends pages (in the experiences' place on the home screen)
 function socialPage(again) {
-  const html = homeView === 'friends' ? friendsPage() : profilePage(homeView === 'me' ? '' : homeView.slice(2));
+  const html = homeView === 'friends' ? friendsPage() : homeView === 'inv' ? invPage() : profilePage(homeView === 'me' ? '' : homeView.slice(2));
   if (again && html === socialPage.last && $('#expArea .social')) return;
-  if (again && document.activeElement && document.activeElement.id === 'frCode') return; // (typing a code)
+  if (again && document.activeElement && (document.activeElement.id === 'frCode' || document.activeElement.id === 'invQ')) return; // (typing)
   socialPage.last = html;
   $('#expArea').innerHTML = html;
   if (again) $('#expArea .edetail').classList.add('still');
@@ -3518,12 +3684,15 @@ function socialPage(again) {
     if (b.dataset.xopen) { openEditor('shop', b.dataset.xopen); return; }
     if (b.dataset.goto) { goView(b.dataset.goto); return; }
     if (b.dataset.e && expOf(b.dataset.e)) { Social.back = null; homeView = b.dataset.e; drawExps(); window.scrollTo(0, 0); return; }
+    if (invClick(b)) return;
     if (socialDo(b) === true) drawExps();
   };
+  const iq = $('#invQ');
+  if (iq) iq.oninput = () => { INV.q = iq.value; const at = iq.selectionStart; drawExps.view = ''; drawExps(); const n = $('#invQ'); if (n) { n.focus(); n.setSelectionRange(at, at); } };
   const ci = $('#frCode');
   if (ci) { ci.oninput = () => { Social.code = ci.value; }; ci.onkeydown = (e) => { if (e.key === 'Enter') { addByCode(ci.value); drawExps(); } }; }
 }
-const backLabel = () => (Social.back === 'friends' ? '← Friends' : Social.back === 'me' ? '← Your profile' : expOf(Social.back) ? `← ${expOf(Social.back).name}` : '← All experiences');
+const backLabel = () => (Social.back === 'friends' ? '← Friends' : Social.back === 'me' ? '← Your profile' : Social.back === 'inv' ? '← Inventory' : expOf(Social.back) ? `← ${expOf(Social.back).name}` : '← All experiences');
 function expCards(ids) {
   return `<div class="egrid small">${ids.map(expOf).filter(Boolean).map((E) => `<button class="ecard" data-e="${E.id}"><div class="thumb" style="background:${E.color}"><span class="em">${E.emoji}</span></div><div class="info"><b>${esc(E.name)}</b>${RECENT[E.id] ? `<small>Played ${ago(RECENT[E.id])}</small>` : ''}</div></button>`).join('')}</div>`;
 }
@@ -3621,7 +3790,7 @@ const MAKE_COST = 1000, PUB_COST = 100, TAB = Math.random().toString(36).slice(2
 const Market = { state: 'off', db: null, items: new Map(), copies: new Map(), copiesIn: false, paid: new Set(), busy: false };
 const xid = () => Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-4);
 function okItem(id, d) {
-  if (!/^u[a-z0-9]{6,16}$/.test(id) || !d || typeof d !== 'object' || !XKINDS[d.k]) return null;
+  if (!/^u[a-z0-9]{6,16}$/.test(id) || !d || typeof d !== 'object' || !Object.prototype.hasOwnProperty.call(XKINDS, d.k)) return null;
   const look = okLook(d.k, d.look); if (!look) return null;
   return { id, nm: xName(d.nm), k: d.k, look, by: typeof d.by === 'string' ? d.by.slice(0, 200) : '', byNm: cleanName(d.byNm), price: clamp(Math.floor(+d.price || 0), 0, 1e6), lim: clamp(Math.floor(+d.lim || 0), 0, 100), pub: !!d.pub, at: +d.at || 0 };
 }
@@ -3641,7 +3810,19 @@ function ownsX(id) {
 }
 // a picture of an item: on a plain avatar (a head and shoulders for hats and faces)
 const XAV = [5, 0, 1, 0, 0, 0, 0, 0, 0, 0];
-const xPic = (I) => avPic(XAV, I.k !== 'pt', XSLOTS.map((k) => (k === I.k ? I.id : '')));
+const xPic = (I) => (I.k === 'acc' ? avPic(XAV, ['head', 'face', 'neck'].includes(I.look.at) ? 'item' : false, ['', '', '', I.id]) : avPic(XAV, I.k === 'h' ? 'item' : I.k === 'f', XSLOTS.map((k) => (k === I.k ? I.id : ''))));
+// put on or take off something you own (true: done)
+function wearX(id) {
+  const I = xItem(id); if (!I || !ownsX(I.id)) return false;
+  if (I.k === 'acc') {
+    const L = W.wear.acc || (W.wear.acc = []), j = L.indexOf(I.id);
+    if (j >= 0) L.splice(j, 1);
+    else if (L.length >= ACC_WEAR) { ED.note = `You can wear ${ACC_WEAR} 3D items at once — take one off first.`; return true; }
+    else L.push(I.id);
+  } else W.wear[I.k] = W.wear[I.k] === I.id ? '' : I.id;
+  delete ED.tryX[I.k]; sfx('select'); saveAv(); pvAvatar(); drawMe();
+  return true;
+}
 
 // open the shared documents (once your save's loaded) and keep watching them
 async function marketStart() {
@@ -3682,6 +3863,8 @@ function xCheckWear() {
   if (!Market.copiesIn) return;
   let off = false;
   for (const k of XSLOTS) { const id = W.wear[k], I = id && xItem(id); if (I && I.lim && !ownsX(id)) { W.wear[k] = ''; off = true; } }
+  const keep = (W.wear.acc || []).filter((id) => { const I = xItem(id); return !I || !I.lim || ownsX(id); });
+  if (keep.length !== (W.wear.acc || []).length) { W.wear.acc = keep; off = true; }
   if (off) { saveAv(); drawMe(); if (ED.open) pvAvatar(); }
 }
 // coins owed to you: each one taken once (a short lease, so two tabs don't both take it), then deleted
@@ -3779,9 +3962,103 @@ async function sellCopy(key, price) {
   } catch (e) { ED.note = '⚠️ That didn’t go through — try again.'; }
   drawAvatarOpts();
 }
+// ✏️ Create → 🧩 3D item: step 1 builds it from parts (against a see-through body), step 2 puts it on the body
+const ACC_TPL = {
+  empty: ['➕ Empty', { at: 'head', p: [[0, 0, 0.2, 0, 0.7, 0.4, 0.7, 0, 0, 0, 3, 0]] }],
+  tophat: ['🎩 Top hat', { at: 'head', p: [[2, 0, 0.5, 0, 1.1, 0.95, 1.1, 0, 0, 0, 1, 4], [2, 0, 0.04, 0, 1.9, 0.08, 1.9, 0, 0, 0, 1, 4], [2, 0, 0.16, 0, 1.13, 0.2, 1.13, 0, 0, 0, 3, 0]] }],
+  crown: ['👑 Crown', { at: 'head', p: [[2, 0, 0.12, 0, 1.38, 0.32, 1.38, 0, 0, 0, 5, 4]].concat([0, 1, 2, 3, 4, 5].map((k) => [3, +(Math.sin(k * Math.PI / 3) * 0.6).toFixed(2), 0.43, +(Math.cos(k * Math.PI / 3) * 0.6).toFixed(2), 0.24, 0.42, 0.24, 0, 0, 0, 5, 4]), [[1, 0, 0.13, -0.7, 0.2, 0.2, 0.12, 0, 0, 0, 3, 1]]) }],
+  halo: ['😇 Halo', { at: 'head', p: [[5, 0, 0.75, 0, 1.0, 1.0, 1.0, 90, 0, 0, 5, 2]] }],
+  wings: ['🪽 Wings', { at: 'back', p: [[0, -0.95, 0.45, 0.2, 1.5, 0.85, 0.08, 0, -25, 22, 2, 0], [0, 0.95, 0.45, 0.2, 1.5, 0.85, 0.08, 0, 25, -22, 2, 0], [0, -0.75, -0.2, 0.25, 1.05, 0.55, 0.08, 0, -25, -8, 2, 0], [0, 0.75, -0.2, 0.25, 1.05, 0.55, 0.08, 0, 25, 8, 2, 0]] }],
+  sword: ['🗡️ Sword', { at: 'back', r: [0, 0, 35], p: [[0, 0, 0.35, 0.12, 0.2, 2.3, 0.06, 0, 0, 0, 12, 4], [4, 0, 1.6, 0.12, 0.2, 0.25, 0.06, 0, 0, 135, 12, 4], [0, 0, -0.85, 0.12, 0.85, 0.14, 0.22, 0, 0, 0, 5, 4], [2, 0, -1.25, 0.12, 0.16, 0.7, 0.16, 0, 0, 0, 11, 0], [1, 0, -1.65, 0.12, 0.22, 0.22, 0.22, 0, 0, 0, 5, 4]] }],
+  horns: ['😈 Horns', { at: 'head', p: [[3, -0.42, 0.25, 0, 0.26, 0.75, 0.26, 0, 0, 25, 15, 0], [3, 0.42, 0.25, 0, 0.26, 0.75, 0.26, 0, 0, -25, 15, 0]] }],
+};
+const ACC_SL = [[1, 'Move ←→', -2.5, 2.5, 0.05], [2, 'Move ↓↑', -2.5, 2.5, 0.05], [3, 'Move ⇡⇣', -2.5, 2.5, 0.05], [4, 'Width', 0.05, 3, 0.05], [5, 'Height', 0.05, 3, 0.05], [6, 'Depth', 0.05, 3, 0.05], [7, 'Turn ↕', -180, 180, 5], [8, 'Turn ↔', -180, 180, 5], [9, 'Tilt', -180, 180, 5]];
+const PLACE_SL = [['s', 'Size', 0.2, 3, 0.05], ['o0', 'Move ←→', -1.5, 1.5, 0.05], ['o1', 'Move ↓↑', -1.5, 1.5, 0.05], ['o2', 'Move ⇡⇣', -1.5, 1.5, 0.05], ['r0', 'Turn ↕', -180, 180, 5], ['r1', 'Turn ↔', -180, 180, 5], ['r2', 'Tilt', -180, 180, 5]];
+function accNew(tpl) { const T = ACC_TPL[tpl || 'tophat'][1]; return { step: 'build', sel: 0, at: T.at, o: (T.o || [0, 0, 0]).slice(), r: (T.r || [0, 0, 0]).slice(), s: T.s || 1, p: T.p.map((q) => q.slice()), undo: [], zoom: 6.5 }; }
+ED.acc = accNew();
+const accBuilding = () => ED.open && ED.mode === 'make' && ED.draft.k === 'acc';
+// the item as it is: while building, at its spot on the body as made; on the body, placed
+const accLook = (placed) => { const A = ED.acc; return placed ? { at: A.at, o: A.o, r: A.r, s: A.s, p: A.p } : { at: A.at, o: [0, 0, 0], r: [0, 0, 0], s: 1, p: A.p }; };
+function accSave() { const A = ED.acc; A.undo.push(JSON.stringify({ at: A.at, o: A.o, r: A.r, s: A.s, p: A.p, sel: A.sel })); if (A.undo.length > 40) A.undo.shift(); }
+function accUndo() { const A = ED.acc, u = A.undo.pop(); if (!u) return; Object.assign(A, JSON.parse(u)); A.sel = clamp(A.sel, 0, A.p.length - 1); }
+const slider = (attr, key, label, lo, hi, step, v) => `<label class="sl"><span>${label}</span><input type="range" min="${lo}" max="${hi}" step="${step}" value="${v}" data-${attr}="${key}"><b>${+(+v).toFixed(2)}</b></label>`;
+function builderHtml() {
+  const A = ED.acc, P = A.p[A.sel];
+  let h = `<div class="avmodes steps"><button data-astep="build" class="${A.step === 'build' ? 'on' : ''}">1 · 🧱 Build it</button><button data-astep="place" class="${A.step === 'place' ? 'on' : ''}">2 · 📍 Put it on</button></div>`;
+  if (A.step === 'build') {
+    h += `<p class="xp-note">Put shapes together, then move, stretch and turn them. The see-through body is there to build against (tap a part on it to pick it). Drag the avatar round to see every side.</p>
+      <div class="opt"><small>Start from</small><div class="xchips">${Object.entries(ACC_TPL).map(([k, [n]]) => `<button class="xchip" data-atpl="${k}">${n}</button>`).join('')}</div></div>
+      <div class="opt"><small>Add a part (${A.p.length}/${ACC_MAX})</small><div class="xshapes">${ACC_SHAPES.map(([n, ic], i) => `<button data-aadd="${i}" title="Add a ${n.toLowerCase()}" ${A.p.length >= ACC_MAX ? 'disabled' : ''}>${ic}<small>${n}</small></button>`).join('')}</div></div>
+      <div class="opt"><small>Parts</small><div class="xchips">${A.p.map((q, i) => `<button class="xchip${i === A.sel ? ' on' : ''}" data-asel="${i}">${ACC_SHAPES[q[0]][1]} ${i + 1}</button>`).join('')}</div></div>`;
+    if (P) {
+      h += `<div class="xpart"><div class="opt"><small>Part ${A.sel + 1} — its shape</small><div class="xshapes sm">${ACC_SHAPES.map(([n, ic], i) => `<button data-ashape="${i}" class="${P[0] === i ? 'on' : ''}" title="${n}">${ic}</button>`).join('')}</div></div>
+        <div class="sls">${ACC_SL.map(([i, l, lo, hi, st]) => slider('ap', i, l, lo, hi, st, P[i])).join('')}</div>
+        <div class="pbtns"><button class="xp-btn alt" data-ascale="0.9">➖ Smaller</button><button class="xp-btn alt" data-ascale="1.1">➕ Bigger</button></div>
+        <div class="opt"><small>Colour</small><div class="sw">${XPAL.map((c, i) => (i ? `<button data-acol="${i}" class="${P[10] === i ? 'on' : ''}" style="background:${c}"></button>` : '')).join('')}</div></div>
+        <div class="opt"><small>Finish</small><div class="xchips">${ACC_FIN.map(([n, ic], i) => `<button class="xchip${P[11] === i ? ' on' : ''}" data-afin="${i}">${ic} ${n}</button>`).join('')}</div></div>
+        <div class="pbtns"><button class="xp-btn blue" data-adup="1" ${A.p.length >= ACC_MAX ? 'disabled' : ''}>⧉ Copy</button><button class="xp-btn blue" data-amirror="1" ${A.p.length >= ACC_MAX ? 'disabled' : ''} title="A copy on the other side">⇋ Mirror copy</button><button class="xp-btn red" data-adel="1" ${A.p.length < 2 ? 'disabled' : ''}>🗑️ Delete</button></div></div>`;
+    }
+    h += `<div class="pbtns xfoot"><button class="xp-btn alt" data-aundo="1" ${A.undo.length ? '' : 'disabled'}>↶ Undo</button><button class="xp-btn gold" data-astep="place">Next: put it on →</button></div>`;
+  } else {
+    h += `<p class="xp-note">Pick where it goes on your body, then size it and move it until it sits right.</p>
+      <div class="opt"><small>Where it goes</small><div class="xchips">${Object.entries(ACC_AT).map(([k, [ic, n]]) => `<button class="xchip${A.at === k ? ' on' : ''}" data-aat="${k}">${ic} ${n}</button>`).join('')}</div></div>
+      <div class="sls">${PLACE_SL.map(([k, l, lo, hi, st]) => slider('pl', k, l, lo, hi, st, k === 's' ? A.s : A[k[0]][+k[1]])).join('')}</div>
+      <div class="pbtns"><button class="xp-btn alt" data-areset="1">↺ Reset placement</button><button class="xp-btn alt" data-astep="build">← Back to building</button></div>
+      <div class="opt"><small>Name</small><label class="xsearch">🏷️<input id="mkName" maxlength="24" placeholder="My 3D item" value="${esc(ED.draft.nm)}" autocomplete="off" data-go="mkGo"></label></div>
+      <div class="pbtns"><button class="xp-btn gold" id="mkGo" data-mkgo="1" ${W.coins < MAKE_COST ? 'disabled' : ''}>✨ Create · ${MAKE_COST.toLocaleString('en-US')}</button></div>`;
+  }
+  return h;
+}
+// the builder's buttons (true: it was one of them)
+function builderClick(b) {
+  const d = b.dataset, A = ED.acc, P = A.p[A.sel];
+  if (d.astep) { A.step = d.astep; sfx('click'); pvAvatar(); }
+  else if (d.atpl) { accSave(); const N = accNew(d.atpl); Object.assign(A, { at: N.at, o: N.o, r: N.r, s: N.s, p: N.p, sel: 0 }); sfx('select'); pvAvatar(); }
+  else if (d.aadd) { if (A.p.length >= ACC_MAX) return true; accSave(); const k = +d.aadd, z = ACC_SIZE[k]; A.p.push([k, 0, 0.3 + 0.1 * (A.p.length % 4), 0, z[0], z[1], z[2], 0, 0, 0, P ? P[10] : 3, P ? P[11] : 0]); A.sel = A.p.length - 1; sfx('pop'); }
+  else if (d.asel) { A.sel = +d.asel; }
+  else if (d.ashape && P) { accSave(); P[0] = +d.ashape; }
+  else if (d.ascale && P) { accSave(); for (const i of [4, 5, 6]) P[i] = Math.round(clamp(P[i] * +d.ascale, 0.05, 4) * 100) / 100; }
+  else if (d.acol && P) { accSave(); P[10] = +d.acol; }
+  else if (d.afin && P) { accSave(); P[11] = +d.afin; }
+  else if (d.adup && P) { if (A.p.length >= ACC_MAX) return true; accSave(); const q = P.slice(); q[1] = Math.round(clamp(q[1] + 0.3, -3, 3) * 100) / 100; A.p.push(q); A.sel = A.p.length - 1; sfx('pop'); }
+  else if (d.amirror && P) { if (A.p.length >= ACC_MAX) return true; accSave(); const q = P.slice(); q[1] = -q[1] || 0.3; q[8] = -q[8]; q[9] = -q[9]; A.p.push(q); A.sel = A.p.length - 1; sfx('pop'); }
+  else if (d.adel && P) { if (A.p.length < 2) return true; accSave(); A.p.splice(A.sel, 1); A.sel = clamp(A.sel, 0, A.p.length - 1); sfx('click'); }
+  else if (d.aundo) { accUndo(); sfx('click'); }
+  else if (d.aat) { accSave(); A.at = d.aat; A.o = [0, 0, 0]; A.r = [0, 0, 0]; }
+  else if (d.areset) { accSave(); A.o = [0, 0, 0]; A.r = [0, 0, 0]; A.s = 1; }
+  else return false;
+  drawAvatarOpts(); pvAccUpdate();
+  return true;
+}
+// a slider moved: change the part (or the placement) and the 3D view, but not the panel (it'd stop the drag)
+function builderInput(t) {
+  const A = ED.acc, v = +t.value;
+  if (!A.dragging) { accSave(); A.dragging = true; }
+  if (t.dataset.ap) { const P = A.p[A.sel]; if (!P) return; P[+t.dataset.ap] = v; }
+  else if (t.dataset.pl === 's') A.s = v;
+  else if (t.dataset.pl) A[t.dataset.pl[0]][+t.dataset.pl[1]] = v;
+  if (t.nextElementSibling) t.nextElementSibling.textContent = +v.toFixed(2);
+  if (!pvAccUpdate.raf) pvAccUpdate.raf = requestAnimationFrame(() => { pvAccUpdate.raf = 0; pvAccUpdate(); });
+}
+// the item in the 3D view: rebuilt on its own (quick) whenever it changes; the part you're working on has a box round it
+function pvAccUpdate() {
+  if (pv.accG && pv.accG.parent) pv.accG.parent.remove(pv.accG);
+  if (pv.selBox) { pv.scene.remove(pv.selBox); pv.selBox = null; }
+  pv.accG = null;
+  if (!accBuilding() || !pv.a) return;
+  const L = okAcc(accLook(ED.acc.step === 'place')); if (!L) return;
+  pv.accG = xAttach(pv.a, L);
+  const m = ED.acc.step === 'build' && pv.accG.children[0].children[ED.acc.sel];
+  if (m) {
+    pv.selBox = new THREE.BoxHelper(m, 0xfacc15); pv.scene.add(pv.selBox);
+    const glow = new THREE.Mesh(m.geometry, SEL_MAT); glow.position.copy(m.position); glow.rotation.copy(m.rotation); glow.scale.copy(m.scale).multiplyScalar(1.04); m.parent.add(glow);
+  }
+}
+const SEL_MAT = new THREE.MeshBasicMaterial({ color: '#facc15', transparent: true, opacity: 0.35, depthWrite: false });
 // ✏️ Create: what you're making, as a look
 function draftLook() {
   const D = ED.draft;
+  if (D.k === 'acc') return accLook(true);
   if (D.k === 'h') return Object.assign({}, D.h);
   if (D.k === 'f' && !D.f) D.f = DEFAULT_FACE;
   return { px: D.k === 'f' ? D.f : D.pt };
@@ -3793,7 +4070,8 @@ function createItem() {
   if (W.coins < MAKE_COST) { say2(`Making an item costs ${MAKE_COST.toLocaleString('en-US')} Blox Coins — you need ${(MAKE_COST - W.coins).toLocaleString('en-US')} more.`); return; }
   if (Object.keys(W.made).length >= 60) { say2('You’ve made 60 items — that’s the most for now.'); return; }
   const id = 'u' + xid();
-  W.coins -= MAKE_COST; W.made[id] = { nm, k, look, at: Date.now(), pub: false }; W.wear[k] = id; delete ED.tryX[k];
+  W.coins -= MAKE_COST; W.made[id] = { nm, k, look, at: Date.now(), pub: false }; delete ED.tryX[k];
+  if (k !== 'acc') W.wear[k] = id; else if ((W.wear.acc || []).length < ACC_WEAR) (W.wear.acc = W.wear.acc || []).push(id);
   saveAv(); quest('bv.create'); sfx('unlock');
   if (Market.db) Market.db.doc('items/' + id).set({ nm, k, look, by: myId(), byNm: Net.name, price: 0, lim: 0, pub: false, at: Date.now() }).catch(() => {});
   ED.mode = 'wear'; avTab = 'mine'; ED.pub = id; ED.note = `✨ You made <b>${esc(nm)}</b> and you're wearing it! Publish it to sell it in the catalog.`;
@@ -3820,7 +4098,7 @@ function catalogHtml() {
   if (ED.view) { const I = xItem(ED.view); if (I && I.pub) return itemHtml(I); ED.view = ''; }
   if (Market.state !== 'on') return `<div class="fempty">${Market.state === 'wait' ? 'Opening the catalog…' : 'The catalog lives in Bloxverse’s shared items, which this view can’t reach. Open Bloxverse from 🕹️ Games in the chat (on claude.ai as a Contributor or above).'}</div>`;
   const all = OFFICIAL.concat([...Market.items.values()].filter((I) => I.pub).sort((a, b) => b.at - a.at));
-  const cats = [['all', '🛍️ All'], ['lim', '⭐ Limited'], ['h', '🎩 Hats'], ['pt', '👕 Shirts'], ['f', '🙂 Faces']];
+  const cats = [['all', '🛍️ All'], ['lim', '⭐ Limited'], ['acc', '🧩 3D items'], ['h', '🎩 Hats'], ['pt', '👕 Shirts'], ['f', '🙂 Faces']];
   const list = all.filter((I) => ED.cat === 'all' || (ED.cat === 'lim' ? I.lim : I.k === ED.cat));
   return `<div class="xchips" style="margin-bottom:10px">${cats.map(([k, l]) => `<button class="xchip${ED.cat === k ? ' on' : ''}" data-xcat="${k}">${l}</button>`).join('')}</div>
     <div class="xgrid">${list.map((I) => `<button class="xcard${I.lim ? ' lim' : ''}" data-xview="${esc(I.id)}"><img src="${xPic(I)}" alt="">${I.lim ? '<span class="xbadge">⭐ LIMITED</span>' : ''}<b>${esc(I.nm)}</b><small>by ${esc(I.byNm)}</small>${xPriceTag(I)}</button>`).join('') || '<div class="fempty">Nothing here yet — make something in ✏️ Create!</div>'}</div>`;
@@ -3835,7 +4113,7 @@ function xPriceTag(I) {
 // one item: try it on, buy it, copies for sale, your copies
 function itemHtml(I) {
   const cs = copiesOf(I.id), mine = cs.filter((c) => c.owner === myId()), left = stockLeft(I), owned = ownsX(I.id);
-  const sales = cs.filter((c) => c.sale && c.owner !== myId()).sort((a, b) => a.sale - b.sale), trying = ED.tryX[I.k] === I.id, wearing = W.wear[I.k] === I.id;
+  const sales = cs.filter((c) => c.sale && c.owner !== myId()).sort((a, b) => a.sale - b.sale), trying = ED.tryX[I.k] === I.id, wearing = isWearing(I);
   let h = `<button class="back" data-xview="">← Catalog</button>
     <div class="xdet"><img src="${xPic(I)}" alt=""><div><h3>${esc(I.nm)}</h3><small>${XKINDS[I.k][1]} ${XKINDS[I.k][0]} · by ${esc(I.byNm)}</small>
     ${I.lim ? `<div class="xlim">⭐ LIMITED · ${left > 0 ? `${left} of ${I.lim} left` : 'SOLD OUT'}</div>` : ''}
@@ -3855,9 +4133,10 @@ function itemHtml(I) {
 function mineHtml() {
   const made = Object.keys(W.made).map(xItem).filter(Boolean), bought = W.xown.map(xItem).filter((I) => I && !W.made[I.id]);
   const lims = [...new Set(copiesOwnedBy(myId()).map((c) => c.item))].map(xItem).filter((I) => I && !W.made[I.id]);
-  const card = (I, tag, extra) => `<div class="xmine${W.wear[I.k] === I.id ? ' on' : ''}"><button class="xcard" data-xwear="${esc(I.id)}" title="${W.wear[I.k] === I.id ? 'Take it off' : 'Wear it'}"><img src="${xPic(I)}" alt=""><b>${esc(I.nm)}</b><small>${tag}</small><span class="pr ${W.wear[I.k] === I.id ? 'own' : ''}">${W.wear[I.k] === I.id ? '✓ Wearing' : 'Wear'}</span></button>${extra || ''}</div>`;
+  const card = (I, tag, extra) => `<div class="xmine${isWearing(I) ? ' on' : ''}"><button class="xcard" data-xwear="${esc(I.id)}" title="${isWearing(I) ? 'Take it off' : 'Wear it'}"><img src="${xPic(I)}" alt=""><b>${esc(I.nm)}</b><small>${tag}</small><span class="pr ${isWearing(I) ? 'own' : ''}">${isWearing(I) ? '✓ Wearing' : 'Wear'}</span></button>${extra || ''}</div>`;
   let h = '';
   if (ED.pub && W.made[ED.pub] && !W.made[ED.pub].pub) h += publishHtml(ED.pub);
+  h += `<button class="xp-btn teal" data-goinv="1" style="width:100%;margin-bottom:10px">🎒 Open your whole inventory</button>`;
   if (!made.length && !bought.length && !lims.length) return h + `<div class="fempty">Nothing here yet. Make your own item in <b>✏️ Create</b>, or get one in <b>🛍️ Catalog</b>.</div>`;
   if (made.length) h += `<div class="fsub">✏️ Made by you</div><div class="xgrid">${made.map((I) => card(I, `${XKINDS[I.k][1]} ${I.pub ? 'Published' : 'Not published'}`, I.pub ? `<button class="xmini" data-xview2="${esc(I.id)}">🛍️ In the catalog</button>` : `<button class="xmini gold" data-xpub="${esc(I.id)}">📣 Publish · ${PUB_COST}</button>`)).join('')}</div>`;
   if (lims.length) h += `<div class="fsub">⭐ Limiteds</div><div class="xgrid">${lims.map((I) => card(I, copiesOf(I.id).filter((c) => c.owner === myId()).map((c) => '#' + c.n).join(' '), `<button class="xmini" data-xview2="${esc(I.id)}">🏷️ Sell</button>`)).join('')}</div>`;
@@ -3876,9 +4155,10 @@ function publishHtml(id) {
 function makerHtml() {
   const D = ED.draft, k = D.k;
   let h = `<p class="xp-note">Make your own avatar item for <b>${MAKE_COST.toLocaleString('en-US')}</b> Blox Coins — it's yours to wear, and you can publish it to the 🛍️ Catalog for ${PUB_COST} more. You see it on your avatar as you make it.</p>
-    <div class="xchips" style="margin-bottom:10px">${XSLOTS.map((x) => `<button class="xchip${k === x ? ' on' : ''}" data-mk="${x}">${XKINDS[x][1]} ${XKINDS[x][0]}</button>`).join('')}</div>`;
+    <div class="xchips" style="margin-bottom:10px">${['acc', 'pt', 'f'].map((x) => `<button class="xchip${k === x ? ' on' : ''}" data-mk="${x}">${XKINDS[x][1]} ${XKINDS[x][0]}</button>`).join('')}</div>`;
+  if (k === 'acc') return h + builderHtml();
   const sw = (attr, cur, from) => `<div class="sw">${XPAL.map((c, i) => (i < from ? '' : `<button data-${attr}="${i}" class="${cur === i ? 'on' : ''}" style="background:${c || 'repeating-conic-gradient(#94a3b8 0 25%,#e2e8f0 0 50%) 0 0/10px 10px'}" title="${i ? 'Colour ' + i : 'See-through (rubber)'}"></button>`)).join('')}</div>`;
-  if (k === 'h') {
+  if (k === 'h') { // (the old hat maker: made hats still work, but new items are 3D)
     h += `<div class="opt"><small>Shape</small><div class="shop">${XHATS.map(([n, ic], i) => `<button data-mks="${i}" class="${D.h.s === i ? 'on' : ''}"><span class="i">${ic}</span>${n}</button>`).join('')}</div></div>
       <div class="opt"><small>Colour</small>${sw('mkc', D.h.c, 1)}</div><div class="opt"><small>Second colour</small>${sw('mkd', D.h.d, 1)}</div>
       <div class="opt"><small>Badge</small><div class="sw emo">${XEMO.map((e, i) => `<button data-mke="${i}" class="${D.h.e === i ? 'on' : ''}">${e || '🚫'}</button>`).join('')}</div></div>
@@ -3916,17 +4196,19 @@ function pxBind() {
 }
 // the catalog's, My items' and Create's buttons (true: it was one of them)
 function marketClick(b) {
+  if (builderClick(b)) return true;
   const d = b.dataset, D = ED.draft;
   if (d.xcat) { ED.cat = d.xcat; }
   else if (d.xview !== undefined) { ED.view = d.xview; ED.note = ''; if (d.xview) sfx('open'); }
   else if (d.xview2) { ED.mode = 'shop'; ED.view = d.xview2; ED.note = ''; }
   else if (d.xtry) { const I = xItem(d.xtry); if (!I) return true; if (ED.tryX[I.k] === I.id) delete ED.tryX[I.k]; else ED.tryX[I.k] = I.id; sfx('click'); pvAvatar(); }
-  else if (d.xwear) { const I = xItem(d.xwear); if (!I || !ownsX(I.id)) return true; W.wear[I.k] = W.wear[I.k] === I.id ? '' : I.id; delete ED.tryX[I.k]; sfx('select'); saveAv(); pvAvatar(); drawMe(); }
+  else if (d.xwear) { if (!wearX(d.xwear)) return true; }
   else if (d.xbuy) { buyItem(d.xbuy); return true; }
   else if (d.xresale) { buyCopy(d.xresale); return true; }
   else if (d.xsell) { sellCopy(d.xsell, ED['sell_' + d.xsell]); return true; }
   else if (d.xunsell) { sellCopy(d.xunsell, 0); return true; }
   else if (d.xpub) { ED.pub = d.xpub; ED.note = ''; }
+  else if (d.goinv) { closeEditor(); goView('inv'); return true; }
   else if (d.xpubx) { ED.pub = ''; }
   else if (d.xlim) { ED.pubLim = d.xlim === '1'; }
   else if (d.xpubgo) { publishItem(d.xpubgo); return true; }
@@ -3941,6 +4223,77 @@ function marketClick(b) {
   else if (d.mkgo) { createItem(); return true; }
   else return false;
   drawAvatarOpts();
+  return true;
+}
+
+/* ---------------- 🎒 the inventory: everything you own, in one place ----------------
+   Avatar items you've bought or earned, items you made, catalog items you bought, your limited copies (with their
+   numbers), and what you've bought in experiences' shops. Wear or take off, sell a limited, publish what you made. */
+const INV = { cat: 'all', sort: 'type', q: '' };
+const INV_CATS = [['all', '🎒 All'], ['wear', '✅ Wearing'], ['acc', '🧩 3D items'], ['h', '🎩 Hats'], ['f', '🙂 Faces'], ['b', '🪽 Back'], ['au', '✨ Auras'], ['pt', '👕 Shirts'], ['pet', '🐶 Pets'], ['tr', '🌈 Trails'], ['lim', '⭐ Limiteds'], ['made', '✏️ Made by you'], ['game', '🎮 Game items']];
+const INV_ORDER = INV_CATS.map(([k]) => k);
+function invEntries() {
+  const out = [];
+  for (const code of W.own) {
+    const m = /^([a-z]+)(\d+)$/.exec(code), C = m && COSMETICS[m[1]], i = m ? +m[2] : -1;
+    if (!C || i < 0 || i >= C.list.length) continue;
+    out.push({ key: 'c:' + code, cat: m[1] === 'a' ? 'au' : m[1], nm: C.list[i], ic: C.icon[i], tag: C.price[i] < 0 ? '🏆 Reward' : C.title, value: Math.max(0, C.price[i]), worn: AV[m[1]] === i && !(XSLOTS.includes(m[1]) && W.wear[m[1]]), slot: m[1], i });
+  }
+  const x = (I, extra) => Object.assign({ key: 'x:' + I.id, cat: I.k === 'h' ? 'h' : I.k, nm: I.nm, I, value: I.price, worn: isWearing(I) }, extra);
+  for (const id of Object.keys(W.made)) { const I = xItem(id); if (I) out.push(x(I, { made: true, tag: `✏️ Made by you · ${I.pub ? (I.lim ? `⭐ limited of ${I.lim}` : 'in the catalog') : 'not published'}` })); }
+  for (const id of W.xown) { const I = xItem(id); if (I && !W.made[id]) out.push(x(I, { tag: `🛍️ by ${I.byNm}` })); }
+  for (const c of copiesOwnedBy(myId())) {
+    const I = xItem(c.item); if (!I || W.made[I.id]) continue;
+    const sales = copiesOf(I.id).filter((o) => o.sale && o.owner !== myId()).map((o) => o.sale);
+    out.push(x(I, { key: 'l:' + c.key, lim: true, n: c.n, sale: c.sale, tag: `⭐ #${c.n} of ${I.lim}${c.sale ? ` · on sale for ${c.sale.toLocaleString('en-US')}` : ''}`, value: sales.length ? Math.min(...sales) : I.price }));
+  }
+  for (const [k, n] of Object.entries(W.items)) {
+    const [e, id] = k.split('.'), E = expOf(e), S = E && (E.coinShop || []).find((s) => s.id === id);
+    out.push({ key: 'g:' + k, cat: 'game', nm: S ? S.n : id, ic: S ? S.e : '🎮', tag: `${E ? E.emoji + ' ' + E.name : e}${S && S.kind === 'use' ? ` · ×${n}` : ''}`, value: (S ? S.price : 0) * (S && S.kind === 'use' ? n : 1) });
+  }
+  return out;
+}
+function invPage(again) {
+  const all = invEntries(), q = INV.q.trim().toLowerCase();
+  const has = (e, c) => c === 'all' || (c === 'wear' ? e.worn : c === 'lim' ? e.lim : c === 'made' ? e.made : e.cat === c);
+  let list = all.filter((e) => has(e, INV.cat) && (!q || `${e.nm} ${e.tag}`.toLowerCase().includes(q)));
+  const sorts = { type: (a, b) => INV_ORDER.indexOf(a.cat) - INV_ORDER.indexOf(b.cat) || a.nm.localeCompare(b.nm), az: (a, b) => a.nm.localeCompare(b.nm), value: (a, b) => b.value - a.value || a.nm.localeCompare(b.nm) };
+  list.sort(sorts[INV.sort] || sorts.type);
+  const value = all.reduce((s, e) => s + (e.value || 0), 0), lims = all.filter((e) => e.lim).length;
+  const card = (e) => {
+    const pic = e.I ? `<img src="${xPic(e.I)}" alt="">` : `<span class="ic">${e.ic}</span>`;
+    const act = e.cat === 'game' ? '' : `<button class="xp-btn ${e.worn ? 'alt' : ''}" data-iwear="${esc(e.key)}">${e.worn ? 'Take off' : '👕 Wear'}</button>`
+      + (e.lim ? `<button class="xp-btn gold" data-iopen="${esc(e.I.id)}">🏷️ ${e.sale ? 'On sale' : 'Sell'}</button>` : '')
+      + (e.made && !e.I.pub ? `<button class="xp-btn gold" data-ipub="${esc(e.I.id)}">📣 Publish</button>` : '')
+      + (e.I && e.I.pub && !e.lim ? `<button class="xp-btn alt" data-iopen="${esc(e.I.id)}">🛍️</button>` : '');
+    return `<div class="icard${e.worn ? ' on' : ''}${e.lim ? ' lim' : ''}">${e.lim ? '<span class="xbadge">⭐ LIMITED</span>' : ''}${pic}<b>${esc(e.nm)}</b><small>${esc(e.tag)}</small>${e.value ? `<span class="pr"><span class="coin sm"></span> ${e.value.toLocaleString('en-US')}</span>` : ''}<div class="iacts">${act}</div></div>`;
+  };
+  const counts = Object.fromEntries(INV_CATS.map(([k]) => [k, all.filter((e) => has(e, k)).length]));
+  return `<div class="edetail social inv"><button class="back" id="backBtn">${backLabel()}</button>
+    <div class="achhead"><span class="big">🎒</span><div><h2>Inventory</h2><p style="margin:0">Everything you own: avatar items, things you made or bought in the catalog, your limiteds and what you've bought in experiences.</p></div></div>
+    <div class="pstats"><div class="pstat"><b>${all.length}</b><small>🎒 Items</small></div><div class="pstat"><b>${all.filter((e) => e.worn).length}</b><small>✅ Wearing</small></div><div class="pstat"><b>${lims}</b><small>⭐ Limiteds</small></div><div class="pstat"><b>${value.toLocaleString('en-US')}</b><small>🪙 Worth about</small></div></div>
+    <div class="xtools"><label class="xsearch">🔍<input id="invQ" type="search" placeholder="Search your inventory" value="${esc(INV.q)}" autocomplete="off"></label>
+      <div class="xchips">${[['type', '🗂️ By type'], ['az', '🔤 A–Z'], ['value', '🪙 Worth']].map(([k, l]) => `<button class="xchip${INV.sort === k ? ' on' : ''}" data-isort="${k}">${l}</button>`).join('')}</div></div>
+    <div class="xchips xgenres">${INV_CATS.filter(([k]) => k === 'all' || counts[k]).map(([k, l]) => `<button class="xchip${INV.cat === k ? ' on' : ''}" data-icat="${k}">${l} <small>${counts[k]}</small></button>`).join('')}</div>
+    <div class="igrid">${list.map(card).join('') || `<div class="xempty">${all.length ? 'Nothing here matches.' : 'Nothing yet — buy avatar items in ✏️ Edit Avatar, get things in the 🛍️ Catalog, or make your own!'}</div>`}</div>
+    <div class="pbtns" style="margin-top:14px"><button class="xp-btn blue" data-iedit="1">✏️ Edit Avatar</button><button class="xp-btn pink" data-ishop="1">🛍️ Catalog</button><button class="xp-btn gold" data-imake="1">✏️ Create an item</button></div></div>`;
+}
+// its buttons (on the home screen's page)
+function invClick(b) {
+  const d = b.dataset;
+  if (d.icat) INV.cat = d.icat;
+  else if (d.isort) INV.sort = d.isort;
+  else if (d.iwear) {
+    const k = d.iwear;
+    if (k.startsWith('c:')) { const m = /^c:([a-z]+)(\d+)$/.exec(k); if (m) { const slot = m[1], i = +m[2], worn = AV[slot] === i && !(XSLOTS.includes(slot) && W.wear[slot]); AV[slot] = worn ? 0 : i; if (XSLOTS.includes(slot)) W.wear[slot] = ''; sfx('select'); saveAv(); pvAvatar(); drawMe(); } }
+    else wearX(k.slice(2).split('~')[0]);
+  } else if (d.iopen) { openEditor('shop', d.iopen); return true; }
+  else if (d.ipub) { avTab = 'mine'; ED.pub = d.ipub; openEditor('wear'); return true; }
+  else if (d.iedit) { openEditor(); return true; }
+  else if (d.ishop) { openEditor('shop'); return true; }
+  else if (d.imake) { openEditor('make'); return true; }
+  else return false;
+  drawExps();
   return true;
 }
 
@@ -4343,7 +4696,10 @@ achNum();
 drawAvatarOpts(); drawMe(); drawExps();
 requestAnimationFrame(frame);
 window.__rb = { P, Net, cam, camera, scene, renderer, keys, EXPS, Meter, GFX, gfxApply, softGL, View, setLock, zoomBy, lookBy, joy, sunL, sunSprite, makeAvatar, join, leave, die, respawn, openShop, buyItem, hasItem, itemCount, giveItem, useItem, shopItem, setItemOff, Trade, startTrade, tradeTick, parts: () => parts, exp: () => exp, me: () => me, iAmHost, crew, players, get AV() { return AV; }, W, earn, spend, roundState, openPanel, closePanel, pickPlane, myPeer, grantCosmetic, snapshot, say,
-  Social, Inv, ED, myId, myCode, fcOf, openEditor, closeEditor, socialScan, avPic, Market, OFFICIAL, xItem, ownsX, copiesOf, drawAvatarOpts, axArr, get homeView() { return homeView; }, set homeView(v) { homeView = v; drawExps(); } }; // for tests
+  Social, Inv, ED, myId, myCode, fcOf, openEditor, closeEditor, socialScan, avPic, Market, OFFICIAL, xItem, ownsX, copiesOf, drawAvatarOpts, axArr,
+  pvSel: () => (pv.selBox ? { inScene: pv.selBox.parent === pv.scene, r: pv.selBox.geometry.boundingSphere && pv.selBox.geometry.boundingSphere.radius, vis: pv.selBox.visible, n: pv.selBox.geometry.attributes.position.count, c: pv.selBox.geometry.attributes.position.array.slice(0, 6) } : null),
+  pvGhost: () => { let g = false; if (pv.a) pv.a.g.traverse((o) => { if (o.isMesh && o.material === GHOST_MAT) g = true; }); return g; },
+  pvPartScreen: (i) => { const m = pv.accG && pv.accG.children[0].children[i]; if (!m) return null; const v = new THREE.Vector3(); m.getWorldPosition(v); v.project(pv.cam); const r = $('#avPrev').getBoundingClientRect(); return [r.left + (v.x + 1) / 2 * r.width, r.top + (1 - v.y) / 2 * r.height]; }, get homeView() { return homeView; }, set homeView(v) { homeView = v; drawExps(); } }; // for tests
 if (!Net.api()) homeStatus('Open Bloxverse from 🕹️ Games in the chat to play online.');
 else {
   $('#hi').textContent = 'Connecting…';
