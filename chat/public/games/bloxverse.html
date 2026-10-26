@@ -1098,8 +1098,13 @@ const XHATS = [['Top hat', '🎩'], ['Crown', '👑'], ['Cone', '🔺'], ['Cap',
 const XEMO = ['', '⭐', '❤️', '🔥', '💎', '⚡', '🌈', '💀', '🍀', '👁️', '🌙', '🎵'];
 const XKINDS = { h: ['Hat', '🎩'], pt: ['Shirt', '👕'], f: ['Face', '🙂'], acc: ['3D item', '🧩'] };
 const XSLOTS = ['h', 'pt', 'f'];
-// the first limited, Bloxverse's own: a stock of 2
-const OFFICIAL = [{ id: 'L1', nm: 'Golden Dominus', k: 'h', look: { s: 7, c: 5, d: 7, e: 0, gl: 1 }, by: '', byNm: 'Bloxverse', price: 500, lim: 2, pub: true, at: 0, off: true }];
+// Bloxverse's own limiteds: a stock of 2 each
+const OFFICIAL = [
+  { id: 'L1', nm: 'Golden Dominus', look: { s: 7, c: 5, d: 7, e: 0, gl: 1 }, price: 500 },
+  { id: 'L2', nm: 'Valkyrie Helm', look: { s: 10, c: 12, d: 8, e: 0, gl: 0 }, price: 750 },
+  { id: 'L3', nm: 'Sparkle Fedora', look: { s: 11, c: 9, d: 1, e: 0, gl: 1 }, price: 350 },
+  { id: 'L4', nm: 'Fiery Horns', look: { s: 12, c: 15, d: 4, e: 0, gl: 1 }, price: 1000 },
+].map((I) => Object.assign({ k: 'h', by: '', byNm: 'Bloxverse', lim: 2, pub: true, at: 0, off: true }, I)); // (shapes 10 to 12 are only for these)
 // [hat, shirt, face, …3D items]: what someone wears on top of their avatar (ids)
 const okAx = (a) => {
   const id = (i) => (Array.isArray(a) && typeof a[i] === 'string' && /^[A-Za-z0-9]{1,20}$/.test(a[i]) ? a[i] : '');
@@ -1147,21 +1152,96 @@ function emoTex(e) {
   if (!EMO_TEX.has(e)) { const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'); g.font = '48px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(e, 32, 36); EMO_TEX.set(e, new THREE.CanvasTexture(c)); }
   return EMO_TEX.get(e);
 }
-// the dominus's hood: rings from the shoulders to a point, bent back as they rise, open at the front up to the brow
-const DOMINUS_HOOD = (() => {
-  const R = 16, S = 30, pos = [], idx = [];
-  for (let j = 0; j <= R; j++) {
-    const t = j / R, y = -1.2 + 2.35 * t, r = 1.02 * Math.pow(Math.sin(Math.PI / 2 * (1 - t)), 0.62) + 0.015, back = 1.05 * Math.pow(t, 2.4), gap = 1.12 * Math.sqrt(Math.max(0, 1 - t / 0.41));
-    for (let i = 0; i <= S; i++) { const a = Math.PI + gap + (2 * Math.PI - 2 * gap) * i / S; pos.push(Math.sin(a) * r * (1 + 0.08 * Math.sin(t * Math.PI)), y, Math.cos(a) * r + back - 0.04); }
+// shiny metal: Phong that reflects a soft studio (a bright sky, a bright band on the horizon, a dark floor)
+let METAL_ENV = null;
+function metalMat(c, o) {
+  if (!METAL_ENV) {
+    const cv = document.createElement('canvas'); cv.width = 8; cv.height = 128; const g = cv.getContext('2d'), gr = g.createLinearGradient(0, 0, 0, 128);
+    for (const [t, col] of [[0, '#ffffff'], [0.3, '#c9c2b4'], [0.45, '#ffffff'], [0.52, '#857a66'], [0.7, '#3a342a'], [1, '#14110c']]) gr.addColorStop(t, col);
+    g.fillStyle = gr; g.fillRect(0, 0, 8, 128);
+    METAL_ENV = new THREE.CanvasTexture(cv); METAL_ENV.mapping = THREE.EquirectangularReflectionMapping;
   }
-  for (let j = 0; j < R; j++) for (let i = 0; i < S; i++) { const a = j * (S + 1) + i, b = a + S + 1; idx.push(a, b, a + 1, b, b + 1, a + 1); }
-  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals(); return g;
+  return new THREE.MeshPhongMaterial(Object.assign({ color: c, envMap: METAL_ENV, reflectivity: 0.65, shininess: 90, specular: '#a09378' }, o || {}));
+}
+// glowing pictures drawn once: a soft glow, a four-point twinkle, a flame
+const FX_TEX = {}, FX_PLANE = new THREE.PlaneGeometry(1, 1), _fxq = new THREE.Quaternion();
+function fxTex(k) {
+  if (FX_TEX[k]) return FX_TEX[k];
+  const c = document.createElement('canvas'); c.width = 64; c.height = k === 'flame' ? 128 : 64; const g = c.getContext('2d');
+  const radial = (x, y, r0, r1, stops) => { const r = g.createRadialGradient(x, y, r0, x, y, r1); for (const [t, col] of stops) r.addColorStop(t, col); return r; };
+  if (k === 'glow') { g.fillStyle = radial(32, 32, 0, 32, [[0, 'rgba(255,255,255,1)'], [0.3, 'rgba(255,255,255,0.5)'], [1, 'rgba(255,255,255,0)']]); g.fillRect(0, 0, 64, 64); }
+  else if (k === 'twinkle') {
+    g.fillStyle = radial(32, 32, 0, 12, [[0, 'rgba(255,255,255,1)'], [1, 'rgba(255,255,255,0)']]); g.fillRect(0, 0, 64, 64);
+    g.fillStyle = '#fff'; for (const [w, h] of [[3, 31], [31, 3]]) { g.beginPath(); g.moveTo(32 - w, 32); g.lineTo(32, 32 - h); g.lineTo(32 + w, 32); g.lineTo(32, 32 + h); g.closePath(); g.fill(); }
+  } else { // a flame: a teardrop, nearly white at the bottom, then yellow, orange and red fading out at the tip, soft at the sides
+    const up = g.createLinearGradient(0, 124, 0, 0);
+    for (const [t, col] of [[0, 'rgba(255,250,225,1)'], [0.25, 'rgba(255,214,70,1)'], [0.55, 'rgba(255,120,15,0.9)'], [0.82, 'rgba(225,45,0,0.45)'], [1, 'rgba(180,20,0,0)']]) up.addColorStop(t, col);
+    g.fillStyle = up; g.beginPath(); g.moveTo(32, 2); g.bezierCurveTo(42, 36, 62, 66, 58, 96); g.bezierCurveTo(54, 124, 10, 124, 6, 96); g.bezierCurveTo(2, 66, 22, 36, 32, 2); g.fill();
+    const side = g.createLinearGradient(0, 0, 64, 0);
+    for (const [t, a] of [[0, 0], [0.28, 0.8], [0.5, 1], [0.72, 0.8], [1, 0]]) side.addColorStop(t, `rgba(0,0,0,${a})`);
+    g.globalCompositeOperation = 'destination-in'; g.fillStyle = side; g.fillRect(0, 0, 64, 128);
+  }
+  return (FX_TEX[k] = new THREE.CanvasTexture(c));
+}
+// a glowing card on a hat that always faces the camera; fn(card, its material, seconds) twinkles or flickers it as it's drawn
+function fxCard(k, c, w, h, x, y, z, parent, fn) {
+  const m = new THREE.MeshBasicMaterial({ map: fxTex(k), color: c, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
+  const o = new THREE.Mesh(FX_PLANE, m); o.position.set(x, y, z); o.scale.set(w, h, 1); o.userData.fx = true; parent.add(o);
+  o.onBeforeRender = (r, s, cam) => {
+    o.parent.getWorldQuaternion(_fxq).invert(); o.quaternion.copy(_fxq).multiply(cam.quaternion);
+    if (fn) fn(o, m, performance.now() / 1000);
+    o.updateMatrixWorld();
+  };
+  return o;
+}
+const twinkle = (w, ph, rate) => (o, m, t) => { const k = Math.pow(Math.max(0, Math.sin(t * (rate || 2.2) + ph)), 3); o.scale.set(w * (0.15 + k), w * (0.15 + k), 1); m.opacity = 0.25 + 0.75 * k; };
+// a tube through some points (trim on a hat's edges)
+const tubeThrough = (pts, r, seg) => new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, false, 'centripetal'), seg || 48, r, 8, false);
+// the dominus's hood: rings from the shoulders up to a point, bent back as they rise, open at the front up to the brow
+const domAt = (t, a, out) => {
+  const y = -1.2 + 2.35 * t, r = 1.02 * Math.pow(Math.sin(Math.PI / 2 * (1 - t)), 0.62) + 0.015 + (out || 0), back = 1.05 * Math.pow(t, 2.4);
+  return new THREE.Vector3(Math.sin(a) * r * (1 + 0.08 * Math.sin(t * Math.PI)), y, Math.cos(a) * r + back - 0.04);
+};
+const domGap = (t) => 1.12 * Math.sqrt(Math.max(0, 1 - t / 0.41));
+const DOMINUS = (() => {
+  const R = 26, S = 44, pos = [], idx = [];
+  for (let j = 0; j <= R; j++) { const t = j / R, gap = domGap(t); for (let i = 0; i <= S; i++) { const p = domAt(t, Math.PI + gap + (2 * Math.PI - 2 * gap) * i / S); pos.push(p.x, p.y, p.z); } }
+  for (let j = 0; j < R; j++) for (let i = 0; i < S; i++) { const a = j * (S + 1) + i, b = a + S + 1; idx.push(a, a + 1, b, b, a + 1, b + 1); } // (outside facing out)
+  const hood = new THREE.BufferGeometry(); hood.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); hood.setIndex(idx); hood.computeVertexNormals();
+  // the trim round the face opening (a pointed arch up to the brow), the crest from the brow over the top and down the back, the hem
+  const arch = [], ease = (s) => 0.41 * (1 - (1 - s) * (1 - s));
+  for (let k = 0; k <= 14; k++) { const t = ease(k / 14); arch.push(domAt(t, Math.PI - domGap(t), 0.02)); }
+  for (let k = 13; k >= 0; k--) { const t = ease(k / 14); arch.push(domAt(t, Math.PI + domGap(t), 0.02)); }
+  const crest = []; for (let k = 0; k <= 12; k++) crest.push(domAt(0.41 + 0.58 * k / 12, Math.PI, 0.03)); for (let k = 12; k >= 1; k--) crest.push(domAt(0.04 + 0.95 * k / 12, 0, 0.03));
+  const hem = []; for (let k = 0; k <= 30; k++) hem.push(domAt(0, Math.PI + domGap(0) + (2 * Math.PI - 2 * domGap(0)) * k / 30, 0.03));
+  // a wing: a swept blade with feathered back edge
+  const sh = new THREE.Shape(); sh.moveTo(0, 0); sh.bezierCurveTo(0.1, 0.6, 0.6, 1.1, 1.25, 1.3); // (the top edge, up to the tip)
+  for (const [x, y] of [[1.0, 1.0], [1.1, 0.78], [0.82, 0.72], [0.9, 0.5], [0.6, 0.5], [0.66, 0.26], [0.36, 0.3], [0.38, 0.05], [0.12, 0.06]]) sh.lineTo(x, y); sh.closePath(); // (feathers back down)
+  const wing = new THREE.ExtrudeGeometry(sh, { depth: 0.05, bevelEnabled: true, bevelThickness: 0.022, bevelSize: 0.022, bevelSegments: 2, curveSegments: 10 }); wing.translate(0, -0.02, -0.025);
+  const capeHem = []; for (let k = 0; k <= 24; k++) { const a = -1.2 + 2.4 * k / 24; capeHem.push(new THREE.Vector3(1.22 * Math.sin(a), -1.925, 1.22 * Math.cos(a) + 0.1)); }
+  return { capeHem: tubeThrough(capeHem, 0.05, 40), hood, arch: tubeThrough(arch, 0.055, 64), crest: tubeThrough(crest, 0.04, 48), hem: tubeThrough(hem, 0.05, 48), wing };
 })();
-// one of its swept-back fins: a curved blade
-const DOMINUS_FIN = (() => {
-  const sh = new THREE.Shape(); sh.moveTo(0, -0.05); sh.quadraticCurveTo(0.5, 0.22, 0.98, 0.78); sh.quadraticCurveTo(0.38, 0.58, 0, 0.32); sh.closePath();
-  const g = new THREE.ExtrudeGeometry(sh, { depth: 0.05, bevelEnabled: false }); g.translate(0, -0.1, -0.025); return g;
-})();
+// the fiery horns: a tube bent up and in, narrowing to a point; the colour runs from the base to a glowing tip
+const HORN_CURVE = new THREE.CatmullRomCurve3([[0.42, 0.36, 0.05], [0.74, 0.6, 0.1], [0.95, 0.98, 0.04], [0.9, 1.42, -0.1], [0.66, 1.76, -0.22]].map((p) => new THREE.Vector3(...p)));
+const hornR = (u) => 0.21 * (1 - 0.93 * Math.pow(u, 1.15));
+const HORN_GEO = new Map();
+function hornGeo(c1, c2) {
+  const key = c1 + c2; if (HORN_GEO.has(key)) return HORN_GEO.get(key);
+  const T = 40, Rs = 14, g = new THREE.TubeGeometry(HORN_CURVE, T, 1, Rs, false), p = g.attributes.position, col = [], a = new THREE.Color(c1), b = new THREE.Color(c2), hot = new THREE.Color('#fff3b0'), c = new THREE.Color();
+  for (let i = 0; i <= T; i++) {
+    const u = i / T, ctr = HORN_CURVE.getPointAt(u), r = hornR(u);
+    for (let j = 0; j <= Rs; j++) {
+      const n = i * (Rs + 1) + j; p.setXYZ(n, ctr.x + (p.getX(n) - ctr.x) * r, ctr.y + (p.getY(n) - ctr.y) * r, ctr.z + (p.getZ(n) - ctr.z) * r);
+      c.copy(a).lerp(b, Math.min(1, Math.max(0, (u - 0.35) / 0.5))); if (u > 0.8) c.lerp(hot, (u - 0.8) / 0.2); col.push(c.r, c.g, c.b);
+    }
+  }
+  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); g.computeVertexNormals();
+  HORN_GEO.set(key, g); return g;
+}
+// a feather (the valkyrie helm's wings), and the fedora's crown and brim (turned outlines)
+const FEATHER = (() => { const sh = new THREE.Shape(); sh.moveTo(0, 0); sh.quadraticCurveTo(0.16, 0.42, 0.02, 1); sh.quadraticCurveTo(-0.1, 0.5, 0, 0); const g = new THREE.ExtrudeGeometry(sh, { depth: 0.02, bevelEnabled: true, bevelThickness: 0.012, bevelSize: 0.012, bevelSegments: 1, curveSegments: 8 }); g.translate(0, 0, -0.01); return g; })();
+const FEDORA_CROWN = new THREE.LatheGeometry([[0.67, 0], [0.66, 0.28], [0.62, 0.52], [0.54, 0.66], [0.38, 0.69], [0.22, 0.6], [0.001, 0.62]].map(([x, y]) => new THREE.Vector2(x, y)), 32);
+const FEDORA_BRIM = new THREE.LatheGeometry([[0.62, 0.03], [0.9, 0], [1.08, 0.03], [1.17, 0.11], [1.18, 0.14]].map(([x, y]) => new THREE.Vector2(x, y)), 36);
 // a made hat on a head (lam, mesh, box and cyl are makeAvatar's helpers)
 function xHat(L, head, lam, mesh, box, cyl) {
   const c1 = XPAL[L.c] || '#ef4444', c2 = XPAL[L.d] || '#facc15';
@@ -1175,21 +1255,63 @@ function xHat(L, head, lam, mesh, box, cyl) {
   else if (L.s === 4) { const d = mesh(dome(0.74), m1, 0, 0.42, 0, head); d.scale.y = 1.05; mesh(cyl(0.76, 0.76, 0.32), m2, 0, 0.5, 0, head); mesh(new THREE.SphereGeometry(0.22, 10, 8), m2, 0, 1.22, 0, head); badge = [0.5, -0.78]; } // beanie
   else if (L.s === 5) { for (const s2 of [-1, 1]) { const h = mesh(new THREE.ConeGeometry(0.17, 0.85, 10), m1, s2 * 0.44, 0.98, 0, head); h.rotation.z = -s2 * 0.35; const r = mesh(new THREE.TorusGeometry(0.17, 0.05, 6, 12), m2, s2 * 0.38, 0.62, 0, head); r.rotation.x = Math.PI / 2; } } // horns
   else if (L.s === 6) { for (const [r, t, c] of [[0.55, 0.08, c1], [0.4, 0.035, c2]]) { const o = mesh(new THREE.TorusGeometry(r, t, 8, 24), new THREE.MeshBasicMaterial({ color: c }), 0, 1.3, 0, head); o.rotation.x = Math.PI / 2; } } // halo
-  else if (L.s === 7) { // dominus: a tall hood swept back to a point, a dark void inside with glowing eyes, a gold rim and gem, swept-back fins and a drape down the back
-    const shell = new THREE.MeshPhongMaterial({ color: c1, shininess: 45, specular: new THREE.Color('#9c8546'), emissive: new THREE.Color(c1).multiplyScalar(L.gl ? 0.28 : 0.05), side: THREE.DoubleSide });
-    const voidM = new THREE.MeshBasicMaterial({ color: '#04050a' }), eyeM = new THREE.MeshBasicMaterial({ color: L.gl ? '#fff3a0' : '#e0f2fe' });
-    mesh(DOMINUS_HOOD, shell, 0, 0.62, 0.0, head);
-    mesh(new THREE.CylinderGeometry(0.71, 0.71, 1.06, 20), voidM, 0, -0.17, 0.01, head); // (the face vanishes into the dark; above the brow the hood is closed)
-    mesh(new THREE.CylinderGeometry(0.77, 0.8, 0.22, 26, 1, true, Math.PI - 1.05, 2.1), shell, 0, 0.45, 0.0, head); // the brow
-    const rim = mesh(new THREE.TorusGeometry(0.56, 0.075, 8, 30, Math.PI * 1.2), shell, 0, -0.12, -0.74, head); rim.rotation.z = Math.PI / 2 - Math.PI * 0.6; rim.scale.set(1.0, 1.0, 0.6);
-    for (const s2 of [-1, 1]) { const e = box(eyeM, 0.22, 0.08, 0.02, s2 * 0.2, 0.0, -0.73, head); e.rotation.z = s2 * 0.3; }
-    const gem = mesh(new THREE.OctahedronGeometry(0.13, 0), new THREE.MeshPhongMaterial({ color: c2, shininess: 100, emissive: new THREE.Color(c2).multiplyScalar(0.35) }), 0, 0.56, -0.8, head); gem.scale.set(0.85, 1.3, 0.6);
-    for (const s2 of [-1, 1]) for (const [y, z, len, turn] of [[0.78, 0.28, 1.15, 0.75], [0.3, 0.42, 0.85, 0.95]]) {
-      const f = mesh(DOMINUS_FIN, shell, s2 * 0.58, y, z, head); f.scale.set(s2 * len, len, 1); f.rotation.y = -s2 * turn; // (pointing out and up, swept back)
+  else if (L.s === 7) { // dominus: a tall metal hood swept back to a point, dark inside, a trimmed pointed arch round the face, glowing eyes in the void, a gem on the brow, feathered wings and a cape
+    const col = new THREE.Color(c1), shell = metalMat(col, { emissive: col.clone().multiplyScalar(L.gl ? 0.1 : 0.02) }), cape = metalMat(col, { emissive: col.clone().multiplyScalar(L.gl ? 0.1 : 0.02), side: THREE.DoubleSide });
+    const trim = metalMat(col.clone().lerp(new THREE.Color('#fff7dc'), 0.4), { shininess: 140, emissive: col.clone().multiplyScalar(L.gl ? 0.12 : 0) });
+    const inside = new THREE.MeshPhongMaterial({ color: col.clone().multiplyScalar(0.1), shininess: 8, side: THREE.BackSide }), eyeC = L.gl ? '#fff3a0' : '#e0f2fe', gemC = c2;
+    for (const [geo, m] of [[DOMINUS.hood, shell], [DOMINUS.hood, inside], [DOMINUS.arch, trim], [DOMINUS.crest, trim], [DOMINUS.hem, trim]]) mesh(geo, m, 0, 0.62, 0, head);
+    mesh(new THREE.CylinderGeometry(0.71, 0.71, 1.06, 20), new THREE.MeshBasicMaterial({ color: '#030308' }), 0, -0.17, 0.01, head); // (the face vanishes into the dark)
+    for (const s2 of [-1, 1]) {
+      const e = box(new THREE.MeshBasicMaterial({ color: eyeC }), 0.24, 0.075, 0.02, s2 * 0.21, 0.02, -0.73, head); e.rotation.z = s2 * 0.32;
+      fxCard('glow', eyeC, 0.6, 0.34, s2 * 0.21, 0.02, -0.76, head, (o, m, t) => { m.opacity = 0.6 + 0.3 * Math.sin(t * 2.4); });
+      for (const [y, z, len, ry, rz, m] of [[0.46, 0.16, 1.05, 0.38, -0.08, shell], [0.06, 0.24, 0.74, 0.55, 0.3, trim]]) { const w = mesh(DOMINUS.wing, m, s2 * 0.84, y, z, head); w.scale.set(s2 * len, len, 1); w.rotation.set(0, -s2 * ry, -s2 * rz); }
     }
-    mesh(new THREE.CylinderGeometry(0.92, 1.2, 1.45, 22, 1, true, -1.15, 2.3), shell, 0, -1.2, 0.08, head); // the drape over the shoulders and back
+    const gem = mesh(new THREE.OctahedronGeometry(0.15, 0), new THREE.MeshPhongMaterial({ color: gemC, shininess: 120, specular: '#ffffff', emissive: new THREE.Color(gemC).multiplyScalar(0.45), flatShading: true }), 0, 0.6, -0.72, head); gem.scale.set(0.8, 1.25, 0.55); gem.rotation.x = -0.4;
+    const set = mesh(new THREE.TorusGeometry(0.15, 0.032, 6, 20), trim, 0, 0.6, -0.7, head); set.scale.set(0.85, 1.25, 1); set.rotation.x = -0.4;
+    fxCard('glow', gemC, 0.55, 0.55, 0, 0.6, -0.8, head, (o, m, t) => { m.opacity = 0.35 + 0.2 * Math.sin(t * 1.7 + 1); });
+    mesh(new THREE.CylinderGeometry(0.95, 1.22, 1.45, 24, 1, true, -1.2, 2.4), cape, 0, -1.2, 0.1, head); mesh(DOMINUS.capeHem, trim, 0, 0, 0, head); // the cape over the shoulders and back
+    fxCard('twinkle', '#fffbe6', 0.6, 0.6, 0, 1.78, 1.03, head, twinkle(0.6, 0, 1.4));
+    fxCard('twinkle', '#fffbe6', 0.45, 0.45, 0.16, 0.74, -0.78, head, twinkle(0.45, 2.5, 1.1));
   } else if (L.s === 8) { mesh(cyl(0.6, 0.7, 0.55, 20), m1, 0, 0.98, 0, head); mesh(new THREE.CylinderGeometry(0.72, 1.05, 0.28, 22, 1, true), mat(c1, { side: THREE.DoubleSide }), 0, 0.62, 0, head); mesh(cyl(0.71, 0.71, 0.12, 20), m2, 0, 0.78, 0, head); badge = [1.02, -0.69]; } // bucket hat
   else if (L.s === 9) { box(m2, 0.3, 0.3, 0.3, 0, 0.82, -0.1, head); for (const s2 of [-1, 1]) { const lp = mesh(new THREE.SphereGeometry(0.34, 12, 8), m1, s2 * 0.42, 0.85, -0.1, head); lp.scale.set(1.25, 0.8, 0.45); lp.rotation.z = s2 * 0.3; } } // bow
+  else if (L.s === 10) { // valkyrie helm (Bloxverse's own): a steel dome with a gold band and crest, a nose guard and cheek guards, a gem, and big white feathered wings
+    const sc = new THREE.Color(c1).lerp(new THREE.Color('#ffffff'), 0.22), steel = metalMat(sc), steel2 = metalMat(sc, { side: THREE.DoubleSide, emissive: sc.clone().multiplyScalar(0.18) }), gold = metalMat('#e8b53a', { shininess: 130 });
+    const white = new THREE.MeshPhongMaterial({ color: '#f8fafc', shininess: 30, specular: '#64748b', emissive: L.gl ? '#334155' : '#0b1220' });
+    const dome = mesh(new THREE.SphereGeometry(0.75, 32, 14, 0, Math.PI * 2, 0, Math.PI / 2), steel, 0, 0.26, 0, head); dome.scale.y = 1.1;
+    mesh(new THREE.CylinderGeometry(0.765, 0.775, 0.2, 32, 1, true), gold, 0, 0.3, 0, head); // the band
+    const crest = mesh(new THREE.TorusGeometry(0.775, 0.05, 8, 32, Math.PI), gold, 0, 0.27, 0, head); crest.rotation.y = Math.PI / 2; crest.scale.y = 1.1;
+    for (const a0 of [0.72, 2 * Math.PI - 2.47]) mesh(new THREE.CylinderGeometry(0.77, 0.73, 0.62, 18, 1, true, a0, 1.75), steel2, 0, -0.07, 0, head); // cheek guards
+    box(steel, 0.15, 0.62, 0.06, 0, 0.05, -0.77, head); // the nose guard
+    for (let k = 0; k < 12; k++) { if (k === 6) continue; const a = k * Math.PI / 6; mesh(new THREE.SphereGeometry(0.04, 8, 6), gold, Math.sin(a) * 0.79, 0.3, Math.cos(a) * 0.79, head); } // rivets
+    const gem = mesh(new THREE.OctahedronGeometry(0.12, 0), new THREE.MeshPhongMaterial({ color: c2, shininess: 120, specular: '#ffffff', emissive: new THREE.Color(c2).multiplyScalar(0.45), flatShading: true }), 0, 0.3, -0.8, head); gem.scale.set(0.9, 1.1, 0.55);
+    fxCard('glow', c2, 0.5, 0.5, 0, 0.3, -0.86, head, (o, m, t) => { m.opacity = 0.35 + 0.2 * Math.sin(t * 1.6); });
+    for (const s2 of [-1, 1]) {
+      const wg = new THREE.Group(); wg.position.set(s2 * 0.74, 0.4, 0.12); wg.rotation.y = -s2 * 0.5; wg.scale.x = s2; head.add(wg);
+      mesh(new THREE.SphereGeometry(0.12, 12, 8), gold, 0, 0, 0, wg);
+      for (let k = 0; k < 7; k++) { const f = mesh(FEATHER, white, 0.02 * k, 0, 0.022 * k, wg); f.scale.set(1.3, 1.55 - k * 0.15, 1); f.rotation.z = -(0.1 + k * 0.21); }
+    }
+    fxCard('twinkle', '#ffffff', 0.5, 0.5, 0.35, 1.05, -0.45, head, twinkle(0.5, 0.7, 1.3));
+  } else if (L.s === 11) { // sparkle fedora (Bloxverse's own): a creased crown, a dark band, a curled brim, tipped to one side, twinkling all over
+    const hg = new THREE.Group(); hg.position.set(0, 0.5, 0); hg.rotation.set(-0.06, 0, 0.12); hg.scale.set(0.95, 1, 1.06); head.add(hg);
+    const felt = new THREE.MeshPhongMaterial({ color: c1, shininess: 20, specular: '#3b2f55', side: THREE.DoubleSide, emissive: new THREE.Color(c1).multiplyScalar(L.gl ? 0.16 : 0.03) });
+    mesh(FEDORA_CROWN, felt, 0, 0, 0, hg); mesh(FEDORA_BRIM, felt, 0, 0, 0, hg);
+    mesh(new THREE.CylinderGeometry(0.665, 0.675, 0.17, 32, 1, true), lam(c2, { side: THREE.DoubleSide }), 0, 0.12, 0, hg);
+    [[0.55, 0.55, -0.3], [-0.45, 0.62, 0.2], [0.1, 0.78, 0.4], [-1.0, 0.16, -0.45], [0.95, 0.2, 0.6], [0.22, 0.28, -0.78], [-0.35, 0.95, -0.12], [0.72, 0.9, 0.1], [-0.62, 0.38, 0.66], [1.1, 0.34, -0.3], [0, 1.15, 0]].forEach(([x, y, z], i) => {
+      fxCard('twinkle', ['#ffffff', '#f5d0fe', '#c4b5fd'][i % 3], 0.55, 0.55, x, y, z, hg, twinkle(0.5 + (i % 3) * 0.12, i * 1.7, 1.7 + (i % 4) * 0.45));
+    });
+  } else if (L.s === 12) { // fiery horns (Bloxverse's own): two big curled horns, dark at the root and white-hot at the tip, ringed, with flames licking off the tips
+    const hornM = new THREE.MeshPhongMaterial({ vertexColors: true, shininess: 70, specular: '#6b3a1f', emissive: new THREE.Color(c2).multiplyScalar(L.gl ? 0.16 : 0.05) }), ring = metalMat('#3a2418', { shininess: 60 });
+    const tip = HORN_CURVE.getPointAt(1);
+    for (const s2 of [-1, 1]) {
+      const hg = new THREE.Group(); hg.scale.x = s2; head.add(hg);
+      mesh(hornGeo(c1, c2), hornM, 0, 0, 0, hg);
+      for (const u of [0.12, 0.22, 0.32]) { const p = HORN_CURVE.getPointAt(u), r = mesh(new THREE.TorusGeometry(hornR(u) + 0.008, 0.03, 6, 18), ring, p.x, p.y, p.z, hg); r.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), HORN_CURVE.getTangentAt(u)); }
+      for (const [dx, dy, w, h, ph] of [[0, 0.32, 0.62, 1.15, 0], [0.1, 0.2, 0.4, 0.75, 2.1], [-0.09, 0.17, 0.38, 0.68, 4.2]]) {
+        fxCard('flame', '#ffffff', w, h, s2 * (tip.x + dx), tip.y + dy, tip.z, head, (o, m, t) => { const f = 0.88 + 0.16 * Math.sin(t * 9 + ph) + 0.08 * Math.sin(t * 23 + ph * 2); o.scale.set(w * (1.08 - 0.12 * f), h * f, 1); o.position.y = tip.y + dy + h * (f - 1) * 0.5; });
+      }
+      fxCard('glow', c2, 0.75, 0.75, s2 * tip.x, tip.y, tip.z, head, (o, m, t) => { m.opacity = 0.55 + 0.25 * Math.sin(t * 7 + s2); });
+    }
+  }
   if (badge && L.e) { const b = mesh(new THREE.PlaneGeometry(0.42, 0.42), new THREE.MeshBasicMaterial({ map: emoTex(XEMO[L.e]), transparent: true }), 0, badge[0], badge[1] - 0.02, head); b.rotation.y = Math.PI; }
 }
 /* ---------------- made 3D items: parts put together, then placed on the body ----------------
@@ -3369,7 +3491,7 @@ function pvAvatar() {
   if (pv.a) { pv.scene.remove(pv.a.g); if (pv.a.pet) pv.scene.remove(pv.a.pet.g); }
   const ghost = accBuilding() && ED.acc.step === 'build';
   pv.a = ghost ? makeAvatar(XAV, '', true) : makeAvatar(pvArr(), '', true, pvAx()); scene.remove(pv.a.shadow); pv.scene.add(pv.a.g);
-  if (ghost) pv.a.g.traverse((o) => { if (o.isMesh) o.material = GHOST_MAT; }); // (building: a see-through body to build against)
+  if (ghost) pv.a.g.traverse((o) => { if (o.userData.fx) o.visible = false; else if (o.isMesh) o.material = GHOST_MAT; }); // (building: a see-through body to build against)
   if (pv.a.pet) { scene.remove(pv.a.pet.g); pv.a.pet.g.position.set(2.6, FLYING_PET[pv.a.pet.type] ? 3 : 0, 0.5); pv.a.pet.g.rotation.y = -0.5; pv.scene.add(pv.a.pet.g); }
   pvAccUpdate();
   $('#avZoom').hidden = !accBuilding();
@@ -4699,6 +4821,7 @@ window.__rb = { P, Net, cam, camera, scene, renderer, keys, EXPS, Meter, GFX, gf
   Social, Inv, ED, myId, myCode, fcOf, openEditor, closeEditor, socialScan, avPic, Market, OFFICIAL, xItem, ownsX, copiesOf, drawAvatarOpts, axArr,
   pvSel: () => (pv.selBox ? { inScene: pv.selBox.parent === pv.scene, r: pv.selBox.geometry.boundingSphere && pv.selBox.geometry.boundingSphere.radius, vis: pv.selBox.visible, n: pv.selBox.geometry.attributes.position.count, c: pv.selBox.geometry.attributes.position.array.slice(0, 6) } : null),
   pvGhost: () => { let g = false; if (pv.a) pv.a.g.traverse((o) => { if (o.isMesh && o.material === GHOST_MAT) g = true; }); return g; },
+  pvFx: () => { const n = [0, 0]; if (pv.a) pv.a.g.traverse((o) => { if (o.userData.fx) { n[0]++; if (o.visible) n[1]++; } }); return n; },
   pvPartScreen: (i) => { const m = pv.accG && pv.accG.children[0].children[i]; if (!m) return null; const v = new THREE.Vector3(); m.getWorldPosition(v); v.project(pv.cam); const r = $('#avPrev').getBoundingClientRect(); return [r.left + (v.x + 1) / 2 * r.width, r.top + (1 - v.y) / 2 * r.height]; }, get homeView() { return homeView; }, set homeView(v) { homeView = v; drawExps(); } }; // for tests
 if (!Net.api()) homeStatus('Open Bloxverse from 🕹️ Games in the chat to play online.');
 else {
