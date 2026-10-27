@@ -583,6 +583,13 @@
   .xpub h4{margin:0 0 4px;font:600 16px var(--fh)}
   .xform{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:8px 0}
   .xform label{display:flex;align-items:center;gap:8px;color:#cbd5e1;font:600 13px var(--fh)}
+  .xpubrow{display:flex;gap:14px;align-items:flex-start;margin-top:6px}.xpubf{flex:1;min-width:0}.xpubf .fsub{margin-top:6px}
+  .xcard.xprev{width:150px;flex:none;cursor:default;pointer-events:none}
+  .xicons{display:grid;grid-template-columns:repeat(auto-fill,minmax(38px,1fr));gap:5px}
+  .xicons button{height:38px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);font-size:20px;cursor:pointer;padding:0}
+  .xicons button.on{border-color:#facc15;background:rgba(250,204,21,.2);box-shadow:0 0 0 2px rgba(250,204,21,.35)}
+  .xperr{margin:8px 0 2px;padding:8px 10px;border-radius:10px;background:rgba(239,68,68,.14);border:1px solid rgba(239,68,68,.4);color:#fecaca;font-weight:600;font-size:13px}
+  @media (max-width:560px){.xpubrow{flex-direction:column;align-items:stretch}.xcard.xprev{width:auto;max-width:180px;align-self:center}}
   .pxwrap{display:flex;justify-content:center;margin:4px 0 8px}
   #pxCan{width:min(240px,70vw);height:auto;aspect-ratio:1;border-radius:12px;box-shadow:0 0 0 2px rgba(255,255,255,.15);touch-action:none;cursor:crosshair;image-rendering:pixelated}
   .sw.emo button{width:34px;height:34px;font-size:18px;background:rgba(255,255,255,.08)}
@@ -1121,17 +1128,20 @@ const XHATS = [['Top hat', '🎩'], ['Crown', '👑'], ['Cone', '🔺'], ['Cap',
 const XEMO = ['', '⭐', '❤️', '🔥', '💎', '⚡', '🌈', '💀', '🍀', '👁️', '🌙', '🎵'];
 const XKINDS = { h: ['Hat', '🎩'], pt: ['Shirt', '👕'], f: ['Face', '🙂'], acc: ['3D item', '🧩'] };
 const XSLOTS = ['h', 'pt', 'f'];
+// the icons an item can show in the catalog (you pick one when you publish it)
+const XICONS = ['⭐', '🔥', '💎', '👑', '🎩', '😎', '💀', '👻', '🎃', '🐉', '🦄', '🐱', '🐶', '🦊', '🌈', '⚡', '❄️', '🌸', '🍀', '🌙', '☀️', '✨', '💖', '🎮', '🎧', '⚔️', '🛡️', '🪽', '🚀', '🎁', '🏆', '🎲', '🍕', '🍩', '🎵', '🌊', '🍄', '🤖', '👽', '🧩'];
+const xNm = (I) => (I.ic ? I.ic + ' ' : '') + esc(I.nm); // (an item's name, with its icon)
 // Bloxverse's own limiteds: a stock of 2 each
 const OFFICIAL = [
-  { id: 'L1', nm: 'Golden Dominus', look: { s: 7, c: 5, d: 7, e: 0, gl: 1 }, price: 500 },
-  { id: 'L2', nm: 'Valkyrie Helm', look: { s: 10, c: 12, d: 8, e: 0, gl: 0 }, price: 750 },
-  { id: 'L3', nm: 'Sparkle Fedora', look: { s: 11, c: 9, d: 1, e: 0, gl: 1 }, price: 350 },
-  { id: 'L4', nm: 'Fiery Horns', look: { s: 12, c: 15, d: 4, e: 0, gl: 1 }, price: 1000 },
-  { id: 'L5', nm: 'Frost Dominus', look: { s: 7, c: 2, d: 8, e: 0, gl: 1, c1: '#bfe6ff', c2: '#38bdf8', eye: '#a5f3fc', trim: '#f2fbff' }, price: 2000 },
-  { id: 'L6', nm: 'Shadow Dominus', look: { s: 7, c: 1, d: 3, e: 0, gl: 1, c1: '#25232c', c2: '#ef4444', eye: '#ff3b3b', trim: '#9f1d1d' }, price: 2500 },
-  { id: 'L7', nm: 'Domino Crown', look: { s: 13, c: 1, d: 2, e: 0, gl: 1 }, price: 1500 },
-  { id: 'L8', nm: 'Gearwork Headphones', look: { s: 14, c: 2, d: 5, e: 0, gl: 0 }, price: 600 },
-  { id: 'L9', nm: "Jack-o'-Lantern", look: { s: 15, c: 4, d: 5, e: 0, gl: 1 }, price: 300 },
+  { id: 'L1', ic: '👑', nm: 'Golden Dominus', look: { s: 7, c: 5, d: 7, e: 0, gl: 1 }, price: 500 },
+  { id: 'L2', ic: '🪽', nm: 'Valkyrie Helm', look: { s: 10, c: 12, d: 8, e: 0, gl: 0 }, price: 750 },
+  { id: 'L3', ic: '✨', nm: 'Sparkle Fedora', look: { s: 11, c: 9, d: 1, e: 0, gl: 1 }, price: 350 },
+  { id: 'L4', ic: '🔥', nm: 'Fiery Horns', look: { s: 12, c: 15, d: 4, e: 0, gl: 1 }, price: 1000 },
+  { id: 'L5', ic: '❄️', nm: 'Frost Dominus', look: { s: 7, c: 2, d: 8, e: 0, gl: 1, c1: '#bfe6ff', c2: '#38bdf8', eye: '#a5f3fc', trim: '#f2fbff' }, price: 2000 },
+  { id: 'L6', ic: '💀', nm: 'Shadow Dominus', look: { s: 7, c: 1, d: 3, e: 0, gl: 1, c1: '#25232c', c2: '#ef4444', eye: '#ff3b3b', trim: '#9f1d1d' }, price: 2500 },
+  { id: 'L7', ic: '🎲', nm: 'Domino Crown', look: { s: 13, c: 1, d: 2, e: 0, gl: 1 }, price: 1500 },
+  { id: 'L8', ic: '🎧', nm: 'Gearwork Headphones', look: { s: 14, c: 2, d: 5, e: 0, gl: 0 }, price: 600 },
+  { id: 'L9', ic: '🎃', nm: "Jack-o'-Lantern", look: { s: 15, c: 4, d: 5, e: 0, gl: 1 }, price: 300 },
 ].map((I) => Object.assign({ k: 'h', by: '', byNm: 'Bloxverse', lim: 2, pub: true, at: 0, off: true }, I)); // (shapes 10 to 15, and c1, c2, eye and trim, are only for these)
 // [hat, shirt, face, …3D items]: what someone wears on top of their avatar (ids)
 const okAx = (a) => {
@@ -2316,7 +2326,7 @@ function loadAvFrom(d) {
   W.fr = frFrom(d.fr); W.who = typeof d.who === 'string' ? d.who : ''; // (who: whose save it is — a shared computer keeps one for everyone)
   W.fits = Array.from({ length: 6 }, (_, i) => (Array.isArray(d.fits) && Array.isArray(d.fits[i]) ? okAv(d.fits[i]) : null));
   W.made = {};
-  if (d.made && typeof d.made === 'object') for (const id of Object.keys(d.made).slice(0, 60)) { const M = d.made[id]; if (!/^u[a-z0-9]{6,16}$/.test(id) || !M || !Object.prototype.hasOwnProperty.call(XKINDS, M.k)) continue; const look = okLook(M.k, M.look); if (look) W.made[id] = { nm: xName(M.nm), k: M.k, look, at: +M.at || 0, pub: !!M.pub }; }
+  if (d.made && typeof d.made === 'object') for (const id of Object.keys(d.made).slice(0, 60)) { const M = d.made[id]; if (!/^u[a-z0-9]{6,16}$/.test(id) || !M || !Object.prototype.hasOwnProperty.call(XKINDS, M.k)) continue; const look = okLook(M.k, M.look); if (look) W.made[id] = { nm: xName(M.nm), k: M.k, look, at: +M.at || 0, pub: !!M.pub, ic: XICONS.includes(M.ic) ? M.ic : '' }; }
   W.xown = Array.isArray(d.xown) ? d.xown.filter((x) => typeof x === 'string' && /^[A-Za-z0-9]{1,20}$/.test(x)).slice(0, 300) : [];
   { const w = okAx(d.wear ? [d.wear.h, d.wear.pt, d.wear.f].concat(Array.isArray(d.wear.acc) ? d.wear.acc.slice(0, ACC_WEAR) : []) : []); W.wear = { h: w[0], pt: w[1], f: w[2], acc: w.slice(3), hx: [] }; }
   if (d.wear && Array.isArray(d.wear.hx)) for (const r of d.wear.hx) if (typeof r === 'string' && /^[A-Za-z0-9]{1,20}$/.test(r) && !hatsOn().includes(r) && hatsOn().length < HAT_MAX && (!isShopHat(r) || (+r.slice(1) > 0 && +r.slice(1) < HATS.length && owns('h', +r.slice(1))))) W.wear.hx.push(r);
@@ -3423,7 +3433,7 @@ $('#avOpts').onclick = (e) => {
   drawAvatarOpts(); pvAvatar(); saveAv(); drawMe();
 };
 $('#avOpts').oninput = (e) => { const t = e.target; if (t.id === 'mkName') ED.draft.nm = t.value; else if (t.dataset && (t.dataset.ap || t.dataset.pl)) builderInput(t); else if (t.dataset && t.dataset.v) ED[t.dataset.v] = t.value; };
-$('#avOpts').addEventListener('change', (e) => { if (e.target.dataset && (e.target.dataset.ap || e.target.dataset.pl)) { ED.acc.dragging = false; drawAvatarOpts(); } });
+$('#avOpts').addEventListener('change', (e) => { const d = e.target.dataset || {}; if (d.ap || d.pl) { ED.acc.dragging = false; drawAvatarOpts(); } else if (d.v === 'pubPrice' || d.v === 'pubStock') { ED.pubErr = ''; drawAvatarOpts(); } });
 $('#avOpts').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.dataset && e.target.dataset.go) { e.preventDefault(); const b = $('#' + e.target.dataset.go); if (b && !b.disabled) b.click(); } });
 // over the avatar in the editor: what you're only trying on, and buying it all at once
 function drawTry() {
@@ -4015,7 +4025,7 @@ const xid = () => Math.random().toString(36).slice(2, 8) + Date.now().toString(3
 function okItem(id, d) {
   if (!/^u[a-z0-9]{6,16}$/.test(id) || !d || typeof d !== 'object' || !Object.prototype.hasOwnProperty.call(XKINDS, d.k)) return null;
   const look = okLook(d.k, d.look); if (!look) return null;
-  return { id, nm: xName(d.nm), k: d.k, look, by: typeof d.by === 'string' ? d.by.slice(0, 200) : '', byNm: cleanName(d.byNm), price: clamp(Math.floor(+d.price || 0), 0, 1e6), lim: clamp(Math.floor(+d.lim || 0), 0, 100), pub: !!d.pub, at: +d.at || 0 };
+  return { id, nm: xName(d.nm), k: d.k, look, by: typeof d.by === 'string' ? d.by.slice(0, 200) : '', byNm: cleanName(d.byNm), price: clamp(Math.floor(+d.price || 0), 0, 1e6), lim: clamp(Math.floor(+d.lim || 0), 0, 100), pub: !!d.pub, at: +d.at || 0, ic: XICONS.includes(d.ic) ? d.ic : '' };
 }
 function okCopy(key, d) {
   const m = /^([A-Za-z0-9]{1,20})~(\d{1,3})$/.exec(key);
@@ -4318,22 +4328,24 @@ function createItem() {
   if (k !== 'acc') W.wear[k] = id; else if ((W.wear.acc || []).length < ACC_WEAR) (W.wear.acc = W.wear.acc || []).push(id);
   saveAv(); quest('bv.create'); sfx('unlock');
   if (Market.db) Market.db.doc('items/' + id).set({ nm, k, look, by: myId(), byNm: Net.name, price: 0, lim: 0, pub: false, at: Date.now() }).catch(() => {});
-  ED.mode = 'wear'; avTab = 'mine'; ED.pub = id; ED.note = `✨ You made <b>${esc(nm)}</b> and you're wearing it! Publish it to sell it in the catalog.`;
+  ED.mode = 'wear'; avTab = 'mine'; pubOpen(id); ED.note = `✨ You made <b>${esc(nm)}</b> and you're wearing it! Publish it to sell it in the catalog.`;
   drawAvatarOpts(); pvAvatar(); drawMe();
 }
+function pubOpen(id) { const M = W.made[id]; Object.assign(ED, { pub: id, pubPrice: '100', pubLim: false, pubStock: '10', pubIc: (M && M.ic) || '⭐', pubErr: '', pubBusy: false, note: '' }); }
 async function publishItem(id) {
-  const M = W.made[id], db = Market.db;
-  if (!M || M.pub) return;
-  if (!db) { say2('Publishing needs Bloxverse’s shared catalog, which this view doesn’t have.'); return; }
-  const price = Math.floor(+ED.pubPrice), lim = ED.pubLim ? Math.floor(+ED.pubStock) : 0;
-  if (!(price >= 0 && price <= 1e6)) { say2('Pick a price from 0 to 1,000,000 Blox Coins.'); return; }
-  if (ED.pubLim && !(lim >= 1 && lim <= 100)) { say2('A limited’s stock is from 1 to 100 copies.'); return; }
-  if (W.coins < PUB_COST) { say2(`Publishing costs ${PUB_COST} Blox Coins.`); return; }
-  W.coins -= PUB_COST; M.pub = true; saveAv();
+  const M = W.made[id], db = Market.db, err = (t) => { ED.pubErr = t; sfx('error'); drawAvatarOpts(); };
+  if (!M || M.pub || ED.pubBusy) return;
+  if (!db) return err('Publishing needs Bloxverse’s shared catalog, which this view doesn’t have.');
+  const num = (v, d) => { const t = String(v == null ? d : v).trim(); return t === '' ? NaN : Math.floor(+t); };
+  const price = num(ED.pubPrice, 100), lim = ED.pubLim ? num(ED.pubStock, 10) : 0, ic = XICONS.includes(ED.pubIc) ? ED.pubIc : '⭐';
+  if (!(price >= 0 && price <= 1e6)) return err('Pick a price from 0 (free) to 1,000,000 Blox Coins.');
+  if (ED.pubLim && !(lim >= 1 && lim <= 100)) return err('A limited has 1 to 100 copies.');
+  if (W.coins < PUB_COST) return err(`Publishing costs ${PUB_COST} Blox Coins — you need ${PUB_COST - W.coins} more.`);
+  W.coins -= PUB_COST; M.pub = true; M.ic = ic; ED.pubBusy = true; ED.pubErr = ''; saveAv(); drawAvatarOpts();
   try {
-    await db.doc('items/' + id).set({ nm: M.nm, k: M.k, look: M.look, by: myId(), byNm: Net.name, price, lim, pub: true, at: Date.now() });
-    sfx('unlock'); ED.pub = ''; ED.note = `📣 <b>${esc(M.nm)}</b> is in the catalog${lim ? ` as a LIMITED (${lim} cop${lim === 1 ? 'y' : 'ies'})` : ''} for ${price ? price.toLocaleString('en-US') + ' Blox Coins' : 'free'}. You get the coins every time someone buys it.`;
-  } catch (e) { W.coins += PUB_COST; M.pub = false; saveAv(); ED.note = '⚠️ That didn’t go through — try again.'; }
+    await db.doc('items/' + id).set({ nm: M.nm, k: M.k, look: M.look, by: myId(), byNm: Net.name, price, lim, pub: true, at: Date.now(), ic });
+    sfx('unlock'); ED.pub = ''; ED.pubBusy = false; toast(`📣 ${ic} ${M.nm} is in the catalog!`, '#fde68a'); ED.note = `📣 <b>${esc(M.nm)}</b> is in the catalog${lim ? ` as a LIMITED (${lim} cop${lim === 1 ? 'y' : 'ies'})` : ''} for ${price ? price.toLocaleString('en-US') + ' Blox Coins' : 'free'}. You get the coins every time someone buys it.`;
+  } catch (e) { W.coins += PUB_COST; M.pub = false; ED.pubBusy = false; saveAv(); ED.pubErr = '⚠️ That didn’t go through — your coins are back. Try again.'; }
   drawAvatarOpts(); drawMe();
 }
 
@@ -4345,7 +4357,7 @@ function catalogHtml() {
   const cats = [['all', '🛍️ All'], ['lim', '⭐ Limited'], ['acc', '🧩 3D items'], ['h', '🎩 Hats'], ['pt', '👕 Shirts'], ['f', '🙂 Faces']];
   const list = all.filter((I) => ED.cat === 'all' || (ED.cat === 'lim' ? I.lim : I.k === ED.cat));
   return `<div class="xchips" style="margin-bottom:10px">${cats.map(([k, l]) => `<button class="xchip${ED.cat === k ? ' on' : ''}" data-xcat="${k}">${l}</button>`).join('')}</div>
-    <div class="xgrid">${list.map((I) => `<button class="xcard${I.lim ? ' lim' : ''}" data-xview="${esc(I.id)}"><img src="${xPic(I)}" alt="">${I.lim ? '<span class="xbadge">⭐ LIMITED</span>' : ''}<b>${esc(I.nm)}</b><small>by ${esc(I.byNm)}</small>${xPriceTag(I)}</button>`).join('') || '<div class="fempty">Nothing here yet — make something in ✏️ Create!</div>'}</div>`;
+    <div class="xgrid">${list.map((I) => `<button class="xcard${I.lim ? ' lim' : ''}" data-xview="${esc(I.id)}"><img src="${xPic(I)}" alt="">${I.lim ? '<span class="xbadge">⭐ LIMITED</span>' : ''}<b>${xNm(I)}</b><small>by ${esc(I.byNm)}</small>${xPriceTag(I)}</button>`).join('') || '<div class="fempty">Nothing here yet — make something in ✏️ Create!</div>'}</div>`;
 }
 function xPriceTag(I) {
   if (ownsX(I.id) && !I.lim) return '<span class="pr own">✓ Owned</span>';
@@ -4359,7 +4371,7 @@ function itemHtml(I) {
   const cs = copiesOf(I.id), mine = cs.filter((c) => c.owner === myId()), left = stockLeft(I), owned = ownsX(I.id);
   const sales = cs.filter((c) => c.sale && c.owner !== myId()).sort((a, b) => a.sale - b.sale), trying = ED.tryX[I.k] === I.id, wearing = isWearing(I);
   let h = `<button class="back" data-xview="">← Catalog</button>
-    <div class="xdet"><img src="${xPic(I)}" alt=""><div><h3>${esc(I.nm)}</h3><small>${XKINDS[I.k][1]} ${XKINDS[I.k][0]} · by ${esc(I.byNm)}</small>
+    <div class="xdet"><img src="${xPic(I)}" alt=""><div><h3>${xNm(I)}</h3><small>${XKINDS[I.k][1]} ${XKINDS[I.k][0]} · by ${esc(I.byNm)}</small>
     ${I.lim ? `<div class="xlim">⭐ LIMITED · ${left > 0 ? `${left} of ${I.lim} left` : 'SOLD OUT'}</div>` : ''}
     <div class="xprice"><span class="coin"></span>${I.price ? I.price.toLocaleString('en-US') : 'Free'}</div></div></div>
     <div class="pbtns">${owned ? `<button class="xp-btn ${wearing ? 'alt' : ''}" data-xwear="${esc(I.id)}">${wearing ? 'Take off' : '👕 Wear'}</button>` : `<button class="xp-btn alt" data-xtry="${esc(I.id)}">${trying ? 'Take off' : '👀 Try on'}</button>`}
@@ -4380,7 +4392,7 @@ function itemHtml(I) {
 function mineHtml() {
   const made = Object.keys(W.made).map(xItem).filter(Boolean), bought = W.xown.map(xItem).filter((I) => I && !W.made[I.id]);
   const lims = [...new Set(copiesOwnedBy(myId()).map((c) => c.item))].map(xItem).filter((I) => I && !W.made[I.id]);
-  const card = (I, tag, extra) => `<div class="xmine${isWearing(I) ? ' on' : ''}"><button class="xcard" data-xwear="${esc(I.id)}" title="${isWearing(I) ? 'Take it off' : 'Wear it'}"><img src="${xPic(I)}" alt=""><b>${esc(I.nm)}</b><small>${tag}</small><span class="pr ${isWearing(I) ? 'own' : ''}">${isWearing(I) ? '✓ Wearing' : 'Wear'}</span></button>${extra || ''}</div>`;
+  const card = (I, tag, extra) => `<div class="xmine${isWearing(I) ? ' on' : ''}"><button class="xcard" data-xwear="${esc(I.id)}" title="${isWearing(I) ? 'Take it off' : 'Wear it'}"><img src="${xPic(I)}" alt=""><b>${xNm(I)}</b><small>${tag}</small><span class="pr ${isWearing(I) ? 'own' : ''}">${isWearing(I) ? '✓ Wearing' : 'Wear'}</span></button>${extra || ''}</div>`;
   let h = '';
   if (ED.pub && W.made[ED.pub] && !W.made[ED.pub].pub) h += publishHtml(ED.pub);
   h += `<button class="xp-btn teal" data-goinv="1" style="width:100%;margin-bottom:10px">🎒 Open your whole inventory</button>`;
@@ -4391,12 +4403,19 @@ function mineHtml() {
   return h;
 }
 function publishHtml(id) {
-  const M = W.made[id], lim = !!ED.pubLim;
-  return `<div class="xpub"><h4>📣 Publish “${esc(M.nm)}”</h4><p class="xp-note">It goes in the 🛍️ Catalog for everyone. Publishing costs <b>${PUB_COST}</b> Blox Coins; you get the price every time someone buys it.</p>
-    <div class="xform"><label>Price<span class="xsearch xin"><span class="coin sm"></span><input type="number" min="0" max="1000000" id="pubPrice" data-v="pubPrice" data-go="pubGo" value="${esc(ED.pubPrice != null ? ED.pubPrice : 100)}"></span></label>
-    <div class="xchips"><button class="xchip${lim ? '' : ' on'}" data-xlim="0">For sale for good</button><button class="xchip${lim ? ' on' : ''}" data-xlim="1">⭐ Limited</button></div>
-    ${lim ? `<label>Copies<span class="xsearch xin"><input type="number" min="1" max="100" id="pubStock" data-v="pubStock" data-go="pubGo" value="${esc(ED.pubStock != null ? ED.pubStock : 10)}"></span></label>` : ''}</div>
-    <div class="pbtns"><button class="xp-btn gold" id="pubGo" data-xpubgo="${esc(id)}" ${W.coins < PUB_COST ? 'disabled' : ''}>📣 Publish · ${PUB_COST}</button><button class="xp-btn alt" data-xpubx="1">Not now</button></div></div>`;
+  const I = xItem(id), lim = !!ED.pubLim, ic = ED.pubIc || '⭐', short = W.coins < PUB_COST;
+  const chips = (attr, vals, cur, fmt) => vals.map((v) => `<button class="xchip${String(cur) === String(v) ? ' on' : ''}" data-${attr}="${v}">${fmt(v)}</button>`).join('');
+  const p = Math.floor(+ED.pubPrice), shown = String(ED.pubPrice).trim() === '' || !(p >= 0) ? '…' : p ? `<span class="coin sm"></span> ${p.toLocaleString('en-US')}` : 'Free';
+  return `<div class="xpub"><h4>📣 Publish “${esc(I.nm)}”</h4><p class="xp-note">It goes in the 🛍️ Catalog for everyone. Publishing costs <b>${PUB_COST}</b> Blox Coins; you get the price every time someone buys it.</p>
+    <div class="xpubrow"><div class="xcard xprev${lim ? ' lim' : ''}"><img src="${xPic(I)}" alt="">${lim ? '<span class="xbadge">⭐ LIMITED</span>' : ''}<b>${ic} ${esc(I.nm)}</b><small>by you</small><span class="pr">${shown}${lim ? ` · ${esc(ED.pubStock)} copies` : ''}</span></div>
+    <div class="xpubf"><div class="fsub">1 · Its icon</div><div class="xicons">${XICONS.map((e) => `<button class="${e === ic ? 'on' : ''}" data-xpic="${e}" title="Use ${e}">${e}</button>`).join('')}</div>
+    <div class="fsub">2 · Its price</div><div class="xform"><span class="xsearch xin"><span class="coin sm"></span><input type="number" min="0" max="1000000" id="pubPrice" data-v="pubPrice" data-go="pubGo" value="${esc(ED.pubPrice)}" placeholder="Price"></span></div>
+    <div class="xchips">${chips('xpprice', [0, 25, 50, 100, 250, 500, 1000, 5000], ED.pubPrice, (v) => (v ? v.toLocaleString('en-US') : 'Free'))}</div>
+    <div class="fsub">3 · How it sells</div><div class="xchips"><button class="xchip${lim ? '' : ' on'}" data-xlim="0">♾️ For sale for good</button><button class="xchip${lim ? ' on' : ''}" data-xlim="1">⭐ Limited</button></div>
+    ${lim ? `<div class="xform"><label>Copies<span class="xsearch xin"><input type="number" min="1" max="100" id="pubStock" data-v="pubStock" data-go="pubGo" value="${esc(ED.pubStock)}"></span></label></div><div class="xchips">${chips('xpstock', [1, 2, 5, 10, 25, 100], ED.pubStock, (v) => v)}</div>` : ''}
+    </div></div>
+    ${ED.pubErr ? `<div class="xperr">${ED.pubErr}</div>` : ''}
+    <div class="pbtns"><button class="xp-btn gold" id="pubGo" data-xpubgo="${esc(id)}" ${short || ED.pubBusy ? 'disabled' : ''}>${ED.pubBusy ? '⏳ Publishing…' : short ? `Need ${PUB_COST - W.coins} more Blox Coins` : `📣 Publish · ${PUB_COST}`}</button><button class="xp-btn alt" data-xpubx="1">Not now</button></div></div>`;
 }
 // ✏️ Create
 function makerHtml() {
@@ -4456,10 +4475,13 @@ function marketClick(b) {
   else if (d.xresale) { buyCopy(d.xresale); return true; }
   else if (d.xsell) { sellCopy(d.xsell, ED['sell_' + d.xsell]); return true; }
   else if (d.xunsell) { sellCopy(d.xunsell, 0); return true; }
-  else if (d.xpub) { ED.pub = d.xpub; ED.note = ''; }
+  else if (d.xpub) { pubOpen(d.xpub); }
+  else if (d.xpic) { if (XICONS.includes(d.xpic)) ED.pubIc = d.xpic; sfx('click'); }
+  else if (d.xpprice != null) { ED.pubPrice = d.xpprice; ED.pubErr = ''; }
+  else if (d.xpstock) { ED.pubStock = d.xpstock; ED.pubErr = ''; }
   else if (d.goinv) { closeEditor(); goView('inv'); return true; }
   else if (d.xpubx) { ED.pub = ''; }
-  else if (d.xlim) { ED.pubLim = d.xlim === '1'; }
+  else if (d.xlim) { ED.pubLim = d.xlim === '1'; ED.pubErr = ''; }
   else if (d.xpubgo) { publishItem(d.xpubgo); return true; }
   else if (d.mk) { D.k = d.mk; sfx('click'); pvAvatar(); }
   else if (d.mks) { D.h.s = +d.mks; pvAvatar(); }
@@ -4517,7 +4539,7 @@ function invPage(again) {
       + (e.made && !e.I.pub ? `<button class="xp-btn gold" data-ipub="${esc(e.I.id)}">📣 Publish</button>` : '')
       + (e.I && e.I.pub && !e.lim ? `<button class="xp-btn alt" data-iopen="${esc(e.I.id)}">🛍️</button>` : '')
       + (e.back ? `<button class="xp-btn ${INV.ask === e.key ? 'gold' : 'alt'}" data-irefund="${esc(e.key)}" title="Refund it: get ${REFUND * 100}% of what you paid back (${e.back.toLocaleString('en-US')} Blox Coins)">${INV.ask === e.key ? `Sure? +${e.back.toLocaleString('en-US')}` : '↩️ Refund'}</button>` : '');
-    return `<div class="icard${e.worn ? ' on' : ''}${e.lim ? ' lim' : ''}">${e.lim ? '<span class="xbadge">⭐ LIMITED</span>' : ''}${pic}<b>${esc(e.nm)}</b><small>${esc(e.tag)}</small>${e.value ? `<span class="pr"><span class="coin sm"></span> ${e.value.toLocaleString('en-US')}</span>` : ''}<div class="iacts">${act}</div></div>`;
+    return `<div class="icard${e.worn ? ' on' : ''}${e.lim ? ' lim' : ''}">${e.lim ? '<span class="xbadge">⭐ LIMITED</span>' : ''}${pic}<b>${e.I ? xNm(e.I) : esc(e.nm)}</b><small>${esc(e.tag)}</small>${e.value ? `<span class="pr"><span class="coin sm"></span> ${e.value.toLocaleString('en-US')}</span>` : ''}<div class="iacts">${act}</div></div>`;
   };
   const counts = Object.fromEntries(INV_CATS.map(([k]) => [k, all.filter((e) => has(e, k)).length]));
   return `<div class="edetail social inv"><button class="back" id="backBtn">${backLabel()}</button>
@@ -4546,7 +4568,7 @@ function invClick(b) {
     }
     else wearX(k.slice(2).split('~')[0]);
   } else if (d.iopen) { openEditor('shop', d.iopen); return true; }
-  else if (d.ipub) { avTab = 'mine'; ED.pub = d.ipub; openEditor('wear'); return true; }
+  else if (d.ipub) { avTab = 'mine'; openEditor('wear'); pubOpen(d.ipub); drawAvatarOpts(); return true; } // (after opening: opening clears the form)
   else if (d.iedit) { openEditor(); return true; }
   else if (d.ishop) { openEditor('shop'); return true; }
   else if (d.imake) { openEditor('make'); return true; }
@@ -4857,11 +4879,11 @@ function hostStep(dt) {
 // a game's code going wrong mustn't stop the world (the camera, your character, the Leave button): it's reported once
 const oopsSeen = new Set();
 function oops(where, e) { const k = where + ':' + (e && e.message); if (oopsSeen.has(k)) return; oopsSeen.add(k); console.error(`Bloxverse ${exp ? exp.id : ''} ${where}:`, e); }
-function frame(t) {
-  requestAnimationFrame(frame);
-  const dt = Math.min(0.1, (t - last) / 1000); last = t; // physics takes small steps, so a slow frame still moves at the right speed
+function frame(t, bg) { // (bg: a step while the game's off screen — nothing is drawn)
+  if (!bg) { requestAnimationFrame(frame); rafAt = performance.now(); }
+  const dt = clamp((t - last) / 1000, 0, 0.1); last = Math.max(last, t); // physics takes small steps, so a slow frame still moves at the right speed
   musicTick(dt);
-  if (!playing) { if (!$('#home').hidden) pvDraw(t); return; }
+  if (!playing) { if (!$('#home').hidden && !bg) pvDraw(t); return; }
   const T = now();
   updateParts(T, dt);
   // riding a moving platform
@@ -4915,11 +4937,26 @@ function frame(t) {
   }
   netTick(t);
   if (t - (Trade.tickAt || 0) > 200) { Trade.tickAt = t; tradeTick(); }
-  meterTick(t);
+  if (!bg) meterTick(t); // (off screen there's no frame rate to count)
   if (t > hudAt) { hudAt = t + 200; try { drawHud(); } catch (e) { oops('hud', e); } }
   if (typeof scenery === 'function' && scenery.tick) scenery.tick(dt); // the land all round: clouds drift, far-off land isn't drawn
+  if (bg) return;
   gfxTick(t, dt);
   if (!fullOpen()) renderer.render(scene, camera); // a full-screen menu hides the world: skip drawing it
+}
+// leaving the screen doesn't pause the game: a browser stops sending frames to a hidden tab or window (or a game
+// scrolled out of sight), so a worker's timer — which it doesn't hold back — steps the game on, without drawing it,
+// until frames come again. You keep playing for everyone else, a host keeps running the game, tycoons keep earning.
+let rafAt = performance.now();
+function bgTick() {
+  const n = performance.now();
+  if (n - rafAt < 300) return; // (frames are coming)
+  for (let k = 0; k < 300 && n - last > 1; k++) frame(Math.min(n, last + 100), true); // (0.1 s a step; up to 30 s at once)
+  last = Math.max(last, n);
+}
+{
+  const plain = () => { if (!bgTick.iv) bgTick.iv = setInterval(bgTick, 100); }; // (no worker allowed: an ordinary timer, which a hidden page gets less often)
+  try { const w = new Worker(URL.createObjectURL(new Blob(['setInterval(() => postMessage(0), 50)'], { type: 'text/javascript' }))); w.onmessage = bgTick; w.onerror = plain; } catch (e) { plain(); }
 }
 let camD = 20, camClipAt = -1e9, camLastDist = 0;
 function camRoom(ox, oy, oz, dx, dy, dz, max) {
@@ -4958,6 +4995,7 @@ window.__rb = { P, Net, cam, camera, scene, renderer, keys, EXPS, Meter, GFX, gf
   pvSel: () => (pv.selBox ? { inScene: pv.selBox.parent === pv.scene, r: pv.selBox.geometry.boundingSphere && pv.selBox.geometry.boundingSphere.radius, vis: pv.selBox.visible, n: pv.selBox.geometry.attributes.position.count, c: pv.selBox.geometry.attributes.position.array.slice(0, 6) } : null),
   pvGhost: () => { let g = false; if (pv.a) pv.a.g.traverse((o) => { if (o.isMesh && o.material === GHOST_MAT) g = true; }); return g; },
   hatsOn, toggleHat, refundOf, refund, xLooks,
+  bg: () => ({ rafAt, last, worker: !bgTick.iv }), pubOpen,
   pvFx: () => { const n = [0, 0]; if (pv.a) pv.a.g.traverse((o) => { if (o.userData.fx) { n[0]++; if (o.visible) n[1]++; } }); return n; },
   pvPartScreen: (i) => { const m = pv.accG && pv.accG.children[0].children[i]; if (!m) return null; const v = new THREE.Vector3(); m.getWorldPosition(v); v.project(pv.cam); const r = $('#avPrev').getBoundingClientRect(); return [r.left + (v.x + 1) / 2 * r.width, r.top + (1 - v.y) / 2 * r.height]; }, get homeView() { return homeView; }, set homeView(v) { homeView = v; drawExps(); } }; // for tests
 if (!Net.api()) homeStatus('Open Bloxverse from 🕹️ Games in the chat to play online.');
