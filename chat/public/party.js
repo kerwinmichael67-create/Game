@@ -115,6 +115,9 @@
     if (frame && frame.id === id) { frame.min = false; syncFrame(); return; }
     closeFrame();
     const iframe = h('iframe', { class: 'frame-game', src: g.frame + (window.GAMES_V ? '?v=' + window.GAMES_V : ''), title: g.name, allow: 'autoplay; fullscreen; pointer-lock; clipboard-write' });
+    // (GAMES_V: the build's fingerprint of the games, so an update isn't served from the browser's cache; if the page
+    // comes back without the game, a host that won't take ?v=, it opens the plain address instead)
+    if (window.GAMES_V) iframe.addEventListener('load', () => { try { const d = iframe.contentDocument; if (d && !d.querySelector('script')) iframe.src = g.frame; } catch (e) {} }, { once: true });
     const el = h('section', { id: 'frameView', class: 'frame-view' },
       h('header', { class: 'frame-head' }, h('span', { class: 'party-title' }, `${g.emoji} ${g.name}`), h('span', { class: 'grow' }),
         window.GameDock ? window.GameDock.soundButton() : '',
