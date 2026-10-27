@@ -456,7 +456,10 @@
       const g = this.g = roundState(this), mine = myPeer();
       this.cd = Math.max(0, this.cd - dt); this.swingT = Math.max(0, (this.swingT || 0) - dt);
       const alive = this.alive();
-      if (g && g.ph === 'play' && g.rd !== this.rd) { this.rd = g.rd; this.wasAlive = alive; this.hd = ''; send({ hd: '' }); this.coinsGot = 0; respawn(); this.showRole(g.roles[mine]); }
+      if (g && g.ph === 'play' && g.rd !== this.rd) { this.rd = g.rd; this.inRd = alive; this.wasAlive = alive; this.hd = ''; send({ hd: '' }); this.coinsGot = 0; respawn(); this.showRole(g.roles[mine]); }
+      // (the same round can reach you twice as a server starts — two hosts for a moment, each starting round 1 — and
+      // the one that sticks has you in it: off the lobby and into the house)
+      else if (g && g.ph === 'play' && alive && !this.inRd && !P.dead) { this.inRd = true; this.wasAlive = true; respawn(); this.showRole(g.roles[mine]); }
       if (g && g.ph === 'count') { const c = Math.ceil(g.left); if (c !== this.cdS && c <= 5) sfx('count'); this.cdS = c; } else this.cdS = null;
       if (g && this.evN == null) this.evN = Math.max(0, ...(g.ev || []).map((e) => e[0]));
       for (const e of (g && g.ev) || []) {
