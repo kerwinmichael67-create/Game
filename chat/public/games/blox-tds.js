@@ -129,6 +129,10 @@
       this.drawBar();
     },
     spawn() { return [(Math.random() - 0.5) * 20, 0.5, 62, 0]; },
+    // ------------------------------------------------ pausing (anyone can, between and during waves; anyone can carry on)
+    canPause() { const g = this.g; return !!g && (g.ph === 'break' || g.ph === 'wave'); },
+    pausedBy() { const g = this.g; return this.canPause() && typeof g.pz === 'string' ? g.pz : ''; },
+    setPause(on) { this.ask('pz', on ? 1 : 0); },
     // ------------------------------------------------ asking the host
     ask(op, ...args) {
       if (iAmHost() && this.H) return this.apply(myPeer(), [op, ...args]);
@@ -145,7 +149,7 @@
       // the host left: carry on from what everyone last saw
       const e = []; const es = typeof g.e === 'string' ? g.e : '';
       for (let i = 0; i + 6 < es.length + 1; i += 7) { const t = AL.indexOf(es[i]), id = d2(es, i + 1), s = d2(es, i + 3) / 4, hpF = AL.indexOf(es[i + 5]) / 63; if (EN[t]) e.push({ id, t, s, hp: Math.max(1, hpF * this.hpOf(t, g.wave, g.diff)), max: this.hpOf(t, g.wave, g.diff), slow: 0, slowT: 0 }); }
-      return { ph: g.ph, left: +g.left || 5, gs: g.gs || 0, diff: g.diff, wave: g.wave | 0, hp: +g.hp || 1, e, tw: (g.tw || []).map((w) => ({ id: w[0], o: w[1], t: w[2], x: w[3], z: w[4], lvl: w[5], tg: w[6] || 0, cd: 0 })), cash: Object.assign({}, g.cash || {}), pl: (g.pl || []).slice(), nid: 1 + Math.max(0, ...e.map((x) => x.id)), tid: 1 + Math.max(0, ...(g.tw || []).map((w) => w[0])), q: [], spawnT: 0, fx: [], res: g.res || '' };
+      return { pz: typeof g.pz === 'string' ? g.pz : '', ph: g.ph, left: +g.left || 5, gs: g.gs || 0, diff: g.diff, wave: g.wave | 0, hp: +g.hp || 1, e, tw: (g.tw || []).map((w) => ({ id: w[0], o: w[1], t: w[2], x: w[3], z: w[4], lvl: w[5], tg: w[6] || 0, cd: 0 })), cash: Object.assign({}, g.cash || {}), pl: (g.pl || []).slice(), nid: 1 + Math.max(0, ...e.map((x) => x.id)), tid: 1 + Math.max(0, ...(g.tw || []).map((w) => w[0])), q: [], spawnT: 0, fx: [], res: g.res || '' };
     },
     hpOf(t, wave, diff) { return EN[t].hp * (1 + (wave - 1) * 0.12) * (DIFF[diff] || DIFF.normal).hp * (EN[t].boss ? 1 + wave * 0.05 : 1); },
     chest(p) { return (p.me ? hasItem('chest') : p.pr && p.pr.wc === 1) ? 300 : 0; }, // a War Chest: more cash to start with
@@ -166,6 +170,7 @@
         H.cash[peer] = cash + Math.floor((H.tw[i].spent || TW[H.tw[i].t].price) / 3); H.tw.splice(i, 1);
       } else if (op === 'tgt') { const w = H.tw.find((q) => q.id === a[0]); if (w && w.o === oi) w.tg = (a[1] | 0) % 4; }
       else if (op === 'skip') { if (H.ph === 'break') H.skip = (H.skip || new Set()).add(peer); }
+      else if (op === 'pz') { if (H.ph === 'break' || H.ph === 'wave') H.pz = a[0] ? peer : ''; }
       else if (op === 'bonus' && H.ph !== 'end') H.cash[peer] = cash + 250; // 💸 from the shop
       else if (op === 'heal' && H.ph !== 'end') H.hp = Math.min((DIFF[H.diff] || DIFF.normal).base, H.hp + 50);
     },
@@ -180,7 +185,6 @@
       // real time, not the frame's step (that's capped, so a slow computer would slow the game down for everyone)
       const t = performance.now(); dt = this.hostT && t - this.hostT < 2000 ? (t - this.hostT) / 1000 : dt; this.hostT = t;
       const H = this.H, pl = players(), here = new Set(pl.map((p) => p.peer));
-      H.left = Math.max(0, H.left - dt);
       // requests from everyone
       for (const p of pl) {
         if (p.me) continue;
@@ -189,6 +193,9 @@
         for (const r of Array.isArray(p.pr.tq) ? p.pr.tq : []) { if (!Array.isArray(r) || !(r[0] > seen.n)) continue; seen.n = r[0]; this.apply(p.peer, r.slice(1)); }
         H.seen[p.peer] = seen;
       }
+      if (H.pz && (!here.has(H.pz) || (H.ph !== 'break' && H.ph !== 'wave'))) H.pz = ''; // (whoever paused has gone: carry on)
+      if (H.pz) dt = 0; // paused: the countdown and the wave wait (towers can still go up)
+      H.left = Math.max(0, H.left - dt);
       if (H.ph === 'lobby') {
         const ready = pl.filter((p) => (p.me ? this.ready : p.pr.rdy)).length;
         if (ready === pl.length && pl.length && H.left > 3) H.left = 3;
@@ -270,7 +277,7 @@
       const cash = {}; for (const k in H.cash) cash[k] = Math.floor(H.cash[k]);
       const tw = H.tw.map((w) => [w.id, w.o, w.t, w.x, w.z, w.lvl, w.tg]);
       H.gs = (H.gs || 0) + 1;
-      send({ g: { ph: H.ph, left: +H.left.toFixed(1), gs: H.gs, diff: H.diff, wave: H.wave, hp: H.hp, e: es, tw, cash, pl: H.pl, fx: H.fx.slice(), res: H.res, waves: DIFF[H.diff].waves } });
+      send({ g: { ph: H.ph, left: +H.left.toFixed(1), gs: H.gs, pz: H.pz || '', diff: H.diff, wave: H.wave, hp: H.hp, e: es, tw, cash, pl: H.pl, fx: H.fx.slice(), res: H.res, waves: DIFF[H.diff].waves } });
     },
     // ------------------------------------------------ what everyone sees
     tick(dt) {
@@ -297,7 +304,7 @@
         if (!m || m.t !== e.t) { if (m) place.remove(m.g); m = { g: enemyModel(e.t), t: e.t, s: e.s }; place.add(m.g); this.views.set(e.id, m); }
         // slide along the path between updates
         const sp = EN[e.t].sp * (e.slow ? 0.6 : 1);
-        m.s = Math.abs(m.s - e.s) > 8 ? e.s : m.s + sp * dt + (e.s - m.s) * Math.min(1, dt * 4);
+        m.s = g && g.pz ? e.s : Math.abs(m.s - e.s) > 8 ? e.s : m.s + sp * dt + (e.s - m.s) * Math.min(1, dt * 4); // (paused: right where the host has them)
         if (m.lastS !== e.s) { m.lastS = e.s; m.s += (e.s - m.s) * 0.5; }
         const [x, z, yaw] = posAt(m.s); m.g.position.set(x, 0.1, z); m.g.rotation.y = yaw;
         m.g.userData.bar.scale.x = 1.6 * clamp(e.f, 0.02, 1); m.g.userData.bar.position.x = -(1 - clamp(e.f, 0, 1)) * 0.8;

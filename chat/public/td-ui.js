@@ -48,6 +48,7 @@
     const stats = h('div', { class: 'td-stats' });
     const waveBtn = h('button', { class: 'btn primary small', onclick: () => { T.startWave(s); render(); } }, 'Start wave now');
     const speedBtns = [1, 2, 3].map((n) => h('button', { class: 'btn small td-speed' + (n === 1 ? ' sel' : ''), onclick: () => setSpeed(n) }, n + '×'));
+    const pauseBtn = h('button', { class: 'btn small td-speed', title: 'Pause (P)', onclick: () => togglePause() }, '⏸');
     const shop = h('div', { class: 'td-shop' });
     const shopBtns = {};
     for (const type of T.ORDER) {
@@ -71,12 +72,12 @@
     const oppBox = h('div', { class: 'td-opp' });
     stage.append(h('div', { class: 'td-wrap' },
       h('div', { class: 'td-board' }, cv),
-      h('div', { class: 'td-side' }, stats, h('div', { class: 'row td-wave-row' }, waveBtn, h('span', { class: 'td-speeds' }, speedBtns)),
+      h('div', { class: 'td-side' }, stats, h('div', { class: 'row td-wave-row' }, waveBtn, h('span', { class: 'td-speeds' }, pauseBtn, speedBtns)),
         h('b', { class: 'td-h' }, 'Towers'), shop, info, h('b', { class: 'td-h' }, api.bot ? oppName : `${oppName}’s map`), oppBox, oppMap, h('small', { class: 'muted td-mini-hint' }, '🔍 Click the map to watch it')),
       peek));
 
     // ---------------------------------------------------------------- input
-    let placing = null, selected = null, hover = null, speed = 1, seenFx = new Set(), lastKills = 0;
+    let placing = null, selected = null, hover = null, speed = 1, paused = false, seenFx = new Set(), lastKills = 0;
     const sfx = (n, o) => { if (window.Sfx) window.Sfx.play(n, o); };
     const levelUps = [];
     const EKINDS = Object.keys(T.ENEMIES);
@@ -88,7 +89,9 @@
       levelUps.push({ x: t.x, y: t.y, at: performance.now(), text: `${d.names[t.lvl]}!` });
     }
     const banners = [];
-    function setSpeed(n) { speed = n; speedBtns.forEach((b, i) => b.classList.toggle('sel', i + 1 === n)); }
+    function setSpeed(n) { speed = n; speedBtns.forEach((b, i) => b.classList.toggle('sel', i + 1 === n)); if (paused) togglePause(); }
+    // pausing holds your map (and a bot's): you can still build and upgrade while it's paused
+    function togglePause() { paused = !paused; pauseBtn.textContent = paused ? '▶' : '⏸'; pauseBtn.title = paused ? 'Carry on (P)' : 'Pause (P)'; pauseBtn.classList.toggle('sel', paused); sfx(paused ? 'pop' : 'click'); }
     function choose(type) { placing = placing === type ? null : type; selected = null; render(); }
     // where the pointer is on the map (the picture keeps its shape, so allow for any space around it)
     const toMap = (e) => {
@@ -120,6 +123,7 @@
       else if (e.key === ' ' && s.phase === 'build') { T.startWave(s); e.preventDefault(); render(); }
       else if ((e.key === 'u' || e.key === 'U') && selected) { doUpgrade(selected); render(); }
       else if ((e.key === 't' || e.key === 'T') && selected) { T.retarget(s, selected); render(); }
+      else if ((e.key === 'p' || e.key === 'P') && s.phase !== 'dead' && s.phase !== 'won') { togglePause(); e.preventDefault(); }
     };
     addEventListener('keydown', onKey);
     let flashMsg = null;
@@ -356,6 +360,7 @@
       if (b) big(b.text, b.color, 250);
       else if (s.phase === 'build') { ctx.font = 'bold 20px Outfit, Arial'; big(`Wave ${s.wave + 1}${BOSS_NAME[s.wave + 1] ? ` · BOSS: ${BOSS_NAME[s.wave + 1]}` : ''} in ${Math.ceil(s.breakT)}s`, BOSS_NAME[s.wave + 1] ? '#fca5a5' : '#fff', 140); }
       if (flashMsg && flashMsg.until > now) { ctx.font = 'bold 16px Outfit, Arial'; big(flashMsg.text, '#fecaca', 480); }
+      if (paused && s.phase !== 'dead' && s.phase !== 'won') { ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(0, 0, T.W, T.H); ctx.font = 'bold 34px Outfit, Arial'; big('⏸ Paused', '#fde68a', 290); ctx.font = 'bold 16px Outfit, Arial'; big('Press P or ▶ to carry on — you can still build', '#e2e8f0', 326); }
       if (s.phase === 'dead' || s.phase === 'won') {
         ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(0, 0, T.W, T.H);
         ctx.font = 'bold 34px Outfit, Arial';
@@ -416,7 +421,7 @@
       if (stopped) return;
       const dt = Math.min(0.1, (now - last) / 1000);
       last = now;
-      acc += dt * speed;
+      acc += dt * (paused ? 0 : speed);
       let steps = 0;
       while (acc >= DT && steps < 12) {
         acc -= DT; steps++;
@@ -450,7 +455,7 @@
       return [h('b', {}, `You: wave ${s.wave} · ❤ ${s.lives}`), h('span', {}, 'vs'),
         h('b', {}, `${oppName}: ${opp ? `wave ${opp.w} · ❤ ${opp.l}` : '…'}`), h('small', { class: 'muted' }, 'Survive the most waves, or beat wave 25')];
     }
-    cv.tdDebug = { s, get opp() { return opp; }, get bot() { return bot; }, setSpeed }; // for tests
+    cv.tdDebug = { s, get opp() { return opp; }, get bot() { return bot; }, setSpeed, togglePause, get paused() { return paused; } }; // for tests
     render(); renderOpp();
     raf = requestAnimationFrame((t) => { last = t; frame(t); });
 

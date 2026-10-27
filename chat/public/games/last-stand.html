@@ -4225,7 +4225,13 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
              capability resolving null here does not mean the page is a
              local copy — it means this viewer is not admitted to rooms. */
           Net.hosted = true;
-          roomNs = await (window.ChatClaude||window.claude).use('room');
+          /* The chat may still be connecting when this page loads, so a "no"
+             is asked again a few times (the bridge keeps an answer 3 s)
+             before settling for playing alone in this browser. */
+          for (let i = 0; i < 3 && !roomNs; i++) {
+            roomNs = await (window.ChatClaude||window.claude).use('room');
+            if (!roomNs && i < 2) await new Promise(r => setTimeout(r, 3200));
+          }
           if (roomNs) return (Net.backend = 'room');
         }
       } catch (e) { /* fall through to the local backend */ }
@@ -5037,7 +5043,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     this.hp = this.diff.baseHp;
     this.maxHp = this.diff.baseHp;
     this.wave = 0; this.phase = 'prep'; this.prepT = 14; this.time = 0;
-    this.speed = 1; this.paused = false; this.selected = null; this.placing = null;
+    this.speed = 1; this.paused = false; this.pausedBy = ''; this.selected = null; this.placing = null;
     this.globalBuff = { rate: 0, dmg: 0, until: 0 };
     this.perks = {}; this.perkTaken = {}; this.draft = null;
     this.draftIds = null; this.draftTook = null;
@@ -7133,6 +7139,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
       TD.Audio.wave();
     }
     this.wave = s.w; this.prepT = s.pt; this.speed = s.sp || 1;
+    if (!!s.paused !== this.paused) this.pauseNote(!!s.paused, s.pausedBy);
     this.paused = !!s.paused;
     if (s.slots) this.slots = s.slots;
     if (s.wallets) {
@@ -7219,6 +7226,19 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
 
   /* A client earns from the match too — same formula the host uses, run on
      its own save, because only this page knows what this player has. */
+  // pausing: the host (or a solo game) holds the world; everyone sees the button change and who did it
+  B.setPaused = function (on, by) {
+    if (this.paused === on) return;
+    this.paused = on; this.pausedBy = on ? by : '';
+    this.pauseNote(on, by);
+    TD.Audio.ui();
+  };
+  B.pauseNote = function (on, by) {
+    const b = document.getElementById('b-pause'); if (b) b.textContent = on ? '▶' : '❚❚';
+    if (!this.net) return; // (on your own: no need to say who)
+    const p = TD.Coop && TD.Coop.players ? TD.Coop.players.find((q) => q.key === by) : null, who = by === this.me ? 'You' : p ? p.name : 'Someone';
+    TD.toast(on ? '⏸ ' + who + ' paused the game — press ❚❚ or P to carry on' : '▶ ' + who + ' carried on', on ? undefined : 'good');
+  };
   B.remoteFinish = function (won) {
     TD.Audio[won ? 'win' : 'lose']();
     TD.Chat.system(won ? 'Victory — the base held' : 'Defeat — the base fell');
@@ -7751,7 +7771,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
         w: Number(pr.w) || 0,
         pt: Number(pr.pt) || 0,
         sp: Number(pr.sp) || 1,
-        paused: !!pr.pa,
+        paused: !!pr.pa, pausedBy: typeof pr.pb === 'string' ? pr.pb : '',
         won: !!pr.won,
         slots: typeof pr.S === 'string' && pr.S ? pr.S.split('.') : Coop.slots,
         wallets: typeof pr.W === 'string' && pr.W ? pr.W.split('.').map(Number) : null,
@@ -7810,6 +7830,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
     f.pt = Math.round(B.prepT * 10) / 10;
     f.sp = B.speed;
     f.pa = B.paused ? 1 : 0;
+    f.pb = B.paused ? B.pausedBy || '' : '';
     f.W = Coop.slots.map(k => Math.floor(B.wallets[k] || 0)).join('.');
     f.T = TD.Net.packTowers(B.towers);
     if (B.phase === 'over') f.won = B.wonMatch ? 1 : 0;
@@ -7867,6 +7888,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
         break;
       }
       case 'wave': if (B.phase === 'prep') B.startWave(true); break;
+      case 'pause': B.setPaused(!!c.on, key); break; // (anyone in the match can pause it, and carry on)
       case 'perk': {
         const id = String(c.p || '');
         /* Only from the set this wave actually offered, so a client cannot
@@ -9129,10 +9151,9 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
   };
 
   UI.togglePause = function () {
-    const B = UI.battle; if (!B) return;
-    B.paused = !B.paused;
-    $('#b-pause').textContent = B.paused ? '▶' : '❚❚';
-    TD.Audio.ui();
+    const B = UI.battle; if (!B || B.phase === 'over') return;
+    if (B.remote) { B.net.send({ k: 'pause', on: B.paused ? 0 : 1 }); TD.Audio.ui(); return; } // (a guest asks the host: it pauses for everyone)
+    B.setPaused(!B.paused, B.me);
   };
 
   /* ---------------------------------------------------------------- */
@@ -9291,10 +9312,7 @@ TD.$$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
       TD.toast('Save data reset');
     };
 
-    $('#b-pause').onclick = () => {
-      if (UI.battle && UI.battle.remote) { TD.Audio.error(); TD.toast('Only the host controls pause', 'bad'); return; }
-      UI.togglePause();
-    };
+    $('#b-pause').onclick = () => UI.togglePause();
     $('#b-follow').onclick = () => UI.toggleFollow();
     $('#b-speed').onclick = () => {
       const B = UI.battle; if (!B) return;

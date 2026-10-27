@@ -219,6 +219,9 @@
   #board tr.me td{color:#7dd3fc;background:rgba(56,189,248,.15)}
   #banner{position:absolute;left:50%;top:12px;transform:translateX(-50%);padding:10px 22px;border-radius:16px;font:600 18px/1.25 var(--fh);letter-spacing:.01em;text-align:center;max-width:min(560px,calc(100vw - 720px));text-shadow:0 2px 0 rgba(0,0,0,.4);border:1px solid var(--line2)}
   @media (max-width:1180px){#banner{top:68px;max-width:min(560px,86vw)}}
+  #pauseBar{position:absolute;left:50%;top:76px;transform:translateX(-50%);display:flex;align-items:center;gap:12px;padding:8px 10px 8px 16px;border-radius:16px;font:600 16px var(--fh);color:#fde68a;z-index:6;white-space:nowrap;border:1px solid rgba(250,204,21,.45);box-shadow:0 0 0 3px rgba(250,204,21,.12)}
+  #pauseBar .xp-btn{padding:7px 14px}
+  @media (max-width:1180px){#pauseBar{top:128px}}
   #banner:empty{display:none}
   #stat{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);padding:8px 18px;border-radius:999px;font:600 16px var(--fh);letter-spacing:.01em;white-space:nowrap;text-shadow:0 1.5px 0 rgba(0,0,0,.4)}
   #stat:empty{display:none}
@@ -628,6 +631,7 @@
     #board td{max-width:84px;padding:4px 8px}
     #board th{padding:7px 8px 6px;letter-spacing:.04em}
     #banner{top:66px;font-size:14.5px;padding:8px 14px;max-width:calc(100vw - 24px)}
+    #pauseBar{top:112px;font-size:13.5px;white-space:normal;max-width:calc(100vw - 24px)}
     #stat{white-space:normal;text-align:center;width:max-content;max-width:calc(100vw - 24px);border-radius:18px;font-size:14.5px;padding:7px 14px}
     #chatlog{top:138px;width:calc(100vw - 24px)}
     #xside{transform:translateY(-45%) scale(.78);transform-origin:left center}
@@ -646,6 +650,7 @@
   <div id="board" class="glass"></div>
   <div id="meter" class="glass" title="Frames per second · ping: the round trip to the server and back"></div>
   <div id="banner" class="glass"></div>
+  <div id="pauseBar" class="glass" hidden></div>
   <div id="stat" class="glass"></div>
   <div id="toast"></div>
   <div id="chatbox"><input id="chatin" maxlength="100" placeholder="Say something (Enter to send)"></div>
@@ -1814,6 +1819,18 @@ $('#xbar').addEventListener('click', (e) => { const b = e.target.closest('button
 // a column of big buttons on the left: a game's own (Command an Army's menus and orders: clicks on them go to
 // onClick(button)), and what every game has, all here rather than in the menu: the Blox Coin shop, rebirth, the
 // game's own menus (exp.menu: [label, open, short name for a phone]), trading and achievements
+// pausing (the tower defence games): exp.pausedBy() is who's paused it ('' if nobody), exp.canPause() whether it can be
+// paused now, exp.setPause(on) asks for it. A side button, P, and a bar across the top for everyone, with ▶️ Resume
+const pauseable = () => !!(playing && exp && exp.setPause && exp.canPause && exp.canPause());
+function togglePause() { if (!pauseable()) return; const on = !exp.pausedBy(); exp.setPause(on); sfx(on ? 'pop' : 'select'); }
+function drawPauseBar() {
+  const by = playing && exp && exp.pausedBy ? exp.pausedBy() : '', el = $('#pauseBar');
+  if (!by) { el.hidden = true; return; }
+  const html = `<span>⏸️ Paused by <b>${esc(by === myPeer() ? 'you' : nameOf(by))}</b> — the waves wait</span><button class="xp-btn buy" data-unpause="1">▶️ Resume</button>`;
+  if (el.innerHTML !== html) el.innerHTML = html;
+  el.hidden = false;
+}
+$('#pauseBar').onclick = (e) => { if (e.target.closest('[data-unpause]')) togglePause(); };
 let sideClick = null, sideGame = '', sideCols = 2, sideHtml = null;
 function setSide(html, onClick, cols) { sideGame = html || ''; sideCols = cols; sideClick = onClick || sideClick; drawSide(); }
 const SIDE_COLS = ['c-blue', 'c-orange', 'c-pink', 'c-brown'];
@@ -1821,6 +1838,7 @@ function sideItems() {
   if (!playing || !exp) return [];
   const t = []; // [what, emoji, label, short label, colour, badge]
   if (exp.coinShop && exp.coinShop.length) t.push(['shop', '🛒', 'Shop', 'Shop', 'c-green']);
+  if (pauseable() || (exp.pausedBy && exp.pausedBy())) { const by = exp.pausedBy(); t.push(['pause', by ? '▶️' : '⏸️', by ? 'Resume' : 'Pause', by ? 'Resume' : 'Pause', by ? 'c-green' : 'c-slate']); }
   if (exp.rebirthPanel) t.push(['rebirth', '🔁', 'Rebirth', 'Rebirth', 'c-purple', exp.rebirthReady && exp.rebirthReady() ? '!' : '']);
   if (!sideGame && exp.menu) exp.menu().forEach(([label, , short], i) => { const m = String(label).match(/^(\S+)\s+(.+)$/) || [0, '•', String(label)]; t.push(['x' + i, m[1], m[2], short || m[2], SIDE_COLS[i % SIDE_COLS.length]]); });
   if (crew().length > 1) t.push(['trade', '🤝', 'Trade', 'Trade', 'c-teal']);
@@ -1855,7 +1873,8 @@ function placeSide() {
 }
 addEventListener('resize', () => setTimeout(placeSide, 60));
 function sideDo(k) {
-  if (k === 'shop') openShop();
+  if (k === 'pause') togglePause();
+  else if (k === 'shop') openShop();
   else if (k === 'rebirth') exp.rebirthPanel();
   else if (k === 'trade') tradePick();
   else if (k === 'friends') friendsPanel();
@@ -2493,7 +2512,7 @@ function roundState(E) {
   const h = crew()[0], g = h && h.pr && h.pr.g;
   if (!g || typeof g !== 'object') return null;
   if (g.gs !== E.gSeen) { E.gSeen = g.gs; E.gAt = performance.now(); E.lastG = g; }
-  const since = (performance.now() - E.gAt) / 1000;
+  const since = g.pz ? 0 : (performance.now() - E.gAt) / 1000; // (paused: the clock stands still)
   return Object.assign({}, g, { left: Math.max(0, (+g.left || 0) - since), el: g.ph === 'play' ? (+g.el || 0) + since : +g.el || 0 });
 }
 function hostSend(E, extra) { E.H.gs = (E.H.gs || 0) + 1; send({ g: Object.assign({}, E.H, { left: +E.H.left.toFixed(1), el: +(E.H.el || 0).toFixed(1) }, extra || {}) }); }
@@ -4820,6 +4839,7 @@ addEventListener('keydown', (e) => {
   if (lockKeyCode(e.code) && !e.repeat && lockAllowed()) { setLock(!View.lock); return; }
   // double-tap W (or ↑) to sprint, for as long as you keep holding it
   if ((e.code === 'KeyW' || e.code === 'ArrowUp') && !e.repeat) { const t = performance.now(); if (t - (View.wAt || 0) < 300) View.dblRun = true; View.wAt = t; }
+  if (e.code === 'KeyP' && !e.repeat && pauseable()) { togglePause(); return; }
   if (exp && exp.key && !e.repeat && exp.key(e.code, true) === true) { e.preventDefault(); return; }
   if (e.code === 'KeyE' && promptCur && !e.repeat) { sfx('select'); promptCur.fn(); return; }
   if (e.code === 'KeyR' && !P.dead && !(exp && exp.noReset)) die();
@@ -4979,7 +4999,7 @@ function drawHud() {
   const rows = crew().map((c) => ({ c, name: c.isMe ? Net.name : String(c.pr.nm || 'Player').slice(0, 20), v: exp.statOf(c.pr, c.isMe, c.peer), k: exp.sortKey(c.pr, c.isMe, c.peer) })).sort((a, b) => b.k - a.k);
   $('#board').innerHTML = `<table><tr><th>👥 ${rows.length} player${rows.length === 1 ? '' : 's'}</th><th>${exp.stat}</th></tr>${rows.map((r, i) => `<tr class="${r.c.isMe ? 'me' : ''}"${r.c.isMe ? '' : ` data-peer="${esc(r.c.peer)}" title="Tap for their profile"`}><td><span class="rk">${i + 1}</span>${esc(r.name)}</td><td>${esc(String(r.v))}</td></tr>`).join('')}</table>`;
   $('#stat').innerHTML = exp.hud ? exp.hud() : '';
-  drawSide(); placeSide();
+  drawSide(); placeSide(); drawPauseBar();
   if (!exp.banner) setBanner('');
   if (Meter.shown) placeMeter(); // the leaderboard may have grown or shrunk
 }

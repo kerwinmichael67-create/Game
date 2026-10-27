@@ -245,6 +245,10 @@
       this.q.push([++this.qn, op, ...args]); if (this.q.length > 16) this.q.shift();
       send({ tq: this.q.slice() });
     },
+    // ------------------------------------------------ pausing (anyone can, mid-level; anyone can carry on)
+    canPause() { const g = this.g; return !!g && g.ph === 'play'; },
+    pausedBy() { const g = this.g; return this.canPause() && typeof g.pz === 'string' ? g.pz : ''; },
+    setPause(on) { this.ask('pz', on ? 1 : 0); },
     // ------------------------------------------------ the host's game
     adopt() {
       const g = this.lastG;
@@ -254,7 +258,7 @@
     fresh() { return { ph: 'lobby', left: 30, gs: 0, lvl: 1, wave: 0, el: 0, sun: 50, z: [], p: [], s: [], c: [], m: [0, 0, 0, 0, 0], pe: [], fx: [], fxN: 0, cd: {}, cc: {}, msg: '', msgN: 0, res: '', nid: 1, q: [], qT: 0, waveT: 0, wHp: 0, wAt: 0, warned: false, kills: 0, sunT: 6, seen: {} }; },
     unpack(g) {
       // the host left mid-game: carry on from what everyone last saw
-      const H = Object.assign(this.fresh(), { ph: 'play', left: 0, lvl: g.lvl | 0, wave: g.wave | 0, el: +g.el || 0, sun: g.sun | 0, m: (g.m || [0, 0, 0, 0, 0]).slice(), cd: Object.assign({}, g.cd || {}), cc: Object.assign({}, g.cc || {}), kills: g.kills | 0, waveT: 8, fxN: (g.fx && g.fx.length ? g.fx[g.fx.length - 1][0] : 0) + 1, msgN: g.msgN | 0 });
+      const H = Object.assign(this.fresh(), { pz: typeof g.pz === 'string' ? g.pz : '', ph: 'play', left: 0, lvl: g.lvl | 0, wave: g.wave | 0, el: +g.el || 0, sun: g.sun | 0, m: (g.m || [0, 0, 0, 0, 0]).slice(), cd: Object.assign({}, g.cd || {}), cc: Object.assign({}, g.cc || {}), kills: g.kills | 0, waveT: 8, fxN: (g.fx && g.fx.length ? g.fx[g.fx.length - 1][0] : 0) + 1, msgN: g.msgN | 0 });
       for (const z of this.zList(g)) { const d = ZB[z.t], max = d.hp + d.arm; H.z.push({ id: z.id, t: z.t, r: z.r, z: z.z, hp: Math.max(1, z.f * max), arm: z.fl & 4 ? 0 : Math.max(0, z.f * max - d.hp), max, slow: 0, pole: !!(z.fl & 8), jump: 0, smash: 0, angry: z.t === 5 && !!(z.fl & 4) }); }
       for (const p of g.p || []) if (Array.isArray(p) && PL[p[1]]) H.p.push({ id: p[0], t: p[1], r: p[2], c: p[3], hp: Math.max(1, (p[4] / 63) * PL[p[1]].hp), cdS: 1, sunT: 10, arm: p[5] & 1 ? 0 : 8, chew: p[5] & 2 ? 20 : 0, fuse: p[5] & 4 ? 0.5 : PL[p[1]].k === 'cherry' ? 1.2 : PL[p[1]].k === 'jal' ? 1 : 0, squash: 0 });
       for (const s of g.s || []) if (Array.isArray(s)) H.s.push({ id: s[0], x: s[1], z: s[2], born: s[3], k: s[4] });
@@ -276,6 +280,7 @@
         const i = H.p.findIndex((p) => p.r === a[0] && p.c === a[1]); if (i >= 0) H.p.splice(i, 1);
       } else if (op === 'sun') {
         const i = H.s.findIndex((s) => s.id === a[0]); if (i >= 0) { H.sun = Math.min(9990, H.sun + 25); H.s.splice(i, 1); }
+      } else if (op === 'pz') { H.pz = a[0] ? peer : '';
       } else if (op === 'coin') {
         const i = H.c.findIndex((s) => s.id === a[0]); if (i >= 0) { H.cc[peer] = (H.cc[peer] || 0) + H.c[i].v; H.c.splice(i, 1); }
       }
@@ -284,7 +289,6 @@
       // real time, not the frame's step (that's capped, so a slow computer would slow the whole lawn down for everyone)
       const t = performance.now(); dt = this.hostT && t - this.hostT < 2000 ? (t - this.hostT) / 1000 : dt; this.hostT = t;
       const H = this.H, pl = players();
-      H.left = Math.max(0, H.left - dt);
       for (const p of pl) { // requests from everyone
         if (p.me) continue;
         const seen = H.seen[p.peer] || { t: 0, n: 0 };
@@ -292,6 +296,9 @@
         for (const r of Array.isArray(p.pr.tq) ? p.pr.tq : []) { if (!Array.isArray(r) || !(r[0] > seen.n)) continue; seen.n = r[0]; this.apply(p.peer, r.slice(1)); }
         H.seen[p.peer] = seen;
       }
+      if (H.pz && (H.ph !== 'play' || !pl.some((p) => p.peer === H.pz))) H.pz = ''; // (whoever paused has gone: carry on)
+      if (H.pz) dt = 0; // paused: the zombies, the sun and the seed timers wait (you can still plant)
+      H.left = Math.max(0, H.left - dt);
       if (H.ph === 'lobby') {
         const ready = pl.filter((p) => (p.me ? this.ready : p.pr.rdy)).length;
         if (ready === pl.length && pl.length && H.left > 3) H.left = 3;
@@ -426,7 +433,7 @@
       const cd = {}; for (const k in H.cd) { const o = {}; for (const t in H.cd[k]) if (H.cd[k][t] > H.el) o[t] = H.cd[k][t]; cd[k] = o; }
       H.gs = (H.gs || 0) + 1;
       send({ g: {
-        ph: H.ph, left: +H.left.toFixed(1), gs: H.gs, el: +H.el.toFixed(1), lvl: H.lvl, wave: H.wave, waves: wavesOf(H.lvl), sun: H.sun, z: zs,
+        ph: H.ph, left: +H.left.toFixed(1), gs: H.gs, pz: H.pz || '', el: +H.el.toFixed(1), lvl: H.lvl, wave: H.wave, waves: wavesOf(H.lvl), sun: H.sun, z: zs,
         p: H.p.map((p) => [p.id, p.t, p.r, p.c, clamp(Math.round((p.hp / PL[p.t].hp) * 63), 0, 63), (PL[p.t].k === 'mine' && p.arm <= 0 ? 1 : 0) | (p.chew > 0 ? 2 : 0) | (p.fuse > 0 ? 4 : 0) | (p.squash > 0 ? 8 : 0)].concat(p.squash > 0 ? [p.tz] : [])),
         s: H.s.map((s) => [s.id, s.x, s.z, s.born, s.k]), c: H.c.map((c) => [c.id, c.x, c.z, c.v]), m: H.m.map((v) => (v === 0 || v === -99 ? v : +v.toFixed(1) || 0.1)), // 0 ready, -99 gone, else where it's driving
         fx: H.fx.slice(), cd, cc: Object.assign({}, H.cc), msg: H.msg, msgN: H.msgN, res: H.res, kills: H.kills,
@@ -467,7 +474,7 @@
         keep.add(z.id);
         let m = this.zv.get(z.id);
         if (!m || m.t !== z.t) { if (m) place.remove(m.g); m = { g: zombieModel(z.t), t: z.t, z: z.z, fl: -1 }; place.add(m.g); this.zv.set(z.id, m); m.g.position.x = tx(z.r); m.ph = Math.random() * 6; }
-        m.z = Math.abs(m.z - z.z) > 6 ? z.z : m.z + this.spOf(z.t, z.fl) * dt;
+        m.z = g && g.pz ? z.z : Math.abs(m.z - z.z) > 6 ? z.z : m.z + this.spOf(z.t, z.fl) * dt; // (paused: right where the host has them)
         if (m.lastZ !== z.z) { m.lastZ = z.z; m.z += (z.z - m.z) * 0.5; }
         m.r = z.r; m.f = z.f;
         const U = m.g.userData, eat = z.fl & 1, jump = z.fl & 16;
