@@ -1,8 +1,10 @@
 <!doctype html>
 <html lang="en">
 <head>
-<script src="net.js"></script>
-<script src="sfx.js"></script>
+<script>{ // (the page's ?v= — the build's fingerprint of the games — goes on its own scripts too, so an update isn't served from the browser's cache)
+  const q = /^\?v=[0-9a-f]{6,40}$/.test(location.search) ? location.search : ''; window.GAMES_Q = q;
+  for (const f of ['net.js', 'sfx.js']) document.write(`<script src="${f}${q}"><\/script>`);
+}</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Bloxverse</title>
@@ -5014,37 +5016,6 @@ else {
   });
 }
 </script>
-<script src="blox-land.js"></script>
-<script src="blox-toh.js"></script>
-<script src="blox-garden.js"></script>
-<script src="blox-tds.js"></script>
-<script src="blox-army.js"></script>
-<script src="blox-nds.js"></script>
-<script src="blox-pets.js"></script>
-<script src="blox-boat.js"></script>
-<script src="blox-zombie.js"></script>
-<script src="blox-egg.js"></script>
-<script src="blox-speed.js"></script>
-<script src="blox-fish.js"></script>
-<script src="blox-blade.js"></script>
-<script src="blox-murder.js"></script>
-<script src="blox-kart.js"></script>
-<script src="blox-rlgl.js"></script>
-<script src="blox-color.js"></script>
-<script src="blox-golf.js"></script>
-<script src="blox-bee.js"></script>
-<script src="blox-hide.js"></script>
-<script src="blox-pvz.js"></script>
-<script src="blox-rivals.js"></script>
-<script src="blox-fruits.js"></script>
-<script src="blox-brainrots.js"></script>
-<script src="blox-tycoonkit.js"></script>
-<script src="blox-fishtycoon.js"></script>
-<script src="blox-pizza.js"></script>
-<script src="blox-park.js"></script>
-<script src="blox-mine.js"></script>
-<script src="blox-cars.js"></script>
-<script src="blox-forsaken.js"></script>
-<script src="blox-shaft.js"></script>
+<script>for (const f of ['blox-land.js', 'blox-toh.js', 'blox-garden.js', 'blox-tds.js', 'blox-army.js', 'blox-nds.js', 'blox-pets.js', 'blox-boat.js', 'blox-zombie.js', 'blox-egg.js', 'blox-speed.js', 'blox-fish.js', 'blox-blade.js', 'blox-murder.js', 'blox-kart.js', 'blox-rlgl.js', 'blox-color.js', 'blox-golf.js', 'blox-bee.js', 'blox-hide.js', 'blox-pvz.js', 'blox-rivals.js', 'blox-fruits.js', 'blox-brainrots.js', 'blox-tycoonkit.js', 'blox-fishtycoon.js', 'blox-pizza.js', 'blox-park.js', 'blox-mine.js', 'blox-cars.js', 'blox-forsaken.js', 'blox-shaft.js']) document.write(`<script src="${f}${window.GAMES_Q}"><\/script>`);</script>
 </body>
 </html>
