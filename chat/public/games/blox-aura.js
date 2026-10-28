@@ -109,6 +109,19 @@
     .au-pop.t5,.au-pop.t6{font-size:33px;animation:auPop 1s ease-out forwards,auHue .5s linear infinite}
     .au-pop.end{color:#cbd5e1;font-size:19px}
     #auTop .rn{font:600 12px var(--fh);padding:3px 10px;border-radius:999px;color:#06202a;background:linear-gradient(90deg,#22d3ee,#a855f7);animation:auShk .4s infinite}
+    #auEdit{position:absolute;inset:0;pointer-events:none;z-index:4;background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,.75))}
+    #auEdit::before,#auEdit::after{content:'';position:absolute;left:0;right:0;height:9vh;background:#000;animation:auBars .35s ease-out}
+    #auEdit::before{top:0}#auEdit::after{bottom:0}
+    @keyframes auBars{from{height:0}}
+    #auEdit .sk{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);font-size:190px;line-height:1;filter:grayscale(1) contrast(1.6) drop-shadow(0 0 30px #fff);animation:auSkull .7s ease-out forwards}
+    #auEdit .tf{position:absolute;left:50%;top:66%;transform:translateX(-50%);font:600 48px var(--fh);color:#fff;letter-spacing:.24em;-webkit-text-stroke:7px #000;paint-order:stroke fill;animation:auShk3 .14s infinite;white-space:nowrap}
+    @keyframes auSkull{0%{transform:translate(-50%,-50%) scale(2.6) rotate(-12deg);opacity:0}18%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0)}100%{opacity:0;transform:translate(-50%,-50%) scale(.85)}}
+    #auBox.phonk{background:radial-gradient(circle,rgba(30,0,40,.6),rgba(0,0,0,.94));animation:auShk .13s infinite}
+    #auBox.phonk .win{border-color:#c026d3;box-shadow:0 0 40px #a21caf}
+    #auBox.phonk h3{letter-spacing:.2em;color:#f0abfc}
+    #auBox.phonk .card{filter:grayscale(.85) contrast(1.3)}
+    .au-card.ph{background:linear-gradient(180deg,#18181b,#09090b)!important}
+    .au-card.ph .rt::after{content:' · PHONK 💀';color:#f0abfc}
     .touchy #auStreak{top:100px;transform:translateX(-50%) scale(.85)}
     .touchy #auTop{top:58px;transform:translateX(-50%) scale(.86)}
     .touchy #auDuel{top:56px;transform:translateX(-50%) scale(.82)}
@@ -135,7 +148,7 @@
   // k: proj (flies at them; cnt, spread, ex: blows up, steal, slow, stun, dot, home) · beam (a moment to aim, then a line) ·
   // aoe (round you) · meteor (lands where they stood) · self (heal, shield, buff) · dash (through them) · melee
   const AB = {
-    rizz: { n: 'Mild Rizz', e: '💘', r: 0, k: 'proj', dmg: 9, cd: 1.6, sp: 30, d: 'A weak pickup line, thrown at their face. Honest work.', say: 'hey shawty 😏' },
+    rizz: { n: 'Mild Rizz', e: '💘', r: 0, k: 'proj', dmg: 9, cd: 1.6, sp: 30, d: 'A corny pickup line, thrown at their face. Honest work.', say: 'hey shawty 😏', says: ['are you Ohio? cuz you’re unexplainable', 'is your name Wi-Fi? i feel a connection', 'are you a crate? i’d spend all my aura on you', 'are you corn? cuz you’re a-maize-ing 🌽', 'do you mew? cuz you left me speechless', 'are you a W? i can’t take an L near you', 'are you a moai? cuz i’m stone-cold for you 🗿', 'you must be a Rizz Blast cuz you blew me away'] },
     side: { n: 'Side Eye', e: '👀', r: 0, k: 'beam', dmg: 11, cd: 2.4, w: 0.3, rng: 30, d: 'One look. That’s it. That’s the attack.', say: '👀' },
     lbozo: { n: 'L Bozo', e: '🇱', txt: 'L', r: 0, k: 'proj', dmg: 12, cd: 2.8, sp: 26, d: 'Throws an actual L at them.', say: 'L + bozo' },
     yap: { n: 'Yap Session', e: '🗣️', r: 1, k: 'proj', dmg: 6, cnt: 3, spread: 0.28, cd: 3, sp: 28, d: 'Three speech bubbles of pure yapping. They can’t get a word in.', say: 'and another thing—' },
@@ -152,26 +165,35 @@
     farm: { n: 'Aura Farm', e: '🔥', r: 4, k: 'self', heal: 40, buff: [1.5, 6], cd: 14, d: 'Farms aura mid-fight: heals 40 and hits 50% harder for 6 seconds.', say: 'aura farming rn' },
     meteor: { n: 'Ohio Meteor', e: '☄️', r: 5, k: 'meteor', dmg: 95, rad: 5, w: 1.2, cd: 10, d: 'Only in Ohio. Lands where they’re standing a moment later.', say: 'only in ohio 💀' },
     skibidi: { n: 'Skibidi Storm', e: '🌪️', r: 5, k: 'proj', dmg: 20, dot: [12, 6], home: 1, big: 1, cd: 11, sp: 16, d: 'A storm of pure brainrot that follows them: 20 on hit, then 72 more over 3 seconds.', say: 'skibidi dop dop' },
+    // the Tuff Phonk Crate's own (they're in no other crate)
+    cowbell: { n: 'Cowbell Barrage', e: '🔔', r: 3, phonk: 1, k: 'proj', dmg: 9, cnt: 5, spread: 0.16, cd: 5, sp: 30, d: 'Five cowbells straight out of a phonk drop.', say: '🔔🔔🔔🔔🔔' },
+    drift: { n: 'Tokyo Drift', e: '🏎️', r: 3, phonk: 1, k: 'dash', dmg: 32, cd: 6, rng: 15, d: 'Drifts straight through them in a cloud of tire smoke.', say: 'drift mode 🏎️💨' },
+    bass: { n: 'Bass Drop', e: '🔊', r: 4, phonk: 1, k: 'aoe', dmg: 58, rad: 11, kb: 26, cd: 9, w: 0.55, d: 'Builds up… then drops the 808 on anyone close, knocking them flying.', say: 'WAIT FOR IT…' },
+    edit: { n: 'Skull Edit', e: '💀', r: 4, phonk: 1, k: 'proj', dmg: 34, stun: 2, cd: 10, sp: 26, d: 'Turns their screen into a black-and-white skull edit and freezes them for 2 seconds.', say: '💀💀💀' },
+    eyes: { n: 'Close Eyes', e: '😑', r: 5, phonk: 1, k: 'beam', dmg: 80, cd: 10, w: 0.6, rng: 42, d: 'Closes its eyes and fires the tuffest beam in Ohio.', say: 'close eyes 😑' },
+    montagem: { n: 'Montagem Mode', e: '🎧', r: 5, phonk: 1, k: 'self', heal: 50, shield: [35, 7], buff: [2.2, 7], cd: 20, d: 'The edit begins: phonk plays, your screen goes black and white, you heal 50, get a 35 shield and hit 2.2× harder for 7 seconds.', say: 'MONTAGEM 🎧' },
     inf: { n: 'Infinite Aura', e: '♾️', r: 5, k: 'self', heal: 60, shield: [40, 6], buff: [2, 6], cd: 18, d: 'Aura so big it has its own weather: heals 60, a 40 shield and double damage for 6 seconds.', say: '+∞ aura' },
   };
   const SLAP = { n: 'Slap', e: '🫲', r: 0, k: 'melee', dmg: 6, cd: 0.6, rng: 5.5, d: 'Unc-style slap. Up close only.', say: '' };
   const abOf = (k) => (k === 'slap' ? SLAP : AB[k]);
-  const ABK = Object.keys(AB), BYR = RAR.map((_, r) => ABK.filter((k) => AB[k].r === r));
+  const ABK = Object.keys(AB), BYR = RAR.map((_, r) => ABK.filter((k) => AB[k].r === r && !AB[k].phonk)), PHONK_BY = RAR.map((_, r) => ABK.filter((k) => AB[k].r === r && AB[k].phonk));
   const CRATES = [
     { id: 'mid', n: 'Mid Crate', e: '📦', price: 50, odds: [60, 30, 9, 1, 0, 0], c: 0x9ca3af, d: 'It’s mid. What did you expect?' },
     { id: 'rizz', n: 'Rizz Crate', e: '💘', price: 400, odds: [25, 35, 28, 10, 2, 0], c: 0x60a5fa, d: 'Smells like Axe body spray.' },
     { id: 'sigma', n: 'Sigma Crate', e: '🗿', price: 3000, odds: [0, 20, 35, 30, 13, 2], c: 0xfbbf24, d: 'Only opened on a 4am grindset.' },
+    { id: 'phonk', n: 'Tuff Phonk Crate', e: '💀', price: 10000, odds: [0, 0, 0, 55, 35, 10], c: 0xc026d3, phonk: true, d: 'Plays phonk when you open it. Six abilities you can’t get anywhere else. Contains only tuff.' },
     { id: 'ohio', n: 'Ohio Crate', e: '☄️', price: 25000, odds: [0, 0, 20, 40, 30, 10], c: 0xf43f5e, d: 'Nobody knows what’s in Ohio. Not even Ohio.' },
   ];
   const FREE_ODDS = CRATES[1].odds; // a W Crate (from winning a duel) rolls like a Rizz Crate
   const rollRar = (odds) => { const t = odds.reduce((a, b) => a + b, 0); let x = Math.random() * t; for (let r = 0; r < odds.length; r++) { x -= odds[r]; if (x < 0) return r; } return 0; };
-  const rollAb = (odds) => { const l = BYR[rollRar(odds)]; return l[Math.floor(Math.random() * l.length)]; };
+  const rollAb = (odds, ph) => { const l = (ph ? PHONK_BY : BYR)[rollRar(odds)]; return l[Math.floor(Math.random() * l.length)]; };
 
   /* ---------------- the brainrot ---------------- */
   const CLICK_WORDS = ['W', 'sheesh', 'no cap', 'fr fr', 'bussin', 'slay', 'rizz', 'sigma', 'mewing', 'goated', 'based', 'ate', 'locked in', 'main character', 'mogged', 'built different', 'it’s giving', 'lowkey him', 'highkey him', 'real', 'valid', 'cooking', '🗿', '💯', '🔥', '😤', 'W rizz', 'unc approved', 'aura++', 'no shot', 'goes hard', 'skibidi', 'rizzler', 'fanum tax', 'only in ohio', 'mewing streak', 'looksmaxxing', 'mogging', 'he’s him', 'chat is this real', 'on god', 'glazing', 'delulu', 'crashout', 'aura points', '6 7', 'tung tung tung', 'tralalero', 'bombardiro', 'brr brr patapim', 'goofy ahh', 'sigma grindset', 'gigachad', 'W in the chat', '+1000 aura', 'yapping', 'big W', 'unc status', 'erm what the sigma', 'what the helly', 'skibidi rizz', 'fanum taxed', 'lowkey cooking', 'aura farming', 'mog city', 'rizz god', 'no thoughts just aura'];
-  const EVENTS = [['You said "no cap" and meant it.', 15], ['Your mewing streak hit 10 minutes.', 20], ['You walked past a mirror and didn’t check yourself.', 25], ['You left someone on read (respectfully).', 10], ['You understood the assignment.', 30], ['Your playlist ate.', 15], ['You held the door open. Unc behaviour, but W.', 10], ['You didn’t yap for a whole minute.', 25], ['Someone called you built different.', 20], ['You hit the griddy in public.', 15], ['You touched grass (on purpose).', 20], ['Your fit was certified bussin.', 25], ['You said "6 7" at the perfect moment.', 25], ['Tung Tung Tung Sahur knocked. You answered.', 30], ['You out-mewed your own reflection.', 20], ['A Tralalero Tralala swam past and nodded at you.', 25], ['You explained skibidi to your teacher.', 30], ['Your mom said you have rizz (it counts).', 10], ['You looksmaxxed so hard the mirror cracked.', 25], ['You fanum taxed your sibling’s fries.', 20], ['Chat, is this real? (it is)', 15], ['You crashed out, but in an aura way.', 20], ['Erm, what the sigma?', 15], ['Bombardiro Crocodilo flew over and saluted.', 30], ['You didn’t say "bro" for a whole sentence.', 20]];
-  const WIN_LINES = ['W + ratio', '{L} got cooked 💀', '{L} lost all their rizz', 'Emotional damage!', '{L} thought they were him', '{W} is him fr fr', 'Skill issue tbh', '{L} has been mogged', '{W} ate and left no crumbs'];
-  const LOSE_SUBS = ['Touch grass and run it back 🌱', 'You got mogged. It happens to the best of us (not really)', 'Your aura is in the negatives (spiritually)', 'L + ratio + you fell off', 'Not very sigma of you', 'Bro thought he was him 💀'];
+  const EVENTS = [['You said "no cap" and meant it.', 15], ['Your mewing streak hit 10 minutes.', 20], ['You walked past a mirror and didn’t check yourself.', 25], ['You left someone on read (respectfully).', 10], ['You understood the assignment.', 30], ['Your playlist ate.', 15], ['You held the door open. Unc behaviour, but W.', 10], ['You didn’t yap for a whole minute.', 25], ['Someone called you built different.', 20], ['You hit the griddy in public.', 15], ['You touched grass (on purpose).', 20], ['Your fit was certified bussin.', 25], ['You said "6 7" at the perfect moment.', 25], ['Tung Tung Tung Sahur knocked. You answered.', 30], ['You out-mewed your own reflection.', 20], ['A Tralalero Tralala swam past and nodded at you.', 25], ['You explained skibidi to your teacher.', 30], ['Your mom said you have rizz (it counts).', 10], ['You looksmaxxed so hard the mirror cracked.', 25], ['You fanum taxed your sibling’s fries.', 20], ['Chat, is this real? (it is)', 15], ['You crashed out, but in an aura way.', 20], ['Erm, what the sigma?', 15], ['Bombardiro Crocodilo flew over and saluted.', 30], ['You didn’t say "bro" for a whole sentence.', 20], ['You told a dad joke. Nobody laughed. +aura anyway.', 15], ['You said "it’s corn" with your whole chest. 🌽', 20], ['A phonk edit of you went viral (in Ohio). 💀', 30], ['You laughed at Unc Joe’s joke. Respectfully.', 10]];
+  const WIN_LINES = ['{W} won. That’s a-maize-ing 🌽', '{L} got popped like popcorn 🍿', 'W + ratio', '{L} got cooked 💀', '{L} lost all their rizz', 'Emotional damage!', '{L} thought they were him', '{W} is him fr fr', 'Skill issue tbh', '{L} has been mogged', '{W} ate and left no crumbs'];
+  const LOSE_SUBS = ['You got cooked. Like popcorn. 🍿', 'That was corny. And not the good kind. 🌽', 'Touch grass and run it back 🌱', 'You got mogged. It happens to the best of us (not really)', 'Your aura is in the negatives (spiritually)', 'L + ratio + you fell off', 'Not very sigma of you', 'Bro thought he was him 💀'];
+  const JOKES = ['Why did the sigma bring a ladder to the duel? To reach a higher aura level.', 'What do you call a moai that tells jokes? A rock-star. 🗿', 'Why did the corn stalk get promoted? It was outstanding in its field. 🌽', 'What do you call corn that rizzes? A-maize-ing. 🌽', 'I’m reading a book about mewing. I can’t put my jaw down.', 'Why was the NPC so calm? It had no side quests.', 'Why did the cowbell go to school? To get more class (and more phonk).', 'What did one moai say to the other? Stop being so stone-cold.', 'Why did the shark wear sneakers? Tralalero said shoes are tuff.', 'What do you call a crocodile that flies a plane? Bombardiro. That’s literally his name.', 'How does a log wake you up? Tung tung tung. Every. Single. Time.', 'Why is the duel ring good at maths? It’s full of W’s.', 'What’s corny and goes pop? Your aura after this joke. 🍿', 'I asked a crate for a good ability. It said "mid". Tough crowd.', 'Why do sigmas never get lost? They follow the grindset.', 'My jokes are like your aura: it all depends on the streak.', 'What do you call 6 and 7 hanging out? Nobody knows. That’s the joke.', 'Why did Fanum go to the bank? To collect his tax returns. 🍟', 'Knock knock. Who’s there? Aura. Aura who? Aura you gonna laugh or what?', 'Why don’t NPCs tell jokes? Their dialogue options are limited.', 'I tried to farm aura in a corn field. Now it’s all ear-ra. 🌽', 'What do skeletons listen to? Phonk. Because they’ve got no body to dance with. 💀', 'Why did the rizzler sit on the clock? He wanted to be on time for the date.', 'What’s an Ohio resident’s favourite snack? Unexplainable chips.', 'Why can’t the moai keep a secret? It’s got big ears. 🗿'];
   const BOT_NAMES = ['NPC #4821', 'Mid Mike', 'Rizzless Randy', 'Unc Gary', 'Yapper Yasmin', 'Sigma Steve', 'Ohio Olivia', 'Skibidi Sam', 'Fanum Fan', 'Mewing Max', 'Glazer Greg', 'Delulu Dana'];
   const BIG_WORDS = ['+1000 AURA', 'HE’S HIM', 'TUNG TUNG TUNG SAHUR', 'TRALALERO TRALALA', 'BOMBARDIRO CROCODILO', 'ERM WHAT THE SIGMA', 'ONLY IN OHIO', 'CHAT IS THIS REAL', '6 7 6 7', 'SKIBIDI', 'GIGACHAD', 'AURA OVERLOAD', 'MOGGED THE WHOLE SERVER', 'INFINITE RIZZ', 'BRR BRR PATAPIM', 'LOOKSMAXXED', 'MEWING SO HARD RN', 'NO CAP FR FR'];
   const FELL_OFF = ['you fell off 💀', 'fingers said nah', 'bro got tired 😭', 'streak got ratio’d', 'skill issue', 'L + ratio', 'go touch grass then', 'NPC behaviour', 'the grindset was mid', 'chat, he fell off'];
@@ -257,11 +279,289 @@
 
   /* ---------------- the place ---------------- */
   const RINGS = [-45, -15, 15, 45].map((x) => ({ x, z: -62 }));
-  const CRATE_AT = CRATES.map((C, i) => ({ x: -34, z: -18 + i * 12 }));
+  const CRATE_AT = CRATES.map((C, i) => ({ x: -34, z: -20 + i * 10 }));
   const STATIONS = [{ x: 34, z: -12, e: '🤫', n: 'Mewing Station', c: 0x7c3aed, k: 'up' }, { x: 34, z: 2, e: '💪', n: 'Grindset Gym', c: 0xdb2777, k: 'up' }, { x: 34, z: 16, e: '🎒', n: 'Ability Locker', c: 0x2563eb, k: 'ab' }];
   const NOMESH = new THREE.Mesh(BOX, new THREE.MeshBasicMaterial()); NOMESH.visible = false;
   const solidBox = (x0, y0, z0, x1, y1, z1) => parts.push({ x: (x0 + x1) / 2, y: (y0 + y1) / 2, z: (z0 + z1) / 2, sx: x1 - x0, sy: y1 - y0, sz: z1 - z0, solid: true, on: true, ox: 0, oy: 0, oz: 0, dx: 0, dy: 0, dz: 0, c: 0, m: NOMESH });
   const sign = (text, x, y, z, size, color) => { const l = label(text, { size: size || 1.6, color }); l.position.set(x, y, z); place.add(l); return l; };
+
+  /* ---------------- the models: carved stone, polished metal and glowing parts (and the still bits baked together) ---------------- */
+  const GEO = {
+    box: BOX, cyl: new THREE.CylinderGeometry(1, 1, 1, 18), oct: new THREE.CylinderGeometry(1, 1, 1, 8), sq: new THREE.CylinderGeometry(0.7071, 1, 1, 4),
+    cone: new THREE.ConeGeometry(1, 1, 16), ball: new THREE.SphereGeometry(1, 18, 12), dome: new THREE.SphereGeometry(1, 18, 9, 0, Math.PI * 2, 0, Math.PI / 2),
+    gem: new THREE.OctahedronGeometry(1, 0), ring: new THREE.TorusGeometry(1, 0.08, 8, 44), thin: new THREE.TorusGeometry(1, 0.035, 6, 44),
+  };
+  const MATC = new Map(), mc = (k, f) => { if (!MATC.has(k)) MATC.set(k, f()); return MATC.get(k); };
+  let NOISE = null;
+  const noiseTex = () => { if (!NOISE) { const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d'); g.fillStyle = '#bbb'; g.fillRect(0, 0, 128, 128); for (let i = 0; i < 2600; i++) { const v = 150 + Math.floor(Math.random() * 105); g.fillStyle = `rgb(${v},${v},${v})`; g.fillRect(Math.random() * 128, Math.random() * 128, 1 + Math.random() * 3, 1 + Math.random() * 3); } NOISE = new THREE.CanvasTexture(c); NOISE.wrapS = NOISE.wrapT = THREE.RepeatWrapping; } return NOISE; };
+  const steel = (c) => mc('m' + c, () => metalMat(c));
+  const lit = (c) => mc('l' + c, () => new THREE.MeshBasicMaterial({ color: c }));
+  const matte = (c) => mc('a' + c, () => new THREE.MeshLambertMaterial({ color: c }));
+  const stone = (c) => mc('s' + c, () => new THREE.MeshPhongMaterial({ color: c, map: noiseTex(), shininess: 8, specular: 0x222222 }));
+  const shiny = (c) => mc('p' + c, () => new THREE.MeshPhongMaterial({ color: c, shininess: 80, specular: 0x666666 }));
+  const GOLD = 0xf2c14e, STEEL = 0xc3cbd6;
+  const pc = (p, geo, m, x, y, z, sx, sy, sz, rx, ry, rz) => { const o = new THREE.Mesh(GEO[geo] || geo, m); o.position.set(x, y, z); o.scale.set(sx, sy == null ? sx : sy, sz == null ? sx : sz); if (rx || ry || rz) o.rotation.set(rx || 0, ry || 0, rz || 0); p.add(o); return o; };
+  const _up = new THREE.Vector3(0, 1, 0), _ra = new THREE.Vector3(), _rb = new THREE.Vector3();
+  const rod = (p, a, b, r, m) => { _ra.set(...a); _rb.set(...b).sub(_ra); const o = new THREE.Mesh(GEO.cyl, m); o.scale.set(r, _rb.length(), r); o.position.copy(_ra).addScaledVector(_rb, 0.5); o.quaternion.setFromUnitVectors(_up, _rb.normalize()); p.add(o); return o; };
+  const glowAt = (p, c, w, h, x, y, z, fn) => { const o = fxCard('glow', c, w, h, x, y, z, p, fn); o.raycast = () => {}; return o; };
+  // the still parts of a model become one mesh per material (dozens of pieces, a handful of draw calls)
+  function bake(src) {
+    const out = new THREE.Group(), by = new Map(), v3 = new THREE.Vector3(), nm = new THREE.Matrix3();
+    src.updateMatrixWorld(true);
+    src.traverse((o) => { if (o.isMesh && !o.userData.fx) { if (!by.has(o.material)) by.set(o.material, []); by.get(o.material).push(o); } });
+    for (const [m, list] of by) {
+      let n = 0, ni = 0; for (const o of list) { n += o.geometry.attributes.position.count; ni += o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count; }
+      const pos = new Float32Array(n * 3), nor = new Float32Array(n * 3), uv = new Float32Array(n * 2), idx = new (n > 65535 ? Uint32Array : Uint16Array)(ni);
+      let v = 0, k = 0;
+      for (const o of list) {
+        const G = o.geometry, P = G.attributes.position, N = G.attributes.normal, U = G.attributes.uv; nm.getNormalMatrix(o.matrixWorld);
+        for (let i = 0; i < P.count; i++) {
+          v3.fromBufferAttribute(P, i).applyMatrix4(o.matrixWorld); pos.set([v3.x, v3.y, v3.z], (v + i) * 3);
+          v3.fromBufferAttribute(N, i).applyMatrix3(nm).normalize(); nor.set([v3.x, v3.y, v3.z], (v + i) * 3);
+          if (U) uv.set([U.getX(i), U.getY(i)], (v + i) * 2);
+        }
+        if (G.index) for (let i = 0; i < G.index.count; i++) idx[k++] = G.index.getX(i) + v; else for (let i = 0; i < P.count; i++) idx[k++] = v + i;
+        v += P.count;
+      }
+      const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); geo.setIndex(new THREE.BufferAttribute(idx, 1));
+      const mesh = new THREE.Mesh(geo, m); mesh.userData.ownGeo = true; out.add(mesh);
+    }
+    return out;
+  }
+  // build into `fn(group)`, then the still parts are baked; returns the group (moving bits added after stay as they are)
+  const model = (x, y, z, ry, fn) => { const g = new THREE.Group(), S = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = ry || 0; const anim = fn(S, g) || null; g.add(bake(S)); place.add(g); return { g, anim }; };
+  const settle = (g) => { const parts = g.children.filter((o) => o.isMesh && !o.userData.fx); if (!parts.length) return g; const tmp = new THREE.Group(); parts.forEach((o) => tmp.add(o)); g.add(bake(tmp)); return g; };
+  const mover = (p, x, y, z) => { const g = new THREE.Group(); g.position.set(x, y, z); p.add(g); return g; };
+  // a stand: carved stone, a gold rim, a glowing ring
+  function pedestal(S, r, h, glow) {
+    pc(S, 'oct', stone(0x6b6478), 0, h / 2, 0, r, h, r, 0, Math.PI / 8);
+    pc(S, 'oct', steel(GOLD), 0, h + 0.06, 0, r + 0.08, 0.12, r + 0.08, 0, Math.PI / 8);
+    pc(S, 'oct', stone(0x857d93), 0, h + 0.16, 0, r - 0.25, 0.1, r - 0.25, 0, Math.PI / 8);
+    if (glow != null) pc(S, 'ring', lit(glow), 0, h * 0.55, 0, r + 0.06, r + 0.06, 3, Math.PI / 2);
+  }
+
+  // the aura shrine: a moai carved in stone on three steps, glowing eyes, a red topknot, a gold halo, purple flames round it
+  function buildShrine(x, z) {
+    return model(x, 0, z, 0, (S, g) => {
+      [[9, 0.8], [7.4, 1.6], [5.9, 2.4]].forEach(([r, top]) => { pc(S, 'oct', stone(0x5b5566), 0, top - 0.4, 0, r, 0.8, r, 0, Math.PI / 8); pc(S, 'oct', steel(GOLD), 0, top + 0.02, 0, r + 0.05, 0.08, r + 0.05, 0, Math.PI / 8); });
+      const rune = new THREE.Mesh(new THREE.CircleGeometry(5.4, 48), new THREE.MeshBasicMaterial({ map: runeTex('THE AURA SHRINE'), color: 0xc084fc, transparent: true, depthWrite: false, ...DECAL }));
+      rune.rotation.x = -Math.PI / 2; rune.position.y = 2.45; rune.userData.ownGeo = true; g.add(rune);
+      const st = stone(0x7a7486), dk = stone(0x3f3a48);
+      pc(S, 'box', st, 0, 4.1, 0, 6.6, 3.4, 4.6); // shoulders
+      for (const s of [-1, 1]) { pc(S, 'box', stone(0x6d6779), s * 2.5, 3.9, -2.32, 0.7, 2.6, 0.2, 0, 0, s * 0.25); pc(S, 'box', stone(0x6d6779), s * 1.2, 2.9, -2.33, 1.6, 0.5, 0.2); } // arms carved in, hands meeting
+      pc(S, 'sq', st, 0, 10.4, 0, 3.15, 9.2, 2.55, 0, Math.PI / 4); // the head, narrower at the top
+      pc(S, 'box', st, 0, 13.1, -1.2, 5.4, 1.4, 1.6); // the brow
+      for (const s of [-1, 1]) {
+        pc(S, 'box', dk, s * 1.25, 12.0, -1.95, 1.6, 1.0, 0.3); // eye sockets
+        pc(S, 'box', st, s * 2.85, 11.0, -0.2, 0.55, 3.6, 1.3); // long ears
+      }
+      pc(S, 'box', st, 0, 10.7, -2.0, 1.3, 3.2, 1.2, -0.12); // the nose
+      pc(S, 'box', st, 0, 9.1, -2.25, 1.9, 0.6, 0.9); // nostrils
+      pc(S, 'box', dk, 0, 8.25, -2.05, 2.3, 0.35, 0.4); // lips, pursed
+      pc(S, 'box', st, 0, 7.2, -1.6, 3.8, 1.3, 1.2); // the chin
+      pc(S, 'cyl', stone(0x9a3412), 0, 15.5, 0.2, 2.4, 1.9, 2.4); pc(S, 'cyl', stone(0xb45309), 0, 16.6, 0.2, 1.5, 0.5, 1.5); // the red topknot
+      for (const s of [-1, 1]) { pc(S, 'ball', lit(0xe9d5ff), s * 1.25, 12.0, -2.12, 0.42, 0.3, 0.12); glowAt(g, 0xc084fc, 2.6, 2.2, s * 1.25, 12.0, -2.3, (o, m, t) => { m.opacity = 0.75 + 0.25 * Math.sin(t * 3 + s); }); }
+      const halo = mover(g, 0, 18.6, 0.2); pc(halo, 'ring', steel(GOLD), 0, 0, 0, 3.4, 3.4, 3.4, Math.PI / 2); pc(halo, 'thin', lit(0xfde68a), 0, 0, 0, 2.9, 2.9, 2.9, Math.PI / 2); for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; pc(halo, 'gem', lit(0xfde047), Math.cos(a) * 3.4, 0, Math.sin(a) * 3.4, 0.22, 0.32, 0.22); } settle(halo);
+      glowAt(g, 0xc084fc, 18, 18, 0, 10, 1.5, (o, m, t) => { m.opacity = 0.3 + 0.1 * Math.sin(t * 2); });
+      const fl = []; for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2, o = fxCard('flame', 0xd8b4fe, 1.6, 3, Math.cos(a) * 7.6, 2.4, Math.sin(a) * 7.6, g); o.raycast = () => {}; fl.push([o, i]); }
+      return (t) => { halo.rotation.y = t * 0.6; halo.position.y = 18.6 + Math.sin(t * 1.4) * 0.3; for (const [o, i] of fl) o.scale.set(1.5 + 0.2 * Math.sin(t * 9 + i), 2.6 + 0.7 * Math.sin(t * 7 + i * 1.7), 1); rune.rotation.z = t * 0.15; };
+    });
+  }
+
+  // a crate on its stand: metal bands, rivets, glowing seams and a lock; it bobs and turns; its best abilities go round above it
+  function buildCrate(C, x, z) {
+    const look = { mid: [0x92400e, steel(0x9ca3af), 0xfde68a], rizz: [0xdb2777, steel(0xe5e7eb), 0x93c5fd], sigma: [0x52525b, steel(GOLD), 0xfde047], phonk: [0x111014, steel(0x3f3f46), 0xc026d3], ohio: [0x7f1d1d, steel(0x1f2937), 0xf43f5e] }[C.id];
+    const [body, band, seam] = look;
+    return model(x, 0, z, Math.PI / 2, (S, g) => {
+      pedestal(S, 3.1, 1.3, seam);
+      const box = mover(g, 0, 3.4, 0), B = new THREE.Group();
+      pc(B, 'box', C.id === 'mid' ? matte(body) : shiny(body), 0, 0, 0, 2.8, 2.2, 2.8);
+      for (const [ax, ay, az, sx, sy, sz] of [[0, 1.1, 1.4, 3, 0.22, 0.22], [0, 1.1, -1.4, 3, 0.22, 0.22], [0, -1.1, 1.4, 3, 0.22, 0.22], [0, -1.1, -1.4, 3, 0.22, 0.22], [1.4, 1.1, 0, 0.22, 0.22, 3], [-1.4, 1.1, 0, 0.22, 0.22, 3], [1.4, -1.1, 0, 0.22, 0.22, 3], [-1.4, -1.1, 0, 0.22, 0.22, 3], [1.4, 0, 1.4, 0.22, 2.4, 0.22], [-1.4, 0, 1.4, 0.22, 2.4, 0.22], [1.4, 0, -1.4, 0.22, 2.4, 0.22], [-1.4, 0, -1.4, 0.22, 2.4, 0.22]]) pc(B, 'box', band, ax, ay, az, sx, sy, sz);
+      for (const sx of [-1, 1]) for (const sy of [-1, 1]) for (const sz of [-1, 1]) pc(B, 'ball', steel(C.id === 'sigma' ? GOLD : STEEL), sx * 1.42, sy * 1.12, sz * 1.42, 0.16);
+      pc(B, 'box', lit(seam), 0, 0.62, 0, 2.86, 0.08, 2.86); // the lid's glowing seam
+      pc(B, 'box', steel(GOLD), 0, 0.15, -1.45, 0.7, 0.8, 0.14); pc(B, 'gem', lit(seam), 0, 0.15, -1.55, 0.18, 0.26, 0.1); // the lock
+      if (C.id === 'phonk') { // speakers on the sides and a cowbell on top
+        for (const s of [-1, 1]) { pc(B, 'cyl', matte(0x09090b), s * 1.45, 0, 0, 0.9, 0.12, 0.9, 0, 0, Math.PI / 2); pc(B, 'thin', steel(0x71717a), s * 1.52, 0, 0, 0.9, 0.9, 0.9, 0, Math.PI / 2); pc(B, 'cone', matte(0x27272a), s * 1.5, 0, 0, 0.55, 0.3, 0.55, 0, 0, s * -Math.PI / 2); pc(B, 'ball', lit(0xe879f9), s * 1.62, 0, 0, 0.16); }
+        pc(B, 'cone', steel(GOLD), 0, 1.85, 0, 0.55, 1.1, 0.55); pc(B, 'ring', steel(GOLD), 0, 1.3, 0, 0.56, 0.56, 0.56, Math.PI / 2); pc(B, 'ball', steel(0x52525b), 0, 1.22, 0, 0.14);
+      }
+      B.children.slice().forEach((o) => box.add(o)); settle(box);
+      if (C.id === 'phonk') { const sk = emoSprite('💀', 1.4); sk.position.set(0, -0.35, -1.7); box.add(sk); }
+      glowAt(g, seam, 7, 7, 0, 3.4, 0, (o, m, t) => { m.opacity = 0.3 + 0.15 * Math.sin(t * 2.5 + x); });
+      const orbit = mover(g, 0, 6.6, 0), best = CRATES.indexOf(C) >= 0 ? C : null, top = best ? Math.max(...best.odds.map((p, r) => (p ? r : 0))) : 0;
+      const pool = (C.phonk ? PHONK_BY : BYR)[top] || [];
+      pool.slice(0, 3).forEach((k, i) => { const o = emoSprite(AB[k].e, 1.2); const a = i / 3 * Math.PI * 2; o.position.set(Math.cos(a) * 1.8, 0, Math.sin(a) * 1.8); orbit.add(o); });
+      const sparks = C.id === 'phonk' ? [0, 1, 2].map(() => { const o = emoSprite('⚡', 1); g.add(o); return o; }) : [];
+      return (t) => {
+        const beat = C.id === 'phonk' ? Math.pow(Math.max(0, Math.sin(t * Math.PI * 130 / 60)), 8) : 0; // it bounces to 130 bpm
+        box.position.y = 3.4 + Math.sin(t * 1.6 + x) * 0.18 + beat * 0.25; box.rotation.y = t * 0.35; box.scale.setScalar(1 + beat * 0.06);
+        orbit.rotation.y = -t * 0.8;
+        for (const o of sparks) if (Math.random() < 0.2) { const a = Math.random() * 6.28; o.position.set(Math.cos(a) * 2.2, 2.4 + Math.random() * 2.4, Math.sin(a) * 2.2); o.material.opacity = Math.random() < 0.6 ? 1 : 0; }
+      };
+    });
+  }
+
+  // the three machines: a mirror booth for mewing, a gym for the grindset, lockers for your abilities
+  function buildMewing(x, z) {
+    return model(x, 0, z, Math.PI / 2, (S, g) => {
+      pc(S, 'box', matte(0x2e1065), 0, 0.15, 0, 6.4, 0.3, 4.6);
+      pc(S, 'box', shiny(0x4c1d95), 0, 3.0, 1.9, 6, 5.4, 0.6);
+      pc(S, 'box', steel(0xdbeafe), 0, 3.3, 1.55, 3.4, 3.6, 0.1); // the mirror
+      for (const [fx, fy, fw, fh] of [[0, 5.2, 3.9, 0.3], [0, 1.4, 3.9, 0.3], [-1.85, 3.3, 0.3, 4.1], [1.85, 3.3, 0.3, 4.1]]) pc(S, 'box', steel(GOLD), fx, fy, 1.5, fw, fh, 0.22);
+      for (const s of [-1, 1]) for (let i = 0; i < 4; i++) pc(S, 'ball', lit(0xfde68a), s * 2.15, 1.6 + i * 1.15, 1.5, 0.13); // bulbs round the mirror
+      pc(S, 'cyl', steel(0x111827), 0, 1.1, -0.4, 0.75, 0.18, 0.75); for (let i = 0; i < 3; i++) { const a = i / 3 * Math.PI * 2; rod(S, [Math.cos(a) * 0.5, 0.2, -0.4 + Math.sin(a) * 0.5], [0, 1.05, -0.4], 0.06, steel(STEEL)); } // the stool
+      const sh = emoSprite('🤫', 1.6); sh.position.set(-2.2, 6.6, 1.2); g.add(sh); const ear = emoSprite('🧏', 1.6); ear.position.set(2.2, 6.6, 1.2); g.add(ear);
+      return (t) => { sh.position.y = 6.6 + Math.sin(t * 2) * 0.25; ear.position.y = 6.6 - Math.sin(t * 2) * 0.25; };
+    });
+  }
+  function buildGym(x, z) {
+    return model(x, 0, z, Math.PI / 2, (S, g) => {
+      pc(S, 'box', matte(0x18181b), 0, 0.1, 0, 7, 0.2, 5.4);
+      for (const s of [-1, 1]) { pc(S, 'box', steel(0x334155), s * 1.8, 2.4, 1.6, 0.3, 4.6, 0.3); pc(S, 'box', steel(GOLD), s * 1.8, 3.4, 1.35, 0.4, 0.15, 0.4); } // the rack
+      pc(S, 'cyl', steel(STEEL), 0, 3.55, 1.35, 0.07, 4.6, 0.07, 0, 0, Math.PI / 2); for (const s of [-1, 1]) for (const k of [0, 1]) pc(S, 'cyl', matte(k ? 0xdc2626 : 0x111827), s * (1.95 + k * 0.28), 3.55, 1.35, 0.75 - k * 0.15, 0.22, 0.75 - k * 0.15, 0, 0, Math.PI / 2); // the barbell
+      pc(S, 'box', matte(0x1f2937), 0, 1.0, -0.2, 3.2, 0.35, 1.0); for (const s of [-1, 1]) pc(S, 'box', steel(0x334155), s * 1.3, 0.5, -0.2, 0.15, 0.8, 0.8); // the bench
+      for (let i = 0; i < 3; i++) { const dx = -2.6 + i * 0.9; pc(S, 'cyl', steel(STEEL), dx, 0.7, -2.1, 0.05, 0.7, 0.05, Math.PI / 2); for (const s of [-1, 1]) pc(S, 'cyl', matte(0x111827), dx, 0.7, -2.1 + s * 0.32, 0.22, 0.14, 0.22, Math.PI / 2); } // dumbbells
+      pc(S, 'box', steel(0x334155), 2.7, 3.2, -1.6, 0.25, 6.4, 0.25); pc(S, 'box', steel(0x334155), 2.2, 6.3, -1.6, 1.2, 0.25, 0.25);
+      const bag = mover(g, 1.7, 6.2, -1.6); rod(bag, [0, 0, 0], [0, -1.2, 0], 0.04, steel(STEEL)); pc(bag, 'cyl', shiny(0xb91c1c), 0, -2.6, 0, 0.6, 2.6, 0.6); pc(bag, 'dome', shiny(0x7f1d1d), 0, -1.3, 0, 0.6, 0.3, 0.6); settle(bag);
+      return (t) => { bag.rotation.z = Math.sin(t * 2.4) * 0.18; bag.rotation.x = Math.sin(t * 1.7) * 0.1; };
+    });
+  }
+  function buildLockers(x, z) {
+    return model(x, 0, z, Math.PI / 2, (S, g) => {
+      pc(S, 'box', matte(0x0f172a), 0, 0.1, 0, 7, 0.2, 3.4);
+      for (let i = 0; i < 4; i++) {
+        const lx = -2.4 + i * 1.6, open = i === 2;
+        pc(S, 'box', steel(0x1d4ed8), lx, 2.3, 0.6, 1.5, 4.2, 1.5);
+        for (let v = 0; v < 3; v++) pc(S, 'box', matte(0x0b1023), lx, 3.7 + v * 0.22, -0.16, 0.9, 0.08, 0.04); // vents
+        pc(S, 'box', lit([0x60a5fa, 0xa78bfa, 0xfde047, 0xf472b6][i]), lx, 3.1, -0.17, 0.5, 0.3, 0.04);
+        if (open) { pc(S, 'box', steel(0x1d4ed8), lx - 0.95, 2.3, -0.4, 0.08, 4.1, 1.4, 0, -0.9); glowAt(g, 0xfde047, 2.2, 3.6, lx, 2.3, -0.1); }
+        else pc(S, 'box', steel(GOLD), lx + 0.5, 2.3, -0.17, 0.08, 0.5, 0.08);
+      }
+      const bp = emoSprite('🎒', 1.6); bp.position.set(0.8, 2.2, -0.4); g.add(bp);
+      return (t) => { bp.position.y = 2.2 + Math.sin(t * 2.2) * 0.15; };
+    });
+  }
+
+  // a duel ring: posts with glowing caps, neon ropes, spotlights sweeping, a rune circle in the middle
+  function buildArena(R, i) {
+    return model(R.x, 0, R.z, 0, (S, g) => {
+      const H = RING_H, ropes = [[1.6, 0xf472b6], [3.0, 0xa855f7], [4.4, 0x22d3ee]];
+      for (const [px, pz] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) { pc(S, 'cyl', steel(0x334155), px * H, 3, pz * H, 0.45, 6, 0.45); pc(S, 'cyl', matte(0xbe185d), px * H, 3, pz * H, 0.62, 3.4, 0.62); pc(S, 'ball', lit(0xf9a8d4), px * H, 6.2, pz * H, 0.55); pc(S, 'oct', stone(0x4b4458), px * H, 0.3, pz * H, 1.1, 0.6, 1.1); }
+      for (const [y, c] of ropes) for (const [ax, az, bx, bz] of [[-H, -H, H, -H], [-H, H, H, H], [-H, -H, -H, H], [H, -H, H, H]]) rod(S, [ax, y, az], [bx, y, bz], 0.12, lit(c));
+      const rune = new THREE.Mesh(new THREE.CircleGeometry(6.2, 48), new THREE.MeshBasicMaterial({ map: runeTex(`RING ${i + 1}`), color: 0xf472b6, transparent: true, depthWrite: false, ...DECAL }));
+      rune.rotation.x = -Math.PI / 2; rune.position.y = 0.14; rune.userData.ownGeo = true; g.add(rune);
+      const beams = [-1, 1].map((s) => { const b = new THREE.Mesh(new THREE.ConeGeometry(4, 15, 24, 1, true), new THREE.MeshBasicMaterial({ color: s < 0 ? 0xf0abfc : 0x93c5fd, transparent: true, opacity: 0.1, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })); b.userData.ownGeo = true; b.raycast = () => {}; const holder = mover(g, s * H, 15, -s * H); b.position.y = -7.5; holder.add(b); pc(holder, 'cyl', steel(0x1f2937), 0, 0.4, 0, 0.8, 1, 0.8); return holder; });
+      return (t) => { beams.forEach((h, k) => { h.rotation.z = Math.sin(t * 0.7 + k * 2) * 0.35 + (k ? -0.3 : 0.3); h.rotation.x = Math.cos(t * 0.5 + k) * 0.3; }); rune.rotation.z = -t * 0.2; };
+    });
+  }
+
+  // the classics, in 3D
+  function buildTralalero(x, z) { // a shark in blue sneakers, on three legs
+    return model(x, 0, z, Math.PI, (S, g) => {
+      pedestal(S, 2.8, 1.6, 0x67e8f9);
+      const body = mover(g, 0, 0, 0), B = new THREE.Group(), sk = shiny(0x5b7a99), wh = shiny(0xf1f5f9);
+      pc(B, 'ball', sk, 0, 4.4, 0, 1.15, 1.05, 2.7); pc(B, 'ball', wh, 0, 4.05, -0.15, 0.95, 0.75, 2.4);
+      pc(B, 'cone', sk, 0, 5.75, 0.3, 0.5, 1.5, 0.5, -0.35); // dorsal fin
+      for (const s of [-1, 1]) { pc(B, 'cone', sk, 0, 4.8 + s * 0.6, 2.95, 0.35, 1.3, 0.35, s * 0.9 + Math.PI / 2 * 0.0, 0, 0); pc(B, 'box', sk, s * 1.25, 4.0, -0.6, 1.2, 0.12, 0.7, 0, s * 0.4, s * 0.5); pc(B, 'ball', matte(0x0b0b0b), s * 0.62, 4.75, -2.15, 0.17); }
+      pc(B, 'box', matte(0x7f1d1d), 0, 3.95, -2.45, 0.9, 0.18, 0.4); for (let i = 0; i < 5; i++) pc(B, 'cone', wh, -0.36 + i * 0.18, 4.03, -2.55, 0.06, 0.16, 0.06, Math.PI);
+      for (const [lx, lz] of [[-0.55, -1.0], [0.55, -1.0], [0, 1.3]]) { pc(B, 'cyl', sk, lx, 2.55, lz, 0.22, 1.9, 0.22); pc(B, 'box', shiny(0x2563eb), lx, 1.82, lz - 0.15, 0.55, 0.42, 1.0); pc(B, 'box', matte(0xffffff), lx, 1.62, lz - 0.15, 0.58, 0.12, 1.04); pc(B, 'box', lit(0xffffff), lx + 0.29, 1.85, lz - 0.1, 0.03, 0.08, 0.5, 0, 0, 0.3); }
+      B.children.slice().forEach((o) => body.add(o)); settle(body);
+      return (t) => { body.position.y = Math.abs(Math.sin(t * 3)) * 0.25; body.rotation.y = Math.sin(t * 0.8) * 0.4; };
+    });
+  }
+  function buildTung(x, z) { // a wooden log with a bat
+    return model(x, 0, z, Math.PI, (S, g) => {
+      pedestal(S, 2.8, 1.6, 0xfdba74);
+      const wood = matte(0x8b5a2b), dark = matte(0x5c3a1a);
+      for (const s of [-1, 1]) { pc(S, 'cyl', wood, s * 0.45, 2.4, 0, 0.26, 1.6, 0.26); pc(S, 'box', dark, s * 0.45, 1.7, -0.15, 0.5, 0.25, 0.8); }
+      pc(S, 'cyl', wood, 0, 5.1, 0, 1.05, 4.2, 1.05); pc(S, 'cyl', matte(0xd6a46b), 0, 7.22, 0, 1.0, 0.06, 1.0);
+      for (const y of [3.6, 4.7, 5.9, 6.8]) pc(S, 'thin', dark, 0, y, 0, 1.06, 1.06, 3, Math.PI / 2);
+      for (const s of [-1, 1]) { pc(S, 'ball', matte(0xffffff), s * 0.42, 6.0, -0.95, 0.32, 0.36, 0.12); pc(S, 'ball', matte(0x0b0b0b), s * 0.42, 6.0, -1.05, 0.13); pc(S, 'box', dark, s * 0.42, 6.5, -0.98, 0.5, 0.1, 0.1, 0, 0, s * -0.4); }
+      pc(S, 'box', matte(0x1c0f06), 0, 5.2, -1.0, 0.8, 0.22, 0.08);
+      rod(S, [-1.0, 5.3, 0], [-1.6, 4.0, -0.3], 0.16, wood);
+      const arm = mover(g, 1.0, 5.4, 0); rod(arm, [0, 0, 0], [0.6, -0.9, -0.6], 0.16, wood); const bat = rod(arm, [0.6, -0.9, -0.6], [0.9, 1.7, -1.2], 0.18, matte(0xe5c08a)); bat.scale.x = bat.scale.z = 0.2; pc(arm, 'ball', matte(0xe5c08a), 0.9, 1.75, -1.2, 0.24); settle(arm);
+      return (t) => { const k = Math.max(0, Math.sin(t * 4.5)); arm.rotation.x = -k * 0.8; arm.rotation.z = k * 0.2; };
+    });
+  }
+  function buildBombardiro(x, z) { // a crocodile that's also a bomber plane
+    return model(x, 0, z, Math.PI, (S, g) => {
+      pedestal(S, 2.8, 1.6, 0x86efac);
+      const plane = mover(g, 0, 5.2, 0), B = new THREE.Group(), ol = shiny(0x4d5b2a), cr = shiny(0x3f7d3a);
+      pc(B, 'cyl', ol, 0, 0, 0.6, 0.8, 4.4, 0.8, Math.PI / 2); pc(B, 'cone', ol, 0, 0, 3.4, 0.8, 1.4, 0.8, Math.PI / 2);
+      pc(B, 'box', ol, 0, -0.1, 0.4, 7.4, 0.16, 1.5); pc(B, 'box', ol, 0, 0.2, 3.4, 2.6, 0.12, 0.8); pc(B, 'box', ol, 0, 0.75, 3.5, 0.12, 1.2, 0.8);
+      for (const s of [-1, 1]) { pc(B, 'cyl', matte(0x3f3f46), s * 2.2, -0.65, 0.3, 0.2, 1.2, 0.2, Math.PI / 2); pc(B, 'ball', matte(0x3f3f46), s * 2.2, -0.65, -0.3, 0.2); pc(B, 'cyl', steel(0x52525b), s * 2.2, -0.2, 0.3, 0.06, 0.4, 0.06); pc(B, 'cyl', steel(0x3f3f46), s * 2.2, 0, -0.45, 0.3, 0.6, 0.3, Math.PI / 2); }
+      pc(B, 'box', cr, 0, 0.05, -2.0, 1.3, 0.8, 2.0); pc(B, 'box', cr, 0, -0.05, -3.4, 0.95, 0.45, 1.6); pc(B, 'box', cr, 0, -0.38, -3.2, 0.9, 0.22, 1.9); // the head and jaws
+      for (const s of [-1, 1]) { pc(B, 'ball', matte(0xfef9c3), s * 0.42, 0.6, -1.7, 0.26); pc(B, 'ball', matte(0x0b0b0b), s * 0.42, 0.65, -1.85, 0.11); for (let i = 0; i < 6; i++) pc(B, 'cone', matte(0xffffff), s * 0.44, -0.24, -2.4 - i * 0.3, 0.06, 0.18, 0.06, Math.PI); }
+      B.children.slice().forEach((o) => plane.add(o)); settle(plane);
+      const props = [-1, 1].map((s) => { const p = mover(plane, s * 2.2, 0, -0.78); pc(p, 'box', matte(0x18181b), 0, 0, 0, 1.6, 0.14, 0.04); pc(p, 'box', matte(0x18181b), 0, 0, 0, 0.14, 1.6, 0.04); settle(p); return p; });
+      return (t) => { plane.position.y = 5.2 + Math.sin(t * 1.3) * 0.4; plane.rotation.z = Math.sin(t * 0.9) * 0.18; plane.rotation.x = Math.sin(t * 1.3) * 0.05; for (const p of props) p.rotation.z = t * 25; };
+    });
+  }
+
+  // the 6 7 hologram: two glowing seven-segment digits over a projector that nobody can explain
+  function buildHolo(x, z) {
+    const SEG = { a: [0, 1, 1.2, 0.26], b: [0.6, 0.5, 0.26, 1.0], c: [0.6, -0.5, 0.26, 1.0], d: [0, -1, 1.2, 0.26], e: [-0.6, -0.5, 0.26, 1.0], f: [-0.6, 0.5, 0.26, 1.0], g: [0, 0, 1.2, 0.26] };
+    return model(x, 0, z, 0, (S, g) => {
+      pc(S, 'cyl', steel(0x334155), 0, 0.5, 0, 1.6, 1, 1.6); pc(S, 'ring', lit(0x22d3ee), 0, 1.02, 0, 1.4, 1.4, 1.4, Math.PI / 2); pc(S, 'cyl', lit(0xa5f3fc), 0, 1.1, 0, 0.5, 0.1, 0.5);
+      const cone = new THREE.Mesh(new THREE.ConeGeometry(3.4, 6, 24, 1, true), new THREE.MeshBasicMaterial({ color: 0x67e8f9, transparent: true, opacity: 0.1, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })); cone.rotation.x = Math.PI; cone.position.y = 4.1; cone.userData.ownGeo = true; cone.raycast = () => {}; g.add(cone);
+      const digit = (segs, c, dx) => { const d = mover(g, dx, 8, 0), m = new THREE.MeshBasicMaterial({ color: c, transparent: true }); for (const s of segs) { const [sx, sy, w, h] = SEG[s]; const o = new THREE.Mesh(BOX, m); o.position.set(sx * 1.6, sy * 1.6, 0); o.scale.set(w * 1.6, h * 1.6, 0.3); d.add(o); } glowAt(d, c, 6, 7, 0, 0, 0); d.userData.m = m; return d; };
+      const six = digit('acdefg', 0x22d3ee, -1.8), seven = digit('abc', 0xf472b6, 1.8);
+      return (t) => { six.position.y = 8 + Math.sin(t * 3) * 0.9; seven.position.y = 8 - Math.sin(t * 3) * 0.9; six.rotation.y = seven.rotation.y = Math.sin(t * 0.6) * 0.3; const fl = Math.random() < 0.06 ? 0.4 : 1; six.userData.m.opacity = seven.userData.m.opacity = fl; };
+    });
+  }
+
+  // the Ohio portal: a stone arch round a swirling disk, everything nearby drifting in
+  let SWIRL = null;
+  const swirlTex = () => { if (!SWIRL) { const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d'); g.translate(128, 128); for (let i = 0; i < 900; i++) { const a = i * 0.11, r = i / 900 * 124; g.fillStyle = `hsla(${270 - i / 900 * 130},90%,${45 + (i % 3) * 12}%,0.9)`; g.beginPath(); g.arc(Math.cos(a) * r, Math.sin(a) * r, 2 + r / 18, 0, Math.PI * 2); g.fill(); } SWIRL = new THREE.CanvasTexture(c); } return SWIRL; };
+  function buildPortal(x, z) {
+    return model(x, 0, z, Math.PI / 2, (S, g) => {
+      const st = stone(0x4b4458);
+      for (const s of [-1, 1]) { pc(S, 'box', st, s * 5.2, 2.8, 0, 1.5, 5.6, 1.6); pc(S, 'box', stone(0x3a3445), s * 5.2, 0.3, 0, 2, 0.6, 2.1); }
+      const arch = new THREE.Mesh(new THREE.TorusGeometry(5.2, 0.75, 10, 36, Math.PI), st); arch.position.y = 5.6; S.add(arch);
+      for (let i = 0; i < 7; i++) { const a = i / 6 * Math.PI; pc(S, 'gem', lit(0xa855f7), Math.cos(a) * 5.2, 5.6 + Math.sin(a) * 5.2, -0.8, 0.28, 0.4, 0.2); }
+      const disk = new THREE.Mesh(new THREE.CircleGeometry(4.5, 48), new THREE.MeshBasicMaterial({ map: swirlTex(), transparent: true, side: THREE.DoubleSide, depthWrite: false })); disk.position.y = 5.2; disk.userData.ownGeo = true; disk.raycast = () => {}; g.add(disk);
+      glowAt(g, 0x8b5cf6, 13, 13, 0, 5.2, 0, (o, m, t) => { m.opacity = 0.5 + 0.2 * Math.sin(t * 4); });
+      const bits = Array.from({ length: 10 }, (_, i) => { const o = emoSprite(['🗿', '🌽', '💀', '🧠', '🍟'][i % 5], 0.9); g.add(o); return o; });
+      return (t) => { disk.rotation.z = -t * 1.6; bits.forEach((o, i) => { const k = (t * 0.35 + i / 10) % 1, a = i * 2.1 + t; o.position.set(Math.cos(a) * 6 * (1 - k), 5.2 + Math.sin(a) * 5 * (1 - k), -3 * (1 - k)); o.material.opacity = Math.min(1, (1 - k) * 2); o.scale.setScalar(0.3 + (1 - k)); }); };
+    });
+  }
+
+  // corn (it's corny now): stalks with cobs and leaves, all baked into one
+  function cornStalk(S, x, z, h, r) {
+    const st = matte(0x4d7c0f), lf = matte(0x65a30d);
+    pc(S, 'cyl', st, x, h / 2, z, 0.1, h, 0.1);
+    for (let i = 0; i < 4; i++) { const y = 0.8 + i * h * 0.2, a = r() * 6.28; pc(S, 'box', lf, x + Math.cos(a) * 0.55, y, z + Math.sin(a) * 0.55, 1.2, 0.05, 0.22, 0, -a, 0.5); }
+    for (let i = 0; i < 1 + (r() < 0.5 ? 1 : 0); i++) { const a = r() * 6.28, y = h * (0.5 + i * 0.15); pc(S, 'cyl', matte(0xfacc15), x + Math.cos(a) * 0.3, y, z + Math.sin(a) * 0.3, 0.17, 0.75, 0.17, 0.4 * Math.cos(a), 0, -0.4 * Math.sin(a)); pc(S, 'box', lf, x + Math.cos(a) * 0.36, y - 0.2, z + Math.sin(a) * 0.36, 0.22, 0.7, 0.08, 0, -a, 0.3); }
+    pc(S, 'cone', matte(0xd9a441), x, h + 0.3, z, 0.25, 0.7, 0.25);
+  }
+  function buildCorn(spots) { return model(0, 0, 0, 0, (S) => { const r = mulberry(4242); for (const [x, z] of spots) cornStalk(S, x + (r() - 0.5), z + (r() - 0.5), 3.6 + r() * 1.6, r); }); }
+
+  // phonk, made on the spot: a cowbell riff, an 808 and hi-hats at 130 bpm (with the sound on)
+  let NOISE_BUF = null;
+  const noiseBuf = (ac) => { if (!NOISE_BUF || NOISE_BUF.sampleRate !== ac.sampleRate) { NOISE_BUF = ac.createBuffer(1, ac.sampleRate * 0.5, ac.sampleRate); const d = NOISE_BUF.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; } return NOISE_BUF; };
+  function phonk(secs, bpm = 130) {
+    const A = window.Sfx && Sfx.on && Sfx.audio && Sfx.audio(); if (!A) return null;
+    const { ac, out } = A, step = 60 / bpm / 4, t0 = ac.currentTime + 0.05, n = Math.floor(secs / step);
+    noiseBuf(ac);
+    const bus = ac.createGain(); bus.gain.value = 0.5; bus.connect(out);
+    const sh = ac.createWaveShaper(), cv = new Float32Array(256); for (let i = 0; i < 256; i++) cv[i] = Math.tanh((i / 128 - 1) * 3.5); sh.curve = cv; sh.connect(bus);
+    const RIFF = [0, -1, 0, 3, -1, 5, 3, -1, 7, -1, 5, 3, -1, 3, 5, -1], BASS = [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0];
+    const note = (f, t, d, vol, type, filt) => { const o = ac.createOscillator(), gn = ac.createGain(), bp = ac.createBiquadFilter(); o.type = type; o.frequency.value = f; bp.type = 'bandpass'; bp.frequency.value = filt || f * 1.4; bp.Q.value = 2.5; gn.gain.setValueAtTime(0.0001, t); gn.gain.exponentialRampToValueAtTime(vol, t + 0.004); gn.gain.exponentialRampToValueAtTime(0.0001, t + d); o.connect(bp).connect(gn).connect(bus); o.start(t); o.stop(t + d + 0.02); };
+    for (let i = 0; i < n; i++) {
+      const t = t0 + i * step, s = i % 16, r = RIFF[(s + (i >> 4) * 0) % 16];
+      if (r >= 0) { const f = 560 * 2 ** (r / 12); note(f, t, 0.2, 0.16, 'square'); note(f * 1.505, t, 0.18, 0.09, 'square'); } // cowbell: two square waves, bandpassed
+      if (BASS[s]) { const o = ac.createOscillator(), gn = ac.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(120, t); o.frequency.exponentialRampToValueAtTime(41, t + 0.14); gn.gain.setValueAtTime(0.85, t); gn.gain.exponentialRampToValueAtTime(0.0001, t + 0.6); o.connect(gn).connect(sh); o.start(t); o.stop(t + 0.65); }
+      const hat = ac.createBufferSource(), hp = ac.createBiquadFilter(), hg = ac.createGain(); hat.buffer = NOISE_BUF; hp.type = 'highpass'; hp.frequency.value = 7500; hg.gain.setValueAtTime(s % 2 ? 0.05 : 0.11, t); hg.gain.exponentialRampToValueAtTime(0.0001, t + 0.05); hat.connect(hp).connect(hg).connect(bus); hat.start(t); hat.stop(t + 0.06);
+      if (s === 4 || s === 12) { const cl = ac.createBufferSource(), bp = ac.createBiquadFilter(), cg = ac.createGain(); cl.buffer = NOISE_BUF; bp.type = 'bandpass'; bp.frequency.value = 1500; cg.gain.setValueAtTime(0.3, t); cg.gain.exponentialRampToValueAtTime(0.0001, t + 0.18); cl.connect(bp).connect(cg).connect(bus); cl.start(t); cl.stop(t + 0.2); }
+    }
+    return { stop() { try { bus.gain.setTargetAtTime(0, ac.currentTime, 0.05); setTimeout(() => bus.disconnect(), 500); } catch (e) {} } };
+  }
+  // ba dum tss (after a corny joke)
+  function rimshot() {
+    const A = window.Sfx && Sfx.on && Sfx.audio && Sfx.audio(); if (!A) return;
+    const { ac, out } = A, t = ac.currentTime + 0.02;
+    [[220, 0], [160, 0.16]].forEach(([f, d]) => { const o = ac.createOscillator(), g = ac.createGain(); o.frequency.setValueAtTime(f, t + d); o.frequency.exponentialRampToValueAtTime(f * 0.6, t + d + 0.15); g.gain.setValueAtTime(0.5, t + d); g.gain.exponentialRampToValueAtTime(0.0001, t + d + 0.18); o.connect(g).connect(out); o.start(t + d); o.stop(t + d + 0.2); });
+    const c = ac.createBufferSource(), hp = ac.createBiquadFilter(), g = ac.createGain(); c.buffer = noiseBuf(ac); hp.type = 'highpass'; hp.frequency.value = 6000; g.gain.setValueAtTime(0.25, t + 0.34); g.gain.exponentialRampToValueAtTime(0.0001, t + 1.0); c.connect(hp).connect(g).connect(out); c.start(t + 0.34); c.stop(t + 1.05);
+  }
 
   const AU = {
     id: 'aura', code: 'au', genre: 'Simulator', rank: 0.001, name: '+1 Aura Every Second', emoji: '🗿', max: 12, stat: 'Aura', killY: -30, camDist: 20,
@@ -273,75 +573,58 @@
     build() {
       sky('#a78bfa', '#fce7f3');
       slab(0, 0, -18, 128, 128, 0xede9fe, { sy: 2 });
-      // the aura shrine: a giant moai with glowing eyes
-      part({ x: 0, y: 1, z: -24, sx: 12, sy: 2, sz: 8, c: 0x4b5563 });
-      part({ x: 0, y: 7, z: -24, sx: 6.4, sy: 10, sz: 5, c: 0x6b7280 });
-      part({ x: 0, y: 10.6, z: -21.4, sx: 6.8, sy: 1.6, sz: 1.2, c: 0x4b5563 });
-      part({ x: 0, y: 7.4, z: -21.2, sx: 1.6, sy: 4, sz: 1.2, c: 0x57534e });
-      part({ x: 0, y: 3.6, z: -21.5, sx: 4.6, sy: 1.6, sz: 1, c: 0x4b5563 });
-      for (const s of [-1, 1]) part({ x: s * 1.6, y: 9.2, z: -21.42, sx: 1.4, sy: 0.6, sz: 0.2, c: 0xc084fc, neon: true });
-      this.shrineGlow = fxCard('glow', 0xc084fc, 16, 16, 0, 8, -25, place, (o, m, t) => { m.opacity = 0.35 + 0.12 * Math.sin(t * 2); });
-      sign('🗿 THE AURA SHRINE', 0, 15.5, -24, 2.2, '#e9d5ff');
-      sign('+1 AURA EVERY SECOND', 0, 19.5, -34, 4.4, '#fde047');
+      this.anims = [];
+      const add = (m) => { if (m.anim) this.anims.push(m.anim); return m; };
+      // the aura shrine (steps you can climb; the moai's solid)
+      add(buildShrine(0, -24));
+      for (const [r, top] of [[8, 0.8], [6.6, 1.6], [5.2, 2.4]]) solidBox(-r, 0, -24 - r, r, top, -24 + r);
+      solidBox(-3.3, 2.4, -26.3, 3.3, 18, -21.7);
+      sign('🗿 THE AURA SHRINE', 0, 3.4, -15.2, 1.5, '#e9d5ff');
+      sign('+1 AURA EVERY SECOND', 0, 25, -36, 4.4, '#fde047');
       // signs (very serious)
       for (const [t, x, z, c] of [['NO CAP ZONE 🧢🚫', 44, 30, '#86efac'], ['🚧 OHIO BORDER — DO NOT CROSS', -40, 38, '#fca5a5'], ['AURA FARMING IN PROGRESS 🗿', 14, -16, '#c4b5fd'], ['-1000 AURA FOR YAPPING', -14, 38, '#fde68a']]) { part({ x, y: 1.8, z, sx: 0.4, sy: 3.6, sz: 0.4, c: 0x78716c }); sign(t, x, 4.6, z, 1.2, c); }
       // the crates, on stands
       this.crates = CRATES.map((C, i) => {
         const { x, z } = CRATE_AT[i];
-        part({ x, y: 0.7, z, sx: 6, sy: 1.4, sz: 6, c: 0x334155 });
-        part({ x, y: 1.45, z, sx: 6.4, sy: 0.15, sz: 6.4, c: C.c, neon: true });
-        part({ x, y: 3, z, sx: 3.2, sy: 3, sz: 3.2, c: C.c });
-        for (const dy of [1.5, 4.5]) part({ x, y: dy, z, sx: 3.4, sy: 0.25, sz: 3.4, c: 0xffffff, neon: true });
-        fxCard('glow', C.c, 7, 7, x, 3.2, z, place, (o, m, t) => { m.opacity = 0.3 + 0.15 * Math.sin(t * 2.5 + i); });
-        sign(`${C.e} ${C.n}\n🗿 ${comma(C.price)} aura`, x, 7.4, z, 1.25);
+        add(buildCrate(C, x, z)); solidBox(x - 3, 0, z - 3, x + 3, 5, z + 3);
+        sign(`${C.e} ${C.n}\n🗿 ${comma(C.price)} aura`, x, 8.6, z, 1.25, C.phonk ? '#f0abfc' : '#fff');
         return { x, z, C };
       });
       // the machines: click power, aura a second, your abilities
-      for (const M of STATIONS) {
-        part({ x: M.x, y: 2.5, z: M.z, sx: 6, sy: 5, sz: 5, c: M.c });
-        part({ x: M.x, y: 5.3, z: M.z, sx: 6.4, sy: 0.6, sz: 5.4, c: 0xffffff, neon: true });
-        part({ x: M.x - 3.05, y: 2.8, z: M.z, sx: 0.12, sy: 2.6, sz: 3.6, c: 0x111827 });
-        sign(`${M.e} ${M.n}`, M.x, 8, M.z, 1.4);
-      }
-      // the duel rings: glass boxes you can't get into (you're teleported in) or out of (until it's over)
+      add(buildMewing(STATIONS[0].x, STATIONS[0].z)); add(buildGym(STATIONS[1].x, STATIONS[1].z)); add(buildLockers(STATIONS[2].x, STATIONS[2].z));
+      for (const M of STATIONS) { solidBox(M.x - 2.6, 0, M.z - 3.4, M.x + 2.6, 6, M.z + 3.4); sign(`${M.e} ${M.n}`, M.x, 8.6, M.z, 1.4); }
+      // the duel rings: you can't get in (you're teleported in) or out (until it's over)
       sign('⚔️ THE DUEL RINGS', 0, 13, -44, 2.4, '#fca5a5');
       part({ x: 0, y: 0.8, z: -44, sx: 7, sy: 1.6, sz: 3, c: 0x7f1d1d });
       sign('🤖 Duel a bot here', 0, 4.2, -44, 1.1, '#fecaca');
       RINGS.forEach((R, i) => {
-        part({ x: R.x, y: 0.05, z: R.z, sx: RING_H * 2, sy: 0.1, sz: RING_H * 2, c: 0x312e81, plain: true });
-        for (const [x, z, sx, sz] of [[R.x, R.z - RING_H, RING_H * 2 + 1, 0.6], [R.x, R.z + RING_H, RING_H * 2 + 1, 0.6], [R.x - RING_H, R.z, 0.6, RING_H * 2 + 1], [R.x + RING_H, R.z, 0.6, RING_H * 2 + 1]]) {
-          part({ x, y: 3.5, z, sx, sy: 7, sz, c: 0xbfdbfe, alpha: 0.16 });
-          part({ x, y: 7.1, z, sx: sx + 0.2, sy: 0.25, sz: sz + 0.2, c: 0xf472b6, neon: true });
-          part({ x, y: 0.2, z, sx: sx + 0.2, sy: 0.25, sz: sz + 0.2, c: 0xf472b6, neon: true });
-        }
-        for (const [sx, sz] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) part({ x: R.x + sx * RING_H, y: 3.7, z: R.z + sz * RING_H, sx: 0.9, sy: 7.4, sz: 0.9, c: 0xa855f7, neon: true });
-        const c = new THREE.Mesh(new THREE.RingGeometry(4.6, 5.2, 48), new THREE.MeshBasicMaterial({ color: 0xf472b6, side: THREE.DoubleSide, ...DECAL })); c.rotation.x = -Math.PI / 2; c.position.set(R.x, 0.12, R.z); place.add(c);
+        part({ x: R.x, y: 0.05, z: R.z, sx: RING_H * 2, sy: 0.1, sz: RING_H * 2, c: 0x1e1b4b, plain: true });
+        for (const [x, z, sx, sz] of [[R.x, R.z - RING_H, RING_H * 2 + 1, 0.6], [R.x, R.z + RING_H, RING_H * 2 + 1, 0.6], [R.x - RING_H, R.z, 0.6, RING_H * 2 + 1], [R.x + RING_H, R.z, 0.6, RING_H * 2 + 1]]) part({ x, y: 3.5, z, sx, sy: 7, sz, c: 0xbfdbfe, alpha: 0.07 });
+        add(buildArena(R, i));
         sign(`⚔️ RING ${i + 1}`, R.x, 10, R.z + RING_H, 1.6);
       });
-      // the brainrot: statues of the classics, moai going round the shrine, the 6 7 hologram, a portal to Ohio
-      this.props = [];
-      for (const [e, n, x, z, c] of [['🦈👟', 'TRALALERO TRALALA', -24, 31, '#67e8f9'], ['🪵🏏', 'TUNG TUNG TUNG SAHUR', 24, 31, '#fdba74'], ['🐊✈️', 'BOMBARDIRO CROCODILO', 0, 40, '#86efac']]) {
-        part({ x, y: 1, z, sx: 4, sy: 2, sz: 4, c: 0x4c1d95 }); part({ x, y: 2.05, z, sx: 4.3, sy: 0.15, sz: 4.3, c: 0xf472b6, neon: true });
-        const st = label(e, { size: 3.6, fit: false }); st.position.set(x, 5, z); place.add(st);
-        sign(n, x, 8.4, z, 1.1, c);
-        const ph = x * 0.1; this.props.push((t) => { st.position.y = 5 + Math.sin(t * 1.6 + ph) * 0.35; });
-      }
-      const moai = new THREE.Group(); moai.position.set(0, 10, -24); place.add(moai);
-      for (let i = 0; i < 6; i++) { const o = emoSprite('🗿', 2.2), a = i / 6 * Math.PI * 2; o.position.set(Math.cos(a) * 7.5, Math.sin(i * 2) * 0.8, Math.sin(a) * 7.5); moai.add(o); }
-      this.props.push((t) => { moai.rotation.y = t * 0.5; });
-      const six = label('6', { size: 6, color: '#22d3ee', fit: false }), seven = label('7', { size: 6, color: '#f472b6', fit: false });
-      six.position.set(-17, 9, -6); seven.position.set(-12, 9, -6); place.add(six, seven);
-      sign('the 6 7 hologram (nobody knows what it means)', -14.5, 4.6, -6, 0.9, '#e2e8f0');
-      part({ x: -14.5, y: 1.2, z: -6, sx: 3, sy: 2.4, sz: 1.6, c: 0x1e293b });
-      this.props.push((t) => { six.position.y = 9 + Math.sin(t * 3) * 1.1; seven.position.y = 9 - Math.sin(t * 3) * 1.1; });
-      const portal = new THREE.Group(); portal.position.set(-52, 6, 28); place.add(portal);
-      for (const [r, c] of [[4, 0xa855f7], [3.2, 0x22c55e], [2.4, 0xf472b6]]) { const m = new THREE.Mesh(new THREE.TorusGeometry(r, 0.25, 8, 40), new THREE.MeshBasicMaterial({ color: c })); m.raycast = () => {}; portal.add(m); }
-      fxCard('glow', 0x8b5cf6, 11, 11, 0, 0, 0, portal, (o, m, t) => { m.opacity = 0.55 + 0.2 * Math.sin(t * 4); });
-      sign('🌀 OHIO PORTAL\n(closed for maintenance)', -52, 12.5, 28, 1.2, '#d8b4fe');
-      this.props.push((t) => { portal.children.forEach((m, i) => { if (m.isMesh && m.geometry.type === 'TorusGeometry') { m.rotation.z = t * (1 + i * 0.6) * (i % 2 ? -1 : 1); m.rotation.y = Math.sin(t + i) * 0.4; } }); });
+      // the brainrot: the classics in 3D, the 6 7 hologram, a portal to Ohio, the Mewing Zone
+      add(buildTralalero(-24, 31)); add(buildTung(24, 31)); add(buildBombardiro(0, 40));
+      for (const [n, x, z, c] of [['TRALALERO TRALALA', -24, 31, '#67e8f9'], ['TUNG TUNG TUNG SAHUR', 24, 31, '#fdba74'], ['BOMBARDIRO CROCODILO', 0, 40, '#86efac']]) { solidBox(x - 2.6, 0, z - 2.6, x + 2.6, 1.6, z + 2.6); sign(n, x, x === 0 ? 9.6 : 9, z, 1.1, c); }
+      add(buildHolo(-14.5, -6)); solidBox(-16.1, 0, -7.6, -12.9, 1, -4.4);
+      sign('the 6 7 hologram (nobody knows what it means)', -14.5, 2.4, -3.8, 0.9, '#e2e8f0');
+      add(buildPortal(-52, 28)); for (const s of [-1, 1]) solidBox(-53, 0, 28 + s * 5.2 - 0.8, -51, 5.6, 28 + s * 5.2 + 0.8);
+      sign('🌀 OHIO PORTAL\n(closed for maintenance)', -52, 13.5, 28, 1.2, '#d8b4fe');
       part({ x: 14, y: 0.06, z: 30, sx: 10, sy: 0.12, sz: 10, c: 0x0ea5e9, alpha: 0.35 });
       sign('🤫 MEWING ZONE (no yapping)', 14, 4, 30, 1.1, '#bae6fd');
-      this.fx = []; this.pjv = new Map(); this.botAv = new Map(); this.fv = new Map(); this.tags = new Map();
+      // Unc Joe's corny joke corner (and actual corn, because it's corny now)
+      part({ x: -12, y: 0.25, z: 12, sx: 7, sy: 0.5, sz: 5, c: 0x854d0e });
+      part({ x: -12, y: 0.52, z: 12, sx: 7.2, sy: 0.06, sz: 5.2, c: 0xfacc15, neon: true });
+      model(-10, 0.5, 10.6, 0, (S) => { rod(S, [0, 0, 0], [0, 3.2, 0], 0.06, steel(STEEL)); pc(S, 'cyl', steel(0x1f2937), 0, 0.05, 0, 0.5, 0.1, 0.5); pc(S, 'ball', steel(0x52525b), 0, 3.4, -0.1, 0.26); });
+      sign('🌽 JOKE CORN-ER\nwith Unc Joe', -12, 7.4, 12, 1.15, '#fde68a');
+      const spots = [];
+      for (let x = -58; x <= 58; x += 4.5) if (Math.abs(x) > 5) spots.push([x, 43]);
+      for (let z = -36; z <= 40; z += 5) { spots.push([-61, z]); spots.push([61, z]); }
+      for (let i = 0; i < 7; i++) spots.push([-15.2 + i * 1.1, 9.3]);
+      buildCorn(spots);
+      this.unc = makeAvatar(okAv([1, 2, 3, 7, 4, 0, 0, 2, 0, 0]), '🧓 Unc Joe', false); this.unc.g.position.set(-12, 0.55, 12); this.unc.g.rotation.y = Math.PI; scene.add(this.unc.g);
+      this.uncAt = -1e9; this.uncBub = null;
+      this.fx = []; this.pjv = new Map(); this.botAv = new Map(); this.fv = new Map(); this.tags = new Map(); this.props = [];
     },
     pres() { return { au: 0, br: 0, eq: [], tq: [], th: 0, sk: 0 }; },
     async enter() {
@@ -361,6 +644,8 @@
     },
     leave() {
       if (this.S) this.save();
+      this.editOff(); if (this.music) { this.music.stop(); this.music = null; }
+      if (this.unc) { dropAvatar(this.unc); this.unc = null; }
       for (const a of this.botAv.values()) dropAvatar(a);
       this.botAv = new Map(); this.pjv = new Map(); this.fv = new Map(); this.tags = new Map(); this.fx = [];
       P.frozen = false;
@@ -421,6 +706,33 @@
       if (this.tier) { this.tier = 0; this.send(true); }
       if (n >= 10 && !quiet) { this.pop(innerWidth / 2, 168, `streak ended at ${n} · ${pick(FELL_OFF)}`, 'end'); sfx('lose', { vol: 0.3 }); }
     },
+    // Unc Joe tells a joke (you get a little aura for surviving it, every 15 seconds at most)
+    joke() {
+      const j = pick(JOKES), u = this.unc; if (!u) return;
+      if (this.uncBub) { u.g.remove(this.uncBub); this.uncBub.material.map.dispose(); this.uncBub.material.dispose(); }
+      const words = j.split(' '), lines = []; let cur = '';
+      for (const w of words) { if ((cur + ' ' + w).trim().length > 30) { lines.push(cur.trim()); cur = w; } else cur += ' ' + w; }
+      if (cur.trim()) lines.push(cur.trim());
+      this.uncBub = label(lines.join('\n'), { size: 0.85, color: '#422006', bg: 'rgba(254,243,199,.95)' }); this.uncBub.position.y = 8.6 + lines.length * 0.35; u.g.add(this.uncBub);
+      clearTimeout(this.bubT); this.bubT = setTimeout(() => { if (this.uncBub && this.unc) { this.unc.g.remove(this.uncBub); this.uncBub.material.map.dispose(); this.uncBub.material.dispose(); this.uncBub = null; } }, 6500);
+      say(`🧓 Unc Joe: ${j}`, '#fde68a'); setTimeout(() => rimshot(), 900);
+      const now = performance.now();
+      if (now - this.uncAt > 15000) { this.uncAt = now; const v = Math.max(5, Math.round(5 * this.perSec())); setTimeout(() => { this.gain(v); toast(`😐 +${comma(v)} aura for surviving the cringe`, '#fde68a'); this.drawTop(); }, 1400); }
+    },
+    // the edit: black and white, letterbox bars, a skull, a word (and phonk, if `music`)
+    editFx(secs, word, music) {
+      const old = $('#auEdit'); if (old) old.remove();
+      const el = document.createElement('div'); el.id = 'auEdit'; el.innerHTML = `<div class="sk">💀</div>${word ? `<div class="tf">${esc(word)}</div>` : ''}`;
+      $('#xhud').append(el);
+      try { canvas.style.filter = 'grayscale(1) contrast(1.45) brightness(1.06)'; } catch (e) {}
+      this.editUntil = performance.now() + secs * 1000;
+      if (music) { if (this.music) this.music.stop(); this.music = phonk(secs); }
+    },
+    editOff() {
+      this.editUntil = 0;
+      try { canvas.style.filter = ''; } catch (e) {}
+      const el = $('#auEdit'); if (el) el.remove();
+    },
     rainOn() { const g = this.g; return !!(g && g.rn > 0); },
     // the brainrot announcer (only with the sound on, and only for the big moments)
     speak(text) {
@@ -477,7 +789,9 @@
       this.evT -= dt; if (this.evT <= 0) { this.evT = 45 + Math.random() * 40; if (!this.D) this.auraEvent(); }
       const g = this.g = roundState(this);
       if (this.streak && now - this.lastClick > STREAK_GAP * 1000) this.endStreak();
-      for (const f of this.props || []) f(now / 1000);
+      for (const f of this.anims || []) f(now / 1000);
+      if (this.unc) { animateAvatar(this.unc, dt, false, false); placeShadow(this.unc); }
+      if (this.editUntil && now > this.editUntil) this.editOff();
       this.duelTick(g, dt);
       this.drawWorld(g, dt);
       if (g && g.rn > 0) this.rainTick(dt);
@@ -615,7 +929,7 @@
       } else if (A.k === 'beam') { D.pe.push({ t: A.w, kind: 'beam', o: i, k, x0: me.x, z0: me.z, ux, uz, dmg }); this.ev(['b0', D.id, i, k, +me.x.toFixed(1), +me.z.toFixed(1), +(me.x + ux * A.rng).toFixed(1), +(me.z + uz * A.rng).toFixed(1), A.w]); }
       else if (A.k === 'aoe') D.pe.push({ t: A.w, kind: 'aoe', o: i, k, dmg });
       else if (A.k === 'meteor') { D.pe.push({ t: A.w, kind: 'meteor', o: i, k, x1: tg.x, z1: tg.z, dmg }); this.ev(['m0', D.id, k, +tg.x.toFixed(1), +tg.z.toFixed(1), A.w]); }
-      else if (A.k === 'dash') { D.pe.push({ t: 0.32, kind: 'dash', o: i, k, dmg }); this.ev(['ds', D.id, i]); if (isBot(D.f[i])) D.bot.dashT = 0.3; }
+      else if (A.k === 'dash') { D.pe.push({ t: 0.32, kind: 'dash', o: i, k, dmg }); this.ev(['ds', D.id, i, k]); if (isBot(D.f[i])) D.bot.dashT = 0.3; }
       else if (A.k === 'melee') { if (d < A.rng + 1) this.hit(D, 1 - i, dmg, k, i); }
       else if (A.k === 'self') {
         if (A.heal) D.hp[i] = Math.min(D.mx[i], D.hp[i] + A.heal * L);
@@ -735,6 +1049,7 @@
       if (this.move) {
         const m = this.move, k = Math.min(dt, m.t); m.t -= dt;
         if (Dn) { const R = RINGS[Dn.r]; P.x = clamp(P.x + m.vx * k, R.x - RING_H + 1.2, R.x + RING_H - 1.2); P.z = clamp(P.z + m.vz * k, R.z - RING_H + 1.2, R.z + RING_H - 1.2); }
+        if (m.smoke) puffAt(P.x, P.y + 0.4, P.z, [0x9ca3af, 0xd1d5db, 0x4b5563], 3);
         if (m.t <= 0 || !Dn) this.move = null;
       }
       // after a duel: back to the plaza
@@ -811,12 +1126,16 @@
       const pos = (i) => this.fPos(D, i);
       if (type === 'c') {
         const A = abOf(e[4]), p = pos(e[3]); if (!A || !p) return;
-        if (A.say) this.shout(p, A.say, RAR[A.r][1]);
+        const line = A.says ? pick(A.says) : A.say; if (line) this.shout(p, line, RAR[A.r][1]);
+        const mineD = D.id === this.duelId, isMe = mineD && e[3] === this.myIdx;
+        if (e[4] === 'bass') this.riser(p);
+        if (e[4] === 'cowbell' && (mineD || Math.hypot(p.x - P.x, p.z - P.z) < 60)) { const m = phonk(0.9, 150); if (m) setTimeout(() => m.stop(), 900); }
+        if (e[4] === 'montagem' && isMe) this.editFx(7, 'MONTAGEM', true);
         const snd = { proj: 'whoosh', beam: 'zap', aoe: 'powerup', meteor: 'whoosh', self: A.shield ? 'shield' : A.heal && !A.buff ? 'heal' : 'powerup', dash: 'whoosh', melee: 'swing' }[A.k];
         sfx3(snd, p.x, p.z, 90, { vol: 0.7 });
       } else if (type === 'b0') { this.line(e[5], e[6], e[7], e[8], 0xff4d6d, 0.12, e[9], 0.35); }
       else if (type === 'b1') { const A = AB[e[4]]; this.line(e[5], e[6], e[7], e[8], rarHex(A.r), A.r >= 4 ? 0.7 : 0.45, 0.25, 0.95); sfx3('laser', e[5], e[6], 90); }
-      else if (type === 'ao') { this.wave(e[5], e[6], e[7], rarHex(AB[e[4]].r)); sfx3('boom', e[5], e[6], 90); }
+      else if (type === 'ao') { this.wave(e[5], e[6], e[7], rarHex(AB[e[4]].r)); sfx3('boom', e[5], e[6], 90); if (e[4] === 'bass') { this.wave(e[5], e[6], e[7] * 0.6, 0xc026d3); puffAt(e[5], 1.5, e[6], [0x111111, 0xc026d3, 0xffffff], 22); sfx3('explode', e[5], e[6], 120); } }
       else if (type === 'm0') { this.meteor(e[4], e[5], e[6]); }
       else if (type === 'm1') { this.wave(e[4], e[5], e[6], 0xf97316); puffAt(e[4], 2, e[5], [0xf97316, 0xfde047, 0x444444], 24); sfx3('explode', e[4], e[5], 120); }
       else if (type === 'x') { this.wave(e[3], e[4], e[5], 0xc084fc); puffAt(e[3], 2.4, e[4], [0xc084fc, 0xf9a8d4], 16); sfx3('explode', e[3], e[4], 100, { vol: 0.7 }); }
@@ -825,12 +1144,14 @@
         puffAt(p.x, p.y + 3, p.z, A.heal && !A.buff ? [0x86efac, 0xffffff] : A.shield && !A.heal ? [0x93c5fd, 0xffffff] : [0xf97316, 0xfde047], 14);
         if (e[5] > 0) { const s = this.screen(p.x, p.y + 6, p.z); if (s) this.pop(s[0], s[1], `+${e[5]} ❤️`, 'heal'); }
       } else if (type === 'ds') {
-        if (D.id === this.duelId && e[3] === this.myIdx) { const o = pos(1 - this.myIdx); if (o) { const dx = o.x - P.x, dz = o.z - P.z, l = Math.hypot(dx, dz) || 1, d = Math.min(14, l + 2.5); this.move = { t: 0.3, vx: dx / l * d / 0.3, vz: dz / l * d / 0.3 }; } }
+        if (D.id === this.duelId && e[3] === this.myIdx) { const o = pos(1 - this.myIdx); if (o) { const dx = o.x - P.x, dz = o.z - P.z, l = Math.hypot(dx, dz) || 1, d = Math.min(14, l + 2.5); this.move = { t: 0.3, vx: dx / l * d / 0.3, vz: dz / l * d / 0.3, smoke: e[4] === 'drift' }; } }
+        const cp = pos(e[3]); if (cp) puffAt(cp.x, cp.y + 0.6, cp.z, e[4] === 'drift' ? [0x6b7280, 0xd1d5db, 0x111827] : [0x9ca3af, 0xe5e7eb], e[4] === 'drift' ? 22 : 10);
       } else if (type === 'h') {
         const t = e[3], p = pos(t), A = abOf(e[5]) || (e[5] === 'storm' ? AB.skibidi : SLAP); if (!p) return;
         const s = this.screen(p.x, p.y + 6.2, p.z); if (s) this.pop(s[0] + (Math.random() - 0.5) * 40, s[1], `-${e[4]}`, 'dmg');
         puffAt(p.x, p.y + 2.8, p.z, [rarHex(A.r), 0xffffff], 8);
         sfx3(e[5] === 'slap' ? 'punch' : 'hit', p.x, p.z, 80, { vol: 0.8 });
+        if (D.id === this.duelId && t === this.myIdx && e[5] === 'edit') this.editFx(2, 'EDITED', true);
         if (D.id === this.duelId && t === this.myIdx && e[6] > 0) { const o = pos(e[7]); if (o) { const dx = P.x - o.x, dz = P.z - o.z, l = Math.hypot(dx, dz) || 1; this.move = { t: 0.25, vx: dx / l * e[6], vz: dz / l * e[6] }; } }
       }
     },
@@ -910,6 +1231,7 @@
         if (!v) { v = { g: this.pjModel(A), x: q[2], z: q[3], sx: q[2], sz: q[3] }; place.add(v.g); this.pjv.set(key, v); }
         if (v.sx !== q[2] || v.sz !== q[3]) { v.sx = q[2]; v.sz = q[3]; v.x = q[2]; v.z = q[3]; } else { v.x += q[4] * dt; v.z += q[5] * dt; }
         v.g.position.set(v.x, 2.8 + Math.sin(performance.now() / 120 + q[0]) * 0.15, v.z);
+        v.tr = (v.tr || 0) + dt; if (v.tr > 0.06) { v.tr = 0; puffAt(v.x, 2.8, v.z, [rarHex(A.r), 0xffffff], 1); }
         if (A.home) v.g.rotation.y += dt * 9;
       }
       for (const [key, v] of this.pjv) if (!want.has(key)) { place.remove(v.g); v.g.traverse((o) => { if (o.material) { if (o.userData.ownMap && o.material.map) o.material.map.dispose(); o.material.dispose(); } }); this.pjv.delete(key); }
@@ -951,6 +1273,15 @@
         if (f.fall) { const [x0, y0, z0, x1, y1, z1] = f.fall; f.o.position.set(x0 + (x1 - x0) * k, y0 + (y1 - y0) * k * k, z0 + (z1 - z0) * k); }
         if (f.life <= 0) { place.remove(f.o); if (f.dispose) { if (f.o.geometry && f.o.userData.ownGeo) f.o.geometry.dispose(); if (f.o.material) { if (f.o.isSprite && f.o.material.map) f.o.material.map.dispose(); f.o.material.dispose(); } } else if (f.disposeMat && f.o.material) f.o.material.dispose(); this.fx.splice(i, 1); }
       }
+    },
+    // the bass drop's build-up: a rising tone where it's cast
+    riser(p) {
+      const A = window.Sfx && Sfx.on && Sfx.audio && Sfx.audio(); if (!A) return;
+      const d = Math.hypot(p.x - P.x, p.z - P.z); if (d > 90) return;
+      const { ac, out } = A, t = ac.currentTime, o = ac.createOscillator(), g = ac.createGain();
+      o.type = 'sawtooth'; o.frequency.setValueAtTime(80, t); o.frequency.exponentialRampToValueAtTime(900, t + 0.55);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.12 * (1 - d / 90), t + 0.5); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
+      o.connect(g).connect(out); o.start(t); o.stop(t + 0.62);
     },
     clickAura(a, tier, pulse, t) {
       if (!a || !a.g) return;
@@ -1035,6 +1366,7 @@
       for (const c of this.crates || []) out.push({ x: c.x, z: c.z, r: 6, text: `Open ${c.C.n} (🗿 ${comma(c.C.price)})`, fn: () => this.cratePanel(c.C.id) });
       for (const M of STATIONS) out.push({ x: M.x, z: M.z, r: 6, text: M.k === 'up' ? `${M.e} ${M.n}` : '🎒 Your abilities', fn: () => (M.k === 'up' ? this.upgradePanel() : this.abilityPanel()) });
       out.push({ x: 0, z: -44, r: 7, text: '🤖 Duel a bot', fn: () => this.duelBot() });
+      out.push({ x: -12, z: 12, r: 6, text: '🌽 Hear a corny joke from Unc Joe', fn: () => this.joke() });
       const g = this.g, busy = new Set(g && Array.isArray(g.D) ? g.D.flatMap((d) => d.f) : []);
       for (const p of players()) if (!p.me && !busy.has(p.peer)) out.push({ x: p.x, z: p.z, r: 6, text: `⚔️ Challenge ${nameOf(p.peer)}`, fn: () => this.challenge(p.peer) });
       return out;
@@ -1049,7 +1381,7 @@
     abCard(k, lvl, opts = {}) {
       const A = AB[k], au = this.S.au;
       const stat = A.k === 'self' ? [A.heal ? `❤️ +${Math.round(A.heal * lvK(lvl))}` : '', A.shield ? `🍩 ${Math.round(A.shield[0] * lvK(lvl))}` : '', A.buff ? `🔥 ×${A.buff[0]}` : ''].filter(Boolean).join(' ') : `⚔️ ${Math.round(A.dmg * lvK(lvl) * auraMult(au)) * (A.cnt || 1)}${A.dot ? ' + 🌪️' + Math.round(A.dot[0] * A.dot[1] * lvK(lvl) * auraMult(au)) : ''}`;
-      return `<div class="xp-card au-card r${A.r} ${opts.eq ? 'eq' : ''} ${opts.locked ? 'locked' : ''}" style="--rc:${RAR[A.r][1]}">${lvl ? `<span class="lv">Lv ${lvl}</span>` : ''}<div class="big">${opts.locked ? '❔' : A.e}</div><b>${opts.locked ? '???' : esc(A.n)}</b><span class="rt">${RAR[A.r][0]}</span>${opts.locked ? '' : `<span class="st">${stat} · ⏱️ ${A.cd}s</span><span style="font-weight:600;color:#94a3b8">${esc(A.d)}</span>`}${opts.btn || ''}</div>`;
+      return `<div class="xp-card au-card r${A.r} ${A.phonk ? 'ph' : ''} ${opts.eq ? 'eq' : ''} ${opts.locked ? 'locked' : ''}" style="--rc:${RAR[A.r][1]}">${lvl ? `<span class="lv">Lv ${lvl}</span>` : ''}<div class="big">${opts.locked ? '❔' : A.e}</div><b>${opts.locked ? '???' : esc(A.n)}</b><span class="rt">${RAR[A.r][0]}</span>${opts.locked ? '' : `<span class="st">${stat} · ⏱️ ${A.cd}s</span><span style="font-weight:600;color:#94a3b8">${esc(A.d)}</span>`}${opts.btn || ''}</div>`;
     },
     abilityPanel() {
       const S = this.S, own = ABK.filter((k) => S.ab[k]).sort((a, b) => AB[b].r - AB[a].r);
@@ -1072,40 +1404,41 @@
       const odds = (o) => `<div class="au-odds">${o.map((p, r) => `<div class="${p ? '' : 'zero'}" style="--rc:${RAR[r][1]}">${RAR[r][0]}<br><b>${p}%</b></div>`).join('')}</div>`;
       const html = `<p class="xp-note">🎁 Crates cost aura, so opening one makes your hits weaker until you farm it back. Gamble responsibly (you won’t). A double levels an ability up.</p>
         ${S.free ? `<div class="xp-row" style="display:block"><b>🏆 W Crate ×${S.free}</b> <small style="color:var(--muted)">— free, from winning duels. Rolls like a Rizz Crate.</small>${odds(FREE_ODDS)}<button class="xp-btn gold" data-free="1" style="width:100%">Open a W Crate (free)</button></div>` : ''}
-        ${CRATES.map((C) => `<div class="xp-row" style="display:block;${focus === C.id ? 'border-color:#fde047' : ''}"><b>${C.e} ${C.n}</b> <small style="color:var(--muted)">— ${esc(C.d)}</small>${odds(C.odds)}<button class="xp-btn" data-crate="${C.id}" style="width:100%" ${S.au < C.price ? 'disabled' : ''}>${S.au < C.price ? `Need 🗿 ${comma(C.price - S.au)} more` : `Open for 🗿 ${comma(C.price)}`}</button></div>`).join('')}`;
+        ${CRATES.map((C) => `<div class="xp-row" style="display:block;${focus === C.id ? 'border-color:#fde047;' : ''}${C.phonk ? 'background:linear-gradient(180deg,#1c0b22,#0b0b10);border-color:#a21caf' : ''}"><b>${C.e} ${C.n}</b> <small style="color:var(--muted)">— ${esc(C.d)}</small>${odds(C.odds)}<button class="xp-btn" data-crate="${C.id}" style="width:100%" ${S.au < C.price ? 'disabled' : ''}>${S.au < C.price ? `Need 🗿 ${comma(C.price - S.au)} more` : `Open for 🗿 ${comma(C.price)}`}</button></div>`).join('')}`;
       openPanel('🎁 Ability Crates', html, (b) => {
         if (b.dataset.free) { if (S.free < 1) return; S.free--; this.openCrate(FREE_ODDS, '🏆 W Crate'); }
-        else if (b.dataset.crate) { const C = CRATES.find((c) => c.id === b.dataset.crate); if (!C || S.au < C.price) { sfx('error'); return; } S.au -= C.price; this.openCrate(C.odds, `${C.e} ${C.n}`, C.price); }
+        else if (b.dataset.crate) { const C = CRATES.find((c) => c.id === b.dataset.crate); if (!C || S.au < C.price) { sfx('error'); return; } S.au -= C.price; this.openCrate(C.odds, `${C.e} ${C.n}`, C.price, C.phonk); }
       });
     },
     // the reveal: a strip of abilities flies past and stops on what you got
-    openCrate(odds, title, price) {
-      const S = this.S, got = rollAb(odds), A = AB[got], was = S.ab[got] | 0;
+    openCrate(odds, title, price, ph) {
+      const S = this.S, got = rollAb(odds, ph), A = AB[got], was = S.ab[got] | 0;
       let note;
       if (!was) { S.ab[got] = 1; note = 'NEW ABILITY 🔥'; if (S.eq.length < 4) S.eq.push(got); }
       else if (was < MAX_LV) { S.ab[got] = was + 1; note = `Double! Lv ${was} → Lv ${was + 1}`; }
       else { const back = Math.round((price || 400) * 0.3); S.au += back; note = `Already max level: +${comma(back)} aura back`; }
       S.op = (S.op | 0) + 1; if (A.r === 5) questMax('aura.ohio', 1);
       this.dirty = true; this.save(); this.send(true); closePanel();
-      const cards = []; for (let i = 0; i < 46; i++) cards.push(i === 40 ? got : rollAb(odds));
-      const el = document.createElement('div'); el.id = 'auBox';
+      const cards = []; for (let i = 0; i < 46; i++) cards.push(i === 40 ? got : rollAb(odds, ph));
+      const el = document.createElement('div'); el.id = 'auBox'; if (ph) { el.className = 'phonk'; if (this.music) this.music.stop(); this.music = phonk(6.2); }
       el.innerHTML = `<div class="in"><h3>${esc(title)}</h3><div class="win"><div class="mark"></div><div class="strip">${cards.map((k) => `<div class="card r${AB[k].r}" style="--rc:${RAR[AB[k].r][1]}"><span class="e">${AB[k].e}</span><b>${esc(AB[k].n)}</b><small>${RAR[AB[k].r][0]}</small></div>`).join('')}</div></div><div class="tap">Opening… (click to skip)</div></div>`;
       $('#xhud').append(el);
       const strip = el.querySelector('.strip'), win = el.querySelector('.win'), cw = strip.children[0].getBoundingClientRect().width + 8;
       const end = -(40 * cw + cw / 2 - win.clientWidth / 2) + (Math.random() - 0.5) * cw * 0.6;
       strip.style.transform = 'translateX(0)'; void strip.offsetWidth;
       strip.style.transition = 'transform 3.4s cubic-bezier(.12,.75,.12,1)'; strip.style.transform = `translateX(${end}px)`;
-      const ticks = setInterval(() => sfx('tick', { vol: 0.35 }), 140); setTimeout(() => clearInterval(ticks), 2600);
+      const ticks = setInterval(() => sfx('tick', { vol: ph ? 0.2 : 0.35 }), 140); setTimeout(() => clearInterval(ticks), 2600);
       let shown = false;
       const show = () => {
         if (shown) return; shown = true; clearInterval(ticks);
         el.innerHTML = `<div class="in"><div class="got r${A.r}" style="--rc:${RAR[A.r][1]}"><div class="e">${A.e}</div><b>${esc(A.n)}</b><span>${RAR[A.r][0]} tier</span><p>${esc(A.d)}</p><div class="lv">${esc(note)}</div></div><div class="tap">${A.r >= 4 ? 'HOLY AURA 🗿🗿🗿 · ' : A.r === 0 ? 'mid. · ' : ''}click to close</div></div>`;
         sfx(A.r >= 4 ? 'unlock' : A.r >= 2 ? 'reward' : 'coin');
+        if (ph) this.editFx(2.4, 'TUFF');
         if (A.r >= 3) { Net.chat(`🎁 unboxed ${A.n} (${RAR[A.r][0]} tier) ${A.e}`); puffAt(P.x, P.y + 4, P.z, [rarHex(A.r), 0xffffff], 30); }
         this.drawBar();
       };
       setTimeout(show, 3500);
-      el.onclick = () => { if (!shown) { show(); return; } el.remove(); };
+      el.onclick = () => { if (!shown) { show(); return; } el.remove(); if (ph && this.music && !this.editUntil) { this.music.stop(); this.music = null; } };
     },
     upgradePanel() {
       const S = this.S, x2 = hasItem('au2') ? 2 : 1;

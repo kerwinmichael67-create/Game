@@ -174,6 +174,8 @@
     at(name, dist, far, opt) { const f = far || 60, d = Math.max(0, dist || 0); if (d >= f) return; play(name, Object.assign({}, opt, { vol: ((opt && opt.vol) || 1) * Math.pow(1 - d / f, 1.6) })); },
     get on() { return on; },
     get volume() { return vol; },
+    // for a game's own synth (music and the like): the audio context and the output (so the volume and mute apply), if sound is on
+    audio() { const c = on ? ctx() : null; return c && c.state === 'running' ? { ac: c, out: master } : null; },
     set(v, quiet) {
       on = !!v;
       try { localStorage.setItem(KEY, on ? '1' : '0'); } catch (e) {}
