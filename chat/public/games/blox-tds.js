@@ -75,21 +75,265 @@
     const bar = new THREE.Mesh(BOX, new THREE.MeshBasicMaterial({ color: 0x22c55e })); bar.scale.set(1.6, 0.18, 0.05); bar.position.y = 4.1; g.add(bar); g.userData.bar = bar;
     return g;
   }
-  function towerModel(t, lvl, ownerCol) {
-    const d = TW[t], g = new THREE.Group();
-    bx(g, ownerCol, 3.2, 0.5, 3.2, 0, 0.25, 0); // the base, in the owner's colour
-    if (t === 4) { bx(g, 0x92400e, 2.6, 1.8, 2.2, 0, 1.4, 0); bx(g, 0xb91c1c, 3, 0.4, 2.6, 0, 2.5, 0); for (let i = 0; i < 4; i++) bx(g, 0xfacc15, 0.3, 0.6, 0.3, -1.2 + i * 0.8, 0.8, 1.4); }
-    else {
-      bx(g, 0x1f2937, 0.5, 1.4, 0.5, -0.3, 1.2, 0); bx(g, 0x1f2937, 0.5, 1.4, 0.5, 0.3, 1.2, 0);
-      bx(g, d.c, 1.2, 1.3, 0.6, 0, 2.55, 0); bx(g, 0xf2c94c, 0.8, 0.8, 0.8, 0, 3.6, 0);
-      bx(g, d.c, 0.9, 0.3, 0.9, 0, 4.1, 0);
-      const gun = { 0: [0.2, 0.2, 1.2], 1: [0.15, 0.15, 2.4], 2: [0.22, 0.22, 1.5], 3: [0.5, 0.5, 1.2], 5: [0.4, 0.4, 1], 7: [0.45, 0.45, 1.8], 8: [0.2, 0.2, 2.8] }[t];
-      if (gun) bx(g, t === 5 ? 0xa5f3fc : 0x111827, gun[0], gun[1], gun[2], 0.45, 2.6, -gun[2] / 2 - 0.2);
-      if (t === 6) { bx(g, 0x78350f, 0.12, 3, 0.12, 0.9, 3.2, 0.3); bx(g, 0x1d4ed8, 0.9, 0.6, 0.05, 1.35, 4.3, 0.3); }
+  // ---------------------------------------------------------------- the towers: polished metal and glowing parts, like the
+  // limited hats, and a look that grows with every upgrade (a chest plate, gold trim, shoulder armour, then gold armour with an aura)
+  const TGEO = {
+    box: BOX, cyl: new THREE.CylinderGeometry(1, 1, 1, 16), oct: new THREE.CylinderGeometry(1, 1, 1, 8), hex: new THREE.CylinderGeometry(1, 1, 1, 6),
+    cone: new THREE.ConeGeometry(1, 1, 16), ball: new THREE.SphereGeometry(1, 16, 12), dome: new THREE.SphereGeometry(1, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2),
+    gem: new THREE.OctahedronGeometry(1, 0), ring: new THREE.TorusGeometry(1, 0.07, 8, 40), thin: new THREE.TorusGeometry(1, 0.035, 6, 40),
+    roof: (() => { const s = new THREE.Shape(); s.moveTo(-1, 0); s.lineTo(1, 0); s.lineTo(0, 0.8); s.closePath(); const g = new THREE.ExtrudeGeometry(s, { depth: 1, bevelEnabled: false }); g.translate(0, 0, -0.5); return g; })(),
+  };
+  const TMAT = new Map(), tmat = (k, f) => { if (!TMAT.has(k)) TMAT.set(k, f()); return TMAT.get(k); };
+  const steel = (c) => tmat('m' + c, () => metalMat(c)); // shiny metal
+  const lit = (c) => tmat('g' + c, () => new THREE.MeshBasicMaterial({ color: c })); // glowing: lit from inside
+  const ice = () => tmat('ice', () => metalMat(0xc9f3ff, { transparent: true, opacity: 0.8, reflectivity: 0.9, shininess: 140, specular: '#ffffff' }));
+  const GOLD = 0xf2c14e, STEEL = 0xc3cbd6, SKIN = 0xf2c94c;
+  // one piece: a shape, a material, where, how big (one number for all three), how turned
+  const pc = (p, geo, m, x, y, z, sx, sy, sz, rx, ry, rz) => { const o = new THREE.Mesh(TGEO[geo] || geo, m); o.position.set(x, y, z); o.scale.set(sx, sy == null ? sx : sy, sz == null ? sx : sz); if (rx || ry || rz) o.rotation.set(rx || 0, ry || 0, rz || 0); p.add(o); return o; };
+  // a rod from one point to another (arms, poles, legs of a bipod)
+  const _up = new THREE.Vector3(0, 1, 0), _a = new THREE.Vector3(), _b = new THREE.Vector3();
+  const rod = (p, a, b, r, m) => { _a.set(...a); _b.set(...b).sub(_a); const o = new THREE.Mesh(TGEO.cyl, m); o.scale.set(r, _b.length(), r); o.position.copy(_a).addScaledVector(_b, 0.5); o.quaternion.setFromUnitVectors(_up, _b.normalize()); p.add(o); return o; };
+  const glowCard = (k, c, w, h, x, y, z, p, fn) => { const o = fxCard(k, c, w, h, x, y, z, p, fn); o.raycast = () => {}; return o; }; // (clicks go through glows)
+  // the still parts of a tower become one mesh per material, so a map full of towers stays quick to draw
+  function bake(src) {
+    const out = new THREE.Group(), by = new Map(), p = new THREE.Vector3(), nm = new THREE.Matrix3();
+    src.updateMatrixWorld(true);
+    src.traverse((o) => { if (o.isMesh && !o.userData.fx) { if (!by.has(o.material)) by.set(o.material, []); by.get(o.material).push(o); } });
+    for (const [m, list] of by) {
+      let n = 0, ni = 0; for (const o of list) { n += o.geometry.attributes.position.count; ni += o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count; }
+      const pos = new Float32Array(n * 3), nor = new Float32Array(n * 3), idx = new (n > 65535 ? Uint32Array : Uint16Array)(ni);
+      let v = 0, k = 0;
+      for (const o of list) {
+        const G = o.geometry, P = G.attributes.position, N = G.attributes.normal; nm.getNormalMatrix(o.matrixWorld);
+        for (let i = 0; i < P.count; i++) {
+          p.fromBufferAttribute(P, i).applyMatrix4(o.matrixWorld); pos[(v + i) * 3] = p.x; pos[(v + i) * 3 + 1] = p.y; pos[(v + i) * 3 + 2] = p.z;
+          p.fromBufferAttribute(N, i).applyMatrix3(nm).normalize(); nor[(v + i) * 3] = p.x; nor[(v + i) * 3 + 1] = p.y; nor[(v + i) * 3 + 2] = p.z;
+        }
+        if (G.index) for (let i = 0; i < G.index.count; i++) idx[k++] = G.index.getX(i) + v; else for (let i = 0; i < P.count; i++) idx[k++] = v + i;
+        v += P.count;
+      }
+      const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); geo.setIndex(new THREE.BufferAttribute(idx, 1));
+      const mesh = new THREE.Mesh(geo, m); mesh.userData.baked = true; out.add(mesh);
     }
-    for (let i = 0; i < lvl; i++) bx(g, 0xfacc15, 0.35, 0.35, 0.35, -0.9 + i * 0.6, 0.65, 1.45); // a star per upgrade
+    return out;
+  }
+  // a part that moves (spins, waves, recoils): its pieces are baked too, then it's moved as one
+  const mover = (p, x, y, z) => { const g = new THREE.Group(); g.position.set(x, y, z); p.add(g); return g; };
+  const settle = (g) => { const parts = g.children.filter((o) => o.isMesh && !o.userData.fx); if (!parts.length) return g; const tmp = new THREE.Group(); parts.forEach((o) => tmp.add(o)); g.add(bake(tmp)); return g; };
+
+  // the stand every tower is on: dark metal, the owner's colour with a glowing ring, a gem per upgrade
+  function pedestal(S, lvl, own) {
+    pc(S, 'oct', steel(0x4b5563), 0, 0.22, 0, 1.75, 0.44, 1.75, 0, Math.PI / 8);
+    pc(S, 'oct', steel(lvl >= 2 ? GOLD : STEEL), 0, 0.47, 0, 1.68, 0.08, 1.68, 0, Math.PI / 8);
+    pc(S, 'oct', mat(own), 0, 0.53, 0, 1.5, 0.08, 1.5, 0, Math.PI / 8);
+    pc(S, 'ring', lit(own), 0, 0.58, 0, 1.42, 1.42, 1.42, Math.PI / 2);
+    for (let i = 0; i < lvl; i++) { const a = Math.PI + (i - (lvl - 1) / 2) * 0.4; pc(S, 'gem', lit(lvl >= 4 ? 0xffe680 : 0xfde047), Math.sin(a) * 1.76, 0.24, Math.cos(a) * 1.76, 0.13, 0.19, 0.13); }
+    if (lvl >= 3) for (let i = 0; i < 4; i++) { const a = Math.PI / 4 + i * Math.PI / 2; pc(S, 'cyl', steel(GOLD), Math.sin(a) * 1.5, 0.75, Math.cos(a) * 1.5, 0.09, 0.4, 0.09); pc(S, 'ball', lit(0xffe680), Math.sin(a) * 1.5, 1.0, Math.cos(a) * 1.5, 0.11); }
+  }
+  // max level: a beam of golden light, gold gems going round the stand, sparkles and a soft glow in the tower's colour
+  let BEAM_TEX = null;
+  const BEAM_GEO = new THREE.CylinderGeometry(1.5, 1.5, 6, 28, 1, true);
+  function maxFx(g, A, c, y) {
+    if (!BEAM_TEX) { const cv = document.createElement('canvas'); cv.width = 4; cv.height = 128; const x = cv.getContext('2d'), gr = x.createLinearGradient(0, 128, 0, 0); for (const [k, a] of [[0, 0.95], [0.25, 0.5], [0.7, 0.12], [1, 0]]) gr.addColorStop(k, `rgba(255,255,255,${a})`); x.fillStyle = gr; x.fillRect(0, 0, 4, 128); BEAM_TEX = new THREE.CanvasTexture(cv); }
+    const beam = new THREE.Mesh(BEAM_GEO, new THREE.MeshBasicMaterial({ map: BEAM_TEX, color: 0xffd34d, transparent: true, opacity: 0.5, side: THREE.DoubleSide, depthWrite: false }));
+    beam.position.y = 3.6; beam.userData.fx = beam.userData.noShadow = true; beam.raycast = () => {}; g.add(beam);
+    glowCard('glow', c, 6, 6, 0, y, 0, g, (o, m, t) => { m.opacity = 0.33 + 0.12 * Math.sin(t * 2.4); });
+    const orbit = mover(g, 0, 0, 0);
+    for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2; pc(orbit, 'gem', lit(0xffd34d), Math.sin(a) * 1.62, 0.95, Math.cos(a) * 1.62, 0.13, 0.22, 0.13); }
+    settle(orbit);
+    for (let i = 0; i < 3; i++) glowCard('twinkle', 0xfff3b0, 0.7, 0.7, Math.sin(i * 2.1) * 1.9, 1.2 + i * 1.1, Math.cos(i * 2.1) * 1.9, orbit, twinkle(0.7, i * 1.7, 2.6));
+    A.push((t) => { orbit.rotation.y = t * 0.9; beam.material.opacity = 0.42 + 0.12 * Math.sin(t * 2.4); });
+  }
+  // a Roblox-style figure in armour: o = { shirt, pants, lvl, head, visor, plate }
+  function figure(S, o) {
+    const lvl = o.lvl, trim = steel(lvl >= 2 ? GOLD : STEEL), plate = steel(lvl >= 4 ? GOLD : o.plate || 0xaab4c0), shirt = mat(o.shirt), pants = mat(o.pants || 0x1f2937), skin = mat(SKIN);
+    for (const s of [-1, 1]) {
+      pc(S, 'cyl', pants, 0.27 * s, 1.2, 0, 0.25, 1.16, 0.27);
+      pc(S, 'box', steel(0x2b2f36), 0.27 * s, 0.74, -0.06, 0.48, 0.3, 0.64);
+      if (lvl >= 1) pc(S, 'ball', trim, 0.27 * s, 1.42, -0.25, 0.14, 0.16, 0.1);
+    }
+    pc(S, 'box', shirt, 0, 2.45, 0, 1.2, 1.32, 0.62);
+    pc(S, 'box', trim, 0, 1.88, 0, 1.26, 0.16, 0.68);
+    pc(S, 'box', lvl >= 2 ? lit(0xffe680) : steel(STEEL), 0, 1.88, -0.36, 0.24, 0.2, 0.06);
+    if (lvl >= 1) { pc(S, 'box', plate, 0, 2.62, -0.33, 1.02, 0.86, 0.12); pc(S, 'box', trim, 0, 3.0, -0.35, 1.06, 0.1, 0.14); pc(S, 'gem', lit(o.visor), 0, 2.62, -0.41, 0.12, 0.16, 0.06); }
+    if (lvl >= 3) for (const s of [-1, 1]) { pc(S, 'dome', plate, 0.7 * s, 3.0, 0, 0.42, 0.32, 0.44, 0, 0, -0.35 * s); pc(S, 'thin', trim, 0.7 * s, 3.0, 0, 0.42, 0.42, 0.42, Math.PI / 2, 0, -0.35 * s); }
+    pc(S, 'cyl', skin, 0, 3.5, 0, 0.4, 0.78, 0.4);
+    pc(S, 'box', mat(0x111111), -0.15, 3.58, -0.39, 0.1, 0.15, 0.04); pc(S, 'box', mat(0x111111), 0.15, 3.58, -0.39, 0.1, 0.15, 0.04);
+    const h = o.head;
+    if (h === 'cap') { pc(S, 'dome', mat(o.shirt), 0, 3.86, 0, 0.44, 0.3, 0.44); pc(S, 'box', mat(o.shirt), 0, 3.88, -0.48, 0.62, 0.06, 0.4); if (lvl >= 2) pc(S, 'box', lit(o.visor), 0, 3.58, -0.42, 0.7, 0.14, 0.05); }
+    else if (h === 'helmet') { pc(S, 'dome', steel(lvl >= 4 ? GOLD : 0x4d5b3a), 0, 3.82, 0, 0.5, 0.42, 0.52); pc(S, 'thin', trim, 0, 3.84, 0, 0.5, 0.5, 0.52, Math.PI / 2); if (lvl >= 2) pc(S, 'box', lit(o.visor), 0, 3.58, -0.42, 0.72, 0.15, 0.05); }
+    else if (h === 'hood') { pc(S, 'dome', mat(0x365314), 0, 3.78, 0.04, 0.5, 0.5, 0.52); for (let i = 0; i < 6; i++) { const a = i * 1.05; pc(S, 'cone', mat(i % 2 ? 0x4d7c0f : 0x3f6212), Math.sin(a) * 0.36, 4.05, Math.cos(a) * 0.36 + 0.05, 0.1, 0.36, 0.1, Math.cos(a) * 0.5, 0, -Math.sin(a) * 0.5); } if (lvl >= 2) pc(S, 'box', lit(o.visor), 0, 3.58, -0.42, 0.3, 0.13, 0.05); }
+    else if (h === 'beanie') { pc(S, 'dome', mat(0x991b1b), 0, 3.84, 0, 0.44, 0.34, 0.44); pc(S, 'ball', mat(0xfca5a5), 0, 4.2, 0, 0.12); pc(S, 'cyl', steel(0x374151), 0, 3.82, -0.06, 0.45, 0.14, 0.45); if (lvl >= 2) for (const s of [-1, 1]) pc(S, 'cyl', lit(o.visor), 0.16 * s, 3.84, -0.42, 0.1, 0.06, 0.1, Math.PI / 2); }
+    else if (h === 'officer') { pc(S, 'cyl', mat(0x1e3a8a), 0, 3.95, 0, 0.5, 0.16, 0.5); pc(S, 'cyl', mat(0x111827), 0, 3.85, 0, 0.44, 0.12, 0.44); pc(S, 'box', mat(0x111827), 0, 3.83, -0.45, 0.6, 0.05, 0.3, 0.2); pc(S, 'gem', lit(GOLD), 0, 3.95, -0.5, 0.1, 0.13, 0.05); }
+    else if (h === 'visor') { pc(S, 'ball', steel(lvl >= 4 ? GOLD : 0x312e81), 0, 3.56, 0, 0.5, 0.52, 0.5); pc(S, 'box', lit(o.visor), 0, 3.58, -0.42, 0.74, 0.18, 0.08); pc(S, 'cone', steel(0x6d28d9), 0, 4.15, 0.1, 0.06, 0.4, 0.06, -0.3); }
+    else if (h === 'heavy') { pc(S, 'box', steel(lvl >= 4 ? GOLD : 0x374151), 0, 3.56, 0, 0.92, 0.9, 0.9); pc(S, 'box', lit(o.visor), 0, 3.58, -0.46, 0.72, 0.14, 0.04); pc(S, 'box', steel(0x1f2937), 0, 3.3, -0.46, 0.5, 0.2, 0.06); }
+  }
+  // the arms reach for whatever the figure holds: the right hand at its grip, the left out front
+  function arms(S, o, grip, fore) {
+    const shirt = mat(o.shirt), skin = mat(SKIN);
+    rod(S, [0.68, 2.98, 0], grip, 0.17, shirt); pc(S, 'ball', skin, ...grip, 0.16);
+    rod(S, [-0.68, 2.98, 0], fore, 0.17, shirt); pc(S, 'ball', skin, ...fore, 0.16);
+  }
+  // a gun along -z, in a group that recoils; returns the muzzle (where shots come out, with a flash)
+  function gunMount(g, A, x, y, z, flashC, flashW) {
+    const G = mover(g, x, y, z), z0 = z, muzzle = new THREE.Object3D(); G.add(muzzle);
+    A.push((t, dt, m) => { const k = t - (m.shotAt || -9); G.position.z = z0 + (k < 0.12 ? 0.14 * (1 - k / 0.12) : 0); });
+    return { G, muzzle, done: (mz) => { muzzle.position.set(0, mz[1], mz[2]); const f = glowCard('glow', flashC, flashW, flashW, 0, 0, 0, muzzle); f.visible = false; A.push((t, dt, m) => { f.visible = t - (m.shotAt || -9) < 0.07; }); settle(G); return muzzle; } };
+  }
+  const BUILD = [
+    // 🔫 Scout: a quick SMG with a red-dot sight; a second one at level 3
+    (g, S, A, lvl, c) => {
+      figure(S, { shirt: c, pants: 0x14532d, lvl, head: 'cap', visor: 0xf87171 });
+      const smg = (x) => { const m = gunMount(g, A, x, 2.5, -0.62, 0xfff1a8, 0.8), G = m.G, dark = steel(0x30343b);
+        pc(G, 'box', dark, 0, 0, -0.25, 0.18, 0.28, 0.8); pc(G, 'cyl', dark, 0, 0.04, -0.85, 0.06, 0.5, 0.06, Math.PI / 2); pc(G, 'box', dark, 0, -0.28, -0.2, 0.12, 0.36, 0.17, 0.2);
+        pc(G, 'box', steel(lvl >= 2 ? GOLD : STEEL), 0, 0.17, -0.25, 0.08, 0.06, 0.5); pc(G, 'box', lit(0xff4d4d), 0, 0.2, -0.05, 0.08, 0.08, 0.04);
+        return m.done([0, 0.04, -1.12]); };
+      const mz = smg(0.3); if (lvl >= 3) smg(-0.3);
+      arms(S, { shirt: c }, [0.36, 2.4, -0.5], lvl >= 3 ? [-0.36, 2.4, -0.5] : [0.24, 2.48, -1.0]);
+      return mz;
+    },
+    // 🎯 Sniper: a long rifle with a scope that glints, a bipod and (level 2) a laser sight
+    (g, S, A, lvl, c) => {
+      figure(S, { shirt: 0x3f6212, pants: 0x283618, lvl, head: 'hood', visor: 0x67e8f9, plate: 0x6b7f4a });
+      const m = gunMount(g, A, 0.3, 2.52, -0.5, 0xd9f8ff, 1.0), G = m.G, dark = steel(0x262a30), L = 1.6 + 0.15 * lvl;
+      pc(G, 'box', steel(0x5b4636), 0, -0.04, 0.12, 0.16, 0.3, 0.55); pc(G, 'box', dark, 0, 0, -0.45, 0.18, 0.22, 0.8);
+      pc(G, 'cyl', dark, 0, 0.03, -0.85 - L / 2, 0.06, L, 0.06, Math.PI / 2); pc(G, 'box', steel(lvl >= 2 ? GOLD : STEEL), 0, 0.03, -0.9 - L, 0.13, 0.13, 0.2);
+      pc(G, 'cyl', steel(lvl >= 2 ? GOLD : 0x3b4049), 0, 0.24, -0.45, 0.09, 0.7, 0.09, Math.PI / 2); pc(G, 'cyl', lit(0x67e8f9), 0, 0.24, -0.81, 0.075, 0.02, 0.075, Math.PI / 2);
+      glowCard('twinkle', 0xbff6ff, 0.55, 0.55, 0, 0.24, -0.84, G, twinkle(0.55, 0, 1.4));
+      rod(G, [0, 0, -1.6], [0.16, -0.5, -1.7], 0.025, dark); rod(G, [0, 0, -1.6], [-0.16, -0.5, -1.7], 0.025, dark);
+      if (lvl >= 2) { const laser = pc(G, 'cyl', new THREE.MeshBasicMaterial({ color: 0xff3344, transparent: true, opacity: 0.55 }), 0.1, -0.08, -0.95 - L / 2 - 2.5, 0.015, L + 5, 0.015, Math.PI / 2); laser.userData.fx = true; laser.raycast = () => {}; }
+      arms(S, { shirt: 0x3f6212 }, [0.36, 2.42, -0.36], [0.24, 2.5, -1.25]);
+      return m.done([0, 0.03, -1.0 - L]);
+    },
+    // 🪖 Soldier: an assault rifle, sandbags (level 1) and a shoulder rocket pod at max level
+    (g, S, A, lvl, c) => {
+      figure(S, { shirt: c, pants: 0x3f3f22, lvl, head: 'helmet', visor: 0xfbbf24, plate: 0x7c8a5a });
+      const m = gunMount(g, A, 0.3, 2.5, -0.6, 0xffd27a, 0.95), G = m.G, dark = steel(0x2c3036);
+      pc(G, 'box', dark, 0, 0, -0.35, 0.2, 0.3, 1.0); pc(G, 'box', steel(0x5b4636), 0, -0.05, 0.25, 0.16, 0.26, 0.4); pc(G, 'cyl', dark, 0, 0.05, -1.05, 0.065, 0.55, 0.065, Math.PI / 2);
+      pc(G, 'box', dark, 0, -0.33, -0.4, 0.13, 0.42, 0.2, 0.3); pc(G, 'box', steel(lvl >= 2 ? GOLD : STEEL), 0, 0.02, -0.75, 0.24, 0.2, 0.36);
+      if (lvl >= 2) pc(G, 'box', lit(0xff4d4d), 0, 0.2, -0.3, 0.07, 0.07, 0.07);
+      if (lvl >= 1) for (let i = 0; i < 7; i++) { const a = Math.PI * 0.35 + i * Math.PI * 0.22; pc(S, 'ball', mat(i % 2 ? 0xc8b07a : 0xb59a63), Math.sin(a) * 1.18, 0.78, Math.cos(a) * 1.18, 0.34, 0.2, 0.24, 0, a); }
+      if (lvl >= 4) { pc(S, 'box', steel(GOLD), 0.78, 3.35, 0.05, 0.42, 0.42, 0.7); for (const [x, y] of [[-0.1, 0.1], [0.1, 0.1], [-0.1, -0.1], [0.1, -0.1]]) pc(S, 'cyl', lit(0xff6a3d), 0.78 + x, 3.35 + y, -0.36, 0.06, 0.04, 0.06, Math.PI / 2); }
+      arms(S, { shirt: c }, [0.36, 2.4, -0.45], [0.24, 2.5, -1.05]);
+      return m.done([0, 0.05, -1.35]);
+    },
+    // 💣 Demoman: a drum grenade launcher, grenades on a belt, and a lit bomb at his feet (level 2)
+    (g, S, A, lvl, c) => {
+      figure(S, { shirt: c, pants: 0x292524, lvl, head: 'beanie', visor: 0xff9f43, plate: 0x8a5a44 });
+      const m = gunMount(g, A, 0.3, 2.45, -0.6, 0xffa94d, 1.4), G = m.G, dark = steel(0x2f2a28);
+      pc(G, 'cyl', dark, 0, 0.05, -0.75, 0.2, 1.0, 0.2, Math.PI / 2); pc(G, 'cyl', steel(lvl >= 2 ? GOLD : 0x6b4f3a), 0, -0.02, -0.3, 0.3, 0.38, 0.3, Math.PI / 2);
+      for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; pc(G, 'cyl', mat(0x3f6212), Math.cos(a) * 0.2, -0.02 + Math.sin(a) * 0.2, -0.3, 0.07, 0.4, 0.07, Math.PI / 2); }
+      pc(G, 'thin', steel(lvl >= 2 ? GOLD : STEEL), 0, 0.05, -1.24, 0.22); pc(G, 'box', steel(0x5b4636), 0, -0.1, 0.12, 0.15, 0.24, 0.4);
+      if (lvl >= 4) for (let i = 0; i < 3; i++) pc(G, 'box', lit(0xff8c2b), 0, 0.26, -0.55 - i * 0.22, 0.12, 0.03, 0.1);
+      for (let i = 0; i < 4; i++) pc(S, 'ball', mat(0x4d7c0f), -0.42 + i * 0.26, 2.95 - i * 0.28, -0.36, 0.12);
+      rod(S, [-0.6, 3.1, -0.33], [0.55, 2.0, -0.33], 0.05, steel(0x3a2f28));
+      if (lvl >= 2) { pc(S, 'ball', steel(0x1c1c1c), -1.05, 1.0, -0.45, 0.42); pc(S, 'cyl', steel(lvl >= 4 ? GOLD : STEEL), -1.05, 1.42, -0.45, 0.13, 0.12, 0.13); rod(S, [-1.05, 1.48, -0.45], [-0.95, 1.75, -0.5], 0.03, mat(0xd6c08a));
+        glowCard('flame', 0xffffff, 0.3, 0.45, -0.95, 1.9, -0.5, g, (o, mm, t) => { o.scale.set(0.28 + 0.06 * Math.sin(t * 23), 0.42 + 0.12 * Math.sin(t * 17), 1); });
+        glowCard('twinkle', 0xffc46b, 0.5, 0.5, -0.95, 1.8, -0.5, g, twinkle(0.5, 0, 9)); }
+      arms(S, { shirt: c }, [0.36, 2.35, -0.42], [0.22, 2.4, -1.05]);
+      return m.done([0, 0.05, -1.3]);
+    },
+    // 🌾 Farm: a red barn, a silo, wheat, a windmill (level 2) and a golden roof with coins at max level
+    (g, S, A, lvl, c) => {
+      const gold = lvl >= 4, roof = gold ? steel(GOLD) : mat(0x7f1d1d);
+      pc(S, 'box', mat(0xb91c1c), -0.2, 1.3, 0.25, 1.9, 1.5, 1.6);
+      pc(S, 'roof', roof, -0.2, 2.05, 0.25, 1.1, 1.0, 1.75);
+      for (const [x, w] of [[-0.2, 1.96]]) { pc(S, 'box', mat(0xf8fafc), x, 0.6, -0.56, w, 0.08, 0.04); pc(S, 'box', mat(0xf8fafc), x, 2.03, -0.56, w, 0.08, 0.04); }
+      pc(S, 'box', mat(0x7f1d1d), -0.2, 1.05, -0.57, 0.8, 0.95, 0.04); rod(S, [-0.58, 0.6, -0.6], [0.18, 1.5, -0.6], 0.035, mat(0xf8fafc)); rod(S, [0.18, 0.6, -0.6], [-0.58, 1.5, -0.6], 0.035, mat(0xf8fafc));
+      pc(S, 'box', lit(0xffe9a8), -0.2, 1.75, -0.57, 0.3, 0.26, 0.04);
+      pc(S, 'cyl', steel(0xd1d5db), 1.15, 1.6, 0.55, 0.42, 2.1, 0.42); pc(S, 'dome', steel(lvl >= 2 ? GOLD : 0x9ca3af), 1.15, 2.65, 0.55, 0.44);
+      for (let i = 0; i < 3; i++) pc(S, 'thin', steel(STEEL), 1.15, 0.9 + i * 0.6, 0.55, 0.43, 0.43, 0.43, Math.PI / 2);
+      for (let r = 0; r < 2; r++) for (let i = 0; i < 4; i++) { const x = -1.0 + i * 0.55, z = -1.05 - r * 0.38; pc(S, 'cone', mat(0xd4a017), x, 0.95, z, 0.12, 0.6, 0.12); pc(S, 'cyl', mat(0x65a30d), x, 0.68, z, 0.035, 0.3, 0.035); }
+      if (lvl >= 1) for (let i = 0; i < 5; i++) { const x = -1.35 + i * 0.6; pc(S, 'box', mat(0xe7d3a8), x, 0.78, -1.55, 0.08, 0.45, 0.08); } if (lvl >= 1) pc(S, 'box', mat(0xe7d3a8), -0.15, 0.88, -1.55, 2.5, 0.06, 0.05);
+      if (lvl >= 2) {
+        pc(S, 'cyl', steel(0xe5e7eb), -1.1, 1.9, 1.15, 0.12, 2.8, 0.12);
+        const blades = mover(g, -1.1, 3.25, 1.3);
+        for (let i = 0; i < 4; i++) { const b = new THREE.Group(); b.rotation.z = i * Math.PI / 2; blades.add(b); pc(b, 'box', mat(0xf8fafc), 0, 0.55, 0, 0.18, 1.0, 0.04); pc(b, 'box', steel(lvl >= 4 ? GOLD : STEEL), 0, 0.1, 0, 0.05, 0.25, 0.05); }
+        pc(blades, 'ball', steel(lvl >= 4 ? GOLD : 0x6b7280), 0, 0, 0, 0.12);
+        const tmp = new THREE.Group(); blades.children.slice().forEach((o) => tmp.add(o)); blades.add(bake(tmp));
+        A.push((t, dt) => { blades.rotation.z -= dt * 2.2; });
+      }
+      if (lvl >= 3) { pc(S, 'box', mat(0x15803d), 1.0, 0.8, -0.95, 0.7, 0.4, 0.45); pc(S, 'cyl', mat(0x111827), 0.75, 0.68, -0.95, 0.2, 0.12, 0.2, 0, 0, Math.PI / 2); pc(S, 'cyl', mat(0x111827), 1.3, 0.72, -0.95, 0.26, 0.14, 0.26, 0, 0, Math.PI / 2); pc(S, 'box', lit(0xfff3b0), 0.66, 0.85, -0.95, 0.04, 0.08, 0.3); }
+      if (gold) for (let i = 0; i < 3; i++) { const coin = glowCard('glow', 0xffd34d, 0.45, 0.45, 0.2 * i - 0.2, 3, 0.2, g); A.push((t) => { const k = (t * 0.45 + i / 3) % 1; coin.position.y = 2.6 + k * 2.2; coin.material.opacity = Math.sin(k * Math.PI); }); }
+      return null;
+    },
+    // 🧊 Freezer: a pillar of ice with a frost cannon, crystals round it and a crystal floating on top
+    (g, S, A, lvl, c) => {
+      pc(S, 'hex', steel(0xe0f2fe), 0, 0.9, 0, 0.75, 0.7, 0.75);
+      pc(S, 'thin', steel(lvl >= 2 ? GOLD : STEEL), 0, 1.25, 0, 0.78, 0.78, 0.78, Math.PI / 2);
+      const n = lvl >= 1 ? 6 : 4;
+      for (let i = 0; i < n; i++) { const a = i * Math.PI * 2 / n + 0.3; pc(S, 'gem', ice(), Math.sin(a) * 0.95, 1.2, Math.cos(a) * 0.95, 0.22, 0.6, 0.22, Math.cos(a) * 0.45, 0, -Math.sin(a) * 0.45); }
+      pc(S, 'gem', ice(), 0, 2.55, 0, 0.55, 1.5, 0.55);
+      glowCard('glow', 0x7dd3fc, 2.4, 3.2, 0, 2.55, 0, g, (o, m, t) => { m.opacity = 0.5 + 0.15 * Math.sin(t * 3); });
+      const m = gunMount(g, A, 0, 2.3, -0.4, 0xbff6ff, 1.1), G = m.G;
+      pc(G, 'cyl', steel(0xe5e7eb), 0, 0, -0.35, 0.18, 0.75, 0.18, Math.PI / 2); pc(G, 'ring', lit(0x67e8f9), 0, 0, -0.75, 0.2); pc(G, 'cone', steel(lvl >= 2 ? GOLD : STEEL), 0, 0, -0.85, 0.14, 0.22, 0.14, -Math.PI / 2);
+      const top = mover(g, 0, 4.25, 0);
+      pc(top, 'gem', ice(), 0, 0, 0, 0.3, 0.55, 0.3); settle(top);
+      glowCard('glow', 0xa5f3fc, 1.4, 1.4, 0, 0, 0, top);
+      A.push((t) => { top.position.y = 4.25 + Math.sin(t * 1.8) * 0.18; top.rotation.y = t * 1.2; });
+      if (lvl >= 2) { const fl = mover(g, 0, 0, 0), k = lvl >= 4 ? 4 : 2; for (let i = 0; i < k; i++) glowCard('twinkle', 0xd5f6ff, 0.6, 0.6, Math.sin(i * 6.28 / k) * 1.35, 2.2 + (i % 2) * 1.2, Math.cos(i * 6.28 / k) * 1.35, fl, twinkle(0.6, i * 1.3, 2)); A.push((t) => { fl.rotation.y = -t * 0.7; }); }
+      if (lvl >= 3) pc(S, 'ring', lit(0x7dd3fc), 0, 1.75, 0, 1.1, 1.1, 1.1, Math.PI / 2);
+      return m.done([0, 0, -0.95]);
+    },
+    // 🚩 Commander: an officer with a peaked cap, a cape and a banner that waves; a ring that shows the buff
+    (g, S, A, lvl, c) => {
+      figure(S, { shirt: 0x1e3a8a, pants: 0x111827, lvl, head: 'officer', visor: 0x93c5fd, plate: 0x8fa3c4 });
+      for (const s of [-1, 1]) { pc(S, 'box', steel(GOLD), 0.62 * s, 3.12, 0, 0.36, 0.08, 0.5); for (let i = 0; i < 3; i++) pc(S, 'cyl', steel(GOLD), 0.62 * s + (i - 1) * 0.1, 3.02, -0.2, 0.025, 0.16, 0.025); }
+      rod(S, [-0.55, 3.05, -0.33], [0.55, 1.95, -0.33], 0.06, steel(GOLD));
+      pc(S, 'box', mat(0x991b1b), 0, 2.35, 0.42, 1.15, 1.7, 0.06, 0.12);
+      arms(S, { shirt: 0x1e3a8a }, [0.75, 2.55, -0.75], [-0.85, 2.4, -0.15]);
+      rod(S, [-0.9, 0.6, -0.15], [-0.9, 5.3, -0.15], 0.06, steel(lvl >= 2 ? GOLD : STEEL)); pc(S, 'ball', steel(GOLD), -0.9, 5.36, -0.15, 0.13);
+      const flag = mover(g, -0.9, 4.75, -0.15);
+      pc(flag, 'box', mat(c), 0, 0, 0.62, 0.05, 0.75, 1.2); pc(flag, 'box', steel(GOLD), 0, 0.33, 0.62, 0.06, 0.08, 1.2); pc(flag, 'gem', lit(0xfde047), 0.04, 0, 0.62, 0.18, 0.22, 0.04, 0, Math.PI / 2);
+      settle(flag);
+      A.push((t) => { flag.rotation.y = Math.sin(t * 2.6) * 0.3; });
+      const aura = pc(g, 'ring', new THREE.MeshBasicMaterial({ color: 0x60a5fa, transparent: true, opacity: 0.7, depthWrite: false }), 0, 0.68, 0, 1.62, 1.62, 1.62, Math.PI / 2); aura.userData.fx = true; aura.raycast = () => {};
+      A.push((t) => { const k = (Math.sin(t * 2.2) + 1) / 2; aura.scale.setScalar(1.55 + k * 0.25); aura.material.opacity = 0.35 + 0.45 * (1 - k); });
+      return null;
+    },
+    // ⚙️ Minigunner: heavy armour and six barrels that spin up when it fires, fed by an ammo belt
+    (g, S, A, lvl, c) => {
+      figure(S, { shirt: c, pants: 0x1f2937, lvl, head: 'heavy', visor: 0xff3b3b, plate: 0x6b7280 });
+      const m = gunMount(g, A, 0.32, 2.4, -0.55, 0xffd27a, 1.1), G = m.G, dark = steel(0x2b2f36);
+      pc(G, 'cyl', dark, 0, 0, -0.25, 0.3, 0.7, 0.3, Math.PI / 2); pc(G, 'box', dark, 0, 0.32, -0.2, 0.12, 0.2, 0.5);
+      const spin = mover(G, 0, 0, -0.9);
+      for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; pc(spin, 'cyl', steel(lvl >= 2 ? GOLD : 0x4b5563), Math.cos(a) * 0.15, Math.sin(a) * 0.15, -0.2, 0.05, 1.2, 0.05, Math.PI / 2); }
+      pc(spin, 'thin', steel(STEEL), 0, 0, -0.65, 0.22); pc(spin, 'thin', steel(STEEL), 0, 0, 0.25, 0.22); settle(spin);
+      A.push((t, dt, m) => { spin.rotation.z += dt * (t - (m.shotAt || -9) < 0.6 ? 26 : 1.2); });
+      pc(S, 'box', steel(lvl >= 4 ? GOLD : 0x4b5320), 0, 2.55, 0.5, 0.9, 0.95, 0.42); pc(S, 'box', lit(0xfde047), 0, 2.95, 0.72, 0.5, 0.06, 0.02);
+      for (let i = 0; i < 6; i++) pc(S, 'box', steel(GOLD), 0.55 + i * 0.02, 2.2 - i * 0.04, 0.38 - i * 0.16, 0.08, 0.14, 0.06, 0, 0, 0.4);
+      arms(S, { shirt: c }, [0.36, 2.3, -0.4], [0.22, 2.45, -0.85]);
+      return m.done([0, 0, -1.55]);
+    },
+    // 🏹 Ranger: an energy railgun with glowing coils and a crystal tip, and rings floating round it
+    (g, S, A, lvl, c) => {
+      figure(S, { shirt: 0x1e1b4b, pants: 0x0f0d24, lvl, head: 'visor', visor: 0xc084fc, plate: 0x4c3a8f });
+      const m = gunMount(g, A, 0.3, 2.5, -0.55, 0xd8b4fe, 1.5), G = m.G, dark = steel(0x1e1b4b);
+      pc(G, 'box', dark, 0, 0, -0.35, 0.22, 0.32, 1.0); pc(G, 'box', steel(lvl >= 2 ? GOLD : 0x6d28d9), 0, 0.2, -0.35, 0.1, 0.08, 0.9);
+      pc(G, 'box', dark, 0.09, 0, -1.45, 0.06, 0.12, 1.4); pc(G, 'box', dark, -0.09, 0, -1.45, 0.06, 0.12, 1.4);
+      for (let i = 0; i < 4; i++) pc(G, 'thin', lit(0xc084fc), 0, 0, -0.95 - i * 0.32, 0.2);
+      pc(G, 'cyl', lit(0xe9d5ff), 0, 0, -1.45, 0.03, 1.3, 0.03, Math.PI / 2); pc(G, 'gem', lit(0xf0abfc), 0, 0, -2.25, 0.12, 0.2, 0.12, Math.PI / 2);
+      glowCard('glow', 0xc084fc, 1.0, 1.0, 0, 0, -1.45, G, (o, mm, t) => { mm.opacity = 0.45 + 0.2 * Math.sin(t * 5); });
+      pc(S, 'box', steel(0x312e81), 0, 2.55, 0.42, 0.8, 0.9, 0.25); pc(S, 'box', lit(0xc084fc), 0, 2.55, 0.56, 0.1, 0.7, 0.02);
+      if (lvl >= 2) { const rings = mover(g, 0, 2.6, 0); pc(rings, 'thin', lit(0xa78bfa), 0, 0, 0, 1.55, 1.55, 1.55, Math.PI / 2); pc(rings, 'thin', lit(0xe879f9), 0, 0, 0, 1.3, 1.3, 1.3, Math.PI / 2 + 0.6); settle(rings); A.push((t) => { rings.rotation.y = t * 0.8; rings.rotation.z = Math.sin(t * 0.7) * 0.25; }); }
+      if (lvl >= 3) { const cr = mover(g, -0.95, 4.2, 0.3); pc(cr, 'gem', lit(0xe9d5ff), 0, 0, 0, 0.2, 0.36, 0.2); settle(cr); glowCard('glow', 0xc084fc, 0.9, 0.9, 0, 0, 0, cr); A.push((t) => { cr.position.y = 4.2 + Math.sin(t * 2) * 0.15; cr.rotation.y = t * 2; }); }
+      arms(S, { shirt: 0x1e1b4b }, [0.36, 2.4, -0.42], [0.24, 2.5, -1.05]);
+      return m.done([0, 0, -2.3]);
+    },
+  ];
+  // a tower: the stand, its build, gold and an aura at max level; userData.anim moves it, userData.muzzle is where shots start
+  function towerModel(t, lvl, ownerCol) {
+    const d = TW[t], g = new THREE.Group(), S = new THREE.Group(), A = [];
+    pedestal(S, lvl, ownerCol);
+    const muzzle = BUILD[t](g, S, A, lvl, d.c);
+    if (lvl >= 4) maxFx(g, A, d.c, 2.2);
+    g.add(bake(S));
+    g.userData.anim = (time, dt, m) => { for (const f of A) f(time, dt, m); };
+    g.userData.muzzle = muzzle;
     return g;
   }
+  // (a tower's own shapes go when it does; the shared ones stay)
+  const dropModel = (g) => { place.remove(g); g.traverse((o) => { if (o.userData.baked) o.geometry.dispose(); }); };
   const OWN_COL = [0x3b82f6, 0xef4444, 0x22c55e, 0xf59e0b];
 
   const TDS = {
@@ -314,17 +558,18 @@
       }
       for (const [id, m] of this.views) if (!keep.has(id)) { place.remove(m.g); this.views.delete(id); puffAt(m.g.position.x, 2, m.g.position.z, EN[m.t].c, 5); if (this.sndOn) sfx3('pop', m.g.position.x, m.g.position.z, 140, { vol: 0.5, gap: 50 }); }
       // towers
-      const tk = new Set();
+      const tk = new Set(), tNow = performance.now() / 1000;
       for (const w of v.tw) {
         tk.add(w.id);
         const sig = w.t + ':' + w.lvl + ':' + w.o;
         let m = this.tviews.get(w.id);
         if (!m || m.sig !== sig) {
           if (this.sndOn) { const mine = w.o === this.myIdx(g); if (!m) sfx3('place', w.x, w.z, 140); else if (m.w.lvl !== w.lvl) { if (mine) sfx('levelup'); else sfx3('select', w.x, w.z, 140); } }
-          if (m) place.remove(m.g); m = { g: towerModel(w.t, w.lvl, OWN_COL[w.o % 4]), sig, w }; m.g.position.set(w.x, 0, w.z); m.g.traverse((o) => (o.userData.tid = w.id)); place.add(m.g); this.tviews.set(w.id, m); }
+          if (m) dropModel(m.g); m = { g: towerModel(w.t, w.lvl, OWN_COL[w.o % 4]), sig, w, shotAt: m && m.shotAt }; m.g.position.set(w.x, 0, w.z); m.g.traverse((o) => (o.userData.tid = w.id)); place.add(m.g); this.tviews.set(w.id, m); }
         m.w = w;
+        m.g.userData.anim(tNow, dt, m); // (barrels spin, flags wave, crystals float, guns kick back)
       }
-      for (const [id, m] of this.tviews) if (!tk.has(id)) { place.remove(m.g); this.tviews.delete(id); if (this.sndOn) sfx3('sell', m.w.x, m.w.z, 140, { vol: m.w.o === this.myIdx(g) ? 1 : 0.4 }); }
+      for (const [id, m] of this.tviews) if (!tk.has(id)) { dropModel(m.g); this.tviews.delete(id); if (this.sndOn) sfx3('sell', m.w.x, m.w.z, 140, { vol: m.w.o === this.myIdx(g) ? 1 : 0.4 }); }
       // shots
       const fsig = JSON.stringify(v.fx || []);
       if (fsig !== this.fxSig) {
@@ -333,10 +578,11 @@
           if (old.has(f.join())) continue;
           const m = this.tviews.get(f[0]); if (!m) continue;
           const [x, z] = posAt(f[1] / 4), t = m.w.t, from = new THREE.Vector3(m.w.x, 2.6, m.w.z), to = new THREE.Vector3(x, 2, z);
-          m.g.rotation.y = Math.atan2(-(x - m.w.x), -(z - m.w.z));
+          m.g.rotation.y = Math.atan2(-(x - m.w.x), -(z - m.w.z)); m.shotAt = performance.now() / 1000;
+          if (m.g.userData.muzzle) { m.g.updateMatrixWorld(true); m.g.userData.muzzle.getWorldPosition(from); } // (from the end of the barrel)
           if (this.sndOn) { const snd = SHOT_SND[t]; if (snd) sfx3(snd[0], m.w.x, m.w.z, 150, snd[1]); }
           if (t === 3) puffAt(x, 1.5, z, [0xf97316, 0x444444], 8); else if (t === 5) puffAt(x, 2, z, 0xa5f3fc, 4);
-          const l = new THREE.Line(new THREE.BufferGeometry().setFromPoints([from, to]), new THREE.LineBasicMaterial({ color: t === 8 ? 0xa78bfa : t === 1 ? 0xfde047 : 0xffffff }));
+          const l = new THREE.Line(new THREE.BufferGeometry().setFromPoints([from, to]), new THREE.LineBasicMaterial({ color: [0xfff1a8, 0x9beaff, 0xffd27a, 0xffa94d, 0xffffff, 0xbff6ff, 0xffffff, 0xffe08a, 0xd8b4fe][t] }));
           place.add(l); this.fx.push({ l, life: 0.08 });
         }
         this.fxOld = (v.fx || []).slice(); this.fxSig = fsig;
@@ -386,7 +632,7 @@
         (b) => { if (b.dataset.skip) { this.ask('skip'); toast('Voted to skip'); return; } const t = +b.dataset.t; this.startPlacing(t); });
     },
     startPlacing(t) {
-      if (this.placing === t) { this.placing = null; } else { this.placing = t; this.selT = null; if (this.ghost) place.remove(this.ghost); this.ghost = towerModel(t, 0, OWN_COL[Math.max(0, this.myIdx(this.g)) % 4]); this.ghost.traverse((o) => { if (o.material) { o.material = o.material.clone(); o.material.transparent = true; o.material.opacity = 0.55; } }); place.add(this.ghost); }
+      if (this.placing === t) { this.placing = null; } else { this.placing = t; this.selT = null; if (this.ghost) dropModel(this.ghost); this.ghost = towerModel(t, 0, OWN_COL[Math.max(0, this.myIdx(this.g)) % 4]); this.ghost.traverse((o) => { if (o.material) { o.material = o.material.clone(); o.material.transparent = true; o.material.opacity = 0.55; } }); place.add(this.ghost); }
       this.drawBar();
     },
     key(code, down) {
