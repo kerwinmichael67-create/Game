@@ -86,6 +86,30 @@
     .au-slots div{--rc:rgba(255,255,255,.18);border:2px dashed var(--rc);border-radius:12px;padding:6px 4px;text-align:center;font:700 11px var(--fb);color:#e2e8f0;min-height:58px}
     .au-slots div.on{border-style:solid}
     .au-slots .e{font-size:24px;display:block}
+    #auStreak{position:absolute;left:50%;top:114px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:4px;pointer-events:none;--tc:#fff}
+    #auStreak[hidden]{display:none!important}
+    #auStreak .s{font:600 20px var(--fh);color:var(--tc);-webkit-text-stroke:5px rgba(10,12,18,.72);paint-order:stroke fill;white-space:nowrap;letter-spacing:.02em}
+    #auStreak .s b{font-size:30px}
+    #auStreak .s small{font:700 13px var(--fb);color:#e2e8f0}
+    #auStreak .bar{width:220px;height:7px;border-radius:5px;background:rgba(0,0,0,.5);overflow:hidden;box-shadow:0 0 12px var(--tc)}
+    #auStreak .bar i{display:block;height:100%;background:var(--tc);border-radius:5px}
+    #auStreak.t1 .s{animation:auShk .5s infinite}#auStreak.t2 .s{animation:auShk .3s infinite}#auStreak.t3 .s{animation:auShk2 .22s infinite}
+    #auStreak.t4 .s,#auStreak.t5 .s,#auStreak.t6 .s{animation:auShk3 .16s infinite}
+    @keyframes auShk{0%,100%{transform:translate(0,0)}25%{transform:translate(-1px,1px) rotate(-1deg)}75%{transform:translate(1px,-1px) rotate(1deg)}}
+    @keyframes auShk2{0%,100%{transform:translate(0,0) scale(1.04)}25%{transform:translate(-2px,1px) rotate(-2deg)}75%{transform:translate(2px,-2px) rotate(2deg)}}
+    @keyframes auShk3{0%,100%{transform:translate(0,0) scale(1.08)}25%{transform:translate(-3px,2px) rotate(-3deg)}75%{transform:translate(3px,-2px) rotate(3deg) scale(1.12)}}
+    #auVig{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .25s;background:radial-gradient(ellipse at center,transparent 52%,var(--tc,#a855f7) 150%)}
+    #auTier{--tc:#a855f7;position:absolute;left:50%;top:30%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;z-index:5;animation:auTierIn 1.4s ease-out forwards;white-space:nowrap}
+    #auTier .m{font:600 86px var(--fh);color:var(--tc);-webkit-text-stroke:9px rgba(10,12,18,.7);paint-order:stroke fill;line-height:1;text-shadow:0 0 40px var(--tc)}
+    #auTier .n{font:600 30px var(--fh);color:#fff;-webkit-text-stroke:6px rgba(10,12,18,.7);paint-order:stroke fill;margin-top:4px}
+    #auTier.rb .m{animation:auHue .6s linear infinite}
+    @keyframes auTierIn{0%{transform:translate(-50%,-50%) scale(2.4) rotate(-6deg);opacity:0}12%{transform:translate(-50%,-50%) scale(1) rotate(0);opacity:1}75%{opacity:1}100%{opacity:0;transform:translate(-50%,-62%) scale(1.05)}}
+    @keyframes auHue{0%{color:#f43f5e}25%{color:#facc15}50%{color:#22d3ee}75%{color:#a855f7}100%{color:#f43f5e}}
+    .au-pop.t1{color:#93c5fd;font-size:22px}.au-pop.t2{color:#d8b4fe;font-size:24px}.au-pop.t3{color:#fde047;font-size:27px}.au-pop.t4{color:#fca5a5;font-size:30px}
+    .au-pop.t5,.au-pop.t6{font-size:33px;animation:auPop 1s ease-out forwards,auHue .5s linear infinite}
+    .au-pop.end{color:#cbd5e1;font-size:19px}
+    #auTop .rn{font:600 12px var(--fh);padding:3px 10px;border-radius:999px;color:#06202a;background:linear-gradient(90deg,#22d3ee,#a855f7);animation:auShk .4s infinite}
+    .touchy #auStreak{top:100px;transform:translateX(-50%) scale(.85)}
     .touchy #auTop{top:58px;transform:translateX(-50%) scale(.86)}
     .touchy #auDuel{top:56px;transform:translateX(-50%) scale(.82)}
     @media (max-width:640px){#auDuel .f{width:140px}#auDuel .st{display:none}#auRes .big{font-size:96px}#auBox .card{width:96px;flex-basis:96px}}`;
@@ -144,11 +168,90 @@
   const rollAb = (odds) => { const l = BYR[rollRar(odds)]; return l[Math.floor(Math.random() * l.length)]; };
 
   /* ---------------- the brainrot ---------------- */
-  const CLICK_WORDS = ['W', 'sheesh', 'no cap', 'fr fr', 'bussin', 'slay', 'rizz', 'sigma', 'mewing', 'goated', 'based', 'ate', 'locked in', 'main character', 'mogged', 'built different', 'it’s giving', 'lowkey him', 'highkey him', 'real', 'valid', 'cooking', '🗿', '💯', '🔥', '😤', 'W rizz', 'unc approved', 'aura++', 'no shot', 'goes hard'];
-  const EVENTS = [['You said "no cap" and meant it.', 15], ['Your mewing streak hit 10 minutes.', 20], ['You walked past a mirror and didn’t check yourself.', 25], ['You left someone on read (respectfully).', 10], ['You understood the assignment.', 30], ['Your playlist ate.', 15], ['You held the door open. Unc behaviour, but W.', 10], ['You didn’t yap for a whole minute.', 25], ['Someone called you built different.', 20], ['You hit the griddy in public.', 15], ['You touched grass (on purpose).', 20], ['Your fit was certified bussin.', 25]];
+  const CLICK_WORDS = ['W', 'sheesh', 'no cap', 'fr fr', 'bussin', 'slay', 'rizz', 'sigma', 'mewing', 'goated', 'based', 'ate', 'locked in', 'main character', 'mogged', 'built different', 'it’s giving', 'lowkey him', 'highkey him', 'real', 'valid', 'cooking', '🗿', '💯', '🔥', '😤', 'W rizz', 'unc approved', 'aura++', 'no shot', 'goes hard', 'skibidi', 'rizzler', 'fanum tax', 'only in ohio', 'mewing streak', 'looksmaxxing', 'mogging', 'he’s him', 'chat is this real', 'on god', 'glazing', 'delulu', 'crashout', 'aura points', '6 7', 'tung tung tung', 'tralalero', 'bombardiro', 'brr brr patapim', 'goofy ahh', 'sigma grindset', 'gigachad', 'W in the chat', '+1000 aura', 'yapping', 'big W', 'unc status', 'erm what the sigma', 'what the helly', 'skibidi rizz', 'fanum taxed', 'lowkey cooking', 'aura farming', 'mog city', 'rizz god', 'no thoughts just aura'];
+  const EVENTS = [['You said "no cap" and meant it.', 15], ['Your mewing streak hit 10 minutes.', 20], ['You walked past a mirror and didn’t check yourself.', 25], ['You left someone on read (respectfully).', 10], ['You understood the assignment.', 30], ['Your playlist ate.', 15], ['You held the door open. Unc behaviour, but W.', 10], ['You didn’t yap for a whole minute.', 25], ['Someone called you built different.', 20], ['You hit the griddy in public.', 15], ['You touched grass (on purpose).', 20], ['Your fit was certified bussin.', 25], ['You said "6 7" at the perfect moment.', 25], ['Tung Tung Tung Sahur knocked. You answered.', 30], ['You out-mewed your own reflection.', 20], ['A Tralalero Tralala swam past and nodded at you.', 25], ['You explained skibidi to your teacher.', 30], ['Your mom said you have rizz (it counts).', 10], ['You looksmaxxed so hard the mirror cracked.', 25], ['You fanum taxed your sibling’s fries.', 20], ['Chat, is this real? (it is)', 15], ['You crashed out, but in an aura way.', 20], ['Erm, what the sigma?', 15], ['Bombardiro Crocodilo flew over and saluted.', 30], ['You didn’t say "bro" for a whole sentence.', 20]];
   const WIN_LINES = ['W + ratio', '{L} got cooked 💀', '{L} lost all their rizz', 'Emotional damage!', '{L} thought they were him', '{W} is him fr fr', 'Skill issue tbh', '{L} has been mogged', '{W} ate and left no crumbs'];
   const LOSE_SUBS = ['Touch grass and run it back 🌱', 'You got mogged. It happens to the best of us (not really)', 'Your aura is in the negatives (spiritually)', 'L + ratio + you fell off', 'Not very sigma of you', 'Bro thought he was him 💀'];
   const BOT_NAMES = ['NPC #4821', 'Mid Mike', 'Rizzless Randy', 'Unc Gary', 'Yapper Yasmin', 'Sigma Steve', 'Ohio Olivia', 'Skibidi Sam', 'Fanum Fan', 'Mewing Max', 'Glazer Greg', 'Delulu Dana'];
+  const BIG_WORDS = ['+1000 AURA', 'HE’S HIM', 'TUNG TUNG TUNG SAHUR', 'TRALALERO TRALALA', 'BOMBARDIRO CROCODILO', 'ERM WHAT THE SIGMA', 'ONLY IN OHIO', 'CHAT IS THIS REAL', '6 7 6 7', 'SKIBIDI', 'GIGACHAD', 'AURA OVERLOAD', 'MOGGED THE WHOLE SERVER', 'INFINITE RIZZ', 'BRR BRR PATAPIM', 'LOOKSMAXXED', 'MEWING SO HARD RN', 'NO CAP FR FR'];
+  const FELL_OFF = ['you fell off 💀', 'fingers said nah', 'bro got tired 😭', 'streak got ratio’d', 'skill issue', 'L + ratio', 'go touch grass then', 'NPC behaviour', 'the grindset was mid', 'chat, he fell off'];
+  const RAIN_EMO = ['🧠', '🗿', '🦈', '🐊', '🪵', '🍟', '💀', '🔥', '🤫', '😭', '💯', '🚽', '🧏', '😤'];
+  // the click streak: click again within STREAK_GAP seconds and it keeps going; the longer it goes, the more each click is worth
+  const STREAK_GAP = 1.2;
+  const TIERS = [
+    { at: 0, n: '', e: '', m: 1, c: '#e9d5ff' },
+    { at: 10, n: 'LOCKED IN', e: '🔒', m: 1.5, c: '#60a5fa', say: 'locked in', ring: 'LOCKED IN' },
+    { at: 25, n: 'AURA FARMING', e: '🔥', m: 2, c: '#a855f7', say: 'aura farming', ring: 'AURA FARMING' },
+    { at: 50, n: 'SIGMA MODE', e: '🗿', m: 3, c: '#fbbf24', say: 'sigma mode activated', ring: 'SIGMA MODE' },
+    { at: 100, n: 'HE IS HIM', e: '😤', m: 4, c: '#ef4444', say: 'he is him', ring: 'HE IS HIM' },
+    { at: 200, n: 'OHIO FINAL BOSS', e: '☄️', m: 5, c: 'rainbow', say: 'only in ohio', ring: 'OHIO FINAL BOSS' },
+    { at: 400, n: 'BRAINROT ASCENDED', e: '🧠', m: 7, c: 'rainbow', say: 'tung tung tung tung sahur', ring: 'BRAINROT ASCENDED' },
+  ];
+  const tierOf = (n) => { let k = 0; for (let i = 0; i < TIERS.length; i++) if (n >= TIERS[i].at) k = i; return k; };
+  const _tc = new THREE.Color();
+  const tierCol = (t, time) => (TIERS[t].c === 'rainbow' ? _tc.setHSL((time * 0.35) % 1, 0.9, 0.62) : _tc.set(TIERS[t].c));
+  // a ring of glowing letters for under your feet
+  const RUNES = {};
+  function runeTex(text) {
+    if (RUNES[text]) return RUNES[text];
+    const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d');
+    g.translate(128, 128); g.strokeStyle = '#fff'; g.lineWidth = 5;
+    for (const r of [122, 90]) { g.beginPath(); g.arc(0, 0, r, 0, Math.PI * 2); g.stroke(); }
+    const unit = [...(text + ' ✦ ')], reps = Math.max(1, Math.floor(44 / unit.length)), chars = [].concat(...Array(reps).fill(unit));
+    g.font = `800 ${Math.min(22, Math.floor(640 / chars.length * 1.45))}px sans-serif`; g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    chars.forEach((ch, i) => { g.save(); g.rotate(i / chars.length * Math.PI * 2); g.fillText(ch, 0, -106); g.restore(); });
+    g.lineWidth = 3; g.beginPath(); for (let i = 0; i <= 5; i++) { const a = i * Math.PI * 4 / 5 - Math.PI / 2; g[i ? 'lineTo' : 'moveTo'](Math.cos(a) * 84, Math.sin(a) * 84); } g.stroke(); // a star in the middle
+    const t = new THREE.CanvasTexture(c); return (RUNES[text] = t);
+  }
+  let BEAM_TEX = null;
+  const beamTex = () => { if (!BEAM_TEX) { const cv = document.createElement('canvas'); cv.width = 4; cv.height = 128; const x = cv.getContext('2d'), gr = x.createLinearGradient(0, 128, 0, 0); for (const [k, a] of [[0, 0.9], [0.3, 0.45], [0.75, 0.1], [1, 0]]) gr.addColorStop(k, `rgba(255,255,255,${a})`); x.fillStyle = gr; x.fillRect(0, 0, 4, 128); BEAM_TEX = new THREE.CanvasTexture(cv); } return BEAM_TEX; };
+  const emoSprite = (e, s) => { const o = new THREE.Sprite(new THREE.SpriteMaterial({ map: emoTex(e), transparent: true, depthWrite: false })); o.scale.setScalar(s); o.raycast = () => {}; return o; };
+  // the aura you get from clicking, round your character: it flares on every click and gets cooler the longer your
+  // streak (a glow and rising sparkles; then flames and a ring of runes; lightning; a beam and orbiting moai; rainbow; brainrot)
+  function makeClickAura(parent) {
+    const g = new THREE.Group(), C = { g, tier: -1, pulse: 0 }; parent.add(g);
+    const card = (k, w, h, y) => { const o = fxCard(k, 0xffffff, w, h, 0, y, 0, g); o.raycast = () => {}; return o; };
+    C.glow = card('glow', 5, 6, 2.9);
+    C.spark = Array.from({ length: 8 }, (_, i) => Object.assign(card('twinkle', 0.7, 0.7, 1), { userData: { fx: true, i } }));
+    C.flames = Array.from({ length: 10 }, () => card('flame', 0.9, 1.6, 1.3));
+    C.rune = new THREE.Mesh(new THREE.CircleGeometry(3.3, 48), new THREE.MeshBasicMaterial({ map: runeTex('AURA'), transparent: true, depthWrite: false, side: THREE.DoubleSide, ...DECAL }));
+    C.rune.rotation.x = -Math.PI / 2; C.rune.position.y = 0.18; C.rune.raycast = () => {}; C.rune.userData.noShadow = true; g.add(C.rune);
+    C.ring = new THREE.Mesh(new THREE.RingGeometry(0.85, 1, 40), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, depthWrite: false, side: THREE.DoubleSide, ...DECAL }));
+    C.ring.rotation.x = -Math.PI / 2; C.ring.position.y = 0.22; C.ring.raycast = () => {}; g.add(C.ring);
+    C.bolts = Array.from({ length: 4 }, () => { const o = emoSprite('⚡', 1.3); g.add(o); return o; });
+    C.beam = new THREE.Mesh(new THREE.CylinderGeometry(1.7, 1.7, 10, 24, 1, true), new THREE.MeshBasicMaterial({ map: beamTex(), transparent: true, opacity: 0.45, side: THREE.DoubleSide, depthWrite: false }));
+    C.beam.position.y = 5; C.beam.raycast = () => {}; C.beam.userData.noShadow = true; g.add(C.beam);
+    C.orbit = new THREE.Group(); C.orbit.position.y = 4.4; g.add(C.orbit);
+    C.orbs = Array.from({ length: 4 }, (_, i) => { const o = emoSprite('🗿', 1.5); const a = i * Math.PI / 2; o.position.set(Math.cos(a) * 2.3, 0, Math.sin(a) * 2.3); C.orbit.add(o); return o; });
+    return C;
+  }
+  function tickClickAura(C, tier, pulse, t) {
+    if (C.tier !== tier) { // what shows at this tier
+      C.tier = tier;
+      C.spark.forEach((o) => (o.visible = tier >= 1)); C.flames.forEach((o) => (o.visible = tier >= 2)); C.rune.visible = tier >= 2;
+      C.bolts.forEach((o) => (o.visible = tier >= 3)); C.beam.visible = tier >= 4; C.orbit.visible = tier >= 4;
+      if (tier >= 2) C.rune.material.map = runeTex(TIERS[tier].ring);
+      C.orbs.forEach((o, i) => { o.material.map = emoTex(tier >= 6 ? ['🦈', '🐊', '🪵', '🧠'][i] : tier >= 5 ? ['🗿', '☄️', '🗿', '☄️'][i] : '🗿'); });
+    }
+    C.g.visible = tier > 0 || pulse > 0;
+    if (!C.g.visible) return;
+    const col = tierCol(Math.max(1, tier), t);
+    // the glow: steady with a streak, a flash on every click
+    C.glow.visible = true;
+    const gw = (tier ? 3.4 + tier * 0.95 : 0) + pulse * 3.2;
+    C.glow.scale.set(gw * (1 + 0.06 * Math.sin(t * 7)), gw * 1.3, 1);
+    C.glow.material.color.copy(tier ? col : _tc.set('#e9d5ff')); C.glow.material.opacity = Math.min(1, (tier ? 0.4 + tier * 0.07 : 0) + pulse * 0.6);
+    // the click ring: a shockwave at your feet
+    C.ring.visible = pulse > 0; if (pulse > 0) { C.ring.scale.setScalar(1 + (1 - pulse) * 3.2); C.ring.material.opacity = pulse * 0.9; C.ring.material.color.copy(tier ? col : _tc.set('#e9d5ff')); }
+    if (tier >= 1) C.spark.forEach((o, i) => { const k = (t * 0.7 + i / 8) % 1, a = i * 2.4 + t * 0.6, r = 1.2 + 0.5 * Math.sin(i); o.position.set(Math.cos(a) * r, 0.4 + k * 6, Math.sin(a) * r); o.material.color.copy(col); o.material.opacity = Math.sin(k * Math.PI); });
+    if (tier >= 2) {
+      C.flames.forEach((o, i) => { const a = i / 10 * Math.PI * 2 + t * 0.9, h = 1.5 + tier * 0.25 + 0.5 * Math.sin(t * 13 + i * 2); o.position.set(Math.cos(a) * 1.25, 0.2 + h / 2, Math.sin(a) * 1.25); o.scale.set(0.8 + 0.15 * Math.sin(t * 17 + i), h, 1); o.material.color.copy(col).lerp(_c2.set(0xffffff), 0.15); });
+      C.rune.rotation.z = t * 1.4; C.rune.material.color.copy(col); C.rune.material.opacity = 0.8;
+    }
+    if (tier >= 3) C.bolts.forEach((o, i) => { if (Math.random() < 0.18) { const a = Math.random() * Math.PI * 2, r = 1.2 + Math.random() * 1.3; o.position.set(Math.cos(a) * r, 0.8 + Math.random() * 5, Math.sin(a) * r); o.material.rotation = (Math.random() - 0.5) * 1.4; } o.material.opacity = Math.random() < 0.7 ? 1 : 0.15; });
+    if (tier >= 4) { C.beam.material.color.copy(col); C.beam.material.opacity = 0.32 + 0.12 * Math.sin(t * 5); C.beam.rotation.y = t; C.orbit.rotation.y = t * 1.6; C.orbs.forEach((o, i) => { o.position.y = Math.sin(t * 3 + i) * 0.4; }); }
+  }
+  const _c2 = new THREE.Color();
   const pick = (a) => a[Math.floor(Math.random() * a.length)];
   const isBot = (id) => typeof id === 'string' && id.startsWith('bot:');
 
@@ -165,8 +268,8 @@
     land: { theme: 'blossom', fence: 'stone' },
     color: 'linear-gradient(135deg,#7c3aed,#db2777 55%,#f59e0b)',
     desc: 'You get +1 aura every second, no cap, and clicking farms way more. Open crates for abilities (NPC, Mid, Bussin, Goated, Sigma and Ohio tier: the rarer, the more goated), then challenge people to 1v1 duels in the rings. Abilities hit harder the more aura you have, and the winner steals 20% of the loser’s aura. Bots duel you when nobody’s around. Fully satirical. Your aura is saved.',
-    welcome: 'You get +1 aura every second. Click anywhere to farm more 🗿 Then duel people to steal theirs. No cap.',
-    welcomeTouch: 'You get +1 aura every second. Tap anywhere to farm more 🗿 Then duel people to steal theirs. No cap.',
+    welcome: 'You get +1 aura every second. Click fast anywhere to farm more: keep the streak going for ×2 aura and up 🔥 Then duel people to steal theirs. No cap.',
+    welcomeTouch: 'You get +1 aura every second. Tap fast anywhere to farm more: keep the streak going for ×2 aura and up 🔥 Then duel people to steal theirs. No cap.',
     build() {
       sky('#a78bfa', '#fce7f3');
       slab(0, 0, -18, 128, 128, 0xede9fe, { sy: 2 });
@@ -215,11 +318,34 @@
         const c = new THREE.Mesh(new THREE.RingGeometry(4.6, 5.2, 48), new THREE.MeshBasicMaterial({ color: 0xf472b6, side: THREE.DoubleSide, ...DECAL })); c.rotation.x = -Math.PI / 2; c.position.set(R.x, 0.12, R.z); place.add(c);
         sign(`⚔️ RING ${i + 1}`, R.x, 10, R.z + RING_H, 1.6);
       });
+      // the brainrot: statues of the classics, moai going round the shrine, the 6 7 hologram, a portal to Ohio
+      this.props = [];
+      for (const [e, n, x, z, c] of [['🦈👟', 'TRALALERO TRALALA', -24, 31, '#67e8f9'], ['🪵🏏', 'TUNG TUNG TUNG SAHUR', 24, 31, '#fdba74'], ['🐊✈️', 'BOMBARDIRO CROCODILO', 0, 40, '#86efac']]) {
+        part({ x, y: 1, z, sx: 4, sy: 2, sz: 4, c: 0x4c1d95 }); part({ x, y: 2.05, z, sx: 4.3, sy: 0.15, sz: 4.3, c: 0xf472b6, neon: true });
+        const st = label(e, { size: 3.6, fit: false }); st.position.set(x, 5, z); place.add(st);
+        sign(n, x, 8.4, z, 1.1, c);
+        const ph = x * 0.1; this.props.push((t) => { st.position.y = 5 + Math.sin(t * 1.6 + ph) * 0.35; });
+      }
+      const moai = new THREE.Group(); moai.position.set(0, 10, -24); place.add(moai);
+      for (let i = 0; i < 6; i++) { const o = emoSprite('🗿', 2.2), a = i / 6 * Math.PI * 2; o.position.set(Math.cos(a) * 7.5, Math.sin(i * 2) * 0.8, Math.sin(a) * 7.5); moai.add(o); }
+      this.props.push((t) => { moai.rotation.y = t * 0.5; });
+      const six = label('6', { size: 6, color: '#22d3ee', fit: false }), seven = label('7', { size: 6, color: '#f472b6', fit: false });
+      six.position.set(-17, 9, -6); seven.position.set(-12, 9, -6); place.add(six, seven);
+      sign('the 6 7 hologram (nobody knows what it means)', -14.5, 4.6, -6, 0.9, '#e2e8f0');
+      part({ x: -14.5, y: 1.2, z: -6, sx: 3, sy: 2.4, sz: 1.6, c: 0x1e293b });
+      this.props.push((t) => { six.position.y = 9 + Math.sin(t * 3) * 1.1; seven.position.y = 9 - Math.sin(t * 3) * 1.1; });
+      const portal = new THREE.Group(); portal.position.set(-52, 6, 28); place.add(portal);
+      for (const [r, c] of [[4, 0xa855f7], [3.2, 0x22c55e], [2.4, 0xf472b6]]) { const m = new THREE.Mesh(new THREE.TorusGeometry(r, 0.25, 8, 40), new THREE.MeshBasicMaterial({ color: c })); m.raycast = () => {}; portal.add(m); }
+      fxCard('glow', 0x8b5cf6, 11, 11, 0, 0, 0, portal, (o, m, t) => { m.opacity = 0.55 + 0.2 * Math.sin(t * 4); });
+      sign('🌀 OHIO PORTAL\n(closed for maintenance)', -52, 12.5, 28, 1.2, '#d8b4fe');
+      this.props.push((t) => { portal.children.forEach((m, i) => { if (m.isMesh && m.geometry.type === 'TorusGeometry') { m.rotation.z = t * (1 + i * 0.6) * (i % 2 ? -1 : 1); m.rotation.y = Math.sin(t + i) * 0.4; } }); });
+      part({ x: 14, y: 0.06, z: 30, sx: 10, sy: 0.12, sz: 10, c: 0x0ea5e9, alpha: 0.35 });
+      sign('🤫 MEWING ZONE (no yapping)', 14, 4, 30, 1.1, '#bae6fd');
       this.fx = []; this.pjv = new Map(); this.botAv = new Map(); this.fv = new Map(); this.tags = new Map();
     },
-    pres() { return { au: 0, br: 0, eq: [], tq: [], th: 0 }; },
+    pres() { return { au: 0, br: 0, eq: [], tq: [], th: 0, sk: 0 }; },
     async enter() {
-      Object.assign(this, { H: null, lastG: null, gSeen: null, g: null, D: null, q: [], qn: 0, evSeen: null, acc: 0, evT: 40 + Math.random() * 30, clicks: [], duelId: 0, myIdx: -1, cdUntil: {}, move: null, chal: null, chalKey: '', resT: 0, backAt: 0, barHtml: '', sentAt: 0, savedAt: performance.now(), dirty: false, hpSeen: null, frozeBy: false, popAt: 0 });
+      Object.assign(this, { H: null, lastG: null, gSeen: null, g: null, D: null, q: [], qn: 0, evSeen: null, acc: 0, evT: 40 + Math.random() * 30, clicks: [], duelId: 0, myIdx: -1, cdUntil: {}, move: null, chal: null, chalKey: '', resT: 0, backAt: 0, barHtml: '', sentAt: 0, savedAt: performance.now(), dirty: false, hpSeen: null, frozeBy: false, popAt: 0, streak: 0, lastClick: 0, tier: 0, pulseAt: 0, rainAt: 0 });
       const s = await kvGet('au');
       const S = this.S = Object.assign({ au: 0, tot: 0, cl: 0, ps: 0, ab: { rizz: 1, side: 1 }, eq: ['rizz', 'side'], free: 1, w: 0, l: 0, best: 0, op: 0 }, s && typeof s === 'object' ? s : {});
       S.au = Math.max(0, +S.au || 0); S.tot = Math.max(0, +S.tot || 0); S.cl = Math.max(0, S.cl | 0); S.ps = Math.max(0, S.ps | 0); S.free = Math.max(0, S.free | 0);
@@ -229,6 +355,8 @@
       this.top = document.createElement('div'); this.top.id = 'auTop'; hud.append(this.top);
       this.duelEl = document.createElement('div'); this.duelEl.id = 'auDuel'; this.duelEl.hidden = true; hud.append(this.duelEl);
       this.hurtEl = document.createElement('div'); this.hurtEl.id = 'auHurt'; hud.append(this.hurtEl);
+      this.vig = document.createElement('div'); this.vig.id = 'auVig'; hud.append(this.vig);
+      this.stEl = document.createElement('div'); this.stEl.id = 'auStreak'; this.stEl.hidden = true; this.stEl.innerHTML = '<div class="s"></div><div class="bar"><i></i></div>'; hud.append(this.stEl);
       this.drawTop(true); this.drawBar(); this.send(true);
     },
     leave() {
@@ -242,7 +370,7 @@
       const S = this.S, t = performance.now();
       if (!S || (!now && t - this.sentAt < 1000)) return;
       this.sentAt = t;
-      send({ au: Math.floor(S.au), br: this.bestRar(), eq: S.eq.flatMap((k) => [k, S.ab[k] | 0]), th: hasItem('hp') ? 1 : 0 });
+      send({ au: Math.floor(S.au), br: this.bestRar(), eq: S.eq.flatMap((k) => [k, S.ab[k] | 0]), th: hasItem('hp') ? 1 : 0, sk: this.tier | 0 });
     },
     bestRar() { return Math.max(0, ...Object.keys(this.S.ab).map((k) => AB[k].r)); },
     spawn() {
@@ -262,12 +390,62 @@
     // a click: anywhere on the world, the big button, or F (a few a second at most: autoclickers aren't sigma)
     farm(x, y) {
       const t = performance.now(); this.clicks = this.clicks.filter((c) => t - c < 1000);
+      this.lastClick = t; // (a click over the limit still keeps your streak going)
       if (this.clicks.length >= MAX_CPS) return;
       this.clicks.push(t);
-      const n = this.perClick(); this.gain(n);
-      sfx('tap', { vol: 0.5, pitch: 0.9 + Math.random() * 0.4 });
-      this.pop(x == null ? innerWidth / 2 + (Math.random() - 0.5) * 120 : x, y == null ? innerHeight - 150 : y, `+${short(n)} aura${Math.random() < 0.4 ? ' · ' + pick(CLICK_WORDS) : ''}`);
+      this.streak++;
+      const k = tierOf(this.streak); if (k > this.tier) this.tierUp(k);
+      const T = TIERS[this.tier], rain = this.rainOn() ? 2 : 1, n = Math.round(this.perClick() * T.m * rain);
+      this.gain(n); this.pulseAt = t;
+      sfx('tap', { vol: 0.5, pitch: 0.85 + this.tier * 0.13 + Math.random() * 0.25 });
+      const word = this.tier >= 2 || Math.random() < 0.4 ? ' · ' + pick(this.tier >= 4 && Math.random() < 0.6 ? BIG_WORDS : CLICK_WORDS) : '';
+      this.pop(x == null ? innerWidth / 2 + (Math.random() - 0.5) * 140 : x, y == null ? innerHeight - 150 : y, `+${short(n)} aura${T.m > 1 ? ' ×' + T.m : ''}${rain > 1 ? ' 🌧️' : ''}${word}`, this.tier ? 't' + this.tier : '');
       this.drawTop();
+    },
+    // a new tier: it's announced, said out loud (with the sound on) and everyone can see your aura change
+    tierUp(k) {
+      this.tier = k; const T = TIERS[k];
+      const old = $('#auTier'); if (old) old.remove();
+      const el = document.createElement('div'); el.id = 'auTier'; if (T.c === 'rainbow') el.className = 'rb';
+      el.style.setProperty('--tc', T.c === 'rainbow' ? '#f0abfc' : T.c);
+      el.innerHTML = `<div class="m">×${T.m} AURA</div><div class="n">${T.e} ${T.n} ${T.e}</div>`;
+      $('#xhud').append(el); setTimeout(() => el.remove(), 1450);
+      sfx(k >= 4 ? 'unlock' : 'powerup'); this.speak(T.say);
+      if (me) puffAt(me.g.position.x, me.g.position.y + 3, me.g.position.z, [tierCol(k, performance.now() / 1000).getHex(), 0xffffff], 18 + k * 4);
+      if (k >= 4) Net.chat(`${T.e} ${T.n} (${this.streak} click streak, ×${T.m} aura)`);
+      this.send(true);
+    },
+    endStreak(quiet) {
+      const n = this.streak, S = this.S; this.streak = 0;
+      if (n > (S.bs | 0)) { S.bs = n; this.dirty = true; if (n >= 25 && !quiet) toast(`🏆 New best streak: ${n} clicks`, '#fde68a'); }
+      if (this.tier) { this.tier = 0; this.send(true); }
+      if (n >= 10 && !quiet) { this.pop(innerWidth / 2, 168, `streak ended at ${n} · ${pick(FELL_OFF)}`, 'end'); sfx('lose', { vol: 0.3 }); }
+    },
+    rainOn() { const g = this.g; return !!(g && g.rn > 0); },
+    // the brainrot announcer (only with the sound on, and only for the big moments)
+    speak(text) {
+      try {
+        if (!text || !window.Sfx || !Sfx.on || !window.speechSynthesis || document.hidden) return;
+        const u = new SpeechSynthesisUtterance(text); u.rate = 1.05; u.pitch = 0.55; u.volume = 0.8;
+        speechSynthesis.cancel(); speechSynthesis.speak(u);
+      } catch (e) { /* no voice here: the text says it anyway */ }
+    },
+    drawStreak() {
+      const el = this.stEl; if (!el) return;
+      const on = this.streak >= 3 && !this.D, T = TIERS[this.tier], now = performance.now();
+      const col = T.c === 'rainbow' ? `hsl(${Math.round(now / 6) % 360},90%,64%)` : T.c;
+      el.hidden = !on;
+      if (on) {
+        const cls = 't' + this.tier; if (el.className !== cls) el.className = cls;
+        el.style.setProperty('--tc', col);
+        const next = TIERS[this.tier + 1];
+        const html = `🔥 <b>${this.streak}</b> STREAK${T.m > 1 ? ` · ×${T.m} · ${T.e} ${T.n}` : ''}${next ? ` <small>(${next.at - this.streak} more for ×${next.m})</small>` : ' <small>(max brainrot)</small>'}`;
+        if (html !== this.stHtml) { this.stHtml = html; el.firstChild.innerHTML = html; }
+        el.lastChild.firstChild.style.width = (100 * clamp(1 - (now - this.lastClick) / (STREAK_GAP * 1000), 0, 1)).toFixed(1) + '%';
+      }
+      this.vig.style.setProperty('--tc', col);
+      const vo = on && this.tier >= 2 ? Math.min(0.95, 0.2 + 0.11 * this.tier + 0.08 * Math.sin(now / 140)) : 0;
+      this.vig.style.opacity = vo.toFixed(2);
     },
     pop(x, y, text, cls) {
       const el = document.createElement('div'); el.className = 'au-pop' + (cls ? ' ' + cls : ''); el.textContent = text;
@@ -281,7 +459,8 @@
     drawTop(force) {
       const S = this.S; if (!S || !this.top) return;
       const k = rankOf(S.au), R = RANKS[k], m = auraMult(S.au);
-      const html = `<span class="n">🗿 ${comma(S.au)}</span><small>aura · +${short(this.perSec())}/s</small><span class="rk r${k}" style="--rc:${R[2]}">${R[1]}</span><small>⚔️ ${pctOf(m)} dmg</small>`;
+      const g = this.g, rain = g && g.rn > 0 ? `<span class="rn">🌧️🧠 BRAINROT RAIN · clicks ×2 · ${Math.ceil(g.rn)}s</span>` : '';
+      const html = `<span class="n">🗿 ${comma(S.au)}</span><small>aura · +${short(this.perSec())}/s</small><span class="rk r${k}" style="--rc:${R[2]}">${R[1]}</span><small>⚔️ ${pctOf(m)} dmg</small>${rain}`;
       if (force || html !== this.topHtml) { this.topHtml = html; this.top.innerHTML = html; }
       this.top.hidden = !!this.D; // (in a duel, the duel's bars take its place)
     },
@@ -293,16 +472,31 @@
       const now = performance.now(); this.acc += this.lastT ? Math.min(5, (now - this.lastT) / 1000) : dt; this.lastT = now;
       while (this.acc >= 1) {
         this.acc -= 1; const n = this.perSec(); this.gain(n);
-        if (this.top && !this.top.hidden) { const r = this.top.getBoundingClientRect(); this.pop(r.left + r.width / 2, r.bottom + 14, `+${short(n)} aura`, 'sec'); const nEl = this.top.querySelector('.n'); if (nEl) { nEl.classList.add('bump'); setTimeout(() => nEl.classList.remove('bump'), 140); } }
+        if (this.top && !this.top.hidden) { const r = this.top.getBoundingClientRect(); this.pop(this.streak >= 3 ? r.right + 46 : r.left + r.width / 2, this.streak >= 3 ? r.top + r.height / 2 : r.bottom + 14, `+${short(n)} aura`, 'sec'); const nEl = this.top.querySelector('.n'); if (nEl) { nEl.classList.add('bump'); setTimeout(() => nEl.classList.remove('bump'), 140); } }
       }
       this.evT -= dt; if (this.evT <= 0) { this.evT = 45 + Math.random() * 40; if (!this.D) this.auraEvent(); }
       const g = this.g = roundState(this);
+      if (this.streak && now - this.lastClick > STREAK_GAP * 1000) this.endStreak();
+      for (const f of this.props || []) f(now / 1000);
       this.duelTick(g, dt);
       this.drawWorld(g, dt);
+      if (g && g.rn > 0) this.rainTick(dt);
       this.drawTop();
+      this.drawStreak();
       this.drawBar();
       this.send();
       if (this.dirty && performance.now() - this.savedAt > 8000) this.save();
+    },
+
+    // brainrot falling out of the sky round you
+    rainTick(dt) {
+      this.rainAcc = (this.rainAcc || 0) + dt * 7;
+      while (this.rainAcc >= 1) {
+        this.rainAcc -= 1;
+        const x = P.x + (Math.random() - 0.5) * 40, z = P.z + (Math.random() - 0.5) * 40, o = emoSprite(pick(RAIN_EMO), 1.6 + Math.random() * 1.4);
+        o.position.set(x, 30, z); place.add(o);
+        this.fx.push({ o, life: 2.2, max: 2.2, fall: [x, 30, z, x + (Math.random() - 0.5) * 4, 0.5, z], disposeMat: true });
+      }
     },
 
     /* ---------------- the host: challenges, duels, bots ---------------- */
@@ -314,9 +508,10 @@
         this.evSeq = Math.max(0, ...(g.ev || []).map((e) => e[0]));
         const D = g.D.map((d) => Object.assign(JSON.parse(JSON.stringify(d)), { pj: [], pe: [], cd: [{}, {}], dot: [null, null], shT: [6, 6], bfT: [6, 6], np: 0 }));
         for (const d of D) if (d.bot) { const p = d.bot.p || [RINGS[d.r].x, RINGS[d.r].z, 0, 0]; Object.assign(d.bot, { x: p[0], z: p[1], yaw: p[2], mv: 0, think: 1, dir: 1, flip: 2, dashT: 0 }); }
-        return { gs: 0, left: 0, D, C: Array.isArray(g.C) ? g.C.map((c) => c.slice()) : [], ev: (g.ev || []).slice(), nd: Math.max(0, ...D.map((d) => d.id)), nb: g.nb | 0 };
+        return { gs: 0, left: 0, D, C: Array.isArray(g.C) ? g.C.map((c) => c.slice()) : [], ev: (g.ev || []).slice(), nd: Math.max(0, ...D.map((d) => d.id)), nb: g.nb | 0, rn: +g.rn || 0, rnT: g.rnT != null ? +g.rnT : null };
       }
-      return { gs: 0, left: 0, D: [], C: [], ev: [], nd: 0, nb: 0 };
+      if (g) return { gs: 0, left: 0, D: [], C: [], ev: (g.ev || []).slice(), nd: 0, nb: g.nb | 0, rn: +g.rn || 0, rnT: g.rnT != null ? +g.rnT : null };
+      return { gs: 0, left: 0, D: [], C: [], ev: [], nd: 0, nb: 0, rn: 0, rnT: null };
     },
     ev(e) { const H = this.H; this.evSeq = (this.evSeq || 0) + 1; H.ev.push([this.evSeq].concat(e)); if (H.ev.length > 30) H.ev.splice(0, H.ev.length - 30); },
     host(dt) {
@@ -330,6 +525,10 @@
       }
       H.C = H.C.filter((c) => (c[2] -= dt) > 0 && here.has(c[0]) && here.has(c[1]) && !this.busy(c[0]) && !this.busy(c[1]));
       for (const D of H.D.slice()) this.runDuel(D, dt, here);
+      // now and then: brainrot rain (clicks count double for everyone for 15 seconds)
+      H.rnT = (H.rnT == null ? 100 + Math.random() * 60 : H.rnT) - dt;
+      if (H.rn > 0) H.rn = Math.max(0, H.rn - dt);
+      else if (H.rnT <= 0) { H.rn = 15; H.rnT = 160 + Math.random() * 90; this.ev(['rain']); }
       const t = performance.now();
       if (t - (this.pubAt || 0) > 100) { this.pubAt = t; hostSend(this, { D: H.D.map((d) => this.pack(d)) }); }
     },
@@ -521,7 +720,7 @@
       this.events(g);
       const D = all.find((d) => d.f[0] === mine || d.f[1] === mine) || null;
       if (D && D.id !== this.duelId && D.ph !== 'end') { // a new duel: into the ring
-        this.duelId = D.id; this.myIdx = D.f[0] === mine ? 0 : 1; this.cdUntil = {}; this.hpSeen = null; this.chal = null; this.drawChal();
+        this.endStreak(true); this.duelId = D.id; this.myIdx = D.f[0] === mine ? 0 : 1; this.cdUntil = {}; this.hpSeen = null; this.chal = null; this.drawChal();
         const R = RINGS[D.r]; this.tpTo(R.x, R.z + (this.myIdx ? -8 : 8), this.myIdx ? Math.PI : 0);
         closePanel(); sfx('horn'); this.bigText(PRE >= 1 ? '3' : 'FIGHT');
         this.countSeen = 3;
@@ -602,6 +801,7 @@
     onEv(e, g) {
       const [, type] = e, mine = myPeer();
       if (type === 'dec') { if (e[2] === mine) { toast(`${nameOf(e[3])} declined. Fear. 😨`, '#fca5a5'); sfx('lose', { vol: 0.5 }); } return; }
+      if (type === 'rain') { toast('🌧️🧠 BRAINROT RAIN! Every click is worth double for 15 seconds', '#a5f3fc'); sfx('thunder', { vol: 0.6 }); this.speak('it is raining brainrot'); return; }
       if (type === 'full') { if (e[2] === mine || e[3] === mine) toast('All 4 rings are busy. Wait a sec (touch grass meanwhile)', '#fde68a'); return; }
       if (type === 'st') { if (e[3] !== mine && e[4] !== mine) say(`⚔️ ${isBot(e[4]) ? nameOf(e[3]) + ' is fighting a bot' : nameOf(e[3]) + ' vs ' + nameOf(e[4])}`, '#c4b5fd'); return; }
       const D = this.duelOf(g, e[2]);
@@ -736,6 +936,10 @@
       // everyone's aura, as a glow round them (bigger and brighter the more they have) and their title
       this.auraGlow(me, this.S.au, myPeer());
       for (const [peer, a] of Net.avatars) { const p = Net.peers.find((x) => x.peer === peer); this.auraGlow(a, p && p.presence ? +p.presence.au || 0 : 0, peer); }
+      // the click aura: yours flares on every click and grows with your streak; everyone else's shows their streak's tier
+      const T = performance.now() / 1000;
+      this.clickAura(me, this.D ? 0 : this.tier, this.D ? 0 : clamp(1 - (performance.now() - this.pulseAt) / 380, 0, 1), T);
+      for (const [peer, a] of Net.avatars) { const p = Net.peers.find((x) => x.peer === peer); this.clickAura(a, clamp((p && p.presence && p.presence.sk) | 0, 0, TIERS.length - 1), 0, T); }
       for (const a of this.botAv.values()) this.auraGlow(a, a.g.userData.auAura || 0, null);
       // effects
       for (let i = this.fx.length - 1; i >= 0; i--) {
@@ -745,8 +949,14 @@
         if (f.fade != null && f.o.material) f.o.material.opacity = f.fade * (1 - k);
         if (f.pulse) f.o.material.opacity = 0.2 + 0.25 * (0.5 + 0.5 * Math.sin(k * 30));
         if (f.fall) { const [x0, y0, z0, x1, y1, z1] = f.fall; f.o.position.set(x0 + (x1 - x0) * k, y0 + (y1 - y0) * k * k, z0 + (z1 - z0) * k); }
-        if (f.life <= 0) { place.remove(f.o); if (f.dispose) { if (f.o.geometry && f.o.userData.ownGeo) f.o.geometry.dispose(); if (f.o.material) { if (f.o.isSprite && f.o.material.map) f.o.material.map.dispose(); f.o.material.dispose(); } } this.fx.splice(i, 1); }
+        if (f.life <= 0) { place.remove(f.o); if (f.dispose) { if (f.o.geometry && f.o.userData.ownGeo) f.o.geometry.dispose(); if (f.o.material) { if (f.o.isSprite && f.o.material.map) f.o.material.map.dispose(); f.o.material.dispose(); } } else if (f.disposeMat && f.o.material) f.o.material.dispose(); this.fx.splice(i, 1); }
       }
+    },
+    clickAura(a, tier, pulse, t) {
+      if (!a || !a.g) return;
+      const u = a.g.userData;
+      if (!u.ca) { if (!tier && !pulse) return; u.ca = makeClickAura(a.g); }
+      tickClickAura(u.ca, tier, pulse, t);
     },
     pjModel(A) {
       const g = new THREE.Group();
@@ -816,7 +1026,8 @@
     hud() {
       const D = this.D;
       if (D && D.ph !== 'end') return touchy ? 'Tap your abilities (they aim themselves) · move to dodge!' : '1–4 abilities (they aim themselves) · F or click to slap · move to dodge!';
-      return touchy ? 'Tap anywhere to farm aura 🗿 · walk up to someone to challenge them' : 'Click anywhere (or F) to farm aura 🗿 · walk up to someone and press E to challenge them';
+      if (this.streak >= 3) { const next = TIERS[this.tier + 1]; return next ? `Keep clicking! ${next.at - this.streak} more for ${next.e} ${next.n} (×${next.m} aura)` : 'MAX BRAINROT. Keep clicking, the server is watching 🗿'; }
+      return touchy ? 'Tap fast to farm aura 🗿 · 25 in a row = ×2 · walk up to someone to challenge them' : 'Click fast (or F) to farm aura 🗿 · 25 in a row = ×2 aura · walk up to someone and press E to challenge them';
     },
     prompts() {
       if (this.D || !this.S) return [];
@@ -902,6 +1113,7 @@
       const html = `<p class="xp-note">⬆️ More aura per click and per second. Every upgrade costs aura, which (for a while) makes your hits weaker. That’s the grindset.</p>
         ${row('cl', '🤫', 'Mewing Lessons', S.cl, clickCost(S.cl), (1 + S.cl) * x2, (2 + S.cl) * x2, 'per click')}
         ${row('ps', '💪', 'Sigma Grindset', S.ps, grindCost(S.ps), (1 + S.ps) * x2, (2 + S.ps) * x2, 'per second')}
+        <p class="xp-note">🔥 Click streaks: ${TIERS.slice(1).map((T) => `${T.at} clicks ${T.e} ×${T.m}`).join(' · ')}. Click again within ${STREAK_GAP}s or it ends. Your best: ${S.bs | 0} clicks.</p>
         <p class="xp-note">🏆 ${S.w} W · ${S.l} L · best aura ever: 🗿 ${comma(S.best)} · crates opened: ${S.op | 0}</p>`;
       openPanel('⬆️ Upgrades', html, (b) => {
         const k = b.dataset.up || b.dataset.max; if (!k) return;
