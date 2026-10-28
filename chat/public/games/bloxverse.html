@@ -2286,6 +2286,9 @@ const ACH = [
   ['shaft', 'layer', 50, 'Fifty Down', 'Reach layer 50 of your Deep Shaft', 40, null, '⛏️'],
   ['shaft', 'warden', 1, 'Seal Breaker', 'Beat a Seal warden in the Deep Shaft', 120, null, '🛡️'],
   ['shaft', 'rebirth', 3, 'Eternal Shift', 'Rebirth your Deep Shaft 3 times', 300, null, '🔁'],
+  ['aura', 'farm', 10000, 'Aura Farmer', 'Farm 10,000 aura in +1 Aura Every Second', 40, null, '🗿'],
+  ['aura', 'win', 5, 'Him', 'Win 5 aura duels', 120, null, '⚔️'],
+  ['aura', 'ohio', 1, 'Only in Ohio', 'Unbox an Ohio-tier ability', 300, null, '☄️'],
 ].map(([e, k, n, nm, d, c, item, ic], i, all) => ({ i, id: `${e}.${k}.${n}`, e, key: `${e}.${k}`, n, nm, d, c, item, ic, tier: e === 'bv' ? 'b' : all.slice(0, i).filter((a) => a[0] === e).length }));
 W.ach = { c: {}, got: new Set() };
 const achTarget = (A) => (A.n === 'all' ? Object.keys(EXPS).length : A.n);
@@ -3520,7 +3523,7 @@ addEventListener('keydown', (e) => { if (e.key === 'Escape' && ED.open) { e.stop
   addEventListener('resize', () => { if (ED.open) pvFit(); });
 }
 // the order experiences were added (the newest get a ✨ NEW badge; "Newest" sorts by it)
-const ADDED = ['obby', 'tycoon', 'tag', 'lava', 'toh', 'garden', 'tds', 'army', 'nds', 'pets', 'boat', 'zombie', 'egg', 'speed', 'fish', 'blade', 'murder', 'kart', 'rlgl', 'color', 'golf', 'bee', 'hide', 'pvz', 'rivals', 'fruits', 'pvb', 'fishty', 'pizza', 'park', 'mine', 'cars', 'forsaken', 'shaft'];
+const ADDED = ['obby', 'tycoon', 'tag', 'lava', 'toh', 'garden', 'tds', 'army', 'nds', 'pets', 'boat', 'zombie', 'egg', 'speed', 'fish', 'blade', 'murder', 'kart', 'rlgl', 'color', 'golf', 'bee', 'hide', 'pvz', 'rivals', 'fruits', 'pvb', 'fishty', 'pizza', 'park', 'mine', 'cars', 'forsaken', 'shaft', 'aura'];
 const addedAt = (E) => (E.added != null ? E.added : ADDED.indexOf(E.id));
 const SORTS = [['featured', '⭐ Featured'], ['popular', '🔥 Popular'], ['new', '✨ Newest'], ['az', '🔤 A–Z'], ['recent', '🕒 Recently played']];
 // how the list is sorted and filtered, your favourites and what you played when (kept on this device)
@@ -5036,6 +5039,6 @@ else {
   });
 }
 </script>
-<script>for (const f of ['blox-land.js', 'blox-toh.js', 'blox-garden.js', 'blox-tds.js', 'blox-army.js', 'blox-nds.js', 'blox-pets.js', 'blox-boat.js', 'blox-zombie.js', 'blox-egg.js', 'blox-speed.js', 'blox-fish.js', 'blox-blade.js', 'blox-murder.js', 'blox-kart.js', 'blox-rlgl.js', 'blox-color.js', 'blox-golf.js', 'blox-bee.js', 'blox-hide.js', 'blox-pvz.js', 'blox-rivals.js', 'blox-fruits.js', 'blox-brainrots.js', 'blox-tycoonkit.js', 'blox-fishtycoon.js', 'blox-pizza.js', 'blox-park.js', 'blox-mine.js', 'blox-cars.js', 'blox-forsaken.js', 'blox-shaft.js']) document.write(`<script src="${f}${window.GAMES_Q}"><\/script>`);</script>
+<script>for (const f of ['blox-land.js', 'blox-toh.js', 'blox-garden.js', 'blox-tds.js', 'blox-army.js', 'blox-nds.js', 'blox-pets.js', 'blox-boat.js', 'blox-zombie.js', 'blox-egg.js', 'blox-speed.js', 'blox-fish.js', 'blox-blade.js', 'blox-murder.js', 'blox-kart.js', 'blox-rlgl.js', 'blox-color.js', 'blox-golf.js', 'blox-bee.js', 'blox-hide.js', 'blox-pvz.js', 'blox-rivals.js', 'blox-fruits.js', 'blox-brainrots.js', 'blox-tycoonkit.js', 'blox-fishtycoon.js', 'blox-pizza.js', 'blox-park.js', 'blox-mine.js', 'blox-cars.js', 'blox-forsaken.js', 'blox-shaft.js', 'blox-aura.js']) document.write(`<script src="${f}${window.GAMES_Q}"><\/script>`);</script>
 </body>
 </html>
