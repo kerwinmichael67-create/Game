@@ -19,26 +19,26 @@
   }
   // enemies: hp, speed, damage to the base, cash, colour, flags
   const EN = [
-    { n: 'Normal', hp: 8, sp: 7, dmg: 1, cash: 4, c: 0x65a30d },
-    { n: 'Quick', hp: 6, sp: 13, dmg: 1, cash: 4, c: 0xfacc15 },
-    { n: 'Slow', hp: 40, sp: 4, dmg: 3, cash: 10, c: 0x7c2d12, big: 1.3 },
-    { n: 'Hidden', hp: 14, sp: 8, dmg: 2, cash: 8, c: 0x9ca3af, hidden: 1 },
-    { n: 'Armored', hp: 60, sp: 5, dmg: 4, cash: 14, c: 0x475569, armor: 0.5, big: 1.2 },
-    { n: 'Breaker', hp: 320, sp: 8, dmg: 20, cash: 60, c: 0xb91c1c, big: 1.8, boss: 1 },
-    { n: 'Grave Digger', hp: 2600, sp: 3.2, dmg: 999, cash: 300, c: 0x1e1b4b, big: 2.6, boss: 1 },
-    { n: 'Mystery', hp: 22, sp: 7, dmg: 2, cash: 6, c: 0x7c3aed, split: 1 },
+    { n: 'Normal', hp: 6, sp: 6.3, dmg: 1, cash: 4, c: 0x65a30d },
+    { n: 'Quick', hp: 4, sp: 11.5, dmg: 1, cash: 4, c: 0xfacc15 },
+    { n: 'Slow', hp: 30, sp: 3.6, dmg: 2, cash: 10, c: 0x7c2d12, big: 1.3 },
+    { n: 'Hidden', hp: 10, sp: 7.2, dmg: 1, cash: 8, c: 0x9ca3af, hidden: 1 },
+    { n: 'Armored', hp: 44, sp: 4.5, dmg: 3, cash: 14, c: 0x475569, armor: 0.65, big: 1.2 },
+    { n: 'Breaker', hp: 230, sp: 7, dmg: 14, cash: 60, c: 0xb91c1c, big: 1.8, boss: 1 },
+    { n: 'Grave Digger', hp: 1000, sp: 2.7, dmg: 999, cash: 300, c: 0x1e1b4b, big: 2.6, boss: 1 },
+    { n: 'Mystery', hp: 16, sp: 6.3, dmg: 1, cash: 6, c: 0x7c3aed, split: 1 },
   ];
   // towers: price, upgrade costs, per-level stats; unlock = Blox Coins to unlock (0 = free)
   const TW = [
-    { n: 'Scout', e: '🔫', price: 200, unlock: 0, up: [50, 150, 400, 1200], dmg: [1, 1, 2, 2, 4], rate: [1.5, 2, 2, 2.6, 3.5], range: [12, 13, 14, 16, 17], hid: 2, c: 0x22c55e, limit: 12 },
-    { n: 'Sniper', e: '🎯', price: 350, unlock: 0, up: [150, 500, 1500, 4000], dmg: [5, 8, 14, 24, 50], rate: [0.4, 0.45, 0.5, 0.55, 0.7], range: [30, 32, 35, 40, 45], hid: 1, c: 0x0ea5e9, limit: 12 },
-    { n: 'Soldier', e: '🪖', price: 400, unlock: 0, up: [250, 700, 2000, 5000], dmg: [2, 2, 3, 4, 6], rate: [3, 3.5, 4, 5, 6], range: [14, 15, 16, 17, 18], hid: 3, c: 0x4d7c0f, limit: 12 },
-    { n: 'Demoman', e: '💣', price: 600, unlock: 0, up: [300, 900, 2500, 6000], dmg: [4, 6, 10, 16, 30], rate: [0.6, 0.65, 0.7, 0.8, 0.9], range: [13, 13, 14, 15, 16], splash: [4, 4.5, 5, 6, 7], hid: 9, c: 0x7f1d1d, limit: 10 },
-    { n: 'Farm', e: '🌾', price: 250, unlock: 0, up: [150, 400, 1200, 3000], income: [50, 100, 250, 500, 1000], c: 0xa16207, limit: 8 },
-    { n: 'Freezer', e: '🧊', price: 450, unlock: 150, up: [200, 600, 1500, 3500], dmg: [1, 1, 2, 2, 3], rate: [1, 1.2, 1.4, 1.6, 2], range: [12, 13, 14, 15, 16], slow: [0.3, 0.4, 0.45, 0.5, 0.6], hid: 3, c: 0x67e8f9, limit: 8 },
-    { n: 'Commander', e: '🚩', price: 650, unlock: 300, up: [400, 1200, 3000, 7000], buff: [0.1, 0.15, 0.2, 0.25, 0.35], range: [14, 14, 15, 16, 18], c: 0x1d4ed8, limit: 4 },
-    { n: 'Minigunner', e: '⚙️', price: 1600, unlock: 400, up: [800, 2500, 6000, 15000], dmg: [1, 2, 2, 3, 4], rate: [10, 12, 14, 16, 20], range: [16, 16, 17, 18, 19], hid: 2, c: 0x374151, limit: 8 },
-    { n: 'Ranger', e: '🏹', price: 5000, unlock: 1000, up: [3000, 8000, 20000, 45000], dmg: [60, 90, 150, 250, 400], rate: [0.3, 0.32, 0.35, 0.38, 0.45], range: [60, 62, 65, 70, 75], hid: 0, c: 0x312e81, limit: 3 },
+    { n: 'Scout', e: '🔫', price: 200, unlock: 0, up: [50, 150, 400, 1200], dmg: [2, 2, 3, 4, 6], rate: [1.8, 2.3, 2.6, 3.1, 4], range: [13, 14, 15, 17, 18], hid: 2, c: 0x22c55e, limit: 12 },
+    { n: 'Sniper', e: '🎯', price: 350, unlock: 0, up: [150, 500, 1500, 4000], dmg: [8, 12, 20, 35, 70], rate: [0.45, 0.5, 0.55, 0.62, 0.8], range: [32, 34, 37, 42, 48], hid: 1, c: 0x0ea5e9, limit: 12 },
+    { n: 'Soldier', e: '🪖', price: 400, unlock: 0, up: [250, 700, 2000, 5000], dmg: [3, 3, 4, 6, 8], rate: [3.5, 4, 4.6, 5.5, 7], range: [15, 16, 17, 18, 20], hid: 3, c: 0x4d7c0f, limit: 12 },
+    { n: 'Demoman', e: '💣', price: 600, unlock: 0, up: [300, 900, 2500, 6000], dmg: [6, 9, 14, 22, 40], rate: [0.7, 0.75, 0.8, 0.9, 1], range: [14, 14, 15, 16, 17], splash: [4.5, 5, 5.5, 6.5, 7.5], hid: 9, c: 0x7f1d1d, limit: 10 },
+    { n: 'Farm', e: '🌾', price: 250, unlock: 0, up: [150, 400, 1200, 3000], income: [75, 150, 350, 650, 1300], c: 0xa16207, limit: 8 },
+    { n: 'Freezer', e: '🧊', price: 450, unlock: 150, up: [200, 600, 1500, 3500], dmg: [2, 2, 3, 3, 4], rate: [1.2, 1.4, 1.6, 1.8, 2.2], range: [13, 14, 15, 16, 17], slow: [0.35, 0.45, 0.5, 0.55, 0.65], hid: 3, c: 0x67e8f9, limit: 8 },
+    { n: 'Commander', e: '🚩', price: 650, unlock: 300, up: [400, 1200, 3000, 7000], buff: [0.15, 0.2, 0.3, 0.4, 0.5], range: [15, 15, 16, 18, 20], c: 0x1d4ed8, limit: 4 },
+    { n: 'Minigunner', e: '⚙️', price: 1600, unlock: 400, up: [800, 2500, 6000, 15000], dmg: [2, 2, 3, 4, 5], rate: [11, 13, 15, 18, 22], range: [17, 17, 18, 19, 21], hid: 2, c: 0x374151, limit: 8 },
+    { n: 'Ranger', e: '🏹', price: 5000, unlock: 1000, up: [3000, 8000, 20000, 45000], dmg: [90, 135, 220, 360, 600], rate: [0.33, 0.35, 0.38, 0.42, 0.5], range: [62, 65, 68, 72, 78], hid: 0, c: 0x312e81, limit: 3 },
   ];
   const DIFF = { easy: { n: 'Easy', waves: 15, hp: 0.8, base: 200, cash: 800, coins: 100 }, normal: { n: 'Normal', waves: 20, hp: 1, base: 150, cash: 600, coins: 175 }, hard: { n: 'Hard', waves: 25, hp: 1.45, base: 100, cash: 450, coins: 300 } };
   const TGT = ['First', 'Last', 'Strongest', 'Close'];
@@ -151,7 +151,7 @@
       for (let i = 0; i + 6 < es.length + 1; i += 7) { const t = AL.indexOf(es[i]), id = d2(es, i + 1), s = d2(es, i + 3) / 4, hpF = AL.indexOf(es[i + 5]) / 63; if (EN[t]) e.push({ id, t, s, hp: Math.max(1, hpF * this.hpOf(t, g.wave, g.diff)), max: this.hpOf(t, g.wave, g.diff), slow: 0, slowT: 0 }); }
       return { pz: typeof g.pz === 'string' ? g.pz : '', ph: g.ph, left: +g.left || 5, gs: g.gs || 0, diff: g.diff, wave: g.wave | 0, hp: +g.hp || 1, e, tw: (g.tw || []).map((w) => ({ id: w[0], o: w[1], t: w[2], x: w[3], z: w[4], lvl: w[5], tg: w[6] || 0, cd: 0 })), cash: Object.assign({}, g.cash || {}), pl: (g.pl || []).slice(), nid: 1 + Math.max(0, ...e.map((x) => x.id)), tid: 1 + Math.max(0, ...(g.tw || []).map((w) => w[0])), q: [], spawnT: 0, fx: [], res: g.res || '' };
     },
-    hpOf(t, wave, diff) { return EN[t].hp * (1 + (wave - 1) * 0.12) * (DIFF[diff] || DIFF.normal).hp * (EN[t].boss ? 1 + wave * 0.05 : 1); },
+    hpOf(t, wave, diff) { return EN[t].hp * (1 + (wave - 1) * 0.1) * (DIFF[diff] || DIFF.normal).hp * (EN[t].boss ? 1 + wave * 0.03 : 1); },
     chest(p) { return (p.me ? hasItem('chest') : p.pr && p.pr.wc === 1) ? 300 : 0; }, // a War Chest: more cash to start with
     ownerIdx(H, peer) { let i = H.pl.indexOf(peer); if (i < 0) { i = H.pl.length; H.pl.push(peer); } return i; },
     apply(peer, req) {
@@ -258,7 +258,7 @@
         for (let i = H.e.length - 1; i >= 0; i--) {
           const e = H.e[i]; if (e.hp > 0) continue;
           const owner = H.pl[w.o]; if (owner) H.cash[owner] = (H.cash[owner] || 0) + EN[e.t].cash;
-          if (EN[e.t].split) for (let k = 0; k < 2; k++) { const max = this.hpOf(1, H.wave, H.diff); H.e.push({ id: H.nid++ % 4000, t: 1, s: Math.max(0, e.s - k * 1.5), hp: max, max, slow: 0, slowT: 0 }); }
+          if (EN[e.t].split) for (let k = 0; k < 2; k++) { const max = this.hpOf(1, H.wave, H.diff), s = Math.max(0, e.s - k * 1.5); H.e.push({ id: H.nid++ % 4000, t: 1, s, hp: max, max, slow: 0, slowT: 0 }); pos.push(posAt(s)); } // (the towers after this one can see them too)
           H.e.splice(i, 1); pos.splice(i, 1);
         }
       }
@@ -415,7 +415,8 @@
     openTower(id, refresh) {
       const m = this.tviews.get(id); if (!m) return;
       const w = m.w, d = TW[w.t], g = this.g, mine = w.o === this.myIdx(g), cash = this.myCash(g), L = w.lvl;
-      const stat = (k, f) => (d[k] ? `<div class="xp-row"><span>${f}</span><span>${d[k][L]}${L < 4 ? ` → <b style="color:#86efac">${d[k][L + 1]}</b>` : ''}</span></div>` : '');
+      const pc = (k, v) => (k === 'slow' || k === 'buff' ? Math.round(v * 100) + '%' : k === 'income' ? fmt(v) : v);
+      const stat = (k, f) => (d[k] ? `<div class="xp-row"><span>${f}</span><span>${pc(k, d[k][L])}${L < 4 ? ` → <b style="color:#86efac">${pc(k, d[k][L + 1])}</b>` : ''}</span></div>` : '');
       const owner = g.pl && g.pl[w.o] ? nameOf(g.pl[w.o]) : '?';
       const html = `<div class="xp-row"><span>👤 Owner</span><b>${esc(owner)}</b></div><div class="xp-row" style="display:block"><div style="display:flex;justify-content:space-between"><span>⭐ Level</span><b>${L}/4</b></div><div class="meter" style="margin-top:8px"><i style="width:${L * 25}%;background:linear-gradient(180deg,#fde047,#f59e0b)"></i></div></div>
         ${stat('dmg', 'Damage')}${stat('rate', 'Shots per second')}${stat('range', 'Range')}${stat('income', 'Income per wave')}${stat('buff', 'Firerate buff')}${stat('slow', 'Slow')}

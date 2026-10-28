@@ -44,6 +44,7 @@
     { k: 'garg', n: 'Gargantuar', hp: 3000, arm: 0, sp: 0.7, pts: 10, lv: 10 },
   ];
   const LEVELS = 10, BLAST = 1800, BITE = 100, PEA = 20, PEA_SP = 20;
+  const FIRE = 1.35, SLOW_S = 10, CHEW = 42, ARM_S = 14, SUN_S = 20; // seconds: between shots, a frozen pea's slow, a Chomper's chewing, a Potato Mine arming, a Sunflower's sun
   const wavesOf = (lv) => (lv ? 3 + lv : 0); // 0: Endless
   const flagWave = (lv, w) => (lv ? w === wavesOf(lv) || (wavesOf(lv) >= 9 && w === Math.ceil(wavesOf(lv) / 2)) : w % 5 === 0);
   // what each wave sends: a budget of points, spent on the zombies this level has
@@ -62,6 +63,29 @@
     }
     return out;
   }
+  // each plant's stats, worked out from the numbers the lawn really uses: [emoji, what, how much]
+  function plantStats(t) {
+    const d = PL[t], once = ['♻️', 'Uses', 'Once, then it’s gone'], three = d.k === 'three', peas = (n) => [['⏱️', 'Shoots', `Every ${FIRE} s`], ['📈', three ? 'Damage per second, each lane' : 'Damage per second', (n * PEA / FIRE).toFixed(1)], ['📏', 'Range', three ? 'Its lane and the lanes either side' : 'Its whole lane']];
+    const own = {
+      pea: [['⚔️', 'Damage', `${PEA} a pea`], ...peas(1)],
+      sun: [['🌞', 'Makes', `25 sun every ${SUN_S} s`]],
+      cherry: [['💥', 'Damage', BLAST], ['📏', 'Area', '3 × 3 squares around it'], ['⏱️', 'Goes off', '1.2 s after planting'], once],
+      nut: [['🛡️', 'Holds back', `A zombie for ${d.hp / BITE} s`]],
+      mine: [['💥', 'Damage', BLAST], ['⏱️', 'Arms after', `${ARM_S} s`], ['📏', 'Area', 'Zombies on its square'], once],
+      snow: [['⚔️', 'Damage', `${PEA} a pea`], ['🧊', 'Slows', `Half speed for ${SLOW_S} s`], ...peas(1)],
+      chomp: [['😋', 'Attack', 'Swallows a zombie whole (not a Gargantuar)'], ['⏱️', 'Chews for', `${CHEW} s`], ['📏', 'Range', '1 square in front']],
+      rep: [['⚔️', 'Damage', `2 peas × ${PEA}`], ...peas(2)],
+      jal: [['🔥', 'Damage', BLAST], ['📏', 'Area', 'Every zombie in its lane'], once],
+      squash: [['💥', 'Damage', BLAST], ['📏', 'Range', 'The first zombie next to it'], once],
+      three: [['⚔️', 'Damage', `${PEA} a pea, 3 lanes`], ...peas(1)],
+    }[d.k] || [];
+    return [['☀️', 'Cost', `${d.cost} sun`], ['⏳', 'Recharge', `${d.cd} s`], ['❤️', 'Health', `${d.hp} · eaten in ${d.hp / BITE} s`], ...own];
+  }
+  // the one line that sums a plant up (seed packets, the hint at the bottom)
+  const plantShort = (t) => {
+    const d = PL[t];
+    return { pea: `⚔️ ${PEA} every ${FIRE}s`, sun: `🌞 +25 every ${SUN_S}s`, cherry: `💥 ${BLAST} in 3×3`, nut: `❤️ ${d.hp}`, mine: `💥 ${BLAST} · arms in ${ARM_S}s`, snow: `⚔️ ${PEA} + 🧊 slow`, chomp: '😋 eats a zombie', rep: `⚔️ 2×${PEA} every ${FIRE}s`, jal: `🔥 ${BLAST} down the lane`, squash: `💥 ${BLAST} next to it`, three: `⚔️ ${PEA} × 3 lanes` }[d.k] || '';
+  };
 
   /* ---------------- looks ---------------- */
   const style = document.createElement('style');
@@ -78,6 +102,18 @@
     .pz-lv button{padding:9px 0;border-radius:11px;border:2px solid rgba(255,255,255,.12);background:#243042;color:#fff;font:700 14px var(--fh);cursor:pointer}
     .pz-lv button.on{background:linear-gradient(180deg,#4ade80,#16a34a);border-color:#fff}
     .pz-lv button:disabled{opacity:.4;cursor:default}
+    .pz-short{font:700 11.5px/1.3 var(--fb);color:#fde68a}
+    .pz-plant{background:linear-gradient(180deg,#283143,#1d2431);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:10px 12px 12px;margin:8px 0;box-shadow:0 2px 0 rgba(0,0,0,.28)}
+    .pz-plant.locked{opacity:.6}
+    .pz-plant .hd{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+    .pz-plant .hd .e{font-size:30px;width:44px;height:44px;display:grid;place-items:center;border-radius:12px;background:radial-gradient(circle at 50% 42%,rgba(255,255,255,.16),rgba(255,255,255,.02) 68%)}
+    .pz-plant .hd b{display:block;font:600 16px var(--fh);color:#fff}
+    .pz-plant .hd span{font:600 12px/1.3 var(--fb);color:#94a3b8}
+    .pz-chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:6px}
+    .pz-chip{background:rgba(0,0,0,.22);border-radius:10px;padding:6px 8px;display:flex;flex-direction:column;gap:1px}
+    .pz-chip small{font:700 11px var(--fb);color:#94a3b8}
+    .pz-chip b{font:700 13px/1.25 var(--fb);color:#f1f5f9}
+    .pz-chip.live{background:rgba(34,197,94,.16)}
   `;
   document.head.appendChild(style);
   const MATS = new Map(), mat = (c, basic) => { const k = c + (basic ? 'b' : ''); if (!MATS.has(k)) MATS.set(k, basic ? new THREE.MeshBasicMaterial({ color: c }) : new THREE.MeshLambertMaterial({ color: c })); return MATS.get(k); };
@@ -275,7 +311,7 @@
         if (!d || !(r >= 0 && r < ROWS && c >= 0 && c < COLS) || H.p.some((p) => p.r === r && p.c === c) || H.sun < d.cost) return;
         const cd = H.cd[peer] || (H.cd[peer] = {}); if ((cd[t] || 0) > H.el + 0.05) return;
         H.sun -= d.cost; cd[t] = +(H.el + d.cd).toFixed(1);
-        H.p.push({ id: H.nid++ % 4000, t, r, c, hp: d.hp, cdS: d.k === 'rep' || d.k === 'pea' || d.k === 'snow' || d.k === 'three' ? 0.6 : 0, sunT: 6 + Math.random() * 4, arm: d.k === 'mine' ? 14 : 0, chew: 0, fuse: d.k === 'cherry' ? 1.2 : d.k === 'jal' ? 1 : 0, squash: 0 });
+        H.p.push({ id: H.nid++ % 4000, t, r, c, hp: d.hp, cdS: d.k === 'rep' || d.k === 'pea' || d.k === 'snow' || d.k === 'three' ? 0.6 : 0, sunT: 6 + Math.random() * 4, arm: d.k === 'mine' ? ARM_S : 0, chew: 0, fuse: d.k === 'cherry' ? 1.2 : d.k === 'jal' ? 1 : 0, squash: 0 });
       } else if (op === 'dig') {
         const i = H.p.findIndex((p) => p.r === a[0] && p.c === a[1]); if (i >= 0) H.p.splice(i, 1);
       } else if (op === 'sun') {
@@ -348,12 +384,12 @@
       const zIn = (r) => H.z.filter((z) => z.r === r && z.hp > 0);
       for (let i = H.p.length - 1; i >= 0; i--) {
         const p = H.p[i], d = PL[p.t], pz = tz(p.c);
-        if (d.k === 'sun') { p.sunT -= dt; if (p.sunT <= 0) { p.sunT = 20; H.s.push({ id: H.nid++ % 4000, x: +(tx(p.r) + r0() * 2 - 1).toFixed(1), z: +(pz + 1 + r0()).toFixed(1), born: +H.el.toFixed(1), k: 1 }); } continue; }
+        if (d.k === 'sun') { p.sunT -= dt; if (p.sunT <= 0) { p.sunT = SUN_S; H.s.push({ id: H.nid++ % 4000, x: +(tx(p.r) + r0() * 2 - 1).toFixed(1), z: +(pz + 1 + r0()).toFixed(1), born: +H.el.toFixed(1), k: 1 }); } continue; }
         if (d.k === 'pea' || d.k === 'snow' || d.k === 'rep' || d.k === 'three') {
           const lanes = d.k === 'three' ? [p.r - 1, p.r, p.r + 1].filter((r) => r >= 0 && r < ROWS) : [p.r];
           p.cdS -= dt;
           if (p.cdS <= 0 && lanes.some((r) => zIn(r).some((z) => z.z > ONLAWN && z.z < pz + 1))) {
-            p.cdS = 1.35;
+            p.cdS = FIRE;
             for (const r of lanes) { H.pe.push({ r, z: pz - 1.2, snow: d.k === 'snow' }); this.fx(H, d.k === 'snow' ? 1 : 0, r, pz); }
             if (d.k === 'rep') p.second = 0.22;
           }
@@ -369,7 +405,7 @@
           else if (zIn(p.r).some((z) => Math.abs(z.z + 0.8 - pz) < 2.2 && !z.jump)) { for (const z of zIn(p.r)) if (Math.abs(z.z - pz) < 3.5) this.hurt(H, z, BLAST); this.fx(H, 4, p.r, pz); H.p.splice(i, 1); }
         } else if (d.k === 'chomp') {
           if (p.chew > 0) p.chew -= dt;
-          else { const z = zIn(p.r).find((z) => z.z > pz - T * 1.2 - 1 && z.z < pz + 1.5 && ZB[z.t].k !== 'garg' && !z.jump); if (z) { z.hp = -1e9; z.arm = 0; z.eaten = true; p.chew = 42; this.fx(H, 5, p.r, pz); } }
+          else { const z = zIn(p.r).find((z) => z.z > pz - T * 1.2 - 1 && z.z < pz + 1.5 && ZB[z.t].k !== 'garg' && !z.jump); if (z) { z.hp = -1e9; z.arm = 0; z.eaten = true; p.chew = CHEW; this.fx(H, 5, p.r, pz); } }
         } else if (d.k === 'squash') {
           if (p.squash > 0) { p.squash -= dt; if (p.squash <= 0) { for (const z of zIn(p.r)) if (Math.abs(z.z - p.tz) < 2.6) this.hurt(H, z, BLAST); this.fx(H, 6, p.r, p.tz); H.p.splice(i, 1); } }
           else { const z = zIn(p.r).find((z) => z.z > pz - T * 1.15 && z.z < pz + T * 0.8 && !z.jump); if (z) { p.squash = 0.9; p.tz = +(z.z + (z.angry ? 2.5 : 1)).toFixed(1); } }
@@ -379,7 +415,7 @@
       for (let i = H.pe.length - 1; i >= 0; i--) {
         const e = H.pe[i], nz = e.z - PEA_SP * dt;
         let hit = null; for (const z of H.z) if (z.r === e.r && z.hp > 0 && z.z + 0.9 >= nz && z.z - 0.9 <= e.z && !(z.jump > 0) && (!hit || z.z > hit.z)) hit = z;
-        if (hit) { this.hurt(H, hit, PEA); if (e.snow) hit.slow = 10; H.pe.splice(i, 1); }
+        if (hit) { this.hurt(H, hit, PEA); if (e.snow) hit.slow = SLOW_S; H.pe.splice(i, 1); }
         else if (nz < -46) H.pe.splice(i, 1); else e.z = nz;
       }
       // the zombies
@@ -588,7 +624,7 @@
       const html = `<button class="xslot info pz-sun" title="Sun"><span class="e">☀️</span><b>${live ? sun : '—'}</b></button>`
         + this.save.seeds.map((t, i) => {
           const d = PL[t], cd = live ? this.myCd(g, t) : 0, f = cd > 0 ? Math.ceil((cd / d.cd) * 20) * 5 : 0;
-          return `<button class="xslot ${this.sel === t ? 'on' : ''}" data-t="${t}" ${!live || sun < d.cost || cd > 0 ? 'disabled' : ''} title="${d.n} — ${d.d}"><span class="k">${i + 1}</span><span class="e">${d.e}</span>${d.n}<span class="n">☀️${d.cost}</span>${f ? `<i class="pz-cd" style="height:${f}%"></i>` : ''}</button>`;
+          return `<button class="xslot ${this.sel === t ? 'on' : ''}" data-t="${t}" ${!live || sun < d.cost || cd > 0 ? 'disabled' : ''} title="${d.n} — ${d.d} (${plantShort(t)} · ❤️ ${d.hp})"><span class="k">${i + 1}</span><span class="e">${d.e}</span>${d.n}<span class="n">☀️${d.cost}</span>${f ? `<i class="pz-cd" style="height:${f}%"></i>` : ''}</button>`;
         }).join('')
         + `<button class="xslot ${this.shovel ? 'on' : ''}" data-dig="1" ${live ? '' : 'disabled'} title="Shovel: dig up a plant (X)"><span class="k">X</span><span class="e">⛏️</span>Shovel</button>`;
       setBar(html, (b) => { if (b.dataset.dig) this.pick(null, true); else if (b.dataset.t != null) this.pick(+b.dataset.t); });
@@ -618,9 +654,9 @@
       // sun and coins first: click one to pick it up
       const hit = pickObjects(e.x, e.y, [...this.sv.values()].map((m) => m.g).concat([...this.cv.values()].map((m) => m.g)));
       if (hit) { const u = hit.object.userData; if (u.sid != null) return this.grab('sun', u.sid); if (u.cid != null) return this.grab('coin', u.cid); }
-      if (this.sel == null && !this.shovel) return;
       const h = pickPlane(e.x, e.y, 0), at = h && this.tileAt(h.x, h.z); if (!at) return;
-      const taken = this.view(g).p.some((p) => p[2] === at[0] && p[3] === at[1]);
+      const here = this.view(g).p.find((p) => p[2] === at[0] && p[3] === at[1]), taken = !!here;
+      if (this.sel == null && !this.shovel) { if (here) this.openPlant(here[0]); return; }
       if (this.shovel) { if (!taken) return; this.ask('dig', at[0], at[1]); sfx('dig'); this.shovel = false; this.drawBar(); return; }
       const d = PL[this.sel];
       if (taken) { sfx('error'); return toast('There’s already a plant there', '#fca5a5'); }
@@ -643,6 +679,7 @@
         setBanner(`${g.lvl ? `Level ${g.lvl}` : '🔁 Endless'} · ${g.wave ? `Wave ${g.wave}${waves ? '/' + waves : ''}` : 'The zombies are coming…'}${waves ? `<span class="pz-prog"><span class="bar"><i style="width:${f * 100}%"></i>${flags}</span></span>` : ''} · 🧟 ${zc}`);
       } else setBanner(g.res === 'win' ? `🏆 ${g.lvl ? `Level ${g.lvl} complete!` : 'Well played!'}` : `🧠 The zombies ate your brains! ${g.lvl ? `(level ${g.lvl}, wave ${g.wave})` : `You lasted ${g.wave} waves`}`);
       if (g.ph !== 'lobby' && this.panelKind === 'lobby') { closePanel(); this.panelKind = null; }
+      if (this.panelKind === 'plant') { if (g.ph === 'play') this.openPlant(this.plantId, true); else { closePanel(); this.panelKind = null; } }
       // big news: a huge wave, the final wave, the end
       if (g.msgN !== this.msgSeen) {
         if (this.msgSeen != null && g.msg) {
@@ -669,14 +706,39 @@
         <button class="xp-btn ${this.vote === 0 ? '' : 'alt'}" data-lv="0" style="width:100%" ${best >= 5 ? '' : 'disabled'}>🔁 Endless${best >= 5 ? (S.endless ? ` · best ${S.endless} waves` : '') : ' · beat level 5'}</button>
         <button class="xp-btn ${this.ready ? 'alt' : ''}" data-ready="1" style="width:100%;padding:13px;font-size:17px;margin-top:8px">${this.ready ? '✅ Ready' : 'Ready'}</button>
         <h4>🌱 Seeds <small style="color:var(--muted);font:700 12px var(--fb)">— ${S.seeds.length}/${this.maxSeeds()} picked</small></h4>
-        <div class="xp-grid pz-seeds">${PL.map((d, t) => { const has = this.unlocked(t), on = S.seeds.includes(t); return `<div class="xp-card ${on ? 'on' : ''} ${has ? '' : 'locked'}"><div class="big">${has ? d.e : '🔒'}</div><b>${d.n}</b><span>☀️ ${d.cost} · ${d.cd}s</span><span style="font-weight:600;color:#94a3b8">${has ? d.d : `Beat level ${d.un} to unlock`}</span>${has ? `<button class="xp-btn ${on ? 'alt' : ''}" data-seed="${t}">${on ? 'Remove' : 'Pick'}</button>` : ''}</div>`; }).join('')}</div>`;
+        <button class="xp-btn alt" data-stats="1" style="width:100%;margin-bottom:10px">📊 Every plant’s stats</button>
+        <div class="xp-grid pz-seeds">${PL.map((d, t) => { const has = this.unlocked(t), on = S.seeds.includes(t); return `<div class="xp-card ${on ? 'on' : ''} ${has ? '' : 'locked'}"><div class="big">${has ? d.e : '🔒'}</div><b>${d.n}</b><span>☀️ ${d.cost} · ${d.cd}s · ❤️ ${d.hp}</span><span class="pz-short">${plantShort(t)}</span><span style="font-weight:600;color:#94a3b8">${has ? d.d : `Beat level ${d.un} to unlock`}</span>${has ? `<button class="xp-btn ${on ? 'alt' : ''}" data-seed="${t}">${on ? 'Remove' : 'Pick'}</button>` : ''}</div>`; }).join('')}</div>`;
       openPanel('🌻 Plants vs Zombies', html, (b) => {
+        if (b.dataset.stats) return this.openStats();
         if (b.dataset.lv != null) { this.vote = +b.dataset.lv; send({ vt: this.vote }); }
         else if (b.dataset.ready) { this.ready = !this.ready; send({ rdy: this.ready ? 1 : 0 }); }
         else if (b.dataset.seed != null) { const t = +b.dataset.seed, i = S.seeds.indexOf(t); if (i >= 0) { if (S.seeds.length > 1) S.seeds.splice(i, 1); } else { if (S.seeds.length >= this.maxSeeds()) S.seeds.shift(); S.seeds.push(t); } kvSet('pz', S); this.drawBar(); }
         this.openLobby();
       }, () => { this.panelKind = null; });
       this.panelKind = 'lobby';
+    },
+    // ------------------------------------------------ plant stats
+    plantCard(t, live) {
+      const d = PL[t], has = !!live || this.unlocked(t), chips = plantStats(t).map(([e, k, v]) => (live && k === 'Health' ? '' : `<div class="pz-chip"><small>${e} ${k}</small><b>${v}</b></div>`)).join('');
+      const hp = live ? `<div class="pz-chip live"><small>❤️ Health now</small><b>${Math.max(1, Math.round(live.hp))} / ${d.hp} · ${(Math.max(1, live.hp) / BITE).toFixed(1)} s of bites</b></div>` : '';
+      return `<div class="pz-plant ${has ? '' : 'locked'}"><div class="hd"><span class="e">${d.e}</span><div><b>${d.n}${has ? '' : ' 🔒'}</b><span>${has ? d.d : `${d.d} Beat level ${d.un} to unlock it.`}</span></div></div><div class="pz-chips">${hp}${chips}</div></div>`;
+    },
+    openStats() {
+      const vs = ZB.filter((z) => z.lv <= LEVELS).map((z) => `${z.n} ${z.hp + z.arm}`).join(' · ');
+      const html = `<p class="xp-note">📊 What every plant does. Zombies take ${BITE} health a second off a plant they’re eating; peas hit their armour (cone, bucket…) first.</p>
+        ${PL.map((d, t) => this.plantCard(t)).join('')}
+        <p class="xp-note">🧟 Zombie health, armour included: ${vs}.</p>`;
+      openPanel('📊 Plant Stats', html, null, () => { this.panelKind = null; });
+      this.panelKind = 'stats';
+    },
+    // a plant on the lawn: its stats and how much health it has left (kept up to date while it's open)
+    openPlant(id, refresh) {
+      const g = this.g, p = g && this.view(g).p.find((x) => x[0] === id);
+      if (!p) { if (refresh) { closePanel(); this.panelKind = null; } return; }
+      const html = this.plantCard(p[1], { hp: (p[4] / 63) * PL[p[1]].hp });
+      if (refresh) { if (html !== this.plKey) { this.plKey = html; $('#xpBody').innerHTML = html; } return; }
+      openPanel(`${PL[p[1]].e} ${PL[p[1]].n}`, html, null, () => { this.panelKind = null; this.plantId = null; });
+      this.panelKind = 'plant'; this.plantId = id; this.plKey = html;
     },
     finish(g) {
       const S = this.save, win = g.res === 'win';
@@ -698,10 +760,10 @@
       this.sel = null; this.shovel = false;
     },
     prompts() { const g = this.g; return g && g.ph === 'lobby' ? [{ x: 0, z: 34, r: 30, text: 'Seeds & level', fn: () => this.openLobby() }] : []; },
-    hud() { const g = this.g; return g && g.ph === 'play' ? (touchy ? (this.shovel ? '⛏️ Tap a plant to dig it up' : this.sel != null ? `${PL[this.sel].e} Tap the lawn to plant a ${PL[this.sel].n}` : 'Pick a seed and tap the lawn · tap ☀️ sun to collect it') : this.shovel ? '⛏️ Click a plant to dig it up (Esc to stop)' : this.sel != null ? `${PL[this.sel].e} Click the lawn to plant a ${PL[this.sel].n} (Shift to plant more)` : 'Pick a seed (1–6) and click the lawn · click ☀️ sun to collect it') : ''; },
+    hud() { const g = this.g; return g && g.ph === 'play' ? (touchy ? (this.shovel ? '⛏️ Tap a plant to dig it up' : this.sel != null ? `${PL[this.sel].e} Tap the lawn to plant a ${PL[this.sel].n} · ${plantShort(this.sel)}` : 'Pick a seed and tap the lawn · tap ☀️ sun to collect it · tap a plant for its stats') : this.shovel ? '⛏️ Click a plant to dig it up (Esc to stop)' : this.sel != null ? `${PL[this.sel].e} Click the lawn to plant a ${PL[this.sel].n} (Shift to plant more) · ${plantShort(this.sel)}` : 'Pick a seed (1–6) and click the lawn · click ☀️ sun to collect it · click a plant for its stats') : ''; },
     statOf(pr) { return pr && pr.bl ? `⭐ ${pr.bl}` : '—'; },
     sortKey(pr) { return (pr && pr.bl) | 0; },
-    menu() { return [['🌱 Seeds & level', () => this.openLobby(), 'Seeds']]; },
+    menu() { return [['🌱 Seeds & level', () => this.openLobby(), 'Seeds'], ['📊 Plant stats', () => this.openStats(), 'Stats']]; },
     leave() { this.sel = null; this.shovel = false; this.zv = new Map(); this.pv = new Map(); this.sv = new Map(); this.cv = new Map(); this.peas = []; this.ghost = null; },
     coinShop: [
       { id: 'sun', e: '☀️', n: 'Sunny Start', d: 'Every game starts with 75 more sun (for everyone), for good', price: 500, kind: 'pass' },
