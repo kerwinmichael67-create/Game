@@ -125,6 +125,53 @@
     .touchy #auStreak{top:100px;transform:translateX(-50%) scale(.85)}
     .touchy #auTop{top:58px;transform:translateX(-50%) scale(.86)}
     .touchy #auDuel{top:56px;transform:translateX(-50%) scale(.82)}
+    #auTop .x2{font:600 12px var(--fh);padding:3px 10px;border-radius:999px;color:#1c1917;background:linear-gradient(90deg,#fde047,#f59e0b)}
+    .au-pop.crit{font-size:32px;color:#fde047;-webkit-text-stroke:6px #7c2d12}
+    .xslot.au-bpb{background:linear-gradient(180deg,#f59e0b,#7c3aed);border-color:#fde68a}
+    .au-card.bpx .rt::after{content:' · BATTLE PASS 💯';color:#fde047}
+    .au-bptag{display:block;margin-top:6px;font:800 11px var(--fb);color:#fde047}
+    #auBP{position:absolute;left:50%;top:30%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;z-index:6;animation:auTierIn 2.2s ease-out forwards;white-space:nowrap}
+    #auBP .m{font:700 20px var(--fh);letter-spacing:.2em;color:#fde047;-webkit-text-stroke:5px rgba(10,12,18,.75);paint-order:stroke fill}
+    #auBP .n{font:700 66px/1.05 var(--fh);color:#fff;-webkit-text-stroke:9px rgba(76,29,149,.9);paint-order:stroke fill;text-shadow:0 0 30px #a855f7}
+    #auBP .s{font:700 15px var(--fb);color:#fef3c7;margin-top:6px;-webkit-text-stroke:4px rgba(10,12,18,.7);paint-order:stroke fill}
+    .au-bp .hd{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:12px}
+    .au-bp .lvl{width:86px;height:86px;flex:0 0 86px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at 35% 30%,#fef08a,#f59e0b 58%,#92400e);box-shadow:0 0 26px rgba(253,224,71,.5),inset 0 -4px 0 rgba(0,0,0,.25);color:#1c1917}
+    .au-bp .lvl small{font:800 10px var(--fb);letter-spacing:.14em}
+    .au-bp .lvl b{font:700 38px/1 var(--fh)}
+    .au-bp .xp{flex:1;min-width:200px}
+    .au-bp .xp .tt{font:700 15px var(--fh);color:#fff;margin-bottom:6px}
+    .au-bp .bar{height:12px;border-radius:7px;background:rgba(0,0,0,.45);overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,.5)}
+    .au-bp .bar i{display:block;height:100%;background:linear-gradient(90deg,#a855f7,#ec4899,#fde047);border-radius:7px}
+    .au-bp .xp small,.au-bp .q small{color:#94a3b8;font:700 12px var(--fb)}
+    .au-bp .prem{padding:10px 14px;border-radius:14px;margin-bottom:12px;background:linear-gradient(90deg,rgba(250,204,21,.14),rgba(168,85,247,.16));border:2px solid rgba(250,204,21,.4);font:600 13.5px/1.5 var(--fb);color:#fef3c7}
+    .au-bp .prem .xp-btn{margin:6px 0 0;display:inline-flex}
+    .au-bp .prem.on{border-color:#facc15;box-shadow:0 0 20px rgba(250,204,21,.3)}
+    .au-bp .track{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 12px;scrollbar-width:thin}
+    .au-bp .c{flex:0 0 98px;display:flex;flex-direction:column;gap:6px}
+    .au-bp .c>b{text-align:center;font:700 15px var(--fh);color:#94a3b8;border-radius:9px;background:rgba(255,255,255,.06);padding:3px 0}
+    .au-bp .c.on>b{background:linear-gradient(180deg,#a855f7,#7c3aed);color:#fff}
+    .au-bp .c.next>b{outline:2px dashed #fde047;outline-offset:-2px;color:#fde047}
+    .au-bp .c.big>b::after{content:' ⭐'}
+    .au-bp .t{position:relative;height:108px;border-radius:14px;border:2px solid rgba(255,255,255,.14);background:linear-gradient(180deg,#1f2937,#111827);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:4px 4px 18px;font:inherit;cursor:default}
+    .au-bp .t.p{background:linear-gradient(180deg,#3d2c07,#1a1306);border-color:rgba(250,204,21,.4)}
+    .au-bp .t .e{font-size:30px;line-height:1}
+    .au-bp .t .n{font:800 11px/1.15 var(--fb);text-align:center}
+    .au-bp .t i{position:absolute;left:0;right:0;bottom:4px;text-align:center;font:800 10px var(--fb);font-style:normal;color:#94a3b8}
+    .au-bp .t.can{cursor:pointer;border-color:#fde047;animation:auBpGlow 1.2s ease-in-out infinite}
+    .au-bp .t.can i{color:#fde047}
+    .au-bp .t.got{opacity:.45}
+    .au-bp .t.got i{color:#86efac;font-size:14px}
+    .au-bp .t.lock .e,.au-bp .t.lock .n,.au-bp .t.plock .e,.au-bp .t.plock .n{opacity:.55}
+    .au-bp .t.plock{cursor:pointer}
+    .au-bp .t.plock i{color:#facc15}
+    @keyframes auBpGlow{0%,100%{box-shadow:0 0 10px rgba(253,224,71,.45)}50%{box-shadow:0 0 24px rgba(253,224,71,.95)}}
+    .au-bp .lbs{display:flex;gap:14px;font:800 11px var(--fb);letter-spacing:.14em;color:#94a3b8;margin-bottom:4px}
+    .au-bp .lbs .p{color:#facc15}
+    .au-bp .q{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .au-bp .q>span{flex:1}
+    .au-bp .q .bar{height:8px;margin:5px 0 3px}
+    .au-bp .q .x{color:#fde047;font:700 14px var(--fh);white-space:nowrap}
+    .au-bp .q.done{opacity:.6}
     @media (max-width:640px){#auDuel .f{width:140px}#auDuel .st{display:none}#auRes .big{font-size:96px}#auBox .card{width:96px;flex-basis:96px}}`;
   document.head.append(style);
 
@@ -137,6 +184,42 @@
   const clickCost = (l) => Math.round(15 * 1.55 ** l);
   const grindCost = (l) => Math.round(30 * 1.6 ** l);
   const MAX_LV = 10, LV_UP = 0.12, STEAL = 0.2, HP = 200, DUEL_T = 75, PRE = 3, RING_H = 12, CHAL_T = 20, MAX_CPS = 14;
+  const LUCK = 0.05, luckOdds = (odds, l) => odds.map((p, r) => (r >= 2 ? p * (1 + LUCK * (l | 0) * (r - 1)) : p));
+  const gapOf = (l) => STREAK_GAP + 0.15 * (l | 0), cdK = (l) => 1 - 0.03 * clamp(l | 0, 0, 10);
+  const dur = (secs) => { const h = Math.floor(secs / 3600), m = Math.floor((secs % 3600) / 60); return h ? `${h}h ${m}m` : `${m}m`; };
+  // the upgrades, all bought with aura: click and second power, then crits, longer streaks, aura while you're away,
+  // crate luck, and three for duels. v: what it is at level l (x: your aura multiplier), t: what it says when you buy it
+  const UPS = [
+    { k: 'cl', g: 0, e: '🤫', n: 'Mewing Lessons', cost: clickCost, what: 'per click', v: (l, x) => '+' + short((1 + l) * x), t: 'Jawline +{n}. Clicks hit different now.' },
+    { k: 'ps', g: 0, e: '💪', n: 'Sigma Grindset', cost: grindCost, what: 'per second', v: (l, x) => '+' + short((1 + l) * x), t: 'Grindset +{n}. 4am club.' },
+    { k: 'cr', g: 0, e: '🎯', n: 'Aura Crit', max: 10, cost: (l) => Math.round(250 * 1.75 ** l), what: 'chance a click crits ×10', v: (l) => l * 3 + '%', d: 'Some clicks are just built different.', t: 'Crit +{n}. Your clicks are built different.' },
+    { k: 'lg', g: 0, e: '🔒', n: 'Lock In', max: 8, cost: (l) => Math.round(200 * 1.8 ** l), what: 'between clicks before a streak ends', v: (l) => gapOf(l).toFixed(2) + 's', d: 'More time between clicks before your 🔥 streak ends.', t: 'Locked in +{n}. You don’t blink anymore.' },
+    { k: 'af', g: 0, e: '😴', n: 'AFK Farming', max: 10, cost: (l) => Math.round(400 * 1.8 ** l), what: 'of your aura a second while you’re away', v: (l) => l * 5 + '%', d: 'Farm aura in your sleep, for up to 8 hours away.', t: 'AFK Farming +{n}. Sleep is part of the grind now.' },
+    { k: 'lk', g: 1, e: '🍀', n: 'Rizz Luck', max: 10, cost: (l) => Math.round(500 * 1.9 ** l), what: 'chance of Ohio tier', v: (l) => '×' + (1 + LUCK * l * 4).toFixed(1), d: 'Every crate (and key) rolls rarer: Bussin ×' + (1 + LUCK * 10).toFixed(1) + ' up to Ohio ×' + (1 + LUCK * 40).toFixed(0) + ' at max.', t: 'Rizz Luck +{n}. The crates fear you.' },
+    { k: 'hu', g: 2, e: '🍔', n: 'Mog Mass', max: 10, cost: (l) => Math.round(600 * 1.7 ** l), what: 'health in a duel', v: (l) => String(HP + l * 8), d: 'Bulk up: 8 more health in every duel, a level.', t: 'Mog Mass +{n}. Built like a fridge.' },
+    { k: 'cdr', g: 2, e: '⏩', n: 'Speedrun', max: 10, cost: (l) => Math.round(800 * 1.8 ** l), what: 'ability cooldowns', v: (l) => (l ? '-' + l * 3 : '0') + '%', d: 'Any% duels: your abilities come back faster.', t: 'Speedrun +{n}. Any% duels.' },
+    { k: 'tx', g: 2, e: '💸', n: 'Fanum Tax Rate', max: 10, cost: (l) => Math.round(1000 * 1.85 ** l), what: 'of their aura when you win', v: (l) => Math.round((STEAL + l * 0.01) * 100) + '%', d: 'Take a bigger bite of the loser’s aura when you win a duel.', t: 'Fanum Tax Rate +{n}. Fanum approves.' },
+  ];
+  const UP_GROUPS = ['💰 Farming', '🎁 Crates', '⚔️ Duels'];
+
+  /* ---------------- the Bussin Battle Pass: XP, 50 levels, a free track and Bussin+ (Blox Coins, in the shop) ---------------- */
+  const BP_MAX = 50, BP_PRICE = 500, bpNeed = (l) => 100 + 4 * (l - 1); // the XP from level l-1 to l
+  const BP_TOTAL = Array.from({ length: BP_MAX }, (_, i) => bpNeed(i + 1)).reduce((a, b) => a + b, 0);
+  const bpLevel = (x) => { let l = 0; while (l < BP_MAX && x >= bpNeed(l + 1)) { x -= bpNeed(l + 1); l++; } return [l, x]; }; // [level, XP into the next]
+  // a reward: au (s seconds of your aura a second) · key (a free crate) · bc (Blox Coins) · x2 (m minutes of 2× aura) ·
+  // ab (an ability) · lv (+1 level to your equipped abilities)
+  const bpFree = (l) => ({ 5: { t: 'key', c: 'rizz' }, 10: { t: 'ab', k: 'barrage' }, 15: { t: 'key', c: 'sigma' }, 20: { t: 'x2', m: 15 }, 25: { t: 'lv' }, 30: { t: 'ab', k: 'chef' }, 35: { t: 'key', c: 'sigma' }, 40: { t: 'key', c: 'phonk' }, 45: { t: 'bc', n: 50 }, 50: { t: 'key', c: 'ohio' } })[l]
+    || [{ t: 'au', s: 60 + l * 12 }, { t: 'key', c: l < 20 ? 'mid' : 'rizz' }, { t: 'bc', n: 5 + Math.floor(l / 10) * 5 }, { t: 'x2', m: 5 }][l % 4];
+  const bpPrem = (l) => ({ 1: { t: 'key', c: 'sigma' }, 10: { t: 'key', c: 'phonk' }, 20: { t: 'ab', k: 'nocap' }, 25: { t: 'key', c: 'ohio' }, 30: { t: 'lv' }, 35: { t: 'key', c: 'phonk' }, 40: { t: 'x2', m: 60 }, 45: { t: 'key', c: 'ohio' }, 50: { t: 'ab', k: 'boss' } })[l]
+    || [{ t: 'au', s: 150 + l * 25 }, { t: 'key', c: l < 25 ? 'rizz' : 'sigma' }, { t: 'bc', n: 10 + Math.floor(l / 10) * 5 }, { t: 'x2', m: 10 }][l % 4];
+  // three daily challenges (the same three for everyone on a day)
+  const DAILY = [
+    { id: 'clk', n: 'Farm aura 300 times', goal: 300, xp: 120 }, { id: 'win', n: 'Win 2 duels', goal: 2, xp: 150 }, { id: 'duel', n: 'Play 3 duels', goal: 3, xp: 120 },
+    { id: 'crate', n: 'Open 3 crates', goal: 3, xp: 100 }, { id: 'stk', n: 'Reach 🗿 SIGMA MODE (a 50-click streak)', goal: 1, xp: 120 }, { id: 'joke', n: 'Survive 3 of Unc Joe’s jokes', goal: 3, xp: 80 },
+    { id: 'time', n: 'Farm for 10 minutes', goal: 600, xp: 100 }, { id: 'hit', n: 'Land 20 ability hits in duels', goal: 20, xp: 140 }, { id: 'up', n: 'Buy 5 upgrade levels', goal: 5, xp: 80 },
+  ];
+  const today = () => { const d = new Date(); return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; };
+  const dailyOf = (day) => { const r = mulberry([...day].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7) >>> 0), pool = DAILY.slice(), out = []; while (out.length < 3) out.push(pool.splice(Math.floor(r() * pool.length), 1)[0]); return out; };
   const HB_BODY = 1.2; // a fighter's hitbox: 2.4 wide (an attack's reach is drawn this much short, so the boxes touching = a hit)
   const lvK = (lvl) => 1 + LV_UP * (Math.max(1, lvl) - 1);
 
@@ -174,10 +257,15 @@
     eyes: { n: 'Close Eyes', e: '😑', r: 5, phonk: 1, k: 'beam', dmg: 80, cd: 10, w: 0.6, rng: 42, d: 'Closes its eyes and fires the tuffest beam in Ohio.', say: 'close eyes 😑' },
     montagem: { n: 'Montagem Mode', e: '🎧', r: 5, phonk: 1, k: 'self', heal: 50, shield: [35, 7], buff: [2.2, 7], cd: 20, d: 'The edit begins: phonk plays, your screen goes black and white, you heal 50, get a 35 shield and hit 2.2× harder for 7 seconds.', say: 'MONTAGEM 🎧' },
     inf: { n: 'Infinite Aura', e: '♾️', r: 5, k: 'self', heal: 60, shield: [40, 6], buff: [2, 6], cd: 18, d: 'Aura so big it has its own weather: heals 60, a 40 shield and double damage for 6 seconds.', say: '+∞ aura' },
+    // the Bussin Battle Pass's own (bp: its level; prem: on the Bussin+ track)
+    barrage: { n: 'Bussin Barrage', e: '💯', r: 3, bp: 10, k: 'proj', dmg: 13, cnt: 3, spread: 0.22, home: 1, cd: 6, sp: 24, d: 'Three 💯s that follow them round the ring.', say: 'this is bussin fr' },
+    chef: { n: 'Chef’s Kiss', e: '🤌', r: 4, bp: 30, k: 'proj', dmg: 46, ex: 5, big: 1, steal: 0.4, cd: 10, sp: 20, d: 'Serves them a plate so bussin it blows up, and you keep some of their health.', say: 'chef’s kiss 🤌' },
+    nocap: { n: 'No Cap Beam', e: '🧢', r: 5, bp: 20, prem: 1, k: 'beam', dmg: 70, slow: [0.5, 2.5], cd: 9, w: 0.5, rng: 44, d: 'The truth hurts: a beam that slows them by half for 2.5 seconds.', say: 'no cap 🧢🚫' },
+    boss: { n: 'Final Boss Mode', e: '👑', r: 5, bp: 50, prem: 1, k: 'self', heal: 70, shield: [50, 8], buff: [2.4, 8], cd: 22, d: 'You become the final boss: heal 70, a 50 shield and 2.4× damage for 8 seconds.', say: 'FINAL BOSS MODE 👑' },
   };
   const SLAP = { n: 'Slap', e: '🫲', r: 0, k: 'melee', dmg: 6, cd: 0.6, rng: 5.5, d: 'Unc-style slap. Up close only.', say: '' };
   const abOf = (k) => (k === 'slap' ? SLAP : AB[k]);
-  const ABK = Object.keys(AB), BYR = RAR.map((_, r) => ABK.filter((k) => AB[k].r === r && !AB[k].phonk)), PHONK_BY = RAR.map((_, r) => ABK.filter((k) => AB[k].r === r && AB[k].phonk));
+  const ABK = Object.keys(AB), BYR = RAR.map((_, r) => ABK.filter((k) => AB[k].r === r && !AB[k].phonk && !AB[k].bp)), PHONK_BY = RAR.map((_, r) => ABK.filter((k) => AB[k].r === r && AB[k].phonk));
   const CRATES = [
     { id: 'mid', n: 'Mid Crate', e: '📦', price: 50, odds: [60, 30, 9, 1, 0, 0], c: 0x9ca3af, d: 'It’s mid. What did you expect?' },
     { id: 'rizz', n: 'Rizz Crate', e: '💘', price: 400, odds: [25, 35, 28, 10, 2, 0], c: 0x60a5fa, d: 'Smells like Axe body spray.' },
@@ -466,6 +554,19 @@
     });
   }
 
+  // the Bussin Battle Pass stand: a gold pedestal, a spinning ring, a big 💯 and a crown going round it
+  function buildPassStand(x, z) {
+    return model(x, 0, z, 0, (S, g) => {
+      pedestal(S, 2.2, 1.4, 0xfde047);
+      pc(S, 'cyl', steel(GOLD), 0, 2.2, 0, 0.45, 1.6, 0.45);
+      const ring = mover(g, 0, 5.4, 0); pc(ring, 'ring', steel(GOLD), 0, 0, 0, 2.3, 2.3, 2.3); settle(ring);
+      const e = emoSprite('💯', 3.2); e.position.set(0, 5.4, 0); g.add(e);
+      const crown = emoSprite('👑', 1.4); g.add(crown);
+      glowAt(g, 0xfde047, 6.5, 6.5, 0, 5.4, 0);
+      return (t) => { e.position.y = 5.4 + Math.sin(t * 2) * 0.3; ring.rotation.y = t * 0.9; ring.rotation.x = Math.sin(t * 0.7) * 0.5; crown.position.set(Math.cos(t * 1.3) * 2.7, 6.6, Math.sin(t * 1.3) * 2.7); };
+    });
+  }
+
   // a duel ring: posts with glowing caps, neon ropes, spotlights sweeping, a rune circle in the middle
   function buildArena(R, i) {
     return model(R.x, 0, R.z, 0, (S, g) => {
@@ -647,16 +748,26 @@
       for (let z = -36; z <= 40; z += 5) { spots.push([-61, z]); spots.push([61, z]); }
       for (let i = 0; i < 7; i++) spots.push([-15.2 + i * 1.1, 9.3]);
       buildCorn(spots);
+      // the Bussin Battle Pass stand
+      add(buildPassStand(12, 12)); solidBox(10.2, 0, 10.2, 13.8, 2, 13.8);
+      sign('💯 BUSSIN BATTLE PASS', 12, 9.6, 12, 1.25, '#fde047');
       this.unc = makeAvatar(okAv([1, 2, 3, 7, 4, 0, 0, 2, 0, 0]), '🧓 Unc Joe', false); this.unc.g.position.set(-12, 0.55, 12); this.unc.g.rotation.y = Math.PI; scene.add(this.unc.g);
       this.uncAt = -1e9; this.uncBub = null;
       this.fx = []; this.pjv = new Map(); this.botAv = new Map(); this.fv = new Map(); this.tags = new Map(); this.props = [];
     },
-    pres() { return { au: 0, br: 0, eq: [], tq: [], th: 0, sk: 0 }; },
+    pres() { return { au: 0, br: 0, eq: [], tq: [], th: 0, sk: 0, u: [] }; },
     async enter() {
       Object.assign(this, { H: null, lastG: null, gSeen: null, g: null, D: null, q: [], qn: 0, evSeen: null, acc: 0, evT: 40 + Math.random() * 30, clicks: [], duelId: 0, myIdx: -1, cdUntil: {}, move: null, chal: null, chalKey: '', resT: 0, backAt: 0, barHtml: '', sentAt: 0, savedAt: performance.now(), dirty: false, hpSeen: null, frozeBy: false, popAt: 0, streak: 0, lastClick: 0, tier: 0, pulseAt: 0, rainAt: 0 });
       const s = await kvGet('au');
-      const S = this.S = Object.assign({ au: 0, tot: 0, cl: 0, ps: 0, ab: { rizz: 1, side: 1 }, eq: ['rizz', 'side'], free: 1, w: 0, l: 0, best: 0, op: 0, hb: false }, s && typeof s === 'object' ? s : {});
+      const S = this.S = Object.assign({ au: 0, tot: 0, cl: 0, ps: 0, ab: { rizz: 1, side: 1 }, eq: ['rizz', 'side'], free: 1, w: 0, l: 0, best: 0, op: 0, hb: false, keys: {}, bx: 0, bpc: {}, dq: null, x2u: 0, seen: 0 }, s && typeof s === 'object' ? s : {});
       S.au = Math.max(0, +S.au || 0); S.tot = Math.max(0, +S.tot || 0); S.cl = Math.max(0, S.cl | 0); S.ps = Math.max(0, S.ps | 0); S.free = Math.max(0, S.free | 0); S.hb = !!S.hb;
+      for (const u of UPS) if (u.max) S[u.k] = clamp(S[u.k] | 0, 0, u.max);
+      const keys = {}; for (const C of CRATES) if (S.keys && S.keys[C.id] > 0) keys[C.id] = S.keys[C.id] | 0; S.keys = keys;
+      S.bx = Math.max(0, +S.bx || 0); S.bpc = S.bpc && typeof S.bpc === 'object' ? S.bpc : {}; S.x2u = +S.x2u || 0;
+      if (!S.dq || typeof S.dq !== 'object' || !S.dq.p || !S.dq.done) S.dq = null;
+      // AFK Farming: what you farmed while you were away (up to 8 hours)
+      const away = S.seen ? (Date.now() - S.seen) / 1000 : 0; S.seen = Date.now();
+      if (S.af > 0 && away > 60) { const secs = Math.min(away, 8 * 3600), v = Math.floor(secs * (1 + S.ps) * (hasItem('au2') ? 2 : 1) * 0.05 * S.af); if (v > 0) { this.gain(v); setTimeout(() => { toast(`😴 You were away ${dur(secs)} and AFK-farmed +${comma(v)} aura`, '#c4b5fd'); sfx('reward'); }, 1800); } }
       const ab = {}; for (const k of Object.keys(S.ab || {})) if (AB[k]) ab[k] = clamp(S.ab[k] | 0, 1, MAX_LV); S.ab = ab;
       S.eq = [...new Set((Array.isArray(S.eq) ? S.eq : []).filter((k) => S.ab[k]))].slice(0, 4);
       const hud = $('#xhud');
@@ -675,12 +786,12 @@
       this.botAv = new Map(); this.pjv = new Map(); this.fv = new Map(); this.tags = new Map(); this.fx = [];
       P.frozen = false;
     },
-    save() { this.dirty = false; this.savedAt = performance.now(); return kvSet('au', this.S); },
+    save() { this.dirty = false; this.savedAt = performance.now(); this.S.seen = Date.now(); return kvSet('au', this.S); },
     send(now) {
       const S = this.S, t = performance.now();
       if (!S || (!now && t - this.sentAt < 1000)) return;
       this.sentAt = t;
-      send({ au: Math.floor(S.au), br: this.bestRar(), eq: S.eq.flatMap((k) => [k, S.ab[k] | 0]), th: hasItem('hp') ? 1 : 0, sk: this.tier | 0 });
+      send({ au: Math.floor(S.au), br: this.bestRar(), eq: S.eq.flatMap((k) => [k, S.ab[k] | 0]), th: hasItem('hp') ? 1 : 0, sk: this.tier | 0, u: [S.hu | 0, S.cdr | 0, S.tx | 0] });
     },
     bestRar() { return Math.max(0, ...Object.keys(this.S.ab).map((k) => AB[k].r)); },
     spawn() {
@@ -689,8 +800,11 @@
       return [(Math.random() - 0.5) * 10, 0.6, 22 + Math.random() * 4, 0];
     },
     speed() { const D = this.D; return D && D.ph === 'fight' && (D.sl || [])[this.myIdx] > 0 ? 8 : 16; },
-    perSec() { return (1 + this.S.ps) * (hasItem('au2') ? 2 : 1); },
-    perClick() { return (1 + this.S.cl) * (hasItem('au2') ? 2 : 1); },
+    mult() { return (hasItem('au2') ? 2 : 1) * (this.x2Left() > 0 ? 2 : 1); },
+    x2Left() { return Math.max(0, ((this.S && this.S.x2u) || 0) - Date.now()) / 1000; }, // a 2× aura boost from the Battle Pass
+    perSec() { return (1 + this.S.ps) * this.mult(); },
+    perClick() { return (1 + this.S.cl) * this.mult(); },
+    gap() { return gapOf(this.S.lg); },
 
     /* ---------------- aura ---------------- */
     gain(n) {
@@ -705,8 +819,10 @@
       this.clicks.push(t);
       this.streak++;
       const k = tierOf(this.streak); if (k > this.tier) this.tierUp(k);
-      const T = TIERS[this.tier], rain = this.rainOn() ? 2 : 1, n = Math.round(this.perClick() * T.m * rain);
+      const T = TIERS[this.tier], rain = this.rainOn() ? 2 : 1, crit = this.S.cr > 0 && Math.random() < this.S.cr * 0.03, n = Math.round(this.perClick() * T.m * rain * (crit ? 10 : 1));
       this.gain(n); this.pulseAt = t;
+      this.bpClk = (this.bpClk | 0) + 1; if (this.bpClk % 5 === 0) this.xp(1); this.daily('clk', 1);
+      if (crit) { this.pop(x == null ? innerWidth / 2 : x, (y == null ? innerHeight - 150 : y) - 34, `💥 CRIT ×10 · +${short(n)} aura`, 'crit'); sfx('kill', { vol: 0.6 }); this.drawTop(); return; }
       sfx('tap', { vol: 0.5, pitch: 0.85 + this.tier * 0.13 + Math.random() * 0.25 });
       const word = this.tier >= 2 || Math.random() < 0.4 ? ' · ' + pick(this.tier >= 4 && Math.random() < 0.6 ? BIG_WORDS : CLICK_WORDS) : '';
       this.pop(x == null ? innerWidth / 2 + (Math.random() - 0.5) * 140 : x, y == null ? innerHeight - 150 : y, `+${short(n)} aura${T.m > 1 ? ' ×' + T.m : ''}${rain > 1 ? ' 🌧️' : ''}${word}`, this.tier ? 't' + this.tier : '');
@@ -723,6 +839,7 @@
       sfx(k >= 4 ? 'unlock' : 'powerup'); this.speak(T.say);
       if (me) puffAt(me.g.position.x, me.g.position.y + 3, me.g.position.z, [tierCol(k, performance.now() / 1000).getHex(), 0xffffff], 18 + k * 4);
       if (k >= 4) Net.chat(`${T.e} ${T.n} (${this.streak} click streak, ×${T.m} aura)`);
+      if (k >= 3) this.daily('stk', 1);
       this.send(true);
     },
     endStreak(quiet) {
@@ -742,7 +859,7 @@
       clearTimeout(this.bubT); this.bubT = setTimeout(() => { if (this.uncBub && this.unc) { this.unc.g.remove(this.uncBub); this.uncBub.material.map.dispose(); this.uncBub.material.dispose(); this.uncBub = null; } }, 6500);
       say(`🧓 Unc Joe: ${j}`, '#fde68a'); setTimeout(() => rimshot(), 900);
       const now = performance.now();
-      if (now - this.uncAt > 15000) { this.uncAt = now; const v = Math.max(5, Math.round(5 * this.perSec())); setTimeout(() => { this.gain(v); toast(`😐 +${comma(v)} aura for surviving the cringe`, '#fde68a'); this.drawTop(); }, 1400); }
+      if (now - this.uncAt > 15000) { this.uncAt = now; this.xp(5); this.daily('joke', 1); const v = Math.max(5, Math.round(5 * this.perSec())); setTimeout(() => { this.gain(v); toast(`😐 +${comma(v)} aura for surviving the cringe`, '#fde68a'); this.drawTop(); }, 1400); }
     },
     // the edit: black and white, letterbox bars, a skull, a word (and phonk, if `music`)
     editFx(secs, word, music) {
@@ -778,7 +895,7 @@
         const next = TIERS[this.tier + 1];
         const html = `🔥 <b>${this.streak}</b> STREAK${T.m > 1 ? ` · ×${T.m} · ${T.e} ${T.n}` : ''}${next ? ` <small>(${next.at - this.streak} more for ×${next.m})</small>` : ' <small>(max brainrot)</small>'}`;
         if (html !== this.stHtml) { this.stHtml = html; el.firstChild.innerHTML = html; }
-        el.lastChild.firstChild.style.width = (100 * clamp(1 - (now - this.lastClick) / (STREAK_GAP * 1000), 0, 1)).toFixed(1) + '%';
+        el.lastChild.firstChild.style.width = (100 * clamp(1 - (now - this.lastClick) / (this.gap() * 1000), 0, 1)).toFixed(1) + '%';
       }
       this.vig.style.setProperty('--tc', col);
       const vo = on && this.tier >= 2 ? Math.min(0.95, 0.2 + 0.11 * this.tier + 0.08 * Math.sin(now / 140)) : 0;
@@ -796,8 +913,9 @@
     drawTop(force) {
       const S = this.S; if (!S || !this.top) return;
       const k = rankOf(S.au), R = RANKS[k], m = auraMult(S.au);
-      const g = this.g, rain = g && g.rn > 0 ? `<span class="rn">🌧️🧠 BRAINROT RAIN · clicks ×2 · ${Math.ceil(g.rn)}s</span>` : '';
-      const html = `<span class="n">🗿 ${comma(S.au)}</span><small>aura · +${short(this.perSec())}/s</small><span class="rk r${k}" style="--rc:${R[2]}">${R[1]}</span><small>⚔️ ${pctOf(m)} dmg</small>${rain}`;
+      const g = this.g, rain = g && g.rn > 0 ? `<span class="rn">🌧️🧠 BRAINROT RAIN · clicks ×2 · ${Math.ceil(g.rn)}s</span>` : '', x2 = this.x2Left();
+      const boost = x2 > 0 ? `<span class="x2">⚡ 2× aura ${Math.floor(x2 / 60)}:${String(Math.floor(x2 % 60)).padStart(2, '0')}</span>` : '';
+      const html = `<span class="n">🗿 ${comma(S.au)}</span><small>aura · +${short(this.perSec())}/s</small><span class="rk r${k}" style="--rc:${R[2]}">${R[1]}</span><small>⚔️ ${pctOf(m)} dmg</small>${rain}${boost}`;
       if (force || html !== this.topHtml) { this.topHtml = html; this.top.innerHTML = html; }
       this.top.hidden = !!this.D; // (in a duel, the duel's bars take its place)
     },
@@ -809,11 +927,12 @@
       const now = performance.now(); this.acc += this.lastT ? Math.min(5, (now - this.lastT) / 1000) : dt; this.lastT = now;
       while (this.acc >= 1) {
         this.acc -= 1; const n = this.perSec(); this.gain(n);
+        this.bpSec = (this.bpSec | 0) + 1; if (this.bpSec % 10 === 0) this.xp(1); this.daily('time', 1);
         if (this.top && !this.top.hidden) { const r = this.top.getBoundingClientRect(); this.pop(this.streak >= 3 ? r.right + 46 : r.left + r.width / 2, this.streak >= 3 ? r.top + r.height / 2 : r.bottom + 14, `+${short(n)} aura`, 'sec'); const nEl = this.top.querySelector('.n'); if (nEl) { nEl.classList.add('bump'); setTimeout(() => nEl.classList.remove('bump'), 140); } }
       }
       this.evT -= dt; if (this.evT <= 0) { this.evT = 45 + Math.random() * 40; if (!this.D) this.auraEvent(); }
       const g = this.g = roundState(this);
-      if (this.streak && now - this.lastClick > STREAK_GAP * 1000) this.endStreak();
+      if (this.streak && now - this.lastClick > this.gap() * 1000) this.endStreak();
       for (const f of this.anims || []) f(now / 1000);
       if (this.unc) { animateAvatar(this.unc, dt, false, false); placeShadow(this.unc); }
       if (this.editUntil && now > this.editUntil) this.editOff();
@@ -885,11 +1004,12 @@
     // a fighter's aura, abilities and levels (yours from your save, everyone else's from what they've told the server)
     info(D, i) {
       const id = D.f[i];
-      if (isBot(id)) return { au: D.bot.au, lv: Object.fromEntries(D.bot.eq), th: 0 };
-      if (id === myPeer()) { const S = this.S; return { au: S.au, lv: Object.fromEntries(S.eq.map((k) => [k, S.ab[k]])), th: hasItem('hp') ? 1 : 0 }; }
+      if (isBot(id)) return { au: D.bot.au, lv: Object.fromEntries(D.bot.eq), th: 0, hu: 0, cdr: 0, tx: 0 };
+      if (id === myPeer()) { const S = this.S; return { au: S.au, lv: Object.fromEntries(S.eq.map((k) => [k, S.ab[k]])), th: hasItem('hp') ? 1 : 0, hu: S.hu | 0, cdr: S.cdr | 0, tx: S.tx | 0 }; }
       const p = (this.pl || players()).find((q) => q.peer === id), pr = (p && p.pr) || {}, lv = {}, eq = Array.isArray(pr.eq) ? pr.eq : [];
       for (let j = 0; j + 1 < eq.length && j < 8; j += 2) if (AB[eq[j]]) lv[eq[j]] = clamp(eq[j + 1] | 0, 1, MAX_LV);
-      return { au: Math.max(0, +pr.au || 0), lv, th: pr.th ? 1 : 0 };
+      const u = Array.isArray(pr.u) ? pr.u : [];
+      return { au: Math.max(0, +pr.au || 0), lv, th: pr.th ? 1 : 0, hu: clamp(u[0] | 0, 0, 10), cdr: clamp(u[1] | 0, 0, 10), tx: clamp(u[2] | 0, 0, 10) };
     },
     posF(D, i) {
       const id = D.f[i];
@@ -928,12 +1048,12 @@
       if (!b) { // a bot about as strong as you are
         H.nb = (H.nb | 0) + 1;
         const me = this.info(D, 0), R = RINGS[r], best = Math.max(0, ...Object.keys(me.lv).map((k) => AB[k].r));
-        const pool = ABK.filter((k) => AB[k].r <= Math.min(5, best + (Math.random() < 0.3 ? 1 : 0))), eq = [];
+        const pool = ABK.filter((k) => !AB[k].bp && AB[k].r <= Math.min(5, best + (Math.random() < 0.3 ? 1 : 0))), eq = [];
         while (eq.length < 4 && pool.length) eq.push([pool.splice(Math.floor(Math.random() * pool.length), 1)[0], 1 + Math.floor(Math.random() * 3)]);
         D.f[1] = 'bot:' + H.nb;
         D.bot = { n: BOT_NAMES[H.nb % BOT_NAMES.length], s: Math.floor(Math.random() * 1e6), au: Math.round(me.au * (0.55 + Math.random() * 0.45)) + 30, eq, x: R.x, z: R.z - 8, yaw: Math.PI, mv: 0, think: 1.2, dir: 1, flip: 2, dashT: 0 };
       }
-      for (const i of [0, 1]) { const th = this.info(D, i).th; D.hp[i] = D.mx[i] = HP + (th ? 25 : 0); }
+      for (const i of [0, 1]) { const f = this.info(D, i); D.hp[i] = D.mx[i] = HP + (f.th ? 25 : 0) + 8 * f.hu; }
       H.D.push(D);
       this.ev(['st', D.id, D.f[0], D.f[1]]);
     },
@@ -942,7 +1062,7 @@
       const inf = this.info(D, i), lvl = k === 'slap' ? 1 : inf.lv[k]; if (!lvl) return; // (not one of theirs)
       const T = performance.now() / 1000, cd = D.cd[i];
       if (D.st[i] > 0 || (cd[k] || 0) > T + 0.15) return; // stunned, or still cooling down
-      cd[k] = T + A.cd;
+      cd[k] = T + A.cd * cdK(inf.cdr);
       const me = this.posF(D, i), tg = this.posF(D, 1 - i); if (!me || !tg) return;
       const dmg = A.dmg ? A.dmg * lvK(lvl) * auraMult(inf.au) * D.bf[i] : 0, L = lvK(lvl);
       this.ev(['c', D.id, i, k]);
@@ -1050,7 +1170,7 @@
     end(D, w, why) {
       if (D.ph === 'end') return;
       D.ph = 'end'; D.left = 4.5; D.w = w; D.pj = []; D.pe = [];
-      const l = 1 - w, amt = w < 0 ? 0 : Math.floor(this.info(D, l).au * STEAL);
+      const l = 1 - w, amt = w < 0 ? 0 : Math.floor(this.info(D, l).au * (STEAL + 0.01 * this.info(D, w).tx));
       D.amt = amt;
       this.ev(['end', D.id, w, D.f[0], D.f[1], amt, this.nameF(D, 0), this.nameF(D, 1), why]);
     },
@@ -1102,7 +1222,7 @@
       const A = abOf(k), T = performance.now() / 1000;
       if ((this.cdUntil[k] || 0) > T) { sfx('error', { vol: 0.4 }); return; }
       if ((D.st || [])[this.myIdx] > 0) { sfx('error'); toast('You’re in NPC mode. Can’t move, can’t think.', '#fca5a5'); return; }
-      this.cdUntil[k] = T + A.cd;
+      this.cdUntil[k] = T + A.cd * cdK(this.S.cdr);
       this.ask('cast', D.id, k);
     },
     challenge(peer) {
@@ -1164,6 +1284,7 @@
         if (e[4] === 'bass') this.riser(p);
         if (e[4] === 'cowbell' && (mineD || Math.hypot(p.x - P.x, p.z - P.z) < 60)) { const m = phonk(0.9, 150); if (m) setTimeout(() => m.stop(), 900); }
         if (e[4] === 'montagem' && isMe) this.editFx(7, 'MONTAGEM', true);
+        if (e[4] === 'boss' && isMe) { this.bigText('👑 FINAL BOSS'); sfx('unlock'); }
         const snd = { proj: 'whoosh', beam: 'zap', aoe: 'powerup', meteor: 'whoosh', self: A.shield ? 'shield' : A.heal && !A.buff ? 'heal' : 'powerup', dash: 'whoosh', melee: 'swing' }[A.k];
         sfx3(snd, p.x, p.z, 90, { vol: 0.7 });
       } else if (type === 'b0') { this.line(e[5], e[6], e[7], e[8], 0xff4d6d, 0.12, e[9], 0.35); }
@@ -1185,6 +1306,7 @@
         puffAt(p.x, p.y + 2.8, p.z, [rarHex(A.r), 0xffffff], 8);
         sfx3(e[5] === 'slap' ? 'punch' : 'hit', p.x, p.z, 80, { vol: 0.8 });
         if (D.id === this.duelId && t === this.myIdx && e[5] === 'edit') this.editFx(2, 'EDITED', true);
+        if (D.id === this.duelId && e[7] === this.myIdx && t !== this.myIdx && e[5] !== 'slap' && e[5] !== 'storm') { this.xp(2); this.daily('hit', 1); }
         if (D.id === this.duelId && t === this.myIdx && e[6] > 0) { const o = pos(e[7]); if (o) { const dx = P.x - o.x, dz = P.z - o.z, l = Math.hypot(dx, dz) || 1; this.move = { t: 0.25, vx: dx / l * e[6], vz: dz / l * e[6] }; } }
       }
     },
@@ -1193,6 +1315,8 @@
       const W = w >= 0 ? [na, nb][w] : '', L = w >= 0 ? [na, nb][1 - w] : '';
       if (idx < 0) { if (w >= 0) say(`⚔️ ${pick(WIN_LINES).replace('{W}', W).replace('{L}', L)} (${W} stole ${comma(amt)} aura${why === 'left' ? ', they rage quit' : ''})`, '#c4b5fd'); return; }
       if (this.endSeen === id) return; this.endSeen = id;
+      this.daily('duel', 1); if (w === idx) this.daily('win', 1);
+      this.xp(w < 0 ? 30 : w === idx ? 60 : 25);
       let cls, big, sub, amtTxt;
       if (w < 0) { cls = 'd'; big = 'DRAW'; sub = 'Nobody cooked. Nobody got cooked.'; amtTxt = 'No aura changes hands'; sfx('draw'); }
       else if (w === idx) {
@@ -1373,16 +1497,16 @@
     /* ---------------- the bar, keys, clicks ---------------- */
     drawBar() {
       const S = this.S; if (!S) return;
-      const D = this.D, fight = D && D.ph !== 'end';
+      const D = this.D, fight = D && D.ph !== 'end', nFree = S.free + Object.values(S.keys).reduce((a, b) => a + b, 0), bpCan = fight ? 0 : this.bpClaimable();
       const html = fight
         ? ['slap'].concat(S.eq).map((k, i) => { const A = abOf(k); return `<button class="xslot au-ab r${A.r}" data-cast="${i - 1}" style="--rc:${RAR[A.r][1]}" title="${esc(A.n)}: ${esc(A.d)}"><span class="k">${i ? i : 'F'}</span><span class="e">${A.e}</span>${esc(A.n)}<i class="au-cd" style="height:0"></i><span class="au-cdn"></span></button>`; }).join('')
-        : `<button class="xslot au-farm" data-farm="1" title="Farm aura (F, or click anywhere)"><span class="k">F</span><span class="e">🗿</span>FARM AURA<span class="n">+${short(this.perClick())}</span></button><button class="xslot" data-duel="1"><span class="e">⚔️</span>Duel</button><button class="xslot" data-crates="1"><span class="e">🎁</span>Crates${S.free ? `<span class="n">${S.free} free</span>` : ''}</button><button class="xslot" data-abs="1"><span class="e">🎒</span>Abilities</button>`;
+        : `<button class="xslot au-farm" data-farm="1" title="Farm aura (F, or click anywhere)"><span class="k">F</span><span class="e">🗿</span>FARM AURA<span class="n">+${short(this.perClick())}</span></button><button class="xslot" data-duel="1"><span class="e">⚔️</span>Duel</button><button class="xslot" data-crates="1"><span class="e">🎁</span>Crates${nFree ? `<span class="n">${nFree} free</span>` : ''}</button><button class="xslot" data-abs="1"><span class="e">🎒</span>Abilities</button><button class="xslot au-bpb" data-bp="1"><span class="e">💯</span>Pass<span class="n">${bpCan ? bpCan + ' 🎁' : 'Lv ' + bpLevel(S.bx)[0]}</span></button>`;
       if (html !== this.barHtml) {
         this.barHtml = html;
         setBar(html, (b) => {
           if (b.dataset.farm) { const r = b.getBoundingClientRect(); this.farm(r.left + r.width / 2 + (Math.random() - 0.5) * 60, r.top - 20); }
           else if (b.dataset.cast != null) this.useSlot(+b.dataset.cast);
-          else if (b.dataset.duel) this.duelPanel(); else if (b.dataset.crates) this.cratePanel(); else if (b.dataset.abs) this.abilityPanel();
+          else if (b.dataset.duel) this.duelPanel(); else if (b.dataset.crates) this.cratePanel(); else if (b.dataset.abs) this.abilityPanel(); else if (b.dataset.bp) this.bpPanel();
         });
       }
       if (fight) { // cooldowns: just the shading, so the buttons themselves never get swapped under your finger
@@ -1390,7 +1514,7 @@
         document.querySelectorAll('#xbar [data-cast]').forEach((b) => {
           const i = +b.dataset.cast, k = i < 0 ? 'slap' : S.eq[i], A = abOf(k); if (!A) return;
           const left = Math.max(0, (this.cdUntil[k] || 0) - T), cdEl = b.querySelector('.au-cd'), n = b.querySelector('.au-cdn');
-          cdEl.style.height = (left > 0 ? Math.min(100, left / A.cd * 100) : 0).toFixed(0) + '%';
+          cdEl.style.height = (left > 0 ? Math.min(100, left / (A.cd * cdK(S.cdr)) * 100) : 0).toFixed(0) + '%';
           const txt = left > 0.05 ? (left < 1 ? left.toFixed(1) : String(Math.ceil(left))) : '';
           if (n.textContent !== txt) n.textContent = txt;
         });
@@ -1428,12 +1552,13 @@
       for (const M of STATIONS) out.push({ x: M.x, z: M.z, r: 6, text: M.k === 'up' ? `${M.e} ${M.n}` : '🎒 Your abilities', fn: () => (M.k === 'up' ? this.upgradePanel() : this.abilityPanel()) });
       out.push({ x: 0, z: -44, r: 7, text: '🤖 Duel a bot', fn: () => this.duelBot() });
       out.push({ x: -12, z: 12, r: 6, text: '🌽 Hear a corny joke from Unc Joe', fn: () => this.joke() });
+      out.push({ x: 12, z: 12, r: 6, text: `💯 Bussin Battle Pass (level ${bpLevel(this.S.bx)[0]})`, fn: () => this.bpPanel() });
       const g = this.g, busy = new Set(g && Array.isArray(g.D) ? g.D.flatMap((d) => d.f) : []);
       for (const p of players()) if (!p.me && !busy.has(p.peer)) out.push({ x: p.x, z: p.z, r: 6, text: `⚔️ Challenge ${nameOf(p.peer)}`, fn: () => this.challenge(p.peer) });
       return out;
     },
     menu() {
-      return [['⚔️ Duel', () => this.duelPanel(), 'Duel'], ['🎁 Crates', () => this.cratePanel(), 'Crates'], ['🎒 Abilities', () => this.abilityPanel(), 'Abilities'], ['⬆️ Upgrades', () => this.upgradePanel(), 'Upgrade'], [this.S && this.S.hb ? '🟩 Hitboxes: on' : '🟥 Hitboxes: off', () => this.toggleHb(), 'Hitbox']];
+      return [['⚔️ Duel', () => this.duelPanel(), 'Duel'], ['🎁 Crates', () => this.cratePanel(), 'Crates'], ['🎒 Abilities', () => this.abilityPanel(), 'Abilities'], ['⬆️ Upgrades', () => this.upgradePanel(), 'Upgrade'], ['💯 Battle Pass', () => this.bpPanel(), 'Pass'], [this.S && this.S.hb ? '🟩 Hitboxes: on' : '🟥 Hitboxes: off', () => this.toggleHb(), 'Hitbox']];
     },
     statOf(pr) { return pr && pr.au != null ? `🗿 ${short(pr.au)}` : '—'; },
     sortKey(pr) { return (pr && +pr.au) || 0; },
@@ -1442,7 +1567,7 @@
     abCard(k, lvl, opts = {}) {
       const A = AB[k], au = this.S.au;
       const stat = A.k === 'self' ? [A.heal ? `❤️ +${Math.round(A.heal * lvK(lvl))}` : '', A.shield ? `🍩 ${Math.round(A.shield[0] * lvK(lvl))}` : '', A.buff ? `🔥 ×${A.buff[0]}` : ''].filter(Boolean).join(' ') : `⚔️ ${Math.round(A.dmg * lvK(lvl) * auraMult(au)) * (A.cnt || 1)}${A.dot ? ' + 🌪️' + Math.round(A.dot[0] * A.dot[1] * lvK(lvl) * auraMult(au)) : ''}`;
-      return `<div class="xp-card au-card r${A.r} ${A.phonk ? 'ph' : ''} ${opts.eq ? 'eq' : ''} ${opts.locked ? 'locked' : ''}" style="--rc:${RAR[A.r][1]}">${lvl ? `<span class="lv">Lv ${lvl}</span>` : ''}<div class="big">${opts.locked ? '❔' : A.e}</div><b>${opts.locked ? '???' : esc(A.n)}</b><span class="rt">${RAR[A.r][0]}</span>${opts.locked ? '' : `<span class="st">${stat} · ⏱️ ${A.cd}s</span><span style="font-weight:600;color:#94a3b8">${esc(A.d)}</span>`}${opts.btn || ''}</div>`;
+      return `<div class="xp-card au-card r${A.r} ${A.phonk ? 'ph' : ''} ${A.bp ? 'bpx' : ''} ${opts.eq ? 'eq' : ''} ${opts.locked ? 'locked' : ''}" style="--rc:${RAR[A.r][1]}">${lvl ? `<span class="lv">Lv ${lvl}</span>` : ''}<div class="big">${opts.locked ? '❔' : A.e}</div><b>${opts.locked ? '???' : esc(A.n)}</b><span class="rt">${RAR[A.r][0]}</span>${opts.locked ? '' : `<span class="st">${stat} · ⏱️ ${+(A.cd * cdK(this.S.cdr)).toFixed(1)}s</span><span style="font-weight:600;color:#94a3b8">${esc(A.d)}</span>`}${opts.btn || ''}</div>`;
     },
     abilityPanel() {
       const S = this.S, own = ABK.filter((k) => S.ab[k]).sort((a, b) => AB[b].r - AB[a].r);
@@ -1451,7 +1576,7 @@
         <div class="au-slots">${slots}</div>
         <div class="xp-grid">${own.map((k) => { const on = S.eq.includes(k); return this.abCard(k, S.ab[k], { eq: on, btn: `<button class="xp-btn ${on ? 'alt' : ''}" data-eq="${k}">${on ? 'Unequip' : S.eq.length >= 4 ? 'Swap in' : 'Equip'}</button>` }); }).join('')}</div>
         <h4>📖 Every ability <small style="color:var(--muted);font:700 12px var(--fb)">— ${own.length}/${ABK.length} unlocked</small></h4>
-        <div class="xp-grid">${ABK.filter((k) => !S.ab[k]).map((k) => this.abCard(k, 0, { locked: AB[k].r >= 3 })).join('') || '<p class="xp-note">You have every ability. Ohio has nothing left to teach you.</p>'}</div>`;
+        <div class="xp-grid">${ABK.filter((k) => !S.ab[k]).map((k) => this.abCard(k, 0, { locked: AB[k].r >= 3 && !AB[k].bp, btn: AB[k].bp ? `<span class="au-bptag">💯 ${AB[k].prem ? 'Bussin+ ' : ''}Battle Pass level ${AB[k].bp}</span>` : '' })).join('') || '<p class="xp-note">You have every ability. Ohio has nothing left to teach you.</p>'}</div>`;
       openPanel('🎒 Abilities', html, (b) => {
         const k = b.dataset.eq; if (!k || !S.ab[k]) return;
         const i = S.eq.indexOf(k);
@@ -1462,23 +1587,26 @@
     },
     cratePanel(focus) {
       const S = this.S;
-      const odds = (o) => `<div class="au-odds">${o.map((p, r) => `<div class="${p ? '' : 'zero'}" style="--rc:${RAR[r][1]}">${RAR[r][0]}<br><b>${p}%</b></div>`).join('')}</div>`;
-      const html = `<p class="xp-note">🎁 Crates cost aura, so opening one makes your hits weaker until you farm it back. Gamble responsibly (you won’t). A double levels an ability up.</p>
+      const odds = (o0) => { const o = luckOdds(o0, S.lk), t = o.reduce((a, b) => a + b, 0) || 1; return `<div class="au-odds">${o.map((p, r) => { const q = p / t * 100; return `<div class="${p ? '' : 'zero'}" style="--rc:${RAR[r][1]}">${RAR[r][0]}<br><b>${q >= 10 || !q ? Math.round(q) : q.toFixed(1)}%</b></div>`; }).join('')}</div>`; };
+      const html = `<p class="xp-note">🎁 Crates cost aura, so opening one makes your hits weaker until you farm it back. Gamble responsibly (you won’t). A double levels an ability up.${S.lk ? ` 🍀 Rizz Luck Lv ${S.lk} makes every crate rarer (the odds below include it).` : ''} 🔑 Keys from the 💯 Battle Pass open a crate for free.</p>
         ${S.free ? `<div class="xp-row" style="display:block"><b>🏆 W Crate ×${S.free}</b> <small style="color:var(--muted)">— free, from winning duels. Rolls like a Rizz Crate.</small>${odds(FREE_ODDS)}<button class="xp-btn gold" data-free="1" style="width:100%">Open a W Crate (free)</button></div>` : ''}
-        ${CRATES.map((C) => `<div class="xp-row" style="display:block;${focus === C.id ? 'border-color:#fde047;' : ''}${C.phonk ? 'background:linear-gradient(180deg,#1c0b22,#0b0b10);border-color:#a21caf' : ''}"><b>${C.e} ${C.n}</b> <small style="color:var(--muted)">— ${esc(C.d)}</small>${odds(C.odds)}<button class="xp-btn" data-crate="${C.id}" style="width:100%" ${S.au < C.price ? 'disabled' : ''}>${S.au < C.price ? `Need 🗿 ${comma(C.price - S.au)} more` : `Open for 🗿 ${comma(C.price)}`}</button></div>`).join('')}`;
+        ${CRATES.map((C) => `<div class="xp-row" style="display:block;${focus === C.id ? 'border-color:#fde047;' : ''}${C.phonk ? 'background:linear-gradient(180deg,#1c0b22,#0b0b10);border-color:#a21caf' : ''}"><b>${C.e} ${C.n}</b> <small style="color:var(--muted)">— ${esc(C.d)}</small>${odds(C.odds)}${S.keys[C.id] ? `<button class="xp-btn gold" data-key="${C.id}" style="width:100%;margin-bottom:6px">🔑 Open free with a key (×${S.keys[C.id]})</button>` : ''}<button class="xp-btn" data-crate="${C.id}" style="width:100%" ${S.au < C.price ? 'disabled' : ''}>${S.au < C.price ? `Need 🗿 ${comma(C.price - S.au)} more` : `Open for 🗿 ${comma(C.price)}`}</button></div>`).join('')}`;
       openPanel('🎁 Ability Crates', html, (b) => {
         if (b.dataset.free) { if (S.free < 1) return; S.free--; this.openCrate(FREE_ODDS, '🏆 W Crate'); }
+        else if (b.dataset.key) { const C = CRATES.find((c) => c.id === b.dataset.key); if (!C || !(S.keys[C.id] > 0)) return; S.keys[C.id]--; if (!S.keys[C.id]) delete S.keys[C.id]; this.openCrate(C.odds, `🔑 ${C.e} ${C.n}`, C.price, C.phonk); }
         else if (b.dataset.crate) { const C = CRATES.find((c) => c.id === b.dataset.crate); if (!C || S.au < C.price) { sfx('error'); return; } S.au -= C.price; this.openCrate(C.odds, `${C.e} ${C.n}`, C.price, C.phonk); }
       });
     },
     // the reveal: a strip of abilities flies past and stops on what you got
     openCrate(odds, title, price, ph) {
-      const S = this.S, got = rollAb(odds, ph), A = AB[got], was = S.ab[got] | 0;
+      const S = this.S; odds = luckOdds(odds, S.lk);
+      const got = rollAb(odds, ph), A = AB[got], was = S.ab[got] | 0;
       let note;
       if (!was) { S.ab[got] = 1; note = 'NEW ABILITY 🔥'; if (S.eq.length < 4) S.eq.push(got); }
       else if (was < MAX_LV) { S.ab[got] = was + 1; note = `Double! Lv ${was} → Lv ${was + 1}`; }
       else { const back = Math.round((price || 400) * 0.3); S.au += back; note = `Already max level: +${comma(back)} aura back`; }
       S.op = (S.op | 0) + 1; if (A.r === 5) questMax('aura.ohio', 1);
+      this.xp(20); this.daily('crate', 1);
       this.dirty = true; this.save(); this.send(true); closePanel();
       const cards = []; for (let i = 0; i < 46; i++) cards.push(i === 40 ? got : rollAb(odds, ph));
       const el = document.createElement('div'); el.id = 'auBox'; if (ph) { el.className = 'phonk'; if (this.music) this.music.stop(); this.music = phonk(6.2); }
@@ -1502,26 +1630,122 @@
       el.onclick = () => { if (!shown) { show(); return; } el.remove(); if (ph && this.music && !this.editUntil) { this.music.stop(); this.music = null; } };
     },
     upgradePanel() {
-      const S = this.S, x2 = hasItem('au2') ? 2 : 1;
-      const row = (k, e, n, lvl, cost, now, next, what) => `<div class="xp-row" style="display:block"><div style="display:flex;justify-content:space-between;align-items:center"><b>${e} ${n} <small style="color:var(--muted)">Lv ${lvl}</small></b><span>${what}: <b>+${short(now)}</b> → <b style="color:#86efac">+${short(next)}</b></span></div><div style="display:flex;gap:6px;margin-top:6px"><button class="xp-btn" data-up="${k}" style="flex:1" ${S.au < cost ? 'disabled' : ''}>${S.au < cost ? `Need 🗿 ${comma(cost - S.au)} more` : `Upgrade for 🗿 ${comma(cost)}`}</button><button class="xp-btn alt" data-max="${k}" ${S.au < cost ? 'disabled' : ''}>Max</button></div></div>`;
-      const html = `<p class="xp-note">⬆️ More aura per click and per second. Every upgrade costs aura, which (for a while) makes your hits weaker. That’s the grindset.</p>
-        ${row('cl', '🤫', 'Mewing Lessons', S.cl, clickCost(S.cl), (1 + S.cl) * x2, (2 + S.cl) * x2, 'per click')}
-        ${row('ps', '💪', 'Sigma Grindset', S.ps, grindCost(S.ps), (1 + S.ps) * x2, (2 + S.ps) * x2, 'per second')}
-        <p class="xp-note">🔥 Click streaks: ${TIERS.slice(1).map((T) => `${T.at} clicks ${T.e} ×${T.m}`).join(' · ')}. Click again within ${STREAK_GAP}s or it ends. Your best: ${S.bs | 0} clicks.</p>
+      const S = this.S, x = this.mult(), body = $('#xpBody'), keep = $('#xpTitle').textContent === '⬆️ Upgrades' ? body.scrollTop : 0;
+      const row = (u) => {
+        const l = S[u.k] | 0, maxed = u.max && l >= u.max, cost = maxed ? 0 : u.cost(l), poor = S.au < cost;
+        return `<div class="xp-row" style="display:block"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>${u.e} ${u.n} <small style="color:var(--muted)">Lv ${l}${u.max ? ' / ' + u.max : ''}</small></b><span style="text-align:right">${esc(u.what)}: <b>${u.v(l, x)}</b>${maxed ? '' : ` → <b style="color:#86efac">${u.v(l + 1, x)}</b>`}</span></div>${u.d ? `<small style="color:var(--muted)">${esc(u.d)}</small>` : ''}<div style="display:flex;gap:6px;margin-top:6px">${maxed ? '<button class="xp-btn alt" style="flex:1" disabled>MAXED 💯</button>' : `<button class="xp-btn" data-up="${u.k}" style="flex:1" ${poor ? 'disabled' : ''}>${poor ? `Need 🗿 ${comma(cost - S.au)} more` : `Upgrade for 🗿 ${comma(cost)}`}</button><button class="xp-btn alt" data-max="${u.k}" ${poor ? 'disabled' : ''}>Max</button>`}</div></div>`;
+      };
+      const html = `<p class="xp-note">⬆️ Every upgrade costs aura, which (for a while) makes your hits weaker. That’s the grindset.</p>
+        ${UP_GROUPS.map((g, i) => `<h4>${g}</h4>${UPS.filter((u) => u.g === i).map(row).join('')}`).join('')}
+        <p class="xp-note">🔥 Click streaks: ${TIERS.slice(1).map((T) => `${T.at} clicks ${T.e} ×${T.m}`).join(' · ')}. Click again within ${this.gap().toFixed(2)}s or it ends. Your best: ${S.bs | 0} clicks.</p>
         <p class="xp-note">🏆 ${S.w} W · ${S.l} L · best aura ever: 🗿 ${comma(S.best)} · crates opened: ${S.op | 0}</p>`;
       openPanel('⬆️ Upgrades', html, (b) => {
-        const k = b.dataset.up || b.dataset.max; if (!k) return;
-        const cost = (l) => (k === 'cl' ? clickCost(l) : grindCost(l));
-        let n = 0; do { const c = cost(S[k]); if (S.au < c) break; S.au -= c; S[k]++; n++; } while (b.dataset.max && n < 200);
+        const k = b.dataset.up || b.dataset.max, u = UPS.find((q) => q.k === k); if (!u) return;
+        let n = 0; do { if (u.max && (S[k] | 0) >= u.max) break; const c = u.cost(S[k] | 0); if (S.au < c) break; S.au -= c; S[k] = (S[k] | 0) + 1; n++; } while (b.dataset.max && n < 200);
         if (!n) { sfx('error'); return; }
-        sfx('levelup'); toast(k === 'cl' ? `🤫 Jawline +${n}. Clicks hit different now.` : `💪 Grindset +${n}. 4am club.`, '#c4b5fd');
-        this.dirty = true; this.save(); this.upgradePanel(); this.drawBar();
+        sfx('levelup'); toast(`${u.e} ${u.t.replace('{n}', n)}`, '#c4b5fd');
+        this.xp(5 * Math.min(n, 10)); this.daily('up', n);
+        this.dirty = true; this.save(); this.send(true); this.upgradePanel(); this.drawBar();
       });
+      $('#xpBody').scrollTop = keep;
+    },
+
+    /* ---------------- the Bussin Battle Pass ---------------- */
+    // XP: past level 50, every 500 more is a free W Crate
+    xp(n) {
+      const S = this.S; if (!S || !(n > 0)) return;
+      const l0 = bpLevel(S.bx)[0], over0 = Math.floor(Math.max(0, S.bx - BP_TOTAL) / 500);
+      S.bx += n; this.dirty = true;
+      const l1 = bpLevel(S.bx)[0], over1 = Math.floor(Math.max(0, S.bx - BP_TOTAL) / 500);
+      if (l1 > l0) this.bpUp(l1);
+      if (over1 > over0) { S.free += over1 - over0; toast('💯 Battle Pass maxed: +1 W Crate for 500 more XP', '#fde047'); }
+    },
+    bpUp(l) {
+      const old = $('#auBP'); if (old) old.remove();
+      const el = document.createElement('div'); el.id = 'auBP';
+      const R = bpFree(l), P2 = hasItem('bp') ? bpPrem(l) : null;
+      el.innerHTML = `<div class="m">💯 BUSSIN BATTLE PASS</div><div class="n">LEVEL ${l}</div><div class="s">${this.bpLabel(R).join(' ')}${P2 ? ' · 👑 ' + this.bpLabel(P2).join(' ') : ''} · claim it in 💯 Pass</div>`;
+      $('#xhud').append(el); setTimeout(() => el.remove(), 2300);
+      sfx('levelup'); if (l % 10 === 0) { Net.chat(`💯 reached Bussin Battle Pass level ${l}`); this.speak('battle pass level ' + l); }
+    },
+    dailies() { const d = today(); if (!this.dqc || this.dqc[0] !== d) this.dqc = [d, dailyOf(d)]; return this.dqc[1]; },
+    daily(id, n) {
+      const S = this.S; if (!S) return;
+      const day = today(), T = this.dailies().find((q) => q.id === id); if (!T) return;
+      if (!S.dq || S.dq.d !== day) S.dq = { d: day, p: {}, done: {} };
+      if (S.dq.done[id]) return;
+      S.dq.p[id] = Math.min(T.goal, (S.dq.p[id] || 0) + n); this.dirty = true;
+      if (S.dq.p[id] >= T.goal) { S.dq.done[id] = 1; toast(`✅ Daily challenge done: ${T.n} · +${T.xp} XP`, '#86efac'); sfx('reward'); this.xp(T.xp); }
+    },
+    bpLabel(R) {
+      if (R.t === 'au') return ['🗿', `+${short(Math.max(50, R.s * this.perSec()))} aura`];
+      if (R.t === 'key') { const C = CRATES.find((c) => c.id === R.c); return ['🔑', `${C.e} ${C.n.replace(' Crate', '')} key`]; }
+      if (R.t === 'bc') return ['🪙', `${R.n} Blox Coins`];
+      if (R.t === 'x2') return ['⚡', `2× aura · ${R.m >= 60 ? R.m / 60 + 'h' : R.m + ' min'}`];
+      if (R.t === 'ab') return [AB[R.k].e, AB[R.k].n];
+      return ['⬆️', '+1 level: your 4 abilities'];
+    },
+    bpCan(tr, l, L = bpLevel(this.S.bx)[0]) { return l <= L && !this.S.bpc[tr + l] && (tr === 'f' || hasItem('bp')); },
+    bpClaimable() { const L = bpLevel(this.S.bx)[0]; let n = 0; for (let l = 1; l <= L; l++) { if (this.bpCan('f', l, L)) n++; if (this.bpCan('p', l, L)) n++; } return n; },
+    bpClaim(tr, l, quiet) {
+      const S = this.S; if (!this.bpCan(tr, l)) return false;
+      S.bpc[tr + l] = 1;
+      const R = (tr === 'f' ? bpFree : bpPrem)(l), [e, t] = this.bpLabel(R);
+      if (R.t === 'au') this.gain(Math.max(50, Math.round(R.s * this.perSec())));
+      else if (R.t === 'key') S.keys[R.c] = (S.keys[R.c] | 0) + 1;
+      else if (R.t === 'bc') earn(R.n, 'Bussin Battle Pass');
+      else if (R.t === 'x2') S.x2u = Math.max(Date.now(), S.x2u || 0) + R.m * 60000;
+      else if (R.t === 'lv') { for (const k of S.eq) S.ab[k] = Math.min(MAX_LV, (S.ab[k] | 0) + 1); }
+      else if (R.t === 'ab') {
+        const A = AB[R.k], was = S.ab[R.k] | 0;
+        if (!was) { S.ab[R.k] = 1; if (S.eq.length < 4) S.eq.push(R.k); } else S.ab[R.k] = Math.min(MAX_LV, was + 1);
+        if (!quiet) this.showGot(A, was ? `Lv ${was} → Lv ${S.ab[R.k]}` : 'BATTLE PASS EXCLUSIVE 💯');
+        Net.chat(`💯 unlocked ${A.n} ${A.e} from the Bussin Battle Pass`);
+      }
+      if (!quiet) { toast(`${e} ${t}`, tr === 'p' ? '#fde047' : '#c4b5fd'); sfx(tr === 'p' ? 'unlock' : 'reward'); }
+      this.dirty = true; this.save(); this.send(true); this.drawBar(); this.drawTop();
+      return true;
+    },
+    // a reward, big, in the middle (the same card as a crate's)
+    showGot(A, note) {
+      const old = $('#auBox'); if (old) old.remove();
+      const el = document.createElement('div'); el.id = 'auBox';
+      el.innerHTML = `<div class="in"><div class="got r${A.r}" style="--rc:${RAR[A.r][1]}"><div class="e">${A.e}</div><b>${esc(A.n)}</b><span>${RAR[A.r][0]} tier</span><p>${esc(A.d)}</p><div class="lv">${esc(note)}</div></div><div class="tap">click to close</div></div>`;
+      el.onclick = () => el.remove(); $('#xhud').append(el); sfx('unlock');
+    },
+    bpBuy() { closePanel(); openShop(); },
+    bpPanel() {
+      const S = this.S, [L, into] = bpLevel(S.bx), prem = hasItem('bp'), need = L < BP_MAX ? bpNeed(L + 1) : 1, can = this.bpClaimable();
+      const day = today(), dq = S.dq && S.dq.d === day ? S.dq : { p: {}, done: {} };
+      const tile = (tr, l) => {
+        const R = (tr === 'f' ? bpFree : bpPrem)(l), [e, t] = this.bpLabel(R), got = S.bpc[tr + l], cls = got ? 'got' : l > L ? 'lock' : tr === 'p' && !prem ? 'plock' : 'can';
+        return `<button class="t ${tr} ${cls}" data-bpc="${tr}${l}"><span class="e">${e}</span><span class="n">${esc(t)}</span><i>${got ? '✓' : cls === 'can' ? 'CLAIM' : cls === 'plock' ? '🔒 Bussin+' : '🔒'}</i></button>`;
+      };
+      const cols = Array.from({ length: BP_MAX }, (_, i) => i + 1).map((l) => `<div class="c ${l <= L ? 'on' : ''} ${l === L + 1 ? 'next' : ''} ${l % 10 === 0 ? 'big' : ''}"><b>${l}</b>${tile('f', l)}${tile('p', l)}</div>`).join('');
+      const html = `<div class="au-bp">
+        <div class="hd"><div class="lvl"><small>LEVEL</small><b>${L}</b></div><div class="xp"><div class="tt">${L >= BP_MAX ? 'MAXED 💯 Every 500 XP more is a free 🏆 W Crate' : `${comma(into)} / ${comma(need)} XP to level ${L + 1}`}</div><div class="bar"><i style="width:${L >= BP_MAX ? 100 : (into / need * 100).toFixed(1)}%"></i></div><small>${comma(S.bx)} XP so far · season 1: no cap</small></div>${can ? `<button class="xp-btn gold" data-bpall="1">🎁 Claim all (${can})</button>` : ''}</div>
+        <div class="prem ${prem ? 'on' : ''}">${prem ? '👑 <b>Bussin+ is active.</b> Both tracks are yours. Main character energy.' : `👑 <b>Bussin+</b>: a second track of 50 rewards (Sigma, Phonk and Ohio keys, more aura and coins, 2× boosts) and two abilities you can’t get anywhere else, 🧢 No Cap Beam and 👑 Final Boss Mode. Levels you’ve already reached unlock right away.<br><button class="xp-btn buy" data-bpbuy="1">👑 Get Bussin+ · 🪙 ${BP_PRICE} in the shop</button>`}</div>
+        <div class="lbs"><span>TOP: FREE</span><span class="p">BOTTOM: 👑 BUSSIN+</span></div>
+        <div class="track">${cols}</div>
+        <h4>📅 Daily challenges <small style="color:var(--muted);font:700 12px var(--fb)">— new ones every day</small></h4>
+        ${this.dailies().map((q) => { const p = Math.min(q.goal, dq.p[q.id] || 0), d = dq.done[q.id]; return `<div class="xp-row q ${d ? 'done' : ''}"><span><b>${d ? '✅' : '🎯'} ${esc(q.n)}</b><div class="bar"><i style="width:${(p / q.goal * 100).toFixed(0)}%"></i></div><small>${q.id === 'time' ? `${Math.floor(p / 60)} / ${q.goal / 60} min` : `${comma(p)} / ${comma(q.goal)}`}</small></span><b class="x">+${q.xp} XP</b></div>`; }).join('')}
+        <p class="xp-note">💯 XP comes from playing: farming (1 XP every 5 clicks and every 10 seconds), duels (+60 for a W, +25 for an L), opening crates (+20), landing abilities (+2 a hit), buying upgrades (+5 a level), Unc Joe’s jokes (+5) and the daily challenges.</p></div>`;
+      const old = $('#xpBody .au-bp .track'), keep = old ? old.scrollLeft : null;
+      openPanel('💯 Bussin Battle Pass', html, (b) => {
+        if (b.dataset.bpall) {
+          let n = 0; const L2 = bpLevel(S.bx)[0];
+          for (let l = 1; l <= L2; l++) for (const t of ['f', 'p']) if (this.bpClaim(t, l, true)) n++;
+          if (n) { sfx('reward'); toast(`🎁 Claimed ${n} reward${n === 1 ? '' : 's'}. Bussin.`, '#fde047'); }
+          this.bpPanel();
+        } else if (b.dataset.bpbuy || b.classList.contains('plock')) this.bpBuy();
+        else if (b.dataset.bpc) { if (this.bpClaim(b.dataset.bpc[0], +b.dataset.bpc.slice(1))) this.bpPanel(); }
+      }, null, { full: true });
+      const tr = $('#xpBody .au-bp .track'); if (tr) tr.scrollLeft = keep != null ? keep : Math.max(0, (Math.min(L, BP_MAX - 1) - 1) * 106);
     },
     duelPanel() {
       const g = this.g, busy = new Set(g && Array.isArray(g.D) ? g.D.flatMap((d) => d.f) : []), others = players().filter((p) => !p.me);
       const live = g && Array.isArray(g.D) ? g.D.filter((d) => d.ph !== 'end') : [];
-      const html = `<p class="xp-note">⚔️ Challenge someone to a 1v1. The winner steals <b>20%</b> of the loser’s aura and gets a free 🏆 W Crate. Your aura gives you ${pctOf(auraMult(this.S.au))} damage.</p>
+      const html = `<p class="xp-note">⚔️ Challenge someone to a 1v1. The winner steals <b>20%</b> of the loser’s aura (you steal <b>${Math.round((STEAL + 0.01 * this.S.tx) * 100)}%</b>: 💸 Fanum Tax Rate) and gets a free 🏆 W Crate. Your aura gives you ${pctOf(auraMult(this.S.au))} damage.</p>
         <button class="xp-btn gold" data-bot="1" style="width:100%;padding:12px;font-size:16px" ${this.D ? 'disabled' : ''}>🤖 Duel a bot</button>
         <h4>👥 On this server</h4>
         ${others.length ? others.map((p) => { const au = +p.pr.au || 0, k = rankOf(au), b = busy.has(p.peer); return `<div class="xp-row"><span><b>${esc(nameOf(p.peer))}</b><br><small style="color:${RANKS[k][2]}">🗿 ${comma(au)} · ${RANKS[k][1]}</small></span><button class="xp-btn ${b ? 'alt' : ''}" data-ch="${esc(p.peer)}" ${b || this.D ? 'disabled' : ''}>${b ? 'In a duel' : '⚔️ Challenge'}</button></div>`; }).join('') : '<p class="xp-note">Nobody else is here. It’s giving lonely. Duel a bot!</p>'}
@@ -1536,11 +1760,13 @@
     coinShop: [
       { id: 'au2', e: '🗿', n: '2× Aura', d: 'Twice the aura from every second and every click, for good', price: 600, kind: 'pass' },
       { id: 'hp', e: '🛡️', n: 'Thick Skin', d: 'Start every duel with 25 more health, for good', price: 450, kind: 'pass' },
+      { id: 'bp', e: '👑', n: 'Bussin+ Pass', d: 'The premium track of the 💯 Bussin Battle Pass: 50 more rewards (Sigma, Phonk and Ohio keys, more aura and coins, 2× boosts) and two abilities you can’t get anywhere else, No Cap Beam and Final Boss Mode. Levels you’ve already reached unlock right away', price: BP_PRICE, kind: 'pass' },
       { id: 'snack', e: '🍟', n: 'Aura Snack', d: 'Aura right now: 300 seconds’ worth', price: 25, kind: 'now' },
     ],
     shopCan(id) { return id === 'snack' && !this.S ? 'Loading…' : ''; },
     onBuy(id) {
       if (id === 'au2' || id === 'hp') { this.send(true); this.drawBar(); return; }
+      if (id === 'bp') { toast('👑 Bussin+ unlocked! Claim your premium rewards in 💯 Battle Pass', '#fde047'); sfx('unlock'); this.drawBar(); return; }
       if (id !== 'snack') return;
       const v = 300 * this.perSec(); this.gain(v); toast(`🍟 +${comma(v)} aura. Bussin.`, '#86efac'); this.drawTop();
     },
