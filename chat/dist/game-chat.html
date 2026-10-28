@@ -1109,6 +1109,20 @@ body.ai-open #chatPane, body.ai-open #searchBtn, body.ai-open #moreBtn, body.ai-
 .ai-actions button { border: 0; background: none; color: var(--muted); font: 600 12px var(--font); padding: 3px 7px; border-radius: 8px; cursor: pointer; }
 .ai-actions button:hover { background: var(--surface-2); color: var(--accent); }
 .ai-thinking { color: var(--muted); font-style: italic; }
+.md-code.ai-html { max-height: 260px; overflow: auto; margin-bottom: 0; border-radius: 10px 10px 0 0; }
+.ai-code-bar { display: flex; flex-wrap: wrap; gap: 4px; padding: 5px 6px; margin: 0 0 6px; background: #1b2033; border-radius: 0 0 10px 10px; }
+.ai-code-bar button { border: 0; background: rgba(255,255,255,.08); color: #e2e8f0; font: 600 12px var(--font); padding: 5px 10px; border-radius: 8px; cursor: pointer; }
+.ai-code-bar button:hover { background: rgba(255,255,255,.16); }
+.ai-code-bar .ai-pv-btn { background: linear-gradient(135deg, #22c3ee, #6d5dfc); color: #fff; }
+.ai-code-bar .ai-pv-btn.on { background: #475569; }
+.ai-pv { margin: 0 0 8px; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: #fff; resize: vertical; height: 340px; min-height: 140px; display: flex; flex-direction: column; }
+.ai-pv-frame { flex: 1; width: 100%; border: 0; background: #fff; display: block; }
+.ai-pv-err { font: 600 12px var(--mono); color: #b91c1c; background: #fef2f2; padding: 5px 8px; border-top: 1px solid #fecaca; white-space: pre-wrap; }
+.ai-pv-err.hidden { display: none; }
+.ai-pv-full { position: fixed; inset: 0; z-index: 1000; background: rgba(8, 10, 20, .82); display: flex; flex-direction: column; padding: 14px; gap: 10px; }
+.ai-pv-full-head { display: flex; align-items: center; gap: 12px; color: #fff; }
+.ai-pv-full-head .muted { color: #94a3b8; font-size: 13px; flex: 1; }
+.ai-pv.full { flex: 1; height: auto; resize: none; margin: 0; }
 .ai-dots { display: inline-flex; gap: 3px; vertical-align: middle; margin-right: 4px; }
 .ai-dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: blink 1.1s infinite; }
 .ai-dots i:nth-child(2) { animation-delay: .18s; }
@@ -7749,6 +7763,7 @@ How to help:
 - Help with whatever they ask: game tips and strategy, rules, homework and learning, writing a message, ideas, jokes, quizzes, stories, code and so on.
 - You can't see their chats or games and can't do things in the app for them. If they ask, tell them where to find it.
 - Write like a chat message: usually a few sentences. Go longer only when they ask for detail (a story, an explanation, steps).
+- When they ask you to make a web page, a game, an animation or anything else that runs in a browser, write it as one complete HTML file (CSS in <style>, JavaScript in <script>, no outside files, images or libraries) in a single \`\`\`html code block. Game Chat runs it right under your answer (▶ Preview, ⛶ Full screen), and they can open it in 🧰 Tools → HTML to change it, so don't tell them to save it as a file to see it.
 - Formatting that shows up: **bold**, *italics*, \`code\`, \`\`\`code blocks\`\`\`, > quotes and simple "- " lists. Don't use headings (#) or tables; they show up as plain symbols.
 - Never ask for personal details like passwords, home addresses, phone numbers or school names, and suggest keeping them private if they come up.
 - The AI helper can also be switched to Buddy, Game Chat's small built-in helper that runs in the browser for free. Earlier answers that start with [Buddy] came from Buddy, not you; don't start your own answers with it.`;
@@ -7949,6 +7964,7 @@ window.TRIVIA_Q = [
     { k: ['block someone', 'mute a chat', 'mute', 'blocking'], a: 'To **block** someone, open their profile and press Block: their messages, pings and challenges are hidden from you. To **mute** a chat, use the chat menu (⋯ in the top bar).' },
     { k: ['export chat', 'download chat', 'save the chat'], a: 'Open the chat menu (**⋯** in the top bar) and choose **Export** to download the chat as a text file.' },
     { k: ['who is online', 'online people', 'members'], a: 'The **N Online** counter shows who’s on. Press **Members** in the top bar to see who’s in the current chat.' },
+    { k: ['claude html', 'preview html', 'html preview', 'make a website', 'make a web page', 'claude make a game', 'run the code'], a: 'Switch to **✨ Claude** at the top and ask it to make a web page, a game or an animation. It writes one HTML file and it **runs right under the answer** (▶ Preview, ⛶ Full screen). Press **🧰 Edit in HTML tool** to open it in 🧰 Tools → HTML and change it yourself.' },
     { k: ['what is the ai helper', 'ai helper', 'buddy and claude', 'switch to claude', 'use claude', 'does this use usage', 'free ai', 'usage'], a: 'This chat is the **AI helper**. It has two brains, switched at the top:\n- **🧩 Buddy** (that’s me!) — built into Game Chat and runs right in your browser. It’s free and uses no AI usage, but I’m small: I know Game Chat, its games, maths, words, facts, jokes and games we can play here.\n- **✨ Claude** — a big AI from Anthropic that can answer almost anything, but it uses Claude usage.' },
     { k: ['draw phone', 'gartic phone'], a: '**Draw Phone** (in 🕹️ Games) is like Gartic Phone: everyone writes a prompt, then the papers go round — draw the prompt you’re handed, the next person describes your drawing, and so on. At the end the host shows each album. Tip: draw big and simple, and describe exactly what you see!' },
     { k: ['trivia rush', 'trivia game'], a: '**🧠 Trivia Rush** (in 🕹️ Games, 2–12 players): everyone answers the same 10 questions, 15 seconds each. A right answer scores 500 plus up to 500 for speed, and streaks add 100 each. Want to practise? Say **quiz me** and I’ll ask you some.' },
@@ -9624,6 +9640,87 @@ window.TRIVIA_Q = [
   const atBottom = () => list.scrollHeight - list.scrollTop - list.clientHeight < 120;
   const toBottom = () => { list.scrollTop = list.scrollHeight; };
 
+  // ------------------------------------------------------------ HTML in an answer: ▶ Preview runs it right here
+  // (in a sandboxed frame with no access to the chat), ⛶ full screen, or 🧰 Edit in HTML tool to change it
+  const PV = new Set(); // the open previews, as "turn:block"
+  const pvErr = new Map(); // a preview's frame → where its errors show
+  // the closed ```fences of a message, as [language, code], in order: the same ones richText draws as <pre>
+  function codeBlocks(text) {
+    const parts = String(text).split('```'), out = [];
+    for (let i = 1; i < parts.length - 1; i += 2) {
+      const m = /^([a-z0-9+-]*)\n/i.exec(parts[i]);
+      out.push([m ? m[1].toLowerCase() : '', (m ? parts[i].slice(m[0].length) : parts[i]).replace(/\n$/, '')]);
+    }
+    return out;
+  }
+  const isHtml = ([lang, code]) => /^(html?|xhtml|svg)$/.test(lang) || (!lang && /^\s*<(!doctype\s+html|html|head|body|svg|canvas|style|div|h1|main)\b/i.test(code));
+  // the page to run: the HTML block, with any CSS and JavaScript blocks from the same answer put in
+  function pageOf(blocks, k) {
+    let code = blocks[k][1];
+    const css = blocks.filter(([l]) => l === 'css').map(([, c]) => c).join('\n');
+    const js = blocks.filter(([l]) => /^(js|javascript)$/.test(l)).map(([, c]) => c).join('\n');
+    if (css) code = /<\/head>/i.test(code) ? code.replace(/<\/head>/i, `<style>\n${css}\n</style>\n</head>`) : `<style>\n${css}\n</style>\n${code}`;
+    if (js) code = /<\/body>/i.test(code) ? code.replace(/<\/body>(?![\s\S]*<\/body>)/i, `<script>\n${js}\n<\/script>\n</body>`) : `${code}\n<script>\n${js}\n<\/script>`;
+    return code;
+  }
+  // its errors come back to show under it (one line, so the page's line numbers stay right)
+  const PV_ERRORS = '<script>(function(){var p=function(m){try{parent.postMessage({__gcAiPv:1,m:String(m)},"*")}catch(e){}};addEventListener("error",function(e){p(e.message+(e.lineno?" (line "+e.lineno+")":""))});addEventListener("unhandledrejection",function(e){p("Promise: "+(e.reason&&e.reason.message||e.reason))});var o=console.error;console.error=function(){p(Array.prototype.join.call(arguments," "));if(o)o.apply(console,arguments)}})();<\/script>';
+  function withErrors(code) {
+    const m = /<head[^>]*>/i.exec(code) || /<html[^>]*>/i.exec(code);
+    return m ? code.slice(0, m.index + m[0].length) + PV_ERRORS + code.slice(m.index + m[0].length) : PV_ERRORS + code;
+  }
+  addEventListener('message', (e) => {
+    const d = e.data; if (!d || d.__gcAiPv !== 1) return;
+    for (const [frame, err] of pvErr) {
+      if (!frame.isConnected) { pvErr.delete(frame); continue; }
+      if (frame.contentWindow !== e.source) continue;
+      const n = (+err.dataset.n || 0) + 1; err.dataset.n = n;
+      err.classList.remove('hidden');
+      err.textContent = `⚠️ ${n === 1 ? 'An error' : n + ' errors'} in this page: ${String(d.m).slice(0, 200)}`;
+    }
+  });
+  function previewBox(page, full) {
+    const h = X.h;
+    const frame = h('iframe', { class: 'ai-pv-frame', title: 'Preview', sandbox: 'allow-scripts allow-modals allow-forms allow-pointer-lock' });
+    const err = h('div', { class: 'ai-pv-err hidden' });
+    pvErr.set(frame, err);
+    frame.srcdoc = withErrors(page);
+    return h('div', { class: 'ai-pv' + (full ? ' full' : '') }, frame, err);
+  }
+  function fullPreview(page) {
+    const h = X.h, old = document.getElementById('aiPvFull'); if (old) old.remove();
+    const onKey = (e) => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
+    const close = () => { el.remove(); removeEventListener('keydown', onKey, true); };
+    const el = h('div', { class: 'ai-pv-full', id: 'aiPvFull', role: 'dialog', 'aria-label': 'Preview' },
+      h('div', { class: 'ai-pv-full-head' }, h('b', {}, '▶ Preview'), h('span', { class: 'muted' }, 'It runs on its own, so it can’t see your chats.'), h('button', { type: 'button', class: 'btn small', onclick: close }, '✕ Close')),
+      previewBox(page, true));
+    document.body.append(el);
+    addEventListener('keydown', onKey, true);
+  }
+  // under every HTML block in an answer: ▶ Preview (and the preview, if it's open), ⛶ Full screen, 🧰 Edit, 📋 Copy
+  function addPreviews(textEl, content, i) {
+    const h = X.h, blocks = codeBlocks(content), pres = textEl.querySelectorAll('pre.md-code');
+    blocks.forEach((b, k) => {
+      const pre = pres[k]; if (!pre || !isHtml(b)) return;
+      const key = i + ':' + k, page = pageOf(blocks, k);
+      let box = null;
+      const pvBtn = h('button', { type: 'button', class: 'ai-pv-btn', 'data-pv': key, onclick: () => setOpen(!box) });
+      const setOpen = (on) => {
+        if (on && !box) { box = previewBox(page); bar.after(box); PV.add(key); }
+        else if (!on && box) { box.remove(); box = null; PV.delete(key); }
+        pvBtn.textContent = box ? '⏹ Hide preview' : '▶ Preview';
+        pvBtn.classList.toggle('on', !!box);
+      };
+      const bar = h('div', { class: 'ai-code-bar' }, pvBtn,
+        h('button', { type: 'button', title: 'Show it as big as the window', onclick: () => fullPreview(page) }, '⛶ Full screen'),
+        X.openHtml ? h('button', { type: 'button', title: 'Open it in 🧰 Tools → HTML to change it', onclick: () => X.openHtml(page) }, '🧰 Edit in HTML tool') : null,
+        h('button', { type: 'button', title: 'Copy the code', onclick: () => X.copyText(b[1]) }, '📋 Copy code'));
+      pre.classList.add('ai-html');
+      pre.after(bar);
+      setOpen(PV.has(key));
+    });
+  }
+
   function aiAvatar(by) { return X.h('div', { class: 'avatar ai-av' + (by === 'buddy' ? ' buddy' : ''), title: NAME[by] }, by === 'buddy' ? '🧩' : '🤖'); }
   function bubble(t, i) {
     const h = X.h;
@@ -9638,7 +9735,7 @@ window.TRIVIA_Q = [
       h('div', { class: 'av-slot' }, aiAvatar(by)),
       h('div', { class: 'body' },
         h('div', { class: 'meta' }, h('b', { class: 'who' }, NAME[by])),
-        h('div', { class: 'text' }, X.richText(t.content)),
+        withPreviews(h('div', { class: 'text' }, X.richText(t.content)), t.content, i),
         t.note ? h('div', { class: 'ai-note' }, t.note) : null,
         more && t.quick && t.quick.length ? h('div', { class: 'ai-quick' }, t.quick.map((q) => h('button', { type: 'button', class: 'ai-qchip', onclick: () => ask(q) }, q))) : null,
         more && t.offer && claudeOk !== false ? h('button', { type: 'button', class: 'btn small ai-offer', id: 'aiOffer', onclick: askClaudeInstead }, '✨ Ask Claude instead', h('small', {}, ' uses Claude usage')) : null,
@@ -9646,6 +9743,7 @@ window.TRIVIA_Q = [
           h('button', { type: 'button', title: 'Copy', onclick: () => X.copyText(t.content) }, '📋 Copy'),
           last && !busy ? h('button', { type: 'button', title: 'Ask again for a different answer', onclick: retry }, '↻ Try again') : null)));
   }
+  function withPreviews(el, content, i) { addPreviews(el, content, i); return el; }
   function welcome() {
     const h = X.h, me = X.me(), hi = `Hi${me && me.name ? ' ' + me.name : ''}!`;
     const buddy = mode === 'buddy';
@@ -9731,6 +9829,7 @@ window.TRIVIA_Q = [
       if (result.quick && result.quick.length) t.quick = result.quick;
       if (result.offer) t.offer = true;
       turns.push(t);
+      if (!result.stopped && !result.cut) { const k = codeBlocks(partial).findIndex(isHtml); if (k >= 0) PV.add(turns.length - 1 + ':' + k); } // (its HTML, running)
     }
     save();
     render();
@@ -9742,7 +9841,7 @@ window.TRIVIA_Q = [
   function retry() {
     if (busy) return;
     if (input.disabled) return;
-    while (turns.length && turns[turns.length - 1].role === 'assistant') turns.pop();
+    while (turns.length && turns[turns.length - 1].role === 'assistant') { const n = turns.length - 1; turns.pop(); for (const k of PV) if (k.startsWith(n + ':')) PV.delete(k); }
     const q = turns[turns.length - 1];
     if (!q) return;
     delete q.skip;
@@ -9754,7 +9853,7 @@ window.TRIVIA_Q = [
   // Buddy didn't know: ask Claude the same question instead
   function askClaudeInstead() {
     if (busy) return;
-    while (turns.length && turns[turns.length - 1].role === 'assistant') turns.pop();
+    while (turns.length && turns[turns.length - 1].role === 'assistant') { const n = turns.length - 1; turns.pop(); for (const k of PV) if (k.startsWith(n + ':')) PV.delete(k); }
     const q = turns[turns.length - 1];
     setMode('claude');
     if (!q || input.disabled) { save(); render(); return; } // Claude is off here: the notice says why
@@ -9789,6 +9888,7 @@ window.TRIVIA_Q = [
     if (!turns.length) return;
     X.confirm('Start a new chat? This conversation will be cleared.', 'New chat', () => {
       turns = [];
+      PV.clear();
       bmem.game = null; // (Buddy still remembers your name and favorites)
       saveMem();
       save();
@@ -10684,6 +10784,8 @@ window.TRIVIA_Q = [
       document.body.classList.remove('tools-open');
       X.changed();
     },
+    // the HTML previewer with this code in it (the AI helper's 🧰 Edit in HTML tool)
+    openHtml(code) { save('html', String(code)); window.ToolsUI.open('html'); },
     reset() { if (open) window.ToolsUI.close(); current = null; },
     evaluate, // (for tests)
   };
@@ -12351,6 +12453,7 @@ window.TRIVIA_Q = [
   });
   AIChat.init({
     h, richText, copyText, toast, confirm: uiConfirm, artifact: ARTIFACT,
+    openHtml: (code) => { saveDraft(); AIChat.close(); ToolsUI.openHtml(code); },
     me: () => S.me, token: () => S.token, serverAI: () => S.aiOn,
     changed: () => { renderRooms(); renderHeader(); updateTitle(); },
   });

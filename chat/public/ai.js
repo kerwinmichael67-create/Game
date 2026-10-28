@@ -127,6 +127,87 @@
   const atBottom = () => list.scrollHeight - list.scrollTop - list.clientHeight < 120;
   const toBottom = () => { list.scrollTop = list.scrollHeight; };
 
+  // ------------------------------------------------------------ HTML in an answer: ▶ Preview runs it right here
+  // (in a sandboxed frame with no access to the chat), ⛶ full screen, or 🧰 Edit in HTML tool to change it
+  const PV = new Set(); // the open previews, as "turn:block"
+  const pvErr = new Map(); // a preview's frame → where its errors show
+  // the closed ```fences of a message, as [language, code], in order: the same ones richText draws as <pre>
+  function codeBlocks(text) {
+    const parts = String(text).split('```'), out = [];
+    for (let i = 1; i < parts.length - 1; i += 2) {
+      const m = /^([a-z0-9+-]*)\n/i.exec(parts[i]);
+      out.push([m ? m[1].toLowerCase() : '', (m ? parts[i].slice(m[0].length) : parts[i]).replace(/\n$/, '')]);
+    }
+    return out;
+  }
+  const isHtml = ([lang, code]) => /^(html?|xhtml|svg)$/.test(lang) || (!lang && /^\s*<(!doctype\s+html|html|head|body|svg|canvas|style|div|h1|main)\b/i.test(code));
+  // the page to run: the HTML block, with any CSS and JavaScript blocks from the same answer put in
+  function pageOf(blocks, k) {
+    let code = blocks[k][1];
+    const css = blocks.filter(([l]) => l === 'css').map(([, c]) => c).join('\n');
+    const js = blocks.filter(([l]) => /^(js|javascript)$/.test(l)).map(([, c]) => c).join('\n');
+    if (css) code = /<\/head>/i.test(code) ? code.replace(/<\/head>/i, `<style>\n${css}\n</style>\n</head>`) : `<style>\n${css}\n</style>\n${code}`;
+    if (js) code = /<\/body>/i.test(code) ? code.replace(/<\/body>(?![\s\S]*<\/body>)/i, `<script>\n${js}\n<\/script>\n</body>`) : `${code}\n<script>\n${js}\n<\/script>`;
+    return code;
+  }
+  // its errors come back to show under it (one line, so the page's line numbers stay right)
+  const PV_ERRORS = '<script>(function(){var p=function(m){try{parent.postMessage({__gcAiPv:1,m:String(m)},"*")}catch(e){}};addEventListener("error",function(e){p(e.message+(e.lineno?" (line "+e.lineno+")":""))});addEventListener("unhandledrejection",function(e){p("Promise: "+(e.reason&&e.reason.message||e.reason))});var o=console.error;console.error=function(){p(Array.prototype.join.call(arguments," "));if(o)o.apply(console,arguments)}})();<\/script>';
+  function withErrors(code) {
+    const m = /<head[^>]*>/i.exec(code) || /<html[^>]*>/i.exec(code);
+    return m ? code.slice(0, m.index + m[0].length) + PV_ERRORS + code.slice(m.index + m[0].length) : PV_ERRORS + code;
+  }
+  addEventListener('message', (e) => {
+    const d = e.data; if (!d || d.__gcAiPv !== 1) return;
+    for (const [frame, err] of pvErr) {
+      if (!frame.isConnected) { pvErr.delete(frame); continue; }
+      if (frame.contentWindow !== e.source) continue;
+      const n = (+err.dataset.n || 0) + 1; err.dataset.n = n;
+      err.classList.remove('hidden');
+      err.textContent = `⚠️ ${n === 1 ? 'An error' : n + ' errors'} in this page: ${String(d.m).slice(0, 200)}`;
+    }
+  });
+  function previewBox(page, full) {
+    const h = X.h;
+    const frame = h('iframe', { class: 'ai-pv-frame', title: 'Preview', sandbox: 'allow-scripts allow-modals allow-forms allow-pointer-lock' });
+    const err = h('div', { class: 'ai-pv-err hidden' });
+    pvErr.set(frame, err);
+    frame.srcdoc = withErrors(page);
+    return h('div', { class: 'ai-pv' + (full ? ' full' : '') }, frame, err);
+  }
+  function fullPreview(page) {
+    const h = X.h, old = document.getElementById('aiPvFull'); if (old) old.remove();
+    const onKey = (e) => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
+    const close = () => { el.remove(); removeEventListener('keydown', onKey, true); };
+    const el = h('div', { class: 'ai-pv-full', id: 'aiPvFull', role: 'dialog', 'aria-label': 'Preview' },
+      h('div', { class: 'ai-pv-full-head' }, h('b', {}, '▶ Preview'), h('span', { class: 'muted' }, 'It runs on its own, so it can’t see your chats.'), h('button', { type: 'button', class: 'btn small', onclick: close }, '✕ Close')),
+      previewBox(page, true));
+    document.body.append(el);
+    addEventListener('keydown', onKey, true);
+  }
+  // under every HTML block in an answer: ▶ Preview (and the preview, if it's open), ⛶ Full screen, 🧰 Edit, 📋 Copy
+  function addPreviews(textEl, content, i) {
+    const h = X.h, blocks = codeBlocks(content), pres = textEl.querySelectorAll('pre.md-code');
+    blocks.forEach((b, k) => {
+      const pre = pres[k]; if (!pre || !isHtml(b)) return;
+      const key = i + ':' + k, page = pageOf(blocks, k);
+      let box = null;
+      const pvBtn = h('button', { type: 'button', class: 'ai-pv-btn', 'data-pv': key, onclick: () => setOpen(!box) });
+      const setOpen = (on) => {
+        if (on && !box) { box = previewBox(page); bar.after(box); PV.add(key); }
+        else if (!on && box) { box.remove(); box = null; PV.delete(key); }
+        pvBtn.textContent = box ? '⏹ Hide preview' : '▶ Preview';
+        pvBtn.classList.toggle('on', !!box);
+      };
+      const bar = h('div', { class: 'ai-code-bar' }, pvBtn,
+        h('button', { type: 'button', title: 'Show it as big as the window', onclick: () => fullPreview(page) }, '⛶ Full screen'),
+        X.openHtml ? h('button', { type: 'button', title: 'Open it in 🧰 Tools → HTML to change it', onclick: () => X.openHtml(page) }, '🧰 Edit in HTML tool') : null,
+        h('button', { type: 'button', title: 'Copy the code', onclick: () => X.copyText(b[1]) }, '📋 Copy code'));
+      pre.classList.add('ai-html');
+      pre.after(bar);
+      setOpen(PV.has(key));
+    });
+  }
+
   function aiAvatar(by) { return X.h('div', { class: 'avatar ai-av' + (by === 'buddy' ? ' buddy' : ''), title: NAME[by] }, by === 'buddy' ? '🧩' : '🤖'); }
   function bubble(t, i) {
     const h = X.h;
@@ -141,7 +222,7 @@
       h('div', { class: 'av-slot' }, aiAvatar(by)),
       h('div', { class: 'body' },
         h('div', { class: 'meta' }, h('b', { class: 'who' }, NAME[by])),
-        h('div', { class: 'text' }, X.richText(t.content)),
+        withPreviews(h('div', { class: 'text' }, X.richText(t.content)), t.content, i),
         t.note ? h('div', { class: 'ai-note' }, t.note) : null,
         more && t.quick && t.quick.length ? h('div', { class: 'ai-quick' }, t.quick.map((q) => h('button', { type: 'button', class: 'ai-qchip', onclick: () => ask(q) }, q))) : null,
         more && t.offer && claudeOk !== false ? h('button', { type: 'button', class: 'btn small ai-offer', id: 'aiOffer', onclick: askClaudeInstead }, '✨ Ask Claude instead', h('small', {}, ' uses Claude usage')) : null,
@@ -149,6 +230,7 @@
           h('button', { type: 'button', title: 'Copy', onclick: () => X.copyText(t.content) }, '📋 Copy'),
           last && !busy ? h('button', { type: 'button', title: 'Ask again for a different answer', onclick: retry }, '↻ Try again') : null)));
   }
+  function withPreviews(el, content, i) { addPreviews(el, content, i); return el; }
   function welcome() {
     const h = X.h, me = X.me(), hi = `Hi${me && me.name ? ' ' + me.name : ''}!`;
     const buddy = mode === 'buddy';
@@ -234,6 +316,7 @@
       if (result.quick && result.quick.length) t.quick = result.quick;
       if (result.offer) t.offer = true;
       turns.push(t);
+      if (!result.stopped && !result.cut) { const k = codeBlocks(partial).findIndex(isHtml); if (k >= 0) PV.add(turns.length - 1 + ':' + k); } // (its HTML, running)
     }
     save();
     render();
@@ -245,7 +328,7 @@
   function retry() {
     if (busy) return;
     if (input.disabled) return;
-    while (turns.length && turns[turns.length - 1].role === 'assistant') turns.pop();
+    while (turns.length && turns[turns.length - 1].role === 'assistant') { const n = turns.length - 1; turns.pop(); for (const k of PV) if (k.startsWith(n + ':')) PV.delete(k); }
     const q = turns[turns.length - 1];
     if (!q) return;
     delete q.skip;
@@ -257,7 +340,7 @@
   // Buddy didn't know: ask Claude the same question instead
   function askClaudeInstead() {
     if (busy) return;
-    while (turns.length && turns[turns.length - 1].role === 'assistant') turns.pop();
+    while (turns.length && turns[turns.length - 1].role === 'assistant') { const n = turns.length - 1; turns.pop(); for (const k of PV) if (k.startsWith(n + ':')) PV.delete(k); }
     const q = turns[turns.length - 1];
     setMode('claude');
     if (!q || input.disabled) { save(); render(); return; } // Claude is off here: the notice says why
@@ -292,6 +375,7 @@
     if (!turns.length) return;
     X.confirm('Start a new chat? This conversation will be cleared.', 'New chat', () => {
       turns = [];
+      PV.clear();
       bmem.game = null; // (Buddy still remembers your name and favorites)
       saveMem();
       save();

@@ -1658,6 +1658,7 @@
   });
   AIChat.init({
     h, richText, copyText, toast, confirm: uiConfirm, artifact: ARTIFACT,
+    openHtml: (code) => { saveDraft(); AIChat.close(); ToolsUI.openHtml(code); },
     me: () => S.me, token: () => S.token, serverAI: () => S.aiOn,
     changed: () => { renderRooms(); renderHeader(); updateTitle(); },
   });

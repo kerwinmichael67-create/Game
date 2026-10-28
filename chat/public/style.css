@@ -1105,6 +1105,20 @@ body.ai-open #chatPane, body.ai-open #searchBtn, body.ai-open #moreBtn, body.ai-
 .ai-actions button { border: 0; background: none; color: var(--muted); font: 600 12px var(--font); padding: 3px 7px; border-radius: 8px; cursor: pointer; }
 .ai-actions button:hover { background: var(--surface-2); color: var(--accent); }
 .ai-thinking { color: var(--muted); font-style: italic; }
+.md-code.ai-html { max-height: 260px; overflow: auto; margin-bottom: 0; border-radius: 10px 10px 0 0; }
+.ai-code-bar { display: flex; flex-wrap: wrap; gap: 4px; padding: 5px 6px; margin: 0 0 6px; background: #1b2033; border-radius: 0 0 10px 10px; }
+.ai-code-bar button { border: 0; background: rgba(255,255,255,.08); color: #e2e8f0; font: 600 12px var(--font); padding: 5px 10px; border-radius: 8px; cursor: pointer; }
+.ai-code-bar button:hover { background: rgba(255,255,255,.16); }
+.ai-code-bar .ai-pv-btn { background: linear-gradient(135deg, #22c3ee, #6d5dfc); color: #fff; }
+.ai-code-bar .ai-pv-btn.on { background: #475569; }
+.ai-pv { margin: 0 0 8px; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: #fff; resize: vertical; height: 340px; min-height: 140px; display: flex; flex-direction: column; }
+.ai-pv-frame { flex: 1; width: 100%; border: 0; background: #fff; display: block; }
+.ai-pv-err { font: 600 12px var(--mono); color: #b91c1c; background: #fef2f2; padding: 5px 8px; border-top: 1px solid #fecaca; white-space: pre-wrap; }
+.ai-pv-err.hidden { display: none; }
+.ai-pv-full { position: fixed; inset: 0; z-index: 1000; background: rgba(8, 10, 20, .82); display: flex; flex-direction: column; padding: 14px; gap: 10px; }
+.ai-pv-full-head { display: flex; align-items: center; gap: 12px; color: #fff; }
+.ai-pv-full-head .muted { color: #94a3b8; font-size: 13px; flex: 1; }
+.ai-pv.full { flex: 1; height: auto; resize: none; margin: 0; }
 .ai-dots { display: inline-flex; gap: 3px; vertical-align: middle; margin-right: 4px; }
 .ai-dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: blink 1.1s infinite; }
 .ai-dots i:nth-child(2) { animation-delay: .18s; }

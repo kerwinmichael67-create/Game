@@ -727,6 +727,8 @@
       document.body.classList.remove('tools-open');
       X.changed();
     },
+    // the HTML previewer with this code in it (the AI helper's 🧰 Edit in HTML tool)
+    openHtml(code) { save('html', String(code)); window.ToolsUI.open('html'); },
     reset() { if (open) window.ToolsUI.close(); current = null; },
     evaluate, // (for tests)
   };
