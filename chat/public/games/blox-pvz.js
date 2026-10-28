@@ -34,23 +34,23 @@
   const P_ = Object.fromEntries(PL.map((p, i) => [p.k, i]));
   // the zombies: health, armour (cone, bucket, paper, helmet), speed, how much of a wave they use up, the level they first come
   const ZB = [
-    { k: 'basic', n: 'Zombie', hp: 270, arm: 0, sp: 1.05, pts: 1, lv: 1 },
-    { k: 'flag', n: 'Flag Zombie', hp: 270, arm: 0, sp: 1.35, pts: 1, lv: 99 },
-    { k: 'cone', n: 'Conehead Zombie', hp: 270, arm: 370, sp: 1.05, pts: 2, lv: 2 },
-    { k: 'pole', n: 'Pole Vaulting Zombie', hp: 500, arm: 0, sp: 2.3, pts: 2, lv: 4 },
-    { k: 'bucket', n: 'Buckethead Zombie', hp: 270, arm: 1100, sp: 1.05, pts: 4, lv: 6 },
-    { k: 'paper', n: 'Newspaper Zombie', hp: 270, arm: 150, sp: 1.05, pts: 2, lv: 7 },
-    { k: 'foot', n: 'Football Zombie', hp: 270, arm: 1400, sp: 2.2, pts: 7, lv: 9 },
-    { k: 'garg', n: 'Gargantuar', hp: 3000, arm: 0, sp: 0.7, pts: 10, lv: 10 },
+    { k: 'basic', n: 'Zombie', hp: 200, arm: 0, sp: 0.9, pts: 1, lv: 1 },
+    { k: 'flag', n: 'Flag Zombie', hp: 200, arm: 0, sp: 1.15, pts: 1, lv: 99 },
+    { k: 'cone', n: 'Conehead Zombie', hp: 200, arm: 280, sp: 0.9, pts: 2, lv: 2 },
+    { k: 'pole', n: 'Pole Vaulting Zombie', hp: 380, arm: 0, sp: 1.9, pts: 2, lv: 4 },
+    { k: 'bucket', n: 'Buckethead Zombie', hp: 200, arm: 800, sp: 0.9, pts: 4, lv: 6 },
+    { k: 'paper', n: 'Newspaper Zombie', hp: 200, arm: 110, sp: 0.9, pts: 2, lv: 7 },
+    { k: 'foot', n: 'Football Zombie', hp: 200, arm: 1000, sp: 1.8, pts: 7, lv: 9 },
+    { k: 'garg', n: 'Gargantuar', hp: 2200, arm: 0, sp: 0.6, pts: 10, lv: 10 },
   ];
-  const LEVELS = 10, BLAST = 1800, BITE = 100, PEA = 20, PEA_SP = 20;
+  const LEVELS = 10, BLAST = 1800, BITE = 75, PEA = 20, PEA_SP = 20; // (zombies nerfed: less health and armour, slower, softer bites, smaller waves)
   const FIRE = 1.35, SLOW_S = 10, CHEW = 42, ARM_S = 14, SUN_S = 20; // seconds: between shots, a frozen pea's slow, a Chomper's chewing, a Potato Mine arming, a Sunflower's sun
   const wavesOf = (lv) => (lv ? 3 + lv : 0); // 0: Endless
   const flagWave = (lv, w) => (lv ? w === wavesOf(lv) || (wavesOf(lv) >= 9 && w === Math.ceil(wavesOf(lv) / 2)) : w % 5 === 0);
   // what each wave sends: a budget of points, spent on the zombies this level has
   function waveList(lv, w, r, n = 1) {
     const flag = flagWave(lv, w), types = ZB.map((z, t) => t).filter((t) => t !== 1 && (lv ? ZB[t].lv <= lv && (t !== 7 || w === wavesOf(lv)) : ZB[t].lv <= Math.min(9, 1 + Math.floor(w / 2)) || (t === 7 && w >= 10)));
-    let b = (lv ? 1 + Math.floor(w * (0.45 + lv * 0.06)) : 2 + Math.floor(w * 1.1)) * (1 + 0.25 * (n - 1)); // more of you, more of them
+    let b = (lv ? 1 + Math.floor(w * (0.38 + lv * 0.05)) : 2 + Math.floor(w * 0.95)) * (1 + 0.25 * (n - 1)); // more of you, more of them
     if (flag) b = Math.ceil(b * 2.1) + 2;
     const out = flag ? [1] : [];
     if (lv === LEVELS && w === wavesOf(lv)) { out.push(7); b -= 10; } // the last level ends with a Gargantuar
@@ -70,7 +70,7 @@
       pea: [['⚔️', 'Damage', `${PEA} a pea`], ...peas(1)],
       sun: [['🌞', 'Makes', `25 sun every ${SUN_S} s`]],
       cherry: [['💥', 'Damage', BLAST], ['📏', 'Area', '3 × 3 squares around it'], ['⏱️', 'Goes off', '1.2 s after planting'], once],
-      nut: [['🛡️', 'Holds back', `A zombie for ${d.hp / BITE} s`]],
+      nut: [['🛡️', 'Holds back', `A zombie for ${Math.round(d.hp / BITE)} s`]],
       mine: [['💥', 'Damage', BLAST], ['⏱️', 'Arms after', `${ARM_S} s`], ['📏', 'Area', 'Zombies on its square'], once],
       snow: [['⚔️', 'Damage', `${PEA} a pea`], ['🧊', 'Slows', `Half speed for ${SLOW_S} s`], ...peas(1)],
       chomp: [['😋', 'Attack', 'Swallows a zombie whole (not a Gargantuar)'], ['⏱️', 'Chews for', `${CHEW} s`], ['📏', 'Range', '1 square in front']],
@@ -79,7 +79,7 @@
       squash: [['💥', 'Damage', BLAST], ['📏', 'Range', 'The first zombie next to it'], once],
       three: [['⚔️', 'Damage', `${PEA} a pea, 3 lanes`], ...peas(1)],
     }[d.k] || [];
-    return [['☀️', 'Cost', `${d.cost} sun`], ['⏳', 'Recharge', `${d.cd} s`], ['❤️', 'Health', `${d.hp} · eaten in ${d.hp / BITE} s`], ...own];
+    return [['☀️', 'Cost', `${d.cost} sun`], ['⏳', 'Recharge', `${d.cd} s`], ['❤️', 'Health', `${d.hp} · eaten in ${+(d.hp / BITE).toFixed(1)} s`], ...own];
   }
   // the one line that sums a plant up (seed packets, the hint at the bottom)
   const plantShort = (t) => {

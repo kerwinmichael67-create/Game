@@ -251,14 +251,17 @@
     return out;
   };
   const untilMidnight = () => { const d = new Date(), m = new Date(d); m.setHours(24, 0, 0, 0); return (m - d) / 1000; };
-  // three daily challenges (the same three for everyone on a day)
-  const DAILY = [
+  // battle pass quests: three at a time, and they reset by themselves: a new one 10 minutes after you finish one, and one
+  // you haven't finished swaps for another after 4 hours
+  const QUEST_NEW = 10 * 60, QUEST_SWAP = 4 * 3600;
+  const QUESTS = [
     { id: 'clk', n: 'Farm aura 300 times', goal: 300, xp: 120 }, { id: 'win', n: 'Win 2 duels', goal: 2, xp: 150 }, { id: 'duel', n: 'Play 3 duels', goal: 3, xp: 120 },
     { id: 'crate', n: 'Open 3 crates', goal: 3, xp: 100 }, { id: 'stk', n: 'Reach 🗿 SIGMA MODE (a 50-click streak)', goal: 1, xp: 120 }, { id: 'joke', n: 'Survive 3 of Unc Joe’s jokes', goal: 3, xp: 80 },
     { id: 'time', n: 'Farm for 10 minutes', goal: 600, xp: 100 }, { id: 'hit', n: 'Land 20 ability hits in duels', goal: 20, xp: 140 }, { id: 'up', n: 'Buy 5 upgrade levels', goal: 5, xp: 80 },
   ];
   const today = () => { const d = new Date(); return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; };
-  const dailyOf = (day) => { const r = mulberry([...day].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7) >>> 0), pool = DAILY.slice(), out = []; while (out.length < 3) out.push(pool.splice(Math.floor(r() * pool.length), 1)[0]); return out; };
+  const QUEST = Object.fromEntries(QUESTS.map((q) => [q.id, q]));
+  const hms = (ms) => { const t = Math.max(0, Math.ceil(ms / 1000)), h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), x = String(t % 60).padStart(2, '0'); return h ? `${h}:${String(m).padStart(2, '0')}:${x}` : `${m}:${x}`; };
   const HB_BODY = 1.2; // a fighter's hitbox: 2.4 wide (an attack's reach is drawn this much short, so the boxes touching = a hit)
   const lvK = (lvl) => 1 + LV_UP * (Math.max(1, lvl) - 1);
 
@@ -804,12 +807,13 @@
     async enter() {
       Object.assign(this, { H: null, lastG: null, gSeen: null, g: null, D: null, q: [], qn: 0, evSeen: null, acc: 0, evT: 40 + Math.random() * 30, clicks: [], duelId: 0, myIdx: -1, cdUntil: {}, move: null, chal: null, chalKey: '', resT: 0, backAt: 0, barHtml: '', sentAt: 0, savedAt: performance.now(), dirty: false, hpSeen: null, frozeBy: false, popAt: 0, streak: 0, lastClick: 0, tier: 0, pulseAt: 0, rainAt: 0 });
       const s = await kvGet('au');
-      const S = this.S = Object.assign({ au: 0, tot: 0, cl: 0, ps: 0, ab: { rizz: 1, side: 1 }, eq: ['rizz', 'side'], free: 1, w: 0, l: 0, best: 0, op: 0, hb: false, keys: {}, bx: 0, bpc: {}, dq: null, x2u: 0, seen: 0, pc: 0, pcl: null, pco: 0, pshop: null }, s && typeof s === 'object' ? s : {});
+      const S = this.S = Object.assign({ au: 0, tot: 0, cl: 0, ps: 0, ab: { rizz: 1, side: 1 }, eq: ['rizz', 'side'], free: 1, w: 0, l: 0, best: 0, op: 0, hb: false, keys: {}, bx: 0, bpc: {}, qs: [], x2u: 0, seen: 0, pc: 0, pcl: null, pco: 0, pshop: null }, s && typeof s === 'object' ? s : {});
       S.au = Math.max(0, +S.au || 0); S.tot = Math.max(0, +S.tot || 0); S.cl = Math.max(0, S.cl | 0); S.ps = Math.max(0, S.ps | 0); S.free = Math.max(0, S.free | 0); S.hb = !!S.hb;
       for (const u of UPS) if (u.max) S[u.k] = clamp(S[u.k] | 0, 0, u.max);
       const keys = {}; for (const C of CRATES) if (S.keys && S.keys[C.id] > 0) keys[C.id] = S.keys[C.id] | 0; S.keys = keys;
       S.bx = Math.max(0, +S.bx || 0); S.bpc = S.bpc && typeof S.bpc === 'object' ? S.bpc : {}; S.x2u = +S.x2u || 0;
-      if (!S.dq || typeof S.dq !== 'object' || !S.dq.p || !S.dq.done) S.dq = null;
+      delete S.dq; S.qs = Array.isArray(S.qs) ? S.qs.filter((q) => q && QUEST[q.id] && +q.t > 0).map((q) => ({ id: q.id, p: Math.max(0, +q.p || 0), t: +q.t, done: +q.done || 0 })).slice(0, 3) : [];
+      this.quests(true);
       S.pc = Math.max(0, Math.floor(+S.pc || 0)); S.pco = Math.max(0, S.pco | 0);
       if (!S.pshop || typeof S.pshop !== 'object' || !S.pshop.b) S.pshop = null;
       if (S.pcl == null) S.pcl = 0; // (levels you'd reached before Pass Coins: they pay out now)
@@ -870,7 +874,7 @@
       const k = tierOf(this.streak); if (k > this.tier) this.tierUp(k);
       const T = TIERS[this.tier], rain = this.rainOn() ? 2 : 1, crit = this.S.cr > 0 && Math.random() < this.S.cr * 0.03, n = Math.round(this.perClick() * T.m * rain * (crit ? 10 : 1));
       this.gain(n); this.pulseAt = t;
-      this.bpClk = (this.bpClk | 0) + 1; if (this.bpClk % 5 === 0) this.xp(1); this.daily('clk', 1);
+      this.bpClk = (this.bpClk | 0) + 1; if (this.bpClk % 5 === 0) this.xp(1); this.qProg('clk', 1);
       if (crit) { this.pop(x == null ? innerWidth / 2 : x, (y == null ? innerHeight - 150 : y) - 34, `💥 CRIT ×10 · +${short(n)} aura`, 'crit'); sfx('kill', { vol: 0.6 }); this.drawTop(); return; }
       sfx('tap', { vol: 0.5, pitch: 0.85 + this.tier * 0.13 + Math.random() * 0.25 });
       const word = this.tier >= 2 || Math.random() < 0.4 ? ' · ' + pick(this.tier >= 4 && Math.random() < 0.6 ? BIG_WORDS : CLICK_WORDS) : '';
@@ -888,7 +892,7 @@
       sfx(k >= 4 ? 'unlock' : 'powerup'); this.speak(T.say);
       if (me) puffAt(me.g.position.x, me.g.position.y + 3, me.g.position.z, [tierCol(k, performance.now() / 1000).getHex(), 0xffffff], 18 + k * 4);
       if (k >= 4) Net.chat(`${T.e} ${T.n} (${this.streak} click streak, ×${T.m} aura)`);
-      if (k >= 3) this.daily('stk', 1);
+      if (k >= 3) this.qProg('stk', 1);
       this.send(true);
     },
     endStreak(quiet) {
@@ -908,7 +912,7 @@
       clearTimeout(this.bubT); this.bubT = setTimeout(() => { if (this.uncBub && this.unc) { this.unc.g.remove(this.uncBub); this.uncBub.material.map.dispose(); this.uncBub.material.dispose(); this.uncBub = null; } }, 6500);
       say(`🧓 Unc Joe: ${j}`, '#fde68a'); setTimeout(() => rimshot(), 900);
       const now = performance.now();
-      if (now - this.uncAt > 15000) { this.uncAt = now; this.xp(5); this.daily('joke', 1); const v = Math.max(5, Math.round(5 * this.perSec())); setTimeout(() => { this.gain(v); toast(`😐 +${comma(v)} aura for surviving the cringe`, '#fde68a'); this.drawTop(); }, 1400); }
+      if (now - this.uncAt > 15000) { this.uncAt = now; this.xp(5); this.qProg('joke', 1); const v = Math.max(5, Math.round(5 * this.perSec())); setTimeout(() => { this.gain(v); toast(`😐 +${comma(v)} aura for surviving the cringe`, '#fde68a'); this.drawTop(); }, 1400); }
     },
     // the edit: black and white, letterbox bars, a skull, a word (and phonk, if `music`)
     editFx(secs, word, music) {
@@ -976,7 +980,8 @@
       const now = performance.now(); this.acc += this.lastT ? Math.min(5, (now - this.lastT) / 1000) : dt; this.lastT = now;
       while (this.acc >= 1) {
         this.acc -= 1; const n = this.perSec(); this.gain(n);
-        this.bpSec = (this.bpSec | 0) + 1; if (this.bpSec % 10 === 0) this.xp(1); this.daily('time', 1);
+        this.bpSec = (this.bpSec | 0) + 1; if (this.bpSec % 10 === 0) this.xp(1); this.qProg('time', 1);
+        this.questTick();
         if (this.top && !this.top.hidden) { const r = this.top.getBoundingClientRect(); this.pop(this.streak >= 3 ? r.right + 46 : r.left + r.width / 2, this.streak >= 3 ? r.top + r.height / 2 : r.bottom + 14, `+${short(n)} aura`, 'sec'); const nEl = this.top.querySelector('.n'); if (nEl) { nEl.classList.add('bump'); setTimeout(() => nEl.classList.remove('bump'), 140); } }
       }
       this.evT -= dt; if (this.evT <= 0) { this.evT = 45 + Math.random() * 40; if (!this.D) this.auraEvent(); }
@@ -1355,7 +1360,7 @@
         puffAt(p.x, p.y + 2.8, p.z, [rarHex(A.r), 0xffffff], 8);
         sfx3(e[5] === 'slap' ? 'punch' : 'hit', p.x, p.z, 80, { vol: 0.8 });
         if (D.id === this.duelId && t === this.myIdx && e[5] === 'edit') this.editFx(2, 'EDITED', true);
-        if (D.id === this.duelId && e[7] === this.myIdx && t !== this.myIdx && e[5] !== 'slap' && e[5] !== 'storm') { this.xp(2); this.daily('hit', 1); }
+        if (D.id === this.duelId && e[7] === this.myIdx && t !== this.myIdx && e[5] !== 'slap' && e[5] !== 'storm') { this.xp(2); this.qProg('hit', 1); }
         if (D.id === this.duelId && t === this.myIdx && e[6] > 0) { const o = pos(e[7]); if (o) { const dx = P.x - o.x, dz = P.z - o.z, l = Math.hypot(dx, dz) || 1; this.move = { t: 0.25, vx: dx / l * e[6], vz: dz / l * e[6] }; } }
       }
     },
@@ -1364,7 +1369,7 @@
       const W = w >= 0 ? [na, nb][w] : '', L = w >= 0 ? [na, nb][1 - w] : '';
       if (idx < 0) { if (w >= 0) say(`⚔️ ${pick(WIN_LINES).replace('{W}', W).replace('{L}', L)} (${W} stole ${comma(amt)} aura${why === 'left' ? ', they rage quit' : ''})`, '#c4b5fd'); return; }
       if (this.endSeen === id) return; this.endSeen = id;
-      this.daily('duel', 1); if (w === idx) this.daily('win', 1);
+      this.qProg('duel', 1); if (w === idx) this.qProg('win', 1);
       this.xp(w < 0 ? 30 : w === idx ? 60 : 25);
       let cls, big, sub, amtTxt;
       if (w < 0) { cls = 'd'; big = 'DRAW'; sub = 'Nobody cooked. Nobody got cooked.'; amtTxt = 'No aura changes hands'; sfx('draw'); }
@@ -1656,7 +1661,7 @@
       else if (was < MAX_LV) { S.ab[got] = was + 1; note = `Double! Lv ${was} → Lv ${was + 1}`; }
       else { const back = Math.round((price || 400) * 0.3); S.au += back; note = `Already max level: +${comma(back)} aura back`; }
       S.op = (S.op | 0) + 1; if (A.r === 5) questMax('aura.ohio', 1);
-      this.xp(20); this.daily('crate', 1);
+      this.xp(20); this.qProg('crate', 1);
       this.dirty = true; this.save(); this.send(true); closePanel();
       const cards = []; for (let i = 0; i < 46; i++) cards.push(i === 40 ? got : rollAb(odds, ph));
       const el = document.createElement('div'); el.id = 'auBox'; if (ph === true) { el.className = 'phonk'; if (this.music) this.music.stop(); this.music = phonk(6.2); } else if (ph === 'pw') el.className = 'power';
@@ -1694,7 +1699,7 @@
         let n = 0; do { if (u.max && (S[k] | 0) >= u.max) break; const c = u.cost(S[k] | 0); if (S.au < c) break; S.au -= c; S[k] = (S[k] | 0) + 1; n++; } while (b.dataset.max && n < 200);
         if (!n) { sfx('error'); return; }
         sfx('levelup'); toast(`${u.e} ${u.t.replace('{n}', n)}`, '#c4b5fd');
-        this.xp(5 * Math.min(n, 10)); this.daily('up', n);
+        this.xp(5 * Math.min(n, 10)); this.qProg('up', n);
         this.dirty = true; this.save(); this.send(true); this.upgradePanel(); this.drawBar();
       });
       $('#xpBody').scrollTop = keep;
@@ -1732,14 +1737,33 @@
       $('#xhud').append(el); setTimeout(() => el.remove(), 2300);
       sfx('levelup'); if (l % 10 === 0) { Net.chat(`💯 reached Bussin Battle Pass level ${l}`); this.speak('battle pass level ' + l); }
     },
-    dailies() { const d = today(); if (!this.dqc || this.dqc[0] !== d) this.dqc = [d, dailyOf(d)]; return this.dqc[1]; },
-    daily(id, n) {
-      const S = this.S; if (!S) return;
-      const day = today(), T = this.dailies().find((q) => q.id === id); if (!T) return;
-      if (!S.dq || S.dq.d !== day) S.dq = { d: day, p: {}, done: {} };
-      if (S.dq.done[id]) return;
-      S.dq.p[id] = Math.min(T.goal, (S.dq.p[id] || 0) + n); this.dirty = true;
-      if (S.dq.p[id] >= T.goal) { S.dq.done[id] = 1; const c = this.pcK(PC_DAILY); S.pc += c; toast(`✅ Daily challenge done: ${T.n} · +${T.xp} XP · +${c} 🎟️`, '#86efac'); sfx('reward'); this.xp(T.xp); }
+    // quests: fill up to three, and swap any whose time is up (a new one after a finished one, or an old unfinished one)
+    quests(quiet) {
+      const S = this.S, now = Date.now(); let changed = false;
+      for (let i = 0; i < S.qs.length; i++) {
+        const q = S.qs[i];
+        if ((q.done && now - q.done >= QUEST_NEW * 1000) || (!q.done && now - q.t >= QUEST_SWAP * 1000)) {
+          S.qs[i] = this.newQuest(); changed = true;
+          if (!quiet) { toast(`🎯 New quest: ${QUEST[S.qs[i].id].n}`, '#c4b5fd'); sfx('select'); }
+        }
+      }
+      while (S.qs.length < 3) { S.qs.push(this.newQuest()); changed = true; }
+      if (changed) { this.dirty = true; if (!quiet) this.drawBar(); }
+      return changed;
+    },
+    newQuest() { const have = new Set(this.S.qs.map((q) => q.id)), pool = QUESTS.filter((q) => !have.has(q.id)); return { id: (pool[Math.floor(Math.random() * pool.length)] || QUESTS[0]).id, p: 0, t: Date.now(), done: 0 }; },
+    qProg(id, n) {
+      const S = this.S; if (!S || !S.qs) return;
+      for (const q of S.qs) {
+        if (q.id !== id || q.done) continue;
+        const T = QUEST[id]; q.p = Math.min(T.goal, q.p + n); this.dirty = true;
+        if (q.p >= T.goal) { q.done = Date.now(); const c = this.pcK(PC_DAILY); S.pc += c; toast(`✅ Quest done: ${T.n} · +${T.xp} XP · +${c} 🎟️ (a new one in ${QUEST_NEW / 60} min)`, '#86efac'); sfx('reward'); this.xp(T.xp); }
+      }
+    },
+    // once a second: swap quests whose time is up, and count down on the pass
+    questTick() {
+      if (this.quests() && $('#xpBody .au-bp .track')) this.bpPanel();
+      for (const el of document.querySelectorAll('#xpBody [data-qt]')) el.textContent = hms(+el.dataset.qt - Date.now());
     },
     bpLabel(R) {
       if (R.t === 'au') return ['🗿', `+${short(Math.max(50, R.s * this.perSec()))} aura`];
@@ -1797,7 +1821,7 @@
         <p class="xp-note">🛒 New stock every day (in <b>${dur(left)}</b>). ⚡ Limited Power Crates hold everything, the Phonk and the four ⚡ Power abilities included (Gigachad Thunder, Rizz Vortex, Ohio Dragon, Sigma Eclipse); 🍀 Rizz Luck counts. Abilities are one each a day: one you have goes up a level.</p>
         <h4>⚡ Limited Power Crates</h4><div class="crates">${crates}</div>
         <h4>🎒 Today’s abilities</h4><div class="xp-grid">${abs}</div>
-        <p class="xp-note">🎟️ Pass Coins: +${this.pcK(PC_LV)} for every Battle Pass level, +${this.pcK(PC_DAILY)} for a daily challenge, and after level 50, ♾️ +${this.pcK(PC_INF)} for every ${PC_INF_XP} XP, forever. You have <b>🎟️ ${comma(S.pc)}</b>.</p></div>`;
+        <p class="xp-note">🎟️ Pass Coins: +${this.pcK(PC_LV)} for every Battle Pass level, +${this.pcK(PC_DAILY)} for a quest, and after level 50, ♾️ +${this.pcK(PC_INF)} for every ${PC_INF_XP} XP, forever. You have <b>🎟️ ${comma(S.pc)}</b>.</p></div>`;
       openPanel('💯 Bussin Battle Pass', html, (b) => {
         if (b.dataset.tab) { this.bpPanel(b.dataset.tab); return; }
         if (b.dataset.pcrate) {
@@ -1821,7 +1845,7 @@
     bpPanel(tab) {
       if (tab) this.bpTab = tab; if (this.bpTab === 'shop') { this.passShop(); return; }
       const S = this.S, [L, into] = bpLevel(S.bx), prem = hasItem('bp'), need = L < BP_MAX ? bpNeed(L + 1) : 1, can = this.bpClaimable();
-      const day = today(), dq = S.dq && S.dq.d === day ? S.dq : { p: {}, done: {} };
+      this.quests();
       const tile = (tr, l) => {
         const R = (tr === 'f' ? bpFree : bpPrem)(l), [e, t] = this.bpLabel(R), got = S.bpc[tr + l], cls = got ? 'got' : l > L ? 'lock' : tr === 'p' && !prem ? 'plock' : 'can';
         return `<button class="t ${tr} ${cls}" data-bpc="${tr}${l}"><span class="e">${e}</span><span class="n">${esc(t)}</span><i>${got ? '✓' : cls === 'can' ? 'CLAIM' : cls === 'plock' ? '🔒 Bussin+' : '🔒'}</i></button>`;
@@ -1834,10 +1858,10 @@
         <div class="prem ${prem ? 'on' : ''}">${prem ? '👑 <b>Bussin+ is active.</b> Both tracks are yours. Main character energy.' : `👑 <b>Bussin+</b>: a second track of 50 rewards (Sigma, Phonk and Ohio keys, more aura and coins, 2× boosts) and two abilities you can’t get anywhere else, 🧢 No Cap Beam and 👑 Final Boss Mode. Levels you’ve already reached unlock right away.<br><button class="xp-btn buy" data-bpbuy="1">👑 Get Bussin+ · 🪙 ${BP_PRICE} in the shop</button>`}</div>
         <div class="lbs"><span>TOP: FREE</span><span class="p">BOTTOM: 👑 BUSSIN+</span></div>
         <div class="track">${cols}</div>
-        <h4>📅 Daily challenges <small style="color:var(--muted);font:700 12px var(--fb)">— new ones every day</small></h4>
-        ${this.dailies().map((q) => { const p = Math.min(q.goal, dq.p[q.id] || 0), d = dq.done[q.id]; return `<div class="xp-row q ${d ? 'done' : ''}"><span><b>${d ? '✅' : '🎯'} ${esc(q.n)}</b><div class="bar"><i style="width:${(p / q.goal * 100).toFixed(0)}%"></i></div><small>${q.id === 'time' ? `${Math.floor(p / 60)} / ${q.goal / 60} min` : `${comma(p)} / ${comma(q.goal)}`}</small></span><b class="x">+${q.xp} XP</b></div>`; }).join('')}
-        <p class="xp-note">🎟️ Pass Coins: +${this.pcK(PC_LV)} for every level, +${this.pcK(PC_DAILY)} for a daily challenge, and after level 50, ♾️ +${this.pcK(PC_INF)} for every ${PC_INF_XP} XP, forever${hasItem('bp') ? ' (Bussin+: half as much again, included)' : ' (Bussin+ gets half as much again)'}. Spend them in the 🛒 Pass Shop.</p>
-        <p class="xp-note">💯 XP comes from playing: farming (1 XP every 5 clicks and every 10 seconds), duels (+60 for a W, +25 for an L), opening crates (+20), landing abilities (+2 a hit), buying upgrades (+5 a level), Unc Joe’s jokes (+5) and the daily challenges.</p></div>`;
+        <h4>🎯 Quests <small style="color:var(--muted);font:700 12px var(--fb)">— they reset by themselves: a new one ${QUEST_NEW / 60} minutes after you finish one, and one you don’t finish swaps after ${QUEST_SWAP / 3600} hours</small></h4>
+        ${S.qs.map((q) => { const T = QUEST[q.id], p = Math.min(T.goal, q.p), d = q.done, at = d ? d + QUEST_NEW * 1000 : q.t + QUEST_SWAP * 1000; return `<div class="xp-row q ${d ? 'done' : ''}"><span><b>${d ? '✅' : '🎯'} ${esc(T.n)}</b><div class="bar"><i style="width:${(p / T.goal * 100).toFixed(0)}%"></i></div><small>${q.id === 'time' ? `${Math.floor(p / 60)} / ${T.goal / 60} min` : `${comma(p)} / ${comma(T.goal)}`} · ${d ? '🔄 a new quest in' : '⏳ swaps in'} <span data-qt="${at}">${hms(at - Date.now())}</span></small></span><b class="x">+${T.xp} XP · 🎟️ ${this.pcK(PC_DAILY)}</b></div>`; }).join('')}
+        <p class="xp-note">🎟️ Pass Coins: +${this.pcK(PC_LV)} for every level, +${this.pcK(PC_DAILY)} for a quest, and after level 50, ♾️ +${this.pcK(PC_INF)} for every ${PC_INF_XP} XP, forever${hasItem('bp') ? ' (Bussin+: half as much again, included)' : ' (Bussin+ gets half as much again)'}. Spend them in the 🛒 Pass Shop.</p>
+        <p class="xp-note">💯 XP comes from playing: farming (1 XP every 5 clicks and every 10 seconds), duels (+60 for a W, +25 for an L), opening crates (+20), landing abilities (+2 a hit), buying upgrades (+5 a level), Unc Joe’s jokes (+5) and quests.</p></div>`;
       const old = $('#xpBody .au-bp .track'), keep = old ? old.scrollLeft : null;
       openPanel('💯 Bussin Battle Pass', html, (b) => {
         if (b.dataset.bpall) {
