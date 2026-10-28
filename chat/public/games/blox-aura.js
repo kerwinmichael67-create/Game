@@ -303,6 +303,14 @@
     thunder: { n: 'Gigachad Thunder', e: '⚡', r: 4, pw: 1, k: 'meteor', dmg: 82, rad: 5.5, w: 0.8, cd: 9, d: 'Calls lightning down where they’re standing a moment later.', say: 'GIGACHAD THUNDER ⚡' },
     vortex: { n: 'Rizz Vortex', e: '🌀', r: 4, pw: 1, k: 'aoe', dmg: 52, rad: 12, slow: [0.45, 3], cd: 9, w: 0.4, d: 'A whirlpool of rizz round you: hits anyone close and slows them for 3 seconds.', say: 'get in the vortex 🌀' },
     dragon: { n: 'Ohio Dragon', e: '🐉', r: 5, pw: 1, k: 'proj', dmg: 88, ex: 6, big: 1, home: 1, cd: 12, sp: 20, d: 'A dragon from Ohio that hunts them down and blows up.', say: 'OHIO DRAGON 🐉' },
+    magnet: { n: 'Rizz Magnet', e: '🧲', r: 3, pw: 1, k: 'aoe', dmg: 34, rad: 13, kb: -24, cd: 7, w: 0.3, d: 'Rizz so strong it pulls them right up to you (and hurts a bit).', say: 'come here 🧲' },
+    icecold: { n: 'Ice Cold', e: '🥶', r: 3, pw: 1, k: 'proj', dmg: 26, stun: 1.2, slow: [0.5, 3], cd: 7, sp: 30, d: 'So cold they freeze for 1.2 seconds, then move at half speed for 3.', say: 'ice cold 🥶' },
+    fireworks: { n: 'Firework Show', e: '🎆', r: 3, pw: 1, k: 'proj', dmg: 7, cnt: 7, spread: 0.32, home: 1, cd: 6, sp: 26, d: 'Seven fireworks that chase them round the ring.', say: 'happy new year 🎆' },
+    shower: { n: 'Meteor Shower', e: '🌠', r: 4, pw: 1, k: 'meteor', dmg: 34, rad: 4, cnt: 4, spread: 5, w: 1, cd: 10, d: 'Four shooting stars land round where they’re standing, one after another.', say: 'make a wish 🌠' },
+    ghost: { n: 'Ghost Dash', e: '👻', r: 4, pw: 1, k: 'dash', dmg: 46, rng: 20, cd: 7, d: 'Phases through them from way further away than a normal dash.', say: 'boo 👻' },
+    vampire: { n: 'Aura Vampire', e: '🧛', r: 4, pw: 1, k: 'beam', dmg: 55, steal: 0.6, cd: 9, w: 0.4, rng: 40, d: 'A beam that drains their health and gives you 60% of it.', say: 'i vant to suck your aura 🧛' },
+    timestop: { n: 'Time Stop', e: '⏸️', r: 5, pw: 1, k: 'aoe', dmg: 40, rad: 16, stun: 2.5, cd: 18, w: 0.5, d: 'Stops time round you: anyone close is frozen for 2.5 seconds.', say: 'ZA WARUDO ⏸️' },
+    blackhole: { n: 'Black Hole', e: '🕳️', r: 5, pw: 1, k: 'aoe', dmg: 70, rad: 14, kb: -30, dot: [10, 6], cd: 14, w: 0.6, d: 'Opens a black hole on you: it pulls them in, hits for 70, then 60 more over 3 seconds.', say: 'black hole 🕳️' },
     eclipse: { n: 'Sigma Eclipse', e: '🌑', r: 5, pw: 1, k: 'beam', dmg: 105, stun: 1, w: 0.9, rng: 46, cd: 12, d: 'The sun goes out. Then a beam that freezes them for a second.', say: '🌑🗿' },
     // the Bussin Battle Pass's own (bp: its level; prem: on the Bussin+ track)
     barrage: { n: 'Bussin Barrage', e: '💯', r: 3, bp: 10, k: 'proj', dmg: 13, cnt: 3, spread: 0.22, home: 1, cd: 6, sp: 24, d: 'Three 💯s that follow them round the ring.', say: 'this is bussin fr' },
@@ -1129,7 +1137,12 @@
         }
       } else if (A.k === 'beam') { D.pe.push({ t: A.w, kind: 'beam', o: i, k, x0: me.x, z0: me.z, ux, uz, dmg }); this.ev(['b0', D.id, i, k, +me.x.toFixed(1), +me.z.toFixed(1), +(me.x + ux * A.rng).toFixed(1), +(me.z + uz * A.rng).toFixed(1), A.w]); }
       else if (A.k === 'aoe') D.pe.push({ t: A.w, kind: 'aoe', o: i, k, dmg });
-      else if (A.k === 'meteor') { D.pe.push({ t: A.w, kind: 'meteor', o: i, k, x1: tg.x, z1: tg.z, dmg }); this.ev(['m0', D.id, k, +tg.x.toFixed(1), +tg.z.toFixed(1), A.w]); }
+      else if (A.k === 'meteor') {
+        for (let j = 0; j < (A.cnt || 1); j++) { // (a shower: the first on them, the rest round them, one after another)
+          const a = Math.random() * Math.PI * 2, r = j ? (A.spread || 0) * Math.sqrt(Math.random()) : 0, x1 = tg.x + Math.cos(a) * r, z1 = tg.z + Math.sin(a) * r, t = A.w + j * 0.3;
+          D.pe.push({ t, kind: 'meteor', o: i, k, x1, z1, dmg }); this.ev(['m0', D.id, k, +x1.toFixed(1), +z1.toFixed(1), t]);
+        }
+      }
       else if (A.k === 'dash') { D.pe.push({ t: 0.32, kind: 'dash', o: i, k, dmg }); this.ev(['ds', D.id, i, k]); if (isBot(D.f[i])) D.bot.dashT = 0.3; }
       else if (A.k === 'melee') { const hit = d < A.rng + 1; this.hb(D, i, k, hit, 'c', me.x, me.z, A.rng + 1 - HB_BODY); if (hit) this.hit(D, 1 - i, dmg, k, i); }
       else if (A.k === 'self') {
@@ -1139,18 +1152,18 @@
         this.ev(['sf', D.id, i, k, Math.round(A.heal ? A.heal * L : 0)]);
       }
     },
-    hit(D, t, dmg, k, src) {
+    hit(D, t, dmg, k, src, tick) { // tick: a damage-over-time tick (just the damage, none of the ability's effects again)
       if (D.ph !== 'fight' || !(dmg > 0)) return;
       dmg = Math.round(dmg);
       let left = dmg; if (D.sh[t] > 0) { const a = Math.min(D.sh[t], left); D.sh[t] -= a; left -= a; }
       D.hp[t] = Math.max(0, D.hp[t] - left);
       const A = abOf(k) || SLAP;
-      if (A.steal) D.hp[src] = Math.min(D.mx[src], D.hp[src] + Math.round(dmg * A.steal));
-      if (A.slow) D.sl[t] = Math.max(D.sl[t], A.slow[1]);
-      if (A.stun) D.st[t] = Math.max(D.st[t], A.stun);
-      if (A.dot) D.dot[t] = { n: A.dot[1], per: Math.round(A.dot[0] * dmg / A.dmg), at: 0.5, src, k };
-      if (A.kb && isBot(D.f[t])) { const s = this.posF(D, src), b = D.bot, R = RINGS[D.r]; if (s) { const dx = b.x - s.x, dz = b.z - s.z, l = Math.hypot(dx, dz) || 1; b.x = clamp(b.x + dx / l * A.kb * 0.35, R.x - RING_H + 1.5, R.x + RING_H - 1.5); b.z = clamp(b.z + dz / l * A.kb * 0.35, R.z - RING_H + 1.5, R.z + RING_H - 1.5); } }
-      this.ev(['h', D.id, t, dmg, k, A.kb || 0, src]);
+      if (A.steal && !tick) D.hp[src] = Math.min(D.mx[src], D.hp[src] + Math.round(dmg * A.steal));
+      if (A.slow && !tick) D.sl[t] = Math.max(D.sl[t], A.slow[1]);
+      if (A.stun && !tick) D.st[t] = Math.max(D.st[t], A.stun);
+      if (A.dot && !tick) D.dot[t] = { n: A.dot[1], per: Math.round(A.dot[0] * dmg / A.dmg), at: 0.5, src, k };
+      if (A.kb && !tick && isBot(D.f[t])) { const s = this.posF(D, src), b = D.bot, R = RINGS[D.r]; if (s) { const dx = b.x - s.x, dz = b.z - s.z, l = Math.hypot(dx, dz) || 1, m = A.kb > 0 ? A.kb * 0.35 : -Math.min(-A.kb * 0.35, Math.max(0, l - 2.5)); b.x = clamp(b.x + dx / l * m, R.x - RING_H + 1.5, R.x + RING_H - 1.5); b.z = clamp(b.z + dz / l * m, R.z - RING_H + 1.5, R.z + RING_H - 1.5); } } // (kb < 0: a pull, never past them)
+      this.ev(['h', D.id, t, dmg, k, tick ? 0 : A.kb || 0, src, tick ? 1 : 0]);
       if (D.hp[t] <= 0) this.end(D, src, 'ko');
     },
     runDuel(D, dt, here) {
@@ -1164,7 +1177,7 @@
         D.st[i] = Math.max(0, D.st[i] - dt); D.sl[i] = Math.max(0, D.sl[i] - dt);
         if (D.shT[i] > 0) { D.shT[i] -= dt; if (D.shT[i] <= 0) D.sh[i] = 0; }
         if (D.bfT[i] > 0) { D.bfT[i] -= dt; if (D.bfT[i] <= 0) D.bf[i] = 1; }
-        const o = D.dot[i]; if (o) { o.at -= dt; if (o.at <= 0) { o.at += 0.5; o.n--; if (o.n <= 0) D.dot[i] = null; const k = o.k; D.dot[i] = o.n > 0 ? o : null; this.hit(D, i, o.per, k === 'skibidi' ? 'storm' : k, o.src); if (D.ph !== 'fight') return; } }
+        const o = D.dot[i]; if (o) { o.at -= dt; if (o.at <= 0) { o.at += 0.5; o.n--; if (o.n <= 0) D.dot[i] = null; const k = o.k; D.dot[i] = o.n > 0 ? o : null; this.hit(D, i, o.per, k === 'skibidi' ? 'storm' : k, o.src, true); if (D.ph !== 'fight') return; } }
       }
       // the projectiles
       const R = RINGS[D.r];
@@ -1343,7 +1356,10 @@
         sfx3(snd, p.x, p.z, 90, { vol: 0.7 });
       } else if (type === 'b0') { this.line(e[5], e[6], e[7], e[8], 0xff4d6d, 0.12, e[9], 0.35); }
       else if (type === 'b1') { const A = AB[e[4]]; this.line(e[5], e[6], e[7], e[8], rarHex(A.r), A.r >= 4 ? 0.7 : 0.45, 0.25, 0.95); sfx3('laser', e[5], e[6], 90); }
-      else if (type === 'ao') { this.wave(e[5], e[6], e[7], rarHex(AB[e[4]].r)); sfx3('boom', e[5], e[6], 90); if (e[4] === 'bass') { this.wave(e[5], e[6], e[7] * 0.6, 0xc026d3); puffAt(e[5], 1.5, e[6], [0x111111, 0xc026d3, 0xffffff], 22); sfx3('explode', e[5], e[6], 120); } }
+      else if (type === 'ao') {
+        if (e[4] === 'magnet' || e[4] === 'blackhole') { this.wave(e[5], e[6], e[7], e[4] === 'blackhole' ? 0x7c3aed : 0xf472b6, true); if (e[4] === 'blackhole') puffAt(e[5], 2, e[6], [0x111111, 0x7c3aed, 0x4c1d95], 26); } // (a pull: the ring closes in)
+        if (e[4] === 'timestop') { this.wave(e[5], e[6], e[7] * 0.8, 0xfde047); sfx3('freeze', e[5], e[6], 120); }
+        this.wave(e[5], e[6], e[7], rarHex(AB[e[4]].r)); sfx3('boom', e[5], e[6], 90); if (e[4] === 'bass') { this.wave(e[5], e[6], e[7] * 0.6, 0xc026d3); puffAt(e[5], 1.5, e[6], [0x111111, 0xc026d3, 0xffffff], 22); sfx3('explode', e[5], e[6], 120); } }
       else if (type === 'm0') { this.meteor(e[4], e[5], e[6], e[3]); }
       else if (type === 'm1') { const bolt = e[3] === 'thunder'; this.wave(e[4], e[5], e[6], bolt ? 0x22d3ee : 0xf97316); puffAt(e[4], 2, e[5], bolt ? [0x67e8f9, 0xfde047, 0xffffff] : [0xf97316, 0xfde047, 0x444444], 24); sfx3(bolt ? 'thunder' : 'explode', e[4], e[5], 120); }
       else if (type === 'x') { this.wave(e[3], e[4], e[5], 0xc084fc); puffAt(e[3], 2.4, e[4], [0xc084fc, 0xf9a8d4], 16); sfx3('explode', e[3], e[4], 100, { vol: 0.7 }); }
@@ -1352,7 +1368,7 @@
         puffAt(p.x, p.y + 3, p.z, A.heal && !A.buff ? [0x86efac, 0xffffff] : A.shield && !A.heal ? [0x93c5fd, 0xffffff] : [0xf97316, 0xfde047], 14);
         if (e[5] > 0) { const s = this.screen(p.x, p.y + 6, p.z); if (s) this.pop(s[0], s[1], `+${e[5]} ❤️`, 'heal'); }
       } else if (type === 'ds') {
-        if (D.id === this.duelId && e[3] === this.myIdx) { const o = pos(1 - this.myIdx); if (o) { const dx = o.x - P.x, dz = o.z - P.z, l = Math.hypot(dx, dz) || 1, d = Math.min(14, l + 2.5); this.move = { t: 0.3, vx: dx / l * d / 0.3, vz: dz / l * d / 0.3, smoke: e[4] === 'drift' }; } }
+        if (D.id === this.duelId && e[3] === this.myIdx) { const o = pos(1 - this.myIdx); if (o) { const dx = o.x - P.x, dz = o.z - P.z, l = Math.hypot(dx, dz) || 1, d = Math.min((AB[e[4]] && AB[e[4]].rng) || 14, l + 2.5); this.move = { t: 0.3, vx: dx / l * d / 0.3, vz: dz / l * d / 0.3, smoke: e[4] === 'drift' }; } }
         const cp = pos(e[3]); if (cp) puffAt(cp.x, cp.y + 0.6, cp.z, e[4] === 'drift' ? [0x6b7280, 0xd1d5db, 0x111827] : [0x9ca3af, 0xe5e7eb], e[4] === 'drift' ? 22 : 10);
       } else if (type === 'h') {
         const t = e[3], p = pos(t), A = abOf(e[5]) || (e[5] === 'storm' ? AB.skibidi : SLAP); if (!p) return;
@@ -1360,8 +1376,9 @@
         puffAt(p.x, p.y + 2.8, p.z, [rarHex(A.r), 0xffffff], 8);
         sfx3(e[5] === 'slap' ? 'punch' : 'hit', p.x, p.z, 80, { vol: 0.8 });
         if (D.id === this.duelId && t === this.myIdx && e[5] === 'edit') this.editFx(2, 'EDITED', true);
-        if (D.id === this.duelId && e[7] === this.myIdx && t !== this.myIdx && e[5] !== 'slap' && e[5] !== 'storm') { this.xp(2); this.qProg('hit', 1); }
-        if (D.id === this.duelId && t === this.myIdx && e[6] > 0) { const o = pos(e[7]); if (o) { const dx = P.x - o.x, dz = P.z - o.z, l = Math.hypot(dx, dz) || 1; this.move = { t: 0.25, vx: dx / l * e[6], vz: dz / l * e[6] }; } }
+        if (D.id === this.duelId && t === this.myIdx && e[5] === 'timestop') this.editFx(2.5, '⏸️ TIME STOPPED');
+        if (D.id === this.duelId && e[7] === this.myIdx && t !== this.myIdx && e[5] !== 'slap' && e[5] !== 'storm' && !e[8]) { this.xp(2); this.qProg('hit', 1); }
+        if (D.id === this.duelId && t === this.myIdx && e[6]) { const o = pos(e[7]); if (o) { const dx = P.x - o.x, dz = P.z - o.z, l = Math.hypot(dx, dz) || 1, v = e[6] > 0 ? e[6] : -Math.min(-e[6], Math.max(0, (l - 2.5) / 0.25)); this.move = { t: 0.25, vx: dx / l * v, vz: dz / l * v }; } }
       }
     },
     onEnd(e) {
@@ -1403,10 +1420,10 @@
       m.position.set((x0 + x1) / 2, 2.8, (z0 + z1) / 2); m.rotation.y = Math.atan2(dx, dz); m.userData.ownGeo = true; place.add(m);
       this.fx.push({ o: m, life, max: life, fade: op, dispose: true });
     },
-    wave(x, z, r, c) {
+    wave(x, z, r, c, inward) {
       const m = new THREE.Mesh(new THREE.RingGeometry(0.85, 1, 48), new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 0.85, side: THREE.DoubleSide, depthWrite: false, ...DECAL }));
       m.rotation.x = -Math.PI / 2; m.position.set(x, 0.3, z); m.userData.ownGeo = true; place.add(m);
-      this.fx.push({ o: m, life: 0.5, max: 0.5, grow: r, fade: 0.85, dispose: true });
+      this.fx.push(inward ? { o: m, life: 0.5, max: 0.5, shrink: r, fade: 0.85, dispose: true } : { o: m, life: 0.5, max: 0.5, grow: r, fade: 0.85, dispose: true });
     },
     // Show hitboxes: where an attack hit (green) or missed (red), and the same flash on whoever it was aimed at
     hbFlash(D, e) {
@@ -1434,7 +1451,7 @@
       warn.rotation.x = -Math.PI / 2; warn.position.set(x, 0.25, z); warn.userData.ownGeo = true; place.add(warn);
       this.fx.push({ o: warn, life: w, max: w, pulse: true, dispose: true });
       const rock = new THREE.Group(); rock.position.set(x + 14, 40, z - 8); place.add(rock);
-      const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: emoTex(bolt ? '⚡' : '☄️'), transparent: true })); s.scale.setScalar(5); rock.add(s);
+      const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: emoTex(A.e), transparent: true })); s.scale.setScalar(A.cnt ? 3.4 : 5); rock.add(s);
       fxCard('glow', bolt ? 0x67e8f9 : 0xf97316, 8, 8, 0, 0, 0, rock);
       this.fx.push({ o: rock, life: w, max: w, fall: [x + 14, 40, z - 8, x, 1, z] });
     },
@@ -1506,6 +1523,7 @@
         const f = this.fx[i]; f.life -= dt; const k = 1 - Math.max(0, f.life) / f.max;
         if (f.up) f.o.position.y += f.up * dt;
         if (f.grow) f.o.scale.setScalar(0.5 + k * f.grow);
+        if (f.shrink) f.o.scale.setScalar(0.5 + (1 - k) * f.shrink);
         if (f.fade != null && f.o.material) f.o.material.opacity = f.fade * (1 - k);
         if (f.hb) { const u = f.o.userData.hb, a = k < 0.6 ? 1 : (1 - k) / 0.4; u.lm.opacity = u.op * a; u.fm.opacity = u.op * 0.16 * a; }
         if (f.pulse) f.o.material.opacity = 0.2 + 0.25 * (0.5 + 0.5 * Math.sin(k * 30));
@@ -1818,7 +1836,7 @@
         return this.abCard(k, lv, { btn });
       }).join('');
       const html = `<div class="au-bp au-ps">${this.bpTabs('shop')}
-        <p class="xp-note">🛒 New stock every day (in <b>${dur(left)}</b>). ⚡ Limited Power Crates hold everything, the Phonk and the four ⚡ Power abilities included (Gigachad Thunder, Rizz Vortex, Ohio Dragon, Sigma Eclipse); 🍀 Rizz Luck counts. Abilities are one each a day: one you have goes up a level.</p>
+        <p class="xp-note">🛒 New stock every day (in <b>${dur(left)}</b>). ⚡ Limited Power Crates hold everything, the Phonk and the ${ABK.filter((k) => AB[k].pw).length} ⚡ Power abilities included (${ABK.filter((k) => AB[k].pw).map((k) => AB[k].e).join(' ')}); 🍀 Rizz Luck counts. Abilities are one each a day: one you have goes up a level.</p>
         <h4>⚡ Limited Power Crates</h4><div class="crates">${crates}</div>
         <h4>🎒 Today’s abilities</h4><div class="xp-grid">${abs}</div>
         <p class="xp-note">🎟️ Pass Coins: +${this.pcK(PC_LV)} for every Battle Pass level, +${this.pcK(PC_DAILY)} for a quest, and after level 50, ♾️ +${this.pcK(PC_INF)} for every ${PC_INF_XP} XP, forever. You have <b>🎟️ ${comma(S.pc)}</b>.</p></div>`;
