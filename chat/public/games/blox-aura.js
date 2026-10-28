@@ -137,6 +137,7 @@
   const clickCost = (l) => Math.round(15 * 1.55 ** l);
   const grindCost = (l) => Math.round(30 * 1.6 ** l);
   const MAX_LV = 10, LV_UP = 0.12, STEAL = 0.2, HP = 200, DUEL_T = 75, PRE = 3, RING_H = 12, CHAL_T = 20, MAX_CPS = 14;
+  const HB_BODY = 1.2; // a fighter's hitbox: 2.4 wide (an attack's reach is drawn this much short, so the boxes touching = a hit)
   const lvK = (lvl) => 1 + LV_UP * (Math.max(1, lvl) - 1);
 
   /* ---------------- rarities, ranks, abilities, crates ---------------- */
@@ -284,6 +285,30 @@
   const NOMESH = new THREE.Mesh(BOX, new THREE.MeshBasicMaterial()); NOMESH.visible = false;
   const solidBox = (x0, y0, z0, x1, y1, z1) => parts.push({ x: (x0 + x1) / 2, y: (y0 + y1) / 2, z: (z0 + z1) / 2, sx: x1 - x0, sy: y1 - y0, sz: z1 - z0, solid: true, on: true, ox: 0, oy: 0, oz: 0, dx: 0, dy: 0, dz: 0, c: 0, m: NOMESH });
   const sign = (text, x, y, z, size, color) => { const l = label(text, { size: size || 1.6, color }); l.position.set(x, y, z); place.add(l); return l; };
+
+  /* ---------------- hitboxes (Show hitboxes, or H): wire boxes drawn through everything ---------------- */
+  const HB_GREEN = 0x22c55e, HB_RED = 0xef4444, HB_IDLE = 0xf8fafc;
+  const HB_GEO = (() => {
+    const box = new THREE.EdgesGeometry(new THREE.BoxGeometry(1, 1, 1)), v = [];
+    // a cylinder cage of radius 1 from y 0 to 1: rings top and bottom, and 8 uprights
+    for (const y of [0, 1]) for (let i = 0; i < 48; i++) { const a = i / 48 * Math.PI * 2, b = (i + 1) / 48 * Math.PI * 2; v.push(Math.cos(a), y, Math.sin(a), Math.cos(b), y, Math.sin(b)); }
+    for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; v.push(Math.cos(a), 0, Math.sin(a), Math.cos(a), 1, Math.sin(a)); }
+    const cyl = new THREE.BufferGeometry(); cyl.setAttribute('position', new THREE.Float32BufferAttribute(v, 3));
+    const disc = new THREE.CircleGeometry(1, 48); disc.rotateX(-Math.PI / 2);
+    return { box, cyl, fill: new THREE.BoxGeometry(1, 1, 1), disc };
+  })();
+  // a hitbox: wire lines plus a faint fill, always on top. kind 'box' (centred) or 'cyl' (standing on y 0)
+  function hbShape(kind, c, op) {
+    const g = new THREE.Group(), lm = new THREE.LineBasicMaterial({ color: c, transparent: true, opacity: op, depthTest: false, depthWrite: false });
+    const fm = new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: op * 0.16, depthTest: false, depthWrite: false, side: THREE.DoubleSide });
+    const line = new THREE.LineSegments(kind === 'cyl' ? HB_GEO.cyl : HB_GEO.box, lm), fill = new THREE.Mesh(kind === 'cyl' ? HB_GEO.disc : HB_GEO.fill, fm);
+    if (kind === 'cyl') fill.position.y = 0.05;
+    line.renderOrder = fill.renderOrder = 990; g.add(fill, line);
+    g.userData.hb = { lm, fm, op };
+    return g;
+  }
+  const hbColor = (g, c) => { const u = g.userData.hb; u.lm.color.setHex(c); u.fm.color.setHex(c); };
+  const hbDrop = (g) => { const u = g.userData.hb; u.lm.dispose(); u.fm.dispose(); };
 
   /* ---------------- the models: carved stone, polished metal and glowing parts (and the still bits baked together) ---------------- */
   const GEO = {
@@ -630,8 +655,8 @@
     async enter() {
       Object.assign(this, { H: null, lastG: null, gSeen: null, g: null, D: null, q: [], qn: 0, evSeen: null, acc: 0, evT: 40 + Math.random() * 30, clicks: [], duelId: 0, myIdx: -1, cdUntil: {}, move: null, chal: null, chalKey: '', resT: 0, backAt: 0, barHtml: '', sentAt: 0, savedAt: performance.now(), dirty: false, hpSeen: null, frozeBy: false, popAt: 0, streak: 0, lastClick: 0, tier: 0, pulseAt: 0, rainAt: 0 });
       const s = await kvGet('au');
-      const S = this.S = Object.assign({ au: 0, tot: 0, cl: 0, ps: 0, ab: { rizz: 1, side: 1 }, eq: ['rizz', 'side'], free: 1, w: 0, l: 0, best: 0, op: 0 }, s && typeof s === 'object' ? s : {});
-      S.au = Math.max(0, +S.au || 0); S.tot = Math.max(0, +S.tot || 0); S.cl = Math.max(0, S.cl | 0); S.ps = Math.max(0, S.ps | 0); S.free = Math.max(0, S.free | 0);
+      const S = this.S = Object.assign({ au: 0, tot: 0, cl: 0, ps: 0, ab: { rizz: 1, side: 1 }, eq: ['rizz', 'side'], free: 1, w: 0, l: 0, best: 0, op: 0, hb: false }, s && typeof s === 'object' ? s : {});
+      S.au = Math.max(0, +S.au || 0); S.tot = Math.max(0, +S.tot || 0); S.cl = Math.max(0, S.cl | 0); S.ps = Math.max(0, S.ps | 0); S.free = Math.max(0, S.free | 0); S.hb = !!S.hb;
       const ab = {}; for (const k of Object.keys(S.ab || {})) if (AB[k]) ab[k] = clamp(S.ab[k] | 0, 1, MAX_LV); S.ab = ab;
       S.eq = [...new Set((Array.isArray(S.eq) ? S.eq : []).filter((k) => S.ab[k]))].slice(0, 4);
       const hud = $('#xhud');
@@ -827,7 +852,9 @@
       if (g) return { gs: 0, left: 0, D: [], C: [], ev: (g.ev || []).slice(), nd: 0, nb: g.nb | 0, rn: +g.rn || 0, rnT: g.rnT != null ? +g.rnT : null };
       return { gs: 0, left: 0, D: [], C: [], ev: [], nd: 0, nb: 0, rn: 0, rnT: null };
     },
-    ev(e) { const H = this.H; this.evSeq = (this.evSeq || 0) + 1; H.ev.push([this.evSeq].concat(e)); if (H.ev.length > 30) H.ev.splice(0, H.ev.length - 30); },
+    ev(e) { const H = this.H; this.evSeq = (this.evSeq || 0) + 1; H.ev.push([this.evSeq].concat(e)); if (H.ev.length > 48) H.ev.splice(0, H.ev.length - 48); },
+    // an attack landed or missed, and the shape it hit with ('p' a box round a projectile, 'b' along a beam, 'c' a circle), for Show hitboxes
+    hb(D, o, k, hit, shape, ...a) { this.ev(['hb', D.id, o, k, hit ? 1 : 0, shape, ...a.map((v) => +(+v).toFixed(1))]); },
     host(dt) {
       const H = this.H, pl = this.pl = players(), here = new Set(pl.map((p) => p.peer));
       for (const p of pl) {
@@ -930,7 +957,7 @@
       else if (A.k === 'aoe') D.pe.push({ t: A.w, kind: 'aoe', o: i, k, dmg });
       else if (A.k === 'meteor') { D.pe.push({ t: A.w, kind: 'meteor', o: i, k, x1: tg.x, z1: tg.z, dmg }); this.ev(['m0', D.id, k, +tg.x.toFixed(1), +tg.z.toFixed(1), A.w]); }
       else if (A.k === 'dash') { D.pe.push({ t: 0.32, kind: 'dash', o: i, k, dmg }); this.ev(['ds', D.id, i, k]); if (isBot(D.f[i])) D.bot.dashT = 0.3; }
-      else if (A.k === 'melee') { if (d < A.rng + 1) this.hit(D, 1 - i, dmg, k, i); }
+      else if (A.k === 'melee') { const hit = d < A.rng + 1; this.hb(D, i, k, hit, 'c', me.x, me.z, A.rng + 1 - HB_BODY); if (hit) this.hit(D, 1 - i, dmg, k, i); }
       else if (A.k === 'self') {
         if (A.heal) D.hp[i] = Math.min(D.mx[i], D.hp[i] + A.heal * L);
         if (A.shield) { D.sh[i] = Math.max(D.sh[i], A.shield[0] * L); D.shT[i] = A.shield[1]; }
@@ -972,8 +999,12 @@
         if (tg) { const dx = tg.x - q.x, dz = tg.z - q.z, l = Math.hypot(dx, dz) || 1, k = Math.min(1, dt * (A.home ? 2.2 : 1.3)); q.vx += (dx / l * A.sp - q.vx) * k; q.vz += (dz / l * A.sp - q.vz) * k; }
         q.x += q.vx * dt; q.z += q.vz * dt; q.life -= dt;
         const hitR = A.big ? 2.4 : 1.8, out = q.life <= 0 || Math.abs(q.x - R.x) > RING_H - 0.4 || Math.abs(q.z - R.z) > RING_H - 0.4;
-        if (tg && Math.hypot(tg.x - q.x, tg.z - q.z) < hitR) { D.pj.splice(j, 1); this.hit(D, 1 - q.o, q.dmg, q.k, q.o); if (A.ex) this.ev(['x', D.id, +q.x.toFixed(1), +q.z.toFixed(1), A.ex]); if (D.ph !== 'fight') return; continue; }
-        if (out) { D.pj.splice(j, 1); if (A.ex) { this.ev(['x', D.id, +q.x.toFixed(1), +q.z.toFixed(1), A.ex]); if (tg && Math.hypot(tg.x - q.x, tg.z - q.z) < A.ex) { this.hit(D, 1 - q.o, q.dmg * 0.7, q.k, q.o); if (D.ph !== 'fight') return; } } }
+        if (tg && Math.hypot(tg.x - q.x, tg.z - q.z) < hitR) { D.pj.splice(j, 1); this.hb(D, q.o, q.k, 1, 'p', q.x, q.z, hitR - HB_BODY); this.hit(D, 1 - q.o, q.dmg, q.k, q.o); if (A.ex) this.ev(['x', D.id, +q.x.toFixed(1), +q.z.toFixed(1), A.ex]); if (D.ph !== 'fight') return; continue; }
+        if (out) {
+          D.pj.splice(j, 1);
+          if (A.ex) { this.ev(['x', D.id, +q.x.toFixed(1), +q.z.toFixed(1), A.ex]); const hit = tg && Math.hypot(tg.x - q.x, tg.z - q.z) < A.ex; this.hb(D, q.o, q.k, hit, 'c', q.x, q.z, A.ex - HB_BODY); if (hit) { this.hit(D, 1 - q.o, q.dmg * 0.7, q.k, q.o); if (D.ph !== 'fight') return; } }
+          else this.hb(D, q.o, q.k, 0, 'p', q.x, q.z, hitR - HB_BODY);
+        }
       }
       // beams, waves, meteors and dashes landing
       for (let j = D.pe.length - 1; j >= 0; j--) {
@@ -983,10 +1014,11 @@
         if (e.kind === 'beam') {
           const px = tg.x - e.x0, pz = tg.z - e.z0, along = clamp(px * e.ux + pz * e.uz, 0, A.rng), dx = px - e.ux * along, dz = pz - e.uz * along;
           this.ev(['b1', D.id, e.o, e.k, +e.x0.toFixed(1), +e.z0.toFixed(1), +(e.x0 + e.ux * A.rng).toFixed(1), +(e.z0 + e.uz * A.rng).toFixed(1)]);
-          if (Math.hypot(dx, dz) < 2.5) this.hit(D, 1 - e.o, e.dmg, e.k, e.o);
-        } else if (e.kind === 'aoe') { this.ev(['ao', D.id, e.o, e.k, +me.x.toFixed(1), +me.z.toFixed(1), A.rad]); if (Math.hypot(tg.x - me.x, tg.z - me.z) < A.rad) this.hit(D, 1 - e.o, e.dmg, e.k, e.o); }
-        else if (e.kind === 'meteor') { this.ev(['m1', D.id, e.k, +e.x1.toFixed(1), +e.z1.toFixed(1), A.rad]); if (Math.hypot(tg.x - e.x1, tg.z - e.z1) < A.rad) this.hit(D, 1 - e.o, e.dmg, e.k, e.o); }
-        else if (e.kind === 'dash') { if (Math.hypot(tg.x - me.x, tg.z - me.z) < 4.4) this.hit(D, 1 - e.o, e.dmg, e.k, e.o); }
+          const hit = Math.hypot(dx, dz) < 2.5; this.hb(D, e.o, e.k, hit, 'b', e.x0, e.z0, e.x0 + e.ux * A.rng, e.z0 + e.uz * A.rng, 2.5 - HB_BODY);
+          if (hit) this.hit(D, 1 - e.o, e.dmg, e.k, e.o);
+        } else if (e.kind === 'aoe') { this.ev(['ao', D.id, e.o, e.k, +me.x.toFixed(1), +me.z.toFixed(1), A.rad]); const hit = Math.hypot(tg.x - me.x, tg.z - me.z) < A.rad; this.hb(D, e.o, e.k, hit, 'c', me.x, me.z, A.rad - HB_BODY); if (hit) this.hit(D, 1 - e.o, e.dmg, e.k, e.o); }
+        else if (e.kind === 'meteor') { this.ev(['m1', D.id, e.k, +e.x1.toFixed(1), +e.z1.toFixed(1), A.rad]); const hit = Math.hypot(tg.x - e.x1, tg.z - e.z1) < A.rad; this.hb(D, e.o, e.k, hit, 'c', e.x1, e.z1, A.rad - HB_BODY); if (hit) this.hit(D, 1 - e.o, e.dmg, e.k, e.o); }
+        else if (e.kind === 'dash') { const hit = Math.hypot(tg.x - me.x, tg.z - me.z) < 4.4; this.hb(D, e.o, e.k, hit, 'c', me.x, me.z, 4.4 - HB_BODY); if (hit) this.hit(D, 1 - e.o, e.dmg, e.k, e.o); }
         if (D.ph !== 'fight') return;
       }
       if (D.bot) this.botStep(D, dt);
@@ -1123,6 +1155,7 @@
       if (type === 'end') { this.onEnd(e); return; }
       if (!D) return;
       if (type === 'go') { if (D.id === this.duelId) { this.bigText('FIGHT!'); sfx('go'); } return; }
+      if (type === 'hb') { if (this.S && this.S.hb) this.hbFlash(D, e); return; }
       const pos = (i) => this.fPos(D, i);
       if (type === 'c') {
         const A = abOf(e[4]), p = pos(e[3]); if (!A || !p) return;
@@ -1197,6 +1230,26 @@
       m.rotation.x = -Math.PI / 2; m.position.set(x, 0.3, z); m.userData.ownGeo = true; place.add(m);
       this.fx.push({ o: m, life: 0.5, max: 0.5, grow: r, fade: 0.85, dispose: true });
     },
+    // Show hitboxes: where an attack hit (green) or missed (red), and the same flash on whoever it was aimed at
+    hbFlash(D, e) {
+      const [, , , o, k, hit, shape, ...a] = e, c = hit ? HB_GREEN : HB_RED;
+      let g;
+      if (shape === 'b') { const [x0, z0, x1, z1, w] = a, dx = x1 - x0, dz = z1 - z0; g = hbShape('box', c, 1); g.scale.set(w * 2, 4, Math.hypot(dx, dz) || 1); g.position.set((x0 + x1) / 2, 2.8, (z0 + z1) / 2); g.rotation.y = Math.atan2(dx, dz); }
+      else if (shape === 'c') { const [x, z, r] = a; g = hbShape('cyl', c, 1); g.scale.set(Math.max(0.3, r), 5.6, Math.max(0.3, r)); g.position.set(x, 0.15, z); }
+      else { const [x, z, r] = a; g = hbShape('box', c, 1); g.scale.setScalar(Math.max(0.3, r) * 2); g.position.set(x, 2.8, z); }
+      place.add(g); this.fx.push({ o: g, life: 0.7, max: 0.7, hb: true });
+      const f = this.fv.get(D.id + ':' + (1 - o)); if (f) { hbColor(f.hb, c); f.hbT = 0.45; }
+      if (D.id === this.duelId) { // HIT / MISS over it, in your own duel
+        const l = label(hit ? 'HIT' : 'MISS', { size: 0.8, color: hit ? '#86efac' : '#fca5a5', bg: 'rgba(15,23,42,.7)' });
+        const [x, z] = shape === 'b' ? [a[2], a[3]] : [a[0], a[1]]; l.position.set(x, 6.2, z); place.add(l);
+        this.fx.push({ o: l, life: 0.7, max: 0.7, up: 2, dispose: true });
+      }
+    },
+    toggleHb() {
+      const S = this.S; if (!S) return;
+      S.hb = !S.hb; this.save(); sfx('toggle');
+      toast(S.hb ? '🟩 Hitboxes on: green = hit, red = miss' : 'Hitboxes off', S.hb ? '#86efac' : '#cbd5e1');
+    },
     meteor(x, z, w) {
       const warn = new THREE.Mesh(new THREE.CircleGeometry(AB.meteor.rad, 40), new THREE.MeshBasicMaterial({ color: 0xef4444, transparent: true, opacity: 0.3, depthWrite: false, ...DECAL }));
       warn.rotation.x = -Math.PI / 2; warn.position.set(x, 0.25, z); warn.userData.ownGeo = true; place.add(warn);
@@ -1229,12 +1282,14 @@
         want.add(key);
         let v = this.pjv.get(key);
         if (!v) { v = { g: this.pjModel(A), x: q[2], z: q[3], sx: q[2], sz: q[3] }; place.add(v.g); this.pjv.set(key, v); }
+        if (this.S.hb && !v.hb) { const r = (A.big ? 2.4 : 1.8) - HB_BODY; v.hb = hbShape('box', HB_IDLE, 0.9); v.hb.scale.setScalar(r * 2); v.g.add(v.hb); }
+        if (v.hb) v.hb.visible = this.S.hb;
         if (v.sx !== q[2] || v.sz !== q[3]) { v.sx = q[2]; v.sz = q[3]; v.x = q[2]; v.z = q[3]; } else { v.x += q[4] * dt; v.z += q[5] * dt; }
         v.g.position.set(v.x, 2.8 + Math.sin(performance.now() / 120 + q[0]) * 0.15, v.z);
         v.tr = (v.tr || 0) + dt; if (v.tr > 0.06) { v.tr = 0; puffAt(v.x, 2.8, v.z, [rarHex(A.r), 0xffffff], 1); }
         if (A.home) v.g.rotation.y += dt * 9;
       }
-      for (const [key, v] of this.pjv) if (!want.has(key)) { place.remove(v.g); v.g.traverse((o) => { if (o.material) { if (o.userData.ownMap && o.material.map) o.material.map.dispose(); o.material.dispose(); } }); this.pjv.delete(key); }
+      for (const [key, v] of this.pjv) if (!want.has(key)) { place.remove(v.g); if (v.hb) { v.g.remove(v.hb); hbDrop(v.hb); } v.g.traverse((o) => { if (o.material) { if (o.userData.ownMap && o.material.map) o.material.map.dispose(); o.material.dispose(); } }); this.pjv.delete(key); }
       // shields, stuns, buffs and slows on the fighters
       const wantF = new Set();
       for (const D of all) for (const i of [0, 1]) {
@@ -1247,14 +1302,18 @@
           f.stun = new THREE.Sprite(new THREE.SpriteMaterial({ map: emoTex('💫'), transparent: true })); f.stun.scale.setScalar(1.8); f.stun.position.y = 7.6; f.g.add(f.stun);
           f.slow = new THREE.Sprite(new THREE.SpriteMaterial({ map: emoTex('🐌'), transparent: true })); f.slow.scale.setScalar(1.3); f.slow.position.set(1.4, 6.8, 0); f.g.add(f.slow);
           f.buff = fxCard('glow', 0xf97316, 6, 7, 0, 3, 0, f.g, (o, m, t) => { m.opacity = 0.45 + 0.2 * Math.sin(t * 9); });
+          f.hb = hbShape('box', HB_IDLE, 0.85); f.hb.scale.set(HB_BODY * 2, 5.6, HB_BODY * 2); f.hb.position.y = 2.8; f.g.add(f.hb); f.hbT = 0;
           this.fv.set(key, f);
         }
         f.g.position.set(p.x, p.y, p.z);
         const live = D.ph !== 'end';
         f.shield.visible = live && (D.sh || [])[i] > 0; f.stun.visible = live && (D.st || [])[i] > 0; f.slow.visible = live && (D.sl || [])[i] > 0; f.buff.visible = live && (D.bf || [])[i] > 1;
         if (f.stun.visible) f.stun.material.rotation += dt * 4;
+        // Show hitboxes: white, flashing green when something hits them and red when it misses
+        f.hb.visible = !!this.S.hb && live;
+        if (f.hbT > 0) { f.hbT -= dt; if (f.hbT <= 0) hbColor(f.hb, HB_IDLE); }
       }
-      for (const [key, f] of this.fv) if (!wantF.has(key)) { place.remove(f.g); f.shield.geometry.dispose(); this.fv.delete(key); }
+      for (const [key, f] of this.fv) if (!wantF.has(key)) { place.remove(f.g); f.shield.geometry.dispose(); hbDrop(f.hb); this.fv.delete(key); }
       // everyone's aura, as a glow round them (bigger and brighter the more they have) and their title
       this.auraGlow(me, this.S.au, myPeer());
       for (const [peer, a] of Net.avatars) { const p = Net.peers.find((x) => x.peer === peer); this.auraGlow(a, p && p.presence ? +p.presence.au || 0 : 0, peer); }
@@ -1269,9 +1328,10 @@
         if (f.up) f.o.position.y += f.up * dt;
         if (f.grow) f.o.scale.setScalar(0.5 + k * f.grow);
         if (f.fade != null && f.o.material) f.o.material.opacity = f.fade * (1 - k);
+        if (f.hb) { const u = f.o.userData.hb, a = k < 0.6 ? 1 : (1 - k) / 0.4; u.lm.opacity = u.op * a; u.fm.opacity = u.op * 0.16 * a; }
         if (f.pulse) f.o.material.opacity = 0.2 + 0.25 * (0.5 + 0.5 * Math.sin(k * 30));
         if (f.fall) { const [x0, y0, z0, x1, y1, z1] = f.fall; f.o.position.set(x0 + (x1 - x0) * k, y0 + (y1 - y0) * k * k, z0 + (z1 - z0) * k); }
-        if (f.life <= 0) { place.remove(f.o); if (f.dispose) { if (f.o.geometry && f.o.userData.ownGeo) f.o.geometry.dispose(); if (f.o.material) { if (f.o.isSprite && f.o.material.map) f.o.material.map.dispose(); f.o.material.dispose(); } } else if (f.disposeMat && f.o.material) f.o.material.dispose(); this.fx.splice(i, 1); }
+        if (f.life <= 0) { place.remove(f.o); if (f.hb) hbDrop(f.o); if (f.dispose) { if (f.o.geometry && f.o.userData.ownGeo) f.o.geometry.dispose(); if (f.o.material) { if (f.o.isSprite && f.o.material.map) f.o.material.map.dispose(); f.o.material.dispose(); } } else if (f.disposeMat && f.o.material) f.o.material.dispose(); this.fx.splice(i, 1); }
       }
     },
     // the bass drop's build-up: a rising tone where it's cast
@@ -1338,6 +1398,7 @@
     },
     key(code, down) {
       if (!down) return false;
+      if (code === 'KeyH') { this.toggleHb(); return true; }
       const D = this.D;
       if (D && D.ph !== 'end') {
         const m = /^Digit([1-4])$/.exec(code);
@@ -1356,7 +1417,7 @@
     },
     hud() {
       const D = this.D;
-      if (D && D.ph !== 'end') return touchy ? 'Tap your abilities (they aim themselves) · move to dodge!' : '1–4 abilities (they aim themselves) · F or click to slap · move to dodge!';
+      if (D && D.ph !== 'end') return touchy ? 'Tap your abilities (they aim themselves) · move to dodge!' : '1–4 abilities (they aim themselves) · F or click to slap · move to dodge! · H: hitboxes';
       if (this.streak >= 3) { const next = TIERS[this.tier + 1]; return next ? `Keep clicking! ${next.at - this.streak} more for ${next.e} ${next.n} (×${next.m} aura)` : 'MAX BRAINROT. Keep clicking, the server is watching 🗿'; }
       return touchy ? 'Tap fast to farm aura 🗿 · 25 in a row = ×2 · walk up to someone to challenge them' : 'Click fast (or F) to farm aura 🗿 · 25 in a row = ×2 aura · walk up to someone and press E to challenge them';
     },
@@ -1372,7 +1433,7 @@
       return out;
     },
     menu() {
-      return [['⚔️ Duel', () => this.duelPanel(), 'Duel'], ['🎁 Crates', () => this.cratePanel(), 'Crates'], ['🎒 Abilities', () => this.abilityPanel(), 'Abilities'], ['⬆️ Upgrades', () => this.upgradePanel(), 'Upgrade']];
+      return [['⚔️ Duel', () => this.duelPanel(), 'Duel'], ['🎁 Crates', () => this.cratePanel(), 'Crates'], ['🎒 Abilities', () => this.abilityPanel(), 'Abilities'], ['⬆️ Upgrades', () => this.upgradePanel(), 'Upgrade'], [this.S && this.S.hb ? '🟩 Hitboxes: on' : '🟥 Hitboxes: off', () => this.toggleHb(), 'Hitbox']];
     },
     statOf(pr) { return pr && pr.au != null ? `🗿 ${short(pr.au)}` : '—'; },
     sortKey(pr) { return (pr && +pr.au) || 0; },
