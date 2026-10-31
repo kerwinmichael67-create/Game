@@ -60,6 +60,44 @@
   .emw .em.ask{border-color:#f59e0b;box-shadow:0 0 0 4px rgba(245,158,11,.35),0 3px 0 rgba(0,0,0,.35)}
   @media (pointer:fine){.emw .em .k{display:block}.emw .em .i{margin-top:6px}}
   @media (max-width:560px),(max-height:560px){.emw{transform:scale(.78)}}@media (max-width:380px){.emw{transform:scale(.7)}}
+  /* 🎃 the Halloween Shop */
+  .hwban,.hwhero{position:relative;overflow:hidden;display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;border-radius:22px;padding:18px 22px;margin-bottom:16px;background:radial-gradient(120% 150% at 85% 10%,#9a3412 0,#4c1d95 45%,#0f0a1f 100%);border:1px solid rgba(251,146,60,.45);box-shadow:0 10px 30px rgba(0,0,0,.35),inset 0 0 0 1px rgba(255,255,255,.05)}
+  .hwban{cursor:pointer;transition:transform .15s}.hwban:hover{transform:translateY(-2px)}
+  .hwhero{margin:12px 0 18px;padding:26px 24px;min-height:150px;align-items:end}
+  .hwban .tag,.hwhero .tag{display:inline-flex;background:linear-gradient(180deg,#fb923c,#ea580c);color:#2a0f00;font:700 11px var(--fh);letter-spacing:.08em;text-transform:uppercase;border-radius:999px;padding:4px 10px}
+  .hwban h2,.hwhero h2{margin:8px 0 4px;font:700 28px/1.1 var(--fh);color:#fff7ed;text-shadow:0 3px 0 rgba(0,0,0,.4)}.hwhero h2{font-size:36px}
+  .hwban p,.hwhero p{margin:0;color:#e9d5ff;font:600 13px/1.45 var(--fb);max-width:560px}
+  .hwt{position:relative;z-index:1}
+  .hwcdbox{display:flex;flex-direction:column;align-items:flex-end;gap:5px;position:relative;z-index:1}
+  .hwcdbox small{color:#fdba74;font:800 10.5px var(--fb);text-transform:uppercase;letter-spacing:.1em}
+  .hwcdbox b{font:700 25px var(--fh);color:#fff;font-variant-numeric:tabular-nums;text-shadow:0 2px 0 rgba(0,0,0,.4)}
+  .hwcdbox .go{background:#fff7ed;color:#7c2d12;font:700 13px var(--fh);border-radius:12px;padding:8px 13px;box-shadow:0 3px 0 #c2410c}
+  .hwcdbox .bal{display:inline-flex;align-items:center;gap:6px;background:rgba(0,0,0,.35);border-radius:999px;padding:4px 10px;font:600 14px var(--fh);color:#fde68a}
+  .hwban .pk,.hwhero .pk{position:absolute;right:240px;bottom:-16px;font-size:86px;filter:drop-shadow(0 0 18px rgba(251,146,60,.65));animation:bob 3.4s ease-in-out infinite;pointer-events:none}
+  .hwfx{position:absolute;inset:0;pointer-events:none}
+  .hwfx .moon{position:absolute;right:30%;top:-34px;width:96px;height:96px;border-radius:50%;background:radial-gradient(circle at 40% 40%,#fef3c7,#fcd34d 58%,rgba(252,211,77,0) 72%);opacity:.5}
+  .hwfx i{position:absolute;left:-8%;font-style:normal;font-size:22px;animation:hwbat 8s linear infinite;opacity:.85}
+  .hwfx .b1{top:16%}.hwfx .b2{top:58%;animation-delay:-2.7s;font-size:15px}.hwfx .b3{top:34%;animation-delay:-5.3s;font-size:18px}
+  @keyframes hwbat{0%{left:-8%;transform:translateY(0)}25%{transform:translateY(-14px)}50%{transform:translateY(6px)}75%{transform:translateY(-9px)}100%{left:106%;transform:translateY(0)}}
+  .hwgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+  .hwcard{display:flex;flex-direction:column;gap:6px;background:linear-gradient(180deg,#24173d,#150f24);border:1px solid rgba(167,139,250,.25);border-radius:18px;padding:10px;box-shadow:0 6px 18px rgba(0,0,0,.3);animation:rise .3s ease-out both}
+  .hwcard.own{border-color:rgba(74,222,128,.5)}
+  .hwcard .pic{position:relative;border-radius:14px;background:radial-gradient(circle at 50% 38%,#5b21b6,#1a1030 72%);aspect-ratio:1;display:grid;place-items:center;overflow:hidden}
+  .hwcard .pic img{width:100%;height:100%;object-fit:contain}.hwcard .pic .big{font-size:72px}
+  .hwcard .kind{position:absolute;left:8px;top:8px;background:rgba(0,0,0,.5);border-radius:999px;padding:3px 9px;font:700 11px var(--fh);color:#fde68a}
+  .hwcard .got{position:absolute;right:8px;top:8px;background:#16a34a;border-radius:999px;padding:3px 9px;font:700 11px var(--fh)}
+  .hwcard b{font:700 16px var(--fh);color:#fff7ed;margin-top:2px}
+  .hwcard p{margin:0;color:#c4b5fd;font:600 12px/1.38 var(--fb);flex:1}
+  .hwcard .row{display:flex;gap:6px}
+  .hwcard .row button{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:5px;border:0;border-radius:12px;padding:9px 8px;font:700 13px var(--fh);cursor:pointer;color:#2a0f00;background:linear-gradient(180deg,#fdba74,#f97316);box-shadow:0 3px 0 #9a3412}
+  .hwcard .row button:active{transform:translateY(2px);box-shadow:0 1px 0 #9a3412}
+  .hwcard .row button.ask{background:linear-gradient(180deg,#fde68a,#f59e0b);box-shadow:0 0 0 3px rgba(250,204,21,.35),0 3px 0 #92400e}
+  .hwcard .row .hwtry{flex:0 0 auto;background:rgba(255,255,255,.08);color:#e9d5ff;box-shadow:none;border:1px solid rgba(255,255,255,.14)}
+  .hwcard .row .hwwear,.hwcard .row .hwown{background:linear-gradient(180deg,#4ade80,#16a34a);color:#052e16;box-shadow:0 3px 0 #14532d}
+  .hwcard .row .hwwear.on{background:rgba(74,222,128,.18);color:#bbf7d0;box-shadow:none;border:1px solid rgba(74,222,128,.4)}
+  .hwcard .row button:disabled{cursor:default;opacity:.95}
+  .shop button .hwtag{position:absolute;left:6px;top:4px;font-size:13px;filter:drop-shadow(0 0 4px rgba(251,146,60,.8))}
+  @media (max-width:640px){.hwban,.hwhero{grid-template-columns:1fr}.hwcdbox{align-items:flex-start}.hwban .pk,.hwhero .pk{right:10px;bottom:auto;top:8px;font-size:52px}.hwhero h2{font-size:28px}}
   .bodies{display:grid;grid-template-columns:1fr 1fr;gap:7px}
   .bodies button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;border:2px solid rgba(255,255,255,.08);border-radius:14px;background:linear-gradient(180deg,#283143,#1c222d);color:#e2e8f0;padding:9px 11px;cursor:pointer}
   .bodies button b{font:600 16px var(--fh)}.bodies button span{font:700 11px/1.3 var(--fb);color:var(--muted)}
@@ -1044,29 +1082,29 @@ const SHIRTS = ['#1e88e5', '#e53935', '#43a047', '#fdd835', '#8e24aa', '#fb8c00'
 const PANTS = ['#1565c0', '#2e7d32', '#424242', '#6d4c41', '#c62828', '#eeeeee', '#283593', '#9e9d24'];
 const HATS = ['None', 'Cap', 'Top hat', 'Crown', 'Party hat', 'Cowboy hat', 'Viking helmet', 'Wizard hat', 'Headphones', 'Halo', 'Bunny ears', 'Chef hat', 'Pirate hat', 'Traffic cone', 'Shadow hood', 'Warlord helmet',
   'Beanie', 'Santa hat', 'Propeller cap', 'Fedora', 'Graduation cap', 'Flower crown', 'Devil horns', 'Ninja headband', 'Astronaut helmet', 'Valkyrie helm',
-  'Laurel wreath', 'Straw hat', 'Racing helmet', 'Bee antennae', 'Sheriff hat', 'Bucket hat', 'Champion crown'];
-const FACES = ['Smile', 'Grin', 'Shades', 'Wink', 'Angry', 'Surprised', 'Sleepy', 'Heart eyes', 'Star eyes', 'Robot', 'Super happy', 'Smirk', 'Tongue out', 'Laughing tears', 'Monocle', 'Zombie', 'Cat', 'Determined', 'Gold tooth'];
-const BACKS = ['None', 'Red cape', 'Angel wings', 'Bat wings', 'Sword', 'Backpack', 'Jetpack', 'Guitar', 'Dragon wings', 'Butterfly wings', 'Knight shield', 'Bow and quiver', 'Skateboard', 'Golden wings', 'Surfboard', 'Twin katanas'];
-const AURAS = ['None', 'Sparkles', 'Fire', 'Hearts', 'Snow', 'Lightning', 'Rainbow', 'Bubbles', 'Leaves', 'Galaxy', 'Toxic', 'Money', 'Stardust', 'Shadow', 'Storm'];
-const PATTERNS = ['Plain', 'Stripes', 'Star', 'Heart', 'Lightning', 'Checkers', 'Number 1', 'Suit', 'Skull', 'Flames', 'Camo', 'Rainbow', 'Galaxy', 'Trophy', 'Paw print', 'Sunflower'];
-const PETS = ['None', 'Puppy', 'Kitty', 'Bunny', 'Mini Dragon', 'Robot', 'Unicorn', 'Penguin', 'Fox', 'Panda', 'Phoenix', 'Baby Zombie', 'Peashooter'];
-const TRAILS = ['None', 'Rainbow', 'Fire', 'Ice', 'Neon', 'Gold', 'Hearts', 'Stars', 'Lightning'];
+  'Laurel wreath', 'Straw hat', 'Racing helmet', 'Bee antennae', 'Sheriff hat', 'Bucket hat', 'Champion crown', 'Witch hat'];
+const FACES = ['Smile', 'Grin', 'Shades', 'Wink', 'Angry', 'Surprised', 'Sleepy', 'Heart eyes', 'Star eyes', 'Robot', 'Super happy', 'Smirk', 'Tongue out', 'Laughing tears', 'Monocle', 'Zombie', 'Cat', 'Determined', 'Gold tooth', 'Vampire'];
+const BACKS = ['None', 'Red cape', 'Angel wings', 'Bat wings', 'Sword', 'Backpack', 'Jetpack', 'Guitar', 'Dragon wings', 'Butterfly wings', 'Knight shield', 'Bow and quiver', 'Skateboard', 'Golden wings', 'Surfboard', 'Twin katanas', 'Vampire cape', 'Witch’s broom'];
+const AURAS = ['None', 'Sparkles', 'Fire', 'Hearts', 'Snow', 'Lightning', 'Rainbow', 'Bubbles', 'Leaves', 'Galaxy', 'Toxic', 'Money', 'Stardust', 'Shadow', 'Storm', 'Bat swarm'];
+const PATTERNS = ['Plain', 'Stripes', 'Star', 'Heart', 'Lightning', 'Checkers', 'Number 1', 'Suit', 'Skull', 'Flames', 'Camo', 'Rainbow', 'Galaxy', 'Trophy', 'Paw print', 'Sunflower', 'Skeleton tee'];
+const PETS = ['None', 'Puppy', 'Kitty', 'Bunny', 'Mini Dragon', 'Robot', 'Unicorn', 'Penguin', 'Fox', 'Panda', 'Phoenix', 'Baby Zombie', 'Peashooter', 'Boo the Ghost'];
+const TRAILS = ['None', 'Rainbow', 'Fire', 'Ice', 'Neon', 'Gold', 'Hearts', 'Stars', 'Lightning', 'Ghostly mist'];
 // the body: R6 (six blocks, the classic) or R15 (fifteen parts: knees, elbows, hands, feet and a waist that turns)
-const BODIES = ['R6', 'R15', 'Robot', 'Skeleton', 'Magma Golem', 'Dino Suit', 'Knight', 'Pumpkin Scarecrow']; // (2 on: body packs, jointed like R15)
+const BODIES = ['R6', 'R15', 'Robot', 'Skeleton', 'Magma Golem', 'Dino Suit', 'Knight', 'Pumpkin Scarecrow', 'Phantom']; // (2 on: body packs, jointed like R15)
 // animation packs: how you stand, walk, run and jump
 const ANIMS = ['Default', 'Robot', 'Ninja', 'Zombie', 'Superhero', 'Stylish', 'Levitation'];
 // the shop: what each costs in Blox Coins (0 = free, -1 = only as a reward)
 const COSMETICS = {
-  h: { title: 'Hats', list: HATS, price: [0, 0, 0, 0, 0, 100, 250, 300, 150, 800, 200, 120, 220, 80, 1500, -1, 100, 200, 350, 180, 220, 260, 400, 150, 1200, 3000, -1, -1, -1, -1, -1, -1, -1],
-    icon: ['🚫', '🧢', '🎩', '👑', '🥳', '🤠', '⛑️', '🧙', '🎧', '😇', '🐰', '👨‍🍳', '🏴‍☠️', '🚧', '🥷', '⚔️', '🧶', '🎅', '🌀', '🕵️', '🎓', '🌸', '😈', '🎌', '👨‍🚀', '⚜️', '🌿', '👒', '🏁', '🐝', '⭐', '🎣', '🏆'] },
-  f: { title: 'Faces', list: FACES, price: [0, 0, 0, 50, 50, 50, 80, 150, 200, 300, 120, 60, 80, 120, 200, 250, 150, -1, -1], icon: ['🙂', '😁', '😎', '😉', '😠', '😮', '😴', '😍', '🤩', '🤖', '😆', '😏', '😛', '😂', '🧐', '🧟', '🐱', '😤', '😬'] },
-  b: { title: 'Back', list: BACKS, price: [0, 150, 600, 500, 250, 100, 750, 300, 1800, 900, 400, 450, 300, -1, -1, -1], icon: ['🚫', '🦸', '🪽', '🦇', '🗡️', '🎒', '🚀', '🎸', '🐲', '🦋', '🛡️', '🏹', '🛹', '🥇', '🏄', '⚔️'] },
-  a: { title: 'Auras', list: AURAS, price: [0, 300, 800, 400, 350, 1000, 1500, 300, 350, 2000, 600, 2500, -1, -1, -1], icon: ['🚫', '✨', '🔥', '💖', '❄️', '⚡', '🌈', '🫧', '🍃', '🌌', '☢️', '💸', '💫', '🌑', '⛈️'] },
-  pt: { title: 'Shirts', list: PATTERNS, price: [0, 60, 80, 80, 120, 100, 90, 250, 150, 150, 120, 200, 300, -1, -1, -1], icon: ['⬜', '〰️', '⭐', '❤️', '⚡', '🏁', '1️⃣', '👔', '💀', '🔥', '🪖', '🌈', '🌌', '🏆', '🐾', '🌻'] },
-  pet: { title: 'Pets', list: PETS, price: [0, 400, 400, 350, 1500, 900, 2500, 600, 800, 1200, 4000, -1, -1], icon: ['🚫', '🐶', '🐱', '🐰', '🐉', '🤖', '🦄', '🐧', '🦊', '🐼', '🦅', '🧟', '🌱'] },
-  bt: { title: 'Bodies', list: BODIES, price: [0, 0, 900, 600, 1200, 1000, 1100, 800], icon: ['🧍', '🦵', '🤖', '💀', '🌋', '🦖', '⚔️', '🎃'], tab: false }, // (bodies and animations are in 🧍 Body)
+  h: { title: 'Hats', list: HATS, price: [0, 0, 0, 0, 0, 100, 250, 300, 150, 800, 200, 120, 220, 80, 1500, -1, 100, 200, 350, 180, 220, 260, 400, 150, 1200, 3000, -1, -1, -1, -1, -1, -1, -1, 400],
+    icon: ['🚫', '🧢', '🎩', '👑', '🥳', '🤠', '⛑️', '🧙', '🎧', '😇', '🐰', '👨‍🍳', '🏴‍☠️', '🚧', '🥷', '⚔️', '🧶', '🎅', '🌀', '🕵️', '🎓', '🌸', '😈', '🎌', '👨‍🚀', '⚜️', '🌿', '👒', '🏁', '🐝', '⭐', '🎣', '🏆', '🧙'] },
+  f: { title: 'Faces', list: FACES, price: [0, 0, 0, 50, 50, 50, 80, 150, 200, 300, 120, 60, 80, 120, 200, 250, 150, -1, -1, 250], icon: ['🙂', '😁', '😎', '😉', '😠', '😮', '😴', '😍', '🤩', '🤖', '😆', '😏', '😛', '😂', '🧐', '🧟', '🐱', '😤', '😬', '🧛'] },
+  b: { title: 'Back', list: BACKS, price: [0, 150, 600, 500, 250, 100, 750, 300, 1800, 900, 400, 450, 300, -1, -1, -1, 600, 450], icon: ['🚫', '🦸', '🪽', '🦇', '🗡️', '🎒', '🚀', '🎸', '🐲', '🦋', '🛡️', '🏹', '🛹', '🥇', '🏄', '⚔️', '🧛', '🧹'] },
+  a: { title: 'Auras', list: AURAS, price: [0, 300, 800, 400, 350, 1000, 1500, 300, 350, 2000, 600, 2500, -1, -1, -1, 900], icon: ['🚫', '✨', '🔥', '💖', '❄️', '⚡', '🌈', '🫧', '🍃', '🌌', '☢️', '💸', '💫', '🌑', '⛈️', '🦇'] },
+  pt: { title: 'Shirts', list: PATTERNS, price: [0, 60, 80, 80, 120, 100, 90, 250, 150, 150, 120, 200, 300, -1, -1, -1, 200], icon: ['⬜', '〰️', '⭐', '❤️', '⚡', '🏁', '1️⃣', '👔', '💀', '🔥', '🪖', '🌈', '🌌', '🏆', '🐾', '🌻', '🦴'] },
+  pet: { title: 'Pets', list: PETS, price: [0, 400, 400, 350, 1500, 900, 2500, 600, 800, 1200, 4000, -1, -1, 1000], icon: ['🚫', '🐶', '🐱', '🐰', '🐉', '🤖', '🦄', '🐧', '🦊', '🐼', '🦅', '🧟', '🌱', '👻'] },
+  bt: { title: 'Bodies', list: BODIES, price: [0, 0, 900, 600, 1200, 1000, 1100, 800, 1300], icon: ['🧍', '🦵', '🤖', '💀', '🌋', '🦖', '⚔️', '🎃', '🫥'], tab: false }, // (bodies and animations are in 🧍 Body)
   an: { title: 'Animations', list: ANIMS, price: [0, 500, 750, 400, 700, 550, 900], icon: ['🚶', '🤖', '🥷', '🧟', '🦸', '😎', '🫧'], tab: false },
-  tr: { title: 'Trails', list: TRAILS, price: [0, 1500, 800, 600, 500, 2000, 700, -1, -1], icon: ['🚫', '🌈', '🔥', '🧊', '💠', '🪙', '💕', '⭐', '⚡'] },
+  tr: { title: 'Trails', list: TRAILS, price: [0, 1500, 800, 600, 500, 2000, 700, -1, -1, 700], icon: ['🚫', '🌈', '🔥', '🧊', '💠', '🪙', '💕', '⭐', '⚡', '🌫️'] },
 };
 let AV = { s: 5, sh: 0, p: 1, h: 0, f: 0, b: 0, a: 0, pt: 0, pet: 0, tr: 0, bt: 0, an: 0 };
 const AV_KEYS = ['s', 'sh', 'p', 'h', 'f', 'b', 'a', 'pt', 'pet', 'tr', 'bt', 'an'], AV_LISTS = [SKINS, SHIRTS, PANTS, HATS, FACES, BACKS, AURAS, PATTERNS, PETS, TRAILS, BODIES, ANIMS];
@@ -1127,6 +1165,14 @@ const FACE_TEX = FACES.map((_, k) => {
   else if (k === 15) { g.beginPath(); g.arc(44, 52, 13, 0, 7); g.fill(); g.fillStyle = '#fef08a'; g.beginPath(); g.arc(44, 52, 5, 0, 7); g.fill(); g.fillStyle = '#111'; g.beginPath(); g.arc(84, 54, 6, 0, 7); g.fill(); g.beginPath(); g.moveTo(38, 88); g.lineTo(92, 84); g.stroke(); g.lineWidth = 3; for (let x = 44; x <= 86; x += 9) { g.beginPath(); g.moveTo(x, 80); g.lineTo(x + 1, 94); g.stroke(); } } // zombie
   else if (k === 17) { for (const x of [44, 84]) { g.beginPath(); g.ellipse(x, 57, 8, 8, 0, 0, 7); g.fill(); } g.lineWidth = 7; g.beginPath(); g.moveTo(30, 36); g.lineTo(56, 46); g.moveTo(98, 36); g.lineTo(72, 46); g.stroke(); g.lineWidth = 6; g.beginPath(); g.moveTo(46, 92); g.lineTo(82, 88); g.stroke(); } // determined
   else if (k === 18) { eyes(); g.beginPath(); g.moveTo(34, 76); g.quadraticCurveTo(64, 114, 94, 76); g.closePath(); g.fill(); g.fillStyle = '#fff'; g.fillRect(42, 77, 44, 9); g.fillStyle = '#facc15'; g.fillRect(67, 77, 10, 11); g.fillStyle = '#111'; } // gold tooth
+  else if (k === 19) { // vampire: arched brows, glowing red eyes with slit pupils, a wicked smile, fangs and a drop of blood
+    g.lineWidth = 6; g.beginPath(); g.moveTo(28, 38); g.quadraticCurveTo(42, 30, 56, 42); g.moveTo(100, 38); g.quadraticCurveTo(86, 30, 72, 42); g.stroke();
+    g.shadowColor = '#ef4444'; g.shadowBlur = 10; g.fillStyle = '#dc2626'; for (const x of [44, 84]) { g.beginPath(); g.ellipse(x, 54, 10, 8, 0, 0, 7); g.fill(); } g.shadowBlur = 0;
+    g.fillStyle = '#111'; for (const x of [44, 84]) { g.beginPath(); g.ellipse(x, 54, 2.5, 7, 0, 0, 7); g.fill(); } g.fillStyle = '#fff'; for (const x of [40, 80]) { g.beginPath(); g.arc(x, 51, 2, 0, 7); g.fill(); }
+    g.fillStyle = '#111'; g.lineWidth = 5; g.beginPath(); g.moveTo(38, 78); g.quadraticCurveTo(64, 96, 90, 76); g.stroke();
+    g.fillStyle = '#fff'; g.strokeStyle = '#111'; g.lineWidth = 2; for (const x of [52, 74]) { g.beginPath(); g.moveTo(x - 6, 84); g.lineTo(x + 6, 85); g.lineTo(x, 100); g.closePath(); g.fill(); g.stroke(); }
+    g.fillStyle = '#b91c1c'; g.beginPath(); g.moveTo(74, 102); g.quadraticCurveTo(70, 110, 74, 113); g.quadraticCurveTo(78, 110, 74, 102); g.fill(); g.strokeStyle = '#111';
+  }
   else { eyes(); g.fillStyle = '#f472b6'; g.beginPath(); g.moveTo(58, 68); g.lineTo(70, 68); g.lineTo(64, 76); g.closePath(); g.fill(); g.fillStyle = '#111'; g.beginPath(); g.moveTo(50, 82); g.quadraticCurveTo(57, 92, 64, 80); g.quadraticCurveTo(71, 92, 78, 82); g.stroke(); g.lineWidth = 3; for (const [x1, y1, x2, y2] of [[14, 70, 40, 74], [14, 82, 40, 80], [114, 70, 88, 74], [114, 82, 88, 80]]) { g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke(); } } // cat
   return new THREE.CanvasTexture(c);
 });
@@ -1153,6 +1199,12 @@ function patternTex(pt, col) {
   else if (pt === 13) { g.fillStyle = '#facc15'; g.beginPath(); g.moveTo(19, 12); g.lineTo(45, 12); g.quadraticCurveTo(45, 36, 32, 40); g.quadraticCurveTo(19, 36, 19, 12); g.fill(); g.fillRect(29, 38, 6, 10); g.fillRect(21, 48, 22, 7); g.strokeStyle = '#facc15'; g.lineWidth = 4; g.beginPath(); g.arc(18, 22, 7, Math.PI * 0.5, Math.PI * 1.5); g.stroke(); g.beginPath(); g.arc(46, 22, 7, -Math.PI * 0.5, Math.PI * 0.5); g.stroke(); } // trophy
   else if (pt === 14) { g.fillStyle = w; g.beginPath(); g.ellipse(32, 41, 12, 10, 0, 0, 7); g.fill(); for (const [x, y] of [[17, 27], [27, 18], [37, 18], [47, 27]]) { g.beginPath(); g.ellipse(x, y, 5, 6.5, 0, 0, 7); g.fill(); } } // paw print
   else if (pt === 15) { g.fillStyle = '#facc15'; for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6; g.beginPath(); g.ellipse(32 + Math.cos(a) * 15, 32 + Math.sin(a) * 15, 8, 4, a, 0, 7); g.fill(); } g.fillStyle = '#78350f'; g.beginPath(); g.arc(32, 32, 10, 0, 7); g.fill(); } // sunflower
+  else if (pt === 16) { // skeleton tee: black, with glow-white bones
+    g.fillStyle = '#0d0d12'; g.fillRect(0, 0, 64, 64); g.fillStyle = '#f4f1e6'; g.shadowColor = '#a5f3fc'; g.shadowBlur = 3;
+    for (let y = 6; y < 58; y += 5) g.fillRect(29.5, y, 5, 3.4);
+    for (let r = 0; r < 4; r++) { const y = 12 + r * 7, w = [14, 17, 17, 15][r]; for (const s of [-1, 1]) { g.beginPath(); g.ellipse(32 + s * (w / 2 + 3), y + 2, w / 2, 3.2, s * 0.25, s > 0 ? Math.PI : 0, s > 0 ? Math.PI * 2 : Math.PI, s < 0); g.lineWidth = 2.6; g.strokeStyle = '#f4f1e6'; g.stroke(); } }
+    g.fillRect(28.5, 10, 7, 20); g.beginPath(); g.ellipse(22, 54, 9, 7, 0.3, 0, 7); g.ellipse(42, 54, 9, 7, -0.3, 0, 7); g.fill(); g.fillStyle = '#0d0d12'; g.beginPath(); g.arc(22, 55, 3, 0, 7); g.arc(42, 55, 3, 0, 7); g.fill(); g.shadowBlur = 0;
+  }
   const t = new THREE.CanvasTexture(c); PAT_TEX.set(key, t); return t;
 }
 /* ---------------- items players make, and limiteds: what they look like ----------------
@@ -2043,6 +2095,79 @@ ANIM_PACKS.push(
 ANIM_DESC.push('Fists on the hips and chest out; sprints with knees high, flies through the air with a fist out front and lands on one knee.',
   'Weight on one leg, a hand in the pocket, nodding along and brushing the dirt off a shoulder; struts with a bounce and twirls when it jumps.',
   'Always floating, legs dangling and arms drifting; glides along leaning forward, with sparkles falling from under your feet.');
+// pictures for the Halloween things: a bat (wings, ears, red eyes), a little ghost, a tombstone, the moon, a zombie hand
+const HW_TEX = {};
+function hwCanvas(key, w, h, draw) { if (HW_TEX[key]) return HW_TEX[key]; const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d')); return (HW_TEX[key] = new THREE.CanvasTexture(c)); }
+const batTex = () => hwCanvas('bat', 128, 64, (g) => {
+  g.fillStyle = '#1e1033'; g.strokeStyle = 'rgba(167,139,250,.6)'; g.lineWidth = 2;
+  g.beginPath(); g.moveTo(64, 26);
+  g.bezierCurveTo(50, 8, 22, 6, 4, 20); g.quadraticCurveTo(14, 26, 12, 38); g.quadraticCurveTo(22, 30, 30, 42); g.quadraticCurveTo(38, 32, 46, 44); g.quadraticCurveTo(52, 36, 60, 44);
+  g.lineTo(68, 44); g.quadraticCurveTo(76, 36, 82, 44); g.quadraticCurveTo(90, 32, 98, 42); g.quadraticCurveTo(106, 30, 116, 38); g.quadraticCurveTo(114, 26, 124, 20); g.bezierCurveTo(106, 6, 78, 8, 64, 26);
+  g.closePath(); g.fill(); g.stroke();
+  g.beginPath(); g.ellipse(64, 34, 9, 13, 0, 0, 7); g.fill(); g.beginPath(); g.moveTo(56, 26); g.lineTo(58, 14); g.lineTo(62, 23); g.moveTo(72, 26); g.lineTo(70, 14); g.lineTo(66, 23); g.fill();
+  g.fillStyle = '#ef4444'; g.shadowColor = '#ef4444'; g.shadowBlur = 6; for (const x of [60, 68]) { g.beginPath(); g.arc(x, 30, 2.2, 0, 7); g.fill(); }
+});
+const ghostTex = () => hwCanvas('ghost', 64, 64, (g) => {
+  g.fillStyle = 'rgba(248,250,252,.95)'; g.shadowColor = '#c4b5fd'; g.shadowBlur = 8;
+  g.beginPath(); g.moveTo(14, 58); g.lineTo(14, 28); g.bezierCurveTo(14, 4, 50, 4, 50, 28); g.lineTo(50, 58); for (let k = 0; k < 4; k++) g.quadraticCurveTo(50 - k * 9 - 4.5, 50, 50 - (k + 1) * 9, 58); g.closePath(); g.fill();
+  g.shadowBlur = 0; g.fillStyle = '#1e1b4b'; for (const x of [26, 38]) { g.beginPath(); g.ellipse(x, 28, 3.5, 5.5, 0, 0, 7); g.fill(); } g.beginPath(); g.ellipse(32, 40, 4, 5, 0, 0, 7); g.fill();
+});
+const ripTex = () => hwCanvas('rip', 64, 64, (g) => {
+  g.fillStyle = '#6b7280'; g.fillRect(0, 0, 64, 64); g.fillStyle = 'rgba(0,0,0,.18)'; for (let k = 0; k < 14; k++) g.fillRect((k * 23) % 60, (k * 37) % 60, 6, 3);
+  g.fillStyle = '#374151'; g.font = '900 20px system-ui,sans-serif'; g.textAlign = 'center'; g.fillText('R.I.P', 32, 28); g.fillRect(18, 38, 28, 3); g.fillRect(22, 46, 20, 3);
+});
+const moonTex = () => hwCanvas('moon', 128, 128, (g) => {
+  const gr = g.createRadialGradient(64, 64, 30, 64, 64, 64); gr.addColorStop(0, 'rgba(254,243,199,1)'); gr.addColorStop(0.72, 'rgba(253,230,138,1)'); gr.addColorStop(0.78, 'rgba(253,230,138,.35)'); gr.addColorStop(1, 'rgba(253,230,138,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 128, 128); g.fillStyle = 'rgba(217,119,6,.18)'; for (const [x, y, r] of [[50, 50, 9], [78, 70, 12], [60, 82, 6], [80, 44, 5]]) { g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); }
+});
+// 👻 Phantom: a body of ghost-light (see-through, glowing, flickering) in a tattered hooded shroud, its legs fading
+// to wisps, your face glowing in the hood's shadow, and mist curling off it
+BODY_KITS.push((K) => {
+  const { box, mesh, lam, mats, grp } = K;
+  const spirit = lam('#dbeafe', { emissive: '#1d4ed8', transparent: true, opacity: 0.6 }), fade = lam('#dbeafe', { emissive: '#1d4ed8', transparent: true, opacity: 0.3 });
+  const shroud = lam('#1e2340', { side: THREE.DoubleSide }), shroud2 = lam('#2b3158', { side: THREE.DoubleSide }), dark = new THREE.MeshBasicMaterial({ color: '#05060c' });
+  mats.push(shroud, shroud2);
+  // (strips of the shroud's ragged hem, hanging from y: each a little different)
+  const rags = (par, x, y, z, w, n, len, m) => { for (let k = 0; k < n; k++) { const l = len * (0.7 + ((k * 37) % 10) / 22), r = box(m || shroud, w / n * 0.92, l, 0.05, x - w / 2 + (k + 0.5) * w / n, y - l / 2, z, par); r.rotation.x = (z < 0 ? -1 : 1) * 0.06; } };
+  return {
+    leg(x) {
+      const hip = grp(K.body, x, 2), kn = grp(hip, 0, -1.0, 1);
+      box(spirit, 0.9, 1.04, 0.9, 0, -0.5, 0, hip); box(fade, 0.78, 0.86, 0.78, 0, -0.43, 0, kn); box(fade, 0.6, 0.22, 0.7, 0, -0.9, -0.05, kn);
+      rags(hip, 0, 0.0, -0.5, 0.96, 3, 0.95); rags(hip, 0, 0.0, 0.5, 0.96, 3, 0.95);
+      return [hip, kn];
+    },
+    lower() { box(spirit, 1.9, 0.84, 0.9, 0, 2.42, 0); box(shroud2, 2.04, 0.18, 1.02, 0, 2.62, 0); },
+    upper() {
+      box(spirit, 1.96, 1.16, 0.96, 0, 3.42, 0);
+      box(shroud, 2.08, 1.2, 0.08, 0, 3.38, 0.52); rags(K.body, 0, 2.8, 0.54, 2.08, 6, 1.1); // (the shroud down the back)
+      for (const s of [-1, 1]) { const f = box(shroud, 0.62, 1.22, 0.08, s * 0.72, 3.38, -0.51); f.rotation.y = s * 0.12; rags(K.body, s * 0.72, 2.8, -0.53, 0.62, 2, 0.9); }
+      const core = mesh(KIT_SPH, new THREE.MeshBasicMaterial({ color: '#93c5fd', transparent: true, opacity: 0.55 }), 0, 3.5, -0.2); core.scale.setScalar(0.32);
+    },
+    arm(s) {
+      const sh = grp(K.body, s * 1.5, 4), el = grp(sh, 0, -0.98, 1);
+      box(shroud, 1.04, 1.04, 1.04, 0, -0.46, 0, sh); box(spirit, 0.82, 0.8, 0.82, 0, -0.38, 0, el); box(fade, 0.86, 0.26, 0.86, 0, -0.87, 0, el);
+      rags(el, 0, -0.04, -0.54, 1.0, 3, 0.55, shroud2); rags(el, 0, -0.04, 0.54, 1.0, 3, 0.55, shroud2);
+      return [sh, el];
+    },
+    head(h) { // the face, glowing, in the dark of a pointed hood
+      h.add(new THREE.Mesh(HEAD_GEO, spirit));
+      const f = mesh(KIT_PLANE, new THREE.MeshBasicMaterial({ map: tintFace(K.faceCanvas, '#a5f3fc', ''), transparent: true }), 0, 0, -0.69, h); f.scale.set(1.0, 0.95, 1); f.rotation.y = Math.PI;
+      box(dark, 1.2, 1.1, 0.05, 0, 0, -0.62, h);
+      box(shroud, 1.6, 0.36, 1.62, 0, 0.78, 0.04, h); box(shroud, 1.6, 1.4, 0.3, 0, 0.1, 0.74, h);
+      for (const s of [-1, 1]) box(shroud, 0.2, 1.5, 1.5, s * 0.8, 0.12, 0.04, h);
+      const pt = mesh(KIT_CONE, shroud, 0, 1.15, 0.35, h); pt.scale.set(0.5, 0.8, 0.5); pt.rotation.x = -0.6;
+      box(shroud2, 1.64, 0.12, 0.12, 0, 0.62, -0.78, h);
+      return true;
+    },
+    tick(a, dt) { // flickering; mist curling off the hem
+      a.kitT = (a.kitT || 0) + dt; const t = a.kitT, fl = 0.5 + 0.12 * Math.sin(t * 2.3) + 0.06 * Math.sin(t * 17);
+      spirit.opacity = fl; fade.opacity = fl * 0.5;
+      a.mistT = (a.mistT || 0) - dt;
+      if (a.mistT <= 0 && !a.dead) { a.mistT = 0.09; emBits(a, (Math.random() - 0.5) * 1.6, 0.3 + Math.random() * 0.6, (Math.random() - 0.5) * 0.9, [0xc7d2fe, 0xa5b4fc, 0xe0e7ff], 1, { size: 0.3, speed: 0.4, up: 0.5, g: -0.4, life: 1.0, spread: 0.3 }); }
+    },
+  };
+});
+BODY_DESC.push('A body of ghost-light, see-through and flickering, in a tattered hooded shroud: its legs fade away, your face glows in the dark of the hood, and mist curls off it.');
 function makeAvatar(av, name, mine, ax) {
   av = okAv(av);
   const X = xLooks(ax); // (made and limited items on top: a hat, a shirt's front, a face)
@@ -2111,6 +2236,15 @@ function makeAvatar(av, name, mine, ax) {
   else if (hat === 30) { const m = lam('#b07a3c'); mesh(cyl(1.15, 1.15, 0.1, 20), m, 0, 0.66, 0, head); mesh(cyl(0.55, 0.66, 0.62), m, 0, 0.99, 0, head); mesh(cyl(0.67, 0.67, 0.14), lam('#3f2a14'), 0, 0.76, 0, head); const sh = new THREE.Shape(); for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + k * Math.PI / 5, r = k % 2 ? 0.1 : 0.24; sh[k ? 'lineTo' : 'moveTo'](Math.cos(a) * r, -Math.sin(a) * r); } mesh(new THREE.ShapeGeometry(sh), new THREE.MeshBasicMaterial({ color: '#facc15', side: THREE.DoubleSide }), 0, 1.02, -0.64, head); } // sheriff hat
   else if (hat === 31) { const m = lam('#6b7f4a'); mesh(cyl(0.6, 0.7, 0.55, 20), m, 0, 0.98, 0, head); mesh(new THREE.CylinderGeometry(0.72, 1.05, 0.28, 22, 1, true), lam('#6b7f4a', { side: THREE.DoubleSide }), 0, 0.62, 0, head); mesh(cyl(0.71, 0.71, 0.1, 20), lam('#3f4a2a'), 0, 0.78, 0, head); mesh(new THREE.SphereGeometry(0.09, 8, 6), lam('#ef4444'), 0.68, 0.86, 0.1, head); } // bucket hat
   else if (hat === 32) { const m = lam('#fbbf24', { emissive: '#4a3000' }); const c1 = mesh(new THREE.CylinderGeometry(0.78, 0.7, 0.55, 18, 1, true), m, 0, 0.9, 0, head); c1.material.side = THREE.DoubleSide; mesh(cyl(0.68, 0.68, 0.32, 18), lam('#991b1b'), 0, 0.96, 0, head); for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2; mesh(new THREE.ConeGeometry(0.15, 0.5, 6), m, Math.sin(a) * 0.76, 1.42, Math.cos(a) * 0.76, head); mesh(new THREE.SphereGeometry(0.1, 8, 6), new THREE.MeshBasicMaterial({ color: ['#ef4444', '#3b82f6', '#22c55e', '#a855f7'][k % 4] }), Math.sin(a) * 0.8, 0.88, Math.cos(a) * 0.8, head); } mesh(new THREE.SphereGeometry(0.17, 10, 8), m, 0, 1.24, 0, head); } // champion crown
+  else if (hat === 33) { // witch hat: a wide brim, a cone that bends back at the tip, an orange band, a gold buckle, a spider on a thread
+    const m = lam('#2e1065'), band = lam('#f97316'), gold = lam('#facc15', { emissive: '#3a2a00' }), spi = lam('#111827');
+    mesh(cyl(1.2, 1.2, 0.07, 28), m, 0, 0.66, 0, head); mesh(new THREE.CylinderGeometry(0.42, 0.66, 0.9, 20), m, 0, 1.1, 0.02, head);
+    const tip = new THREE.Group(); tip.position.set(0, 1.55, 0.04); tip.rotation.x = 0.55; head.add(tip);
+    mesh(new THREE.CylinderGeometry(0.2, 0.42, 0.62, 18), m, 0, 0.3, 0, tip); const t2 = mesh(new THREE.ConeGeometry(0.2, 0.55, 16), m, 0, 0.8, 0.1, tip); t2.rotation.x = 0.5;
+    mesh(cyl(0.64, 0.64, 0.2, 22), band, 0, 0.82, 0.02, head); box(gold, 0.32, 0.28, 0.05, 0, 0.82, -0.63, head); box(band, 0.16, 0.13, 0.06, 0, 0.82, -0.645, head);
+    box(lam('#e5e7eb'), 0.015, 0.5, 0.015, 0.95, 0.4, -0.3, head); const sp = mesh(new THREE.SphereGeometry(0.1, 10, 8), spi, 0.95, 0.13, -0.3, head);
+    for (const s2 of [-1, 1]) for (let k = 0; k < 3; k++) { const l = box(spi, 0.16, 0.02, 0.02, 0.95 + s2 * 0.1, 0.12 - k * 0.04 + 0.04, -0.3 + (k - 1) * 0.05, head); l.rotation.z = s2 * 0.5; }
+  }
   };
   for (const hat of new Set([av[3]].concat(X.hs))) shopHat(hat); // (your shop hat, and any more)
   // on the back (the character faces -z, so the back is +z)
@@ -2129,6 +2263,23 @@ function makeAvatar(av, name, mine, ax) {
   else if (back === 13) { const m = lam('#facc15', { side: THREE.DoubleSide, emissive: '#2a1e00' }); for (const s of [-1, 1]) { const w = box(m, 2.4, 1.5, 0.08, s * 1.4, 3.7, 0.7); w.rotation.z = s * 0.4; w.rotation.y = -s * 0.35; const w2 = box(m, 1.7, 1.0, 0.08, s * 1.85, 2.9, 0.82); w2.rotation.z = s * 0.15; w2.rotation.y = -s * 0.35; const w3 = box(m, 1.1, 0.7, 0.08, s * 2.1, 2.2, 0.92); w3.rotation.z = -s * 0.1; w3.rotation.y = -s * 0.35; } } // golden wings
   else if (back === 14) { const b2 = mesh(new THREE.SphereGeometry(1, 16, 10), lam(['#06b6d4', '#f97316', '#ec4899', '#22c55e'][av[1] % 4]), 0, 3.0, 0.72); b2.scale.set(0.75, 2.4, 0.1); b2.rotation.z = 0.35; const st2 = box(lam('#f8fafc'), 0.18, 4.0, 0.04, 0, 3.0, 0.82); st2.rotation.z = 0.35; } // surfboard
   else if (back === 15) { for (const s2 of [-1, 1]) { const piv = new THREE.Group(); piv.position.set(0, 3.0, 0.68); piv.rotation.z = s2 * 0.62; body.add(piv); box(lam('#e5e7eb'), 0.16, 2.8, 0.05, 0, -0.3, s2 * 0.04, piv); box(lam('#facc15'), 0.62, 0.1, 0.16, 0, 1.14, s2 * 0.04, piv); box(lam('#7f1d1d'), 0.2, 0.85, 0.14, 0, 1.62, s2 * 0.04, piv); } } // twin katanas
+  else if (back === 16) { // vampire cape: black outside, red silk inside, a tall stand-up collar, a gold chain with a ruby
+    const blk = lam('#0b0b10', { side: THREE.DoubleSide }), red = lam('#991b1b', { side: THREE.DoubleSide }), gold = lam('#d4a72c', { emissive: '#2a1e00' });
+    const c1 = box(red, 2.0, 3.3, 0.05, 0, 2.45, 0.58); c1.rotation.x = 0.1; const c2 = box(blk, 2.06, 3.34, 0.05, 0, 2.43, 0.64); c2.rotation.x = 0.1;
+    for (const s2 of [-1, 1]) { // (the sides sweep forward round the arms, red showing; the collar flares up and out round the head)
+      const w = box(blk, 0.82, 3.1, 0.05, s2 * 1.3, 2.5, 0.3); w.rotation.y = s2 * 0.95; w.rotation.x = 0.1; const wr = box(red, 0.78, 3.04, 0.05, s2 * 1.26, 2.5, 0.26); wr.rotation.y = s2 * 0.95; wr.rotation.x = 0.1;
+      const col = box(red, 1.1, 1.35, 0.05, s2 * 0.8, 4.72, 0.45); col.rotation.y = s2 * 0.78; col.rotation.z = -s2 * 0.3; const cb = box(blk, 1.14, 1.39, 0.05, s2 * 0.84, 4.72, 0.5); cb.rotation.y = s2 * 0.78; cb.rotation.z = -s2 * 0.3; }
+    box(gold, 1.7, 0.07, 0.07, 0, 3.95, -0.53); const gem = mesh(new THREE.OctahedronGeometry(0.13), lam('#dc2626', { emissive: '#450a0a' }), 0, 3.95, -0.57); gem.scale.y = 1.3;
+  }
+  else if (back === 17) { // witch's broom: a twisty handle across the back, a bushy bundle of straw, twine and a purple ribbon
+    const piv = new THREE.Group(); piv.position.set(0, 3.0, 0.72); piv.rotation.z = 0.75; body.add(piv);
+    const wood = lam('#6b3f1d'), straw = lam('#d9a441', { side: THREE.DoubleSide }), straw2 = lam('#b7862f'), twine = lam('#8b5a2b'), rib = lam('#7c3aed');
+    mesh(cyl(0.075, 0.09, 3.4, 10), wood, 0, 0.45, 0, piv); for (const y of [1.2, 0.4, -0.4]) mesh(cyl(0.1, 0.1, 0.1, 10), wood, 0, y, 0, piv);
+    mesh(new THREE.ConeGeometry(0.5, 1.3, 16, 1, true), straw, 0, -1.7, 0, piv); mesh(new THREE.ConeGeometry(0.42, 1.2, 12), straw2, 0, -1.72, 0, piv);
+    for (let k = 0; k < 10; k++) { const a = k / 10 * Math.PI * 2, st = box(k % 2 ? straw : straw2, 0.05, 0.6, 0.05, Math.cos(a) * 0.46, -2.3, Math.sin(a) * 0.46, piv); st.rotation.z = Math.cos(a) * 0.2; st.rotation.x = -Math.sin(a) * 0.2; }
+    mesh(cyl(0.2, 0.2, 0.1, 12), twine, 0, -1.12, 0, piv); mesh(cyl(0.27, 0.27, 0.08, 12), rib, 0, -1.3, 0, piv);
+    for (const s2 of [-1, 1]) { const bw = box(rib, 0.28, 0.16, 0.05, s2 * 0.2, -1.3, 0.27, piv); bw.rotation.z = s2 * 0.4; const tl = box(rib, 0.07, 0.34, 0.04, s2 * 0.1, -1.5, 0.28, piv); tl.rotation.z = s2 * 0.3; }
+  }
   if (waist) for (const o of body.children.slice(upFrom)) { o.position.y -= 2.84; waist.add(o); }
   const a = { g, body, legL, legR, armL, armR, head, mats, walk: 0, name, av, ax: Array.isArray(ax) ? ax.slice() : null, axMiss: X.miss, tag: null, glow: null, aura: av[6], trail: av[9], spin: a_spin, pet: null,
     r15, waist, knL: J.knL, knR: J.knR, elL: J.elL, elR: J.elR, kitTick: kit && kit.tick, pack: ANIM_PACKS[av[11]] || null };
@@ -2196,11 +2347,25 @@ function petModel(type) {
     eyes(1.62, -0.43, 0.14);
     for (const s of [-1, 1]) { const lf = new THREE.Mesh(new THREE.SphereGeometry(0.3, 10, 6), lam(gr)); lf.scale.set(1.4, 0.18, 0.7); lf.position.set(s * 0.35, 0.12, 0); lf.rotation.z = s * 0.2; g.add(lf); }
     const tuft = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.35, 6), lam(dk)); tuft.position.set(0, 1.95, 0.25); tuft.rotation.x = -0.6; g.add(tuft);
+  } else if (type === 13) { // Boo: a little sheet ghost with a scalloped hem, big eyes, an "o" mouth, blushing, waving stubby arms
+    const sheet = new THREE.MeshLambertMaterial({ color: '#f8fafc', emissive: '#3b3f63', transparent: true, opacity: 0.94, side: THREE.DoubleSide }), ink = lam('#1e1b4b');
+    const top = new THREE.Mesh(new THREE.SphereGeometry(0.62, 20, 14, 0, Math.PI * 2, 0, Math.PI / 2), sheet); top.position.y = 1.35; g.add(top);
+    const sk = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.8, 0.9, 20, 1, true), sheet); sk.position.y = 0.9; g.add(sk);
+    for (let k = 0; k < 9; k++) { const a = k / 9 * Math.PI * 2, h = new THREE.Mesh(new THREE.SphereGeometry(0.17, 10, 8), sheet); h.position.set(Math.cos(a) * 0.72, 0.45, Math.sin(a) * 0.72); h.scale.y = 0.8; g.add(h); }
+    for (const s of [-1, 1]) {
+      const e = new THREE.Mesh(new THREE.SphereGeometry(0.1, 10, 8), ink); e.scale.set(1, 1.4, 0.5); e.position.set(s * 0.21, 1.42, -0.57); g.add(e);
+      const hl = new THREE.Mesh(new THREE.SphereGeometry(0.03, 6, 4), new THREE.MeshBasicMaterial({ color: '#ffffff' })); hl.position.set(s * 0.21 - 0.03, 1.48, -0.62); g.add(hl);
+      const bl = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), new THREE.MeshBasicMaterial({ color: '#f9a8d4', transparent: true, opacity: 0.7 })); bl.scale.set(1, 0.6, 0.3); bl.position.set(s * 0.36, 1.28, -0.5); g.add(bl);
+      const arm = box(sheet, 0.36, 0.14, 0.2, s * 0.72, 1.05, -0.05); arm.userData.wing = s;
+    }
+    const mo = new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 8), ink); mo.scale.set(1, 1.3, 0.5); mo.position.set(0, 1.2, -0.6); g.add(mo);
+    const gl = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), color: '#c4b5fd', transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.6 })); gl.scale.setScalar(2.6); gl.position.y = 1.0; g.add(gl);
+    g.userData.sway = 1;
   }
   g.scale.setScalar(0.85);
   return g;
 }
-const FLYING_PET = { 4: 1, 5: 1, 10: 1 };
+const FLYING_PET = { 4: 1, 5: 1, 10: 1, 13: 1 };
 function updatePet(a, dt) {
   if (!a.pet) return;
   const g = a.g, pg = a.pet.g, yaw = g.rotation.y, c = Math.cos(yaw), s = Math.sin(yaw);
@@ -2213,6 +2378,7 @@ function updatePet(a, dt) {
   pg.position.y += (ty - pg.position.y) * Math.min(1, dt * 10);
   if (sp > 1) { let d = Math.atan2(-dx, -dz) - pg.rotation.y; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; pg.rotation.y += d * Math.min(1, dt * 8); }
   for (const ch of pg.children) if (ch.userData.wing) ch.rotation.z = ch.userData.wing * Math.sin(a.pet.walk * 2) * 0.6;
+  if (pg.userData.sway) { pg.rotation.z = Math.sin(a.pet.walk * 0.6) * 0.14; pg.rotation.x = Math.sin(a.pet.walk * 0.45) * 0.08; } // (a ghost wobbles as it floats)
   pg.visible = !a.dead;
 }
 // auras: little bits floating off you
@@ -2225,7 +2391,8 @@ const AURA = [null,
   { c: [0xfacc15, 0x22c55e, 0x16a34a], at: 'top', up: -4, every: 0.08, flat: 1 },
   { c: [0xfde047, 0xffffff, 0xfacc15], at: 'body', up: 1.2, life: 1.4, every: 0.04, size: 0.12, r: 1.6 }, // stardust
   { c: [0x111827, 0x312e81, 0x1f2937, 0x4c1d95], at: 'feet', up: 1.6, life: 1.3, every: 0.05, size: 0.38 }, // shadow
-  { c: [0x93c5fd, 0xbfdbfe, 0x60a5fa], at: 'top', up: -9, life: 0.55, every: 0.03, thin: 1, r: 1.2 }]; // storm: rain over you
+  { c: [0x93c5fd, 0xbfdbfe, 0x60a5fa], at: 'top', up: -9, life: 0.55, every: 0.03, thin: 1, r: 1.2 }, // storm: rain over you
+  { bats: 1, every: 0.13 }]; // bat swarm: bats circling you as they fly up (🎃 Halloween)
 function auraTick(a, dt) {
   const A = AURA[a.aura];
   if (!A || a.dead) return;
@@ -2233,6 +2400,12 @@ function auraTick(a, dt) {
   if (a.auraT > 0) return;
   a.auraT = A.every || 0.06;
   const p = a.g.position, t = performance.now() / 1000;
+  if (A.bats) { // (a bat: flapping, circling the spot it set off from, rising, fading)
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: batTex(), transparent: true, depthWrite: false })), ang = Math.random() * Math.PI * 2, r = 1.3 + Math.random() * 0.9, cx = p.x, cz = p.z, sp = (Math.random() < 0.5 ? -1 : 1) * (2.2 + Math.random() * 1.2), sz = 0.7 + Math.random() * 0.4;
+    s.position.set(cx + Math.cos(ang) * r, p.y + 0.6 + Math.random() * 3.6, cz + Math.sin(ang) * r); s.scale.set(sz * 2, sz, 1);
+    s.userData = { v: new THREE.Vector3(0, 1 + Math.random() * 0.9, 0), life: 1.7, g: 0, fade: true, spinless: 1, a: ang, tick: (m, u, dt) => { u.a += sp * dt; m.position.x = cx + Math.cos(u.a) * r; m.position.z = cz + Math.sin(u.a) * r; m.scale.x = sz * 2 * (0.35 + 0.65 * Math.abs(Math.sin(u.life * 24))); } };
+    scene.add(s); bits.push(s); return;
+  }
   const col = A.rainbow ? new THREE.Color().setHSL((t * 0.5) % 1, 0.9, 0.6).getHex() : A.c[Math.floor(Math.random() * A.c.length)];
   const m = new THREE.Mesh(BOX, new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.9 }));
   const ang = Math.random() * Math.PI * 2, r = A.r || 0.8 + Math.random() * 1.2;
@@ -2242,7 +2415,7 @@ function auraTick(a, dt) {
   scene.add(m); bits.push(m);
 }
 // trails: tiles left behind your feet as you move (and the propeller cap's blades turn)
-const TRAIL_COLS = [null, null, [0xff6a00, 0xffc400, 0xff2a00], [0xbae6fd, 0x7dd3fc, 0xffffff], [0x22d3ee, 0xa855f7, 0x22c55e], [0xfacc15, 0xfde68a, 0xeab308], [0xf472b6, 0xfb7185, 0xffffff], [0xfde047, 0xffffff, 0xfacc15], [0x60a5fa, 0xe0f2fe, 0x22d3ee]];
+const TRAIL_COLS = [null, null, [0xff6a00, 0xffc400, 0xff2a00], [0xbae6fd, 0x7dd3fc, 0xffffff], [0x22d3ee, 0xa855f7, 0x22c55e], [0xfacc15, 0xfde68a, 0xeab308], [0xf472b6, 0xfb7185, 0xffffff], [0xfde047, 0xffffff, 0xfacc15], [0x60a5fa, 0xe0f2fe, 0x22d3ee], [0xa855f7, 0x4ade80, 0x7c3aed]];
 function trailTick(a, dt, moving) {
   for (const s of a.spin || []) s.rotation.y += dt * 14;
   if (!a.trail || a.dead || !moving) return;
@@ -2254,6 +2427,12 @@ function trailTick(a, dt, moving) {
   m.position.set(p.x + (Math.random() - 0.5) * 0.8, p.y + 0.12, p.z + (Math.random() - 0.5) * 0.8); m.scale.set(0.7, 0.06, 0.7); m.rotation.y = Math.random() * 3;
   m.userData = { v: new THREE.Vector3(0, a.trail === 2 ? 1.5 : 0.15, 0), life: 0.9, g: 0, fade: true, spinless: 1 };
   scene.add(m); bits.push(m);
+  if (a.trail === 9 && (a.ghostN = (a.ghostN || 0) + 1) % 4 === 0) { // (ghostly mist: now and then a little ghost floats up out of it, wobbling)
+    const gs = new THREE.Sprite(new THREE.SpriteMaterial({ map: ghostTex(), transparent: true, depthWrite: false })), x0 = p.x + (Math.random() - 0.5) * 0.8, w = Math.random() * 6;
+    gs.position.set(x0, p.y + 0.4, p.z + (Math.random() - 0.5) * 0.8); gs.scale.setScalar(0.55 + Math.random() * 0.3);
+    gs.userData = { v: new THREE.Vector3(0, 1.3, 0), life: 1.5, g: 0, fade: true, spinless: 1, tick: (o, u) => { o.position.x = x0 + Math.sin(u.life * 6 + w) * 0.25; } };
+    scene.add(gs); bits.push(gs);
+  }
 }
 function dropAvatar(a) { if (!a) return; emStop(a, true); scene.remove(a.g); if (a.shadow) scene.remove(a.shadow); if (a.pet) scene.remove(a.pet.g); if (a.bub) { a.bub.material.map.dispose(); } }
 function animateAvatar(a, dt, moving, air) {
@@ -2333,7 +2512,7 @@ function puffAt(x, y, z, color, n = 14) {
 const CONFETTI = [0xef4444, 0xf59e0b, 0x22c55e, 0x3b82f6, 0xa855f7, 0xec4899];
 
 /* ---------------- emotes ----------------
-   Ten: 👋 Wave and 🎉 Cheer are free, the rest cost Blox Coins (yours: 'em<i>' in W.own). Each one poses the
+   Eleven: 👋 Wave and 🎉 Cheer are free, the rest cost Blox Coins (🧟 Zombie Groove: only in the Halloween Shop) (yours: 'em<i>' in W.own). Each one poses the
    body over time: pose(J, t, a) fills J (every joint's turn [x, y, z], the body's lift up and shift sx / sz) and the
    body eases to it. R15 bends its elbows and knees and turns at the waist as well; R6 does what it can with straight
    arms and legs. fx makes and moves the emote's own things (a boombox, a glowing ring, notes, confetti), and ev has
@@ -2918,6 +3097,87 @@ EMOTES.push(
     },
   },
 );
+EMOTES.push(
+  { id: 'zombie', nm: 'Zombie Groove', ic: '🧟', price: 666, loop: 1, snap: 14, hw: 1, d: 'A graveyard dance: claws, shimmies and a lurch, as tombstones rise and hands claw out of the ground',
+    pose(J, t, a) {
+      const c = t % 6.4, r15 = a.r15, u = c / 0.4, n = Math.floor(u), f = u - n, b = Math.abs(Math.sin(u * Math.PI)), s = n % 2 ? -1 : 1;
+      if (c < 1.6) { // claws up to one side, stepping side to side
+        J.sx = 0.25 * Math.sin(u * Math.PI / 2); J.lL = [0, 0, -0.12 * Math.sin(u * Math.PI / 2)]; J.lR = [0, 0, -0.12 * Math.sin(u * Math.PI / 2)];
+        J.hd = [0.1, 0.35, 0.25]; J.bd = [0, 0.35, 0]; J.up = -0.08 + 0.06 * b;
+        if (r15) { J.aL = [1.35, 0, -0.55]; J.eL = [1.2 + 0.35 * b, 0, 0]; J.aR = [1.25, 0, 0.1]; J.eR = [1.4 + 0.35 * b, 0, 0]; J.kL = J.kR = [-0.25, 0, 0]; J.ws = [0, 0.25, 0]; }
+        else { J.aL = [1.6, 0, -0.5]; J.aR = [1.45, 0, 0.05]; }
+      } else if (c < 3.2) { // the shoulder shimmy, claws low, knees going
+        J.hd = [-0.05, 0, 0.2 * s]; J.up = -0.15 + 0.08 * b; J.lL = [0.1, 0, -0.15]; J.lR = [0.1, 0, 0.15];
+        if (r15) { J.ws = [0, 0, 0.22 * Math.sin(u * Math.PI * 2)]; J.aL = [0.5, 0, -0.4]; J.eL = [1.0, 0, 0]; J.aR = [0.5, 0, 0.4]; J.eR = [1.0, 0, 0]; J.kL = J.kR = [-0.5 - 0.2 * b, 0, 0]; J.up -= 0.15; }
+        else { J.bd = [0, 0, 0.12 * Math.sin(u * Math.PI * 2)]; J.aL = [0.6 + 0.3 * b, 0, -0.4]; J.aR = [0.6 + 0.3 * (1 - b), 0, 0.4]; }
+      } else if (c < 4.8) { // the lurch: hunched, arms dangling out in front, dragging a foot
+        const sw = Math.sin(u * Math.PI);
+        J.bd = [-0.32, 0.15 * sw, 0]; J.hd = [0.25, 0, 0.35 * Math.sin(u * 0.9)]; J.lL = [0.45 * sw, 0, 0]; J.lR = [-0.2 * sw, 0, 0.05];
+        J.aL = [1.25 + 0.15 * sw, 0, 0.1]; J.aR = [1.15 - 0.15 * sw, 0, -0.1]; J.up = 0.04 * Math.abs(sw);
+        if (r15) { J.eL = J.eR = [0.35, 0, 0]; J.kL = [-0.6 * Math.max(0, sw), 0, 0]; J.kR = [-0.2, 0, 0]; }
+      } else { // the big finish: claws up high, legs wide, head back
+        const k = smooth((c - 4.8) / 0.3);
+        J.lL = [0, 0, -0.3 * k]; J.lR = [0, 0, 0.3 * k]; J.hd = [0.45 * k, 0, 0]; J.up = -0.1 * k;
+        if (r15) { J.aL = [0.4, 0, -2.5 * k]; J.eL = [0.9 + 0.3 * Math.sin(c * 12), 0, 0]; J.aR = [0.4, 0, 2.5 * k]; J.eR = [0.9 + 0.3 * Math.sin(c * 12 + 1), 0, 0]; J.ws = [0.15 * k, 0, 0]; J.kL = J.kR = [-0.3 * k, 0, 0]; }
+        else { J.aL = [0.3, 0, -2.6 * k + 0.15 * Math.sin(c * 12)]; J.aR = [0.3, 0, 2.6 * k + 0.15 * Math.sin(c * 12 + 1)]; }
+      }
+    },
+    fx: { // a full moon, two tombstones rising behind, hands clawing out of the ground, green fog rolling about
+      make(a, F) {
+        F.moon = emSprite(F.root, moonTex(), 5.5); F.moon.position.set(-4.5, 12, 7);
+        const stone = new THREE.MeshLambertMaterial({ color: '#6b7280' }), face = new THREE.MeshLambertMaterial({ map: ripTex() }), dirt = new THREE.MeshLambertMaterial({ color: '#3f2a14' });
+        F.stones = [[-2.6, 2.2, 0.25], [2.8, 1.8, -0.2]].map(([x, z, r]) => {
+          const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = r; F.root.add(g);
+          const slab = new THREE.Mesh(BOX, stone); slab.scale.set(1.3, 1.6, 0.35); slab.position.y = 0.8; g.add(slab);
+          const top = new THREE.Mesh(KIT_CYL, stone); top.scale.set(0.65, 0.35, 0.65); top.rotation.x = Math.PI / 2; top.position.y = 1.6; g.add(top);
+          const pl = new THREE.Mesh(KIT_PLANE, face); pl.scale.set(1.1, 1.1, 1); pl.position.set(0, 1.0, -0.18); pl.rotation.y = Math.PI; g.add(pl);
+          const mound = new THREE.Mesh(KIT_SPH, dirt); mound.scale.set(1.0, 0.18, 1.3); mound.position.set(0, 0, -0.9); g.add(mound);
+          return g;
+        });
+        const skin = new THREE.MeshLambertMaterial({ color: '#7aa35a' }), sleeve = new THREE.MeshLambertMaterial({ color: '#4b3a2a' });
+        F.hands = [[-1.6, -2.2], [1.9, -2.6], [-3.4, -0.6], [3.6, 0.4]].map(([x, z], j) => {
+          const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = j * 1.3; F.root.add(g);
+          const arm = new THREE.Mesh(BOX, sleeve); arm.scale.set(0.34, 0.9, 0.34); arm.position.y = 0.3; g.add(arm);
+          const palm = new THREE.Mesh(BOX, skin); palm.scale.set(0.38, 0.32, 0.18); palm.position.y = 0.9; g.add(palm);
+          g.userData.fingers = [-0.14, -0.05, 0.05, 0.14].map((fx) => { const fg = new THREE.Mesh(BOX, skin); fg.scale.set(0.07, 0.28, 0.08); fg.position.set(fx, 1.18, 0); g.add(fg); return fg; });
+          const th = new THREE.Mesh(BOX, skin); th.scale.set(0.07, 0.2, 0.08); th.position.set(-0.22, 0.98, 0); th.rotation.z = 0.6; g.add(th);
+          const dm = new THREE.Mesh(KIT_SPH, dirt); dm.scale.set(0.5, 0.12, 0.5); g.add(dm);
+          return g;
+        });
+        F.fog = Array.from({ length: 14 }, (_, j) => emSprite(F.root, glowTex(), 2.6, { color: j % 3 ? '#4ade80' : '#a3e635', blending: THREE.AdditiveBlending }));
+        emNotes(F, 3, [0, 6.2, 0]);
+      },
+      tick(a, F, t) {
+        const rise = smooth(t / 1.2);
+        F.stones.forEach((g, j) => { g.position.y = -1.9 * (1 - smooth((t - j * 0.3) / 1.1)); g.rotation.z = 0.06 * Math.sin(j * 3 + 1); });
+        F.hands.forEach((g, j) => { // (each bursts out at its own moment, then claws at the air)
+          const k = smooth((t - 0.6 - j * 0.45) / 0.5); g.position.y = -1.3 * (1 - k); g.rotation.z = 0.15 * Math.sin(t * 3 + j);
+          g.userData.fingers.forEach((fg, i) => { fg.rotation.x = 0.4 + 0.4 * Math.sin(t * 9 + i + j); });
+        });
+        F.fog.forEach((s, j) => { const an = j * 2.4 + t * 0.15 * (j % 2 ? 1 : -1), r = 1.6 + (j % 5) * 0.8; s.position.set(Math.cos(an) * r, 0.35 + 0.15 * Math.sin(t + j), Math.sin(an) * r); s.material.opacity = rise * (0.28 + 0.12 * Math.sin(t * 0.8 + j)); });
+        F.moon.material.opacity = rise;
+        emNotesTick(F, t, 0.45);
+      },
+    },
+    ev(a, t0, t1) { // a spooky organ over a funky minor bassline, a snare, and a wolf's howl each time round
+      const c0 = t0 % 6.4, c1 = t1 % 6.4; if (c1 < c0) return;
+      if (crossed(c0, c1, 0.02) || t0 <= 0) emSynth(a, (ac, out, k, at) => { // (the howl)
+        const o = ac.createOscillator(), g = ac.createGain(), vib = ac.createOscillator(), vg = ac.createGain();
+        o.type = 'triangle'; o.frequency.setValueAtTime(330, at); o.frequency.exponentialRampToValueAtTime(620, at + 0.6); o.frequency.exponentialRampToValueAtTime(420, at + 1.6);
+        vib.frequency.value = 6; vg.gain.value = 9; vib.connect(vg); vg.connect(o.frequency); o.connect(g); g.connect(out); synEnv(g.gain, at, 0.25, 1.7, 0.05 * k);
+        o.start(at); vib.start(at); o.stop(at + 1.8); vib.stop(at + 1.8);
+      });
+      const e = beatOf(c0, c1, 0.2); if (e < 0) return;
+      const bass = [82.41, 0, 82.41, 98, 0, 110, 98, 82.41, 123.47, 0, 110, 98, 82.41, 0, 73.42, 77.78];
+      emSynth(a, (ac, out, k, at) => {
+        if (bass[e % 16]) synTone(ac, out, { f: bass[e % 16], t: at, dur: 0.18, vol: 0.08 * k, type: 'square', ff: 700 });
+        if (e % 4 === 0) synKick(ac, out, at, 0.2 * k);
+        if (e % 4 === 2) synNoise(ac, out, { t: at, dur: 0.14, vol: 0.08 * k, type: 'bandpass', ff: 1700, q: 0.9 });
+        if (e % 16 === 0 || e % 16 === 8) for (const m of [1, 1.19, 1.5, 2]) synTone(ac, out, { f: 329.63 * m * (e % 16 ? 0.89 : 1), t: at, dur: 1.5, vol: 0.016 * k, type: 'sawtooth', ff: 1400, att: 0.08 });
+      });
+    },
+  },
+);
 const emOwns = (i) => !!EMOTES[i] && (EMOTES[i].price === 0 || W.own.has('em' + i));
 function emStart(a, i, t0) {
   emStop(a, true);
@@ -3089,12 +3349,12 @@ function sideDo(k) {
   else if (k[0] === 'x') { const m = exp.menu ? exp.menu()[+k.slice(1)] : null; if (m) m[1](); }
 }
 $('#xside').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b || b.disabled) return; if (b.dataset.side) sideDo(b.dataset.side); else if (sideClick) sideClick(b, e); });
-// the emote wheel (. or the 🎭 button): your emotes round a circle, 1–9 and 0 to pick; one you don't have yet: tap it to see
+// the emote wheel (. or the 🎭 button): your emotes round a circle, 1–9, 0 and - to pick; one you don't have yet: tap it to see
 // what it costs, tap again to buy it (then it plays)
 const Emo = { open: false, ask: -1, hi: -1, fresh: false }; // (fresh: it's just opened, so it pops in)
 function emMid(i) {
   const E = EMOTES[i];
-  const hint = `<small class="hint">${touchy ? 'Tap outside to close' : 'Keys 1–9 and 0 · close with . or Esc'}</small>`;
+  const hint = `<small class="hint">${touchy ? 'Tap outside to close' : 'Keys 1–9, 0 and - · close with . or Esc'}</small>`;
   if (!E) return `<b>🎭 Emotes</b><small>Pick one to play it — it goes on till you move</small>${hint}`;
   const st = emOwns(i) ? (me && me.em && me.em.i === i ? (E.loop ? '▶️ Playing — pick it again to stop' : '▶️ Playing') : E.loop ? '🔁 Loops till you move' : '✓ Yours') : Emo.ask === i ? (W.coins < E.price ? `Need ${E.price - W.coins} more Blox Coins` : `Tap again to buy for ${E.price}`) : `🔒 <span class="coin sm"></span> ${E.price} Blox Coins`;
   return `<b>${E.ic} ${esc(E.nm)}</b><small>${esc(E.d)}</small><small>${st}</small>${hint}`;
@@ -3103,9 +3363,10 @@ function drawEmWheel() {
   const el = $('#emWheel'); if (!el || el.hidden) return;
   const n = EMOTES.length, cur = me && me.em ? me.em.i : -1;
   el.innerHTML = `<div class="emw${Emo.fresh ? ' in' : ''}">${EMOTES.map((E, i) => {
+    if (E.hw && hwGone('em', i)) return '';
     const an = -Math.PI / 2 + i * EM_TAU / n, own = emOwns(i), ask = Emo.ask === i;
     const pr = own ? '' : ask ? `<span class="pr">${W.coins < E.price ? `Need ${E.price - W.coins}` : `Buy? ${E.price}`}</span>` : `<span class="pr"><span class="coin sm"></span>${E.price}</span>`;
-    return `<button class="em${cur === i ? ' on' : ''}${own ? '' : ' lock'}${ask ? ' ask' : ''}" data-em="${i}" style="left:${(50 + Math.cos(an) * 37).toFixed(2)}%;top:${(50 + Math.sin(an) * 37).toFixed(2)}%" title="${esc(E.nm)}"><span class="k">${(i + 1) % 10}</span><span class="i">${E.ic}</span>${esc(E.nm)}${pr}</button>`;
+    return `<button class="em${cur === i ? ' on' : ''}${own ? '' : ' lock'}${ask ? ' ask' : ''}" data-em="${i}" style="left:${(50 + Math.cos(an) * 37).toFixed(2)}%;top:${(50 + Math.sin(an) * 37).toFixed(2)}%" title="${esc(E.nm)}"><span class="k">${i < 9 ? i + 1 : i === 9 ? 0 : '-'}</span><span class="i">${E.ic}</span>${esc(E.nm)}${pr}</button>`;
   }).join('')}<div class="mid">${emMid(Emo.hi >= 0 ? Emo.hi : Emo.ask >= 0 ? Emo.ask : cur)}</div></div>`;
   Emo.fresh = false;
 }
@@ -3116,7 +3377,7 @@ function openEmWheel(ask) {
 function closeEmWheel() { if (!Emo.open) return; Emo.open = false; Emo.ask = -1; $('#emWheel').hidden = true; $('#emWheel').innerHTML = ''; }
 function toggleEmWheel() { if (Emo.open) closeEmWheel(); else openEmWheel(); }
 function pickEmote(i) {
-  const E = EMOTES[i]; if (!E) return;
+  const E = EMOTES[i]; if (!E || (E.hw && hwGone('em', i))) return;
   if (!emOwns(i)) {
     if (Emo.ask !== i) { Emo.ask = i; sfx('click'); if (!Emo.open) openEmWheel(i); else drawEmWheel(); return; }
     if (W.coins < E.price) { sfx('error'); toast(`Need ${(E.price - W.coins).toLocaleString('en-US')} more Blox Coins`, '#fca5a5'); return; }
@@ -3136,7 +3397,7 @@ function playEmote(i) {
 function emCommand(arg) {
   const q = String(arg).trim().toLowerCase();
   if (!q) { openEmWheel(); return; }
-  let i = /^(10|[1-9])$/.test(q) ? +q - 1 : EMOTES.findIndex((E) => E.id.startsWith(q) || E.nm.toLowerCase().startsWith(q));
+  let i = /^(1[01]|[1-9])$/.test(q) ? +q - 1 : EMOTES.findIndex((E) => E.id.startsWith(q) || E.nm.toLowerCase().startsWith(q));
   if (i < 0 && q.startsWith('dance')) { const d = [2, 3, 4, 5, 8, 9]; i = d.find(emOwns); if (i == null) i = 2; }
   if (i < 0) { toast(`No emote called “${String(arg).slice(0, 20)}”`, '#fca5a5'); openEmWheel(); return; }
   if (!emOwns(i)) { openEmWheel(i); return; }
@@ -4676,11 +4937,11 @@ function wearHtml() {
   const itemBtn = (k, i) => {
     const C = COSMETICS[k], nm = C.list[i];
     const own = owns(k, i), price = C.price[i], on = k === 'h' ? (i ? hatsOn().includes('H' + i) : !hatsOn().length) : AV[k] === i && !W.wear[k], ask = avAsk === k + i, tr = ED.open && ED.try[k] === i;
-      if (ED.own && !own) return '';
+      if ((ED.own && !own) || hwGone(k, i)) return '';
       const A = price < 0 ? achFor(k, i) : null;
       const pr = on ? '<span class="pr own">✓ Wearing</span>' : own ? '<span class="pr own">Owned</span>' : price < 0 ? `<span class="pr">${A ? '🏆 Earn it' : '🎖️ Reward'}</span>` : ask && W.coins < price ? `<span class="pr">Need ${price - W.coins} more</span>` : ask ? `<span class="pr">Buy? ${price}</span>` : `<span class="pr"><span class="coin sm"></span> ${price}</span>`;
       const cant = !own && (price < 0 || W.coins < price);
-      return `<button data-k="${k}" data-i="${i}" class="${on ? 'on' : ''} ${cant ? 'cant' : ''} ${ask ? 'ask' : ''} ${tr ? 'try' : ''}" title="${esc(nm)}${price < 0 && !own ? (A ? ` — earn the “${A.nm}” achievement` : ' — earned in Command an Army’s battle pass') : ''}"><span class="i">${C.icon[i]}</span>${esc(nm)}${pr}</button>`;
+      return `<button data-k="${k}" data-i="${i}" class="${on ? 'on' : ''} ${cant ? 'cant' : ''} ${ask ? 'ask' : ''} ${tr ? 'try' : ''}" title="${esc(nm)}${price < 0 && !own ? (A ? ` — earn the “${A.nm}” achievement` : ' — earned in Command an Army’s battle pass') : ''}${isHw(k, i) ? ' — 🎃 Halloween exclusive' : ''}">${isHw(k, i) ? '<span class="hwtag">🎃</span>' : ''}<span class="i">${C.icon[i]}</span>${esc(nm)}${pr}</button>`;
   };
   if (avTab === 'colors') {
     const row = (title, list, key) => `<div class="opt"><small>${title}</small><div class="sw">${list.map((c, i) => `<button data-k="${key}" data-i="${i}" class="${AV[key] === i ? 'on' : ''}" style="background:${c}" title="${title} ${i + 1}"></button>`).join('')}</div></div>`;
@@ -4693,9 +4954,9 @@ function wearHtml() {
   } else if (avTab === 'em') {
     body = `<p class="xp-note">🎭 Tap an emote to see it. In a game, press <b>.</b> or tap 🎭 Emotes for the emote wheel, or type <b>/e wave</b> in the chat. Moving stops one.</p><div class="shop">${EMOTES.map((E, i) => {
       const own = emOwns(i), ask = avAsk === 'em' + i, on = pv.a && pv.a.em && pv.a.em.i === i;
-      if (ED.own && !own) return '';
+      if ((ED.own && !own) || (E.hw && hwGone('em', i))) return '';
       const pr = own ? `<span class="pr own">${E.price ? 'Owned' : 'Free'}</span>` : ask && W.coins < E.price ? `<span class="pr">Need ${E.price - W.coins} more</span>` : ask ? `<span class="pr">Buy? ${E.price}</span>` : `<span class="pr"><span class="coin sm"></span> ${E.price}</span>`;
-      return `<button data-em="${i}" class="${on ? 'try' : ''} ${!own && W.coins < E.price ? 'cant' : ''} ${ask ? 'ask' : ''}" title="${esc(E.nm)} — ${esc(E.d)}"><span class="i">${E.ic}</span>${esc(E.nm)}${pr}</button>`;
+      return `<button data-em="${i}" class="${on ? 'try' : ''} ${!own && W.coins < E.price ? 'cant' : ''} ${ask ? 'ask' : ''}" title="${esc(E.nm)} — ${esc(E.d)}${E.hw ? ' — 🎃 Halloween exclusive' : ''}">${E.hw ? '<span class="hwtag">🎃</span>' : ''}<span class="i">${E.ic}</span>${esc(E.nm)}${pr}</button>`;
     }).join('')}</div>`;
   } else if (avTab === 'fits') {
     body = `<p class="xp-note">Save what you're wearing in a slot, then switch outfits in one tap.</p><div class="fits">${W.fits.map((f, i) => f
@@ -4721,7 +4982,7 @@ $('#avOpts').onclick = (e) => {
   if (marketClick(b)) return;
   if (d.tab) { avTab = d.tab; avAsk = ''; ED.note = ''; drawAvatarOpts(); return; }
   if (d.em != null) { // an emote: it plays on you here; one you don't have: tap again to buy it
-    const i = +d.em, E = EMOTES[i]; if (!E) return;
+    const i = +d.em, E = EMOTES[i]; if (!E || (E.hw && hwGone('em', i))) return;
     if (pv.a) emStart(pv.a, i);
     if (!emOwns(i)) {
       if (avAsk !== 'em' + i || W.coins < E.price) { avAsk = 'em' + i; sfx('click'); drawAvatarOpts(); return; }
@@ -4742,6 +5003,7 @@ $('#avOpts').onclick = (e) => {
     }
     else {
       const price = COSMETICS[k].price[i];
+      if (hwGone(k, i)) return;
       if (ED.open) ED.try[k] = i; // (on you in the editor, to see how it looks)
       if (price < 0) { avAsk = avAsk === k + i ? '' : k + i; sfx('click'); drawAvatarOpts(); pvAvatar(); return; } // (how to earn it)
       if (W.coins < price || avAsk !== k + i) { avAsk = k + i; drawAvatarOpts(); pvAvatar(); return; } // tap again to buy
@@ -4841,13 +5103,126 @@ function listed() {
   };
   return list.sort(sorts[LIST.sort] || byRank);
 }
+/* =====================================================================
+   🎃 THE HALLOWEEN SHOP — for a limited time (HW.start to HW.end): ten exclusives, one of nearly every kind of thing,
+   for Blox Coins. A banner on the home screen counts down to when it closes; the shop is its own page (each item on
+   your avatar, Buy then Wear, or 👀 Try it in the editor). When it closes they're gone for good: hidden from the
+   editor and the wheel unless you own one. They trade like anything else but can't be refunded.
+   ===================================================================== */
+const HW = { start: Date.UTC(2026, 9, 17, 8), end: Date.UTC(2026, 10, 8, 8), now: () => Date.now() }; // (open 17 Oct – 8 Nov, Pacific midnight)
+const HW_ITEMS = [ // [kind, which, what it is]
+  ['h', 33, 'A witch’s hat with a bent tip, an orange band and a gold buckle — and a spider dangling off the brim.'],
+  ['b', 16, 'Black outside, red silk inside, with a tall stand-up collar and a gold chain with a ruby.'],
+  ['pet', 13, 'A little sheet ghost that floats along beside you, bobbing and waving its stubby arms.'],
+  ['bt', 8, 'A see-through body of flickering ghost-light in a tattered hood. Your face glows in the dark, and mist curls off it.'],
+  ['em', 10, 'A graveyard dance: claws, shimmies and a lurch, to a spooky organ groove. Tombstones rise, hands claw out of the ground, a wolf howls.'],
+  ['a', 15, 'A swarm of bats with glowing red eyes, circling you as they fly up.'],
+  ['tr', 9, 'Little ghosts float up from your footsteps through purple and green mist.'],
+  ['b', 17, 'A witch’s broom across your back: a twisty handle, a bushy bundle of straw and a purple ribbon.'],
+  ['f', 19, 'Glowing red eyes, a wicked smile and a pair of fangs.'],
+  ['pt', 16, 'A black tee with a glow-white skeleton on it: ribs, a spine and a pelvis.'],
+];
+const HW_KIND = { h: 'Hat', f: 'Face', b: 'Back', a: 'Aura', pt: 'Shirt', pet: 'Pet', tr: 'Trail', bt: 'Body', em: 'Emote' };
+const hwOn = () => { const t = HW.now(); return t >= HW.start && t < HW.end; };
+const isHw = (k, i) => HW_ITEMS.some(([a, b]) => a === k && b === i);
+const hwGone = (k, i) => isHw(k, i) && !hwOn() && !(k === 'em' ? W.own.has('em' + i) : W.own.has(k + i)); // (closed, and not yours: it's not shown)
+function hwLeft() {
+  const ms = Math.max(0, HW.end - HW.now()), d = Math.floor(ms / 864e5), h = Math.floor(ms / 36e5) % 24, m = Math.floor(ms / 6e4) % 60, s = Math.floor(ms / 1000) % 60;
+  return d ? `${d}d ${h}h ${m}m` : `${h}h ${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s`;
+}
+const HWS = { ask: '' }; // (ask: the item waiting for a second tap to buy)
+const hwNm = (k, i) => (k === 'em' ? EMOTES[i].nm : COSMETICS[k].list[i]);
+const hwIc = (k, i) => (k === 'em' ? EMOTES[i].ic : COSMETICS[k].icon[i]);
+const hwPrice = (k, i) => (k === 'em' ? EMOTES[i].price : COSMETICS[k].price[i]);
+// a picture of the item on your avatar (your colours, nothing else on), framed for its kind
+function hwPic(k, i) {
+  const av = [AV.s, AV.sh, AV.p, 0, 0, 0, 0, 0, 0, 0, 1, 0], slot = { h: 3, f: 4, b: 5, a: 6, pt: 7, pet: 8, tr: 9, bt: 10 }[k];
+  if (slot != null) av[slot] = i;
+  const o = { w: 200, h: 200, zoom: 0.95 };
+  if (k === 'h') Object.assign(o, { dir: [0.45, 0.28, -1], sphere: [[0, 5.5, 0], 2.0] });
+  else if (k === 'f') Object.assign(o, { dir: [0.2, 0.08, -1], sphere: [[0, 4.85, 0], 1.45] });
+  else if (k === 'b') Object.assign(o, i === 16 ? { dir: [0.55, 0.22, -1], sphere: [[0, 3.9, 0.2], 2.6] } : { dir: [0.8, 0.2, 1], sphere: [[0, 3.4, 0], 3.3] }); // (the cape: from the front, the red collar round the head)
+  else if (k === 'pt') Object.assign(o, { dir: [0.3, 0.1, -1], sphere: [[0, 3.6, 0], 2.4] });
+  else if (k === 'tr') Object.assign(o, { dir: [1, 0.3, -0.25], sphere: [[0, 2.6, 1.8], 3.6] });
+  else if (k === 'pet') Object.assign(o, { dir: [0.6, 0.2, -1], sphere: [[0, 1.0, 0], 1.25] });
+  else Object.assign(o, { dir: [0.35, 0.12, -1], sphere: [[0, 3.3, 0], 3.6] });
+  return snapshot(`hw:${k}${i}:${av.join(',')}`, () => {
+    if (k === 'pet') return petModel(13);
+    const a = makeAvatar(av, '', true); scene.remove(a.shadow); if (a.pet) scene.remove(a.pet.g);
+    a.armR.rotation.x = -0.12; a.armL.rotation.x = 0.12;
+    const spr = (tex, s, x, y, z, sx) => { const m = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false })); m.scale.set(s * (sx || 1), s, 1); m.position.set(x, y, z); a.g.add(m); };
+    if (k === 'a') [[1.6, 5.4, -0.4, 1], [-1.8, 4.6, -0.2, 0.8], [1.9, 3.0, 0.4, 0.9], [-1.5, 2.2, -0.6, 0.7], [0.4, 6.4, 0.6, 0.6], [-0.9, 6.1, -0.8, 0.8]].forEach(([x, y, z, s]) => spr(batTex(), s * 1.1, x, y, z, 2));
+    if (k === 'tr') { // (ghosts floating up out of a trail of purple and green mist behind you)
+      [[0.4, 1.0, 1.6, 1.1], [-0.5, 2.1, 2.6, 1.0], [0.3, 3.3, 3.6, 0.85], [-0.2, 0.8, 4.2, 0.8]].forEach(([x, y, z, s]) => spr(ghostTex(), s, x, y, z));
+      [[0, 0.15, 1.2], [0.2, 0.15, 2.2], [-0.2, 0.15, 3.2], [0.1, 0.15, 4.2], [0, 0.15, 5.2]].forEach(([x, y, z], j) => { const m = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), color: j % 2 ? '#4ade80' : '#a855f7', transparent: true, depthWrite: false, opacity: 0.85 })); m.scale.set(2.2, 1.0, 1); m.position.set(x, y + 0.3, z); a.g.add(m); }); }
+    if (k === 'em') { const J = emPose(); EMOTES[i].pose(J, 0.8, a); emApply(a, J, 1); spr(moonTex(), 4, -2.4, 6.5, 3); }
+    return a.g;
+  }, o);
+}
+function hwBanner() {
+  return `<div class="hwban" role="button" tabindex="0" title="Open the Halloween Shop"><div class="hwfx"><span class="moon"></span><i class="b1">🦇</i><i class="b2">🦇</i><i class="b3">🦇</i></div>
+    <div class="hwt"><span class="tag">🎃 Limited time · Halloween Shop</span><h2>Spooky exclusives are here!</h2><p>A witch's hat, a vampire cape, Boo the ghost, the Phantom body, the Zombie Groove emote and more — only until the shop closes, then they're gone for good.</p></div>
+    <div class="hwcdbox"><small>Closes in</small><b class="hwcd">${hwLeft()}</b><span class="go">Open the shop →</span></div><div class="pk">🎃</div></div>`;
+}
+function hwPage() {
+  const cards = HW_ITEMS.map(([k, i, d]) => {
+    const em = k === 'em', price = hwPrice(k, i), key = k + i, ask = HWS.ask === key, own = em ? emOwns(i) : owns(k, i);
+    const on = !em && (k === 'h' ? hatsOn().includes('H' + i) : AV[k] === i && !(XKINDS[k] && W.wear[k]));
+    const btn = !own ? `<button class="hwbuy${ask ? ' ask' : ''}" data-hwbuy="${key}">${ask ? (W.coins < price ? `Need ${(price - W.coins).toLocaleString('en-US')} more` : `Tap again to buy`) : `<span class="coin sm"></span> ${price.toLocaleString('en-US')}`}</button>`
+      : em ? `<button class="hwown" disabled>✓ Yours · press . in a game</button>` : `<button class="hwwear${on ? ' on' : ''}" data-hwwear="${key}">${on ? '✓ Wearing' : 'Wear it'}</button>`;
+    const pic = hwPic(k, i);
+    return `<div class="hwcard${own ? ' own' : ''}"><div class="pic">${pic ? `<img src="${pic}" alt="">` : `<span class="big">${hwIc(k, i)}</span>`}<span class="kind">${hwIc(k, i)} ${HW_KIND[k]}</span>${own ? '<span class="got">✓ Owned</span>' : ''}</div>
+      <b>${esc(hwNm(k, i))}</b><p>${esc(d)}</p><div class="row">${btn}<button class="hwtry" data-hwtry="${key}" title="See it on you in the avatar editor">👀 Try</button></div></div>`;
+  }).join('');
+  return `<div class="edetail still hwpage"><button class="back" id="backBtn">← All experiences</button>
+    <div class="hwhero"><div class="hwfx"><span class="moon"></span><i class="b1">🦇</i><i class="b2">🦇</i><i class="b3">🦇</i></div><div class="hwt"><span class="tag">🎃 Limited time</span><h2>Halloween Shop</h2><p>Ten spooky exclusives, only until the shop closes — then they're gone for good. Whatever you buy is yours forever.</p></div>
+      <div class="hwcdbox"><small>Shop closes in</small><b class="hwcd">${hwLeft()}</b><span class="bal"><span class="coin sm"></span> ${W.coins.toLocaleString('en-US')}</span></div><div class="pk">🎃</div></div>
+    <div class="hwgrid">${cards}</div>
+    <p class="note">🎃 Halloween exclusives can't be refunded, but you can trade them. Once the shop closes they're hidden from the shop and the editor unless they're yours.</p></div>`;
+}
+function hwClick(e) {
+  const b = e.target.closest('button'); if (!b || b.disabled) return;
+  const m = /^([a-z]+)(\d+)$/.exec(b.dataset.hwbuy || b.dataset.hwwear || b.dataset.hwtry || ''); if (!m) return;
+  const k = m[1], i = +m[2], key = k + i;
+  if (b.dataset.hwbuy) {
+    if (!hwOn()) { toast('🎃 The Halloween Shop has closed', '#fdba74'); drawExps(); return; }
+    const price = hwPrice(k, i);
+    if (HWS.ask !== key) { HWS.ask = key; sfx('click'); drawExps(); return; }
+    if (W.coins < price) { sfx('error'); toast(`Need ${(price - W.coins).toLocaleString('en-US')} more Blox Coins`, '#fca5a5'); return; }
+    W.coins -= price; W.own.add(key); HWS.ask = ''; sfx('buy'); questMax('bv.items', W.own.size);
+    const why = k === 'em' ? '' : putOn(k, i); // (put it straight on)
+    toast(`🎃 ${hwNm(k, i)} is yours!`, '#fdba74'); if (why) say(why, '#fde68a');
+    drawCoins(); saveAv(); pvAvatar(); drawMe(); drawExps();
+  } else if (b.dataset.hwwear) {
+    const on = k === 'h' ? hatsOn().includes('H' + i) : AV[k] === i && !(XKINDS[k] && W.wear[k]);
+    const why = on ? (takeOff(k, i), '') : putOn(k, i); if (why) toast(why, '#fde68a');
+    sfx('select'); saveAv(); pvAvatar(); drawMe(); drawExps();
+  } else { // 👀 Try: the avatar editor, wearing it (or doing it)
+    openEditor('wear');
+    if (k === 'em') { avTab = 'em'; drawAvatarOpts(); if (pv.a) emStart(pv.a, i); }
+    else { avTab = k === 'bt' ? 'colors' : k; ED.try[k] = i; drawAvatarOpts(); pvAvatar(); }
+  }
+}
+// the countdown, every second (and when the shop closes, the banner and the page go)
+setInterval(() => {
+  const els = document.querySelectorAll('.hwcd'); if (!els.length) return;
+  if (!hwOn()) { if (homeView === 'hw') homeView = null; drawExps(); return; }
+  const t = hwLeft(); els.forEach((el) => { if (el.textContent !== t) el.textContent = t; });
+}, 1000);
 function drawExps() {
   if (playing) return;
   const c = counts(), total = (E) => Array.from({ length: SERVERS }, (_, k) => c[`${E.code}-${k + 1}`] || 0).reduce((a, b) => a + b, 0);
   const live = (E) => `<span class="pill"><span class="dot"></span>${total(E)} playing</span>`;
   // (the lobby redraws this whenever anyone comes or goes: the same page again doesn't fade in again)
   const again = drawExps.view === (homeView || ''); drawExps.view = homeView || '';
-  $('#home').classList.toggle('sub', homeView === 'me' || homeView === 'friends' || homeView === 'inv' || String(homeView).startsWith('u:')); // (a phone: the page, not your card above it)
+  if (homeView === 'hw' && !hwOn()) homeView = null; // (the Halloween Shop has closed)
+  $('#home').classList.toggle('sub', homeView === 'me' || homeView === 'friends' || homeView === 'inv' || homeView === 'hw' || String(homeView).startsWith('u:'));
+  if (homeView === 'hw') {
+    $('#expArea').innerHTML = hwPage();
+    $('#backBtn').onclick = () => { homeView = null; HWS.ask = ''; drawExps(); };
+    $('#expArea .hwgrid').onclick = hwClick;
+    return;
+  } // (a phone: the page, not your card above it)
   if (homeView === 'ach') {
     const sig = `${W.ach.got.size}:${Object.values(W.ach.c).reduce((a, b) => a + b, 0)}`;
     if (again && drawExps.sig === sig && $('#expArea .achcols')) return;
@@ -4869,13 +5244,14 @@ function drawExps() {
     const genres = [...new Set(all.map((E) => E.genre).filter(Boolean))].sort();
     if (LIST.genre !== 'All' && LIST.genre !== '❤️' && !genres.includes(LIST.genre)) LIST.genre = 'All';
     const chip = (k, v, label, n) => `<button class="xchip${LIST[k] === v ? ' on' : ''}" data-${k}="${esc(v)}">${label}${n != null ? ` <small>${n}</small>` : ''}</button>`;
-    $('#expArea').innerHTML = (F ? `<div class="feat" data-e="${F.id}" role="button" tabindex="0" style="--exp:${F.color}"><div><span class="tag">⭐ Featured</span><h2>${esc(F.name)}</h2><p>${esc(F.desc.split('. ').slice(0, 2).join('. ').replace(/\.?$/, '.'))}</p><div class="meta">${live(F)}<span class="pill">👥 up to ${F.max}</span>${F.genre ? `<span class="pill">${esc(F.genre)}</span>` : ''}</div></div><span class="art">${F.emoji}</span><button class="playbig" data-play="${F.id}" title="Play"><span class="tri"></span>Play</button></div>` : '')
+    $('#expArea').innerHTML = (hwOn() ? hwBanner() : '') + (F ? `<div class="feat" data-e="${F.id}" role="button" tabindex="0" style="--exp:${F.color}"><div><span class="tag">⭐ Featured</span><h2>${esc(F.name)}</h2><p>${esc(F.desc.split('. ').slice(0, 2).join('. ').replace(/\.?$/, '.'))}</p><div class="meta">${live(F)}<span class="pill">👥 up to ${F.max}</span>${F.genre ? `<span class="pill">${esc(F.genre)}</span>` : ''}</div></div><span class="art">${F.emoji}</span><button class="playbig" data-play="${F.id}" title="Play"><span class="tri"></span>Play</button></div>` : '')
       + `<h3 class="sect">🎮 Experiences <small id="expCount"></small></h3>
       <div class="xtools"><label class="xsearch">🔍<input id="expQ" type="search" placeholder="Search experiences" value="${esc(LIST.q)}" autocomplete="off"></label>
         <div class="xchips" id="expSorts">${SORTS.map(([v, l]) => chip('sort', v, l)).join('')}</div></div>
       <div class="xchips xgenres" id="expGenres">${chip('genre', 'All', '🎮 All', all.length)}${chip('genre', '❤️', '❤️ Favourites', all.filter((E) => FAVS.has(E.id)).length)}${genres.map((g) => chip('genre', g, esc(g), all.filter((E) => E.genre === g).length)).join('')}</div>
       <div class="egrid" id="expGrid"></div>
       <p class="note">Move with <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, jump with <kbd>Space</kbd>, hold <kbd>Shift</kbd> to sprint, drag the mouse to turn the camera, scroll to zoom (all the way in for first person), <kbd>Ctrl</kbd> for shift lock. <kbd>/</kbd> chats, <kbd>R</kbd> resets your character, <kbd>Esc</kbd> opens the menu.</p>`;
+    const hb = $('#expArea .hwban'); if (hb) hb.onclick = hb.onkeydown = (e) => { if (e.type === 'keydown' && e.key !== 'Enter') return; homeView = 'hw'; sfx('open'); drawExps(); };
     const feat = $('#expArea').querySelector('.feat');
     if (feat) feat.onclick = (e) => { if (e.target.closest('[data-play]')) return; homeView = F.id; drawExps(); };
     $('#expArea').querySelectorAll('.feat [data-play]').forEach((b) => (b.onclick = () => join(b.dataset.play)));
@@ -5373,7 +5749,7 @@ function ownsX(id) {
 const REFUND = 0.65;
 function refundOf(key) { // (coins you'd get back; 0: it can't be refunded)
   const m = /^c:([a-z]+)(\d+)$/.exec(key);
-  if (m) { const C = COSMETICS[m[1]], p = C ? C.price[+m[2]] : 0; return C && W.own.has(m[1] + m[2]) && p > 0 ? Math.floor(p * REFUND) : 0; }
+  if (m) { const C = COSMETICS[m[1]], p = C ? C.price[+m[2]] : 0; return C && W.own.has(m[1] + m[2]) && p > 0 && !isHw(m[1], +m[2]) ? Math.floor(p * REFUND) : 0; } // (not the Halloween exclusives)
   const id = key.slice(2), I = key.startsWith('x:') && xItem(id);
   return I && !I.lim && !Object.prototype.hasOwnProperty.call(W.made, id) && W.xown.includes(id) && I.price > 0 ? Math.floor(I.price * REFUND) : 0;
 }
@@ -5834,7 +6210,7 @@ function invEntries() {
   for (const code of W.own) {
     const m = /^([a-z]+)(\d+)$/.exec(code), C = m && COSMETICS[m[1]], i = m ? +m[2] : -1;
     if (!C || i < 0 || i >= C.list.length) continue;
-    out.push({ key: 'c:' + code, cat: m[1] === 'a' ? 'au' : m[1], nm: C.list[i], ic: C.icon[i], tag: C.price[i] < 0 ? '🏆 Reward' : C.title, value: Math.max(0, C.price[i]), worn: m[1] === 'h' ? hatsOn().includes('H' + i) : AV[m[1]] === i && !(XSLOTS.includes(m[1]) && W.wear[m[1]]), slot: m[1], i });
+    out.push({ key: 'c:' + code, cat: m[1] === 'a' ? 'au' : m[1], nm: C.list[i], ic: C.icon[i], tag: isHw(m[1], i) ? '🎃 Halloween exclusive' : C.price[i] < 0 ? '🏆 Reward' : C.title, value: Math.max(0, C.price[i]), worn: m[1] === 'h' ? hatsOn().includes('H' + i) : AV[m[1]] === i && !(XSLOTS.includes(m[1]) && W.wear[m[1]]), slot: m[1], i });
   }
   const x = (I, extra) => Object.assign({ key: 'x:' + I.id, cat: I.k === 'h' ? 'h' : I.k, nm: I.nm, I, value: I.price, worn: isWearing(I) }, extra);
   for (const id of Object.keys(W.made)) { const I = xItem(id); if (I) out.push(x(I, { made: true, tag: `✏️ Made by you · ${I.pub ? (I.lim ? `⭐ limited of ${I.lim}` : 'in the catalog') : 'not published'}` })); }
@@ -6138,8 +6514,8 @@ addEventListener('keydown', (e) => {
   if (e.code === 'Slash' || e.code === 'Enter') { e.preventDefault(); openChat(); return; }
   if (e.code === 'Escape') { if (Emo.open) { closeEmWheel(); return; } if (performance.now() - View.lostAt < 400) return; if (panelOpen()) closePanel(); else if ($('#pause').hidden) showPause(); else $('#pause').hidden = true; return; } // (Esc that let go of the pointer has opened the menu already)
   if (!$('#pause').hidden) return; // (the menu's open: nothing else happens in the game)
-  if (e.code === 'Period' && !e.repeat) { toggleEmWheel(); return; } // the emote wheel: 1–9 and 0 pick one
-  if (Emo.open && /^Digit[0-9]$/.test(e.code)) { if (!e.repeat) pickEmote(e.code === 'Digit0' ? 9 : +e.code.slice(5) - 1); return; }
+  if (e.code === 'Period' && !e.repeat) { toggleEmWheel(); return; } // the emote wheel: 1–9, 0 and - pick one
+  if (Emo.open && /^(Digit[0-9]|Minus)$/.test(e.code)) { if (!e.repeat) pickEmote(e.code === 'Digit0' ? 9 : e.code === 'Minus' ? 10 : +e.code.slice(5) - 1); return; }
   // Ctrl toggles shift lock when it's tapped on its own (with another key it's the browser's shortcut, not ours)
   if (isCtrl(e.code)) { View.ctrlTap = !e.repeat && lockKeyCode(e.code); return; }
   View.ctrlTap = false;
@@ -6241,7 +6617,7 @@ function frame(t, bg) { // (bg: a step while the game's off screen — nothing i
     if (a.bub) { a.bubT -= dt; if (a.bubT <= 0) { a.g.remove(a.bub); a.bub.material.map.dispose(); a.bub = null; } }
   }
   if (exp.pose) { try { exp.pose(dt); } catch (e) { oops('pose', e); } } // after the walk animation: an experience can pose arms (holding a gun) and the like
-  for (let i = bits.length - 1; i >= 0; i--) { const m = bits[i], u = m.userData; u.life -= dt; u.v.y -= (u.g != null ? u.g : 30) * dt; m.position.addScaledVector(u.v, dt); if (!u.spinless) m.rotation.x += dt * 5; if (u.fade) m.material.opacity = Math.max(0, Math.min(0.9, u.life * 1.5)); if (u.life <= 0) { scene.remove(m); m.material.dispose(); bits.splice(i, 1); } }
+  for (let i = bits.length - 1; i >= 0; i--) { const m = bits[i], u = m.userData; u.life -= dt; if (u.tick) u.tick(m, u, dt); u.v.y -= (u.g != null ? u.g : 30) * dt; m.position.addScaledVector(u.v, dt); if (!u.spinless) m.rotation.x += dt * 5; if (u.fade) m.material.opacity = Math.max(0, Math.min(0.9, u.life * 1.5)); if (u.life <= 0) { scene.remove(m); m.material.dispose(); bits.splice(i, 1); } }
   updatePrompt();
   // the camera, behind and above you
   stepLift = stepLift > 0.01 ? stepLift * Math.exp(-dt * 12) : 0;
@@ -6319,7 +6695,7 @@ try { loadAvFrom(JSON.parse(localStorage.getItem('rb.av') || 'null')); } catch (
 achNum();
 drawAvatarOpts(); drawMe(); drawExps();
 requestAnimationFrame(frame);
-window.__rb = { P, Net, cam, camera, scene, renderer, keys, EXPS, Meter, GFX, gfxApply, softGL, View, setLock, zoomBy, lookBy, joy, sunL, sunSprite, makeAvatar, join, leave, die, respawn, openShop, buyItem, hasItem, itemCount, giveItem, useItem, shopItem, setItemOff, Trade, startTrade, tradeTick, parts: () => parts, exp: () => exp, me: () => me, iAmHost, crew, players, get AV() { return AV; }, W, earn, spend, roundState, openPanel, closePanel, pickPlane, myPeer, grantCosmetic, snapshot, say, EMOTES, Emo, pickEmote, playEmote, emCommand, emStart, saveAv, pv: () => pv, synth: { powerChord, synTone, synNoise, synKick },
+window.__rb = { P, Net, cam, camera, scene, renderer, keys, EXPS, Meter, GFX, gfxApply, softGL, View, setLock, zoomBy, lookBy, joy, sunL, sunSprite, makeAvatar, join, leave, die, respawn, openShop, buyItem, hasItem, itemCount, giveItem, useItem, shopItem, setItemOff, Trade, startTrade, tradeTick, parts: () => parts, exp: () => exp, me: () => me, iAmHost, crew, players, get AV() { return AV; }, W, earn, spend, roundState, openPanel, closePanel, pickPlane, myPeer, grantCosmetic, snapshot, say, EMOTES, Emo, pickEmote, playEmote, emCommand, emStart, saveAv, pv: () => pv, HW, HW_ITEMS, hwOn, drawExps, refundOf, setHomeView: (v) => { homeView = v; drawExps(); }, synth: { powerChord, synTone, synNoise, synKick },
   Social, Inv, ED, myId, myCode, fcOf, openEditor, closeEditor, socialScan, avPic, Market, OFFICIAL, xItem, ownsX, copiesOf, drawAvatarOpts, axArr,
   pvSel: () => (pv.selBox ? { inScene: pv.selBox.parent === pv.scene, r: pv.selBox.geometry.boundingSphere && pv.selBox.geometry.boundingSphere.radius, vis: pv.selBox.visible, n: pv.selBox.geometry.attributes.position.count, c: pv.selBox.geometry.attributes.position.array.slice(0, 6) } : null),
   pvGhost: () => { let g = false; if (pv.a) pv.a.g.traverse((o) => { if (o.isMesh && o.material === GHOST_MAT) g = true; }); return g; },
