@@ -45,7 +45,8 @@
   /* the emote wheel */
   #emWheel{position:absolute;inset:0;pointer-events:auto;display:grid;place-items:center;background:radial-gradient(circle,rgba(2,6,23,.5) 0,rgba(2,6,23,.18) 42%,rgba(2,6,23,0) 68%);z-index:6}
   #emWheel[hidden]{display:none}
-  .emw{position:relative;width:360px;height:360px;border-radius:50%;background:radial-gradient(circle,rgba(15,23,42,.95) 0 26%,rgba(30,41,59,.86) 27% 100%);border:1px solid var(--line2);box-shadow:var(--drop),inset 0 0 0 9px rgba(255,255,255,.03),0 0 0 6px rgba(168,85,247,.12);animation:pop .16s ease-out}
+  .emw{position:relative;width:360px;height:360px;border-radius:50%;background:radial-gradient(circle,rgba(15,23,42,.95) 0 26%,rgba(30,41,59,.86) 27% 100%);border:1px solid var(--line2);box-shadow:var(--drop),inset 0 0 0 9px rgba(255,255,255,.03),0 0 0 6px rgba(168,85,247,.12)}
+  .emw.in{animation:pop .16s ease-out}
   .emw .mid{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:150px;text-align:center;display:flex;flex-direction:column;gap:4px;align-items:center}
   .emw .mid b{font:600 16px var(--fh)}.emw .mid small{font:700 11px/1.3 var(--fb);color:#cbd5e1}.emw .mid .hint{color:var(--dim);margin-top:2px}
   .emw .em{position:absolute;width:88px;height:88px;margin:-44px 0 0 -44px;border-radius:50%;border:2px solid rgba(255,255,255,.1);background:linear-gradient(180deg,#3b4a63,#1e293b);color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font:600 11.5px var(--fh);transition:transform .12s,border-color .12s;padding:0;box-shadow:0 3px 0 rgba(0,0,0,.35)}
@@ -2153,7 +2154,7 @@ const EMOTES = [
         F.ring = emMesh(F.root, new THREE.TorusGeometry(1.75, 0.07, 8, 48), add('#c084fc'), 0, 0.12, 0); F.ring.rotation.x = Math.PI / 2;
         F.ring2 = emMesh(F.root, new THREE.TorusGeometry(1.25, 0.04, 6, 40), add('#67e8f9'), 0, 0.14, 0); F.ring2.rotation.x = Math.PI / 2;
         F.disc = emMesh(F.root, new THREE.CircleGeometry(2.1, 32), add('#a855f7', { map: glowTex(), ...DECAL }), 0, 0.1, 0); F.disc.rotation.x = -Math.PI / 2;
-        F.beam = emMesh(F.root, new THREE.CylinderGeometry(1.5, 1.7, 7.5, 24, 1, true), add('#c4b5fd', { map: beamTex(), side: THREE.DoubleSide }), 0, 3.75, 0);
+        F.beam = emMesh(F.root, new THREE.CylinderGeometry(1.5, 1.7, 7.5, 24, 1, true), add('#a78bfa', { map: beamTex(), side: THREE.DoubleSide }), 0, 3.75, 0);
         F.orbs = ['#f0abfc', '#67e8f9', '#fde047'].map((c) => { const o = emMesh(F.root, new THREE.SphereGeometry(0.16, 12, 8), new THREE.MeshBasicMaterial({ color: c })); const gl = emSprite(o, glowTex(), 1.1, { color: c, blending: THREE.AdditiveBlending }); gl.position.set(0, 0, 0); return o; });
         F.spk = Array.from({ length: 12 }, (_, j) => emSprite(F.root, glowTex(), 0.35, { color: ['#f5d0fe', '#a5f3fc', '#fef08a'][j % 3], blending: THREE.AdditiveBlending }));
       },
@@ -2161,7 +2162,7 @@ const EMOTES = [
         const on = smooth(t / 0.8), pulse = 0.5 + 0.5 * Math.sin(t * 3);
         F.ring.material.opacity = on * (0.6 + 0.35 * pulse); F.ring.scale.setScalar(0.9 + 0.1 * pulse); F.ring.rotation.z = t * 0.6;
         F.ring2.material.opacity = on * (0.5 + 0.4 * (1 - pulse)); F.ring2.rotation.z = -t * 1.1;
-        F.disc.material.opacity = on * (0.45 + 0.2 * pulse); F.beam.material.opacity = on * (0.16 + 0.06 * pulse); F.beam.rotation.y = t * 0.4;
+        F.disc.material.opacity = on * (0.32 + 0.15 * pulse); F.beam.material.opacity = on * (0.07 + 0.03 * pulse); F.beam.rotation.y = t * 0.4;
         F.orbs.forEach((o, j) => { const an = t * 1.7 + j * EM_TAU / 3; o.position.set(Math.cos(an) * 2.1, 3.0 + Math.sin(t * 2.3 + j * 2) * 0.8, Math.sin(an) * 2.1); o.visible = on > 0.3; });
         F.spk.forEach((s, j) => { const ph = (t * 0.35 + j / 12) % 1, an = j * 2.4 + t * 0.5; s.position.set(Math.cos(an) * (1.2 + 0.4 * Math.sin(j)), 0.2 + ph * 6.5, Math.sin(an) * (1.2 + 0.4 * Math.sin(j))); s.material.opacity = on * Math.sin(ph * Math.PI); s.scale.setScalar(0.25 + 0.2 * Math.sin(ph * Math.PI)); });
       },
@@ -2341,10 +2342,10 @@ function sideDo(k) {
 $('#xside').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b || b.disabled) return; if (b.dataset.side) sideDo(b.dataset.side); else if (sideClick) sideClick(b, e); });
 // the emote wheel (. or the 🎭 button): your emotes round a circle, 1–7 to pick; one you don't have yet: tap it to see
 // what it costs, tap again to buy it (then it plays)
-const Emo = { open: false, ask: -1, hi: -1 };
+const Emo = { open: false, ask: -1, hi: -1, fresh: false }; // (fresh: it's just opened, so it pops in)
 function emMid(i) {
   const E = EMOTES[i];
-  const hint = `<small class="hint">${touchy ? 'Tap outside to close' : 'Press 1–7 · . or Esc to close'}</small>`;
+  const hint = `<small class="hint">${touchy ? 'Tap outside to close' : 'Keys 1–7 · close with . or Esc'}</small>`;
   if (!E) return `<b>🎭 Emotes</b><small>Pick one to play it — it goes on till you move</small>${hint}`;
   const st = emOwns(i) ? (me && me.em && me.em.i === i ? (E.loop ? '▶️ Playing — pick it again to stop' : '▶️ Playing') : E.loop ? '🔁 Loops till you move' : '✓ Yours') : Emo.ask === i ? (W.coins < E.price ? `Need ${E.price - W.coins} more Blox Coins` : `Tap again to buy for ${E.price}`) : `🔒 <span class="coin sm"></span> ${E.price} Blox Coins`;
   return `<b>${E.ic} ${esc(E.nm)}</b><small>${esc(E.d)}</small><small>${st}</small>${hint}`;
@@ -2352,15 +2353,16 @@ function emMid(i) {
 function drawEmWheel() {
   const el = $('#emWheel'); if (!el || el.hidden) return;
   const n = EMOTES.length, cur = me && me.em ? me.em.i : -1;
-  el.innerHTML = `<div class="emw">${EMOTES.map((E, i) => {
+  el.innerHTML = `<div class="emw${Emo.fresh ? ' in' : ''}">${EMOTES.map((E, i) => {
     const an = -Math.PI / 2 + i * EM_TAU / n, own = emOwns(i), ask = Emo.ask === i;
     const pr = own ? '' : ask ? `<span class="pr">${W.coins < E.price ? `Need ${E.price - W.coins}` : `Buy? ${E.price}`}</span>` : `<span class="pr"><span class="coin sm"></span>${E.price}</span>`;
     return `<button class="em${cur === i ? ' on' : ''}${own ? '' : ' lock'}${ask ? ' ask' : ''}" data-em="${i}" style="left:${(50 + Math.cos(an) * 35.5).toFixed(2)}%;top:${(50 + Math.sin(an) * 35.5).toFixed(2)}%" title="${esc(E.nm)}"><span class="k">${i + 1}</span><span class="i">${E.ic}</span>${esc(E.nm)}${pr}</button>`;
   }).join('')}<div class="mid">${emMid(Emo.hi >= 0 ? Emo.hi : Emo.ask >= 0 ? Emo.ask : cur)}</div></div>`;
+  Emo.fresh = false;
 }
 function openEmWheel(ask) {
   if (!playing || !me) return;
-  Emo.open = true; Emo.ask = ask == null ? -1 : ask; Emo.hi = -1; $('#emWheel').hidden = false; drawEmWheel(); sfx('open', { vol: 0.5 });
+  Emo.open = true; Emo.fresh = true; Emo.ask = ask == null ? -1 : ask; Emo.hi = -1; $('#emWheel').hidden = false; drawEmWheel(); sfx('open', { vol: 0.5 });
 }
 function closeEmWheel() { if (!Emo.open) return; Emo.open = false; Emo.ask = -1; $('#emWheel').hidden = true; $('#emWheel').innerHTML = ''; }
 function toggleEmWheel() { if (Emo.open) closeEmWheel(); else openEmWheel(); }
