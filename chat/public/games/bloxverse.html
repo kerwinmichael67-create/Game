@@ -1052,7 +1052,9 @@ const PATTERNS = ['Plain', 'Stripes', 'Star', 'Heart', 'Lightning', 'Checkers', 
 const PETS = ['None', 'Puppy', 'Kitty', 'Bunny', 'Mini Dragon', 'Robot', 'Unicorn', 'Penguin', 'Fox', 'Panda', 'Phoenix', 'Baby Zombie', 'Peashooter'];
 const TRAILS = ['None', 'Rainbow', 'Fire', 'Ice', 'Neon', 'Gold', 'Hearts', 'Stars', 'Lightning'];
 // the body: R6 (six blocks, the classic) or R15 (fifteen parts: knees, elbows, hands, feet and a waist that turns)
-const BODIES = ['R6', 'R15'];
+const BODIES = ['R6', 'R15', 'Robot', 'Skeleton', 'Magma Golem']; // (2 on: body packs, jointed like R15)
+// animation packs: how you stand, walk, run and jump
+const ANIMS = ['Default', 'Robot', 'Ninja', 'Zombie'];
 // the shop: what each costs in Blox Coins (0 = free, -1 = only as a reward)
 const COSMETICS = {
   h: { title: 'Hats', list: HATS, price: [0, 0, 0, 0, 0, 100, 250, 300, 150, 800, 200, 120, 220, 80, 1500, -1, 100, 200, 350, 180, 220, 260, 400, 150, 1200, 3000, -1, -1, -1, -1, -1, -1, -1],
@@ -1062,12 +1064,14 @@ const COSMETICS = {
   a: { title: 'Auras', list: AURAS, price: [0, 300, 800, 400, 350, 1000, 1500, 300, 350, 2000, 600, 2500, -1, -1, -1], icon: ['🚫', '✨', '🔥', '💖', '❄️', '⚡', '🌈', '🫧', '🍃', '🌌', '☢️', '💸', '💫', '🌑', '⛈️'] },
   pt: { title: 'Shirts', list: PATTERNS, price: [0, 60, 80, 80, 120, 100, 90, 250, 150, 150, 120, 200, 300, -1, -1, -1], icon: ['⬜', '〰️', '⭐', '❤️', '⚡', '🏁', '1️⃣', '👔', '💀', '🔥', '🪖', '🌈', '🌌', '🏆', '🐾', '🌻'] },
   pet: { title: 'Pets', list: PETS, price: [0, 400, 400, 350, 1500, 900, 2500, 600, 800, 1200, 4000, -1, -1], icon: ['🚫', '🐶', '🐱', '🐰', '🐉', '🤖', '🦄', '🐧', '🦊', '🐼', '🦅', '🧟', '🌱'] },
+  bt: { title: 'Bodies', list: BODIES, price: [0, 0, 900, 600, 1200], icon: ['🧍', '🦵', '🤖', '💀', '🌋'], tab: false }, // (bodies and animations are in 🧍 Body)
+  an: { title: 'Animations', list: ANIMS, price: [0, 500, 750, 400], icon: ['🚶', '🤖', '🥷', '🧟'], tab: false },
   tr: { title: 'Trails', list: TRAILS, price: [0, 1500, 800, 600, 500, 2000, 700, -1, -1], icon: ['🚫', '🌈', '🔥', '🧊', '💠', '🪙', '💕', '⭐', '⚡'] },
 };
-let AV = { s: 5, sh: 0, p: 1, h: 0, f: 0, b: 0, a: 0, pt: 0, pet: 0, tr: 0, bt: 0 };
-const AV_KEYS = ['s', 'sh', 'p', 'h', 'f', 'b', 'a', 'pt', 'pet', 'tr', 'bt'], AV_LISTS = [SKINS, SHIRTS, PANTS, HATS, FACES, BACKS, AURAS, PATTERNS, PETS, TRAILS, BODIES];
+let AV = { s: 5, sh: 0, p: 1, h: 0, f: 0, b: 0, a: 0, pt: 0, pet: 0, tr: 0, bt: 0, an: 0 };
+const AV_KEYS = ['s', 'sh', 'p', 'h', 'f', 'b', 'a', 'pt', 'pet', 'tr', 'bt', 'an'], AV_LISTS = [SKINS, SHIRTS, PANTS, HATS, FACES, BACKS, AURAS, PATTERNS, PETS, TRAILS, BODIES, ANIMS];
 const avArr = () => AV_KEYS.map((k) => AV[k] | 0);
-const okAv = (a) => { const d = [5, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]; return AV_LISTS.map((l, i) => (Array.isArray(a) && a[i] != null ? clamp(a[i] | 0, 0, l.length - 1) : d[i])); };
+const okAv = (a) => { const d = [5, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]; return AV_LISTS.map((l, i) => (Array.isArray(a) && a[i] != null ? clamp(a[i] | 0, 0, l.length - 1) : d[i])); };
 const avFrom = (o) => { const v = okAv(AV_KEYS.map((k) => o && o[k])); const r = {}; AV_KEYS.forEach((k, i) => (r[k] = v[i])); return r; };
 // Blox Coins: earned in every experience, spent on cosmetics (and a few things inside experiences)
 const W = { coins: 0, own: new Set(), day: '', loaded: false, items: {}, // items: what you bought in experiences' shops ({ 'obby.speed': 1 })
@@ -1523,6 +1527,244 @@ function okAcc(l) {
 const GHOST_MAT = new THREE.MeshBasicMaterial({ color: '#93c5fd', transparent: true, opacity: 0.2, depthWrite: false });
 const HEAD_GEO = new THREE.CylinderGeometry(0.66, 0.66, 1.25, 20);
 const FACE_GEO = new THREE.CylinderGeometry(0.675, 0.675, 1.2, 16, 1, true, Math.PI - 0.95, 1.9);
+/* ---------------- bodies: R15 and the body packs ----------------
+   Every jointed body is built the same way, so emotes, animation packs and held tools work on all of them: a hip at
+   (±0.5, 2) with a knee 1 below, a shoulder at (±1.5, 4) with an elbow 0.98 below, a waist at 2.84 that the upper
+   body turns on, the head at 4.66. A kit makes the parts: leg(x) and arm(side) give [joint, its knee / elbow],
+   lower() and upper() the torso's halves, head(h) the head when it isn't the usual one (true: it made one), and tick
+   (if it has one) runs every frame (a light pulsing, embers). R15 is the plain one; the packs cost Blox Coins. */
+const KIT_SPH = new THREE.SphereGeometry(1, 14, 10), KIT_ICO = new THREE.IcosahedronGeometry(1, 0), KIT_CYL = new THREE.CylinderGeometry(1, 1, 1, 18), KIT_PLANE = new THREE.PlaneGeometry(1, 1);
+// the face's lines in one colour (a robot's screen, a golem's glowing eyes), on a background or on nothing
+const TINTED = new Map();
+function tintFace(src, col, bg) {
+  const key = (src.dataset.tid || (src.dataset.tid = String(TINTED.size + Math.random()))) + col + bg;
+  if (TINTED.has(key)) return TINTED.get(key);
+  const t = document.createElement('canvas'); t.width = t.height = 128; const tg = t.getContext('2d');
+  tg.imageSmoothingEnabled = false; tg.drawImage(src, 0, 0, 128, 128); tg.globalCompositeOperation = 'source-in'; tg.fillStyle = col; tg.fillRect(0, 0, 128, 128);
+  const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d');
+  if (bg) { g.fillStyle = bg; g.fillRect(0, 0, 128, 128); }
+  g.shadowColor = col; g.shadowBlur = 9; g.drawImage(t, 0, 0); g.shadowBlur = 0; g.drawImage(t, 0, 0);
+  const tex = new THREE.CanvasTexture(c);
+  if (TINTED.size > 80) TINTED.delete(TINTED.keys().next().value);
+  TINTED.set(key, tex); return tex;
+}
+let SKULL_TEX = null;
+function skullTex() { // (a skull's face: deep sockets with a glint in each, a nose, a row of teeth)
+  if (SKULL_TEX) return SKULL_TEX;
+  const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d');
+  g.fillStyle = '#1c1917';
+  for (const x of [42, 86]) { g.beginPath(); g.ellipse(x, 52, 15, 17, 0, 0, 7); g.fill(); }
+  g.beginPath(); g.moveTo(64, 66); g.lineTo(57, 80); g.lineTo(71, 80); g.closePath(); g.fill();
+  g.fillRect(40, 92, 48, 13); g.fillStyle = '#efe9d8'; for (let k = 0; k < 6; k++) g.fillRect(42 + k * 8, 93, 6, 11);
+  g.fillStyle = '#fff'; for (const x of [45, 89]) { g.beginPath(); g.arc(x, 50, 3.5, 0, 7); g.fill(); }
+  return (SKULL_TEX = new THREE.CanvasTexture(c));
+}
+const BODY_KITS = [null,
+  // R15: a thigh, a shin and a foot (shoes a shade darker than the trousers) on each leg; an upper arm (the sleeve), a
+  // forearm and a hand on each arm; a lower torso with a belt and an upper torso. The same size as R6 all over.
+  (K) => {
+    const { box, lam, mats, av, shirt, pants, skin, frontTex, grp } = K;
+    const shoe = lam(new THREE.Color(PANTS[av[2]]).multiplyScalar(0.6)), belt = lam('#3b2614'), buckle = lam('#facc15', { emissive: '#2a1e00' }); mats.push(shoe, belt, buckle);
+    // (the torso's picture runs over both halves: the top 58% on the upper torso, the rest on the lower one)
+    const half = (top) => { if (!frontTex) return shirt; const t = frontTex.clone(); t.needsUpdate = true; t.repeat.set(1, top ? 0.58 : 0.42); t.offset.set(0, top ? 0.42 : 0); const m = lam('#ffffff', { map: t }); mats.push(m); return m; };
+    const torso = (m, sx, sy, sz, y) => { const o = new THREE.Mesh(BOX, [shirt, shirt, shirt, shirt, shirt, m]); o.scale.set(sx, sy, sz); o.position.set(0, y, 0); K.body.add(o); };
+    return {
+      leg(x) { const hip = grp(K.body, x, 2), kn = grp(hip, 0, -1.0, 1); box(pants, 0.97, 1.04, 0.97, 0, -0.5, 0, hip); box(pants, 0.9, 0.86, 0.9, 0, -0.43, 0, kn); box(shoe, 0.96, 0.22, 1.12, 0, -0.89, -0.07, kn); return [hip, kn]; },
+      lower() { torso(half(false), 1.96, 0.84, 0.96, 2.42); box(belt, 2.0, 0.16, 1.0, 0, 2.09, 0); box(buckle, 0.34, 0.2, 0.06, 0, 2.09, -0.5); },
+      upper() { torso(half(true), 2, 1.16, 1, 3.42); },
+      arm(s) { const sh = grp(K.body, s * 1.5, 4), el = grp(sh, 0, -0.98, 1); box(shirt, 1.0, 1.0, 1.0, 0, -0.48, 0, sh); box(skin, 0.88, 0.8, 0.88, 0, -0.38, 0, el); box(skin, 0.95, 0.27, 0.95, 0, -0.875, 0, el); return [sh, el]; },
+    };
+  },
+  // 🤖 Robot: a steel frame with armour plates in your shirt and trouser colours, ball joints, a glowing core in the
+  // chest, boots, a screen for a face (your face on it, in light) and an antenna
+  (K) => {
+    const { box, mesh, mats, av, grp } = K;
+    const steel = metalMat('#a3acb8'), dark = metalMat('#39404c'), plate = metalMat(SHIRTS[av[1]]), plate2 = metalMat(PANTS[av[2]]);
+    const glow = new THREE.MeshBasicMaterial({ color: '#22d3ee' }); mats.push(steel, dark, plate, plate2);
+    const ball = (r, x, y, z, p) => { const o = mesh(KIT_SPH, steel, x, y, z, p); o.scale.setScalar(r); return o; };
+    return {
+      leg(x) {
+        const hip = grp(K.body, x, 2), kn = grp(hip, 0, -1.0, 1);
+        ball(0.34, 0, -0.05, 0, hip); box(dark, 0.6, 0.95, 0.6, 0, -0.5, 0, hip); box(plate2, 0.92, 0.6, 0.92, 0, -0.48, 0, hip);
+        ball(0.33, 0, 0, 0, kn); box(dark, 0.56, 0.8, 0.56, 0, -0.45, 0, kn); box(plate2, 0.88, 0.5, 0.9, 0, -0.4, 0, kn); box(glow, 0.42, 0.06, 0.02, 0, -0.42, -0.46, kn);
+        box(steel, 1.0, 0.3, 1.26, 0, -0.85, -0.1, kn); box(dark, 1.02, 0.07, 1.28, 0, -0.97, -0.1, kn);
+        return [hip, kn];
+      },
+      lower() { box(dark, 1.8, 0.84, 0.9, 0, 2.42, 0); box(steel, 1.96, 0.2, 0.98, 0, 2.13, 0); box(glow, 0.36, 0.1, 0.02, 0, 2.13, -0.5); for (const s of [-1, 1]) box(plate2, 0.5, 0.5, 0.95, s * 0.72, 2.5, 0); },
+      upper() {
+        box(steel, 2.0, 1.16, 1.0, 0, 3.42, 0); box(plate, 1.62, 0.9, 0.1, 0, 3.45, -0.52); box(plate, 1.62, 0.9, 0.1, 0, 3.45, 0.52);
+        const ring = mesh(KIT_CYL, dark, 0, 3.52, -0.58); ring.scale.set(0.34, 0.06, 0.34); ring.rotation.x = Math.PI / 2;
+        const core = mesh(KIT_CYL, glow, 0, 3.52, -0.6); core.scale.set(0.24, 0.06, 0.24); core.rotation.x = Math.PI / 2;
+        for (let k = 0; k < 3; k++) box(dark, 0.5, 0.06, 0.02, 0, 3.18 - k * 0.1, -0.58);
+        const neck = mesh(KIT_CYL, dark, 0, 4.06, 0); neck.scale.set(0.34, 0.16, 0.34);
+      },
+      arm(s) {
+        const sh = grp(K.body, s * 1.5, 4), el = grp(sh, 0, -0.98, 1);
+        box(plate, 1.14, 0.46, 1.14, 0, -0.1, 0, sh); box(dark, 0.58, 0.9, 0.58, 0, -0.52, 0, sh);
+        ball(0.31, 0, 0, 0, el); box(plate, 0.9, 0.6, 0.92, 0, -0.42, 0, el); box(dark, 0.5, 0.3, 0.5, 0, -0.7, 0, el);
+        box(steel, 0.82, 0.3, 0.82, 0, -0.88, 0, el); for (const z of [-0.2, 0.2]) box(dark, 0.84, 0.05, 0.06, 0, -0.94, z, el);
+        return [sh, el];
+      },
+      head(h) {
+        box(steel, 1.3, 1.2, 1.3, 0, 0, 0, h); box(dark, 1.12, 0.92, 0.06, 0, 0.02, -0.66, h);
+        const scr = mesh(KIT_PLANE, new THREE.MeshBasicMaterial({ map: tintFace(K.faceCanvas, '#67e8f9', '#0b1626') }), 0, 0.02, -0.7, h); scr.scale.set(1.0, 0.82, 1); scr.rotation.y = Math.PI;
+        for (const s of [-1, 1]) { const b = mesh(KIT_CYL, dark, s * 0.68, 0, 0, h); b.scale.set(0.22, 0.1, 0.22); b.rotation.z = Math.PI / 2; }
+        box(dark, 0.06, 0.5, 0.06, 0.42, 0.85, 0.1, h); const tip = mesh(KIT_SPH, glow, 0.42, 1.12, 0.1, h); tip.scale.setScalar(0.1);
+        return true;
+      },
+      tick(a, dt) { a.kitT = (a.kitT || 0) + dt; glow.color.setHSL(0.52, 0.85, 0.5 + 0.13 * Math.sin(a.kitT * 3)); },
+    };
+  },
+  // 💀 Skeleton: all bones (a skull, a ribcage on a spine, a pelvis, knobbly joints, bony hands and feet)
+  (K) => {
+    const { box, mesh, lam, mats, grp } = K;
+    const bone = lam('#efe9d8'), bone2 = lam('#d8cfb6'); mats.push(bone, bone2);
+    return {
+      leg(x) {
+        const hip = grp(K.body, x, 2), kn = grp(hip, 0, -1.0, 1);
+        box(bone2, 0.46, 0.3, 0.46, 0, -0.08, 0, hip); box(bone, 0.3, 0.86, 0.3, 0, -0.5, 0, hip); box(bone2, 0.42, 0.22, 0.42, 0, -0.93, 0, hip);
+        box(bone2, 0.4, 0.2, 0.4, 0, -0.08, 0, kn); box(bone, 0.24, 0.74, 0.24, -0.05, -0.47, 0, kn); box(bone, 0.11, 0.68, 0.11, 0.14, -0.47, 0.04, kn);
+        box(bone, 0.5, 0.16, 0.48, 0, -0.9, 0.05, kn); for (let j = 0; j < 3; j++) box(bone2, 0.12, 0.1, 0.5, -0.16 + j * 0.16, -0.93, -0.38, kn);
+        return [hip, kn];
+      },
+      lower() {
+        box(bone, 1.36, 0.34, 0.5, 0, 2.2, 0); for (const s of [-1, 1]) { const w = box(bone2, 0.5, 0.52, 0.42, s * 0.55, 2.38, 0); w.rotation.z = s * 0.3; }
+        for (const y of [2.42, 2.6, 2.78]) box(bone, 0.3, 0.13, 0.3, 0, y, 0.15);
+      },
+      upper() {
+        for (const y of [2.96, 3.14, 3.32, 3.5, 3.68, 3.86]) box(bone, 0.3, 0.13, 0.3, 0, y, 0.22);
+        [[3.05, 0.62], [3.3, 0.74], [3.55, 0.78], [3.8, 0.7]].forEach(([y, w]) => {
+          for (const s of [-1, 1]) { box(bone, w, 0.1, 0.1, s * w / 2, y, 0.26); box(bone, 0.1, 0.1, 0.62, s * w, y, -0.02); box(bone, w - 0.16, 0.1, 0.1, s * (w / 2 + 0.08), y, -0.3); }
+        });
+        box(bone2, 0.2, 0.86, 0.12, 0, 3.4, -0.33); box(bone, 2.0, 0.14, 0.16, 0, 3.97, -0.06);
+        for (const s of [-1, 1]) box(bone2, 0.5, 0.6, 0.08, s * 0.58, 3.62, 0.33);
+        box(bone, 0.24, 0.3, 0.24, 0, 4.12, 0.05);
+      },
+      arm(s) {
+        const sh = grp(K.body, s * 1.5, 4), el = grp(sh, 0, -0.98, 1);
+        box(bone2, 0.46, 0.36, 0.46, 0, -0.12, 0, sh); box(bone, 0.26, 0.8, 0.26, 0, -0.52, 0, sh); box(bone2, 0.38, 0.2, 0.38, 0, -0.93, 0, sh);
+        box(bone, 0.12, 0.72, 0.12, -0.08, -0.42, 0, el); box(bone, 0.12, 0.72, 0.12, 0.08, -0.42, 0.03, el);
+        box(bone2, 0.42, 0.2, 0.36, 0, -0.84, 0, el); for (let j = 0; j < 3; j++) box(bone, 0.08, 0.3, 0.08, -0.13 + j * 0.13, -1.02, -0.04, el); box(bone, 0.08, 0.22, 0.08, s * 0.24, -0.9, -0.1, el);
+        return [sh, el];
+      },
+      head(h) { h.add(new THREE.Mesh(HEAD_GEO, bone)); h.add(new THREE.Mesh(FACE_GEO, new THREE.MeshBasicMaterial({ map: skullTex(), transparent: true }))); return true; },
+    };
+  },
+  // 🌋 Magma Golem: a hulking body of rock (broad shoulders, boulder joints, huge fists) with lava glowing through
+  // the cracks, a burning core, your face in glowing lava, and embers drifting off it
+  (K) => {
+    const { box, mesh, lam, mats, grp } = K;
+    const rock = lam('#4a4039'), rock2 = lam('#5f544a', { flatShading: true }), lava = new THREE.MeshBasicMaterial({ color: '#ff7a1a' }), core = new THREE.MeshBasicMaterial({ color: '#ffd166' });
+    mats.push(rock, rock2);
+    const boulder = (r, x, y, z, p, ry) => { const o = mesh(KIT_ICO, rock2, x, y, z, p); o.scale.setScalar(r); o.rotation.set(0.4, ry || 0.7, 0.2); return o; };
+    const crack = (w, h, x, y, z, rz, p) => { const o = box(lava, w, h, 0.02, x, y, z, p); o.rotation.z = rz || 0; return o; };
+    return {
+      leg(x) {
+        const hip = grp(K.body, x, 2), kn = grp(hip, 0, -1.0, 1);
+        box(rock, 1.08, 1.0, 1.08, 0, -0.48, 0, hip).rotation.y = 0.12; crack(0.07, 0.55, 0.15, -0.5, -0.57, 0.3, hip);
+        boulder(0.48, 0, -0.02, 0, kn); box(rock, 1.0, 0.76, 1.0, 0, -0.46, 0, kn).rotation.y = -0.1; crack(0.42, 0.06, 0, -0.4, -0.52, -0.2, kn);
+        box(rock2, 1.22, 0.3, 1.42, 0, -0.85, -0.12, kn);
+        return [hip, kn];
+      },
+      lower() { box(rock, 2.1, 0.86, 1.08, 0, 2.42, 0); crack(0.8, 0.07, -0.3, 2.5, -0.55, 0.15); crack(0.5, 0.06, 0.55, 2.3, -0.55, -0.4); },
+      upper() {
+        box(rock, 2.5, 1.3, 1.08, 0, 3.48, 0);
+        for (const s of [-1, 1]) boulder(0.62, s * 1.2, 4.08, 0, K.body, s);
+        const c = mesh(KIT_CYL, lava, 0, 3.5, -0.55); c.scale.set(0.36, 0.06, 0.36); c.rotation.x = Math.PI / 2;
+        const c2 = mesh(KIT_CYL, core, 0, 3.5, -0.57); c2.scale.set(0.2, 0.06, 0.2); c2.rotation.x = Math.PI / 2;
+        const gl = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), color: '#ff8a1a', transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); gl.position.set(0, 3.5, -0.75); gl.scale.setScalar(1.5); K.body.add(gl);
+        [[-0.55, 3.75, 0.7, 0.6], [0.6, 3.8, 0.6, -0.7], [-0.65, 3.2, 0.5, -0.5], [0.55, 3.15, 0.55, 0.45], [0, 3.95, 0.4, 0]].forEach(([x, y, w, r]) => crack(w, 0.07, x, y, -0.55, r));
+      },
+      arm(s) {
+        const sh = grp(K.body, s * 1.68, 4), el = grp(sh, 0, -0.98, 1);
+        boulder(0.6, 0, -0.08, 0, sh, s * 2); box(rock, 0.95, 0.95, 0.95, 0, -0.52, 0, sh); crack(0.06, 0.5, 0, -0.5, -0.48, 0.25, sh);
+        boulder(0.42, 0, 0, 0, el); box(rock, 1.18, 0.74, 1.18, 0, -0.42, 0, el); crack(0.5, 0.06, 0, -0.35, -0.6, 0.3, el);
+        box(rock2, 1.3, 0.5, 1.3, 0, -0.86, 0, el); crack(0.9, 0.05, 0, -0.8, -0.66, 0, el);
+        return [sh, el];
+      },
+      head(h) {
+        box(rock, 1.36, 1.2, 1.3, 0, 0, 0, h); box(rock2, 1.46, 0.24, 0.42, 0, 0.32, -0.52, h);
+        const f = mesh(KIT_PLANE, new THREE.MeshBasicMaterial({ map: tintFace(K.faceCanvas, '#ffb020', ''), transparent: true }), 0, -0.04, -0.66, h); f.scale.set(1.05, 0.95, 1); f.rotation.y = Math.PI;
+        return true;
+      },
+      tick(a, dt) { // (the lava pulses; embers drift off the shoulders and head, out in the world)
+        a.kitT = (a.kitT || 0) + dt; lava.color.setHSL(0.07, 1, 0.52 + 0.08 * Math.sin(a.kitT * 2.6));
+        a.emberT = (a.emberT || 0) - dt;
+        if (a.emberT <= 0 && !a.dead) { a.emberT = 0.18 + Math.random() * 0.2; const s = Math.random() < 0.5 ? -1 : 1; emBits(a, s * (0.6 + Math.random()), 4.4 + Math.random() * 1.2, (Math.random() - 0.5) * 0.6, [0xff7a1a, 0xffb020, 0xff4d00], 1, { size: 0.12, speed: 0.4, up: 1.4, g: -1.2, life: 1.1, spread: 0.3 }); }
+      },
+    };
+  },
+];
+// animation packs: how you stand, walk / run and jump. pose(J, a, s) fills a pose like an emote's (s: mv moving,
+// air, ph the walk's swing, t time); J.k, if set, is how fast the body eases to it (a flip wants it fast)
+const ANIM_PACKS = [null,
+  { snap: 24, // 🤖 Robot
+    pose(J, a, s) {
+      const r15 = a.r15;
+      if (s.air) { J.aL = [0, 0, -0.32]; J.aR = [0, 0, 0.32]; J.lL = [0.12, 0, -0.04]; J.lR = [0.12, 0, 0.04]; J.hd = [-0.25, 0, 0]; if (r15) J.kL = J.kR = [-0.2, 0, 0]; return; }
+      if (s.mv) { // stiff steps that click from pose to pose, forearms level
+        const q = Math.round(s.ph / (Math.PI / 4)) * (Math.PI / 4), sw = Math.sin(q) * 0.62, c = Math.cos(q);
+        J.lL = [sw, 0, 0]; J.lR = [-sw, 0, 0]; J.up = 0.05 * Math.abs(c);
+        if (r15) { J.kL = [-0.55 * Math.max(0, c), 0, 0]; J.kR = [-0.55 * Math.max(0, -c), 0, 0]; J.aL = [-sw * 0.7, 0, -0.06]; J.aR = [sw * 0.7, 0, 0.06]; J.eL = J.eR = [1.57, 0, 0]; }
+        else { J.aL = [-sw, 0, -0.06]; J.aR = [sw, 0, 0.06]; }
+      } else { // to attention; now and then the head scans left, then right
+        const c = s.t % 5.5, look = c > 3.8 && c < 4.3 ? 0.8 : c >= 4.3 && c < 4.8 ? -0.8 : 0;
+        J.hd = [0, look, 0]; J.aL = [0, 0, -0.07]; J.aR = [0, 0, 0.07]; if (r15) J.eL = J.eR = [0.1, 0, 0];
+        J.up = Math.floor(s.t * 6) % 23 === 0 ? 0.03 : 0; // (a servo twitch)
+      }
+    },
+    tick(a, dt, s) { // (a clank on each footfall)
+      if (!s.mv || s.air) return;
+      const n = Math.floor(s.ph / Math.PI); if (n !== a.stepN) { a.stepN = n; emSound(a, 'tick', { pitch: 0.75, vol: 0.3, gap: 0 }); }
+    },
+  },
+  { snap: 14, // 🥷 Ninja
+    pose(J, a, s) {
+      const r15 = a.r15;
+      if (s.air) { // a front flip, tucked up, turning round the hips
+        const f = smooth(Math.min(1, a.airT / 0.62)), th = -EM_TAU * f, h = 2.6, tuck = Math.sin(f * Math.PI);
+        J.bd = [th, 0, 0]; J.up = h - h * Math.cos(th); J.sz = -h * Math.sin(th); J.k = 30;
+        J.lL = J.lR = [1.35 * tuck, 0, 0]; J.aL = [1.1 * tuck - 0.4 * (1 - tuck), 0, -0.25]; J.aR = [1.1 * tuck - 0.4 * (1 - tuck), 0, 0.25];
+        if (r15) { J.kL = J.kR = [-1.8 * tuck, 0, 0]; J.eL = J.eR = [0.9 * tuck, 0, 0]; }
+        return;
+      }
+      if (s.mv) { // the ninja run: leaning right over, arms streaming out behind
+        const sw = Math.sin(s.ph), c = Math.cos(s.ph);
+        J.bd = [-0.5, 0, 0]; J.hd = [0.42, 0, 0]; J.lL = [sw + 0.3, 0, 0]; J.lR = [-sw + 0.3, 0, 0]; J.aL = [-1.3, 0, -0.16]; J.aR = [-1.3, 0, 0.16]; J.up = -0.1 + 0.12 * Math.abs(c);
+        if (r15) { J.kL = [-(0.3 + 1.15 * Math.max(0, c)), 0, 0]; J.kR = [-(0.3 + 1.15 * Math.max(0, -c)), 0, 0]; J.eL = J.eR = [0.1, 0, 0]; J.ws = [0.08, 0.1 * sw, 0]; }
+      } else { // ready: low, side on, one hand up on guard
+        const br = Math.sin(s.t * 2.2) * 0.035;
+        J.lL = [0.32, 0, -0.16]; J.lR = [-0.18, 0, 0.16]; J.bd = [-0.1, 0.35, 0]; J.hd = [0.06, -0.32, 0];
+        if (r15) { J.kL = [-0.72, 0, 0]; J.kR = [-0.45, 0, 0]; J.up = -0.3 + br; J.aL = [1.0, 0, 0.25]; J.eL = [1.3, 0, 0]; J.aR = [0.35, 0, -0.1]; J.eR = [1.6, 0, 0]; }
+        else { J.up = -0.08 + br; J.aL = [0.95, 0, 0.3]; J.aR = [-0.3, 0, 0.15]; }
+      }
+    },
+    tick(a, dt, s) { if (s.air && a.airT - dt <= 0.02 && a.airT > 0.02) emSound(a, 'whoosh', { vol: 0.45 }); },
+  },
+  { snap: 9, // 🧟 Zombie
+    pose(J, a, s) {
+      const r15 = a.r15, t = s.t;
+      if (s.air) { const fl = Math.sin(t * 18); J.aL = [2.3 + 0.4 * fl, 0, -0.3]; J.aR = [2.3 - 0.4 * fl, 0, 0.3]; J.lL = [0.45, 0, -0.1]; J.lR = [-0.2, 0, 0.1]; J.hd = [0.3, 0, 0.2]; J.k = 18; if (r15) { J.eL = J.eR = [0.2, 0, 0]; J.kL = [-0.7, 0, 0]; } return; }
+      // arms out in front, a slouch, the head lolling
+      const p = s.mv ? s.ph * 0.75 : 0, sw = Math.sin(p);
+      J.aL = [1.45 + 0.08 * Math.sin(t * 2.1), 0, 0.08]; J.aR = [1.33 + 0.08 * Math.sin(t * 1.7 + 1), 0, -0.08];
+      J.hd = [-0.15, 0.1 * Math.sin(t * 0.8), 0.28 + 0.06 * Math.sin(t * 1.3)]; J.bd = [-0.12, 0, 0.06 * Math.sin(t * 1.1)];
+      if (s.mv) { // a shuffle: one leg drags
+        J.lL = [0.55 * sw, 0, 0]; J.lR = [-0.3 * sw - 0.1, 0, 0.05]; J.bd[2] = 0.12 * sw; J.up = 0.06 * Math.abs(sw); J.hd[2] += 0.1 * sw;
+        if (r15) { J.kL = [-(0.15 + 0.7 * Math.max(0, Math.cos(p))), 0, 0]; J.kR = [-0.12, 0, 0]; }
+      } else if (r15) J.kL = J.kR = [-0.15, 0, 0];
+      if (r15) { J.eL = [0.12, 0, 0]; J.eR = [0.25, 0, 0]; J.ws = [0, 0.08 * Math.sin(t * 0.9), 0]; }
+    },
+    tick(a, dt, s) { // (the odd groan as it shuffles along)
+      if (!s.mv) return;
+      a.groanT = (a.groanT == null ? 4 : a.groanT) - dt; if (a.groanT <= 0) { a.groanT = 9 + Math.random() * 7; emSound(a, 'groan', { vol: 0.35 }); }
+    },
+  },
+];
+const BODY_DESC = ['The classic: six blocks.', 'Fifteen parts: knees, elbows, hands and feet, and it bends as it moves.', 'A steel frame with armour plates in your shirt and pants colours, ball joints, a glowing core, a screen for a face and an antenna.',
+  'All bones: a skull, a ribcage on a spine, knobbly joints, bony hands and feet.', 'A hulking body of rock: broad shoulders, boulder joints, huge fists, lava glowing through the cracks and embers drifting off it.'];
+const ANIM_DESC = ['The usual walk, run and jump.', 'Stiff steps that click from pose to pose, forearms level; stands to attention and scans about.', 'Low and ready; runs leaning right over with its arms streaming behind, and front-flips when it jumps.',
+  'Arms out, a dragging shuffle and a lolling head (and the odd groan); flails in the air.'];
 function makeAvatar(av, name, mine, ax) {
   av = okAv(av);
   const X = xLooks(ax); // (made and limited items on top: a hat, a shirt's front, a face)
@@ -1533,9 +1775,9 @@ function makeAvatar(av, name, mine, ax) {
   const mesh = (geo, m, x, y, z, parent) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); (parent || body).add(o); return o; };
   const limb = (m, x, y) => { const piv = new THREE.Group(); piv.position.set(x, y, 0); body.add(piv); box(m, 0.98, 2, 0.98, 0, -1, 0, piv); return piv; };
   const frontTex = X.pt || av[7] ? (X.pt ? pixTex(X.pt.px, SHIRTS[av[1]]) : patternTex(av[7], SHIRTS[av[1]])) : null;
-  const r15 = av[10] === 1;
-  let legL, legR, armL, armR, waist = null, upFrom = 0;
-  const J = {}; // (R15's knees and elbows)
+  const r15 = av[10] >= 1; // (R15 and the body packs: jointed)
+  let legL, legR, armL, armR, waist = null, upFrom = 0, kit = null;
+  const J = {}; // (the knees and elbows)
   if (!r15) {
     legL = limb(pants, -0.5, 2); legR = limb(pants, 0.5, 2);
     if (frontTex) { const front = lam('#ffffff', { map: frontTex }); mats.push(front); const t = new THREE.Mesh(BOX, [shirt, shirt, shirt, shirt, shirt, front]); t.scale.set(2, 2, 1); t.position.set(0, 3, 0); body.add(t); }
@@ -1543,37 +1785,18 @@ function makeAvatar(av, name, mine, ax) {
     armL = limb(skin, -1.5, 4); armR = limb(skin, 1.5, 4);
     box(shirt, 1.02, 0.84, 1.02, 0, -0.4, 0, armL); box(shirt, 1.02, 0.84, 1.02, 0, -0.4, 0, armR); // a hair above the arm's top, or the two tops flicker
   } else {
-    // R15: a thigh, a shin and a foot (shoes a shade darker than the trousers) on each leg; an upper arm (the sleeve),
-    // a forearm and a hand on each arm; a lower torso with a belt, and an upper torso that turns at the waist (the
-    // arms, the head and whatever's on the back go with it). The same size as R6 all over, so everything still fits.
-    const shoe = lam(new THREE.Color(PANTS[av[2]]).multiplyScalar(0.6)), belt = lam('#3b2614'), buckle = lam('#facc15', { emissive: '#2a1e00' }); mats.push(shoe, belt, buckle);
-    const leg = (x) => {
-      const hip = new THREE.Group(); hip.position.set(x, 2, 0); body.add(hip);
-      box(pants, 0.97, 1.04, 0.97, 0, -0.5, 0, hip);
-      const kn = new THREE.Group(); kn.position.set(0, -1.0, 0); kn.userData.limb = 1; hip.add(kn);
-      box(pants, 0.9, 0.86, 0.9, 0, -0.43, 0, kn); box(shoe, 0.96, 0.22, 1.12, 0, -0.89, -0.07, kn);
-      return [hip, kn];
-    };
-    const arm = (x) => {
-      const sh = new THREE.Group(); sh.position.set(x, 4, 0); body.add(sh);
-      box(shirt, 1.0, 1.0, 1.0, 0, -0.48, 0, sh);
-      const el = new THREE.Group(); el.position.set(0, -0.98, 0); el.userData.limb = 1; sh.add(el);
-      box(skin, 0.88, 0.8, 0.88, 0, -0.38, 0, el); box(skin, 0.95, 0.27, 0.95, 0, -0.875, 0, el);
-      return [sh, el];
-    };
-    [legL, J.knL] = leg(-0.5); [legR, J.knR] = leg(0.5);
-    // the torso's picture runs over both halves: the top 58% on the upper torso, the rest on the lower one
-    const half = (top) => { if (!frontTex) return shirt; const t = frontTex.clone(); t.needsUpdate = true; t.repeat.set(1, top ? 0.58 : 0.42); t.offset.set(0, top ? 0.42 : 0); const m = lam('#ffffff', { map: t }); mats.push(m); return m; };
-    const lo = new THREE.Mesh(BOX, [shirt, shirt, shirt, shirt, shirt, half(false)]); lo.scale.set(1.96, 0.84, 0.96); lo.position.set(0, 2.42, 0); body.add(lo);
-    box(belt, 2.0, 0.16, 1.0, 0, 2.09, 0); box(buckle, 0.34, 0.2, 0.06, 0, 2.09, -0.5);
+    const grp = (par, x, y, joint) => { const o = new THREE.Group(); o.position.set(x, y, 0); par.add(o); if (joint) o.userData.limb = 1; return o; };
+    kit = BODY_KITS[av[10]]({ body, box, mesh, lam, grp, mats, av, shirt, pants, skin, frontTex, faceCanvas: (X.f ? pixTex(X.f.px, '') : FACE_TEX[av[4]]).image });
+    [legL, J.knL] = kit.leg(-0.5); [legR, J.knR] = kit.leg(0.5); kit.lower();
     waist = new THREE.Group(); waist.position.set(0, 2.84, 0); body.add(waist);
     upFrom = body.children.length; // (from here on, it all goes on the upper body)
-    const up = new THREE.Mesh(BOX, [shirt, shirt, shirt, shirt, shirt, half(true)]); up.scale.set(2, 1.16, 1); up.position.set(0, 3.42, 0); body.add(up);
-    [armL, J.elL] = arm(-1.5); [armR, J.elR] = arm(1.5);
+    kit.upper(); [armL, J.elL] = kit.arm(-1); [armR, J.elR] = kit.arm(1);
   }
   const head = new THREE.Group(); head.position.set(0, 4.66, 0); body.add(head);
-  head.add(new THREE.Mesh(HEAD_GEO, skin));
-  head.add(new THREE.Mesh(FACE_GEO, new THREE.MeshBasicMaterial({ map: X.f ? pixTex(X.f.px, '') : FACE_TEX[av[4]], transparent: true })));
+  if (!(kit && kit.head && kit.head(head))) {
+    head.add(new THREE.Mesh(HEAD_GEO, skin));
+    head.add(new THREE.Mesh(FACE_GEO, new THREE.MeshBasicMaterial({ map: X.f ? pixTex(X.f.px, '') : FACE_TEX[av[4]], transparent: true })));
+  }
   // hats
   const cyl = (rt, rb, h, seg) => new THREE.CylinderGeometry(rt, rb, h, seg || 16), a_spin = [];
   for (const L of X.hats) xHat(L, head, lam, mesh, box, cyl); // (made and limited hats; a few can be worn at once)
@@ -1630,7 +1853,7 @@ function makeAvatar(av, name, mine, ax) {
   else if (back === 15) { for (const s2 of [-1, 1]) { const piv = new THREE.Group(); piv.position.set(0, 3.0, 0.68); piv.rotation.z = s2 * 0.62; body.add(piv); box(lam('#e5e7eb'), 0.16, 2.8, 0.05, 0, -0.3, s2 * 0.04, piv); box(lam('#facc15'), 0.62, 0.1, 0.16, 0, 1.14, s2 * 0.04, piv); box(lam('#7f1d1d'), 0.2, 0.85, 0.14, 0, 1.62, s2 * 0.04, piv); } } // twin katanas
   if (waist) for (const o of body.children.slice(upFrom)) { o.position.y -= 2.84; waist.add(o); }
   const a = { g, body, legL, legR, armL, armR, head, mats, walk: 0, name, av, ax: Array.isArray(ax) ? ax.slice() : null, axMiss: X.miss, tag: null, glow: null, aura: av[6], trail: av[9], spin: a_spin, pet: null,
-    r15, waist, knL: J.knL, knR: J.knR, elL: J.elL, elR: J.elR };
+    r15, waist, knL: J.knL, knR: J.knR, elL: J.elL, elR: J.elR, kitTick: kit && kit.tick, pack: ANIM_PACKS[av[11]] || null };
   a.jt = { aL: armL, aR: armR, lL: legL, lR: legR, hd: head, bd: body, eL: J.elL, eR: J.elR, kL: J.knL, kR: J.knR, ws: waist }; // (what emotes turn)
   for (const L of X.acc) xAttach(a, L); // (made 3D items, each where it goes on the body)
   for (const arm of [armL, armR]) arm.userData.n = arm.children.length; // (more than this: something's in that hand)
@@ -1757,8 +1980,17 @@ function trailTick(a, dt, moving) {
 function dropAvatar(a) { if (!a) return; emStop(a, true); scene.remove(a.g); if (a.shadow) scene.remove(a.shadow); if (a.pet) scene.remove(a.pet.g); if (a.bub) { a.bub.material.map.dispose(); } }
 function animateAvatar(a, dt, moving, air) {
   if (a.dead) return;
-  a.walk += dt * 10;
+  a.walk += dt * 10; a.airT = air ? (a.airT || 0) + dt : 0; a.packT = (a.packT || 0) + dt;
+  if (a.kitTick) a.kitTick(a, dt);
   if (a.em) { if (moving || air) emStop(a); else { emTick(a, dt); return; } } // (moving ends an emote)
+  // an animation pack (not while an experience has you sitting: in a kart, on a horse, on a ride)
+  const A = a.pack && performance.now() - (a.seatAt || 0) > 300 ? a.pack : null;
+  if (A) {
+    const J = emPose(), s = { mv: moving, air, ph: a.walk, t: a.packT };
+    A.pose(J, a, s); emApply(a, J, Math.min(1, dt * (J.k || A.snap || 14))); if (A.tick) A.tick(a, dt, s);
+    a.emOut = 0; a.packOn = true; return;
+  }
+  if (a.packOn) { a.packOn = false; a.emOut = 0.5; } // (sat down: what the pack turned eases back)
   const sw = moving && !air ? Math.sin(a.walk) * 0.85 : 0, k = Math.min(1, dt * 14);
   const armT = air ? Math.PI * 0.92 : 0;
   a.legL.rotation.x += (sw - a.legL.rotation.x) * k; a.legR.rotation.x += (-sw - a.legR.rotation.x) * k;
@@ -2379,6 +2611,7 @@ function pickEmote(i) {
 function playEmote(i) {
   if (!playing || !me || P.dead || me.dead || !emOwns(i)) return;
   if (me.em && me.em.i === i && EMOTES[i].loop) { emStop(me); closeEmWheel(); return; } // (the same loop again: stop)
+  if (performance.now() - (me.seatAt || 0) < 300) { toast('Get out first to emote', '#fde68a'); return; } // (in a kart, on a horse…)
   if (!P.ground || Math.hypot(P.vx, P.vz) > 1) { toast('Stand still to emote', '#fde68a'); return; }
   emStart(me, i); send({ em: [i, Date.now()] }); closeEmWheel();
 }
@@ -3920,11 +4153,25 @@ function drawAvatarOpts() {
 }
 function wearHtml() {
   const TI = { h: '🎩', f: '🙂', b: '🪽', a: '✨', pt: '👕', pet: '🐶', tr: '🌈' };
-  const tabs = [['colors', '🧍 Body']].concat(Object.entries(COSMETICS).map(([k, c]) => [k, `${TI[k] || ''} ${c.title}`]), [['em', '🎭 Emotes'], ['fits', '👗 Outfits'], ['mine', '🎒 My items']]);
+  const tabs = [['colors', '🧍 Body']].concat(Object.entries(COSMETICS).filter(([, c]) => c.tab !== false).map(([k, c]) => [k, `${TI[k] || ''} ${c.title}`]), [['em', '🎭 Emotes'], ['fits', '👗 Outfits'], ['mine', '🎒 My items']]);
   let body = '';
+  // one item's button (tap: try it on, again: buy it)
+  const itemBtn = (k, i) => {
+    const C = COSMETICS[k], nm = C.list[i];
+    const own = owns(k, i), price = C.price[i], on = k === 'h' ? (i ? hatsOn().includes('H' + i) : !hatsOn().length) : AV[k] === i && !W.wear[k], ask = avAsk === k + i, tr = ED.open && ED.try[k] === i;
+      if (ED.own && !own) return '';
+      const A = price < 0 ? achFor(k, i) : null;
+      const pr = on ? '<span class="pr own">✓ Wearing</span>' : own ? '<span class="pr own">Owned</span>' : price < 0 ? `<span class="pr">${A ? '🏆 Earn it' : '🎖️ Reward'}</span>` : ask && W.coins < price ? `<span class="pr">Need ${price - W.coins} more</span>` : ask ? `<span class="pr">Buy? ${price}</span>` : `<span class="pr"><span class="coin sm"></span> ${price}</span>`;
+      const cant = !own && (price < 0 || W.coins < price);
+      return `<button data-k="${k}" data-i="${i}" class="${on ? 'on' : ''} ${cant ? 'cant' : ''} ${ask ? 'ask' : ''} ${tr ? 'try' : ''}" title="${esc(nm)}${price < 0 && !own ? (A ? ` — earn the “${A.nm}” achievement` : ' — earned in Command an Army’s battle pass') : ''}"><span class="i">${C.icon[i]}</span>${esc(nm)}${pr}</button>`;
+  };
   if (avTab === 'colors') {
     const row = (title, list, key) => `<div class="opt"><small>${title}</small><div class="sw">${list.map((c, i) => `<button data-k="${key}" data-i="${i}" class="${AV[key] === i ? 'on' : ''}" style="background:${c}" title="${title} ${i + 1}"></button>`).join('')}</div></div>`;
-    const bodies = `<div class="opt"><small>Body type</small><div class="bodies">${BODIES.map((b, i) => `<button data-k="bt" data-i="${i}" class="${AV.bt === i ? 'on' : ''}"><b>${b}</b><span>${i ? 'Fifteen parts: knees, elbows, hands and feet, and it bends as it moves' : 'The classic: six blocks'}</span></button>`).join('')}</div></div>`;
+    // (the note under each: the one you're trying or asked about, or the one you've got)
+    const which = (k) => (ED.open && k in ED.try ? ED.try[k] : avAsk.startsWith(k) && /^\d+$/.test(avAsk.slice(k.length)) ? +avAsk.slice(k.length) : AV[k]);
+    const bi = which('bt'), ai = which('an');
+    const bodies = `<div class="opt"><small>Body · R6, R15 or a body pack</small><div class="shop">${BODIES.map((_, i) => itemBtn('bt', i)).join('')}</div><div class="avnote">${COSMETICS.bt.icon[bi]} <b>${esc(BODIES[bi])}</b> — ${esc(BODY_DESC[bi])}${bi >= 2 ? ' Jointed like R15, so it bends, dances and wears your hats.' : ''}</div></div>`
+      + `<div class="opt"><small>Animations · how you stand, walk and jump</small><div class="shop">${ANIMS.map((_, i) => itemBtn('an', i)).join('')}</div><div class="avnote">${COSMETICS.an.icon[ai]} <b>${esc(ANIMS[ai])}</b> — ${esc(ANIM_DESC[ai])} Tap one to see it walk.</div></div>`;
     body = bodies + row('Skin', SKINS, 's') + row('Shirt', SHIRTS, 'sh') + row('Pants', PANTS, 'p');
   } else if (avTab === 'em') {
     body = `<p class="xp-note">🎭 Tap an emote to see it. In a game, press <b>.</b> or tap 🎭 Emotes for the emote wheel, or type <b>/e wave</b> in the chat. Moving stops one.</p><div class="shop">${EMOTES.map((E, i) => {
@@ -3940,14 +4187,7 @@ function wearHtml() {
   } else if (avTab === 'mine') body = mineHtml();
   else {
     const C = COSMETICS[avTab];
-    body = `<div class="shop">${C.list.map((nm, i) => {
-      const own = owns(avTab, i), price = C.price[i], on = avTab === 'h' ? (i ? hatsOn().includes('H' + i) : !hatsOn().length) : AV[avTab] === i && !W.wear[avTab], ask = avAsk === avTab + i, tr = ED.open && ED.try[avTab] === i;
-      if (ED.own && !own) return '';
-      const A = price < 0 ? achFor(avTab, i) : null;
-      const pr = on ? '<span class="pr own">✓ Wearing</span>' : own ? '<span class="pr own">Owned</span>' : price < 0 ? `<span class="pr">${A ? '🏆 Earn it' : '🎖️ Reward'}</span>` : ask && W.coins < price ? `<span class="pr">Need ${price - W.coins} more</span>` : ask ? `<span class="pr">Buy? ${price}</span>` : `<span class="pr"><span class="coin sm"></span> ${price}</span>`;
-      const cant = !own && (price < 0 || W.coins < price);
-      return `<button data-k="${avTab}" data-i="${i}" class="${on ? 'on' : ''} ${cant ? 'cant' : ''} ${ask ? 'ask' : ''} ${tr ? 'try' : ''}" title="${esc(nm)}${price < 0 && !own ? (A ? ` — earn the “${A.nm}” achievement` : ' — earned in Command an Army’s battle pass') : ''}"><span class="i">${C.icon[i]}</span>${esc(nm)}${pr}</button>`;
-    }).join('')}</div>`;
+    body = `<div class="shop">${C.list.map((nm, i) => itemBtn(avTab, i)).join('')}</div>`;
     // (a reward you haven't got, tapped: how to get it)
     const ak = avAsk && avAsk.startsWith(avTab) ? +avAsk.slice(avTab.length) : -1, AA = ak >= 0 && C.price[ak] < 0 && !owns(avTab, ak) ? achFor(avTab, ak) : null;
     if (ak >= 0 && C.price[ak] < 0 && !owns(avTab, ak)) body += `<div class="avnote">${AA ? `🏆 <b>${esc(C.list[ak])}</b> comes with the “${esc(AA.nm)}” achievement${AA.e !== 'bv' && EXPS[AA.e] ? ` in ${esc(EXPS[AA.e].name)}` : ''}: ${esc(AA.d.charAt(0).toLowerCase() + AA.d.slice(1))}.` : `🎖️ <b>${esc(C.list[ak])}</b> is a reward in Command an Army’s battle pass.`}</div>`;
@@ -3977,7 +4217,8 @@ $('#avOpts').onclick = (e) => {
   if (d.fit) { const v = okAv(W.fits[+d.fit]); AV_KEYS.forEach((k, j) => { if (owns(k, v[j])) AV[k] = v[j]; }); W.wear.hx = []; ED.try = {}; sfx('select'); } // (an outfit has one shop hat)
   else if (d.k) {
     const k = d.k, i = +d.i;
-    if (k === 's' || k === 'sh' || k === 'p' || k === 'bt') { AV[k] = i; if (k === 'bt') sfx('select'); }
+    if (k === 'an') pv.walkUntil = performance.now() + 3200; // (an animation: watch it walk)
+    if (k === 's' || k === 'sh' || k === 'p') { AV[k] = i; }
     else if (owns(k, i)) {
       const why = k === 'h' && i && hatsOn().includes('H' + i) ? toggleHat('H' + i) : putOn(k, i); // (a hat that's on: take it off)
       delete ED.try[k]; if (XKINDS[k]) delete ED.tryX[k]; avAsk = ''; ED.note = why;
@@ -4031,7 +4272,7 @@ function closeEditor() {
 function randomAv() {
   const pick = (k, n) => { const ok = Array.from({ length: n }, (_, i) => i).filter((i) => owns(k, i)); return ok[Math.floor(Math.random() * ok.length)] || 0; };
   AV.s = Math.floor(Math.random() * SKINS.length); AV.sh = Math.floor(Math.random() * SHIRTS.length); AV.p = Math.floor(Math.random() * PANTS.length);
-  for (const k of Object.keys(COSMETICS)) AV[k] = k === 'h' || k === 'f' || k === 'pt' || Math.random() < 0.6 ? pick(k, COSMETICS[k].list.length) : 0;
+  for (const k of Object.keys(COSMETICS)) if (k !== 'bt' && k !== 'an') AV[k] = k === 'h' || k === 'f' || k === 'pt' || Math.random() < 0.6 ? pick(k, COSMETICS[k].list.length) : 0;
   Object.assign(W.wear, { h: '', pt: '', f: '', hx: [] }); ED.try = {}; ED.tryX = {}; avAsk = ''; sfx('select'); drawAvatarOpts(); pvAvatar(); saveAv(); drawMe();
 }
 $('#avStage').onclick = () => openEditor();
@@ -4227,10 +4468,12 @@ function pvDraw(t) {
   pv.a.g.rotation.y = ED.open ? ED.yaw + (ED.drag || bld ? 0 : Math.sin(t / 2400) * 0.12) : Math.sin(t / 1600) * 0.7;
   const dt = clamp((t - (pv.t || t)) / 1000, 0, 0.1); pv.t = t;
   if (pv.a.em && pv.a.em.t > 6 && (!ED.open || avTab !== 'em' || ED.mode !== 'wear')) emStop(pv.a, true); // (a loop you tried stops once you've moved on)
-  if (pv.a.em || pv.a.emOut > 0) animateAvatar(pv.a, dt, false, false); // (an emote you're trying)
+  const walking = (pv.walkUntil || 0) > t;
+  if (!bld && (pv.a.em || pv.a.emOut > 0 || pv.a.pack || walking)) animateAvatar(pv.a, dt, walking && !pv.a.em, false); // (an emote you're trying, an animation pack, a walk to show one off)
   else {
     pv.a.armR.rotation.x = bld ? 0 : Math.sin(t / 300) * 0.25 - 0.1; pv.a.armL.rotation.x = bld ? 0 : -Math.sin(t / 300) * 0.25 + 0.1; // (still while you build, so what's on a shoulder stays put)
     if (pv.a.r15) pv.a.elL.rotation.x = pv.a.elR.rotation.x = bld ? 0 : 0.14;
+    if (pv.a.kitTick) pv.a.kitTick(pv.a, dt);
   }
   if (pv.selBox) { pv.selBox.update(); SEL_MAT.opacity = 0.22 + 0.18 * Math.sin(t / 220); }
   pvCam();

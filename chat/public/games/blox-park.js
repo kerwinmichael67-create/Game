@@ -355,7 +355,7 @@
       Object.assign(P, { x: v.x, y: v.y, z: v.z, vx: 0, vy: 0, vz: 0 });
       if (R.len && R.t > R.len) { this.getOff(); toast('That was fun!', '#86efac'); }
     },
-    pose() { if (this.rideOn && me && !me.dead) { me.legL.rotation.x = me.legR.rotation.x = Math.PI / 2; me.armL.rotation.x = me.armR.rotation.x = Math.PI * 0.9; me.body.position.y = -1; } },
+    pose() { if (this.rideOn && me && !me.dead) { me.seatAt = performance.now(); me.legL.rotation.x = me.legR.rotation.x = Math.PI / 2; me.armL.rotation.x = me.armR.rotation.x = Math.PI * 0.9; me.body.position.y = -1; } },
     tossCost() { return Math.max(15, Math.round(this.rate() * 5)); },
     toss() {
       const cost = this.tossCost();

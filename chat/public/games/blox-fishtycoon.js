@@ -466,7 +466,7 @@
       if (!b || b.parent !== a.g || b.userData.look !== look) { if (b && b.parent) b.parent.remove(b); b = boatMesh(look); b.userData.look = look; b.position.y = 0.2; a.g.add(b); this.seats.set(key, b); }
       b.visible = true;
       if (a.dead) return;
-      a.body.position.y = -0.4; a.legL.rotation.x = a.legR.rotation.x = Math.PI / 2;
+      a.body.position.y = -0.4; a.legL.rotation.x = a.legR.rotation.x = Math.PI / 2; a.seatAt = performance.now(); // (seatAt: sitting, so no animation pack)
     },
     holdRod(a, on, lvl) {
       if (!a || a.dead) return;

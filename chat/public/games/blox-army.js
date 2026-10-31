@@ -647,7 +647,7 @@
         let hz = me.g.userData.horse;
         if (this.mounted && g.ph === 'battle' && !hz) { hz = horseModel(MOUNTS[this.S.mount].c, MOUNTS[this.S.mount].armor); me.g.add(hz); me.g.userData.horse = hz; }
         if ((!this.mounted || g.ph !== 'battle') && hz) { me.g.remove(hz); me.g.userData.horse = null; hz = null; }
-        me.body.position.y = hz ? 2.6 : 0;
+        me.body.position.y = hz ? 2.6 : 0; if (hz) me.seatAt = performance.now();
         if (hz) { const sp = Math.hypot(P.vx, P.vz), w = performance.now() / 90; hz.userData.legs.forEach((l, i) => (l.rotation.x = sp > 1 ? Math.sin(w + (i % 2 ? Math.PI : 0) + (i > 1 ? 1.5 : 0)) * 0.7 : 0)); me.legL.rotation.x = 0.9; me.legR.rotation.x = 0.9; }
         setGlow(me, this.blocking ? 0x1e3a8a : null);
       }
@@ -779,7 +779,7 @@
       let hz = a.g.userData.horse;
       if (on && !hz) { hz = horseModel(col || 0x8b5a2b); a.g.add(hz); a.g.userData.horse = hz; }
       if (!on && hz) { a.g.remove(hz); a.g.userData.horse = null; hz = null; }
-      a.body.position.y = hz ? 2.6 : 0;
+      a.body.position.y = hz ? 2.6 : 0; if (hz) a.seatAt = performance.now(); // (seatAt: riding, so no animation pack)
       if (hz) { const w = performance.now() / 90; hz.userData.legs.forEach((l, i) => (l.rotation.x = moving ? Math.sin(w + (i % 2 ? Math.PI : 0) + (i > 1 ? 1.5 : 0)) * 0.7 : 0)); a.legL.rotation.x = 0.9; a.legR.rotation.x = 0.9; }
     },
     arrow(v) {

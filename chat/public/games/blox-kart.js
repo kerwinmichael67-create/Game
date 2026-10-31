@@ -359,7 +359,7 @@
       let k = this.karts.get(key);
       if (!k || k.a !== a) { k = kartMesh(SHIRTS[a.av ? a.av[1] : 0] || '#ef4444'); k.a = a; a.g.add(k.g); this.karts.set(key, k); }
       if (a.dead) return;
-      a.body.position.y = -1.0;
+      a.body.position.y = -1.0; a.seatAt = performance.now(); // (seatAt: sitting, so no animation pack)
       a.legL.rotation.x = a.legR.rotation.x = Math.PI / 2;
       a.armL.rotation.x = a.armR.rotation.x = 1.15;
       for (const w of k.wheels) w.rotation.x -= speed * dt / 0.7;

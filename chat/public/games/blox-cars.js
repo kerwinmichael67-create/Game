@@ -404,7 +404,7 @@
       if (!c || c.parent !== a.g || c.userData.k !== k) { if (c && c.parent) c.parent.remove(c); c = carMesh(k); c.scale.setScalar(1.6); c.rotation.y = Math.PI / 2; c.position.y = -0.1; a.g.add(c); this.cars.set(key, c); }
       c.visible = true;
       if (a.dead) return;
-      a.body.position.y = -0.4; a.legL.rotation.x = a.legR.rotation.x = Math.PI / 2; a.armL.rotation.x = a.armR.rotation.x = 1.2;
+      a.body.position.y = -0.4; a.legL.rotation.x = a.legR.rotation.x = Math.PI / 2; a.armL.rotation.x = a.armR.rotation.x = 1.2; a.seatAt = performance.now(); // (seatAt: sitting, so no animation pack)
     },
     tyHud() {
       const D = this.dr, R = D && D.race;
