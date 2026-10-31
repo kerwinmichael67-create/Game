@@ -42,6 +42,27 @@
   #hud{position:fixed;inset:0;pointer-events:none;z-index:2}
   #hud[hidden]{display:none}
   .glass{background:var(--glass);border:1px solid var(--line);box-shadow:var(--drop),var(--hi)}
+  /* the emote wheel */
+  #emWheel{position:absolute;inset:0;pointer-events:auto;display:grid;place-items:center;background:radial-gradient(circle,rgba(2,6,23,.5) 0,rgba(2,6,23,.18) 42%,rgba(2,6,23,0) 68%);z-index:6}
+  #emWheel[hidden]{display:none}
+  .emw{position:relative;width:360px;height:360px;border-radius:50%;background:radial-gradient(circle,rgba(15,23,42,.95) 0 26%,rgba(30,41,59,.86) 27% 100%);border:1px solid var(--line2);box-shadow:var(--drop),inset 0 0 0 9px rgba(255,255,255,.03),0 0 0 6px rgba(168,85,247,.12);animation:pop .16s ease-out}
+  .emw .mid{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:150px;text-align:center;display:flex;flex-direction:column;gap:4px;align-items:center}
+  .emw .mid b{font:600 16px var(--fh)}.emw .mid small{font:700 11px/1.3 var(--fb);color:#cbd5e1}.emw .mid .hint{color:var(--dim);margin-top:2px}
+  .emw .em{position:absolute;width:88px;height:88px;margin:-44px 0 0 -44px;border-radius:50%;border:2px solid rgba(255,255,255,.1);background:linear-gradient(180deg,#3b4a63,#1e293b);color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font:600 11.5px var(--fh);transition:transform .12s,border-color .12s;padding:0;box-shadow:0 3px 0 rgba(0,0,0,.35)}
+  .emw .em:hover{transform:scale(1.08);border-color:rgba(255,255,255,.4)}
+  .emw .em .i{font-size:29px;line-height:1.05;filter:drop-shadow(0 2px 0 rgba(0,0,0,.3))}
+  .emw .em .k{position:absolute;top:5px;left:50%;transform:translateX(-50%);font:800 9.5px var(--fb);color:#94a3b8;display:none}
+  .emw .em .pr{font:600 10px var(--fh);color:#fde68a;background:rgba(0,0,0,.45);border-radius:999px;padding:1px 7px;display:inline-flex;align-items:center;gap:3px;margin-top:1px}
+  .emw .em .pr .coin.sm{width:12px;height:12px;vertical-align:0}
+  .emw .em.lock{background:linear-gradient(180deg,#2a3346,#161c28)}.emw .em.lock .i{filter:grayscale(.55) brightness(.85)}
+  .emw .em.on{border-color:#22c55e;background:linear-gradient(180deg,#1d6b3e,#14532d);box-shadow:0 0 0 4px rgba(34,197,94,.3),0 3px 0 rgba(0,0,0,.35)}
+  .emw .em.ask{border-color:#f59e0b;box-shadow:0 0 0 4px rgba(245,158,11,.35),0 3px 0 rgba(0,0,0,.35)}
+  @media (pointer:fine){.emw .em .k{display:block}.emw .em .i{margin-top:6px}}
+  @media (max-width:560px),(max-height:520px){.emw{transform:scale(.82)}}
+  .bodies{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  .bodies button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;border:2px solid rgba(255,255,255,.08);border-radius:14px;background:linear-gradient(180deg,#283143,#1c222d);color:#e2e8f0;padding:9px 11px;cursor:pointer}
+  .bodies button b{font:600 16px var(--fh)}.bodies button span{font:700 11px/1.3 var(--fb);color:var(--muted)}
+  .bodies button.on{border-color:#22c55e;background:linear-gradient(180deg,#1d4a33,#142b1e)}
   #topbar{position:absolute;left:12px;top:12px;display:flex;gap:8px;align-items:center;pointer-events:auto}
   #menuBtn{width:46px;height:46px;border-radius:14px;color:#fff;cursor:pointer;display:grid;place-items:center;padding:0;transition:transform .12s}
   #menuBtn:hover{transform:scale(1.06)}
@@ -656,6 +677,7 @@
   <div id="toast"></div>
   <div id="chatbox"><input id="chatin" maxlength="100" placeholder="Say something (Enter to send)"></div>
   <div id="chatlog"></div>
+  <div id="emWheel" hidden></div>
   <div id="xpanel" hidden><div class="xp-head"><b id="xpTitle"></b><div id="xpExtra"></div><button id="xpClose" title="Close (Esc)">✕</button></div><div id="xpBody"></div></div>
   <div id="touch"><div id="stick"><i></i></div><button id="jumpBtn">⤒</button><button id="chatBtn">💬</button><button id="runBtn" title="Sprint">🏃</button><button id="lockBtn" title="Shift lock">🔒</button></div><div id="reticle"></div><div id="stam"><i></i></div>
 </div>
@@ -1028,6 +1050,8 @@ const AURAS = ['None', 'Sparkles', 'Fire', 'Hearts', 'Snow', 'Lightning', 'Rainb
 const PATTERNS = ['Plain', 'Stripes', 'Star', 'Heart', 'Lightning', 'Checkers', 'Number 1', 'Suit', 'Skull', 'Flames', 'Camo', 'Rainbow', 'Galaxy', 'Trophy', 'Paw print', 'Sunflower'];
 const PETS = ['None', 'Puppy', 'Kitty', 'Bunny', 'Mini Dragon', 'Robot', 'Unicorn', 'Penguin', 'Fox', 'Panda', 'Phoenix', 'Baby Zombie', 'Peashooter'];
 const TRAILS = ['None', 'Rainbow', 'Fire', 'Ice', 'Neon', 'Gold', 'Hearts', 'Stars', 'Lightning'];
+// the body: R6 (six blocks, the classic) or R15 (fifteen parts: knees, elbows, hands, feet and a waist that turns)
+const BODIES = ['R6', 'R15'];
 // the shop: what each costs in Blox Coins (0 = free, -1 = only as a reward)
 const COSMETICS = {
   h: { title: 'Hats', list: HATS, price: [0, 0, 0, 0, 0, 100, 250, 300, 150, 800, 200, 120, 220, 80, 1500, -1, 100, 200, 350, 180, 220, 260, 400, 150, 1200, 3000, -1, -1, -1, -1, -1, -1, -1],
@@ -1039,10 +1063,10 @@ const COSMETICS = {
   pet: { title: 'Pets', list: PETS, price: [0, 400, 400, 350, 1500, 900, 2500, 600, 800, 1200, 4000, -1, -1], icon: ['🚫', '🐶', '🐱', '🐰', '🐉', '🤖', '🦄', '🐧', '🦊', '🐼', '🦅', '🧟', '🌱'] },
   tr: { title: 'Trails', list: TRAILS, price: [0, 1500, 800, 600, 500, 2000, 700, -1, -1], icon: ['🚫', '🌈', '🔥', '🧊', '💠', '🪙', '💕', '⭐', '⚡'] },
 };
-let AV = { s: 5, sh: 0, p: 1, h: 0, f: 0, b: 0, a: 0, pt: 0, pet: 0, tr: 0 };
-const AV_KEYS = ['s', 'sh', 'p', 'h', 'f', 'b', 'a', 'pt', 'pet', 'tr'], AV_LISTS = [SKINS, SHIRTS, PANTS, HATS, FACES, BACKS, AURAS, PATTERNS, PETS, TRAILS];
+let AV = { s: 5, sh: 0, p: 1, h: 0, f: 0, b: 0, a: 0, pt: 0, pet: 0, tr: 0, bt: 0 };
+const AV_KEYS = ['s', 'sh', 'p', 'h', 'f', 'b', 'a', 'pt', 'pet', 'tr', 'bt'], AV_LISTS = [SKINS, SHIRTS, PANTS, HATS, FACES, BACKS, AURAS, PATTERNS, PETS, TRAILS, BODIES];
 const avArr = () => AV_KEYS.map((k) => AV[k] | 0);
-const okAv = (a) => { const d = [5, 0, 1, 0, 0, 0, 0, 0, 0, 0]; return AV_LISTS.map((l, i) => (Array.isArray(a) && a[i] != null ? clamp(a[i] | 0, 0, l.length - 1) : d[i])); };
+const okAv = (a) => { const d = [5, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]; return AV_LISTS.map((l, i) => (Array.isArray(a) && a[i] != null ? clamp(a[i] | 0, 0, l.length - 1) : d[i])); };
 const avFrom = (o) => { const v = okAv(AV_KEYS.map((k) => o && o[k])); const r = {}; AV_KEYS.forEach((k, i) => (r[k] = v[i])); return r; };
 // Blox Coins: earned in every experience, spent on cosmetics (and a few things inside experiences)
 const W = { coins: 0, own: new Set(), day: '', loaded: false, items: {}, // items: what you bought in experiences' shops ({ 'obby.speed': 1 })
@@ -1471,9 +1495,10 @@ function accGroup(L) {
 // where each spot on the body is: the part it moves with, and the place on it
 function accAnchor(a, at) {
   if (at === 'face') return [a.head, 0, 0, -0.7];
-  if (at === 'neck') return [a.body, 0, 4.05, 0];
-  if (at === 'front') return [a.body, 0, 3.1, -0.52];
-  if (at === 'back') return [a.body, 0, 3.1, 0.52];
+  const up = a.waist || a.body, dy = a.waist ? 2.84 : 0; // (R15: the upper body turns at the waist)
+  if (at === 'neck') return [up, 0, 4.05 - dy, 0];
+  if (at === 'front') return [up, 0, 3.1 - dy, -0.52];
+  if (at === 'back') return [up, 0, 3.1 - dy, 0.52];
   if (at === 'waist') return [a.body, 0, 2.05, 0];
   if (at === 'shL') return [a.armL, 0, 0.05, 0];
   if (at === 'shR') return [a.armR, 0, 0.05, 0];
@@ -1506,11 +1531,45 @@ function makeAvatar(av, name, mine, ax) {
   const box = (m, sx, sy, sz, x, y, z, parent) => { const o = new THREE.Mesh(BOX, m); o.scale.set(sx, sy, sz); o.position.set(x, y, z); (parent || body).add(o); return o; };
   const mesh = (geo, m, x, y, z, parent) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); (parent || body).add(o); return o; };
   const limb = (m, x, y) => { const piv = new THREE.Group(); piv.position.set(x, y, 0); body.add(piv); box(m, 0.98, 2, 0.98, 0, -1, 0, piv); return piv; };
-  const legL = limb(pants, -0.5, 2), legR = limb(pants, 0.5, 2);
-  if (X.pt || av[7]) { const front = lam('#ffffff', { map: X.pt ? pixTex(X.pt.px, SHIRTS[av[1]]) : patternTex(av[7], SHIRTS[av[1]]) }); mats.push(front); const t = new THREE.Mesh(BOX, [shirt, shirt, shirt, shirt, shirt, front]); t.scale.set(2, 2, 1); t.position.set(0, 3, 0); body.add(t); }
-  else box(shirt, 2, 2, 1, 0, 3, 0);
-  const armL = limb(skin, -1.5, 4), armR = limb(skin, 1.5, 4);
-  box(shirt, 1.02, 0.84, 1.02, 0, -0.4, 0, armL); box(shirt, 1.02, 0.84, 1.02, 0, -0.4, 0, armR); // a hair above the arm's top, or the two tops flicker
+  const frontTex = X.pt || av[7] ? (X.pt ? pixTex(X.pt.px, SHIRTS[av[1]]) : patternTex(av[7], SHIRTS[av[1]])) : null;
+  const r15 = av[10] === 1;
+  let legL, legR, armL, armR, waist = null, upFrom = 0;
+  const J = {}; // (R15's knees and elbows)
+  if (!r15) {
+    legL = limb(pants, -0.5, 2); legR = limb(pants, 0.5, 2);
+    if (frontTex) { const front = lam('#ffffff', { map: frontTex }); mats.push(front); const t = new THREE.Mesh(BOX, [shirt, shirt, shirt, shirt, shirt, front]); t.scale.set(2, 2, 1); t.position.set(0, 3, 0); body.add(t); }
+    else box(shirt, 2, 2, 1, 0, 3, 0);
+    armL = limb(skin, -1.5, 4); armR = limb(skin, 1.5, 4);
+    box(shirt, 1.02, 0.84, 1.02, 0, -0.4, 0, armL); box(shirt, 1.02, 0.84, 1.02, 0, -0.4, 0, armR); // a hair above the arm's top, or the two tops flicker
+  } else {
+    // R15: a thigh, a shin and a foot (shoes a shade darker than the trousers) on each leg; an upper arm (the sleeve),
+    // a forearm and a hand on each arm; a lower torso with a belt, and an upper torso that turns at the waist (the
+    // arms, the head and whatever's on the back go with it). The same size as R6 all over, so everything still fits.
+    const shoe = lam(new THREE.Color(PANTS[av[2]]).multiplyScalar(0.6)), belt = lam('#3b2614'), buckle = lam('#facc15', { emissive: '#2a1e00' }); mats.push(shoe, belt, buckle);
+    const leg = (x) => {
+      const hip = new THREE.Group(); hip.position.set(x, 2, 0); body.add(hip);
+      box(pants, 0.97, 1.04, 0.97, 0, -0.5, 0, hip);
+      const kn = new THREE.Group(); kn.position.set(0, -1.0, 0); kn.userData.limb = 1; hip.add(kn);
+      box(pants, 0.9, 0.86, 0.9, 0, -0.43, 0, kn); box(shoe, 0.96, 0.22, 1.12, 0, -0.89, -0.07, kn);
+      return [hip, kn];
+    };
+    const arm = (x) => {
+      const sh = new THREE.Group(); sh.position.set(x, 4, 0); body.add(sh);
+      box(shirt, 1.0, 1.0, 1.0, 0, -0.48, 0, sh);
+      const el = new THREE.Group(); el.position.set(0, -0.98, 0); el.userData.limb = 1; sh.add(el);
+      box(skin, 0.88, 0.8, 0.88, 0, -0.38, 0, el); box(skin, 0.95, 0.27, 0.95, 0, -0.875, 0, el);
+      return [sh, el];
+    };
+    [legL, J.knL] = leg(-0.5); [legR, J.knR] = leg(0.5);
+    // the torso's picture runs over both halves: the top 58% on the upper torso, the rest on the lower one
+    const half = (top) => { if (!frontTex) return shirt; const t = frontTex.clone(); t.needsUpdate = true; t.repeat.set(1, top ? 0.58 : 0.42); t.offset.set(0, top ? 0.42 : 0); const m = lam('#ffffff', { map: t }); mats.push(m); return m; };
+    const lo = new THREE.Mesh(BOX, [shirt, shirt, shirt, shirt, shirt, half(false)]); lo.scale.set(1.96, 0.84, 0.96); lo.position.set(0, 2.42, 0); body.add(lo);
+    box(belt, 2.0, 0.16, 1.0, 0, 2.09, 0); box(buckle, 0.34, 0.2, 0.06, 0, 2.09, -0.5);
+    waist = new THREE.Group(); waist.position.set(0, 2.84, 0); body.add(waist);
+    upFrom = body.children.length; // (from here on, it all goes on the upper body)
+    const up = new THREE.Mesh(BOX, [shirt, shirt, shirt, shirt, shirt, half(true)]); up.scale.set(2, 1.16, 1); up.position.set(0, 3.42, 0); body.add(up);
+    [armL, J.elL] = arm(-1.5); [armR, J.elR] = arm(1.5);
+  }
   const head = new THREE.Group(); head.position.set(0, 4.66, 0); body.add(head);
   head.add(new THREE.Mesh(HEAD_GEO, skin));
   head.add(new THREE.Mesh(FACE_GEO, new THREE.MeshBasicMaterial({ map: X.f ? pixTex(X.f.px, '') : FACE_TEX[av[4]], transparent: true })));
@@ -1568,8 +1627,12 @@ function makeAvatar(av, name, mine, ax) {
   else if (back === 13) { const m = lam('#facc15', { side: THREE.DoubleSide, emissive: '#2a1e00' }); for (const s of [-1, 1]) { const w = box(m, 2.4, 1.5, 0.08, s * 1.4, 3.7, 0.7); w.rotation.z = s * 0.4; w.rotation.y = -s * 0.35; const w2 = box(m, 1.7, 1.0, 0.08, s * 1.85, 2.9, 0.82); w2.rotation.z = s * 0.15; w2.rotation.y = -s * 0.35; const w3 = box(m, 1.1, 0.7, 0.08, s * 2.1, 2.2, 0.92); w3.rotation.z = -s * 0.1; w3.rotation.y = -s * 0.35; } } // golden wings
   else if (back === 14) { const b2 = mesh(new THREE.SphereGeometry(1, 16, 10), lam(['#06b6d4', '#f97316', '#ec4899', '#22c55e'][av[1] % 4]), 0, 3.0, 0.72); b2.scale.set(0.75, 2.4, 0.1); b2.rotation.z = 0.35; const st2 = box(lam('#f8fafc'), 0.18, 4.0, 0.04, 0, 3.0, 0.82); st2.rotation.z = 0.35; } // surfboard
   else if (back === 15) { for (const s2 of [-1, 1]) { const piv = new THREE.Group(); piv.position.set(0, 3.0, 0.68); piv.rotation.z = s2 * 0.62; body.add(piv); box(lam('#e5e7eb'), 0.16, 2.8, 0.05, 0, -0.3, s2 * 0.04, piv); box(lam('#facc15'), 0.62, 0.1, 0.16, 0, 1.14, s2 * 0.04, piv); box(lam('#7f1d1d'), 0.2, 0.85, 0.14, 0, 1.62, s2 * 0.04, piv); } } // twin katanas
-  const a = { g, body, legL, legR, armL, armR, head, mats, walk: 0, name, av, ax: Array.isArray(ax) ? ax.slice() : null, axMiss: X.miss, tag: null, glow: null, aura: av[6], trail: av[9], spin: a_spin, pet: null };
+  if (waist) for (const o of body.children.slice(upFrom)) { o.position.y -= 2.84; waist.add(o); }
+  const a = { g, body, legL, legR, armL, armR, head, mats, walk: 0, name, av, ax: Array.isArray(ax) ? ax.slice() : null, axMiss: X.miss, tag: null, glow: null, aura: av[6], trail: av[9], spin: a_spin, pet: null,
+    r15, waist, knL: J.knL, knR: J.knR, elL: J.elL, elR: J.elR };
+  a.jt = { aL: armL, aR: armR, lL: legL, lR: legR, hd: head, bd: body, eL: J.elL, eR: J.elR, kL: J.knL, kR: J.knR, ws: waist }; // (what emotes turn)
   for (const L of X.acc) xAttach(a, L); // (made 3D items, each where it goes on the body)
+  for (const arm of [armL, armR]) arm.userData.n = arm.children.length; // (more than this: something's in that hand)
   if (!mine && name) { a.tag = label(name, { size: 0.85 }); a.tag.position.y = 6.7; g.add(a.tag); }
   // a soft shadow on the ground under them
   a.shadow = new THREE.Mesh(new THREE.CircleGeometry(1.25, 18), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.25, depthWrite: false, ...DECAL }));
@@ -1690,14 +1753,26 @@ function trailTick(a, dt, moving) {
   m.userData = { v: new THREE.Vector3(0, a.trail === 2 ? 1.5 : 0.15, 0), life: 0.9, g: 0, fade: true, spinless: 1 };
   scene.add(m); bits.push(m);
 }
-function dropAvatar(a) { if (!a) return; scene.remove(a.g); if (a.shadow) scene.remove(a.shadow); if (a.pet) scene.remove(a.pet.g); if (a.bub) { a.bub.material.map.dispose(); } }
+function dropAvatar(a) { if (!a) return; emStop(a, true); scene.remove(a.g); if (a.shadow) scene.remove(a.shadow); if (a.pet) scene.remove(a.pet.g); if (a.bub) { a.bub.material.map.dispose(); } }
 function animateAvatar(a, dt, moving, air) {
   if (a.dead) return;
   a.walk += dt * 10;
+  if (a.em) { if (moving || air) emStop(a); else { emTick(a, dt); return; } } // (moving ends an emote)
   const sw = moving && !air ? Math.sin(a.walk) * 0.85 : 0, k = Math.min(1, dt * 14);
   const armT = air ? Math.PI * 0.92 : 0;
   a.legL.rotation.x += (sw - a.legL.rotation.x) * k; a.legR.rotation.x += (-sw - a.legR.rotation.x) * k;
   a.armL.rotation.x += ((air ? armT : -sw) - a.armL.rotation.x) * k; a.armR.rotation.x += ((air ? armT : sw) - a.armR.rotation.x) * k;
+  if (a.r15) {
+    // knees bend as you walk (most on the leg swinging through) and tuck up in the air; elbows bend a little, more on
+    // the arm swinging forward (not on an arm holding something: it stays straight, so what's held is in the hand)
+    const run = moving && !air, c = Math.cos(a.walk);
+    const kl = air ? -0.55 : run ? -(0.12 + 0.95 * Math.max(0, c)) : -0.04, kr = air ? -0.55 : run ? -(0.12 + 0.95 * Math.max(0, -c)) : -0.04;
+    a.knL.rotation.x += (kl - a.knL.rotation.x) * k; a.knR.rotation.x += (kr - a.knR.rotation.x) * k;
+    const el = (arm, s) => (arm.children.length > arm.userData.n ? 0 : air ? 0.15 : run ? 0.35 + 0.55 * Math.max(0, s) : 0.1);
+    const l = el(a.armL, -sw / 0.85), r = el(a.armR, sw / 0.85);
+    a.elL.rotation.x += (l - a.elL.rotation.x) * k; a.elR.rotation.x += (r - a.elR.rotation.x) * k;
+  }
+  if (a.emOut > 0) emSettle(a, dt);
 }
 function placeShadow(a) {
   if (!a.shadow) return;
@@ -1708,8 +1783,10 @@ function placeShadow(a) {
 // "oof": the character falls apart, then comes back
 function scatter(a) {
   if (a.dead) return;
+  emStop(a);
   a.dead = { t: 0, bits: [] };
-  for (const o of a.body.children) a.dead.bits.push({ o, v: new THREE.Vector3((Math.random() - 0.5) * 18, 10 + Math.random() * 12, (Math.random() - 0.5) * 18), r: [Math.random() * 10 - 5, Math.random() * 10 - 5] });
+  if (a.waist) for (const o of a.waist.children.slice()) a.body.attach(o); // (R15: the upper body's parts fly apart too)
+  for (const o of a.body.children) if (o !== a.waist) a.dead.bits.push({ o, v: new THREE.Vector3((Math.random() - 0.5) * 18, 10 + Math.random() * 12, (Math.random() - 0.5) * 18), r: [Math.random() * 10 - 5, Math.random() * 10 - 5] });
 }
 function updateDead(a, dt) {
   a.dead.t += dt;
@@ -1742,6 +1819,383 @@ function puffAt(x, y, z, color, n = 14) {
 }
 const CONFETTI = [0xef4444, 0xf59e0b, 0x22c55e, 0x3b82f6, 0xa855f7, 0xec4899];
 
+/* ---------------- emotes ----------------
+   Seven: 👋 Wave and 🎉 Cheer are free, the other five cost Blox Coins (yours: 'em<i>' in W.own). Each one poses the
+   body over time: pose(J, t, a) fills J (every joint's turn [x, y, z], the body's lift up and shift sx / sz) and the
+   body eases to it. R15 bends its elbows and knees and turns at the waist as well; R6 does what it can with straight
+   arms and legs. fx makes and moves the emote's own things (a boombox, a glowing ring, notes, confetti), and ev has
+   its sounds and dust. A loop goes on until you move. Everyone on the server sees it (presence em: [which, when]). */
+const EM_TAU = Math.PI * 2;
+const EM_JOINTS = ['aL', 'aR', 'lL', 'lR', 'eL', 'eR', 'kL', 'kR', 'hd', 'ws', 'bd'];
+const EM_SWING = { aL: 1, aR: 1, lL: 1, lR: 1, eL: 1, eR: 1, kL: 1, kR: 1 }; // (the walk turns these on x)
+const emPose = () => { const J = { up: 0, sx: 0, sz: 0 }; for (const k of EM_JOINTS) J[k] = [0, 0, 0]; return J; };
+const smooth = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
+const emWorld = (a) => a.g.parent === scene; // (the editor's preview: no dust)
+const crossed = (t0, t1, T) => t0 < T && t1 >= T;
+const beatOf = (t0, t1, b) => (Math.floor(t1 / b) !== Math.floor(t0 / b) || t0 <= 0 ? Math.floor(t1 / b) : -1); // (a new beat just started: its number)
+// a turn eased the short way round (a spin that's gone round five times comes back to 0 without unwinding)
+function emEase(c, t, k) { if (Math.abs(t - c) > Math.PI) c += EM_TAU * Math.round((t - c) / EM_TAU); return c + (t - c) * k; }
+function emApply(a, J, k) {
+  for (const n of EM_JOINTS) {
+    const o = a.jt[n]; if (!o) continue;
+    const r = o.rotation, v = J[n];
+    r.x = emEase(r.x, v[0], k); r.y = emEase(r.y, v[1], k); r.z = emEase(r.z, v[2], k);
+  }
+  const p = a.body.position; p.y += (J.up - p.y) * k; p.x += (J.sx - p.x) * k; p.z += (J.sz - p.z) * k;
+}
+// after an emote: everything it turned eases back (the walk looks after the arms' and legs' swing), then it's exactly as before
+function emSettle(a, dt) {
+  a.emOut -= dt;
+  const done = a.emOut <= 0, k = done ? 1 : Math.min(1, dt * 12);
+  for (const n of EM_JOINTS) {
+    const o = a.jt[n]; if (!o) continue;
+    const r = o.rotation;
+    if (!EM_SWING[n]) r.x = emEase(r.x, 0, k);
+    r.y = emEase(r.y, 0, k); r.z = emEase(r.z, 0, k);
+  }
+  const p = a.body.position; p.x += -p.x * k; p.y += -p.y * k; p.z += -p.z * k;
+  if (done) a.emOut = 0;
+}
+function emSound(a, name, opt) {
+  if (a === me || (typeof pv !== 'undefined' && a === pv.a)) sfx(name, opt);
+  else if (emWorld(a)) { const p = a.g.position; sfx3(name, p.x, p.z, 45, opt); }
+}
+// little bits flying off (dust, sparks): at x, y, z on the avatar (it turns with them); only out in the world
+function emBits(a, x, y, z, cols, n, o = {}) {
+  if (!emWorld(a)) return;
+  const v = new THREE.Vector3(x, y, z); a.g.localToWorld(v);
+  for (let k = 0; k < n; k++) {
+    const m = new THREE.Mesh(BOX, new THREE.MeshBasicMaterial({ color: cols[k % cols.length], transparent: true, opacity: 0.9 }));
+    m.scale.setScalar((o.size || 0.2) * (0.7 + Math.random() * 0.6));
+    m.position.set(v.x + (Math.random() - 0.5) * (o.spread || 0.6), v.y + Math.random() * 0.2, v.z + (Math.random() - 0.5) * (o.spread || 0.6));
+    const sp = (o.speed || 3) * Math.random(), ang = Math.random() * EM_TAU;
+    m.userData = { v: new THREE.Vector3(Math.cos(ang) * sp, (o.up || 2) * (0.5 + Math.random()), Math.sin(ang) * sp), life: (o.life || 0.6) * (0.7 + Math.random() * 0.6), g: o.g != null ? o.g : 8, fade: true };
+    scene.add(m); bits.push(m);
+  }
+}
+// pictures for the emotes' things: a music note, a soft glow
+const EM_TEX = {};
+function noteTex(ch, col) {
+  const key = ch + col; if (EM_TEX[key]) return EM_TEX[key];
+  const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d');
+  g.font = 'bold 50px "DejaVu Sans","Segoe UI Symbol",system-ui,sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.lineWidth = 7; g.strokeStyle = 'rgba(15,23,42,.85)'; g.strokeText(ch, 32, 34); g.fillStyle = col; g.fillText(ch, 32, 34);
+  return (EM_TEX[key] = new THREE.CanvasTexture(c));
+}
+function glowTex() {
+  if (EM_TEX.glow) return EM_TEX.glow;
+  const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.35, 'rgba(255,255,255,.55)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
+  return (EM_TEX.glow = new THREE.CanvasTexture(c));
+}
+function beamTex() { // (bright at the bottom, gone at the top)
+  if (EM_TEX.beam) return EM_TEX.beam;
+  const c = document.createElement('canvas'); c.width = 4; c.height = 64; const g = c.getContext('2d'), gr = g.createLinearGradient(0, 64, 0, 0);
+  gr.addColorStop(0, 'rgba(255,255,255,.9)'); gr.addColorStop(0.5, 'rgba(255,255,255,.25)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 4, 64);
+  return (EM_TEX.beam = new THREE.CanvasTexture(c));
+}
+const emSprite = (par, tex, s, o) => { const m = new THREE.Sprite(new THREE.SpriteMaterial(Object.assign({ map: tex, transparent: true, depthWrite: false }, o || {}))); m.scale.setScalar(s); par.add(m); return m; };
+const emMesh = (par, geo, mat, x, y, z) => { const m = new THREE.Mesh(geo, mat); m.position.set(x || 0, y || 0, z || 0); par.add(m); return m; };
+// music notes floating up from (x, y, z), each its colour
+function emNotes(F, n, at) {
+  const cols = ['#f472b6', '#facc15', '#38bdf8', '#a78bfa', '#4ade80'];
+  F.notes = Array.from({ length: n }, (_, j) => emSprite(F.root, noteTex(j % 2 ? '♫' : '♪', cols[j % cols.length]), 0.8));
+  F.noteAt = at;
+}
+function emNotesTick(F, t, rate) {
+  const n = F.notes.length, [x0, y0, z0] = F.noteAt;
+  F.notes.forEach((s, j) => {
+    const ph = (t * (rate || 0.45) + j / n) % 1, side = j % 2 ? 1 : -1;
+    s.position.set(x0 + side * (0.6 + ph * 1.1) + Math.sin(ph * 9 + j) * 0.25, y0 + ph * 3.2, z0 + Math.cos(j * 2.3) * 0.5);
+    s.scale.setScalar(0.85 * Math.min(1, ph / 0.12));
+    s.material.opacity = t < 0.3 ? 0 : 1 - ph * ph; s.material.rotation = Math.sin(ph * 7 + j) * 0.35;
+  });
+}
+// confetti: thin coloured bits shot up from (0, y, 0) when it bursts, falling and turning
+function emConfetti(F, n) {
+  F.cf = Array.from({ length: n }, (_, j) => { const m = emMesh(F.root, BOX, new THREE.MeshBasicMaterial({ color: CONFETTI[j % CONFETTI.length], side: THREE.DoubleSide })); m.scale.set(0.26, 0.04, 0.16); m.visible = false; m.userData = { v: new THREE.Vector3(), life: 0, r: [0, 0] }; return m; });
+}
+function emBurst(F, y) {
+  for (const m of F.cf) {
+    const a = Math.random() * EM_TAU, s = 2 + Math.random() * 5;
+    m.position.set((Math.random() - 0.5) * 0.8, y, (Math.random() - 0.5) * 0.8); m.visible = true;
+    m.userData.v.set(Math.cos(a) * s, 7 + Math.random() * 7, Math.sin(a) * s); m.userData.life = 1.6 + Math.random() * 0.6; m.userData.r = [Math.random() * 14 - 7, Math.random() * 14 - 7];
+  }
+}
+function emConfettiTick(F, dt) {
+  for (const m of F.cf) {
+    const u = m.userData; if (!m.visible) continue;
+    u.life -= dt; u.v.y -= 16 * dt; u.v.multiplyScalar(1 - dt * 1.6); m.position.addScaledVector(u.v, dt); m.rotation.x += u.r[0] * dt; m.rotation.z += u.r[1] * dt;
+    if (m.position.y < 0.05) { m.position.y = 0.05; u.v.set(0, 0, 0); u.r = [0, 0]; }
+    if (u.life <= 0) m.visible = false;
+  }
+}
+// the boombox the breakdance plays (speakers pumping to the beat)
+function boombox(par) {
+  const g = new THREE.Group(), lam = (c, o) => new THREE.MeshLambertMaterial(Object.assign({ color: c }, o || {}));
+  const box = (m, sx, sy, sz, x, y, z) => { const o = emMesh(g, BOX, m, x, y, z); o.scale.set(sx, sy, sz); return o; };
+  const body = lam('#334155'), dark = lam('#0f172a'), chrome = lam('#cbd5e1'), neon = lam('#22d3ee', { emissive: '#0e7490' });
+  box(body, 2.0, 1.1, 0.7, 0, 0.55, 0); box(dark, 2.04, 0.12, 0.74, 0, 0.06, 0); box(lam('#f43f5e'), 2.06, 0.08, 0.76, 0, 1.04, 0);
+  box(chrome, 0.12, 0.42, 0.12, -0.7, 1.3, 0); box(chrome, 0.12, 0.42, 0.12, 0.7, 1.3, 0); box(chrome, 1.52, 0.1, 0.14, 0, 1.52, 0); // the handle
+  const ant = box(chrome, 0.05, 1.2, 0.05, 0.85, 1.6, 0.2); ant.rotation.z = -0.4;
+  g.userData.cones = [];
+  for (const side of [-1, 1]) for (const x of [-0.58, 0.58]) {
+    const rim = emMesh(g, new THREE.CylinderGeometry(0.36, 0.36, 0.06, 20), chrome, x, 0.55, side * 0.36); rim.rotation.x = Math.PI / 2;
+    const cone = emMesh(g, new THREE.CylinderGeometry(0.3, 0.18, 0.08, 20), dark, x, 0.55, side * 0.39); cone.rotation.x = Math.PI / 2; g.userData.cones.push(cone);
+    const cap = emMesh(g, new THREE.SphereGeometry(0.09, 10, 8), neon, x, 0.55, side * 0.43); g.userData.cones.push(cap);
+  }
+  box(lam('#e2e8f0'), 0.5, 0.3, 0.06, 0, 0.62, -0.37); box(lam('#e2e8f0'), 0.5, 0.3, 0.06, 0, 0.62, 0.37); // the tape deck
+  for (let k = 0; k < 5; k++) box(neon, 0.06, 0.06 + (k % 3) * 0.05, 0.04, -0.2 + k * 0.1, 0.92, -0.37);
+  par.add(g); return g;
+}
+const EMOTES = [
+  { id: 'wave', nm: 'Wave', ic: '👋', price: 0, len: 2.6, d: 'A big friendly hello',
+    pose(J, t, a) {
+      const w = Math.sin(t * 11);
+      if (a.r15) { J.aR = [0.3, 0, 1.78]; J.eR = [0.08, 0, 1.12 + 0.5 * w]; J.eL = [0.18, 0, 0]; J.ws = [0, -0.16, 0.05]; J.kL = J.kR = [-0.08, 0, 0]; }
+      else J.aR = [0.2, 0, 2.6 + 0.32 * w];
+      J.aL = [0.06, 0, -0.1]; J.hd = [0.08, -0.14, -0.12 + 0.06 * Math.sin(t * 5.5)]; J.bd = [0, 0, 0.05]; J.up = 0.05 * Math.abs(Math.sin(t * 5.5));
+    },
+    fx: {
+      make(a, F) { F.hi = emSprite(F.root, emoTex('👋'), 0.1); },
+      tick(a, F, t) { const k = smooth(t / 0.25) * (1 - smooth((t - 2.1) / 0.45)), s = F.hi; s.position.set(2.5, 6.2 + t * 0.3, -0.3); s.scale.setScalar(1.7 * k * (1 + 0.12 * Math.sin(t * 11))); s.material.opacity = k; s.material.rotation = 0.4 * Math.sin(t * 11); },
+    },
+    ev(a, t0, t1) { if (crossed(t0, t1, 0.05)) emSound(a, 'pop', { pitch: 1.4 }); if (crossed(t0, t1, 0.9)) emSound(a, 'chat', { vol: 0.8 }); },
+  },
+  { id: 'cheer', nm: 'Cheer', ic: '🎉', price: 0, len: 2.5, d: 'Jump for joy — confetti everywhere',
+    pose(J, t, a) {
+      const r15 = a.r15;
+      const crouch = (d) => {
+        J.bd = [-0.2 * d, 0, 0]; J.aL = [-0.65 * d, 0, -0.15]; J.aR = [-0.65 * d, 0, 0.15]; J.hd = [-0.15 * d, 0, 0];
+        if (r15) { J.up = -0.42 * d; J.lL = J.lR = [0.78 * d, 0, 0]; J.kL = J.kR = [-1.4 * d, 0, 0]; J.eL = J.eR = [0.4 * d, 0, 0]; } else { J.up = -0.22 * d; J.lL = J.lR = [0.25 * d, 0, 0]; }
+      };
+      const jump = (f) => {
+        J.up = 1.9 * 4 * f * (1 - f); J.aL = [0.25, 0, -2.55]; J.aR = [0.25, 0, 2.55]; J.hd = [0.32, 0, 0];
+        if (r15) { J.eL = J.eR = [0.25, 0, 0]; J.lL = [0.95, 0, -0.08]; J.lR = [0.4, 0, 0.08]; J.kL = [-1.6, 0, 0]; J.kR = [-1.1, 0, 0]; } else { J.lL = [0.4, 0, -0.12]; J.lR = [-0.25, 0, 0.12]; }
+      };
+      if (t < 0.22) crouch(smooth(t / 0.22));
+      else if (t < 0.62) jump((t - 0.22) / 0.4);
+      else if (t < 0.82) crouch(Math.sin((t - 0.62) / 0.2 * Math.PI) * 0.8);
+      else if (t < 1.22) jump((t - 0.82) / 0.4);
+      else if (t < 1.4) crouch(Math.sin((t - 1.22) / 0.18 * Math.PI) * 0.7);
+      else { // fist pumps, the other hand on the hip
+        const u = (t - 1.4) * 6.5, p = Math.max(0, Math.sin(u));
+        J.up = 0.07 * Math.abs(Math.sin(u)); J.hd = [0.22 + 0.08 * p, 0, -0.08]; J.lL = [0, 0, -0.08]; J.lR = [0, 0, 0.08];
+        if (r15) { J.aR = [0.35, 0, 2.25 + 0.2 * p]; J.eR = [0.25 + 1.3 * (1 - p), 0, 0]; J.aL = [0.05, 0, -0.6]; J.eL = [0, 0, 1.4]; J.ws = [0.05, -0.12, 0.06]; }
+        else { J.aR = [0.3, 0, 2.4 + 0.45 * p]; J.aL = [0, 0, -0.38]; }
+      }
+    },
+    fx: {
+      make(a, F) { emConfetti(F, 44); },
+      tick(a, F, t, dt) { emConfettiTick(F, dt); },
+    },
+    ev(a, t0, t1, F) {
+      for (const T of [0.24, 0.84]) if (crossed(t0, t1, T)) emSound(a, 'jump');
+      for (const T of [0.42, 1.02]) if (crossed(t0, t1, T)) { emBurst(F, 6.2 + 1.8); emSound(a, 'pop'); }
+      if (crossed(t0, t1, 1.02)) emSound(a, 'win', { vol: 0.5 });
+    },
+  },
+  { id: 'floss', nm: 'Floss', ic: '🕺', price: 150, loop: 1, snap: 16, d: 'Arms one way, hips the other',
+    pose(J, t, a) {
+      const u = t / 0.42, s = -Math.cos(u * Math.PI), sg = clamp(Math.sin(u * Math.PI / 2) * 2.5, -1, 1);
+      J.aL = [0.6 * sg, 0, 0.62 * s]; J.aR = [-0.55 * sg, 0, 0.62 * s];
+      J.sx = -0.32 * s; J.lL = [0.04 * sg, 0, 0.16 * s]; J.lR = [-0.04 * sg, 0, 0.16 * s];
+      J.hd = [0.05 * Math.sin(u * EM_TAU), 0, 0.14 * s]; J.up = -0.06 + 0.06 * Math.abs(Math.sin(u * Math.PI));
+      if (a.r15) { J.ws = [0, 0.06 * sg, -0.2 * s]; J.kL = J.kR = [-0.22, 0, 0]; J.eL = J.eR = [0.06, 0, 0]; J.up -= 0.05; }
+      else J.bd = [0, 0, -0.06 * s];
+    },
+    fx: {
+      make(a, F) { emNotes(F, 4, [0, 6.2, 0]); },
+      tick(a, F, t) { emNotesTick(F, t, 0.5); },
+    },
+    ev(a, t0, t1) { const n = beatOf(t0, t1, 0.42); if (n >= 0) emSound(a, 'bell', { pitch: [1, 1.26, 1.5, 1.26][n % 4], vol: 0.3, gap: 0 }); },
+  },
+  { id: 'robot', nm: 'Robot', ic: '🤖', price: 250, loop: 1, snap: 30, d: 'Stiff, snappy, beep boop',
+    pose(J, t, a) {
+      const st = 0.34, n = Math.floor(t / st) % 8, f = (t % st) / st;
+      J.up = f < 0.12 ? 0.04 : 0; // (a little judder as each move clicks in)
+      if (a.r15) {
+        // (upper arms out level; a forearm turned 1.57 one way points up, the other way down)
+        if (n === 0) { J.aL = [0, 0, -1.57]; J.eL = [0, 0, -1.57]; J.aR = [0, 0, 1.57]; J.eR = [0, 0, 1.57]; }
+        else if (n === 1) { J.aL = [0, 0, -1.57]; J.eL = [0, 0, -1.57]; J.aR = [0, 0, 1.57]; J.eR = [0, 0, -1.57]; J.hd = [0, -0.75, 0]; }
+        else if (n === 2) { J.aL = [0, 0, -1.57]; J.eL = [0, 0, 1.57]; J.aR = [0, 0, 1.57]; J.eR = [0, 0, 1.57]; J.hd = [0, 0.75, 0]; }
+        else if (n === 3) { J.aL = [0, 0, -1.57]; J.eL = [1.57, 0, 0]; J.aR = [0, 0, 1.57]; J.eR = [1.57, 0, 0]; J.bd = [0, 0.6, 0]; }
+        else if (n === 4 || n === 5) { J.aL = [0, 0, -0.1]; J.eL = [1.57, 0, 0]; J.aR = [0, 0, 0.1]; J.eR = [1.57, 0, 0]; J.hd = [0, 0, n === 4 ? 0.35 : -0.35]; J.bd = [0, n === 5 ? -0.6 : 0, 0]; J.ws = [0, n === 4 ? 0.3 : 0, 0]; }
+        else if (n === 6) { J.aR = [0, 0, 3.0]; J.aL = [0, 0, -0.1]; J.eL = [1.57, 0, 0]; J.hd = [0.35, 0, 0]; }
+        else { J.aL = J.aR = [1.57, 0, 0]; J.lL = J.lR = [0.5, 0, 0]; J.kL = J.kR = [-1.0, 0, 0]; J.up -= 0.3; J.hd = [0, f < 0.5 ? 0.55 : -0.55, 0]; }
+      } else {
+        if (n === 0) { J.aL = [0, 0, -1.57]; J.aR = [0, 0, 1.57]; }
+        else if (n === 1) { J.aL = [0, 0, -1.57]; J.aR = [0, 0, 0.05]; J.hd = [0, -0.75, 0]; }
+        else if (n === 2) { J.aL = [0, 0, -0.05]; J.aR = [0, 0, 1.57]; J.hd = [0, 0.75, 0]; }
+        else if (n === 3) { J.aL = J.aR = [1.57, 0, 0]; J.bd = [0, 0.6, 0]; }
+        else if (n === 4) { J.aL = J.aR = [1.57, 0, 0]; J.hd = [0, 0, 0.35]; }
+        else if (n === 5) { J.aL = J.aR = [1.57, 0, 0]; J.bd = [0, -0.6, 0]; J.hd = [0, 0, -0.35]; }
+        else if (n === 6) { J.aR = [0, 0, 3.0]; J.aL = [1.57, 0, 0]; J.hd = [0.35, 0, 0]; }
+        else { J.aL = J.aR = [1.57, 0, 0]; J.lL = J.lR = [0.3, 0, 0]; J.up -= 0.2; J.hd = [0, f < 0.5 ? 0.55 : -0.55, 0]; }
+      }
+    },
+    fx: { // an antenna on your head, its light blinking
+      make(a, F) {
+        const m = new THREE.MeshLambertMaterial({ color: '#94a3b8' });
+        const stalk = emMesh(F.hd, BOX, m, 0.3, 0.95, 0); stalk.scale.set(0.08, 0.7, 0.08); stalk.rotation.z = -0.25;
+        F.bulb = emMesh(F.hd, new THREE.SphereGeometry(0.14, 12, 8), new THREE.MeshBasicMaterial({ color: '#ef4444' }), 0.39, 1.33, 0);
+        F.glow = emSprite(F.hd, glowTex(), 0.9, { color: '#ef4444', blending: THREE.AdditiveBlending }); F.glow.position.copy(F.bulb.position);
+      },
+      tick(a, F, t) { const n = Math.floor(t / 0.34), c = n % 2 ? '#22c55e' : '#ef4444'; F.bulb.material.color.set(c); F.glow.material.color.set(c); F.glow.material.opacity = 0.6 + 0.4 * Math.sin(t * 20); },
+    },
+    ev(a, t0, t1) {
+      const n = beatOf(t0, t1, 0.34); if (n < 0) return;
+      emSound(a, 'tick', { pitch: n % 2 ? 1.25 : 1.7, vol: 0.7, gap: 0 }); if (n % 8 === 6) emSound(a, 'zap', { vol: 0.2 });
+      emBits(a, n % 2 ? 1.5 : -1.5, 4, 0, [0x67e8f9, 0xffffff, 0x22d3ee], 5, { size: 0.12, speed: 2.5, up: 2, life: 0.35, g: 4 });
+    },
+  },
+  { id: 'griddy', nm: 'Griddy', ic: '😤', price: 350, loop: 1, snap: 16, d: 'Heel taps, arm pumps, goggles',
+    pose(J, t, a) {
+      const b = 0.36, u = t / b, n = Math.floor(u), f = u - n, ph = n % 8, L = n % 2 === 0, gog = ph >= 6, r15 = a.r15;
+      const ext = Math.sin(Math.min(1, f * 1.8) * Math.PI), hop = Math.sin(f * Math.PI);
+      const tap = L ? 'lL' : 'lR', stand = L ? 'lR' : 'lL';
+      J[tap] = [0.8 * ext, 0, 0]; J.bd = [0.13, (L ? 0.16 : -0.16), 0]; J.hd = [-0.1 * ext, L ? 0.1 : -0.1, 0];
+      if (r15) { J[stand] = [0.32, 0, 0]; J[L ? 'kR' : 'kL'] = [-0.68, 0, 0]; J[L ? 'kL' : 'kR'] = [-0.08, 0, 0]; J.up = -0.24 + 0.12 * hop; }
+      else J.up = -0.04 + 0.1 * hop;
+      if (gog) { // goggles: the hands round the eyes
+        J.hd = [0.12, 0, 0.12 * Math.sin(u * Math.PI)];
+        if (r15) { J.aL = [1.3, 0, 0.42]; J.eL = [2.35, 0, -0.35]; J.aR = [1.3, 0, -0.42]; J.eR = [2.35, 0, 0.35]; }
+        else { J.aL = [2.45, 0, 0.42]; J.aR = [2.45, 0, -0.42]; }
+      } else { // the arm on the other side from the heel pumps forward
+        const fw = L ? 'aR' : 'aL', bk = L ? 'aL' : 'aR', s = L ? 1 : -1;
+        if (r15) { J[fw] = [0.35 + 1.0 * ext, 0, 0.15 * s]; J[bk] = [-0.15 - 0.6 * ext, 0, -0.15 * s]; J[L ? 'eR' : 'eL'] = [1.35, 0, 0]; J[L ? 'eL' : 'eR'] = [0.55, 0, 0]; J.ws = [0, -0.12 * s, 0]; }
+        else { J[fw] = [0.25 + 1.1 * ext, 0, 0.1 * s]; J[bk] = [-0.15 - 0.7 * ext, 0, -0.1 * s]; }
+      }
+    },
+    fx: {
+      make(a, F) { emNotes(F, 3, [0, 6.2, 0]); },
+      tick(a, F, t) { emNotesTick(F, t, 0.55); },
+    },
+    ev(a, t0, t1) {
+      const n = beatOf(t0, t1, 0.36); if (n < 0) return;
+      const L = n % 2 === 0;
+      emSound(a, 'step', { pitch: L ? 1 : 0.85, vol: 0.9, gap: 0 }); if (n % 8 === 6) emSound(a, 'whoosh', { vol: 0.5 });
+      setTimeout(() => emBits(a, L ? -0.5 : 0.5, 0.15, -1.5, [0xa8a29e, 0xd6d3d1, 0x78716c], 6, { size: 0.18, speed: 2, up: 1.5, g: 6, life: 0.5 }), 110);
+    },
+  },
+  { id: 'breakdance', nm: 'Breakdance', ic: '🌀', price: 500, loop: 1, snap: 20, d: 'Toprock, backflip, headspin, freeze',
+    pose(J, t, a) {
+      const c = t % 4.4, r15 = a.r15, h = 2.65;
+      const flip = (th) => { J.bd = [th, 0, 0]; J.up = h - h * Math.cos(th); J.sz = -h * Math.sin(th); };
+      if (c < 1.2) { // toprock: crossing steps, side to side
+        const u = c / 0.3, s = Math.abs(Math.sin(u * Math.PI)), q = Math.floor(u) % 2 ? 1 : -1;
+        if (q < 0) J.lL = [0.45 * s, 0, 0.28 * s]; else J.lR = [0.45 * s, 0, -0.28 * s];
+        J.bd = [0, 0.28 * q * s, 0]; J.up = -0.1 + 0.08 * s; J.hd = [0.05 * s, -0.15 * q * s, 0];
+        if (r15) { J[q < 0 ? 'kL' : 'kR'] = [-0.6 * s, 0, 0]; J[q < 0 ? 'kR' : 'kL'] = [-0.25, 0, 0]; J.up -= 0.08; J.aL = [0.7, 0, -0.35 - 0.3 * s * (q < 0)]; J.eL = [1.5, 0, 0]; J.aR = [0.7, 0, 0.35 + 0.3 * s * (q > 0)]; J.eR = [1.5, 0, 0]; J.ws = [0, 0.3 * q * s, 0]; }
+        else { J.aL = [0.6 * q * s, 0, -0.25]; J.aR = [-0.6 * q * s, 0, 0.25]; }
+      } else if (c < 1.55) { // down: a backflip that stops upside down...
+        const f = smooth((c - 1.2) / 0.35); flip(Math.PI * f);
+        J.lL = J.lR = [1.1 * f, 0, 0]; J.aL = [1.3, 0, -0.3]; J.aR = [1.3, 0, 0.3];
+        if (r15) { J.kL = J.kR = [-1.5 * Math.sin(f * Math.PI), 0, 0]; J.eL = J.eR = [0.6, 0, 0]; }
+      } else if (c < 3.5) { // ...on your head, spinning: five times round, faster then slower, legs kicking in a V
+        const f = (c - 1.55) / 1.95, kick = Math.sin(c * 9), hands = c < 2.0 || c > 3.2;
+        flip(Math.PI); J.bd[1] = EM_TAU * 5 * smooth(f);
+        J.lL = [0.35 * kick, 0, -0.6]; J.lR = [-0.35 * kick, 0, 0.6];
+        J.aL = hands ? [0, 0, -2.7] : [0, 0, -1.5]; J.aR = hands ? [0, 0, 2.7] : [0, 0, 1.5];
+        if (r15) { J.kL = [-0.3 - 0.3 * kick, 0, 0]; J.kR = [-0.3 + 0.3 * kick, 0, 0]; J.eL = J.eR = [0.15, 0, 0]; }
+      } else if (c < 3.85) { // ...and over onto your feet
+        const f = smooth((c - 3.5) / 0.35); flip(Math.PI + Math.PI * f);
+        J.lL = J.lR = [1.1 * (1 - f), 0, 0]; J.aL = [1.2, 0, -0.4]; J.aR = [1.2, 0, 0.4];
+        if (r15) { J.kL = J.kR = [-1.4 * Math.sin(f * Math.PI), 0, 0]; }
+      } else { // freeze: arms folded, chin up
+        J.bd = [0.1, 0.25, 0]; J.hd = [0.18, -0.35, 0.12]; J.lL = [0, 0, -0.18]; J.lR = [0, 0, 0.18];
+        if (r15) { J.aL = [1.1, 0, 0.15]; J.eL = [0, 0, 1.6]; J.aR = [1.25, 0, -0.15]; J.eR = [0, 0, -1.6]; }
+        else { J.aL = [1.25, 0, 0.55]; J.aR = [1.38, 0, -0.55]; }
+      }
+    },
+    fx: {
+      make(a, F) {
+        F.box = boombox(F.root); F.box.position.set(3.3, 0, -0.6); F.box.rotation.y = -0.5;
+        emNotes(F, 4, [3.3, 1.8, -0.6]);
+        F.swirl = emMesh(F.root, new THREE.TorusGeometry(1.9, 0.06, 6, 40), new THREE.MeshBasicMaterial({ color: '#e0f2fe', transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }), 0, 0.25, 0);
+        F.swirl.rotation.x = Math.PI / 2;
+        F.swirl2 = emMesh(F.root, new THREE.TorusGeometry(1.2, 0.05, 6, 32, Math.PI * 1.3), F.swirl.material, 0, 1.2, 0); F.swirl2.rotation.x = Math.PI / 2;
+      },
+      tick(a, F, t) {
+        const c = t % 4.4, beat = Math.max(0, Math.cos((t / 0.3) * Math.PI * 2));
+        F.box.scale.set(1 + 0.04 * beat, 1 + 0.07 * beat, 1 + 0.04 * beat);
+        for (const k of F.box.userData.cones) k.scale.set(1 + 0.25 * beat, 1, 1 + 0.25 * beat);
+        emNotesTick(F, t, 0.5);
+        const on = c > 1.5 && c < 3.55 ? Math.min(1, (c - 1.5) / 0.25, (3.55 - c) / 0.25) : 0;
+        F.swirl.material.opacity = 0.55 * on; F.swirl.rotation.z = -t * 9; F.swirl2.rotation.z = -t * 13; F.swirl.scale.setScalar(1 + 0.08 * Math.sin(t * 14));
+      },
+    },
+    ev(a, t0, t1) {
+      const c0 = t0 % 4.4, c1 = t1 % 4.4;
+      if (c1 < c0) return; // (a new round: next frame)
+      if (crossed(c0, c1, 1.2)) emSound(a, 'swing');
+      if (c1 > 1.55 && c1 < 3.5) {
+        const r = (x) => Math.floor(5 * smooth((x - 1.55) / 1.95)); // (once round: a whoosh)
+        if (r(c1) !== r(Math.max(1.55, c0))) { emSound(a, 'whoosh', { vol: 0.6, gap: 0 }); emBits(a, 0, 0.1, 0, [0xd6d3d1, 0xa8a29e, 0xe7e5e4], 5, { size: 0.2, speed: 4, up: 1.2, g: 5, life: 0.5, spread: 1.4 }); }
+      }
+      if (crossed(c0, c1, 3.85)) { emSound(a, 'land'); emBits(a, 0, 0.1, 0, [0xd6d3d1, 0xa8a29e], 10, { size: 0.22, speed: 5, up: 1.5, g: 6, life: 0.6, spread: 1.6 }); }
+    },
+  },
+  { id: 'levitate', nm: 'Levitate', ic: '🧘', price: 800, loop: 1, snap: 6, d: 'Cross-legged, floating, glowing',
+    pose(J, t, a) {
+      const rise = smooth(t / 1.0), bob = Math.sin(t * 2.1) * 0.16 * rise;
+      J.up = 0.75 * rise + bob;
+      if (a.r15) { J.lL = [1.4, 0, -0.75]; J.kL = [0.15, 0, 2.45]; J.lR = [1.3, 0, 0.75]; J.kR = [-0.15, 0, -2.45]; J.aL = [0.45, 0, -0.38]; J.eL = [1.05, 0, 0.25]; J.aR = [0.45, 0, 0.38]; J.eR = [1.05, 0, -0.25]; J.ws = [-0.04, 0, 0]; }
+      else { J.lL = [1.45, 0, 0.32]; J.lR = [1.62, 0, -0.32]; J.aL = [0.75, 0, -0.5]; J.aR = [0.75, 0, 0.5]; }
+      J.hd = [0.12 + 0.04 * Math.sin(t * 1.3), 0.1 * Math.sin(t * 0.7), 0];
+      J.bd = [0.03, 0.12 * Math.sin(t * 0.9), 0];
+    },
+    fx: { // a glowing ring under you, a beam of light, three orbs going round, sparkles rising
+      make(a, F) {
+        const add = (c, o) => new THREE.MeshBasicMaterial(Object.assign({ color: c, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }, o || {}));
+        F.ring = emMesh(F.root, new THREE.TorusGeometry(1.75, 0.07, 8, 48), add('#c084fc'), 0, 0.12, 0); F.ring.rotation.x = Math.PI / 2;
+        F.ring2 = emMesh(F.root, new THREE.TorusGeometry(1.25, 0.04, 6, 40), add('#67e8f9'), 0, 0.14, 0); F.ring2.rotation.x = Math.PI / 2;
+        F.disc = emMesh(F.root, new THREE.CircleGeometry(2.1, 32), add('#a855f7', { map: glowTex(), ...DECAL }), 0, 0.1, 0); F.disc.rotation.x = -Math.PI / 2;
+        F.beam = emMesh(F.root, new THREE.CylinderGeometry(1.5, 1.7, 7.5, 24, 1, true), add('#c4b5fd', { map: beamTex(), side: THREE.DoubleSide }), 0, 3.75, 0);
+        F.orbs = ['#f0abfc', '#67e8f9', '#fde047'].map((c) => { const o = emMesh(F.root, new THREE.SphereGeometry(0.16, 12, 8), new THREE.MeshBasicMaterial({ color: c })); const gl = emSprite(o, glowTex(), 1.1, { color: c, blending: THREE.AdditiveBlending }); gl.position.set(0, 0, 0); return o; });
+        F.spk = Array.from({ length: 12 }, (_, j) => emSprite(F.root, glowTex(), 0.35, { color: ['#f5d0fe', '#a5f3fc', '#fef08a'][j % 3], blending: THREE.AdditiveBlending }));
+      },
+      tick(a, F, t) {
+        const on = smooth(t / 0.8), pulse = 0.5 + 0.5 * Math.sin(t * 3);
+        F.ring.material.opacity = on * (0.6 + 0.35 * pulse); F.ring.scale.setScalar(0.9 + 0.1 * pulse); F.ring.rotation.z = t * 0.6;
+        F.ring2.material.opacity = on * (0.5 + 0.4 * (1 - pulse)); F.ring2.rotation.z = -t * 1.1;
+        F.disc.material.opacity = on * (0.45 + 0.2 * pulse); F.beam.material.opacity = on * (0.16 + 0.06 * pulse); F.beam.rotation.y = t * 0.4;
+        F.orbs.forEach((o, j) => { const an = t * 1.7 + j * EM_TAU / 3; o.position.set(Math.cos(an) * 2.1, 3.0 + Math.sin(t * 2.3 + j * 2) * 0.8, Math.sin(an) * 2.1); o.visible = on > 0.3; });
+        F.spk.forEach((s, j) => { const ph = (t * 0.35 + j / 12) % 1, an = j * 2.4 + t * 0.5; s.position.set(Math.cos(an) * (1.2 + 0.4 * Math.sin(j)), 0.2 + ph * 6.5, Math.sin(an) * (1.2 + 0.4 * Math.sin(j))); s.material.opacity = on * Math.sin(ph * Math.PI); s.scale.setScalar(0.25 + 0.2 * Math.sin(ph * Math.PI)); });
+      },
+    },
+    ev(a, t0, t1) { if (crossed(t0, t1, 0.02)) emSound(a, 'magic'); const n = beatOf(t0, t1, 2.6); if (n > 0) emSound(a, 'bell', { pitch: 0.5, vol: 0.22, gap: 0 }); },
+  },
+];
+const emOwns = (i) => !!EMOTES[i] && (EMOTES[i].price === 0 || W.own.has('em' + i));
+function emStart(a, i, t0) {
+  emStop(a, true);
+  const E = EMOTES[i]; if (!E || a.dead) return;
+  const F = { root: new THREE.Group(), hd: new THREE.Group() }; a.g.add(F.root); a.head.add(F.hd);
+  if (E.fx) E.fx.make(a, F);
+  a.em = { i, t: t0 || 0, F }; a.emOut = 0;
+}
+// stop (quiet: another one's starting straight away — don't tell everyone it stopped)
+function emStop(a, quiet) {
+  const m = a.em; if (!m) return;
+  a.em = null; a.emOut = 0.5;
+  for (const r of [m.F.root, m.F.hd]) {
+    if (r.parent) r.parent.remove(r);
+    r.traverse((o) => { if (o.geometry && o.geometry !== BOX) o.geometry.dispose(); if (o.material) o.material.dispose(); });
+  }
+  if (a === me && !quiet) { send({ em: 0 }); drawEmWheel(); }
+}
+function emTick(a, dt) {
+  const m = a.em, E = EMOTES[m.i], t0 = m.t; m.t += dt;
+  if (!E.loop && m.t >= E.len) { emStop(a); return; }
+  const J = emPose(); E.pose(J, m.t, a);
+  emApply(a, J, Math.min(1, dt * (E.snap || 12)));
+  if (E.fx) E.fx.tick(a, m.F, m.t, dt);
+  if (E.ev) E.ev(a, t0, m.t, m.F);
+}
+
 /* ---------------- sound ---------------- */
 // Sfx (sfx.js) makes every sound; sfx3 is one that happens somewhere in the world: quieter further away
 const sfx = (name, opt) => { if (window.Sfx) window.Sfx.play(name, opt); };
@@ -1764,7 +2218,7 @@ function openChat() { const box = $('#chatbox'), inp = $('#chatin'); box.style.d
 function closeChat() { $('#chatbox').style.display = 'none'; $('#chatin').blur(); }
 $('#chatin').addEventListener('keydown', (e) => {
   e.stopPropagation();
-  if (e.key === 'Enter') { const t = e.target.value.trim(); if (t) { Net.chat(t); say(`${Net.name}: ${t}`); if (me) bubble(me, t); sfx('chat'); quest('bv.chat'); } closeChat(); }
+  if (e.key === 'Enter') { const t = e.target.value.trim(), em = /^\/(?:e|emote)(?:\s+(.*))?$/i.exec(t); if (em) { closeChat(); emCommand(em[1] || ''); return; } if (t) { Net.chat(t); say(`${Net.name}: ${t}`); if (me) bubble(me, t); sfx('chat'); quest('bv.chat'); } closeChat(); }
   if (e.key === 'Escape') closeChat();
 });
 
@@ -1844,6 +2298,7 @@ function sideItems() {
   if (!sideGame && exp.menu) exp.menu().forEach(([label, , short], i) => { const m = String(label).match(/^(\S+)\s+(.+)$/) || [0, '•', String(label)]; t.push(['x' + i, m[1], m[2], short || m[2], SIDE_COLS[i % SIDE_COLS.length]]); });
   if (crew().length > 1) t.push(['trade', '🤝', 'Trade', 'Trade', 'c-teal']);
   if (Net.lobby) t.push(['friends', '👥', 'Friends', 'Friends', 'c-pink', Social.inc.size || '']);
+  t.push(['emote', '🎭', 'Emotes', 'Emotes', 'c-purple']);
   t.push(['ach', '🏆', 'Achievements', 'Awards', 'c-gold']);
   return t;
 }
@@ -1880,9 +2335,63 @@ function sideDo(k) {
   else if (k === 'trade') tradePick();
   else if (k === 'friends') friendsPanel();
   else if (k === 'ach') openAch();
+  else if (k === 'emote') toggleEmWheel();
   else if (k[0] === 'x') { const m = exp.menu ? exp.menu()[+k.slice(1)] : null; if (m) m[1](); }
 }
 $('#xside').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b || b.disabled) return; if (b.dataset.side) sideDo(b.dataset.side); else if (sideClick) sideClick(b, e); });
+// the emote wheel (. or the 🎭 button): your emotes round a circle, 1–7 to pick; one you don't have yet: tap it to see
+// what it costs, tap again to buy it (then it plays)
+const Emo = { open: false, ask: -1, hi: -1 };
+function emMid(i) {
+  const E = EMOTES[i];
+  const hint = `<small class="hint">${touchy ? 'Tap outside to close' : 'Press 1–7 · . or Esc to close'}</small>`;
+  if (!E) return `<b>🎭 Emotes</b><small>Pick one to play it — it goes on till you move</small>${hint}`;
+  const st = emOwns(i) ? (me && me.em && me.em.i === i ? (E.loop ? '▶️ Playing — pick it again to stop' : '▶️ Playing') : E.loop ? '🔁 Loops till you move' : '✓ Yours') : Emo.ask === i ? (W.coins < E.price ? `Need ${E.price - W.coins} more Blox Coins` : `Tap again to buy for ${E.price}`) : `🔒 <span class="coin sm"></span> ${E.price} Blox Coins`;
+  return `<b>${E.ic} ${esc(E.nm)}</b><small>${esc(E.d)}</small><small>${st}</small>${hint}`;
+}
+function drawEmWheel() {
+  const el = $('#emWheel'); if (!el || el.hidden) return;
+  const n = EMOTES.length, cur = me && me.em ? me.em.i : -1;
+  el.innerHTML = `<div class="emw">${EMOTES.map((E, i) => {
+    const an = -Math.PI / 2 + i * EM_TAU / n, own = emOwns(i), ask = Emo.ask === i;
+    const pr = own ? '' : ask ? `<span class="pr">${W.coins < E.price ? `Need ${E.price - W.coins}` : `Buy? ${E.price}`}</span>` : `<span class="pr"><span class="coin sm"></span>${E.price}</span>`;
+    return `<button class="em${cur === i ? ' on' : ''}${own ? '' : ' lock'}${ask ? ' ask' : ''}" data-em="${i}" style="left:${(50 + Math.cos(an) * 35.5).toFixed(2)}%;top:${(50 + Math.sin(an) * 35.5).toFixed(2)}%" title="${esc(E.nm)}"><span class="k">${i + 1}</span><span class="i">${E.ic}</span>${esc(E.nm)}${pr}</button>`;
+  }).join('')}<div class="mid">${emMid(Emo.hi >= 0 ? Emo.hi : Emo.ask >= 0 ? Emo.ask : cur)}</div></div>`;
+}
+function openEmWheel(ask) {
+  if (!playing || !me) return;
+  Emo.open = true; Emo.ask = ask == null ? -1 : ask; Emo.hi = -1; $('#emWheel').hidden = false; drawEmWheel(); sfx('open', { vol: 0.5 });
+}
+function closeEmWheel() { if (!Emo.open) return; Emo.open = false; Emo.ask = -1; $('#emWheel').hidden = true; $('#emWheel').innerHTML = ''; }
+function toggleEmWheel() { if (Emo.open) closeEmWheel(); else openEmWheel(); }
+function pickEmote(i) {
+  const E = EMOTES[i]; if (!E) return;
+  if (!emOwns(i)) {
+    if (Emo.ask !== i) { Emo.ask = i; sfx('click'); if (!Emo.open) openEmWheel(i); else drawEmWheel(); return; }
+    if (W.coins < E.price) { sfx('error'); toast(`Need ${(E.price - W.coins).toLocaleString('en-US')} more Blox Coins`, '#fca5a5'); return; }
+    W.coins -= E.price; W.own.add('em' + i); Emo.ask = -1; drawCoins(); saveAv(); sfx('buy'); questMax('bv.items', W.own.size);
+    say(`🎭 You got the ${E.nm} emote!`, '#fde68a');
+  }
+  playEmote(i);
+}
+function playEmote(i) {
+  if (!playing || !me || P.dead || me.dead || !emOwns(i)) return;
+  if (me.em && me.em.i === i && EMOTES[i].loop) { emStop(me); closeEmWheel(); return; } // (the same loop again: stop)
+  if (!P.ground || Math.hypot(P.vx, P.vz) > 1) { toast('Stand still to emote', '#fde68a'); return; }
+  emStart(me, i); send({ em: [i, Date.now()] }); closeEmWheel();
+}
+// /e wave, /e 3, /e dance (your first dance), /e on its own: the wheel
+function emCommand(arg) {
+  const q = String(arg).trim().toLowerCase();
+  if (!q) { openEmWheel(); return; }
+  let i = /^[1-7]$/.test(q) ? +q - 1 : EMOTES.findIndex((E) => E.id.startsWith(q) || E.nm.toLowerCase().startsWith(q));
+  if (i < 0 && q.startsWith('dance')) { const d = [2, 3, 4, 5]; i = d.find(emOwns); if (i == null) i = 2; }
+  if (i < 0) { toast(`No emote called “${String(arg).slice(0, 20)}”`, '#fca5a5'); openEmWheel(); return; }
+  if (!emOwns(i)) { openEmWheel(i); return; }
+  playEmote(i);
+}
+$('#emWheel').addEventListener('click', (e) => { const b = e.target.closest('[data-em]'); if (b) pickEmote(+b.dataset.em); else if (!e.target.closest('.emw')) closeEmWheel(); });
+$('#emWheel').addEventListener('mouseover', (e) => { const b = e.target.closest('[data-em]'), i = b ? +b.dataset.em : -1, m = $('#emWheel .mid'); if (i !== Emo.hi && m) { Emo.hi = i; m.innerHTML = emMid(i >= 0 ? i : Emo.ask >= 0 ? Emo.ask : me && me.em ? me.em.i : -1); } });
 // "press E" prompts near things: experiences list them as { x, z, r, text, fn }
 let promptCur = null;
 // a card over the bottom of the screen about what you're standing next to (a tycoon's buy pad: what it gives you)
@@ -2472,7 +2981,7 @@ async function leave(quiet) {
   $('#hud').hidden = true; $('#pause').hidden = true; closeChat(); resetXUI();
   if (!quiet) backHome();
 }
-function resetXUI() { closePanel(); setBar(''); barClick = null; setSide(''); sideClick = null; $('#xhud').innerHTML = ''; promptCur = null; $('#prompt').style.display = 'none'; document.body.classList.remove('hasbar'); }
+function resetXUI() { closeEmWheel(); closePanel(); setBar(''); barClick = null; setSide(''); sideClick = null; $('#xhud').innerHTML = ''; promptCur = null; $('#prompt').style.display = 'none'; document.body.classList.remove('hasbar'); }
 function onPeers(ch) {
   Net.peers = ch.peers;
   for (const p of ch.joined || []) if (!p.isMe && playing) say(`${(p.presence && p.presence.nm) || 'Someone'} joined`, '#fde68a');
@@ -2491,6 +3000,13 @@ function applyPeer(p) {
     say(`${String(pr.nm || 'Someone').slice(0, 20)}: ${text}`); if (a) bubble(a, text); sfx('chat', { gap: 250 });
   }
   if (a && Array.isArray(pr.p)) { a.target = pr.p; a.anim = pr.a | 0; }
+  // their emote ([which, when it started]; 0 when it stops). One that's long over (you've just come in) isn't played.
+  const em = Array.isArray(pr.em) && EMOTES[pr.em[0] | 0] ? pr.em : null, emKey = em ? `${em[0] | 0},${+em[1] || 0}` : '';
+  if (a && emKey !== (seen.em || '')) {
+    seen.em = emKey;
+    if (!em) emStop(a);
+    else if (!a.dead && (a.anim | 0) === 0) { const E = EMOTES[em[0] | 0]; if (E.loop || Date.now() - (+em[1] || 0) < E.len * 1000 + 1500) emStart(a, em[0] | 0); }
+  }
   if (a && seen.dd !== null && (pr.dd || 0) !== seen.dd) { scatter(a); sfx3('oof', a.g.position.x, a.g.position.z, 60, { vol: 0.8 }); }
   seen.dd = pr.dd || 0;
   Net.seen.set(p.peer, seen);
@@ -3402,11 +3918,19 @@ function drawAvatarOpts() {
 }
 function wearHtml() {
   const TI = { h: '🎩', f: '🙂', b: '🪽', a: '✨', pt: '👕', pet: '🐶', tr: '🌈' };
-  const tabs = [['colors', '🎨 Colors']].concat(Object.entries(COSMETICS).map(([k, c]) => [k, `${TI[k] || ''} ${c.title}`]), [['fits', '👗 Outfits'], ['mine', '🎒 My items']]);
+  const tabs = [['colors', '🧍 Body']].concat(Object.entries(COSMETICS).map(([k, c]) => [k, `${TI[k] || ''} ${c.title}`]), [['em', '🎭 Emotes'], ['fits', '👗 Outfits'], ['mine', '🎒 My items']]);
   let body = '';
   if (avTab === 'colors') {
     const row = (title, list, key) => `<div class="opt"><small>${title}</small><div class="sw">${list.map((c, i) => `<button data-k="${key}" data-i="${i}" class="${AV[key] === i ? 'on' : ''}" style="background:${c}" title="${title} ${i + 1}"></button>`).join('')}</div></div>`;
-    body = row('Skin', SKINS, 's') + row('Shirt', SHIRTS, 'sh') + row('Pants', PANTS, 'p');
+    const bodies = `<div class="opt"><small>Body type</small><div class="bodies">${BODIES.map((b, i) => `<button data-k="bt" data-i="${i}" class="${AV.bt === i ? 'on' : ''}"><b>${b}</b><span>${i ? 'Fifteen parts: knees, elbows, hands and feet, and it bends as it moves' : 'The classic: six blocks'}</span></button>`).join('')}</div></div>`;
+    body = bodies + row('Skin', SKINS, 's') + row('Shirt', SHIRTS, 'sh') + row('Pants', PANTS, 'p');
+  } else if (avTab === 'em') {
+    body = `<p class="xp-note">🎭 Tap an emote to see it. In a game, press <b>.</b> or tap 🎭 Emotes for the emote wheel, or type <b>/e wave</b> in the chat. Moving stops one.</p><div class="shop">${EMOTES.map((E, i) => {
+      const own = emOwns(i), ask = avAsk === 'em' + i, on = pv.a && pv.a.em && pv.a.em.i === i;
+      if (ED.own && !own) return '';
+      const pr = own ? `<span class="pr own">${E.price ? 'Owned' : 'Free'}</span>` : ask && W.coins < E.price ? `<span class="pr">Need ${E.price - W.coins} more</span>` : ask ? `<span class="pr">Buy? ${E.price}</span>` : `<span class="pr"><span class="coin sm"></span> ${E.price}</span>`;
+      return `<button data-em="${i}" class="${on ? 'try' : ''} ${!own && W.coins < E.price ? 'cant' : ''} ${ask ? 'ask' : ''}" title="${esc(E.nm)} — ${esc(E.d)}"><span class="i">${E.ic}</span>${esc(E.nm)}${pr}</button>`;
+    }).join('')}</div>`;
   } else if (avTab === 'fits') {
     body = `<p class="xp-note">Save what you're wearing in a slot, then switch outfits in one tap.</p><div class="fits">${W.fits.map((f, i) => f
       ? `<div class="fit${sameAv(f, avArr()) ? ' on' : ''}"><button class="wear" data-fit="${i}" title="Wear outfit ${i + 1}"><img src="${avPic(f)}" alt="">Outfit ${i + 1}</button><div class="row"><button data-fitsave="${i}" title="Save what you're wearing here instead">💾 Save</button><button data-fitx="${i}" title="Delete this outfit">🗑️</button></div></div>`
@@ -3437,12 +3961,21 @@ $('#avOpts').onclick = (e) => {
   if (d.mode) { ED.mode = d.mode; ED.view = ''; ED.pub = ''; ED.note = ''; sfx('click'); drawAvatarOpts(); pvAvatar(); return; }
   if (marketClick(b)) return;
   if (d.tab) { avTab = d.tab; avAsk = ''; ED.note = ''; drawAvatarOpts(); return; }
+  if (d.em != null) { // an emote: it plays on you here; one you don't have: tap again to buy it
+    const i = +d.em, E = EMOTES[i]; if (!E) return;
+    if (pv.a) emStart(pv.a, i);
+    if (!emOwns(i)) {
+      if (avAsk !== 'em' + i || W.coins < E.price) { avAsk = 'em' + i; sfx('click'); drawAvatarOpts(); return; }
+      W.coins -= E.price; W.own.add('em' + i); avAsk = ''; sfx('buy'); questMax('bv.items', W.own.size); ED.note = `🎭 The ${esc(E.nm)} emote is yours! Play it in a game with <b>.</b> or 🎭 Emotes.`; saveAv(); drawMe();
+    } else { avAsk = ''; ED.note = ''; }
+    drawAvatarOpts(); return;
+  }
   if (d.fitsave) { W.fits[+d.fitsave] = avArr(); sfx('select'); saveAv(); drawAvatarOpts(); return; }
   if (d.fitx) { W.fits[+d.fitx] = null; sfx('click'); saveAv(); drawAvatarOpts(); return; }
   if (d.fit) { const v = okAv(W.fits[+d.fit]); AV_KEYS.forEach((k, j) => { if (owns(k, v[j])) AV[k] = v[j]; }); W.wear.hx = []; ED.try = {}; sfx('select'); } // (an outfit has one shop hat)
   else if (d.k) {
     const k = d.k, i = +d.i;
-    if (k === 's' || k === 'sh' || k === 'p') { AV[k] = i; }
+    if (k === 's' || k === 'sh' || k === 'p' || k === 'bt') { AV[k] = i; if (k === 'bt') sfx('select'); }
     else if (owns(k, i)) {
       const why = k === 'h' && i && hatsOn().includes('H' + i) ? toggleHat('H' + i) : putOn(k, i); // (a hat that's on: take it off)
       delete ED.try[k]; if (XKINDS[k]) delete ED.tryX[k]; avAsk = ''; ED.note = why;
@@ -3624,7 +4157,7 @@ const pv = { r: null, scene: new THREE.Scene(), cam: new THREE.PerspectiveCamera
 pv.scene.add(new THREE.HemisphereLight(0xffffff, 0x777788, 0.9)); { const d = new THREE.DirectionalLight(0xffffff, 0.45); d.position.set(4, 7, -6); pv.scene.add(d); }
 pv.cam.position.set(0.8, 4.4, -16); pv.cam.lookAt(0.8, 3.3, 0);
 function pvAvatar() {
-  if (pv.a) { pv.scene.remove(pv.a.g); if (pv.a.pet) pv.scene.remove(pv.a.pet.g); }
+  if (pv.a) { emStop(pv.a, true); pv.scene.remove(pv.a.g); if (pv.a.pet) pv.scene.remove(pv.a.pet.g); }
   const ghost = accBuilding() && ED.acc.step === 'build';
   pv.a = ghost ? makeAvatar(XAV, '', true) : makeAvatar(pvArr(), '', true, pvAx()); scene.remove(pv.a.shadow); pv.scene.add(pv.a.g);
   if (ghost) pv.a.g.traverse((o) => { if (o.userData.fx) o.visible = false; else if (o.isMesh) o.material = GHOST_MAT; }); // (building: a see-through body to build against)
@@ -3690,7 +4223,13 @@ function pvDraw(t) {
   if (!pv.a) pvAvatar();
   const bld = accBuilding();
   pv.a.g.rotation.y = ED.open ? ED.yaw + (ED.drag || bld ? 0 : Math.sin(t / 2400) * 0.12) : Math.sin(t / 1600) * 0.7;
-  pv.a.armR.rotation.x = bld ? 0 : Math.sin(t / 300) * 0.25 - 0.1; pv.a.armL.rotation.x = bld ? 0 : -Math.sin(t / 300) * 0.25 + 0.1; // (still while you build, so what's on a shoulder stays put)
+  const dt = clamp((t - (pv.t || t)) / 1000, 0, 0.1); pv.t = t;
+  if (pv.a.em && pv.a.em.t > 6 && (!ED.open || avTab !== 'em' || ED.mode !== 'wear')) emStop(pv.a, true); // (a loop you tried stops once you've moved on)
+  if (pv.a.em || pv.a.emOut > 0) animateAvatar(pv.a, dt, false, false); // (an emote you're trying)
+  else {
+    pv.a.armR.rotation.x = bld ? 0 : Math.sin(t / 300) * 0.25 - 0.1; pv.a.armL.rotation.x = bld ? 0 : -Math.sin(t / 300) * 0.25 + 0.1; // (still while you build, so what's on a shoulder stays put)
+    if (pv.a.r15) pv.a.elL.rotation.x = pv.a.elR.rotation.x = bld ? 0 : 0.14;
+  }
   if (pv.selBox) { pv.selBox.update(); SEL_MAT.opacity = 0.22 + 0.18 * Math.sin(t / 220); }
   pvCam();
   pv.r.render(pv.scene, pv.cam);
@@ -4731,7 +5270,7 @@ const lockAllowed = () => !!(playing && exp && !exp.noLock);
 const aimOn = () => !!(playing && exp && exp.aiming && exp.aiming());
 const lockFacing = () => lockAllowed() && (View.lock || View.fp || aimOn()) && !(exp && exp.drive);
 // the mouse turns the camera (on a computer; on a phone you drag, as always)
-const mouseLook = () => !touchy && lockAllowed() && (View.lock || View.fp || aimOn()) && !panelOpen() && $('#pause').hidden && !chatOpen();
+const mouseLook = () => !touchy && lockAllowed() && (View.lock || View.fp || aimOn()) && !panelOpen() && $('#pause').hidden && !chatOpen() && !Emo.open;
 const plOn = () => document.pointerLockElement === canvas;
 const pitchRange = () => (View.fp ? [-1.45, 1.45] : [-1.35, 0.6]);
 const viewFov = () => View.fov; // for experiences that set the field of view themselves (sprinting widens it)
@@ -4780,8 +5319,8 @@ function viewTick(dt) {
   // first person: your body's hidden (whatever's in your hands stays)
   if (me) {
     const fp = View.fp && !P.dead;
-    if (me.fpOn !== fp) { me.fpOn = fp; for (const c of me.body.children) c.visible = !fp || c === me.armL || c === me.armR; }
-    if (fp) for (const arm of [me.armL, me.armR]) for (const c of arm.children) c.visible = !c.isMesh; // (tools are groups; the arm itself is plain blocks)
+    if (me.fpOn !== fp) { me.fpOn = fp; for (const c of me.body.children.concat(me.waist ? me.waist.children : [])) if (c !== me.waist) c.visible = !fp || c === me.armL || c === me.armR; }
+    if (fp) for (const arm of [me.armL, me.armR]) for (const c of arm.children) c.visible = !c.isMesh && !c.userData.limb; // (tools are groups; the arm itself is plain blocks, and R15's forearm)
     else if (me.armsHidden) for (const arm of [me.armL, me.armR]) for (const c of arm.children) c.visible = true;
     me.armsHidden = fp;
   }
@@ -4835,8 +5374,10 @@ addEventListener('keydown', (e) => {
   // a full-screen menu takes the keyboard: Esc closes it
   if (fullOpen()) { if (e.code === 'Escape') closePanel(); else if (exp && exp.menuKey && !e.repeat) exp.menuKey(e.code); return; }
   if (e.code === 'Slash' || e.code === 'Enter') { e.preventDefault(); openChat(); return; }
-  if (e.code === 'Escape') { if (performance.now() - View.lostAt < 400) return; if (panelOpen()) closePanel(); else if ($('#pause').hidden) showPause(); else $('#pause').hidden = true; return; } // (Esc that let go of the pointer has opened the menu already)
+  if (e.code === 'Escape') { if (Emo.open) { closeEmWheel(); return; } if (performance.now() - View.lostAt < 400) return; if (panelOpen()) closePanel(); else if ($('#pause').hidden) showPause(); else $('#pause').hidden = true; return; } // (Esc that let go of the pointer has opened the menu already)
   if (!$('#pause').hidden) return; // (the menu's open: nothing else happens in the game)
+  if (e.code === 'Period' && !e.repeat) { toggleEmWheel(); return; } // the emote wheel: 1–7 picks one
+  if (Emo.open && /^Digit[1-7]$/.test(e.code)) { if (!e.repeat) pickEmote(+e.code.slice(5) - 1); return; }
   // Ctrl toggles shift lock when it's tapped on its own (with another key it's the browser's shortcut, not ours)
   if (isCtrl(e.code)) { View.ctrlTap = !e.repeat && lockKeyCode(e.code); return; }
   View.ctrlTap = false;
@@ -5016,7 +5557,7 @@ try { loadAvFrom(JSON.parse(localStorage.getItem('rb.av') || 'null')); } catch (
 achNum();
 drawAvatarOpts(); drawMe(); drawExps();
 requestAnimationFrame(frame);
-window.__rb = { P, Net, cam, camera, scene, renderer, keys, EXPS, Meter, GFX, gfxApply, softGL, View, setLock, zoomBy, lookBy, joy, sunL, sunSprite, makeAvatar, join, leave, die, respawn, openShop, buyItem, hasItem, itemCount, giveItem, useItem, shopItem, setItemOff, Trade, startTrade, tradeTick, parts: () => parts, exp: () => exp, me: () => me, iAmHost, crew, players, get AV() { return AV; }, W, earn, spend, roundState, openPanel, closePanel, pickPlane, myPeer, grantCosmetic, snapshot, say,
+window.__rb = { P, Net, cam, camera, scene, renderer, keys, EXPS, Meter, GFX, gfxApply, softGL, View, setLock, zoomBy, lookBy, joy, sunL, sunSprite, makeAvatar, join, leave, die, respawn, openShop, buyItem, hasItem, itemCount, giveItem, useItem, shopItem, setItemOff, Trade, startTrade, tradeTick, parts: () => parts, exp: () => exp, me: () => me, iAmHost, crew, players, get AV() { return AV; }, W, earn, spend, roundState, openPanel, closePanel, pickPlane, myPeer, grantCosmetic, snapshot, say, EMOTES, Emo, pickEmote, playEmote, emCommand, emStart, saveAv, pv: () => pv,
   Social, Inv, ED, myId, myCode, fcOf, openEditor, closeEditor, socialScan, avPic, Market, OFFICIAL, xItem, ownsX, copiesOf, drawAvatarOpts, axArr,
   pvSel: () => (pv.selBox ? { inScene: pv.selBox.parent === pv.scene, r: pv.selBox.geometry.boundingSphere && pv.selBox.geometry.boundingSphere.radius, vis: pv.selBox.visible, n: pv.selBox.geometry.attributes.position.count, c: pv.selBox.geometry.attributes.position.array.slice(0, 6) } : null),
   pvGhost: () => { let g = false; if (pv.a) pv.a.g.traverse((o) => { if (o.isMesh && o.material === GHOST_MAT) g = true; }); return g; },
