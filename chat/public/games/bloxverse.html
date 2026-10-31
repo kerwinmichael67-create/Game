@@ -1927,7 +1927,7 @@ BODY_KITS.push(
         box(patch, 0.4, 0.36, 0.04, 0.7, 3.62, 0.52);
         tuft(K.body, 0, 4.0, 0, 12, 0.34, 1, 0.42);
         // the crow, sitting on the left shoulder
-        crow = grp(K.body, -0.82, 4.1); crow.position.z = 0.1;
+        crow = grp(K.body, -1.2, 4.1); crow.position.z = 0.05;
         box(crowM, 0.34, 0.3, 0.56, 0, 0.17, 0, crow); const tl = box(crowM, 0.26, 0.06, 0.4, 0, 0.18, 0.42, crow); tl.rotation.x = -0.35;
         for (const s of [-1, 1]) { const w = box(crowM, 0.06, 0.24, 0.44, s * 0.18, 0.18, 0.02, crow); w.rotation.x = -0.2; box(beak, 0.04, 0.12, 0.04, s * 0.08, -0.04, 0, crow); }
         crowHead = grp(crow, 0, 0.42); crowHead.position.z = -0.24;
