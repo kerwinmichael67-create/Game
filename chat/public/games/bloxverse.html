@@ -45,11 +45,11 @@
   /* the emote wheel */
   #emWheel{position:absolute;inset:0;pointer-events:auto;display:grid;place-items:center;background:radial-gradient(circle,rgba(2,6,23,.5) 0,rgba(2,6,23,.18) 42%,rgba(2,6,23,0) 68%);z-index:6}
   #emWheel[hidden]{display:none}
-  .emw{position:relative;width:360px;height:360px;border-radius:50%;background:radial-gradient(circle,rgba(15,23,42,.95) 0 26%,rgba(30,41,59,.86) 27% 100%);border:1px solid var(--line2);box-shadow:var(--drop),inset 0 0 0 9px rgba(255,255,255,.03),0 0 0 6px rgba(168,85,247,.12)}
+  .emw{position:relative;width:430px;height:430px;border-radius:50%;background:radial-gradient(circle,rgba(15,23,42,.95) 0 26%,rgba(30,41,59,.86) 27% 100%);border:1px solid var(--line2);box-shadow:var(--drop),inset 0 0 0 9px rgba(255,255,255,.03),0 0 0 6px rgba(168,85,247,.12)}
   .emw.in{animation:pop .16s ease-out}
   .emw .mid{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:150px;text-align:center;display:flex;flex-direction:column;gap:4px;align-items:center}
   .emw .mid b{font:600 16px var(--fh)}.emw .mid small{font:700 11px/1.3 var(--fb);color:#cbd5e1}.emw .mid .hint{color:var(--dim);margin-top:2px}
-  .emw .em{position:absolute;width:88px;height:88px;margin:-44px 0 0 -44px;border-radius:50%;border:2px solid rgba(255,255,255,.1);background:linear-gradient(180deg,#3b4a63,#1e293b);color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font:600 11.5px var(--fh);transition:transform .12s,border-color .12s;padding:0;box-shadow:0 3px 0 rgba(0,0,0,.35)}
+  .emw .em{position:absolute;width:82px;height:82px;margin:-41px 0 0 -41px;border-radius:50%;border:2px solid rgba(255,255,255,.1);background:linear-gradient(180deg,#3b4a63,#1e293b);color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font:600 11.5px var(--fh);transition:transform .12s,border-color .12s;padding:0;box-shadow:0 3px 0 rgba(0,0,0,.35)}
   .emw .em:hover{transform:scale(1.08);border-color:rgba(255,255,255,.4)}
   .emw .em .i{font-size:29px;line-height:1.05;filter:drop-shadow(0 2px 0 rgba(0,0,0,.3))}
   .emw .em .k{position:absolute;top:5px;left:50%;transform:translateX(-50%);font:800 9.5px var(--fb);color:#94a3b8;display:none}
@@ -59,7 +59,7 @@
   .emw .em.on{border-color:#22c55e;background:linear-gradient(180deg,#1d6b3e,#14532d);box-shadow:0 0 0 4px rgba(34,197,94,.3),0 3px 0 rgba(0,0,0,.35)}
   .emw .em.ask{border-color:#f59e0b;box-shadow:0 0 0 4px rgba(245,158,11,.35),0 3px 0 rgba(0,0,0,.35)}
   @media (pointer:fine){.emw .em .k{display:block}.emw .em .i{margin-top:6px}}
-  @media (max-width:560px),(max-height:520px){.emw{transform:scale(.82)}}
+  @media (max-width:560px),(max-height:560px){.emw{transform:scale(.78)}}@media (max-width:380px){.emw{transform:scale(.7)}}
   .bodies{display:grid;grid-template-columns:1fr 1fr;gap:7px}
   .bodies button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;border:2px solid rgba(255,255,255,.08);border-radius:14px;background:linear-gradient(180deg,#283143,#1c222d);color:#e2e8f0;padding:9px 11px;cursor:pointer}
   .bodies button b{font:600 16px var(--fh)}.bodies button span{font:700 11px/1.3 var(--fb);color:var(--muted)}
@@ -1052,9 +1052,9 @@ const PATTERNS = ['Plain', 'Stripes', 'Star', 'Heart', 'Lightning', 'Checkers', 
 const PETS = ['None', 'Puppy', 'Kitty', 'Bunny', 'Mini Dragon', 'Robot', 'Unicorn', 'Penguin', 'Fox', 'Panda', 'Phoenix', 'Baby Zombie', 'Peashooter'];
 const TRAILS = ['None', 'Rainbow', 'Fire', 'Ice', 'Neon', 'Gold', 'Hearts', 'Stars', 'Lightning'];
 // the body: R6 (six blocks, the classic) or R15 (fifteen parts: knees, elbows, hands, feet and a waist that turns)
-const BODIES = ['R6', 'R15', 'Robot', 'Skeleton', 'Magma Golem']; // (2 on: body packs, jointed like R15)
+const BODIES = ['R6', 'R15', 'Robot', 'Skeleton', 'Magma Golem', 'Dino Suit', 'Knight', 'Pumpkin Scarecrow']; // (2 on: body packs, jointed like R15)
 // animation packs: how you stand, walk, run and jump
-const ANIMS = ['Default', 'Robot', 'Ninja', 'Zombie'];
+const ANIMS = ['Default', 'Robot', 'Ninja', 'Zombie', 'Superhero', 'Stylish', 'Levitation'];
 // the shop: what each costs in Blox Coins (0 = free, -1 = only as a reward)
 const COSMETICS = {
   h: { title: 'Hats', list: HATS, price: [0, 0, 0, 0, 0, 100, 250, 300, 150, 800, 200, 120, 220, 80, 1500, -1, 100, 200, 350, 180, 220, 260, 400, 150, 1200, 3000, -1, -1, -1, -1, -1, -1, -1],
@@ -1064,8 +1064,8 @@ const COSMETICS = {
   a: { title: 'Auras', list: AURAS, price: [0, 300, 800, 400, 350, 1000, 1500, 300, 350, 2000, 600, 2500, -1, -1, -1], icon: ['🚫', '✨', '🔥', '💖', '❄️', '⚡', '🌈', '🫧', '🍃', '🌌', '☢️', '💸', '💫', '🌑', '⛈️'] },
   pt: { title: 'Shirts', list: PATTERNS, price: [0, 60, 80, 80, 120, 100, 90, 250, 150, 150, 120, 200, 300, -1, -1, -1], icon: ['⬜', '〰️', '⭐', '❤️', '⚡', '🏁', '1️⃣', '👔', '💀', '🔥', '🪖', '🌈', '🌌', '🏆', '🐾', '🌻'] },
   pet: { title: 'Pets', list: PETS, price: [0, 400, 400, 350, 1500, 900, 2500, 600, 800, 1200, 4000, -1, -1], icon: ['🚫', '🐶', '🐱', '🐰', '🐉', '🤖', '🦄', '🐧', '🦊', '🐼', '🦅', '🧟', '🌱'] },
-  bt: { title: 'Bodies', list: BODIES, price: [0, 0, 900, 600, 1200], icon: ['🧍', '🦵', '🤖', '💀', '🌋'], tab: false }, // (bodies and animations are in 🧍 Body)
-  an: { title: 'Animations', list: ANIMS, price: [0, 500, 750, 400], icon: ['🚶', '🤖', '🥷', '🧟'], tab: false },
+  bt: { title: 'Bodies', list: BODIES, price: [0, 0, 900, 600, 1200, 1000, 1100, 800], icon: ['🧍', '🦵', '🤖', '💀', '🌋', '🦖', '⚔️', '🎃'], tab: false }, // (bodies and animations are in 🧍 Body)
+  an: { title: 'Animations', list: ANIMS, price: [0, 500, 750, 400, 700, 550, 900], icon: ['🚶', '🤖', '🥷', '🧟', '🦸', '😎', '🫧'], tab: false },
   tr: { title: 'Trails', list: TRAILS, price: [0, 1500, 800, 600, 500, 2000, 700, -1, -1], icon: ['🚫', '🌈', '🔥', '🧊', '💠', '🪙', '💕', '⭐', '⚡'] },
 };
 let AV = { s: 5, sh: 0, p: 1, h: 0, f: 0, b: 0, a: 0, pt: 0, pet: 0, tr: 0, bt: 0, an: 0 };
@@ -1536,11 +1536,12 @@ const FACE_GEO = new THREE.CylinderGeometry(0.675, 0.675, 1.2, 16, 1, true, Math
 const KIT_SPH = new THREE.SphereGeometry(1, 14, 10), KIT_ICO = new THREE.IcosahedronGeometry(1, 0), KIT_CYL = new THREE.CylinderGeometry(1, 1, 1, 18), KIT_PLANE = new THREE.PlaneGeometry(1, 1);
 // the face's lines in one colour (a robot's screen, a golem's glowing eyes), on a background or on nothing
 const TINTED = new Map();
-function tintFace(src, col, bg) {
-  const key = (src.dataset.tid || (src.dataset.tid = String(TINTED.size + Math.random()))) + col + bg;
+function tintFace(src, col, bg, thick) { // (thick: the lines drawn fatter, like a carving)
+  const key = (src.dataset.tid || (src.dataset.tid = String(TINTED.size + Math.random()))) + col + bg + (thick ? 't' : '');
   if (TINTED.has(key)) return TINTED.get(key);
   const t = document.createElement('canvas'); t.width = t.height = 128; const tg = t.getContext('2d');
-  tg.imageSmoothingEnabled = false; tg.drawImage(src, 0, 0, 128, 128); tg.globalCompositeOperation = 'source-in'; tg.fillStyle = col; tg.fillRect(0, 0, 128, 128);
+  tg.imageSmoothingEnabled = false; tg.drawImage(src, 0, 0, 128, 128); if (thick) for (let k = 0; k < 8; k++) tg.drawImage(src, Math.cos(k * Math.PI / 4) * 3.5, Math.sin(k * Math.PI / 4) * 3.5, 128, 128);
+  tg.globalCompositeOperation = 'source-in'; tg.fillStyle = col; tg.fillRect(0, 0, 128, 128);
   const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d');
   if (bg) { g.fillStyle = bg; g.fillRect(0, 0, 128, 128); }
   g.shadowColor = col; g.shadowBlur = 9; g.drawImage(t, 0, 0); g.shadowBlur = 0; g.drawImage(t, 0, 0);
@@ -1765,6 +1766,283 @@ const BODY_DESC = ['The classic: six blocks.', 'Fifteen parts: knees, elbows, ha
   'All bones: a skull, a ribcage on a spine, knobbly joints, bony hands and feet.', 'A hulking body of rock: broad shoulders, boulder joints, huge fists, lava glowing through the cracks and embers drifting off it.'];
 const ANIM_DESC = ['The usual walk, run and jump.', 'Stiff steps that click from pose to pose, forearms level; stands to attention and scans about.', 'Low and ready; runs leaning right over with its arms streaming behind, and front-flips when it jumps.',
   'Arms out, a dragging shuffle and a lolling head (and the odd groan); flails in the air.'];
+const KIT_CONE = new THREE.ConeGeometry(1, 1, 10);
+// a flannel check in a shirt colour (the scarecrow's shirt) and a tabard with a gold cross (the knight's)
+const KIT_TEX = new Map();
+function kitTex(key, draw) {
+  if (KIT_TEX.has(key)) return KIT_TEX.get(key);
+  const c = document.createElement('canvas'); c.width = c.height = 64; draw(c.getContext('2d'));
+  const t = new THREE.CanvasTexture(c); if (KIT_TEX.size > 60) KIT_TEX.delete(KIT_TEX.keys().next().value); KIT_TEX.set(key, t); return t;
+}
+const plaidTex = (col) => kitTex('plaid' + col, (g) => {
+  g.fillStyle = col; g.fillRect(0, 0, 64, 64);
+  g.fillStyle = 'rgba(0,0,0,.28)'; for (const p of [8, 40]) { g.fillRect(p, 0, 14, 64); g.fillRect(0, p, 64, 14); }
+  g.fillStyle = 'rgba(0,0,0,.18)'; for (const p of [8, 40]) { g.fillRect(p, p, 14, 14); }
+  g.fillStyle = 'rgba(255,255,255,.35)'; for (const p of [30, 62]) { g.fillRect(p, 0, 2, 64); g.fillRect(0, p, 64, 2); }
+});
+const tabardTex = (col) => kitTex('tabard' + col, (g) => {
+  g.fillStyle = col; g.fillRect(0, 0, 64, 64);
+  g.strokeStyle = '#d4a72c'; g.lineWidth = 4; g.strokeRect(3, 3, 58, 58);
+  g.fillStyle = '#1f2937'; g.fillRect(26, 12, 14, 42); g.fillRect(14, 22, 38, 13);
+  g.fillStyle = '#facc15'; g.fillRect(28, 14, 10, 38); g.fillRect(16, 24, 34, 9);
+});
+const quiltTex = (col) => kitTex('quilt' + col, (g) => { // (the nap's blanket: patchwork in the shirt colour, stitched)
+  const base = new THREE.Color(col);
+  for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) { const k = [1, 0.75, 1.15, 0.9][(x + y * 3) % 4], c = base.clone().multiplyScalar(k); g.fillStyle = '#' + c.getHexString(); g.fillRect(x * 16, y * 16, 16, 16); }
+  g.strokeStyle = 'rgba(255,255,255,.55)'; g.setLineDash([3, 3]); g.lineWidth = 1.5;
+  for (let p = 16; p < 64; p += 16) { g.beginPath(); g.moveTo(p, 0); g.lineTo(p, 64); g.moveTo(0, p); g.lineTo(64, p); g.stroke(); }
+});
+BODY_KITS.push(
+  // 🦖 Dino Suit: a onesie in your shirt colour with a cream belly and a zip, clawed feet and mitts, spikes down the
+  // back, a long tail that sways, and a hood with big cartoon eyes and a toothy snout (your face peeks out under it)
+  (K) => {
+    const { box, mesh, lam, mats, av, grp, skin } = K;
+    const c0 = new THREE.Color(SHIRTS[av[1]]), suit = lam(c0), belly = lam('#fde9b8'), stripe = lam('#efd396'), spikeM = lam(c0.clone().multiplyScalar(0.72)), claw = lam('#f8fafc'), eyeW = lam('#ffffff'), eyeB = lam('#111827'), zip = lam('#9ca3af');
+    mats.push(suit, belly, spikeM);
+    const cone = (m, r, h, x, y, z, rx, par) => { const o = mesh(KIT_CONE, m, x, y, z, par); o.scale.set(r, h, r); o.rotation.x = rx || 0; return o; };
+    const tail = [];
+    return {
+      leg(x) {
+        const hip = grp(K.body, x, 2), kn = grp(hip, 0, -1.0, 1);
+        box(suit, 1.06, 1.04, 1.06, 0, -0.5, 0, hip); box(spikeM, 0.3, 0.2, 0.04, 0.2, -0.35, -0.54, hip); box(spikeM, 0.22, 0.16, 0.04, -0.22, -0.66, -0.54, hip);
+        box(suit, 0.98, 0.7, 0.98, 0, -0.38, 0, kn); box(suit, 1.12, 0.32, 1.42, 0, -0.84, -0.15, kn);
+        for (const cx of [-0.32, 0, 0.32]) cone(claw, 0.1, 0.32, cx, -0.9, -0.95, -Math.PI / 2, kn);
+        return [hip, kn];
+      },
+      lower() {
+        box(suit, 2.02, 0.84, 1.0, 0, 2.42, 0); box(belly, 1.4, 0.74, 0.06, 0, 2.45, -0.5); box(zip, 0.06, 0.74, 0.07, 0, 2.45, -0.53);
+        // the tail: five segments, each tipped down a little more, spikes along the top (it sways: see tick)
+        let par = grp(K.body, 0, 2.35); par.position.z = 0.42; par.rotation.x = 0.42;
+        [[0.95, 0.85], [0.8, 0.8], [0.64, 0.75], [0.48, 0.7], [0.32, 0.62]].forEach(([w, l], i) => {
+          const g = i ? grp(par, 0, 0) : par; if (i) { g.position.z = 0.8; g.rotation.x = 0.1; }
+          box(suit, w, w * 0.9, l, 0, 0, l / 2, g); cone(spikeM, w * 0.22, w * 0.45, 0, w * 0.5, l * 0.45, 0, g);
+          tail.push(g); par = g;
+        });
+      },
+      upper() {
+        box(suit, 2.0, 1.16, 1.0, 0, 3.42, 0); box(belly, 1.3, 0.98, 0.06, 0, 3.36, -0.5);
+        for (const y of [3.06, 3.3, 3.54, 3.78]) box(stripe, 1.3, 0.05, 0.07, 0, y, -0.51);
+        box(zip, 0.06, 1.0, 0.08, 0, 3.36, -0.53); box(zip, 0.14, 0.2, 0.08, 0, 3.85, -0.54);
+        for (const [y, s] of [[3.92, 0.24], [3.5, 0.22], [3.08, 0.2]]) cone(spikeM, s * 0.7, s * 1.6, 0, y, 0.6, Math.PI / 2);
+      },
+      arm(s) {
+        const sh = grp(K.body, s * 1.5, 4), el = grp(sh, 0, -0.98, 1);
+        box(suit, 1.0, 1.0, 1.0, 0, -0.48, 0, sh); box(suit, 0.92, 0.8, 0.92, 0, -0.38, 0, el); box(suit, 0.98, 0.32, 0.98, 0, -0.86, 0, el);
+        for (const cz of [-0.3, 0, 0.3]) cone(claw, 0.08, 0.26, 0.0, -1.1, cz - 0.05, Math.PI, el);
+        return [sh, el];
+      },
+      head(h) {
+        h.add(new THREE.Mesh(HEAD_GEO, skin)); h.add(new THREE.Mesh(FACE_GEO, new THREE.MeshBasicMaterial({ map: K.faceTex, transparent: true })));
+        box(suit, 1.58, 0.42, 1.64, 0, 0.8, 0.02, h); box(suit, 1.58, 1.32, 0.3, 0, 0.12, 0.74, h);
+        for (const s of [-1, 1]) box(suit, 0.18, 1.0, 1.42, s * 0.8, 0.28, 0.04, h);
+        box(suit, 1.5, 0.36, 0.72, 0, 0.62, -0.95, h); box(spikeM, 1.2, 0.08, 0.6, 0, 0.83, -0.98, h);
+        for (const x of [-0.5, -0.25, 0, 0.25, 0.5]) cone(claw, 0.08, 0.2, x, 0.36, -1.22, Math.PI, h);
+        for (const s of [-1, 1]) { box(eyeB, 0.1, 0.05, 0.1, s * 0.26, 0.81, -1.22, h); const e = mesh(KIT_SPH, eyeW, s * 0.42, 1.02, -0.42, h); e.scale.setScalar(0.24); const p = mesh(KIT_SPH, eyeB, s * 0.44, 1.05, -0.6, h); p.scale.setScalar(0.11); }
+        cone(spikeM, 0.16, 0.36, 0, 1.12, 0.05, -0.3, h); cone(spikeM, 0.14, 0.3, 0, 1.0, 0.45, 0.4, h);
+        return true;
+      },
+      tick(a, dt) { a.kitT = (a.kitT || 0) + dt; const t = a.kitT; tail.forEach((g, i) => { g.rotation.y = 0.16 * Math.sin(t * 2.4 - i * 0.75); }); },
+    };
+  },
+  // ⚔️ Knight: plate armour (layered pauldrons, a breastplate under a tabard in your shirt colour with a gold cross,
+  // couters, gauntlets, poleyns, pointed sabatons), a belt with a sword at the hip, and a great helm with a plume
+  (K) => {
+    const { box, mesh, lam, mats, av, grp } = K;
+    const steel = metalMat('#c9ced6'), dark = metalMat('#5b626d'), gold = metalMat('#d9ad34'), cloth = lam(SHIRTS[av[1]]), tab = lam('#ffffff', { map: tabardTex(SHIRTS[av[1]]) }), leather = lam('#5b3a1e'), slit = new THREE.MeshBasicMaterial({ color: '#0b0f17' });
+    mats.push(steel, dark, gold, cloth, tab, leather);
+    return {
+      leg(x) {
+        const hip = grp(K.body, x, 2), kn = grp(hip, 0, -1.0, 1);
+        box(steel, 0.98, 0.98, 0.98, 0, -0.5, 0, hip); box(dark, 1.0, 0.05, 1.0, 0, -0.3, 0, hip);
+        box(tab, 0.92, 0.62, 0.05, 0, -0.18, -0.53, hip); // (the tabard's skirt, split so each half goes with its leg)
+        const pol = mesh(KIT_SPH, steel, 0, -0.02, -0.4, kn); pol.scale.set(0.38, 0.32, 0.22); const sp = mesh(KIT_CONE, gold, 0, -0.02, -0.62, kn); sp.scale.set(0.07, 0.16, 0.07); sp.rotation.x = -Math.PI / 2;
+        box(steel, 0.9, 0.72, 0.92, 0, -0.42, 0, kn); box(dark, 0.92, 0.05, 0.94, 0, -0.62, 0, kn);
+        box(steel, 0.96, 0.24, 1.18, 0, -0.88, -0.1, kn); const toe = mesh(KIT_CONE, steel, 0, -0.88, -0.82, kn); toe.scale.set(0.24, 0.42, 0.14); toe.rotation.x = -Math.PI / 2;
+        return [hip, kn];
+      },
+      lower() {
+        box(steel, 2.0, 0.84, 1.0, 0, 2.42, 0); for (const y of [2.2, 2.45]) box(dark, 2.02, 0.05, 1.02, 0, y, 0);
+        box(leather, 2.06, 0.16, 1.06, 0, 2.72, 0); box(gold, 0.3, 0.22, 0.06, 0, 2.72, -0.55);
+        // the sword in its scabbard at the left hip
+        const sw = grp(K.body, -1.12, 2.2); sw.rotation.z = -0.22; sw.position.z = 0.15;
+        box(leather, 0.2, 1.7, 0.32, 0, -0.55, 0, sw); box(gold, 0.22, 0.12, 0.34, 0, -1.38, 0, sw);
+        box(gold, 0.16, 0.12, 0.8, 0, 0.36, 0, sw); box(leather, 0.12, 0.42, 0.12, 0, 0.62, 0, sw); const pm = mesh(KIT_SPH, gold, 0, 0.88, 0, sw); pm.scale.setScalar(0.12);
+      },
+      upper() {
+        box(steel, 2.0, 1.16, 1.0, 0, 3.42, 0); box(tab, 1.5, 1.14, 0.06, 0, 3.36, -0.53); box(tab, 1.5, 1.14, 0.06, 0, 3.36, 0.53);
+        const gor = mesh(KIT_CYL, steel, 0, 4.06, 0); gor.scale.set(0.55, 0.26, 0.5); const gr = mesh(KIT_CYL, gold, 0, 4.18, 0); gr.scale.set(0.57, 0.04, 0.52);
+      },
+      arm(s) {
+        const sh = grp(K.body, s * 1.5, 4), el = grp(sh, 0, -0.98, 1);
+        const p1 = box(steel, 1.22, 0.52, 1.22, 0, -0.04, 0, sh); p1.rotation.z = s * 0.14; const p2 = box(steel, 1.14, 0.3, 1.14, 0, -0.36, 0, sh); p2.rotation.z = s * 0.1;
+        box(gold, 1.24, 0.06, 1.24, 0, 0.2, 0, sh).rotation.z = s * 0.14; box(steel, 0.86, 0.62, 0.86, 0, -0.62, 0, sh);
+        const cou = mesh(KIT_SPH, steel, 0, 0, 0, el); cou.scale.setScalar(0.33); const fan = mesh(KIT_CYL, steel, s * 0.4, 0, 0, el); fan.scale.set(0.3, 0.05, 0.3); fan.rotation.z = Math.PI / 2;
+        box(steel, 0.86, 0.66, 0.88, 0, -0.4, 0, el); box(steel, 1.0, 0.12, 1.0, 0, -0.7, 0, el); box(dark, 0.94, 0.3, 0.94, 0, -0.87, 0, el);
+        return [sh, el];
+      },
+      head(h) { // a great helm: an eye slit with a gold cross under it, breaths, a gold band, a plume in your colour
+        const helm = mesh(KIT_CYL, steel, 0, 0, 0, h); helm.scale.set(0.71, 1.3, 0.71); const top = mesh(KIT_SPH, steel, 0, 0.64, 0, h); top.scale.set(0.71, 0.28, 0.71);
+        const band = mesh(KIT_CYL, gold, 0, 0.3, 0, h); band.scale.set(0.725, 0.08, 0.725);
+        box(slit, 0.48, 0.09, 0.06, -0.3, 0.12, -0.7, h); box(slit, 0.48, 0.09, 0.06, 0.3, 0.12, -0.7, h);
+        box(gold, 0.12, 0.85, 0.06, 0, -0.22, -0.71, h); box(gold, 0.95, 0.06, 0.06, 0, 0.01, -0.71, h);
+        for (let k = 0; k < 6; k++) box(slit, 0.06, 0.06, 0.04, 0.22 + (k % 2) * 0.13, -0.18 - Math.floor(k / 2) * 0.14, -0.7, h);
+        for (let k = 0; k < 5; k++) { const pl = box(cloth, 0.18, 0.5 - k * 0.04, 0.3, 0, 0.92 - k * 0.07, -0.25 + k * 0.24, h); pl.rotation.x = -0.4 + k * 0.32; }
+        return true;
+      },
+    };
+  },
+  // 🎃 Pumpkin Scarecrow: a jack-o'-lantern head with your face carved in it, glowing and flickering; a flannel
+  // shirt in your shirt colour and patched overalls in your pants colour; straw out of the collar, cuffs, ankles and
+  // belt (straw for hands); a rope belt; boots; and a crow on the shoulder that looks about
+  (K) => {
+    const { box, mesh, lam, mats, av, grp } = K;
+    const plaid = lam('#ffffff', { map: plaidTex(SHIRTS[av[1]]) }), cuff = lam(new THREE.Color(SHIRTS[av[1]]).multiplyScalar(0.6)), denim = lam(PANTS[av[2]]), denim2 = lam(new THREE.Color(PANTS[av[2]]).multiplyScalar(0.72));
+    const patch = lam(['#b45309', '#a16207', '#4d7c0f', '#9f1239'][av[2] % 4]), straw = lam('#e9c46a'), straw2 = lam('#c9a13b'), rope = lam('#a8814f'), boot = lam('#3f2a14'), brass = metalMat('#c9a227');
+    const pump = lam('#f97316'), pump2 = lam('#ea580c'), stem = lam('#4d5b1f'), leaf = lam('#4d7c0f'), crowM = lam('#1f2430'), beak = lam('#f59e0b');
+    const carve = new THREE.MeshBasicMaterial({ map: tintFace(K.faceCanvas, '#ffd166', '', true), transparent: true });
+    const glow = new THREE.SpriteMaterial({ map: glowTex(), color: '#ff9a1f', transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
+    mats.push(plaid, cuff, denim, denim2, patch, straw, rope, boot, pump, pump2);
+    // a tuft of straw: n thin sticks fanning out from (x, y, z) roughly along dir (1: up, -1: down)
+    const tuft = (par, x, y, z, n, len, dir, spread) => { for (let k = 0; k < n; k++) { const a = (k / n) * (Math.PI * 2), o = box(k % 2 ? straw : straw2, 0.06, len, 0.06, x + Math.cos(a) * spread, y + dir * len * 0.4, z + Math.sin(a) * spread, par); o.rotation.z = Math.cos(a) * 0.5 * dir; o.rotation.x = -Math.sin(a) * 0.5 * dir; } };
+    let crow = null, crowHead = null;
+    return {
+      leg(x) {
+        const hip = grp(K.body, x, 2), kn = grp(hip, 0, -1.0, 1);
+        box(denim, 0.97, 1.04, 0.97, 0, -0.5, 0, hip);
+        if (x < 0) { box(patch, 0.48, 0.42, 0.04, 0.04, -0.6, -0.5, hip); for (const sx of [-0.2, 0.2]) box(denim2, 0.04, 0.38, 0.05, 0.04 + sx, -0.6, -0.52, hip); }
+        box(denim, 0.9, 0.6, 0.9, 0, -0.32, 0, kn); box(denim2, 0.94, 0.1, 0.94, 0, -0.6, 0, kn);
+        tuft(kn, 0, -0.7, 0, 7, 0.32, -1, 0.34);
+        box(boot, 0.98, 0.3, 1.18, 0, -0.86, -0.08, kn);
+        return [hip, kn];
+      },
+      lower() {
+        box(denim, 1.96, 0.84, 0.96, 0, 2.42, 0); tuft(K.body, 0, 2.78, 0, 10, 0.3, -1, 0.95);
+        box(rope, 2.02, 0.12, 1.02, 0, 2.78, 0); const kn = mesh(KIT_SPH, rope, 0.35, 2.78, -0.54); kn.scale.setScalar(0.12);
+        for (const s of [-1, 1]) { const e = box(rope, 0.08, 0.36, 0.08, 0.35 + s * 0.08, 2.6, -0.56); e.rotation.z = s * 0.25; }
+      },
+      upper() {
+        box(plaid, 2.0, 1.16, 1.0, 0, 3.42, 0);
+        box(denim, 1.2, 0.8, 0.06, 0, 3.2, -0.52); box(denim2, 0.5, 0.36, 0.07, 0, 3.24, -0.55); // (the bib and its pocket)
+        for (const s of [-1, 1]) { box(denim, 0.22, 0.5, 0.06, s * 0.5, 3.8, -0.52); box(denim, 0.22, 1.1, 0.06, s * 0.5, 3.5, 0.52); box(denim, 0.22, 0.06, 1.06, s * 0.5, 4.02, 0); const bt = mesh(KIT_CYL, brass, s * 0.5, 3.58, -0.56); bt.scale.set(0.09, 0.04, 0.09); bt.rotation.x = Math.PI / 2; }
+        box(patch, 0.4, 0.36, 0.04, 0.7, 3.62, 0.52);
+        tuft(K.body, 0, 4.0, 0, 12, 0.34, 1, 0.42);
+        // the crow, sitting on the left shoulder
+        crow = grp(K.body, -0.82, 4.1); crow.position.z = 0.1;
+        box(crowM, 0.34, 0.3, 0.56, 0, 0.17, 0, crow); const tl = box(crowM, 0.26, 0.06, 0.4, 0, 0.18, 0.42, crow); tl.rotation.x = -0.35;
+        for (const s of [-1, 1]) { const w = box(crowM, 0.06, 0.24, 0.44, s * 0.18, 0.18, 0.02, crow); w.rotation.x = -0.2; box(beak, 0.04, 0.12, 0.04, s * 0.08, -0.04, 0, crow); }
+        crowHead = grp(crow, 0, 0.42); crowHead.position.z = -0.24;
+        box(crowM, 0.26, 0.26, 0.28, 0, 0, 0, crowHead); const bk = mesh(KIT_CONE, beak, 0, -0.02, -0.24, crowHead); bk.scale.set(0.07, 0.24, 0.07); bk.rotation.x = -Math.PI / 2;
+        for (const s of [-1, 1]) box(lam('#fef3c7'), 0.02, 0.06, 0.06, s * 0.135, 0.05, -0.06, crowHead);
+      },
+      arm(s) {
+        const sh = grp(K.body, s * 1.5, 4), el = grp(sh, 0, -0.98, 1);
+        box(plaid, 1.0, 1.0, 1.0, 0, -0.48, 0, sh); if (s > 0) box(patch, 0.04, 0.34, 0.34, 0.51, -0.6, 0, sh);
+        box(plaid, 0.94, 0.42, 0.94, 0, -0.2, 0, el); box(cuff, 0.98, 0.14, 0.98, 0, -0.42, 0, el);
+        tuft(el, 0, -0.5, 0, 9, 0.5, -1, 0.26); box(rope, 0.7, 0.07, 0.7, 0, -0.56, 0, el);
+        return [sh, el];
+      },
+      head(h) {
+        for (let k = 0; k < 8; k++) { const a = (k / 8) * (Math.PI * 2), r = mesh(KIT_SPH, k % 2 ? pump : pump2, Math.cos(a) * 0.33, 0, Math.sin(a) * 0.33, h); r.scale.set(0.42, 0.6, 0.42); }
+        const mid = mesh(KIT_SPH, pump, 0, 0, 0, h); mid.scale.set(0.66, 0.62, 0.66);
+        const st = mesh(KIT_CYL, stem, 0.05, 0.68, 0, h); st.scale.set(0.09, 0.32, 0.09); st.rotation.z = 0.28;
+        const lf = box(leaf, 0.34, 0.03, 0.2, 0.25, 0.66, 0.1, h); lf.rotation.z = -0.4;
+        const f = mesh(KIT_PLANE, carve, 0, 0, -0.74, h); f.scale.set(0.98, 0.9, 1); f.rotation.y = Math.PI;
+        const gl = new THREE.Sprite(glow); gl.position.set(0, 0, -0.95); gl.scale.setScalar(1.7); h.add(gl);
+        return true;
+      },
+      tick(a, dt) { // the candle flickers; the crow bobs and looks about; now and then a bit of straw drops
+        a.kitT = (a.kitT || 0) + dt; const t = a.kitT, fl = 0.8 + 0.2 * Math.sin(t * 23) * Math.sin(t * 7.3);
+        glow.opacity = 0.5 + 0.35 * fl; carve.color.setScalar(0.85 + 0.15 * fl);
+        if (crow) { if (crow.userData.y0 == null) crow.userData.y0 = crow.position.y; crow.position.y = crow.userData.y0 + Math.abs(Math.sin(t * 1.7)) * 0.04; /* (y0: where it sits, once it's on the waist) */ crowHead.rotation.y = Math.floor(t / 1.6) % 3 === 1 ? 0.9 : Math.floor(t / 1.6) % 3 === 2 ? -0.6 : 0; crowHead.rotation.x = Math.sin(t * 9) > 0.97 ? 0.5 : 0; }
+        a.strawT = (a.strawT || 1.5) - dt;
+        if (a.strawT <= 0 && !a.dead) { a.strawT = 1.5 + Math.random() * 2.5; emBits(a, (Math.random() - 0.5) * 2.2, 3 + Math.random(), (Math.random() - 0.5) * 0.8, [0xe9c46a, 0xc9a13b], 1, { size: 0.14, speed: 0.6, up: 0.4, g: 3, life: 1.4, spread: 0.2 }); }
+      },
+    };
+  },
+);
+BODY_DESC.push('A onesie in your shirt colour: a cream belly with a zip, clawed feet and mitts, spikes down the back, a long tail that sways, and a hood with big cartoon eyes and a toothy snout that your face peeks out from under.',
+  'Plate armour: layered pauldrons, a tabard in your shirt colour with a gold cross, gauntlets, pointed boots, a sword at the hip and a great helm with a plume.',
+  "A jack-o'-lantern head with your face carved in it, glowing and flickering; a flannel shirt, patched overalls and straw poking out everywhere, and a crow on the shoulder that looks about.");
+ANIM_PACKS.push(
+  { snap: 13, // 🦸 Superhero
+    pose(J, a, s) {
+      const r15 = a.r15, h = 2.6;
+      if (s.air) { // flying: tipped forward round the hips, one fist out in front, legs together
+        const f = smooth(Math.min(1, a.airT / 0.28)), th = -1.3 * f;
+        J.bd = [th, 0, 0]; J.up = h - h * Math.cos(th); J.sz = -h * Math.sin(th); J.k = 16;
+        J.aR = [Math.PI - 0.1, 0, 0.12]; J.aL = [-0.15, 0, -0.14]; J.lL = [-0.04, 0, 0.03]; J.lR = [0.04 - 0.2 * f, 0, -0.03]; J.hd = [1.0 * f, 0, 0];
+        if (r15) { J.eR = [0.05, 0, 0]; J.eL = [0.1, 0, 0]; J.kR = [-0.55 * f, 0, 0]; }
+        return;
+      }
+      if (s.land != null && s.land < 0.55 && !s.mv) { // a superhero landing: down on one knee, a fist on the ground, looking up
+        J.k = 22; J.bd = [-0.32, 0, 0]; J.hd = [0.5, 0, 0];
+        if (r15) { J.up = -1.0; J.lL = [1.45, 0, -0.1]; J.kL = [-1.9, 0, 0]; J.lR = [-0.45, 0, 0.12]; J.kR = [-1.6, 0, 0]; J.aR = [0.6, 0, 0.3]; J.eR = [0.1, 0, 0]; J.aL = [-0.5, 0, -0.8]; J.eL = [0.3, 0, 0]; }
+        else { J.up = -0.7; J.lL = [1.2, 0, -0.1]; J.lR = [-0.9, 0, 0.12]; J.aR = [0.5, 0, 0.25]; J.aL = [-0.6, 0, -0.85]; }
+        return;
+      }
+      if (s.mv) { // a hero's sprint: leaning in, fists pumping, knees high
+        const sw = Math.sin(s.ph), c = Math.cos(s.ph);
+        J.bd = [-0.28, 0, 0]; J.hd = [0.25, 0, 0]; J.lL = [1.05 * sw + 0.2, 0, 0]; J.lR = [-1.05 * sw + 0.2, 0, 0]; J.up = 0.1 * Math.abs(c);
+        if (r15) { J.aL = [-1.1 * sw, 0, -0.1]; J.aR = [1.1 * sw, 0, 0.1]; J.eL = J.eR = [1.45, 0, 0]; J.kL = [-(0.25 + 1.3 * Math.max(0, c)), 0, 0]; J.kR = [-(0.25 + 1.3 * Math.max(0, -c)), 0, 0]; J.ws = [0, 0.12 * sw, 0]; }
+        else { J.aL = [-1.2 * sw, 0, -0.1]; J.aR = [1.2 * sw, 0, 0.1]; }
+      } else { // fists on the hips, chest out, looking off into the distance
+        const br = Math.sin(s.t * 1.8);
+        J.lL = [0, 0, -0.16]; J.lR = [0, 0, 0.16]; J.hd = [0.14 + 0.02 * br, -0.25, 0]; J.up = 0.015 * br;
+        if (r15) { J.aL = [0.05, 0, -0.62]; J.eL = [0, 0, 1.55]; J.aR = [0.05, 0, 0.62]; J.eR = [0, 0, -1.55]; J.ws = [-0.08 - 0.015 * br, 0, 0]; }
+        else { J.aL = [0.1, 0, -0.42]; J.aR = [0.1, 0, 0.42]; J.bd = [0.05, 0, 0]; }
+      }
+    },
+    tick(a, dt, s) { // (the landing: a thud and a ring of dust)
+      if (s.land === 0) { emSound(a, 'land', { vol: 0.8 }); for (let k = 0; k < 8; k++) { const an = k * Math.PI / 4; emBits(a, Math.cos(an) * 0.9, 0.1, Math.sin(an) * 0.9 - 0.4, [0xd6d3d1, 0xa8a29e, 0xe7e5e4], 2, { size: 0.24, speed: 5, up: 1.2, g: 6, life: 0.55, spread: 0.3 }); } }
+    },
+  },
+  { snap: 11, // 😎 Stylish
+    pose(J, a, s) {
+      const r15 = a.r15, t = s.t;
+      if (s.air) { // a twirl, arms out, one knee up
+        const f = smooth(Math.min(1, a.airT / 0.6));
+        J.bd = [0, Math.PI * 2 * f, 0]; J.aL = [0.2, 0, -1.25]; J.aR = [0.2, 0, 1.25]; J.lL = [0.9, 0, 0]; J.lR = [-0.1, 0, 0]; J.hd = [0.15, 0, 0]; J.k = 24;
+        if (r15) { J.kL = [-1.4, 0, 0]; J.eL = J.eR = [0.2, 0, 0]; }
+        return;
+      }
+      if (s.mv) { // a strut: shoulders rolling, a bounce in every step, arms loose
+        const sw = Math.sin(s.ph), c = Math.cos(s.ph);
+        J.lL = [0.75 * sw, 0, 0.05]; J.lR = [-0.75 * sw, 0, -0.05]; J.up = 0.1 * Math.abs(c) - 0.03; J.bd = [0.06, 0, 0.05 * sw]; J.hd = [0.05 * Math.abs(c) - 0.02, -0.08 * sw, 0];
+        if (r15) { J.aL = [-0.75 * sw, 0, -0.16]; J.aR = [0.75 * sw, 0, 0.16]; J.eL = [0.25 + 0.35 * Math.max(0, -sw), 0, 0]; J.eR = [0.25 + 0.35 * Math.max(0, sw), 0, 0]; J.ws = [0, -0.22 * sw, 0]; J.kL = [-(0.1 + 0.6 * Math.max(0, c)), 0, 0]; J.kR = [-(0.1 + 0.6 * Math.max(0, -c)), 0, 0]; }
+        else { J.aL = [-0.8 * sw, 0, -0.14]; J.aR = [0.8 * sw, 0, 0.14]; }
+      } else { // weight on one leg, a hand in a pocket, nodding along; now and then brushes the dirt off a shoulder
+        const nod = Math.sin(t * 4.6), c = t % 7, brush = c > 5.2 && c < 6.4, flick = Math.sin((c - 5.2) * 14);
+        J.sx = 0.16; J.lL = [0, 0, -0.08]; J.lR = [0.06, 0, 0]; J.bd = [0, 0.1, -0.05]; J.hd = [0.06 + 0.06 * Math.max(0, nod), brush ? -0.6 : -0.12, brush ? -0.12 : 0.05];
+        if (r15) {
+          J.kR = [-0.25, 0, 0]; J.aR = [-0.25, 0, 0.18]; J.eR = [0.55, 0, 0]; // (in the pocket)
+          if (brush) { J.aL = [1.3, 0, 0.62]; J.eL = [1.85 + 0.3 * flick, 0, 0]; } else { J.aL = [0.05, 0, -0.1]; J.eL = [0.2, 0, 0]; }
+        } else { J.aR = [-0.2, 0, 0.12]; J.aL = brush ? [2.5 + 0.2 * flick, 0, 0.7] : [0.05, 0, -0.08]; }
+      }
+    },
+  },
+  { snap: 6, // 🫧 Levitation
+    pose(J, a, s) {
+      const r15 = a.r15, t = s.t, bob = Math.sin(t * 1.9) * 0.14;
+      J.up = 0.85 + bob;
+      if (s.air) { J.up = 0.5; J.aL = [0.3, 0, -2.1]; J.aR = [0.3, 0, 2.1]; J.lL = [0.2, 0, -0.06]; J.lR = [0.08, 0, 0.06]; J.bd = [0, 0.5 * Math.sin(t * 2.5), 0]; if (r15) { J.kL = J.kR = [-0.45, 0, 0]; J.eL = J.eR = [0.2, 0, 0]; } return; }
+      if (s.mv) { // gliding: tipped forward, legs trailing, arms swept back
+        J.bd = [-0.2, 0, 0.05 * Math.sin(t * 2)]; J.lL = [-0.35 + 0.08 * Math.sin(t * 3), 0, -0.04]; J.lR = [-0.25 + 0.08 * Math.sin(t * 3 + 1), 0, 0.04]; J.aL = [-0.45, 0, -0.45]; J.aR = [-0.45, 0, 0.45]; J.hd = [0.18, 0, 0];
+        if (r15) { J.kL = [-0.75, 0, 0]; J.kR = [-0.55, 0, 0]; J.eL = J.eR = [0.25, 0, 0]; }
+      } else { // drifting: arms out, legs dangling, swaying gently
+        J.aL = [0.15 + 0.08 * Math.sin(t * 1.3), 0, -0.5 - 0.08 * Math.sin(t * 1.7)]; J.aR = [0.15 + 0.08 * Math.sin(t * 1.3 + 1), 0, 0.5 + 0.08 * Math.sin(t * 1.7 + 0.5)];
+        J.lL = [0.12 + 0.06 * Math.sin(t * 1.5), 0, -0.04]; J.lR = [0.02 + 0.06 * Math.sin(t * 1.5 + 1.2), 0, 0.04]; J.bd = [0.02, 0.08 * Math.sin(t * 0.6), 0.03 * Math.sin(t * 0.9)]; J.hd = [0.05, -0.1 * Math.sin(t * 0.6), 0];
+        if (r15) { J.kL = [-0.35, 0, 0]; J.kR = [-0.55, 0, 0]; J.eL = J.eR = [0.35, 0, 0]; }
+      }
+    },
+    tick(a, dt) { // (a soft sparkle drifting down from under your feet)
+      a.lvT = (a.lvT || 0) - dt; if (a.lvT > 0) return; a.lvT = 0.12;
+      emBits(a, (Math.random() - 0.5) * 0.9, 0.55 + Math.sin(a.packT * 1.9) * 0.14, (Math.random() - 0.5) * 0.5, [0xbae6fd, 0xe0f2fe, 0xc4b5fd, 0xfef9c3], 1, { size: 0.12, speed: 0.3, up: -0.3, g: 0.6, life: 0.9, spread: 0.6 });
+    },
+  },
+);
+ANIM_DESC.push('Fists on the hips and chest out; sprints with knees high, flies through the air with a fist out front and lands on one knee.',
+  'Weight on one leg, a hand in the pocket, nodding along and brushing the dirt off a shoulder; struts with a bounce and twirls when it jumps.',
+  'Always floating, legs dangling and arms drifting; glides along leaning forward, with sparkles falling from under your feet.');
 function makeAvatar(av, name, mine, ax) {
   av = okAv(av);
   const X = xLooks(ax); // (made and limited items on top: a hat, a shirt's front, a face)
@@ -1786,7 +2064,7 @@ function makeAvatar(av, name, mine, ax) {
     box(shirt, 1.02, 0.84, 1.02, 0, -0.4, 0, armL); box(shirt, 1.02, 0.84, 1.02, 0, -0.4, 0, armR); // a hair above the arm's top, or the two tops flicker
   } else {
     const grp = (par, x, y, joint) => { const o = new THREE.Group(); o.position.set(x, y, 0); par.add(o); if (joint) o.userData.limb = 1; return o; };
-    kit = BODY_KITS[av[10]]({ body, box, mesh, lam, grp, mats, av, shirt, pants, skin, frontTex, faceCanvas: (X.f ? pixTex(X.f.px, '') : FACE_TEX[av[4]]).image });
+    kit = BODY_KITS[av[10]]({ body, box, mesh, lam, grp, mats, av, shirt, pants, skin, frontTex, faceTex: X.f ? pixTex(X.f.px, '') : FACE_TEX[av[4]], faceCanvas: (X.f ? pixTex(X.f.px, '') : FACE_TEX[av[4]]).image });
     [legL, J.knL] = kit.leg(-0.5); [legR, J.knR] = kit.leg(0.5); kit.lower();
     waist = new THREE.Group(); waist.position.set(0, 2.84, 0); body.add(waist);
     upFrom = body.children.length; // (from here on, it all goes on the upper body)
@@ -1980,13 +2258,15 @@ function trailTick(a, dt, moving) {
 function dropAvatar(a) { if (!a) return; emStop(a, true); scene.remove(a.g); if (a.shadow) scene.remove(a.shadow); if (a.pet) scene.remove(a.pet.g); if (a.bub) { a.bub.material.map.dispose(); } }
 function animateAvatar(a, dt, moving, air) {
   if (a.dead) return;
-  a.walk += dt * 10; a.airT = air ? (a.airT || 0) + dt : 0; a.packT = (a.packT || 0) + dt;
+  const wasAir = a.airT || 0;
+  a.walk += dt * 10; a.airT = air ? wasAir + dt : 0; a.packT = (a.packT || 0) + dt;
+  if (!air && wasAir > 0.35) a.landT = 0; else if (a.landT != null) a.landT = a.landT > 5 ? null : a.landT + dt; // (since landing from a jump)
   if (a.kitTick) a.kitTick(a, dt);
   if (a.em) { if (moving || air) emStop(a); else { emTick(a, dt); return; } } // (moving ends an emote)
   // an animation pack (not while an experience has you sitting: in a kart, on a horse, on a ride)
   const A = a.pack && performance.now() - (a.seatAt || 0) > 300 ? a.pack : null;
   if (A) {
-    const J = emPose(), s = { mv: moving, air, ph: a.walk, t: a.packT };
+    const J = emPose(), s = { mv: moving, air, ph: a.walk, t: a.packT, land: a.landT };
     A.pose(J, a, s); emApply(a, J, Math.min(1, dt * (J.k || A.snap || 14))); if (A.tick) A.tick(a, dt, s);
     a.emOut = 0; a.packOn = true; return;
   }
@@ -2053,7 +2333,7 @@ function puffAt(x, y, z, color, n = 14) {
 const CONFETTI = [0xef4444, 0xf59e0b, 0x22c55e, 0x3b82f6, 0xa855f7, 0xec4899];
 
 /* ---------------- emotes ----------------
-   Seven: 👋 Wave and 🎉 Cheer are free, the other five cost Blox Coins (yours: 'em<i>' in W.own). Each one poses the
+   Ten: 👋 Wave and 🎉 Cheer are free, the rest cost Blox Coins (yours: 'em<i>' in W.own). Each one poses the
    body over time: pose(J, t, a) fills J (every joint's turn [x, y, z], the body's lift up and shift sx / sz) and the
    body eases to it. R15 bends its elbows and knees and turns at the waist as well; R6 does what it can with straight
    arms and legs. fx makes and moves the emote's own things (a boombox, a glowing ring, notes, confetti), and ev has
@@ -2402,11 +2682,248 @@ const EMOTES = [
     ev(a, t0, t1) { if (crossed(t0, t1, 0.02)) emSound(a, 'magic'); const n = beatOf(t0, t1, 2.6); if (n > 0) emSound(a, 'bell', { pitch: 0.5, vol: 0.22, gap: 0 }); },
   },
 ];
+/* the emotes' music: a little synth on the sound library's output (so 🔊 and the volume work on it): power chords
+   through a fuzz, a disco bassline with drums, a music-box lullaby. Someone else's is quieter the further away. */
+let EM_NOISE = null, EM_FUZZ = null;
+function emSynth(a, fn) {
+  const S = window.Sfx && window.Sfx.audio ? window.Sfx.audio() : null; if (!S) return;
+  let k = 1;
+  if (a !== me && !(typeof pv !== 'undefined' && a === pv.a)) { if (!emWorld(a)) return; const p = a.g.position, d = Math.hypot(p.x - P.x, p.z - P.z); if (d >= 45) return; k = Math.pow(1 - d / 45, 1.6); }
+  try { fn(S.ac, S.out, k, S.ac.currentTime + 0.01); } catch (e) {}
+}
+const synEnv = (p, t, att, dur, v) => { p.setValueAtTime(0.0001, t); p.exponentialRampToValueAtTime(Math.max(0.0002, v), t + att); p.exponentialRampToValueAtTime(0.0001, t + Math.max(dur, att + 0.01)); };
+function synTone(ac, out, o) { // f (Hz), t (start), dur, vol, type, att, f2 (glide to), ff (lowpass)
+  const g = ac.createGain(), osc = ac.createOscillator(); osc.type = o.type || 'sine'; osc.frequency.setValueAtTime(o.f, o.t); if (o.f2) osc.frequency.exponentialRampToValueAtTime(o.f2, o.t + o.dur);
+  let n = osc;
+  if (o.ff) { const fl = ac.createBiquadFilter(); fl.type = 'lowpass'; fl.frequency.value = o.ff; n.connect(fl); n = fl; }
+  n.connect(g); g.connect(out); synEnv(g.gain, o.t, o.att || 0.005, o.dur, o.vol);
+  osc.start(o.t); osc.stop(o.t + o.dur + 0.05);
+}
+function synNoise(ac, out, o) { // t, dur, vol, type (highpass / bandpass / lowpass) at ff Hz
+  if (!EM_NOISE) { EM_NOISE = ac.createBuffer(1, ac.sampleRate, ac.sampleRate); const d = EM_NOISE.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+  const src = ac.createBufferSource(), fl = ac.createBiquadFilter(), g = ac.createGain(); src.buffer = EM_NOISE;
+  fl.type = o.type || 'highpass'; fl.frequency.value = o.ff || 6000; fl.Q.value = o.q || 0.7;
+  src.connect(fl); fl.connect(g); g.connect(out); synEnv(g.gain, o.t, o.att || 0.002, o.dur, o.vol); src.start(o.t, Math.random() * 0.5); src.stop(o.t + o.dur + 0.05);
+}
+const synKick = (ac, out, t, v) => synTone(ac, out, { f: 150, f2: 45, t, dur: 0.22, vol: v, type: 'sine' });
+function powerChord(ac, out, f, t, dur, vol) { // root, fifth and octave on sawtooths, through a fuzz and a tone control
+  if (!EM_FUZZ) { EM_FUZZ = new Float32Array(512); for (let i = 0; i < 512; i++) EM_FUZZ[i] = Math.tanh((i / 255.5 - 1) * 6); }
+  const mix = ac.createGain(), fz = ac.createWaveShaper(), fl = ac.createBiquadFilter(), g = ac.createGain();
+  fz.curve = EM_FUZZ; fl.type = 'lowpass'; fl.frequency.value = 2400; mix.gain.value = 0.5;
+  for (const [m, d] of [[1, -6], [1.5, 5], [2, 0]]) { const o = ac.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f * m; o.detune.value = d; o.connect(mix); o.start(t); o.stop(t + dur + 0.05); }
+  mix.connect(fz); fz.connect(fl); fl.connect(g); g.connect(out); synEnv(g.gain, t, 0.004, dur, vol);
+}
+// pictures: a sleepy Z, an amp's grille cloth
+function zTex() {
+  if (EM_TEX.z) return EM_TEX.z;
+  const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d');
+  g.font = '900 52px system-ui,sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineWidth = 7; g.strokeStyle = '#1e3a8a'; g.strokeText('Z', 32, 34); g.fillStyle = '#bfdbfe'; g.fillText('Z', 32, 34);
+  return (EM_TEX.z = new THREE.CanvasTexture(c));
+}
+function grillTex() {
+  if (EM_TEX.grill) return EM_TEX.grill;
+  const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d');
+  g.fillStyle = '#2a2d33'; g.fillRect(0, 0, 64, 64); g.strokeStyle = 'rgba(255,255,255,.08)'; g.lineWidth = 1;
+  for (let k = -64; k < 64; k += 4) { g.beginPath(); g.moveTo(k, 0); g.lineTo(k + 64, 64); g.moveTo(k + 64, 0); g.lineTo(k, 64); g.stroke(); }
+  return (EM_TEX.grill = new THREE.CanvasTexture(c));
+}
+// 🎸 a Flying V: a glossy red body (the V points away from the neck), pickups, a bridge, knobs, a rosewood neck with
+// frets, a headstock with six pegs and four strings. The neck runs along -x; its face is -z.
+function flyingV(par) {
+  const g = new THREE.Group(), red = new THREE.MeshPhongMaterial({ color: '#dc2626', shininess: 90, specular: '#ffffff' }), black = new THREE.MeshLambertMaterial({ color: '#111827' }), chrome = metalMat('#e5e7eb'), wood = new THREE.MeshLambertMaterial({ color: '#5b3416' }), white = new THREE.MeshLambertMaterial({ color: '#f8fafc' });
+  const sh = new THREE.Shape(); sh.moveTo(0, 0.16); sh.lineTo(1.15, 0.58); sh.lineTo(1.32, 0.42); sh.lineTo(0.58, 0); sh.lineTo(1.32, -0.42); sh.lineTo(1.15, -0.58); sh.lineTo(0, -0.16); sh.closePath();
+  const geo = new THREE.ExtrudeGeometry(sh, { depth: 0.14, bevelEnabled: true, bevelThickness: 0.025, bevelSize: 0.025, bevelSegments: 1 }); geo.translate(0, 0, -0.14);
+  g.add(new THREE.Mesh(geo, red));
+  const add = (m, sx, sy, sz, x, y, z) => { const o = new THREE.Mesh(BOX, m); o.scale.set(sx, sy, sz); o.position.set(x, y, z); g.add(o); return o; };
+  const wing = add(white, 0.62, 0.05, 0.02, 0.62, 0.24, -0.18); wing.rotation.z = 0.33; const wing2 = add(white, 0.62, 0.05, 0.02, 0.62, -0.24, -0.18); wing2.rotation.z = -0.33;
+  add(black, 0.13, 0.3, 0.04, 0.22, 0, -0.19); add(black, 0.13, 0.3, 0.04, 0.45, 0, -0.19); add(chrome, 0.08, 0.32, 0.04, 0.66, 0, -0.19);
+  for (const [x, y] of [[0.95, 0.32], [1.08, 0.4], [0.95, -0.32]]) { const k = new THREE.Mesh(KIT_CYL, chrome); k.scale.set(0.05, 0.05, 0.05); k.rotation.x = Math.PI / 2; k.position.set(x, y, -0.19); g.add(k); }
+  add(wood, 1.75, 0.15, 0.1, -0.85, 0, -0.09);
+  for (let k = 1; k < 9; k++) add(chrome, 0.015, 0.15, 0.02, 0.02 - 0.19 * k, 0, -0.145);
+  const hs = add(red, 0.42, 0.26, 0.07, -1.9, 0.05, -0.09); hs.rotation.z = 0.25;
+  for (let k = 0; k < 3; k++) for (const s of [-1, 1]) { const p = new THREE.Mesh(KIT_CYL, chrome); p.scale.set(0.03, 0.09, 0.03); p.position.set(-1.76 - k * 0.11, 0.06 + s * 0.16 + k * 0.025, -0.09); g.add(p); }
+  for (let k = 0; k < 4; k++) add(chrome, 2.4, 0.008, 0.008, -0.53, -0.045 + k * 0.03, -0.165);
+  par.add(g); return g;
+}
+// an amp stack: two cabinets with grille cloth, a head on top with a gold panel, knobs and a logo
+function ampStack(par) {
+  const g = new THREE.Group(), blk = new THREE.MeshLambertMaterial({ color: '#16181d' }), grill = new THREE.MeshLambertMaterial({ map: grillTex() }), gold = metalMat('#d9ad34'), white = new THREE.MeshBasicMaterial({ color: '#f8fafc' }), led = new THREE.MeshBasicMaterial({ color: '#ef4444' });
+  const add = (m, sx, sy, sz, x, y, z) => { const o = new THREE.Mesh(BOX, m); o.scale.set(sx, sy, sz); o.position.set(x, y, z); g.add(o); return o; };
+  for (const y of [0.76, 2.28]) { add(blk, 1.6, 1.5, 0.85, 0, y, 0); add(grill, 1.38, 1.28, 0.02, 0, y, -0.43); add(white, 0.36, 0.08, 0.02, 0.45, y + 0.55, -0.445); }
+  add(blk, 1.66, 0.56, 0.86, 0, 3.32, 0); add(gold, 1.46, 0.3, 0.02, 0, 3.3, -0.435); add(led, 0.06, 0.06, 0.02, 0.62, 3.3, -0.45);
+  for (let k = 0; k < 6; k++) { const kn = new THREE.Mesh(KIT_CYL, blk); kn.scale.set(0.055, 0.05, 0.055); kn.rotation.x = Math.PI / 2; kn.position.set(-0.6 + k * 0.2, 3.3, -0.46); g.add(kn); }
+  add(white, 0.56, 0.1, 0.02, 0, 3.52, -0.44);
+  par.add(g); return g;
+}
+EMOTES.push(
+  { id: 'nap', nm: 'Nap Time', ic: '💤', price: 300, loop: 1, snap: 7, d: 'A big yawn, then a snooze: pillow, blanket, teddy, a nightcap and a lullaby',
+    pose(J, t, a) {
+      const r15 = a.r15;
+      if (t < 1.3) { // a yawn and a stretch
+        const f = smooth(t / 0.5) * (1 - smooth((t - 1.0) / 0.3));
+        J.aL = [0.25, 0, -2.6 * f]; J.aR = [0.25, 0, 2.6 * f]; J.hd = [0.5 * f, 0, 0]; J.bd = [0.1 * f, 0, 0]; J.up = 0.06 * f;
+        if (r15) { J.eL = J.eR = [0.6 * f, 0, 0]; J.ws = [0.12 * f, 0, 0]; }
+        return;
+      }
+      // down on your back with your head on the pillow, breathing slowly, head lolled to one side
+      const f = smooth((t - 1.3) / 0.8), br = Math.sin(t * 2.2);
+      J.bd = [Math.PI / 2 * f, 0, 0]; J.up = 0.78 * f; J.hd = [0.1 * f, 0, 0.3 * f]; J.aL = [0, 0, -0.1]; J.aR = [0, 0, 0.1]; J.lL = [0, 0, -0.03]; J.lR = [0, 0, 0.03];
+      if (r15) { J.ws = [0.03 * br * f, 0, 0]; J.eL = J.eR = [0.1, 0, 0]; }
+    },
+    fx: {
+      make(a, F) {
+        const lam = (c, o) => new THREE.MeshLambertMaterial(Object.assign({ color: c }, o || {}));
+        const add = (par, m, sx, sy, sz, x, y, z, geo) => { const o = new THREE.Mesh(geo || BOX, m); o.scale.set(sx, sy, sz); o.position.set(x, y, z); par.add(o); return o; };
+        F.bed = new THREE.Group(); F.root.add(F.bed);
+        const pil = lam('#e0f2fe'); add(F.bed, pil, 1.8, 0.4, 1.0, 0, 0.2, 4.75); for (const s of [-1, 1]) add(F.bed, pil, 0.24, 0.2, 0.5, s * 0.9, 0.2, 4.75, KIT_SPH);
+        add(F.bed, lam('#bae6fd'), 1.82, 0.05, 0.3, 0, 0.42, 4.75);
+        const q = lam('#ffffff', { map: quiltTex(SHIRTS[a.av[1]]) });
+        F.blanket = add(F.bed, q, 2.5, 0.16, 3.6, 0, 1.36, 1.95); add(F.bed, lam('#f8fafc'), 2.56, 0.2, 0.44, 0, 1.4, 3.76);
+        for (const s of [-1, 1]) add(F.bed, q, 0.12, 1.1, 3.6, s * 1.25, 0.86, 1.95);
+        // a teddy bear tucked in beside you, with a red bow
+        const ted = new THREE.Group(); ted.position.set(1.6, 0.05, 3.3); ted.rotation.y = -0.5; F.bed.add(ted);
+        const fur = lam('#b7794a'), mz = lam('#e9c9a4'), eye = lam('#111827'), bow = lam('#ef4444'), sp = (m, sx, sy, sz, x, y, z) => add(ted, m, sx, sy, sz, x, y, z, KIT_SPH);
+        sp(fur, 0.42, 0.46, 0.36, 0, 0.45, 0); sp(mz, 0.24, 0.26, 0.1, 0, 0.42, -0.3); sp(fur, 0.34, 0.32, 0.32, 0, 1.05, 0); sp(mz, 0.14, 0.11, 0.1, 0, 0.98, -0.3); sp(eye, 0.05, 0.035, 0.03, 0, 1.02, -0.4);
+        for (const s of [-1, 1]) { sp(fur, 0.12, 0.12, 0.08, s * 0.24, 1.32, 0); sp(mz, 0.06, 0.06, 0.04, s * 0.24, 1.32, -0.06); sp(fur, 0.13, 0.13, 0.15, s * 0.3, 0.12, -0.12); sp(fur, 0.11, 0.22, 0.11, s * 0.42, 0.55, -0.05); sp(eye, 0.04, 0.04, 0.03, s * 0.11, 1.12, -0.29); sp(bow, 0.1, 0.07, 0.05, s * 0.1, 0.78, -0.27); }
+        // a striped nightcap, flopping over with a bobble on the end
+        const capM = lam('#3b82f6'), capW = lam('#f8fafc');
+        F.cap = new THREE.Group(); F.cap.position.set(0, 0.5, 0); F.cap.rotation.z = -0.3; F.hd.add(F.cap);
+        for (let k = 0; k < 5; k++) { const r0 = 0.72 - k * 0.13; add(F.cap, k % 2 ? capW : capM, r0, 0.24, r0, 0.07 * k * k * 0.5, 0.12 + k * 0.22, 0, KIT_CYL); }
+        add(F.cap, capW, 0.18, 0.18, 0.18, 0.62, 1.2, 0, KIT_SPH); add(F.cap, capW, 0.74, 0.14, 0.74, 0, 0.05, 0, KIT_CYL);
+        F.zz = [0, 1, 2].map(() => emSprite(F.root, zTex(), 0.6));
+        F.bub = new THREE.Mesh(KIT_SPH, new THREE.MeshPhongMaterial({ color: '#bae6fd', transparent: true, opacity: 0.55, shininess: 120, specular: '#ffffff' })); F.root.add(F.bub); F.bub.visible = false;
+      },
+      tick(a, F, t) {
+        const lie = smooth((t - 1.75) / 0.45); // (the bedding drops in as you lie down)
+        F.bed.visible = lie > 0.01; F.bed.position.y = (1 - lie) * 3;
+        F.blanket.scale.y = 0.16 * (1 + 0.18 * Math.sin(t * 2.2));
+        const cap = smooth((t - 0.1) / 0.25); F.cap.scale.setScalar(Math.max(0.001, cap)); F.cap.rotation.z = -0.3 - 0.06 * Math.sin(t * 2.2);
+        F.zz.forEach((s, j) => { const on = t > 2.4, ph = ((t - 2.4) * 0.42 + j / 3) % 1; s.visible = on; s.position.set(0.45 + ph * 1.3 + Math.sin(ph * 6 + j) * 0.2, 1.7 + ph * 2.7, 4.6); s.scale.setScalar(0.35 + ph * 0.55); s.material.opacity = Math.sin(ph * Math.PI); s.material.rotation = 0.25 * Math.sin(ph * 5 + j); });
+        if (t > 2.6) { const ph = ((t - 2.6) % 2.8) / 2.8, sz = 0.05 + 0.3 * ph; F.bub.visible = ph < 0.97; F.bub.scale.setScalar(sz); F.bub.position.set(0.22, 1.5 + sz * 0.6, 4.5); }
+      },
+    },
+    ev(a, t0, t1) {
+      if (crossed(t0, t1, 0.2)) emSynth(a, (ac, out, k, at) => { synTone(ac, out, { f: 430, f2: 220, t: at, dur: 1.0, vol: 0.07 * k, type: 'triangle', att: 0.15 }); synNoise(ac, out, { t: at, dur: 0.9, vol: 0.03 * k, type: 'bandpass', ff: 900, q: 1.5, att: 0.2 }); });
+      if (crossed(t0, t1, 1.9)) emSound(a, 'land', { vol: 0.45 });
+      if (t1 > 2.2) { // a music-box lullaby (Twinkle, Twinkle)
+        const n = beatOf(t0 - 2.2, t1 - 2.2, 0.5), mel = [523.3, 523.3, 784, 784, 880, 880, 784, 0, 698.5, 698.5, 659.3, 659.3, 587.3, 587.3, 523.3, 0];
+        if (n >= 0 && mel[n % 16]) emSynth(a, (ac, out, k, at) => { synTone(ac, out, { f: mel[n % 16], t: at, dur: 1.2, vol: 0.05 * k }); synTone(ac, out, { f: mel[n % 16] * 2, t: at, dur: 0.45, vol: 0.014 * k, type: 'triangle' }); });
+      }
+      if (t1 > 2.6) { // a snore every breath; the bubble pops
+        const s = beatOf(t0 - 2.6, t1 - 2.6, 2.8);
+        if (s >= 0) emSynth(a, (ac, out, k, at) => { synNoise(ac, out, { t: at + 0.2, dur: 1.1, vol: 0.045 * k, type: 'lowpass', ff: 380, att: 0.5 }); synTone(ac, out, { f: 62, f2: 72, t: at + 0.2, dur: 1.1, vol: 0.045 * k, type: 'sawtooth', ff: 300, att: 0.5 }); });
+        if (s > 0) emSound(a, 'pop', { vol: 0.25, pitch: 1.6 });
+      }
+    },
+  },
+  { id: 'disco', nm: 'Disco Fever', ic: '🪩', price: 450, loop: 1, snap: 14, d: 'Point to the sky under a mirror ball, on a light-up dance floor',
+    pose(J, t, a) {
+      const r15 = a.r15, u = t / 0.42, n = Math.floor(u), f = u - n, bar = Math.floor(n / 8) % 4, bounce = Math.abs(Math.sin(u * Math.PI));
+      J.up = -0.06 + 0.07 * bounce;
+      if (bar === 3 && n % 8 >= 6) { // every fourth bar ends in a spin
+        const g = smooth((n % 8 - 6 + f) / 2); J.bd = [0, Math.PI * 2 * g, 0]; J.aL = [0.2, 0, -1.3]; J.aR = [0.2, 0, 1.3]; J.hd = [0.2, 0, 0]; if (r15) J.kL = J.kR = [-0.2, 0, 0]; return;
+      }
+      const up = Math.floor(n / 2) % 2 === 0, s = up ? 1 : -1; // (two beats pointing up and out, two pointing down and across)
+      if (r15) { J.aR = up ? [0.35, 0, 2.55] : [0.6, 0, -0.45]; J.eR = [up ? 0.05 : 0.2, 0, 0]; J.aL = [0.05, 0, -0.62]; J.eL = [0, 0, 1.5]; J.kL = [-0.25 - 0.15 * bounce, 0, 0]; J.kR = [-0.1, 0, 0]; J.ws = [0, -0.15 * s, 0.08 * s]; }
+      else { J.aR = up ? [0.3, 0, 2.6] : [0.55, 0, -0.4]; J.aL = [0.05, 0, -0.4]; }
+      J.sx = 0.22 * s; J.lL = [0, 0, -0.11 * s]; J.lR = [0, 0, -0.11 * s]; J.bd = [0, 0, -0.06 * s]; J.hd = [up ? 0.35 : -0.25, up ? -0.35 : 0.2, 0];
+    },
+    fx: { // a 5 × 5 floor that lights up to the beat, a mirror ball on a chain sweeping coloured beams, a glint
+      make(a, F) {
+        F.tiles = [];
+        for (let x = -2; x <= 2; x++) for (let z = -2; z <= 2; z++) { const m = new THREE.Mesh(BOX, new THREE.MeshBasicMaterial(Object.assign({ color: '#1e1b4b', transparent: true, opacity: 0.85 }, DECAL))); m.scale.set(1.22, 0.05, 1.22); m.position.set(x * 1.3, 0.04, z * 1.3); F.root.add(m); F.tiles.push(m); }
+        F.ball = new THREE.Group(); F.ball.position.set(0, 9.2, 0); F.root.add(F.ball);
+        F.mir = new THREE.Mesh(new THREE.IcosahedronGeometry(0.95, 1), metalMat('#e5e7eb', { flatShading: true, shininess: 140, specular: '#ffffff' })); F.ball.add(F.mir);
+        const ch = new THREE.Mesh(BOX, metalMat('#9ca3af')); ch.scale.set(0.05, 3, 0.05); ch.position.y = 2.4; F.ball.add(ch);
+        const geo = new THREE.ConeGeometry(0.75, 10, 14, 1, true); geo.translate(0, -5, 0);
+        F.beams = new THREE.Group(); F.ball.add(F.beams);
+        ['#f472b6', '#22d3ee', '#facc15', '#a78bfa', '#4ade80', '#fb923c'].forEach((c, j) => { const piv = new THREE.Group(); piv.rotation.y = j * Math.PI / 3; F.beams.add(piv); const b = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 0.2, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })); b.rotation.x = 0.5 + (j % 2) * 0.22; piv.add(b); });
+        F.glint = emSprite(F.ball, glowTex(), 2.6, { color: '#ffffff', blending: THREE.AdditiveBlending });
+        emNotes(F, 4, [0, 6.2, 0]);
+      },
+      tick(a, F, t) {
+        const n = Math.floor(t / 0.42), f = (t % 0.42) / 0.42, cols = ['#f472b6', '#22d3ee', '#facc15', '#a78bfa', '#4ade80', '#fb923c'];
+        F.tiles.forEach((m, i) => { const h = Math.sin(i * 12.9898 + n * 78.233) * 43758.5453, r = h - Math.floor(h), on = r > 0.4; m.material.color.set(on ? cols[Math.floor(r * 60) % 6] : '#1e1b4b'); m.material.opacity = on ? 0.95 - 0.35 * f : 0.8; });
+        F.mir.rotation.y = t * 0.8; F.beams.rotation.y = t * 0.8; F.glint.material.opacity = 0.4 + 0.6 * Math.max(0, Math.sin(t * 9));
+        F.ball.position.y = 9.2 + (1 - smooth(t / 0.6)) * 6; // (it comes down from above)
+        emNotesTick(F, t, 0.5);
+      },
+    },
+    ev(a, t0, t1) { // four-on-the-floor: kick, open hat on the off-beat, a clap, an octave bassline, a string stab each bar
+      const e = beatOf(t0, t1, 0.21); if (e < 0) return;
+      const r = [110, 110, 146.83, 164.81][Math.floor(e / 16) % 4];
+      emSynth(a, (ac, out, k, at) => {
+        if (e % 2 === 0) synKick(ac, out, at, 0.22 * k); else synNoise(ac, out, { t: at, dur: 0.06, vol: 0.06 * k, ff: 7500 });
+        if (e % 4 === 2) synNoise(ac, out, { t: at, dur: 0.13, vol: 0.07 * k, type: 'bandpass', ff: 1500, q: 0.9 });
+        synTone(ac, out, { f: e % 2 ? r * 2 : r, t: at, dur: 0.19, vol: 0.07 * k, type: 'square', ff: 900 });
+        if (e % 16 === 0) for (const m of [2, 2.4, 3, 3.6]) synTone(ac, out, { f: r * m, t: at, dur: 0.5, vol: 0.018 * k, type: 'sawtooth', ff: 2200, att: 0.02 });
+      });
+    },
+  },
+  { id: 'rock', nm: 'Rock Out', ic: '🎸', price: 650, loop: 1, snap: 16, d: 'Shred a Flying V: headbanging, a jump with pyro, a solo on your knees',
+    pose(J, t, a) {
+      const c = t % 6.4, r15 = a.r15, bt = c / 0.4, bang = Math.abs(Math.sin(bt * Math.PI)), strum = Math.sin(c * Math.PI / 0.1);
+      const hold = (fast) => { // (left hand up the neck, right hand at the strings, strumming)
+        if (r15) { J.aL = [1.0, 0, -0.3]; J.eL = [0.75, 0, 0.55 + 0.08 * Math.sin(bt * 1.7)]; J.aR = [0.5, 0, 0.18]; J.eR = [1.25, 0, -0.35 + (fast ? 0.18 : 0.3) * strum]; }
+        else { J.aL = [1.15, 0, 0.25]; J.aR = [0.75 + 0.12 * strum, 0, 0.05]; }
+      };
+      if (c < 3.2 || c >= 5.8) { // the riff: headbanging, knees bouncing
+        hold(false); J.hd = [-0.1 - 0.38 * bang, 0, 0]; J.up = -0.05 - 0.06 * bang; J.lL = [0.1, 0, -0.14]; J.lR = [-0.05, 0, 0.14];
+        if (r15) { J.kL = J.kR = [-0.25 - 0.15 * bang, 0, 0]; J.ws = [-0.08 * bang, 0.1 * Math.sin(bt * Math.PI / 2), 0]; J.up -= 0.06; } else J.bd = [-0.08 * bang, 0, 0];
+      } else if (c < 4.0) { // wind-up: legs wide, leaning back, the right arm windmilling
+        const f = (c - 3.2) / 0.8; hold(false);
+        J.aR = [0.5 + Math.PI * 2 * smooth(f), 0, 0.25]; if (r15) { J.eR = [0.1, 0, 0]; J.ws = [0.2, 0, 0]; } else J.bd = [0.15, 0, 0];
+        J.lL = [0, 0, -0.32]; J.lR = [0, 0, 0.32]; J.hd = [0.35, 0, 0]; J.up = -0.12;
+      } else if (c < 4.6) { // the jump (and the pyro)
+        const f = (c - 4.0) / 0.6; hold(true);
+        J.up = 1.9 * 4 * f * (1 - f); J.aR = [0.3, 0, 2.5]; J.hd = [0.4, 0, 0]; J.lL = [1.0, 0, -0.1]; J.lR = [-0.3, 0, 0.1];
+        if (r15) { J.kL = [-1.5, 0, 0]; J.kR = [-0.8, 0, 0]; J.eR = [0.1, 0, 0]; }
+      } else { // down on your knees, leaning back, the solo
+        hold(true); J.hd = [0.5, 0, 0];
+        if (r15) { J.up = -1.0; J.lL = J.lR = [-0.08, 0, 0]; J.kL = J.kR = [-1.6, 0, 0]; J.ws = [0.35, 0, 0]; }
+        else { J.up = -0.55; J.lL = J.lR = [-0.45, 0, 0]; J.bd = [0.15, 0, 0]; }
+      }
+    },
+    fx: { // the guitar (on the upper body, on its strap), an amp stack each side pumping to the beat, pyro, notes
+      make(a, F) {
+        F.gtr = flyingV(F.up); F.gtr.position.set(0.15, 2.95, -0.66); F.gtr.rotation.z = -0.42;
+        const strap = new THREE.Mesh(BOX, new THREE.MeshLambertMaterial({ color: '#111827' })); strap.scale.set(0.14, 2.3, 0.04); strap.position.set(-0.05, 3.5, -0.55); strap.rotation.z = -0.72; F.up.add(strap);
+        F.amps = [-1, 1].map((s) => { const m = ampStack(F.root); m.position.set(s * 3.1, 0, 1.2); m.rotation.y = -s * 0.35; return m; });
+        F.fire = [-1, 1].map((s) => { const g = new THREE.Group(); g.position.set(s * 3.1, 0, -0.5); F.root.add(g); g.userData.f = Array.from({ length: 7 }, (_, j) => emSprite(g, glowTex(), 1, { color: ['#fff3b0', '#ffd166', '#ff9a1f', '#ff5a1f'][j % 4], blending: THREE.AdditiveBlending })); return g; });
+        emNotes(F, 4, [0, 6.4, 0]);
+      },
+      tick(a, F, t) {
+        const c = t % 6.4, beat = Math.max(0, Math.cos((c / 0.4) * Math.PI * 2));
+        const up = c >= 3.2 && c < 4.6 ? smooth(Math.min(1, (c - 3.2) / 0.25)) * (1 - smooth((c - 4.45) / 0.15)) : 0; // (held up high for the wind-up and the jump)
+        F.gtr.rotation.z = -0.42 - 0.55 * up; F.gtr.position.y = 2.95 + 0.25 * up;
+        for (const m of F.amps) m.scale.set(1 + 0.03 * beat, 1 + 0.05 * beat, 1 + 0.03 * beat);
+        const burst = c >= 4.0 && c < 5.0 ? Math.sin((c - 4.0) * Math.PI) : 0;
+        for (const g of F.fire) g.userData.f.forEach((s, j) => { const fl = 0.7 + 0.3 * Math.sin(t * 30 + j * 2); s.visible = burst > 0.01; s.position.set(Math.sin(t * 13 + j) * 0.15 * burst, 0.3 + j * 0.75 * burst, 0); s.scale.setScalar((1.7 - j * 0.15) * burst * fl + 0.001); s.material.opacity = burst; });
+        emNotesTick(F, t, 0.55);
+      },
+    },
+    ev(a, t0, t1) {
+      const c0 = t0 % 6.4, c1 = t1 % 6.4; if (c1 < c0) return;
+      const riff = [82.41, 82.41, 82.41, 98, 82.41, 82.41, 110, 98, 82.41, 82.41, 82.41, 98, 116.54, 110, 98, 82.41], riffing = c1 < 3.2 || c1 >= 5.8;
+      const e = beatOf(c0, c1, 0.2), b = beatOf(c0, c1, 0.4), sh = beatOf(c0, c1, 0.1);
+      if (e >= 0 && riffing) emSynth(a, (ac, out, k, at) => powerChord(ac, out, riff[e % 16], at, 0.19, 0.05 * k));
+      if (b >= 0 && riffing) emSynth(a, (ac, out, k, at) => { if (b % 2 === 0) synKick(ac, out, at, 0.25 * k); else synNoise(ac, out, { t: at, dur: 0.14, vol: 0.12 * k, type: 'bandpass', ff: 1800, q: 0.8 }); });
+      if (crossed(c0, c1, 3.2)) emSynth(a, (ac, out, k, at) => powerChord(ac, out, 82.41, at, 0.8, 0.06 * k));
+      if (crossed(c0, c1, 4.0)) {
+        emSynth(a, (ac, out, k, at) => { powerChord(ac, out, 110, at, 1.4, 0.07 * k); synKick(ac, out, at, 0.3 * k); });
+        emSound(a, 'explode', { vol: 0.35 });
+        for (const s of [-1, 1]) emBits(a, s * 3.1, 0.5, -0.5, [0xffd166, 0xff9a1f, 0xffffff], 12, { size: 0.16, speed: 3, up: 8, g: 10, life: 0.9 });
+      }
+      if (sh >= 0 && c1 >= 4.6 && c1 < 5.8) emSynth(a, (ac, out, k, at) => synTone(ac, out, { f: [329.6, 392, 440, 493.9, 587.3, 493.9, 440, 392][sh % 8] * 2, t: at, dur: 0.09, vol: 0.035 * k, type: 'sawtooth', ff: 3000 }));
+    },
+  },
+);
 const emOwns = (i) => !!EMOTES[i] && (EMOTES[i].price === 0 || W.own.has('em' + i));
 function emStart(a, i, t0) {
   emStop(a, true);
   const E = EMOTES[i]; if (!E || a.dead) return;
-  const F = { root: new THREE.Group(), hd: new THREE.Group() }; a.g.add(F.root); a.head.add(F.hd);
+  const F = { root: new THREE.Group(), hd: new THREE.Group(), up: new THREE.Group() }; a.g.add(F.root); a.head.add(F.hd);
+  (a.waist || a.body).add(F.up); F.up.position.y = a.waist ? -2.84 : 0; // (up: on the upper body, placed as if on the body)
   if (E.fx) E.fx.make(a, F);
   a.em = { i, t: t0 || 0, F }; a.emOut = 0;
 }
@@ -2414,7 +2931,7 @@ function emStart(a, i, t0) {
 function emStop(a, quiet) {
   const m = a.em; if (!m) return;
   a.em = null; a.emOut = 0.5;
-  for (const r of [m.F.root, m.F.hd]) {
+  for (const r of [m.F.root, m.F.hd, m.F.up]) {
     if (r.parent) r.parent.remove(r);
     r.traverse((o) => { if (o.geometry && o.geometry !== BOX) o.geometry.dispose(); if (o.material) o.material.dispose(); });
   }
@@ -2572,12 +3089,12 @@ function sideDo(k) {
   else if (k[0] === 'x') { const m = exp.menu ? exp.menu()[+k.slice(1)] : null; if (m) m[1](); }
 }
 $('#xside').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b || b.disabled) return; if (b.dataset.side) sideDo(b.dataset.side); else if (sideClick) sideClick(b, e); });
-// the emote wheel (. or the 🎭 button): your emotes round a circle, 1–7 to pick; one you don't have yet: tap it to see
+// the emote wheel (. or the 🎭 button): your emotes round a circle, 1–9 and 0 to pick; one you don't have yet: tap it to see
 // what it costs, tap again to buy it (then it plays)
 const Emo = { open: false, ask: -1, hi: -1, fresh: false }; // (fresh: it's just opened, so it pops in)
 function emMid(i) {
   const E = EMOTES[i];
-  const hint = `<small class="hint">${touchy ? 'Tap outside to close' : 'Keys 1–7 · close with . or Esc'}</small>`;
+  const hint = `<small class="hint">${touchy ? 'Tap outside to close' : 'Keys 1–9 and 0 · close with . or Esc'}</small>`;
   if (!E) return `<b>🎭 Emotes</b><small>Pick one to play it — it goes on till you move</small>${hint}`;
   const st = emOwns(i) ? (me && me.em && me.em.i === i ? (E.loop ? '▶️ Playing — pick it again to stop' : '▶️ Playing') : E.loop ? '🔁 Loops till you move' : '✓ Yours') : Emo.ask === i ? (W.coins < E.price ? `Need ${E.price - W.coins} more Blox Coins` : `Tap again to buy for ${E.price}`) : `🔒 <span class="coin sm"></span> ${E.price} Blox Coins`;
   return `<b>${E.ic} ${esc(E.nm)}</b><small>${esc(E.d)}</small><small>${st}</small>${hint}`;
@@ -2588,7 +3105,7 @@ function drawEmWheel() {
   el.innerHTML = `<div class="emw${Emo.fresh ? ' in' : ''}">${EMOTES.map((E, i) => {
     const an = -Math.PI / 2 + i * EM_TAU / n, own = emOwns(i), ask = Emo.ask === i;
     const pr = own ? '' : ask ? `<span class="pr">${W.coins < E.price ? `Need ${E.price - W.coins}` : `Buy? ${E.price}`}</span>` : `<span class="pr"><span class="coin sm"></span>${E.price}</span>`;
-    return `<button class="em${cur === i ? ' on' : ''}${own ? '' : ' lock'}${ask ? ' ask' : ''}" data-em="${i}" style="left:${(50 + Math.cos(an) * 35.5).toFixed(2)}%;top:${(50 + Math.sin(an) * 35.5).toFixed(2)}%" title="${esc(E.nm)}"><span class="k">${i + 1}</span><span class="i">${E.ic}</span>${esc(E.nm)}${pr}</button>`;
+    return `<button class="em${cur === i ? ' on' : ''}${own ? '' : ' lock'}${ask ? ' ask' : ''}" data-em="${i}" style="left:${(50 + Math.cos(an) * 37).toFixed(2)}%;top:${(50 + Math.sin(an) * 37).toFixed(2)}%" title="${esc(E.nm)}"><span class="k">${(i + 1) % 10}</span><span class="i">${E.ic}</span>${esc(E.nm)}${pr}</button>`;
   }).join('')}<div class="mid">${emMid(Emo.hi >= 0 ? Emo.hi : Emo.ask >= 0 ? Emo.ask : cur)}</div></div>`;
   Emo.fresh = false;
 }
@@ -2619,8 +3136,8 @@ function playEmote(i) {
 function emCommand(arg) {
   const q = String(arg).trim().toLowerCase();
   if (!q) { openEmWheel(); return; }
-  let i = /^[1-7]$/.test(q) ? +q - 1 : EMOTES.findIndex((E) => E.id.startsWith(q) || E.nm.toLowerCase().startsWith(q));
-  if (i < 0 && q.startsWith('dance')) { const d = [2, 3, 4, 5]; i = d.find(emOwns); if (i == null) i = 2; }
+  let i = /^(10|[1-9])$/.test(q) ? +q - 1 : EMOTES.findIndex((E) => E.id.startsWith(q) || E.nm.toLowerCase().startsWith(q));
+  if (i < 0 && q.startsWith('dance')) { const d = [2, 3, 4, 5, 8, 9]; i = d.find(emOwns); if (i == null) i = 2; }
   if (i < 0) { toast(`No emote called “${String(arg).slice(0, 20)}”`, '#fca5a5'); openEmWheel(); return; }
   if (!emOwns(i)) { openEmWheel(i); return; }
   playEmote(i);
@@ -5621,8 +6138,8 @@ addEventListener('keydown', (e) => {
   if (e.code === 'Slash' || e.code === 'Enter') { e.preventDefault(); openChat(); return; }
   if (e.code === 'Escape') { if (Emo.open) { closeEmWheel(); return; } if (performance.now() - View.lostAt < 400) return; if (panelOpen()) closePanel(); else if ($('#pause').hidden) showPause(); else $('#pause').hidden = true; return; } // (Esc that let go of the pointer has opened the menu already)
   if (!$('#pause').hidden) return; // (the menu's open: nothing else happens in the game)
-  if (e.code === 'Period' && !e.repeat) { toggleEmWheel(); return; } // the emote wheel: 1–7 picks one
-  if (Emo.open && /^Digit[1-7]$/.test(e.code)) { if (!e.repeat) pickEmote(+e.code.slice(5) - 1); return; }
+  if (e.code === 'Period' && !e.repeat) { toggleEmWheel(); return; } // the emote wheel: 1–9 and 0 pick one
+  if (Emo.open && /^Digit[0-9]$/.test(e.code)) { if (!e.repeat) pickEmote(e.code === 'Digit0' ? 9 : +e.code.slice(5) - 1); return; }
   // Ctrl toggles shift lock when it's tapped on its own (with another key it's the browser's shortcut, not ours)
   if (isCtrl(e.code)) { View.ctrlTap = !e.repeat && lockKeyCode(e.code); return; }
   View.ctrlTap = false;
@@ -5802,7 +6319,7 @@ try { loadAvFrom(JSON.parse(localStorage.getItem('rb.av') || 'null')); } catch (
 achNum();
 drawAvatarOpts(); drawMe(); drawExps();
 requestAnimationFrame(frame);
-window.__rb = { P, Net, cam, camera, scene, renderer, keys, EXPS, Meter, GFX, gfxApply, softGL, View, setLock, zoomBy, lookBy, joy, sunL, sunSprite, makeAvatar, join, leave, die, respawn, openShop, buyItem, hasItem, itemCount, giveItem, useItem, shopItem, setItemOff, Trade, startTrade, tradeTick, parts: () => parts, exp: () => exp, me: () => me, iAmHost, crew, players, get AV() { return AV; }, W, earn, spend, roundState, openPanel, closePanel, pickPlane, myPeer, grantCosmetic, snapshot, say, EMOTES, Emo, pickEmote, playEmote, emCommand, emStart, saveAv, pv: () => pv,
+window.__rb = { P, Net, cam, camera, scene, renderer, keys, EXPS, Meter, GFX, gfxApply, softGL, View, setLock, zoomBy, lookBy, joy, sunL, sunSprite, makeAvatar, join, leave, die, respawn, openShop, buyItem, hasItem, itemCount, giveItem, useItem, shopItem, setItemOff, Trade, startTrade, tradeTick, parts: () => parts, exp: () => exp, me: () => me, iAmHost, crew, players, get AV() { return AV; }, W, earn, spend, roundState, openPanel, closePanel, pickPlane, myPeer, grantCosmetic, snapshot, say, EMOTES, Emo, pickEmote, playEmote, emCommand, emStart, saveAv, pv: () => pv, synth: { powerChord, synTone, synNoise, synKick },
   Social, Inv, ED, myId, myCode, fcOf, openEditor, closeEditor, socialScan, avPic, Market, OFFICIAL, xItem, ownsX, copiesOf, drawAvatarOpts, axArr,
   pvSel: () => (pv.selBox ? { inScene: pv.selBox.parent === pv.scene, r: pv.selBox.geometry.boundingSphere && pv.selBox.geometry.boundingSphere.radius, vis: pv.selBox.visible, n: pv.selBox.geometry.attributes.position.count, c: pv.selBox.geometry.attributes.position.array.slice(0, 6) } : null),
   pvGhost: () => { let g = false; if (pv.a) pv.a.g.traverse((o) => { if (o.isMesh && o.material === GHOST_MAT) g = true; }); return g; },
