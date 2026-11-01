@@ -4627,6 +4627,7 @@ async function join(id, n) {
   $('#loading').hidden = true; $('#hud').hidden = false;
   $('#title').innerHTML = `<span class="tt">${E.emoji}</span><span class="tn"><b>${esc(E.name)}</b><small>Server ${n}</small></span>`; drawCoins();
   playing = true; joining = false; drawCoins(); // (now the shop cart shows)
+  Music.mode = THEMES[E.id] ? 'theme' : 'classic'; BGM.key = ''; // (a game's own theme first)
   if (E.music) musicNew();
   for (const p of Net.peers) if (!p.isMe) applyPeer(p);
   say(`Welcome to ${E.name}! ${touchy ? '' : 'Press / to chat.'}`, '#fde68a');
@@ -7102,7 +7103,7 @@ function placeMeter() {
 // shuffled order every time you join a game (then shuffled again, never the same one twice running); off when the
 // sound is off, or with 🎵 Music in the menu (remembered)
 const MUSIC = [['vivaldi-spring.mp3', 'Vivaldi · Spring'], ['grieg-morning-mood.mp3', 'Grieg · Morning Mood'], ['vivaldi-autumn.mp3', 'Vivaldi · Autumn'], ['classic-easter.mp3', 'Classic Easter']];
-const Music = { on: true, el: null, i: -1, order: [], k: 0, tryAt: 0, vol: 0.35 };
+const Music = { on: true, el: null, i: -1, order: [], k: 0, tryAt: 0, vol: 0.35, mode: 'theme' };
 try { if (localStorage.getItem('bv-music') === '0') Music.on = false; } catch (e) { /* no storage here */ }
 function musicShuffle() {
   const o = MUSIC.map((m, i) => i);
@@ -7113,9 +7114,11 @@ function musicShuffle() {
 function musicTrack() { Music.i = Music.order[Music.k]; if (Music.el) { Music.el.src = 'music/' + MUSIC[Music.i][0]; Music.el.volume = 0; } }
 // joining a game: a new order, from the start of its first piece
 function musicNew() { musicShuffle(); musicTrack(); }
-function musicNext() { if (++Music.k >= Music.order.length) musicShuffle(); musicTrack(); Music.el.play().catch(() => {}); }
+function musicNext() { if (++Music.k >= Music.order.length) musicShuffle(); musicTrack(); if (exp && THEMES[exp.id]) { Music.mode = 'theme'; BGM.key = ''; return; } Music.el.play().catch(() => {}); } // (after a piece, the game's theme again)
 function musicTick(dt) {
-  const want = playing && exp && exp.music && Music.on && window.Sfx && Sfx.on && !document.hidden, el = Music.el;
+  const base = playing && exp && Music.on && window.Sfx && Sfx.on && !document.hidden, classic = base && exp.music && (Music.mode === 'classic' || !THEMES[exp.id]);
+  bgmTick(base && !!THEMES[exp.id] && !classic); // (the theme, played live)
+  const want = classic, el = Music.el;
   if (!want) { if (el && !el.paused) el.pause(); return; }
   if (!el) {
     Music.el = new Audio(); Music.el.preload = 'auto';
@@ -7129,7 +7132,167 @@ function musicTick(dt) {
   if (el.paused && performance.now() > Music.tryAt) { Music.tryAt = performance.now() + 2000; el.play().catch(() => {}); } // (the browser lets it play after a click or key)
 }
 document.addEventListener('visibilitychange', () => musicTick(0));
-const musicLabel = () => (Music.on ? `🎵 Music: on${Music.el && !Music.el.paused ? ` · ${MUSIC[Music.i][1]}` : ''}` : '🎵 Music: off');
+/* ---------------- theme music: every experience has its own theme, played live by the computer ----------------
+   Each theme is a style (chiptune, pop, action, tense, spooky, racing, adventure, groove, music box, calm, island, funk:
+   the drums, the bassline, how the chords go, the instruments) in its own key and tempo, with its own chord progressions
+   and its own tune, made from the experience's name, so it's the same every time you play. A 32-bar song: an intro,
+   the tune, the tune again (higher, with more going on), a second tune, a breakdown, round again (the second tune changes
+   each time round). The calm experiences that have the classical pieces play their theme twice, then a piece, then it again. */
+const THEME_STYLES = {
+  chip: { d: ['x.......x.x.....', '....x.......x...', '................', 'x.x.x.x.x.x.x.x.', '................', '................'], bass: [[0, 2, 0], [2, 2, 12], [4, 2, 0], [6, 2, 12], [8, 2, 0], [10, 2, 12], [12, 2, 0], [14, 2, 12]], bi: 'square', ch: 'arp', ci: 'square', li: 'square', cells: ['x.x.x.x.', 'x..x..x.', 'x.xxx...', 'x...x.x.', 'xx.x.x..'], oct: 5 },
+  pop: { d: ['x...x...x...x...', '................', '....x.......x...', 'x.x.x.x.x.x.x.x.', '..x...x...x...x.', '................'], bass: [[0, 3, 0], [3, 1, 0], [6, 2, 0], [8, 3, 0], [11, 1, 12], [14, 2, 0]], bi: 'saw', ch: [[0, 3], [6, 2], [8, 3], [14, 2]], ci: 'piano', pad: 'warm', li: 'pluck', cells: ['x.x...x.', 'x..x.x..', '..x.x.x.', 'x...x...'], oct: 5 },
+  action: { d: ['x.....x.x.....x.', '....x.......x...', '................', 'xxxxxxxxxxxxxxxx', '................', '..............xx'], bass: Array.from({ length: 16 }, (_, k) => [k, 1, k % 8 === 6 ? 12 : 0]), bi: 'saw', ch: 'hold', ci: 'strings', li: 'brass', cells: ['x...x.x.', 'x.x.x...', 'x..x..x.', 'x.......', 'x.x.xxx.'], oct: 5, crash: 1 },
+  tense: { d: ['x...x...x...x...', '........x.......', '................', 'xxxxxxxxxxxxxxxx', '................', 'x..............x'], bass: [[0, 2, 0], [2, 2, 0], [4, 2, 0], [6, 2, 0], [8, 2, 0], [10, 2, 0], [12, 2, 0], [14, 2, 1]], bi: 'sub', ch: 'hold', ci: 'dark', arp: 'pluck', li: 'eerie', cells: ['x.......', 'x...x...', '....x...', 'x.x.....'], oct: 5, harm: 1 },
+  spooky: { d: ['x.........x.....', '................', '................', '....x.......x...', '................', '..............x.'], bass: [[0, 8, 0], [8, 8, 0]], bi: 'sub', ch: 'hold', ci: 'dark', li: 'musicbox', cells: ['x.x.x...', 'x...x.x.', 'x.......', 'x.x.....'], oct: 6, harm: 1, soft: 1 },
+  race: { d: ['x...x...x...x...', '................', '....x.......x...', 'x.x.x.x.x.x.x.x.', '..x...x...x...x.', '................'], bass: [[2, 2, 0], [6, 2, 0], [10, 2, 0], [14, 2, 0]], bi: 'saw', ch: 'arp', ci: 'pluck', pad: 'warm', li: 'saw', cells: ['x.x.x.x.', 'xxx.x...', 'x..x..x.', 'x.x.x...'], oct: 5, crash: 1 },
+  adventure: { d: ['x.......x.......', '....x.......x.x.', '................', 'x.x.x.x.x.x.x.x.', '................', 'x.....x.........'], bass: [[0, 4, 0], [4, 4, 7], [8, 4, 0], [12, 4, 7]], bi: 'sub', ch: 'hold', ci: 'strings', arp: 'pluck8', li: 'brass', cells: ['x...x.x.', 'x.x.x...', 'x...x...', 'x.xxx...'], oct: 5, crash: 1 },
+  groove: { d: ['x..x....x.x.....', '....x.......x...', '................', 'x.xxx.xxx.xxx.xx', '..............x.', '................'], bass: [[0, 2, 0], [3, 1, 0], [5, 1, 12], [8, 2, 0], [10, 1, 7], [12, 2, 0], [15, 1, 12]], bi: 'pluck', ch: [[2, 1], [6, 1], [10, 1], [14, 1]], ci: 'organ', li: 'square', cells: ['x.x..x..', '..x.x.x.', 'x..x.x..', 'xx..x...'], oct: 5, swing: 0.18 },
+  musicbox: { d: ['x.......x.......', '................', '................', '..x...x...x...x.', '................', '................'], bass: [[0, 4, 0], [4, 4, 7], [8, 4, 0], [12, 4, 7]], bi: 'pluck', ch: [[4, 2], [12, 2]], ci: 'musicbox', li: 'musicbox', cells: ['x.x.x.x.', 'x.x.x...', 'x...x...', 'xxx.x...'], oct: 6, soft: 1 },
+  calm: { d: ['x.......x.......', '................', '................', '..x...x...x...x.', '................', '................'], bass: [[0, 6, 0], [6, 2, 7], [8, 8, 0]], bi: 'sub', ch: [[0, 8], [8, 8]], ci: 'piano', pad: 'warm', li: 'flute', cells: ['x...x.x.', 'x.......', 'x.x.x...', 'x...x...'], oct: 5, soft: 1, swing: 0.12 },
+  island: { d: ['x.....x...x.....', '................', '....x.......x...', 'x.xxx.xxx.xxx.xx', '................', '................'], bass: [[0, 3, 0], [3, 1, 7], [6, 2, 0], [8, 3, 0], [11, 1, 7], [14, 2, 12]], bi: 'sub', ch: [[2, 1], [4, 2], [10, 1], [12, 2]], ci: 'pluck', li: 'marimba', cells: ['x.x.x.x.', 'x..x..x.', 'xx.x.x..', 'x.x.....'], oct: 5, swing: 0.15 },
+  funk: { d: ['x..x..x...x.....', '....x.......x...', '................', 'x.xxx.xxx.xxx.xx', '......x.......x.', '................'], bass: [[0, 1, 0], [2, 1, 12], [3, 1, 0], [6, 2, 0], [8, 1, 0], [10, 1, 7], [11, 1, 12], [14, 2, 10]], bi: 'pluck', ch: [[1, 1], [4, 1], [9, 1], [12, 1]], ci: 'organ', pad: 'warm', li: 'saw', cells: ['x.x..x..', 'x..x.x..', '..x.x.x.', 'x.xx....'], oct: 5, swing: 0.1 },
+  dark: { d: ['x...............', '................', '................', '................', '................', '........x.......'], bass: [[0, 16, 0]], bi: 'sub', ch: 'hold', ci: 'dark', li: 'eerie', cells: ['x.......', '........', 'x...x...'], oct: 5, harm: 1, soft: 1 },
+};
+// each experience's theme: [style, tempo, key (0 = C), minor?, the first tune's chords, the second's]
+const THEMES = {
+  obby: ['chip', 128, 0, 0, [0, 4, 5, 3], [3, 4, 5, 4]], tycoon: ['funk', 112, 5, 0, [0, 3, 4, 3], [5, 3, 1, 4]], tag: ['pop', 128, 9, 0, [0, 4, 5, 3], [3, 0, 4, 4]],
+  lava: ['tense', 132, 4, 1, [0, 5, 2, 6], [3, 4, 0, 6]], toh: ['tense', 140, 2, 1, [0, 6, 5, 4], [5, 6, 0, 0]], garden: ['calm', 92, 7, 0, [0, 3, 0, 4], [5, 3, 1, 4]],
+  tds: ['action', 124, 0, 1, [0, 5, 6, 4], [3, 0, 6, 4]], army: ['adventure', 116, 5, 1, [0, 5, 3, 4], [5, 6, 0, 4]], nds: ['tense', 118, 7, 1, [0, 3, 5, 4], [5, 6, 3, 4]],
+  pets: ['calm', 100, 10, 0, [0, 5, 3, 4], [3, 4, 0, 5]], boat: ['island', 108, 2, 0, [0, 3, 4, 0], [5, 3, 1, 4]], zombie: ['action', 124, 6, 1, [0, 5, 6, 4], [3, 5, 6, 4]],
+  egg: ['chip', 136, 2, 0, [0, 5, 3, 4], [5, 3, 0, 4]], speed: ['race', 144, 2, 0, [0, 4, 5, 3], [5, 3, 0, 4]], fish: ['island', 96, 7, 0, [0, 3, 4, 3], [0, 5, 1, 4]],
+  blade: ['action', 128, 1, 1, [0, 5, 2, 6], [3, 4, 0, 4]], murder: ['spooky', 92, 9, 1, [0, 5, 3, 4], [0, 6, 5, 4]], kart: ['race', 152, 9, 1, [0, 5, 2, 6], [3, 6, 0, 4]],
+  rlgl: ['musicbox', 104, 0, 0, [0, 4, 0, 4], [3, 0, 4, 0]], color: ['chip', 140, 7, 0, [0, 3, 4, 0], [5, 4, 3, 4]], golf: ['calm', 96, 5, 0, [0, 5, 1, 4], [3, 4, 2, 5]],
+  bee: ['island', 112, 9, 0, [0, 3, 4, 3], [5, 4, 3, 4]], hide: ['spooky', 112, 2, 1, [0, 3, 4, 0], [5, 6, 4, 4]], pvz: ['groove', 100, 7, 0, [0, 3, 0, 4], [5, 3, 1, 4]],
+  rivals: ['action', 140, 11, 1, [0, 6, 5, 6], [3, 4, 0, 4]], fruits: ['adventure', 120, 9, 1, [0, 5, 6, 0], [3, 0, 6, 4]], pvb: ['pop', 118, 5, 0, [0, 4, 5, 3], [3, 4, 0, 4]],
+  fishty: ['island', 104, 4, 0, [0, 3, 4, 0], [5, 3, 1, 4]], pizza: ['funk', 116, 0, 0, [0, 5, 1, 4], [3, 4, 0, 5]], park: ['pop', 124, 7, 0, [0, 3, 4, 0], [5, 3, 1, 4]],
+  mine: ['funk', 108, 4, 1, [0, 6, 5, 6], [3, 4, 0, 0]], cars: ['funk', 118, 10, 0, [0, 3, 4, 0], [5, 3, 1, 4]], forsaken: ['dark', 70, 5, 1, [0, 0, 5, 4], [3, 3, 4, 4]],
+  shaft: ['adventure', 100, 4, 1, [0, 5, 3, 6], [3, 4, 0, 6]], aura: ['groove', 105, 10, 1, [0, 6, 5, 6], [3, 4, 0, 6]],
+};
+const THEME_GAIN = { chip: 1.35, musicbox: 2.0, tense: 0.62, adventure: 0.64, island: 0.72, calm: 0.82, spooky: 0.85, groove: 1.3, pop: 1.05, funk: 1.08, action: 1.0, race: 0.95, dark: 0.9 };
+const MAJ = [0, 2, 4, 5, 7, 9, 11], MIN = [0, 2, 3, 5, 7, 8, 10], HMIN = [0, 2, 3, 5, 7, 8, 11];
+const FORM = ['I', 'I', 'I', 'I', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'B', 'B', 'B', 'B', 'B', 'B', 'B', 'B', 'O', 'O', 'O', 'O'];
+// a tune for 8 bars: a 2-bar idea, again, an answer, the idea ending home. Notes are scale steps above the key note
+function themeTune(rng, S, prog, sc) {
+  const notes = [], cellsOf = () => [0, 1, 2, 3].map(() => S.cells[Math.floor(rng() * S.cells.length)]);
+  const idea = cellsOf(), answer = cellsOf();
+  let p = 4 + Math.floor(rng() * 3);
+  for (let half = 0; half < 16; half++) {
+    const bar = Math.floor(half / 2), cells = bar === 4 || bar === 5 ? answer : idea, cell = cells[half % 4];
+    const chord = prog[bar % 4], tones = [chord, chord + 2, chord + 4, chord + 7, chord + 9];
+    for (let i = 0; i < 8; i++) {
+      if (cell[i] !== 'x') continue;
+      const st = half * 8 + i, strong = i % 4 === 0;
+      if (strong) { let best = tones[0] + 7, bd = 99; for (const t of tones.concat(tones.map((x) => x + 7))) { const d = Math.abs(t - p); if (d < bd) { bd = d; best = t; } } p = best; }
+      else p += rng() < 0.5 ? -1 : rng() < 0.6 ? 1 : 2;
+      p = clamp(p, 2, 12);
+      notes.push([st, p]);
+    }
+  }
+  if (notes.length) { const last = notes[notes.length - 1]; last[1] = prog[3] === 4 ? 4 : 7; } // (ending on the chord's own note)
+  return notes.map(([st, p], i) => [st, p, Math.min(4, (notes[i + 1] ? notes[i + 1][0] : 128) - st)]);
+}
+// the whole song, worked out once: per step, what plays
+function themeSong(id, loop) {
+  const T = THEMES[id]; if (!T) return null;
+  const [style, bpm, key, minor, pa, pb] = T, S = THEME_STYLES[style], sc = minor ? (S.harm ? HMIN : MIN) : MAJ;
+  let h = 7; for (const c of id) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  const rA = mulberry(h), rB = mulberry(h + 977 * (loop + 1));
+  const tuneA = themeTune(rA, S, pa, sc), tuneB = themeTune(rB, S, pb, sc);
+  const deg = (d, base) => base + key + 12 * Math.floor(d / 7) + sc[((d % 7) + 7) % 7];
+  const N = FORM.length * 16, steps = Array.from({ length: N }, () => []);
+  FORM.forEach((sec, bar) => {
+    const prog = sec === 'B' ? pb : pa, c = prog[bar % 4], s0 = bar * 16, light = sec === 'I' || sec === 'O', fill = bar % 4 === 3 && !light;
+    // drums
+    S.d.forEach((row, r) => { for (let k = 0; k < 16; k++) {
+      let on = row[k] === 'x';
+      if (light && (r === 1 || r === 2 || r === 4)) on = false;
+      if (light && r === 0 && k % 8) on = false;
+      if (fill && k >= 12) { if (r === 5) on = k % 2 === 0; if (r === 1) on = k % 2 === 1 || on; }
+      if (on) steps[s0 + k].push(['d', r]);
+    } });
+    if (S.crash && (bar === 4 || bar === 12 || bar === 20)) steps[s0].push(['d', 6]);
+    // bass
+    if (sec !== 'O' || bar < 30) for (const [k, len, off] of S.bass) steps[s0 + k].push(['b', deg(c, 36) + off, len]);
+    // chords: held, stabs or an arpeggio
+    const tri = [deg(c, 48), deg(c + 2, 48), deg(c + 4, 48)];
+    if (S.ch === 'hold') steps[s0].push(['c', tri, 16]);
+    else if (S.ch === 'arp') { if (!light) for (let k = 0; k < 16; k++) steps[s0 + k].push(['a', tri[[0, 1, 2, 1][k % 4]] + 12, 1]); else steps[s0].push(['c', tri, 16]); }
+    else for (const [k, len] of S.ch) steps[s0 + k].push(['c', tri, len]);
+    if (S.pad && !light) steps[s0].push(['p', tri, 16]);
+    if (S.arp && (sec === 'C' || sec === 'B')) for (let k = 0; k < 16; k += S.arp === 'pluck8' ? 2 : 1) steps[s0 + k].push(['a', tri[[0, 1, 2, 1, 2, 0][(k / (S.arp === 'pluck8' ? 2 : 1)) % 6]] + 12, 1]);
+  });
+  // the tunes: A (bars 5–12), again an octave up (13–20), B (21–28)
+  for (const [st, p, len] of tuneA) { steps[64 + st].push(['l', deg(p, S.oct * 12), len]); steps[192 + st].push(['l', deg(p, S.oct * 12) + (S.soft ? 0 : 12), len, 1]); }
+  for (const [st, p, len] of tuneB) steps[320 + st].push(['l', deg(p, S.oct * 12), len]);
+  return { id, steps, sd: 60 / bpm / 4, S, style, bpm, swing: S.swing || 0 };
+}
+// the instruments
+const TV = {
+  noise: null,
+  nz(ac, t, dur) { if (!TV.noise || TV.noise.sampleRate !== ac.sampleRate) { const b = ac.createBuffer(1, ac.sampleRate, ac.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; TV.noise = b; } const s = ac.createBufferSource(); s.buffer = TV.noise; s.start(t, Math.random() * 0.5); s.stop(t + dur + 0.02); return s; },
+  env(ac, t, peak, a, d, hold = 0) { const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(Math.max(0.0002, peak), t + a); if (hold) g.gain.setValueAtTime(Math.max(0.0002, peak), t + a + hold); g.gain.exponentialRampToValueAtTime(0.0001, t + a + hold + d); return g; },
+  osc(ac, type, f, t, end) { const o = ac.createOscillator(); o.type = type; o.frequency.setValueAtTime(f, t); o.start(t); o.stop(end); return o; },
+  flt(ac, type, f, q) { const b = ac.createBiquadFilter(); b.type = type; b.frequency.value = f; if (q != null) b.Q.value = q; return b; },
+};
+const hz = (m) => 440 * Math.pow(2, (m - 69) / 12);
+const TDRUM = [
+  (ac, d, t, v) => { const o = TV.osc(ac, 'sine', 150, t, t + 0.45); o.frequency.exponentialRampToValueAtTime(45, t + 0.11); const g = TV.env(ac, t, v, 0.003, 0.38); o.connect(g); g.connect(d); },
+  (ac, d, t, v) => { const n = TV.nz(ac, t, 0.2), bp = TV.flt(ac, 'bandpass', 1800, 0.7), g = TV.env(ac, t, v * 0.45, 0.002, 0.17); n.connect(bp); bp.connect(g); g.connect(d); const o = TV.osc(ac, 'triangle', 190, t, t + 0.12), g2 = TV.env(ac, t, v * 0.3, 0.002, 0.09); o.connect(g2); g2.connect(d); },
+  (ac, d, t, v) => { const n = TV.nz(ac, t, 0.25), bp = TV.flt(ac, 'bandpass', 1200, 1), g = TV.env(ac, t, v * 0.42, 0.003, 0.2); n.connect(bp); bp.connect(g); g.connect(d); },
+  (ac, d, t, v) => { const n = TV.nz(ac, t, 0.05), hp = TV.flt(ac, 'highpass', 8000), g = TV.env(ac, t, v * 0.16, 0.001, 0.04); n.connect(hp); hp.connect(g); g.connect(d); },
+  (ac, d, t, v) => { const n = TV.nz(ac, t, 0.3), hp = TV.flt(ac, 'highpass', 7000), g = TV.env(ac, t, v * 0.14, 0.003, 0.25); n.connect(hp); hp.connect(g); g.connect(d); },
+  (ac, d, t, v) => { const o = TV.osc(ac, 'sine', 200, t, t + 0.35); o.frequency.exponentialRampToValueAtTime(95, t + 0.3); const g = TV.env(ac, t, v * 0.5, 0.002, 0.3); o.connect(g); g.connect(d); },
+  (ac, d, t, v) => { const n = TV.nz(ac, t, 1.6), hp = TV.flt(ac, 'highpass', 5000), g = TV.env(ac, t, v * 0.18, 0.004, 1.5); n.connect(hp); hp.connect(g); g.connect(d); },
+];
+const TINST = { // (ac, dest, t, frequency, length, volume)
+  sub: (ac, d, t, f, len, v) => { const g = TV.env(ac, t, v * 0.55, 0.01, 0.12, len); TV.osc(ac, 'sine', f, t, t + len + 0.2).connect(g); const g2 = ac.createGain(); g2.gain.value = 0.25; TV.osc(ac, 'triangle', f * 2, t, t + len + 0.2).connect(g2); g2.connect(g); g.connect(d); },
+  saw: (ac, d, t, f, len, v) => { const lp = TV.flt(ac, 'lowpass', 1200, 5); lp.frequency.setValueAtTime(1200, t); lp.frequency.exponentialRampToValueAtTime(260, t + Math.max(0.08, len)); const g = TV.env(ac, t, v * 0.32, 0.006, 0.08, len * 0.8); TV.osc(ac, 'sawtooth', f, t, t + len + 0.15).connect(lp); lp.connect(g); g.connect(d); },
+  pluck: (ac, d, t, f, len, v) => { const lp = TV.flt(ac, 'lowpass', 3000, 3); lp.frequency.setValueAtTime(3000, t); lp.frequency.exponentialRampToValueAtTime(320, t + 0.2); const g = TV.env(ac, t, v * 0.32, 0.003, Math.min(0.5, len + 0.15)); TV.osc(ac, 'square', f, t, t + 0.6).connect(lp); lp.connect(g); g.connect(d); },
+  square: (ac, d, t, f, len, v) => { const g = TV.env(ac, t, v * 0.1, 0.003, 0.05, Math.max(0.03, len * 0.8)); TV.osc(ac, 'square', f, t, t + len + 0.1).connect(g); g.connect(d); },
+  piano: (ac, d, t, f, len, v) => { const lp = TV.flt(ac, 'lowpass', 3200), g = TV.env(ac, t, v * 0.22, 0.004, 1.2); for (const [m, k, ty] of [[1, 1, 'triangle'], [2, 0.3, 'sine'], [3, 0.08, 'sine']]) { const gg = ac.createGain(); gg.gain.value = k; TV.osc(ac, ty, f * m, t, t + 1.3).connect(gg); gg.connect(lp); } lp.connect(g); g.connect(d); },
+  organ: (ac, d, t, f, len, v) => { const g = TV.env(ac, t, v * 0.1, 0.005, 0.06, len * 0.9); for (const [m, k] of [[1, 1], [2, 0.5], [3, 0.3], [4, 0.15]]) { const gg = ac.createGain(); gg.gain.value = k; TV.osc(ac, 'sine', f * m, t, t + len + 0.1).connect(gg); gg.connect(g); } g.connect(d); },
+  strings: (ac, d, t, f, len, v) => { const lp = TV.flt(ac, 'lowpass', 2200), g = TV.env(ac, t, v * 0.07, 0.35, 0.5, Math.max(0, len - 0.35)); for (const k of [0.994, 1.003, 1.009]) TV.osc(ac, 'sawtooth', f * k, t, t + len + 0.9).connect(lp); lp.connect(g); g.connect(d); },
+  dark: (ac, d, t, f, len, v) => { const lp = TV.flt(ac, 'lowpass', 700), g = TV.env(ac, t, v * 0.09, 0.6, 0.8, Math.max(0, len - 0.6)); for (const k of [0.995, 1.005]) TV.osc(ac, 'sawtooth', f * k, t, t + len + 1.4).connect(lp); lp.connect(g); g.connect(d); },
+  warm: (ac, d, t, f, len, v) => { const lp = TV.flt(ac, 'lowpass', 1500), g = TV.env(ac, t, v * 0.05, 0.25, 0.4, Math.max(0, len - 0.25)); for (const k of [0.996, 1.004]) TV.osc(ac, 'sawtooth', f * k, t, t + len + 0.7).connect(lp); lp.connect(g); g.connect(d); },
+  brass: (ac, d, t, f, len, v) => { const lp = TV.flt(ac, 'lowpass', 600, 2); lp.frequency.setValueAtTime(600, t); lp.frequency.linearRampToValueAtTime(2600, t + 0.08); lp.frequency.exponentialRampToValueAtTime(1400, t + 0.4); const g = TV.env(ac, t, v * 0.16, 0.04, 0.12, Math.max(0, len - 0.04)); for (const k of [0.997, 1.003]) TV.osc(ac, 'sawtooth', f * k, t, t + len + 0.2).connect(lp); lp.connect(g); g.connect(d); },
+  eerie: (ac, d, t, f, len, v) => { const o = TV.osc(ac, 'sine', f, t, t + len + 0.6), lfo = TV.osc(ac, 'sine', 5.5, t, t + len + 0.6), lg = ac.createGain(); lg.gain.value = f * 0.012; lfo.connect(lg); lg.connect(o.frequency); const o2 = TV.osc(ac, 'triangle', f * 2.01, t, t + len + 0.6), g2 = ac.createGain(); g2.gain.value = 0.2; o2.connect(g2); const g = TV.env(ac, t, v * 0.16, 0.08, 0.5, len); o.connect(g); g2.connect(g); g.connect(d); },
+  musicbox: (ac, d, t, f, len, v) => { const g = TV.env(ac, t, v * 0.2, 0.002, 1.0); TV.osc(ac, 'sine', f, t, t + 1.1).connect(g); const g2 = TV.env(ac, t, v * 0.06, 0.002, 0.3); TV.osc(ac, 'sine', f * 4.01, t, t + 0.4).connect(g2); g2.connect(d); g.connect(d); },
+  flute: (ac, d, t, f, len, v) => { const o = TV.osc(ac, 'sine', f, t, t + len + 0.3), lfo = TV.osc(ac, 'sine', 5, t, t + len + 0.3), lg = ac.createGain(); lg.gain.value = f * 0.006; lfo.connect(lg); lg.connect(o.frequency); const g = TV.env(ac, t, v * 0.17, 0.05, 0.18, Math.max(0, len - 0.05)); o.connect(g); const n = TV.nz(ac, t, 0.08), bp = TV.flt(ac, 'bandpass', f * 2, 2), gn = TV.env(ac, t, v * 0.04, 0.01, 0.06); n.connect(bp); bp.connect(gn); gn.connect(d); g.connect(d); },
+  marimba: (ac, d, t, f, len, v) => { const g = TV.env(ac, t, v * 0.26, 0.002, 0.45); TV.osc(ac, 'sine', f, t, t + 0.5).connect(g); const g2 = TV.env(ac, t, v * 0.1, 0.001, 0.08); TV.osc(ac, 'sine', f * 3.9, t, t + 0.1).connect(g2); g2.connect(d); g.connect(d); },
+};
+const BGM = { song: null, key: '', t0: 0, k: 0, g: null, ac: null, loops: 0, on: false };
+// once a frame: keep the next moment of the theme booked on the sound card
+function bgmTick(want) {
+  const s = window.Sfx && Sfx.audio && Sfx.audio();
+  if (!want || !s) { if (BGM.g && BGM.on) { BGM.g.gain.setTargetAtTime(0, BGM.ac.currentTime, 0.25); BGM.on = false; } return; }
+  const ac = s.ac, id = exp.id;
+  if (BGM.ac !== ac) { BGM.ac = ac; const comp = ac.createDynamicsCompressor(); comp.threshold.value = -20; comp.ratio.value = 3; BGM.g = ac.createGain(); BGM.g.gain.value = 0; BGM.g.connect(comp); comp.connect(s.out); BGM.key = ''; }
+  if (BGM.key !== id) { BGM.key = id; BGM.loops = 0; BGM.song = themeSong(id, 0); BGM.k = 0; BGM.t0 = ac.currentTime + 0.15; }
+  const song = BGM.song; if (!song) return;
+  if (!BGM.on) { BGM.on = true; BGM.k = Math.floor(BGM.k / 64) * 64; BGM.t0 = ac.currentTime + 0.15 - BGM.k * song.sd; } // (coming back: from the start of the section)
+  BGM.g.gain.setTargetAtTime(clamp(Music.vol * Sfx.volume * 0.9, 0, 1), ac.currentTime, 0.4);
+  const N = song.steps.length;
+  for (let guard = 0; guard < 24; guard++) {
+    const t = BGM.t0 + BGM.k * song.sd + (BGM.k % 2 ? song.swing * song.sd : 0);
+    if (t > ac.currentTime + 0.2) break;
+    if (t >= ac.currentTime - 0.05) for (const e of song.steps[BGM.k % N]) bgmPlay(ac, BGM.g, song, e, t);
+    BGM.k++;
+    if (BGM.k % N === 0) { BGM.loops++; const nx = themeSong(id, BGM.loops); nx.k0 = BGM.k; BGM.song = nx; if (exp.music && BGM.loops >= 2) Music.mode = 'classic'; break; }
+  }
+}
+function bgmPlay(ac, d, song, e, t) {
+  const S = song.S, v = (S.soft ? 0.75 : 1) * (THEME_GAIN[song.style] || 1), sd = song.sd; // (styles evened out, so no game's much louder than another)
+  try {
+    if (e[0] === 'd') TDRUM[e[1]](ac, d, t, (e[1] === 0 ? 0.8 : 0.7) * v);
+    else if (e[0] === 'b') TINST[S.bi](ac, d, t, hz(e[1]), e[2] * sd * 0.92, 0.8 * v);
+    else if (e[0] === 'c') for (const n of e[1]) TINST[S.ci](ac, d, t, hz(n), e[2] * sd, 0.55 * v);
+    else if (e[0] === 'p') for (const n of e[1]) TINST[S.pad](ac, d, t, hz(n), e[2] * sd, 0.6);
+    else if (e[0] === 'a') TINST[S.ch === 'arp' ? S.ci : 'pluck'](ac, d, t, hz(e[1]), sd * 0.9, 0.4 * v);
+    else if (e[0] === 'l') TINST[S.li](ac, d, t, hz(e[1]), e[2] * sd * 0.95, (e[3] ? 0.75 : 0.85) * v);
+  } catch (err) { /* (a voice the browser can't make: skip it) */ }
+}
+
+const musicLabel = () => (Music.on ? `🎵 Music: on${Music.el && !Music.el.paused ? ` · ${MUSIC[Music.i][1]}` : BGM.on && exp ? ` · ${exp.name} theme` : ''}` : '🎵 Music: off');
 
 /* ---------------- pause menu ---------------- */
 const keysLabel = () => (View.keys === 'lock' ? '⌨️ Shift: shift lock · double-tap W: sprint' : '⌨️ Shift (or double-tap W): sprint · Ctrl: shift lock');
@@ -7472,7 +7635,7 @@ try { loadAvFrom(JSON.parse(localStorage.getItem('rb.av') || 'null')); } catch (
 achNum();
 drawAvatarOpts(); drawMe(); drawExps();
 requestAnimationFrame(frame);
-window.__rb = { P, Net, cam, camera, scene, renderer, keys, EXPS, Meter, GFX, gfxApply, softGL, View, setLock, zoomBy, lookBy, joy, sunL, sunSprite, makeAvatar, join, leave, die, respawn, openShop, buyItem, hasItem, itemCount, giveItem, useItem, shopItem, setItemOff, Trade, startTrade, tradeTick, parts: () => parts, exp: () => exp, me: () => me, iAmHost, crew, players, get AV() { return AV; }, W, earn, spend, roundState, openPanel, closePanel, pickPlane, myPeer, grantCosmetic, snapshot, say, EMOTES, Emo, pickEmote, playEmote, emCommand, emStart, saveAv, pv: () => pv, GSKINS, skState, skPres, skinOf, skinModel, skinPic, skinClick, drawShop, HW, HW_ITEMS, hwOn, RW, rwState, rwSpin, rwClaimDay, rwCollect, rwBank, rwDay, drawExps, refundOf, setHomeView: (v) => { homeView = v; drawExps(); }, synth: { powerChord, synTone, synNoise, synKick },
+window.__rb = { P, Net, cam, camera, scene, renderer, keys, EXPS, Meter, GFX, gfxApply, softGL, View, setLock, zoomBy, lookBy, joy, sunL, sunSprite, makeAvatar, join, leave, die, respawn, openShop, buyItem, hasItem, itemCount, giveItem, useItem, shopItem, setItemOff, Trade, startTrade, tradeTick, parts: () => parts, exp: () => exp, me: () => me, iAmHost, crew, players, get AV() { return AV; }, W, earn, spend, roundState, openPanel, closePanel, pickPlane, myPeer, grantCosmetic, snapshot, say, EMOTES, Emo, pickEmote, playEmote, emCommand, emStart, saveAv, pv: () => pv, THEMES, THEME_STYLES, themeSong, BGM, Music, TINST, TDRUM, bgmPlay, GSKINS, skState, skPres, skinOf, skinModel, skinPic, skinClick, drawShop, HW, HW_ITEMS, hwOn, RW, rwState, rwSpin, rwClaimDay, rwCollect, rwBank, rwDay, drawExps, refundOf, setHomeView: (v) => { homeView = v; drawExps(); }, synth: { powerChord, synTone, synNoise, synKick },
   Social, Inv, ED, myId, myCode, fcOf, openEditor, closeEditor, socialScan, avPic, Market, OFFICIAL, xItem, ownsX, copiesOf, drawAvatarOpts, axArr,
   pvSel: () => (pv.selBox ? { inScene: pv.selBox.parent === pv.scene, r: pv.selBox.geometry.boundingSphere && pv.selBox.geometry.boundingSphere.radius, vis: pv.selBox.visible, n: pv.selBox.geometry.attributes.position.count, c: pv.selBox.geometry.attributes.position.array.slice(0, 6) } : null),
   pvGhost: () => { let g = false; if (pv.a) pv.a.g.traverse((o) => { if (o.isMesh && o.material === GHOST_MAT) g = true; }); return g; },
