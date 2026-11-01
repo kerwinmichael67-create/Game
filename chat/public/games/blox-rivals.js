@@ -984,9 +984,10 @@
     grip(a, key, wid, swing) {
       if (!a || a.dead) return;
       let h = this.held.get(key);
-      if (!h || h.a !== a || h.w !== wid) {
+      const wr = skinOf(key, 'rivals', 'w'), want = wid ? wid + ':' + wr : ''; // (with their wrap: 🎨 in the shop)
+      if (!h || h.a !== a || h.w !== want) {
         if (h) dropModel(h.m);
-        h = { a, w: wid, m: wid ? model(wid) : null };
+        h = { a, w: want, m: wid ? skinWrap(model(wid), 'rivals', 'w', wr) : null };
         if (h.m) { const W = WP[wid]; h.m.rotation.x = W.sl < 2 ? -Math.PI / 2 : -Math.PI / 2 + 0.5; h.m.position.set(0, -1.9, W.sl < 2 ? -0.1 : 0); a.armR.add(h.m); }
         this.held.set(key, h);
       }

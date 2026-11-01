@@ -190,7 +190,7 @@
       if (kind === 's' && H.roles[by] === 'm' && alive && Math.hypot(v.x - me.x, v.z - me.z) < STAB + 2.5) this.kill(victim, by, 's', pl);
       else if (kind === 't' && H.roles[by] === 'm' && now - (this.tc[by] || -99) > KNIFE_CD - 0.3) {
         this.tc[by] = now;
-        this.ev(['kt', +me.x.toFixed(1), +me.z.toFixed(1), at[0], at[1]]);
+        this.ev(['kt', +me.x.toFixed(1), +me.z.toFixed(1), at[0], at[1], by]); // (by: whose knife, for its skin)
         if (alive && Math.hypot(v.x - me.x, v.z - me.z) < 80) this.kill(victim, by, 't', pl);
       } else if (kind === 'g' && H.gun === by && now - (this.tc[by] || -99) > GUN_CD - 0.3) {
         this.tc[by] = now;
@@ -439,14 +439,14 @@
         if (k === 'shoot') { if (this.hd !== 'g') this.equip('g'); this.shoot(this.aimAt(null)); }
       });
     },
-    flyFx(kind, x0, z0, x1, z1) {
+    flyFx(kind, x0, z0, x1, z1, who) {
       const y = 3.2;
       if (kind === 'g') {
         const geo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x0, y, z0), new THREE.Vector3(x1, y, z1)]);
         const m = new THREE.Line(geo, new THREE.LineBasicMaterial({ color: 0xfde047 })); scene.add(m); this.fx.push({ m, life: 0.15 });
         puffAt(x1, y, z1, [0xfde047, 0xffffff], 4);
       } else {
-        const m = knifeMesh(); m.position.set(x0, y, z0); m.rotation.y = Math.atan2(-(x1 - x0), -(z1 - z0)); scene.add(m);
+        const m = skinModel('murder', 'k', skinOf(who || 'me', 'murder', 'k')) || knifeMesh(); m.position.set(x0, y, z0); m.rotation.y = Math.atan2(-(x1 - x0), -(z1 - z0)); scene.add(m);
         const d = Math.hypot(x1 - x0, z1 - z0); this.fx.push({ m, life: d / 90, k: { x0, z0, x1, z1, t: 0, T: d / 90 } });
       }
     },
@@ -472,7 +472,7 @@
           else if (e[3] === mine && how !== 'oops') toast(how === 'g' ? '🎯 Got them!' : '🔪 Got one!', '#fde68a');
           const a = Net.avatars.get(e[2]) || this.botAv.get(e[2]); if (a) puffAt(a.g.position.x, a.g.position.y + 3, a.g.position.z, [0x991b1b, 0xffffff], 12);
         }
-        if (k === 'kt' && !(Math.abs(e[2] - P.x) < 0.6 && Math.abs(e[3] - P.z) < 0.6)) { this.flyFx('k', e[2], e[3], e[4], e[5]); sfx3('whoosh', e[2], e[3], 60); } // (your own throw is drawn already)
+        if (k === 'kt' && !(Math.abs(e[2] - P.x) < 0.6 && Math.abs(e[3] - P.z) < 0.6)) { this.flyFx('k', e[2], e[3], e[4], e[5], e[6]); sfx3('whoosh', e[2], e[3], 60); } // (your own throw is drawn already)
         if (k === 'gs' && !(Math.abs(e[2] - P.x) < 0.6 && Math.abs(e[3] - P.z) < 0.6)) { this.flyFx('g', e[2], e[3], e[4], e[5]); sfx3('gun', e[2], e[3], 100); }
         if (k === 'gd') { toast('🔫 The sheriff’s gun has dropped! Innocents: grab it!', '#93c5fd'); sfx('alarm', { vol: 0.5 }); }
         if (k === 'gp') { if (e[2] === mine) { toast('🔫 You picked up the gun! Shoot the murderer!', '#93c5fd'); sfx('reload'); } else toast('🔫 Someone picked up the gun…', '#93c5fd'); }
@@ -536,9 +536,10 @@
     hold(a, key, what) {
       if (!a || a.dead) return;
       let h = this.held.get(key);
-      if (!h || h.a !== a || h.w !== what) {
+      const want = what ? what + skinOf(key, 'murder', what) : ''; // (with their skin: 🎨 in the shop)
+      if (!h || h.a !== a || h.w !== want) {
         if (h && h.m && h.m.parent) h.m.parent.remove(h.m);
-        h = { a, w: what, m: what === 'k' ? knifeMesh() : what === 'g' ? gunMesh() : null };
+        h = { a, w: want, m: what === 'k' || what === 'g' ? skinModel('murder', what, skinOf(key, 'murder', what)) || (what === 'k' ? knifeMesh() : gunMesh()) : null };
         if (h.m) { h.m.rotation.x = what === 'g' ? -Math.PI / 2 : -Math.PI / 2 + 0.5; h.m.position.set(0, -1.9, what === 'g' ? -0.1 : 0); a.armR.add(h.m); }
         this.held.set(key, h);
       }

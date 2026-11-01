@@ -274,7 +274,8 @@
     holdSword(a, key, swing) {
       if (!a || a.dead) return;
       let h = this.held.get(key);
-      if (!h || h.a !== a) { if (h && h.m && h.m.parent) h.m.parent.remove(h.m); h = { a, m: swordMesh(key === 'me' ? 0x93c5fd : 0xe5e7eb) }; h.m.rotation.x = -Math.PI / 2 + 0.5; h.m.position.set(0, -1.9, 0); a.armR.add(h.m); this.held.set(key, h); }
+      const sk = skinOf(key, 'blade', 's'); // (their sword skin: 🎨 in the shop)
+      if (!h || h.a !== a || h.sk !== sk) { if (h && h.m && h.m.parent) h.m.parent.remove(h.m); h = { a, sk, m: skinModel('blade', 's', sk) || swordMesh(0xe5e7eb) }; h.m.rotation.x = -Math.PI / 2 + 0.5; h.m.position.set(0, -1.9, 0); a.armR.add(h.m); this.held.set(key, h); }
       a.armR.rotation.x = swing > 0 ? 2.6 - (1 - swing / 0.3) * 2.6 : 0.6;
     },
     statOf(pr, isMe, peer) { const g = this.g; return g && g.sc ? g.sc[peer] || 0 : 0; },
