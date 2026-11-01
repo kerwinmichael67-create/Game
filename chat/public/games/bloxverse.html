@@ -971,6 +971,7 @@ const POST = (() => {
 // 🧱 Studs (in the menu): on, the classic studs; off, smooth plastic in their place (remembered)
 const STUDS = { on: true };
 try { if (localStorage.getItem('bv-studs') === '0') STUDS.on = false; } catch (e) { /* no storage here */ }
+const STUD_U = { value: STUDS.on ? 1 : 0 }; // (every plastic part's shader reads this: studs on its top, or none)
 function makeStudTex() {
   const c = document.createElement('canvas'); c.width = c.height = 64; drawStudTex(c);
   const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
@@ -988,7 +989,7 @@ function drawStudTex(c) {
 }
 // switch them: both stud textures are drawn again, and everything using them picks it up
 function setStuds(on) {
-  STUDS.on = !!on; try { localStorage.setItem('bv-studs', STUDS.on ? '1' : '0'); } catch (e) {}
+  STUDS.on = !!on; STUD_U.value = STUDS.on ? 1 : 0; try { localStorage.setItem('bv-studs', STUDS.on ? '1' : '0'); } catch (e) {}
   if (studBase) { drawStudTex(studBase.image); studBase.needsUpdate = true; texCache.forEach((t) => (t.needsUpdate = true)); }
   const T = MAT_TEX.studs; if (T) { const g = T.image.getContext('2d'); g.clearRect(0, 0, T.image.width, T.image.height); MATS.studs.draw(g, mulberry(5 * 977 + 256), T.image.width); T.needsUpdate = true; }
 }
@@ -1154,12 +1155,14 @@ function guessMat(p) {
   if (flat && p.sx * p.sz >= 300) return 'studs'; // (a big plain floor: the classic studded baseplate)
   return 'plastic';
 }
-// the shader: the texture by the part's own size (and where it first stood, so neighbours line up), the bevelled edges
+// the shader: the texture by the part's own size (and where it first stood, so neighbours line up), the bevelled edges,
+// and (🧱 Studs on) the classic studs on the top of a plastic part or a grey floor, one a stud apart, lined up with its neighbours'
 function partShader(sh) {
   const u = this.userData; sh.uniforms.uTile = { value: u.tile }; sh.uniforms.uOff = { value: u.off }; sh.uniforms.uBev = { value: u.bev }; sh.uniforms.uGain = { value: u.gain };
+  sh.uniforms.uStud = STUD_U; sh.uniforms.uTop = { value: u.kind === 'plastic' || u.kind === 'concrete' ? 1 : 0 }; // (plastic, and the grey floors: the baseplates)
   sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vBoxP; varying vec3 vBoxN; varying vec3 vBoxS;')
     .replace('#include <begin_vertex>', '#include <begin_vertex>\nvBoxP = position; vBoxN = normal; vBoxS = vec3(length(modelMatrix[0].xyz), length(modelMatrix[1].xyz), length(modelMatrix[2].xyz));');
-  sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vBoxP; varying vec3 vBoxN; varying vec3 vBoxS; uniform float uTile; uniform vec3 uOff; uniform float uBev; uniform float uGain;')
+  sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vBoxP; varying vec3 vBoxN; varying vec3 vBoxS; uniform float uTile; uniform vec3 uOff; uniform float uBev; uniform float uGain; uniform float uStud; uniform float uTop;')
     .replace('#include <map_fragment>', `
       vec3 bp = vBoxP * vBoxS, an = abs(vBoxN), o = uOff; vec2 fuv, hf, oo;
       if (an.y > 0.5) { fuv = bp.xz; hf = vBoxS.xz * 0.5; oo = o.xz; } else if (an.x > 0.5) { fuv = bp.zy; hf = vBoxS.zy * 0.5; oo = o.zy; } else { fuv = bp.xy; hf = vBoxS.xy * 0.5; oo = o.xy; }
@@ -1170,6 +1173,15 @@ function partShader(sh) {
       vec2 ed = hf - abs(fuv); float e = min(ed.x, ed.y), bw = min(0.32, 0.34 * min(hf.x, hf.y));
       float soft = 1.0 - smoothstep(0.0, bw, e), line = 1.0 - smoothstep(0.0, bw * 0.22, e);
       diffuseColor.rgb *= 1.0 + uBev * (0.16 * soft - 0.3 * line);
+      if (uStud * uTop > 0.5 && vBoxN.y > 0.5) {
+        vec2 sp = fuv + oo, cell = floor(sp) + 0.5, c = sp - cell, cc = abs(cell - oo); // (cc: how far the stud's centre is from the middle of the top)
+        if (cc.x < hf.x - 0.3 && cc.y < hf.y - 0.3) {
+          float d = length(c), aa = max(fwidth(d), 0.004), far = 1.0 - smoothstep(0.06, 0.16, aa);
+          float body = 1.0 - smoothstep(0.29 - aa, 0.29 + aa, d), shd = (1.0 - smoothstep(0.29 - aa, 0.3 + aa * 2.0, length(c - vec2(0.05, 0.07)))) * (1.0 - body);
+          float hl = body * clamp(dot(c, vec2(-0.7071, -0.7071)) / 0.29, 0.0, 1.0), rim = body * smoothstep(0.2, 0.29, d);
+          diffuseColor.rgb *= 1.0 + far * (0.05 * body + 0.12 * hl - 0.18 * shd - 0.06 * rim);
+        }
+      }
     `);
 }
 function partMat(p) {
@@ -1180,7 +1192,7 @@ function partMat(p) {
   if (name === 'grass') mat.color.offsetHSL(0, -0.12, -0.03); // (a little less neon: grass)
   else if (mat.color.getHSL({}).l > 0.8) mat.color.multiplyScalar(0.88); // (white in full sun would be one flat glare)
   if (p.glow) { mat.emissive = new THREE.Color(p.glow === true ? p.c : p.glow); mat.emissiveIntensity = p.glowK || 0.45; }
-  mat.onBeforeCompile = partShader;
+  mat.onBeforeCompile = partShader; mat.extensions = { derivatives: true }; // (fwidth: studs that stay crisp near and fade out far away)
   return mat;
 }
 
