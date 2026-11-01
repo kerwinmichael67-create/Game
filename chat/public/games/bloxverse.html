@@ -84,7 +84,7 @@
   .rwcard h3{margin:0 0 12px;font:700 19px var(--fh);color:#f8fafc;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.rwcard h3 small{font:700 12px var(--fb);color:#94a3b8}
   .rwcard .odds{margin:10px 0 0;color:#94a3b8;font:600 12px/1.4 var(--fb);text-align:center}.rwcard .odds b{color:#fde047}
   .wheelcard{display:flex;flex-direction:column;align-items:center}
-  .rwwheel{position:relative;width:min(340px,80vw);aspect-ratio:1;margin:6px auto 14px}
+  .rwwheel{position:relative;width:min(310px,100%);aspect-ratio:1;margin:6px auto 14px}
   .rwwheel .disc{position:absolute;inset:0;border-radius:50%;border:8px solid #fef3c7;box-shadow:0 0 0 5px #b45309,0 12px 30px rgba(0,0,0,.5),inset 0 0 30px rgba(0,0,0,.25)}
   .rwwheel .disc span{position:absolute;inset:0;display:flex;justify-content:center;padding-top:9%}
   .rwwheel .disc b{font:800 21px var(--fh);color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.45),0 0 6px rgba(0,0,0,.35)}
@@ -269,7 +269,7 @@
   #xpanel.full #xpBody{padding:18px 22px 26px}
   .sksect h4,.skitems{margin:14px 0 8px;font:700 17px var(--fh);color:#f8fafc}
   .skhead{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin:8px 0 6px}.skhead b{font:700 14px var(--fh);color:#e2e8f0}.skhead small{font:700 11px var(--fb);color:#94a3b8}
-  .skgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:10px}
+  .skgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px}
   .skcard{display:flex;flex-direction:column;gap:4px;padding:8px;border-radius:16px;background:linear-gradient(180deg,#232c3b,#171d27);border:2px solid color-mix(in srgb,var(--rc) 40%,transparent);box-shadow:0 3px 0 rgba(0,0,0,.35);font:700 11.5px/1.35 var(--fb);color:#cbd5e1}
   .skcard.on{border-color:#4ade80;box-shadow:0 0 0 2px rgba(74,222,128,.25),0 3px 0 rgba(0,0,0,.35)}
   .skcard .pic{position:relative;aspect-ratio:1;border-radius:12px;display:grid;place-items:center;background:radial-gradient(circle at 50% 40%,color-mix(in srgb,var(--rc) 45%,#1e293b),#0f141c 75%)}
@@ -1133,6 +1133,7 @@ function guessMat(p) {
   if (h >= 70 && h <= 165 && s > 0.25 && l > 0.18 && l < 0.62 && flat && big) return 'grass';
   if (h >= 32 && h <= 56 && s > 0.25 && s < 0.85 && l > 0.58 && l < 0.86 && flat && big) return 'sand';
   if (s < 0.14 && l > 0.22 && l < 0.8 && (big || p.sx * p.sy * p.sz > 150)) return flat ? 'concrete' : 'stone';
+  if (flat && p.sx * p.sz >= 300) return 'studs'; // (a big plain floor: the classic studded baseplate)
   return 'plastic';
 }
 // the shader: the texture by the part's own size (and where it first stood, so neighbours line up), the bevelled edges
@@ -1159,6 +1160,7 @@ function partMat(p) {
   mat.userData.tile = M.tile; mat.userData.gain = M.gain; mat.userData.bev = p.bevel != null ? p.bevel : M.bev; mat.userData.kind = name;
   mat.userData.off = new THREE.Vector3(p.x, p.y, p.z); // (where it first stood: neighbours line up)
   if (name === 'grass') mat.color.offsetHSL(0, -0.12, -0.03); // (a little less neon: grass)
+  else if (mat.color.getHSL({}).l > 0.8) mat.color.multiplyScalar(0.88); // (white in full sun would be one flat glare)
   if (p.glow) { mat.emissive = new THREE.Color(p.glow === true ? p.c : p.glow); mat.emissiveIntensity = p.glowK || 0.45; }
   mat.onBeforeCompile = partShader;
   return mat;
@@ -3940,7 +3942,7 @@ function wrapMat(w, c) {
   return w.wrap(dark, col);
 }
 const GSKINS = {
-  murder: { k: { nm: 'Knives', ic: '🔪', pic: { dir: [1, 0.55, 0.05], zoom: 0.78 }, list: [
+  murder: { k: { nm: 'Knives', ic: '🔪', pic: { dir: [1, 0.18, 0.02], zoom: 1.0, rot: 0.62 }, list: [
     { n: 'Classic Knife', r: 'c', price: 0, d: 'A steel blade on a dark wooden handle.', make: () => knifeBase({ b: SM.metal(0xe5e7eb), h: SM.matte(0x3f2a1e), g: SM.metal(0x9ca3af), p: SM.metal(0x9ca3af) }) },
     { n: 'Crimson Edge', r: 'r', price: 350, d: 'Blood-red steel with a glowing edge, on a red-wrapped grip.', make: () => knifeBase({ key: 'tanto', shape: KNIFE_TANTO, b: SM.metal(0x7f1d1d, 0xff9999, 70), edge: SM.glow(0xff2a2a), h: SM.matte(0x111111), wrap: SM.plastic(0xb91c1c), g: SM.metal(0x1f2937), p: SM.metal(0xb91c1c) }) },
     { n: 'Candy Slicer', r: 'r', price: 500, d: 'A candy-cane blade with a lollipop on the end.', make: () => { const k = knifeBase({ b: SM.tex('candy', 0xffffff, 0, 0x888888), h: SM.plastic(0xf9a8d4), g: SM.plastic(0x86efac), p: SM.plastic(0xf472b6), pg: SPH(0.22, 14) }); return k; } },
@@ -3958,7 +3960,7 @@ const GSKINS = {
     { n: 'Galaxy Gun', r: 'l', price: 1800, d: 'A whole galaxy swirling in the metal, with gold trim.', make: () => revolver({ grip: SM.tex('galaxy', 0xffffff, 0x221144), frame: SM.tex('galaxy', 0xffffff, 0x221144, 0xaaaaaa), drum: SM.metal(0xfbbf24), barrel: SM.tex('galaxy', 0xffffff, 0x221144, 0xaaaaaa), trim: SM.metal(0xfbbf24, 0xffffff, 110) }) },
   ] },
   },
-  blade: { s: { nm: 'Swords', ic: '⚔️', pic: { dir: [1, 0.6, 0.05], zoom: 0.72 }, list: [
+  blade: { s: { nm: 'Swords', ic: '⚔️', pic: { dir: [1, 0.18, 0.02], zoom: 1.02, rot: 0.7 }, list: [
     { n: 'Classic Sword', r: 'c', price: 0, d: 'Bright steel, a gold guard and a leather grip.', make: () => swordBase({ key: 'sword', b: SM.metal(0xe5e7eb, 0xffffff, 100), ridge: SM.metal(0xcbd5e1), h: SM.matte(0x5b3a1e), wrap: SM.matte(0x3f2a1e), gd: SM.metal(0xfacc15, 0xfff1b8, 90) }) },
     { n: 'Flame Blade', r: 'r', price: 600, d: 'A blade of fire, white-hot at the hilt.', make: () => swordBase({ key: 'broad', shape: BROAD, b: SM.tex('flame', 0xffffff, 0xff5a00), edge: SM.halo(0xff7a1a, 0.4), h: SM.matte(0x1c1917), wrap: SM.plastic(0xdc2626), gd: SM.metal(0x292524, 0xff8844, 60), gem: SM.glow(0xfb923c) }) },
     { n: 'Frost Blade', r: 'e', price: 850, d: 'Clear blue ice, frozen solid, with a silver guard.', make: () => swordBase({ key: 'sword', b: SM.glass(0x67e8f9, 0.75, 0x0e4a5a), edge: SM.halo(0xa5f3fc, 0.4), h: SM.metal(0xe2e8f0), wrap: SM.metal(0x38bdf8), gd: SM.metal(0xbae6fd, 0xffffff, 120), gem: SM.glass(0x22d3ee, 0.9, 0x0e7490) }) },
@@ -4017,7 +4019,7 @@ function skinPic(e, s, i) {
   const L = GSKINS[e][s], S = L.list[i];
   return snapshot(`sk:${e}.${s}${i}`, () => {
     const g = S.wrap !== undefined ? skinWrap(wrapSample(), e, s, i) : S.kart ? S.kart(0xef4444).g : S.make();
-    if (S.wrap !== undefined || S.make) g.rotation.y = 0;
+    if (L.pic.rot) { const p = new THREE.Group(); g.rotation.x = L.pic.rot; p.add(g); return p; }
     return g;
   }, Object.assign({ w: 150, h: 150 }, L.pic));
 }
@@ -4360,6 +4362,9 @@ const ACH = [
   ['aura', 'farm', 10000, 'Aura Farmer', 'Farm 10,000 aura in +1 Aura Every Second', 40, null, '🗿'],
   ['aura', 'win', 5, 'Him', 'Win 5 aura duels', 120, null, '⚔️'],
   ['aura', 'ohio', 1, 'Only in Ohio', 'Unbox an Ohio-tier ability', 300, null, '☄️'],
+  ['beats', 'made', 1, 'Beatmaker', 'Make your first beat in Beat Studio', 40, null, '🎹'],
+  ['beats', 'live', 5, 'On the Decks', 'Go live in Beat Studio 5 times', 120, null, '📡'],
+  ['beats', 'likes', 10, 'Crowd Favourite', 'Get 10 likes on your beats', 300, null, '❤️'],
 ].map(([e, k, n, nm, d, c, item, ic], i, all) => ({ i, id: `${e}.${k}.${n}`, e, key: `${e}.${k}`, n, nm, d, c, item, ic, tier: e === 'bv' ? 'b' : all.slice(0, i).filter((a) => a[0] === e).length }));
 W.ach = { c: {}, got: new Set() };
 const achTarget = (A) => (A.n === 'all' ? Object.keys(EXPS).length : A.n);
@@ -4404,7 +4409,7 @@ function achGroup(e) {
   return `<div class="achg${e === 'bv' ? ' bv' : ''}"><h4>${e === 'bv' ? '🧱 Bloxverse' : `${E ? E.emoji : ''} ${esc(E ? E.name : e)}`}<small>${n} / ${list.length}</small></h4><div class="achrows">${list.map(achRow).join('')}</div></div>`;
 }
 function saveAv() {
-  const d = Object.assign({}, AV, { coins: W.coins, own: [...W.own], day: W.day, at: Date.now(), ach: { c: W.ach.c, got: [...W.ach.got] }, items: W.items, fr: W.fr, fits: W.fits, who: Net.uid || W.who || '', made: W.made, xown: W.xown, wear: W.wear, rw: W.rw, sk: W.sk });
+  const d = Object.assign({}, AV, { coins: W.coins, own: [...W.own], day: W.day, at: Date.now(), ach: { c: W.ach.c, got: [...W.ach.got] }, items: W.items, fr: W.fr, fits: W.fits, who: Net.uid || W.who || '', made: W.made, xown: W.xown, wear: W.wear, rw: W.rw, sk: W.sk, beats: W.beats });
   try { localStorage.setItem('rb.av', JSON.stringify(d)); } catch (e) {}
   clearTimeout(avSaveT); avSaveT = setTimeout(() => { if (W.loaded) kvSet('av', d); }, 800);
   pubProfile();
@@ -4425,6 +4430,7 @@ function loadAvFrom(d) {
   { const r = d.rw && typeof d.rw === 'object' ? d.rw : null; W.rw = r ? { spin: +r.spin || 0, day: String(r.day || '').slice(0, 10), streak: Math.max(0, Math.min(99, +r.streak || 0)), bank: +r.bank || Date.now(), play: Math.max(0, +r.play || 0) } : null; }
   { const k = d.sk && typeof d.sk === 'object' ? d.sk : {}, on = {}; if (k.on && typeof k.on === 'object') for (const x in k.on) if (/^[a-z]{1,12}\.[a-z]$/.test(x)) on[x] = Math.max(0, Math.min(40, +k.on[x] || 0));
     W.sk = { own: Array.isArray(k.own) ? k.own.filter((x) => typeof x === 'string' && /^[a-z]{1,12}\.[a-z]\d{1,2}$/.test(x)).slice(0, 200) : [], on }; }
+  W.beats = Array.isArray(d.beats) ? d.beats.slice(0, 3).map((x) => (typeof x === 'string' && x.length < 260 ? x : '')) : [];
   W.xown = Array.isArray(d.xown) ? d.xown.filter((x) => typeof x === 'string' && /^[A-Za-z0-9]{1,20}$/.test(x)).slice(0, 300) : [];
   { const w = okAx(d.wear ? [d.wear.h, d.wear.pt, d.wear.f].concat(Array.isArray(d.wear.acc) ? d.wear.acc.slice(0, ACC_WEAR) : []) : []); W.wear = { h: w[0], pt: w[1], f: w[2], acc: w.slice(3), hx: [] }; }
   if (d.wear && Array.isArray(d.wear.hx)) for (const r of d.wear.hx) if (typeof r === 'string' && /^[A-Za-z0-9]{1,20}$/.test(r) && !hatsOn().includes(r) && hatsOn().length < HAT_MAX && (!isShopHat(r) || (+r.slice(1) > 0 && +r.slice(1) < HATS.length && owns('h', +r.slice(1))))) W.wear.hx.push(r);
@@ -5630,7 +5636,7 @@ addEventListener('keydown', (e) => { if (e.key === 'Escape' && ED.open) { e.stop
   addEventListener('resize', () => { if (ED.open) pvFit(); });
 }
 // the order experiences were added (the newest get a ✨ NEW badge; "Newest" sorts by it)
-const ADDED = ['obby', 'tycoon', 'tag', 'lava', 'toh', 'garden', 'tds', 'army', 'nds', 'pets', 'boat', 'zombie', 'egg', 'speed', 'fish', 'blade', 'murder', 'kart', 'rlgl', 'color', 'golf', 'bee', 'hide', 'pvz', 'rivals', 'fruits', 'pvb', 'fishty', 'pizza', 'park', 'mine', 'cars', 'forsaken', 'shaft', 'aura'];
+const ADDED = ['obby', 'tycoon', 'tag', 'lava', 'toh', 'garden', 'tds', 'army', 'nds', 'pets', 'boat', 'zombie', 'egg', 'speed', 'fish', 'blade', 'murder', 'kart', 'rlgl', 'color', 'golf', 'bee', 'hide', 'pvz', 'rivals', 'fruits', 'pvb', 'fishty', 'pizza', 'park', 'mine', 'cars', 'forsaken', 'shaft', 'aura', 'beats'];
 const addedAt = (E) => (E.added != null ? E.added : ADDED.indexOf(E.id));
 const SORTS = [['featured', '⭐ Featured'], ['popular', '🔥 Popular'], ['new', '✨ Newest'], ['az', '🔤 A–Z'], ['recent', '🕒 Recently played']];
 // how the list is sorted and filtered, your favourites and what you played when (kept on this device)
@@ -7394,6 +7400,6 @@ else {
   });
 }
 </script>
-<script>for (const f of ['blox-land.js', 'blox-toh.js', 'blox-garden.js', 'blox-tds.js', 'blox-army.js', 'blox-nds.js', 'blox-pets.js', 'blox-boat.js', 'blox-zombie.js', 'blox-egg.js', 'blox-speed.js', 'blox-fish.js', 'blox-blade.js', 'blox-murder.js', 'blox-kart.js', 'blox-rlgl.js', 'blox-color.js', 'blox-golf.js', 'blox-bee.js', 'blox-hide.js', 'blox-pvz.js', 'blox-rivals.js', 'blox-fruits.js', 'blox-brainrots.js', 'blox-tycoonkit.js', 'blox-fishtycoon.js', 'blox-pizza.js', 'blox-park.js', 'blox-mine.js', 'blox-cars.js', 'blox-forsaken.js', 'blox-shaft.js', 'blox-aura.js']) document.write(`<script src="${f}${window.GAMES_Q}"><\/script>`);</script>
+<script>for (const f of ['blox-land.js', 'blox-toh.js', 'blox-garden.js', 'blox-tds.js', 'blox-army.js', 'blox-nds.js', 'blox-pets.js', 'blox-boat.js', 'blox-zombie.js', 'blox-egg.js', 'blox-speed.js', 'blox-fish.js', 'blox-blade.js', 'blox-murder.js', 'blox-kart.js', 'blox-rlgl.js', 'blox-color.js', 'blox-golf.js', 'blox-bee.js', 'blox-hide.js', 'blox-pvz.js', 'blox-rivals.js', 'blox-fruits.js', 'blox-brainrots.js', 'blox-tycoonkit.js', 'blox-fishtycoon.js', 'blox-pizza.js', 'blox-park.js', 'blox-mine.js', 'blox-cars.js', 'blox-forsaken.js', 'blox-shaft.js', 'blox-aura.js', 'blox-beats.js']) document.write(`<script src="${f}${window.GAMES_Q}"><\/script>`);</script>
 </body>
 </html>
