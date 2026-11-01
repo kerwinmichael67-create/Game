@@ -1384,7 +1384,7 @@ const TRAILS = ['None', 'Rainbow', 'Fire', 'Ice', 'Neon', 'Gold', 'Hearts', 'Sta
 // the body: R6 (six blocks, the classic) or R15 (fifteen parts: knees, elbows, hands, feet and a waist that turns)
 const BODIES = ['R6', 'R15', 'Robot', 'Skeleton', 'Magma Golem', 'Dino Suit', 'Knight', 'Pumpkin Scarecrow', 'Phantom']; // (2 on: body packs, jointed like R15)
 // animation packs: how you stand, walk, run and jump
-const ANIMS = ['Default', 'Robot', 'Ninja', 'Zombie', 'Superhero', 'Stylish', 'Levitation'];
+const ANIMS = ['Default', 'Robot', 'Ninja', 'Zombie', 'Superhero', 'Stylish', 'Levitation', 'Vampire'];
 // the shop: what each costs in Blox Coins (0 = free, -1 = only as a reward)
 const COSMETICS = {
   h: { title: 'Hats', list: HATS, price: [0, 0, 0, 0, 0, 100, 250, 300, 150, 800, 200, 120, 220, 80, 1500, -1, 100, 200, 350, 180, 220, 260, 400, 150, 1200, 3000, -1, -1, -1, -1, -1, -1, -1, 400],
@@ -1395,7 +1395,7 @@ const COSMETICS = {
   pt: { title: 'Shirts', list: PATTERNS, price: [0, 60, 80, 80, 120, 100, 90, 250, 150, 150, 120, 200, 300, -1, -1, -1, 200], icon: ['⬜', '〰️', '⭐', '❤️', '⚡', '🏁', '1️⃣', '👔', '💀', '🔥', '🪖', '🌈', '🌌', '🏆', '🐾', '🌻', '🦴'] },
   pet: { title: 'Pets', list: PETS, price: [0, 400, 400, 350, 1500, 900, 2500, 600, 800, 1200, 4000, -1, -1, 1000], icon: ['🚫', '🐶', '🐱', '🐰', '🐉', '🤖', '🦄', '🐧', '🦊', '🐼', '🦅', '🧟', '🌱', '👻'] },
   bt: { title: 'Bodies', list: BODIES, price: [0, 0, 900, 600, 1200, 1000, 1100, 800, 1300], icon: ['🧍', '🦵', '🤖', '💀', '🌋', '🦖', '⚔️', '🎃', '🫥'], tab: false }, // (bodies and animations are in 🧍 Body)
-  an: { title: 'Animations', list: ANIMS, price: [0, 500, 750, 400, 700, 550, 900], icon: ['🚶', '🤖', '🥷', '🧟', '🦸', '😎', '🫧'], tab: false },
+  an: { title: 'Animations', list: ANIMS, price: [0, 500, 750, 400, 700, 550, 900, 777], icon: ['🚶', '🤖', '🥷', '🧟', '🦸', '😎', '🫧', '🧛'], tab: false },
   tr: { title: 'Trails', list: TRAILS, price: [0, 1500, 800, 600, 500, 2000, 700, -1, -1, 700], icon: ['🚫', '🌈', '🔥', '🧊', '💠', '🪙', '💕', '⭐', '⚡', '🌫️'] },
 };
 let AV = { s: 5, sh: 0, p: 1, h: 0, f: 0, b: 0, a: 0, pt: 0, pet: 0, tr: 0, bt: 0, an: 0 };
@@ -1457,19 +1457,26 @@ const FACE_TEX = FACES.map((_, k) => {
   else if (k === 15) { g.beginPath(); g.arc(44, 52, 13, 0, 7); g.fill(); g.fillStyle = '#fef08a'; g.beginPath(); g.arc(44, 52, 5, 0, 7); g.fill(); g.fillStyle = '#111'; g.beginPath(); g.arc(84, 54, 6, 0, 7); g.fill(); g.beginPath(); g.moveTo(38, 88); g.lineTo(92, 84); g.stroke(); g.lineWidth = 3; for (let x = 44; x <= 86; x += 9) { g.beginPath(); g.moveTo(x, 80); g.lineTo(x + 1, 94); g.stroke(); } } // zombie
   else if (k === 17) { for (const x of [44, 84]) { g.beginPath(); g.ellipse(x, 57, 8, 8, 0, 0, 7); g.fill(); } g.lineWidth = 7; g.beginPath(); g.moveTo(30, 36); g.lineTo(56, 46); g.moveTo(98, 36); g.lineTo(72, 46); g.stroke(); g.lineWidth = 6; g.beginPath(); g.moveTo(46, 92); g.lineTo(82, 88); g.stroke(); } // determined
   else if (k === 18) { eyes(); g.beginPath(); g.moveTo(34, 76); g.quadraticCurveTo(64, 114, 94, 76); g.closePath(); g.fill(); g.fillStyle = '#fff'; g.fillRect(42, 77, 44, 9); g.fillStyle = '#facc15'; g.fillRect(67, 77, 10, 11); g.fillStyle = '#111'; } // gold tooth
-  else if (k === 19) { // vampire: arched brows, glowing red eyes with slit pupils, a wicked smile, fangs and a drop of blood
-    g.lineWidth = 6; g.beginPath(); g.moveTo(28, 38); g.quadraticCurveTo(42, 30, 56, 42); g.moveTo(100, 38); g.quadraticCurveTo(86, 30, 72, 42); g.stroke();
-    g.shadowColor = '#ef4444'; g.shadowBlur = 10; g.fillStyle = '#dc2626'; for (const x of [44, 84]) { g.beginPath(); g.ellipse(x, 54, 10, 8, 0, 0, 7); g.fill(); } g.shadowBlur = 0;
-    g.fillStyle = '#111'; for (const x of [44, 84]) { g.beginPath(); g.ellipse(x, 54, 2.5, 7, 0, 0, 7); g.fill(); } g.fillStyle = '#fff'; for (const x of [40, 80]) { g.beginPath(); g.arc(x, 51, 2, 0, 7); g.fill(); }
-    g.fillStyle = '#111'; g.lineWidth = 5; g.beginPath(); g.moveTo(38, 78); g.quadraticCurveTo(64, 96, 90, 76); g.stroke();
-    g.fillStyle = '#fff'; g.strokeStyle = '#111'; g.lineWidth = 2; for (const x of [52, 74]) { g.beginPath(); g.moveTo(x - 6, 84); g.lineTo(x + 6, 85); g.lineTo(x, 100); g.closePath(); g.fill(); g.stroke(); }
-    g.fillStyle = '#b91c1c'; g.beginPath(); g.moveTo(74, 102); g.quadraticCurveTo(70, 110, 74, 113); g.quadraticCurveTo(78, 110, 74, 102); g.fill(); g.strokeStyle = '#111';
+  else if (k === 19) { // vampire: sharp arched brows, shadowed eyes glowing red with slit pupils, a sly smirk, long fangs and a drop of blood
+    g.fillStyle = 'rgba(76,29,149,.22)'; for (const x of [44, 84]) { g.beginPath(); g.ellipse(x, 60, 15, 8, 0, 0, Math.PI); g.fill(); } // (shadows under the eyes)
+    g.fillStyle = '#111'; for (const s2 of [-1, 1]) { g.beginPath(); g.moveTo(64 - s2 * 10, 44); g.quadraticCurveTo(64 - s2 * 22, 30, 64 - s2 * 42, 30); g.lineTo(64 - s2 * 38, 36); g.quadraticCurveTo(64 - s2 * 22, 36, 64 - s2 * 12, 47); g.closePath(); g.fill(); }
+    for (const x of [44, 84]) { // (each eye: a dark lid line, the iris glowing from yellow to red, a slit, a glint)
+      g.save(); g.beginPath(); g.moveTo(x - 14, 54); g.quadraticCurveTo(x, 42, x + 14, 54); g.quadraticCurveTo(x, 63, x - 14, 54); g.closePath(); g.clip();
+      g.fillStyle = '#fef2f2'; g.fillRect(x - 15, 40, 30, 26); const ir = g.createRadialGradient(x, 53, 1, x, 53, 9); ir.addColorStop(0, '#fde047'); ir.addColorStop(0.35, '#f97316'); ir.addColorStop(0.75, '#dc2626'); ir.addColorStop(1, '#7f1d1d');
+      g.fillStyle = ir; g.beginPath(); g.arc(x, 53, 8.5, 0, 7); g.fill(); g.fillStyle = '#111'; g.beginPath(); g.ellipse(x, 53, 2, 7, 0, 0, 7); g.fill(); g.restore();
+      g.strokeStyle = '#111'; g.lineWidth = 3; g.beginPath(); g.moveTo(x - 15, 55); g.quadraticCurveTo(x, 41, x + 15, 55); g.stroke(); g.lineWidth = 1.5; g.beginPath(); g.moveTo(x - 13, 55); g.quadraticCurveTo(x, 63, x + 13, 55); g.stroke();
+      g.fillStyle = '#fff'; g.beginPath(); g.arc(x - 3, 50, 1.8, 0, 7); g.fill(); }
+    g.save(); g.globalCompositeOperation = 'destination-over'; g.shadowColor = '#ef4444'; g.shadowBlur = 14; g.fillStyle = 'rgba(239,68,68,.35)'; for (const x of [44, 84]) { g.beginPath(); g.ellipse(x, 53, 13, 8, 0, 0, 7); g.fill(); } g.restore();
+    g.strokeStyle = '#111'; g.lineWidth = 4.5; g.beginPath(); g.moveTo(40, 80); g.quadraticCurveTo(64, 94, 92, 76); g.stroke(); g.lineWidth = 2.5; g.beginPath(); g.moveTo(92, 76); g.lineTo(97, 71); g.stroke(); // (a smirk, up at one side)
+    for (const x of [54, 75]) { const fg = g.createLinearGradient(0, 84, 0, 102); fg.addColorStop(0, '#ffffff'); fg.addColorStop(1, '#d6d3d1'); g.fillStyle = fg; g.strokeStyle = '#111'; g.lineWidth = 1.6; g.beginPath(); g.moveTo(x - 5.5, 85); g.quadraticCurveTo(x, 88, x + 5.5, 85); g.quadraticCurveTo(x + 2, 95, x, 103); g.quadraticCurveTo(x - 2, 95, x - 5.5, 85); g.closePath(); g.fill(); g.stroke(); }
+    g.fillStyle = '#b91c1c'; g.beginPath(); g.moveTo(75, 103); g.quadraticCurveTo(70, 112, 75, 116); g.quadraticCurveTo(80, 112, 75, 103); g.fill(); g.fillStyle = 'rgba(255,255,255,.7)'; g.beginPath(); g.arc(73.5, 111, 1.2, 0, 7); g.fill(); g.strokeStyle = '#111';
   }
+
   else { eyes(); g.fillStyle = '#f472b6'; g.beginPath(); g.moveTo(58, 68); g.lineTo(70, 68); g.lineTo(64, 76); g.closePath(); g.fill(); g.fillStyle = '#111'; g.beginPath(); g.moveTo(50, 82); g.quadraticCurveTo(57, 92, 64, 80); g.quadraticCurveTo(71, 92, 78, 82); g.stroke(); g.lineWidth = 3; for (const [x1, y1, x2, y2] of [[14, 70, 40, 74], [14, 82, 40, 80], [114, 70, 88, 74], [114, 82, 88, 80]]) { g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke(); } } // cat
   return new THREE.CanvasTexture(c);
 });
 // shirt patterns, drawn on the front of the torso
-const PAT_TEX = new Map();
+const PAT_TEX = new Map(), PAT_GLOW = new Map(); // (PAT_GLOW: for a pattern that glows in the dark, what glows)
 function patternTex(pt, col) {
   const key = pt + col;
   if (PAT_TEX.has(key)) return PAT_TEX.get(key);
@@ -1491,12 +1498,22 @@ function patternTex(pt, col) {
   else if (pt === 13) { g.fillStyle = '#facc15'; g.beginPath(); g.moveTo(19, 12); g.lineTo(45, 12); g.quadraticCurveTo(45, 36, 32, 40); g.quadraticCurveTo(19, 36, 19, 12); g.fill(); g.fillRect(29, 38, 6, 10); g.fillRect(21, 48, 22, 7); g.strokeStyle = '#facc15'; g.lineWidth = 4; g.beginPath(); g.arc(18, 22, 7, Math.PI * 0.5, Math.PI * 1.5); g.stroke(); g.beginPath(); g.arc(46, 22, 7, -Math.PI * 0.5, Math.PI * 0.5); g.stroke(); } // trophy
   else if (pt === 14) { g.fillStyle = w; g.beginPath(); g.ellipse(32, 41, 12, 10, 0, 0, 7); g.fill(); for (const [x, y] of [[17, 27], [27, 18], [37, 18], [47, 27]]) { g.beginPath(); g.ellipse(x, y, 5, 6.5, 0, 0, 7); g.fill(); } } // paw print
   else if (pt === 15) { g.fillStyle = '#facc15'; for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6; g.beginPath(); g.ellipse(32 + Math.cos(a) * 15, 32 + Math.sin(a) * 15, 8, 4, a, 0, 7); g.fill(); } g.fillStyle = '#78350f'; g.beginPath(); g.arc(32, 32, 10, 0, 7); g.fill(); } // sunflower
-  else if (pt === 16) { // skeleton tee: black, with glow-white bones
-    g.fillStyle = '#0d0d12'; g.fillRect(0, 0, 64, 64); g.fillStyle = '#f4f1e6'; g.shadowColor = '#a5f3fc'; g.shadowBlur = 3;
-    for (let y = 6; y < 58; y += 5) g.fillRect(29.5, y, 5, 3.4);
-    for (let r = 0; r < 4; r++) { const y = 12 + r * 7, w = [14, 17, 17, 15][r]; for (const s of [-1, 1]) { g.beginPath(); g.ellipse(32 + s * (w / 2 + 3), y + 2, w / 2, 3.2, s * 0.25, s > 0 ? Math.PI : 0, s > 0 ? Math.PI * 2 : Math.PI, s < 0); g.lineWidth = 2.6; g.strokeStyle = '#f4f1e6'; g.stroke(); } }
-    g.fillRect(28.5, 10, 7, 20); g.beginPath(); g.ellipse(22, 54, 9, 7, 0.3, 0, 7); g.ellipse(42, 54, 9, 7, -0.3, 0, 7); g.fill(); g.fillStyle = '#0d0d12'; g.beginPath(); g.arc(22, 55, 3, 0, 7); g.arc(42, 55, 3, 0, 7); g.fill(); g.shadowBlur = 0;
+  else if (pt === 16) { // skeleton tee: a black tee with a skeleton on it (collarbones, a ribcage round a breastbone, a spine, a pelvis) that glows in the dark
+    c.width = c.height = 128; const bones = (gg, glow) => {
+      gg.fillStyle = glow ? '#000' : '#0b0b10'; gg.fillRect(0, 0, 128, 128);
+      if (!glow) { const sh = gg.createRadialGradient(64, 50, 10, 64, 64, 90); sh.addColorStop(0, 'rgba(255,255,255,.05)'); sh.addColorStop(1, 'rgba(0,0,0,.25)'); gg.fillStyle = sh; gg.fillRect(0, 0, 128, 128); }
+      const bone = glow ? '#bdf6ff' : '#f4f1e6'; gg.fillStyle = bone; gg.strokeStyle = bone; gg.lineCap = 'round'; if (!glow) { gg.shadowColor = '#67e8f9'; gg.shadowBlur = 6; }
+      gg.lineWidth = 5; for (const s2 of [-1, 1]) { gg.beginPath(); gg.moveTo(64 + s2 * 8, 14); gg.quadraticCurveTo(64 + s2 * 28, 8, 64 + s2 * 46, 16); gg.stroke(); } // (collarbones)
+      gg.beginPath(); gg.moveTo(58, 16); gg.lineTo(70, 16); gg.lineTo(69, 52); gg.quadraticCurveTo(64, 58, 59, 52); gg.closePath(); gg.fill(); // (the breastbone)
+      for (let r = 0; r < 6; r++) { const y = 22 + r * 7.2, w = [30, 36, 39, 40, 37, 31][r]; gg.lineWidth = r > 3 ? 3.4 : 4.2; for (const s2 of [-1, 1]) { gg.beginPath(); gg.moveTo(64 + s2 * 6, y); gg.bezierCurveTo(64 + s2 * (w * 0.6), y - 5, 64 + s2 * w, y + 2, 64 + s2 * (w - 4), y + 10); gg.stroke(); } }
+      for (let y = 60; y < 92; y += 6) { gg.beginPath(); gg.roundRect ? gg.roundRect(58, y, 12, 4.5, 2) : gg.rect(58, y, 12, 4.5); gg.fill(); gg.fillRect(55, y + 1.2, 18, 2); } // (the spine)
+      gg.beginPath(); gg.moveTo(64, 92); gg.bezierCurveTo(40, 88, 26, 98, 30, 112); gg.quadraticCurveTo(46, 106, 56, 118); gg.lineTo(72, 118); gg.quadraticCurveTo(82, 106, 98, 112); gg.bezierCurveTo(102, 98, 88, 88, 64, 92); gg.fill(); // (the pelvis)
+      gg.shadowBlur = 0; gg.fillStyle = glow ? '#000' : '#0b0b10'; for (const x of [46, 82]) { gg.beginPath(); gg.ellipse(x, 104, 7, 5, 0, 0, 7); gg.fill(); } gg.beginPath(); gg.ellipse(64, 110, 5, 6, 0, 0, 7); gg.fill();
+    };
+    bones(g, false); const gc = document.createElement('canvas'); gc.width = gc.height = 128; bones(gc.getContext('2d'), true);
+    const t = new THREE.CanvasTexture(c); PAT_TEX.set(key, t); PAT_GLOW.set(t, new THREE.CanvasTexture(gc)); return t;
   }
+
   const t = new THREE.CanvasTexture(c); PAT_TEX.set(key, t); return t;
 }
 /* ---------------- items players make, and limiteds: what they look like ----------------
@@ -1911,7 +1928,7 @@ const BODY_KITS = [null,
     const { box, lam, mats, av, shirt, pants, skin, frontTex, grp } = K;
     const shoe = lam(new THREE.Color(PANTS[av[2]]).multiplyScalar(0.6)), belt = lam('#3b2614'), buckle = lam('#facc15', { emissive: '#2a1e00' }); mats.push(shoe, belt, buckle);
     // (the torso's picture runs over both halves: the top 58% on the upper torso, the rest on the lower one)
-    const half = (top) => { if (!frontTex) return shirt; const t = frontTex.clone(); t.needsUpdate = true; t.repeat.set(1, top ? 0.58 : 0.42); t.offset.set(0, top ? 0.42 : 0); const m = lam('#ffffff', { map: t }); mats.push(m); return m; };
+    const half = (top) => { if (!frontTex) return shirt; const cut = (x) => { const t = x.clone(); t.needsUpdate = true; t.repeat.set(1, top ? 0.58 : 0.42); t.offset.set(0, top ? 0.42 : 0); return t; }, m = lam('#ffffff', { map: cut(frontTex) }); if (PAT_GLOW.has(frontTex)) { m.emissive.set('#ffffff'); m.emissiveMap = cut(PAT_GLOW.get(frontTex)); } mats.push(m); return m; };
     const torso = (m, sx, sy, sz, y) => { const o = new THREE.Mesh(BOX, [shirt, shirt, shirt, shirt, shirt, m]); o.scale.set(sx, sy, sz); o.position.set(0, y, 0); K.body.add(o); };
     return {
       leg(x) { const hip = grp(K.body, x, 2), kn = grp(hip, 0, -1.0, 1); box(pants, 0.97, 1.04, 0.97, 0, -0.5, 0, hip); box(pants, 0.9, 0.86, 0.9, 0, -0.43, 0, kn); box(shoe, 0.96, 0.22, 1.12, 0, -0.89, -0.07, kn); return [hip, kn]; },
@@ -2384,29 +2401,78 @@ ANIM_PACKS.push(
     },
   },
 );
+// 🧛 Vampire (🎃 Halloween): stands tall with the cape drawn across the face, sweeping it open with a hiss now and
+// then; stalks along upright with claws raised; leaps with arms spread like bat wings, flapping, in a burst of bats
+// (and, standing still, a dark red mist curls at its feet)
+function vampBats(a) {
+  const p = a.g.position;
+  for (let k = 0; k < 5; k++) { const m = new THREE.Sprite(new THREE.SpriteMaterial({ map: batTex(), transparent: true, depthWrite: false })), an = Math.random() * Math.PI * 2, sz = 0.45 + Math.random() * 0.25, ph = Math.random() * 6;
+    m.position.set(p.x, p.y + 2.6, p.z); m.scale.set(sz * 2, sz, 1);
+    m.userData = { v: new THREE.Vector3(Math.cos(an) * 5, 2.5 + Math.random() * 2.5, Math.sin(an) * 5), life: 0.9, g: 0, fade: true, spinless: 1, tick: (o, u) => { o.scale.x = sz * 2 * (0.35 + 0.65 * Math.abs(Math.sin(u.life * 26 + ph))); } };
+    scene.add(m); bits.push(m); }
+}
+ANIM_PACKS.push({ snap: 10,
+  pose(J, a, s) {
+    const r15 = a.r15, t = s.t;
+    if (s.air) { const f = Math.sin(t * 15) * 0.4; J.bd = [-0.25, 0, 0]; J.hd = [0.2, 0, 0]; J.aL = [-0.35, 0, -1.75 - f]; J.aR = [-0.35, 0, 1.75 + f]; J.lL = [0.15, 0, -0.03]; J.lR = [0.15, 0, 0.03]; if (r15) { J.eL = J.eR = [0.45, 0, 0]; J.kL = J.kR = [-0.4, 0, 0]; } return; }
+    if (s.land != null && s.land < 0.35 && !s.mv) { J.k = 18; J.up = -0.35; J.bd = [-0.3, 0, 0]; J.aL = [0.6, 0, -0.9]; J.aR = [0.6, 0, 0.9]; if (r15) { J.kL = J.kR = [-0.9, 0, 0]; J.lL = J.lR = [0.45, 0, 0]; J.eL = J.eR = [0.6, 0, 0]; } return; }
+    if (s.mv) { // stalking: upright and smooth, long low steps, claws raised in front
+      const sw = Math.sin(s.ph) * 0.5, c = Math.cos(s.ph);
+      J.lL = [sw, 0, 0]; J.lR = [-sw, 0, 0]; J.bd = [-0.12, 0, 0]; J.hd = [0.22, 0, 0]; J.up = 0.02 * Math.abs(c);
+      J.aL = [1.05 + 0.08 * sw, 0, -0.18]; J.aR = [1.05 - 0.08 * sw, 0, 0.18];
+      if (r15) { J.eL = J.eR = [0.35, 0, 0]; J.kL = [-0.2 - 0.4 * Math.max(0, c), 0, 0]; J.kR = [-0.2 - 0.4 * Math.max(0, -c), 0, 0]; }
+      return;
+    }
+    const cyc = t % 7, h = cyc > 5.2 && cyc < 6.4 ? Math.sin(((cyc - 5.2) / 1.2) * Math.PI) : 0; // (h: the hiss, sweeping the cape open)
+    J.up = 0.02 * Math.sin(t * 1.6); J.hd = [-0.25 * h, 0.15 * Math.sin(t * 0.5) * (1 - h), 0]; J.bd = [0.06 * h, 0, 0];
+    J.aR = [1.9 * (1 - h) + 0.2 * h, 0, -0.55 * (1 - h) + 1.25 * h]; J.aL = [0.15 * (1 - h) + 0.2 * h, 0, -0.08 - 1.17 * h];
+    if (r15) { J.eR = [1.3 * (1 - h) + 0.7 * h, 0, 0]; J.eL = [0.15 + 0.55 * h, 0, 0]; }
+  },
+  tick(a, dt, s) { // (a burst of bats as you leap; a dark red mist curling at your feet)
+    if (s.air && !a.vBats && a.airT > 0.12) { a.vBats = 1; vampBats(a); } if (!s.air) a.vBats = 0; // (a real leap, not a step off a kerb)
+    if (s.mv || s.air) return; a.vmT = (a.vmT || 0) - dt; if (a.vmT > 0) return; a.vmT = 0.3;
+    emBits(a, (Math.random() - 0.5) * 1.4, 0.15, (Math.random() - 0.5) * 1.0, [0x450a0a, 0x3b0764, 0x7f1d1d], 1, { size: 0.13, speed: 0.2, up: 0.3, g: -0.15, life: 1.1, spread: 0.4 });
+  },
+});
 ANIM_DESC.push('Fists on the hips and chest out; sprints with knees high, flies through the air with a fist out front and lands on one knee.',
   'Weight on one leg, a hand in the pocket, nodding along and brushing the dirt off a shoulder; struts with a bounce and twirls when it jumps.',
-  'Always floating, legs dangling and arms drifting; glides along leaning forward, with sparkles falling from under your feet.');
+  'Always floating, legs dangling and arms drifting; glides along leaning forward, with sparkles falling from under your feet.',
+  'Stands tall with the cape drawn across the face, sweeping it open with a hiss now and then; stalks along upright with claws raised; leaps with arms spread like bat wings, flapping, in a burst of bats — and a dark red mist curls at your feet.');
 // pictures for the Halloween things: a bat (wings, ears, red eyes), a little ghost, a tombstone, the moon, a zombie hand
 const HW_TEX = {};
 function hwCanvas(key, w, h, draw) { if (HW_TEX[key]) return HW_TEX[key]; const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d')); return (HW_TEX[key] = new THREE.CanvasTexture(c)); }
-const batTex = () => hwCanvas('bat', 128, 64, (g) => {
-  g.fillStyle = '#1e1033'; g.strokeStyle = 'rgba(167,139,250,.6)'; g.lineWidth = 2;
-  g.beginPath(); g.moveTo(64, 26);
-  g.bezierCurveTo(50, 8, 22, 6, 4, 20); g.quadraticCurveTo(14, 26, 12, 38); g.quadraticCurveTo(22, 30, 30, 42); g.quadraticCurveTo(38, 32, 46, 44); g.quadraticCurveTo(52, 36, 60, 44);
-  g.lineTo(68, 44); g.quadraticCurveTo(76, 36, 82, 44); g.quadraticCurveTo(90, 32, 98, 42); g.quadraticCurveTo(106, 30, 116, 38); g.quadraticCurveTo(114, 26, 124, 20); g.bezierCurveTo(106, 6, 78, 8, 64, 26);
-  g.closePath(); g.fill(); g.stroke();
-  g.beginPath(); g.ellipse(64, 34, 9, 13, 0, 0, 7); g.fill(); g.beginPath(); g.moveTo(56, 26); g.lineTo(58, 14); g.lineTo(62, 23); g.moveTo(72, 26); g.lineTo(70, 14); g.lineTo(66, 23); g.fill();
-  g.fillStyle = '#ef4444'; g.shadowColor = '#ef4444'; g.shadowBlur = 6; for (const x of [60, 68]) { g.beginPath(); g.arc(x, 30, 2.2, 0, 7); g.fill(); }
+const batTex = () => hwCanvas('bat2', 256, 128, (g) => { // (a faint purple glow round it; wings of membrane between finger bones, scalloped behind; ears, glowing red eyes, little fangs)
+  const gl = g.createRadialGradient(128, 62, 4, 128, 62, 72); gl.addColorStop(0, 'rgba(168,85,247,.32)'); gl.addColorStop(1, 'rgba(168,85,247,0)'); g.fillStyle = gl; g.fillRect(0, 0, 256, 128);
+  for (const s2 of [-1, 1]) { g.save(); g.translate(128, 0); g.scale(s2, 1);
+    const wg = g.createLinearGradient(0, 24, 120, 70); wg.addColorStop(0, '#2c1a44'); wg.addColorStop(1, '#120a20'); g.fillStyle = wg;
+    g.beginPath(); g.moveTo(8, 52); g.bezierCurveTo(30, 20, 72, 10, 122, 24); g.quadraticCurveTo(108, 44, 116, 70); g.quadraticCurveTo(98, 58, 86, 74); g.quadraticCurveTo(74, 60, 60, 82); g.quadraticCurveTo(46, 66, 32, 86); g.quadraticCurveTo(22, 72, 8, 80); g.closePath(); g.fill();
+    g.strokeStyle = 'rgba(196,181,253,.5)'; g.lineWidth = 2; g.stroke();
+    g.strokeStyle = '#4b3670'; g.lineWidth = 2.6; for (const [x, y] of [[116, 70], [86, 74], [60, 82], [32, 86]]) { g.beginPath(); g.moveTo(16, 46); g.quadraticCurveTo((16 + x) / 2, (46 + y) / 2 - 14, x, y); g.stroke(); }
+    g.lineWidth = 3.4; g.beginPath(); g.moveTo(10, 50); g.quadraticCurveTo(60, 14, 122, 24); g.stroke();
+    g.restore(); }
+  g.fillStyle = '#1a0f2a'; g.beginPath(); g.ellipse(128, 62, 15, 23, 0, 0, 7); g.fill();
+  g.beginPath(); g.moveTo(115, 48); g.lineTo(117, 20); g.lineTo(126, 42); g.closePath(); g.moveTo(141, 48); g.lineTo(139, 20); g.lineTo(130, 42); g.closePath(); g.fill();
+  g.fillStyle = '#33204f'; g.beginPath(); g.ellipse(128, 68, 9, 14, 0, 0, 7); g.fill();
+  g.shadowColor = '#ff2a2a'; g.shadowBlur = 10; g.fillStyle = '#ff3b3b'; for (const x of [121, 135]) { g.beginPath(); g.ellipse(x, 52, 3.8, 3, 0, 0, 7); g.fill(); } g.shadowBlur = 0;
+  g.fillStyle = '#fff'; for (const x of [124, 132]) { g.beginPath(); g.moveTo(x - 2, 59); g.lineTo(x + 2, 59); g.lineTo(x, 65); g.closePath(); g.fill(); }
 });
-const ghostTex = () => hwCanvas('ghost', 64, 64, (g) => {
-  g.fillStyle = 'rgba(248,250,252,.95)'; g.shadowColor = '#c4b5fd'; g.shadowBlur = 8;
-  g.beginPath(); g.moveTo(14, 58); g.lineTo(14, 28); g.bezierCurveTo(14, 4, 50, 4, 50, 28); g.lineTo(50, 58); for (let k = 0; k < 4; k++) g.quadraticCurveTo(50 - k * 9 - 4.5, 50, 50 - (k + 1) * 9, 58); g.closePath(); g.fill();
-  g.shadowBlur = 0; g.fillStyle = '#1e1b4b'; for (const x of [26, 38]) { g.beginPath(); g.ellipse(x, 28, 3.5, 5.5, 0, 0, 7); g.fill(); } g.beginPath(); g.ellipse(32, 40, 4, 5, 0, 0, 7); g.fill();
+const ghostTex = () => hwCanvas('ghost2', 128, 128, (g) => { // (a glow round it; a sheet ghost with a wavy tail fading away, little arms, eyes with glints, an "o" mouth, pink cheeks)
+  const gl = g.createRadialGradient(64, 58, 10, 64, 60, 62); gl.addColorStop(0, 'rgba(196,181,253,.5)'); gl.addColorStop(1, 'rgba(196,181,253,0)'); g.fillStyle = gl; g.fillRect(0, 0, 128, 128);
+  const bd = g.createLinearGradient(0, 18, 0, 118); bd.addColorStop(0, 'rgba(255,255,255,.98)'); bd.addColorStop(0.65, 'rgba(237,233,254,.92)'); bd.addColorStop(1, 'rgba(221,214,254,0)'); g.fillStyle = bd;
+  g.beginPath(); g.moveTo(34, 60); g.bezierCurveTo(30, 14, 98, 14, 94, 60); g.bezierCurveTo(96, 84, 104, 98, 96, 112); g.quadraticCurveTo(86, 100, 80, 114); g.quadraticCurveTo(72, 100, 64, 116); g.quadraticCurveTo(56, 100, 48, 112); g.quadraticCurveTo(40, 100, 30, 110); g.bezierCurveTo(36, 96, 32, 80, 34, 60); g.fill();
+  g.beginPath(); g.ellipse(30, 66, 10, 6, -0.6, 0, 7); g.ellipse(98, 66, 10, 6, 0.6, 0, 7); g.fill();
+  g.fillStyle = '#1e1b4b'; for (const x of [52, 76]) { g.beginPath(); g.ellipse(x, 50, 6.5, 9.5, 0, 0, 7); g.fill(); } g.fillStyle = '#fff'; for (const x of [50, 74]) { g.beginPath(); g.arc(x, 46, 2.4, 0, 7); g.fill(); }
+  g.fillStyle = '#1e1b4b'; g.beginPath(); g.ellipse(64, 70, 6, 8, 0, 0, 7); g.fill();
+  g.fillStyle = 'rgba(244,114,182,.55)'; for (const x of [42, 86]) { g.beginPath(); g.ellipse(x, 62, 6, 3.5, 0, 0, 7); g.fill(); }
 });
-const ripTex = () => hwCanvas('rip', 64, 64, (g) => {
-  g.fillStyle = '#6b7280'; g.fillRect(0, 0, 64, 64); g.fillStyle = 'rgba(0,0,0,.18)'; for (let k = 0; k < 14; k++) g.fillRect((k * 23) % 60, (k * 37) % 60, 6, 3);
-  g.fillStyle = '#374151'; g.font = '900 20px system-ui,sans-serif'; g.textAlign = 'center'; g.fillText('R.I.P', 32, 28); g.fillRect(18, 38, 28, 3); g.fillRect(22, 46, 20, 3);
+const ripTex = () => hwCanvas('rip2', 128, 128, (g) => {
+  const gr = g.createLinearGradient(0, 0, 0, 128); gr.addColorStop(0, '#9ca3af'); gr.addColorStop(1, '#6b7280'); g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
+  for (let k = 0; k < 160; k++) { g.fillStyle = k % 2 ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.08)'; g.fillRect((k * 53) % 126, (k * 29 + k * k) % 126, 2 + (k % 3), 2); }
+  const cut = (draw) => { g.save(); g.translate(1, 1.5); g.fillStyle = 'rgba(255,255,255,.35)'; g.strokeStyle = 'rgba(255,255,255,.35)'; draw(); g.restore(); g.fillStyle = '#374151'; g.strokeStyle = '#374151'; draw(); };
+  cut(() => { g.fillRect(60, 10, 8, 30); g.fillRect(50, 18, 28, 7); });
+  cut(() => { g.font = '900 30px Georgia,serif'; g.textAlign = 'center'; g.fillText('R.I.P', 64, 72); g.fillRect(34, 82, 60, 3); g.fillRect(42, 92, 44, 3); });
+  g.strokeStyle = 'rgba(31,41,55,.8)'; g.lineWidth = 1.6; g.beginPath(); g.moveTo(102, 0); g.lineTo(96, 18); g.lineTo(104, 30); g.lineTo(98, 50); g.stroke();
+  g.fillStyle = 'rgba(77,124,15,.75)'; for (const [x, y, r] of [[8, 124, 18], [30, 128, 14], [118, 122, 12], [4, 100, 8]]) { g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); }
 });
 const moonTex = () => hwCanvas('moon', 128, 128, (g) => {
   const gr = g.createRadialGradient(64, 64, 30, 64, 64, 64); gr.addColorStop(0, 'rgba(254,243,199,1)'); gr.addColorStop(0.72, 'rgba(253,230,138,1)'); gr.addColorStop(0.78, 'rgba(253,230,138,.35)'); gr.addColorStop(1, 'rgba(253,230,138,0)');
@@ -2414,52 +2480,69 @@ const moonTex = () => hwCanvas('moon', 128, 128, (g) => {
 });
 // 👻 Phantom: a body of ghost-light (see-through, glowing, flickering) in a tattered hooded shroud, its legs fading
 // to wisps, your face glowing in the hood's shadow, and mist curling off it
+const PHANTOM_TIP = sweepGeo([[0, 0.5, 0.38], [0, 0.98, 0.66], [0, 1.24, 1.06], [0, 1.08, 1.46]], (t) => 0.5 * Math.pow(1 - t, 1.2) + 0.012, 18, 12);
 BODY_KITS.push((K) => {
   const { box, mesh, lam, mats, grp } = K;
-  const spirit = lam('#dbeafe', { emissive: '#1d4ed8', transparent: true, opacity: 0.6 }), fade = lam('#dbeafe', { emissive: '#1d4ed8', transparent: true, opacity: 0.3 });
-  const shroud = lam('#1e2340', { side: THREE.DoubleSide }), shroud2 = lam('#2b3158', { side: THREE.DoubleSide }), dark = new THREE.MeshBasicMaterial({ color: '#05060c' });
+  const spirit = lam('#dbeafe', { emissive: '#1d4ed8', transparent: true, opacity: 0.6 }), fade = lam('#dbeafe', { emissive: '#1d4ed8', transparent: true, opacity: 0.3, depthWrite: false });
+  const shroud = lam('#1b1f3b', { side: THREE.DoubleSide }), shroud2 = lam('#2a3060', { side: THREE.DoubleSide }), dark = new THREE.MeshBasicMaterial({ color: '#05060c' }), chainM = lam('#93c5fd', { emissive: '#1e3a8a', transparent: true, opacity: 0.8 });
+  const glow = (c, sc, o = 0.7) => { const g = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), color: c, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: o })); g.scale.setScalar(sc); return g; };
   mats.push(shroud, shroud2);
-  // (strips of the shroud's ragged hem, hanging from y: each a little different)
-  const rags = (par, x, y, z, w, n, len, m) => { for (let k = 0; k < n; k++) { const l = len * (0.7 + ((k * 37) % 10) / 22), r = box(m || shroud, w / n * 0.92, l, 0.05, x - w / 2 + (k + 0.5) * w / n, y - l / 2, z, par); r.rotation.x = (z < 0 ? -1 : 1) * 0.06; } };
+  const flaps = [], glows = []; // (the tatters, to flutter; the glows, to pulse)
+  // a tattered panel of the shroud hanging from (x, y, z): w wide, len long, in soft folds, its hem torn into points
+  const tatter = (par, x, y, z, w, len, ry = 0, m = shroud) => {
+    const n = Math.max(3, Math.round(w * 5)), g = new THREE.PlaneGeometry(w, len, n * 2, 4), p = g.attributes.position;
+    for (let i = 0; i < p.count; i++) { const px = p.getX(i), py = p.getY(i), t = (len / 2 - py) / len, col = Math.round((px / w + 0.5) * n * 2); p.setY(i, py + (t > 0.99 ? (col % 2 ? 0.34 : (((col * 37) % 7) / 7) * 0.12) * len : 0)); p.setZ(i, 0.05 * Math.sin(px * 9) * t); }
+    g.computeVertexNormals(); const piv = new THREE.Group(); piv.position.set(x, y, z); piv.rotation.y = ry; piv.userData.rx = z < 0 ? -0.05 : 0.05; par.add(piv); const o = new THREE.Mesh(g, m); o.position.y = -len / 2; piv.add(o); flaps.push(piv); return piv;
+  };
   return {
     leg(x) {
       const hip = grp(K.body, x, 2), kn = grp(hip, 0, -1.0, 1);
-      box(spirit, 0.9, 1.04, 0.9, 0, -0.5, 0, hip); box(fade, 0.78, 0.86, 0.78, 0, -0.43, 0, kn); box(fade, 0.6, 0.22, 0.7, 0, -0.9, -0.05, kn);
-      rags(hip, 0, 0.0, -0.5, 0.96, 3, 0.95); rags(hip, 0, 0.0, 0.5, 0.96, 3, 0.95);
+      box(spirit, 0.86, 1.04, 0.86, 0, -0.5, 0, hip);
+      const w = mesh(KIT_CONE, fade, 0, -0.62, 0, kn); w.scale.set(0.42, 1.25, 0.42); w.rotation.x = Math.PI; // (the leg thinning away to a wisp)
+      tatter(hip, 0, 0.06, -0.47, 0.98, 1.2); tatter(hip, 0, 0.06, 0.47, 0.98, 1.2);
       return [hip, kn];
     },
-    lower() { box(spirit, 1.9, 0.84, 0.9, 0, 2.42, 0); box(shroud2, 2.04, 0.18, 1.02, 0, 2.62, 0); },
+    lower() { box(spirit, 1.9, 0.84, 0.9, 0, 2.42, 0); box(shroud2, 2.04, 0.16, 1.02, 0, 2.66, 0); for (const s2 of [-1, 1]) { const k = mesh(KIT_SPH, shroud2, s2 * 0.5, 2.6, -0.53); k.scale.set(0.12, 0.1, 0.08); } },
     upper() {
       box(spirit, 1.96, 1.16, 0.96, 0, 3.42, 0);
-      box(shroud, 2.08, 1.2, 0.08, 0, 3.38, 0.52); rags(K.body, 0, 2.8, 0.54, 2.08, 6, 1.1); // (the shroud down the back)
-      for (const s of [-1, 1]) { const f = box(shroud, 0.62, 1.22, 0.08, s * 0.72, 3.38, -0.51); f.rotation.y = s * 0.12; rags(K.body, s * 0.72, 2.8, -0.53, 0.62, 2, 0.9); }
-      const core = mesh(KIT_SPH, new THREE.MeshBasicMaterial({ color: '#93c5fd', transparent: true, opacity: 0.55 }), 0, 3.5, -0.2); core.scale.setScalar(0.32);
+      tatter(K.body, 0, 4.04, 0.54, 2.14, 2.35); // (the shroud down the back)
+      for (const s2 of [-1, 1]) tatter(K.body, s2 * 0.67, 4.04, -0.54, 0.74, 2.05, s2 * 0.1); // (and down the front, open in the middle)
+      box(shroud, 2.14, 0.24, 1.08, 0, 3.98, 0);
+      const soul = glow('#93c5fd', 1.4, 0.8); soul.position.set(0, 3.45, -0.32); K.body.add(soul); glows.push([soul, 0.8]);
+      const link = new THREE.TorusGeometry(0.07, 0.022, 5, 10); // (a spectral chain, from a shoulder down across it)
+      for (let k = 0; k < 12; k++) { const u = k / 11, l = mesh(link, chainM, -0.85 + u * 1.7, 3.95 - 1.1 * u + 0.22 * Math.sin(u * Math.PI), -0.55); l.rotation.set(k % 2 ? Math.PI / 2 : 0, 0, -0.57); }
     },
     arm(s) {
       const sh = grp(K.body, s * 1.5, 4), el = grp(sh, 0, -0.98, 1);
-      box(shroud, 1.04, 1.04, 1.04, 0, -0.46, 0, sh); box(spirit, 0.82, 0.8, 0.82, 0, -0.38, 0, el); box(fade, 0.86, 0.26, 0.86, 0, -0.87, 0, el);
-      rags(el, 0, -0.04, -0.54, 1.0, 3, 0.55, shroud2); rags(el, 0, -0.04, 0.54, 1.0, 3, 0.55, shroud2);
+      box(shroud, 1.06, 1.04, 1.06, 0, -0.46, 0, sh);
+      mesh(new THREE.CylinderGeometry(0.56, 0.8, 1.0, 14, 1, true), shroud, 0, -0.32, 0, el); // (a wide sleeve, torn at the hem)
+      tatter(el, 0, -0.72, -0.66, 1.15, 0.55, 0, shroud2); tatter(el, 0, -0.72, 0.66, 1.15, 0.55, 0, shroud2);
+      box(spirit, 0.66, 0.7, 0.66, 0, -0.45, 0, el);
+      const hand = mesh(KIT_SPH, fade, 0, -0.95, 0, el); hand.scale.set(0.36, 0.32, 0.36);
+      const hg = glow('#60a5fa', 0.95, 0.6); hg.position.set(0, -0.98, 0); el.add(hg); glows.push([hg, 0.6]);
       return [sh, el];
     },
-    head(h) { // the face, glowing, in the dark of a pointed hood
+    head(h) { // the face, glowing, in the dark of a deep hood that ends in a drooping point
       h.add(new THREE.Mesh(HEAD_GEO, spirit));
       const f = mesh(KIT_PLANE, new THREE.MeshBasicMaterial({ map: tintFace(K.faceCanvas, '#a5f3fc', ''), transparent: true }), 0, 0, -0.69, h); f.scale.set(1.0, 0.95, 1); f.rotation.y = Math.PI;
       box(dark, 1.2, 1.1, 0.05, 0, 0, -0.62, h);
-      box(shroud, 1.6, 0.36, 1.62, 0, 0.78, 0.04, h); box(shroud, 1.6, 1.4, 0.3, 0, 0.1, 0.74, h);
-      for (const s of [-1, 1]) box(shroud, 0.2, 1.5, 1.5, s * 0.8, 0.12, 0.04, h);
-      const pt = mesh(KIT_CONE, shroud, 0, 1.15, 0.35, h); pt.scale.set(0.5, 0.8, 0.5); pt.rotation.x = -0.6;
-      box(shroud2, 1.64, 0.12, 0.12, 0, 0.62, -0.78, h);
+      const hood = mesh(new THREE.SphereGeometry(1.0, 24, 16, 0, Math.PI * 2, 0, Math.PI * 0.62), shroud, 0, -0.04, 0.1, h); hood.scale.set(0.98, 1.08, 1.04); hood.rotation.x = 0.9;
+      const rim = mesh(new THREE.TorusGeometry(0.9, 0.075, 6, 28), shroud2, 0, -0.28, -0.2, h); rim.rotation.x = -0.67; rim.scale.set(1, 1.06, 1);
+      mesh(PHANTOM_TIP, shroud, 0, 0, 0, h);
+      const eg = glow('#67e8f9', 1.3, 0.45); eg.position.set(0, 0.08, -0.75); h.add(eg); glows.push([eg, 0.45]);
       return true;
     },
-    tick(a, dt) { // flickering; mist curling off the hem
+    tick(a, dt) { // flickering, the glows pulsing, the tatters fluttering, mist curling off the hem
       a.kitT = (a.kitT || 0) + dt; const t = a.kitT, fl = 0.5 + 0.12 * Math.sin(t * 2.3) + 0.06 * Math.sin(t * 17);
       spirit.opacity = fl; fade.opacity = fl * 0.5;
+      glows.forEach(([g, o], i) => { g.material.opacity = o * (0.75 + 0.25 * Math.sin(t * 3.1 + i)); });
+      flaps.forEach((f, i) => { f.rotation.x = f.userData.rx + 0.08 * Math.sin(t * 2.7 + i * 1.7); });
       a.mistT = (a.mistT || 0) - dt;
       if (a.mistT <= 0 && !a.dead) { a.mistT = 0.09; emBits(a, (Math.random() - 0.5) * 1.6, 0.3 + Math.random() * 0.6, (Math.random() - 0.5) * 0.9, [0xc7d2fe, 0xa5b4fc, 0xe0e7ff], 1, { size: 0.3, speed: 0.4, up: 0.5, g: -0.4, life: 1.0, spread: 0.3 }); }
     },
   };
 });
-BODY_DESC.push('A body of ghost-light, see-through and flickering, in a tattered hooded shroud: its legs fade away, your face glows in the dark of the hood, and mist curls off it.');
+BODY_DESC.push('A body of ghost-light, see-through and flickering, in a tattered shroud that flutters as you move: its legs thin away to wisps, a spectral chain hangs across it, your hands and heart glow, your face glows in the dark of a deep hood that ends in a drooping point, and mist curls off it.');
 /* ---------------- shapes for the remade items: feathered wings, a bat's wing, a cape that hangs, a shield ---------------- */
 // a feathered wing, fanned out from the shoulder (s: -1 the left, 1 the right): long feathers at the back, shorter rows
 // over them, longest at the tip. o: { cols: [long, middle, short], span, em (a glow), k (feather length) }
@@ -2495,6 +2578,52 @@ function capeGeo(w, h, flare) {
   for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i), t = (h / 2 - y) / h; p.setXYZ(i, x * (1 + 0.32 * t), y, flare * Math.pow(t, 1.6) + 0.07 * Math.sin(x * 6.5) * t); }
   g.computeVertexNormals(); return g;
 }
+// a tube along a smooth path through points, its radius changing along it (r(t), t 0..1): a bent hat, a gnarled stick
+function sweepGeo(pts, r, tub = 24, rad = 14) {
+  const curve = new THREE.CatmullRomCurve3(pts.map((q) => new THREE.Vector3(q[0], q[1], q[2]))), g = new THREE.TubeGeometry(curve, tub, 1, rad, false), p = g.attributes.position, c = new THREE.Vector3();
+  for (let i = 0; i <= tub; i++) { curve.getPointAt(i / tub, c); const k = r(i / tub); for (let j = 0; j <= rad; j++) { const n = i * (rad + 1) + j; p.setXYZ(n, c.x + (p.getX(n) - c.x) * k, c.y + (p.getY(n) - c.y) * k, c.z + (p.getZ(n) - c.z) * k); } }
+  g.computeVertexNormals(); return g;
+}
+// lots of thin strands (straw) in one mesh, each two crossed strips: [from, to, width, colour]
+function strandsGeo(list) {
+  const pos = [], col = [], c = new THREE.Color();
+  for (const [a, b, w, hex] of list) { c.set(hex);
+    for (const [ox, oz] of [[w, 0], [0, w]]) { const q = [[a[0] - ox, a[1], a[2] - oz], [a[0] + ox, a[1], a[2] + oz], [b[0] + ox * 0.4, b[1], b[2] + oz * 0.4], [b[0] - ox * 0.4, b[1], b[2] - oz * 0.4]]; for (const k of [0, 1, 2, 0, 2, 3]) { pos.push(q[k][0], q[k][1], q[k][2]); col.push(c.r, c.g, c.b); } } }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); g.computeVertexNormals(); return g;
+}
+// 🧛 the vampire's cape: wide at the hem, in deep folds, wrapping forward round the arms, its hem cut in bat-wing scallops
+const VAMP_CAPE = (() => { const W = 2.3, H = 3.8, g = new THREE.PlaneGeometry(W, H, 30, 20), p = g.attributes.position;
+  for (let i = 0; i < p.count; i++) { const x0 = p.getX(i), y0 = p.getY(i), t = (H / 2 - y0) / H, u = x0 / W + 0.5, sx = x0 * (1 + 0.62 * t), e = Math.pow(Math.abs(sx) / (W * 0.81), 2);
+    p.setXYZ(i, sx, y0 - H / 2 + 0.42 * Math.abs(Math.sin(u * Math.PI * 4)) * Math.pow(t, 10), 0.7 * Math.pow(t, 1.5) + 0.14 * Math.sin(x0 * 8.2) * (0.25 + t) - 0.75 * e * (0.35 + 0.65 * t)); }
+  g.computeVertexNormals(); return g; })();
+// its tall collar, standing up behind the head and flaring out to two points
+const VAMP_COLLAR = (() => { const g = new THREE.CylinderGeometry(1.08, 0.72, 1.5, 26, 6, true, -1.35, 2.7), p = g.attributes.position;
+  for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i), z = p.getZ(i), th = Math.atan2(x, z), t = (y + 0.75) / 1.5; p.setY(i, y + 0.45 * Math.pow(Math.abs(th) / 1.35, 2.5) * t + 0.05 * Math.sin(th * 9) * t); }
+  g.computeVertexNormals(); return g; })();
+// the witch hat's brim: wide, its wavy edge drooping at the front and turned up at the back
+const WITCH_BRIM = (() => { const g = new THREE.RingGeometry(0.5, 1.42, 48, 4), p = g.attributes.position;
+  for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i), r = Math.hypot(x, y), th = Math.atan2(y, x), t = (r - 0.5) / 0.92; p.setZ(i, -0.14 * t * t + 0.05 * Math.sin(th * 5 + 1) * t + 0.26 * t * t * Math.max(0, -Math.sin(th)) - 0.08 * t * t * Math.max(0, Math.sin(th))); }
+  g.computeVertexNormals(); return g; })();
+// its crumpled cone, bending back and curling over at the tip
+const WITCH_CONE = sweepGeo([[0, 0.66, 0.02], [0, 1.25, 0.06], [0, 1.75, 0.2], [0, 2.08, 0.5], [0, 2.18, 0.84], [0, 2.02, 1.05]], (t) => (0.68 * Math.pow(1 - t, 1.15) + 0.018) * (1 + 0.05 * Math.sin(t * 22)), 30, 18);
+// a broom's gnarled handle, with two knots
+const BROOM_STICK = sweepGeo([[0, 1.95, 0], [0.05, 1.4, 0.03], [-0.04, 0.8, -0.02], [0.04, 0.1, 0.03], [-0.03, -0.6, 0], [0, -1.12, 0]], (t) => 0.085 * (0.72 + 0.28 * Math.min(1, t * 4)) * (1 + 0.32 * Math.exp(-Math.pow((t - 0.3) / 0.03, 2)) + 0.26 * Math.exp(-Math.pow((t - 0.62) / 0.03, 2))), 30, 10);
+// its bristles: seventy straws in three colours, splaying out from the binding
+const BROOM_STRAW = (() => { const r = mulberry(1717), L = [], cols = ['#e2b04a', '#c9952f', '#a87b28', '#ecc66a'];
+  for (let k = 0; k < 74; k++) { const a = r() * Math.PI * 2, r0 = 0.08 + r() * 0.12, r1 = 0.35 + r() * 0.42, len = 1.25 + r() * 0.55; L.push([[Math.cos(a) * r0, -1.1, Math.sin(a) * r0], [Math.cos(a) * r1 + (r() - 0.5) * 0.1, -1.1 - len, Math.sin(a) * r1], 0.028, cols[k % 4]]); }
+  return strandsGeo(L); })();
+// a jack-o'-lantern: its skin, and (for the glow) only its carved face
+const jackTex = (glow) => hwCanvas(glow ? 'jackGlow' : 'jack', 128, 128, (g) => {
+  if (!glow) { const gr = g.createLinearGradient(0, 0, 128, 0); gr.addColorStop(0, '#c2410c'); gr.addColorStop(0.5, '#f97316'); gr.addColorStop(1, '#c2410c'); g.fillStyle = gr; g.fillRect(0, 0, 128, 128); g.strokeStyle = 'rgba(124,45,18,.55)'; g.lineWidth = 3; for (const x of [16, 40, 64, 88, 112]) { g.beginPath(); g.moveTo(x, 0); g.quadraticCurveTo(x + (x - 64) * 0.15, 64, x, 128); g.stroke(); } }
+  else { g.fillStyle = '#000'; g.fillRect(0, 0, 128, 128); }
+  g.fillStyle = glow ? '#ffd166' : '#fde047'; if (!glow) { g.shadowColor = '#facc15'; g.shadowBlur = 8; }
+  for (const x of [44, 84]) { g.beginPath(); g.moveTo(x - 12, 58); g.lineTo(x, 38); g.lineTo(x + 12, 58); g.closePath(); g.fill(); }
+  g.beginPath(); g.moveTo(58, 70); g.lineTo(64, 60); g.lineTo(70, 70); g.closePath(); g.fill();
+  g.beginPath(); g.moveTo(30, 78); g.quadraticCurveTo(64, 112, 98, 78); g.lineTo(88, 84); g.lineTo(82, 78); g.lineTo(74, 88); g.lineTo(64, 80); g.lineTo(54, 88); g.lineTo(46, 78); g.lineTo(40, 84); g.closePath(); g.fill();
+});
+// a stitched patch, a cobweb
+const patchTex = () => hwCanvas('patch', 64, 64, (g) => { g.fillStyle = '#4d7c0f'; g.fillRect(4, 4, 56, 56); g.fillStyle = 'rgba(0,0,0,.18)'; for (let k = 0; k < 9; k++) g.fillRect(4, 8 + k * 6, 56, 2); g.strokeStyle = '#fef3c7'; g.lineWidth = 2.5; for (let k = 0; k < 6; k++) { const q = 8 + k * 9.5; for (const [x1, y1, x2, y2] of [[q, 2, q + 5, 9], [q + 5, 2, q, 9], [q, 55, q + 5, 62], [q + 5, 55, q, 62], [2, q, 9, q + 5], [9, q, 2, q + 5], [55, q, 62, q + 5], [62, q, 55, q + 5]]) { g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke(); } } });
+const webTex = () => hwCanvas('web', 128, 128, (g) => { g.strokeStyle = 'rgba(241,245,249,.85)'; g.lineWidth = 1.6; for (let k = 0; k <= 6; k++) { const a = (k / 6) * Math.PI / 2; g.beginPath(); g.moveTo(0, 0); g.lineTo(Math.cos(a) * 128, Math.sin(a) * 128); g.stroke(); } for (let r = 18; r < 128; r += 17) { g.beginPath(); for (let k = 0; k <= 6; k++) { const a = (k / 6) * Math.PI / 2, rr = r * (k % 6 ? 0.92 : 1); if (k) g.quadraticCurveTo(Math.cos(a - Math.PI / 24) * rr * 0.9, Math.sin(a - Math.PI / 24) * rr * 0.9, Math.cos(a) * r, Math.sin(a) * r); else g.moveTo(r, 0); } g.stroke(); } });
 // a heater shield's outline
 const SHIELD = (() => { const sh = new THREE.Shape(); sh.moveTo(-0.85, 1.05); sh.lineTo(0.85, 1.05); sh.lineTo(0.85, 0.1); sh.quadraticCurveTo(0.8, -0.75, 0, -1.25); sh.quadraticCurveTo(-0.8, -0.75, -0.85, 0.1); sh.closePath(); return sh; })();
 const SHIELD_GEO = new THREE.ExtrudeGeometry(SHIELD, { depth: 0.12, bevelEnabled: true, bevelThickness: 0.04, bevelSize: 0.05, bevelSegments: 2 });
@@ -2516,7 +2645,7 @@ function makeAvatar(av, name, mine, ax) {
   const J = {}; // (the knees and elbows)
   if (!r15) {
     legL = limb(pants, -0.5, 2); legR = limb(pants, 0.5, 2);
-    if (frontTex) { const front = lam('#ffffff', { map: frontTex }); mats.push(front); const t = new THREE.Mesh(BOX, [shirt, shirt, shirt, shirt, shirt, front]); t.scale.set(2, 2, 1); t.position.set(0, 3, 0); body.add(t); }
+    if (frontTex) { const front = lam('#ffffff', { map: frontTex }); if (PAT_GLOW.has(frontTex)) { front.emissive.set('#ffffff'); front.emissiveMap = PAT_GLOW.get(frontTex); } mats.push(front); const t = new THREE.Mesh(BOX, [shirt, shirt, shirt, shirt, shirt, front]); t.scale.set(2, 2, 1); t.position.set(0, 3, 0); body.add(t); }
     else box(shirt, 2, 2, 1, 0, 3, 0);
     armL = limb(skin, -1.5, 4); armR = limb(skin, 1.5, 4);
     box(shirt, 1.02, 0.84, 1.02, 0, -0.4, 0, armL); box(shirt, 1.02, 0.84, 1.02, 0, -0.4, 0, armR); // a hair above the arm's top, or the two tops flicker
@@ -2594,15 +2723,26 @@ function makeAvatar(av, name, mine, ax) {
   else if (hat === 30) { const m = lam('#b07a3c'); mesh(cyl(1.15, 1.15, 0.1, 20), m, 0, 0.66, 0, head); mesh(cyl(0.55, 0.66, 0.62), m, 0, 0.99, 0, head); mesh(cyl(0.67, 0.67, 0.14), lam('#3f2a14'), 0, 0.76, 0, head); const sh = new THREE.Shape(); for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + k * Math.PI / 5, r = k % 2 ? 0.1 : 0.24; sh[k ? 'lineTo' : 'moveTo'](Math.cos(a) * r, -Math.sin(a) * r); } mesh(new THREE.ShapeGeometry(sh), new THREE.MeshBasicMaterial({ color: '#facc15', side: THREE.DoubleSide }), 0, 1.02, -0.64, head); } // sheriff hat
   else if (hat === 31) { const m = lam('#6b7f4a'); mesh(cyl(0.6, 0.7, 0.55, 20), m, 0, 0.98, 0, head); mesh(new THREE.CylinderGeometry(0.72, 1.05, 0.28, 22, 1, true), lam('#6b7f4a', { side: THREE.DoubleSide }), 0, 0.62, 0, head); mesh(cyl(0.71, 0.71, 0.1, 20), lam('#3f4a2a'), 0, 0.78, 0, head); mesh(new THREE.SphereGeometry(0.09, 8, 6), lam('#ef4444'), 0.68, 0.86, 0.1, head); } // bucket hat
   else if (hat === 32) { const m = lam('#fbbf24', { emissive: '#4a3000' }); const c1 = mesh(new THREE.CylinderGeometry(0.78, 0.7, 0.55, 18, 1, true), m, 0, 0.9, 0, head); c1.material.side = THREE.DoubleSide; mesh(cyl(0.68, 0.68, 0.32, 18), lam('#991b1b'), 0, 0.96, 0, head); for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2; mesh(new THREE.ConeGeometry(0.15, 0.5, 6), m, Math.sin(a) * 0.76, 1.42, Math.cos(a) * 0.76, head); mesh(new THREE.SphereGeometry(0.1, 8, 6), new THREE.MeshBasicMaterial({ color: ['#ef4444', '#3b82f6', '#22c55e', '#a855f7'][k % 4] }), Math.sin(a) * 0.8, 0.88, Math.cos(a) * 0.8, head); } mesh(new THREE.SphereGeometry(0.17, 10, 8), m, 0, 1.24, 0, head); } // champion crown
-  else if (hat === 33) { // witch hat: a wide brim, a cone that bends back at the tip, an orange band, a gold buckle, a spider on a thread
-    const m = lam('#2e1065'), band = lam('#f97316'), gold = lam('#facc15', { emissive: '#3a2a00' }), spi = lam('#111827');
-    mesh(cyl(1.2, 1.2, 0.07, 28), m, 0, 0.66, 0, head); mesh(new THREE.CylinderGeometry(0.42, 0.66, 0.9, 20), m, 0, 1.1, 0.02, head);
-    const tip = new THREE.Group(); tip.position.set(0, 1.55, 0.04); tip.rotation.x = 0.55; head.add(tip);
-    mesh(new THREE.CylinderGeometry(0.2, 0.42, 0.62, 18), m, 0, 0.3, 0, tip); const t2 = mesh(new THREE.ConeGeometry(0.2, 0.55, 16), m, 0, 0.8, 0.1, tip); t2.rotation.x = 0.5;
-    mesh(cyl(0.64, 0.64, 0.2, 22), band, 0, 0.82, 0.02, head); box(gold, 0.32, 0.28, 0.05, 0, 0.82, -0.63, head); box(band, 0.16, 0.13, 0.06, 0, 0.82, -0.645, head);
-    box(lam('#e5e7eb'), 0.015, 0.5, 0.015, 0.95, 0.4, -0.3, head); const sp = mesh(new THREE.SphereGeometry(0.1, 10, 8), spi, 0.95, 0.13, -0.3, head);
-    for (const s2 of [-1, 1]) for (let k = 0; k < 3; k++) { const l = box(spi, 0.16, 0.02, 0.02, 0.95 + s2 * 0.1, 0.12 - k * 0.04 + 0.04, -0.3 + (k - 1) * 0.05, head); l.rotation.z = s2 * 0.5; }
+  else if (hat === 33) { // witch hat: a wide wavy brim, a tall crumpled cone that bends back and curls at the tip, an orange band and a big gold buckle, a stitched patch, gold stars and a moon, a cobweb, and a spider hanging off the brim
+    const felt = lam('#3b0764', { side: THREE.DoubleSide }), felt2 = lam('#4c1d95'), band = lam('#ea580c'), gold = metal('#fbbf24', { emissive: '#3a2600' }), spi = lam('#0f0a14'), star = new THREE.MeshBasicMaterial({ color: '#fde047' });
+    const brim = mesh(WITCH_BRIM, felt, 0, 0.66, 0, head); brim.rotation.x = -Math.PI / 2;
+    mesh(WITCH_CONE, felt2, 0, 0, 0, head); mesh(new THREE.SphereGeometry(0.035, 8, 6), felt2, 0, 2.02, 1.06, head);
+    mesh(new THREE.CylinderGeometry(0.67, 0.7, 0.22, 30, 1, true), band, 0, 0.8, 0.02, head);
+    const bk = new THREE.Group(); bk.position.set(0, 0.8, -0.7); bk.rotation.x = 0.08; head.add(bk); // (the buckle: a gold frame and its prong)
+    for (const [w, h, x, y] of [[0.4, 0.06, 0, 0.15], [0.4, 0.06, 0, -0.15], [0.06, 0.36, -0.17, 0], [0.06, 0.36, 0.17, 0], [0.04, 0.3, 0, 0]]) box(gold, w, h, 0.05, x, y, 0, bk);
+    const pa = mesh(KIT_PLANE, lam('#ffffff', { map: patchTex() }), -0.36, 1.22, -0.33, head); pa.scale.setScalar(0.3); pa.rotation.set(-0.12, Math.PI + 0.8, 0.12);
+    const st = new THREE.Shape(); for (let k = 0; k < 10; k++) { const an = -Math.PI / 2 + k * Math.PI / 5, rr = k % 2 ? 0.035 : 0.085; st.lineTo(Math.cos(an) * rr, Math.sin(an) * rr); }
+    const stG = new THREE.ShapeGeometry(st); for (const [x, y, z, ry] of [[0.21, 1.42, -0.31, 2.64], [0.06, 1.82, -0.06, 2.94], [0.36, 1.05, -0.41, 2.45]]) { const m = mesh(stG, star, x, y, z, head); m.rotation.y = ry; }
+    const mo = new THREE.Shape(); mo.absarc(0, 0, 0.11, 0.6, Math.PI * 2 - 0.6, false); mo.absarc(0.06, 0, 0.09, Math.PI * 2 - 0.9, 0.9, true); const mm = mesh(new THREE.ShapeGeometry(mo), star, -0.15, 1.6, -0.19, head); mm.rotation.y = Math.PI + 0.4;
+    const wb = mesh(KIT_PLANE, new THREE.MeshBasicMaterial({ map: webTex(), transparent: true, side: THREE.DoubleSide, depthWrite: false }), -0.62, 0.92, 0.5, head); wb.scale.setScalar(0.62); wb.rotation.set(-0.3, -0.75, Math.PI);
+    box(lam('#e5e7eb'), 0.012, 0.6, 0.012, 1.0, 0.36, -0.42, head); // (the spider: on its thread, eight bent legs, red eyes)
+    const sp = new THREE.Group(); sp.position.set(1.0, 0.03, -0.42); head.add(sp);
+    mesh(new THREE.SphereGeometry(0.11, 12, 10), spi, 0, -0.02, 0.06, sp).scale.set(1, 0.9, 1.15); mesh(new THREE.SphereGeometry(0.065, 10, 8), spi, 0, 0.02, -0.08, sp);
+    mesh(new THREE.SphereGeometry(0.035, 6, 4), new THREE.MeshBasicMaterial({ color: '#dc2626' }), 0, -0.02, 0.17, sp);
+    for (const s2 of [-1, 1]) { for (let k = 0; k < 4; k++) { const up = box(spi, 0.15, 0.022, 0.022, s2 * 0.1, 0.04, -0.06 + k * 0.05, sp); up.rotation.set(0, (k - 1.5) * 0.35 * s2, s2 * 0.6); const dn = box(spi, 0.022, 0.15, 0.022, s2 * 0.19, -0.02, -0.06 + k * 0.06, sp); dn.rotation.z = s2 * 0.25; }
+      mesh(new THREE.SphereGeometry(0.018, 6, 4), new THREE.MeshBasicMaterial({ color: '#ff3b3b' }), s2 * 0.025, 0.04, -0.14, sp); }
   }
+
   };
   for (const hat of new Set([av[3]].concat(X.hs))) shopHat(hat); // (your shop hat, and any more)
   // on the back (the character faces -z, so the back is +z)
@@ -2637,23 +2777,31 @@ function makeAvatar(av, name, mine, ax) {
   else if (back === 13) { for (const s2 of [-1, 1]) { const w = featherWing(body, s2, { cols: ['#f59e0b', '#fbbf24', '#fde68a'], span: 3.0, em: 0x3a2600 }); w.position.set(s2 * 0.3, 4.0, 0.62); w.rotation.set(0.1, -s2 * 0.42, s2 * 0.4); } } // golden wings
   else if (back === 14) { const b2 = mesh(new THREE.SphereGeometry(1, 16, 10), lam(['#06b6d4', '#f97316', '#ec4899', '#22c55e'][av[1] % 4]), 0, 3.0, 0.72); b2.scale.set(0.75, 2.4, 0.1); b2.rotation.z = 0.35; const st2 = box(lam('#f8fafc'), 0.18, 4.0, 0.04, 0, 3.0, 0.82); st2.rotation.z = 0.35; } // surfboard
   else if (back === 15) { for (const s2 of [-1, 1]) { const piv = new THREE.Group(); piv.position.set(0, 3.0, 0.68); piv.rotation.z = s2 * 0.62; body.add(piv); box(lam('#e5e7eb'), 0.16, 2.8, 0.05, 0, -0.3, s2 * 0.04, piv); box(lam('#facc15'), 0.62, 0.1, 0.16, 0, 1.14, s2 * 0.04, piv); box(lam('#7f1d1d'), 0.2, 0.85, 0.14, 0, 1.62, s2 * 0.04, piv); } } // twin katanas
-  else if (back === 16) { // vampire cape: black outside, red silk inside, a tall stand-up collar, a gold chain with a ruby
-    const blk = lam('#0b0b10', { side: THREE.DoubleSide }), red = lam('#991b1b', { side: THREE.DoubleSide }), gold = lam('#d4a72c', { emissive: '#2a1e00' });
-    const c1 = box(red, 2.0, 3.3, 0.05, 0, 2.45, 0.58); c1.rotation.x = 0.1; const c2 = box(blk, 2.06, 3.34, 0.05, 0, 2.43, 0.64); c2.rotation.x = 0.1;
-    for (const s2 of [-1, 1]) { // (the sides sweep forward round the arms, red showing; the collar flares up and out round the head)
-      const w = box(blk, 0.82, 3.1, 0.05, s2 * 1.3, 2.5, 0.3); w.rotation.y = s2 * 0.95; w.rotation.x = 0.1; const wr = box(red, 0.78, 3.04, 0.05, s2 * 1.26, 2.5, 0.26); wr.rotation.y = s2 * 0.95; wr.rotation.x = 0.1;
-      const col = box(red, 1.1, 1.35, 0.05, s2 * 0.8, 4.72, 0.45); col.rotation.y = s2 * 0.78; col.rotation.z = -s2 * 0.3; const cb = box(blk, 1.14, 1.39, 0.05, s2 * 0.84, 4.72, 0.5); cb.rotation.y = s2 * 0.78; cb.rotation.z = -s2 * 0.3; }
-    box(gold, 1.7, 0.07, 0.07, 0, 3.95, -0.53); const gem = mesh(new THREE.OctahedronGeometry(0.13), lam('#dc2626', { emissive: '#450a0a' }), 0, 3.95, -0.57); gem.scale.y = 1.3;
+  else if (back === 16) { // vampire cape: black satin outside, blood-red silk inside, in deep folds with a bat-wing hem; a tall collar flaring to two points; gold clasps, a chain and a ruby
+    const blk = new THREE.MeshPhongMaterial({ color: '#1a1426', specular: 0x6a5f8f, shininess: 18 }), red = new THREE.MeshPhongMaterial({ color: '#8b0f2a', specular: 0x995566, shininess: 70, side: THREE.BackSide }), gold = metal('#e0b13c', { emissive: '#2a1e00' }), ruby = new THREE.MeshPhongMaterial({ color: '#dc2626', emissive: '#5b0b0b', specular: 0xffffff, shininess: 120 });
+    mesh(VAMP_CAPE, blk, 0, 4.12, 0.56); mesh(VAMP_CAPE, red, 0, 4.12, 0.56);
+    mesh(VAMP_COLLAR, blk, 0, 4.62, 0.02); mesh(VAMP_COLLAR, red, 0, 4.62, 0.02);
+    box(blk, 2.12, 0.16, 0.5, 0, 4.04, 0.32); // (where it gathers at the shoulders)
+    for (const s2 of [-1, 1]) { const c = mesh(new THREE.CylinderGeometry(0.17, 0.17, 0.06, 18), gold, s2 * 0.66, 3.9, -0.55); c.rotation.x = Math.PI / 2; const r = mesh(new THREE.OctahedronGeometry(0.075), ruby, s2 * 0.66, 3.9, -0.6); r.scale.y = 1.3; }
+    const link = new THREE.TorusGeometry(0.05, 0.016, 5, 10);
+    for (let k = 0; k < 11; k++) { const u = k / 10 * 2 - 1, l = mesh(link, gold, u * 0.58, 3.9 - 0.13 * (1 - u * u), -0.57); l.rotation.y = k % 2 ? Math.PI / 2 : 0; }
+    const gem = mesh(new THREE.OctahedronGeometry(0.13), ruby, 0, 3.72, -0.6); gem.scale.y = 1.35;
   }
-  else if (back === 17) { // witch's broom: a twisty handle across the back, a bushy bundle of straw, twine and a purple ribbon
-    const piv = new THREE.Group(); piv.position.set(0, 3.0, 0.72); piv.rotation.z = 0.75; body.add(piv);
-    const wood = lam('#6b3f1d'), straw = lam('#d9a441', { side: THREE.DoubleSide }), straw2 = lam('#b7862f'), twine = lam('#8b5a2b'), rib = lam('#7c3aed');
-    mesh(cyl(0.075, 0.09, 3.4, 10), wood, 0, 0.45, 0, piv); for (const y of [1.2, 0.4, -0.4]) mesh(cyl(0.1, 0.1, 0.1, 10), wood, 0, y, 0, piv);
-    mesh(new THREE.ConeGeometry(0.5, 1.3, 16, 1, true), straw, 0, -1.7, 0, piv); mesh(new THREE.ConeGeometry(0.42, 1.2, 12), straw2, 0, -1.72, 0, piv);
-    for (let k = 0; k < 10; k++) { const a = k / 10 * Math.PI * 2, st = box(k % 2 ? straw : straw2, 0.05, 0.6, 0.05, Math.cos(a) * 0.46, -2.3, Math.sin(a) * 0.46, piv); st.rotation.z = Math.cos(a) * 0.2; st.rotation.x = -Math.sin(a) * 0.2; }
-    mesh(cyl(0.2, 0.2, 0.1, 12), twine, 0, -1.12, 0, piv); mesh(cyl(0.27, 0.27, 0.08, 12), rib, 0, -1.3, 0, piv);
-    for (const s2 of [-1, 1]) { const bw = box(rib, 0.28, 0.16, 0.05, s2 * 0.2, -1.3, 0.27, piv); bw.rotation.z = s2 * 0.4; const tl = box(rib, 0.07, 0.34, 0.04, s2 * 0.1, -1.5, 0.28, piv); tl.rotation.z = s2 * 0.3; }
+
+  else if (back === 17) { // witch's broom: a gnarled handle across the back, seventy straws splaying out, twine bindings, a purple bow, and a little jack-o'-lantern charm that glows
+    const piv = new THREE.Group(); piv.position.set(0, 3.0, 0.74); piv.rotation.z = 0.75; body.add(piv);
+    const wood = lam('#5b3a1e'), twine = lam('#a16207'), rib = lam('#7c3aed');
+    mesh(BROOM_STICK, wood, 0, 0, 0, piv); for (const [y, l, r] of [[1.35, 0.32, 0.9], [0.55, 0.26, -1.0]]) { const tw = mesh(KIT_CONE, wood, 0, y, 0, piv); tw.scale.set(0.03, l, 0.03); tw.rotation.z = r; tw.position.x = Math.sin(-r) * l * 0.5; tw.position.y = y + Math.cos(r) * l * 0.5; }
+    mesh(BROOM_STRAW, new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide }), 0, 0, 0, piv);
+    mesh(new THREE.CylinderGeometry(0.17, 0.2, 0.42, 14), lam('#c9952f'), 0, -1.18, 0, piv);
+    for (const y of [-1.02, -1.14, -1.26]) { const t = mesh(new THREE.TorusGeometry(0.2, 0.03, 6, 18), twine, 0, y, 0, piv); t.rotation.x = Math.PI / 2; }
+    const bow = new THREE.Group(); bow.position.set(0, -1.38, -0.2); piv.add(bow);
+    for (const s2 of [-1, 1]) { const lp = mesh(new THREE.TorusGeometry(0.12, 0.04, 6, 14), rib, s2 * 0.13, 0.02, 0, bow); lp.scale.set(1, 0.6, 0.6); const tl = box(rib, 0.07, 0.36, 0.03, s2 * 0.08, -0.2, -0.02, bow); tl.rotation.z = s2 * 0.3; }
+    mesh(new THREE.SphereGeometry(0.06, 8, 6), rib, 0, 0, -0.02, bow);
+    box(lam('#d6d3d1'), 0.012, 0.32, 0.012, 0, -0.18, -0.12, piv); const jk = mesh(new THREE.SphereGeometry(0.12, 14, 10), lam('#ffffff', { map: jackTex(), emissive: '#ffffff', emissiveMap: jackTex(true) }), 0, -0.38, -0.12, piv); jk.scale.y = 0.82; jk.rotation.y = Math.PI / 2;
+    mesh(KIT_CYL, lam('#3f6212'), 0, -0.27, -0.12, piv).scale.set(0.02, 0.06, 0.02);
   }
+
   if (waist) for (const o of body.children.slice(upFrom)) { o.position.y -= 2.84; waist.add(o); }
   const a = { g, body, legL, legR, armL, armR, head, mats, walk: 0, name, av, ax: Array.isArray(ax) ? ax.slice() : null, axMiss: X.miss, tag: null, glow: null, aura: av[6], trail: av[9], spin: a_spin, pet: null,
     r15, waist, knL: J.knL, knR: J.knR, elL: J.elL, elR: J.elR, kitTick: kit && kit.tick, pack: ANIM_PACKS[av[11]] || null };
@@ -2735,19 +2883,26 @@ function petModel(type) {
     eyes(1.62, -0.43, 0.14);
     for (const s of [-1, 1]) { const lf = new THREE.Mesh(new THREE.SphereGeometry(0.3, 10, 6), lam(gr)); lf.scale.set(1.4, 0.18, 0.7); lf.position.set(s * 0.35, 0.12, 0); lf.rotation.z = s * 0.2; g.add(lf); }
     const tuft = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.35, 6), lam(dk)); tuft.position.set(0, 1.95, 0.25); tuft.rotation.x = -0.6; g.add(tuft);
-  } else if (type === 13) { // Boo: a little sheet ghost with a scalloped hem, big eyes, an "o" mouth, blushing, waving stubby arms
-    const sheet = new THREE.MeshLambertMaterial({ color: '#f8fafc', emissive: '#3b3f63', transparent: true, opacity: 0.94, side: THREE.DoubleSide }), ink = lam('#1e1b4b');
-    const top = new THREE.Mesh(new THREE.SphereGeometry(0.62, 20, 14, 0, Math.PI * 2, 0, Math.PI / 2), sheet); top.position.y = 1.35; g.add(top);
-    const sk = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.8, 0.9, 20, 1, true), sheet); sk.position.y = 0.9; g.add(sk);
-    for (let k = 0; k < 9; k++) { const a = k / 9 * Math.PI * 2, h = new THREE.Mesh(new THREE.SphereGeometry(0.17, 10, 8), sheet); h.position.set(Math.cos(a) * 0.72, 0.45, Math.sin(a) * 0.72); h.scale.y = 0.8; g.add(h); }
-    for (const s of [-1, 1]) {
-      const e = new THREE.Mesh(new THREE.SphereGeometry(0.1, 10, 8), ink); e.scale.set(1, 1.4, 0.5); e.position.set(s * 0.21, 1.42, -0.57); g.add(e);
-      const hl = new THREE.Mesh(new THREE.SphereGeometry(0.03, 6, 4), new THREE.MeshBasicMaterial({ color: '#ffffff' })); hl.position.set(s * 0.21 - 0.03, 1.48, -0.62); g.add(hl);
-      const bl = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), new THREE.MeshBasicMaterial({ color: '#f9a8d4', transparent: true, opacity: 0.7 })); bl.scale.set(1, 0.6, 0.3); bl.position.set(s * 0.36, 1.28, -0.5); g.add(bl);
-      const arm = box(sheet, 0.36, 0.14, 0.2, s * 0.72, 1.05, -0.05); arm.userData.wing = s;
+  } else if (type === 13) { // Boo: a little sheet ghost, its wavy hem trailing behind as it floats; big shiny eyes, an "o" mouth, blushing, one stubby arm waving, a jack-o'-lantern pail of sweets in the other
+    const sheet = new THREE.MeshPhongMaterial({ color: '#f8fafc', emissive: '#3b3f63', specular: 0x8888aa, shininess: 30, transparent: true, opacity: 0.95, side: THREE.DoubleSide }), ink = lam('#1e1b4b');
+    const prof = []; for (let k = 0; k <= 14; k++) { const an = (k / 14) * Math.PI / 2; prof.push(new THREE.Vector2(Math.sin(an) * 0.64 + 0.001, 1.38 + Math.cos(an) * 0.64)); }
+    prof.push(new THREE.Vector2(0.67, 1.05), new THREE.Vector2(0.74, 0.76), new THREE.Vector2(0.86, 0.5));
+    const lg = new THREE.LatheGeometry(prof, 36), lp = lg.attributes.position;
+    for (let i = 0; i < lp.count; i++) { const x = lp.getX(i), y = lp.getY(i), z = lp.getZ(i), th = Math.atan2(x, z), d = Math.max(0, 1.38 - y); lp.setY(i, y + (y < 0.55 ? 0.12 * Math.sin(th * 7) : 0)); lp.setZ(i, z + 0.32 * d * d); } // (the hem in waves, the skirt trailing back)
+    lg.computeVertexNormals(); g.add(new THREE.Mesh(lg, sheet));
+    for (const s2 of [-1, 1]) {
+      const e = new THREE.Mesh(new THREE.SphereGeometry(0.13, 14, 10), ink); e.scale.set(1, 1.35, 0.45); e.position.set(s2 * 0.22, 1.47, -0.585); g.add(e);
+      for (const [dx, dy, r] of [[-0.04, 0.07, 0.035], [0.03, -0.05, 0.018]]) { const hl = new THREE.Mesh(new THREE.SphereGeometry(r, 8, 6), new THREE.MeshBasicMaterial({ color: '#ffffff' })); hl.position.set(s2 * 0.22 + dx, 1.47 + dy, -0.645); g.add(hl); }
+      const bl = new THREE.Mesh(new THREE.SphereGeometry(0.08, 10, 6), new THREE.MeshBasicMaterial({ color: '#f9a8d4', transparent: true, opacity: 0.75 })); bl.scale.set(1.2, 0.6, 0.3); bl.position.set(s2 * 0.4, 1.3, -0.52); g.add(bl);
+      const arm = new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 8), sheet); arm.scale.set(1, 0.55, 0.62); arm.position.set(s2 * 0.74, 1.02, -0.08); g.add(arm); if (s2 < 0) arm.userData.wing = s2; else arm.rotation.z = 0.5;
     }
-    const mo = new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 8), ink); mo.scale.set(1, 1.3, 0.5); mo.position.set(0, 1.2, -0.6); g.add(mo);
-    const gl = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), color: '#c4b5fd', transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.6 })); gl.scale.setScalar(2.6); gl.position.y = 1.0; g.add(gl);
+    const mo = new THREE.Mesh(new THREE.SphereGeometry(0.075, 12, 8), lam('#3b0764')); mo.scale.set(1, 1.3, 0.45); mo.position.set(0, 1.23, -0.62); g.add(mo);
+    const tg = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 6), lam('#f472b6')); tg.scale.set(1, 0.6, 0.5); tg.position.set(0, 1.18, -0.64); g.add(tg);
+    const pail = new THREE.Group(); pail.position.set(0.82, 0.62, -0.18); g.add(pail); // (the pail: a jack-o'-lantern with a handle, sweets on top)
+    const pk = new THREE.Mesh(new THREE.SphereGeometry(0.22, 18, 12), new THREE.MeshLambertMaterial({ color: '#ffffff', map: jackTex(), emissive: '#ffffff', emissiveMap: jackTex(true) })); pk.scale.set(1, 0.85, 1); pk.rotation.y = Math.PI / 2 + 0.4; pail.add(pk);
+    const hd = new THREE.Mesh(new THREE.TorusGeometry(0.19, 0.016, 6, 16, Math.PI), lam('#111827')); hd.position.y = 0.1; pail.add(hd);
+    [['#f472b6', -0.07, 0.03], ['#4ade80', 0.06, -0.04], ['#facc15', 0.01, 0.07]].forEach(([c, x, z]) => { const sw = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 6), lam(c)); sw.position.set(x, 0.17, z); sw.scale.set(1.4, 0.8, 0.8); pail.add(sw); });
+    const gl = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), color: '#c4b5fd', transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.55 })); gl.scale.setScalar(2.8); gl.position.y = 1.05; g.add(gl);
     g.userData.sway = 1;
   }
   g.scale.setScalar(0.85);
@@ -2811,13 +2966,20 @@ function trailTick(a, dt, moving) {
   if (a.trailT > 0) return;
   a.trailT = 0.05;
   const p = a.g.position, col = a.trail === 1 ? new THREE.Color().setHSL((performance.now() / 1500) % 1, 0.9, 0.6).getHex() : TRAIL_COLS[a.trail][Math.floor(Math.random() * 3)];
-  const m = new THREE.Mesh(BOX, new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.85, ...DECAL }));
-  m.position.set(p.x + (Math.random() - 0.5) * 0.8, p.y + 0.12, p.z + (Math.random() - 0.5) * 0.8); m.scale.set(0.7, 0.06, 0.7); m.rotation.y = Math.random() * 3;
-  m.userData = { v: new THREE.Vector3(0, a.trail === 2 ? 1.5 : 0.15, 0), life: 0.9, g: 0, fade: true, spinless: 1 };
-  scene.add(m); bits.push(m);
+  if (a.trail === 9) { // (ghostly mist: soft puffs of purple and green, swelling as they fade)
+    const m = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), color: col, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.6 })), s0 = 1.1 + Math.random() * 0.7;
+    m.position.set(p.x + (Math.random() - 0.5) * 0.8, p.y + 0.35, p.z + (Math.random() - 0.5) * 0.8); m.scale.setScalar(s0);
+    m.userData = { v: new THREE.Vector3((Math.random() - 0.5) * 0.3, 0.3, (Math.random() - 0.5) * 0.3), life: 1.2, g: 0, spinless: 1, tick: (o, u) => { o.scale.setScalar(s0 * (1.9 - u.life * 0.75)); o.material.opacity = Math.max(0, 0.5 * Math.min(1, u.life * 1.1)); } };
+    scene.add(m); bits.push(m);
+  } else {
+    const m = new THREE.Mesh(BOX, new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.85, ...DECAL }));
+    m.position.set(p.x + (Math.random() - 0.5) * 0.8, p.y + 0.12, p.z + (Math.random() - 0.5) * 0.8); m.scale.set(0.7, 0.06, 0.7); m.rotation.y = Math.random() * 3;
+    m.userData = { v: new THREE.Vector3(0, a.trail === 2 ? 1.5 : 0.15, 0), life: 0.9, g: 0, fade: true, spinless: 1 };
+    scene.add(m); bits.push(m);
+  }
   if (a.trail === 9 && (a.ghostN = (a.ghostN || 0) + 1) % 4 === 0) { // (ghostly mist: now and then a little ghost floats up out of it, wobbling)
     const gs = new THREE.Sprite(new THREE.SpriteMaterial({ map: ghostTex(), transparent: true, depthWrite: false })), x0 = p.x + (Math.random() - 0.5) * 0.8, w = Math.random() * 6;
-    gs.position.set(x0, p.y + 0.4, p.z + (Math.random() - 0.5) * 0.8); gs.scale.setScalar(0.55 + Math.random() * 0.3);
+    gs.position.set(x0, p.y + 0.4, p.z + (Math.random() - 0.5) * 0.8); gs.scale.setScalar(0.9 + Math.random() * 0.45);
     gs.userData = { v: new THREE.Vector3(0, 1.3, 0), life: 1.5, g: 0, fade: true, spinless: 1, tick: (o, u) => { o.position.x = x0 + Math.sin(u.life * 6 + w) * 0.25; } };
     scene.add(gs); bits.push(gs);
   }
@@ -3510,40 +3672,54 @@ EMOTES.push(
         else { J.aL = [0.3, 0, -2.6 * k + 0.15 * Math.sin(c * 12)]; J.aR = [0.3, 0, 2.6 * k + 0.15 * Math.sin(c * 12 + 1)]; }
       }
     },
-    fx: { // a full moon, two tombstones rising behind, hands clawing out of the ground, green fog rolling about
+    fx: { // a full moon with bats flying across it; three gravestones rising behind (two arched, one a cross); rotting hands clawing out of the ground; two jack-o'-lanterns flickering; green fog rolling about
       make(a, F) {
+        F.halo = emSprite(F.root, glowTex(), 11, { color: '#fde68a', opacity: 0, blending: THREE.AdditiveBlending }); F.halo.position.set(-4.5, 12, 7.2);
         F.moon = emSprite(F.root, moonTex(), 5.5); F.moon.position.set(-4.5, 12, 7);
-        const stone = new THREE.MeshLambertMaterial({ color: '#6b7280' }), face = new THREE.MeshLambertMaterial({ map: ripTex() }), dirt = new THREE.MeshLambertMaterial({ color: '#3f2a14' });
-        F.stones = [[-2.6, 2.2, 0.25], [2.8, 1.8, -0.2]].map(([x, z, r]) => {
+        F.bats = [0, 1, 2, 3].map((j) => { const b = emSprite(F.root, batTex(), 1); b.scale.set(1.4 - j * 0.15, 0.7 - j * 0.075, 1); return b; });
+        const stone = new THREE.MeshLambertMaterial({ color: '#7c818a' }), face = new THREE.MeshLambertMaterial({ map: ripTex(), transparent: true }), dirt = new THREE.MeshLambertMaterial({ color: '#3f2a14' }), moss = new THREE.MeshLambertMaterial({ color: '#4d7c0f' });
+        const arch = new THREE.Shape(); arch.moveTo(-0.65, 0); arch.lineTo(0.65, 0); arch.lineTo(0.65, 1.2); arch.absarc(0, 1.2, 0.65, 0, Math.PI, false); arch.lineTo(-0.65, 0);
+        const archG = new THREE.ExtrudeGeometry(arch, { depth: 0.3, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.05, bevelSegments: 2, curveSegments: 16 });
+        F.stones = [[-2.6, 2.2, 0.25, 0], [2.8, 1.8, -0.2, 0], [0.3, 3.4, 0.05, 1]].map(([x, z, r, cross]) => {
           const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = r; F.root.add(g);
-          const slab = new THREE.Mesh(BOX, stone); slab.scale.set(1.3, 1.6, 0.35); slab.position.y = 0.8; g.add(slab);
-          const top = new THREE.Mesh(KIT_CYL, stone); top.scale.set(0.65, 0.35, 0.65); top.rotation.x = Math.PI / 2; top.position.y = 1.6; g.add(top);
-          const pl = new THREE.Mesh(KIT_PLANE, face); pl.scale.set(1.1, 1.1, 1); pl.position.set(0, 1.0, -0.18); pl.rotation.y = Math.PI; g.add(pl);
-          const mound = new THREE.Mesh(KIT_SPH, dirt); mound.scale.set(1.0, 0.18, 1.3); mound.position.set(0, 0, -0.9); g.add(mound);
+          if (cross) { emMesh(g, BOX, stone, 0, 1.0, 0).scale.set(0.34, 2.0, 0.3); emMesh(g, BOX, stone, 0, 1.45, 0).scale.set(1.25, 0.32, 0.3); emMesh(g, BOX, stone, 0, 0.12, 0).scale.set(0.8, 0.24, 0.6); }
+          else { emMesh(g, archG, stone, 0, 0, -0.15); const pl = emMesh(g, KIT_PLANE, face, 0, 0.95, -0.21); pl.scale.set(1.15, 1.15, 1); pl.rotation.y = Math.PI; }
+          for (const [mx, my, mz, ms] of [[-0.55, 0.12, -0.2, 0.3], [0.45, 0.06, 0.1, 0.24]]) emMesh(g, KIT_SPH, moss, mx, my, mz).scale.set(ms, ms * 0.45, ms);
+          emMesh(g, KIT_SPH, dirt, 0, 0, -0.95).scale.set(1.0, 0.2, 1.35);
           return g;
         });
-        const skin = new THREE.MeshLambertMaterial({ color: '#7aa35a' }), sleeve = new THREE.MeshLambertMaterial({ color: '#4b3a2a' });
-        F.hands = [[-1.6, -2.2], [1.9, -2.6], [-3.4, -0.6], [3.6, 0.4]].map(([x, z], j) => {
+        const skin = new THREE.MeshLambertMaterial({ color: '#7aa35a' }), rot = new THREE.MeshLambertMaterial({ color: '#4d6b35' }), sleeve = new THREE.MeshLambertMaterial({ color: '#3b2f25', side: THREE.DoubleSide }), nail = new THREE.MeshLambertMaterial({ color: '#2f2a1c' });
+        F.hands = [[-1.6, -2.2], [1.9, -2.6], [-3.4, -0.6], [3.6, 0.4], [-0.4, -3.4]].map(([x, z], j) => {
           const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = j * 1.3; F.root.add(g);
-          const arm = new THREE.Mesh(BOX, sleeve); arm.scale.set(0.34, 0.9, 0.34); arm.position.y = 0.3; g.add(arm);
-          const palm = new THREE.Mesh(BOX, skin); palm.scale.set(0.38, 0.32, 0.18); palm.position.y = 0.9; g.add(palm);
-          g.userData.fingers = [-0.14, -0.05, 0.05, 0.14].map((fx) => { const fg = new THREE.Mesh(BOX, skin); fg.scale.set(0.07, 0.28, 0.08); fg.position.set(fx, 1.18, 0); g.add(fg); return fg; });
-          const th = new THREE.Mesh(BOX, skin); th.scale.set(0.07, 0.2, 0.08); th.position.set(-0.22, 0.98, 0); th.rotation.z = 0.6; g.add(th);
-          const dm = new THREE.Mesh(KIT_SPH, dirt); dm.scale.set(0.5, 0.12, 0.5); g.add(dm);
+          emMesh(g, new THREE.CylinderGeometry(0.2, 0.26, 0.9, 9, 1, true), sleeve, 0, 0.3, 0); emMesh(g, KIT_CYL, skin, 0, 0.62, 0).scale.set(0.15, 0.4, 0.15);
+          emMesh(g, KIT_SPH, rot, 0.08, 0.55, -0.14).scale.set(0.06, 0.09, 0.03);
+          const palm = emMesh(g, KIT_SPH, skin, 0, 0.92, 0); palm.scale.set(0.22, 0.2, 0.1);
+          g.userData.fingers = [-0.13, -0.045, 0.045, 0.13].map((fx, i) => { // (each finger: two bones, bending to claw)
+            const f1 = new THREE.Group(); f1.position.set(fx, 1.08, 0); g.add(f1); emMesh(f1, KIT_CYL, skin, 0, 0.1, 0).scale.set(0.04, 0.2, 0.04);
+            const f2 = new THREE.Group(); f2.position.set(0, 0.2, 0); f1.add(f2); emMesh(f2, KIT_CYL, i % 2 ? rot : skin, 0, 0.08, 0).scale.set(0.035, 0.16, 0.035); emMesh(f2, KIT_SPH, nail, 0, 0.17, -0.02).scale.set(0.03, 0.04, 0.02);
+            return [f1, f2]; });
+          const th = emMesh(g, KIT_CYL, skin, -0.2, 0.95, -0.02); th.scale.set(0.045, 0.2, 0.045); th.rotation.z = 0.7;
+          emMesh(g, KIT_SPH, dirt, 0, 0, 0).scale.set(0.55, 0.13, 0.55);
           return g;
         });
+        const jack = new THREE.MeshLambertMaterial({ color: '#ffffff', map: jackTex(), emissive: '#ffffff', emissiveMap: jackTex(true) }), stem = new THREE.MeshLambertMaterial({ color: '#3f6212' });
+        F.jacks = [[-1.3, 1.2, 0.5], [1.6, 1.0, -0.6]].map(([x, z, r]) => { const g = new THREE.Group(); g.position.set(x, 0.42, z); g.rotation.y = Math.PI + r; F.root.add(g); emMesh(g, KIT_SPH, jack, 0, 0, 0).scale.set(0.55, 0.45, 0.55); const st = emMesh(g, KIT_CYL, stem, 0.04, 0.5, 0); st.scale.set(0.07, 0.2, 0.07); st.rotation.z = -0.3; const lt = emSprite(g, glowTex(), 2.2, { color: '#fb923c', blending: THREE.AdditiveBlending, opacity: 0.5 }); lt.position.y = 0.1; return g; });
+        F.jackMat = jack;
         F.fog = Array.from({ length: 14 }, (_, j) => emSprite(F.root, glowTex(), 2.6, { color: j % 3 ? '#4ade80' : '#a3e635', blending: THREE.AdditiveBlending }));
         emNotes(F, 3, [0, 6.2, 0]);
       },
       tick(a, F, t) {
         const rise = smooth(t / 1.2);
-        F.stones.forEach((g, j) => { g.position.y = -1.9 * (1 - smooth((t - j * 0.3) / 1.1)); g.rotation.z = 0.06 * Math.sin(j * 3 + 1); });
+        F.stones.forEach((g, j) => { g.position.y = -2.2 * (1 - smooth((t - j * 0.3) / 1.1)); g.rotation.z = 0.06 * Math.sin(j * 3 + 1); });
         F.hands.forEach((g, j) => { // (each bursts out at its own moment, then claws at the air)
-          const k = smooth((t - 0.6 - j * 0.45) / 0.5); g.position.y = -1.3 * (1 - k); g.rotation.z = 0.15 * Math.sin(t * 3 + j);
-          g.userData.fingers.forEach((fg, i) => { fg.rotation.x = 0.4 + 0.4 * Math.sin(t * 9 + i + j); });
+          const k = smooth((t - 0.6 - j * 0.4) / 0.5); g.position.y = -1.4 * (1 - k); g.rotation.z = 0.15 * Math.sin(t * 3 + j);
+          g.userData.fingers.forEach(([f1, f2], i) => { const c = 0.5 + 0.5 * Math.sin(t * 8 + i * 0.7 + j); f1.rotation.x = -0.2 - 0.6 * c; f2.rotation.x = -0.3 - 0.9 * c; });
         });
+        F.jacks.forEach((g, j) => { g.scale.setScalar(Math.max(0.001, smooth((t - 0.3 - j * 0.25) / 0.6))); });
+        F.jackMat.emissiveIntensity = 0.75 + 0.25 * Math.sin(t * 13) * Math.sin(t * 7.3);
+        F.bats.forEach((b, j) => { const an = t * (0.55 + j * 0.12) + j * 1.6; b.position.set(-4.5 + Math.cos(an) * (2.2 + j * 0.5), 11.4 + Math.sin(an * 1.7) * 0.9 + j * 0.3, 6.6 + Math.sin(an) * 1.2); b.material.opacity = rise; b.scale.x = (1.4 - j * 0.15) * (0.35 + 0.65 * Math.abs(Math.sin(t * 9 + j))); });
         F.fog.forEach((s, j) => { const an = j * 2.4 + t * 0.15 * (j % 2 ? 1 : -1), r = 1.6 + (j % 5) * 0.8; s.position.set(Math.cos(an) * r, 0.35 + 0.15 * Math.sin(t + j), Math.sin(an) * r); s.material.opacity = rise * (0.28 + 0.12 * Math.sin(t * 0.8 + j)); });
-        F.moon.material.opacity = rise;
+        F.moon.material.opacity = rise; F.halo.material.opacity = rise * 0.35;
         emNotesTick(F, t, 0.45);
       },
     },
@@ -5783,18 +5959,19 @@ function listed() {
    ===================================================================== */
 const HW = { start: Date.UTC(2026, 9, 17, 8), end: Date.UTC(2026, 10, 8, 8), now: () => Date.now() }; // (open 17 Oct – 8 Nov, Pacific midnight)
 const HW_ITEMS = [ // [kind, which, what it is]
-  ['h', 33, 'A witch’s hat with a bent tip, an orange band and a gold buckle — and a spider dangling off the brim.'],
-  ['b', 16, 'Black outside, red silk inside, with a tall stand-up collar and a gold chain with a ruby.'],
-  ['pet', 13, 'A little sheet ghost that floats along beside you, bobbing and waving its stubby arms.'],
-  ['bt', 8, 'A see-through body of flickering ghost-light in a tattered hood. Your face glows in the dark, and mist curls off it.'],
-  ['em', 10, 'A graveyard dance: claws, shimmies and a lurch, to a spooky organ groove. Tombstones rise, hands claw out of the ground, a wolf howls.'],
-  ['a', 15, 'A swarm of bats with glowing red eyes, circling you as they fly up.'],
-  ['tr', 9, 'Little ghosts float up from your footsteps through purple and green mist.'],
-  ['b', 17, 'A witch’s broom across your back: a twisty handle, a bushy bundle of straw and a purple ribbon.'],
-  ['f', 19, 'Glowing red eyes, a wicked smile and a pair of fangs.'],
-  ['pt', 16, 'A black tee with a glow-white skeleton on it: ribs, a spine and a pelvis.'],
+  ['h', 33, 'A witch’s hat with a wide wavy brim and a tall crumpled cone that curls over at the tip: an orange band with a big gold buckle, a stitched patch, gold stars and a moon, a cobweb — and a spider dangling off the brim.'],
+  ['b', 16, 'Black satin outside, blood-red silk inside, in deep folds with a bat-wing hem; a tall collar flaring up to two points, gold clasps, a chain and a ruby.'],
+  ['pet', 13, 'A little sheet ghost that floats along beside you, its wavy hem trailing behind: big shiny eyes, rosy cheeks, one stubby arm waving and a glowing jack-o’-lantern pail of sweets in the other.'],
+  ['bt', 8, 'A see-through body of flickering ghost-light in a tattered shroud that flutters as you move: legs thinning to wisps, a spectral chain, glowing hands and heart, and your face glowing deep in a pointed hood. Mist curls off it.'],
+  ['em', 10, 'A graveyard dance: claws, shimmies and a lurch, to a spooky organ groove. Gravestones rise, rotting hands claw out of the ground, jack-o’-lanterns flicker, bats cross the full moon and a wolf howls.'],
+  ['an', 7, 'The Vampire animation pack: stand tall with your cape drawn across your face (and sweep it open with a hiss), stalk along with claws raised, and leap with your arms spread like bat wings in a burst of bats.'],
+  ['a', 15, 'A swarm of bats with glowing red eyes and little fangs, flapping and circling you as they fly up.'],
+  ['tr', 9, 'Little ghosts float up from your footsteps out of swirling purple and green mist.'],
+  ['b', 17, 'A witch’s broom across your back: a gnarled handle, a bushy bundle of seventy straws, twine bindings, a purple bow and a little jack-o’-lantern charm that glows.'],
+  ['f', 19, 'Sharp brows, shadowed eyes glowing red with slit pupils, a sly smirk and a pair of long fangs — with a drop of blood.'],
+  ['pt', 16, 'A black tee with a skeleton on it that really glows in the dark: collarbones, a ribcage, a spine and a pelvis.'],
 ];
-const HW_KIND = { h: 'Hat', f: 'Face', b: 'Back', a: 'Aura', pt: 'Shirt', pet: 'Pet', tr: 'Trail', bt: 'Body', em: 'Emote' };
+const HW_KIND = { h: 'Hat', f: 'Face', b: 'Back', a: 'Aura', pt: 'Shirt', pet: 'Pet', tr: 'Trail', bt: 'Body', em: 'Emote', an: 'Animation' };
 const hwOn = () => { const t = HW.now(); return t >= HW.start && t < HW.end; };
 const isHw = (k, i) => HW_ITEMS.some(([a, b]) => a === k && b === i);
 const hwGone = (k, i) => isHw(k, i) && !hwOn() && !(k === 'em' ? W.own.has('em' + i) : W.own.has(k + i)); // (closed, and not yours: it's not shown)
@@ -5808,8 +5985,9 @@ const hwIc = (k, i) => (k === 'em' ? EMOTES[i].ic : COSMETICS[k].icon[i]);
 const hwPrice = (k, i) => (k === 'em' ? EMOTES[i].price : COSMETICS[k].price[i]);
 // a picture of the item on your avatar (your colours, nothing else on), framed for its kind
 function hwPic(k, i) {
-  const av = [AV.s, AV.sh, AV.p, 0, 0, 0, 0, 0, 0, 0, 1, 0], slot = { h: 3, f: 4, b: 5, a: 6, pt: 7, pet: 8, tr: 9, bt: 10 }[k];
+  const av = [AV.s, AV.sh, AV.p, 0, 0, 0, 0, 0, 0, 0, 1, 0], slot = { h: 3, f: 4, b: 5, a: 6, pt: 7, pet: 8, tr: 9, bt: 10, an: 11 }[k];
   if (slot != null) av[slot] = i;
+  if (k === 'an') { av[4] = 19; av[5] = 16; } // (the Vampire pack: shown in the cape and the face)
   const o = { w: 200, h: 200, zoom: 0.95 };
   if (k === 'h') Object.assign(o, { dir: [0.45, 0.28, -1], sphere: [[0, 5.5, 0], 2.0] });
   else if (k === 'f') Object.assign(o, { dir: [0.2, 0.08, -1], sphere: [[0, 4.85, 0], 1.45] });
@@ -5817,6 +5995,7 @@ function hwPic(k, i) {
   else if (k === 'pt') Object.assign(o, { dir: [0.3, 0.1, -1], sphere: [[0, 3.6, 0], 2.4] });
   else if (k === 'tr') Object.assign(o, { dir: [1, 0.3, -0.25], sphere: [[0, 2.6, 1.8], 3.6] });
   else if (k === 'pet') Object.assign(o, { dir: [0.6, 0.2, -1], sphere: [[0, 1.0, 0], 1.25] });
+  else if (k === 'an') Object.assign(o, { dir: [0.3, 0.12, -1], sphere: [[0, 4.0, 0], 4.4] });
   else Object.assign(o, { dir: [0.35, 0.12, -1], sphere: [[0, 3.3, 0], 3.6] });
   return snapshot(`hw:${k}${i}:${av.join(',')}`, () => {
     if (k === 'pet') return petModel(13);
@@ -5828,12 +6007,13 @@ function hwPic(k, i) {
       [[0.4, 1.0, 1.6, 1.1], [-0.5, 2.1, 2.6, 1.0], [0.3, 3.3, 3.6, 0.85], [-0.2, 0.8, 4.2, 0.8]].forEach(([x, y, z, s]) => spr(ghostTex(), s, x, y, z));
       [[0, 0.15, 1.2], [0.2, 0.15, 2.2], [-0.2, 0.15, 3.2], [0.1, 0.15, 4.2], [0, 0.15, 5.2]].forEach(([x, y, z], j) => { const m = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), color: j % 2 ? '#4ade80' : '#a855f7', transparent: true, depthWrite: false, opacity: 0.85 })); m.scale.set(2.2, 1.0, 1); m.position.set(x, y + 0.3, z); a.g.add(m); }); }
     if (k === 'em') { const J = emPose(); EMOTES[i].pose(J, 0.8, a); emApply(a, J, 1); spr(moonTex(), 4, -2.4, 6.5, 3); }
+    if (k === 'an') { const J = emPose(); ANIM_PACKS[i].pose(J, a, { mv: false, air: true, ph: 0, t: 0.05, land: null }); emApply(a, J, 1); spr(moonTex(), 3.2, 2.4, 7.2, 3); [[-1.7, 7.2, 0.9], [2.2, 2.4, 0.7], [-2.5, 2.0, 0.8]].forEach(([x, y, sc]) => spr(batTex(), sc, x, y, -0.5, 2)); }
     return a.g;
   }, o);
 }
 function hwBanner() {
   return `<div class="hwban" role="button" tabindex="0" title="Open the Halloween Shop"><div class="hwfx"><span class="moon"></span><i class="b1">🦇</i><i class="b2">🦇</i><i class="b3">🦇</i></div>
-    <div class="hwt"><span class="tag">🎃 Limited time · Halloween Shop</span><h2>Spooky exclusives are here!</h2><p>A witch's hat, a vampire cape, Boo the ghost, the Phantom body, the Zombie Groove emote and more — only until the shop closes, then they're gone for good.</p></div>
+    <div class="hwt"><span class="tag">🎃 Limited time · Halloween Shop</span><h2>Spooky exclusives are here!</h2><p>A witch's hat, a vampire cape, Boo the ghost, the Phantom body, the Zombie Groove emote, the Vampire animation pack and more — only until the shop closes, then they're gone for good.</p></div>
     <div class="hwcdbox"><small>Closes in</small><b class="hwcd">${hwLeft()}</b><span class="go">Open the shop →</span></div><div class="pk">🎃</div></div>`;
 }
 function hwPage() {
@@ -5847,7 +6027,7 @@ function hwPage() {
       <b>${esc(hwNm(k, i))}</b><p>${esc(d)}</p><div class="row">${btn}<button class="hwtry" data-hwtry="${key}" title="See it on you in the avatar editor">👀 Try</button></div></div>`;
   }).join('');
   return `<div class="edetail still hwpage"><button class="back" id="backBtn">← All experiences</button>
-    <div class="hwhero"><div class="hwfx"><span class="moon"></span><i class="b1">🦇</i><i class="b2">🦇</i><i class="b3">🦇</i></div><div class="hwt"><span class="tag">🎃 Limited time</span><h2>Halloween Shop</h2><p>Ten spooky exclusives, only until the shop closes — then they're gone for good. Whatever you buy is yours forever.</p></div>
+    <div class="hwhero"><div class="hwfx"><span class="moon"></span><i class="b1">🦇</i><i class="b2">🦇</i><i class="b3">🦇</i></div><div class="hwt"><span class="tag">🎃 Limited time</span><h2>Halloween Shop</h2><p>Eleven spooky exclusives, only until the shop closes — then they're gone for good. Whatever you buy is yours forever.</p></div>
       <div class="hwcdbox"><small>Shop closes in</small><b class="hwcd">${hwLeft()}</b><span class="bal"><span class="coin sm"></span> ${W.coins.toLocaleString('en-US')}</span></div><div class="pk">🎃</div></div>
     <div class="hwgrid">${cards}</div>
     <p class="note">🎃 Halloween exclusives can't be refunded, but you can trade them. Once the shop closes they're hidden from the shop and the editor unless they're yours.</p></div>`;
@@ -5872,7 +6052,7 @@ function hwClick(e) {
   } else { // 👀 Try: the avatar editor, wearing it (or doing it)
     openEditor('wear');
     if (k === 'em') { avTab = 'em'; drawAvatarOpts(); if (pv.a) emStart(pv.a, i); }
-    else { avTab = k === 'bt' ? 'colors' : k; ED.try[k] = i; drawAvatarOpts(); pvAvatar(); }
+    else { avTab = k === 'bt' || k === 'an' ? 'colors' : k; ED.try[k] = i; drawAvatarOpts(); pvAvatar(); }
   }
 }
 // the countdown, every second (and when the shop closes, the banner and the page go)

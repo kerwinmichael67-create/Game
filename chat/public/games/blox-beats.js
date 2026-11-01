@@ -30,6 +30,8 @@
     .bsx .bb.live{background:linear-gradient(180deg,#d946ef,#9333ea);box-shadow:0 3px 0 #581c87}.bsx .bb.live.on{background:linear-gradient(180deg,#f43f5e,#be123c);box-shadow:0 3px 0 #881337;animation:bsLive 1s infinite}
     @keyframes bsLive{50%{filter:brightness(1.35)}}
     .bsx .bb.sm{padding:6px 10px;font-size:12.5px}
+    .bsx .bb.drop{background:linear-gradient(180deg,#f97316,#b91c1c);box-shadow:0 3px 0 #7f1d1d}.bsx .bb.drop.on{animation:bsLive .35s infinite}
+    #xbar .bsdrop.on{animation:bsLive .35s infinite}
     .bsx .trk{background:linear-gradient(180deg,#141a2b,#0c111d);border:1px solid rgba(148,163,184,.18);border-radius:16px;padding:10px 12px;overflow-x:auto}
     .bsx .trk h4{margin:0 0 8px;display:flex;align-items:center;gap:8px;font:700 16px var(--fh);color:#f8fafc}
     .bsx .trk h4 small{font:700 11px var(--fb);color:#94a3b8}
@@ -56,7 +58,7 @@
   /* ---------------- the music ---------------- */
   const DRUMS = [['Kick', '🥁'], ['Snare', '🪘'], ['Clap', '👏'], ['Hi-hat', '🎩'], ['Open hat', '🔔'], ['Tom', '🛢️'], ['Crash', '💥']];
   const LEADS = ['🎹 Piano', '🎛️ Synth', '🪕 Pluck', '🔔 Bell', '👾 Chip', '🌊 Pad', '⚡ Supersaw', '🎆 EDM pluck'];
-  const BASSES = ['🔊 Sub bass', '🎸 Saw bass', '🌀 Wobble', '💥 EDM bass'];
+  const BASSES = ['🔊 Sub bass', '🎸 Saw bass', '🌀 Wobble', '💥 EDM bass', '👹 Growl'];
   const SCALES = [['Major', [0, 2, 4, 5, 7, 9, 11, 12]], ['Minor', [0, 2, 3, 5, 7, 8, 10, 12]], ['Pentatonic', [0, 3, 5, 7, 10, 12, 15, 17]], ['Blues', [0, 3, 5, 6, 7, 10, 12, 15]]];
   const KEYS = ['C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'];
   const NOTE = (m) => 440 * Math.pow(2, (m - 69) / 12);
@@ -75,6 +77,7 @@
     ['⚡ EDM', 128, 9, 1, 6, 3, 0, ['x...x...x...x...', '................', '....x.......x...', 'x.xxx.xxx.xxx.xx', '..x...x...x...x.', '................', 'x...............'], '..1...1...6...6.', '0:024 3:024 6:024 8:135 11:135 14:246', 75],
     ['🌌 Trance', 138, 2, 1, 7, 3, 0, ['x...x...x...x...', '................', '....x.......x...', 'xxxxxxxxxxxxxxxx', '..x...x...x...x.', '................', 'x...............'], '.111.111.666.444', '0:0 1:2 2:4 3:7 4:4 5:2 6:0 7:2 8:5 9:7 10:5 11:3 12:4 13:6 14:4 15:2', 60],
     ['💫 Future Bass', 150, 4, 0, 6, 3, 0, ['x.........x.....', '................', '........x.......', 'x.x.x.x.x.xxx.x.', '................', '................', 'x...............'], '1.....1...4...5.', '0:024 3:024 6:024 8:135 10:135 12:146 14:146', 85],
+    ['💣 Dubstep Drop', 140, 4, 1, 1, 4, 0, ['x.........x.....', '........x.......', '........x.......', 'x.x.x.x.x.x.x.x.', '................', '..............xx', 'x...............'], '1..1..1.1..1.6.5', '0:4 3:4 6:7 8:4 12:3 14:2', 25],
     ['🏝️ Tropical House', 102, 7, 0, 7, 0, 0, ['x...x...x...x...', '................', '....x.......x...', '..x...x...x...x.', '................', '................', '................'], '1.....1...6...5.', '0:4 3:4 6:5 8:4 11:2 14:1', 50],
   ];
   function preset(i) {
@@ -139,6 +142,7 @@
   }
   const filt = (ac, type, f, q) => { const b = ac.createBiquadFilter(); b.type = type; b.frequency.value = f; if (q != null) b.Q.value = q; return b; };
   function gainEnv(ac, t, peak, att, dec, hold = 0) { const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(Math.max(0.0002, peak), t + att); if (hold) g.gain.setValueAtTime(Math.max(0.0002, peak), t + att + hold); g.gain.exponentialRampToValueAtTime(0.0001, t + att + hold + dec); return g; }
+  const DRIVE = Float32Array.from({ length: 1024 }, (_, i) => Math.tanh(((i / 1023) * 2 - 1) * 5));
   const pan = (ac, d, p) => { if (!ac.createStereoPanner) return d; const n = ac.createStereoPanner(); n.pan.value = p; n.connect(d); return n; };
   const osc = (ac, type, f, t, end) => { const o = ac.createOscillator(); o.type = type; o.frequency.setValueAtTime(f, t); o.start(t); o.stop(end); return o; };
   const DRUM = [
@@ -171,6 +175,14 @@
       if (typeof TSMP !== 'undefined') return TSMP.play(ac, d, t, 'sbass', f, len, v * 0.75, 0.05);
       const o = osc(ac, 'sawtooth', f, t, t + len + 0.1), lp = filt(ac, 'lowpass', 2400, 4); lp.frequency.setValueAtTime(2400, t); lp.frequency.exponentialRampToValueAtTime(420, t + 0.16); const g = gainEnv(ac, t, v * 0.4, 0.004, 0.06, len); o.connect(lp); lp.connect(g); g.connect(d);
     },
+    (ac, d, t, f, len, v, bpm) => { // 👹 growl: two saws and a square an octave down, driven hard, through a filter that talks ("yoi-yoi") in sixteenths
+      const end = t + len + 0.08, src = ac.createGain();
+      for (const [ty, m, k] of [['sawtooth', 1, 0.5], ['sawtooth', 1.007, 0.5], ['square', 0.5, 0.55]]) { const o = osc(ac, ty, f * m, t, end), gg = ac.createGain(); gg.gain.value = k; o.connect(gg); gg.connect(src); }
+      const ws = ac.createWaveShaper(); ws.curve = DRIVE; src.connect(ws);
+      const lp = filt(ac, 'lowpass', 1500, 8), fm = filt(ac, 'peaking', 1000, 3), lfo = osc(ac, 'sine', ((bpm || 140) / 60) * 4, t, end), d1 = ac.createGain(), d2 = ac.createGain(); fm.gain.value = 9;
+      d1.gain.value = 1250; d2.gain.value = 450; lfo.connect(d1); d1.connect(lp.frequency); lfo.connect(d2); d2.connect(fm.frequency);
+      const g = gainEnv(ac, t, v * 0.3, 0.005, 0.06, len); ws.connect(lp); lp.connect(fm); fm.connect(g); g.connect(d);
+    },
   ];
   const LEAD = [
     (ac, d, t, f, len, v) => { const g = gainEnv(ac, t, v * 0.32, 0.004, 1.3), lp = filt(ac, 'lowpass', 3600); for (const [m, k, ty] of [[1, 1, 'triangle'], [2, 0.32, 'sine'], [3, 0.1, 'sine']]) { const o = osc(ac, ty, f * m, t, t + 1.4), gg = ac.createGain(); gg.gain.value = k; o.connect(gg); gg.connect(lp); } lp.connect(g); g.connect(d); },
@@ -190,12 +202,47 @@
     },
   ];
   // one step of a beat, at time t on the sound card (sd: a step's length)
-  // (mx: the stream's mix, if it has one: the pump's channel and the room's)
-  function playStep(ac, dest, B, s, t, sd, v, mx) {
+  // 💣 the drop: two bars of build-up (a snare roll speeding up from eighths to sixteenths to thirty-seconds, the kick
+  // on every beat, a whoosh and a siren rising, the bass gone for the second bar), a breath of silence, then an impact
+  // and four bars with the growl on the bassline and the half-time beat under it. rel: the step, counted from the drop
+  const DROP_BASS = '1..1..1.1..1.6.5'.split('').map((c) => (c === '.' ? 0 : +c));
+  function riser(ac, d, t, len, v) {
+    const n = noise(ac, t, len), bp = filt(ac, 'bandpass', 300, 2.5), g = ac.createGain(); bp.frequency.setValueAtTime(300, t); bp.frequency.exponentialRampToValueAtTime(9000, t + len);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v * 0.3, t + len); g.gain.linearRampToValueAtTime(0, t + len + 0.02); n.connect(bp); bp.connect(g); g.connect(d);
+    const o = osc(ac, 'sawtooth', 180, t, t + len + 0.03), lp = filt(ac, 'lowpass', 2500), og = ac.createGain(); o.frequency.exponentialRampToValueAtTime(1500, t + len);
+    og.gain.setValueAtTime(0.0001, t); og.gain.exponentialRampToValueAtTime(v * 0.07, t + len); og.gain.linearRampToValueAtTime(0, t + len + 0.02); o.connect(lp); lp.connect(og); og.connect(d);
+  }
+  function impact(ac, d, t, v) { // (a sub boom falling away, a blast of noise, the crash)
+    const o = osc(ac, 'sine', 130, t, t + 1.6); o.frequency.exponentialRampToValueAtTime(30, t + 1.1); const ws = ac.createWaveShaper(); ws.curve = DRIVE; const g = gainEnv(ac, t, v * 0.7, 0.003, 1.4); o.connect(ws); ws.connect(g); g.connect(d);
+    const n = noise(ac, t, 0.8), lp = filt(ac, 'lowpass', 1800), ng = gainEnv(ac, t, v * 0.45, 0.002, 0.7); n.connect(lp); lp.connect(ng); ng.connect(d);
+    DRUM[6](ac, d, t, v);
+  }
+  // (mx: the stream's mix, if it has one: the pump's channel and the room's. rel: where it is against a drop, if there is one)
+  function playStep(ac, dest, B, s, t, sd, v, mx, rel) {
     const low = (mx && mx.duck) || dest, mel = (mx && mx.mel) || dest, wet = (mx && mx.drv) || dest;
+    const build = rel != null && rel >= -32 && rel < -2, drop = rel != null && rel >= 0 && rel < 64;
+    if (rel === -2 || rel === -1) return; // (the breath before it)
+    if (rel === -32) riser(ac, wet, t, 30 * sd, v);
+    if (rel === 0) impact(ac, dest, t, v);
+    const sc = SCALES[B.sc][1];
+    if (build) { // (the build-up: its own beat; the melody carries on)
+      const p = (rel + 32) / 32;
+      if (!B.mu[0]) { if (s % 4 === 0) DRUM[0](ac, dest, t, v); if (B.d[3][s]) DRUM[3](ac, dest, t, v * 0.7);
+        if (rel >= -8) { DRUM[1](ac, wet, t, v * (0.4 + 0.55 * p)); DRUM[1](ac, wet, t + sd / 2, v * (0.4 + 0.55 * p)); } else if (rel >= -16 || s % 2 === 0) DRUM[1](ac, wet, t, v * (0.35 + 0.6 * p)); }
+      if (!B.mu[1] && rel < -16 && B.b[s]) { let n = 1; while (n < 4 && !B.b[(s + n) % 16]) n++; BASS[B.bi](ac, low, t, NOTE(36 + B.key + sc[B.b[s] - 1]), sd * n * 0.92, v, B.bpm); }
+      if (!B.mu[2]) for (let r = 0; r < 8; r++) if (B.m[r][s]) { let n = 1; while (n < 4 && !B.m[r][(s + n) % 16]) n++; LEAD[B.li](ac, mel, t, NOTE(60 + B.key + sc[r]), sd * n * 0.9, v); }
+      return;
+    }
+    if (drop) { // (the drop: the growl takes the bassline, or a riff of its own if there isn't one; half-time weight under the drums)
+      if (!B.mu[0]) { if ((s === 0 || s === 10) && !B.d[0][s]) DRUM[0](ac, dest, t, v); if (s === 8 && !B.d[1][s]) DRUM[1](ac, wet, t, v); }
+      const pat = B.b.some(Boolean) ? B.b : DROP_BASS;
+      if (!B.mu[1] && pat[s]) { let n = 1; while (n < 4 && !pat[(s + n) % 16]) n++; BASS[4](ac, low, t, NOTE(36 + B.key + sc[pat[s] - 1]), sd * n * 0.92, v * 1.1, B.bpm); }
+      if (!B.mu[0]) B.d.forEach((row, r) => { if (row[s]) DRUM[r](ac, r === 1 || r === 2 || r === 6 ? wet : dest, t, v * (r === 0 ? 1 : 0.95)); });
+      if (!B.mu[2]) for (let r = 0; r < 8; r++) if (B.m[r][s]) { let n = 1; while (n < 4 && !B.m[r][(s + n) % 16]) n++; LEAD[B.li](ac, mel, t, NOTE(60 + B.key + sc[r]), sd * n * 0.9, v); }
+      return;
+    }
     if (mx && B.pu && !B.mu[0] && B.d[0][s]) { let n = 1; while (n < 16 && !B.d[0][(s + n) % 16]) n++; const g = mx.duck.gain; g.setValueAtTime(1 - (B.pu / 100) * 0.8, t); g.linearRampToValueAtTime(1, t + Math.min(n - 0.3, 3.4) * sd); } // (the pump: the kick pushes the rest out of its way)
     if (!B.mu[0]) B.d.forEach((row, r) => { if (row[s]) DRUM[r](ac, r === 1 || r === 2 || r === 6 ? wet : dest, t, v * (r === 0 ? 1 : 0.95)); });
-    const sc = SCALES[B.sc][1];
     if (!B.mu[1] && B.b[s]) { let n = 1; while (n < 4 && !B.b[(s + n) % 16]) n++; BASS[B.bi](ac, low, t, NOTE(36 + B.key + sc[B.b[s] - 1]), sd * n * 0.92, v, B.bpm); }
     if (!B.mu[2]) for (let r = 0; r < 8; r++) if (B.m[r][s]) { let n = 1; while (n < 4 && !B.m[r][(s + n) % 16]) n++; LEAD[B.li](ac, mel, t, NOTE(60 + B.key + sc[r]), sd * n * 0.9, v); }
   }
@@ -208,7 +255,9 @@
     return { duck, mel, drv };
   }
   // a stream: a beat playing from a moment on everyone's clock (t0), its own volume
-  function stream(B, t0) { return { B, t0, last: null, g: null, vol: 0 }; }
+  function stream(B, t0) { return { B, t0, last: null, g: null, vol: 0, dp: 0 }; }
+  // where a stream's step k is against its drop (null: no drop)
+  const dropRel = (st, k) => (st.dp ? k - Math.round((st.dp - st.t0) / stepLen(st.B)) : null);
   const stepLen = (B) => 60 / B.bpm / 4;
   const stepTime = (st, k) => st.t0 + k * stepLen(st.B) + (k % 2 ? (st.B.sw / 100) * stepLen(st.B) * 0.66 : 0);
   function pump(st, vol) { // schedule what's due in the next moment
@@ -221,7 +270,7 @@
     let k = Math.floor((ns - st.t0) / sd); if (st.last != null) k = Math.max(k, st.last + 1);
     for (let guard = 0; guard < 32; guard++, k++) {
       const ts = stepTime(st, k); if (ts > ns + 0.15) break;
-      if (ts >= ns - 0.03) playStep(ac, st.g, st.B, ((k % 16) + 16) % 16, ac.currentTime + Math.max(0, ts - ns) + 0.02, sd, 0.9, st.mx);
+      if (ts >= ns - 0.03) playStep(ac, st.g, st.B, ((k % 16) + 16) % 16, ac.currentTime + Math.max(0, ts - ns) + 0.02, sd, 0.9, st.mx, dropRel(st, k));
       st.last = k;
     }
   }
@@ -366,7 +415,7 @@
     prompts() { return (this.booths || []).map((b) => ({ x: b.x, z: b.z, r: 6, text: '🎹 Open the studio', fn: () => this.openStudio() })); },
     enter() {
       this.B = this.B || (W.beats && dec(W.beats[0])) || preset(0);
-      this.mine = null; this.club = null; this.live = 0; this.likesGot = new Set(); this.lks = 0; this.myLikes = new Set(); this.vis = { k: -1, kick: 0, snare: 0, hat: 0, mel: 0, bass: 0, hue: 0.8 }; this.ledAt = 0; this.sentAt = 0; this.dirty = false; this.liveSince = 0;
+      this.mine = null; this.club = null; this.live = 0; this.likesGot = new Set(); this.lks = 0; this.myLikes = new Set(); this.vis = { k: -1, kick: 0, snare: 0, hat: 0, mel: 0, bass: 0, hue: 0.8, build: 0, drop: 0 }; this.dp = 0; this.dpm = 0; this.shake = 0; this.ledAt = 0; this.sentAt = 0; this.dirty = false; this.liveSince = 0;
       this.drawBar();
       if (!document.getElementById('bsNow')) { const n = document.createElement('div'); n.id = 'bsNow'; (document.getElementById('hud') || document.body).append(n); }
     },
@@ -376,8 +425,9 @@
       const dj = this.dj && this.dj.peer && this.dj.peer !== myPeer() ? this.dj : null, liked = dj && this.myLikes.has(dj.peer + ':' + dj.lv);
       setBar(`<button class="xslot" data-k="studio" title="Beat maker (B)"><span class="k">B</span><span class="e">🎹</span>Studio</button>`
         + `<button class="xslot" data-k="live" title="Play your beat for the club"><span class="e">${this.live ? '⏹️' : '📡'}</span>${this.live ? 'Stop live' : 'Go live'}</button>`
+        + (this.live ? `<button class="xslot bsdrop" data-k="drop" title="A dubstep drop: a build-up, then the growl"><span class="e">💣</span>Drop</button>` : '')
         + (dj ? `<button class="xslot" data-k="like" title="Like this beat" ${liked ? 'disabled' : ''}><span class="e">${liked ? '💖' : '❤️'}</span>${liked ? 'Liked' : 'Like'}</button>` : ''), (b) => {
-        if (b.dataset.k === 'studio') this.openStudio(); else if (b.dataset.k === 'live') this.toggleLive(); else if (b.dataset.k === 'like') this.like();
+        if (b.dataset.k === 'studio') this.openStudio(); else if (b.dataset.k === 'live') this.toggleLive(); else if (b.dataset.k === 'like') this.like(); else if (b.dataset.k === 'drop') this.drop();
       });
     },
     key(code, down) { if (down && code === 'KeyB') { if (this.studioOpen()) closePanel(); else this.openStudio(); return true; } return false; },
@@ -385,11 +435,12 @@
     /* ---- who's playing: the DJ (whoever went live last), or the resident DJ ---- */
     findDJ() {
       let best = null;
-      if (this.live) best = { peer: myPeer(), nm: Net.name, lv: this.live, B: this.B, s: enc(this.B) };
-      for (const p of Net.peers) { if (p.isMe || !p.presence) continue; const lv = +p.presence.lv || 0, s = String(p.presence.bt || ''); if (lv > 0 && s && (!best || lv > best.lv)) { const B = this.decCache(s); if (B) best = { peer: p.peer, nm: String(p.presence.nm || 'Someone').slice(0, 20), lv, B, s }; } }
+      if (this.live) best = { peer: myPeer(), nm: Net.name, lv: this.live, B: this.B, s: enc(this.B), dp: this.dp || 0 };
+      for (const p of Net.peers) { if (p.isMe || !p.presence) continue; const lv = +p.presence.lv || 0, s = String(p.presence.bt || ''); if (lv > 0 && s && (!best || lv > best.lv)) { const B = this.decCache(s); if (B) best = { peer: p.peer, nm: String(p.presence.nm || 'Someone').slice(0, 20), lv, B, s, dp: +p.presence.dp || 0 }; } }
       if (best) return best;
-      const per = 192, slot = Math.floor(now() / per), B = preset(slot % PRESETS.length);
-      return { peer: '', nm: 'DJ Blox', lv: slot * per, B, s: 'res' + slot, resident: true };
+      const per = 192, slot = Math.floor(now() / per), B = preset(slot % PRESETS.length), lv = slot * per, bar = stepLen(B) * 16;
+      const dp = /dubstep/i.test(B.nm) ? lv + (8 + 16 * Math.max(0, Math.ceil(((now() - lv) / bar - 8 - 4) / 16))) * bar : 0; // (the resident DJ drops its dubstep: 8 bars in, then every 16)
+      return { peer: '', nm: 'DJ Blox', lv, B, s: 'res' + slot, resident: true, dp };
     },
     decCache(s) { if (!this.dc || this.dc.s !== s) this.dc = { s, B: dec(s) }; return this.dc.B; },
     studioOpen() { return panelOpen() && $('#xpTitle').textContent.startsWith('🎹'); },
@@ -399,7 +450,7 @@
       if (!this.dj || this.dj.peer !== dj.peer || this.dj.lv !== dj.lv) { this.dj = dj; this.drawBar(); }
       this.dj = dj;
       if (!this.club || this.club.key !== key) { stopStream(this.club); this.club = stream(dj.B, dj.lv); this.club.key = key; }
-      this.club.B = dj.B;
+      this.club.B = dj.B; this.club.dp = dj.dp || 0; if (this.mine) this.mine.dp = this.dpm || 0;
       // your studio: while it's open and playing you hear only yours
       const mineOn = !!(this.mine && this.mine.on), sd = Math.hypot(P.x, P.z + 26);
       if (this.mine) { this.mine.B = this.B; pump(this.mine, mineOn && this.studioOpen() ? 0.95 : 0); if (!this.studioOpen() && this.mine.on && !this.live) { this.mine.on = false; } }
@@ -412,10 +463,14 @@
         if (B.d[0][s] && !B.mu[0]) V.kick = 1; if ((B.d[1][s] || B.d[2][s]) && !B.mu[0]) V.snare = 1; if ((B.d[3][s] || B.d[4][s] || (B.d[6] && B.d[6][s])) && !B.mu[0]) V.hat = 1;
         if (B.b[s] && !B.mu[1]) V.bass = 1; if (!B.mu[2] && B.m.some((r) => r[s])) V.mel = 1;
         if (s === 0) V.hue = (V.hue + 0.13) % 1;
+        const rel = dropRel(src, k); V.build = rel != null && rel >= -32 && rel < 0 ? (rel + 32) / 32 : 0; V.drop = rel != null && rel >= 0 && rel < 64 ? 1 : 0; V.rel = rel; // (the drop: building, or dropping)
+        if (rel === 0) { V.kick = V.snare = V.hat = 1; this.shake = 0.6; }
         V.s = s; V.bar = Math.floor(k / 16);
         if (this.studioOpen()) this.playhead(mineOn ? s : -1);
       }
       for (const n of ['kick', 'snare', 'hat', 'bass', 'mel']) V[n] = Math.max(0, V[n] - dt * (n === 'hat' ? 9 : n === 'kick' ? 5 : 3.5));
+      if (this.shake > 0) { this.shake = Math.max(0, this.shake - dt); const near = Math.hypot(P.x, P.z + 6) < 40, k = this.shake * (near ? 0.5 : 0); cam.yaw += (Math.random() - 0.5) * k * 0.05; cam.pitch += (Math.random() - 0.5) * k * 0.03; } // (the impact shakes the club)
+      this.dropBtn();
       this.animate(dt, B);
       // the DJ: likes coming in
       if (this.live) {
@@ -432,7 +487,8 @@
     // the club moving to the music
     animate(dt, B) {
       const F = this.fx, V = this.vis; if (!F) return;
-      const t = performance.now() / 1000, beat = V.kick;
+      const t = performance.now() / 1000, beat = Math.max(V.kick, V.build ? (Math.floor(t * (3 + 16 * V.build)) % 2) * 0.7 * V.build : 0, V.drop ? 0.35 : 0); // (building: a strobe speeding up; the drop: everything up)
+      if (V.drop) V.hue = (V.hue + dt * 0.6) % 1;
       F.tiles.forEach((p) => {
         const d = Math.hypot(p.i - 3.5, p.j - 3.5), wave = 0.5 + 0.5 * Math.sin(d * 1.3 - (V.k || 0) * 0.9), h = (V.hue + d * 0.045 + (p.i + p.j) * 0.01) % 1;
         const l = 0.12 + 0.3 * wave * (0.4 + 0.6 * Math.max(V.bass, V.mel)) + 0.28 * beat * (d < 2.5 ? 1 : 0.4);
@@ -469,6 +525,10 @@
       g.textAlign = 'center'; g.shadowColor = '#000'; g.shadowBlur = 12;
       g.font = '900 54px "Segoe UI",system-ui,sans-serif'; g.fillStyle = '#fff'; g.fillText(dj.resident ? '🎧 DJ BLOX' : `📡 ${String(dj.nm || '').toUpperCase()}`, W0 / 2, 70);
       g.font = '800 30px "Segoe UI",system-ui,sans-serif'; g.fillStyle = '#f5d0fe'; g.fillText(`“${B.nm}” · ${B.bpm} BPM · ${KEYS[B.key]} ${SCALES[B.sc][0]}`, W0 / 2, 112);
+      if (V.build || V.drop) { // (the drop on the big screen: building, then DROP!)
+        g.fillStyle = 'rgba(0,0,0,.55)'; g.fillRect(0, 128, W0, H0 - 128); g.font = `900 ${V.drop ? 96 : 58}px "Segoe UI",system-ui,sans-serif`; g.fillStyle = V.drop ? `hsl(${(t * 400) % 360},100%,65%)` : '#fde047';
+        g.fillText(V.drop ? '💥 DROP! 💥' : '💣 BUILD UP', W0 / 2, H0 * (V.drop ? 0.82 : 0.7)); if (V.build) { g.fillStyle = '#f97316'; g.fillRect(W0 * 0.2, H0 * 0.8, W0 * 0.6 * V.build, 16); g.strokeStyle = '#fff'; g.lineWidth = 3; g.strokeRect(W0 * 0.2, H0 * 0.8, W0 * 0.6, 16); }
+      }
       g.shadowBlur = 0; F.ledTex.needsUpdate = true;
     },
     // everyone on the dance floor dances, on the beat
@@ -493,6 +553,27 @@
     statOf(pr, isMe) { return isMe ? this.lks : +pr.lks || 0; },
     sortKey(pr, isMe) { return (isMe ? this.lks : +pr.lks || 0) + ((isMe ? this.live : +pr.lv) ? 1000 : 0); },
     hud() { return this.live ? '📡 <b>You’re live</b> — everyone here hears your beat' : '🎹 Make a beat in a studio booth · 📡 go live to play it for everyone'; },
+
+    /* ---- 💣 the drop ---- */
+    // two bars from the next bar line: the build-up, then the drop. In your studio it drops on your own playback; live, the
+    // whole club's (everyone's clock puts it on the same step)
+    drop() {
+      if (this.dropBusy()) return;
+      const open = this.studioOpen();
+      if (!this.live && !(this.mine && this.mine.on)) {
+        if (!open) { sfx('error'); toast('🎹 Play your beat in the studio (or go live) first', '#fca5a5'); return; }
+        const pb = document.querySelector('.bsx [data-k="play"]'); if (pb) this.studioClick(pb); // (it starts your beat playing)
+      }
+      const sd = stepLen(this.B), at = (t0) => t0 + (Math.ceil((now() - t0 + 0.3) / (16 * sd)) * 16 + 32) * sd;
+      if (this.mine && this.mine.on) this.dpm = at(this.mine.t0);
+      if (this.live) { this.dp = at(this.live); send({ dp: this.dp }); say(`💣 ${Net.name} is dropping the bass!`, '#fdba74'); }
+      sfx('start'); toast('💣 Drop incoming — here comes the build-up!', '#fdba74');
+    },
+    dropBusy() { const sd = stepLen(this.B), end = Math.max(this.dp || 0, this.dpm || 0) + 64 * sd; return now() < end && (this.dp || this.dpm); },
+    dropBtn() { // (the buttons say where it's got to)
+      const V = this.vis, txt = V.drop ? '💥 DROP!' : V.build ? `💣 ${Math.max(1, Math.ceil((1 - V.build) * 2 * 4))}…` : '💣 Drop', on = !!(V.drop || V.build) || !!this.dropBusy();
+      for (const b of document.querySelectorAll('[data-k="drop"]')) { const t = b.classList.contains('xslot') ? `<span class="e">💣</span>${V.drop ? 'DROP!' : V.build ? 'Building…' : 'Drop'}` : txt; if (b.dataset.t !== t) { b.dataset.t = t; b.innerHTML = t; } b.classList.toggle('on', on); }
+    },
 
     /* ---- going live, likes ---- */
     toggleLive() {
@@ -533,6 +614,7 @@
           <div class="grp" title="EDM's pump: each kick ducks the bass and melody, which swell back in"><label>⚡ Pump</label><input type="range" min="0" max="100" value="${B.pu || 0}" data-rng="pu"><b class="v" id="bsPu">${B.pu || 0}%</b></div>
           <div class="grp"><label>Key</label>${sel(KEYS, B.key, 'key')}${sel(SCALES.map((x) => x[0]), B.sc, 'sc')}</div>
           <div class="grp"><label>Preset</label><select data-sel="pre"><option value="-1">Pick one…</option>${PRESETS.map((p, i) => `<option value="${i}">${esc(p[0])}</option>`).join('')}</select></div>
+          <button class="bb drop" data-k="drop" title="A dubstep drop: two bars of build-up, a breath, then the growl for four bars">💣 Drop</button>
           <button class="bb" data-k="rnd">🎲 Surprise me</button><button class="bb" data-k="clr">🗑️ Clear</button>
           <button class="bb live${this.live ? ' on' : ''}" data-k="live">${this.live ? '⏹️ Stop live' : '📡 Go live'}</button>
         </div>
@@ -572,6 +654,7 @@
       else if (k === 'rnd') { this.setBeat(surprise()); sfx('magic'); }
       else if (k === 'clr') { const nb = blank(); Object.assign(nb, { bpm: B.bpm, key: B.key, sc: B.sc, li: B.li, bi: B.bi, pu: B.pu, nm: B.nm }); this.setBeat(nb); sfx('click'); }
       else if (k === 'live') this.toggleLive();
+      else if (k === 'drop') this.drop();
     },
     preview(kind, r) { // a tap plays the sound
       const a = audio(); if (!a) return; const g = a.ac.createGain(); g.gain.value = 0.8; g.connect(a.bus); const t = a.ac.currentTime + 0.01, B = this.B, sc = SCALES[B.sc][1];
