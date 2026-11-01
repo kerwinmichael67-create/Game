@@ -7143,7 +7143,7 @@ const THEME_STYLES = {
   pop: { d: ['x...x...x...x...', '................', '....x.......x...', 'x.x.x.x.x.x.x.x.', '..x...x...x...x.', '................'], bass: [[0, 3, 0], [3, 1, 0], [6, 2, 0], [8, 3, 0], [11, 1, 12], [14, 2, 0]], bi: 'saw', ch: [[0, 3], [6, 2], [8, 3], [14, 2]], ci: 'piano', pad: 'warm', li: 'pluck', cells: ['x.x...x.', 'x..x.x..', '..x.x.x.', 'x...x...'], oct: 5 },
   action: { d: ['x.....x.x.....x.', '....x.......x...', '................', 'xxxxxxxxxxxxxxxx', '................', '..............xx'], bass: Array.from({ length: 16 }, (_, k) => [k, 1, k % 8 === 6 ? 12 : 0]), bi: 'saw', ch: 'hold', ci: 'strings', li: 'brass', cells: ['x...x.x.', 'x.x.x...', 'x..x..x.', 'x.......', 'x.x.xxx.'], oct: 5, crash: 1 },
   tense: { d: ['x...x...x...x...', '........x.......', '................', 'xxxxxxxxxxxxxxxx', '................', 'x..............x'], bass: [[0, 2, 0], [2, 2, 0], [4, 2, 0], [6, 2, 0], [8, 2, 0], [10, 2, 0], [12, 2, 0], [14, 2, 1]], bi: 'sub', ch: 'hold', ci: 'dark', arp: 'pluck', li: 'eerie', cells: ['x.......', 'x...x...', '....x...', 'x.x.....'], oct: 5, harm: 1 },
-  spooky: { d: ['x.........x.....', '................', '................', '....x.......x...', '................', '..............x.'], bass: [[0, 8, 0], [8, 8, 0]], bi: 'sub', ch: 'hold', ci: 'dark', li: 'musicbox', cells: ['x.x.x...', 'x...x.x.', 'x.......', 'x.x.....'], oct: 6, harm: 1, soft: 1 },
+  spooky: { d: ['x.........x.....', '................', '................', '....x.......x...', '................', '..............x.'], bass: [[0, 8, 0], [8, 8, 0]], bi: 'sub', ch: 'hold', ci: 'dark', li: 'musicbox', cells: ['x.x.x...', 'x...x.x.', 'x.......', 'x.x.....'], oct: 6, harm: 1, soft: 1, introArp: 1 },
   race: { d: ['x...x...x...x...', '................', '....x.......x...', 'x.x.x.x.x.x.x.x.', '..x...x...x...x.', '................'], bass: [[2, 2, 0], [6, 2, 0], [10, 2, 0], [14, 2, 0]], bi: 'saw', ch: 'arp', ci: 'pluck', pad: 'warm', li: 'saw', cells: ['x.x.x.x.', 'xxx.x...', 'x..x..x.', 'x.x.x...'], oct: 5, crash: 1 },
   adventure: { d: ['x.......x.......', '....x.......x.x.', '................', 'x.x.x.x.x.x.x.x.', '................', 'x.....x.........'], bass: [[0, 4, 0], [4, 4, 7], [8, 4, 0], [12, 4, 7]], bi: 'sub', ch: 'hold', ci: 'strings', arp: 'pluck8', li: 'brass', cells: ['x...x.x.', 'x.x.x...', 'x...x...', 'x.xxx...'], oct: 5, crash: 1 },
   groove: { d: ['x..x....x.x.....', '....x.......x...', '................', 'x.xxx.xxx.xxx.xx', '..............x.', '................'], bass: [[0, 2, 0], [3, 1, 0], [5, 1, 12], [8, 2, 0], [10, 1, 7], [12, 2, 0], [15, 1, 12]], bi: 'pluck', ch: [[2, 1], [6, 1], [10, 1], [14, 1]], ci: 'organ', li: 'square', cells: ['x.x..x..', '..x.x.x.', 'x..x.x..', 'xx..x...'], oct: 5, swing: 0.18 },
@@ -7151,7 +7151,8 @@ const THEME_STYLES = {
   calm: { d: ['x.......x.......', '................', '................', '..x...x...x...x.', '................', '................'], bass: [[0, 6, 0], [6, 2, 7], [8, 8, 0]], bi: 'sub', ch: [[0, 8], [8, 8]], ci: 'piano', pad: 'warm', li: 'flute', cells: ['x...x.x.', 'x.......', 'x.x.x...', 'x...x...'], oct: 5, soft: 1, swing: 0.12 },
   island: { d: ['x.....x...x.....', '................', '....x.......x...', 'x.xxx.xxx.xxx.xx', '................', '................'], bass: [[0, 3, 0], [3, 1, 7], [6, 2, 0], [8, 3, 0], [11, 1, 7], [14, 2, 12]], bi: 'sub', ch: [[2, 1], [4, 2], [10, 1], [12, 2]], ci: 'pluck', li: 'marimba', cells: ['x.x.x.x.', 'x..x..x.', 'xx.x.x..', 'x.x.....'], oct: 5, swing: 0.15 },
   funk: { d: ['x..x..x...x.....', '....x.......x...', '................', 'x.xxx.xxx.xxx.xx', '......x.......x.', '................'], bass: [[0, 1, 0], [2, 1, 12], [3, 1, 0], [6, 2, 0], [8, 1, 0], [10, 1, 7], [11, 1, 12], [14, 2, 10]], bi: 'pluck', ch: [[1, 1], [4, 1], [9, 1], [12, 1]], ci: 'organ', pad: 'warm', li: 'saw', cells: ['x.x..x..', 'x..x.x..', '..x.x.x.', 'x.xx....'], oct: 5, swing: 0.1 },
-  dark: { d: ['x...............', '................', '................', '................', '................', '........x.......'], bass: [[0, 16, 0]], bi: 'sub', ch: 'hold', ci: 'dark', li: 'eerie', cells: ['x.......', '........', 'x...x...'], oct: 5, harm: 1, soft: 1 },
+  phonk: { d: ['x......x..x.....', '........x.......', '........x.......', 'x.x.x.x.xxx.x.xx', '......x.......x.', '...............x'], bass: [[0, 6, 0], [7, 3, 0], [10, 4, 12], [14, 2, 7]], bi: '808', ch: 'none', pad: 'phonkpad', li: 'cowbell', cells: ['x..x..x.', 'x.x..x..', 'xx.x.x.x', 'x..x.x.x', 'x.xx..x.'], oct: 5, introLead: 1, riff: 1, rolls: 1, crash: 1 },
+  dark: { d: ['x...............', '................', '................', '................', '................', '........x.......'], bass: [[0, 16, 0]], bi: 'sub', ch: 'hold', ci: 'dark', li: 'eerie', cells: ['x.......', '........', 'x...x...'], oct: 5, harm: 1, soft: 1, introArp: 1 },
 };
 // each experience's theme: [style, tempo, key (0 = C), minor?, the first tune's chords, the second's]
 const THEMES = {
@@ -7166,10 +7167,12 @@ const THEMES = {
   rivals: ['action', 140, 11, 1, [0, 6, 5, 6], [3, 4, 0, 4]], fruits: ['adventure', 120, 9, 1, [0, 5, 6, 0], [3, 0, 6, 4]], pvb: ['pop', 118, 5, 0, [0, 4, 5, 3], [3, 4, 0, 4]],
   fishty: ['island', 104, 4, 0, [0, 3, 4, 0], [5, 3, 1, 4]], pizza: ['funk', 116, 0, 0, [0, 5, 1, 4], [3, 4, 0, 5]], park: ['pop', 124, 7, 0, [0, 3, 4, 0], [5, 3, 1, 4]],
   mine: ['funk', 108, 4, 1, [0, 6, 5, 6], [3, 4, 0, 0]], cars: ['funk', 118, 10, 0, [0, 3, 4, 0], [5, 3, 1, 4]], forsaken: ['dark', 70, 5, 1, [0, 0, 5, 4], [3, 3, 4, 4]],
-  shaft: ['adventure', 100, 4, 1, [0, 5, 3, 6], [3, 4, 0, 6]], aura: ['groove', 105, 10, 1, [0, 6, 5, 6], [3, 4, 0, 6]],
+  shaft: ['adventure', 100, 4, 1, [0, 5, 3, 6], [3, 4, 0, 6]], aura: ['phonk', 140, 1, 2, [0, 0, 5, 1], [5, 6, 0, 1]], // (2: phrygian, phonk's dark minor)
 };
-const THEME_GAIN = { chip: 1.35, musicbox: 2.0, tense: 0.62, adventure: 0.64, island: 0.72, calm: 0.82, spooky: 0.85, groove: 1.3, pop: 1.05, funk: 1.08, action: 1.0, race: 0.95, dark: 0.9 };
-const MAJ = [0, 2, 4, 5, 7, 9, 11], MIN = [0, 2, 3, 5, 7, 8, 10], HMIN = [0, 2, 3, 5, 7, 8, 11];
+setInterval(() => { if (BGM.want && playing && exp && !document.hidden) bgmTick(true); }, 80); // (between frames too)
+let THEME_LEVEL = 0.85; // (about as loud as the classical pieces)
+const THEME_GAIN = { chip: 1.45, musicbox: 3.0, tense: 0.52, adventure: 0.5, island: 0.6, calm: 0.68, spooky: 0.8, groove: 2.2, pop: 1.2, funk: 2.0, action: 1.0, race: 1.4, dark: 0.85, phonk: 0.8 };
+const MAJ = [0, 2, 4, 5, 7, 9, 11], MIN = [0, 2, 3, 5, 7, 8, 10], HMIN = [0, 2, 3, 5, 7, 8, 11], PHRY = [0, 1, 3, 5, 7, 8, 10];
 const FORM = ['I', 'I', 'I', 'I', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'B', 'B', 'B', 'B', 'B', 'B', 'B', 'B', 'O', 'O', 'O', 'O'];
 // a tune for 8 bars: a 2-bar idea, again, an answer, the idea ending home. Notes are scale steps above the key note
 function themeTune(rng, S, prog, sc) {
@@ -7177,7 +7180,7 @@ function themeTune(rng, S, prog, sc) {
   const idea = cellsOf(), answer = cellsOf();
   let p = 4 + Math.floor(rng() * 3);
   for (let half = 0; half < 16; half++) {
-    const bar = Math.floor(half / 2), cells = bar === 4 || bar === 5 ? answer : idea, cell = cells[half % 4];
+    const bar = Math.floor(half / 2), cells = bar === 4 || bar === 5 ? answer : idea, cell = S.riff ? idea[half % 2] : cells[half % 4];
     const chord = prog[bar % 4], tones = [chord, chord + 2, chord + 4, chord + 7, chord + 9];
     for (let i = 0; i < 8; i++) {
       if (cell[i] !== 'x') continue;
@@ -7194,7 +7197,7 @@ function themeTune(rng, S, prog, sc) {
 // the whole song, worked out once: per step, what plays
 function themeSong(id, loop) {
   const T = THEMES[id]; if (!T) return null;
-  const [style, bpm, key, minor, pa, pb] = T, S = THEME_STYLES[style], sc = minor ? (S.harm ? HMIN : MIN) : MAJ;
+  const [style, bpm, key, minor, pa, pb] = T, S = THEME_STYLES[style], sc = minor === 2 ? PHRY : minor ? (S.harm ? HMIN : MIN) : MAJ;
   let h = 7; for (const c of id) h = (h * 31 + c.charCodeAt(0)) >>> 0;
   const rA = mulberry(h), rB = mulberry(h + 977 * (loop + 1));
   const tuneA = themeTune(rA, S, pa, sc), tuneB = themeTune(rB, S, pb, sc);
@@ -7209,6 +7212,7 @@ function themeSong(id, loop) {
       if (light && r === 0 && k % 8) on = false;
       if (fill && k >= 12) { if (r === 5) on = k % 2 === 0; if (r === 1) on = k % 2 === 1 || on; }
       if (on) steps[s0 + k].push(['d', r]);
+      if (S.rolls && r === 3 && !light && bar % 2 && k >= 12) steps[s0 + k].push(['d', 3, 0.5]); // (a roll: twice as fast)
     } });
     if (S.crash && (bar === 4 || bar === 12 || bar === 20)) steps[s0].push(['d', 6]);
     // bass
@@ -7217,12 +7221,13 @@ function themeSong(id, loop) {
     const tri = [deg(c, 48), deg(c + 2, 48), deg(c + 4, 48)];
     if (S.ch === 'hold') steps[s0].push(['c', tri, 16]);
     else if (S.ch === 'arp') { if (!light) for (let k = 0; k < 16; k++) steps[s0 + k].push(['a', tri[[0, 1, 2, 1][k % 4]] + 12, 1]); else steps[s0].push(['c', tri, 16]); }
-    else for (const [k, len] of S.ch) steps[s0 + k].push(['c', tri, len]);
+    else if (S.ch !== 'none') for (const [k, len] of S.ch) steps[s0 + k].push(['c', tri, len]);
+    if (light && S.introArp) for (let k = 0; k < 16; k += 2) steps[s0 + k].push(['a', tri[[0, 1, 2, 1, 2, 0, 1, 2][k / 2]] + 12, 2, S.li]); // (something to hear from the very start)
     if (S.pad && !light) steps[s0].push(['p', tri, 16]);
     if (S.arp && (sec === 'C' || sec === 'B')) for (let k = 0; k < 16; k += S.arp === 'pluck8' ? 2 : 1) steps[s0 + k].push(['a', tri[[0, 1, 2, 1, 2, 0][(k / (S.arp === 'pluck8' ? 2 : 1)) % 6]] + 12, 1]);
   });
   // the tunes: A (bars 5–12), again an octave up (13–20), B (21–28)
-  for (const [st, p, len] of tuneA) { steps[64 + st].push(['l', deg(p, S.oct * 12), len]); steps[192 + st].push(['l', deg(p, S.oct * 12) + (S.soft ? 0 : 12), len, 1]); }
+  for (const [st, p, len] of tuneA) { steps[64 + st].push(['l', deg(p, S.oct * 12), len]); steps[192 + st].push(['l', deg(p, S.oct * 12) + (S.soft || S.riff ? 0 : 12), len, 1]); if (S.introLead && st < 64) steps[st].push(['l', deg(p, S.oct * 12), len, 1]); }
   for (const [st, p, len] of tuneB) steps[320 + st].push(['l', deg(p, S.oct * 12), len]);
   return { id, steps, sd: 60 / bpm / 4, S, style, bpm, swing: S.swing || 0 };
 }
@@ -7245,37 +7250,45 @@ const TDRUM = [
   (ac, d, t, v) => { const n = TV.nz(ac, t, 1.6), hp = TV.flt(ac, 'highpass', 5000), g = TV.env(ac, t, v * 0.18, 0.004, 1.5); n.connect(hp); hp.connect(g); g.connect(d); },
 ];
 const TINST = { // (ac, dest, t, frequency, length, volume)
-  sub: (ac, d, t, f, len, v) => { const g = TV.env(ac, t, v * 0.55, 0.01, 0.12, len); TV.osc(ac, 'sine', f, t, t + len + 0.2).connect(g); const g2 = ac.createGain(); g2.gain.value = 0.25; TV.osc(ac, 'triangle', f * 2, t, t + len + 0.2).connect(g2); g2.connect(g); g.connect(d); },
+  sub: (ac, d, t, f, len, v) => { const g = TV.env(ac, t, v * 0.55, 0.01, 0.12, len); TV.osc(ac, 'sine', f, t, t + len + 0.2).connect(g); const g2 = ac.createGain(); g2.gain.value = 0.3; TV.osc(ac, 'triangle', f * 2, t, t + len + 0.2).connect(g2); g2.connect(g); const lp = TV.flt(ac, 'lowpass', 900, 1), g3 = ac.createGain(); g3.gain.value = 0.32; TV.osc(ac, 'sawtooth', f, t, t + len + 0.2).connect(lp); lp.connect(g3); g3.connect(g); g.connect(d); }, // (the saw: so small speakers hear it)
   saw: (ac, d, t, f, len, v) => { const lp = TV.flt(ac, 'lowpass', 1200, 5); lp.frequency.setValueAtTime(1200, t); lp.frequency.exponentialRampToValueAtTime(260, t + Math.max(0.08, len)); const g = TV.env(ac, t, v * 0.32, 0.006, 0.08, len * 0.8); TV.osc(ac, 'sawtooth', f, t, t + len + 0.15).connect(lp); lp.connect(g); g.connect(d); },
   pluck: (ac, d, t, f, len, v) => { const lp = TV.flt(ac, 'lowpass', 3000, 3); lp.frequency.setValueAtTime(3000, t); lp.frequency.exponentialRampToValueAtTime(320, t + 0.2); const g = TV.env(ac, t, v * 0.32, 0.003, Math.min(0.5, len + 0.15)); TV.osc(ac, 'square', f, t, t + 0.6).connect(lp); lp.connect(g); g.connect(d); },
   square: (ac, d, t, f, len, v) => { const g = TV.env(ac, t, v * 0.1, 0.003, 0.05, Math.max(0.03, len * 0.8)); TV.osc(ac, 'square', f, t, t + len + 0.1).connect(g); g.connect(d); },
   piano: (ac, d, t, f, len, v) => { const lp = TV.flt(ac, 'lowpass', 3200), g = TV.env(ac, t, v * 0.22, 0.004, 1.2); for (const [m, k, ty] of [[1, 1, 'triangle'], [2, 0.3, 'sine'], [3, 0.08, 'sine']]) { const gg = ac.createGain(); gg.gain.value = k; TV.osc(ac, ty, f * m, t, t + 1.3).connect(gg); gg.connect(lp); } lp.connect(g); g.connect(d); },
   organ: (ac, d, t, f, len, v) => { const g = TV.env(ac, t, v * 0.1, 0.005, 0.06, len * 0.9); for (const [m, k] of [[1, 1], [2, 0.5], [3, 0.3], [4, 0.15]]) { const gg = ac.createGain(); gg.gain.value = k; TV.osc(ac, 'sine', f * m, t, t + len + 0.1).connect(gg); gg.connect(g); } g.connect(d); },
   strings: (ac, d, t, f, len, v) => { const lp = TV.flt(ac, 'lowpass', 2200), g = TV.env(ac, t, v * 0.07, 0.35, 0.5, Math.max(0, len - 0.35)); for (const k of [0.994, 1.003, 1.009]) TV.osc(ac, 'sawtooth', f * k, t, t + len + 0.9).connect(lp); lp.connect(g); g.connect(d); },
-  dark: (ac, d, t, f, len, v) => { const lp = TV.flt(ac, 'lowpass', 700), g = TV.env(ac, t, v * 0.09, 0.6, 0.8, Math.max(0, len - 0.6)); for (const k of [0.995, 1.005]) TV.osc(ac, 'sawtooth', f * k, t, t + len + 1.4).connect(lp); lp.connect(g); g.connect(d); },
+  dark: (ac, d, t, f, len, v) => { const lp = TV.flt(ac, 'lowpass', 1300), g = TV.env(ac, t, v * 0.1, 0.6, 0.8, Math.max(0, len - 0.6)); for (const k of [0.995, 1.005]) TV.osc(ac, 'sawtooth', f * k, t, t + len + 1.4).connect(lp); lp.connect(g); g.connect(d); },
   warm: (ac, d, t, f, len, v) => { const lp = TV.flt(ac, 'lowpass', 1500), g = TV.env(ac, t, v * 0.05, 0.25, 0.4, Math.max(0, len - 0.25)); for (const k of [0.996, 1.004]) TV.osc(ac, 'sawtooth', f * k, t, t + len + 0.7).connect(lp); lp.connect(g); g.connect(d); },
   brass: (ac, d, t, f, len, v) => { const lp = TV.flt(ac, 'lowpass', 600, 2); lp.frequency.setValueAtTime(600, t); lp.frequency.linearRampToValueAtTime(2600, t + 0.08); lp.frequency.exponentialRampToValueAtTime(1400, t + 0.4); const g = TV.env(ac, t, v * 0.16, 0.04, 0.12, Math.max(0, len - 0.04)); for (const k of [0.997, 1.003]) TV.osc(ac, 'sawtooth', f * k, t, t + len + 0.2).connect(lp); lp.connect(g); g.connect(d); },
   eerie: (ac, d, t, f, len, v) => { const o = TV.osc(ac, 'sine', f, t, t + len + 0.6), lfo = TV.osc(ac, 'sine', 5.5, t, t + len + 0.6), lg = ac.createGain(); lg.gain.value = f * 0.012; lfo.connect(lg); lg.connect(o.frequency); const o2 = TV.osc(ac, 'triangle', f * 2.01, t, t + len + 0.6), g2 = ac.createGain(); g2.gain.value = 0.2; o2.connect(g2); const g = TV.env(ac, t, v * 0.16, 0.08, 0.5, len); o.connect(g); g2.connect(g); g.connect(d); },
   musicbox: (ac, d, t, f, len, v) => { const g = TV.env(ac, t, v * 0.2, 0.002, 1.0); TV.osc(ac, 'sine', f, t, t + 1.1).connect(g); const g2 = TV.env(ac, t, v * 0.06, 0.002, 0.3); TV.osc(ac, 'sine', f * 4.01, t, t + 0.4).connect(g2); g2.connect(d); g.connect(d); },
   flute: (ac, d, t, f, len, v) => { const o = TV.osc(ac, 'sine', f, t, t + len + 0.3), lfo = TV.osc(ac, 'sine', 5, t, t + len + 0.3), lg = ac.createGain(); lg.gain.value = f * 0.006; lfo.connect(lg); lg.connect(o.frequency); const g = TV.env(ac, t, v * 0.17, 0.05, 0.18, Math.max(0, len - 0.05)); o.connect(g); const n = TV.nz(ac, t, 0.08), bp = TV.flt(ac, 'bandpass', f * 2, 2), gn = TV.env(ac, t, v * 0.04, 0.01, 0.06); n.connect(bp); bp.connect(gn); gn.connect(d); g.connect(d); },
+  cowbell: (ac, d, t, f, len, v) => { const bp = TV.flt(ac, 'bandpass', f * 2.1, 1.4), g = TV.env(ac, t, v * 0.32, 0.001, 0.26); for (const k of [1, 1.4836]) TV.osc(ac, 'square', f * k, t, t + 0.3).connect(bp); bp.connect(g); g.connect(d); }, // (the 808 cowbell, pitched: phonk's lead)
+  '808': (ac, d, t, f, len, v) => { // a long, distorted 808 that drops into its note
+    const o = TV.osc(ac, 'sine', f * 2, t, t + len + 0.25); o.frequency.exponentialRampToValueAtTime(f, t + 0.05);
+    const ws = ac.createWaveShaper(); ws.curve = TV.drive || (TV.drive = Float32Array.from({ length: 1024 }, (_, i) => Math.tanh(((i / 1023) * 2 - 1) * 4))); const lp = TV.flt(ac, 'lowpass', 1800, 0.7);
+    const g = TV.env(ac, t, v * 0.5, 0.004, 0.2, Math.max(0, len - 0.05)); o.connect(ws); ws.connect(lp); lp.connect(g); g.connect(d); },
+  phonkpad: (ac, d, t, f, len, v) => { const lp = TV.flt(ac, 'lowpass', 900), g = TV.env(ac, t, v * 0.035, 0.4, 0.6, Math.max(0, len - 0.4)); for (const k of [0.993, 1.007]) TV.osc(ac, 'sawtooth', f * k, t, t + len + 1).connect(lp); lp.connect(g); g.connect(d); },
   marimba: (ac, d, t, f, len, v) => { const g = TV.env(ac, t, v * 0.26, 0.002, 0.45); TV.osc(ac, 'sine', f, t, t + 0.5).connect(g); const g2 = TV.env(ac, t, v * 0.1, 0.001, 0.08); TV.osc(ac, 'sine', f * 3.9, t, t + 0.1).connect(g2); g2.connect(d); g.connect(d); },
 };
 const BGM = { song: null, key: '', t0: 0, k: 0, g: null, ac: null, loops: 0, on: false };
 // once a frame: keep the next moment of the theme booked on the sound card
 function bgmTick(want) {
+  BGM.want = want;
   const s = window.Sfx && Sfx.audio && Sfx.audio();
   if (!want || !s) { if (BGM.g && BGM.on) { BGM.g.gain.setTargetAtTime(0, BGM.ac.currentTime, 0.25); BGM.on = false; } return; }
   const ac = s.ac, id = exp.id;
-  if (BGM.ac !== ac) { BGM.ac = ac; const comp = ac.createDynamicsCompressor(); comp.threshold.value = -20; comp.ratio.value = 3; BGM.g = ac.createGain(); BGM.g.gain.value = 0; BGM.g.connect(comp); comp.connect(s.out); BGM.key = ''; }
+  if (BGM.ac !== ac) { BGM.ac = ac; try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {} // (an iPhone on silent would mute it otherwise)
+    const comp = ac.createDynamicsCompressor(); comp.threshold.value = -20; comp.ratio.value = 3; BGM.g = ac.createGain(); BGM.g.gain.value = 0; BGM.g.connect(comp); comp.connect(s.out); BGM.key = ''; }
   if (BGM.key !== id) { BGM.key = id; BGM.loops = 0; BGM.song = themeSong(id, 0); BGM.k = 0; BGM.t0 = ac.currentTime + 0.15; }
   const song = BGM.song; if (!song) return;
   if (!BGM.on) { BGM.on = true; BGM.k = Math.floor(BGM.k / 64) * 64; BGM.t0 = ac.currentTime + 0.15 - BGM.k * song.sd; } // (coming back: from the start of the section)
-  BGM.g.gain.setTargetAtTime(clamp(Music.vol * Sfx.volume * 0.9, 0, 1), ac.currentTime, 0.4);
+  BGM.g.gain.setTargetAtTime(clamp(Music.vol * THEME_LEVEL, 0, 2), ac.currentTime, 0.4);
   const N = song.steps.length;
-  for (let guard = 0; guard < 24; guard++) {
+  for (let guard = 0; guard < 48; guard++) {
     const t = BGM.t0 + BGM.k * song.sd + (BGM.k % 2 ? song.swing * song.sd : 0);
-    if (t > ac.currentTime + 0.2) break;
-    if (t >= ac.currentTime - 0.05) for (const e of song.steps[BGM.k % N]) bgmPlay(ac, BGM.g, song, e, t);
+    if (t > ac.currentTime + 0.5) break;
+    if (t >= ac.currentTime - 0.08) for (const e of song.steps[BGM.k % N]) bgmPlay(ac, BGM.g, song, e, t);
     BGM.k++;
     if (BGM.k % N === 0) { BGM.loops++; const nx = themeSong(id, BGM.loops); nx.k0 = BGM.k; BGM.song = nx; if (exp.music && BGM.loops >= 2) Music.mode = 'classic'; break; }
   }
@@ -7283,11 +7296,11 @@ function bgmTick(want) {
 function bgmPlay(ac, d, song, e, t) {
   const S = song.S, v = (S.soft ? 0.75 : 1) * (THEME_GAIN[song.style] || 1), sd = song.sd; // (styles evened out, so no game's much louder than another)
   try {
-    if (e[0] === 'd') TDRUM[e[1]](ac, d, t, (e[1] === 0 ? 0.8 : 0.7) * v);
+    if (e[0] === 'd') TDRUM[e[1]](ac, d, t + (e[2] ? e[2] * sd : 0), (e[1] === 0 ? 0.8 : 0.7) * v * (e[2] ? 0.7 : 1));
     else if (e[0] === 'b') TINST[S.bi](ac, d, t, hz(e[1]), e[2] * sd * 0.92, 0.8 * v);
     else if (e[0] === 'c') for (const n of e[1]) TINST[S.ci](ac, d, t, hz(n), e[2] * sd, 0.55 * v);
     else if (e[0] === 'p') for (const n of e[1]) TINST[S.pad](ac, d, t, hz(n), e[2] * sd, 0.6);
-    else if (e[0] === 'a') TINST[S.ch === 'arp' ? S.ci : 'pluck'](ac, d, t, hz(e[1]), sd * 0.9, 0.4 * v);
+    else if (e[0] === 'a') TINST[e[3] || (S.ch === 'arp' ? S.ci : 'pluck')](ac, d, t, hz(e[1]), sd * (e[2] || 1) * 0.9, (e[3] ? 0.5 : 0.4) * v);
     else if (e[0] === 'l') TINST[S.li](ac, d, t, hz(e[1]), e[2] * sd * 0.95, (e[3] ? 0.75 : 0.85) * v);
   } catch (err) { /* (a voice the browser can't make: skip it) */ }
 }
