@@ -7184,25 +7184,65 @@ const THEME_STYLES = {
   funk: { d: ['x..x..x...x.....', '....x.......x...', '................', 'x.xxx.xxx.xxx.xx', '......x.......x.', '................'], bass: [[0, 1, 0], [2, 1, 12], [3, 1, 0], [6, 2, 0], [8, 1, 0], [10, 1, 7], [11, 1, 12], [14, 2, 10]], bi: 'fbass', ch: [[1, 1], [4, 1], [9, 1], [12, 1]], ci: 'ep', pad: 'warm', li: 'brass', cells: ['x.x..x..', 'x..x.x..', '..x.x.x.', 'x.xx....'], oct: 5, swing: 0.1 },
   phonk: { d: ['x......x..x.....', '........x.......', '........x.......', 'x.x.x.x.xxx.x.xx', '......x.......x.', '...............x'], bass: [[0, 6, 0], [7, 3, 0], [10, 4, 12], [14, 2, 7]], bi: '808', ch: 'none', pad: 'phonkpad', li: 'cowbell', cells: ['x..x..x.', 'x.x..x..', 'xx.x.x.x', 'x..x.x.x', 'x.xx..x.'], oct: 5, introLead: 1, riff: 1, rolls: 1, crash: 1 },
   dark: { d: ['x...............', '................', '................', '................', '................', '........x.......'], bass: [[0, 16, 0]], bi: 'sub', ch: 'hold', ci: 'dark', li: 'eerie', cells: ['x.......', '........', 'x...x...'], oct: 5, harm: 1, soft: 1, introArp: 1, wet: 1.6 },
+  // (the second and third songs' styles. pump: the kick ducks the chords and bass; riser: a whoosh into each section;
+  // sev: chords with their seventh; power: power chords; sw8: eighth notes swung; ai: the arpeggio's instrument)
+  edm: { d: ['x...x...x...x...', '................', '....x.......x...', 'xxxxxxxxxxxxxxxx', '..x...x...x...x.', '................'], bass: [[2, 2, 0], [6, 2, 0], [10, 2, 0], [14, 2, 0]], bi: 'synthbass', ch: 'hold', ci: 'super', arp: 'pluck', ai: 'sawpluck', li: 'lead', cells: ['x.x.x.x.', 'x..x..x.', 'x.xx.x..', 'xx.x.x.x'], oct: 5, crash: 1, pump: 1, riser: 1 },
+  house: { d: ['x...x...x...x...', '................', '....x.......x...', 'x.x.x.x.x.x.x.x.', '..x...x...x...x.', '................'], bass: [[2, 1, 0], [3, 1, 12], [6, 1, 0], [10, 1, 0], [11, 1, 12], [14, 1, 0]], bi: 'fbass', ch: [[0, 1], [3, 1], [6, 2], [10, 1], [12, 2]], ci: 'piano', sev: 1, li: 'ep', cells: ['x.x...x.', 'x..x.x..', '..x.x.x.', 'x...x.x.'], oct: 5, pump: 0.5, swing: 0.06, crash: 1 },
+  trap: { d: ['x......x..x.....', '................', '........x.......', 'x.x.x.x.x.x.x.x.', '................', '..............x.'], bass: [[0, 7, 0], [7, 3, 0], [10, 6, 0]], bi: '808', ch: 'none', pad: 'dark', li: 'flute', cells: ['x..x..x.', 'x.x..x..', 'x...x.x.', 'xx.x....'], oct: 5, riff: 1, rolls: 1, introLead: 1 },
+  lofi: { d: ['x.....x...x.....', '....x.......x...', '................', 'x.x.x.x.x.x.x.x.', '................', '................'], bass: [[0, 3, 0], [6, 2, 7], [10, 5, 0]], bi: 'fbass', ch: [[0, 7], [8, 7]], ci: 'ep', sev: 1, li: 'vibes', cells: ['x...x.x.', 'x.x.....', '..x.x...', 'x..x..x.'], oct: 5, soft: 1, swing: 0.22, wet: 1.3 },
+  epic: { d: ['x.......x.......', '....x.......x...', '................', '................', '................', 'x..x..x...x..x..'], bass: [[0, 4, 0], [4, 4, 0], [8, 4, 0], [12, 4, 0]], bi: 'sub', ch: 'hold', ci: 'strings', arp: 'pluck8', li: 'brass', cells: ['x...x.x.', 'x.x.x...', 'x.......', 'x.xxx...'], oct: 5, crash: 1, harm: 1, wet: 1.4 },
+  rock: { d: ['x.......x.x.....', '....x.......x...', '................', 'x.x.x.x.x.x.x.x.', '................', '................'], bass: [[0, 2, 0], [2, 2, 0], [4, 2, 0], [6, 2, 0], [8, 2, 0], [10, 2, 0], [12, 2, 0], [14, 2, 0]], bi: 'fbass', ch: [[0, 3], [3, 3], [6, 2], [8, 3], [11, 3], [14, 2]], ci: 'gtr', power: 1, li: 'gtr', cells: ['x.x.x.x.', 'x..x..x.', 'x.x.xx..', 'xxx.x...'], oct: 5, crash: 1 },
+  dnb: { d: ['x.........x.....', '....x.......x...', '................', 'x.x.x.x.x.x.x.xx', '................', '................'], bass: [[0, 6, 0], [6, 4, 0], [10, 6, 0]], bi: 'synthbass', ch: 'hold', ci: 'warm', arp: 'pluck', ai: 'sawpluck', li: 'lead', cells: ['x...x.x.', 'x.x...x.', 'x..x..x.', 'x.......'], oct: 5, crash: 1, riser: 1 },
+  jazz: { d: ['x.......x.......', '................', '................', 'x...x.x.x...x.x.', '................', '................'], bass: [[0, 4, 0], [4, 4, 7], [8, 4, 12], [12, 4, 10]], bi: 'fbass', ch: [[2, 2], [7, 1], [11, 3]], ci: 'piano', sev: 1, li: 'vibes', cells: ['x.x.x.x.', 'x..x.x..', 'xx.x..x.', 'x...x.x.'], oct: 5, sw8: 0.6, wet: 1.2 },
+  reggae: { d: ['........x.......', '........x.......', '................', 'x.x.x.x.x.x.x.x.', '..............x.', '................'], bass: [[0, 3, 0], [4, 1, 7], [6, 2, 12], [10, 2, 7], [12, 3, 0]], bi: 'fbass', ch: [[2, 1], [6, 1], [10, 1], [14, 1]], ci: 'organ', li: 'flute', cells: ['x.x..x..', 'x...x.x.', '..x.x...', 'x.x.....'], oct: 5, swing: 0.15 },
+  horror: { d: ['x..x............', '................', '................', '................', '................', '........x.......'], bass: [[0, 16, 0]], bi: 'sub', ch: 'hold', ci: 'strings', li: 'piano', cells: ['x.......', 'x...x...', '........', 'x.x.....'], oct: 6, harm: 1, soft: 1, introArp: 1, wet: 1.8 },
+  ambient: { d: ['x...............', '................', '................', '..x...x...x...x.', '................', '................'], bass: [[0, 16, 0]], bi: 'sub', ch: 'hold', ci: 'warm', arp: 'pluck8', ai: 'celesta', li: 'flute', cells: ['x.......', 'x...x...', 'x.x.x...', 'x.....x.'], oct: 5, soft: 1, introArp: 1, wet: 1.6 },
+  folk: { d: ['x.......x.......', '....x.......x...', '................', 'x.x.x.x.x.x.x.x.', '................', '................'], bass: [[0, 4, 0], [4, 4, 7], [8, 4, 0], [12, 4, 7]], bi: 'fbass', ch: [[2, 2], [6, 2], [10, 2], [14, 2]], ci: 'pluck', li: 'flute', cells: ['x.x.x...', 'x..x.x..', 'x.x.x.x.', 'x...x...'], oct: 5, swing: 0.1, wet: 1.1 },
+  disco: { d: ['x...x...x...x...', '................', '....x.......x...', 'xxxxxxxxxxxxxxxx', '..x...x...x...x.', '................'], bass: [[0, 1, 0], [2, 1, 12], [4, 1, 0], [6, 1, 12], [8, 1, 0], [10, 1, 12], [12, 1, 0], [14, 1, 12]], bi: 'fbass', ch: [[0, 1], [3, 1], [6, 1], [10, 2]], ci: 'ep', pad: 'strings', li: 'brass', cells: ['x.x..x..', 'x..x.x..', 'x.x.x...', 'xx..x.x.'], oct: 5, crash: 1, swing: 0.05 },
+  playful: { d: ['x.......x.......', '....x.......x...', '................', '..x...x...x...x.', '................', '................'], bass: [[0, 1, 0], [4, 1, 7], [8, 1, 0], [12, 1, 7]], bi: 'fbass', ch: [[2, 1], [6, 1], [10, 1], [14, 1]], ci: 'pluck', li: 'marimba', cells: ['x.x.x...', 'x..x.x..', 'xx.x.x..', 'x.x.x.x.'], oct: 5, swing: 0.12 },
 };
-// each experience's theme: [style, tempo, key (0 = C), minor?, the first tune's chords, the second's]
+// each experience's songs: [name, style, tempo, key (0 = C), minor? (2: phrygian, phonk's dark minor), the first tune's
+// chords, the second's, and (if it needs one) its own level, so every song's about as loud]. The first is its theme; they take turns
 const THEMES = {
-  obby: ['electro', 128, 0, 0, [0, 4, 5, 3], [3, 4, 5, 4]], tycoon: ['funk', 112, 5, 0, [0, 3, 4, 3], [5, 3, 1, 4]], tag: ['pop', 128, 9, 0, [0, 4, 5, 3], [3, 0, 4, 4]],
-  lava: ['tense', 132, 4, 1, [0, 5, 2, 6], [3, 4, 0, 6]], toh: ['tense', 140, 2, 1, [0, 6, 5, 4], [5, 6, 0, 0]], garden: ['calm', 92, 7, 0, [0, 3, 0, 4], [5, 3, 1, 4]],
-  tds: ['action', 124, 0, 1, [0, 5, 6, 4], [3, 0, 6, 4]], army: ['adventure', 116, 5, 1, [0, 5, 3, 4], [5, 6, 0, 4]], nds: ['tense', 118, 7, 1, [0, 3, 5, 4], [5, 6, 3, 4]],
-  pets: ['calm', 100, 10, 0, [0, 5, 3, 4], [3, 4, 0, 5]], boat: ['island', 108, 2, 0, [0, 3, 4, 0], [5, 3, 1, 4]], zombie: ['action', 124, 6, 1, [0, 5, 6, 4], [3, 5, 6, 4]],
-  egg: ['electro', 136, 2, 0, [0, 5, 3, 4], [5, 3, 0, 4]], speed: ['race', 144, 2, 0, [0, 4, 5, 3], [5, 3, 0, 4]], fish: ['island', 96, 7, 0, [0, 3, 4, 3], [0, 5, 1, 4]],
-  blade: ['action', 128, 1, 1, [0, 5, 2, 6], [3, 4, 0, 4]], murder: ['spooky', 92, 9, 1, [0, 5, 3, 4], [0, 6, 5, 4]], kart: ['race', 152, 9, 1, [0, 5, 2, 6], [3, 6, 0, 4]],
-  rlgl: ['musicbox', 104, 0, 0, [0, 4, 0, 4], [3, 0, 4, 0]], color: ['electro', 140, 7, 0, [0, 3, 4, 0], [5, 4, 3, 4]], golf: ['calm', 96, 5, 0, [0, 5, 1, 4], [3, 4, 2, 5]],
-  bee: ['island', 112, 9, 0, [0, 3, 4, 3], [5, 4, 3, 4]], hide: ['spooky', 112, 2, 1, [0, 3, 4, 0], [5, 6, 4, 4]], pvz: ['groove', 100, 7, 0, [0, 3, 0, 4], [5, 3, 1, 4]],
-  rivals: ['action', 140, 11, 1, [0, 6, 5, 6], [3, 4, 0, 4]], fruits: ['adventure', 120, 9, 1, [0, 5, 6, 0], [3, 0, 6, 4]], pvb: ['pop', 118, 5, 0, [0, 4, 5, 3], [3, 4, 0, 4]],
-  fishty: ['island', 104, 4, 0, [0, 3, 4, 0], [5, 3, 1, 4]], pizza: ['funk', 116, 0, 0, [0, 5, 1, 4], [3, 4, 0, 5]], park: ['pop', 124, 7, 0, [0, 3, 4, 0], [5, 3, 1, 4]],
-  mine: ['funk', 108, 4, 1, [0, 6, 5, 6], [3, 4, 0, 0]], cars: ['funk', 118, 10, 0, [0, 3, 4, 0], [5, 3, 1, 4]], forsaken: ['dark', 70, 5, 1, [0, 0, 5, 4], [3, 3, 4, 4]],
-  shaft: ['adventure', 100, 4, 1, [0, 5, 3, 6], [3, 4, 0, 6]], aura: ['phonk', 140, 1, 2, [0, 0, 5, 1], [5, 6, 0, 1]], // (2: phrygian, phonk's dark minor)
+  obby: [['Jump Start', 'electro', 128, 0, 0, [0, 4, 5, 3], [3, 4, 5, 4]], ['Checkpoint Rush', 'edm', 126, 9, 1, [0, 5, 2, 6], [5, 6, 0, 4]], ['Sky Steps', 'playful', 112, 5, 0, [0, 3, 4, 0], [3, 4, 1, 4]]],
+  tycoon: [['Money Maker', 'funk', 112, 5, 0, [0, 3, 4, 3], [5, 3, 1, 4]], ['Cash Flow', 'disco', 120, 7, 0, [0, 5, 1, 4], [3, 4, 2, 5]], ['Grand Opening', 'house', 124, 2, 0, [0, 3, 5, 4], [5, 3, 0, 4]]],
+  tag: [['You’re It', 'pop', 128, 9, 0, [0, 4, 5, 3], [3, 0, 4, 4]], ['Catch Me', 'dnb', 172, 4, 1, [0, 5, 3, 4], [5, 6, 0, 4]], ['Freeze Frame', 'house', 122, 0, 0, [0, 5, 3, 4], [1, 4, 0, 5]]],
+  lava: [['Floor Is Lava', 'tense', 132, 4, 1, [0, 5, 2, 6], [3, 4, 0, 6]], ['Hot Feet', 'rock', 150, 9, 1, [0, 5, 6, 0], [3, 5, 6, 4]], ['Eruption', 'epic', 112, 2, 1, [0, 5, 3, 4], [0, 6, 5, 4]]],
+  toh: [['No Checkpoints', 'tense', 140, 2, 1, [0, 6, 5, 4], [5, 6, 0, 0]], ['The Long Climb', 'epic', 108, 7, 1, [0, 5, 2, 6], [3, 0, 6, 4], 0.77], ['One More Try', 'rock', 144, 4, 1, [0, 6, 5, 6], [3, 4, 0, 4]]],
+  garden: [['Morning Dew', 'calm', 92, 7, 0, [0, 3, 0, 4], [5, 3, 1, 4]], ['Sprout Song', 'folk', 104, 0, 0, [0, 3, 0, 4], [3, 4, 0, 5]], ['Watering Can', 'lofi', 80, 5, 0, [0, 5, 3, 4], [1, 4, 0, 5]]],
+  tds: [['Wave Incoming', 'action', 124, 0, 1, [0, 5, 6, 4], [3, 0, 6, 4], 1.15], ['Hold the Line', 'epic', 116, 5, 1, [0, 5, 6, 4], [3, 4, 0, 4], 0.81], ['Boss Wave', 'rock', 148, 9, 1, [0, 5, 2, 6], [3, 6, 0, 4]]],
+  army: [['Command', 'adventure', 116, 5, 1, [0, 5, 3, 4], [5, 6, 0, 4]], ['March Onward', 'epic', 104, 0, 1, [0, 3, 4, 0], [5, 6, 0, 4]], ['Flank Them', 'action', 132, 7, 1, [0, 6, 5, 6], [3, 4, 0, 4]]],
+  nds: [['Storm Warning', 'tense', 118, 7, 1, [0, 3, 5, 4], [5, 6, 3, 4], 0.85], ['The Big One', 'epic', 100, 2, 1, [0, 5, 3, 4], [5, 6, 0, 4]], ['Run for Cover', 'dnb', 170, 9, 1, [0, 6, 5, 4], [3, 4, 0, 0]]],
+  pets: [['Best Friends', 'calm', 100, 10, 0, [0, 5, 3, 4], [3, 4, 0, 5], 0.84], ['Pet Parade', 'playful', 116, 2, 0, [0, 3, 4, 0], [5, 3, 1, 4]], ['Nap Time', 'lofi', 76, 9, 0, [0, 5, 1, 4], [3, 4, 0, 5]]],
+  boat: [['Set Sail', 'island', 108, 2, 0, [0, 3, 4, 0], [5, 3, 1, 4]], ['Smooth Sailing', 'reggae', 84, 7, 0, [0, 3, 0, 4], [3, 4, 0, 0]], ['Shipwright', 'folk', 112, 0, 0, [0, 4, 5, 3], [3, 4, 0, 4]]],
+  zombie: [['Outbreak', 'action', 124, 6, 1, [0, 5, 6, 4], [3, 5, 6, 4]], ['They Can Hear You', 'horror', 72, 4, 1, [0, 5, 3, 4], [0, 6, 5, 4]], ['Last Stand', 'rock', 152, 2, 1, [0, 5, 6, 4], [3, 5, 6, 4]]],
+  egg: [['Egg Heist', 'electro', 136, 2, 0, [0, 5, 3, 4], [5, 3, 0, 4]], ['Sneak In', 'trap', 140, 7, 1, [0, 5, 3, 4], [0, 6, 5, 4]], ['Hatch Time', 'playful', 120, 9, 0, [0, 5, 3, 4], [3, 4, 0, 4]]],
+  speed: [['Faster', 'race', 144, 2, 0, [0, 4, 5, 3], [5, 3, 0, 4]], ['Speed of Light', 'edm', 128, 4, 1, [0, 5, 2, 6], [3, 6, 0, 4]], ['Afterburner', 'dnb', 174, 11, 1, [0, 5, 6, 4], [3, 4, 0, 0], 0.83]],
+  fish: [['Gone Fishing', 'island', 96, 7, 0, [0, 3, 4, 3], [0, 5, 1, 4]], ['Big Catch', 'reggae', 80, 2, 0, [0, 3, 4, 3], [5, 3, 1, 4]], ['Still Water', 'lofi', 78, 0, 0, [0, 5, 3, 4], [1, 4, 0, 5]]],
+  blade: [['Parry', 'action', 128, 1, 1, [0, 5, 2, 6], [3, 4, 0, 4], 1.15], ['Deflect', 'edm', 130, 6, 1, [0, 5, 3, 4], [5, 6, 0, 4]], ['Clash', 'rock', 156, 4, 1, [0, 6, 5, 6], [3, 4, 0, 4]]],
+  murder: [['Whodunit', 'spooky', 92, 9, 1, [0, 5, 3, 4], [0, 6, 5, 4], 0.83], ['Lights Out', 'horror', 66, 0, 1, [0, 5, 3, 4], [0, 6, 5, 4]], ['The Detective', 'jazz', 132, 2, 1, [0, 3, 4, 0], [5, 3, 4, 4]]],
+  kart: [['Grand Prix', 'race', 152, 9, 1, [0, 5, 2, 6], [3, 6, 0, 4]], ['Item Box', 'edm', 128, 0, 0, [0, 4, 5, 3], [3, 4, 5, 4]], ['Drift King', 'rock', 160, 7, 1, [0, 5, 6, 0], [3, 4, 0, 4]]],
+  rlgl: [['Red Light', 'musicbox', 104, 0, 0, [0, 4, 0, 4], [3, 0, 4, 0]], ['Don’t Move', 'horror', 76, 5, 1, [0, 5, 3, 4], [0, 3, 4, 0]], ['Green Light Go', 'playful', 124, 0, 0, [0, 4, 5, 3], [3, 4, 0, 4]]],
+  color: [['Color Block', 'electro', 140, 7, 0, [0, 3, 4, 0], [5, 4, 3, 4]], ['Paint the Floor', 'edm', 128, 2, 0, [0, 4, 5, 3], [3, 0, 4, 4]], ['Color Swap', 'playful', 118, 10, 0, [0, 3, 4, 0], [5, 3, 1, 4]]],
+  golf: [['Fairway', 'calm', 96, 5, 0, [0, 5, 1, 4], [3, 4, 2, 5]], ['Hole in One', 'jazz', 126, 5, 0, [0, 5, 1, 4], [3, 4, 2, 5]], ['Putting Green', 'lofi', 82, 7, 0, [0, 3, 1, 4], [5, 3, 1, 4]]],
+  bee: [['Honey Run', 'island', 112, 9, 0, [0, 3, 4, 3], [5, 4, 3, 4]], ['Buzzing Around', 'playful', 122, 4, 0, [0, 3, 4, 0], [5, 3, 1, 4]], ['Honey Meadow', 'folk', 100, 7, 0, [0, 3, 0, 4], [5, 3, 1, 4]]],
+  hide: [['Ready or Not', 'spooky', 112, 2, 1, [0, 3, 4, 0], [5, 6, 4, 4], 1.15], ['Don’t Breathe', 'horror', 70, 9, 1, [0, 5, 3, 4], [0, 6, 5, 4], 0.67], ['Peekaboo', 'playful', 112, 2, 0, [0, 4, 5, 3], [3, 4, 0, 4]]],
+  pvz: [['Lawn Defense', 'groove', 100, 7, 0, [0, 3, 0, 4], [5, 3, 1, 4]], ['Brains Swing', 'jazz', 128, 0, 0, [0, 5, 1, 4], [3, 4, 0, 5]], ['Sunflower Bounce', 'playful', 108, 5, 0, [0, 3, 4, 0], [3, 4, 1, 4]]],
+  rivals: [['Rivals', 'action', 140, 11, 1, [0, 6, 5, 6], [3, 4, 0, 4], 0.85], ['Headshot', 'dnb', 174, 2, 1, [0, 5, 6, 4], [3, 4, 0, 4], 1.15], ['Clutch', 'trap', 144, 7, 1, [0, 5, 3, 4], [5, 6, 0, 4]]],
+  fruits: [['Devil Fruit', 'adventure', 120, 9, 1, [0, 5, 6, 0], [3, 0, 6, 4]], ['Open Seas', 'epic', 112, 2, 1, [0, 5, 3, 6], [3, 4, 0, 4]], ['Island Hopping', 'reggae', 88, 0, 0, [0, 3, 4, 0], [5, 3, 1, 4]]],
+  pvb: [['Brainrot Garden', 'pop', 118, 5, 0, [0, 4, 5, 3], [3, 4, 0, 4]], ['Brainrot Bounce', 'trap', 140, 5, 0, [0, 5, 3, 4], [3, 4, 0, 4]], ['Seed Shop', 'playful', 114, 7, 0, [0, 5, 3, 4], [3, 4, 1, 4]]],
+  fishty: [['Fish Market', 'island', 104, 4, 0, [0, 3, 4, 0], [5, 3, 1, 4]], ['Dock Life', 'reggae', 82, 9, 0, [0, 3, 4, 0], [5, 3, 1, 4]], ['Fresh Catch', 'house', 122, 4, 0, [0, 5, 3, 4], [3, 4, 0, 5]]],
+  pizza: [['Hot and Fresh', 'funk', 116, 0, 0, [0, 5, 1, 4], [3, 4, 0, 5]], ['Extra Cheese', 'disco', 118, 2, 0, [0, 3, 4, 0], [5, 3, 1, 4]], ['Late Night Delivery', 'jazz', 120, 5, 0, [0, 5, 1, 4], [3, 4, 0, 5]]],
+  park: [['Ride Line', 'pop', 124, 7, 0, [0, 3, 4, 0], [5, 3, 1, 4]], ['Loop the Loop', 'edm', 128, 7, 0, [0, 4, 5, 3], [3, 4, 0, 4]], ['Cotton Candy', 'playful', 120, 0, 0, [0, 3, 4, 0], [5, 3, 1, 4]]],
+  mine: [['Dig Deeper', 'funk', 108, 4, 1, [0, 6, 5, 6], [3, 4, 0, 0]], ['Pickaxe Power', 'rock', 140, 9, 1, [0, 5, 6, 4], [3, 4, 0, 4]], ['Diamond Vein', 'house', 124, 2, 1, [0, 5, 3, 4], [5, 6, 0, 4]]],
+  cars: [['Car Lot', 'funk', 118, 10, 0, [0, 3, 4, 0], [5, 3, 1, 4]], ['Test Drive', 'house', 124, 0, 0, [0, 5, 3, 4], [3, 4, 0, 5]], ['Chrome Shine', 'disco', 120, 5, 0, [0, 3, 4, 0], [5, 3, 1, 4]]],
+  forsaken: [['Forsaken', 'dark', 70, 5, 1, [0, 0, 5, 4], [3, 3, 4, 4]], ['Survive the Night', 'horror', 68, 0, 1, [0, 5, 3, 4], [0, 6, 5, 4]], ['The Killer Comes', 'epic', 104, 9, 1, [0, 0, 5, 4], [3, 3, 4, 4], 0.71]],
+  shaft: [['Deep Shaft', 'adventure', 100, 4, 1, [0, 5, 3, 6], [3, 4, 0, 6]], ['Into the Depths', 'epic', 100, 0, 1, [0, 5, 3, 4], [3, 4, 0, 6]], ['Echoes Below', 'ambient', 84, 7, 1, [0, 5, 3, 4], [0, 3, 5, 4]]],
+  aura: [['+1 Aura', 'phonk', 140, 1, 2, [0, 0, 5, 1], [5, 6, 0, 1]], ['Aura Farming', 'trap', 144, 6, 1, [0, 5, 3, 4], [0, 6, 5, 1]], ['Max Aura', 'edm', 128, 8, 1, [0, 5, 2, 6], [5, 6, 0, 4]]],
 };
 setInterval(() => { if (BGM.want && playing && exp && !document.hidden) bgmTick(true); }, 80); // (between frames too)
 let THEME_LEVEL = 0.85; // (about as loud as the classical pieces)
-const THEME_GAIN = { electro: 0.86, musicbox: 1.2, tense: 0.6, adventure: 0.5, island: 0.86, calm: 0.73, spooky: 0.75, groove: 0.96, pop: 0.91, funk: 0.96, action: 0.93, race: 1.16, dark: 1.06, phonk: 0.71 };
+const THEME_GAIN = { electro: 0.86, musicbox: 1.25, tense: 0.6, adventure: 0.5, island: 0.92, calm: 0.72, spooky: 0.77, groove: 1.07, pop: 0.89, funk: 1.03, action: 0.88, race: 1.19, dark: 1.07, phonk: 0.71, ambient: 0.77, disco: 1.03, dnb: 0.97, edm: 1.27, epic: 0.7, folk: 0.99, horror: 0.98, house: 0.97, jazz: 0.83, lofi: 1.32, playful: 1.03, reggae: 1.36, rock: 0.82, trap: 0.59 };
 const MAJ = [0, 2, 4, 5, 7, 9, 11], MIN = [0, 2, 3, 5, 7, 8, 10], HMIN = [0, 2, 3, 5, 7, 8, 11], PHRY = [0, 1, 3, 5, 7, 8, 10];
 const FORM = ['I', 'I', 'I', 'I', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'B', 'B', 'B', 'B', 'B', 'B', 'B', 'B', 'O', 'O', 'O', 'O'];
 // a tune for 8 bars: a 2-bar idea, again, an answer, the idea ending home. Notes are scale steps above the key note
@@ -7226,10 +7266,11 @@ function themeTune(rng, S, prog, sc) {
   return notes.map(([st, p], i) => [st, p, Math.min(4, (notes[i + 1] ? notes[i + 1][0] : 128) - st)]);
 }
 // the whole song, worked out once: per step, what plays
-function themeSong(id, loop) {
-  const T = THEMES[id]; if (!T) return null;
-  const [style, bpm, key, minor, pa, pb] = T, S = THEME_STYLES[style], sc = minor === 2 ? PHRY : minor ? (S.harm ? HMIN : MIN) : MAJ;
-  let h = 7; for (const c of id) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+// (n: which song this is since the game began: the songs take turns, and each time round the second tune's new)
+function themeSong(id, n = 0) {
+  const L = THEMES[id]; if (!L) return null;
+  const j = n % L.length, loop = Math.floor(n / L.length), [title, style, bpm, key, minor, pa, pb, lv = 1] = L[j], S = THEME_STYLES[style], sc = minor === 2 ? PHRY : minor ? (S.harm ? HMIN : MIN) : MAJ;
+  let h = 7; for (const c of j ? id + '#' + j : id) h = (h * 31 + c.charCodeAt(0)) >>> 0;
   const rA = mulberry(h), rB = mulberry(h + 977 * (loop + 1)), rH = mulberry(h + 31);
   const tuneA = themeTune(rA, S, pa, sc), tuneB = themeTune(rB, S, pb, sc);
   const deg = (d, base) => base + key + 12 * Math.floor(d / 7) + sc[((d % 7) + 7) % 7];
@@ -7246,21 +7287,22 @@ function themeSong(id, loop) {
       if (S.rolls && r === 3 && !light && bar % 2 && k >= 12) steps[s0 + k].push(['d', 3, 0.5]); // (a roll: twice as fast)
     } });
     if (S.crash && (bar === 4 || bar === 12 || bar === 20)) steps[s0].push(['d', 6]);
+    if (S.riser && (bar === 3 || bar === 11 || bar === 19)) steps[s0].push(['r', 16]); // (a whoosh up into the next part)
     // bass
     if (sec !== 'O' || bar < 30) for (const [k, len, off] of S.bass) steps[s0 + k].push(['b', deg(c, 36) + off, len]);
     // chords: held, stabs or an arpeggio
-    const tri = [deg(c, 48), deg(c + 2, 48), deg(c + 4, 48)];
+    const tri = S.power ? [deg(c, 36), deg(c, 36) + 7, deg(c, 36) + 12] : [deg(c, 48), deg(c + 2, 48), deg(c + 4, 48)].concat(S.sev ? [deg(c + 6, 48)] : []);
     if (S.ch === 'hold') steps[s0].push(['c', tri, 16]);
     else if (S.ch === 'arp') { if (!light) for (let k = 0; k < 16; k++) steps[s0 + k].push(['a', tri[[0, 1, 2, 1][k % 4]] + 12, 1]); else steps[s0].push(['c', tri, 16]); }
     else if (S.ch !== 'none') for (const [k, len] of S.ch) steps[s0 + k].push(['c', tri, len]);
-    if (light && S.introArp) for (let k = 0; k < 16; k += 2) steps[s0 + k].push(['a', tri[[0, 1, 2, 1, 2, 0, 1, 2][k / 2]] + 12, 2, S.li]); // (something to hear from the very start)
+    if (light && S.introArp) for (let k = 0; k < 16; k += 2) steps[s0 + k].push(['a', tri[[0, 1, 2, 1, 2, 0, 1, 2][k / 2]] + 12, 2, S.ai || S.li]); // (something to hear from the very start)
     if (S.pad && !light) steps[s0].push(['p', tri, 16]);
-    if (S.arp && (sec === 'C' || sec === 'B')) for (let k = 0; k < 16; k += S.arp === 'pluck8' ? 2 : 1) steps[s0 + k].push(['a', tri[[0, 1, 2, 1, 2, 0][(k / (S.arp === 'pluck8' ? 2 : 1)) % 6]] + 12, 1]);
+    if (S.arp && (sec === 'C' || sec === 'B')) for (let k = 0; k < 16; k += S.arp === 'pluck8' ? 2 : 1) steps[s0 + k].push(['a', tri[[0, 1, 2, 1, 2, 0][(k / (S.arp === 'pluck8' ? 2 : 1)) % 6]] + 12, 1, S.ai]);
   });
   // the tunes: A (bars 5–12), again an octave up (13–20), B (21–28)
   for (const [st, p, len] of tuneA) { steps[64 + st].push(['l', deg(p, S.oct * 12), len]); steps[192 + st].push(['l', deg(p, S.oct * 12) + (S.soft || S.riff ? 0 : 12), len, 1]); if (S.introLead && st < 64) steps[st].push(['l', deg(p, S.oct * 12), len, 1]); }
   for (const [st, p, len] of tuneB) steps[320 + st].push(['l', deg(p, S.oct * 12), len]);
-  return { id, steps, sd: 60 / bpm / 4, S, style, bpm, swing: S.swing || 0 };
+  return { id, steps, sd: 60 / bpm / 4, S, style, bpm, swing: S.swing || 0, sw8: S.sw8 || 0, title, n: j, of: L.length, lv };
 }
 // the instruments: real ones modelled (plucked strings, a piano, an electric piano, mallets, a music box), full synths, and a room to play in
 const TV = {
@@ -7329,6 +7371,8 @@ const TSMP = { m: new Map(), SR: 24000,
     // a synth bass: a saw and a sine under it, bright as it's played, then the filter closing to a round tone
     sbass: (m, SR) => { const f = hz(m), parts = [], H = (F, fc) => { const x = F / fc; return 1 / Math.sqrt((1 - x * x) * (1 - x * x) + (x / 1.6) * (x / 1.6)); }; // (a filter with a little bump where it cuts)
       for (let n = 1; n * f < 4500; n++) { const F = n * f, ss = H(F, 420), op = H(F, 2400), a = ss / n + (n === 1 ? 0.9 : 0); parts.push([n, a > 1e-3 ? a : 0, 30, Math.max(0, op - ss) / n, 0.06]); } return TSMP.add(m, SR, 1.3, parts); },
+    // an electric guitar through a fuzz pedal and a speaker cabinet
+    gtr: (m, SR) => { const r = TSMP.ks(m, SR, 2.2, { s: 0.3, bright: 0.7, pick: 0.1, t60: 5 }), y = r.d; let lp = 0, lp2 = 0; for (let i = 0; i < y.length; i++) { lp += 0.4 * (Math.tanh(y[i] * 8) - lp); lp2 += 0.5 * (lp - lp2); y[i] = lp2; } TSMP.fin(y, SR, 0.002); return r; },
     vibes: (m, SR) => { const r = TSMP.add(m, SR, 2.4, [[1, 1, 1.5], [4, 0.2, 0.32], [10, 0.05, 0.08]], [0.05, 0.004, 0.5]), y = r.d; for (let i = 0; i < y.length; i++) y[i] *= 1 - 0.3 * (0.5 - 0.5 * Math.cos((2 * Math.PI * 5.2 * i) / SR)); return r; }, // (the fan's slow wobble)
   },
 };
@@ -7359,6 +7403,7 @@ const TINST = { // (ac, dest, t, frequency, length, volume)
   synthbass: (ac, d, t, f, len, v) => TSMP.play(ac, d, t, 'sbass', f, len * 0.85, v * 0.55, 0.06),
   fbass: (ac, d, t, f, len, v) => { const lp = TV.flt(ac, 'lowpass', 1600, 0.7), g = TV.env(ac, t, v * 0.22, 0.006, 0.08, Math.max(0.02, len * 0.9)); lp.connect(d); TSMP.play(ac, lp, t, 'fbass', f, len, v * 0.7, 0.06); TV.osc(ac, 'sine', f, t, t + len + 0.15).connect(g); g.connect(d); }, // (a sine under it for the low end)
   pluck: (ac, d, t, f, len, v) => TSMP.play(ac, d, t, 'pluck', f, len, v * 1.3, 0.5),
+  gtr: (ac, d, t, f, len, v) => TSMP.play(ac, d, t, 'gtr', f, len, v * 0.28, 0.07),
   piano: (ac, d, t, f, len, v) => TSMP.play(ac, d, t, 'piano', f, len, v * 0.42, 0.35),
   ep: (ac, d, t, f, len, v) => TSMP.play(ac, d, t, 'ep', f, len, v * 0.4, 0.25),
   musicbox: (ac, d, t, f, len, v) => TSMP.play(ac, d, t, 'musicbox', f, len, v * 0.4),
@@ -7374,6 +7419,8 @@ const TINST = { // (ac, dest, t, frequency, length, volume)
     TV.vib(ac, t, len, 5, 6.3, os, 0); trem.connect(g); g.connect(d); const c = TV.nz(ac, t, 0.01), cg = TV.env(ac, t, v * 0.04, 0.001, 0.008); c.connect(cg); cg.connect(d); }, // (and the key's click)
   strings: (ac, d, t, f, len, v) => { const lp = TV.flt(ac, 'lowpass', 2800, 0.5), g = TV.env(ac, t, v * 0.062, 0.3, 0.55, Math.max(0, len - 0.3)); TV.saws(ac, lp, f, t, t + len + 0.6, [-10, 11, 1], 0.7); lp.connect(g); g.connect(d); },
   dark: (ac, d, t, f, len, v) => { const lp = TV.flt(ac, 'lowpass', 1300), g = TV.env(ac, t, v * 0.1, 0.6, 0.8, Math.max(0, len - 0.6)); TV.saws(ac, lp, f, t, t + len + 0.85, [-8, 8], 0.7); lp.connect(g); g.connect(d); },
+  // the big detuned chords of a festival drop
+  super: (ac, d, t, f, len, v) => { const lp = TV.flt(ac, 'lowpass', 4200, 0.7), g = TV.env(ac, t, v * 0.05, 0.02, 0.3, Math.max(0, len - 0.02)); TV.saws(ac, lp, f, t, t + len + 0.35, [-16, 15, 2], 0.8); lp.connect(g); g.connect(d); },
   warm: (ac, d, t, f, len, v) => { const lp = TV.flt(ac, 'lowpass', 1600), g = TV.env(ac, t, v * 0.052, 0.25, 0.4, Math.max(0, len - 0.25)); TV.saws(ac, lp, f, t, t + len + 0.45, [-9, 9], 0.8); lp.connect(g); g.connect(d); },
   // brass: it scoops up into the note, the filter opening as it's blown
   brass: (ac, d, t, f, len, v) => { const lp = TV.flt(ac, 'lowpass', 700, 1.5), g = TV.env(ac, t, v * 0.13, 0.035, 0.14, Math.max(0, len - 0.035)), os = TV.saws(ac, lp, f, t, t + len + 0.25, [-7, 0, 7], 0.35); lp.frequency.setValueAtTime(700, t); lp.frequency.linearRampToValueAtTime(3200, t + 0.07); lp.frequency.exponentialRampToValueAtTime(1700, t + 0.45);
@@ -7405,11 +7452,11 @@ function bgmMix(ac, d, song) {
     d1.connect(tone); tone.connect(d2); d2.connect(fb); fb.connect(d1); d1.connect(TV.pan(ac, d, -0.6)); d2.connect(TV.pan(ac, d, 0.6)); m.dl = [d1, d2];
     for (const [k, [p, wet, echo]] of Object.entries(MIXB)) { const g = ac.createGain(), w = ac.createGain(); g.connect(TV.pan(ac, d, p)); g.connect(w); w.connect(rev); m.sends.push([w, wet]); if (echo) { const e = ac.createGain(); e.gain.value = echo; g.connect(e); e.connect(d1); } m[k] = g; }
   }
-  if (m.style !== song.style) { m.style = song.style; for (const [g, base] of m.sends) g.gain.value = base * (song.S.wet || 1); }
+  if (m.style !== song.style) { m.style = song.style; for (const [g, base] of m.sends) g.gain.value = base * (song.S.wet || 1); for (const k of 'bcpa') { m[k].gain.cancelScheduledValues(0); m[k].gain.value = 1; } }
   const T = song.sd * 3; if (m.T !== T) { m.T = T; for (const x of m.dl) x.delayTime.value = T; } // (a dotted eighth)
   return m;
 }
-const BGM = { song: null, key: '', t0: 0, k: 0, g: null, ac: null, loops: 0, on: false, warm: [] };
+const BGM = { song: null, key: '', gid: '', idx: 0, t0: 0, k: 0, g: null, ac: null, on: false, warm: [] };
 // once a frame: keep the next moment of the theme booked on the sound card
 function bgmTick(want) {
   BGM.want = want;
@@ -7418,35 +7465,44 @@ function bgmTick(want) {
   const ac = s.ac, id = exp.id;
   if (BGM.ac !== ac) { BGM.ac = ac; try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {} // (an iPhone on silent would mute it otherwise)
     const comp = ac.createDynamicsCompressor(); comp.threshold.value = -20; comp.ratio.value = 3; BGM.g = ac.createGain(); BGM.g.gain.value = 0; BGM.g.connect(comp); comp.connect(s.out); BGM.key = ''; }
-  if (BGM.key !== id) { BGM.key = id; BGM.loops = 0; BGM.song = themeSong(id, 0); BGM.k = 0; BGM.t0 = ac.currentTime + 0.15; BGM.warm = BGM.song ? TSMP.list(BGM.song) : []; }
+  if (BGM.key !== id) { if (BGM.gid !== id) { BGM.gid = id; BGM.idx = 0; } BGM.key = id; BGM.song = themeSong(id, BGM.idx); BGM.k = 0; BGM.t0 = ac.currentTime + 0.15; BGM.warm = BGM.song ? TSMP.list(BGM.song) : []; }
   const song = BGM.song; if (!song) return;
   if (BGM.warm.length) { const [kind, n] = BGM.warm.shift(); TSMP.get(ac, kind, n); } // (the next sampled note made ahead of time)
   if (!BGM.on) { BGM.on = true; BGM.k = Math.floor(BGM.k / 64) * 64; BGM.t0 = ac.currentTime + 0.15 - BGM.k * song.sd; } // (coming back: from the start of the section)
   BGM.g.gain.setTargetAtTime(clamp(Music.vol * THEME_LEVEL, 0, 2), ac.currentTime, 0.4);
   const N = song.steps.length;
   for (let guard = 0; guard < 48; guard++) {
-    const t = BGM.t0 + BGM.k * song.sd + (BGM.k % 2 ? song.swing * song.sd : 0);
+    const t = BGM.t0 + BGM.k * song.sd + (BGM.k % 2 ? song.swing * song.sd : 0) + (BGM.k % 4 === 2 ? song.sw8 * song.sd : 0);
     if (t > ac.currentTime + 0.5) break;
     if (t >= ac.currentTime - 0.08) for (const e of song.steps[BGM.k % N]) bgmPlay(ac, BGM.g, song, e, t);
     BGM.k++;
-    if (BGM.k % N === 0) { BGM.loops++; const nx = themeSong(id, BGM.loops); nx.k0 = BGM.k; BGM.song = nx; BGM.warm = TSMP.list(nx); if (exp.music && BGM.loops >= 2) Music.mode = 'classic'; break; }
+    if (BGM.k % N === 0) { BGM.idx++; const nx = themeSong(id, BGM.idx); nx.k0 = BGM.k; BGM.song = nx; BGM.warm = TSMP.list(nx); if (exp.music && BGM.idx % THEMES[id].length === 0) Music.mode = 'classic'; break; } // (the next song; the calm games have a classical piece after all of theirs)
   }
+}
+// ⏭ the next song now: what's booked fades out at once (a new channel for the rest)
+function bgmSkip() {
+  if (exp && exp.music && (Music.mode === 'classic' || !THEMES[exp.id])) { musicNext(); return; }
+  BGM.idx++; const g = BGM.g, ac = BGM.ac;
+  if (g && ac) { try { g.gain.cancelScheduledValues(ac.currentTime); g.gain.setTargetAtTime(0, ac.currentTime, 0.04); setTimeout(() => { try { g.disconnect(); } catch (e) {} }, 1500); } catch (e) {} }
+  BGM.ac = null; BGM.g = null; BGM.on = false; BGM.key = ''; musicTick(0);
 }
 // one thing the song plays, on its part's channel. Players are never exactly on the beat or exactly as loud each time
 function bgmPlay(ac, d, song, e, t) {
-  const S = song.S, v = (S.soft ? 0.75 : 1) * (THEME_GAIN[song.style] || 1), sd = song.sd, hum = () => (Math.random() - 0.5) * 0.008, vel = () => 0.92 + Math.random() * 0.12; // (styles evened out, so no game's much louder than another)
+  const S = song.S, v = (S.soft ? 0.75 : 1) * (THEME_GAIN[song.style] || 1) * (song.lv || 1), sd = song.sd, hum = () => (Math.random() - 0.5) * 0.008, vel = () => 0.92 + Math.random() * 0.12; // (styles evened out, so no game's much louder than another)
   try {
     const m = bgmMix(ac, d, song);
+    if (e[0] === 'd' && e[1] === 0 && S.pump) for (const k of 'bcpa') { const g = m[k].gain; g.setValueAtTime(1 - 0.65 * S.pump, t); g.linearRampToValueAtTime(1, t + sd * 3.3); } // (the kick pushes everything else out of its way: the pump)
     if (e[0] === 'd') TDB.hit(ac, e[1] === 3 || e[1] === 4 || e[1] === 6 ? m.h : m.d, e[1], t + (e[2] ? e[2] * sd : 0), (e[1] === 0 ? 0.8 : 0.7) * v * (e[2] ? 0.7 : 1) * (e[3] || 1));
     else if (e[0] === 'b') TINST[S.bi](ac, m.b, t, hz(e[1]), e[2] * sd * 0.92, 0.8 * v);
-    else if (e[0] === 'c') { const strum = S.ci === 'pluck' ? 0.02 : S.ci === 'piano' || S.ci === 'ep' ? 0.007 : 0, t1 = t + hum(); e[1].forEach((n, i) => TINST[S.ci](ac, m.c, t1 + i * strum, hz(n), e[2] * sd, 0.55 * v * vel())); }
+    else if (e[0] === 'c') { const strum = S.ci === 'pluck' ? 0.02 : S.ci === 'gtr' ? 0.01 : S.ci === 'piano' || S.ci === 'ep' ? 0.007 : 0, t1 = t + hum(); e[1].forEach((n, i) => TINST[S.ci](ac, m.c, t1 + i * strum, hz(n), e[2] * sd, 0.55 * v * vel())); }
     else if (e[0] === 'p') for (const n of e[1]) TINST[S.pad](ac, m.p, t, hz(n), e[2] * sd, 0.6);
     else if (e[0] === 'a') TINST[e[3] || (S.ch === 'arp' ? S.ci : 'pluck')](ac, m.a, t + hum(), hz(e[1]), sd * (e[2] || 1) * 0.9, (e[3] ? 0.5 : 0.4) * v * vel());
     else if (e[0] === 'l') TINST[S.li](ac, m.l, t + hum(), hz(e[1]), e[2] * sd * 0.95, (e[3] ? 0.75 : 0.85) * v * vel());
+    else if (e[0] === 'r') { const len = e[1] * sd, n = TV.nz(ac, t, len), bp = TV.flt(ac, 'bandpass', 400, 1.8), g = ac.createGain(); bp.frequency.setValueAtTime(400, t); bp.frequency.exponentialRampToValueAtTime(7000, t + len); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.2 * v, t + len); g.gain.linearRampToValueAtTime(0, t + len + 0.03); n.connect(bp); bp.connect(g); g.connect(m.h); }
   } catch (err) { /* (a voice the browser can't make: skip it) */ }
 }
 
-const musicLabel = () => (Music.on ? `🎵 Music: on${Music.el && !Music.el.paused ? ` · ${MUSIC[Music.i][1]}` : BGM.on && exp ? ` · ${exp.name} theme` : exp && exp.id === 'beats' ? ' · the club' : ''}` : '🎵 Music: off');
+const musicLabel = () => (Music.on ? `🎵 Music: on${Music.el && !Music.el.paused ? ` · ${MUSIC[Music.i][1]}` : BGM.on && exp && BGM.song ? ` · “${BGM.song.title}” (${BGM.song.n + 1}/${BGM.song.of})` : exp && exp.id === 'beats' ? ' · the club' : ''}` : '🎵 Music: off');
 
 /* ---------------- pause menu ---------------- */
 const studsLabel = () => (STUDS.on ? '🧱 Studs: on' : '🧱 Studs: off (smooth)');
@@ -7456,7 +7512,7 @@ function showPause() {
   unlock();
   $('#pausePanel').innerHTML = `<div class="phead"><div class="pthumb"><span>${exp.emoji}</span></div></div><h2>${esc(exp.name)}</h2><p>Server ${Net.srvN} · 👥 ${Math.max(1, crew().length)} playing</p>
     <button class="btn play" id="pResume">▶ Resume</button>${exp.noReset ? '' : '<button class="btn" id="pReset">🔄 Reset character <kbd>R</kbd></button>'}
-    <button class="btn" id="pSound">${window.Sfx && !Sfx.on ? '🔇 Sound: off' : '🔊 Sound: on'}</button><button class="btn" id="pMusic">${musicLabel()}</button>
+    <button class="btn" id="pSound">${window.Sfx && !Sfx.on ? '🔇 Sound: off' : '🔊 Sound: on'}</button><button class="btn" id="pMusic">${musicLabel()}</button>${THEMES[exp.id] ? '<button class="btn" id="pNext">⏭ Next song</button>' : ''}
     <button class="btn" id="pMeter">${Meter.shown ? '📊 FPS & ping: shown' : '📊 FPS & ping: hidden'}</button>
     <button class="btn" id="pGfx">${gfxLabel()}</button>
     <button class="btn" id="pStuds">${studsLabel()}</button>
@@ -7470,6 +7526,7 @@ function showPause() {
   $('#pSound').onclick = () => { if (!window.Sfx) return; Sfx.toggle(); $('#pSound').textContent = Sfx.on ? '🔊 Sound: on' : '🔇 Sound: off'; };
   $('#pStuds').onclick = () => { setStuds(!STUDS.on); sfx('toggle'); $('#pStuds').textContent = studsLabel(); };
   if ($('#pMusic')) $('#pMusic').onclick = () => { Music.on = !Music.on; try { localStorage.setItem('bv-music', Music.on ? '1' : '0'); } catch (e) {} musicTick(0); $('#pMusic').textContent = musicLabel(); };
+  if ($('#pNext')) $('#pNext').onclick = () => { bgmSkip(); sfx('click'); setTimeout(() => { if ($('#pMusic')) $('#pMusic').textContent = musicLabel(); }, 120); };
   $('#pMeter').onclick = () => { Meter.shown = !Meter.shown; Meter.sentAt = 0; Meter.ping = null; try { localStorage.setItem('bv-meter', Meter.shown ? '1' : '0'); } catch (e) {} $('#pMeter').textContent = Meter.shown ? '📊 FPS & ping: shown' : '📊 FPS & ping: hidden'; drawMeter(); };
   if ($('#pLock')) $('#pLock').onclick = () => { $('#pause').hidden = true; setLock(!View.lock); };
   $('#pKeys').onclick = () => { View.keys = View.keys === 'lock' ? 'sprint' : 'lock'; try { localStorage.setItem('bv-keys', View.keys); } catch (e) {} $('#pKeys').textContent = keysLabel(); if ($('#pLock')) $('#pLock').innerHTML = `${View.lock ? '🔒 Shift lock: on' : '🔓 Shift lock: off'} <kbd>${lockKeyName()}</kbd>`; };
@@ -7792,7 +7849,7 @@ try { loadAvFrom(JSON.parse(localStorage.getItem('rb.av') || 'null')); } catch (
 achNum();
 drawAvatarOpts(); drawMe(); drawExps();
 requestAnimationFrame(frame);
-window.__rb = { P, Net, cam, camera, scene, renderer, keys, EXPS, Meter, GFX, gfxApply, softGL, View, setLock, zoomBy, lookBy, joy, sunL, sunSprite, makeAvatar, join, leave, die, respawn, openShop, buyItem, hasItem, itemCount, giveItem, useItem, shopItem, setItemOff, Trade, startTrade, tradeTick, parts: () => parts, exp: () => exp, me: () => me, iAmHost, crew, players, get AV() { return AV; }, W, earn, spend, roundState, openPanel, closePanel, pickPlane, myPeer, grantCosmetic, snapshot, say, EMOTES, Emo, pickEmote, playEmote, emCommand, emStart, saveAv, pv: () => pv, STUDS, setStuds, randomGame, MAT_TEX, THEMES, THEME_STYLES, themeSong, BGM, Music, TINST, TDRUM, TV, TSMP, TDB, bgmPlay, GSKINS, skState, skPres, skinOf, skinModel, skinPic, skinClick, drawShop, HW, HW_ITEMS, hwOn, RW, rwState, rwSpin, rwClaimDay, rwCollect, rwBank, rwDay, drawExps, refundOf, setHomeView: (v) => { homeView = v; drawExps(); }, synth: { powerChord, synTone, synNoise, synKick },
+window.__rb = { P, Net, cam, camera, scene, renderer, keys, EXPS, Meter, GFX, gfxApply, softGL, View, setLock, zoomBy, lookBy, joy, sunL, sunSprite, makeAvatar, join, leave, die, respawn, openShop, buyItem, hasItem, itemCount, giveItem, useItem, shopItem, setItemOff, Trade, startTrade, tradeTick, parts: () => parts, exp: () => exp, me: () => me, iAmHost, crew, players, get AV() { return AV; }, W, earn, spend, roundState, openPanel, closePanel, pickPlane, myPeer, grantCosmetic, snapshot, say, EMOTES, Emo, pickEmote, playEmote, emCommand, emStart, saveAv, pv: () => pv, STUDS, setStuds, randomGame, MAT_TEX, THEMES, THEME_STYLES, themeSong, BGM, Music, TINST, TDRUM, TV, TSMP, TDB, bgmPlay, bgmSkip, musicLabel, GSKINS, skState, skPres, skinOf, skinModel, skinPic, skinClick, drawShop, HW, HW_ITEMS, hwOn, RW, rwState, rwSpin, rwClaimDay, rwCollect, rwBank, rwDay, drawExps, refundOf, setHomeView: (v) => { homeView = v; drawExps(); }, synth: { powerChord, synTone, synNoise, synKick },
   Social, Inv, ED, myId, myCode, fcOf, openEditor, closeEditor, socialScan, avPic, Market, OFFICIAL, xItem, ownsX, copiesOf, drawAvatarOpts, axArr,
   pvSel: () => (pv.selBox ? { inScene: pv.selBox.parent === pv.scene, r: pv.selBox.geometry.boundingSphere && pv.selBox.geometry.boundingSphere.radius, vis: pv.selBox.visible, n: pv.selBox.geometry.attributes.position.count, c: pv.selBox.geometry.attributes.position.array.slice(0, 6) } : null),
   pvGhost: () => { let g = false; if (pv.a) pv.a.g.traverse((o) => { if (o.isMesh && o.material === GHOST_MAT) g = true; }); return g; },

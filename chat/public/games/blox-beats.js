@@ -1,10 +1,11 @@
 /* =====================================================================
    BLOXVERSE — BEAT STUDIO. A neon rooftop club where you make music.
    Walk up to a studio booth (or press 🎹 Studio) for the beat maker: a
-   drum machine (kick, snare, clap, hi-hats, tom), a bassline and a
-   melody, each sixteen steps long, in any key and scale, with six bass
-   and lead instruments, tempo and swing, presets, 🎲 surprise beats and
-   three save slots. Press 📡 Go live and your beat plays on the club's
+   drum machine (kick, snare, clap, hi-hats, tom, crash), a bassline and
+   a melody, each sixteen steps long, in any key and scale, with bass and
+   lead instruments (EDM's supersaw, pluck and bass among them), tempo,
+   swing and the EDM pump, presets, 🎲 surprise beats and three save
+   slots. Press 📡 Go live and your beat plays on the club's
    speakers for everyone here, in time, with your name up on the LED
    wall; when nobody's live the resident DJ plays. The dance floor, the
    speakers, the lights and the equalisers all move to the music, and
@@ -53,28 +54,33 @@
   document.head.append(style);
 
   /* ---------------- the music ---------------- */
-  const DRUMS = [['Kick', '🥁'], ['Snare', '🪘'], ['Clap', '👏'], ['Hi-hat', '🎩'], ['Open hat', '🔔'], ['Tom', '🛢️']];
-  const LEADS = ['🎹 Piano', '🎛️ Synth', '🪕 Pluck', '🔔 Bell', '👾 Chip', '🌊 Pad'];
-  const BASSES = ['🔊 Sub bass', '🎸 Saw bass', '🌀 Wobble'];
+  const DRUMS = [['Kick', '🥁'], ['Snare', '🪘'], ['Clap', '👏'], ['Hi-hat', '🎩'], ['Open hat', '🔔'], ['Tom', '🛢️'], ['Crash', '💥']];
+  const LEADS = ['🎹 Piano', '🎛️ Synth', '🪕 Pluck', '🔔 Bell', '👾 Chip', '🌊 Pad', '⚡ Supersaw', '🎆 EDM pluck'];
+  const BASSES = ['🔊 Sub bass', '🎸 Saw bass', '🌀 Wobble', '💥 EDM bass'];
   const SCALES = [['Major', [0, 2, 4, 5, 7, 9, 11, 12]], ['Minor', [0, 2, 3, 5, 7, 8, 10, 12]], ['Pentatonic', [0, 3, 5, 7, 10, 12, 15, 17]], ['Blues', [0, 3, 5, 6, 7, 10, 12, 15]]];
   const KEYS = ['C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'];
   const NOTE = (m) => 440 * Math.pow(2, (m - 69) / 12);
-  const blank = () => ({ d: DRUMS.map(() => Array(16).fill(0)), b: Array(16).fill(0), m: Array.from({ length: 8 }, () => Array(16).fill(0)), bpm: 110, key: 0, sc: 1, li: 1, bi: 0, sw: 0, mu: [0, 0, 0], nm: 'My beat' });
-  // presets: drums as x/. strings, the bass as one digit a step (the scale's note + 1, or .), the melody as step:rows
+  const blank = () => ({ d: DRUMS.map(() => Array(16).fill(0)), b: Array(16).fill(0), m: Array.from({ length: 8 }, () => Array(16).fill(0)), bpm: 110, key: 0, sc: 1, li: 1, bi: 0, sw: 0, pu: 0, mu: [0, 0, 0], nm: 'My beat' });
+  // presets: drums as x/. strings, the bass as one digit a step (the scale's note + 1, or .), the melody as step:rows,
+  // and (the EDM ones) how hard the kick pumps everything else
   const PRESETS = [
     ['🎧 Boom Bap', 90, 9, 1, 0, 0, 12, ['x......x..x.....', '....x.......x...', '................', 'x.x.x.x.x.x.x.xx', '..............x.', '................'], '1......1..1...4.', '0:024 3:4 6:135 8:024 11:2 14:135'],
-    ['🏠 House', 124, 5, 1, 1, 1, 0, ['x...x...x...x...', '................', '....x.......x...', 'x.xxx.xxx.xxx.xx', '..x...x...x...x.', '................'], '..1...1...3...4.', '2:024 6:024 10:135 14:246'],
+    ['🏠 House', 124, 5, 1, 1, 1, 0, ['x...x...x...x...', '................', '....x.......x...', 'x.xxx.xxx.xxx.xx', '..x...x...x...x.', '................'], '..1...1...3...4.', '2:024 6:024 10:135 14:246', 35],
     ['🔥 Trap', 142, 2, 1, 3, 0, 0, ['x......x.x......', '........x.......', '........x.......', 'x.x.x.xxx.x.xxxx', '................', '.............x.x'], '1......1.1....6.', '0:7 3:5 6:4 8:5 11:3 14:2'],
     ['☁️ Lo-fi', 78, 0, 0, 0, 0, 30, ['x.....x...x.....', '....x.......x...', '................', 'x.x.x.x.x.x.x.x.', '................', '..............x.'], '1.....1...6...5.', '0:0246 8:1357 12:4'],
     ['🌆 Synthwave', 108, 9, 1, 5, 1, 0, ['x...x...x...x...', '....x.......x...', '................', 'x.x.x.x.x.x.x.x.', '................', '..........x.x.x.'], '1.1.1.1.6.6.7.7.', '0:4 2:4 4:5 6:4 8:2 10:3 12:4 14:7'],
     ['👾 Chiptune', 150, 7, 0, 4, 1, 0, ['x.......x.......', '....x.......x...', '................', 'x.x.x.x.x.x.x.x.', '................', '................'], '1.5.1.5.4.1.4.5.', '0:0 1:2 2:4 3:7 4:4 5:2 6:0 7:2 8:3 9:5 10:7 11:5 12:4 13:2 14:1 15:4'],
     ['🌀 Dubstep', 140, 4, 1, 1, 2, 0, ['x.........x.....', '........x.......', '........x.......', 'x...x.x.x...x.x.', '................', '..............xx'], '1.1...1.1.3.1.6.', '0:4 4:3 8:4 12:2'],
     ['🎷 Jazzy', 96, 3, 3, 0, 0, 35, ['x......x..x.....', '....x.......x...', '................', 'x.xxx.xxx.xxx.xx', '.........x......', '................'], '1...3...4...6.5.', '0:024 4:5 6:4 8:135 12:3 14:2'],
+    ['⚡ EDM', 128, 9, 1, 6, 3, 0, ['x...x...x...x...', '................', '....x.......x...', 'x.xxx.xxx.xxx.xx', '..x...x...x...x.', '................', 'x...............'], '..1...1...6...6.', '0:024 3:024 6:024 8:135 11:135 14:246', 75],
+    ['🌌 Trance', 138, 2, 1, 7, 3, 0, ['x...x...x...x...', '................', '....x.......x...', 'xxxxxxxxxxxxxxxx', '..x...x...x...x.', '................', 'x...............'], '.111.111.666.444', '0:0 1:2 2:4 3:7 4:4 5:2 6:0 7:2 8:5 9:7 10:5 11:3 12:4 13:6 14:4 15:2', 60],
+    ['💫 Future Bass', 150, 4, 0, 6, 3, 0, ['x.........x.....', '................', '........x.......', 'x.x.x.x.x.xxx.x.', '................', '................', 'x...............'], '1.....1...4...5.', '0:024 3:024 6:024 8:135 10:135 12:146 14:146', 85],
+    ['🏝️ Tropical House', 102, 7, 0, 7, 0, 0, ['x...x...x...x...', '................', '....x.......x...', '..x...x...x...x.', '................', '................', '................'], '1.....1...6...5.', '0:4 3:4 6:5 8:4 11:2 14:1', 50],
   ];
   function preset(i) {
-    const [nm, bpm, key, sc, li, bi, sw, d, b, m] = PRESETS[i], B = blank();
-    Object.assign(B, { nm: nm.replace(/^\S+\s/, ''), bpm, key, sc, li, bi, sw });
-    B.d = d.map((r) => r.split('').map((c) => (c === 'x' ? 1 : 0)));
+    const [nm, bpm, key, sc, li, bi, sw, d, b, m, pu = 0] = PRESETS[i], B = blank();
+    Object.assign(B, { nm: nm.replace(/^\S+\s/, ''), bpm, key, sc, li, bi, sw, pu });
+    B.d = DRUMS.map((_, r) => (d[r] || '').padEnd(16, '.').split('').map((c) => (c === 'x' ? 1 : 0)));
     B.b = b.split('').map((c) => (c === '.' ? 0 : +c));
     for (const tok of m.split(' ')) { const [s, rows] = tok.split(':'); for (const r of rows) if (+r < 8) B.m[+r][+s] = 1; }
     return B;
@@ -82,7 +88,7 @@
   // a beat as a short string (for your presence and your saves) and back
   const hex16 = (row) => parseInt(row.slice().reverse().join(''), 2).toString(16).padStart(4, '0');
   const unhex16 = (h) => { const v = parseInt(h, 16) || 0; return Array.from({ length: 16 }, (_, k) => (v >> k) & 1); };
-  function enc(B) { return ['2', B.d.map(hex16).join(''), B.b.join(''), B.m.map(hex16).join(''), B.bpm, B.key, B.sc, B.li, B.bi, B.sw, B.mu.join(''), String(B.nm || '').replace(/[|]/g, '').slice(0, 24)].join('|'); }
+  function enc(B) { return ['2', B.d.map(hex16).join(''), B.b.join(''), B.m.map(hex16).join(''), B.bpm, B.key, B.sc, B.li, B.bi, B.sw, B.mu.join(''), String(B.nm || '').replace(/[|]/g, '').slice(0, 24), B.pu || 0].join('|'); }
   function dec(s) {
     const p = String(s || '').split('|'); if (p[0] !== '2' || p.length < 11) return null;
     const B = blank();
@@ -90,7 +96,7 @@
     B.b = p[2].split('').slice(0, 16).map((c) => clamp(+c || 0, 0, 8)); while (B.b.length < 16) B.b.push(0);
     B.m = Array.from({ length: 8 }, (_, r) => unhex16(p[3].slice(r * 4, r * 4 + 4)));
     B.bpm = clamp(+p[4] || 110, 60, 200); B.key = clamp(+p[5] || 0, 0, 11); B.sc = clamp(+p[6] || 0, 0, SCALES.length - 1); B.li = clamp(+p[7] || 0, 0, LEADS.length - 1); B.bi = clamp(+p[8] || 0, 0, BASSES.length - 1); B.sw = clamp(+p[9] || 0, 0, 60);
-    B.mu = String(p[10] || '000').split('').slice(0, 3).map((c) => (c === '1' ? 1 : 0)); B.nm = String(p[11] || 'A beat').slice(0, 24);
+    B.mu = String(p[10] || '000').split('').slice(0, 3).map((c) => (c === '1' ? 1 : 0)); B.nm = String(p[11] || 'A beat').slice(0, 24); B.pu = clamp(+p[12] || 0, 0, 100);
     return B;
   }
   const notesIn = (B) => B.d.flat().filter(Boolean).length + B.b.filter(Boolean).length + B.m.flat().filter(Boolean).length;
@@ -99,13 +105,15 @@
     const r = Math.random, B = blank(), pick = (a) => a[Math.floor(r() * a.length)];
     const style = pick([[90, 1], [100, 0], [124, 1], [140, 1], [110, 2], [128, 0], [84, 3]]);
     Object.assign(B, { bpm: style[0] + Math.round((r() - 0.5) * 10), key: Math.floor(r() * 12), sc: style[1], li: Math.floor(r() * LEADS.length), bi: Math.floor(r() * BASSES.length), sw: r() < 0.3 ? 25 : 0, nm: pick(['Night Drive', 'Neon Rain', 'Block Party', 'Sky High', 'Lo Battery', 'Pixel Heart', 'Bass Face', 'Sunset Loop', 'Moon Jump', 'Turbo Mode']) });
-    const four = r() < 0.5;
+    const four = r() < 0.5, edm = r() < 0.3;
+    if (edm) Object.assign(B, { bpm: pick([126, 128, 138, 150]), sc: pick([0, 1]), li: pick([6, 7]), bi: 3, sw: 0, pu: pick([50, 70, 85]), nm: pick(['Drop Zone', 'Festival', 'Hands Up', 'Laser Show', 'Bass Drop', 'Main Stage']) });
     for (let s = 0; s < 16; s++) {
-      B.d[0][s] = four ? +(s % 4 === 0) : +(s === 0 || s === 8 || (r() < 0.18 && s % 2 === 0));
+      B.d[0][s] = four || edm ? +(s % 4 === 0) : +(s === 0 || s === 8 || (r() < 0.18 && s % 2 === 0));
       B.d[r() < 0.5 ? 1 : 2][s] = +(s === 4 || s === 12);
       B.d[3][s] = +(r() < (four ? 0.8 : 0.6) || s % 2 === 0);
-      B.d[4][s] = +(four && s % 4 === 2 && r() < 0.8);
-      B.d[5][s] = +(s > 12 && r() < 0.35);
+      B.d[4][s] = +((four || edm) && s % 4 === 2 && r() < 0.8);
+      B.d[5][s] = +(!edm && s > 12 && r() < 0.35);
+      B.d[6][s] = +(edm && s === 0);
     }
     const roots = [0, pick([3, 5, 4]), pick([4, 5]), pick([3, 0, 5])];
     for (let s = 0; s < 16; s++) if (s % 4 === 0 || r() < 0.22) B.b[s] = roots[Math.floor(s / 4)] + 1;
@@ -127,10 +135,11 @@
   }
   function noise(ac, t, dur, off) {
     if (!A.noise) { const b = ac.createBuffer(1, ac.sampleRate, ac.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; A.noise = b; }
-    const s = ac.createBufferSource(); s.buffer = A.noise; s.start(t, off != null ? off : Math.random() * 0.5); s.stop(t + dur + 0.02); return s;
+    const s = ac.createBufferSource(); s.buffer = A.noise; s.loop = true; s.start(t, off != null ? off : Math.random() * 0.5); s.stop(t + dur + 0.02); return s;
   }
   const filt = (ac, type, f, q) => { const b = ac.createBiquadFilter(); b.type = type; b.frequency.value = f; if (q != null) b.Q.value = q; return b; };
   function gainEnv(ac, t, peak, att, dec, hold = 0) { const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(Math.max(0.0002, peak), t + att); if (hold) g.gain.setValueAtTime(Math.max(0.0002, peak), t + att + hold); g.gain.exponentialRampToValueAtTime(0.0001, t + att + hold + dec); return g; }
+  const pan = (ac, d, p) => { if (!ac.createStereoPanner) return d; const n = ac.createStereoPanner(); n.pan.value = p; n.connect(d); return n; };
   const osc = (ac, type, f, t, end) => { const o = ac.createOscillator(); o.type = type; o.frequency.setValueAtTime(f, t); o.start(t); o.stop(end); return o; };
   const DRUM = [
     (ac, d, t, v) => { // kick: a thump that drops in pitch, and a click
@@ -149,6 +158,7 @@
     (ac, d, t, v) => { const n = noise(ac, t, 0.06), hp = filt(ac, 'highpass', 7800), g = gainEnv(ac, t, v * 0.28, 0.001, 0.045); n.connect(hp); hp.connect(g); g.connect(d); },
     (ac, d, t, v) => { const n = noise(ac, t, 0.36), hp = filt(ac, 'highpass', 6800), g = gainEnv(ac, t, v * 0.22, 0.003, 0.3); n.connect(hp); hp.connect(g); g.connect(d); },
     (ac, d, t, v) => { const o = osc(ac, 'sine', 230, t, t + 0.32); o.frequency.exponentialRampToValueAtTime(115, t + 0.25); const g = gainEnv(ac, t, v * 0.6, 0.002, 0.28); o.connect(g); g.connect(d); },
+    (ac, d, t, v) => { const n = noise(ac, t, 1.8), hp = filt(ac, 'highpass', 4500), pk = filt(ac, 'peaking', 8000, 0.7), g = gainEnv(ac, t, v * 0.32, 0.002, 1.6); pk.gain.value = 4; n.connect(hp); hp.connect(pk); pk.connect(g); g.connect(d); }, // (crash: the drop)
   ];
   const BASS = [
     (ac, d, t, f, len, v) => { const o = osc(ac, 'sine', f, t, t + len + 0.12), o2 = osc(ac, 'triangle', f * 2, t, t + len + 0.12), g = gainEnv(ac, t, v * 0.75, 0.008, 0.1, len), g2 = ac.createGain(); g2.gain.value = 0.18; o.connect(g); o2.connect(g2); g2.connect(g); g.connect(d); },
@@ -156,6 +166,10 @@
     (ac, d, t, f, len, v, bpm) => { // wobble: the filter opening and closing in eighth notes
       const o = osc(ac, 'sawtooth', f, t, t + len + 0.12), o2 = osc(ac, 'square', f * 0.5, t, t + len + 0.12), lp = filt(ac, 'lowpass', 500, 9), lfo = osc(ac, 'sine', (bpm / 60) * 2, t, t + len + 0.12), lg = ac.createGain();
       lg.gain.value = 900; lfo.connect(lg); lg.connect(lp.frequency); const g = gainEnv(ac, t, v * 0.4, 0.01, 0.08, len); o.connect(lp); o2.connect(lp); lp.connect(g); g.connect(d);
+    },
+    (ac, d, t, f, len, v) => { // EDM bass: bright as it's hit, then the filter closing (Bloxverse's own, made once a note)
+      if (typeof TSMP !== 'undefined') return TSMP.play(ac, d, t, 'sbass', f, len, v * 0.75, 0.05);
+      const o = osc(ac, 'sawtooth', f, t, t + len + 0.1), lp = filt(ac, 'lowpass', 2400, 4); lp.frequency.setValueAtTime(2400, t); lp.frequency.exponentialRampToValueAtTime(420, t + 0.16); const g = gainEnv(ac, t, v * 0.4, 0.004, 0.06, len); o.connect(lp); lp.connect(g); g.connect(d);
     },
   ];
   const LEAD = [
@@ -165,13 +179,33 @@
     (ac, d, t, f, len, v) => { const c = osc(ac, 'sine', f, t, t + 1.7), m = osc(ac, 'sine', f * 3.5, t, t + 1.7), mg = ac.createGain(); mg.gain.setValueAtTime(f * 2.4, t); mg.gain.exponentialRampToValueAtTime(1, t + 1.2); m.connect(mg); mg.connect(c.frequency); const g = gainEnv(ac, t, v * 0.3, 0.003, 1.6); c.connect(g); g.connect(d); },
     (ac, d, t, f, len, v) => { const g = gainEnv(ac, t, v * 0.12, 0.002, 0.04, Math.max(0.04, len * 0.75)); osc(ac, 'square', f, t, t + len + 0.1).connect(g); g.connect(d); },
     (ac, d, t, f, len, v) => { const lp = filt(ac, 'lowpass', 1900, 1), g = gainEnv(ac, t, v * 0.1, 0.22, 0.5, len); for (const k of [0.993, 1, 1.007]) osc(ac, 'sawtooth', f * k, t, t + len + 0.8).connect(lp); lp.connect(g); g.connect(d); },
+    (ac, d, t, f, len, v) => { // ⚡ supersaw: four saws a little out of tune, spread left and right, and one an octave down
+      const lp = filt(ac, 'lowpass', 5200, 0.7), g = gainEnv(ac, t, v * 0.09, 0.008, 0.28, len), L = pan(ac, lp, -0.6), R = pan(ac, lp, 0.6), end = t + len + 0.35;
+      [-18, -6, 6, 18].forEach((c, i) => { const o = osc(ac, 'sawtooth', f, t, end); o.detune.value = c; o.connect(i % 2 ? R : L); });
+      const sg = ac.createGain(); sg.gain.value = 0.35; osc(ac, 'sawtooth', f / 2, t, end).connect(sg); sg.connect(lp); lp.connect(g); g.connect(d);
+    },
+    (ac, d, t, f, len, v) => { // 🎆 EDM pluck: the filter snapping shut on two saws (Bloxverse's own, made once a note)
+      if (typeof TSMP !== 'undefined') return TSMP.play(ac, d, t, 'spluck', f, len, v * 0.6);
+      const lp = filt(ac, 'lowpass', 5000, 2); lp.frequency.setValueAtTime(5000, t); lp.frequency.exponentialRampToValueAtTime(380, t + 0.22); const g = gainEnv(ac, t, v * 0.22, 0.002, 0.35); for (const c of [-9, 9]) { const o = osc(ac, 'sawtooth', f, t, t + 0.45); o.detune.value = c; o.connect(lp); } lp.connect(g); g.connect(d);
+    },
   ];
   // one step of a beat, at time t on the sound card (sd: a step's length)
-  function playStep(ac, dest, B, s, t, sd, v) {
-    if (!B.mu[0]) B.d.forEach((row, r) => { if (row[s]) DRUM[r](ac, dest, t, v * (r === 0 ? 1 : 0.95)); });
+  // (mx: the stream's mix, if it has one: the pump's channel and the room's)
+  function playStep(ac, dest, B, s, t, sd, v, mx) {
+    const low = (mx && mx.duck) || dest, mel = (mx && mx.mel) || dest, wet = (mx && mx.drv) || dest;
+    if (mx && B.pu && !B.mu[0] && B.d[0][s]) { let n = 1; while (n < 16 && !B.d[0][(s + n) % 16]) n++; const g = mx.duck.gain; g.setValueAtTime(1 - (B.pu / 100) * 0.8, t); g.linearRampToValueAtTime(1, t + Math.min(n - 0.3, 3.4) * sd); } // (the pump: the kick pushes the rest out of its way)
+    if (!B.mu[0]) B.d.forEach((row, r) => { if (row[s]) DRUM[r](ac, r === 1 || r === 2 || r === 6 ? wet : dest, t, v * (r === 0 ? 1 : 0.95)); });
     const sc = SCALES[B.sc][1];
-    if (!B.mu[1] && B.b[s]) { let n = 1; while (n < 4 && !B.b[(s + n) % 16]) n++; BASS[B.bi](ac, dest, t, NOTE(36 + B.key + sc[B.b[s] - 1]), sd * n * 0.92, v, B.bpm); }
-    if (!B.mu[2]) for (let r = 0; r < 8; r++) if (B.m[r][s]) { let n = 1; while (n < 4 && !B.m[r][(s + n) % 16]) n++; LEAD[B.li](ac, dest, t, NOTE(60 + B.key + sc[r]), sd * n * 0.9, v); }
+    if (!B.mu[1] && B.b[s]) { let n = 1; while (n < 4 && !B.b[(s + n) % 16]) n++; BASS[B.bi](ac, low, t, NOTE(36 + B.key + sc[B.b[s] - 1]), sd * n * 0.92, v, B.bpm); }
+    if (!B.mu[2]) for (let r = 0; r < 8; r++) if (B.m[r][s]) { let n = 1; while (n < 4 && !B.m[r][(s + n) % 16]) n++; LEAD[B.li](ac, mel, t, NOTE(60 + B.key + sc[r]), sd * n * 0.9, v); }
+  }
+  // a stream's mix: the bass and melody through the pump; the melody, snare, clap and crash into a room (pumping too)
+  function mixFor(ac, out) {
+    if (!A.ir || A.ir.sampleRate !== ac.sampleRate) { const SR = ac.sampleRate, L = Math.floor(SR * 1.6); A.ir = ac.createBuffer(2, L, SR); for (let c = 0; c < 2; c++) { const x = A.ir.getChannelData(c); let lp = 0; for (let i = 0; i < L; i++) { const tt = i / SR; lp += (0.12 + 0.85 * Math.exp(-tt / 0.3)) * (Math.random() * 2 - 1 - lp); x[i] = lp * Math.exp(-tt / 0.3) * Math.min(1, tt / 0.01); } } }
+    const duck = ac.createGain(), mel = ac.createGain(), drv = ac.createGain(), ms = ac.createGain(), ds = ac.createGain(), rev = ac.createConvolver();
+    rev.buffer = A.ir; ms.gain.value = 0.3; ds.gain.value = 0.18;
+    duck.connect(out); mel.connect(duck); mel.connect(ms); ms.connect(rev); drv.connect(out); drv.connect(ds); ds.connect(rev); rev.connect(duck);
+    return { duck, mel, drv };
   }
   // a stream: a beat playing from a moment on everyone's clock (t0), its own volume
   function stream(B, t0) { return { B, t0, last: null, g: null, vol: 0 }; }
@@ -180,14 +214,14 @@
   function pump(st, vol) { // schedule what's due in the next moment
     const a = audio(); if (!a) { st.last = null; return; }
     const ac = a.ac;
-    if (!st.g || st.g.context !== ac) { st.g = ac.createGain(); st.g.gain.value = 0; st.g.connect(a.bus); }
+    if (!st.g || st.g.context !== ac) { st.g = ac.createGain(); st.g.gain.value = 0; st.g.connect(a.bus); try { st.mx = mixFor(ac, st.g); } catch (e) { st.mx = null; } }
     st.g.gain.setTargetAtTime(vol, ac.currentTime, 0.12);
     if (vol < 0.01) { st.last = null; return; }
     const ns = now(), sd = stepLen(st.B);
     let k = Math.floor((ns - st.t0) / sd); if (st.last != null) k = Math.max(k, st.last + 1);
     for (let guard = 0; guard < 32; guard++, k++) {
       const ts = stepTime(st, k); if (ts > ns + 0.15) break;
-      if (ts >= ns - 0.03) playStep(ac, st.g, st.B, ((k % 16) + 16) % 16, ac.currentTime + Math.max(0, ts - ns) + 0.02, sd, 0.9);
+      if (ts >= ns - 0.03) playStep(ac, st.g, st.B, ((k % 16) + 16) % 16, ac.currentTime + Math.max(0, ts - ns) + 0.02, sd, 0.9, st.mx);
       st.last = k;
     }
   }
@@ -375,7 +409,7 @@
       const src = mineOn && this.studioOpen() ? this.mine : this.club, B = src.B, k = Math.floor((now() - src.t0) / stepLen(B)), s = ((k % 16) + 16) % 16, V = this.vis;
       if (k !== V.k) {
         V.k = k;
-        if (B.d[0][s] && !B.mu[0]) V.kick = 1; if ((B.d[1][s] || B.d[2][s]) && !B.mu[0]) V.snare = 1; if ((B.d[3][s] || B.d[4][s]) && !B.mu[0]) V.hat = 1;
+        if (B.d[0][s] && !B.mu[0]) V.kick = 1; if ((B.d[1][s] || B.d[2][s]) && !B.mu[0]) V.snare = 1; if ((B.d[3][s] || B.d[4][s] || (B.d[6] && B.d[6][s])) && !B.mu[0]) V.hat = 1;
         if (B.b[s] && !B.mu[1]) V.bass = 1; if (!B.mu[2] && B.m.some((r) => r[s])) V.mel = 1;
         if (s === 0) V.hue = (V.hue + 0.13) % 1;
         V.s = s; V.bar = Math.floor(k / 16);
@@ -496,6 +530,7 @@
           <button class="bb play${on ? ' on' : ''}" data-k="play">${on ? '⏹ Stop' : '▶ Play'}</button>
           <div class="grp"><label>Tempo</label><input type="range" min="60" max="200" value="${B.bpm}" data-rng="bpm"><b class="v" id="bsBpm">${B.bpm}</b></div>
           <div class="grp"><label>Swing</label><input type="range" min="0" max="60" value="${B.sw}" data-rng="sw"><b class="v" id="bsSw">${B.sw}%</b></div>
+          <div class="grp" title="EDM's pump: each kick ducks the bass and melody, which swell back in"><label>⚡ Pump</label><input type="range" min="0" max="100" value="${B.pu || 0}" data-rng="pu"><b class="v" id="bsPu">${B.pu || 0}%</b></div>
           <div class="grp"><label>Key</label>${sel(KEYS, B.key, 'key')}${sel(SCALES.map((x) => x[0]), B.sc, 'sc')}</div>
           <div class="grp"><label>Preset</label><select data-sel="pre"><option value="-1">Pick one…</option>${PRESETS.map((p, i) => `<option value="${i}">${esc(p[0])}</option>`).join('')}</select></div>
           <button class="bb" data-k="rnd">🎲 Surprise me</button><button class="bb" data-k="clr">🗑️ Clear</button>
@@ -507,7 +542,7 @@
         <div class="trk m"><h4>🎹 Melody ${sel(LEADS, B.li, 'li')}<small>stack notes for chords</small>${mute(2)}</h4><div class="grid">${mel}</div></div>
         <p class="tip">Press <b>B</b> to open and close the studio. Your beat saves with your account (💾). Go live and it plays on the club speakers for everyone here, with your name on the screen — and when someone ❤️s it you get Blox Coins.</p></div>`, (b) => this.studioClick(b), () => { if (this.mine && !this.live) this.mine.on = false; }, { full: true });
       const body = document.getElementById('xpBody');
-      body.querySelectorAll('[data-rng]').forEach((r) => (r.oninput = () => { const k = r.dataset.rng, v = +r.value; B[k] = v; if (k === 'bpm') { document.getElementById('bsBpm').textContent = v; this.retime(); } else document.getElementById('bsSw').textContent = v + '%'; this.changed(); }));
+      body.querySelectorAll('[data-rng]').forEach((r) => (r.oninput = () => { const k = r.dataset.rng, v = +r.value; B[k] = v; if (k === 'bpm') { document.getElementById('bsBpm').textContent = v; this.retime(); } else document.getElementById(k === 'pu' ? 'bsPu' : 'bsSw').textContent = v + '%'; this.changed(); }));
       body.querySelectorAll('[data-sel]').forEach((s) => (s.onchange = () => { const k = s.dataset.sel, v = +s.value; if (k === 'pre') { if (v >= 0) { this.setBeat(preset(v)); sfx('select'); } return; } B[k] = v; this.changed(); if (k === 'key' || k === 'sc') this.drawStudio(); }));
       const nm = document.getElementById('bsName'); nm.oninput = () => { B.nm = nm.value.replace(/[|]/g, '').slice(0, 24) || 'My beat'; this.changed(); };
       nm.onkeydown = (e) => e.stopPropagation();
@@ -535,7 +570,7 @@
       const k = b.dataset.k;
       if (k === 'play') { if (!this.mine) this.mine = stream(B, now()); this.mine.on = !this.mine.on; if (this.mine.on) { this.mine.t0 = now() + 0.08; this.mine.last = null; } else this.playhead(-1); b.classList.toggle('on', this.mine.on); b.textContent = this.mine.on ? '⏹ Stop' : '▶ Play'; sfx('click'); }
       else if (k === 'rnd') { this.setBeat(surprise()); sfx('magic'); }
-      else if (k === 'clr') { const nb = blank(); Object.assign(nb, { bpm: B.bpm, key: B.key, sc: B.sc, li: B.li, bi: B.bi, nm: B.nm }); this.setBeat(nb); sfx('click'); }
+      else if (k === 'clr') { const nb = blank(); Object.assign(nb, { bpm: B.bpm, key: B.key, sc: B.sc, li: B.li, bi: B.bi, pu: B.pu, nm: B.nm }); this.setBeat(nb); sfx('click'); }
       else if (k === 'live') this.toggleLive();
     },
     preview(kind, r) { // a tap plays the sound
@@ -546,5 +581,5 @@
   };
   addExp(BS);
   window.__rbBS = BS;
-  window.__beats = { enc, dec, preset, surprise, PRESETS, notesIn, stepLen, playStep, DRUM, BASS, LEAD }; // for tests
+  window.__beats = { enc, dec, preset, surprise, PRESETS, notesIn, stepLen, playStep, mixFor, DRUM, BASS, LEAD, LEADS, BASSES }; // for tests
 })();
