@@ -39,15 +39,15 @@
     build() {
       sky('#334155', '#94a3b8');
       this.walls = [];
-      const wall = (x0, z0, x1, z1, c = 0xd6c7a8) => { const p = part({ x: (x0 + x1) / 2, y: WALL_H / 2, z: (z0 + z1) / 2, sx: Math.max(1, x1 - x0), sy: WALL_H, sz: Math.max(1, z1 - z0), c }); this.walls.push(p); return p; };
+      const wall = (x0, z0, x1, z1, c = 0xd6c7a8) => { const p = part({ x: (x0 + x1) / 2, y: WALL_H / 2, z: (z0 + z1) / 2, sx: Math.max(1, x1 - x0), sy: WALL_H, sz: Math.max(1, z1 - z0), c, mat: c === 0xa8a29e ? 'brick' : 'plastic' }); this.walls.push(p); return p; };
       // a wall along x (at z) or along z (at x), with door gaps (centre, width 5)
       const wx = (z, x0, x1, doors, c) => { let a = x0; for (const d of doors.concat([x1 + 2.5])) { if (d - 2.5 > a) wall(a, z - 0.5, d - 2.5, z + 0.5, c); a = d + 2.5; } };
       const wz = (x, z0, z1, doors, c) => { let a = z0; for (const d of doors.concat([z1 + 2.5])) { if (d - 2.5 > a) wall(x - 0.5, a, x + 0.5, d - 2.5, c); a = d + 2.5; } };
       // the mansion: a hall down the middle, three rooms on each side
       slab(0, 0, 0, 92, 72, 0x8b6b4a, { sy: 2 });
       const floors = [[-30, -21.5, 0xb45309], [0, -21.5, 0x7c2d12], [30, -21.5, 0xe5e7eb], [-30, 21.5, 0x6d28d9], [0, 21.5, 0x0e7490], [30, 21.5, 0x166534]];
-      for (const [x, z, c] of floors) part({ x, y: 0.04, z, sx: 29, sy: 0.08, sz: 26, c, plain: true, solid: false });
-      part({ x: 0, y: 0.04, z: 0, sx: 90, sy: 0.08, sz: 15, c: 0x991b1b, plain: true, solid: false }); // the hall's long rug
+      floors.forEach(([x, z, c], i) => part({ x, y: 0.04, z, sx: 29, sy: 0.08, sz: 26, c, plain: true, solid: false, mat: ['wood', 'wood', 'tiles', 'fabric', 'fabric', 'fabric'][i] }));
+      part({ x: 0, y: 0.04, z: 0, sx: 90, sy: 0.08, sz: 15, c: 0x991b1b, plain: true, solid: false, mat: 'fabric' }); // the hall's long rug
       wx(-36, -46, 46, [], 0xa8a29e); wx(36, -46, 46, [0], 0xa8a29e); wz(-46, -36, 36, [0], 0xa8a29e); wz(46, -36, 36, [0], 0xa8a29e);
       wx(-8.5, -45, 45, [-30, 0, 30]); wx(8.5, -45, 45, [-30, 0, 30]);
       wz(-15, -35, -9, [-22]); wz(15, -35, -9, [-22]); wz(-15, 9, 35, [22]); wz(15, 9, 35, [22]);

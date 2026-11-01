@@ -1040,7 +1040,7 @@ const shade = (v, a = 1) => `rgba(${v},${v},${v},${a})`;
 function specks(g, r, n, count, size, lo, hi, a) { for (let i = 0; i < count; i++) { const x = r() * n, y = r() * n, s = size * (0.5 + r()), v = Math.round(lo + r() * (hi - lo)); g.fillStyle = shade(v, a); for (const [ox, oy] of [[0, 0], [-n, 0], [0, -n], [-n, -n]]) g.fillRect(x + ox, y + oy, s, s); } }
 const MATS = {
   plastic: { tile: 8, gain: 1.02, spec: 0x1c1c1c, shin: 30, bev: 1, tex: () => matCanvas('plastic', (g, r, n) => { g.fillStyle = shade(250); g.fillRect(0, 0, n, n); specks(g, r, n, 900, 2, 236, 255, 0.35); }) },
-  studs: { tile: 4, gain: 1.04, spec: 0x2a2a2a, shin: 30, bev: 1, tex: () => matCanvas('studs', (g, r, n) => {
+  studs: { tile: 2, gain: 1.04, spec: 0x2a2a2a, shin: 30, bev: 1, tex: () => matCanvas('studs', (g, r, n) => {
     g.fillStyle = shade(246); g.fillRect(0, 0, n, n); specks(g, r, n, 500, 2, 232, 255, 0.3);
     for (const [x, y] of [[0.25, 0.25], [0.75, 0.25], [0.25, 0.75], [0.75, 0.75]]) {
       const cx = x * n, cy = y * n, R = n * 0.14;

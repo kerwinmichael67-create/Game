@@ -29,13 +29,16 @@
     build() {
       sky('#1e1b4b', '#7c3aed');
       // the arena: a floor, glass walls, a ring in the middle
-      slab(0, 0, 0, ARENA * 2, ARENA * 2, 0x312e81, { sy: 2 });
+      slab(0, 0, 0, ARENA * 2, ARENA * 2, 0x2e2a6b, { sy: 2, mat: 'marble' });
+      // glowing rings set into the floor, and a star in the middle
+      for (const [r, w, c] of [[ARENA - 4, 0.5, 0x8b5cf6], [ARENA * 0.62, 0.35, 0x22d3ee], [ARENA * 0.32, 0.3, 0xf472b6]]) { const m = new THREE.Mesh(new THREE.RingGeometry(r, r + w, 96), new THREE.MeshBasicMaterial({ color: c, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -8 })); m.rotation.x = -Math.PI / 2; m.position.y = 0.02; m.userData.ownGeo = true; place.add(m); }
+      for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2, m = new THREE.Mesh(new THREE.PlaneGeometry(0.3, ARENA * 0.3), new THREE.MeshBasicMaterial({ color: 0x8b5cf6, transparent: true, opacity: 0.6, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -8 })); m.rotation.set(-Math.PI / 2, 0, a); m.position.set(Math.sin(a) * ARENA * 0.47, 0.02, Math.cos(a) * ARENA * 0.47); m.userData.ownGeo = true; place.add(m); }
       part({ x: 0, y: 0.06, z: 0, sx: 12, sy: 0.12, sz: 12, c: 0xef4444, neon: true, solid: false });
       part({ x: 0, y: 0.08, z: 0, sx: 8, sy: 0.12, sz: 8, c: 0x312e81, plain: true, solid: false });
       for (const [x, z, sx, sz] of [[0, -ARENA - 1, ARENA * 2 + 4, 2], [0, ARENA + 1, ARENA * 2 + 4, 2], [-ARENA - 1, 0, 2, ARENA * 2], [ARENA + 1, 0, 2, ARENA * 2]]) part({ x, y: 5, z, sx, sy: 10, sz, c: 0xa78bfa, alpha: 0.25, plain: true });
       // a balcony all round, where you wait and watch
-      for (const [x, z, sx, sz] of [[0, -ARENA - 9, ARENA * 2 + 32, 14], [0, ARENA + 9, ARENA * 2 + 32, 14], [-ARENA - 9, 0, 14, ARENA * 2 + 4], [ARENA + 9, 0, 14, ARENA * 2 + 4]]) slab(x, 10, z, sx, sz, 0x4338ca, { sy: 1 });
-      for (const s of [-1, 1]) for (const t of [-1, 1]) part({ x: s * (ARENA + 9), y: 4.5, z: t * (ARENA + 9), sx: 3, sy: 9, sz: 3, c: 0x1e1b4b });
+      for (const [x, z, sx, sz] of [[0, -ARENA - 9, ARENA * 2 + 32, 14], [0, ARENA + 9, ARENA * 2 + 32, 14], [-ARENA - 9, 0, 14, ARENA * 2 + 4], [ARENA + 9, 0, 14, ARENA * 2 + 4]]) slab(x, 10, z, sx, sz, 0x3730a3, { sy: 1, mat: 'metal' });
+      for (const s of [-1, 1]) for (const t of [-1, 1]) { part({ x: s * (ARENA + 9), y: 4.5, z: t * (ARENA + 9), sx: 3, sy: 9, sz: 3, c: 0x1e1b4b, mat: 'stone' }); part({ x: s * (ARENA + 9), y: 9.2, z: t * (ARENA + 9), sx: 3.3, sy: 0.4, sz: 3.3, c: 0xa78bfa, neon: true, solid: false }); }
       for (const [x, z, sx, sz] of [[0, -ARENA - 16.5, ARENA * 2 + 32, 1], [0, ARENA + 16.5, ARENA * 2 + 32, 1], [-ARENA - 16.5, 0, 1, ARENA * 2 + 32], [ARENA + 16.5, 0, 1, ARENA * 2 + 32]]) part({ x, y: 11.5, z, sx, sy: 3, sz, c: 0xa78bfa, alpha: 0.3, plain: true });
       // steps down from the balcony into the arena (for between rounds)
       for (let k = 0; k < 5; k++) slab(0, 10 - (k + 1) * 2, ARENA + 1 - 3 - k * 3, 8, 3, 0x6366f1, { sy: 1 });
