@@ -2492,69 +2492,126 @@ const moonTex = () => hwCanvas('moon', 128, 128, (g) => {
 });
 // 👻 Phantom: a body of ghost-light (see-through, glowing, flickering) in a tattered hooded shroud, its legs fading
 // to wisps, your face glowing in the hood's shadow, and mist curling off it
-const PHANTOM_TIP = sweepGeo([[0, 0.5, 0.38], [0, 0.98, 0.66], [0, 1.24, 1.06], [0, 1.08, 1.46]], (t) => 0.5 * Math.pow(1 - t, 1.2) + 0.012, 18, 12);
+// 👻 Phantom: a ghost in a long torn robe that billows as it moves. Its body is ghost-light (see-through, its edges
+// glowing, light rippling through it); the deep hood holds nothing but darkness and two glowing eyes that blink; its hands
+// are bones of light; a ribcage glows through the open front of the robe; a broken shackle and chain hang from one wrist
+// and a soul-lantern swings at its hip; wisps of soul circle it, mist pours off its hem, and now and then it fades out
+// and back as if passing between worlds
+const PH_TATTER = (() => { const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d'), r = mulberry(808); // (white: cloth; black: torn away)
+  g.fillStyle = '#fff'; g.fillRect(0, 0, 256, 256); g.fillStyle = '#000';
+  for (let x = 0; x < 256; x += 4) { const cut = 22 + r() * 74 * (0.35 + 0.65 * Math.abs(Math.sin(x * 0.07))); g.fillRect(x, 256 - cut, 4.5, cut); } // (the hem, torn into strips)
+  for (let k = 0; k < 9; k++) { const x = r() * 256, w = 5 + r() * 10, h = 60 + r() * 80; g.beginPath(); g.moveTo(x - w, 256); g.lineTo(x, 256 - h); g.lineTo(x + w, 256); g.fill(); } // (rips up into it)
+  for (let k = 0; k < 16; k++) { g.beginPath(); g.ellipse(r() * 256, 50 + r() * 150, 2 + r() * 6, 3 + r() * 9, r() * 3, 0, 7); g.fill(); } // (holes)
+  const t = new THREE.CanvasTexture(c); t.wrapS = THREE.RepeatWrapping; return t; })();
+const PH_TATTER_S = (() => { const t = PH_TATTER.clone(); t.needsUpdate = true; t.repeat.set(1, 3); return t; })(); // (just the very edge torn: the hood)
+const PHANTOM_TIP = sweepGeo([[0, 0.5, 0.38], [0, 0.98, 0.66], [0, 1.24, 1.06], [0, 1.02, 1.5], [0, 0.7, 1.7]], (t) => 0.5 * Math.pow(1 - t, 1.1) + 0.012, 22, 12);
+const PH_GEO = (() => { const top0 = (g) => { g.translate(0, -g.parameters.height / 2, 0); return g; }; // (pieces of the robe, each hanging from y = 0: the further down, the more they billow)
+  const cloak = new THREE.PlaneGeometry(2.4, 4.0, 14, 18); cloak.translate(0, -2, 0); const cp = cloak.attributes.position; for (let i = 0; i < cp.count; i++) { const x = cp.getX(i), y = cp.getY(i); cp.setZ(i, 0.3 * (x / 1.2) * (x / 1.2) * -1 + 0.12 * Math.sin(x * 6) * (-y / 4) + 0.25 * (-y / 4)); } cloak.computeVertexNormals();
+  const front = new THREE.PlaneGeometry(0.82, 1.75, 5, 10); front.translate(0, -0.875, 0);
+  return { skirt: top0(new THREE.CylinderGeometry(1.04, 1.52, 2.65, 34, 12, true)), mantle: top0(new THREE.CylinderGeometry(1.16, 1.44, 0.95, 34, 4, true)), cloak, front,
+    sleeve: top0(new THREE.CylinderGeometry(0.56, 0.62, 1.05, 16, 3, true)), bell: top0(new THREE.CylinderGeometry(0.6, 0.98, 1.08, 18, 6, true)),
+    hood: new THREE.SphereGeometry(1.0, 30, 20, 0, Math.PI * 2, 0, Math.PI * 0.62), rib: new THREE.TorusGeometry(1, 0.06, 6, 20, Math.PI * 0.8) }; })();
 BODY_KITS.push((K) => {
   const { box, mesh, lam, mats, grp } = K;
-  const spirit = lam('#dbeafe', { emissive: '#1d4ed8', transparent: true, opacity: 0.6 }), fade = lam('#dbeafe', { emissive: '#1d4ed8', transparent: true, opacity: 0.3, depthWrite: false });
-  const shroud = lam('#1b1f3b', { side: THREE.DoubleSide }), shroud2 = lam('#2a3060', { side: THREE.DoubleSide }), dark = new THREE.MeshBasicMaterial({ color: '#05060c' }), chainM = lam('#93c5fd', { emissive: '#1e3a8a', transparent: true, opacity: 0.8 });
-  const glow = (c, sc, o = 0.7) => { const g = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), color: c, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: o })); g.scale.setScalar(sc); return g; };
-  mats.push(shroud, shroud2);
-  const flaps = [], glows = []; // (the tatters, to flutter; the glows, to pulse)
-  // a tattered panel of the shroud hanging from (x, y, z): w wide, len long, in soft folds, its hem torn into points
-  const tatter = (par, x, y, z, w, len, ry = 0, m = shroud) => {
-    const n = Math.max(3, Math.round(w * 5)), g = new THREE.PlaneGeometry(w, len, n * 2, 4), p = g.attributes.position;
-    for (let i = 0; i < p.count; i++) { const px = p.getX(i), py = p.getY(i), t = (len / 2 - py) / len, col = Math.round((px / w + 0.5) * n * 2); p.setY(i, py + (t > 0.99 ? (col % 2 ? 0.34 : (((col * 37) % 7) / 7) * 0.12) * len : 0)); p.setZ(i, 0.05 * Math.sin(px * 9) * t); }
-    g.computeVertexNormals(); const piv = new THREE.Group(); piv.position.set(x, y, z); piv.rotation.y = ry; piv.userData.rx = z < 0 ? -0.05 : 0.05; par.add(piv); const o = new THREE.Mesh(g, m); o.position.y = -len / 2; piv.add(o); flaps.push(piv); return piv;
-  };
+  const T = { value: 0 }, F = { value: 1 }; // (its own clock, and how far it's faded)
+  // the ghost-light: see-through, brighter at the edges, light rippling up through it
+  const ghost = (col, rim, op) => new THREE.ShaderMaterial({ uniforms: { uT: T, uF: F, uC: { value: new THREE.Color(col) }, uR: { value: new THREE.Color(rim) }, uO: { value: op } }, transparent: true, depthWrite: false,
+    vertexShader: 'varying vec3 vN; varying vec3 vV; varying vec3 vP; void main() { vec4 mv = modelViewMatrix * vec4(position, 1.0); vN = normalize(normalMatrix * normal); vV = -mv.xyz; vP = (modelMatrix * vec4(position, 1.0)).xyz; gl_Position = projectionMatrix * mv; }',
+    fragmentShader: 'uniform float uT; uniform float uF; uniform vec3 uC; uniform vec3 uR; uniform float uO; varying vec3 vN; varying vec3 vV; varying vec3 vP; void main() { float f = pow(1.0 - abs(dot(normalize(vN), normalize(vV))), 2.0); float w = 0.5 + 0.5 * sin(vP.y * 3.1 - uT * 2.6 + sin(vP.x * 2.7 + uT) * 1.4) * sin(vP.z * 2.3 + uT * 1.3); gl_FragColor = vec4(mix(uC, uR, f) * (0.85 + 0.5 * f + 0.15 * w), uF * uO * (0.3 + 0.7 * f) * (0.7 + 0.3 * w)); }' });
+  // the robe: dark cloth with a faint sheen, torn at the hem, billowing
+  const robe = (amp, col = '#141838', alpha = PH_TATTER) => { const m = new THREE.MeshPhongMaterial({ color: col, specular: 0x433f86, shininess: 12, side: THREE.DoubleSide, alphaMap: alpha, alphaTest: 0.5 });
+    m.onBeforeCompile = (sh) => { sh.uniforms.uT = T; sh.uniforms.uF = F; sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uF;').replace('gl_FragColor = vec4( outgoingLight, diffuseColor.a );', 'float rimF = pow(1.0 - abs(dot(normal, normalize(vViewPosition))), 3.0); outgoingLight += vec3(0.3, 0.65, 0.95) * rimF * 0.55 * uF; gl_FragColor = vec4( outgoingLight, diffuseColor.a );'); sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nuniform float uT;').replace('#include <begin_vertex>', '#include <begin_vertex>\nfloat bw = clamp(-position.y, 0.0, 4.0); transformed.x += sin(uT * 2.1 + position.y * 2.3 + position.z * 1.7) * ' + amp.toFixed(3) + ' * bw; transformed.z += sin(uT * 1.7 + position.y * 1.9 + position.x * 2.1) * ' + amp.toFixed(3) + ' * bw;'); };
+    m.customProgramCacheKey = () => 'phrobe' + amp + (alpha === PH_TATTER ? '' : 's'); mats.push(m); return m; };
+  const glowS = (c, sc, o = 0.8, add = true) => { const g = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), color: c, transparent: true, depthWrite: false, blending: add ? THREE.AdditiveBlending : THREE.NormalBlending, opacity: o })); g.scale.setScalar(sc); g.userData.o = o; glows.push(g); return g; };
+  const body = ghost('#7dd3fc', '#e0f2fe', 0.75), wisp = ghost('#5eead4', '#ccfbf1', 0.55), boneM = new THREE.MeshBasicMaterial({ color: '#cffafe', transparent: true, opacity: 0.9 }), voidM = new THREE.MeshBasicMaterial({ color: '#020308' });
+  const ironM = new THREE.MeshPhongMaterial({ color: '#334155', specular: 0x9aa4b2, shininess: 60 }), chainM = new THREE.MeshPhongMaterial({ color: '#94a3b8', emissive: '#1e3a8a', specular: 0xffffff, shininess: 80, transparent: true, opacity: 0.9 });
+  const glows = [], swings = [], eyes = [];
+  let souls = null, flame = null;
+  // a hand of bones and light: a palm, four jointed fingers curled like claws, a thumb
+  const boneHand = (par, y) => { const h = new THREE.Group(); h.position.set(0, y, 0); par.add(h); mesh(KIT_SPH, boneM, 0, 0, 0, h).scale.set(0.22, 0.18, 0.1);
+    [-0.15, -0.05, 0.05, 0.15].forEach((x, i) => { const f1 = new THREE.Group(); f1.position.set(x, -0.14, 0); f1.rotation.set(0.25, 0, x * 0.8); h.add(f1); mesh(KIT_CYL, boneM, 0, -0.1, 0, f1).scale.set(0.035, 0.2, 0.035);
+      const f2 = new THREE.Group(); f2.position.set(0, -0.2, 0); f2.rotation.x = 0.5 + (i % 2) * 0.15; f1.add(f2); mesh(KIT_CYL, boneM, 0, -0.08, 0, f2).scale.set(0.028, 0.16, 0.028); mesh(KIT_SPH, boneM, 0, 0, 0, f2).scale.setScalar(0.04); });
+    const th = mesh(KIT_CYL, boneM, -0.24, -0.08, -0.04, h); th.scale.set(0.035, 0.18, 0.035); th.rotation.z = 0.8;
+    const g = glowS('#67e8f9', 1.1, 0.6); h.add(g); return h; };
   return {
-    leg(x) {
+    leg(x) { // (wisps of ghost-light under the robe)
       const hip = grp(K.body, x, 2), kn = grp(hip, 0, -1.0, 1);
-      box(spirit, 0.86, 1.04, 0.86, 0, -0.5, 0, hip);
-      const w = mesh(KIT_CONE, fade, 0, -0.62, 0, kn); w.scale.set(0.42, 1.25, 0.42); w.rotation.x = Math.PI; // (the leg thinning away to a wisp)
-      tatter(hip, 0, 0.06, -0.47, 0.98, 1.2); tatter(hip, 0, 0.06, 0.47, 0.98, 1.2);
+      mesh(KIT_SPH, body, 0, -0.5, 0, hip).scale.set(0.4, 0.58, 0.4);
+      const w = mesh(KIT_CONE, wisp, 0, -0.6, 0, kn); w.scale.set(0.36, 1.2, 0.36); w.rotation.x = Math.PI;
       return [hip, kn];
     },
-    lower() { box(spirit, 1.9, 0.84, 0.9, 0, 2.42, 0); box(shroud2, 2.04, 0.16, 1.02, 0, 2.66, 0); for (const s2 of [-1, 1]) { const k = mesh(KIT_SPH, shroud2, s2 * 0.5, 2.6, -0.53); k.scale.set(0.12, 0.1, 0.08); } },
+    lower() {
+      mesh(KIT_SPH, body, 0, 2.5, 0).scale.set(0.95, 0.5, 0.48);
+      const sk = mesh(PH_GEO.skirt, robe(0.07), 0, 2.8, 0); sk.scale.z = 0.66; // (the robe's skirt, down to the ground, legs lost inside it)
+      const belt = mesh(new THREE.TorusGeometry(1.06, 0.07, 6, 30), new THREE.MeshPhongMaterial({ color: '#2b2f55', shininess: 20 }), 0, 2.72, 0); belt.rotation.x = Math.PI / 2; belt.scale.y = 0.68;
+      for (const s2 of [-1, 1]) { const tl = mesh(KIT_CYL, robe(0.04, '#2b2f55'), s2 * 0.28, 2.68, -0.68); tl.scale.set(0.05, 0.9, 0.05); tl.position.y = 2.25; tl.rotation.z = s2 * 0.08; }
+      // the soul-lantern, swinging at the hip: an iron frame, a ghost-flame inside
+      const lp = new THREE.Group(); lp.position.set(1.12, 2.62, -0.25); K.body.add(lp); swings.push([lp, 0.9, 0.18]);
+      mesh(new THREE.TorusGeometry(0.1, 0.02, 5, 12), ironM, 0, -0.05, 0, lp); box(ironM, 0.02, 0.22, 0.02, 0, -0.2, 0, lp);
+      const L = new THREE.Group(); L.position.y = -0.55; lp.add(L);
+      for (const y of [0.22, -0.22]) box(ironM, 0.36, 0.05, 0.36, 0, y, 0, L);
+      for (const [x, z] of [[-0.16, -0.16], [0.16, -0.16], [-0.16, 0.16], [0.16, 0.16]]) box(ironM, 0.04, 0.44, 0.04, x, 0, z, L);
+      const cap = mesh(KIT_CONE, ironM, 0, 0.36, 0, L); cap.scale.set(0.26, 0.25, 0.26);
+      mesh(KIT_SPH, new THREE.MeshBasicMaterial({ color: '#99f6e4', transparent: true, opacity: 0.25, depthWrite: false }), 0, 0, 0, L).scale.set(0.15, 0.19, 0.15);
+      flame = glowS('#5eead4', 0.9, 0.95); L.add(flame); const core = glowS('#ffffff', 0.32, 0.9); L.add(core);
+      souls = new THREE.Group(); souls.position.y = 3.0; K.body.add(souls); // (wisps of soul circling it)
+      for (let k = 0; k < 3; k++) { const g = glowS(k % 2 ? '#a5f3fc' : '#c4b5fd', 0.7, 0.85); g.position.set(Math.cos(k * 2.1) * 2.0, k * 0.6 - 0.4, Math.sin(k * 2.1) * 2.0); souls.add(g); }
+    },
     upper() {
-      box(spirit, 1.96, 1.16, 0.96, 0, 3.42, 0);
-      tatter(K.body, 0, 4.04, 0.54, 2.14, 2.35); // (the shroud down the back)
-      for (const s2 of [-1, 1]) tatter(K.body, s2 * 0.67, 4.04, -0.54, 0.74, 2.05, s2 * 0.1); // (and down the front, open in the middle)
-      box(shroud, 2.14, 0.24, 1.08, 0, 3.98, 0);
-      const soul = glow('#93c5fd', 1.4, 0.8); soul.position.set(0, 3.45, -0.32); K.body.add(soul); glows.push([soul, 0.8]);
-      const link = new THREE.TorusGeometry(0.07, 0.022, 5, 10); // (a spectral chain, from a shoulder down across it)
-      for (let k = 0; k < 12; k++) { const u = k / 11, l = mesh(link, chainM, -0.85 + u * 1.7, 3.95 - 1.1 * u + 0.22 * Math.sin(u * Math.PI), -0.55); l.rotation.set(k % 2 ? Math.PI / 2 : 0, 0, -0.57); }
+      mesh(KIT_SPH, body, 0, 3.45, 0).scale.set(0.98, 0.62, 0.48);
+      // a ribcage glowing through the open front: a breastbone, ribs curving round, a spine behind
+      box(boneM, 0.09, 0.62, 0.06, 0, 3.55, -0.44); box(boneM, 0.07, 1.0, 0.07, 0, 3.4, 0.1);
+      for (let r = 0; r < 4; r++) for (const s2 of [-1, 1]) { const rb = mesh(PH_GEO.rib, boneM, s2 * 0.05, 3.82 - r * 0.18, -0.1, K.body); rb.scale.set(0.42 - r * 0.02, 0.32, 0.4); rb.rotation.set(Math.PI / 2, 0, s2 > 0 ? -Math.PI * 0.45 : Math.PI * 0.65); }
+      const heart = glowS('#67e8f9', 1.5, 0.7); heart.position.set(0, 3.5, -0.3); K.body.add(heart);
+      const cl = mesh(PH_GEO.cloak, robe(0.06), 0, 4.1, 0.56); cl.rotation.x = 0.04; // (the cloak down the back)
+      const mt = mesh(PH_GEO.mantle, robe(0.03), 0, 4.2, 0); mt.scale.z = 0.64; // (over the shoulders)
+      for (const s2 of [-1, 1]) { const f = mesh(PH_GEO.front, robe(0.05), s2 * 0.64, 4.06, -0.52); f.rotation.set(-0.04, s2 * 0.18, s2 * 0.1); } // (the front, falling open)
+      const link = new THREE.TorusGeometry(0.07, 0.022, 5, 10); // (a chain across it, shoulder to hip)
+      for (let k = 0; k < 13; k++) { const u = k / 12, l = mesh(link, chainM, -0.9 + u * 1.8, 4.0 - 1.2 * u + 0.18 * Math.sin(u * Math.PI), -0.58); l.rotation.set(k % 2 ? Math.PI / 2 : 0, 0, -0.6); }
     },
     arm(s) {
       const sh = grp(K.body, s * 1.5, 4), el = grp(sh, 0, -0.98, 1);
-      box(shroud, 1.06, 1.04, 1.06, 0, -0.46, 0, sh);
-      mesh(new THREE.CylinderGeometry(0.56, 0.8, 1.0, 14, 1, true), shroud, 0, -0.32, 0, el); // (a wide sleeve, torn at the hem)
-      tatter(el, 0, -0.72, -0.66, 1.15, 0.55, 0, shroud2); tatter(el, 0, -0.72, 0.66, 1.15, 0.55, 0, shroud2);
-      box(spirit, 0.66, 0.7, 0.66, 0, -0.45, 0, el);
-      const hand = mesh(KIT_SPH, fade, 0, -0.95, 0, el); hand.scale.set(0.36, 0.32, 0.36);
-      const hg = glow('#60a5fa', 0.95, 0.6); hg.position.set(0, -0.98, 0); el.add(hg); glows.push([hg, 0.6]);
+      mesh(PH_GEO.sleeve, robe(0.02), 0, 0.1, 0, sh);
+      mesh(KIT_SPH, body, 0, -0.45, 0, sh).scale.set(0.34, 0.5, 0.34);
+      mesh(PH_GEO.bell, robe(0.05), 0, 0.05, 0, el); // (a wide sleeve, torn, swinging)
+      const fa = mesh(KIT_CONE, wisp, 0, -0.45, 0, el); fa.scale.set(0.26, 0.9, 0.26); fa.rotation.x = Math.PI;
+      boneHand(el, -1.05);
+      if (s < 0) { // (a broken shackle on this wrist, its chain swinging)
+        mesh(new THREE.TorusGeometry(0.3, 0.06, 6, 16), ironM, 0, -0.82, 0, el).rotation.x = Math.PI / 2;
+        const cp = new THREE.Group(); cp.position.set(0, -0.86, 0.28); el.add(cp); swings.push([cp, 2.3, 0.22]);
+        const lk = new THREE.TorusGeometry(0.07, 0.022, 5, 10); for (let k = 0; k < 8; k++) mesh(lk, chainM, 0, -0.06 - k * 0.11, 0, cp).rotation.y = k % 2 ? Math.PI / 2 : 0;
+      }
       return [sh, el];
     },
-    head(h) { // the face, glowing, in the dark of a deep hood that ends in a drooping point
-      h.add(new THREE.Mesh(HEAD_GEO, spirit));
-      const f = mesh(KIT_PLANE, new THREE.MeshBasicMaterial({ map: tintFace(K.faceCanvas, '#a5f3fc', ''), transparent: true }), 0, 0, -0.69, h); f.scale.set(1.0, 0.95, 1); f.rotation.y = Math.PI;
-      box(dark, 1.2, 1.1, 0.05, 0, 0, -0.62, h);
-      const hood = mesh(new THREE.SphereGeometry(1.0, 24, 16, 0, Math.PI * 2, 0, Math.PI * 0.62), shroud, 0, -0.04, 0.1, h); hood.scale.set(0.98, 1.08, 1.04); hood.rotation.x = 0.9;
-      const rim = mesh(new THREE.TorusGeometry(0.9, 0.075, 6, 28), shroud2, 0, -0.28, -0.2, h); rim.rotation.x = -0.67; rim.scale.set(1, 1.06, 1);
-      mesh(PHANTOM_TIP, shroud, 0, 0, 0, h);
-      const eg = glow('#67e8f9', 1.3, 0.45); eg.position.set(0, 0.08, -0.75); h.add(eg); glows.push([eg, 0.45]);
+    head(h) { // a deep hood ending in a drooping point; inside, darkness and two glowing eyes
+      mesh(KIT_SPH, voidM, 0, -0.02, 0.02, h).scale.set(0.66, 0.68, 0.66);
+      const hood = mesh(PH_GEO.hood, robe(0, '#141838', PH_TATTER_S), 0, -0.04, 0.1, h); hood.scale.set(0.86, 1.0, 0.96); hood.rotation.x = 0.9;
+      mesh(PHANTOM_TIP, new THREE.MeshPhongMaterial({ color: '#141838', specular: 0x433f86, shininess: 12 }), 0, 0, 0, h);
+      for (const s2 of [-1, 1]) { const e = new THREE.Group(); e.position.set(s2 * 0.21, 0.06, -0.6); h.add(e); e.add(glowS('#22d3ee', 0.75, 0.9)); const c = glowS('#ecfeff', 0.2, 1); c.scale.set(0.24, 0.13, 1); e.add(c); eyes.push(e); }
+      const fg = glowS('#0e7490', 1.9, 0.35); fg.position.set(0, 0, -0.5); h.add(fg);
       return true;
     },
-    tick(a, dt) { // flickering, the glows pulsing, the tatters fluttering, mist curling off the hem
-      a.kitT = (a.kitT || 0) + dt; const t = a.kitT, fl = 0.5 + 0.12 * Math.sin(t * 2.3) + 0.06 * Math.sin(t * 17);
-      spirit.opacity = fl; fade.opacity = fl * 0.5;
-      glows.forEach(([g, o], i) => { g.material.opacity = o * (0.75 + 0.25 * Math.sin(t * 3.1 + i)); });
-      flaps.forEach((f, i) => { f.rotation.x = f.userData.rx + 0.08 * Math.sin(t * 2.7 + i * 1.7); });
+    tick(a, dt) {
+      a.kitT = (a.kitT || 0) + dt; const t = a.kitT; T.value = t;
+      // (now and then it fades almost away, flickering, and back)
+      const ph = t % 7.3, fadeK = ph < 0.5 ? 0.35 + 0.65 * Math.abs(Math.cos(ph * 9)) * (ph / 0.5) : 1; F.value = fadeK * (0.92 + 0.08 * Math.sin(t * 17));
+      for (const g of glows) g.material.opacity = g.userData.o * F.value * (0.82 + 0.18 * Math.sin(t * 3.3 + g.id));
+      if (flame) { const fl = 0.8 + 0.2 * Math.sin(t * 23) * Math.sin(t * 13.7); flame.scale.setScalar(0.9 * fl); flame.material.opacity = 0.95 * fl * F.value; }
+      const blink = (t % 4.1) < 0.12 ? 0.12 : 1; for (const e of eyes) e.scale.y = blink;
+      for (const [g, sp, amp] of swings) { g.rotation.x = amp * Math.sin(t * sp); g.rotation.z = amp * 0.6 * Math.sin(t * sp * 0.77 + 1); }
+      if (souls) { souls.rotation.y = t * 0.9; souls.children.forEach((g, k) => { g.position.y = k * 0.6 - 0.4 + 0.35 * Math.sin(t * 1.7 + k * 2); }); }
+      // mist pouring off the hem, and now and then a wisp rising from its eyes
+      if (!emWorld(a) || a.dead) return;
       a.mistT = (a.mistT || 0) - dt;
-      if (a.mistT <= 0 && !a.dead) { a.mistT = 0.09; emBits(a, (Math.random() - 0.5) * 1.6, 0.3 + Math.random() * 0.6, (Math.random() - 0.5) * 0.9, [0xc7d2fe, 0xa5b4fc, 0xe0e7ff], 1, { size: 0.3, speed: 0.4, up: 0.5, g: -0.4, life: 1.0, spread: 0.3 }); }
+      if (a.mistT <= 0) { a.mistT = 0.12; const p = a.g.position, an = Math.random() * Math.PI * 2, r0 = 0.7 + Math.random() * 0.5, s0 = 0.9 + Math.random() * 0.5;
+        const m = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), color: Math.random() < 0.6 ? '#818cf8' : '#5eead4', transparent: true, depthWrite: false, opacity: 0 }));
+        m.position.set(p.x + Math.cos(an) * r0, p.y + 0.22 + Math.random() * 0.15, p.z + Math.sin(an) * r0); m.scale.set(s0 * 1.6, s0 * 0.7, 1);
+        m.userData = { v: new THREE.Vector3(Math.cos(an) * 0.6, 0.02, Math.sin(an) * 0.6), life: 1.3, g: 0, spinless: 1, tick: (o, u) => { const k = 1.6 - u.life * 0.45; o.scale.set(s0 * 1.6 * k, s0 * 0.7 * k, 1); o.material.opacity = 0.3 * Math.min(1, u.life) * Math.min(1, (1.3 - u.life) * 4); } };
+        scene.add(m); bits.push(m); }
     },
   };
 });
-BODY_DESC.push('A body of ghost-light, see-through and flickering, in a tattered shroud that flutters as you move: its legs thin away to wisps, a spectral chain hangs across it, your hands and heart glow, your face glows in the dark of a deep hood that ends in a drooping point, and mist curls off it.');
+BODY_DESC.push('A ghost in a long torn robe that billows as you move: a body of ghost-light, see-through with glowing edges and light rippling through it; a deep hood with nothing inside but darkness and two glowing eyes that blink; hands of glowing bone; a ribcage glowing through the open robe; a chain across you and a broken shackle swinging from one wrist; a soul-lantern swinging at your hip; wisps of soul circling you; mist pouring off your hem — and now and then you fade almost away and back.');
 /* ---------------- shapes for the remade items: feathered wings, a bat's wing, a cape that hangs, a shield ---------------- */
 // a feathered wing, fanned out from the shoulder (s: -1 the left, 1 the right): long feathers at the back, shorter rows
 // over them, longest at the tip. o: { cols: [long, middle, short], span, em (a glow), k (feather length) }
@@ -3735,22 +3792,10 @@ EMOTES.push(
         emNotesTick(F, t, 0.45);
       },
     },
-    ev(a, t0, t1) { // a spooky organ over a funky minor bassline, a snare, and a wolf's howl each time round
+    ev(a, t0, t1) { // a haunted funk: a finger bass riff, a wobbling organ, a theremin, a bell, a wolf, thunder (zombieGroove)
       const c0 = t0 % 6.4, c1 = t1 % 6.4; if (c1 < c0) return;
-      if (crossed(c0, c1, 0.02) || t0 <= 0) emSynth(a, (ac, out, k, at) => { // (the howl)
-        const o = ac.createOscillator(), g = ac.createGain(), vib = ac.createOscillator(), vg = ac.createGain();
-        o.type = 'triangle'; o.frequency.setValueAtTime(330, at); o.frequency.exponentialRampToValueAtTime(620, at + 0.6); o.frequency.exponentialRampToValueAtTime(420, at + 1.6);
-        vib.frequency.value = 6; vg.gain.value = 9; vib.connect(vg); vg.connect(o.frequency); o.connect(g); g.connect(out); synEnv(g.gain, at, 0.25, 1.7, 0.05 * k);
-        o.start(at); vib.start(at); o.stop(at + 1.8); vib.stop(at + 1.8);
-      });
       const e = beatOf(c0, c1, 0.2); if (e < 0) return;
-      const bass = [82.41, 0, 82.41, 98, 0, 110, 98, 82.41, 123.47, 0, 110, 98, 82.41, 0, 73.42, 77.78];
-      emSynth(a, (ac, out, k, at) => {
-        if (bass[e % 16]) synTone(ac, out, { f: bass[e % 16], t: at, dur: 0.18, vol: 0.08 * k, type: 'square', ff: 700 });
-        if (e % 4 === 0) synKick(ac, out, at, 0.2 * k);
-        if (e % 4 === 2) synNoise(ac, out, { t: at, dur: 0.14, vol: 0.08 * k, type: 'bandpass', ff: 1700, q: 0.9 });
-        if (e % 16 === 0 || e % 16 === 8) for (const m of [1, 1.19, 1.5, 2]) synTone(ac, out, { f: 329.63 * m * (e % 16 ? 0.89 : 1), t: at, dur: 1.5, vol: 0.016 * k, type: 'sawtooth', ff: 1400, att: 0.08 });
-      });
+      const loop = Math.floor(t1 / 6.4); emSynth(a, (ac, out, k, at) => zombieGroove(ac, out, k, at, e % 32, loop));
     },
   },
 );
@@ -5974,7 +6019,7 @@ const HW_ITEMS = [ // [kind, which, what it is]
   ['h', 33, 'A witch’s hat with a wide wavy brim and a tall crumpled cone that curls over at the tip: an orange band with a big gold buckle, a stitched patch, gold stars and a moon, a cobweb — and a spider dangling off the brim.'],
   ['b', 16, 'Black satin outside, blood-red silk inside, in deep folds with a bat-wing hem; a tall collar flaring up to two points, gold clasps, a chain and a ruby.'],
   ['pet', 13, 'A little sheet ghost that floats along beside you, its wavy hem trailing behind: big shiny eyes, rosy cheeks, one stubby arm waving and a glowing jack-o’-lantern pail of sweets in the other.'],
-  ['bt', 8, 'A see-through body of flickering ghost-light in a tattered shroud that flutters as you move: legs thinning to wisps, a spectral chain, glowing hands and heart, and your face glowing deep in a pointed hood. Mist curls off it.'],
+  ['bt', 8, 'A ghost in a long torn robe that billows as you move: see-through ghost-light with glowing edges, a deep hood with only darkness and two blinking glowing eyes, hands of glowing bone, a ribcage glowing through the robe, a swinging chain and soul-lantern, wisps of soul circling you and mist pouring off your hem.'],
   ['em', 10, 'A graveyard dance: claws, shimmies and a lurch, to a spooky organ groove. Gravestones rise, rotting hands claw out of the ground, jack-o’-lanterns flicker, bats cross the full moon and a wolf howls.'],
   ['an', 7, 'The Vampire animation pack: stand tall with your cape drawn across your face (and sweep it open with a hiss), stalk along with claws raised, and leap with your arms spread like bat wings in a burst of bats.'],
   ['a', 15, 'A swarm of bats with glowing red eyes and little fangs, flapping and circling you as they fly up.'],
@@ -7565,6 +7610,7 @@ const TSMP = { m: new Map(), SR: 24000,
       for (let n = 1; n * f < 4500; n++) { const F = n * f, ss = H(F, 420), op = H(F, 2400), a = ss / n + (n === 1 ? 0.9 : 0); parts.push([n, a > 1e-3 ? a : 0, 30, Math.max(0, op - ss) / n, 0.06]); } return TSMP.add(m, SR, 1.3, parts); },
     // an electric guitar through a fuzz pedal and a speaker cabinet
     gtr: (m, SR) => { const r = TSMP.ks(m, SR, 2.2, { s: 0.3, bright: 0.7, pick: 0.1, t60: 5 }), y = r.d; let lp = 0, lp2 = 0; for (let i = 0; i < y.length; i++) { lp += 0.4 * (Math.tanh(y[i] * 8) - lp); lp2 += 0.5 * (lp - lp2); y[i] = lp2; } TSMP.fin(y, SR, 0.002); return r; },
+    toll: (m, SR) => TSMP.add(m, SR, 4.5, [[0.5, 0.5, 3.6], [1, 1, 2.6], [1.19, 0.6, 2.0], [1.5, 0.3, 1.6], [2, 0.55, 1.4], [2.52, 0.25, 0.9], [3.01, 0.2, 0.7], [4.1, 0.1, 0.4]], [0.16, 0.012, 0.5]), // (a church bell: the hum an octave down, the minor third in it)
     vibes: (m, SR) => { const r = TSMP.add(m, SR, 2.4, [[1, 1, 1.5], [4, 0.2, 0.32], [10, 0.05, 0.08]], [0.05, 0.004, 0.5]), y = r.d; for (let i = 0; i < y.length; i++) y[i] *= 1 - 0.3 * (0.5 - 0.5 * Math.cos((2 * Math.PI * 5.2 * i) / SR)); return r; }, // (the fan's slow wobble)
   },
 };
@@ -7602,6 +7648,7 @@ const TINST = { // (ac, dest, t, frequency, length, volume)
   celesta: (ac, d, t, f, len, v) => TSMP.play(ac, d, t, 'celesta', f, len, v * 0.4, 0.5),
   marimba: (ac, d, t, f, len, v) => TSMP.play(ac, d, t, 'marimba', f, len, v * 0.5),
   vibes: (ac, d, t, f, len, v) => TSMP.play(ac, d, t, 'vibes', f, len, v * 0.45, 0.4),
+  toll: (ac, d, t, f, len, v) => TSMP.play(ac, d, t, 'toll', f, len, v * 0.5),
   sawpluck: (ac, d, t, f, len, v) => TSMP.play(ac, d, t, 'spluck', f, len, v * 0.42),
   // a big lead: saws across the stereo, an octave of body under them, vibrato as it's held (on the middle voice: the
   // others' shimmer hides that it's only the one)
@@ -7692,6 +7739,52 @@ function bgmPlay(ac, d, song, e, t) {
     else if (e[0] === 'l') TINST[S.li](ac, m.l, t + hum(), hz(e[1]), e[2] * sd * 0.95, (e[3] ? 0.75 : 0.85) * v * vel());
     else if (e[0] === 'r') { const len = e[1] * sd, n = TV.nz(ac, t, len), bp = TV.flt(ac, 'bandpass', 400, 1.8), g = ac.createGain(); bp.frequency.setValueAtTime(400, t); bp.frequency.exponentialRampToValueAtTime(7000, t + len); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.2 * v, t + len); g.gain.linearRampToValueAtTime(0, t + len + 0.03); n.connect(bp); bp.connect(g); g.connect(m.h); }
   } catch (err) { /* (a voice the browser can't make: skip it) */ }
+}
+
+/* ---------------- 🧟 the Zombie Groove's music ----------------
+   A haunted funk, on the same instruments as the themes, in the same hall: a finger bass walking its minor riff, a drawbar
+   organ with its spinning-speaker wobble (E minor, then C, then B7 coming home), a theremin wailing a melody over it, a
+   music box running down the chords every other time round, a funky kick and a snare with a clap on it, a church bell
+   tolling at the top, a wolf (and a second, further off) howling every other time round, thunder rolling now and then.
+   e: the sixteenth (0–31: two bars, 0.2 s each, as the dance moves); loop: how many times round */
+const ZG = { ac: null, out: null, g: null, song: { style: 'zombie-groove', S: { wet: 1.5 }, sd: 0.2 } };
+let ZG_LEVEL = 0.13;
+const ZG_BASS = [40, 0, 40, 43, 0, 45, 43, 40, 47, 0, 45, 43, 40, 0, 38, 39];
+const ZG_THEREMIN = { 0: [76, 1.1], 6: [75, 0.35], 8: [76, 0.35], 10: [79, 1.1], 16: [78, 0.75], 20: [76, 0.75], 24: [75, 1.1], 30: [71, 0.35] };
+function zgHowl(ac, d, t, v) { // (a wolf: a breathy wail that climbs, holds wavering, and falls away; a second answers further off)
+  for (const [dt, k, a] of [[0, 1, 1], [0.5, 1.26, 0.5]]) {
+    const t0 = t + dt, o = TV.osc(ac, 'sawtooth', 400 * k, t0, t0 + 2.7), si = TV.osc(ac, 'sine', 400 * k, t0, t0 + 2.7), bp = TV.flt(ac, 'bandpass', 800, 2.5), g = ac.createGain(), sg = ac.createGain();
+    for (const x of [o, si]) { x.frequency.setValueAtTime(400 * k, t0); x.frequency.exponentialRampToValueAtTime(690 * k, t0 + 0.55); x.frequency.setValueAtTime(690 * k, t0 + 1.3); x.frequency.exponentialRampToValueAtTime(370 * k, t0 + 2.5); }
+    TV.vib(ac, t0, 2.2, 28, 5.5, [o, si], 0.6);
+    bp.frequency.setValueAtTime(700, t0); bp.frequency.linearRampToValueAtTime(1300, t0 + 0.6); bp.frequency.linearRampToValueAtTime(750, t0 + 2.5);
+    sg.gain.value = 0.7; o.connect(bp); bp.connect(g); si.connect(sg); sg.connect(g);
+    g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.13 * a * v, t0 + 0.3); g.gain.setValueAtTime(0.13 * a * v, t0 + 1.8); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 2.6); g.connect(d);
+  }
+}
+function zgThunder(ac, d, t, v) { // (a crack, then the rumble rolling away)
+  const n = TV.nz(ac, t, 3.4), lp = TV.flt(ac, 'lowpass', 1100, 0.5), g = ac.createGain(); lp.frequency.setValueAtTime(1100, t); lp.frequency.exponentialRampToValueAtTime(120, t + 3.2);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.55 * v, t + 0.06); g.gain.exponentialRampToValueAtTime(0.2 * v, t + 0.7); g.gain.exponentialRampToValueAtTime(0.0001, t + 3.3); n.connect(lp); lp.connect(g); g.connect(d);
+  const c = TV.nz(ac, t, 0.3), hp = TV.flt(ac, 'highpass', 1500), cg = TV.env(ac, t, 0.25 * v, 0.002, 0.25); c.connect(hp); hp.connect(cg); cg.connect(d);
+}
+function zombieGroove(ac, out, k, at, e, loop) {
+  if (ZG.ac !== ac || ZG.out !== out) { ZG.ac = ac; ZG.out = out; ZG.g = ac.createGain(); ZG.g.connect(out); }
+  ZG.g.gain.value = ZG_LEVEL;
+  const m = bgmMix(ac, ZG.g, ZG.song), n = hz, bar = e >> 4, s = e % 16, v = k;
+  // drums: a funky kick, a snare with a clap on it, hats leaning on the beat, an open hat before the turn
+  if (s === 0 || s === 7 || s === 10 || (bar && s === 14)) TDB.hit(ac, m.d, 0, at, 0.8 * v);
+  if (s === 4 || s === 12) { TDB.hit(ac, m.d, 1, at, 0.55 * v); TDB.hit(ac, m.d, 2, at + 0.004, 0.45 * v); }
+  TDB.hit(ac, m.h, 3, at, (s % 4 === 0 ? 0.5 : s % 2 ? 0.26 : 0.36) * v * (0.9 + Math.random() * 0.2));
+  if (s === 14 && !bar) TDB.hit(ac, m.h, 4, at, 0.35 * v);
+  // the riff
+  if (ZG_BASS[s]) TINST.fbass(ac, m.b, at, n(ZG_BASS[s]), 0.17, 0.9 * v);
+  // the organ: E minor, then C, then B7 coming home
+  const chord = (ns, len) => ns.forEach((x) => TINST.organ(ac, m.c, at, n(x), len, 0.42 * v));
+  if (e === 0) chord([52, 55, 59, 64], 3.1); else if (e === 16) chord([48, 52, 55, 60], 1.5); else if (e === 24) chord([47, 51, 54, 57], 1.5);
+  // the theremin's melody; every other time round, a music box running down the chords above it
+  if (ZG_THEREMIN[e]) TINST.eerie(ac, m.l, at, n(ZG_THEREMIN[e][0]), ZG_THEREMIN[e][1], 0.75 * v);
+  if (loop % 2 && s % 2 === 0) { const ar = bar ? (s < 8 ? [72, 76, 79, 84] : [71, 75, 78, 81]) : [76, 79, 83, 88]; TINST.musicbox(ac, m.a, at, n(ar[[3, 2, 1, 0, 1, 2, 3, 2][(s / 2) % 8]]), 0.3, 0.32 * v); }
+  // the top of each time round: the bell; a wolf every other time; thunder every third
+  if (e === 0) { TINST.toll(ac, m.p, at, n(40), 4, 0.7 * v); if (loop % 2 === 0) zgHowl(ac, m.l, at + 0.35, v); if (loop % 3 === 1) zgThunder(ac, m.p, at + 0.1, v); }
 }
 
 const musicLabel = () => (Music.on ? `🎵 Music: on${Music.el && !Music.el.paused ? ` · ${MUSIC[Music.i][1]}` : BGM.on && exp && BGM.song ? ` · “${BGM.song.title}” (${BGM.song.n + 1}/${BGM.song.of})` : exp && exp.id === 'beats' ? ' · the club' : ''}` : '🎵 Music: off');
@@ -8041,7 +8134,7 @@ try { loadAvFrom(JSON.parse(localStorage.getItem('rb.av') || 'null')); } catch (
 achNum();
 drawAvatarOpts(); drawMe(); drawExps();
 requestAnimationFrame(frame);
-window.__rb = { P, Net, cam, camera, scene, renderer, keys, EXPS, Meter, GFX, gfxApply, softGL, View, setLock, zoomBy, lookBy, joy, sunL, sunSprite, makeAvatar, join, leave, die, respawn, openShop, buyItem, hasItem, itemCount, giveItem, useItem, shopItem, setItemOff, Trade, startTrade, tradeTick, parts: () => parts, exp: () => exp, me: () => me, iAmHost, crew, players, get AV() { return AV; }, W, earn, spend, roundState, openPanel, closePanel, pickPlane, myPeer, grantCosmetic, snapshot, say, EMOTES, Emo, pickEmote, playEmote, emCommand, emStart, saveAv, pv: () => pv, STUDS, setStuds, randomGame, MAT_TEX, THEMES, THEME_STYLES, themeSong, BGM, Music, TINST, TDRUM, TV, TSMP, TDB, bgmPlay, bgmSkip, musicLabel, GSKINS, skState, skPres, skinOf, skinModel, skinPic, skinClick, drawShop, HW, HW_ITEMS, hwOn, RW, rwState, rwSpin, rwClaimDay, rwCollect, rwBank, rwDay, drawExps, refundOf, setHomeView: (v) => { homeView = v; drawExps(); }, synth: { powerChord, synTone, synNoise, synKick },
+window.__rb = { P, Net, cam, camera, scene, renderer, keys, EXPS, Meter, GFX, gfxApply, softGL, View, setLock, zoomBy, lookBy, joy, sunL, sunSprite, makeAvatar, join, leave, die, respawn, openShop, buyItem, hasItem, itemCount, giveItem, useItem, shopItem, setItemOff, Trade, startTrade, tradeTick, parts: () => parts, exp: () => exp, me: () => me, iAmHost, crew, players, get AV() { return AV; }, W, earn, spend, roundState, openPanel, closePanel, pickPlane, myPeer, grantCosmetic, snapshot, say, EMOTES, Emo, pickEmote, playEmote, emCommand, emStart, saveAv, pv: () => pv, STUDS, setStuds, randomGame, MAT_TEX, THEMES, THEME_STYLES, themeSong, BGM, Music, TINST, TDRUM, TV, TSMP, TDB, bgmPlay, bgmSkip, musicLabel, zombieGroove, ZG, setZgLevel: (v) => { ZG_LEVEL = v; }, GSKINS, skState, skPres, skinOf, skinModel, skinPic, skinClick, drawShop, HW, HW_ITEMS, hwOn, RW, rwState, rwSpin, rwClaimDay, rwCollect, rwBank, rwDay, drawExps, refundOf, setHomeView: (v) => { homeView = v; drawExps(); }, synth: { powerChord, synTone, synNoise, synKick },
   Social, Inv, ED, myId, myCode, fcOf, openEditor, closeEditor, socialScan, avPic, Market, OFFICIAL, xItem, ownsX, copiesOf, drawAvatarOpts, axArr,
   pvSel: () => (pv.selBox ? { inScene: pv.selBox.parent === pv.scene, r: pv.selBox.geometry.boundingSphere && pv.selBox.geometry.boundingSphere.radius, vis: pv.selBox.visible, n: pv.selBox.geometry.attributes.position.count, c: pv.selBox.geometry.attributes.position.array.slice(0, 6) } : null),
   pvGhost: () => { let g = false; if (pv.a) pv.a.g.traverse((o) => { if (o.isMesh && o.material === GHOST_MAT) g = true; }); return g; },
