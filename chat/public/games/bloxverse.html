@@ -412,6 +412,10 @@
   @media (max-width:800px){.hcols{grid-template-columns:1fr}#home.sub #meCard{display:none}}
   .hcard{background:var(--solid);border:1px solid var(--line);border-radius:22px;padding:16px;box-shadow:var(--drop),var(--hi)}
   .hcard h3,#expArea h3{margin:0 0 12px;font:600 19px var(--fh);letter-spacing:.01em;display:flex;align-items:center;gap:8px}
+  .xrand{border:0;border-radius:999px;padding:7px 14px;font:700 13.5px var(--fh);color:#fff;background:linear-gradient(135deg,#8b5cf6,#ec4899);box-shadow:0 3px 0 #6d28d9,0 0 16px rgba(236,72,153,.35);cursor:pointer;white-space:nowrap;transition:transform .12s;min-width:150px}
+  .xrand:hover{transform:translateY(-2px)}.xrand:active{transform:translateY(1px)}
+  .xrand.rolling{animation:xrandShake .12s linear infinite}.xrand.landed{background:linear-gradient(135deg,#22c55e,#16a34a);box-shadow:0 3px 0 #14532d,0 0 20px rgba(74,222,128,.5)}
+  @keyframes xrandShake{25%{transform:rotate(-2deg)}75%{transform:rotate(2deg)}}
   .sect{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
   .sect small{color:var(--dim);font:700 12.5px var(--fb)}
   .avstage{position:relative;border-radius:16px;overflow:hidden;background:radial-gradient(circle at 50% 30%,rgba(125,211,252,.22),transparent 60%),linear-gradient(180deg,#1e293b,#0f172a);margin-bottom:10px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
@@ -964,16 +968,29 @@ const POST = (() => {
 
 /* ---------------- textures ---------------- */
 // plastic with studs on top, like the classic bricks
+// 🧱 Studs (in the menu): on, the classic studs; off, smooth plastic in their place (remembered)
+const STUDS = { on: true };
+try { if (localStorage.getItem('bv-studs') === '0') STUDS.on = false; } catch (e) { /* no storage here */ }
 function makeStudTex() {
-  const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d');
+  const c = document.createElement('canvas'); c.width = c.height = 64; drawStudTex(c);
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
+}
+function drawStudTex(c) {
+  const g = c.getContext('2d'); g.clearRect(0, 0, 64, 64);
   g.fillStyle = '#e9e9e9'; g.fillRect(0, 0, 64, 64);
+  if (!STUDS.on) { const r = mulberry(5); for (let i = 0; i < 300; i++) { g.fillStyle = `rgba(0,0,0,${r() * 0.025})`; g.fillRect(r() * 64, r() * 64, 2, 2); } return; }
   const r = mulberry(5); for (let i = 0; i < 400; i++) { g.fillStyle = `rgba(0,0,0,${r() * 0.035})`; g.fillRect(r() * 64, r() * 64, 2, 2); }
   g.fillStyle = 'rgba(0,0,0,.06)'; g.fillRect(0, 62, 64, 2); g.fillRect(62, 0, 2, 64);
   for (const [x, y] of [[16, 16], [48, 16], [16, 48], [48, 48]]) {
     g.fillStyle = 'rgba(0,0,0,.1)'; g.beginPath(); g.arc(x + 1.5, y + 2, 8.5, 0, 7); g.fill();
     g.fillStyle = '#fbfbfb'; g.beginPath(); g.arc(x - 0.5, y - 0.5, 7.5, 0, 7); g.fill();
   }
-  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
+}
+// switch them: both stud textures are drawn again, and everything using them picks it up
+function setStuds(on) {
+  STUDS.on = !!on; try { localStorage.setItem('bv-studs', STUDS.on ? '1' : '0'); } catch (e) {}
+  if (studBase) { drawStudTex(studBase.image); studBase.needsUpdate = true; texCache.forEach((t) => (t.needsUpdate = true)); }
+  const T = MAT_TEX.studs; if (T) { const g = T.image.getContext('2d'); g.clearRect(0, 0, T.image.width, T.image.height); MATS.studs.draw(g, mulberry(5 * 977 + 256), T.image.width); T.needsUpdate = true; }
 }
 let studBase = null; const texCache = new Map();
 function tex(rx, ry) {
@@ -1040,15 +1057,16 @@ const shade = (v, a = 1) => `rgba(${v},${v},${v},${a})`;
 function specks(g, r, n, count, size, lo, hi, a) { for (let i = 0; i < count; i++) { const x = r() * n, y = r() * n, s = size * (0.5 + r()), v = Math.round(lo + r() * (hi - lo)); g.fillStyle = shade(v, a); for (const [ox, oy] of [[0, 0], [-n, 0], [0, -n], [-n, -n]]) g.fillRect(x + ox, y + oy, s, s); } }
 const MATS = {
   plastic: { tile: 8, gain: 1.02, spec: 0x1c1c1c, shin: 30, bev: 1, tex: () => matCanvas('plastic', (g, r, n) => { g.fillStyle = shade(250); g.fillRect(0, 0, n, n); specks(g, r, n, 900, 2, 236, 255, 0.35); }) },
-  studs: { tile: 2, gain: 1.04, spec: 0x2a2a2a, shin: 30, bev: 1, tex: () => matCanvas('studs', (g, r, n) => {
+  studs: { tile: 2, gain: 1.04, spec: 0x2a2a2a, shin: 30, bev: 1, tex: () => matCanvas('studs', MATS.studs.draw), draw: (g, r, n) => {
     g.fillStyle = shade(246); g.fillRect(0, 0, n, n); specks(g, r, n, 500, 2, 232, 255, 0.3);
+    if (!STUDS.on) return; // (🧱 Studs off: smooth)
     for (const [x, y] of [[0.25, 0.25], [0.75, 0.25], [0.25, 0.75], [0.75, 0.75]]) {
       const cx = x * n, cy = y * n, R = n * 0.14;
       g.fillStyle = 'rgba(0,0,0,.13)'; g.beginPath(); g.arc(cx + R * 0.18, cy + R * 0.26, R * 1.04, 0, 7); g.fill();
       const gr = g.createRadialGradient(cx - R * 0.35, cy - R * 0.35, R * 0.1, cx, cy, R); gr.addColorStop(0, shade(255)); gr.addColorStop(1, shade(236));
       g.fillStyle = gr; g.beginPath(); g.arc(cx, cy, R, 0, 7); g.fill();
     }
-  }) },
+  } },
   wood: { tile: 8, gain: 1.16, spec: 0x161210, shin: 14, bev: 0.8, tex: () => matCanvas('wood', (g, r, n) => {
     const planks = 4, w = n / planks;
     for (let k = 0; k < planks; k++) {
@@ -5978,6 +5996,18 @@ setInterval(() => {
   });
   if (!sl && homeView === 'rw' && !RW.spinning) { const g = document.querySelector('[data-rw="go"]'); if (g && g.disabled) drawExps(); }
 }, 1000);
+// 🎲 Random game: the button rolls through the experiences' emojis, lands on one (not the one you played last), and in you go
+function randomGame(btn) {
+  if (randomGame.busy || playing) return;
+  const all = Object.values(EXPS), last = drawExps.lastPlayed, pool = all.length > 1 ? all.filter((E) => E.id !== last) : all, E = pool[Math.floor(Math.random() * pool.length)];
+  randomGame.busy = true; btn.classList.add('rolling'); let n = 0;
+  const roll = () => {
+    if (n++ < 14) { const R = all[Math.floor(Math.random() * all.length)]; btn.textContent = `🎲 ${R.emoji}`; sfx('tick', { vol: 0.6 }); setTimeout(roll, 45 + n * 9); return; }
+    btn.textContent = `${E.emoji} ${E.name}!`; btn.classList.remove('rolling'); btn.classList.add('landed'); sfx('reward');
+    setTimeout(() => { randomGame.busy = false; drawExps.lastPlayed = E.id; join(E.id); }, 650);
+  };
+  roll();
+}
 function drawExps() {
   if (playing) return;
   const c = counts(), total = (E) => Array.from({ length: SERVERS }, (_, k) => c[`${E.code}-${k + 1}`] || 0).reduce((a, b) => a + b, 0);
@@ -6021,13 +6051,14 @@ function drawExps() {
     if (LIST.genre !== 'All' && LIST.genre !== '❤️' && !genres.includes(LIST.genre)) LIST.genre = 'All';
     const chip = (k, v, label, n) => `<button class="xchip${LIST[k] === v ? ' on' : ''}" data-${k}="${esc(v)}">${label}${n != null ? ` <small>${n}</small>` : ''}</button>`;
     $('#expArea').innerHTML = (hwOn() ? hwBanner() : '') + (W.loaded ? rwStrip() : '') + (F ? `<div class="feat" data-e="${F.id}" role="button" tabindex="0" style="--exp:${F.color}"><div><span class="tag">⭐ Featured</span><h2>${esc(F.name)}</h2><p>${esc(F.desc.split('. ').slice(0, 2).join('. ').replace(/\.?$/, '.'))}</p><div class="meta">${live(F)}<span class="pill">👥 up to ${F.max}</span>${F.genre ? `<span class="pill">${esc(F.genre)}</span>` : ''}</div></div><span class="art">${F.emoji}</span><button class="playbig" data-play="${F.id}" title="Play"><span class="tri"></span>Play</button></div>` : '')
-      + `<h3 class="sect">🎮 Experiences <small id="expCount"></small></h3>
+      + `<h3 class="sect"><span>🎮 Experiences <small id="expCount"></small></span><button class="xrand" id="expRand" title="Jump into a random experience">🎲 Random game</button></h3>
       <div class="xtools"><label class="xsearch">🔍<input id="expQ" type="search" placeholder="Search experiences" value="${esc(LIST.q)}" autocomplete="off"></label>
         <div class="xchips" id="expSorts">${SORTS.map(([v, l]) => chip('sort', v, l)).join('')}</div></div>
       <div class="xchips xgenres" id="expGenres">${chip('genre', 'All', '🎮 All', all.length)}${chip('genre', '❤️', '❤️ Favourites', all.filter((E) => FAVS.has(E.id)).length)}${genres.map((g) => chip('genre', g, esc(g), all.filter((E) => E.genre === g).length)).join('')}</div>
       <div class="egrid" id="expGrid"></div>
       <p class="note">Move with <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, jump with <kbd>Space</kbd>, hold <kbd>Shift</kbd> to sprint, drag the mouse to turn the camera, scroll to zoom (all the way in for first person), <kbd>Ctrl</kbd> for shift lock. <kbd>/</kbd> chats, <kbd>R</kbd> resets your character, <kbd>Esc</kbd> opens the menu.</p>`;
     const rs = $('#expArea .rwstrip'); if (rs) rs.onclick = rwClick;
+    const rb = $('#expRand'); if (rb) rb.onclick = () => randomGame(rb);
     const hb = $('#expArea .hwban'); if (hb) hb.onclick = hb.onkeydown = (e) => { if (e.type === 'keydown' && e.key !== 'Enter') return; homeView = 'hw'; sfx('open'); drawExps(); };
     const feat = $('#expArea').querySelector('.feat');
     if (feat) feat.onclick = (e) => { if (e.target.closest('[data-play]')) return; homeView = F.id; drawExps(); };
@@ -7305,18 +7336,20 @@ function bgmPlay(ac, d, song, e, t) {
   } catch (err) { /* (a voice the browser can't make: skip it) */ }
 }
 
-const musicLabel = () => (Music.on ? `🎵 Music: on${Music.el && !Music.el.paused ? ` · ${MUSIC[Music.i][1]}` : BGM.on && exp ? ` · ${exp.name} theme` : ''}` : '🎵 Music: off');
+const musicLabel = () => (Music.on ? `🎵 Music: on${Music.el && !Music.el.paused ? ` · ${MUSIC[Music.i][1]}` : BGM.on && exp ? ` · ${exp.name} theme` : exp && exp.id === 'beats' ? ' · the club' : ''}` : '🎵 Music: off');
 
 /* ---------------- pause menu ---------------- */
+const studsLabel = () => (STUDS.on ? '🧱 Studs: on' : '🧱 Studs: off (smooth)');
 const keysLabel = () => (View.keys === 'lock' ? '⌨️ Shift: shift lock · double-tap W: sprint' : '⌨️ Shift (or double-tap W): sprint · Ctrl: shift lock');
 function showPause() {
   if (!playing) return;
   unlock();
   $('#pausePanel').innerHTML = `<div class="phead"><div class="pthumb"><span>${exp.emoji}</span></div></div><h2>${esc(exp.name)}</h2><p>Server ${Net.srvN} · 👥 ${Math.max(1, crew().length)} playing</p>
     <button class="btn play" id="pResume">▶ Resume</button>${exp.noReset ? '' : '<button class="btn" id="pReset">🔄 Reset character <kbd>R</kbd></button>'}
-    <button class="btn" id="pSound">${window.Sfx && !Sfx.on ? '🔇 Sound: off' : '🔊 Sound: on'}</button>${exp.music ? `<button class="btn" id="pMusic">${musicLabel()}</button>` : ''}
+    <button class="btn" id="pSound">${window.Sfx && !Sfx.on ? '🔇 Sound: off' : '🔊 Sound: on'}</button><button class="btn" id="pMusic">${musicLabel()}</button>
     <button class="btn" id="pMeter">${Meter.shown ? '📊 FPS & ping: shown' : '📊 FPS & ping: hidden'}</button>
     <button class="btn" id="pGfx">${gfxLabel()}</button>
+    <button class="btn" id="pStuds">${studsLabel()}</button>
     ${exp.noLock ? '' : `<button class="btn" id="pLock">${View.lock ? '🔒 Shift lock: on' : '🔓 Shift lock: off'} <kbd>${lockKeyName()}</kbd></button>`}
     <button class="btn" id="pKeys">${keysLabel()}</button>
     <button class="btn red" id="pLeave">🚪 Leave</button>`;
@@ -7325,6 +7358,7 @@ function showPause() {
   if ($('#pReset')) $('#pReset').onclick = () => { $('#pause').hidden = true; die(); };
   $('#pLeave').onclick = () => leave();
   $('#pSound').onclick = () => { if (!window.Sfx) return; Sfx.toggle(); $('#pSound').textContent = Sfx.on ? '🔊 Sound: on' : '🔇 Sound: off'; };
+  $('#pStuds').onclick = () => { setStuds(!STUDS.on); sfx('toggle'); $('#pStuds').textContent = studsLabel(); };
   if ($('#pMusic')) $('#pMusic').onclick = () => { Music.on = !Music.on; try { localStorage.setItem('bv-music', Music.on ? '1' : '0'); } catch (e) {} musicTick(0); $('#pMusic').textContent = musicLabel(); };
   $('#pMeter').onclick = () => { Meter.shown = !Meter.shown; Meter.sentAt = 0; Meter.ping = null; try { localStorage.setItem('bv-meter', Meter.shown ? '1' : '0'); } catch (e) {} $('#pMeter').textContent = Meter.shown ? '📊 FPS & ping: shown' : '📊 FPS & ping: hidden'; drawMeter(); };
   if ($('#pLock')) $('#pLock').onclick = () => { $('#pause').hidden = true; setLock(!View.lock); };
@@ -7648,7 +7682,7 @@ try { loadAvFrom(JSON.parse(localStorage.getItem('rb.av') || 'null')); } catch (
 achNum();
 drawAvatarOpts(); drawMe(); drawExps();
 requestAnimationFrame(frame);
-window.__rb = { P, Net, cam, camera, scene, renderer, keys, EXPS, Meter, GFX, gfxApply, softGL, View, setLock, zoomBy, lookBy, joy, sunL, sunSprite, makeAvatar, join, leave, die, respawn, openShop, buyItem, hasItem, itemCount, giveItem, useItem, shopItem, setItemOff, Trade, startTrade, tradeTick, parts: () => parts, exp: () => exp, me: () => me, iAmHost, crew, players, get AV() { return AV; }, W, earn, spend, roundState, openPanel, closePanel, pickPlane, myPeer, grantCosmetic, snapshot, say, EMOTES, Emo, pickEmote, playEmote, emCommand, emStart, saveAv, pv: () => pv, THEMES, THEME_STYLES, themeSong, BGM, Music, TINST, TDRUM, bgmPlay, GSKINS, skState, skPres, skinOf, skinModel, skinPic, skinClick, drawShop, HW, HW_ITEMS, hwOn, RW, rwState, rwSpin, rwClaimDay, rwCollect, rwBank, rwDay, drawExps, refundOf, setHomeView: (v) => { homeView = v; drawExps(); }, synth: { powerChord, synTone, synNoise, synKick },
+window.__rb = { P, Net, cam, camera, scene, renderer, keys, EXPS, Meter, GFX, gfxApply, softGL, View, setLock, zoomBy, lookBy, joy, sunL, sunSprite, makeAvatar, join, leave, die, respawn, openShop, buyItem, hasItem, itemCount, giveItem, useItem, shopItem, setItemOff, Trade, startTrade, tradeTick, parts: () => parts, exp: () => exp, me: () => me, iAmHost, crew, players, get AV() { return AV; }, W, earn, spend, roundState, openPanel, closePanel, pickPlane, myPeer, grantCosmetic, snapshot, say, EMOTES, Emo, pickEmote, playEmote, emCommand, emStart, saveAv, pv: () => pv, STUDS, setStuds, randomGame, MAT_TEX, THEMES, THEME_STYLES, themeSong, BGM, Music, TINST, TDRUM, bgmPlay, GSKINS, skState, skPres, skinOf, skinModel, skinPic, skinClick, drawShop, HW, HW_ITEMS, hwOn, RW, rwState, rwSpin, rwClaimDay, rwCollect, rwBank, rwDay, drawExps, refundOf, setHomeView: (v) => { homeView = v; drawExps(); }, synth: { powerChord, synTone, synNoise, synKick },
   Social, Inv, ED, myId, myCode, fcOf, openEditor, closeEditor, socialScan, avPic, Market, OFFICIAL, xItem, ownsX, copiesOf, drawAvatarOpts, axArr,
   pvSel: () => (pv.selBox ? { inScene: pv.selBox.parent === pv.scene, r: pv.selBox.geometry.boundingSphere && pv.selBox.geometry.boundingSphere.radius, vis: pv.selBox.visible, n: pv.selBox.geometry.attributes.position.count, c: pv.selBox.geometry.attributes.position.array.slice(0, 6) } : null),
   pvGhost: () => { let g = false; if (pv.a) pv.a.g.traverse((o) => { if (o.isMesh && o.material === GHOST_MAT) g = true; }); return g; },

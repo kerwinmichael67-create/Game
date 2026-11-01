@@ -369,7 +369,8 @@
       // your studio: while it's open and playing you hear only yours
       const mineOn = !!(this.mine && this.mine.on), sd = Math.hypot(P.x, P.z + 26);
       if (this.mine) { this.mine.B = this.B; pump(this.mine, mineOn && this.studioOpen() ? 0.95 : 0); if (!this.studioOpen() && this.mine.on && !this.live) { this.mine.on = false; } }
-      pump(this.club, mineOn && this.studioOpen() ? 0 : clamp(1.05 - sd / 110, 0.4, 1));
+      const musicOn = typeof Music === 'undefined' || Music.on; // (🎵 Music off in the menu: the club's quiet; your own studio still plays)
+      pump(this.club, mineOn && this.studioOpen() ? 0 : musicOn ? clamp(1.05 - sd / 110, 0.4, 1) : 0);
       // what everyone sees: the club's beat, step by step
       const src = mineOn && this.studioOpen() ? this.mine : this.club, B = src.B, k = Math.floor((now() - src.t0) / stepLen(B)), s = ((k % 16) + 16) % 16, V = this.vis;
       if (k !== V.k) {
