@@ -4591,208 +4591,501 @@ const fleeceTex = () => kCanvas('goldFleece', 128, 128, (g, r) => { g.fillStyle 
 const dpScaleTex = (c1, c2) => kCanvas('scales' + c1 + c2, 64, 64, (g) => { g.fillStyle = c2; g.fillRect(0, 0, 64, 64); for (let y = 0; y < 72; y += 8) for (let x = (y / 8) % 2 ? 4 : 0; x < 72; x += 8) { const gr = g.createRadialGradient(x, y - 2, 0, x, y, 6); gr.addColorStop(0, c1); gr.addColorStop(1, c2); g.fillStyle = gr; g.beginPath(); g.arc(x, y, 5, 0, Math.PI); g.fill(); } });
 const DP_GOLD = () => metal('#e8b84a', { specular: '#fff2c0', shininess: 90, emissive: '#2a1d00' });
 const nowS = () => performance.now() / 1000;
-// ---------------------------------------------------------------- hats
+// ---------------------------------------------------------------- hats (💎 overhauled: real silhouettes, worked metal, cloth and lacquer you can read, and things that move or shine)
+// shared bits: a flat shape pushed out into a plate ([x, y] lines, [cx, cy, x, y] curves), more texture across a geometry, worked-metal pictures
+const ovShape = (key, pts, depth, bev = 0.01) => kg(key, () => { const sh = new THREE.Shape(); sh.moveTo(pts[0][0], pts[0][1]);
+  for (let i = 1; i < pts.length; i++) { const p = pts[i]; if (p.length === 4) sh.quadraticCurveTo(p[0], p[1], p[2], p[3]); else sh.lineTo(p[0], p[1]); }
+  sh.closePath(); const g = new THREE.ExtrudeGeometry(sh, { depth, bevelEnabled: bev > 0, bevelThickness: bev, bevelSize: bev, bevelSegments: 2, curveSegments: 10 }); g.translate(0, 0, -depth / 2); g.computeVertexNormals(); return g; });
+const uvScale = (geo, sx, sy) => { const uv = geo.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * sx, uv.getY(i) * sy); return geo; };
+const ovNemesTex = () => kCanvas('ovNemes', 64, 256, (g, r) => { for (let k = 0; k < 16; k++) { const y = k * 16, au = k % 2 === 0, gr = g.createLinearGradient(0, y, 0, y + 16);
+    if (au) { gr.addColorStop(0, '#f8dd86'); gr.addColorStop(0.5, '#e8b84a'); gr.addColorStop(1, '#a8761f'); } else { gr.addColorStop(0, '#3157c9'); gr.addColorStop(0.5, '#1e3a8a'); gr.addColorStop(1, '#122466'); }
+    g.fillStyle = gr; g.fillRect(0, y, 64, 16); g.fillStyle = 'rgba(25,14,0,.4)'; g.fillRect(0, y + 15, 64, 1); g.fillStyle = 'rgba(255,255,255,.18)'; g.fillRect(0, y, 64, 1); }
+  for (let x = 0; x < 64; x += 2) { g.fillStyle = `rgba(255,255,255,${0.02 + r() * 0.05})`; g.fillRect(x, 0, 1, 256); } }); // (gold and lapis linen, finely woven)
+const ovBandTex = () => kCanvas('ovBand', 256, 32, (g) => { const gr = g.createLinearGradient(0, 0, 0, 32); gr.addColorStop(0, '#fff1b8'); gr.addColorStop(0.3, '#e8b84a'); gr.addColorStop(1, '#8a5d14'); g.fillStyle = gr; g.fillRect(0, 0, 256, 32);
+  const cols = ['#1d4ed8', '#dc2626', '#14b8a6', '#dc2626']; for (let k = 0; k < 16; k++) { g.fillStyle = cols[k % 4]; g.fillRect(k * 16 + 3, 8, 10, 16); g.fillStyle = 'rgba(255,255,255,.3)'; g.fillRect(k * 16 + 3, 8, 10, 3); }
+  g.fillStyle = 'rgba(80,50,0,.6)'; g.fillRect(0, 3, 256, 2); g.fillRect(0, 27, 256, 2); }); // (gold inlaid with lapis, carnelian and turquoise)
+const ovIronTex = () => kCanvas('ovIron', 128, 128, (g, r) => { g.fillStyle = '#6b7079'; g.fillRect(0, 0, 128, 128);
+  for (let k = 0; k < 220; k++) { const x = r() * 128, y = r() * 128, rr = 2 + r() * 7, gr = g.createRadialGradient(x, y, 0, x, y, rr), d = r() < 0.5; gr.addColorStop(0, d ? 'rgba(40,42,48,.35)' : 'rgba(175,180,190,.25)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(x - rr, y - rr, rr * 2, rr * 2); }
+  for (let k = 0; k < 40; k++) { g.fillStyle = `rgba(${120 + r() * 40},${60 + r() * 20},20,${0.12 + r() * 0.15})`; g.beginPath(); g.arc(r() * 128, r() * 128, 1 + r() * 4, 0, 7); g.fill(); }
+  g.strokeStyle = 'rgba(225,230,240,.2)'; g.lineWidth = 1; for (let k = 0; k < 25; k++) { const x = r() * 128, y = r() * 128; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (r() - 0.5) * 30, y + (r() - 0.5) * 8); g.stroke(); } }); // (hammered iron: dents, rust, scratches)
+const ovBronzeTex = () => kCanvas('ovBronze', 128, 32, (g) => { const gr = g.createLinearGradient(0, 0, 0, 32); gr.addColorStop(0, '#f0c77e'); gr.addColorStop(0.5, '#b07a35'); gr.addColorStop(1, '#6b4515'); g.fillStyle = gr; g.fillRect(0, 0, 128, 32);
+  g.fillStyle = 'rgba(40,25,5,.55)'; for (let x = 4; x < 128; x += 8) { g.beginPath(); g.arc(x, 8, 1.6, 0, 7); g.fill(); g.beginPath(); g.arc(x + 4, 24, 1.6, 0, 7); g.fill(); }
+  g.strokeStyle = 'rgba(40,25,5,.5)'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(0, 16); for (let x = 0; x <= 128; x += 8) g.lineTo(x, x % 16 ? 12 : 20); g.stroke(); }); // (punched dots and a zigzag)
+const ovOdoshiTex = (col) => kCanvas('odoshi' + col, 128, 32, (g) => { const gr = g.createLinearGradient(0, 0, 0, 32); gr.addColorStop(0, '#30303a'); gr.addColorStop(0.4, '#0e0e12'); gr.addColorStop(1, '#050507'); g.fillStyle = gr; g.fillRect(0, 0, 128, 32);
+  for (let x = 2; x < 128; x += 8) { g.fillStyle = col; g.fillRect(x, 5, 4, 27); g.fillStyle = 'rgba(0,0,0,.4)'; g.fillRect(x + 3, 5, 1, 27); g.fillStyle = 'rgba(255,255,255,.3)'; g.fillRect(x, 5, 1, 27); }
+  g.fillStyle = '#d4a017'; g.fillRect(0, 0, 128, 2); }); // (black lacquer, laced in silk of your colour, a gold edge)
+const ovMonTex = () => kCanvas('ovMon', 128, 128, (g) => { const gr = g.createRadialGradient(54, 50, 6, 64, 64, 64); gr.addColorStop(0, '#fff3c4'); gr.addColorStop(0.6, '#e8b84a'); gr.addColorStop(1, '#8a5d14'); g.fillStyle = gr; g.beginPath(); g.arc(64, 64, 62, 0, 7); g.fill();
+  g.fillStyle = '#18181b'; g.translate(64, 64); for (let k = 0; k < 3; k++) { g.rotate((Math.PI * 2) / 3); g.beginPath(); g.arc(0, -22, 18, 0, 7); g.fill(); g.beginPath(); g.moveTo(18, -22); g.quadraticCurveTo(26, 10, -6, 30); g.quadraticCurveTo(10, 4, -2, -6); g.fill(); } }); // (a crest of three tomoe)
+const ovMeanderTex = () => kCanvas('ovMeander', 256, 32, (g) => { const gr = g.createLinearGradient(0, 0, 0, 32); gr.addColorStop(0, '#fff3c4'); gr.addColorStop(0.35, '#f2c14e'); gr.addColorStop(1, '#9a6512'); g.fillStyle = gr; g.fillRect(0, 0, 256, 32);
+  g.strokeStyle = 'rgba(90,50,0,.75)'; g.lineWidth = 2.5; g.beginPath(); for (let x = 0; x < 256; x += 16) { g.moveTo(x, 24); g.lineTo(x, 8); g.lineTo(x + 12, 8); g.lineTo(x + 12, 20); g.lineTo(x + 5, 20); g.lineTo(x + 5, 13); } g.stroke(); g.fillStyle = 'rgba(90,50,0,.6)'; g.fillRect(0, 2, 256, 2); g.fillRect(0, 28, 256, 2); }); // (a Greek key)
+const ovSunFaceTex = () => kCanvas('ovSunFace', 128, 128, (g) => { g.translate(64, 64); for (let k = 0; k < 16; k++) { g.rotate(Math.PI / 8); g.fillStyle = k % 2 ? '#f59e0b' : '#fde68a'; g.beginPath(); g.moveTo(-7, -40); g.lineTo(0, -63); g.lineTo(7, -40); g.fill(); }
+  const gr = g.createRadialGradient(-10, -12, 4, 0, 0, 44); gr.addColorStop(0, '#fffbe6'); gr.addColorStop(0.5, '#fbbf24'); gr.addColorStop(1, '#b45309'); g.fillStyle = gr; g.beginPath(); g.arc(0, 0, 42, 0, 7); g.fill();
+  g.strokeStyle = '#7c3a06'; g.lineWidth = 3; for (const x of [-14, 14]) { g.beginPath(); g.arc(x, -6, 6, Math.PI, 0); g.stroke(); } g.beginPath(); g.arc(0, 6, 16, 0.25, Math.PI - 0.25); g.stroke(); g.beginPath(); g.moveTo(0, -4); g.lineTo(-3, 6); g.lineTo(3, 6); g.stroke(); }); // (the sun's own face)
+const ovEmberTex = () => kCanvas('ovEmber', 256, 256, (g, r) => { g.fillStyle = '#000'; g.fillRect(0, 0, 256, 256); g.shadowColor = '#ff6a1a'; g.shadowBlur = 8; g.lineCap = 'round';
+  const crack = (x, y, a, w, d) => { if (d > 5 || w < 0.6) return; const l = 14 + r() * 26, x2 = x + Math.cos(a) * l, y2 = y + Math.sin(a) * l; g.strokeStyle = `rgba(255,${90 + r() * 80},30,${0.75 + r() * 0.25})`; g.lineWidth = w; g.beginPath(); g.moveTo(x, y); g.lineTo(x2, y2); g.stroke(); crack(x2, y2, a + (r() - 0.5) * 0.9, w * 0.85, d + 1); if (r() < 0.45) crack(x2, y2, a + (r() < 0.5 ? 1 : -1) * (0.6 + r() * 0.6), w * 0.6, d + 2); };
+  for (let k = 0; k < 14; k++) crack(r() * 256, r() * 256, r() * 6.3, 2.6, 0); }); // (glowing cracks for an emissive map)
+const ovFeltTex = (c) => kCanvas('ovFelt' + c, 128, 128, (g, r) => { g.fillStyle = c; g.fillRect(0, 0, 128, 128); for (let k = 0; k < 900; k++) { g.fillStyle = r() < 0.5 ? 'rgba(0,0,0,.08)' : 'rgba(255,255,255,.06)'; g.fillRect(r() * 128, r() * 128, 1 + r() * 3, 1); }
+  for (let k = 0; k < 30; k++) { const x = r() * 128, y = r() * 128, rr = 6 + r() * 16, gr = g.createRadialGradient(x, y, 0, x, y, rr); gr.addColorStop(0, `rgba(0,0,0,${0.05 + r() * 0.08})`); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(x - rr, y - rr, rr * 2, rr * 2); } }); // (worn felt)
+const ovCaduceusTex = () => kCanvas('ovCaduceus', 128, 128, (g) => { const gr = g.createRadialGradient(54, 50, 6, 64, 64, 64); gr.addColorStop(0, '#fff3c4'); gr.addColorStop(0.65, '#e8b84a'); gr.addColorStop(1, '#8a5d14'); g.fillStyle = gr; g.beginPath(); g.arc(64, 64, 62, 0, 7); g.fill();
+  g.strokeStyle = '#5b3a0a'; g.lineWidth = 5; g.beginPath(); g.moveTo(64, 22); g.lineTo(64, 110); g.stroke(); g.lineWidth = 4; for (const s of [-1, 1]) { g.beginPath(); g.moveTo(64, 104); for (let t = 0; t <= 1; t += 0.05) g.lineTo(64 + s * Math.sin(t * Math.PI * 3) * 16, 104 - t * 70); g.stroke(); }
+  g.fillStyle = '#5b3a0a'; for (const s of [-1, 1]) { g.beginPath(); g.moveTo(64, 30); g.quadraticCurveTo(64 + s * 30, 10, 64 + s * 44, 26); g.quadraticCurveTo(64 + s * 26, 28, 64, 38); g.fill(); } g.beginPath(); g.arc(64, 22, 6, 0, 7); g.fill(); }); // (Hermes' winged staff)
+const ovValknutTex = () => kCanvas('ovValknut', 64, 64, (g) => { g.fillStyle = '#9ca3af'; g.beginPath(); g.arc(32, 32, 31, 0, 7); g.fill(); g.strokeStyle = '#1f2937'; g.lineWidth = 3.5;
+  for (let k = 0; k < 3; k++) { const cx = 32 + Math.cos(-Math.PI / 2 + k * 2.09) * 6, cy = 34 + Math.sin(-Math.PI / 2 + k * 2.09) * 6; g.beginPath(); for (let j = 0; j < 3; j++) { const a = -Math.PI / 2 + j * 2.094; g.lineTo(cx + Math.cos(a) * 17, cy + Math.sin(a) * 17); } g.closePath(); g.stroke(); } }); // (Odin's knot, in silver)
+const ovFlowerTex = () => kCanvas('ovFlower', 64, 64, (g) => { g.translate(32, 32); for (let k = 0; k < 5; k++) { g.rotate((Math.PI * 2) / 5); g.fillStyle = '#fdfcf5'; g.beginPath(); g.ellipse(0, -14, 9, 15, 0, 0, 7); g.fill(); } g.fillStyle = '#facc15'; g.beginPath(); g.arc(0, 0, 7, 0, 7); g.fill(); });
 function dpHat(n, C) {
-  const { head, lam, mesh, box, cyl, mats, av, xt } = C, gold = DP_GOLD();
+  const { head, lam, mesh, box, mats, av, xt } = C, gold = DP_GOLD(), x0 = xt.length;
   const G = (x, y, z, par = head) => { const o = new THREE.Group(); o.position.set(x, y, z); par.add(o); return o; };
-  if (n === 34) { // 🐍 Pharaoh's nemes: a headcloth striped in gold and lapis, pulled tight across the brow under a gold band, falling in two lappets over the chest and gathered in a tail behind; the uraeus — the royal cobra — rearing at the brow
-    const st = lam('#ffffff', { map: nemesTex(), side: THREE.DoubleSide });
-    const cap = mesh(new THREE.SphereGeometry(0.75, 30, 14, 0, Math.PI * 2, 0, Math.PI * 0.56), st, 0, 0.26, 0, head); cap.scale.set(1.02, 0.98, 1.04);
-    mesh(new THREE.CylinderGeometry(0.765, 0.765, 0.15, 30, 1, true), gold, 0, 0.33, 0, head).material.side = THREE.DoubleSide;
+  const P = (c, o) => new THREE.MeshPhongMaterial(Object.assign({ color: c }, o || {}));
+  const ring = (r, tb, y, m, par = head, z = 0) => { const o = mesh(kg(`ovRing${r}_${tb}`, () => new THREE.TorusGeometry(r, tb, 6, Math.max(24, Math.round(r * 48)))), m, 0, y, z, par); o.rotation.x = Math.PI / 2; return o; }; // (a thin ring round the head)
+  const glints = [], glint = (par, x, y, z, s, sp = 0.7, ph = 0) => { const g2 = new THREE.Sprite(new THREE.SpriteMaterial({ map: fxTex('twinkle'), color: '#fffbe6', transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0 })); g2.position.set(x, y, z); g2.scale.setScalar(s); par.add(g2); glints.push([g2, s, sp, ph]); return g2; };
+  xt.push(() => { if (!glints.length) return; const t = nowS(); for (const [g2, s, sp, ph] of glints) { const k = Math.pow(Math.max(0, Math.sin(t * sp + ph)), 16); g2.material.opacity = k; g2.scale.setScalar(s * (0.3 + 0.9 * k)); g2.material.rotation = t * 0.8 + ph; } }); // (a glint of light running over the metal now and then)
+  if (n === 34) { // 🐍 Pharaoh's nemes: the royal headcloth — striped gold and lapis, tight across the brow under a band inlaid with lapis, carnelian and turquoise, flaring out in two great wings behind the ears down to the shoulders, two lappets over the chest, gathered in a tail behind; at the brow the uraeus (a rearing cobra, its hood inlaid) beside Nekhbet the vulture
+    const st = P('#ffffff', { map: ovNemesTex(), shininess: 22, specular: '#4a3a1a', side: THREE.DoubleSide });
+    const cap = mesh(kg('nemesCap', () => uvScale(new THREE.SphereGeometry(0.75, 36, 16, 0, Math.PI * 2, 0, Math.PI * 0.5), 1, 0.5)), st, 0, 0.3, 0, head); // (broad stripes over the top) cap.scale.set(1.05, 0.86, 1.08);
+    mesh(new THREE.CylinderGeometry(0.795, 0.795, 0.17, 44, 1, true), P('#ffffff', { map: ovBandTex(), shininess: 100, specular: '#fff2c0', emissive: '#1a1000', side: THREE.DoubleSide }), 0, 0.33, 0, head);
+    for (const y of [0.245, 0.415]) ring(0.8, 0.018, y, gold);
+    const FL = ovShape('nemesFlap2', [[0.5, 0.36], [-0.62, 0.36], [-0.8, 0.0, -0.76, -0.28], [-0.66, -0.64], [0.26, -0.64], [0.62, -0.12, 0.5, 0.36]], 0.05, 0.016);
     for (const s of [-1, 1]) {
-      const w = G(s * 0.74, 0.28, 0.06); w.rotation.z = s * 0.22; const p = mesh(rboxGeo(0.07, 1.25, 0.95, 0.03), st, 0, -0.62, 0, w); p.rotation.x = 0.05; // (the wings of the cloth, flaring past the ears)
-      const lp = mesh(rboxGeo(0.36, 1.3, 0.08, 0.03), st, s * 0.6, -1.32, -0.58, head); lp.rotation.x = 0.06; mesh(rboxGeo(0.38, 0.06, 0.1, 0.02), gold, s * 0.6, -1.96, -0.62, head); // (a lappet over the chest)
+      const w = G(s * 0.74, 0.0, 0.03); w.rotation.z = s * 0.42; mesh(FL, st, 0, 0, 0, w).rotation.y = Math.PI / 2; // (the wings of the cloth, flaring out to the shoulders)
+      mesh(kg('nemesEdge', () => sweepGeo([[0, 0.36, -0.5], [0, 0.1, -0.6], [0, -0.3, -0.48], [0, -0.64, -0.26]], () => 0.022, 16, 6)), gold, 0, 0, 0, w); // (a gold hem down its front edge)
+      mesh(rboxGeo(0.36, 1.25, 0.06, 0.025), st, s * 0.68, -1.2, -0.6, head); // (a lappet over the chest)
+      for (const y of [-0.6, -1.84]) mesh(rboxGeo(0.39, y < -1 ? 0.09 : 0.05, 0.09, 0.025), gold, s * 0.68, y, -0.6, head);
+      mesh(kSph(), P('#1d4ed8', { emissive: '#0b1d5c', shininess: 140 }), s * 0.68, -1.84, -0.66, head).scale.set(0.05, 0.035, 0.02);
     }
-    const tl = mesh(new THREE.CylinderGeometry(0.16, 0.3, 0.95, 16), st, 0, -0.5, 0.66, head); tl.rotation.x = 0.18; mesh(new THREE.CylinderGeometry(0.17, 0.17, 0.08, 16), gold, 0, -0.98, 0.75, head);
-    const u = G(0, 0.44, -0.76); const body = mesh(kg('uraeus', () => sweepGeo([[0, -0.12, 0.02], [0, 0.0, -0.04], [0, 0.12, -0.02], [0, 0.2, -0.06]], (t) => 0.035 + 0.015 * (1 - t), 14, 8)), gold, 0, 0, 0, u);
-    const hood = mesh(kSph(), gold, 0, 0.22, -0.07, u); hood.scale.set(0.11, 0.13, 0.03); mesh(kSph(), gold, 0, 0.3, -0.1, u).scale.set(0.045, 0.04, 0.06);
-    for (const s of [-1, 1]) mesh(kSph(), new THREE.MeshBasicMaterial({ color: '#dc2626' }), s * 0.022, 0.31, -0.155, u).scale.setScalar(0.012);
-    mesh(new THREE.OctahedronGeometry(0.035), new THREE.MeshPhongMaterial({ color: '#2563eb', emissive: '#1e3a8a', shininess: 120 }), 0, 0.2, -0.1, u);
-  } else if (n === 35) { // 🪓 a Viking jarl's helm, like the one found at Gjermundbu: a rounded iron cap of four plates on crossing bands, a little spike, a spectacle guard round the eyes and nose, and mail hanging behind
-    const iron = metal('#8a9099', { map: giantTex(), shininess: 55 }), dk = metal('#4b5057', { shininess: 40 }), mail = new THREE.MeshPhongMaterial({ map: mailTex(), color: '#a3a9b1', shininess: 60, side: THREE.DoubleSide });
-    const bw = mesh(new THREE.SphereGeometry(0.76, 28, 14, 0, Math.PI * 2, 0, Math.PI / 2), iron, 0, 0.3, 0, head); bw.scale.y = 1.06;
-    const rim = mesh(kTor(0.06), dk, 0, 0.32, 0, head); rim.rotation.x = Math.PI / 2; rim.scale.set(0.77, 0.77, 0.9);
-    for (const r of [0, Math.PI / 2]) { const b = mesh(new THREE.TorusGeometry(0.77, 0.045, 6, 28, Math.PI), dk, 0, 0.3, 0, head); b.rotation.y = r; b.scale.y = 1.06; for (let k = 1; k < 8; k++) { const an = (k / 8) * Math.PI; mesh(kSph(), dk, Math.cos(an) * 0.79 * Math.cos(r), 0.3 + Math.sin(an) * 0.82, Math.cos(an) * 0.79 * -Math.sin(r), head).scale.setScalar(0.04); } }
-    mesh(kCone(), dk, 0, 1.18, 0, head).scale.set(0.06, 0.16, 0.06);
-    for (const s of [-1, 1]) { const ey = mesh(new THREE.TorusGeometry(0.17, 0.035, 8, 20), dk, s * 0.21, 0.07, -0.73, head); ey.scale.y = 0.85; }
-    box(dk, 0.66, 0.08, 0.07, 0, 0.27, -0.75, head); box(dk, 0.08, 0.4, 0.07, 0, -0.06, -0.76, head);
-    mesh(new THREE.CylinderGeometry(0.8, 0.98, 0.85, 26, 1, true, -0.68 * Math.PI, 1.36 * Math.PI), mail, 0, -0.1, 0.02, head);
-  } else if (n === 36) { // ⛩️ a samurai's kabuto: a bowl of black-lacquered iron with raised ribs, a gold ring at its crown, a peak, a flaring neck guard of laced plates in your colour, turned-back flaps with a gold crest, and great golden horns (the kuwagata) round a sun disc
-    const lac = new THREE.MeshPhongMaterial({ color: '#16161a', shininess: 120, specular: '#777', side: THREE.DoubleSide }), lace = lam(SHIRTS[av[1]]); mats.push(lace);
-    const bw = mesh(new THREE.SphereGeometry(0.76, 32, 14, 0, Math.PI * 2, 0, Math.PI / 2), lac, 0, 0.32, 0, head); bw.scale.y = 0.95;
-    for (let k = 0; k < 16; k++) { const rb = mesh(new THREE.TorusGeometry(0.765, 0.018, 4, 14, Math.PI / 2), lac, 0, 0.32, 0, head); rb.rotation.y = (k / 16) * Math.PI * 2; rb.scale.y = 0.95; }
-    const tp = mesh(kTor(0.25), gold, 0, 1.03, 0, head); tp.rotation.x = Math.PI / 2; tp.scale.setScalar(0.17);
-    mesh(new THREE.CylinderGeometry(0.8, 0.9, 0.06, 24, 1, false, Math.PI - 0.95, 1.9), lac, 0, 0.3, 0, head);
-    for (let k = 0; k < 4; k++) { mesh(new THREE.CylinderGeometry(0.8 + k * 0.1, 0.9 + k * 0.12, 0.19, 30, 1, true, -0.78 * Math.PI, 1.56 * Math.PI), lac, 0, 0.2 - k * 0.17, 0, head); mesh(new THREE.CylinderGeometry(0.83 + k * 0.1, 0.85 + k * 0.1, 0.035, 30, 1, true, -0.78 * Math.PI, 1.56 * Math.PI), lace, 0, 0.2 - k * 0.17, 0, head).material.side = THREE.DoubleSide; }
-    for (const s of [-1, 1]) { const f = mesh(rboxGeo(0.07, 0.5, 0.36, 0.03), lac, s * 0.86, 0.12, -0.42, head); f.rotation.y = s * 0.65; const m = mesh(kCyl(), gold, s * 0.9, 0.12, -0.44, head); m.scale.set(0.09, 0.02, 0.09); m.rotation.set(0, s * 0.65, Math.PI / 2); }
-    const H = kg('kuwagata', () => sweepGeo([[0, 0, 0], [0.12, 0.3, -0.04], [0.3, 0.65, -0.08], [0.48, 1.0, -0.06], [0.52, 1.25, 0]], (t) => 0.06 * (1 - t * 0.7), 22, 6));
-    for (const s of [-1, 1]) { const h = mesh(H, gold, s * 0.08, 0.42, -0.8, head); h.scale.set(s, 1, 0.4); }
-    const dc = mesh(kCyl(), new THREE.MeshPhongMaterial({ color: '#dc2626', emissive: '#450a0a', shininess: 90 }), 0, 0.6, -0.82, head); dc.scale.set(0.17, 0.03, 0.17); dc.rotation.x = Math.PI / 2;
-    const dr = mesh(kTor(0.2), gold, 0, 0.6, -0.83, head); dr.scale.setScalar(0.18);
-  } else if (n === 37) { // 🦅 a Roman centurion's galea: a polished steel bowl with a brow guard, hinged cheek plates with brass bosses, a deep flared neck guard, and the centurion's mark — a crest of red horsehair worn side to side
-    const st = metal('#cfd4db', { shininess: 120 }), br = metal('#d9a441', { specular: '#ffe8a8' });
-    const bw = mesh(new THREE.SphereGeometry(0.76, 30, 14, 0, Math.PI * 2, 0, Math.PI / 2), st, 0, 0.3, 0, head); bw.scale.y = 1.0;
-    const bg = mesh(new THREE.TorusGeometry(0.79, 0.055, 8, 24, Math.PI), br, 0, 0.36, 0, head); bg.rotation.x = -Math.PI / 2;
-    mesh(new THREE.CylinderGeometry(0.78, 1.02, 0.28, 24, 1, true, -0.42 * Math.PI, 0.84 * Math.PI), st, 0, 0.0, 0.05, head).material.side = THREE.DoubleSide;
-    for (const s of [-1, 1]) { const c = mesh(rboxGeo(0.07, 0.72, 0.48, 0.05), st, s * 0.73, -0.2, -0.24, head); c.rotation.z = s * 0.06; mesh(kSph(), br, s * 0.78, -0.12, -0.26, head).scale.set(0.03, 0.08, 0.08); }
-    box(br, 0.08, 0.08, 1.15, 0, 1.08, 0, head);
-    const cg = G(0, 0.28, 0); cg.rotation.y = Math.PI / 2; mesh(crestGeo('galeaCrest', ['#b91c1c', '#dc2626', '#991b1b', '#ef4444'], 140, 0.95), new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide }), 0, 0, 0, cg);
-  } else if (n === 38) { // ☀️ the radiate crown of Helios: a gold band with a sun disc at the brow and rays all round, long and short — it shines, and the light round it breathes
-    const sun = new THREE.MeshPhongMaterial({ color: '#fbbf24', emissive: '#b45309', emissiveIntensity: 0.7, shininess: 130, specular: '#fff7d6' });
-    const bd = mesh(new THREE.CylinderGeometry(0.73, 0.71, 0.2, 30, 1, true), sun, 0, 0.6, 0, head); bd.material.side = THREE.DoubleSide;
-    for (const y of [0.5, 0.7]) { const r = mesh(kTor(0.06), sun, 0, y, 0, head); r.rotation.x = Math.PI / 2; r.scale.set(0.73, 0.73, 0.5); }
-    for (let k = 0; k < 14; k++) { const g = G(0, 0.68, 0); g.rotation.y = (k / 14) * Math.PI * 2; const L = k % 2 ? 0.55 : 0.9, ry = mesh(new THREE.ConeGeometry(0.075, L, 4), sun, 0, L / 2, 0.72, g); ry.rotation.x = 0.34; ry.scale.z = 0.45; }
-    const dc = mesh(kCyl(), new THREE.MeshBasicMaterial({ color: '#fff7c2' }), 0, 0.62, -0.76, head); dc.scale.set(0.15, 0.03, 0.15); dc.rotation.x = Math.PI / 2;
-    const halo = kitGlow(head, '#fde68a', 3.3, 0.3); halo.position.set(0, 0.95, 0.15); const dg = kitGlow(head, '#fef3c7', 0.7, 0.8); dg.position.set(0, 0.62, -0.8);
-    xt.push(() => { const t = nowS(); halo.material.opacity = 0.24 + 0.1 * Math.sin(t * 1.6); halo.scale.setScalar(3.1 + 0.25 * Math.sin(t * 1.6)); dg.material.opacity = 0.65 + 0.25 * Math.sin(t * 3.1); });
-  } else if (n === 39) { // 🌑 the Helm of Darkness, Hades' own: a closed helm of black obsidian with a ridge of jagged spines, two slits burning ember-red, and smoke curling off it all the time
-    const obs = new THREE.MeshPhongMaterial({ color: '#0d0d14', shininess: 150, specular: '#7c7ca8' }), sp = new THREE.MeshPhongMaterial({ color: '#1f1b2e', shininess: 90, specular: '#a78bfa', emissive: '#12051f' });
-    mesh(corinthGeo(), obs, 0, 0.05, 0, head).scale.set(1.04, 1.04, 1.06);
-    for (const s of [-1, 1]) { mesh(rboxGeo(0.26, 0.06, 0.05, 0.02), new THREE.MeshBasicMaterial({ color: '#ff3b1f' }), s * 0.23, 0.12, -0.77, head).rotation.z = -s * 0.2; }
-    for (let k = 0; k < 7; k++) { const sk = mesh(kCone(), sp, 0, 0.95 + Math.sin((k / 6) * Math.PI) * 0.12, -0.45 + k * 0.17, head); sk.scale.set(0.05, 0.3 + 0.12 * Math.sin((k / 6) * Math.PI), 0.09); sk.rotation.x = -0.4 + k * 0.12; }
-    for (const s of [-1, 1]) { const h = mesh(kCone(), sp, s * 0.68, 0.62, 0.05, head); h.scale.set(0.06, 0.38, 0.06); h.rotation.z = -s * 1.0; }
-    const eg = kitGlow(head, '#ff5a1f', 1.0, 0.55); eg.position.set(0, 0.12, -0.8);
-    const sm = Array.from({ length: 9 }, () => { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: cloudTex(), color: '#3b2a55', transparent: true, depthWrite: false, opacity: 0 })); head.add(s); return s; });
-    xt.push(() => { const t = nowS(); eg.material.opacity = 0.45 + 0.2 * Math.sin(t * 7) * Math.sin(t * 2.3); sm.forEach((s, i) => { const u = (t * 0.35 + i / sm.length) % 1, an = i * 2.4 + t * 0.4; s.position.set(Math.cos(an) * (0.55 + u * 0.5), 0.4 + u * 1.7, Math.sin(an) * (0.55 + u * 0.5) + 0.2); s.scale.setScalar(0.4 + u * 1.1); s.material.opacity = 0.55 * Math.sin(u * Math.PI); }); });
-  } else if (n === 40) { // 🐍 a Gorgon's circlet: a band of gold with an emerald at the brow and nine little serpents rising from it, green-scaled and red-eyed, each swaying and flicking its tongue
-    const sc = new THREE.MeshPhongMaterial({ map: dpScaleTex('#a3e635', '#3f6212'), shininess: 70, specular: '#d9f99d' }), red = new THREE.MeshBasicMaterial({ color: '#ef4444' }), tg = lam('#b91c1c');
-    const ri = mesh(kTor(0.06), gold, 0, 0.55, 0, head); ri.rotation.x = Math.PI / 2; ri.scale.set(0.72, 0.72, 0.9);
-    mesh(new THREE.OctahedronGeometry(0.07), new THREE.MeshPhongMaterial({ color: '#10b981', emissive: '#064e3b', shininess: 140 }), 0, 0.58, -0.74, head).scale.y = 1.4;
-    const SN = kg('gorgonSnake', () => sweepGeo([[0, 0, 0], [0, 0.18, 0.05], [0.04, 0.34, -0.03], [0, 0.5, 0.02], [0, 0.6, -0.06]], (t) => 0.05 - 0.025 * t, 22, 8));
+    const tl = mesh(new THREE.CylinderGeometry(0.2, 0.34, 0.92, 22), st, 0, -0.36, 0.68, head); tl.rotation.x = 0.22;
+    for (const [y, r] of [[-0.56, 0.31], [-0.72, 0.335]]) { const ri = mesh(new THREE.CylinderGeometry(r, r, 0.06, 22), gold, 0, y, 0.72 + (y + 0.36) * -0.22, head); ri.rotation.x = 0.22; }
+    const u = G(-0.07, 0.4, -0.8); u.rotation.x = -0.12; // the uraeus
+    mesh(kg('uraeus3', () => sweepGeo([[0, -0.1, 0.06], [0.03, -0.02, 0.0], [-0.02, 0.06, -0.02], [0, 0.14, 0]], (t) => 0.04 - 0.01 * t, 16, 8)), gold, 0, 0, 0, u);
+    mesh(ovShape('uraeusHood', [[0, -0.02], [0.13, 0.06, 0.11, 0.2], [0.07, 0.31, 0, 0.32], [-0.07, 0.31, -0.11, 0.2], [-0.13, 0.06, 0, -0.02]], 0.03, 0.01), gold, 0, 0.1, -0.02, u);
+    mesh(ovShape('uraeusIn', [[0, 0.02], [0.08, 0.08, 0.07, 0.19], [0.04, 0.27, 0, 0.27], [-0.04, 0.27, -0.07, 0.19], [-0.08, 0.08, 0, 0.02]], 0.01, 0.004), P('#1d4ed8', { emissive: '#0b1d5c', shininess: 140 }), 0, 0.1, -0.045, u);
+    mesh(kSph(), P('#dc2626', { emissive: '#5a0a0a', shininess: 150 }), 0, 0.26, -0.05, u).scale.set(0.035, 0.035, 0.02);
+    for (const y of [0.15, 0.2]) mesh(BOX, P('#14b8a6', { emissive: '#04332e', shininess: 120 }), 0, y, -0.05, u).scale.set(0.09 - (y - 0.15), 0.018, 0.012);
+    mesh(kSph(), gold, 0, 0.44, -0.06, u).scale.set(0.05, 0.045, 0.07); for (const s of [-1, 1]) mesh(kSph(), new THREE.MeshBasicMaterial({ color: '#16a34a' }), s * 0.028, 0.455, -0.11, u).scale.setScalar(0.012);
+    const vh = G(0.12, 0.4, -0.8); mesh(kSph(), gold, 0, 0.14, -0.03, vh).scale.set(0.055, 0.065, 0.055); const vb = mesh(kCone(), gold, 0, 0.12, -0.1, vh); vb.scale.set(0.024, 0.08, 0.024); vb.rotation.x = -Math.PI / 2 - 0.5; // Nekhbet
+    mesh(rboxGeo(0.07, 0.16, 0.03, 0.012), gold, 0, 0.02, -0.01, vh); mesh(kSph(), new THREE.MeshBasicMaterial({ color: '#111827' }), 0.03, 0.16, -0.07, vh).scale.setScalar(0.011);
+    glint(u, 0, 0.26, -0.08, 0.22, 0.55, 0); glint(head, 0.45, 0.42, -0.66, 0.17, 0.45, 2.2); glint(head, -0.6, -1.84, -0.68, 0.16, 0.5, 4);
+  } else if (n === 35) { // 🪓 a Viking jarl's helm, after the one from Gjermundbu: a pointed cap of hammered iron on bronze bands punched with dots, a bronze brow band, a spectacle guard with silver-inlaid brows ending in boars' heads, a spike on top — and a curtain of mail behind with a dagged edge
+    const iron = metalMat('#b3b9c1', { map: ovIronTex(), shininess: 60, reflectivity: 0.16 }), bz = metalMat('#c08a45', { map: ovBronzeTex(), shininess: 90, reflectivity: 0.4 }), dk = metal('#3f444b', { shininess: 40 }), sil = P('#e5e7eb', { shininess: 160, emissive: '#2a2d33' });
+    const prof = [[0.79, 0], [0.79, 0.1], [0.76, 0.32], [0.67, 0.56], [0.5, 0.76], [0.27, 0.91], [0.05, 0.97], [0, 0.98]];
+    mesh(kLathe('jarlBowl2', prof, 40), iron, 0, 0.28, 0, head);
+    for (const r of [0, Math.PI / 2]) { const b = mesh(kg('jarlBand', () => new THREE.TorusGeometry(0.8, 0.055, 6, 40, Math.PI)), bz, 0, 0.28, 0, head); b.rotation.y = r; b.scale.set(1, 1.22, 1);
+      for (let k = 1; k < 10; k++) { const an = (k / 10) * Math.PI; mesh(kSph(), bz, Math.cos(an) * 0.84 * Math.cos(r), 0.28 + Math.sin(an) * 1.0, -Math.cos(an) * 0.84 * Math.sin(r), head).scale.setScalar(0.035); } }
+    mesh(kg('jarlBrow', () => new THREE.CylinderGeometry(0.815, 0.815, 0.13, 44, 1, true)), bz, 0, 0.33, 0, head).material.side = THREE.DoubleSide;
+    for (let k = 0; k < 16; k++) { const an = (k / 16) * Math.PI * 2; mesh(kSph(), dk, Math.sin(an) * 0.83, 0.33, Math.cos(an) * 0.83, head).scale.setScalar(0.03); }
+    ring(0.79, 0.03, 0.25, lam('#4a2c17')); // (the leather lining)
+    mesh(kCone(), dk, 0, 1.36, 0, head).scale.set(0.055, 0.2, 0.055); const kn = mesh(kTor(0.35), bz, 0, 1.27, 0, head); kn.rotation.x = Math.PI / 2; kn.scale.setScalar(0.07);
+    for (const s of [-1, 1]) { const ey = mesh(new THREE.TorusGeometry(0.17, 0.04, 8, 24), dk, s * 0.21, 0.06, -0.74, head); ey.scale.y = 0.82; // (the spectacles)
+      const br = mesh(new THREE.TorusGeometry(0.21, 0.035, 6, 20, Math.PI * 0.8), bz, s * 0.21, 0.07, -0.77, head); br.rotation.z = Math.PI * 0.1; br.scale.y = 0.9; // (a brow, inlaid with silver)
+      const sv = mesh(new THREE.TorusGeometry(0.21, 0.012, 4, 20, Math.PI * 0.8), sil, s * 0.21, 0.07, -0.8, head); sv.rotation.z = Math.PI * 0.1; sv.scale.y = 0.9;
+      const bo = G(s * 0.43, 0.13, -0.75); mesh(kSph(), bz, 0, 0, 0, bo).scale.set(0.05, 0.045, 0.07); const sn = mesh(kCyl(), bz, s * 0.03, -0.01, -0.06, bo); sn.scale.set(0.025, 0.04, 0.025); sn.rotation.x = Math.PI / 2; } // (boars' heads at the ends)
+    box(dk, 0.7, 0.08, 0.07, 0, 0.27, -0.76, head); box(dk, 0.09, 0.42, 0.07, 0, -0.07, -0.77, head); box(bz, 0.03, 0.4, 0.02, 0, -0.07, -0.81, head);
+    const mailG = kg('jarlMail', () => { const g = new THREE.CylinderGeometry(0.83, 1.02, 0.86, 40, 3, true, -0.7 * Math.PI, 1.4 * Math.PI), p = g.attributes.position;
+      for (let i = 0; i < p.count; i++) if (p.getY(i) < -0.42) p.setY(i, p.getY(i) + (i % 2 ? 0.1 : 0)); g.computeVertexNormals(); return uvScale(g, 7, 2.5); }); // (its bottom edge cut in points)
+    mesh(mailG, P('#a3a9b1', { map: mailTex(), shininess: 70, specular: '#dde3ea', side: THREE.DoubleSide }), 0, -0.12, 0.02, head);
+    glint(head, 0.5, 0.95, -0.3, 0.2, 0.5, 1); glint(head, -0.21, 0.24, -0.82, 0.14, 0.42, 3.5);
+  } else if (n === 36) { // ⛩️ a samurai's kabuto: a ribbed bowl of black lacquer studded with gold, a gold rosette at the crown, a lacquered peak edged in gold, a neck guard of five lames laced in silk of your colour, great turn-backs bearing a gold crest, tall golden horns (kuwagata) round a red sun in gold flames — and silk cords that swing
+    const lac = P('#141418', { shininess: 150, specular: '#9a9aa8', side: THREE.DoubleSide }), col = SHIRTS[av[1]], cord = P(col, { shininess: 60 }); mats.push(cord);
+    mesh(kLathe('kabutoBowl2', [[0.8, 0], [0.8, 0.08], [0.77, 0.3], [0.68, 0.52], [0.52, 0.7], [0.3, 0.82], [0.12, 0.86], [0, 0.87]], 40), lac, 0, 0.3, 0, head);
+    for (let k = 0; k < 24; k++) { const rb = mesh(kg('kabutoRib', () => new THREE.TorusGeometry(0.795, 0.016, 4, 18, Math.PI / 2)), lac, 0, 0.3, 0, head); rb.rotation.y = (k / 24) * Math.PI * 2; rb.scale.y = 1.09; }
+    mesh(kg('kabutoRivets', () => { const B = kitBuild(); for (let k = 0; k < 24; k++) { const a = (k / 24) * Math.PI * 2; for (const v of [0.12, 0.42, 0.75]) { const an = v * Math.PI / 2; B.add(KIT_SPH, Math.sin(a) * Math.cos(an) * 0.81, Math.sin(an) * 0.88, Math.cos(a) * Math.cos(an) * 0.81, 0.022); } } return B.geo(); }), gold, 0, 0.3, 0, head);
+    for (const [y, r] of [[1.16, 0.2], [1.2, 0.13], [1.23, 0.07]]) { const tp = mesh(kTor(0.3), gold, 0, y, 0, head); tp.rotation.x = Math.PI / 2; tp.scale.setScalar(r); } mesh(kSph(), gold, 0, 1.24, 0, head).scale.set(0.06, 0.04, 0.06); // (the tehen rosette)
+    mesh(new THREE.CylinderGeometry(0.82, 0.96, 0.08, 30, 1, true, Math.PI - 0.9, 1.8), lac, 0, 0.33, 0, head); // (the peak, edged in gold)
+    const pe = mesh(new THREE.TorusGeometry(0.96, 0.02, 4, 24, 1.8), gold, 0, 0.29, 0, head); pe.rotation.set(-Math.PI / 2, 0, Math.PI / 2 - 0.9);
+    for (let k = 0; k < 5; k++) { const lg = kg('shikoro' + k, () => uvScale(new THREE.CylinderGeometry(0.82 + k * 0.085, 0.88 + k * 0.095, 0.17, 40, 1, true, -0.76 * Math.PI, 1.52 * Math.PI), 3, 1));
+      mesh(lg, P('#ffffff', { map: ovOdoshiTex(col), shininess: 120, specular: '#777', side: THREE.DoubleSide }), 0, 0.22 - k * 0.16, 0, head); }
+    const FK = ovShape('fukigaeshi', [[0, 0.24], [0.42, 0.3], [0.62, 0.16, 0.58, -0.06], [0.48, -0.32], [0, -0.3]], 0.05, 0.015);
+    for (const s of [-1, 1]) { const f = G(s * 0.82, 0.16, -0.38); f.rotation.y = -s * 0.85; const fm = mesh(FK, lac, 0, 0, 0, f); fm.scale.x = s; // (the turn-backs, with a gold crest)
+      const mon = mesh(kg('monDisc', () => new THREE.CircleGeometry(0.13, 28)), P('#ffffff', { map: ovMonTex(), shininess: 120, emissive: '#1a1000' }), s * 0.3, 0.0, -0.048, f); mon.rotation.y = Math.PI;
+      const cd = mesh(kg('kabutoCord', () => sweepGeo([[0, 0, 0], [0.02, -0.25, -0.05], [0.0, -0.55, -0.02], [0.01, -0.8, 0.02]], () => 0.022, 16, 6)), cord, s * 0.86, 0.0, -0.3, head); // (a silk cord hanging down)
+      const ts = G(s * 0.87, -0.82, -0.28); const tc = mesh(kCone(), cord, 0, -0.1, 0, ts); tc.scale.set(0.06, 0.2, 0.06); mesh(kSph(), gold, 0, 0.02, 0, ts).scale.setScalar(0.04); head.userData['tas' + s] = ts; }
+    const KW = ovShape('kuwagata2', [[0, 0], [0.12, 0], [0.42, 0.5, 0.62, 1.38], [0.54, 1.42], [0.3, 0.6, 0.0, 0.14]], 0.03, 0.012);
+    for (const s of [-1, 1]) { const h = mesh(KW, gold, s * 0.06, 0.38, -0.84, head); h.scale.set(s, 1, 1); h.rotation.x = 0.12; }
+    mesh(rboxGeo(0.46, 0.2, 0.06, 0.03), gold, 0, 0.42, -0.84, head); // (the horns' base)
+    const sd = mesh(kg('kabutoSun', () => new THREE.CircleGeometry(0.17, 32)), P('#dc2626', { emissive: '#5a0a0a', shininess: 120 }), 0, 0.68, -0.89, head); sd.rotation.y = Math.PI;
+    const sr = mesh(kTor(0.15), gold, 0, 0.68, -0.885, head); sr.scale.setScalar(0.18);
+    for (let k = 0; k < 10; k++) { const a = (k / 10) * Math.PI * 2, fl = mesh(kCone(), gold, Math.cos(a) * 0.23, 0.68 + Math.sin(a) * 0.23, -0.885, head); fl.scale.set(0.035, 0.1, 0.012); fl.rotation.z = a - Math.PI / 2; } // (gold flames round the sun)
+    glint(head, 0.5, 1.6, -0.86, 0.24, 0.5, 0.5); glint(head, 0, 1.24, 0, 0.16, 0.4, 2.5); glint(head, -0.5, 1.5, -0.86, 0.2, 0.47, 4);
+    xt.push(() => { const t = nowS(); for (const s of [-1, 1]) { const ts = head.userData['tas' + s]; if (ts) { ts.rotation.z = 0.12 * Math.sin(t * 1.7 + s); ts.rotation.x = 0.08 * Math.sin(t * 1.3 + s * 2); } } }); // (the tassels swing)
+  } else if (n === 37) { // 🦅 a Roman centurion's galea, Imperial Gallic style: a polished steel bowl with embossed brows and brass rosettes, a brass-bound brow guard, cheek guards with brass bosses, a deep ribbed neck guard, a little gold eagle at the front — and the centurion's mark, a full crest of red horsehair worn side to side
+    const st = metalMat('#a3abb5', { shininess: 120, reflectivity: 0.55 }), br = metalMat('#d4a04a', { map: ovBronzeTex(), shininess: 110, reflectivity: 0.45 }), br2 = metalMat('#d9a441', { shininess: 120, reflectivity: 0.5 });
+    mesh(kLathe('galeaBowl2', [[0.79, 0], [0.79, 0.12], [0.76, 0.36], [0.66, 0.6], [0.48, 0.8], [0.25, 0.92], [0, 0.95]], 40), st, 0, 0.28, 0, head);
+    const bg = mesh(kg('galeaBrow', () => new THREE.TorusGeometry(0.82, 0.06, 8, 32, Math.PI)), br, 0, 0.42, 0, head); bg.rotation.x = -Math.PI / 2;
+    const pk = mesh(new THREE.CylinderGeometry(0.82, 0.95, 0.06, 32, 1, true, Math.PI - 0.8, 1.6), br2, 0, 0.42, 0, head); pk.material.side = THREE.DoubleSide;
+    for (const s of [-1, 1]) { const eb = mesh(new THREE.TorusGeometry(0.2, 0.025, 6, 20, Math.PI * 0.75), br2, s * 0.22, 0.56, -0.7, head); eb.rotation.set(-0.35, 0, Math.PI * 0.12); } // (embossed brows)
+    for (const s of [-1, 1]) for (const [y, a] of [[0.62, 0.9], [0.45, 1.3], [0.8, 1.6]]) { const ro = mesh(kSph(), br2, s * Math.sin(a) * 0.74, y + 0.04, -Math.cos(a) * 0.74, head); ro.scale.setScalar(0.07); } // (brass rosettes)
+    const NG = kg('galeaNeck', () => { const g = new THREE.CylinderGeometry(0.8, 1.14, 0.32, 36, 2, true, -0.46 * Math.PI, 0.92 * Math.PI); g.computeVertexNormals(); return g; });
+    mesh(NG, st, 0, 0.06, 0.04, head).material.side = THREE.DoubleSide; for (const [y, r] of [[0.12, 0.86], [0.02, 0.98]]) { const rb = mesh(new THREE.TorusGeometry(r, 0.018, 4, 30, 0.92 * Math.PI), br2, 0, y, 0.04, head); rb.rotation.set(-Math.PI / 2, 0, -Math.PI / 2 - 0.46 * Math.PI); } // (ribs)
+    const ne = mesh(new THREE.TorusGeometry(1.14, 0.03, 4, 36, 0.92 * Math.PI), br2, 0, -0.1, 0.04, head); ne.rotation.set(-Math.PI / 2, 0, -Math.PI / 2 - 0.46 * Math.PI);
+    const CK = ovShape('galeaCheek', [[0.26, 0.04], [-0.26, 0.04], [-0.3, -0.5, -0.06, -0.74], [0.18, -0.62], [0.3, -0.3]], 0.05, 0.015);
+    for (const s of [-1, 1]) { const c = G(s * 0.79, 0.22, -0.2); c.rotation.z = s * 0.05; mesh(CK, st, 0, 0, 0, c).rotation.y = Math.PI / 2;
+      for (const [y, z] of [[-0.15, -0.02], [-0.45, 0.02]]) mesh(kSph(), br2, s * 0.03, y, z, c).scale.set(0.03, 0.065, 0.065); box(br2, 0.04, 0.05, 0.4, s * 0.02, 0.02, 0, c); }
+    mesh(rboxGeo(1.2, 0.1, 0.13, 0.04), br2, 0, 1.2, 0, head);
+    const cg = G(0, 0.4, 0); cg.rotation.y = Math.PI / 2; mesh(crestGeo('galeaCrest2', ['#b91c1c', '#dc2626', '#991b1b', '#ef4444', '#7f1d1d'], 220, 1.05), new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide }), 0, 0, 0, cg);
+    const ea = G(0, 0.66, -0.78); mesh(kSph(), gold, 0, 0, 0, ea).scale.set(0.05, 0.07, 0.04); mesh(kSph(), gold, 0, 0.09, -0.01, ea).scale.setScalar(0.035); // (the eagle)
+    const EW = ovShape('aquilaWing', [[0, 0], [0.18, 0.12, 0.2, 0.2], [0.13, 0.1], [0.16, 0.06], [0.08, 0.03]], 0.012, 0.004); for (const s of [-1, 1]) { const w = mesh(EW, gold, s * 0.03, 0.01, 0, ea); w.scale.x = s; }
+    const bk = mesh(kCone(), gold, 0, 0.08, -0.04, ea); bk.scale.set(0.012, 0.03, 0.012); bk.rotation.x = -Math.PI / 2;
+    glint(head, 0.3, 0.95, -0.55, 0.22, 0.5, 0.3); glint(ea, 0, 0.05, -0.05, 0.14, 0.6, 2);
+  } else if (n === 38) { // ☀️ the radiate crown of Helios: a band of gold worked with a Greek key, thirteen ridged rays long and short, the sun's face on a medallion at the brow — light runs round the rays in a slow wave, and a great glory of sunbeams turns behind your head
+    const sunM = () => P('#fbbf24', { emissive: '#b45309', emissiveIntensity: 0.6, shininess: 140, specular: '#fff7d6' });
+    mesh(kg('heliosBand', () => uvScale(new THREE.CylinderGeometry(0.745, 0.725, 0.23, 44, 1, true), 2, 1)), P('#ffffff', { map: ovMeanderTex(), emissive: '#5a3200', shininess: 120, specular: '#fff7d6', side: THREE.DoubleSide }), 0, 0.6, 0, head);
+    for (const y of [0.485, 0.715]) ring(0.75, 0.025, y, sunM());
+    const RAY = ovShape('heliosRay', [[-0.085, 0], [0.085, 0], [0.012, 1], [-0.012, 1]], 0.025, 0.01), rays = [];
+    for (let k = 0; k < 13; k++) { const g = G(0, 0.68, 0); g.rotation.y = (k / 13) * Math.PI * 2 + Math.PI; const L = k % 2 ? 0.6 : 1.0, m = sunM();
+      const ry = mesh(RAY, m, 0, 0, 0.74, g); ry.scale.set(1, L, 1); ry.rotation.x = 0.32; const rd = mesh(kCone(), m, 0, L * 0.45, 0.74 + 0.02 + Math.sin(0.32) * L * 0.45, g); rd.scale.set(0.014, L * 0.9, 0.014); rd.rotation.x = 0.32; rays.push([m, k]); }
+    const md = mesh(kg('heliosDisc', () => new THREE.CircleGeometry(0.21, 36)), P('#ffffff', { map: ovSunFaceTex(), emissive: '#7a3d00', emissiveMap: ovSunFaceTex(), emissiveIntensity: 0.6, shininess: 120 }), 0, 0.62, -0.8, head); md.rotation.y = Math.PI;
+    const mr = mesh(kTor(0.12), sunM(), 0, 0.62, -0.79, head); mr.scale.setScalar(0.22);
+    const halo = kitGlow(head, '#fde68a', 3.3, 0.28); halo.position.set(0, 0.95, 0.25);
+    const glory = new THREE.Sprite(new THREE.SpriteMaterial({ map: raysTex(), color: '#fde68a', transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.3 })); glory.position.set(0, 0.9, 0.45); glory.scale.setScalar(3.6); head.add(glory);
+    const sp = Array.from({ length: 5 }, (_, i) => glint(head, 0, 0, 0, 0.22, 0.9 + i * 0.13, i * 1.3));
+    xt.push(() => { const t = nowS(); for (const [m, k] of rays) m.emissiveIntensity = 0.45 + 0.9 * Math.pow(Math.max(0, Math.sin(t * 2.2 - k * 0.48)), 4);
+      halo.material.opacity = 0.22 + 0.1 * Math.sin(t * 1.6); halo.scale.setScalar(3.1 + 0.25 * Math.sin(t * 1.6)); glory.material.rotation = t * 0.12; glory.material.opacity = 0.24 + 0.08 * Math.sin(t * 0.9);
+      sp.forEach((s, i) => { const a = t * 0.5 + (i / 5) * Math.PI * 2; s.position.set(Math.cos(a) * 1.05, 1.0 + 0.35 * Math.sin(a * 2 + i), Math.sin(a) * 1.05); }); });
+  } else if (n === 39) { // 🌑 the Helm of Darkness, Hades' own: a closed Corinthian helm of black obsidian split with veins of fire that glow and fade, edged in violet, a tall black crest, horns sweeping back, two burning eyes in the dark of its slits — smoke curling off it and embers rising
+    const obs = P('#16121f', { shininess: 160, specular: '#8b7cc8', emissive: '#ff4d1a', emissiveMap: ovEmberTex(), emissiveIntensity: 0.8 }), vio = P('#7c3aed', { emissive: '#4c1d95', emissiveIntensity: 0.9, shininess: 120 }), hn = P('#0d0b12', { shininess: 140, specular: '#a78bfa' });
+    mesh(corinthGeo(), obs, 0, 0.05, 0, head).scale.set(1.05, 1.06, 1.08);
+    const surfZ = (x, y) => { const pr = [[-0.66, 0.74], [-0.6, 0.78], [-0.42, 0.73], [-0.2, 0.69], [0.05, 0.7], [0.25, 0.71], [0.48, 0.66]], ly = (y - 0.05) / 1.06; let r = 0.7; for (let i = 1; i < pr.length; i++) if (ly <= pr[i][0]) { const u = (ly - pr[i - 1][0]) / (pr[i][0] - pr[i - 1][0]); r = pr[i - 1][1] + (pr[i][1] - pr[i - 1][1]) * Math.max(0, Math.min(1, u)); break; }
+      const rx = r * 1.05, rz = r * 1.08; return -rz * Math.sqrt(Math.max(0, 1 - (x * x) / (rx * rx))) - 0.012; }; // (the face of the helm, so what's on it follows its curve)
+    const TS = kg('hadesSlitBent', () => { const g = ovShape('hadesSlit', [[-0.46, 0.16], [0.46, 0.16], [0.46, 0.06], [0.09, 0.0], [0.065, -0.6], [-0.065, -0.6], [-0.09, 0.0], [-0.46, 0.06]], 0.01, 0).clone(), p = g.attributes.position; for (let i = 0; i < p.count; i++) p.setZ(i, p.getZ(i) + surfZ(p.getX(i), p.getY(i) + 0.03)); g.computeVertexNormals(); return g; });
+    mesh(TS, new THREE.MeshBasicMaterial({ color: '#050307' }), 0, 0.03, 0, head); // (the T of its slits, dark)
+    for (const s of [-1, 1]) { const ey = mesh(kSph(), new THREE.MeshBasicMaterial({ color: '#ffb36b' }), s * 0.22, 0.12, surfZ(s * 0.22, 0.12) - 0.008, head); ey.scale.set(0.07, 0.028, 0.02); }
+    ring(0.8, 0.025, -0.6, vio); ring(0.71, 0.02, 0.5, vio);
+    mesh(rboxGeo(0.14, 0.12, 1.2, 0.05), vio, 0, 0.98, 0.02, head);
+    const cg = G(0, 0.25, 0); mesh(crestGeo('hadesCrest', ['#1a1022', '#2e1a40', '#0b0710', '#3b1f52', '#120a1a'], 200, 1.1), new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide }), 0, 0, 0, cg);
+    const HR = kg('hadesHorn', () => sweepGeo([[0, 0, 0], [0.18, 0.12, 0.08], [0.32, 0.32, 0.25], [0.36, 0.55, 0.5], [0.3, 0.7, 0.72]], (t) => 0.1 * (1 - t) + 0.012, 24, 8));
+    for (const s of [-1, 1]) { const h = mesh(HR, hn, s * 0.6, 0.55, -0.15, head); h.scale.x = s; const tip = kitGlow(head, '#a855f7', 0.35, 0.7); tip.position.set(s * 0.9, 1.25, 0.57); }
+    const eg = kitGlow(head, '#ff5a1f', 1.2, 0.6); eg.position.set(0, 0.11, -0.84); const eyes = [-1, 1].map((s) => { const e = kitGlow(head, '#ffd08a', 0.38, 0.9); e.position.set(s * 0.22, 0.11, -0.86); return e; });
+    const sm = Array.from({ length: 12 }, () => { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: cloudTex(), color: '#2b1f3d', transparent: true, depthWrite: false, opacity: 0 })); head.add(s); return s; });
+    const em = Array.from({ length: 10 }, () => kitGlow(head, '#ff7a1a', 0.12, 0));
+    xt.push(() => { const t = nowS(); obs.emissiveIntensity = 0.55 + 0.35 * Math.sin(t * 1.4) + 0.15 * Math.sin(t * 5.3); const f = 0.5 + 0.25 * Math.sin(t * 7) * Math.sin(t * 2.3); eg.material.opacity = f; eyes.forEach((e) => { e.material.opacity = 0.7 + 0.3 * Math.sin(t * 9); });
+      sm.forEach((s, i) => { const u = (t * 0.32 + i / sm.length) % 1, an = i * 2.4 + t * 0.4; s.position.set(Math.cos(an) * (0.55 + u * 0.55), 0.3 + u * 1.9, Math.sin(an) * (0.55 + u * 0.55) + 0.25); s.scale.setScalar(0.45 + u * 1.2); s.material.opacity = 0.6 * Math.sin(u * Math.PI); s.material.rotation = an; });
+      em.forEach((e, i) => { const u = (t * (0.45 + (i % 3) * 0.1) + i * 0.37) % 1, an = i * 1.9; e.position.set(Math.cos(an) * (0.4 + u * 0.4) + 0.1 * Math.sin(t * 3 + i), 0.6 + u * 1.6, Math.sin(an) * (0.4 + u * 0.4)); e.material.opacity = (1 - u) * (0.6 + 0.4 * Math.sin(t * 20 + i)); }); });
+  } else if (n === 40) { // 🐍 a Gorgon's circlet: a gold band with a serpent coiled round it, Medusa's face on a medallion at the brow, and nine thick green serpents rising from it, yellow-bellied and gold-eyed — they sway and weave, flick their forked tongues, and now and then one rears back and strikes, jaws open
+    const sc = P('#ffffff', { map: dpScaleTex('#a3e635', '#3f6212'), shininess: 80, specular: '#d9f99d' }), bel = P('#d9e28a', { shininess: 60 }), eye = new THREE.MeshBasicMaterial({ color: '#facc15' }), tg = lam('#b91c1c'), mo = lam('#7f1d1d');
+    ring(0.72, 0.05, 0.52, gold);
+    mesh(kg('gorgonCoil', () => { const L = []; for (let k = 0; k <= 64; k++) { const a = (k / 64) * Math.PI * 1.9 + 0.4; L.push([Math.sin(a) * (0.74 + 0.03 * Math.sin(a * 7)), 0.52 + 0.05 * Math.sin(a * 7), Math.cos(a) * (0.74 + 0.03 * Math.sin(a * 7))]); } return sweepGeo(L, (t) => 0.035 + 0.01 * Math.sin(t * Math.PI), 120, 8); }), sc, 0, 0, 0, head);
+    const md = mesh(kg('gorgonMed', () => new THREE.CircleGeometry(0.15, 28)), P('#ffffff', { map: gorgonTex(), shininess: 90 }), 0, 0.56, -0.79, head); md.rotation.y = Math.PI; const mr = mesh(kTor(0.15), gold, 0, 0.56, -0.785, head); mr.scale.setScalar(0.16);
+    const SN = kg('gorgonSnake2', () => sweepGeo([[0, 0, 0], [0, 0.2, 0.08], [0.07, 0.42, -0.02], [0, 0.62, 0.05], [0, 0.78, -0.02]], (t) => 0.075 - 0.04 * t, 28, 10));
     const snakes = [];
-    for (let k = 0; k < 9; k++) { const an = ((k - 4) / 4) * 2.3 + Math.PI, g = G(Math.sin(an) * 0.7, 0.56, Math.cos(an) * 0.7); g.rotation.order = 'YXZ'; g.rotation.set(0.45, an, 0); // (leaning outwards, facing out)
-      mesh(SN, sc, 0, 0, 0, g); const hd = mesh(kSph(), sc, 0, 0.62, 0.05, g); hd.scale.set(0.06, 0.045, 0.085); for (const s of [-1, 1]) mesh(kSph(), red, s * 0.035, 0.645, 0.1, g).scale.setScalar(0.013);
-      const t = mesh(BOX, tg, 0, 0.61, 0.16, g); t.scale.set(0.012, 0.005, 0.07); snakes.push([g, g.rotation.x, g.rotation.z, k, t]); }
-    xt.push(() => { const t = nowS(); for (const [g, rx, rz, k, tg2] of snakes) { g.rotation.x = rx + 0.2 * Math.sin(t * 1.7 + k * 1.3); g.rotation.z = rz + 0.18 * Math.sin(t * 1.3 + k); tg2.visible = Math.sin(t * 6 + k * 2) > 0.6; } });
-  } else if (n === 41) { // 🦌 a druid's antler crown: a circlet of twisted wood bound with ivy, great branching antlers, three rune-stones glowing green, and fireflies drifting round
-    const wd = lam('#5b3a1e', { map: woodTex() }), bone = lam('#d9cba3'), leaf = new THREE.MeshLambertMaterial({ map: leafTex(), transparent: true, alphaTest: 0.4, side: THREE.DoubleSide });
-    const ri = mesh(kTor(0.09), wd, 0, 0.55, 0, head); ri.rotation.x = Math.PI / 2; ri.scale.set(0.72, 0.72, 0.8);
-    for (let k = 0; k < 14; k++) { const an = (k / 14) * Math.PI * 2, l = mesh(KIT_PLANE, leaf, Math.sin(an) * 0.76, 0.58 + (k % 2) * 0.05, Math.cos(an) * 0.76, head); l.scale.set(0.12, 0.24, 1); l.rotation.set(0.3, an, (k % 2 ? 1 : -1) * 0.9); }
-    const ANT = kg('druidAntler', () => { const B = kitBuild(); B.add(sweepGeo([[0, 0, 0], [0.25, 0.35, 0.05], [0.42, 0.75, 0.12], [0.5, 1.15, 0.22], [0.46, 1.5, 0.3]], (t) => 0.07 - 0.04 * t, 20, 6), 0, 0, 0, 1, 1, 1, 0, 0, 0);
-      for (const [y, x, l] of [[0.35, 0.25, 0.4], [0.75, 0.42, 0.45], [1.1, 0.5, 0.35]]) B.add(sweepGeo([[x, y, 0.08], [x + 0.05, y + l * 0.3, -0.02], [x + 0.08, y + l * 0.6, -0.12], [x + 0.02, y + l, -0.22]], (t) => 0.04 - 0.025 * t, 10, 5), 0, 0, 0, 1, 1, 1, 0, 0, 0); return B.geo(); });
-    for (const s of [-1, 1]) { const a2 = mesh(ANT, bone, s * 0.42, 0.62, 0.05, head); a2.scale.set(s, 1, 1); a2.material.side = THREE.DoubleSide; a2.rotation.z = -s * 0.12; }
-    const rn = new THREE.MeshPhongMaterial({ color: '#4b5563', emissive: '#16a34a', emissiveMap: dpRuneTex('#4ade80'), emissiveIntensity: 1 });
-    for (const s of [-1, 0, 1]) { const r = mesh(rboxGeo(0.12, 0.16, 0.05, 0.03), rn, s * 0.3, 0.42 - Math.abs(s) * 0.04, -0.7 + Math.abs(s) * 0.12, head); r.rotation.y = -s * 0.4; }
-    const ff = Array.from({ length: 6 }, () => kitGlow(head, '#d9f99d', 0.22, 0.9));
-    xt.push(() => { const t = nowS(); ff.forEach((f, i) => { const an = t * (0.5 + i * 0.13) + i * 1.7; f.position.set(Math.cos(an) * (1.0 + 0.2 * Math.sin(t + i)), 1.0 + 0.5 * Math.sin(t * 0.9 + i * 2), Math.sin(an) * (1.0 + 0.2 * Math.sin(t + i))); f.material.opacity = 0.5 + 0.5 * Math.sin(t * 3 + i * 4); }); });
-  } else if (n === 42) { // 🪽 the winged petasos of Hermes: a low-crowned traveller's hat with a wide, drooping brim, a gold band — and a little white wing at each side that flutters
-    const felt = lam('#7a4a20', { side: THREE.DoubleSide }), dk = lam('#4f2e14');
-    mesh(kLathe('petasosBrim', [[0.55, 0.68], [0.85, 0.66], [1.1, 0.6], [1.28, 0.5]], 32), felt, 0, 0, 0, head);
-    mesh(new THREE.CylinderGeometry(0.5, 0.62, 0.36, 26), dk, 0, 0.84, 0, head); const tp = mesh(kDome(), dk, 0, 1.0, 0, head); tp.scale.set(0.5, 0.18, 0.5);
-    mesh(new THREE.CylinderGeometry(0.63, 0.63, 0.09, 26, 1, true), gold, 0, 0.72, 0, head).material.side = THREE.DoubleSide;
-    const ws = [-1, 1].map((s) => { const p = G(s * 0.6, 0.86, 0.1); const w = featherWing(p, s, { cols: ['#e2e8f0', '#f8fafc', '#ffffff'], span: 0.8, k: 0.85 }); w.rotation.set(0, -s * 0.5, s * 0.75); return [p, s]; });
-    xt.push(() => { const t = nowS(); for (const [p, s] of ws) p.rotation.y = s * 0.25 * Math.sin(t * 9); });
-  } else if (n === 43) { // 🐦‍⬛ Odin the Wanderer's hat: a broad, slouching grey felt hat, its crown dented and pointed, a band of dark leather — and one of his ravens perched on the brim, looking about
-    const felt = lam('#5b6370', { side: THREE.DoubleSide }), dk = lam('#3b2a1e'), blk = new THREE.MeshPhongMaterial({ color: '#0f1115', shininess: 90, specular: '#5b6b8a' });
-    mesh(kLathe('wandererBrim', [[0.6, 0.66], [0.95, 0.6], [1.25, 0.47], [1.42, 0.3]], 30), felt, 0, 0, 0, head);
-    mesh(kLathe('wandererCrown', [[0.68, 0.62], [0.66, 0.9], [0.55, 1.2], [0.32, 1.45], [0.06, 1.62], [0, 1.64]], 24), felt, 0, 0, 0, head);
-    mesh(new THREE.CylinderGeometry(0.69, 0.69, 0.12, 24, 1, true), dk, 0, 0.72, 0, head).material.side = THREE.DoubleSide;
-    const rv = G(0.8, 0.62, 0.25); rv.rotation.y = -0.5; mesh(kSph(), blk, 0, 0.18, 0, rv).scale.set(0.13, 0.13, 0.24); const hd = G(0, 0.33, -0.19, rv); mesh(kSph(), blk, 0, 0, 0, hd).scale.set(0.09, 0.09, 0.1);
-    const bk = mesh(kCone(), lam('#1c1917'), 0, -0.01, -0.13, hd); bk.scale.set(0.035, 0.13, 0.03); bk.rotation.x = -Math.PI / 2;
-    for (const s of [-1, 1]) { mesh(kSph(), new THREE.MeshBasicMaterial({ color: '#f8fafc' }), s * 0.06, 0.03, -0.05, hd).scale.setScalar(0.014); const w = mesh(kSph(), blk, s * 0.11, 0.2, 0.04, rv); w.scale.set(0.04, 0.12, 0.24); w.rotation.x = 0.25; }
-    const tl = mesh(BOX, blk, 0, 0.12, 0.3, rv); tl.scale.set(0.16, 0.025, 0.24); tl.rotation.x = -0.4; for (const s of [-1, 1]) box(lam('#1c1917'), 0.02, 0.1, 0.02, s * 0.05, 0.02, 0, rv);
-    xt.push(() => { const t = nowS(), to = [-0.7, 0.35, 0.85, -0.25, 0.1][Math.floor(t / 2.3) % 5]; hd.rotation.y += (to - hd.rotation.y) * 0.12; hd.rotation.x = 0.1 * Math.sin(t * 1.3); }); // (it looks this way and that)
+    for (let k = 0; k < 9; k++) { const an = ((k - 4) / 4) * 2.35 + Math.PI, g = G(Math.sin(an) * 0.68, 0.56, Math.cos(an) * 0.68); g.rotation.order = 'YXZ'; g.rotation.set(0.42, an, 0);
+      mesh(SN, sc, 0, 0, 0, g); const hg = G(0, 0.78, -0.02, g); hg.rotation.x = -0.35; // (the head, looking out)
+      const hm = mesh(rboxGeo(0.12, 0.07, 0.2, 0.035), sc, 0, 0.0, 0.07, hg); hm.scale.x = 1; const jw = G(0, -0.03, -0.02, hg); mesh(rboxGeo(0.1, 0.025, 0.17, 0.01), bel, 0, -0.005, 0.08, jw); mesh(rboxGeo(0.08, 0.01, 0.14, 0.005), mo, 0, 0.012, 0.08, jw);
+      for (const s of [-1, 1]) { mesh(kSph(), eye, s * 0.05, 0.025, 0.1, hg).scale.set(0.016, 0.012, 0.02); const fg = mesh(kCone(), lam('#f8fafc'), s * 0.03, -0.03, 0.14, hg); fg.scale.set(0.006, 0.03, 0.006); fg.rotation.x = Math.PI; }
+      const tng = G(0, -0.01, 0.17, hg); for (const s of [-1, 1]) { const tf = mesh(BOX, tg, s * 0.008, 0, 0.04, tng); tf.scale.set(0.006, 0.004, 0.08); tf.rotation.y = s * 0.25; }
+      snakes.push({ g, rx: g.rotation.x, hg, jw, tng, k }); }
+    xt.push(() => { const t = nowS(); for (const S of snakes) { const ph = (t * 0.6 + S.k * 0.71) % 6, sk = ph < 0.7 ? Math.sin((ph / 0.7) * Math.PI) : 0; // (one rears back and strikes, every few seconds each)
+        S.g.rotation.x = S.rx + 0.18 * Math.sin(t * 1.7 + S.k * 1.3) + 0.5 * sk - (ph > 5.6 ? 0.25 * Math.sin(((ph - 5.6) / 0.4) * Math.PI) : 0); S.g.rotation.z = 0.2 * Math.sin(t * 1.3 + S.k);
+        S.hg.rotation.y = 0.3 * Math.sin(t * 2.1 + S.k * 2); S.jw.rotation.x = 0.6 * sk + 0.05; S.tng.visible = sk < 0.1 && Math.sin(t * 7 + S.k * 2) > 0.55; S.tng.scale.z = 0.6 + 0.4 * Math.sin(t * 30); } });
+    glint(head, 0.0, 0.56, -0.83, 0.18, 0.5, 1);
+  } else if (n === 41) { // 🦌 a druid's antler crown: a circlet of two twisted wooden strands wound with ivy and little white flowers, a sprig of mistletoe at the brow, great mossy antlers with ivy trailing from their tines and swaying, three rune-stones glowing green, and fireflies drifting round
+    const wd = lam('#5b3a1e', { map: woodTex() }), wd2 = lam('#7a5230', { map: woodTex() }), bone = P('#ddd0aa', { shininess: 30, specular: '#3a3020' }), moss = lam('#4d7c0f'), moss2 = lam('#65a30d'), leaf = new THREE.MeshLambertMaterial({ map: leafTex(), transparent: true, alphaTest: 0.4, side: THREE.DoubleSide }), fl = new THREE.MeshLambertMaterial({ map: ovFlowerTex(), transparent: true, alphaTest: 0.4, side: THREE.DoubleSide });
+    for (const [ph, m] of [[0, wd], [Math.PI, wd2]]) mesh(kg('druidTwist' + ph, () => { const L = []; for (let k = 0; k <= 72; k++) { const a = (k / 72) * Math.PI * 2.02; L.push([Math.sin(a) * (0.73 + 0.035 * Math.cos(a * 9 + ph)), 0.55 + 0.035 * Math.sin(a * 9 + ph), Math.cos(a) * (0.73 + 0.035 * Math.cos(a * 9 + ph))]); } return sweepGeo(L, () => 0.04, 144, 7); }), m, 0, 0, 0, head);
+    for (let k = 0; k < 22; k++) { const an = (k / 22) * Math.PI * 2, l = mesh(KIT_PLANE, leaf, Math.sin(an) * 0.78, 0.57 + (k % 2) * 0.05, Math.cos(an) * 0.78, head); l.scale.set(0.13, 0.25, 1); l.rotation.set(0.3, an, (k % 2 ? 1 : -1) * 0.9); }
+    for (let k = 0; k < 7; k++) { const an = (k / 7) * Math.PI * 2 + 0.3, f = mesh(KIT_PLANE, fl, Math.sin(an) * 0.8, 0.6, Math.cos(an) * 0.8, head); f.scale.setScalar(0.13); f.rotation.set(-0.4, an, 0); }
+    const ANT = kg('druidAntler2', () => { const B = kitBuild(); B.add(sweepGeo([[0, 0, 0], [0.22, 0.32, 0.04], [0.4, 0.72, 0.12], [0.52, 1.12, 0.22], [0.5, 1.48, 0.3], [0.42, 1.72, 0.34]], (t) => 0.095 - 0.06 * t, 26, 8), 0, 0, 0);
+      for (const [y, x, l, z] of [[0.2, 0.14, 0.42, -0.05], [0.55, 0.33, 0.5, 0.05], [0.9, 0.46, 0.45, 0.12], [1.25, 0.52, 0.36, 0.2], [1.5, 0.48, 0.3, 0.28]]) B.add(sweepGeo([[x, y, z + 0.04], [x + 0.06, y + l * 0.3, z - 0.05], [x + 0.09, y + l * 0.62, z - 0.14], [x + 0.03, y + l, z - 0.24]], (t) => 0.05 - 0.034 * t, 12, 6), 0, 0, 0); return B.geo(); });
+    const vines = [];
+    for (const s of [-1, 1]) { const a = G(s * 0.4, 0.62, 0.05); a.rotation.z = -s * 0.12; const am = mesh(ANT, bone, 0, 0, 0, a); am.scale.set(s, 1, 1); am.material.side = THREE.DoubleSide;
+      for (const [x, y, z, sc2] of [[0.06, 0.08, 0, 0.11], [0.3, 0.55, 0.1, 0.08], [0.45, 0.95, 0.16, 0.07], [0.12, 0.3, 0.02, 0.09]]) { const m = mesh(kSph(), sc2 > 0.085 ? moss : moss2, s * x, y, z, a); m.scale.set(sc2, sc2 * 0.6, sc2); }
+      for (const [x, y, z] of [[0.48, 1.04, -0.1], [0.6, 1.5, 0.05]]) { const v = G(s * x, y, z, a); const vt = mesh(kg('druidVine', () => sweepGeo([[0, 0, 0], [0.02, -0.18, 0.01], [-0.01, -0.36, -0.01], [0.01, -0.52, 0.0]], () => 0.012, 10, 5)), moss, 0, 0, 0, v);
+        for (let j = 0; j < 4; j++) { const l = mesh(KIT_PLANE, leaf, (j % 2 ? 0.03 : -0.03), -0.1 - j * 0.12, 0, v); l.scale.set(0.09, 0.15, 1); l.rotation.set(0, j * 1.3, (j % 2 ? 1 : -1) * 0.6); } vines.push([v, s, x]); } }
+    const mi = G(0, 0.6, -0.8); for (let k = 0; k < 5; k++) { const l = mesh(KIT_PLANE, leaf, (k - 2) * 0.05, 0.03 + Math.abs(k - 2) * -0.01, 0, mi); l.scale.set(0.07, 0.16, 1); l.rotation.z = (k - 2) * 0.5; }
+    for (let k = 0; k < 6; k++) mesh(kSph(), P('#f8fafc', { emissive: '#3a3a3a', shininess: 120 }), Math.cos(k) * 0.05, Math.sin(k * 2) * 0.03 - 0.02, -0.02, mi).scale.setScalar(0.025); // (mistletoe and its berries)
+    const rn = P('#4b5563', { emissive: '#16a34a', emissiveMap: dpRuneTex('#4ade80'), emissiveIntensity: 1 });
+    for (const s of [-1, 0, 1]) { if (!s) continue; const r = mesh(rboxGeo(0.12, 0.16, 0.05, 0.03), rn, s * 0.36, 0.44, -0.66, head); r.rotation.y = -s * 0.45; }
+    const r3 = mesh(rboxGeo(0.12, 0.16, 0.05, 0.03), rn, 0, 0.42, 0.79, head); r3.rotation.y = Math.PI;
+    const ff = Array.from({ length: 9 }, () => kitGlow(head, '#d9f99d', 0.22, 0.9));
+    xt.push(() => { const t = nowS(); rn.emissiveIntensity = 0.7 + 0.4 * Math.sin(t * 1.8);
+      ff.forEach((f, i) => { const an = t * (0.5 + i * 0.11) + i * 1.7; f.position.set(Math.cos(an) * (1.05 + 0.25 * Math.sin(t + i)), 0.9 + 0.7 * Math.sin(t * 0.9 + i * 2), Math.sin(an) * (1.05 + 0.25 * Math.sin(t + i))); f.material.opacity = 0.45 + 0.55 * Math.max(0, Math.sin(t * 3 + i * 4)); });
+      vines.forEach(([v, s, x], i) => { v.rotation.z = 0.15 * Math.sin(t * 1.4 + i) * s; v.rotation.x = 0.1 * Math.sin(t * 1.1 + i * 2); }); });
+  } else if (n === 42) { // 🪽 the winged petasos of Hermes: a traveller's hat of soft brown felt, its wide brim turned up at the edge and stitched, a gold band with his caduceus on a medallion at the front — and a white wing tipped in gold at each side, fluttering, and now and then beating hard as if to take off
+    const felt = P('#ffffff', { map: ovFeltTex('#8a5527'), shininess: 8, side: THREE.DoubleSide }), dk = P('#ffffff', { map: ovFeltTex('#5e3717'), shininess: 8 });
+    mesh(kLathe('petasosBrim2', [[0.56, 0.68], [0.86, 0.66], [1.12, 0.6], [1.3, 0.52], [1.38, 0.57], [1.39, 0.6]], 40), felt, 0, 0, 0, head);
+    ring(1.375, 0.014, 0.585, lam('#d6b48a')); // (stitched edge)
+    mesh(kLathe('petasosCrown2', [[0.62, 0.64], [0.61, 0.84], [0.54, 0.98], [0.34, 1.07], [0.12, 1.1], [0, 1.1]], 32), dk, 0, 0, 0, head);
+    mesh(new THREE.CylinderGeometry(0.625, 0.625, 0.1, 32, 1, true), gold, 0, 0.72, 0, head).material.side = THREE.DoubleSide;
+    const md = mesh(kg('cadMed', () => new THREE.CircleGeometry(0.12, 28)), P('#ffffff', { map: ovCaduceusTex(), shininess: 120, emissive: '#1a1000' }), 0, 0.74, -0.635, head); md.rotation.y = Math.PI;
+    const ws = [-1, 1].map((s) => { const p = G(s * 0.6, 0.86, 0.1); const w = featherWing(p, s, { cols: ['#e2e8f0', '#ffffff', '#fde68a'], span: 1.15, k: 0.9 }); w.rotation.set(0, -s * 0.45, s * 0.7); return [p, s]; });
+    glint(head, 0, 0.74, -0.66, 0.18, 0.5, 0.7);
+    xt.push(() => { const t = nowS(), burst = (t % 7) < 1.1 ? Math.sin(((t % 7) / 1.1) * Math.PI * 4) : 0; for (const [p, s] of ws) { p.rotation.y = s * (0.22 * Math.sin(t * 9) + 0.5 * burst); p.rotation.z = s * 0.15 * burst; } });
+  } else if (n === 43) { // 🐦‍⬛ Odin the Wanderer's hat: a broad, slouching hat of weathered grey felt, its brim drooping in waves and its crown dented and bent, a leather band with a silver valknut and a raven's feather tucked in it — and one of his ravens perched on the brim: it looks about, hops round, and now and then spreads its wings and caws
+    const felt = P('#ffffff', { map: ovFeltTex('#5b6370'), shininess: 6, side: THREE.DoubleSide }), dk = lam('#3b2a1e'), blk = P('#0f1115', { shininess: 90, specular: '#5b6b8a' }), blk2 = P('#1a1d24', { shininess: 70, specular: '#3b4a6a' });
+    const BRIM = kg('wandererBrim2', () => { const g = new THREE.LatheGeometry([[0.6, 0.66], [0.95, 0.6], [1.28, 0.46], [1.52, 0.29], [1.54, 0.32]].map(([x, y]) => new THREE.Vector2(x, y)), 48), p = g.attributes.position;
+      for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i), r = Math.hypot(x, z), a = Math.atan2(x, z); p.setY(i, p.getY(i) - 0.09 * (Math.sin(a * 3 + 0.6) + 0.6) * Math.max(0, r - 0.65)); } g.computeVertexNormals(); return g; });
+    mesh(BRIM, felt, 0, 0, 0, head);
+    const CROWN = kg('wandererCrown2', () => { const g = new THREE.LatheGeometry([[0.69, 0.62], [0.67, 0.9], [0.58, 1.18], [0.4, 1.42], [0.18, 1.6], [0.05, 1.67], [0, 1.68]].map(([x, y]) => new THREE.Vector2(x, y)), 36), p = g.attributes.position;
+      for (let i = 0; i < p.count; i++) { const y = p.getY(i), h = Math.max(0, y - 0.95); let x = p.getX(i), z = p.getZ(i); if (z < 0) z *= 1 - 0.28 * h; x += 0.16 * h * h; z += 0.22 * h * h; p.setXYZ(i, x, y - 0.05 * h * h, z); } g.computeVertexNormals(); return g; }); // (pinched at the front, bent over to the back)
+    mesh(CROWN, felt, 0, 0, 0, head);
+    mesh(new THREE.CylinderGeometry(0.695, 0.695, 0.13, 36, 1, true), dk, 0, 0.72, 0, head).material.side = THREE.DoubleSide;
+    const vk = mesh(kg('valknutDisc', () => new THREE.CircleGeometry(0.1, 24)), P('#ffffff', { map: ovValknutTex(), shininess: 140, specular: '#ffffff' }), -0.7, 0.72, -0.05, head); vk.rotation.y = -Math.PI / 2;
+    const fe = G(-0.68, 0.74, 0.25); fe.rotation.set(0.2, 0, 0.5); mesh(kCyl(), blk, 0, 0.3, 0, fe).scale.set(0.012, 0.6, 0.012); const vn = mesh(kSph(), blk2, 0.03, 0.38, 0, fe); vn.scale.set(0.05, 0.28, 0.012); // (a raven's feather in the band)
+    const rv = G(0.86, 0.6, 0.3); rv.rotation.y = -0.5; // the raven
+    const bd = G(0, 0.2, 0, rv); mesh(kSph(), blk, 0, 0, 0, bd).scale.set(0.14, 0.14, 0.26); mesh(kSph(), blk2, 0, -0.03, -0.1, bd).scale.set(0.11, 0.12, 0.14);
+    const hd = G(0, 0.15, -0.2, bd); mesh(kSph(), blk, 0, 0, 0, hd).scale.set(0.095, 0.095, 0.11);
+    const ub = mesh(kCone(), lam('#1c1917'), 0, 0.0, -0.15, hd); ub.scale.set(0.035, 0.12, 0.03); ub.rotation.x = -Math.PI / 2 + 0.08; const lb = G(0, -0.025, -0.08, hd); const lbm = mesh(kCone(), lam('#26221f'), 0, 0, -0.06, lb); lbm.scale.set(0.028, 0.1, 0.022); lbm.rotation.x = -Math.PI / 2 - 0.1;
+    for (const s of [-1, 1]) mesh(kSph(), P('#0b0b0b', { shininess: 200, specular: '#ffffff' }), s * 0.065, 0.03, -0.05, hd).scale.setScalar(0.017);
+    const wings = [-1, 1].map((s) => { const w = G(s * 0.12, 0.03, 0.02, bd); for (let j = 0; j < 4; j++) { const f = mesh(kSph(), j % 2 ? blk2 : blk, s * (0.02 + j * 0.05), -0.01 * j, 0.06 + j * 0.05, w); f.scale.set(0.04, 0.11 - j * 0.012, 0.22 - j * 0.02); f.rotation.x = 0.25; } return [w, s]; });
+    const tl = G(0, -0.04, 0.25, bd); for (let j = -1; j <= 1; j++) { const f = mesh(kSph(), blk2, j * 0.05, 0, 0.1, tl); f.scale.set(0.045, 0.015, 0.16); f.rotation.y = j * 0.25; } tl.rotation.x = -0.35;
+    for (const s of [-1, 1]) { box(lam('#1c1917'), 0.02, 0.12, 0.02, s * 0.05, 0.04, 0, rv); box(lam('#1c1917'), 0.02, 0.02, 0.08, s * 0.05, -0.02, -0.03, rv); }
+    glint(head, -0.7, 0.72, -0.08, 0.12, 0.5, 1.5);
+    xt.push(() => { const t = nowS(), seq = [-0.7, 0.35, 0.85, -0.25, 0.1], to = seq[Math.floor(t / 2.3) % 5]; hd.rotation.y += (to - hd.rotation.y) * 0.12; hd.rotation.x = 0.1 * Math.sin(t * 1.3);
+      const c = t % 9, sp = c > 6.2 && c < 7.6 ? Math.sin(((c - 6.2) / 1.4) * Math.PI) : 0, caw = (c > 3.0 && c < 3.25) || (c > 3.45 && c < 3.7) ? 1 : 0; // (it spreads its wings; it caws twice)
+      for (const [w, s] of wings) { w.rotation.z = s * (1.1 * sp) * (0.7 + 0.3 * Math.sin(t * 18)); w.rotation.y = -s * 0.3 * sp; }
+      lb.rotation.x = 0.35 * caw; hd.rotation.x += -0.25 * caw; bd.rotation.x = -0.12 * caw + 0.06 * sp; tl.rotation.x = -0.35 + 0.25 * sp;
+      const hop = (t % 13) > 11.5 ? Math.abs(Math.sin(((t % 13) - 11.5) * Math.PI * 1.33)) : 0; rv.position.y = 0.6 + 0.12 * hop; rv.rotation.y = -0.5 + ((t % 26) > 13 ? 0.6 : 0) * (hop ? 1 : 1); }); // (and hops round now and then)
   }
+  for (const f of xt.slice(x0)) f(null, 0); // (posed once now, so a still picture shows it as it looks in motion)
 }
-// ---------------------------------------------------------------- on your back
+// ---------------------------------------------------------------- on your back (💎 overhauled)
+// real bird's wings: a feather is a long curved vane; a wing is rows of them — coverts, secondaries along the arm and
+// primaries fanned from the hand — each one shaded and tipped, merged into one mesh per arm and hand, the hand bending at
+// the wrist as it beats
+const ovFeatherGeo = () => kg('ovFeather', () => { const sh = new THREE.Shape(); sh.moveTo(0, 0); sh.quadraticCurveTo(0.16, 0.25, 0.12, 0.72); sh.quadraticCurveTo(0.07, 1.0, 0, 1.0); sh.quadraticCurveTo(-0.08, 0.95, -0.09, 0.7); sh.quadraticCurveTo(-0.1, 0.25, 0, 0);
+  const g = new THREE.ShapeGeometry(sh, 6).toNonIndexed(), p = g.attributes.position; for (let i = 0; i < p.count; i++) p.setZ(i, 0.07 * Math.sin(p.getY(i) * Math.PI) - 0.25 * p.getX(i) * p.getX(i)); g.computeVertexNormals(); return g; });
+function ovWingGeo(key, o) {
+  return kg('ovWing' + key, () => { const F = ovFeatherGeo(), A = [], H = [], r = mulberry(key.length * 97 + 7), S = o.span, W = S * 0.42;
+    for (let k = 0; k < 10; k++) { const u = k / 9; A.push([0.08 + u * W, 0.04 - u * 0.05, 0.03, S * (0.42 + 0.08 * u), 1.0, Math.PI + 0.04 + u * 0.22, o.cols[1], o.tip]); } // (secondaries)
+    for (let row = 0; row < 2; row++) for (let k = 0; k < 11; k++) { const u = k / 10; A.push([0.04 + u * W * 1.04, 0.09 + row * 0.05, -0.02 - row * 0.03, S * (0.24 - row * 0.08), 1.15, Math.PI + 0.12 + u * 0.28, o.cols[0], null]); } // (coverts)
+    for (let k = 0; k < 11; k++) { const u = k / 10; H.push([u * (S - W) * 0.6, 0.03, 0.02 - u * 0.02, S * (0.36 + 0.17 * Math.sin(u * 2.7)), 0.9, Math.PI + 0.2 + u * 1.18, o.cols[2], o.tip]); } // (primaries)
+    for (let k = 0; k < 9; k++) { const u = k / 8; H.push([u * (S - W) * 0.58, 0.08, -0.03, S * (0.15 + 0.06 * u), 1.05, Math.PI + 0.3 + u * 1.0, o.cols[0], null]); }
+    const m = new THREE.Matrix4(), nm = new THREE.Matrix3(), q = new THREE.Quaternion(), e = new THREE.Euler(), v = new THREE.Vector3(), sc = new THREE.Vector3(), c = new THREE.Color(), c2 = new THREE.Color(), pv = new THREE.Vector3(), nv = new THREE.Vector3();
+    const build = (list) => { const pos = [], nor = [], col = [], P = F.attributes.position, N = F.attributes.normal;
+      for (const [x, y, z, len, w, ang, cl, tip] of list) { m.compose(v.set(x, y, z), q.setFromEuler(e.set(0.12, (r() - 0.5) * 0.1, ang + (r() - 0.5) * 0.07)), sc.set(len * w, len, len)); nm.getNormalMatrix(m); c.set(cl).offsetHSL(0, 0, (r() - 0.5) * 0.07); if (tip) c2.set(tip);
+        for (let i = 0; i < P.count; i++) { pv.set(P.getX(i), P.getY(i), P.getZ(i)).applyMatrix4(m); nv.set(N.getX(i), N.getY(i), N.getZ(i)).applyMatrix3(nm).normalize(); pos.push(pv.x, pv.y, pv.z); nor.push(nv.x, nv.y, nv.z);
+          const yy = P.getY(i), xx = Math.abs(P.getX(i)), sh = (0.78 + 0.22 * yy) * (xx < 0.012 ? 1.15 : 1); // (darker at the root; the shaft a little lighter)
+          if (tip && yy > 0.7) { const k2 = Math.min(1, (yy - 0.7) / 0.22); col.push((c.r + (c2.r - c.r) * k2) * sh, (c.g + (c2.g - c.g) * k2) * sh, (c.b + (c2.b - c.b) * k2) * sh); } else col.push(c.r * sh, c.g * sh, c.b * sh); } }
+      const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); return g; };
+    return { arm: build(A), hand: build(H), W }; }); }
+function ovWing(par, s, key, o, mat) {
+  const W = ovWingGeo(key, o), arm = new THREE.Group(); par.add(arm); arm.scale.x = s; arm.add(new THREE.Mesh(W.arm, mat));
+  const hand = new THREE.Group(); hand.position.set(W.W, -0.01, 0); arm.add(hand); hand.add(new THREE.Mesh(W.hand, mat));
+  if (o.bone) { arm.add(new THREE.Mesh(kg('ovWingB' + key, () => sweepGeo([[0, 0, 0], [W.W * 0.5, 0.11, 0.0], [W.W, 0.0, 0]], (t) => 0.075 - 0.035 * t, 14, 7)), o.bone)); hand.add(new THREE.Mesh(kg('ovWingH' + key, () => sweepGeo([[0, 0, 0], [(o.span - W.W) * 0.35, 0.04, 0], [(o.span - W.W) * 0.6, -0.03, 0]], (t) => 0.045 - 0.028 * t, 14, 6)), o.bone)); }
+  return { arm, hand, W: W.W };
+}
+// a jagged bolt of lightning between two points, as crossed ribbons: set(a, b, jag) throws it again
+function ovBolt(par, col, w = 0.025, n = 7) {
+  const pos = new Float32Array((n - 1) * 3 * 18), g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: col, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })); m.frustumCulled = false; par.add(m);
+  m.userData.set = (a, b, jag) => { const P = []; for (let i = 0; i < n; i++) { const u = i / (n - 1), k = i && i < n - 1 ? jag : 0; P.push([a[0] + (b[0] - a[0]) * u + (Math.random() - 0.5) * k, a[1] + (b[1] - a[1]) * u + (Math.random() - 0.5) * k, a[2] + (b[2] - a[2]) * u + (Math.random() - 0.5) * k]); }
+    let o = 0; for (let i = 0; i < n - 1; i++) for (const [dx, dy, dz] of [[w, 0, 0], [0, w, 0], [0, 0, w]]) { const A = P[i], B = P[i + 1], q = [[A[0] - dx, A[1] - dy, A[2] - dz], [A[0] + dx, A[1] + dy, A[2] + dz], [B[0] + dx, B[1] + dy, B[2] + dz], [B[0] - dx, B[1] - dy, B[2] - dz]]; for (const j of [0, 1, 2, 0, 2, 3]) { pos[o++] = q[j][0]; pos[o++] = q[j][1]; pos[o++] = q[j][2]; } }
+    g.attributes.position.needsUpdate = true; };
+  return m;
+}
+const ovTortTex = () => kCanvas('ovTortoise', 128, 128, (g, r) => { g.fillStyle = '#5a2e0e'; g.fillRect(0, 0, 128, 128); for (let k = 0; k < 70; k++) { const x = r() * 128, y = r() * 128, rr = 4 + r() * 14, gr = g.createRadialGradient(x, y, 0, x, y, rr); gr.addColorStop(0, r() < 0.5 ? 'rgba(230,150,50,.75)' : 'rgba(25,10,2,.7)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(x - rr, y - rr, rr * 2, rr * 2); } });
+const ovFiligreeTex = () => kCanvas('ovFiligree', 64, 256, (g) => { const gr = g.createLinearGradient(0, 0, 64, 0); gr.addColorStop(0, '#0f1f5c'); gr.addColorStop(0.5, '#1e3a8a'); gr.addColorStop(1, '#0f1f5c'); g.fillStyle = gr; g.fillRect(0, 0, 64, 256);
+  g.strokeStyle = '#e8b84a'; g.lineWidth = 2.2; for (let y = 0; y < 256; y += 48) { g.beginPath(); g.moveTo(32, y); g.bezierCurveTo(56, y + 10, 56, y + 30, 32, y + 24); g.bezierCurveTo(16, y + 20, 18, y + 8, 28, y + 12); g.stroke(); g.beginPath(); g.moveTo(32, y + 24); g.bezierCurveTo(8, y + 34, 8, y + 54, 32, y + 48); g.stroke(); g.fillStyle = '#fde68a'; g.beginPath(); g.arc(32, y + 24, 3, 0, 7); g.fill(); }
+  g.fillStyle = '#e8b84a'; g.fillRect(0, 0, 3, 256); g.fillRect(61, 0, 3, 256); }); // (blue velvet worked with gold scrolls)
+const ovQuiverTex = () => kCanvas('ovQuiver', 128, 128, (g, r) => { g.fillStyle = '#e5e7eb'; g.fillRect(0, 0, 128, 128); for (let k = 0; k < 400; k++) { g.fillStyle = 'rgba(0,0,0,.04)'; g.fillRect(r() * 128, r() * 128, 2, 1); }
+  g.fillStyle = '#94a3b8'; g.beginPath(); g.arc(64, 50, 22, 0, 7); g.fill(); g.fillStyle = '#e5e7eb'; g.beginPath(); g.arc(74, 44, 20, 0, 7); g.fill(); // (a crescent moon)
+  g.fillStyle = '#cbd5e1'; for (const [x, y] of [[24, 20], [100, 90], [30, 100], [104, 24], [60, 110]]) { g.save(); g.translate(x, y); for (let k = 0; k < 4; k++) { g.rotate(Math.PI / 2); g.beginPath(); g.moveTo(0, 0); g.lineTo(2, 6); g.lineTo(0, 9); g.lineTo(-2, 6); g.fill(); } g.restore(); } }); // (and stars)
+const ovZodiacTex = () => kCanvas('ovZodiac', 512, 32, (g) => { g.fillStyle = '#e8b84a'; g.fillRect(0, 0, 512, 32); g.fillStyle = '#7a4a10'; g.fillRect(0, 2, 512, 2); g.fillRect(0, 28, 512, 2); g.font = 'bold 20px "DejaVu Sans","Segoe UI Symbol",serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  ['♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓'].forEach((z, k) => { g.fillText(z, 21 + k * 42.6, 17); g.fillRect(k * 42.6, 4, 1.5, 24); }); }); // (the zodiac, in gold)
+const ovNoboriTex = (c) => kCanvas('ovNobori' + c, 128, 512, (g, r) => { g.fillStyle = '#f5f0e1'; g.fillRect(0, 0, 128, 512); for (let k = 0; k < 500; k++) { g.fillStyle = 'rgba(80,60,30,.05)'; g.fillRect(r() * 128, r() * 512, 3, 1); }
+  g.fillStyle = c; g.fillRect(0, 0, 128, 54); g.fillRect(0, 458, 128, 54); g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(0, 50, 128, 4); g.fillRect(0, 458, 128, 4);
+  g.strokeStyle = '#b8860b'; g.lineWidth = 5; g.beginPath(); g.arc(64, 150, 46, 0, 7); g.stroke(); g.fillStyle = c; g.beginPath(); g.arc(64, 150, 42, 0, 7); g.fill(); g.fillStyle = '#f5f0e1';
+  for (let k = 0; k < 3; k++) { const an = (k / 3) * Math.PI * 2 - Math.PI / 2; g.beginPath(); g.arc(64 + Math.cos(an) * 17, 150 + Math.sin(an) * 17, 13, 0, 7); g.fill(); }
+  g.fillStyle = '#111'; g.font = 'bold 64px serif'; g.textAlign = 'center'; g.fillText('武', 64, 300); g.fillText('勇', 64, 390); }); // (cream silk: bands of your colour, your crest in a gold ring, “valour” brushed in black)
 function dpBack(n, C) {
-  const { body, lam, mesh, box, cyl, mats, av, xt } = C, gold = DP_GOLD();
+  const { body, lam, mesh, box, av, xt } = C, gold = DP_GOLD(), x0 = xt.length;
   const G = (x, y, z, par = body) => { const o = new THREE.Group(); o.position.set(x, y, z); par.add(o); return o; };
-  const strap = (col = '#4a2e18') => { const m = lam(col); for (const s of [-1, 1]) { const st2 = box(m, 0.16, 2.6, 0.06, s * 0.05, 3.0, -0.53); st2.rotation.z = s * 0.62; } box(gold, 0.24, 0.24, 0.07, 0, 3.0, -0.56); }; // (a strap across the chest, a buckle)
-  const flap = (w, s, base, amp, sp) => xt.push(() => { w.rotation.y = base - s * amp * (0.5 + 0.5 * Math.sin(nowS() * sp)); });
-  if (n === 21) { // 🕯️ the wings of Icarus: feathers of goose and gull set in wax on a frame of willow, a leather harness — wax dripping from the joints, and they beat slowly
-    const wax = new THREE.MeshPhongMaterial({ color: '#f3e3a5', shininess: 90, transparent: true, opacity: 0.92 }), wd = lam('#8b6a3e');
-    for (const s of [-1, 1]) { const p = G(s * 0.3, 3.95, 0.66); const w = featherWing(p, s, { cols: ['#d6c7a6', '#ebe0c8', '#fbf6ea'], span: 2.6 }); p.rotation.set(0.1, -s * 0.42, s * 0.4);
-      const fr = mesh(kCyl(), wd, s * 1.3, 0.45, 0.05, w); fr.scale.set(0.04, 2.6, 0.04); fr.rotation.z = s * (Math.PI / 2 - 0.2);
-      for (let k = 0; k < 7; k++) { const d = mesh(kSph(), wax, s * (0.35 + k * 0.33), 0.3 - Math.sin(k) * 0.08, 0.06, w); d.scale.set(0.06, 0.1 + (k % 3) * 0.05, 0.06); }
-      flap(p, s, -s * 0.42, 0.22, 1.6); }
-    strap('#5b3a1e');
-  } else if (n === 22) { // 🐎 the wings of Pegasus: great white wings with gold-tipped pinions, a soft light along them; they beat as you stand
-    for (const s of [-1, 1]) { const p = G(s * 0.3, 3.95, 0.64); const w = featherWing(p, s, { cols: ['#fde68a', '#f8fafc', '#ffffff'], span: 3.0, em: '#1f1a10' }); p.rotation.set(0.12, -s * 0.38, s * 0.48);
-      for (let k = 0; k < 3; k++) { const gl = kitGlow(w, '#fef3c7', 0.9, 0.35); gl.position.set(s * (1.2 + k * 0.7), 0.3 - k * 0.2, 0.1); }
-      flap(p, s, -s * 0.38, 0.3, 2.1); }
-  } else if (n === 23) { // 🔨 Mjölnir, on a thong across your back: a short-handled hammer, its head of grey iron worked all over in knotwork, a leather-bound grip with a loop — sparks of lightning crawling over it
-    const hd = metal('#7c828b', { map: knotTex(), shininess: 70 }), lth = lam('#3b2414', { map: leatherTex() });
-    const g = G(0.1, 3.0, 0.78); g.rotation.z = 0.5; mesh(rboxGeo(1.05, 0.62, 0.62, 0.08), hd, 0, 0.75, 0, g);
-    for (const s of [-1, 1]) mesh(rboxGeo(0.08, 0.66, 0.66, 0.03), metal('#4b5057'), s * 0.5, 0.75, 0, g);
-    mesh(kCyl(), lth, 0, -0.1, 0, g).scale.set(0.09, 1.2, 0.09); mesh(kSph(), metal('#4b5057'), 0, -0.72, 0, g).scale.setScalar(0.12); const lp = mesh(kTor(0.2), lth, 0, -0.95, 0, g); lp.scale.setScalar(0.18); lp.rotation.y = Math.PI / 2;
-    for (const s of [-1, 1]) { const st2 = box(lam('#3b2414'), 0.12, 2.4, 0.05, s * 0.05, 3.0, -0.53); st2.rotation.z = s * 0.62; }
-    const zs = Array.from({ length: 4 }, () => kitGlow(g, '#bfdbfe', 0.5, 0)); const cg = kitGlow(g, '#93c5fd', 1.8, 0.2); cg.position.y = 0.75;
-    xt.push(() => { const t = nowS(); zs.forEach((z, i) => { const on = Math.sin(t * 13 + i * 2.1) > 0.75; z.material.opacity = on ? 0.9 : 0; if (on) z.position.set((Math.random() - 0.5) * 1.1, 0.75 + (Math.random() - 0.5) * 0.6, 0.35); }); cg.material.opacity = 0.15 + 0.1 * Math.sin(t * 9); });
-  } else if (n === 24) { // 🔱 Gungnir, Odin's spear, slung corner to corner: an ash shaft, a long leaf-shaped head of dark iron with runes that glow blue, a raven's feather tied below it
-    const g = G(0, 3.1, 0.72); g.rotation.z = -0.62; mesh(kCyl(), lam('#8b6a3e', { map: woodTex() }), 0, 0, 0, g).scale.set(0.07, 5.0, 0.07);
-    const hd = mesh(kLathe('gungnir', [[0, -0.05], [0.12, 0.1], [0.16, 0.5], [0.1, 1.0], [0, 1.25]], 4), new THREE.MeshPhongMaterial({ color: '#3a3f47', emissive: '#38bdf8', emissiveMap: dpRuneTex('#7dd3fc'), emissiveIntensity: 1, shininess: 110 }), 0, 2.5, 0, g); hd.scale.z = 0.35;
-    mesh(kCyl(), gold, 0, 2.48, 0, g).scale.set(0.1, 0.16, 0.1); const fe = mesh(kSph(), lam('#0f1115'), 0.12, 2.25, 0.02, g); fe.scale.set(0.03, 0.32, 0.09); fe.rotation.z = -0.3;
-    mesh(kCone(), metal('#4b5057'), 0, -2.6, 0, g).scale.set(0.08, 0.25, 0.08); strap('#3b2414');
-    const gl = kitGlow(g, '#7dd3fc', 1.1, 0.4); gl.position.y = 3.0; xt.push(() => { gl.material.opacity = 0.3 + 0.15 * Math.sin(nowS() * 2.4); });
-  } else if (n === 25) { // 🌊 the trident of Poseidon, slung across your back: a sea-green shaft, three golden barbed prongs, water drops glittering off it
-    const g = G(0.0, 3.15, 0.74); g.rotation.z = 0.62; const g2 = G(0, 0, 0, g); g2.rotation.x = Math.PI / 2; const t = emTridentProp(g2); t.position.z = 2.3; t.scale.setScalar(0.95);
-    const dr = Array.from({ length: 5 }, () => kitGlow(body, '#a5f3fc', 0.18, 0.8)); strap('#134e4a');
-    xt.push(() => { const tt = nowS(); dr.forEach((d, i) => { const u = (tt * 0.7 + i / 5) % 1; d.position.set(-1.3 + i * 0.12, 5.0 - u * 1.4, 0.8); d.material.opacity = 0.9 * Math.sin(u * Math.PI); }); });
-  } else if (n === 26) { // 🐏 the Golden Fleece, thrown over your shoulders: a ram's fleece of curling gold that shimmers as the light moves over it, clasped at the neck by the ram's own gilded horns
-    const ft = fleeceTex(); ft.wrapS = ft.wrapT = THREE.RepeatWrapping; ft.repeat.set(3, 4); ft.needsUpdate = true; // (fine curls, many of them)
-    const fl = new THREE.MeshPhongMaterial({ map: ft, color: '#ffffff', emissive: '#4a3205', shininess: 60, specular: '#fff2b3', side: THREE.DoubleSide });
-    mesh(capeGeo(2.2, 3.0, 0.75), fl, 0, 2.55, 0.58); const col = mesh(kTor(0.3), fl, 0, 4.02, 0.0); col.rotation.x = Math.PI / 2; col.scale.set(1.15, 0.62, 0.8);
-    const HR = kg('ramHorn', () => sweepGeo([[0, 0, 0], [0.12, 0.12, -0.05], [0.2, 0.0, -0.12], [0.12, -0.13, -0.08], [0.02, -0.06, -0.02]], (t) => 0.065 - 0.04 * t, 20, 8));
-    for (const s of [-1, 1]) { const h = mesh(HR, gold, s * 0.28, 3.85, -0.56); h.scale.set(s * 1.2, 1.2, 1.2); }
-    xt.push(() => { fl.emissive.setRGB(0.22 + 0.08 * Math.sin(nowS() * 2), 0.15 + 0.05 * Math.sin(nowS() * 2), 0.02); });
-  } else if (n === 27) { // 🛡️ the Aegis: Athena's great round shield of gold, the Gorgon's face at its middle, a rim of twisting snakes in bronze
-    const g = G(0, 3.0, 0.92); const f = mesh(aspisGeo(), new THREE.MeshPhongMaterial({ map: gorgonTex(), shininess: 110, specular: '#fff2c0' }), 0, 0, 0, g); f.rotation.set(Math.PI / 2, 0, 0); g.scale.setScalar(1.05);
+  const P = (c, o) => new THREE.MeshPhongMaterial(Object.assign({ color: c }, o || {}));
+  const strap = (col = '#4a2e18', buckle = gold) => { const m = lam(col); for (const s of [-1, 1]) { const st2 = box(m, 0.16, 2.6, 0.06, s * 0.05, 3.0, -0.53); st2.rotation.z = s * 0.62; const sb = box(m, 0.16, 2.6, 0.06, s * 0.05, 3.0, 0.53); sb.rotation.z = -s * 0.62; } box(buckle, 0.26, 0.26, 0.07, 0, 3.0, -0.57); mesh(kSph(), buckle, 0, 3.0, -0.61).scale.set(0.07, 0.07, 0.03); }; // (straps crossing the chest and the back, a buckle)
+  const glints = [], glint = (par, x, y, z, s, sp = 0.7, ph = 0, col = '#fffbe6') => { const g2 = new THREE.Sprite(new THREE.SpriteMaterial({ map: fxTex('twinkle'), color: col, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0 })); g2.position.set(x, y, z); g2.scale.setScalar(s); par.add(g2); glints.push([g2, s, sp, ph]); return g2; };
+  xt.push(() => { if (!glints.length) return; const t = nowS(); for (const [g2, s, sp, ph] of glints) { const k = Math.pow(Math.max(0, Math.sin(t * sp + ph)), 16); g2.material.opacity = k; g2.scale.setScalar(s * (0.3 + 0.9 * k)); g2.material.rotation = t * 0.8 + ph; } });
+  const beat = (Wg, s, o) => xt.push(() => { const t = nowS() * o.sp + (o.ph || 0), b = Math.sin(t), burst = o.burst && (nowS() % o.burst) < 1.6 ? Math.sin(((nowS() % o.burst) / 1.6) * Math.PI * 3) : 0; Wg.arm.rotation.z = s * (o.base + o.amp * b + 0.25 * burst); Wg.hand.rotation.z = s * ((o.wrist || 0.22) * Math.sin(t - 0.9) + 0.15 * burst); }); // (beating, and now and then a few hard beats)
+  if (n === 21) { // 🕯️ the wings of Icarus: goose and gull feathers, cream and grey with brown tips, set in wax on a frame of bent willow and bound to a leather harness; wax gathers at the joints and drips, and now and then a feather works loose and drifts down
+    const wax = P('#f3e3a5', { shininess: 120, specular: '#fffbe6', transparent: true, opacity: 0.93 }), wd = lam('#8b6a3e', { map: woodTex() }), fm = P('#ffffff', { vertexColors: true, side: THREE.DoubleSide, shininess: 14 }), lth = lam('#5b3a1e', { map: leatherTex() });
+    const drops = [], loose = [];
+    for (const s of [-1, 1]) { const p = G(s * 0.32, 3.95, 0.62); p.rotation.set(0.12, -s * 0.42, 0); const Wg = ovWing(p, s, 'icarus', { span: 2.7, cols: ['#e9dfc6', '#d8c9a5', '#f2ece0'], tip: '#7a5b38', bone: wd }, fm);
+      for (const [par, xs] of [[Wg.arm, [0.15, 0.45, 0.8, 1.05]], [Wg.hand, [0.1, 0.45, 0.85]]]) for (const x of xs) { const d = mesh(kSph(), wax, x, 0.02, 0.05, par); d.scale.set(0.09, 0.07, 0.07); }
+      for (const [par, x] of [[Wg.arm, 0.45], [Wg.arm, 1.05], [Wg.hand, 0.45]]) { const m = wax.clone(); const d = mesh(kSph(), m, x, -0.04, 0.05, par); d.scale.set(0.04, 0.05, 0.04); drops.push([d, m, drops.length]); }
+      for (let k = 0; k < 4; k++) mesh(kCyl(), wd, 0.25 + k * 0.28, -0.35, 0.0, Wg.arm).scale.set(0.022, 0.7, 0.022); // (willow struts)
+      beat(Wg, s, { sp: 1.5, base: 0.28, amp: 0.2, ph: s > 0 ? 0 : 0.05, burst: 9 });
+      const lf = mesh(ovFeatherGeo(), P('#efe6d2', { side: THREE.DoubleSide, transparent: true, opacity: 1 }), 0, 0, 0, p); lf.scale.set(0.12, 0.38, 0.38); loose.push([lf, s]); }
+    mesh(rboxGeo(0.9, 0.7, 0.12, 0.05), lth, 0, 3.75, 0.58); for (const s of [-1, 1]) mesh(rboxGeo(0.12, 0.12, 0.05, 0.02), gold, s * 0.3, 3.75, 0.65); strap('#5b3a1e', metal('#8a9099'));
+    xt.push(() => { const t = nowS(); drops.forEach(([d, m, i]) => { const u = (t * 0.32 + i * 0.37) % 1; if (u < 0.6) { const g2 = u / 0.6; d.scale.set(0.035 + 0.02 * g2, 0.04 + 0.05 * g2, 0.035); d.position.y = -0.04 - 0.03 * g2; m.opacity = 0.93; } else { const f = (u - 0.6) / 0.4; d.position.y = -0.07 - 2.2 * f * f; m.opacity = 0.93 * (1 - f); } });
+      loose.forEach(([lf, s], i) => { const u = ((t + i * 4.5) % 9) / 9; lf.visible = u < 0.45; const f = u / 0.45; lf.position.set(s * (2.0 + 0.3 * Math.sin(f * 9)), -0.9 - f * 2.6, 0.2 + 0.2 * Math.sin(f * 6)); lf.rotation.set(0.5 * Math.sin(f * 7), f * 4, 2.6 + 0.6 * Math.sin(f * 8)); lf.material.opacity = Math.min(1, (1 - f) * 3); }); });
+  } else if (n === 22) { // 🐎 the wings of Pegasus: great swan-white wings with gold-tipped pinions on a harness of white leather and gold, motes of light drifting off them as they beat — strongly, and now and then hard, as if about to fly
+    const fm = P('#ffffff', { vertexColors: true, side: THREE.DoubleSide, shininess: 30, emissive: '#1a1810' }), bn = P('#f8fafc', { shininess: 40 });
+    const motes = [];
+    for (const s of [-1, 1]) { const p = G(s * 0.32, 3.95, 0.62); p.rotation.set(0.12, -s * 0.36, 0); const Wg = ovWing(p, s, 'pegasus', { span: 3.1, cols: ['#ffffff', '#f1f5f9', '#ffffff'], tip: '#e8b84a', bone: bn }, fm);
+      beat(Wg, s, { sp: 2.0, base: 0.36, amp: 0.3, burst: 7 });
+      for (let k = 0; k < 5; k++) { const m = kitGlow(k < 3 ? Wg.arm : Wg.hand, '#fef3c7', 0.2, 0); motes.push([m, k, s]); } }
+    mesh(rboxGeo(0.8, 0.6, 0.1, 0.05), P('#f8fafc', { shininess: 40 }), 0, 3.78, 0.58); const md = mesh(kCyl(), gold, 0, 3.78, 0.66); md.scale.set(0.2, 0.03, 0.2); md.rotation.x = Math.PI / 2; strap('#f1f5f9');
+    glint(body, 0.05, 3.85, 0.72, 0.3, 0.5, 0);
+    xt.push(() => { const t = nowS(); motes.forEach(([m, k, s]) => { const u = (t * 0.45 + k * 0.21 + (s > 0 ? 0.5 : 0)) % 1; m.position.set(0.3 + (k % 3) * 0.4, -0.3 - u * 1.4, 0.1); m.material.opacity = 0.85 * Math.sin(u * Math.PI); m.scale.setScalar(0.12 + 0.12 * Math.sin(u * Math.PI)); }); });
+  } else if (n === 23) { // 🔨 Mjölnir, across your back: a short-handled war hammer — its head of grey iron worked all over in knotwork, iron caps on its striking faces, runes that glow on its sides, the handle wound in leather to a heavy pommel and wrist loop — lightning crackling all over it
+    const iron = metalMat('#9aa0a8', { map: knotTex(), shininess: 80, reflectivity: 0.3 }), dk = metalMat('#4b5057', { shininess: 60, reflectivity: 0.3 }), lth = lam('#3b2414', { map: leatherTex() }), rn = P('#3f444b', { emissive: '#60a5fa', emissiveMap: dpRuneTex('#93c5fd'), emissiveIntensity: 0.7, shininess: 90 });
+    const g = G(0.15, 3.0, 0.84); g.rotation.z = 0.5;
+    mesh(rboxGeo(1.12, 0.68, 0.68, 0.1), iron, 0, 0.88, 0, g);
+    for (const s of [-1, 1]) { mesh(rboxGeo(0.11, 0.74, 0.74, 0.04), dk, s * 0.53, 0.88, 0, g); mesh(rboxGeo(0.07, 0.6, 0.6, 0.06), dk, s * 0.6, 0.88, 0, g); }
+    for (const x of [-0.24, 0.24]) mesh(rboxGeo(0.06, 0.71, 0.71, 0.02), dk, x, 0.88, 0, g);
+    for (const z of [-1, 1]) { const rp = mesh(rboxGeo(0.4, 0.42, 0.03, 0.012), rn, 0, 0.88, z * 0.345, g); rp.rotation.y = 0; }
+    mesh(new THREE.CylinderGeometry(0.1, 0.12, 0.12, 14), dk, 0, 0.5, 0, g); mesh(kCyl(), dk, 0, -0.08, 0, g).scale.set(0.075, 1.15, 0.075);
+    mesh(kg('mjWrap', () => { const L = []; for (let k = 0; k <= 80; k++) { const u = k / 80, a = u * Math.PI * 2 * 9; L.push([Math.cos(a) * 0.082, 0.42 - u * 1.0, Math.sin(a) * 0.082]); } return sweepGeo(L, () => 0.03, 160, 6); }), lth, 0, 0, 0, g); // (the leather wound round the handle)
+    mesh(kSph(), dk, 0, -0.68, 0, g).scale.set(0.13, 0.11, 0.13); const lp = mesh(kTor(0.18), lth, 0, -0.92, 0, g); lp.scale.set(0.2, 0.26, 0.2); lp.rotation.y = Math.PI / 2;
+    strap('#3b2414', dk);
+    const bolts = Array.from({ length: 4 }, () => ovBolt(g, '#bfdbfe', 0.022, 7)), cg = kitGlow(g, '#93c5fd', 2.0, 0.2); cg.position.y = 0.88; let bt = 0;
+    const pt = () => { const f = Math.floor(Math.random() * 3); return f === 0 ? [(Math.random() - 0.5) * 1.1, 0.88 + (Math.random() < 0.5 ? -0.35 : 0.35), (Math.random() - 0.5) * 0.7] : f === 1 ? [(Math.random() < 0.5 ? -0.6 : 0.6), 0.88 + (Math.random() - 0.5) * 0.6, (Math.random() - 0.5) * 0.6] : [(Math.random() - 0.5) * 0.15, 0.5 - Math.random() * 1.1, (Math.random() - 0.5) * 0.15]; };
+    xt.push((a, dt) => { const t = nowS(); bt -= dt || 0.016; rn.emissiveIntensity = 0.55 + 0.35 * Math.sin(t * 3.1); cg.material.opacity = 0.14 + 0.1 * Math.sin(t * 9);
+      if (bt <= 0) { bt = 0.05 + Math.random() * 0.08; bolts.forEach((b) => { b.visible = Math.random() < 0.55; if (b.visible) { const A = pt(), B = pt(); b.userData.set(A, [B[0] + (Math.random() - 0.5) * 0.4, B[1] + (Math.random() - 0.5) * 0.4, B[2] + (Math.random() - 0.5) * 0.4], 0.18); } }); } });
+  } else if (n === 24) { // 🔱 Gungnir, Odin's spear, slung corner to corner: an ash shaft carved with a spiral and bound in bronze, a long leaf-shaped head of dark iron with runes down it that glow blue — a light running up them — on a socket of worked bronze; two raven feathers and a pair of beads tied below it
+    const g = G(0, 3.1, 0.74); g.rotation.z = -0.62; const ash = lam('#9b7a4b', { map: woodTex() }), bz = metalMat('#c08a45', { map: ovBronzeTex(), shininess: 90, reflectivity: 0.4 });
+    mesh(kCyl(), ash, 0, 0, 0, g).scale.set(0.07, 5.0, 0.07);
+    mesh(kg('gungSpiral', () => { const L = []; for (let k = 0; k <= 90; k++) { const u = k / 90, a = u * Math.PI * 2 * 7; L.push([Math.cos(a) * 0.07, -1.6 + u * 3.4, Math.sin(a) * 0.07]); } return sweepGeo(L, () => 0.014, 180, 5); }), lam('#5b3a1e'), 0, 0, 0, g); // (the spiral carving)
+    for (const y of [-2.2, -1.65, 1.85, 2.3]) mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.12, 16), bz, 0, y, 0, g);
+    const blade = P('#3a3f47', { emissive: '#38bdf8', emissiveMap: dpRuneTex('#7dd3fc'), emissiveIntensity: 1, shininess: 130, specular: '#cbd5e1' });
+    const hd = mesh(kLathe('gungnir2', [[0, -0.05], [0.13, 0.12], [0.18, 0.48], [0.16, 0.85], [0.08, 1.2], [0, 1.42]], 4), blade, 0, 2.55, 0, g); hd.scale.z = 0.32;
+    mesh(new THREE.CylinderGeometry(0.06, 0.11, 0.4, 16), bz, 0, 2.45, 0, g); mesh(kTor(0.25), bz, 0, 2.62, 0, g).rotation.x = Math.PI / 2; g.children[g.children.length - 1].scale.setScalar(0.11);
+    const ft = G(0.05, 2.2, 0.02, g); for (const [x, rz, l] of [[0.07, -0.25, 0.45], [0.13, -0.45, 0.38]]) { const f = mesh(ovFeatherGeo(), P('#0f1115', { side: THREE.DoubleSide, shininess: 80, specular: '#5b6b8a' }), x, 0.05, 0, ft); f.scale.set(l * 0.3, -l, l); f.rotation.z = rz; }
+    mesh(kCyl(), lam('#3b2414'), 0.06, 0.08, 0, ft).scale.set(0.012, 0.25, 0.012); mesh(kSph(), P('#1d4ed8', { shininess: 160, specular: '#ffffff', transparent: true, opacity: 0.85 }), 0.07, -0.05, 0, ft).scale.setScalar(0.035); mesh(kSph(), P('#e5e7eb', { shininess: 160 }), 0.07, -0.12, 0, ft).scale.setScalar(0.03);
+    const bsp = mesh(kCone(), metalMat('#4b5057'), 0, -2.65, 0, g); bsp.scale.set(0.08, 0.3, 0.08); bsp.rotation.x = Math.PI; // (the butt spike)
+    strap('#3b2414'); const gl = kitGlow(g, '#7dd3fc', 1.3, 0.4); gl.position.y = 3.15; glint(g, 0, 3.6, 0.06, 0.25, 0.6, 0.5, '#e0f2fe');
+    xt.push(() => { const t = nowS(); blade.emissiveIntensity = 0.7 + 0.5 * Math.pow(Math.max(0, Math.sin(t * 2.2)), 3); gl.material.opacity = 0.28 + 0.18 * Math.sin(t * 2.4); gl.position.y = 2.7 + ((t * 0.9) % 1) * 1.0; });
+  } else if (n === 25) { // 🌊 the trident of Poseidon, slung across your back: a shaft of sea-green scales bound in gold and set with pearls, three barbed golden prongs on a crossbar curling like a wave — water swirling round its head, drops falling and glittering
+    const g = G(0, 3.15, 0.76); g.rotation.z = 0.62; const sh = P('#ffffff', { map: dpScaleTex('#2dd4bf', '#0f766e'), shininess: 120, specular: '#99f6e4' }), pearl = P('#f8fafc', { shininess: 200, specular: '#ffffff', emissive: '#1e293b' });
+    mesh(kCyl(), sh, 0, 0, 0, g).scale.set(0.075, 4.6, 0.075);
+    for (const y of [-2.2, -0.9, 0.6, 1.95]) { mesh(new THREE.CylinderGeometry(0.095, 0.095, 0.1, 16), gold, 0, y, 0, g); for (let k = 0; k < 4; k++) mesh(kSph(), pearl, Math.cos(k * 1.57) * 0.1, y, Math.sin(k * 1.57) * 0.1, g).scale.setScalar(0.035); }
+    mesh(kg('tridentBar', () => sweepGeo([[-0.42, 0.05, 0], [-0.3, -0.06, 0], [-0.12, 0.0, 0], [0, -0.04, 0], [0.12, 0.0, 0], [0.3, -0.06, 0], [0.42, 0.05, 0]], () => 0.05, 30, 8)), gold, 0, 2.35, 0, g);
+    for (const s of [-1, 1]) mesh(kg('tridentCurl', () => sweepGeo([[0, 0, 0], [0.08, -0.08, 0], [0.04, -0.16, 0], [-0.03, -0.1, 0], [0.0, -0.05, 0]], (t) => 0.035 - 0.015 * t, 16, 6)), gold, s * 0.42, 2.38, 0, g).scale.x = s; // (curling like a wave)
+    const PR = ovShape('tridentProng', [[-0.045, 0], [0.045, 0], [0.045, 0.55], [0.13, 0.48], [0.0, 0.95], [-0.13, 0.48], [-0.045, 0.55]], 0.04, 0.012);
+    mesh(PR, gold, 0, 2.38, 0, g).scale.set(1, 1.1, 1); for (const s of [-1, 1]) { mesh(kg('tridentSide', () => sweepGeo([[0, 0, 0], [0.02, 0.25, 0], [0.0, 0.5, 0]], () => 0.04, 12, 6)), gold, s * 0.38, 2.4, 0, g); const tp = mesh(PR, gold, s * 0.38, 2.85, 0, g); tp.scale.setScalar(0.7); }
+    const sw = mesh(kg('tridentSwirl', () => { const L = []; for (let k = 0; k <= 60; k++) { const u = k / 60, a = u * Math.PI * 3.2; L.push([Math.cos(a) * (0.55 - 0.15 * u), 2.2 + u * 1.2, Math.sin(a) * (0.55 - 0.15 * u)]); } return sweepGeo(L, (t) => 0.06 * Math.sin(t * Math.PI) + 0.01, 120, 8); }), new THREE.MeshPhongMaterial({ color: '#67e8f9', emissive: '#0e7490', transparent: true, opacity: 0.45, shininess: 140, depthWrite: false }), 0, 0, 0, g);
+    const tg = kitGlow(g, '#5eead4', 1.6, 0.3); tg.position.y = 2.9; strap('#134e4a');
+    const dr = Array.from({ length: 7 }, () => kitGlow(g, '#a5f3fc', 0.16, 0.8)); glint(g, 0, 3.35, 0.05, 0.28, 0.55, 0, '#e0fffd'); glint(g, -0.38, 3.1, 0.05, 0.2, 0.5, 2);
+    xt.push((a, dt) => { const t = nowS(); sw.rotation.y -= (dt || 0.016) * 1.8; sw.material.opacity = 0.35 + 0.12 * Math.sin(t * 2); tg.material.opacity = 0.22 + 0.1 * Math.sin(t * 1.7);
+      dr.forEach((d, i) => { const u = (t * 0.6 + i / dr.length) % 1, x = Math.cos(i * 2.3) * 0.35; d.position.set(x, 2.6 - u * 2.0, Math.sin(i * 2.3) * 0.35); d.material.opacity = 0.9 * Math.sin(u * Math.PI); }); });
+  } else if (n === 26) { // 🐏 the Golden Fleece, thrown over your shoulders: a ram's fleece of curling gold, thick and uneven at its hem, rolled into a collar over the shoulders and clasped at the chest by a golden ram's head with curling horns and ruby eyes — it shimmers, and glints run over it
+    const ft = fleeceTex(); ft.wrapS = ft.wrapT = THREE.RepeatWrapping; ft.repeat.set(3, 4); ft.needsUpdate = true;
+    const fl = P('#ffffff', { map: ft, emissive: '#4a3205', shininess: 70, specular: '#fff2b3', side: THREE.DoubleSide });
+    const CP = kg('fleeceCape', () => { const g = capeGeo(2.3, 3.05, 0.8), p = g.attributes.position, r = mulberry(91); for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i); let z = p.getZ(i) + 0.05 * Math.sin(x * 13 + y * 3) * Math.sin(y * 11 - x * 2); let yy = y; if (y < -1.4) yy = y - r() * 0.22; p.setXYZ(i, x * (1 + 0.04 * Math.sin(y * 9)), yy, z); } g.computeVertexNormals(); return g; }); // (curly, its hem ragged)
+    mesh(CP, fl, 0, 2.5, 0.6);
+    mesh(kg('fleeceRoll', () => { const L = []; for (let k = 0; k <= 30; k++) { const a = -Math.PI * 0.62 + (k / 30) * Math.PI * 1.24; L.push([Math.sin(a) * 0.92, 4.05 + 0.06 * Math.cos(a * 2), Math.cos(a) * 0.62]); } return sweepGeo(L, (t) => 0.2 + 0.03 * Math.sin(t * 20), 60, 10); }), fl, 0, 0, 0);
+    const rh = G(0, 3.62, -0.6); mesh(kSph(), gold, 0, 0, 0, rh).scale.set(0.15, 0.17, 0.13); const sn = mesh(kSph(), gold, 0, -0.1, -0.08, rh); sn.scale.set(0.09, 0.1, 0.1);
+    for (const s of [-1, 1]) { mesh(kSph(), P('#dc2626', { emissive: '#7f1d1d', shininess: 160 }), s * 0.07, 0.04, -0.1, rh).scale.setScalar(0.025); mesh(kSph(), gold, s * 0.13, 0.12, 0, rh).scale.set(0.05, 0.03, 0.06); }
+    const HR = kg('ramHorn2', () => { const L = []; for (let k = 0; k <= 30; k++) { const u = k / 30, a = u * Math.PI * 1.7, r = 0.2 * (1 - 0.55 * u); L.push([0.1 + Math.sin(a) * r * 0.6 + u * 0.08, Math.cos(a) * r - 0.05, -Math.sin(a) * r * 0.5 + 0.08]); } return sweepGeo(L, (t) => 0.065 - 0.045 * t, 50, 8); });
+    for (const s of [-1, 1]) { const h = mesh(HR, gold, s * 0.08, 0.1, 0, rh); h.scale.set(s * 1.1, 1.1, 1.1); }
+    for (let k = 0; k < 6; k++) glint(body, (k % 3 - 1) * 0.6, 3.6 - Math.floor(k / 3) * 1.1, 1.05, 0.25, 0.4 + k * 0.07, k * 1.3);
+    glint(rh, 0, 0.1, -0.15, 0.2, 0.6, 0.5); xt.push(() => { const t = nowS(); fl.emissive.setRGB(0.22 + 0.08 * Math.sin(t * 2), 0.15 + 0.05 * Math.sin(t * 2), 0.02); });
+  } else if (n === 27) { // 🛡️ the Aegis: Athena's great round shield of gold, its face worked in rings of scales, Medusa's head raised at its middle — snakes for hair, eyes that glow — and a fringe of bronze serpents twisting round its rim, their heads meeting in pairs
+    const g = G(0, 3.0, 0.95); g.scale.setScalar(1.08); const aeg = kCanvas('ovAegisFace', 256, 256, (cx) => { const gr = cx.createRadialGradient(128, 110, 10, 128, 128, 128); gr.addColorStop(0, '#fff1b8'); gr.addColorStop(0.55, '#e0ad45'); gr.addColorStop(1, '#8a5d14'); cx.fillStyle = gr; cx.fillRect(0, 0, 256, 256);
+      cx.strokeStyle = 'rgba(110,70,10,.55)'; cx.lineWidth = 1.5; for (let rr = 40; rr < 128; rr += 9) for (let k = 0; k < Math.round(rr / 3); k++) { const a = (k / Math.round(rr / 3)) * Math.PI * 2 + (rr % 2) * 0.05, x = 128 + Math.cos(a) * rr, y = 128 + Math.sin(a) * rr; cx.beginPath(); cx.arc(x, y, 5, a + Math.PI * 0.2, a + Math.PI * 0.8); cx.stroke(); }
+      cx.strokeStyle = '#7a4a10'; cx.lineWidth = 4; for (const rr of [44, 120]) { cx.beginPath(); cx.arc(128, 128, rr, 0, 7); cx.stroke(); } });
+    const f = mesh(aspisGeo(), P('#ffffff', { map: aeg, shininess: 120, specular: '#fff2c0' }), 0, 0, 0, g); f.rotation.set(Math.PI / 2, 0, 0);
     const bk = mesh(aspisGeo(), lam('#7a5418', { side: THREE.BackSide }), 0, 0, 0, g); bk.rotation.copy(f.rotation);
-    const SR = kg('aegisRim', () => { const B = kitBuild(); for (let k = 0; k < 40; k++) { const an = (k / 40) * Math.PI * 2; B.add(kSph(), Math.cos(an) * 1.0, Math.sin(an) * 1.0, 0.04 + 0.04 * Math.sin(k * 1.7), 0.07, 0.07, 0.07); } return B.geo(); });
-    mesh(SR, metal('#9a7b2f', { shininess: 90 }), 0, 0, 0.04, g); strap('#5b3a1e');
-  } else if (n === 28) { // 🪓 a Viking's round shield and bearded axe: limewood planks painted in your colours with a swirling design, an iron boss and a rawhide rim; the axe crossed behind it
-    const g = G(0, 3.05, 0.86); const f = mesh(aspisGeo(), lam('#ffffff', { map: spiralTex(SHIRTS[av[1]], '#f5f0e1') }), 0, 0, 0, g); f.rotation.set(Math.PI / 2, 0, 0); f.scale.set(1, 0.4, 1);
-    const bs = mesh(kDome(), metal('#6b7280', { shininess: 70 }), 0, 0, 0.14, g); bs.rotation.x = Math.PI / 2; bs.scale.setScalar(0.24); const rm = mesh(kTor(0.06), lam('#6b4f2a'), 0, 0, 0.02, g); rm.scale.setScalar(1.02);
+    const fc = G(0, 0.02, 0.18, g); const face = mesh(kSph(), P('#e9c46a', { shininess: 110, specular: '#fff2c0' }), 0, 0, 0, fc); face.scale.set(0.3, 0.34, 0.14); // Medusa
+    for (const s of [-1, 1]) { mesh(kSph(), P('#f8f3e0', { shininess: 60 }), s * 0.11, 0.06, 0.11, fc).scale.set(0.06, 0.035, 0.03); mesh(rboxGeo(0.13, 0.03, 0.04, 0.012), gold, s * 0.11, 0.13, 0.11, fc).rotation.z = -s * 0.25; }
+    mesh(kSph(), gold, 0, -0.02, 0.13, fc).scale.set(0.035, 0.07, 0.04); const mo = mesh(kSph(), lam('#5a1a0a'), 0, -0.15, 0.11, fc); mo.scale.set(0.09, 0.03, 0.03);
+    const eyes = [-1, 1].map((s) => { const e = kitGlow(fc, '#4ade80', 0.18, 0.8); e.position.set(s * 0.11, 0.06, 0.15); return e; });
+    const SH = kg('aegisHair', () => sweepGeo([[0, 0, 0], [0.05, 0.12, 0.03], [-0.03, 0.24, 0.05], [0.04, 0.34, 0.04], [0, 0.42, 0.06]], (t) => 0.035 - 0.022 * t, 18, 6)), hm = P('#4d7c0f', { map: dpScaleTex('#a3e635', '#3f6212'), shininess: 80 });
+    for (let k = 0; k < 12; k++) { const a = (k / 12) * Math.PI * 2, h = mesh(SH, hm, Math.cos(a) * 0.26, Math.sin(a) * 0.3, 0, fc); h.rotation.z = a - Math.PI / 2; }
+    const RS = kg('aegisRimSnakes', () => { const B = kitBuild(); for (let k = 0; k < 8; k++) { const L = []; for (let j = 0; j <= 16; j++) { const a = ((k + j / 16 * 0.92) / 8) * Math.PI * 2, rr = 1.0 + 0.04 * Math.sin(j * 1.6); L.push([Math.cos(a) * rr, Math.sin(a) * rr, 0.05 + 0.04 * Math.sin(j * 1.6 + 1)]); } B.add(sweepGeo(L, (t) => 0.05 - 0.02 * Math.abs(t - 0.5) * 2, 40, 6), 0, 0, 0);
+      for (const e of [0, 0.92]) { const a = ((k + e) / 8) * Math.PI * 2; B.add(KIT_SPH, Math.cos(a) * 1.03, Math.sin(a) * 1.03, 0.09, 0.06, 0.06, 0.08); } } return B.geo(); });
+    mesh(RS, metalMat('#a07b32', { map: dpScaleTex('#e0b062', '#7a5418'), shininess: 100, reflectivity: 0.4 }), 0, 0, 0.02, g); strap('#5b3a1e');
+    glint(g, 0.5, 0.5, 0.25, 0.3, 0.45, 0); glint(g, -0.6, -0.3, 0.2, 0.24, 0.5, 2.5);
+    xt.push(() => { const t = nowS(), k = 0.55 + 0.45 * Math.pow(Math.max(0, Math.sin(t * 1.3)), 6); eyes.forEach((e) => { e.material.opacity = k; e.scale.setScalar(0.15 + 0.12 * k); }); });
+  } else if (n === 28) { // 🪓 a Viking's round shield and bearded axe: limewood planks painted in your colours with a swirling design, nailed and rimmed in stitched rawhide, an iron boss with a flange of rivets — and a bearded axe crossed behind it, its iron blade etched with knotwork, its haft bound in leather
+    const g = G(0, 3.05, 0.88); const sp = spiralTex(SHIRTS[av[1]], '#f5f0e1');
+    const f = mesh(aspisGeo(), lam('#ffffff', { map: sp }), 0, 0, 0, g); f.rotation.set(Math.PI / 2, 0, 0); f.scale.set(1, 0.35, 1);
+    const bk = mesh(aspisGeo(), lam('#8b6a3e', { map: woodTex(), side: THREE.BackSide }), 0, 0, 0, g); bk.rotation.copy(f.rotation); bk.scale.copy(f.scale);
+    for (let k = -3; k <= 3; k++) { const pl = mesh(BOX, lam('#3b2a14'), k * 0.27, 0, 0.068, g); pl.scale.set(0.008, 1.9 * Math.sqrt(Math.max(0, 1 - (k * 0.27) ** 2)), 0.004); } // (the seams between the planks)
+    mesh(kg('vkRim', () => new THREE.TorusGeometry(1.0, 0.045, 6, 48)), lam('#8a6a42'), 0, 0, 0.01, g); for (let k = 0; k < 24; k++) { const a = (k / 24) * Math.PI * 2; mesh(BOX, lam('#3b2a14'), Math.cos(a) * 1.0, Math.sin(a) * 1.0, 0.045, g).scale.set(0.012, 0.05, 0.01); }
+    const bs = mesh(kDome(), metalMat('#7b8189', { shininess: 80, reflectivity: 0.3 }), 0, 0, 0.065, g); bs.rotation.x = Math.PI / 2; bs.scale.set(0.24, 0.24, 0.24);
+    const fl2 = mesh(kCyl(), metalMat('#5b6169'), 0, 0, 0.07, g); fl2.scale.set(0.32, 0.015, 0.32); fl2.rotation.x = Math.PI / 2; for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2; mesh(kSph(), metalMat('#9aa0a8'), Math.cos(a) * 0.28, Math.sin(a) * 0.28, 0.085, g).scale.setScalar(0.03); }
     const ax = G(0.15, 3.1, 0.66); ax.rotation.z = 0.7; mesh(kCyl(), lam('#7c5a32', { map: woodTex() }), 0, 0, 0, ax).scale.set(0.06, 3.2, 0.06);
-    const bl = mesh(kg('beardAxe', () => { const sh = new THREE.Shape(); sh.moveTo(0, 0.25); sh.lineTo(0.42, 0.42); sh.quadraticCurveTo(0.6, 0.0, 0.5, -0.55); sh.lineTo(0.3, -0.3); sh.lineTo(0.05, -0.1); sh.closePath(); return new THREE.ExtrudeGeometry(sh, { depth: 0.04, bevelEnabled: true, bevelThickness: 0.015, bevelSize: 0.015, bevelSegments: 1 }); }), metal('#b8bec6', { shininess: 110 }), 0.03, 1.4, -0.02, ax); bl.rotation.y = 0;
-    strap('#4a2e18');
-  } else if (n === 29) { // 🎌 a samurai's sashimono: a lacquered pole on your back flying a tall banner in your colour with a clan crest — it streams in the wind
-    const pole = lam('#16161a'); mesh(kCyl(), pole, 0, 4.6, 0.75).scale.set(0.05, 4.4, 0.05); box(pole, 1.0, 0.05, 0.05, -0.0, 6.7, 0.75); mesh(kSph(), gold, 0, 6.85, 0.75).scale.setScalar(0.08);
-    const geo = new THREE.PlaneGeometry(0.95, 3.0, 8, 12), bn = mesh(geo, lam('#ffffff', { map: monTex(SHIRTS[av[1]]), side: THREE.DoubleSide }), 0, 5.15, 0.79); const p0 = Float32Array.from(geo.attributes.position.array);
-    xt.push(() => { const t = nowS(), p = geo.attributes.position; for (let i = 0; i < p.count; i++) { const x = p0[i * 3], y = p0[i * 3 + 1], u = (x + 0.475) / 0.95, v = (1.5 - y) / 3.0; p.setZ(i, 0.12 * Math.sin(t * 4 + v * 5 + u * 2) * (0.3 + v) * (0.5 + u)); } p.needsUpdate = true; geo.computeVertexNormals(); });
-    box(lam('#7f1d1d'), 0.5, 0.5, 0.2, 0, 3.8, 0.66);
-  } else if (n === 30) { // 🌙 the bow and quiver of Artemis: a silver bow curved like the new moon, a quiver of silver-fletched arrows, and moonlight gathered round them
-    const sv = metal('#e2e8f0', { shininess: 140, specular: '#ffffff', emissive: '#1e2a44' });
-    const bw = G(-0.1, 3.0, 0.74); bw.rotation.z = -0.45; mesh(kg('moonBow', () => sweepGeo([[0, -1.9, 0.3], [0, -1.2, -0.08], [0, 0, 0.0], [0, 1.2, -0.08], [0, 1.9, 0.3]], (t) => 0.06 * (1 - 0.5 * Math.abs(t - 0.5) * 2) + 0.015, 34, 8)), sv, 0, 0, 0, bw);
-    const s0 = new THREE.BufferGeometry(); s0.setAttribute('position', new THREE.BufferAttribute(new Float32Array([0, 1.9, 0.3, 0, -1.9, 0.3]), 3)); bw.add(new THREE.Line(s0, new THREE.LineBasicMaterial({ color: '#f8fafc' })));
-    const q = G(0.55, 3.1, 0.82); q.rotation.z = 0.35; mesh(new THREE.CylinderGeometry(0.24, 0.2, 1.7, 16), lam('#334155', { map: leatherTex() }), 0, 0, 0, q); mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.1, 16), sv, 0, 0.8, 0, q);
-    for (let k = 0; k < 6; k++) { const ar = G(Math.cos(k) * 0.1, 0.9, Math.sin(k) * 0.1, q); mesh(kCyl(), sv, 0, 0.2, 0, ar).scale.set(0.02, 0.6, 0.02); const fl = mesh(BOX, lam('#f8fafc'), 0, 0.42, 0, ar); fl.scale.set(0.1, 0.22, 0.01); fl.rotation.y = k; }
-    const mg = kitGlow(body, '#c7d2fe', 2.6, 0.25); mg.position.set(0.1, 3.3, 0.9); xt.push(() => { mg.material.opacity = 0.2 + 0.08 * Math.sin(nowS() * 1.4); });
-    strap('#334155');
-  } else if (n === 31) { // 🔥 the wings of the Phoenix: wings of fire — feathers of gold, orange and red, glowing from within, flames licking off their edges, and they beat
-    const fl = Array.from({ length: 10 }, () => null);
-    for (const s of [-1, 1]) { const p = G(s * 0.3, 3.95, 0.64); const w = featherWing(p, s, { cols: ['#dc2626', '#f97316', '#fde047'], span: 2.9, em: '#5a1a00' }); p.rotation.set(0.12, -s * 0.4, s * 0.46); flap(p, s, -s * 0.4, 0.28, 2.4);
-      for (let k = 0; k < 5; k++) { const f = new THREE.Sprite(new THREE.SpriteMaterial({ map: fxTex('flame'), color: k % 2 ? '#fb923c' : '#fde047', transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); w.add(f); f.position.set(s * (0.5 + k * 0.55), -0.3 - k * 0.2, 0.1); fl[(s < 0 ? 0 : 5) + k] = f; } }
-    xt.push(() => { const t = nowS(); fl.forEach((f, i) => { const k = 0.8 + 0.35 * Math.sin(t * 11 + i * 1.7); f.scale.set(0.45 * k, 0.9 * k, 1); f.material.opacity = 0.75 + 0.25 * Math.sin(t * 7 + i); }); });
-  } else if (n === 32) { // ⚔️ Excalibur in its scabbard, across your back: a scabbard of deep blue velvet bound in gold, the sword's golden hilt over your shoulder with a sapphire in its pommel — and a light in it that won't go out
-    const g = G(0.1, 3.2, 0.72); g.rotation.z = Math.PI - 0.62; const sc2 = new THREE.MeshPhongMaterial({ color: '#1e3a8a', shininess: 60, specular: '#93c5fd' });
-    mesh(kLathe('excScab', [[0, -3.0], [0.1, -2.9], [0.16, -2.2], [0.17, -0.1], [0.19, 0.0], [0, 0.02]], 14), sc2, 0, 0, 0, g).scale.z = 0.45;
-    for (const y of [-2.75, -1.6, -0.25]) { const b = mesh(kCyl(), gold, 0, y, 0, g); b.scale.set(0.2, 0.08, 0.1); }
-    box(gold, 0.95, 0.12, 0.14, 0, 0.12, 0, g); const gp = mesh(kCyl(), lam('#3b2414', { map: leatherTex() }), 0, 0.55, 0, g); gp.scale.set(0.07, 0.75, 0.07);
-    mesh(kSph(), gold, 0, 0.98, 0, g).scale.setScalar(0.13); mesh(new THREE.OctahedronGeometry(0.08), new THREE.MeshPhongMaterial({ color: '#3b82f6', emissive: '#1d4ed8', shininess: 140 }), 0, 0.98, -0.1, g);
-    const gl = kitGlow(g, '#93c5fd', 1.3, 0.5); gl.position.y = 0.5; xt.push(() => { gl.material.opacity = 0.35 + 0.2 * Math.sin(nowS() * 2.2); }); strap('#1e3a8a');
-  } else if (n === 33) { // 🌌 the heavens of Atlas: a great celestial globe on your back — the stars and their figures in gold on deep blue, inside an armillary of gold rings — turning slowly
-    const g = G(0, 3.55, 1.45); const sp = mesh(new THREE.SphereGeometry(0.85, 32, 20), new THREE.MeshPhongMaterial({ map: starTex(), emissive: '#1e1b4b', emissiveMap: starTex(), emissiveIntensity: 0.6, shininess: 40 }), 0, 0, 0, g);
-    const rings = [[0, 0], [Math.PI / 2, 0], [0.41, 0.6]].map(([rx, ry]) => { const r = mesh(new THREE.TorusGeometry(1.0, 0.035, 8, 48), gold, 0, 0, 0, g); r.rotation.set(rx, ry, 0); return r; });
-    box(gold, 0.08, 0.08, 0.6, 0, 0, -0.85, g); const gl = kitGlow(g, '#a5b4fc', 2.8, 0.18);
-    xt.push((a, dt) => { sp.rotation.y += dt * 0.3; rings[2].rotation.z += dt * 0.2; gl.material.opacity = 0.14 + 0.06 * Math.sin(nowS()); }); strap('#3b2a55');
-  } else if (n === 34) { // 🎵 the lyre of Orpheus: a sound box of tortoiseshell, two curving golden arms with a crossbar, seven strings — they shimmer as if just played
-    const g = G(0.0, 3.1, 0.8); g.rotation.z = 0.25; const ts = new THREE.MeshPhongMaterial({ color: '#7c4a1e', map: woodTex(), shininess: 90 });
-    const bxm = mesh(kSph(), ts, 0, -0.55, 0, g); bxm.scale.set(0.55, 0.42, 0.22);
-    const ARM = kg('lyreArm', () => sweepGeo([[0.15, -0.4, 0], [0.42, 0.1, 0], [0.4, 0.6, 0], [0.55, 1.05, 0]], (t) => 0.06 - 0.02 * t, 20, 8));
+    mesh(kg('vkGrip', () => { const L = []; for (let k = 0; k <= 50; k++) { const u = k / 50, a = u * Math.PI * 2 * 6; L.push([Math.cos(a) * 0.065, -1.5 + u * 0.7, Math.sin(a) * 0.065]); } return sweepGeo(L, () => 0.022, 100, 5); }), lam('#3b2414', { map: leatherTex() }), 0, 0, 0, ax);
+    mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.3, 12), metalMat('#5b6169'), 0, 1.45, 0, ax);
+    const BA = ovShape('beardAxe2', [[0, 0.22], [0.36, 0.38], [0.58, 0.25, 0.6, -0.1], [0.55, -0.48], [0.42, -0.62], [0.36, -0.36], [0.06, -0.12]], 0.035, 0.012);
+    mesh(BA, metalMat('#c3c9d1', { map: knotTex(), shininess: 120, reflectivity: 0.45 }), 0.04, 1.45, 0, ax); const ed = mesh(kg('axeEdge', () => sweepGeo([[0.6, 0.24, 0], [0.63, -0.1, 0], [0.57, -0.47, 0], [0.43, -0.63, 0]], () => 0.012, 16, 4)), metalMat('#f1f5f9', { shininess: 160, reflectivity: 0.6 }), 0.04, 1.45, 0, ax);
+    strap('#4a2e18', metalMat('#8a9099')); glint(ax, 0.6, 1.45, 0.04, 0.22, 0.5, 1); glint(g, 0.1, 0.1, 0.32, 0.2, 0.45, 3);
+  } else if (n === 29) { // 🎌 a samurai's sashimono: a lacquered pole held on your back in a holder bound with cords, a gold crescent at its top, flying a tall banner of cream silk with bands of your colour, your crest in a gold ring and “valour” brushed in black — it streams and ripples in the wind
+    const pole = P('#16161a', { shininess: 140, specular: '#888' }), col = SHIRTS[av[1]];
+    mesh(kCyl(), pole, 0, 4.7, 0.78).scale.set(0.05, 4.5, 0.05); box(pole, 1.06, 0.05, 0.05, 0.0, 6.85, 0.78);
+    const MC = ovShape('sashCrescent', [[-0.22, 0.0], [-0.3, 0.3, -0.16, 0.42], [-0.18, 0.2, 0.0, 0.12], [0.18, 0.2, 0.16, 0.42], [0.3, 0.3, 0.22, 0.0]], 0.02, 0.008);
+    mesh(MC, gold, 0, 6.92, 0.78); glint(body, 0.0, 7.2, 0.82, 0.3, 0.5, 0);
+    for (const s of [-1, 1]) { const ts = G(s * 0.52, 6.85, 0.78); mesh(kCyl(), lam(col), 0, -0.12, 0, ts).scale.set(0.012, 0.2, 0.012); mesh(kCone(), lam(col), 0, -0.3, 0, ts).scale.set(0.05, 0.16, 0.05); }
+    const geo = new THREE.PlaneGeometry(1.0, 3.4, 10, 16), bn = mesh(geo, lam('#ffffff', { map: ovNoboriTex(col), side: THREE.DoubleSide }), 0, 5.12, 0.82); const p0 = Float32Array.from(geo.attributes.position.array);
+    for (let k = 0; k < 6; k++) { const r = mesh(kTor(0.25), pole, -0.0, 3.6 + k * 0.62, 0.78); r.scale.setScalar(0.07); r.rotation.x = Math.PI / 2; }
+    mesh(rboxGeo(0.26, 0.6, 0.26, 0.05), pole, 0, 3.4, 0.7); for (const y of [3.3, 3.55]) { const c2 = mesh(kTor(0.2), lam(col), 0, y, 0.7); c2.rotation.x = Math.PI / 2; c2.scale.setScalar(0.17); } // (the holder, bound with cords)
+    xt.push(() => { const t = nowS(), p = geo.attributes.position; for (let i = 0; i < p.count; i++) { const x = p0[i * 3], y = p0[i * 3 + 1], u = (x + 0.5) / 1.0, v = (1.7 - y) / 3.4; p.setZ(i, (0.13 * Math.sin(t * 4 + v * 5 + u * 2.4) + 0.05 * Math.sin(t * 7.3 + v * 11)) * (0.3 + v) * (0.4 + u)); p.setX(i, x - 0.04 * u * Math.sin(t * 3 + v * 4)); } p.needsUpdate = true; geo.computeVertexNormals(); });
+  } else if (n === 30) { // 🌙 the bow and quiver of Artemis: a silver bow curved like the new moon with a crescent at its grip, a string that shines, a quiver of white leather stitched with a moon and stars, silver-headed arrows fletched in white — and motes of moonlight rising round them
+    const sv = metalMat('#e2e8f0', { shininess: 150, reflectivity: 0.55, emissive: '#1e2a44' }), moon = P('#e0e7ff', { emissive: '#a5b4fc', emissiveIntensity: 0.6, shininess: 120 });
+    const bw = G(-0.1, 3.0, 0.76); bw.rotation.z = -0.45;
+    mesh(kg('moonBow2', () => sweepGeo([[0, -2.0, 0.34], [0, -1.55, 0.05], [0, -0.8, -0.1], [0, 0, -0.05], [0, 0.8, -0.1], [0, 1.55, 0.05], [0, 2.0, 0.34]], (t) => 0.065 * (1 - 0.55 * Math.abs(t - 0.5) * 2) + 0.016, 48, 8)), sv, 0, 0, 0, bw);
+    for (const s of [-1, 1]) { const tip = mesh(kg('bowTip', () => sweepGeo([[0, 0, 0], [0, 0.12, 0.08], [0, 0.16, 0.2]], (t) => 0.02 - 0.012 * t, 8, 5)), sv, 0, s * 2.0, 0.34, bw); tip.scale.y = s; }
+    mesh(kCyl(), lam('#cbd5e1', { map: leatherTex() }), 0, 0, -0.05, bw).scale.set(0.085, 0.4, 0.085);
+    mesh(ovShape('bowMoon', [[0, -0.18], [0.2, -0.12, 0.2, 0.05], [0.16, 0.2, 0, 0.2], [0.1, 0.12, 0.11, 0.0], [0.1, -0.1, 0, -0.18]], 0.025, 0.008), moon, 0, 0, -0.16, bw).rotation.y = Math.PI / 2;
+    mesh(kCyl(), new THREE.MeshBasicMaterial({ color: '#f8fafc' }), 0, 0, 0.34, bw).scale.set(0.009, 4.0, 0.009); const sg = kitGlow(bw, '#e0e7ff', 0.5, 0.4); sg.position.z = 0.34; sg.scale.set(0.3, 3.9, 1);
+    const q = G(0.55, 3.1, 0.84); q.rotation.z = 0.35; mesh(new THREE.CylinderGeometry(0.25, 0.21, 1.75, 20), lam('#ffffff', { map: ovQuiverTex() }), 0, 0, 0, q);
+    for (const y of [0.82, 0.3, -0.8]) mesh(new THREE.CylinderGeometry(y > 0.5 ? 0.265 : 0.245, y > 0.5 ? 0.265 : 0.245, 0.07, 20), sv, 0, y, 0, q);
+    for (let k = 0; k < 7; k++) { const ar = G(Math.cos(k * 0.9) * 0.12, 0.9, Math.sin(k * 0.9) * 0.12, q); mesh(kCyl(), lam('#d6c7a6'), 0, 0.2, 0, ar).scale.set(0.018, 0.65, 0.018);
+      for (const r2 of [0, Math.PI / 2]) { const fl = mesh(ovFeatherGeo(), P('#f8fafc', { side: THREE.DoubleSide }), 0, 0.22, 0, ar); fl.scale.set(0.06, 0.3, 0.3); fl.rotation.y = r2 + k; } }
+    const mg = kitGlow(body, '#c7d2fe', 2.8, 0.22); mg.position.set(0.1, 3.3, 0.95); strap('#e2e8f0', sv);
+    const motes = Array.from({ length: 8 }, () => kitGlow(body, '#e0e7ff', 0.16, 0)); glint(bw, 0, 1.6, 0.05, 0.25, 0.55, 0.5); glint(bw, 0, -1.4, 0.05, 0.2, 0.5, 3);
+    xt.push(() => { const t = nowS(); mg.material.opacity = 0.18 + 0.08 * Math.sin(t * 1.4); moon.emissiveIntensity = 0.5 + 0.3 * Math.sin(t * 1.4); sg.material.opacity = 0.28 + 0.12 * Math.sin(t * 2);
+      motes.forEach((m, i) => { const u = (t * 0.25 + i / motes.length) % 1, a = i * 2.4; m.position.set(0.1 + Math.cos(a) * 0.9, 2.2 + u * 2.8, 0.95 + Math.sin(a) * 0.3); m.material.opacity = 0.9 * Math.sin(u * Math.PI); }); });
+  } else if (n === 31) { // 🔥 the wings of the Phoenix: wings of fire — feathers of gold, orange and crimson glowing from within, white-hot at their tips, flames licking off their trailing edges, embers rising off them and a heat-glow behind; they beat, and now and then flare up hard
+    const fm = P('#ffffff', { vertexColors: true, side: THREE.DoubleSide, shininess: 30, emissive: '#6a1a00', emissiveIntensity: 1 }), bn = P('#fde047', { emissive: '#b45309' });
+    const flames = [], embers = [];
+    for (const s of [-1, 1]) { const p = G(s * 0.32, 3.95, 0.62); p.rotation.set(0.12, -s * 0.38, 0); const Wg = ovWing(p, s, 'phoenix', { span: 3.0, cols: ['#f97316', '#dc2626', '#fbbf24'], tip: '#fff7c2', bone: bn }, fm);
+      beat(Wg, s, { sp: 2.4, base: 0.34, amp: 0.28, burst: 6 });
+      for (let k = 0; k < 6; k++) { const par = k < 3 ? Wg.arm : Wg.hand, f = new THREE.Sprite(new THREE.SpriteMaterial({ map: fxTex('flame'), color: k % 2 ? '#fb923c' : '#fde047', transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); par.add(f); f.position.set(k < 3 ? 0.25 + k * 0.38 : 0.2 + (k - 3) * 0.45, k < 3 ? -1.0 : -1.1 - (k - 3) * 0.15, 0.05); flames.push([f, k]); }
+      for (let k = 0; k < 6; k++) embers.push([kitGlow(p, '#fdba74', 0.12, 0), k, s]); }
+    const heat = kitGlow(body, '#f97316', 4.2, 0.18); heat.position.set(0, 3.5, 0.9); strap('#7f1d1d', gold);
+    xt.push(() => { const t = nowS(), fl = (t % 6) < 1.6 ? Math.sin(((t % 6) / 1.6) * Math.PI) : 0; fm.emissiveIntensity = 0.85 + 0.35 * Math.sin(t * 5) + 0.6 * fl; heat.material.opacity = 0.14 + 0.06 * Math.sin(t * 3) + 0.15 * fl;
+      flames.forEach(([f, i]) => { const k = 0.8 + 0.35 * Math.sin(t * 11 + i * 1.7) + 0.5 * fl; f.scale.set(0.42 * k, 0.95 * k, 1); f.material.opacity = 0.7 + 0.3 * Math.sin(t * 7 + i); });
+      embers.forEach(([e, i, s]) => { const u = (t * 0.5 + i / 6 + (s > 0 ? 0.08 : 0)) % 1; e.position.set(s * (0.6 + (i % 3) * 0.6) + 0.15 * Math.sin(t * 3 + i), -0.6 + u * 2.4, 0.2); e.material.opacity = (1 - u) * (0.7 + 0.3 * Math.sin(t * 25 + i)); }); });
+  } else if (n === 32) { // ⚔️ Excalibur in its scabbard, across your back: a scabbard of deep blue velvet worked in gold scrolls with a gold locket and chape, a sweep of gold quillons, a grip wound in gold wire, a wheel pommel set with a sapphire — a hand's width of shining blade shows at the mouth, and a light in it that won't go out
+    const g = G(0.1, 3.2, 0.74); g.rotation.z = Math.PI - 0.62; const sc2 = P('#ffffff', { map: ovFiligreeTex(), shininess: 60, specular: '#93c5fd' });
+    mesh(kLathe('excScab2', [[0, -3.0], [0.1, -2.92], [0.16, -2.3], [0.17, -0.12], [0.19, 0.0], [0, 0.02]], 16), sc2, 0, 0, 0, g).scale.z = 0.42;
+    mesh(kLathe('excChape', [[0, -3.04], [0.12, -2.92], [0.18, -2.62], [0.19, -2.55], [0, -2.55]], 16), gold, 0, 0, 0, g).scale.z = 0.46; mesh(new THREE.CylinderGeometry(0.2, 0.19, 0.3, 16), gold, 0, -0.14, 0, g).scale.z = 0.48;
+    for (const y of [-1.85, -0.9]) { const b = mesh(new THREE.CylinderGeometry(0.185, 0.185, 0.06, 16), gold, 0, y, 0, g); b.scale.z = 0.48; }
+    mesh(kCyl(), metalMat('#e5e9ef', { shininess: 170, reflectivity: 0.7 }), 0, 0.06, 0, g).scale.set(0.14, 0.1, 0.03);
+    mesh(kg('excGuard', () => sweepGeo([[-0.55, 0.12, 0], [-0.3, 0.04, 0], [0, 0.0, 0], [0.3, 0.04, 0], [0.55, 0.12, 0]], (t) => 0.05 + 0.03 * Math.abs(t - 0.5) * 2, 24, 8)), gold, 0, 0.14, 0, g); for (const s of [-1, 1]) mesh(kSph(), gold, s * 0.56, 0.27, 0, g).scale.setScalar(0.07);
+    mesh(kCyl(), lam('#3b2414', { map: leatherTex() }), 0, 0.56, 0, g).scale.set(0.068, 0.7, 0.068);
+    mesh(kg('excWire', () => { const L = []; for (let k = 0; k <= 60; k++) { const u = k / 60, a = u * Math.PI * 2 * 10; L.push([Math.cos(a) * 0.072, 0.23 + u * 0.66, Math.sin(a) * 0.072]); } return sweepGeo(L, () => 0.012, 120, 4); }), gold, 0, 0, 0, g);
+    const pm = mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.08, 24), gold, 0, 1.0, 0, g); pm.rotation.x = Math.PI / 2; mesh(new THREE.OctahedronGeometry(0.075), P('#3b82f6', { emissive: '#1d4ed8', shininess: 160, specular: '#ffffff' }), 0, 1.0, -0.05, g);
+    const gl = kitGlow(g, '#93c5fd', 1.4, 0.5); gl.position.y = 0.4; strap('#1e3a8a', gold);
+    for (let k = 0; k < 4; k++) glint(g, (k % 2 ? 0.1 : -0.1), -0.4 - k * 0.65, 0.06, 0.18, 0.45 + k * 0.1, k * 1.5);
+    glint(g, 0, 1.0, -0.1, 0.24, 0.6, 0.3, '#bfdbfe'); xt.push(() => { gl.material.opacity = 0.35 + 0.2 * Math.sin(nowS() * 2.2); });
+  } else if (n === 33) { // 🌌 the heavens of Atlas: a great celestial globe borne on a gold yoke across your back — stars and their figures in gold on deep blue, inside an armillary of gold rings: the ecliptic with the signs of the zodiac, a meridian marked in degrees — the sun and moon riding round it as it turns
+    const g = G(0, 3.6, 1.5); const sp = mesh(new THREE.SphereGeometry(0.85, 36, 22), P('#ffffff', { map: starTex(), emissive: '#1e1b4b', emissiveMap: starTex(), emissiveIntensity: 0.7, shininess: 40 }), 0, 0, 0, g);
+    const zr = mesh(kg('zodiacBand', () => { const geo = new THREE.CylinderGeometry(1.02, 1.02, 0.14, 64, 1, true); return geo; }), P('#ffffff', { map: ovZodiacTex(), shininess: 110, specular: '#fff2c0', side: THREE.DoubleSide, emissive: '#2a1a00' }), 0, 0, 0, g); zr.rotation.set(0.41, 0, 0.2);
+    const mr = mesh(new THREE.TorusGeometry(1.08, 0.035, 8, 64), gold, 0, 0, 0, g); mr.rotation.y = Math.PI / 2;
+    mesh(kg('meridTicks', () => { const B = kitBuild(); for (let k = 0; k < 36; k++) { const a = (k / 36) * Math.PI * 2; B.add(BOX, 0, Math.cos(a) * 1.12, Math.sin(a) * 1.12, 0.03, 0.012, 0.012 + (k % 3 ? 0 : 0.03), a, 0, 0); } return B.geo(); }), gold, 0, 0, 0, g);
+    const hr = mesh(new THREE.TorusGeometry(1.14, 0.03, 8, 64), gold, 0, 0, 0, g); hr.rotation.x = Math.PI / 2;
+    const yk = G(0, 3.6, 0.5); for (const s of [-1, 1]) { mesh(kg('atlasArm', () => sweepGeo([[0, 0, 0], [0.4, 0.15, 0.3], [0.6, 0.15, 0.8], [0.15, 0.0, 1.0]], () => 0.045, 20, 6)), gold, 0, 0, 0, yk).scale.x = s; } box(gold, 1.3, 0.1, 0.1, 0, 0.1, 0.05, yk);
+    const sun = mesh(kSph(), P('#fbbf24', { emissive: '#f59e0b', emissiveIntensity: 1 }), 0, 0, 0, g); sun.scale.setScalar(0.1); const sg = kitGlow(sun, '#fde68a', 6, 0.7);
+    const mn = mesh(kSph(), P('#e5e7eb', { emissive: '#64748b' }), 0, 0, 0, g); mn.scale.setScalar(0.07);
+    const gl = kitGlow(g, '#a5b4fc', 3.0, 0.18); strap('#3b2a55', gold); for (let k = 0; k < 5; k++) glint(g, Math.cos(k * 1.3) * 0.9, Math.sin(k * 2.1) * 0.7, 0.3, 0.2, 0.5 + k * 0.1, k);
+    xt.push((a, dt) => { const t = nowS(); sp.rotation.y += (dt || 0.016) * 0.3; zr.rotation.y += (dt || 0.016) * 0.12; gl.material.opacity = 0.14 + 0.06 * Math.sin(t);
+      const a1 = t * 0.6, a2 = t * 0.9 + 2; sun.position.set(Math.cos(a1) * 1.02, Math.sin(a1) * 0.42 * 0.95, Math.sin(a1) * 1.02 * 0.9); mn.position.set(Math.cos(a2) * 1.02, -Math.sin(a2) * 0.3, Math.sin(a2) * 1.02 * 0.9); });
+  } else if (n === 34) { // 🎵 the lyre of Orpheus: a sound box of tortoiseshell rimmed in gold, two arms curving up like horns and ending in spirals, a crossbar with seven tuning pegs, seven strings that shine — they quiver as if just played, and notes of light float off them
+    const g = G(0.0, 3.1, 0.8); g.rotation.z = 0.25; const ts = P('#ffffff', { map: ovTortTex(), shininess: 120, specular: '#ffe8c0' });
+    const bxm = mesh(kSph(), ts, 0, -0.55, 0, g); bxm.scale.set(0.58, 0.44, 0.22); const rim = mesh(new THREE.TorusGeometry(1, 0.05, 6, 40), gold, 0, -0.55, 0.0, g); rim.scale.set(0.58, 0.44, 0.6);
+    mesh(rboxGeo(0.5, 0.06, 0.08, 0.02), gold, 0, -0.62, 0.16, g); // (the bridge)
+    const ARM = kg('lyreArm2', () => { const L = [[0.15, -0.45, 0], [0.42, 0.05, 0], [0.38, 0.55, 0], [0.5, 0.95, 0], [0.66, 1.08, 0]]; for (let k = 1; k <= 14; k++) { const a = (k / 14) * Math.PI * 1.6, r = 0.14 * (1 - k / 18); L.push([0.66 + Math.sin(a) * r, 1.08 - (1 - Math.cos(a)) * r, 0]); } return sweepGeo(L, (t) => 0.07 - 0.045 * t, 50, 8); });
     for (const s of [-1, 1]) { const a2 = mesh(ARM, gold, 0, 0, 0, g); a2.scale.x = s; a2.material.side = THREE.DoubleSide; }
-    box(gold, 1.15, 0.08, 0.08, 0, 0.88, 0, g);
-    const strs = []; for (let k = 0; k < 7; k++) { const x = -0.27 + k * 0.09, s2 = mesh(kCyl(), new THREE.MeshBasicMaterial({ color: '#fef9c3' }), x, 0.15, 0.06, g); s2.scale.set(0.008, 1.45, 0.008); strs.push(s2); }
-    xt.push(() => { const t = nowS(); strs.forEach((s2, k) => { s2.position.z = 0.06 + 0.012 * Math.sin(t * 30 + k * 2) * (Math.sin(t * 0.7 + k) > 0.5 ? 1 : 0); }); }); strap('#5b3a1e');
-  } else if (n === 35) { // 🐙 the Kraken's grasp: six great tentacles reaching up and out from your back — purple above, pale beneath with rows of suckers — curling and uncurling, never still
-    const sk = new THREE.MeshPhongMaterial({ color: '#6d28d9', shininess: 90, specular: '#e9d5ff', emissive: '#1e0b3a' }), sc = lam('#f5d0fe');
+    mesh(kCyl(), gold, 0, 0.88, 0, g).scale.set(0.05, 1.1, 0.05); g.children[g.children.length - 1].rotation.z = Math.PI / 2;
+    const strs = []; for (let k = 0; k < 7; k++) { const x = -0.27 + k * 0.09; const pg = mesh(kCyl(), lam('#6b4423'), x, 0.96, 0, g); pg.scale.set(0.022, 0.12, 0.022); const s2 = mesh(kCyl(), new THREE.MeshBasicMaterial({ color: '#fef9c3' }), x, 0.15, 0.06, g); s2.scale.set(0.009, 1.45, 0.009); strs.push(s2); }
+    const sgl = kitGlow(g, '#fef3c7', 0.9, 0.3); sgl.position.set(0, 0.15, 0.1); sgl.scale.set(0.9, 1.6, 1);
+    const notes = Array.from({ length: 4 }, (_, i) => { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: noteTex(i % 2 ? '♪' : '♫', '#fde68a'), transparent: true, depthWrite: false, opacity: 0 })); s.scale.setScalar(0.32); g.add(s); return s; });
+    strap('#5b3a1e', gold); glint(g, -0.5, 1.05, 0.05, 0.2, 0.5, 1); glint(g, 0.45, -0.3, 0.12, 0.18, 0.45, 3);
+    xt.push(() => { const t = nowS(), pl = Math.sin(t * 0.7) > 0.3; strs.forEach((s2, k) => { s2.position.z = 0.06 + 0.014 * Math.sin(t * 34 + k * 2) * (pl ? 1 : 0.15); }); sgl.material.opacity = pl ? 0.3 + 0.1 * Math.sin(t * 9) : 0.12;
+      notes.forEach((s, i) => { const u = (t * 0.35 + i / 4) % 1; s.position.set(Math.sin(t * 1.3 + i * 2) * 0.35 + (i - 1.5) * 0.15, 0.3 + u * 1.9, 0.15); s.material.opacity = 0.9 * Math.sin(u * Math.PI); }); });
+  } else if (n === 35) { // 🐙 the Kraken's grasp: a mantle of spotted purple flesh on your back and six great tentacles reaching up and out of it — deep purple above shading paler to the tips, pale underneath with rows of suckers — curling and uncurling, glistening, one now and then coiling tight as if it's got hold of something
+    const mt = [P('#4c1d95', { shininess: 110, specular: '#e9d5ff', emissive: '#14062a' }), P('#6d28d9', { shininess: 110, specular: '#f5d0fe', emissive: '#1e0b3a' }), P('#8b5cf6', { shininess: 110, specular: '#fae8ff', emissive: '#2a1052' })], sc = P('#f5d0fe', { shininess: 60 }), spot = lam('#2e1065');
+    const mn = mesh(kSph(), mt[0], 0, 3.3, 0.6); mn.scale.set(0.8, 0.7, 0.26); for (let k = 0; k < 9; k++) mesh(kSph(), spot, Math.cos(k * 2.4) * 0.45, 3.25 + Math.sin(k * 1.7) * 0.5, 0.88, null).scale.set(0.07, 0.05, 0.02);
+    const SK = kg('krakenSuckers', () => { const B = kitBuild(); for (const s of [-1, 1]) B.add(kg('ovSucker', () => new THREE.TorusGeometry(1, 0.35, 6, 12)), s * 0.07, 0.16, -0.16, 0.05, 0.05, 0.05, 0, 0, 0); return B.geo(); });
     const tents = [];
-    for (let k = 0; k < 6; k++) { const s = k % 2 ? 1 : -1, row = Math.floor(k / 2), root = G(s * 0.35, 3.2 + row * 0.35, 0.6); root.rotation.set(-0.3, 0, s * (0.6 + row * 0.3)); const segs = [];
-      let par = root; for (let j = 0; j < 8; j++) { const sg = G(0, j ? 0.32 : 0, 0, par); const r = 0.2 * (1 - j / 9); mesh(kSph(), sk, 0, 0.16, 0, sg).scale.set(r, 0.24, r); mesh(kSph(), sc, 0, 0.16, -r * 0.8, sg).scale.setScalar(r * 0.35); segs.push(sg); par = sg; }
+    for (let k = 0; k < 6; k++) { const s = k % 2 ? 1 : -1, row = Math.floor(k / 2), root = G(s * 0.35, 2.9 + row * 0.38, 0.72); root.rotation.set(-0.35, 0, s * (0.35 + row * 0.35)); const segs = [];
+      let par = root; for (let j = 0; j < 13; j++) { const sg = G(0, j ? 0.26 : 0, 0, par), r = 0.28 * (1 - j / 14) + 0.03; const m = mesh(kSph(), mt[Math.min(2, Math.floor(j / 4.4))], 0, 0.14, 0, sg); m.scale.set(r, 0.22, r);
+        const su = mesh(SK, sc, 0, 0, 0, sg); su.scale.setScalar(r / 0.2); segs.push(sg); par = sg; }
       tents.push([segs, s, k]); }
-    xt.push(() => { const t = nowS(); for (const [segs, s, k] of tents) segs.forEach((sg, j) => { sg.rotation.z = s * (0.12 + 0.14 * Math.sin(t * 1.6 + k * 1.1 - j * 0.5)); sg.rotation.x = -0.1 + 0.12 * Math.sin(t * 1.2 + k - j * 0.4); }); });
+    for (let k = 0; k < 4; k++) glint(body, (k % 2 ? 0.6 : -0.6), 3.5 + k * 0.4, 1.0, 0.18, 0.5 + k * 0.13, k * 1.7);
+    xt.push(() => { const t = nowS(); for (const [segs, s, k] of tents) { const gr = ((t * 0.4 + k * 0.55) % 5) < 1.4 ? Math.sin((((t * 0.4 + k * 0.55) % 5) / 1.4) * Math.PI) : 0; // (one curls tight now and then)
+        segs.forEach((sg, j) => { const u = j / 13; sg.rotation.z = s * (0.01 + 0.13 * u * u + 0.08 * Math.sin(t * 1.6 + k * 1.1 - j * 0.45) + gr * 0.3 * u); sg.rotation.x = -0.05 + 0.08 * Math.sin(t * 1.2 + k - j * 0.38) - gr * 0.25 * u; }); } }); // (reaching up and out, the tips curling)
   }
+  for (const f of xt.slice(x0)) f(null, 0); // (posed once now, so a still picture shows it as it looks in motion)
 }
 function makeAvatar(av, name, mine, ax) {
   av = okAv(av);
