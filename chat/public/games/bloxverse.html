@@ -1320,7 +1320,7 @@ function physics(dt) {
     else if (l > 0.1) { let d = Math.atan2(-mx, -mz) - P.yaw; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; P.yaw += d * Math.min(1, 14 * dt); }
   }
   const wantJump = keys.Space || jumpHeld || physT - jumpQ < JUMP_BUFFER, canJump = P.ground || (physT - groundT < COYOTE && jumpedT < groundT && P.vy <= 0);
-  if (wantJump && canJump && !P.frozen && !chatOpen() && !drive && $('#pause').hidden) { P.vy = jp; P.ground = null; jumpQ = -1; jumpedT = physT; sfx('jump'); }
+  if (wantJump && canJump && !P.frozen && !chatOpen() && !drive && $('#pause').hidden) { P.vy = jp; P.ground = null; jumpQ = -1; jumpedT = physT; sfx('jump'); spQuest('bv.jump', 1, false); }
   // trusses: walk into one and you climb it
   if (!P.frozen && (f > 0.1 || keys.Space || jumpHeld) && onTruss()) P.vy = 13;
   else P.vy = Math.max(-170, P.vy - gr * dt);
@@ -1393,26 +1393,26 @@ const HATS = ['None', 'Cap', 'Top hat', 'Crown', 'Party hat', 'Cowboy hat', 'Vik
   'Beanie', 'Santa hat', 'Propeller cap', 'Fedora', 'Graduation cap', 'Flower crown', 'Devil horns', 'Ninja headband', 'Astronaut helmet', 'Valkyrie helm',
   'Laurel wreath', 'Straw hat', 'Racing helmet', 'Bee antennae', 'Sheriff hat', 'Bucket hat', 'Champion crown', 'Witch hat'];
 const FACES = ['Smile', 'Grin', 'Shades', 'Wink', 'Angry', 'Surprised', 'Sleepy', 'Heart eyes', 'Star eyes', 'Robot', 'Super happy', 'Smirk', 'Tongue out', 'Laughing tears', 'Monocle', 'Zombie', 'Cat', 'Determined', 'Gold tooth', 'Vampire'];
-const BACKS = ['None', 'Red cape', 'Angel wings', 'Bat wings', 'Sword', 'Backpack', 'Jetpack', 'Guitar', 'Dragon wings', 'Butterfly wings', 'Knight shield', 'Bow and quiver', 'Skateboard', 'Golden wings', 'Surfboard', 'Twin katanas', 'Vampire cape', 'Witch’s broom'];
+const BACKS = ['None', 'Red cape', 'Angel wings', 'Bat wings', 'Sword', 'Backpack', 'Jetpack', 'Guitar', 'Dragon wings', 'Butterfly wings', 'Knight shield', 'Bow and quiver', 'Skateboard', 'Golden wings', 'Surfboard', 'Twin katanas', 'Vampire cape', 'Witch’s broom', 'Halberd', 'Arquebus', 'Giant scimitar'];
 const AURAS = ['None', 'Sparkles', 'Fire', 'Hearts', 'Snow', 'Lightning', 'Rainbow', 'Bubbles', 'Leaves', 'Galaxy', 'Toxic', 'Money', 'Stardust', 'Shadow', 'Storm', 'Bat swarm'];
 const PATTERNS = ['Plain', 'Stripes', 'Star', 'Heart', 'Lightning', 'Checkers', 'Number 1', 'Suit', 'Skull', 'Flames', 'Camo', 'Rainbow', 'Galaxy', 'Trophy', 'Paw print', 'Sunflower', 'Skeleton tee'];
-const PETS = ['None', 'Puppy', 'Kitty', 'Bunny', 'Mini Dragon', 'Robot', 'Unicorn', 'Penguin', 'Fox', 'Panda', 'Phoenix', 'Baby Zombie', 'Peashooter', 'Boo the Ghost'];
+const PETS = ['None', 'Puppy', 'Kitty', 'Bunny', 'Mini Dragon', 'Robot', 'Unicorn', 'Penguin', 'Fox', 'Panda', 'Phoenix', 'Baby Zombie', 'Peashooter', 'Boo the Ghost', 'Cockatrice', 'Spinosaurus'];
 const TRAILS = ['None', 'Rainbow', 'Fire', 'Ice', 'Neon', 'Gold', 'Hearts', 'Stars', 'Lightning', 'Ghostly mist'];
 // the body: R6 (six blocks, the classic) or R15 (fifteen parts: knees, elbows, hands, feet and a waist that turns)
-const BODIES = ['R6', 'R15', 'Robot', 'Skeleton', 'Magma Golem', 'Dino Suit', 'Knight', 'Pumpkin Scarecrow', 'Phantom']; // (2 on: body packs, jointed like R15)
+const BODIES = ['R6', 'R15', 'Robot', 'Skeleton', 'Magma Golem', 'Dino Suit', 'Knight', 'Pumpkin Scarecrow', 'Phantom', 'Myrmidon', 'Spartan', 'Halberd Knight', 'Laestrygonian']; // (2 on: body packs, jointed like R15)
 // animation packs: how you stand, walk, run and jump
-const ANIMS = ['Default', 'Robot', 'Ninja', 'Zombie', 'Superhero', 'Stylish', 'Levitation', 'Vampire'];
+const ANIMS = ['Default', 'Robot', 'Ninja', 'Zombie', 'Superhero', 'Stylish', 'Levitation', 'Vampire', 'Hoplite', 'Laestrygonian'];
 // the shop: what each costs in Blox Coins (0 = free, -1 = only as a reward)
 const COSMETICS = {
   h: { title: 'Hats', list: HATS, price: [0, 0, 0, 0, 0, 100, 250, 300, 150, 800, 200, 120, 220, 80, 1500, -1, 100, 200, 350, 180, 220, 260, 400, 150, 1200, 3000, -1, -1, -1, -1, -1, -1, -1, 400],
     icon: ['🚫', '🧢', '🎩', '👑', '🥳', '🤠', '⛑️', '🧙', '🎧', '😇', '🐰', '👨‍🍳', '🏴‍☠️', '🚧', '🥷', '⚔️', '🧶', '🎅', '🌀', '🕵️', '🎓', '🌸', '😈', '🎌', '👨‍🚀', '⚜️', '🌿', '👒', '🏁', '🐝', '⭐', '🎣', '🏆', '🧙'] },
   f: { title: 'Faces', list: FACES, price: [0, 0, 0, 50, 50, 50, 80, 150, 200, 300, 120, 60, 80, 120, 200, 250, 150, -1, -1, 250], icon: ['🙂', '😁', '😎', '😉', '😠', '😮', '😴', '😍', '🤩', '🤖', '😆', '😏', '😛', '😂', '🧐', '🧟', '🐱', '😤', '😬', '🧛'] },
-  b: { title: 'Back', list: BACKS, price: [0, 150, 600, 500, 250, 100, 750, 300, 1800, 900, 400, 450, 300, -1, -1, -1, 600, 450], icon: ['🚫', '🦸', '🪽', '🦇', '🗡️', '🎒', '🚀', '🎸', '🐲', '🦋', '🛡️', '🏹', '🛹', '🥇', '🏄', '⚔️', '🧛', '🧹'] },
+  b: { title: 'Back', list: BACKS, price: [0, 150, 600, 500, 250, 100, 750, 300, 1800, 900, 400, 450, 300, -1, -1, -1, 600, 450, -1, -1, -1], icon: ['🚫', '🦸', '🪽', '🦇', '🗡️', '🎒', '🚀', '🎸', '🐲', '🦋', '🛡️', '🏹', '🛹', '🥇', '🏄', '⚔️', '🧛', '🧹', '🪓', '🧨', '🌙'] },
   a: { title: 'Auras', list: AURAS, price: [0, 300, 800, 400, 350, 1000, 1500, 300, 350, 2000, 600, 2500, -1, -1, -1, 900], icon: ['🚫', '✨', '🔥', '💖', '❄️', '⚡', '🌈', '🫧', '🍃', '🌌', '☢️', '💸', '💫', '🌑', '⛈️', '🦇'] },
   pt: { title: 'Shirts', list: PATTERNS, price: [0, 60, 80, 80, 120, 100, 90, 250, 150, 150, 120, 200, 300, -1, -1, -1, 200], icon: ['⬜', '〰️', '⭐', '❤️', '⚡', '🏁', '1️⃣', '👔', '💀', '🔥', '🪖', '🌈', '🌌', '🏆', '🐾', '🌻', '🦴'] },
-  pet: { title: 'Pets', list: PETS, price: [0, 400, 400, 350, 1500, 900, 2500, 600, 800, 1200, 4000, -1, -1, 1000], icon: ['🚫', '🐶', '🐱', '🐰', '🐉', '🤖', '🦄', '🐧', '🦊', '🐼', '🦅', '🧟', '🌱', '👻'] },
-  bt: { title: 'Bodies', list: BODIES, price: [0, 0, 900, 600, 1200, 1000, 1100, 800, 1300], icon: ['🧍', '🦵', '🤖', '💀', '🌋', '🦖', '⚔️', '🎃', '🫥'], tab: false }, // (bodies and animations are in 🧍 Body)
-  an: { title: 'Animations', list: ANIMS, price: [0, 500, 750, 400, 700, 550, 900, 777], icon: ['🚶', '🤖', '🥷', '🧟', '🦸', '😎', '🫧', '🧛'], tab: false },
+  pet: { title: 'Pets', list: PETS, price: [0, 400, 400, 350, 1500, 900, 2500, 600, 800, 1200, 4000, -1, -1, 1000, -1, -1], icon: ['🚫', '🐶', '🐱', '🐰', '🐉', '🤖', '🦄', '🐧', '🦊', '🐼', '🦅', '🧟', '🌱', '👻', '🐓', '🦕'] },
+  bt: { title: 'Bodies', list: BODIES, price: [0, 0, 900, 600, 1200, 1000, 1100, 800, 1300, -1, -1, -1, -1], icon: ['🧍', '🦵', '🤖', '💀', '🌋', '🦖', '⚔️', '🎃', '🫥', '🐜', '🛡️', '🪓', '🗿'], tab: false }, // (bodies and animations are in 🧍 Body)
+  an: { title: 'Animations', list: ANIMS, price: [0, 500, 750, 400, 700, 550, 900, 777, -1, -1], icon: ['🚶', '🤖', '🥷', '🧟', '🦸', '😎', '🫧', '🧛', '🏺', '👣'], tab: false },
   tr: { title: 'Trails', list: TRAILS, price: [0, 1500, 800, 600, 500, 2000, 700, -1, -1, 700], icon: ['🚫', '🌈', '🔥', '🧊', '💠', '🪙', '💕', '⭐', '⚡', '🌫️'] },
 };
 let AV = { s: 5, sh: 0, p: 1, h: 0, f: 0, b: 0, a: 0, pt: 0, pet: 0, tr: 0, bt: 0, an: 0 };
@@ -3819,6 +3819,73 @@ function boombox(par) {
   for (let k = 0; k < 5; k++) box(neon, 0.06, 0.06 + (k % 3) * 0.05, 0.04, -0.2 + k * 0.1, 0.92, -0.37);
   par.add(g); return g;
 }
+/* ---------------- what the emotes are made with ----------------
+   🎼 emBand(a, fn): music played now for everyone near (quieter further away) through a concert hall: fn(B) with
+   B.n(instrument, midi note, length, volume, delay), B.c(instrument, [notes], …) a chord, B.d(drum, volume, delay)
+   (0 kick, 1 snare, 2 clap, 3 hat, 4 open hat, 5 tom, 6 crash), B.raw(fn(ac, dest, t)) anything else. The instruments are
+   the theme songs' (TINST): pluck (a harp / lyre / lute), gtr, piano, toll (a bell), celesta, vibes, marimba, flute,
+   brass, strings, dark (a choir-like pad), organ, lead, sub, … emBeat(a, t0, t1, step, fn) calls fn(n, B) for each step
+   the emote passes. While your own emote plays its music, the game's theme song steps back.
+   ✨ emPS(F, n, o): a pool of n glowing bits (o.tex, o.flat: not additive, o.par: what they're on) — P.add(x, y, z, {vx,
+   vy, vz, life, s, s1, c, op, g, drag, spin}) and P.tick(dt). emRing / emBeam / emBolt: a ring on the ground, a column of
+   light, a lightning bolt. F.hR / F.hL: groups in your right / left hand (props go there). camShake(a, k): the camera
+   shakes if you're near. */
+const EMB = { ac: null, out: null, bus: null };
+function emBus(ac, out) {
+  if (EMB.ac === ac && EMB.out === out) return EMB.bus;
+  TDB.prep(ac);
+  const SR = ac.sampleRate, L = Math.floor(SR * 2.4), ir = ac.createBuffer(2, L, SR); // (a big stone hall)
+  for (let c = 0; c < 2; c++) { const x = ir.getChannelData(c); let lp = 0; for (let i = 0; i < L; i++) { const tt = i / SR; lp += (0.14 + 0.8 * Math.exp(-tt / 0.45)) * (Math.random() * 2 - 1 - lp); x[i] = lp * Math.exp(-tt / 0.5) * Math.min(1, tt / 0.015); } }
+  const rev = ac.createConvolver(); rev.buffer = ir; const wet = ac.createGain(); wet.gain.value = 0.32; rev.connect(wet); wet.connect(out);
+  const comp = ac.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 3; comp.connect(out);
+  const dry = ac.createGain(); dry.gain.value = 0.9; dry.connect(comp); dry.connect(rev);
+  EMB.ac = ac; EMB.out = out; EMB.bus = dry; return dry;
+}
+function emBand(a, fn) {
+  emSynth(a, (ac, out, k, at) => {
+    const g = ac.createGain(); g.gain.value = k; g.connect(emBus(ac, out));
+    const B = { ac, t: at, out: g,
+      n: (inst, m, len, v = 0.5, dt = 0) => { try { TINST[inst](ac, g, at + dt, hz(m), len, v); } catch (e) {} },
+      c: (inst, ms, len, v = 0.4, dt = 0, strum = 0) => ms.forEach((m, i) => B.n(inst, m, len, v, dt + i * strum)),
+      d: (i, v = 0.6, dt = 0) => { try { TDB.hit(ac, g, i, at + dt, v); } catch (e) {} },
+      raw: (f) => { try { f(ac, g, at); } catch (e) {} } };
+    fn(B);
+  });
+}
+function emBeat(a, t0, t1, step, fn) { const n = beatOf(t0, t1, step); if (n >= 0) emBand(a, (B) => fn(n, B)); }
+// a few sounds the instruments can't make: thunder, a wave crashing, a whoosh of fire, a stone grinding, a crowd's roar
+const emNoise = (B, o) => B.raw((ac, d, t) => { const T = t + (o.dt || 0), n = TV.nz(ac, T, o.len + 0.1), f = TV.flt(ac, o.type || 'lowpass', o.f || 800, o.q || 0.7), g = ac.createGain();
+  g.gain.setValueAtTime(0.0001, T); g.gain.exponentialRampToValueAtTime(Math.max(0.0002, o.v), T + (o.att || 0.02)); g.gain.exponentialRampToValueAtTime(0.0001, T + o.len);
+  if (o.f2) f.frequency.exponentialRampToValueAtTime(o.f2, T + o.len); n.connect(f); f.connect(g); g.connect(d); });
+const emThunder = (B, v = 1, dt = 0) => { emNoise(B, { len: 2.6, v: 0.5 * v, f: 900, f2: 120, att: 0.01, dt }); emNoise(B, { len: 0.35, v: 0.35 * v, type: 'highpass', f: 2500, att: 0.002, dt }); B.d(0, 0.9 * v, dt); };
+function emPS(F, n, o = {}) {
+  const P = { list: [], i: 0 };
+  for (let k = 0; k < n; k++) { const m = new THREE.Sprite(new THREE.SpriteMaterial({ map: o.tex || glowTex(), transparent: true, depthWrite: false, blending: o.flat ? THREE.NormalBlending : THREE.AdditiveBlending })); m.visible = false; m.userData = { v: new THREE.Vector3(), life: 0, L: 1, s0: 1, s1: 1, op: 1, g: 0, drag: 0, spin: 0 }; (o.par || F.root).add(m); P.list.push(m); }
+  P.add = (x, y, z, q = {}) => { const m = P.list[P.i++ % n], u = m.userData; m.visible = true; m.position.set(x, y, z); u.v.set(q.vx || 0, q.vy || 0, q.vz || 0); u.L = u.life = q.life || 1; u.s0 = q.s || 0.4; u.s1 = q.s1 != null ? q.s1 : u.s0 * 0.3; u.op = q.op || 1; u.g = q.g || 0; u.drag = q.drag || 0; u.spin = q.spin || 0; m.material.color.set(q.c || '#ffffff'); m.material.rotation = Math.random() * 6.3; m.scale.setScalar(u.s0); return m; };
+  P.burst = (k, x, y, z, f) => { for (let j = 0; j < k; j++) P.add(x, y, z, f(j)); };
+  P.tick = (dt) => { for (const m of P.list) { if (!m.visible) continue; const u = m.userData; u.life -= dt; if (u.life <= 0) { m.visible = false; continue; }
+    u.v.y -= u.g * dt; if (u.drag) u.v.multiplyScalar(Math.max(0, 1 - u.drag * dt)); m.position.addScaledVector(u.v, dt);
+    const k = 1 - u.life / u.L; m.scale.setScalar(Math.max(0.001, u.s0 + (u.s1 - u.s0) * k)); m.material.opacity = u.op * Math.min(1, (1 - k) * 3) * Math.min(1, k * 10 + 0.25); m.material.rotation += u.spin * dt; } };
+  return P;
+}
+const rnd = (a, b) => a + Math.random() * (b - a);
+// a flat ring of light on the ground (or a disc: r0 0), a column of light, a lightning bolt between two points
+function emRing(F, col, r0, r1, o = {}) { const m = emMesh(o.par || F.root, new THREE.RingGeometry(r0, r1, 48), new THREE.MeshBasicMaterial({ color: col, map: o.map || null, transparent: true, opacity: o.op != null ? o.op : 0.8, depthWrite: false, side: THREE.DoubleSide, blending: o.flat ? THREE.NormalBlending : THREE.AdditiveBlending }), 0, o.y != null ? o.y : 0.06, 0); m.rotation.x = -Math.PI / 2; return m; }
+function emBeam(F, col, r, h, o = {}) { const g = new THREE.CylinderGeometry(r * (o.top != null ? o.top : 1), r, h, 24, 1, true); g.translate(0, h / 2, 0); const m = emMesh(o.par || F.root, g, new THREE.MeshBasicMaterial({ color: col, map: beamTex(), transparent: true, opacity: o.op != null ? o.op : 0.6, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending }), o.x || 0, o.y || 0, o.z || 0); return m; }
+function emBolt(par, a, b, col = '#e0f2fe', w = 0.12, seg = 9, jag = 0.6) { // (a jagged bolt, a thin bright core and a wider glow round it)
+  const pts = []; for (let i = 0; i <= seg; i++) { const u = i / seg, j = i && i < seg ? jag : 0; pts.push(new THREE.Vector3(a[0] + (b[0] - a[0]) * u + rnd(-j, j), a[1] + (b[1] - a[1]) * u + rnd(-j, j) * 0.4, a[2] + (b[2] - a[2]) * u + rnd(-j, j))); }
+  const g = new THREE.Group(); par.add(g);
+  for (let i = 0; i < seg; i++) { const p = pts[i], q = pts[i + 1], d = new THREE.Vector3().subVectors(q, p), l = d.length();
+    for (const [ww, c, op] of [[w * 3.2, col, 0.35], [w, '#ffffff', 1]]) { const m = new THREE.Mesh(kCyl(), new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: op, depthWrite: false, blending: THREE.AdditiveBlending })); m.position.copy(p).addScaledVector(d, 0.5); m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.clone().normalize()); m.scale.set(ww, l, ww); g.add(m); } }
+  return g;
+}
+// the camera shakes (yours, if you're near enough to feel it)
+const CSHAKE = { k: 0 };
+function camShake(a, k) { if (!me || !a || !a.g) return; const p = a.g.position, d = a === me ? 0 : Math.hypot(p.x - P.x, p.z - P.z); if (d < 40) CSHAKE.k = Math.max(CSHAKE.k, k * (1 - d / 40)); }
+// a flash on your screen (lightning, a holy light)
+function emFlash(a, col = '#ffffff', k = 0.6) { if (a !== me) return; let el = document.getElementById('emflash'); if (!el) { el = document.createElement('div'); el.id = 'emflash'; el.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:40;opacity:0;transition:opacity .35s ease-out'; document.body.append(el); } el.style.background = col; el.style.transition = 'none'; el.style.opacity = k; void el.offsetWidth; el.style.transition = 'opacity .45s ease-out'; el.style.opacity = 0; }
+// a word in big letters (a battle cry), rising and fading
+function emWord(F, text, col, y = 7.2) { const s = label(text, { size: 1.6, color: col, bg: 'rgba(0,0,0,0)', weight: 900 }); s.material.userData.ownMap = 1; s.position.set(0, y, 0); F.root.add(s); return s; }
 const EMOTES = [
   { id: 'wave', nm: 'Wave', ic: '👋', price: 0, len: 2.6, d: 'A big friendly hello',
     pose(J, t, a) {
@@ -4361,18 +4428,20 @@ const emOwns = (i) => !!EMOTES[i] && (EMOTES[i].price === 0 || W.own.has('em' + 
 function emStart(a, i, t0) {
   emStop(a, true);
   const E = EMOTES[i]; if (!E || a.dead) return;
-  const F = { root: new THREE.Group(), hd: new THREE.Group(), up: new THREE.Group() }; a.g.add(F.root); a.head.add(F.hd);
+  const hand = (s) => { const o = new THREE.Group(), arm = a.r15 ? (s < 0 ? a.elL : a.elR) : (s < 0 ? a.armL : a.armR); o.position.y = a.r15 ? -0.92 : -1.9; arm.add(o); return o; }; // (props in your hands)
+  const F = { root: new THREE.Group(), hd: new THREE.Group(), up: new THREE.Group(), hR: hand(1), hL: hand(-1) }; a.g.add(F.root); a.head.add(F.hd);
   (a.waist || a.body).add(F.up); F.up.position.y = a.waist ? -2.84 : 0; // (up: on the upper body, placed as if on the body)
   if (E.fx) E.fx.make(a, F);
   a.em = { i, t: t0 || 0, F }; a.emOut = 0;
+  if (a === me) spQuest('bv.emote', 1, false);
 }
 // stop (quiet: another one's starting straight away — don't tell everyone it stopped)
 function emStop(a, quiet) {
   const m = a.em; if (!m) return;
   a.em = null; a.emOut = 0.5;
-  for (const r of [m.F.root, m.F.hd, m.F.up]) {
+  for (const r of [m.F.root, m.F.hd, m.F.up, m.F.hR, m.F.hL]) {
     if (r.parent) r.parent.remove(r);
-    r.traverse((o) => { if (o.geometry && o.geometry !== BOX) o.geometry.dispose(); if (o.material) o.material.dispose(); });
+    r.traverse((o) => { if (o.geometry && o.geometry !== BOX && !Object.values(KG).includes(o.geometry)) o.geometry.dispose(); if (o.material) { if (o.material.userData.ownMap && o.material.map) o.material.map.dispose(); o.material.dispose(); } });
   }
   if (a === me && !quiet) { send({ em: 0 }); drawEmWheel(); }
 }
@@ -5016,7 +5085,7 @@ function startTrade(peer) {
 // what you can put in (by tab), and checks that you still have each thing
 function trChoices(tab) {
   if (tab === 'g') return exp && exp.tradeItems ? exp.tradeItems().slice(0, 60).map((x) => ({ t: 'g', k: String(x.k), e: x.e, nm: String(x.n).slice(0, 30), d: x.d })) : [];
-  if (tab === 'a') { const out = []; for (const k of W.own) { const m = /^([a-z]+)(\d+)$/.exec(k), C = m && COSMETICS[m[1]]; if (C && C.list[+m[2]] && C.price[+m[2]] !== 0) out.push({ t: 'a', k, e: C.icon[+m[2]], nm: C.list[+m[2]] }); } return out; }
+  if (tab === 'a') { const out = []; for (const k of W.own) { const m = /^([a-z]+)(\d+)$/.exec(k), C = m && COSMETICS[m[1]]; if (C && C.list[+m[2]] && C.price[+m[2]] !== 0 && !spItem(m[1], +m[2])) out.push({ t: 'a', k, e: C.icon[+m[2]], nm: C.list[+m[2]] }); } return out; } // (not the Season Pass's)
   if (tab === 's') { const out = []; for (const k in W.items) { const [e, id] = k.split('.'), it = EXPS[e] && shopItem(id, EXPS[e]); if (it && it.kind === 'use') out.push({ t: 's', k, nm: it.n, e: it.e, max: W.items[k], from: EXPS[e].name }); } return out; }
   return [];
 }
@@ -5275,14 +5344,14 @@ W.ach = { c: {}, got: new Set() };
 const achTarget = (A) => (A.n === 'all' ? Object.keys(EXPS).length : A.n);
 const achOf = (key) => W.ach.c[key] || 0;
 const achFor = (slot, i) => ACH.find((A) => A.item && A.item[0] === slot && A.item[1] === i);
-function quest(key, n = 1) { if (!(n > 0)) return; W.ach.c[key] = achOf(key) + n; achCheck(key); }
-function questMax(key, v) { if (!(v > achOf(key))) return; W.ach.c[key] = v; achCheck(key); }
+function quest(key, n = 1) { if (!(n > 0)) return; W.ach.c[key] = achOf(key) + n; achCheck(key); spQuest(key, n, false); }
+function questMax(key, v) { spQuest(key, v, true); if (!(v > achOf(key))) return; W.ach.c[key] = v; achCheck(key); }
 function achCheck(key) {
   for (const A of ACH) if (A.key === key && !W.ach.got.has(A.id) && achOf(key) >= achTarget(A)) achAward(A);
   if (!achCheck.t) achCheck.t = setTimeout(() => { achCheck.t = 0; saveAv(); }, 1500); // (counts change often: saved now and then)
 }
 function achAward(A) {
-  W.ach.got.add(A.id);
+  W.ach.got.add(A.id); spXp(SP.achXp, `achievement: ${A.nm}`);
   if (A.item) W.own.add(A.item[0] + A.item[1]);
   earn(A.c);
   achQ.push(A); if (!achQ.on) achNext();
@@ -5314,7 +5383,7 @@ function achGroup(e) {
   return `<div class="achg${e === 'bv' ? ' bv' : ''}"><h4>${e === 'bv' ? '🧱 Bloxverse' : `${E ? E.emoji : ''} ${esc(E ? E.name : e)}`}<small>${n} / ${list.length}</small></h4><div class="achrows">${list.map(achRow).join('')}</div></div>`;
 }
 function saveAv() {
-  const d = Object.assign({}, AV, { coins: W.coins, own: [...W.own], day: W.day, at: Date.now(), ach: { c: W.ach.c, got: [...W.ach.got] }, items: W.items, fr: W.fr, fits: W.fits, who: Net.uid || W.who || '', made: W.made, xown: W.xown, wear: W.wear, rw: W.rw, sk: W.sk, beats: W.beats });
+  const d = Object.assign({}, AV, { coins: W.coins, own: [...W.own], day: W.day, at: Date.now(), ach: { c: W.ach.c, got: [...W.ach.got] }, items: W.items, fr: W.fr, fits: W.fits, who: Net.uid || W.who || '', made: W.made, xown: W.xown, wear: W.wear, rw: W.rw, sk: W.sk, beats: W.beats, sp: W.sp });
   try { localStorage.setItem('rb.av', JSON.stringify(d)); } catch (e) {}
   clearTimeout(avSaveT); avSaveT = setTimeout(() => { if (W.loaded) kvSet('av', d); }, 800);
   pubProfile();
@@ -5336,6 +5405,10 @@ function loadAvFrom(d) {
   { const k = d.sk && typeof d.sk === 'object' ? d.sk : {}, on = {}; if (k.on && typeof k.on === 'object') for (const x in k.on) if (/^[a-z]{1,12}\.[a-z]$/.test(x)) on[x] = Math.max(0, Math.min(40, +k.on[x] || 0));
     W.sk = { own: Array.isArray(k.own) ? k.own.filter((x) => typeof x === 'string' && /^[a-z]{1,12}\.[a-z]\d{1,2}$/.test(x)).slice(0, 200) : [], on }; }
   W.beats = Array.isArray(d.beats) ? d.beats.slice(0, 3).map((x) => (typeof x === 'string' && x.length < 260 ? x : '')) : [];
+  { const o = d.sp && typeof d.sp === 'object' && d.sp.s === 1 ? d.sp : null, ints = (x) => (Array.isArray(x) ? x.filter((v) => Number.isInteger(v) && v >= 1 && v <= 100).slice(0, 100) : []); // (the season pass: this season's only)
+    const ql = (x) => (Array.isArray(x) ? x.slice(0, 6).filter((q) => q && typeof q.k === 'string').map((q) => ({ k: String(q.k).slice(0, 30), n: Math.max(1, +q.n || 1), p: Math.max(0, +q.p || 0), xp: Math.max(0, Math.min(5000, +q.xp || 0)), t: String(q.t || '').slice(0, 90), done: !!q.done })) : []);
+    W.sp = o ? { s: 1, xp: Math.max(0, Math.min(SP.max * SP.lvXp, Math.floor(+o.xp || 0))), dx: !!o.dx, got: ints(o.got), gotD: ints(o.gotD), q: o.q && typeof o.q === 'object' ? { d: String(o.q.d || '').slice(0, 10), dl: ql(o.q.dl), w: String(o.q.w || '').slice(0, 10), wl: ql(o.q.wl) } : null,
+      ex: o.ex && Array.isArray(o.ex.l) ? { d: String(o.ex.d || '').slice(0, 10), l: o.ex.l.filter((x) => typeof x === 'string').slice(0, 40) } : { d: '', l: [] }, play: Math.max(0, +o.play || 0) } : null; }
   W.xown = Array.isArray(d.xown) ? d.xown.filter((x) => typeof x === 'string' && /^[A-Za-z0-9]{1,20}$/.test(x)).slice(0, 300) : [];
   { const w = okAx(d.wear ? [d.wear.h, d.wear.pt, d.wear.f].concat(Array.isArray(d.wear.acc) ? d.wear.acc.slice(0, ACC_WEAR) : []) : []); W.wear = { h: w[0], pt: w[1], f: w[2], acc: w.slice(3), hx: [] }; }
   if (d.wear && Array.isArray(d.wear.hx)) for (const r of d.wear.hx) if (typeof r === 'string' && /^[A-Za-z0-9]{1,20}$/.test(r) && !hatsOn().includes(r) && hatsOn().length < HAT_MAX && (!isShopHat(r) || (+r.slice(1) > 0 && +r.slice(1) < HATS.length && owns('h', +r.slice(1))))) W.wear.hx.push(r);
@@ -5416,7 +5489,7 @@ async function join(id, n) {
   document.documentElement.style.setProperty('--exp', E.color);
   $('#home').hidden = true; $('#loading').hidden = false; $('#loadThumb').innerHTML = `<span>${E.emoji}</span>`; $('#loadTitle').textContent = E.name; $('#loadText').textContent = `Joining server ${n}…`;
   clearPlace(); for (const a of Net.avatars.values()) dropAvatar(a); Net.avatars.clear();
-  exp = E; playedNow(E.id); W.ach.c['bv.p.' + E.id] = 1; questMax('bv.exps', Object.keys(W.ach.c).filter((k) => k.startsWith('bv.p.')).length); resetXUI(); $('#chatlog').innerHTML = ''; gfxApply(); E.build(); P.frozen = false;
+  exp = E; playedNow(E.id); spEnter(E.id); W.ach.c['bv.p.' + E.id] = 1; questMax('bv.exps', Object.keys(W.ach.c).filter((k) => k.startsWith('bv.p.')).length); resetXUI(); $('#chatlog').innerHTML = ''; gfxApply(); E.build(); P.frozen = false;
   try { if (typeof scenery === 'function') scenery(E); } catch (e) { console.warn('scenery', e); } // the land all round (blox-land.js)
   setBanner(''); cam.dist = camD = E.camDist || 20; View.fp = false; View.st = 1; View.tired = false; View.touchRun = false;
   let room;
@@ -6677,6 +6750,186 @@ setInterval(() => {
   const t = hwLeft(); els.forEach((el) => { if (el.textContent !== t) el.textContent = t; });
 }, 1000);
 /* =====================================================================
+   🏛️ SEASON PASS — Season 1: Legends of Old (gods and monsters, hoplites and knights). 100 levels, for 60 days.
+   XP: being in any experience (10 every 30 seconds), the first few different experiences you play each day, every
+   achievement you earn, and new quests every day and every week. Each level unlocks the free track's reward; the
+   Deluxe pass (2,500 Blox Coins, once) unlocks a second track of rewards beside it — including those of the levels
+   you've already passed. Rewards go straight to you as you reach them. What they give is yours for good, but it
+   can't be traded or refunded; when the season ends, its things that aren't yours are no longer shown.
+   ===================================================================== */
+const SP = { start: Date.UTC(2026, 10, 2, 8), end: Date.UTC(2027, 0, 1, 8), lvXp: 1000, price: 2500, max: 100, playXp: 10, playEvery: 30, newExpXp: 100, newExpMax: 5, achXp: 300 };
+const spOn = () => { const t = Date.now(); return t >= SP.start && t < SP.end; };
+const spState = () => W.sp || (W.sp = { s: 1, xp: 0, dx: false, got: [], gotD: [], q: null, ex: { d: '', l: [] }, play: 0 });
+const spLvl = () => Math.min(SP.max, 1 + Math.floor(spState().xp / SP.lvXp));
+// the rewards, level by level: f (free) and d (Deluxe), each a list of [kind, which] ('c': Blox Coins)
+const SP_EMOTE_LV = { lyre: [5, 'f'], zeus: [10, 'd'], jester: [20, 'f'], medusa: [28, 'd'], shieldwall: [35, 'f'], poseidon: [45, 'd'], olympic: [50, 'f'], phoenix: [55, 'd'], bard: [60, 'f'], dragonslayer: [70, 'd'], oracle: [75, 'f'], oath: [85, 'd'], odysseus: [90, 'f'], excalibur: [100, 'f'] };
+let SPR = null;
+function spRewards() {
+  if (SPR) return SPR;
+  const R = [null];
+  for (let L = 1; L <= SP.max; L++) R.push({ f: L % 2 === 0 ? [['c', L % 10 === 0 ? 100 : 20]] : [], d: [['c', L % 10 === 0 ? 150 : 35]] });
+  R[1] = { f: [['c', 15]], d: [['c', 25]] };
+  const set = (L, f, d) => { if (f) R[L].f = f; if (d) R[L].d = d; };
+  set(15, [['pet', 14]], [['bt', 9]]); // 🐓 Cockatrice / 🐜 Myrmidon
+  set(40, [['bt', 10]], [['an', 8]]); // 🛡️ Spartan / the Hoplite animations (Spartan and Myrmidon)
+  set(65, [['b', 18]], [['bt', 11]]); // 🪓 Halberd / Halberd Knight
+  set(80, [['b', 19]], [['pet', 15]]); // the Arquebus / 🦕 Spinosaurus
+  set(100, null, [['bt', 12], ['b', 20], ['an', 9]]); // the Laestrygonian: body, giant scimitar, animations
+  for (const [id, [L, tr]] of Object.entries(SP_EMOTE_LV)) { const i = EMOTES.findIndex((E) => E.id === id); if (i >= 0) R[L][tr] = [['em', i]]; }
+  return (SPR = R);
+}
+// which pass level and track an item comes from (or null)
+function spItem(k, i) { const R = spRewards(); for (let L = 1; L <= SP.max; L++) for (const tr of ['f', 'd']) if (R[L][tr].some(([a, b]) => a === k && b === i)) return { L, tr }; return null; }
+const spOwns = (k, i) => (k === 'em' ? W.own.has('em' + i) : W.own.has(k + i));
+const spGone = (k, i) => !spOn() && !!spItem(k, i) && !spOwns(k, i); // (the season's over, and it isn't yours: not shown)
+const SP_KIND = { c: 'Blox Coins', h: 'Hat', b: 'Back', pet: 'Pet', bt: 'Body', an: 'Animation', em: 'Emote' };
+const spNm = (k, i) => (k === 'c' ? `${i} Blox Coins` : k === 'em' ? EMOTES[i].nm : COSMETICS[k].list[i]);
+const spIc = (k, i) => (k === 'c' ? '🪙' : k === 'em' ? EMOTES[i].ic : COSMETICS[k].icon[i]);
+// XP: a toast for anything big, a fanfare at each new level (and its rewards)
+function spXp(n, why) {
+  if (!spOn() || !W.loaded || !(n > 0)) return;
+  const s = spState(), was = spLvl(); s.xp += Math.round(n);
+  const now = spLvl();
+  if (why && n >= 100) say(`🏛️ +${Math.round(n)} pass XP — ${why}`, '#fcd34d');
+  if (now > was) { sfx('levelup'); toast(`🏛️ Season Pass level ${now}!`, '#fcd34d'); }
+  spClaim(); saveAv(); spRedraw();
+}
+// everything you've reached and not had yet: yours now
+function spClaim() {
+  const s = spState(), R = spRewards(), L0 = spLvl();
+  for (let L = 1; L <= L0; L++) for (const tr of s.dx ? ['f', 'd'] : ['f']) {
+    const got = tr === 'f' ? s.got : s.gotD; if (got.includes(L)) continue; got.push(L);
+    for (const [k, i] of R[L][tr]) {
+      if (k === 'c') { W.coins += i; drawCoins(i); quest('bv.earned', i); continue; }
+      if (spOwns(k, i)) continue; W.own.add(k + i); sfx('unlock');
+      say(`🎁 ${spNm(k, i)} (${k === 'em' ? 'emote' : SP_KIND[k].toLowerCase()}) — Season Pass level ${L}${tr === 'd' ? ' (Deluxe)' : ''}`, '#fcd34d');
+      if (R[L][tr].length === 1 || k === 'bt') toast(`🎁 ${spNm(k, i)} is yours!`, '#fcd34d');
+    }
+  }
+}
+function spBuyDeluxe() {
+  const s = spState(); if (s.dx || !spOn()) return false;
+  if (W.coins < SP.price) { sfx('error'); toast(`Need ${(SP.price - W.coins).toLocaleString('en-US')} more Blox Coins`, '#fca5a5'); return false; }
+  W.coins -= SP.price; s.dx = true; drawCoins(); sfx('buy'); toast('👑 Legends Pass Deluxe unlocked!', '#fcd34d'); spClaim(); saveAv(); return true;
+}
+/* quests: three new ones every day and five every week, picked from these (the same for everyone that day). A quest
+   is [counter, how many, XP, what it says]; a counter is what quest() counts in the games ('obby.stage' and the like:
+   max: it's the best so far, not added up), or one of the pass's own: 'pl.min' minutes played, 'pl.exps' different
+   experiences played, 'any.win' a win in any game, 'bv.emote' an emote, 'bv.jump' a jump */
+const SPQ = {
+  play: [['pl.min', 15, 500, 'Play for 15 minutes'], ['pl.exps', 3, 500, 'Play 3 different experiences'], ['pl.min', 25, 600, 'Play for 25 minutes']],
+  gen: [['any.win', 1, 450, 'Win a round, match or race in any game'], ['bv.earned', 400, 400, 'Earn 400 Blox Coins'], ['bv.emote', 3, 350, 'Do 3 emotes in games'], ['bv.jump', 60, 350, 'Jump 60 times'], ['bv.chat', 5, 300, 'Send 5 chat messages'], ['any.win', 2, 600, 'Win 2 rounds, matches or races']],
+  game: [['obby.stage', 10, 'Reach stage 10 in {obby}', 1], ['zombie.kill', 25, 'Defeat 25 zombies in {zombie}'], ['fish.catch', 6, 'Catch 6 fish in {fish}'], ['garden.harvest', 25, 'Harvest 25 crops in {garden}'], ['tag.tag', 3, 'Tag 3 players in {tag}'],
+    ['rivals.kill', 5, 'Eliminate 5 rivals in {rivals}'], ['blade.parry', 10, 'Parry 10 times in {blade}'], ['kart.finish', 1, 'Finish a race in {kart}'], ['pets.hatch', 5, 'Hatch 5 pets in {pets}'], ['murder.coin', 15, 'Pick up 15 coins in {murder}'],
+    ['tycoon.buy', 6, 'Buy 6 things for your factory in {tycoon}'], ['tds.wave', 6, 'Survive 6 waves in {tds}'], ['pvb.catch', 10, 'Catch 10 brainrots in {pvb}'], ['nds.survive', 2, 'Survive 2 disasters in {nds}'], ['army.fought', 1, 'Fight a battle in {army}'],
+    ['color.call', 8, 'Survive 8 colour calls in {color}'], ['rlgl.finish', 1, 'Make it across in {rlgl}'], ['golf.birdie', 1, 'Get a birdie in {golf}'], ['forsaken.gen', 3, 'Fix 3 generators in {forsaken}'], ['speed.zone', 2, 'Reach zone 2 in {speed}', 1],
+    ['bee.honey', 600, 'Make 600 honey in {bee}'], ['hide.find', 1, 'Find someone hiding in {hide}'], ['lava.win', 1, 'Survive a round of {lava}'], ['toh.half', 1, 'Climb halfway up {toh}'], ['boat.stage', 3, 'Sail to stage 3 in {boat}', 1], ['fruits.eat', 1, 'Eat a Blox Fruit in {fruits}']],
+};
+const SPQ_MAX = new Set(['obby.stage', 'speed.zone', 'boat.stage', 'pl.exps', 'toh.half']);
+const weekStr = (t) => { const d = new Date(t); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return dayStr(d.getTime()); }; // (the Monday it began)
+function spQuests() {
+  const s = spState(), day = dayStr(Date.now()), wk = weekStr(Date.now());
+  if (!s.q) s.q = { d: '', dl: [], w: '', wl: [] };
+  const games = SPQ.game.filter(([k]) => EXPS[k.split('.')[0]]);
+  const mk = ([k, n, xp, t], mult = 1, xpm = 1) => ({ k, n: Math.round(n * mult), p: 0, xp: Math.round(xp * xpm / 50) * 50, t: t.replace(/\b(\d+)\b/, () => String(Math.round(n * mult))), done: false });
+  const game = (r, mult, xp) => { const [k, n, t] = games[Math.floor(r() * games.length)]; return mk([k, n, xp, t.replace(/\{(\w+)\}/, (_, e) => (EXPS[e] ? EXPS[e].name : e))], mult); };
+  if (s.q.d !== day) { const r = mulberry(+day.replace(/-/g, '') * 7 + 1); s.q.d = day; s.q.dl = [mk(SPQ.play[Math.floor(r() * SPQ.play.length)]), mk(SPQ.gen[Math.floor(r() * SPQ.gen.length)]), game(r, 1, 550)]; }
+  if (s.q.w !== wk) { const r = mulberry(+wk.replace(/-/g, '') * 13 + 5), g = SPQ.gen.slice().sort(() => r() - 0.5);
+    s.q.w = wk; s.q.wl = [mk(['pl.min', 120, 2500, 'Play for 120 minutes']), mk(['pl.exps', 8, 2500, 'Play 8 different experiences']), mk(g[0], 5, 6), game(r, 4, 2500), game(r, 4, 2500)]; }
+  return s.q;
+}
+// something the games counted (quest() / questMax()): any quest waiting for it moves on
+function spQuest(key, n, max) {
+  if (!spOn() || !W.loaded) return;
+  const Q = spQuests(), win = !max && /\.win$/.test(key);
+  for (const q of Q.dl.concat(Q.wl)) {
+    if (q.done || !(q.k === key || (q.k === 'any.win' && win))) continue;
+    q.p = SPQ_MAX.has(q.k) || max ? Math.max(q.p, n) : q.p + n;
+    if (q.p >= q.n) { q.p = q.n; q.done = true; sfx('reward'); toast(`🏛️ Quest done: ${q.t}! +${q.xp} XP`, '#fcd34d'); spXp(q.xp, `quest: ${q.t}`); }
+  }
+  spRedraw();
+}
+// a new experience today: a bonus for the first few; and minutes played
+function spEnter(id) {
+  if (!spOn() || !W.loaded) return; const s = spState(), day = dayStr(Date.now());
+  if (s.ex.d !== day) s.ex = { d: day, l: [] };
+  if (!s.ex.l.includes(id)) { s.ex.l.push(id); if (s.ex.l.length <= SP.newExpMax) spXp(SP.newExpXp, `a new experience today (${s.ex.l.length} of ${SP.newExpMax})`); }
+  spQuest('pl.exps', s.ex.l.length, true);
+}
+function spTick(dt) {
+  if (!playing || !W.loaded || !spOn()) return; const s = spState();
+  s.play = (s.play || 0) + dt;
+  if (s.play >= SP.playEvery) { s.play = 0; spXp(SP.playXp); spQuest('pl.min', SP.playEvery / 60, false); }
+}
+function spLeft(t = SP.end) { const ms = Math.max(0, t - Date.now()), d = Math.floor(ms / 864e5), h = Math.floor(ms / 36e5) % 24, m = Math.floor(ms / 6e4) % 60; return d ? `${d}d ${h}h` : `${h}h ${String(m).padStart(2, '0')}m`; }
+function spRedraw() { if (homeView === 'sp' && !playing) drawExps(); else if (playing && $('#xpanel .sppage') && !$('#xpanel').hidden) openSpPanel(true); const b = $('#spChip'); if (b) b.textContent = `🏛️ Lv ${spLvl()}`; }
+// a picture of a reward on your avatar (a pet on its own; an emote mid-move with its things; an animation mid-stride)
+function spPic(k, i) {
+  if (k === 'c') return '';
+  const av = [AV.s, AV.sh, AV.p, 0, 0, 0, 0, 0, 0, 0, 1, 0], slot = { b: 5, pet: 8, bt: 10, an: 11 }[k];
+  if (slot != null) av[slot] = i;
+  const o = { w: 200, h: 200, zoom: 0.95 };
+  if (k === 'b') Object.assign(o, { dir: [0.75, 0.2, 1], sphere: [[0, 3.6, 0.3], 3.9] });
+  else if (k === 'pet') Object.assign(o, { dir: [0.75, 0.25, -1], sphere: [[0, 1.0, 0], 1.6] });
+  else if (k === 'bt') Object.assign(o, { dir: [0.4, 0.12, -1], sphere: [[0, 3.4, 0], 3.9] });
+  else if (k === 'em') Object.assign(o, { dir: [0.45, 0.16, -1], sphere: [[0, 3.8, 0], (EMOTES[i].picR || 5.2)] });
+  else Object.assign(o, { dir: [0.6, 0.12, -1], sphere: [[0, 3.4, 0], 4.2] });
+  return snapshot(`sp:${k}${i}:${av.join(',')}`, () => {
+    if (k === 'pet') return petModel(i);
+    const a = makeAvatar(av, '', true); scene.remove(a.shadow); if (a.pet) scene.remove(a.pet.g);
+    a.armR.rotation.x = -0.12; a.armL.rotation.x = 0.12;
+    if (k === 'em') { const E = EMOTES[i], t = E.pic || 1.2; emStart(a, i, t); const J = emPose(); E.pose(J, t, a); emApply(a, J, 1); if (E.fx) for (let j = 0; j < 4; j++) E.fx.tick(a, a.em.F, t + j * 0.02, 0.02); }
+    if (k === 'an') { const J = emPose(); ANIM_PACKS[i].pose(J, a, { mv: true, air: false, ph: 1.3, t: 1, land: null, vy: 0, spd: 1, turn: 0 }); emApply(a, J, 1); }
+    return a.g;
+  }, o);
+}
+function spBanner() {
+  const s = spState(), L = spLvl(), f = L >= SP.max ? 1 : (s.xp % SP.lvXp) / SP.lvXp;
+  return `<div class="spban" role="button" tabindex="0" title="Open the Season Pass"><div class="spfx"><span class="sun"></span><i class="c1">🏛️</i><i class="c2">⚔️</i><i class="c3">🐉</i></div>
+    <div class="spt"><span class="tag">🏛️ Season 1 · Legends of Old</span><h2>The Season Pass is here!</h2><p>100 levels of gods, monsters, hoplites and knights: the Spartan, Myrmidon, Halberd Knight and giant Laestrygonian body packs, a cockatrice and a spinosaurus, 14 legendary emotes and more. Level up by playing any game and doing quests.</p></div>
+    <div class="spcdbox"><small>Level</small><b class="splv">${L}</b><div class="spbar"><i style="width:${(100 * f).toFixed(1)}%"></i></div><small>Ends in <span class="spcd">${spLeft()}</span></small><span class="go">${s.dx ? '👑 Deluxe · open' : 'Open the pass →'}</span></div></div>`;
+}
+// the pass: your level, the quests, and the two tracks of rewards
+function spHtml(inGame) {
+  const s = spState(), L = spLvl(), R = spRewards(), Q = spQuests(), f = L >= SP.max ? 1 : (s.xp % SP.lvXp) / SP.lvXp;
+  const qrow = (q) => `<div class="spq${q.done ? ' done' : ''}"><span class="ic">${q.done ? '✅' : '📜'}</span><div><b>${esc(q.t)}</b><div class="spbar sm"><i style="width:${(100 * Math.min(1, q.p / q.n)).toFixed(1)}%"></i></div><small>${Math.floor(q.p).toLocaleString('en-US')} / ${q.n.toLocaleString('en-US')}</small></div><span class="xp">+${q.xp} XP</span></div>`;
+  const big = (L0, tr) => R[L0][tr].some(([k]) => k !== 'c');
+  const cell = (L0, tr) => {
+    const list = R[L0][tr], got = (tr === 'f' ? s.got : s.gotD).includes(L0), lock = tr === 'd' && !s.dx;
+    if (!list.length) return `<div class="spc empty"></div>`;
+    const [k, i] = list[0], pic = k !== 'c' ? spPic(k, i) : '';
+    const nm = list.length > 1 ? 'The Laestrygonian bundle' : spNm(k, i), kind = list.length > 1 ? 'Body + weapon + animations' : SP_KIND[k];
+    return `<div class="spc ${tr}${got ? ' got' : ''}${lock ? ' lock' : ''}${k !== 'c' ? ' item' : ''}" title="${esc(nm)}${k === 'em' ? ' — ' + esc(EMOTES[i].d) : ''}">${pic ? `<img src="${pic}" alt="">` : `<span class="big">${list.length > 1 ? '🗿' : spIc(k, i)}</span>`}
+      <b>${esc(nm)}</b><small>${esc(kind)}</small>${got ? '<span class="st">✓</span>' : lock ? '<span class="st">🔒</span>' : ''}${k !== 'c' ? `<button class="sptry" data-sptry="${k}${i}" title="See it on you">👀</button>` : ''}</div>`;
+  };
+  const cols = []; for (let L0 = 1; L0 <= SP.max; L0++) cols.push(`<div class="spcol${L0 === L ? ' cur' : ''}${L0 <= L ? ' done' : ''}${big(L0, 'f') || big(L0, 'd') ? ' wide' : ''}" data-l="${L0}"><span class="n">${L0}</span>${cell(L0, 'f')}${cell(L0, 'd')}</div>`);
+  const tomorrow = new Date(); tomorrow.setHours(24, 0, 0, 0); const nextWk = new Date(weekStr(Date.now()) + 'T00:00:00').getTime() + 7 * 864e5;
+  return `<div class="sppage${inGame ? ' ingame' : ''}">
+    <div class="sphero"><div class="spfx"><span class="sun"></span><i class="c1">🏛️</i><i class="c2">⚔️</i><i class="c3">🐉</i></div>
+      <div class="spt"><span class="tag">🏛️ Season 1</span><h2>Legends of Old</h2><p>Gods and monsters, hoplites and knights. Level up by playing any game (XP every 30 seconds), trying new ones each day, earning achievements and doing quests. Rewards are yours the moment you reach them.</p></div>
+      <div class="spcdbox"><small>Level</small><b class="splv">${L}<span>/${SP.max}</span></b><div class="spbar"><i style="width:${(100 * f).toFixed(1)}%"></i></div><small>${L >= SP.max ? 'Max level!' : `${(s.xp % SP.lvXp).toLocaleString('en-US')} / ${SP.lvXp.toLocaleString('en-US')} XP`} · ends in <span class="spcd">${spLeft()}</span></small>
+        ${s.dx ? '<span class="spdx on">👑 Deluxe</span>' : `<button class="spdx" data-spbuy="1">👑 Get Deluxe · <span class="coin sm"></span> ${SP.price.toLocaleString('en-US')}</button>`}</div></div>
+    <div class="spqs"><div><h3>📜 Daily quests <small>new in ${spLeft(tomorrow.getTime())}</small></h3>${Q.dl.map(qrow).join('')}</div><div><h3>🗓️ Weekly quests <small>new in ${spLeft(nextWk)}</small></h3>${Q.wl.map(qrow).join('')}</div></div>
+    <h3 class="sptitle"><span>🎁 Rewards</span><span class="sptracks"><i class="f">Free</i><i class="d">👑 Deluxe</i></span><button class="spjump" data-spjump="1">Go to level ${L}</button></h3>
+    <div class="sptrack">${cols.join('')}</div>
+    <p class="note">🏛️ Season Pass rewards are yours for good, but they can't be traded or refunded. The Deluxe pass gives you its track's rewards for every level you've already reached, straight away. When the season ends, its rewards you don't have are no longer shown.</p></div>`;
+}
+function spPage() { return `<div class="edetail still"><button class="back" id="backBtn">← All experiences</button>${spHtml(false)}</div>`; }
+function spClick(e) {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.spbuy) { const s = spState(); if (SPS.ask !== 'dx') { SPS.ask = 'dx'; b.innerHTML = W.coins < SP.price ? `Need ${(SP.price - W.coins).toLocaleString('en-US')} more` : 'Tap again to buy Deluxe'; sfx('click'); return; } SPS.ask = ''; if (spBuyDeluxe()) spRedraw(); return; }
+  if (b.dataset.spjump) { const c = document.querySelector(`.sptrack [data-l="${spLvl()}"]`); if (c) c.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }); return; }
+  const m = /^([a-z]+)(\d+)$/.exec(b.dataset.sptry || ''); if (!m) return;
+  const k = m[1], i = +m[2];
+  if (playing) { closePanel(); toast('👀 Try it in the avatar editor, on the home screen', '#fde68a'); return; }
+  openEditor('wear');
+  if (k === 'em') { avTab = 'em'; drawAvatarOpts(); if (pv.a) emStart(pv.a, i); }
+  else { avTab = k === 'bt' || k === 'an' ? 'colors' : k; ED.try[k] = i; drawAvatarOpts(); pvAvatar(); }
+}
+const SPS = { ask: '' };
+function openSpPanel(again) { const sc = again && $('#xpanel .sptrack') ? $('#xpanel .sptrack').scrollLeft : null; openPanel(`🏛️ Season Pass · level ${spLvl()}`, spHtml(true), (b, e) => spClick(e), null, { full: true }); const tr = $('#xpanel .sptrack'); if (tr) { if (sc != null) tr.scrollLeft = sc; else { const c = tr.querySelector(`[data-l="${spLvl()}"]`); if (c) tr.scrollLeft = c.offsetLeft - tr.clientWidth / 2; } } }
+setInterval(() => { const t = spLeft(); document.querySelectorAll('.spcd').forEach((el) => { if (el.textContent !== t) el.textContent = t; }); }, 30000);
+/* =====================================================================
    🎁 FREE REWARDS — Blox Coins for nothing: no quests, no games to win.
    🎡 a free spin of the prize wheel every two hours (up to 2,500), 📅 a daily gift that grows each day you come back
    in a row (day 7: 1,500), 🐷 a piggy bank that fills by itself (even while you're away) for you to empty whenever you
@@ -6810,7 +7063,16 @@ function drawExps() {
   // (the lobby redraws this whenever anyone comes or goes: the same page again doesn't fade in again)
   const again = drawExps.view === (homeView || ''); drawExps.view = homeView || '';
   if (homeView === 'hw' && !hwOn()) homeView = null; // (the Halloween Shop has closed)
-  $('#home').classList.toggle('sub', homeView === 'me' || homeView === 'friends' || homeView === 'inv' || homeView === 'hw' || homeView === 'rw' || String(homeView).startsWith('u:'));
+  if (homeView === 'sp' && !spOn()) homeView = null; // (the season's over)
+  $('#home').classList.toggle('sub', homeView === 'me' || homeView === 'friends' || homeView === 'inv' || homeView === 'hw' || homeView === 'rw' || homeView === 'sp' || String(homeView).startsWith('u:'));
+  if (homeView === 'sp') {
+    const sc = again && $('#expArea .sptrack') ? $('#expArea .sptrack').scrollLeft : null;
+    $('#expArea').innerHTML = spPage();
+    $('#backBtn').onclick = () => { homeView = null; SPS.ask = ''; drawExps(); };
+    $('#expArea .sppage').onclick = spClick;
+    const tr = $('#expArea .sptrack'); if (tr) { if (sc != null) tr.scrollLeft = sc; else { const c = tr.querySelector(`[data-l="${spLvl()}"]`); if (c) tr.scrollLeft = c.offsetLeft - tr.clientWidth / 2; } }
+    return;
+  }
   if (homeView === 'hw') {
     $('#expArea').innerHTML = hwPage();
     $('#backBtn').onclick = () => { homeView = null; HWS.ask = ''; drawExps(); };
@@ -6845,7 +7107,7 @@ function drawExps() {
     const genres = [...new Set(all.map((E) => E.genre).filter(Boolean))].sort();
     if (LIST.genre !== 'All' && LIST.genre !== '❤️' && !genres.includes(LIST.genre)) LIST.genre = 'All';
     const chip = (k, v, label, n) => `<button class="xchip${LIST[k] === v ? ' on' : ''}" data-${k}="${esc(v)}">${label}${n != null ? ` <small>${n}</small>` : ''}</button>`;
-    $('#expArea').innerHTML = (hwOn() ? hwBanner() : '') + (W.loaded ? rwStrip() : '') + (F ? `<div class="feat" data-e="${F.id}" role="button" tabindex="0" style="--exp:${F.color}"><div><span class="tag">⭐ Featured</span><h2>${esc(F.name)}</h2><p>${esc(F.desc.split('. ').slice(0, 2).join('. ').replace(/\.?$/, '.'))}</p><div class="meta">${live(F)}<span class="pill">👥 up to ${F.max}</span>${F.genre ? `<span class="pill">${esc(F.genre)}</span>` : ''}</div></div><span class="art">${F.emoji}</span><button class="playbig" data-play="${F.id}" title="Play"><span class="tri"></span>Play</button></div>` : '')
+    $('#expArea').innerHTML = (spOn() && W.loaded ? spBanner() : '') + (hwOn() ? hwBanner() : '') + (W.loaded ? rwStrip() : '') + (F ? `<div class="feat" data-e="${F.id}" role="button" tabindex="0" style="--exp:${F.color}"><div><span class="tag">⭐ Featured</span><h2>${esc(F.name)}</h2><p>${esc(F.desc.split('. ').slice(0, 2).join('. ').replace(/\.?$/, '.'))}</p><div class="meta">${live(F)}<span class="pill">👥 up to ${F.max}</span>${F.genre ? `<span class="pill">${esc(F.genre)}</span>` : ''}</div></div><span class="art">${F.emoji}</span><button class="playbig" data-play="${F.id}" title="Play"><span class="tri"></span>Play</button></div>` : '')
       + `<h3 class="sect"><span>🎮 Experiences <small id="expCount"></small></span><button class="xrand" id="expRand" title="Jump into a random experience">🎲 Random game</button></h3>
       <div class="xtools"><label class="xsearch">🔍<input id="expQ" type="search" placeholder="Search experiences" value="${esc(LIST.q)}" autocomplete="off"></label>
         <div class="xchips" id="expSorts">${SORTS.map(([v, l]) => chip('sort', v, l)).join('')}</div></div>
@@ -6855,6 +7117,7 @@ function drawExps() {
     const rs = $('#expArea .rwstrip'); if (rs) rs.onclick = rwClick;
     const rb = $('#expRand'); if (rb) rb.onclick = () => randomGame(rb);
     const hb = $('#expArea .hwban'); if (hb) hb.onclick = hb.onkeydown = (e) => { if (e.type === 'keydown' && e.key !== 'Enter') return; homeView = 'hw'; sfx('open'); drawExps(); };
+    const sb = $('#expArea .spban'); if (sb) sb.onclick = sb.onkeydown = (e) => { if (e.type === 'keydown' && e.key !== 'Enter') return; homeView = 'sp'; sfx('open'); drawExps(); };
     const feat = $('#expArea').querySelector('.feat');
     if (feat) feat.onclick = (e) => { if (e.target.closest('[data-play]')) return; homeView = F.id; drawExps(); };
     $('#expArea').querySelectorAll('.feat [data-play]').forEach((b) => (b.onclick = () => join(b.dataset.play)));
@@ -8266,7 +8529,7 @@ function bgmTick(want) {
   const song = BGM.song; if (!song) return;
   if (BGM.warm.length) { const [kind, n] = BGM.warm.shift(); TSMP.get(ac, kind, n); } // (the next sampled note made ahead of time)
   if (!BGM.on) { BGM.on = true; BGM.k = Math.floor(BGM.k / 64) * 64; BGM.t0 = ac.currentTime + 0.15 - BGM.k * song.sd; } // (coming back: from the start of the section)
-  BGM.g.gain.setTargetAtTime(clamp(Music.vol * THEME_LEVEL, 0, 2), ac.currentTime, 0.4);
+  BGM.g.gain.setTargetAtTime(clamp(Music.vol * THEME_LEVEL, 0, 2) * (me && me.em && EMOTES[me.em.i] && EMOTES[me.em.i].mus ? 0.2 : 1), ac.currentTime, 0.4); // (quieter under your emote's own music)
   const N = song.steps.length;
   for (let guard = 0; guard < 48; guard++) {
     const t = BGM.t0 + BGM.k * song.sd + (BGM.k % 2 ? song.swing * song.sd : 0) + (BGM.k % 4 === 2 ? song.sw8 * song.sd : 0);
@@ -8358,6 +8621,7 @@ function showPause() {
     <button class="btn" id="pSound">${window.Sfx && !Sfx.on ? '🔇 Sound: off' : '🔊 Sound: on'}</button><button class="btn" id="pMusic">${musicLabel()}</button>${THEMES[exp.id] ? '<button class="btn" id="pNext">⏭ Next song</button>' : ''}
     <button class="btn" id="pMeter">${Meter.shown ? '📊 FPS & ping: shown' : '📊 FPS & ping: hidden'}</button>
     <button class="btn" id="pGfx">${gfxLabel()}</button>
+    ${spOn() ? `<button class="btn gold" id="pPass">🏛️ Season Pass · level ${spLvl()}${spState().dx ? ' 👑' : ''}</button>` : ''}
     <button class="btn" id="pStuds">${studsLabel()}</button>
     ${exp.noLock ? '' : `<button class="btn" id="pLock">${View.lock ? '🔒 Shift lock: on' : '🔓 Shift lock: off'} <kbd>${lockKeyName()}</kbd></button>`}
     <button class="btn" id="pKeys">${keysLabel()}</button>
@@ -8368,6 +8632,7 @@ function showPause() {
   $('#pLeave').onclick = () => leave();
   $('#pSound').onclick = () => { if (!window.Sfx) return; Sfx.toggle(); $('#pSound').textContent = Sfx.on ? '🔊 Sound: on' : '🔇 Sound: off'; };
   $('#pStuds').onclick = () => { setStuds(!STUDS.on); sfx('toggle'); $('#pStuds').textContent = studsLabel(); };
+  if ($('#pPass')) $('#pPass').onclick = () => { $('#pause').hidden = true; openSpPanel(); };
   if ($('#pMusic')) $('#pMusic').onclick = () => { Music.on = !Music.on; try { localStorage.setItem('bv-music', Music.on ? '1' : '0'); } catch (e) {} musicTick(0); $('#pMusic').textContent = musicLabel(); };
   if ($('#pNext')) $('#pNext').onclick = () => { bgmSkip(); sfx('click'); setTimeout(() => { if ($('#pMusic')) $('#pMusic').textContent = musicLabel(); }, 120); };
   $('#pMeter').onclick = () => { Meter.shown = !Meter.shown; Meter.sentAt = 0; Meter.ping = null; try { localStorage.setItem('bv-meter', Meter.shown ? '1' : '0'); } catch (e) {} $('#pMeter').textContent = Meter.shown ? '📊 FPS & ping: shown' : '📊 FPS & ping: hidden'; drawMeter(); };
@@ -8583,7 +8848,7 @@ function oops(where, e) { const k = where + ':' + (e && e.message); if (oopsSeen
 function frame(t, bg) { // (bg: a step while the game's off screen — nothing is drawn)
   if (!bg) { requestAnimationFrame(frame); rafAt = performance.now(); }
   const dt = clamp((t - last) / 1000, 0, 0.1); last = Math.max(last, t); // physics takes small steps, so a slow frame still moves at the right speed
-  musicTick(dt); if (!bg) rwPlayTick(dt);
+  musicTick(dt); if (!bg) { rwPlayTick(dt); spTick(dt); }
   if (!playing) { if (!$('#home').hidden && !bg) pvDraw(t); return; }
   const T = now();
   updateParts(T, dt);
@@ -8637,6 +8902,7 @@ function frame(t, bg) { // (bg: a step while the game's off screen — nothing i
     camera.position.set(tx + ux * camD, ty + uy * camD, tz + uz * camD);
     camera.lookAt(tx, ty, tz);
   }
+  if (CSHAKE.k > 0.002) { camera.position.x += (Math.random() - 0.5) * CSHAKE.k; camera.position.y += (Math.random() - 0.5) * CSHAKE.k; camera.position.z += (Math.random() - 0.5) * CSHAKE.k; CSHAKE.k *= Math.exp(-dt * 7); } // (a quake, a thunderclap)
   netTick(t);
   if (t - (Trade.tickAt || 0) > 200) { Trade.tickAt = t; tradeTick(); }
   if (!bg) meterTick(t); // (off screen there's no frame rate to count)
