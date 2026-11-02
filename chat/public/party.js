@@ -121,15 +121,39 @@
     const el = h('section', { id: 'frameView', class: 'frame-view' },
       h('header', { class: 'frame-head' }, h('span', { class: 'party-title' }, `${g.emoji} ${g.name}`), h('span', { class: 'grow' }),
         window.GameDock ? window.GameDock.soundButton() : '',
-        h('button', { class: 'btn small', title: 'Back to the chat; the game keeps running', onclick: () => { frame.min = true; syncFrame(); } }, '▁ Chat'),
+        h('button', { class: 'btn small', title: 'Fullscreen: the game fills the whole screen (Esc or ⤡ to leave)', onclick: () => setFull(true) }, '⛶ Fullscreen'),
+        h('button', { class: 'btn small', title: 'Back to the chat; the game keeps running', onclick: () => { setFull(false); frame.min = true; syncFrame(); } }, '▁ Chat'),
         h('button', { class: 'btn small danger', onclick: () => api.confirm(`Close ${g.name}?`, 'Close', closeFrame) }, '✕ Close')),
-      iframe);
+      iframe,
+      h('button', { class: 'frame-unfull', title: 'Leave fullscreen (Esc)', onclick: () => setFull(false) }, '⤡ Exit fullscreen'));
     const pill = h('button', { class: 'party-pill frame-pill hidden', onclick: () => { frame.min = false; syncFrame(); } }, `${g.emoji} Back to ${g.name}`);
     document.body.append(el, pill);
     frame = { id, el, pill, iframe, min: false, detach: window.GameNet ? window.GameNet.attach(iframe, id, g.code) : () => {} };
     syncFrame();
     setTimeout(() => iframe.focus(), 300);
   }
+  // ⛶ fullscreen: the game alone, filling the screen — over the browser's own bars and the page's (and this bar too). If
+  // the browser won't let this page go fullscreen (it's inside another page that doesn't allow it, or a phone that
+  // only does it for videos), the game still fills the whole window, this bar out of the way
+  const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement || null;
+  function setFull(on) {
+    if (!frame) return;
+    const el = frame.el;
+    if (on) {
+      el.classList.add('full');
+      const req = el.requestFullscreen || el.webkitRequestFullscreen;
+      if (req && document.fullscreenEnabled !== false && !fsEl()) {
+        try { const p = req.call(el, { navigationUI: 'hide' }); frame.realFs = true; if (p && p.catch) p.catch(() => { if (frame) frame.realFs = false; fsHint(); }); } catch (e) { frame.realFs = false; fsHint(); }
+      } else if (!fsEl()) fsHint();
+      setTimeout(() => frame && frame.iframe.focus(), 60);
+    } else {
+      el.classList.remove('full'); frame.realFs = false;
+      if (fsEl()) { const ex = document.exitFullscreen || document.webkitExitFullscreen; try { const p = ex.call(document); if (p && p.catch) p.catch(() => {}); } catch (e) {} }
+    }
+  }
+  const fsHint = () => api.toast('This page isn’t allowed to go fullscreen here, so the game fills the window instead. For the whole screen, open the page in its own tab or use your browser’s fullscreen (F11).');
+  const onFsChange = () => { if (frame && frame.realFs && !fsEl()) { frame.realFs = false; frame.el.classList.remove('full'); } }; // (Esc: out of fullscreen, the bar back)
+  document.addEventListener('fullscreenchange', onFsChange); document.addEventListener('webkitfullscreenchange', onFsChange);
   function syncFrame() {
     if (!frame) return;
     frame.el.classList.toggle('hidden', frame.min);
@@ -138,6 +162,7 @@
   }
   function closeFrame() {
     if (!frame) return;
+    setFull(false);
     const f = frame;
     frame = null;
     try { f.detach(); } catch {}

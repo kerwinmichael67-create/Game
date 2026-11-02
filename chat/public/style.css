@@ -1031,6 +1031,11 @@ body.mini .topbar .lbl-short { display: inline; }
 .frame-head .party-title { font-size: 16px; }
 .frame-game { flex: 1; width: 100%; min-height: 0; border: 0; display: block; background: #000; }
 .frame-pill { left: auto; right: 18px; bottom: 80px; }
+/* ⛶ fullscreen: just the game, this bar gone; a small tab at the top to come back out */
+.frame-view.full .frame-head { display: none; }
+.frame-unfull { display: none; position: absolute; top: 0; left: 50%; transform: translateX(-50%); z-index: 2; padding: 3px 12px 4px; border: 1px solid rgba(255, 255, 255, .18); border-top: 0; border-radius: 0 0 10px 10px; background: rgba(10, 12, 20, .55); color: #e5e7eb; font: 600 12px/1.2 var(--font, system-ui, sans-serif); cursor: pointer; opacity: .55; transition: opacity .2s, background .2s; }
+.frame-unfull:hover, .frame-unfull:focus-visible { opacity: 1; background: rgba(10, 12, 20, .85); }
+.frame-view.full .frame-unfull { display: block; }
 
 /* game tables (tables.js) */
 .games-section { margin: 18px 0 4px; font-size: 18px; }
