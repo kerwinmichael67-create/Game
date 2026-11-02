@@ -3326,7 +3326,7 @@ function hopliteKit(K, myr) {
       mesh(cg, cape, 0, 4.14, 0.57); mesh(cg, lining, 0, 4.14, 0.57);
       for (const sx of [-1, 1]) P(kCyl(), gold, sx * 0.86, 4.04, -0.3, K.body, 0.13, 0.05, 0.13).rotation.x = Math.PI / 2;
       // the shield on the back
-      const sh = mesh(aspisGeo(), shield, 0, 3.45, 0.9); sh.rotation.x = Math.PI / 2; P(kTor(0.05), bz, 0, 3.45, 0.88, K.body, 1.04, 1.04, 1.04);
+      const sh = mesh(aspisGeo(), shield, 0, 3.45, 0.9); sh.rotation.x = Math.PI / 2; sh.userData.backShield = 1; P(kTor(0.05), bz, 0, 3.45, 0.88, K.body, 1.04, 1.04, 1.04).userData.backShield = 1; // (the Hoplite pack moves it to your arm)
     },
     arm(s) {
       const sh = grp(K.body, s * 1.5, 4), el = grp(sh, 0, -0.98, 1);
@@ -3479,6 +3479,172 @@ BODY_DESC.push('🏛️ Achilles’ own warriors: blackened bronze over dark sca
   '🏛️ A hoplite of Sparta in bright bronze: a Corinthian helmet with a crimson horsehair crest that sways and streams back as you run, a sculpted muscle cuirass, a skirt of linen strips, a crimson cloak, bronze bracers and greaves, sandals, a short sword at the hip and the great round shield with a red lambda on your back.',
   '🏛️ Late gothic plate, blued almost black and edged in gold: a sallet sweeping back to a long tail with a slit to see through, a bevor and a red plume; flutes fanning across the breastplate and pauldrons; a skirt of mail; puffed and slashed sleeves in your colour with gold silk showing through; a rondel dagger at the belt.',
   '🏛️ A giant from Christopher Nolan’s The Odyssey: heavy, flat plates of scratched, rust-streaked iron riveted over leather — a tall flat-faced helm with something burning behind its slits and mail hanging round the neck, a broad breastplate, jointed bands down the arms and legs, huge stacked pauldrons, iron fists, a studded skirt and iron-shod boots. Worn, you’re half again as big (normal size in competitive games like Rivals).');
+/* ---------------- 🏛️ the Season Pass's animation packs: the Hoplite and the Laestrygonian ---------------- */
+// the hoplite's sounds: bronze rung by a spear shaft, and the war cry — a crowd of voices shouting "a-ROO!" (a buzzing
+// voice shaped by the mouth: the vowel slides from "ah" to "oo"), a drum and a crash under it
+const hopClang = (a, k = 1) => emBand(a, (B) => { B.n('toll', 88, 0.7, 0.2 * k); B.n('toll', 95, 0.45, 0.1 * k, 0.004); emNoise(B, { len: 0.14, v: 0.22 * k, type: 'highpass', f: 2800, att: 0.002 }); B.d(5, 0.22 * k); });
+const hopCry = (a) => emBand(a, (B) => {
+  B.raw((ac, d, t) => { for (const [f0, dt0, v] of [[124, 0, 0.13], [147, 0.035, 0.1], [168, 0.07, 0.08], [108, 0.02, 0.09], [196, 0.05, 0.05]]) {
+    const T = t + dt0, o = ac.createOscillator(), g = ac.createGain(), vib = ac.createOscillator(), vg = ac.createGain(); o.type = 'sawtooth';
+    o.frequency.setValueAtTime(f0 * 0.82, T); o.frequency.linearRampToValueAtTime(f0 * 1.14, T + 0.2); o.frequency.linearRampToValueAtTime(f0 * 1.06, T + 0.75); o.frequency.linearRampToValueAtTime(f0 * 0.88, T + 1.05);
+    vib.frequency.value = 5 + Math.random(); vg.gain.value = f0 * 0.025; vib.connect(vg); vg.connect(o.frequency); synEnv(g.gain, T, 0.05, 1.05, v);
+    for (const [fa, fu, q, kk] of [[760, 330, 5, 1], [1150, 760, 6, 0.6], [2450, 2250, 7, 0.22]]) { const f = ac.createBiquadFilter(), fg = ac.createGain(); f.type = 'bandpass'; f.Q.value = q; f.frequency.setValueAtTime(fa, T); f.frequency.setValueAtTime(fa, T + 0.16); f.frequency.exponentialRampToValueAtTime(fu, T + 0.42); fg.gain.value = kk * 3; o.connect(f); f.connect(fg); fg.connect(g); }
+    g.connect(d); o.start(T); vib.start(T); o.stop(T + 1.15); vib.stop(T + 1.15); } });
+  B.d(0, 0.6); B.d(6, 0.25, 0.02); B.c('brass', [45, 52, 57], 1.0, 0.1, 0.05); emNoise(B, { len: 0.9, v: 0.08, f: 1400, type: 'bandpass', att: 0.05 }); });
+// the giant's sounds: a footfall you feel, a roar, the ground breaking
+const giantStep = (a, k = 1) => emBand(a, (B) => { B.d(0, 0.5 * k); B.n('sub', 28, 0.35, 0.35 * k); emNoise(B, { len: 0.5, v: 0.16 * k, f: 300, f2: 80 }); });
+const giantRoar = (a) => emBand(a, (B) => { emNoise(B, { len: 1.9, v: 0.32, f: 800, f2: 180, att: 0.15 }); B.c('dark', [33, 40, 45], 2.0, 0.22); B.n('sub', 33, 1.6, 0.4);
+  B.raw((ac, d, t) => { for (const [f0, v] of [[52, 0.16], [78, 0.1], [104, 0.05]]) { const o = ac.createOscillator(), gg = ac.createGain(), lf = ac.createOscillator(), lg = ac.createGain(), fl = ac.createBiquadFilter();
+    o.type = 'sawtooth'; o.frequency.setValueAtTime(f0 * 1.4, t); o.frequency.exponentialRampToValueAtTime(f0, t + 1.7); lf.frequency.value = 19; lg.gain.value = f0 * 0.16; lf.connect(lg); lg.connect(o.frequency);
+    fl.type = 'lowpass'; fl.frequency.setValueAtTime(1300, t); fl.frequency.exponentialRampToValueAtTime(320, t + 1.8); synEnv(gg.gain, t, 0.15, 1.85, v); o.connect(fl); fl.connect(gg); gg.connect(d); o.start(t); lf.start(t); o.stop(t + 2); lf.stop(t + 2); } }); });
+const giantQuake = (a) => emBand(a, (B) => { B.d(0, 1); B.d(6, 0.35, 0.03); emThunder(B, 0.8); B.n('sub', 26, 1.4, 0.55); B.n('toll', 38, 1.2, 0.12); });
+// cracks spreading through the ground where it lands
+const crackTex = () => kCanvas('quakeCrack', 256, 256, (g, r) => { g.translate(128, 128);
+  for (let k = 0; k < 11; k++) { let an = (k / 11) * Math.PI * 2 + r() * 0.4, x = 0, y = 0, w = 7;
+    g.strokeStyle = 'rgba(20,14,10,.9)'; g.lineCap = 'round';
+    while (Math.hypot(x, y) < 118 && w > 0.6) { const nx = x + Math.cos(an) * (8 + r() * 10), ny = y + Math.sin(an) * (8 + r() * 10); g.lineWidth = w; g.beginPath(); g.moveTo(x, y); g.lineTo(nx, ny); g.stroke();
+      if (r() < 0.25) { g.lineWidth = w * 0.5; g.beginPath(); g.moveTo(nx, ny); const b = an + (r() < 0.5 ? -1 : 1) * (0.6 + r() * 0.5); g.lineTo(nx + Math.cos(b) * 18, ny + Math.sin(b) * 18); g.stroke(); }
+      x = nx; y = ny; an += (r() - 0.5) * 0.7; w *= 0.88; } }
+  const gr = g.createRadialGradient(0, 0, 0, 0, 0, 40); gr.addColorStop(0, 'rgba(30,20,12,.75)'); gr.addColorStop(1, 'rgba(30,20,12,0)'); g.fillStyle = gr; g.beginPath(); g.arc(0, 0, 40, 0, 7); g.fill(); });
+function quakeCrack(a, size) {
+  if (!emWorld(a)) return; const p = a.g.position, m = new THREE.Mesh(FX_PLANE, new THREE.MeshBasicMaterial({ map: crackTex(), transparent: true, depthWrite: false, ...DECAL }));
+  m.rotation.set(-Math.PI / 2, 0, Math.random() * 6.3); m.position.set(p.x, p.y + 0.07, p.z); m.scale.setScalar(size);
+  m.userData = { v: new THREE.Vector3(), life: 2.6, g: 0, spinless: 1, tick: (o, u) => { o.material.opacity = Math.min(1, u.life / 1.0); } }; scene.add(m); bits.push(m);
+}
+// 🏺 the hoplite's spear (in the right hand: it turns in the hand so it points where the pose wants) and round shield
+// (on the left arm, in front; your own shield if you're a Myrmidon or a Spartan — the one on your back moves to your arm)
+const _hpv = new THREE.Vector3();
+function hopGear(a) {
+  if (a.hpG) return a.hpG;
+  const myr = a.av && a.av[10] === 9, hR = new THREE.Group(); hR.position.y = a.r15 ? -0.92 : -1.9; pfx(a, hR, a.r15 ? a.elR : a.armR);
+  const sp = new THREE.Group(); hR.add(sp);
+  const wood = new THREE.MeshPhongMaterial({ color: '#b48452', map: woodTex(), shininess: 25, specular: 0x332211 }), bz = metalMat(myr ? '#5a4a32' : '#e0b25a', { specular: '#ffe3a0' }), lth = new THREE.MeshLambertMaterial({ color: '#ffffff', map: leatherTex() });
+  const shaft = new THREE.Mesh(kCyl(), wood); shaft.scale.set(0.055, 6.2, 0.055); shaft.rotation.x = Math.PI / 2; shaft.position.z = -0.7; sp.add(shaft); // (2.4 behind the hand to 3.8 in front)
+  const grip = new THREE.Mesh(kCyl(), lth); grip.scale.set(0.07, 0.45, 0.07); grip.rotation.x = Math.PI / 2; sp.add(grip);
+  const head = new THREE.Mesh(kg('doryHead', () => new THREE.LatheGeometry([[0, 0], [0.07, 0.05], [0.17, 0.32], [0.15, 0.62], [0.0, 1.0]].map(([x, y]) => new THREE.Vector2(x, y)), 4)), bz); head.rotation.x = -Math.PI / 2; head.position.z = -3.72; head.scale.set(1, 1, 0.3); sp.add(head);
+  const sock = new THREE.Mesh(kCyl(), bz); sock.scale.set(0.07, 0.22, 0.07); sock.rotation.x = Math.PI / 2; sock.position.z = -3.72; sp.add(sock);
+  const butt = new THREE.Mesh(kCone(), bz); butt.scale.set(0.065, 0.5, 0.065); butt.rotation.x = Math.PI / 2; butt.position.z = 2.62; sp.add(butt); // (the butt spike: the sauroter)
+  const tip = new THREE.Object3D(); tip.position.z = -4.7; sp.add(tip);
+  const sh = new THREE.Group(); pfx(a, sh, a.waist || a.body);
+  const face = new THREE.Mesh(aspisGeo(), metalMat('#ffffff', { map: aspisTex(myr), shininess: 110, reflectivity: 0.45 })); face.rotation.set(-Math.PI / 2, Math.PI, 0); sh.add(face);
+  const back = new THREE.Mesh(aspisGeo(), new THREE.MeshLambertMaterial({ color: '#8a6238', map: woodTex(), side: THREE.BackSide })); back.rotation.copy(face.rotation); sh.add(back);
+  const rim = new THREE.Mesh(kTor(0.05), bz); rim.scale.setScalar(1.03); rim.position.z = 0.04; sh.add(rim);
+  const band = new THREE.Mesh(BOX, bz); band.scale.set(0.5, 0.12, 0.05); band.position.z = 0.1; sh.add(band); // (the arm band inside: the porpax)
+  sh.scale.setScalar(0.95);
+  a.hpBk = []; a.g.traverse((o) => { if (o.userData.backShield) a.hpBk.push(o); });
+  const s0 = a.hpSh || [0, 0]; return (a.hpG = { hR, sp, sh, tip, psi: a.hpPsi || 0, rx: s0[0], ry: s0[1], oy: a.hpO || 0 }); // (starting where the pose is)
+}
+const hopHold = (a) => a.armR.children.length - (a.hpG && a.hpG.hR.parent === a.armR ? 1 : 0) > (a.armR.userData.n || 0); // (holding a tool or a weapon: the spear goes)
+ANIM_PACKS.push({ snap: 14, // 🏺 Hoplite (🏛️ Season Pass, Deluxe)
+  pose(J, a, s) {
+    const r15 = a.r15, t = s.t, hold = hopHold(a); a.hpO = 0;
+    if (s.air) { // the leaping thrust: the spear drawn back high as it rises, then driven down and forward as it falls; the shield swung out for balance, a knee up
+      const f = smooth(Math.min(1, a.airT / 0.3)), down = (s.vy || 0) < 0 ? smooth(Math.min(1, -s.vy / 9)) : 0;
+      J.bd = [-0.12 - 0.3 * down, 0.3 * (1 - down), 0]; J.hd = [0.25 - 0.2 * down, 0, 0];
+      J.aR = [2.95 - 1.5 * down, 0, 0.25]; J.aL = [0.95, 0, -0.95 + 0.6 * down]; J.lL = [1.25 * f, 0, -0.05]; J.lR = [-0.4 * f, 0, 0.08];
+      if (r15) { J.eR = [0.95 - 0.95 * down, 0, 0]; J.eL = [0.7, 0, 0]; J.kL = [-1.7 * f, 0, 0]; J.kR = [-0.45, 0, 0]; }
+      if (hold) { J.aR = [2.4, 0, 0.5]; if (r15) J.eR = [0.3, 0, 0]; }
+      a.hpPsi = 0.15 - 0.8 * down; a.hpSh = [-0.3, 0.8 - 0.6 * down]; J.k = 16; return;
+    }
+    if (!s.mv && s.land != null && s.land < 0.95) { // the shield slammed down into the ground in front, on one knee, the spear held high over it; then up into the stance
+      const d = s.land < 0.45 ? 1 : 1 - smooth((s.land - 0.45) / 0.5); J.k = s.land < 0.08 ? 34 : 18;
+      J.up = (r15 ? -1.05 : -0.7) * d; J.bd = [-0.3 * d, 0.2 * d, 0]; J.hd = [0.2 * d, 0, 0];
+      J.aL = [0.75 * d + 1.15 * (1 - d), 0, 0.35]; J.aR = [2.75, 0, 0.18];
+      if (r15) { J.lL = [1.35 * d, 0, -0.1]; J.kL = [-1.75 * d, 0, 0]; J.lR = [-0.3 * d, 0, 0.12]; J.kR = [-1.65 * d, 0, 0]; J.eL = [0.5, 0, 0]; J.eR = [0.6, 0, 0]; }
+      else { J.lL = [1.0 * d, 0, 0]; J.lR = [-0.7 * d, 0, 0]; }
+      if (hold) J.aR = [0.3, 0, 0.2];
+      a.hpPsi = -0.15; a.hpSh = [0.1 * d, 0.1]; a.hpO = -0.75 * d; if (d > 0.2) return;
+    }
+    if (s.mv) { // the advance: the shield up in front, the spear overhand and level over it, pointing the way; firm strides behind the shield, leaning in harder the faster it goes
+      const sw = Math.sin(s.ph), c = Math.cos(s.ph), sp = Math.max(0.6, Math.min(1.3, s.spd || 1));
+      J.bd = [-0.1 - 0.2 * sp, 0, 0.1 * (s.turn || 0)]; J.hd = [0.12 + 0.18 * sp, 0, 0];
+      J.lL = [0.85 * sw, 0, 0]; J.lR = [-0.85 * sw, 0, 0]; J.up = 0.13 * Math.abs(c) - 0.06;
+      J.aL = [1.2 + 0.05 * c, 0, 0.45]; J.aR = [2.55 + 0.07 * c, 0, 0.12];
+      if (r15) { J.kL = [-(0.25 + 1.05 * Math.max(0, c)), 0, 0]; J.kR = [-(0.25 + 1.05 * Math.max(0, -c)), 0, 0]; J.eL = [0.95, 0, 0]; J.eR = [0.75, 0, 0]; J.ws = [0, 0.08 * sw, 0]; }
+      if (hold) { J.aR = [-0.8 * sw, 0, 0.1]; if (r15) J.eR = [0.35, 0, 0]; }
+      a.hpPsi = -0.06 + 0.04 * c; a.hpSh = [0.04 * c, 0.12]; J.k = 14; return;
+    }
+    // the phalanx: side on, the left foot forward, knees bent, the shield up and the spear overhand above it, breathing; every
+    // 12 s it beats the spear on the shield three times — clang, clang, clang — then thrusts it to the sky: AROO!
+    const c = t % 12, br = Math.sin(t * 2) * 0.03, beat = c > 6.0 && c < 8.0 ? smooth(Math.min(1, (c - 6.0) / 0.3)) * smooth(Math.min(1, (8.0 - c) / 0.3)) : 0;
+    const hit = bump(c, 6.25, 6.6) + bump(c, 6.85, 7.2) + bump(c, 7.45, 7.8), cry = c > 8.5 && c < 10.9 ? smooth(Math.min(1, (c - 8.5) / 0.3)) * smooth(Math.min(1, (10.9 - c) / 0.5)) : 0, n = 1 - cry;
+    J.lL = [0.32, 0, -0.16]; J.lR = [-0.28, 0, 0.18]; J.bd = [-0.08 + 0.14 * cry, 0.28 * n * (1 - beat * 0.5), 0]; J.hd = [0.06 + 0.55 * cry - 0.1 * hit, -0.25 * n, 0];
+    J.aL = [1.15 + 0.35 * cry, 0, 0.45 - 0.25 * cry]; J.aR = [2.6 * (1 - beat) + 1.2 * beat + 0.35 * cry, 0, 0.15 - 0.5 * hit + 0.1 * cry];
+    if (r15) { J.kL = [-0.6 + 0.3 * cry, 0, 0]; J.kR = [-0.45 + 0.3 * cry, 0, 0]; J.up = -0.3 + 0.22 * cry + br; J.eL = [0.95, 0, 0]; J.eR = [0.6 * (1 - beat) + 0.5 * beat - 0.4 * cry, 0, 0]; }
+    else J.up = -0.06 + br;
+    if (hold) { J.aR = [0.2, 0, 0.1]; if (r15) J.eR = [0.2, 0, 0]; }
+    a.hpPsi = -0.12 * (1 - beat - cry) + 1.25 * beat + 1.62 * cry; a.hpSh = [0.04 - 0.3 * cry, -0.2 * n]; a.hpO = 0.35 * cry; J.k = 12;
+  },
+  tick(a, dt, s) {
+    const G = hopGear(a), fp = a === me && me.fpOn, hold = hopHold(a), k = Math.min(1, dt * 12);
+    G.hR.visible = !hold && !fp; G.sh.visible = !fp; for (const o of a.hpBk) o.visible = false;
+    G.psi += ((a.hpPsi || 0) - G.psi) * k; G.sp.rotation.x = G.psi - a.armR.rotation.x - (a.r15 ? a.elR.rotation.x : 0); // (the spear turns in the hand to point where it should)
+    const sh = a.hpSh || [0, 0]; G.rx += (sh[0] - G.rx) * k; G.ry += (sh[1] - G.ry) * k; G.oy += ((a.hpO || 0) - G.oy) * k;
+    const hp = limbEnd(a, false, -1, _hpv); G.sh.parent.worldToLocal(hp); G.sh.position.set(hp.x + 0.62, hp.y + 0.12 + G.oy, hp.z - 0.28); G.sh.rotation.set(G.rx, G.ry, 0);
+    const c = s.t % 12, idle = !s.mv && !s.air && !hold;
+    if (idle) { for (const x of [6.42, 7.02, 7.62]) if (c - dt < x && c >= x) { hopClang(a); G.sh.updateWorldMatrix(true, false); const p = G.sh.localToWorld(_hpv.set(0.3, 0.75, 0)); for (let q = 0; q < 6; q++) kitSpark(a, scene, p.x, p.y, p.z, Math.random() < 0.5 ? '#fde68a' : '#fb923c', { v: [(Math.random() - 0.5) * 3, 1.5 + Math.random() * 2, (Math.random() - 0.5) * 3], g: 7, life: 0.45, s: 0.14, j: 0.5 }); }
+      if (c - dt < 8.7 && c >= 8.7) { hopCry(a); smokePuff(a, 0, 0.2, 0, '#d6c7a1', 8, { out: 2.2, up: 0.4, s: 0.9, op: 0.4, life: 0.8 }); camShake(a, 0.12); }
+      if (!G.word) { G.word = label('AROO!', { size: 1.5, color: '#fde68a', weight: 900 }); pfx(a, G.word); }
+      if (c > 8.7 && c < 10.6) { const u = (c - 8.7) / 1.9; G.word.visible = true; G.word.position.set(0, 7.2 + u * 1.2, 0); G.word.material.opacity = Math.min(1, (1 - u) * 3); } }
+    if (!G.rib) G.rib = ribbon(a, () => G.tip.getWorldPosition(_hpv), '#fde68a', 0.18, 0.3);
+    if (s.air && (s.vy || 0) < 0 && !hold) G.rib.on = true; // (the thrust draws a streak of light behind the spear point)
+    if (s.air && a.airT <= dt + 1e-6) emSound(a, 'whoosh', { vol: 0.5, pitch: 0.85 });
+    if (s.land === 0) { hopClang(a, 1.5); emBand(a, (B) => { B.d(0, 0.8); emNoise(B, { len: 0.6, v: 0.22, f: 400, f2: 90 }); }); shockwave(a, '#fbbf24', 5 * (a.giant || 1), 0.55); smokePuff(a, 0, 0.2, -0.9, '#d6c7a1', 10, { out: 2.6, up: 0.6, s: 1.0, op: 0.45, life: 0.9 }); camShake(a, 0.25);
+      G.sh.updateWorldMatrix(true, false); const p = G.sh.localToWorld(_hpv.set(0, -0.9, 0)); for (let q = 0; q < 10; q++) kitSpark(a, scene, p.x, p.y, p.z, Math.random() < 0.5 ? '#fde68a' : '#fb923c', { v: [(Math.random() - 0.5) * 5, 1 + Math.random() * 3, (Math.random() - 0.5) * 5], g: 8, life: 0.5, s: 0.15, j: 0.5 }); }
+    if (s.mv && !s.air) { const n = Math.floor(s.ph / Math.PI); if (n !== a.stepN) { a.stepN = n; emSound(a, 'step', { pitch: 0.8, vol: 0.3, gap: 0 }); emBits(a, n % 2 ? 0.45 : -0.45, 0.05, 0.25, [0xd6c7a1, 0xc2b280, 0xa8a29e], 3, { size: 0.1, speed: 1.2, up: 0.8, g: 5, life: 0.4, spread: 0.3 }); } }
+  },
+}, { snap: 8, // 👣 Laestrygonian (🏛️ Season Pass, Deluxe)
+  pose(J, a, s) {
+    const r15 = a.r15, t = s.t;
+    if (s.air) { // a huge, slow leap: both fists raised together over its head as it rises, brought down like a hammer as it falls
+      const down = (s.vy || 0) < 0 ? smooth(Math.min(1, -s.vy / 8)) : 0, up = 1 - down;
+      J.aL = [2.95 * up + 1.25 * down, 0, 0.4 * up - 0.15 * down]; J.aR = [2.95 * up + 1.25 * down, 0, -0.4 * up + 0.15 * down];
+      J.bd = [0.15 * up - 0.5 * down, 0, 0]; J.hd = [0.3 * up - 0.15 * down, 0, 0]; J.lL = [0.65, 0, -0.18]; J.lR = [0.15, 0, 0.18];
+      if (r15) { J.eL = J.eR = [0.55 * up + 0.2, 0, 0]; J.kL = [-1.15, 0, 0]; J.kR = [-0.6, 0, 0]; }
+      J.k = 9; return;
+    }
+    if (!s.mv && s.land != null && s.land < 1.4) { // the quake: it lands crouched with both fists pounded into the ground, then heaves itself back up
+      const d = s.land < 0.55 ? 1 : 1 - smooth((s.land - 0.55) / 0.85); J.k = s.land < 0.1 ? 34 : 7;
+      J.up = (r15 ? -1.25 : -0.8) * d; J.bd = [-0.7 * d, 0, 0]; J.hd = [0.45 * d, 0, 0];
+      J.aL = [1.05 * d + 0.15, 0, -0.35 * d]; J.aR = [1.05 * d + 0.15, 0, 0.35 * d];
+      if (r15) { J.lL = [1.15 * d, 0, -0.22 * d]; J.lR = [0.95 * d, 0, 0.22 * d]; J.kL = [-1.95 * d, 0, 0]; J.kR = [-1.65 * d, 0, 0]; J.eL = J.eR = [0.25, 0, 0]; }
+      else { J.lL = [0.85 * d, 0, -0.15]; J.lR = [-0.5 * d, 0, 0.15]; }
+      if (d > 0.25) return;
+    }
+    if (s.mv) { // the lumber: slow, heavy, wide strides, the whole body rolling onto each foot as it comes down, shoulders hunched, arms swinging like logs
+      const p = s.ph * 0.62, sw = Math.sin(p), c = Math.cos(p);
+      J.lL = [0.62 * sw, 0, -0.14]; J.lR = [-0.62 * sw, 0, 0.14]; J.bd = [-0.24, 0.12 * sw, 0.13 * sw]; J.hd = [0.14, -0.1 * sw, -0.08 * sw];
+      J.up = -0.14 + 0.2 * Math.abs(c); J.aL = [-0.55 * sw + 0.12, 0, -0.34]; J.aR = [0.55 * sw + 0.12, 0, 0.34];
+      if (r15) { J.kL = [-(0.25 + 0.8 * Math.max(0, c)), 0, 0]; J.kR = [-(0.25 + 0.8 * Math.max(0, -c)), 0, 0]; J.eL = [0.35 + 0.3 * Math.max(0, -sw), 0, 0]; J.eR = [0.35 + 0.3 * Math.max(0, sw), 0, 0]; J.ws = [0, 0.16 * sw, 0]; }
+      J.k = 9; return;
+    }
+    // hunched, breathing hard, shoulders heaving; every 11 s it sniffs the air and looks slowly round — then throws its arms
+    // wide, its head back, and roars, the ground shaking
+    const c = t % 11, br = Math.sin(t * 1.6), look = c > 3.5 && c < 6.3 ? Math.sin(((c - 3.5) / 2.8) * Math.PI * 2) * 0.65 : 0, sniff = bump(c, 3.0, 3.8) * Math.abs(Math.sin(t * 14));
+    const rr = c > 7.0 && c < 9.9 ? smooth(Math.min(1, (c - 7.0) / 0.45)) * smooth(Math.min(1, (9.9 - c) / 0.6)) : 0, sh = rr * Math.sin(t * 45) * 0.03;
+    J.up = -0.12 + 0.04 * br - 0.08 * rr; J.bd = [-0.28 + 0.06 * br + 0.36 * rr, 0, sh]; J.hd = [0.18 + 0.03 * br + 0.12 * sniff + 0.4 * rr, look, sh];
+    J.aL = [0.28 + 0.06 * br - 0.15 * rr, 0, -0.38 - 1.15 * rr]; J.aR = [0.28 + 0.06 * br - 0.15 * rr, 0, 0.38 + 1.15 * rr]; J.lL = [0.06, 0, -0.17]; J.lR = [-0.06, 0, 0.17];
+    if (r15) { J.kL = J.kR = [-0.32 - 0.2 * rr, 0, 0]; J.eL = J.eR = [0.62 + 0.05 * br - 0.35 * rr, 0, 0]; }
+    J.k = 8;
+  },
+  tick(a, dt, s) {
+    const G = a.giant || 1, c = s.t % 11;
+    if (s.mv && !s.air) { const n = Math.floor(s.ph * 0.62 / Math.PI); if (n !== a.stepN) { a.stepN = n; const sd = n % 2 ? -1 : 1; giantStep(a); camShake(a, 0.1);
+      shockwave(a, '#a8a29e', 2.4 * G, 0.5); const p = limbEnd(a, true, sd); for (let q = 0; q < 5; q++) kitSpark(a, scene, p.x + (Math.random() - 0.5) * 0.8, p.y - 0.6, p.z + (Math.random() - 0.5) * 0.8, '#a8a29e', { v: [(Math.random() - 0.5) * 2, 0.6, (Math.random() - 0.5) * 2], life: 0.9, s: 0.6 * G, grow: 2, op: 0.35, flat: 1, j: 0.4 }); } }
+    if (!s.air) { a.lgB = (a.lgB || 0) - dt; if (a.lgB <= 0) { a.lgB = s.mv ? 1.3 : 2.4; a.lgBn = 7; } // (a breath: steam from behind the helm, in a few puffs)
+      if (a.lgBn > 0) { a.lgBn--; const h = a.head; for (const x of [-0.18, 0.18]) kitSpark(a, h, x, -0.1, -0.85, '#e5e7eb', { v: [0, 0.25, 0], life: 1.3, s: 0.22 * G, grow: 3, op: 0.22, flat: 1, j: 0.25 }); } }
+    if (!s.mv && !s.air) {
+      if (c - dt < 7.25 && c >= 7.25) { giantRoar(a); camShake(a, 0.4); shockwave(a, '#d6d3d1', 7 * G, 1.0); smokePuff(a, 0, 0.2, 0, '#a8a29e', 12, { out: 3.2, up: 0.5, s: 1.2, op: 0.4, life: 1.2 }); }
+      if (c > 7.2 && c < 9.6) { a.lgR = (a.lgR || 0) - dt; if (a.lgR <= 0) { a.lgR = 0.05; kitSpark(a, a.head, (Math.random() - 0.5) * 0.6, -0.3, -0.9, Math.random() < 0.5 ? '#9ca3af' : '#d6d3d1', { v: [0, 0.2, 0], life: 0.8, s: 0.3 * G, grow: 2.5, op: 0.3, flat: 1, j: 1.4 }); // (its breath, roaring out; dust shaken off it)
+        kitSpark(a, a.g, (Math.random() - 0.5) * 2.4, 2 + Math.random() * 2.5, (Math.random() - 0.5) * 1.2, '#78716c', { v: [0, -1.5, 0], g: 4, life: 0.8, s: 0.12, j: 0.6, flat: 1 }); } }
+    }
+    if (s.land === 0) { giantQuake(a); camShake(a, 0.75); shockwave(a, '#d6d3d1', 9 * G, 0.9); shockwave(a, '#fbbf24', 5 * G, 0.5, 0.12); quakeCrack(a, 7 * G);
+      smokePuff(a, 0, 0.2, 0, '#a8a29e', 16, { out: 4.5, up: 0.7, s: 1.5, op: 0.45, life: 1.4 });
+      emBits(a, 0, 0.2, -0.8, [0x78716c, 0x57534e, 0xa8a29e, 0x44403c], 14, { size: 0.32, speed: 6, up: 6, g: 18, life: 1.1, spread: 2.2 }); }
+  },
+});
+ANIM_DESC.push('🏛️ The phalanx, with a spear and a round shield (your own, if you’re a Myrmidon or a Spartan): side on, shield up, spear overhand; every so often it beats its spear on its shield three times — clang, clang, clang, sparks flying — and thrusts it to the sky with a great AROO! Advances behind the shield with the spear levelled, leaps into a downward spear thrust that draws a streak of light, and slams the shield into the ground as it lands, on one knee, with a ring of bronze light.',
+  '🏛️ A giant’s weight: hunched and breathing hard, steam curling from behind the helm; sniffs the air, looks slowly round, then throws its arms wide and roars, the ground shaking. Lumbers along in slow, wide strides, rolling onto each foot — every footfall a thud you feel, dust and a ripple across the ground. Leaps with both fists raised and comes down like a hammer: the ground cracks, rocks fly and the camera shakes.');
 /* ---------------- shapes for the remade items: feathered wings, a bat's wing, a cape that hangs, a shield ---------------- */
 // a feathered wing, fanned out from the shoulder (s: -1 the left, 1 the right): long feathers at the back, shorter rows
 // over them, longest at the tip. o: { cols: [long, middle, short], span, em (a glow), k (feather length) }
@@ -3566,6 +3732,90 @@ const SHIELD_GEO = new THREE.ExtrudeGeometry(SHIELD, { depth: 0.12, bevelEnabled
 const metal = (c, o = {}) => new THREE.MeshPhongMaterial(Object.assign({ color: c, specular: 0xbbbbbb, shininess: 80 }, o));
 // a visor: dark gold glass with a streak of light across it
 const VISOR_TEX = (() => { const c = document.createElement('canvas'); c.width = 64; c.height = 64; const g = c.getContext('2d'), gr = g.createLinearGradient(0, 0, 64, 64); gr.addColorStop(0, '#fde68a'); gr.addColorStop(0.35, '#b45309'); gr.addColorStop(0.65, '#451a03'); gr.addColorStop(1, '#92400e'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); g.fillStyle = 'rgba(255,255,255,.55)'; g.beginPath(); g.ellipse(22, 18, 16, 5, -0.5, 0, 7); g.fill(); return new THREE.CanvasTexture(c); })();
+/* ---------------- 🏛️ the Season Pass's pets and back items: what they're drawn with ---------------- */
+// wood grain (ash, walnut: tinted by the material's colour), wrapped leather
+const woodTex = () => kCanvas('woodGrain', 64, 256, (g, r) => {
+  g.fillStyle = '#d9d2c5'; g.fillRect(0, 0, 64, 256);
+  for (let k = 0; k < 34; k++) { const x = r() * 64, w = 0.6 + r() * 2.2; g.strokeStyle = `rgba(${r() < 0.7 ? '60,40,20' : '255,250,240'},${0.12 + r() * 0.22})`; g.lineWidth = w; g.beginPath(); g.moveTo(x, 0); for (let y = 0; y <= 256; y += 16) g.lineTo(x + Math.sin(y * 0.03 + k) * 2.5, y); g.stroke(); }
+  for (let k = 0; k < 4; k++) { const x = r() * 64, y = r() * 256; g.strokeStyle = 'rgba(50,30,15,.45)'; g.lineWidth = 1; for (let q = 0; q < 4; q++) { g.beginPath(); g.ellipse(x, y, 1.5 + q * 2, 4 + q * 5, 0, 0, 7); g.stroke(); } }
+});
+const leatherTex = () => kCanvas('leatherWrap', 64, 64, (g, r) => {
+  g.fillStyle = '#5b3a22'; g.fillRect(0, 0, 64, 64);
+  for (let k = 0; k < 300; k++) { g.fillStyle = `rgba(${r() < 0.5 ? '0,0,0' : '255,220,180'},${0.05 + r() * 0.08})`; g.fillRect(r() * 64, r() * 64, 1 + r() * 2, 1); }
+  g.strokeStyle = 'rgba(20,10,4,.55)'; g.lineWidth = 2; for (let y = 4; y < 64; y += 16) { g.beginPath(); g.moveTo(0, y); g.lineTo(64, y + 8); g.stroke(); }
+});
+// the cockatrice's feathers: rows of overlapping scallops, bronze into gold, each with a dark shaft and a glossy rim
+const cockFeatherTex = () => kCanvas('cockFth', 128, 128, (g) => {
+  g.fillStyle = '#4a1d06'; g.fillRect(0, 0, 128, 128);
+  for (let row = 13; row >= -1; row--) for (let c = -1; c < 10; c++) { const x = c * 14 + (row % 2 ? 7 : 0), y = row * 10;
+    const gr = g.createRadialGradient(x + 7, y + 2, 1, x + 7, y + 4, 14); gr.addColorStop(0, '#fbbf24'); gr.addColorStop(0.55, '#c2410c'); gr.addColorStop(1, '#3b1404'); g.fillStyle = gr;
+    g.beginPath(); g.moveTo(x - 1, y); g.quadraticCurveTo(x + 7, y + 24, x + 15, y); g.closePath(); g.fill();
+    g.strokeStyle = 'rgba(40,14,2,.55)'; g.lineWidth = 0.8; g.beginPath(); g.moveTo(x + 7, y); g.lineTo(x + 7, y + 11); g.stroke();
+    g.strokeStyle = 'rgba(254,240,138,.4)'; g.beginPath(); g.moveTo(x + 1, y + 1); g.quadraticCurveTo(x + 7, y + 21, x + 13, y + 1); g.stroke(); }
+});
+// a serpent's scales: green diamonds, a pale stripe along the belly
+const serpTex = () => { const t = kCanvas('serpScale', 128, 64, (g) => {
+  g.fillStyle = '#14240a'; g.fillRect(0, 0, 128, 64);
+  for (let row = 0; row < 10; row++) for (let c = -1; c < 11; c++) { const x = c * 13 + (row % 2 ? 6.5 : 0), y = row * 7 - 5;
+    const gr = g.createLinearGradient(x, y, x + 13, y + 12); gr.addColorStop(0, '#a3e635'); gr.addColorStop(0.5, '#4d7c0f'); gr.addColorStop(1, '#1a2e05'); g.fillStyle = gr;
+    g.beginPath(); g.moveTo(x + 6.5, y); g.lineTo(x + 13, y + 6); g.lineTo(x + 6.5, y + 12); g.lineTo(x, y + 6); g.closePath(); g.fill(); g.strokeStyle = 'rgba(8,16,2,.7)'; g.lineWidth = 1; g.stroke(); }
+  const gr = g.createLinearGradient(0, 0, 0, 64); gr.addColorStop(0.36, 'rgba(250,204,21,0)'); gr.addColorStop(0.5, 'rgba(254,240,138,.6)'); gr.addColorStop(0.64, 'rgba(250,204,21,0)'); g.fillStyle = gr; g.fillRect(0, 0, 128, 64);
+}); t.repeat.set(7, 1); return t; };
+// the spinosaurus: olive hide mottled darker on top, speckled, pale underneath; and its sail, red into gold, banded
+const spinoTex = () => kCanvas('spinoHide', 128, 128, (g, r) => {
+  const gr = g.createLinearGradient(0, 0, 0, 128); gr.addColorStop(0, '#2c3a1e'); gr.addColorStop(0.55, '#4f6131'); gr.addColorStop(0.72, '#9a9a6a'); gr.addColorStop(1, '#e2d6b0'); g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
+  for (let k = 0; k < 40; k++) { g.fillStyle = `rgba(20,28,10,${0.25 + r() * 0.3})`; g.beginPath(); g.ellipse(r() * 128, r() * 80, 2 + r() * 6, 1.5 + r() * 4, r() * 3, 0, 7); g.fill(); }
+  for (let k = 0; k < 400; k++) { g.fillStyle = `rgba(${r() < 0.5 ? '255,250,220' : '0,0,0'},${0.06 + r() * 0.1})`; g.fillRect(r() * 128, r() * 128, 1.2, 1.2); }
+  for (let k = 0; k < 9; k++) { g.fillStyle = 'rgba(25,30,12,.35)'; g.fillRect(k * 14 + 3, 0, 4, 52); }
+});
+const sailTex = () => kCanvas('spinoSailTex', 128, 128, (g, r) => {
+  const gr = g.createLinearGradient(0, 128, 0, 0); gr.addColorStop(0, '#3a4a24'); gr.addColorStop(0.3, '#7c2d12'); gr.addColorStop(0.62, '#dc2626'); gr.addColorStop(0.88, '#f59e0b'); gr.addColorStop(1, '#fde68a'); g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
+  for (let k = 0; k < 10; k++) { g.fillStyle = 'rgba(40,10,4,.35)'; g.fillRect(k * 12.8 + 4, 0, 3, 128); }
+  for (let k = 0; k < 70; k++) { g.fillStyle = `rgba(30,8,2,${0.2 + r() * 0.3})`; g.beginPath(); g.arc(r() * 128, 20 + r() * 80, 1 + r() * 2.5, 0, 7); g.fill(); }
+});
+// the sail: a fan of spines along the back, scalloped between them (shape x: along the back, y: up)
+const SPINO_SAIL = () => kg('spinoSail', () => { const sh = new THREE.Shape(), n = 9, x0 = -0.62, x1 = 0.8, H = (u) => 0.1 + 1.0 * Math.pow(Math.sin(Math.PI * Math.min(1, u * 1.04)), 0.85);
+  sh.moveTo(x0, 0); let px = x0, py = 0.05;
+  for (let k = 0; k < n; k++) { const u = (k + 0.5) / n, x = x0 + (x1 - x0) * u, h = H(u); sh.quadraticCurveTo((px + x) / 2, Math.min(py, h) * 0.86, x, h); px = x; py = h; }
+  sh.quadraticCurveTo((px + x1) / 2, py * 0.5, x1, 0); sh.closePath();
+  const geo = new THREE.ShapeGeometry(sh, 6), p = geo.attributes.position, uv = geo.attributes.uv;
+  for (let i = 0; i < p.count; i++) uv.setXY(i, (p.getX(i) - x0) / (x1 - x0), p.getY(i) / 1.12);
+  const B = kitBuild(); for (let k = 0; k < n; k++) { const u = (k + 0.5) / n, x = x0 + (x1 - x0) * u; B.span(kCyl(), [x, -0.05, 0], [x, H(u) + 0.04, 0], 0.024, 0.024); }
+  return [geo, B.geo()]; });
+// a halberd's head: the axe blade with its curved edge (pierced with a hole), and the hook behind
+const HAL_AXE = () => kg('halAxe', () => { const sh = new THREE.Shape(); sh.moveTo(0.07, 0.3); sh.lineTo(0.34, 0.34); sh.quadraticCurveTo(0.52, 0.42, 0.66, 0.62); sh.quadraticCurveTo(1.0, 0.0, 0.74, -0.66); sh.quadraticCurveTo(0.42, -0.34, 0.07, -0.24); sh.closePath();
+  const h = new THREE.Path(); h.absarc(0.36, 0.02, 0.07, 0, Math.PI * 2, true); sh.holes.push(h);
+  const g = new THREE.ExtrudeGeometry(sh, { depth: 0.035, bevelEnabled: true, bevelThickness: 0.012, bevelSize: 0.028, bevelSegments: 2, curveSegments: 18 }); g.translate(0, 0, -0.0175); return g; });
+const HAL_HOOK = () => kg('halHook', () => { const sh = new THREE.Shape(); sh.moveTo(-0.07, 0.16); sh.quadraticCurveTo(-0.42, 0.14, -0.66, -0.26); sh.quadraticCurveTo(-0.38, -0.03, -0.07, -0.07); sh.closePath();
+  const g = new THREE.ExtrudeGeometry(sh, { depth: 0.04, bevelEnabled: true, bevelThickness: 0.012, bevelSize: 0.022, bevelSegments: 2, curveSegments: 14 }); g.translate(0, 0, -0.02); return g; });
+// an arquebus's walnut stock, side on: the fore-end, the wrist, a deep drooping butt
+const ARQ_STOCK = () => kg('arqStock', () => { const sh = new THREE.Shape(); sh.moveTo(0.055, 1.2); sh.lineTo(0.06, -0.75); sh.quadraticCurveTo(0.045, -1.05, 0.03, -1.25); sh.lineTo(-0.01, -1.95); sh.quadraticCurveTo(-0.17, -2.01, -0.33, -1.92); sh.quadraticCurveTo(-0.2, -1.4, -0.065, -1.05); sh.lineTo(-0.055, -0.75); sh.lineTo(-0.06, 0.9); sh.quadraticCurveTo(-0.06, 1.15, 0, 1.22); sh.closePath();
+  const g = new THREE.ExtrudeGeometry(sh, { depth: 0.11, bevelEnabled: true, bevelThickness: 0.025, bevelSize: 0.022, bevelSegments: 3, curveSegments: 12 }); g.translate(0, 0, -0.055); return g; });
+const ARQ_SERP = () => kg('arqSerp', () => sweepGeo([[0.0, -0.98, 0.11], [-0.06, -0.88, 0.11], [0.0, -0.77, 0.11], [0.1, -0.72, 0.11], [0.16, -0.63, 0.11]], () => 0.018, 16, 6));
+const ARQ_MATCH = () => kg('arqMatch', () => sweepGeo([[0.16, -0.6, 0.12], [0.2, -0.75, 0.14], [0.1, -1.0, 0.16], [-0.12, -1.12, 0.15], [-0.2, -1.3, 0.13], [-0.16, -1.55, 0.13], [-0.22, -1.72, 0.12]], () => 0.014, 30, 5));
+// the giant's scimitar: a huge curved blade, widening towards a clipped point, its spine nicked and notched from use
+// (pts(e, s): the outline with the edge side at e and the spine side at s of its half-width; the honed edge and the
+// groove (fuller) are strips of it)
+const SCIM = (() => { const L = 3.5, c = (t) => [-0.78 * t * t, 0.04 + L * t], w = (t) => 0.38 + 0.3 * Math.min(1, t / 0.8),
+  nrm = (t) => { const tx = -1.56 * t, ty = L, l = Math.hypot(tx, ty); return [ty / l, -tx / l]; }, // (pointing to the edge side)
+  ef = (t) => t < 0.86 ? 1 : Math.sqrt(Math.max(0, 1 - Math.pow((t - 0.86) / 0.14, 2))), sf = (t) => t < 0.68 ? 1 : 1 - Math.pow((t - 0.68) / 0.32, 1.25),
+  nick = (t, ts, d) => ts.reduce((q, x) => q - (Math.abs(t - x) < 0.012 ? d : 0), 0),
+  at = (t, k) => { const [x, y] = c(t), [nx, ny] = nrm(t), h = w(t) / 2 * k; return new THREE.Vector2(x + nx * h, y + ny * h); };
+  return { L, at, ef, sf, nick }; })();
+const SCIM_BLADE = () => kg('scimBlade', () => { const N = 60, pts = [];
+  for (let i = 0; i <= N; i++) { const t = i / N; pts.push(SCIM.at(t, SCIM.ef(t) + SCIM.nick(t, [0.33, 0.61], 0.09))); }
+  for (let i = N - 1; i >= 0; i--) { const t = i / N; pts.push(SCIM.at(t, -(SCIM.sf(t) + SCIM.nick(t, [0.22, 0.41, 0.52], 0.12)))); }
+  const g = new THREE.ExtrudeGeometry(new THREE.Shape(pts), { depth: 0.07, bevelEnabled: true, bevelThickness: 0.022, bevelSize: 0.03, bevelSegments: 2, curveSegments: 4 }); g.translate(0, 0, -0.035);
+  const uv = g.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * 0.6, uv.getY(i) * 0.6); return g; });
+const SCIM_STRIP = (k0, k1, t0, t1, key) => kg(key, () => { const N = 50, pts = [];
+  for (let i = 0; i <= N; i++) { const t = t0 + (t1 - t0) * i / N; pts.push(SCIM.at(t, k1 > 0 ? k1 * SCIM.ef(t) + SCIM.nick(t, [0.33, 0.61], 0.09) : k1 * SCIM.sf(t))); }
+  for (let i = N; i >= 0; i--) { const t = t0 + (t1 - t0) * i / N; pts.push(SCIM.at(t, k0 * (k1 > 0 ? SCIM.ef(t) : SCIM.sf(t)))); }
+  return new THREE.ShapeGeometry(new THREE.Shape(pts)); });
+// the spinosaurus's roar: a deep growl with a rattle in it, falling away
+const spinoRoar = (a) => emBand(a, (B) => { emNoise(B, { len: 1.5, v: 0.32, f: 650, f2: 150, att: 0.12 });
+  B.raw((ac, d, t) => { for (const [f0, v] of [[68, 0.16], [101, 0.09]]) { const o = ac.createOscillator(), gg = ac.createGain(), lf = ac.createOscillator(), lg = ac.createGain(), fl = ac.createBiquadFilter();
+    o.type = 'sawtooth'; o.frequency.setValueAtTime(f0 * 1.35, t); o.frequency.exponentialRampToValueAtTime(f0, t + 1.3); lf.frequency.value = 24; lg.gain.value = f0 * 0.14; lf.connect(lg); lg.connect(o.frequency);
+    fl.type = 'lowpass'; fl.frequency.setValueAtTime(1100, t); fl.frequency.exponentialRampToValueAtTime(380, t + 1.4); synEnv(gg.gain, t, 0.12, 1.45, v); o.connect(fl); fl.connect(gg); gg.connect(d); o.start(t); lf.start(t); o.stop(t + 1.55); lf.stop(t + 1.55); } }); });
 function makeAvatar(av, name, mine, ax) {
   av = okAv(av);
   const X = xLooks(ax); // (made and limited items on top: a hat, a shirt's front, a face)
@@ -3599,7 +3849,7 @@ function makeAvatar(av, name, mine, ax) {
     head.add(new THREE.Mesh(FACE_GEO, new THREE.MeshBasicMaterial({ map: X.f ? pixTex(X.f.px, '') : FACE_TEX[av[4]], transparent: true })));
   }
   // hats
-  const cyl = (rt, rb, h, seg) => new THREE.CylinderGeometry(rt, rb, h, seg || 16), a_spin = [];
+  const cyl = (rt, rb, h, seg) => new THREE.CylinderGeometry(rt, rb, h, seg || 16), a_spin = [], a_xt = []; // (a_xt: things on you that move by themselves: a smouldering match)
   for (const L of X.hats) xHat(L, head, lam, mesh, box, cyl); // (made and limited hats; a few can be worn at once)
   const shopHat = (hat) => {
   if (hat === 1) { const m = lam(SHIRTS[av[1]]), dk = lam('#' + new THREE.Color(SHIRTS[av[1]]).multiplyScalar(0.62).getHexString()); mats.push(m); // cap: a rounded crown, a curved peak, a button, a badge
@@ -3737,10 +3987,62 @@ function makeAvatar(av, name, mine, ax) {
     box(lam('#d6d3d1'), 0.012, 0.32, 0.012, 0, -0.18, -0.12, piv); const jk = mesh(new THREE.SphereGeometry(0.12, 14, 10), lam('#ffffff', { map: jackTex(), emissive: '#ffffff', emissiveMap: jackTex(true) }), 0, -0.38, -0.12, piv); jk.scale.y = 0.82; jk.rotation.y = Math.PI / 2;
     mesh(KIT_CYL, lam('#3f6212'), 0, -0.27, -0.12, piv).scale.set(0.02, 0.06, 0.02);
   }
+  else if (back === 18) { // 🪓 the halberd (🏛️ Season Pass): an ash shaft taller than you, a steel head — an axe blade with a curved edge, a hook behind it, a long spike on top — riveted langets, a red silk tassel, a spiked iron butt
+    const piv = new THREE.Group(); piv.position.set(0, 2.85, 0.82); piv.rotation.z = -0.52; body.add(piv);
+    const wood = new THREE.MeshPhongMaterial({ color: '#b07a45', map: woodTex(), shininess: 28, specular: 0x332211 }), steel = metalMat('#d3d9e0'), dark = metalMat('#59626e', { shininess: 60 }), brass = metalMat('#c9962f', { specular: '#ffe08a' }), red = new THREE.MeshPhongMaterial({ color: '#b91c1c', shininess: 20, specular: 0x441111 }), lth = new THREE.MeshLambertMaterial({ color: '#ffffff', map: leatherTex() });
+    mesh(new THREE.CylinderGeometry(0.072, 0.082, 5.3, 12), wood, 0, 0.25, 0, piv); // (from -2.4 to 2.9)
+    mesh(new THREE.CylinderGeometry(0.096, 0.105, 0.5, 12), dark, 0, 2.9, 0, piv);
+    for (const s2 of [-1, 1]) { box(dark, 0.07, 1.1, 0.025, 0, 2.15, s2 * 0.085, piv); for (const y of [1.75, 2.05, 2.35]) mesh(kLod(kSph(), 0.02), brass, 0, y, s2 * 0.1, piv).scale.setScalar(0.022); } // (the langets, riveted down the shaft)
+    mesh(HAL_AXE(), steel, 0, 2.9, 0, piv); mesh(HAL_HOOK(), steel, 0, 2.9, 0, piv);
+    mesh(new THREE.ConeGeometry(0.075, 1.15, 4), steel, 0, 3.7, 0, piv).rotation.y = Math.PI / 4; // (the spike: four-sided, needle-sharp)
+    const col = mesh(new THREE.TorusGeometry(0.11, 0.026, 6, 16), brass, 0, 3.16, 0, piv); col.rotation.x = Math.PI / 2;
+    const ring = mesh(new THREE.TorusGeometry(0.1, 0.03, 6, 16), brass, 0, 2.62, 0, piv); ring.rotation.x = Math.PI / 2;
+    mesh(new THREE.CylinderGeometry(0.09, 0.2, 0.5, 14, 1, true), new THREE.MeshPhongMaterial({ color: '#b91c1c', shininess: 20, side: THREE.DoubleSide }), 0, 2.35, 0, piv); // (the tassel)
+    for (let k = 0; k < 10; k++) { const a = k / 10 * Math.PI * 2, f = mesh(KIT_CYL, red, Math.cos(a) * 0.19, 2.04, Math.sin(a) * 0.19, piv); f.scale.set(0.018, 0.16, 0.018); f.rotation.set(Math.sin(a) * 0.3, 0, -Math.cos(a) * 0.3); }
+    for (let k = 0; k < 7; k++) { const t = mesh(new THREE.TorusGeometry(0.086, 0.018, 5, 14), lth, 0, 0.15 + k * 0.1, 0, piv); t.rotation.set(Math.PI / 2 + 0.25, 0, 0); } // (a leather grip)
+    mesh(new THREE.CylinderGeometry(0.085, 0.07, 0.24, 10), dark, 0, -2.42, 0, piv); const bt = mesh(new THREE.ConeGeometry(0.07, 0.36, 8), dark, 0, -2.72, 0, piv); bt.rotation.x = Math.PI;
+  }
+  else if (back === 19) { // 🧨 the arquebus (🏛️ Season Pass): an early matchlock gun — a long iron barrel on a walnut stock, brass bands, a ramrod, a long trigger lever, and a slow match coiled round the wrist, its lit end held in the serpentine, smouldering
+    const piv = new THREE.Group(); piv.position.set(0.05, 2.95, 0.9); piv.rotation.z = 0.5; piv.scale.setScalar(1.3); body.add(piv);
+    const wood = new THREE.MeshPhongMaterial({ color: '#a8642f', map: woodTex(), shininess: 40, specular: 0x3a2412 }), iron = metalMat('#545a62', { map: ironTex(), shininess: 60 }), brass = metalMat('#c9962f', { specular: '#ffe08a' }), cord = lam('#a8916b'), blk = metalMat('#26292e');
+    mesh(ARQ_STOCK(), wood, 0, 0, 0, piv);
+    const br = mesh(new THREE.CylinderGeometry(0.05, 0.06, 3.0, 8), iron, 0.115, 0.76, 0, piv); br.rotation.y = Math.PI / 8; // (an eight-sided barrel)
+    mesh(new THREE.CylinderGeometry(0.068, 0.062, 0.14, 12), iron, 0.115, 2.22, 0, piv); mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.02, 10), blk, 0.115, 2.295, 0, piv); // (the muzzle)
+    mesh(new THREE.CylinderGeometry(0.075, 0.075, 0.28, 10), iron, 0.115, -0.66, 0, piv); // (the breech)
+    box(iron, 0.02, 0.06, 0.02, 0.17, 1.95, 0, piv); box(iron, 0.03, 0.05, 0.05, 0.165, -0.46, 0, piv); // (sights)
+    for (const y of [0.15, 0.75]) { const b = mesh(new THREE.TorusGeometry(0.12, 0.022, 6, 18), brass, 0.05, y, 0, piv); b.rotation.x = Math.PI / 2; b.scale.set(1.15, 0.85, 1); }
+    mesh(new THREE.CylinderGeometry(0.017, 0.017, 1.15, 6), wood, 0.03, 1.72, 0, piv); mesh(new THREE.CylinderGeometry(0.026, 0.02, 0.07, 8), brass, 0.03, 2.3, 0, piv); // (the ramrod, out under the barrel)
+    box(iron, 0.15, 0.48, 0.02, 0.0, -0.74, 0.096, piv); mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.03, 10), brass, 0.135, -0.62, 0.075, piv).rotation.x = Math.PI / 2; // (the lock plate; the pan)
+    const pl = box(brass, 0.08, 0.012, 0.07, 0.165, -0.58, 0.075, piv); pl.rotation.z = 0.5; // (its lid, open)
+    mesh(ARQ_SERP(), blk, 0, 0, 0, piv); box(blk, 0.05, 0.04, 0.05, 0.16, -0.62, 0.11, piv); // (the serpentine, its jaws)
+    const lv = box(blk, 0.03, 0.42, 0.03, -0.12, -0.98, 0, piv); lv.rotation.z = 0.25; // (the trigger lever)
+    mesh(ARQ_MATCH(), cord, 0, 0, 0, piv);
+    for (let k = 0; k < 4; k++) { const c = mesh(new THREE.TorusGeometry(0.1, 0.016, 5, 16), cord, -0.005, -1.0 - k * 0.045, 0, piv); c.rotation.set(Math.PI / 2 + 0.2, 0, 0.1); c.scale.set(1.35, 1, 1); } // (the match, coiled round the wrist)
+    const embers = [];
+    for (const [x, y, z] of [[0.165, -0.585, 0.12], [-0.22, -1.73, 0.12]]) { const e = new THREE.Group(); e.position.set(x, y, z); piv.add(e); mesh(kLod(kSph(), 0.02), new THREE.MeshBasicMaterial({ color: '#fb923c' }), 0, 0, 0, e).scale.setScalar(0.024); embers.push([e, kitGlow(e, '#f97316', 0.42, 0.8)]); }
+    a_xt.push((a, dt) => { const t = performance.now() / 1000; embers.forEach(([e, gl], i) => { gl.material.opacity = 0.5 + 0.35 * Math.sin(t * (8 + i * 3)) * Math.sin(t * 3.3 + i); });
+      a.matchT = (a.matchT || 0) - dt; if (a.matchT > 0) return; a.matchT = 0.12 + Math.random() * 0.06; // (a thread of grey smoke curling up off the match; a spark now and then)
+      const [e] = embers[Math.random() < 0.7 ? 0 : 1]; kitSpark(a, e, 0, 0.03, 0, Math.random() < 0.5 ? '#9ca3af' : '#d4d4d8', { flat: 1, grow: 2.6, v: [0, 0.75, 0], life: 1.9, s: 0.14, op: 0.32, j: 0.35 });
+      if (Math.random() < 0.14) kitSpark(a, e, 0, 0, 0, '#fdba74', { v: [0, 1.4, 0], life: 0.5, s: 0.08, g: 2, j: 1 }); });
+  }
+  else if (back === 20) { // 🌙 the giant scimitar (🏛️ Season Pass, Deluxe — the Laestrygonian's weapon): a huge curved blade of dark forged iron, widening to a clipped point, its edge honed bright and its spine nicked from use; a bronze guard, a leather-wrapped grip, a heavy pommel; slung on a strap across the back, hilt over the right shoulder
+    const piv = new THREE.Group(); piv.position.set(0.6, 3.95, 0.92); piv.rotation.z = Math.PI - 0.6; body.add(piv);
+    const iron = metalMat('#6f747c', { map: ironTex(), shininess: 55, reflectivity: 0.45 }), edge = new THREE.MeshPhongMaterial({ color: '#dfe5ec', emissive: '#3c434c', specular: 0xffffff, shininess: 140, polygonOffset: true, polygonOffsetFactor: -2, side: THREE.DoubleSide }), groove = metalMat('#2a2d32', { shininess: 30, reflectivity: 0.2, polygonOffset: true, polygonOffsetFactor: -2, side: THREE.DoubleSide });
+    const bronze = metalMat('#b0802f', { specular: '#ffd98a' }), lth = new THREE.MeshLambertMaterial({ color: '#ffffff', map: leatherTex() });
+    mesh(SCIM_BLADE(), iron, 0, 0, 0, piv);
+    for (const z of [-0.0575, 0.0575]) { mesh(SCIM_STRIP(0.62, 1, 0.02, 1, 'scimEdge'), edge, 0, 0, z, piv); mesh(SCIM_STRIP(-0.42, -0.66, 0.04, 0.6, 'scimFuller'), groove, 0, 0, z, piv); }
+    box(bronze, 0.92, 0.17, 0.22, 0, -0.02, 0, piv); for (const s2 of [-1, 1]) { mesh(kSph(), bronze, s2 * 0.5, 0.02, 0, piv).scale.set(0.1, 0.13, 0.13); const q = mesh(kCone(), bronze, s2 * 0.38, 0.12, 0, piv); q.scale.set(0.06, 0.18, 0.06); q.rotation.z = -s2 * 0.5; } // (the guard, its quillons curling up)
+    box(bronze, 0.3, 0.32, 0.16, 0, 0.18, 0, piv); // (where the blade's set into it)
+    mesh(new THREE.CylinderGeometry(0.085, 0.095, 1.0, 12), lth, 0, -0.6, 0, piv);
+    const B = kitBuild(); for (let k = 0; k < 9; k++) B.add(kTor(0.2), 0, -0.17 - k * 0.1, 0, 0.096, 0.096, 0.096, Math.PI / 2 + 0.3, 0, 0); mesh(B.geo(), new THREE.MeshLambertMaterial({ color: '#3b2414' }), 0, 0, 0, piv); // (the grip's wrapping)
+    mesh(kSph(), bronze, 0, -1.2, 0, piv).scale.set(0.17, 0.15, 0.15); const pr = mesh(kTor(0.25), bronze, 0, -1.36, 0, piv); pr.scale.setScalar(0.1);
+    const st = box(new THREE.MeshLambertMaterial({ color: '#ffffff', map: leatherTex() }), 0.24, 3.0, 0.05, 0, 3.0, 0.58); st.rotation.z = -0.61; // (the strap, right shoulder to left hip)
+    box(bronze, 0.32, 0.2, 0.07, 0, 3.0, 0.6).rotation.z = -0.61;
+  }
 
   if (waist) for (const o of body.children.slice(upFrom)) { o.position.y -= 2.84; waist.add(o); }
   const a = { g, body, legL, legR, armL, armR, head, mats, walk: 0, name, av, ax: Array.isArray(ax) ? ax.slice() : null, axMiss: X.miss, tag: null, glow: null, aura: av[6], trail: av[9], spin: a_spin, pet: null,
-    r15, waist, knL: J.knL, knR: J.knR, elL: J.elL, elR: J.elR, kitTick: kit && kit.tick, pack: ANIM_PACKS[av[11]] || null };
+    r15, waist, knL: J.knL, knR: J.knR, elL: J.elL, elR: J.elR, kitTick: kit && kit.tick, xt: a_xt.length ? a_xt : null, pack: ANIM_PACKS[av[11]] || null };
   a.jt = { aL: armL, aR: armR, lL: legL, lR: legR, hd: head, bd: body, eL: J.elL, eR: J.elR, kL: J.knL, kR: J.knR, ws: waist }; // (what emotes turn)
   for (const L of X.acc) xAttach(a, L); // (made 3D items, each where it goes on the body)
   for (const arm of [armL, armR]) arm.userData.n = arm.children.length; // (more than this: something's in that hand)
@@ -3841,6 +4143,79 @@ function petModel(type) {
     [['#f472b6', -0.07, 0.03], ['#4ade80', 0.06, -0.04], ['#facc15', 0.01, 0.07]].forEach(([c, x, z]) => { const sw = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 6), lam(c)); sw.position.set(x, 0.17, z); sw.scale.set(1.4, 0.8, 0.8); pail.add(sw); });
     const gl = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), color: '#c4b5fd', transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.55 })); gl.scale.setScalar(2.8); gl.position.y = 1.05; g.add(gl);
     g.userData.sway = 1;
+  } else if (type === 14) { // 🐓 the Cockatrice (🏛️ Season Pass): a rooster's head and body — a blood-red comb and wattles, a hooked beak, eyes that glow green (its look turns you to stone) — on a dragon's wings, with a serpent's tail ending in a barb
+    const P = (m, sx, sy, sz, x, y, z, par = g) => { const o = new THREE.Mesh(KIT_SPH, m); o.scale.set(sx, sy, sz); o.position.set(x, y, z); par.add(o); return o; };
+    const fth = new THREE.MeshPhongMaterial({ color: '#ffffff', map: cockFeatherTex(), shininess: 22, specular: 0x553311 }), gold = new THREE.MeshPhongMaterial({ color: '#f59e0b', shininess: 40, specular: 0x886622, emissive: 0x2a1000 });
+    const red = new THREE.MeshPhongMaterial({ color: '#dc2626', shininess: 30, specular: 0x552222, emissive: 0x2a0000 }), horn = new THREE.MeshPhongMaterial({ color: '#facc15', shininess: 60, specular: 0x887744 }), claw = lam('#1c1917');
+    const serp = new THREE.MeshPhongMaterial({ color: '#ffffff', map: serpTex(), shininess: 70, specular: 0x557733 }), sickle = new THREE.MeshLambertMaterial({ color: '#173f2c' });
+    P(fth, 0.42, 0.42, 0.52, 0, 1.0, 0.08); P(gold, 0.34, 0.36, 0.34, 0, 0.94, -0.2); P(fth, 0.24, 0.3, 0.24, 0, 1.32, -0.28);
+    for (let k = 0; k < 14; k++) { const a = (k / 14) * Math.PI * 2, f = P(gold, 0.07, 0.22, 0.035, Math.sin(a) * 0.22, 1.24, -0.3 + Math.cos(a) * 0.2); f.rotation.set(Math.cos(a) * 0.5, a, -Math.sin(a) * 0.5); } // (hackles round the neck)
+    const hd = new THREE.Group(); hd.position.set(0, 1.62, -0.38); g.add(hd);
+    P(fth, 0.2, 0.2, 0.22, 0, 0, 0, hd);
+    [[0.09, -0.15], [0.13, -0.08], [0.15, 0.0], [0.13, 0.08], [0.1, 0.15]].forEach(([h, z], k) => { const c = P(red, 0.035, h, 0.055, 0, 0.17 + h * 0.6, z, hd); c.rotation.x = z * 1.8; }); // (the comb)
+    const bk = new THREE.Mesh(new THREE.ConeGeometry(0.075, 0.26, 10), horn); bk.position.set(0, -0.02, -0.29); bk.rotation.x = -Math.PI / 2 - 0.35; hd.add(bk);
+    const bl = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.14, 8), horn); bl.position.set(0, -0.09, -0.23); bl.rotation.x = -Math.PI / 2 + 0.2; hd.add(bl);
+    const eyeM = new THREE.MeshBasicMaterial({ color: '#bef264' }), glows = [];
+    for (const s2 of [-1, 1]) {
+      P(red, 0.045, 0.11, 0.035, s2 * 0.04, -0.2, -0.19, hd).rotation.z = s2 * 0.15; // (wattles)
+      P(lam('#f8fafc'), 0.035, 0.045, 0.02, s2 * 0.19, -0.06, 0.04, hd); // (earlobes)
+      P(eyeM, 0.05, 0.055, 0.035, s2 * 0.15, 0.05, -0.1, hd); P(lam('#0a0a0a'), 0.012, 0.042, 0.012, s2 * 0.183, 0.05, -0.115, hd);
+      const br = P(red, 0.07, 0.02, 0.05, s2 * 0.13, 0.12, -0.1, hd); br.rotation.z = s2 * 0.4; // (a fierce red brow)
+      const gl = kitGlow(hd, '#bef264', 0.32, 0.7); gl.position.set(s2 * 0.18, 0.05, -0.13); glows.push(gl);
+      const w = batWing(g, s2, '#3f6212', '#2a1a0c', 0.42); w.position.set(s2 * 0.32, 1.2, 0.05); w.rotation.set(0, -s2 * 0.75, s2 * 0.2); w.userData.cw = s2;
+      const th = P(fth, 0.15, 0.2, 0.18, s2 * 0.18, 0.72, 0.06); th.rotation.z = s2 * 0.2;
+      const lg = new THREE.Group(); lg.position.set(s2 * 0.18, 0.62, 0.06); lg.userData.leg = s2; g.add(lg);
+      const sh = new THREE.Mesh(KIT_CYL, horn); sh.scale.set(0.045, 0.5, 0.045); sh.position.y = -0.27; lg.add(sh);
+      const sp = new THREE.Mesh(new THREE.ConeGeometry(0.025, 0.12, 6), claw); sp.position.set(0, -0.34, 0.06); sp.rotation.x = 1.9; lg.add(sp);
+      for (const a of [-0.45, 0, 0.45, Math.PI]) { const toe = new THREE.Group(); toe.position.y = -0.52; toe.rotation.y = a; lg.add(toe);
+        const tb = new THREE.Mesh(KIT_CYL, horn); tb.scale.set(0.028, a === Math.PI ? 0.13 : 0.2, 0.028); tb.rotation.x = Math.PI / 2; tb.position.z = a === Math.PI ? -0.065 : -0.1; toe.add(tb);
+        const cl = new THREE.Mesh(new THREE.ConeGeometry(0.025, 0.08, 6), claw); cl.rotation.x = -Math.PI / 2 - 0.5; cl.position.set(0, -0.015, a === Math.PI ? -0.15 : -0.22); toe.add(cl); }
+    }
+    for (const [x, rz, l] of [[-0.08, 0.35, 0.5], [0, 0, 0.62], [0.08, -0.35, 0.5]]) { const f = P(sickle, 0.07, l, 0.025, x, 1.48, 0.62); f.rotation.set(0.75, 0, rz); } // (sickle feathers over the rump)
+    const tp = new THREE.Group(); tp.position.set(0, 0.95, 0.48); g.add(tp);
+    tp.add(new THREE.Mesh(kg('cockTail', () => sweepGeo([[0, 0, 0], [0, -0.28, 0.42], [0.16, -0.42, 0.92], [0.06, -0.2, 1.38], [-0.14, 0.16, 1.58], [-0.2, 0.52, 1.48]], (t) => 0.19 * Math.pow(1 - t, 0.9) + 0.025, 30, 12)), serp));
+    const barb = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.26, 4), red); barb.position.set(-0.21, 0.62, 1.46); barb.rotation.set(-0.28, 0, 0.14); tp.add(barb);
+    for (const s2 of [-1, 1]) { const fl = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.16, 4), red); fl.position.set(-0.2 + s2 * 0.07, 0.5, 1.48); fl.rotation.z = s2 * 1.9; tp.add(fl); }
+    g.userData.tick = (pg, walk, dt, mv) => { const t = performance.now() / 1000, peck = !mv && t % 4.2 < 0.5 ? Math.sin((t % 4.2) / 0.5 * Math.PI) : 0;
+      hd.position.z = -0.38 + (mv ? -0.09 * Math.max(0, Math.sin(walk * 0.5)) : 0) - peck * 0.2; hd.position.y = 1.62 - peck * 0.32; hd.rotation.x = peck * 0.6; // (a rooster's head bob as it walks; a peck now and then)
+      tp.rotation.y = Math.sin(t * 2.1) * 0.28; tp.rotation.x = Math.sin(t * 1.4) * 0.08;
+      const flap = mv ? 0.5 + 0.5 * Math.sin(walk * 0.8) : t % 6.5 < 1.1 ? Math.abs(Math.sin((t % 6.5) * 9)) : 0;
+      for (const ch of pg.children) { if (ch.userData.cw) { ch.rotation.z = ch.userData.cw * (0.2 + 0.85 * flap); ch.rotation.y = -ch.userData.cw * (0.75 - 0.55 * flap); } if (ch.userData.leg) ch.rotation.x = mv ? ch.userData.leg * Math.sin(walk * 0.5) * 0.6 : 0; }
+      for (const gl of glows) gl.material.opacity = 0.45 + 0.35 * Math.sin(t * 3.1); };
+  } else if (type === 15) { // 🦕 the Spinosaurus (🏛️ Season Pass, Deluxe): the great river-hunter — a long crocodile snout full of teeth, a red-and-gold sail of spines along its back, strong legs, a paddle of a tail; it roars now and then
+    const Q = (m, sx, sy, sz, x, y, z, par = g) => { const o = new THREE.Mesh(KIT_SPH, m); o.scale.set(sx, sy, sz); o.position.set(x, y, z); par.add(o); return o; };
+    const hide = new THREE.MeshPhongMaterial({ color: '#ffffff', map: spinoTex(), shininess: 26, specular: 0x334422 }), sail = new THREE.MeshPhongMaterial({ color: '#ffffff', map: sailTex(), shininess: 30, specular: 0x553322, side: THREE.DoubleSide, emissive: 0x1a0500 });
+    const bone = lam('#efe7d2'), mouth = lam('#7f1d1d'), dkm = lam('#1c1917'), spineM = new THREE.MeshPhongMaterial({ color: '#7c2d12', shininess: 40 });
+    Q(hide, 0.42, 0.42, 0.84, 0, 1.18, 0.05); const ch = Q(hide, 0.3, 0.33, 0.38, 0, 1.38, -0.66); ch.rotation.x = 0.5;
+    const sg = new THREE.Group(); sg.position.set(0, 1.44, 0.04); sg.rotation.y = -Math.PI / 2; g.add(sg); const [sGeo, spGeo] = SPINO_SAIL(); sg.add(new THREE.Mesh(sGeo, sail), new THREE.Mesh(spGeo, spineM));
+    const hd = new THREE.Group(); hd.position.set(0, 1.62, -0.92); g.add(hd);
+    Q(hide, 0.17, 0.16, 0.26, 0, 0.02, -0.04, hd); Q(hide, 0.1, 0.085, 0.42, 0, -0.03, -0.44, hd); Q(hide, 0.115, 0.09, 0.11, 0, -0.03, -0.84, hd); // (skull, snout, the rosette at its tip)
+    Q(spineM, 0.025, 0.07, 0.12, 0, 0.16, -0.14, hd); // (a little crest)
+    for (const s2 of [-1, 1]) { Q(lam('#facc15'), 0.05, 0.05, 0.04, s2 * 0.135, 0.08, -0.1, hd); Q(dkm, 0.012, 0.04, 0.012, s2 * 0.165, 0.08, -0.115, hd); Q(hide, 0.06, 0.028, 0.09, s2 * 0.12, 0.135, -0.1, hd); Q(dkm, 0.02, 0.015, 0.025, s2 * 0.04, 0.04, -0.64, hd);
+      for (let k = 0; k < 7; k++) { const tt = new THREE.Mesh(KIT_CONE, bone); tt.scale.set(0.022, 0.08, 0.022); tt.rotation.x = Math.PI; tt.position.set(s2 * (0.07 + (k > 4 ? 0.02 : 0)), -0.11, -0.22 - k * 0.1); hd.add(tt); } }
+    const jw = new THREE.Group(); jw.position.set(0, -0.08, -0.02); hd.add(jw);
+    Q(hide, 0.088, 0.05, 0.48, 0, -0.03, -0.42, jw); Q(hide, 0.1, 0.06, 0.09, 0, -0.03, -0.84, jw); Q(mouth, 0.07, 0.03, 0.42, 0, 0.0, -0.42, jw);
+    for (const s2 of [-1, 1]) for (let k = 0; k < 6; k++) { const tt = new THREE.Mesh(KIT_CONE, bone); tt.scale.set(0.02, 0.07, 0.02); tt.position.set(s2 * 0.062, 0.04, -0.22 - k * 0.1); jw.add(tt); }
+    for (const s2 of [-1, 1]) {
+      const ar = new THREE.Group(); ar.position.set(s2 * 0.3, 1.22, -0.62); ar.userData.arm = s2; g.add(ar);
+      Q(hide, 0.08, 0.2, 0.08, 0, -0.14, -0.02, ar).rotation.x = 0.4; Q(hide, 0.06, 0.16, 0.06, 0, -0.32, -0.14, ar).rotation.x = -0.6;
+      for (const a of [-0.3, 0, 0.3]) { const c = new THREE.Mesh(KIT_CONE, bone); c.scale.set(0.02, 0.1, 0.02); c.position.set(Math.sin(a) * 0.04, -0.42, -0.24); c.rotation.set(-2.2, 0, a); ar.add(c); }
+      const lg = new THREE.Group(); lg.position.set(s2 * 0.3, 1.02, 0.28); lg.userData.leg = s2; g.add(lg);
+      Q(hide, 0.18, 0.34, 0.27, 0, -0.1, 0, lg);
+      const sh = new THREE.Mesh(KIT_CYL, hide); sh.scale.set(0.085, 0.56, 0.085); sh.position.set(0, -0.62, 0.06); sh.rotation.x = -0.15; lg.add(sh);
+      Q(hide, 0.11, 0.05, 0.2, 0, -0.95, -0.07, lg);
+      for (const a of [-0.35, 0, 0.35]) { const toe = Q(hide, 0.035, 0.035, 0.12, Math.sin(a) * 0.1, -0.97, -0.2 - Math.cos(a) * 0.04, lg); toe.rotation.y = a; const c = new THREE.Mesh(KIT_CONE, dkm); c.scale.set(0.025, 0.08, 0.025); c.rotation.x = -Math.PI / 2 - 0.4; c.position.set(Math.sin(a) * 0.16, -0.98, -0.32 - Math.cos(a) * 0.02); lg.add(c); }
+    }
+    const tp = new THREE.Group(); tp.position.set(0, 1.1, 0.78); g.add(tp);
+    const tl = new THREE.Mesh(kg('spinoTail', () => sweepGeo([[0, 0, 0], [0, -0.06, 0.5], [0, -0.16, 1.0], [0, -0.2, 1.5], [0, -0.12, 1.95]], (t) => 0.3 * Math.pow(1 - t, 0.85) + 0.02, 24, 12)), hide); tl.scale.x = 0.62; tp.add(tl);
+    const fin = new THREE.Mesh(kg('spinoFin', () => { const sh = new THREE.Shape(); sh.moveTo(0.2, 0.05); sh.quadraticCurveTo(0.9, 0.42, 1.9, 0.12); sh.lineTo(1.98, -0.1); sh.quadraticCurveTo(1.0, 0.0, 0.2, -0.02); sh.closePath(); const q = new THREE.ShapeGeometry(sh, 8), p = q.attributes.position, uv = q.attributes.uv; for (let i = 0; i < p.count; i++) uv.setXY(i, p.getX(i) / 2, 0.45 + p.getY(i) * 1.2); return q; }), sail);
+    fin.rotation.y = -Math.PI / 2; fin.position.y = 0.04; tp.add(fin); // (the paddle of a tail: a fin along the top and bottom)
+    const fin2 = new THREE.Mesh(fin.geometry, sail); fin2.rotation.set(Math.PI, -Math.PI / 2, 0); fin2.position.y = -0.1; fin2.scale.y = 0.6; tp.add(fin2);
+    g.userData.tick = (pg, walk, dt, mv, a) => { const t = performance.now() / 1000, rp = t % 14, roar = !mv && rp < 1.6 ? Math.sin(Math.min(1, rp / 1.6) * Math.PI) : 0;
+      jw.rotation.x = 0.06 + roar * 0.6 + (mv ? 0 : 0.03 * Math.sin(t * 1.3)); hd.rotation.x = -roar * 0.45; hd.rotation.z = roar * Math.sin(t * 40) * 0.03; hd.position.y = 1.62 + roar * 0.08; // (a roar: its head up, its jaws wide, shaking)
+      tp.rotation.y = Math.sin(t * (mv ? 4 : 1.6)) * (mv ? 0.22 : 0.15); tp.rotation.x = -0.05 + Math.sin(t * 1.1) * 0.04;
+      for (const c of pg.children) { if (c.userData.leg) c.rotation.x = mv ? c.userData.leg * Math.sin(walk * 0.5) * 0.55 : 0; if (c.userData.arm) c.rotation.x = Math.sin(t * 1.8 + c.userData.arm) * 0.1 - roar * 0.5; }
+      if (roar > 0.95 && !pg.userData.roared) { pg.userData.roared = 1; if (a) spinoRoar(a); } if (roar < 0.1) pg.userData.roared = 0; };
   }
   g.scale.setScalar(0.85);
   return g;
@@ -3858,6 +4233,7 @@ function updatePet(a, dt) {
   pg.position.y += (ty - pg.position.y) * Math.min(1, dt * 10);
   if (sp > 1) { let d = Math.atan2(-dx, -dz) - pg.rotation.y; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; pg.rotation.y += d * Math.min(1, dt * 8); }
   for (const ch of pg.children) if (ch.userData.wing) ch.rotation.z = ch.userData.wing * Math.sin(a.pet.walk * 2) * 0.6;
+  if (pg.userData.tick) pg.userData.tick(pg, a.pet.walk, dt, sp > 1, a); // (a pet that moves on its own: legs, a tail, a head)
   if (pg.userData.sway) { pg.rotation.z = Math.sin(a.pet.walk * 0.6) * 0.14; pg.rotation.x = Math.sin(a.pet.walk * 0.45) * 0.08; } // (a ghost wobbles as it floats)
   pg.visible = !a.dead;
 }
@@ -3928,7 +4304,9 @@ function animateAvatar(a, dt, moving, air) {
   a.walk += dt * 10; a.airT = air ? wasAir + dt : 0; a.packT = (a.packT || 0) + dt;
   if (!air && wasAir > 0.35) a.landT = 0; else if (a.landT != null) a.landT = a.landT > 5 ? null : a.landT + dt; // (since landing from a jump)
   if (a.pfx) for (const o of a.pfx) o.visible = false; // (an animation pack's effects: shown again below if it's running)
+  if (a.hpBk) for (const o of a.hpBk) o.visible = true; // (the shield on a hoplite's back: on the arm while the Hoplite pack runs)
   if (a.kitTick) a.kitTick(a, dt);
+  if (a.xt) for (const f of a.xt) f(a, dt);
   if (a.em) { if (moving || air) emStop(a); else { emTick(a, dt); return; } } // (moving ends an emote)
   // an animation pack (not while an experience has you sitting: in a kart, on a horse, on a ride)
   const A = a.pack && performance.now() - (a.seatAt || 0) > 300 ? a.pack : null;
