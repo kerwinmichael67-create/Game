@@ -143,7 +143,7 @@
   .spc.lock img{filter:grayscale(.5) brightness(.7)}.spc.got{box-shadow:inset 0 0 0 2px rgba(74,222,128,.55)}
   .sptry{position:absolute;right:5px;top:5px;border:0;cursor:pointer;background:rgba(0,0,0,.55);color:#fff;border-radius:999px;width:28px;height:28px;font-size:14px}
   .btn.gold{background:linear-gradient(180deg,#fde68a,#f59e0b);color:#3b1d00}
-  .sppage.ingame .sphero{margin-top:0}
+  .sppage{min-width:0}.sppage.ingame .sphero{margin-top:0}
   @media (max-width:640px){.spban,.sphero{grid-template-columns:1fr}.spcdbox{align-items:flex-start}.spqs{grid-template-columns:1fr}.spfx .c1{display:none}}
   .hwhero{margin:12px 0 18px;padding:26px 24px;min-height:150px;align-items:end}
   .hwban .tag,.hwhero .tag{display:inline-flex;background:linear-gradient(180deg,#fb923c,#ea580c);color:#2a0f00;font:700 11px var(--fh);letter-spacing:.08em;text-transform:uppercase;border-radius:999px;padding:4px 10px}
@@ -447,7 +447,7 @@
   #hi{color:#cbd5e1;font:700 14px var(--fb)}
   .status{background:linear-gradient(180deg,#4a3410,#3b2a0e);border:1px solid rgba(252,211,77,.3);color:#fcd34d;border-radius:14px;padding:11px 15px;margin-bottom:14px;font:700 14px var(--fb)}
   .status[hidden]{display:none}
-  .hcols{display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start}
+  .hcols{display:grid;grid-template-columns:300px minmax(0,1fr);gap:20px;align-items:start}#expArea{min-width:0}
   @media (max-width:800px){.hcols{grid-template-columns:1fr}#home.sub #meCard{display:none}}
   .hcard{background:var(--solid);border:1px solid var(--line);border-radius:22px;padding:16px;box-shadow:var(--drop),var(--hi)}
   .hcard h3,#expArea h3{margin:0 0 12px;font:600 19px var(--fh);letter-spacing:.01em;display:flex;align-items:center;gap:8px}
@@ -5887,6 +5887,136 @@ EMOTES.push(
       if (n >= 22 && n < 38 && n % 4 === 2) B.d(5, 0.28); if (n === 38) B.c('dark', [50, 57, 62], 1.2, 0.12); }); },
   },
 );
+/* ---------------- the first eleven emotes, remade: more to see and real music ----------------
+   Each one keeps what it had and gets a layer on top (EM_UP[id]: make / tick: more things and effects; ev: its music,
+   on the emote bus; solo: the old sounds go). */
+const neonTex = () => kCanvas('neonGrid', 128, 128, (g) => { g.strokeStyle = 'rgba(255,255,255,.9)'; g.lineWidth = 2; g.shadowColor = '#fff'; g.shadowBlur = 4; for (let k = 0; k <= 128; k += 16) { g.beginPath(); g.moveTo(k, 0); g.lineTo(k, 128); g.moveTo(0, k); g.lineTo(128, k); g.stroke(); } });
+const graffitiTex = () => kCanvas('graffiti', 256, 128, (g, r) => { g.fillStyle = '#7c6f64'; g.fillRect(0, 0, 256, 128); g.strokeStyle = 'rgba(0,0,0,.25)'; g.lineWidth = 2; for (let y = 0; y < 128; y += 16) for (let x = (y / 16) % 2 ? 0 : 16; x < 256; x += 32) g.strokeRect(x, y, 32, 16);
+  g.font = 'bold italic 58px Impact, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineWidth = 10; g.strokeStyle = '#111827'; g.strokeText('B-BOY', 128, 66); const gr = g.createLinearGradient(0, 30, 0, 100); gr.addColorStop(0, '#f472b6'); gr.addColorStop(0.5, '#facc15'); gr.addColorStop(1, '#22d3ee'); g.fillStyle = gr; g.fillText('B-BOY', 128, 66);
+  for (let k = 0; k < 40; k++) { g.fillStyle = ['#f472b6', '#facc15', '#22d3ee', '#a3e635'][k % 4]; g.globalAlpha = 0.5; g.beginPath(); g.arc(r() * 256, r() * 128, 1 + r() * 2, 0, 7); g.fill(); } g.globalAlpha = 1; });
+const spinTex = () => kCanvas('spinLines', 128, 128, (g) => { g.translate(64, 64); for (let k = 0; k < 10; k++) { g.rotate(Math.PI / 5); g.strokeStyle = 'rgba(255,255,255,.8)'; g.lineWidth = 3; g.beginPath(); g.arc(0, 0, 40 + (k % 3) * 8, 0, 0.9); g.stroke(); } });
+const rainbow = (t) => '#' + new THREE.Color().setHSL(((t % 1) + 1) % 1, 0.9, 0.62).getHexString();
+const EM_UP = {
+  wave: { // a trail of sparkles following your hand, a speech bubble that pops up, little hearts; a marimba jingle: hel-lo!
+    make(a, F) { F.uTr = emPS(F, 70, { tex: fxTex('twinkle') }); F.uB = label('Hi! 👋', { size: 1.3, color: '#0f172a', bg: 'rgba(255,255,255,.96)', weight: 900 }); F.root.add(F.uB); F.uB.visible = false;
+      F.uH = Array.from({ length: 5 }, (_, j) => emSprite(F.root, noteTex('♥', ['#f472b6', '#fb7185', '#f9a8d4'][j % 3]), 0.6, { opacity: 0 })); },
+    tick(a, F, t, dt) { const h = emHand(a, F, 1, _eh); if (t < 2.3) for (let q = 0; q < 2; q++) F.uTr.add(h.x + rnd(-0.1, 0.1), h.y + rnd(-0.1, 0.1), h.z, { vy: rnd(0.2, 0.8), life: 0.6, s: 0.35, s1: 0.03, c: rainbow(t * 0.6 + q * 0.3) });
+      const k = smooth((t - 0.15) / 0.2) * (1 - smooth((t - 2.1) / 0.3)); F.uB.visible = k > 0.01; F.uB.position.set(-1.8, 6.6 + 0.1 * Math.sin(t * 5), -0.3); F.uB.material.opacity = k;
+      F.uH.forEach((s, j) => { const u = (t - 0.3 - j * 0.3) / 1.4; s.material.opacity = u > 0 && u < 1 ? Math.min(1, (1 - u) * 3) : 0; s.position.set(1.2 + Math.sin(u * 7 + j) * 0.5 + j * 0.2, 4.6 + u * 3, -0.6); s.scale.setScalar(0.5 + 0.2 * Math.sin(u * 9)); });
+      F.uTr.tick(dt); },
+    ev(a, t0, t1) { if (crossed(t0, t1, 0.05)) emBand(a, (B) => { [[79, 0], [76, 0.14], [84, 0.28], [88, 0.5]].forEach(([m, d]) => B.n('marimba', m, 0.4, 0.34, d)); B.c('celesta', [91, 95, 98], 0.8, 0.12, 0.9, 0.06); B.d(2, 0.2, 0.5);
+      [[84, 1.4], [81, 1.55], [79, 1.7], [84, 1.95]].forEach(([m, d]) => B.n('marimba', m, 0.35, 0.26, d)); B.c('vibes', [60, 64, 67, 72], 1.6, 0.12, 0.5); }); },
+  },
+  cheer: { // fireworks at the top of each jump, party poppers of streamers, a spotlight; a drum roll, a brass fanfare and a crowd shouting hooray
+    make(a, F) { F.uFw = emPS(F, 160, { tex: fxTex('twinkle') }); F.uSt = emPS(F, 60, { flat: 1 }); F.uRk = emPS(F, 30); F.uSpot = emBeam(F, '#fef9c3', 1.6, 12, { op: 0, top: 0.6 }); },
+    tick(a, F, t, dt) { for (const T of [0.22, 0.82]) if (crossed(t - dt, t, T)) for (let q = 0; q < 2; q++) { const x = q ? 2.2 : -2.2; F.uRk.burst(10, x, 1, -1, () => ({ vy: 18, vx: -x * 0.4, life: 0.35, s: 0.35, s1: 0.1, c: '#fde68a' })); }
+      for (const T of [0.6, 1.2]) if (crossed(t - dt, t, T)) { camShake(a, 0.08); for (const x of [-2.2, 2.2]) { const c = ['#f472b6', '#38bdf8', '#facc15', '#4ade80'][Math.floor(Math.random() * 4)]; F.uFw.burst(40, x * 0.3, 8.5 + rnd(-0.5, 0.5), -1.6, () => { const an = Math.random() * 6.28, el = rnd(-1.2, 1.2), s = rnd(5, 7); return { vx: Math.cos(an) * Math.cos(el) * s, vy: Math.sin(el) * s, vz: Math.sin(an) * Math.cos(el) * s, life: 1.2, s: 0.45, s1: 0.05, c: Math.random() < 0.7 ? c : '#ffffff', g: 4, drag: 1.6 }; }); } }
+      for (const T of [0.42, 1.02]) if (crossed(t - dt, t, T)) for (const s of [-1, 1]) { const h = emHand(a, F, s, _eh); F.uSt.burst(14, h.x, h.y, h.z, () => ({ vx: s * rnd(1, 4), vy: rnd(3, 7), vz: rnd(-2, 1), life: 1.4, s: 0.32, s1: 0.18, c: ['#f472b6', '#38bdf8', '#facc15', '#4ade80', '#a78bfa'][Math.floor(Math.random() * 5)], g: 9, spin: rnd(-10, 10) })); }
+      F.uSpot.material.opacity = 0.32 * smooth(t / 0.3) * (1 - smooth((t - 2.2) / 0.3)); F.uFw.tick(dt); F.uSt.tick(dt); F.uRk.tick(dt); },
+    ev(a, t0, t1) {
+      if (crossed(t0, t1, 0.01)) emBand(a, (B) => { for (let i = 0; i < 10; i++) B.d(1, 0.08 + i * 0.03, i * 0.04); B.n('sub', 36, 0.4, 0.2); });
+      for (const [T, ch, vx] of [[0.42, [60, 64, 67, 72], 'e'], [1.02, [65, 69, 72, 77], 'a']]) if (crossed(t0, t1, T)) emBand(a, (B) => { B.d(6, 0.5); B.d(0, 0.8); B.c('brass', ch, 0.7, 0.3); emVox(B, { fa: vx, fu: 'o', len: 0.6, f: 240, v: 0.42, n: 6 }); emNoise(B, { len: 0.9, v: 0.12, f: 1600, type: 'bandpass', att: 0.05 }); });
+      const n = t1 > 1.4 ? beatOf(t0 - 1.4, t1 - 1.4, Math.PI / 6.5) : -1; if (n >= 0 && n < 5) emBand(a, (B) => { B.d(0, 0.55); B.d(2, 0.3); B.c('brass', n % 2 ? [67, 72, 76] : [65, 69, 72], 0.2, 0.18); }); },
+  },
+  floss: { solo: 1, // a neon ring on the floor pulsing to the beat, neon trails off both hands, a rainbow glow; a bouncy pop beat with a synth hook
+    make(a, F) { F.uR = emRing(F, '#ffffff', 1.6, 1.9, { op: 0 }); F.uR2 = emRing(F, '#ffffff', 2.4, 2.55, { op: 0 }); F.uTr = emPS(F, 120); F.uG = emSprite(F.root, glowTex(), 8, { blending: THREE.AdditiveBlending, opacity: 0 }); F.uG.position.set(0, 3.5, 1.5); F.uSp = emPS(F, 40, { tex: fxTex('twinkle') }); },
+    tick(a, F, t, dt) { const b = t % 0.42 / 0.42, p = Math.exp(-b * 5), on = smooth(t / 0.4);
+      F.uR.material.color.set(rainbow(t * 0.25)); F.uR2.material.color.set(rainbow(t * 0.25 + 0.5)); F.uR.material.opacity = on * (0.4 + 0.5 * p); F.uR2.material.opacity = on * (0.25 + 0.45 * p); F.uR.scale.setScalar(1 + 0.15 * p); F.uR2.scale.setScalar(1 + 0.25 * p); F.uR.rotation.z = t; F.uR2.rotation.z = -t;
+      F.uG.material.color.set(rainbow(t * 0.25 + 0.25)); F.uG.material.opacity = on * (0.2 + 0.2 * p);
+      for (const s of [-1, 1]) { const h = emHand(a, F, s, _eh); F.uTr.add(h.x, h.y, h.z, { life: 0.35, s: 0.4, s1: 0.04, c: rainbow(t * 0.5 + (s > 0 ? 0.5 : 0)) }); }
+      if (crossed(t - dt, t, Math.ceil((t - dt) / 0.42) * 0.42)) F.uSp.burst(6, rnd(-1.5, 1.5), 0.2, rnd(-1.5, 1.5), () => ({ vy: rnd(2, 4), vx: rnd(-1, 1), vz: rnd(-1, 1), life: 0.6, s: 0.35, s1: 0.04, c: rainbow(Math.random()) }));
+      F.uTr.tick(dt); F.uSp.tick(dt); },
+    ev(a, t0, t1) { emLoopBeat(a, t0, t1, 3.36, 0.21, (n, B) => {
+      if (n % 2 === 0) B.d(0, 0.7); if (n % 8 === 4) B.d(2, 0.45); if (n % 2) B.d(3, 0.12); if (n % 4 === 2) B.d(4, 0.1);
+      B.n('synthbass', [33, 33, 45, 33, 36, 36, 48, 36, 38, 38, 50, 38, 40, 40, 43, 45][n], 0.18, 0.4);
+      const m = [69, 0, 72, 0, 76, 0, 74, 72, 69, 0, 72, 0, 79, 77, 76, 74][n]; if (m) B.n('sawpluck', m, 0.18, 0.2); if (n === 0) B.c('warm', [57, 64, 69, 72], 3.3, 0.06); }); },
+  },
+  robot: { // a glowing grid on the floor, a scanning ring moving up and down you, binary rising, eyes lit; an electro track with bleeps and a vocoder beep-boop
+    make(a, F) { const t = neonTex(); t.repeat.set(4, 4); F.uGrid = emMesh(F.root, kg('emGridPlane', () => { const q = new THREE.PlaneGeometry(9, 9); q.rotateX(-Math.PI / 2); return q; }), new THREE.MeshBasicMaterial({ color: '#22d3ee', map: t, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }), 0, 0.08, 0);
+      F.uScan = emMesh(F.root, kTor(0.015), new THREE.MeshBasicMaterial({ color: '#67e8f9', transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false }), 0, 0, 0); F.uScan.rotation.x = Math.PI / 2; F.uScan.scale.setScalar(1.5);
+      F.uBin = Array.from({ length: 14 }, (_, j) => emSprite(F.root, noteTex(j % 2 ? '1' : '0', '#4ade80'), 0.5, { opacity: 0 }));
+      F.uEye = [-0.21, 0.21].map((x) => { const s = emSprite(F.hd, glowTex(), 0.35, { color: '#22d3ee', blending: THREE.AdditiveBlending }); s.position.set(x, 0.1, -0.63); return s; }); },
+    tick(a, F, t, dt) { const on = smooth(t / 0.5); F.uGrid.material.opacity = on * (0.35 + 0.15 * Math.sin(t * 6)); F.uGrid.material.map.offset.y = -t * 0.2;
+      F.uScan.position.y = 2.9 + 2.6 * Math.sin(t * 1.6); F.uScan.material.opacity = on * 0.8;
+      F.uBin.forEach((s, j) => { const u = (t * 0.35 + j / 14) % 1, an = j * 2.4; s.position.set(Math.cos(an) * (1.8 + (j % 3) * 0.5), u * 7, Math.sin(an) * (1.8 + (j % 3) * 0.5)); s.material.opacity = on * Math.min(1, (1 - u) * 3, u * 6); });
+      F.uEye.forEach((s) => { s.material.color.set(Math.floor(t / 0.34) % 4 === 3 ? '#ef4444' : '#22d3ee'); s.scale.setScalar(0.3 + 0.08 * Math.sin(t * 20)); }); },
+    ev(a, t0, t1) { emLoopBeat(a, t0, t1, 2.72, 0.17, (n, B, L) => {
+      if (n === 0 || n === 8 || n === 11) B.d(0, 0.7); if (n === 4 || n === 12) B.d(1, 0.45); B.d(3, 0.06);
+      B.n('sawpluck', [45, 57, 45, 52, 45, 57, 55, 52, 43, 55, 43, 50, 43, 55, 52, 50][n], 0.15, 0.24);
+      const m = [81, 0, 0, 84, 0, 0, 79, 0, 0, 0, 86, 0, 84, 0, 0, 0][n]; if (m) B.n('lead', m, 0.07, 0.12);
+      if (L % 2 === 1 && n === 14) { emVox(B, { fa: 'i', len: 0.14, f: 420, n: 1, v: 0.3, fall: 1 }); emVox(B, { fa: 'o', len: 0.16, f: 300, n: 1, v: 0.3, fall: 1, dt: 0.17 }); } }); },
+  },
+  griddy: { // sparks off your heels with every tap, stadium lights behind you, rings glowing round your hands (the goggles), a flame emoji now and then; a trap beat with an 808, hi-hat rolls and a dark bell tune
+    make(a, F) { F.uSpk = emPS(F, 80, { tex: fxTex('twinkle') }); F.uL = [-1, 1].map((s) => { const b = emBeam(F, '#e0f2fe', 0.9, 14, { op: 0, top: 3.2 }); b.position.set(s * 3, 0, 3); b.rotation.set(-0.45, 0, s * 0.35); return b; });
+      F.uHg = [-1, 1].map(() => emSprite(F.root, glowTex(), 0.9, { color: '#fbbf24', blending: THREE.AdditiveBlending })); F.uFire = emSprite(F.root, emoTex('🔥'), 1, { opacity: 0 }); },
+    tick(a, F, t, dt) { const on = smooth(t / 0.5); F.uL.forEach((b, j) => { b.material.opacity = on * (0.18 + 0.08 * Math.sin(t * 2 + j * 2)); });
+      [-1, 1].forEach((s, j) => { const h = emHand(a, F, s, _eh); F.uHg[j].position.copy(h); F.uHg[j].material.opacity = on * (0.4 + 0.3 * Math.sin(t * 9 + j)); });
+      if (crossed(t - dt, t, Math.ceil((t - dt) / 0.36) * 0.36)) { const L = Math.round(t / 0.36) % 2 === 0, x = L ? -0.5 : 0.5; F.uSpk.burst(8, x, 0.1, -0.6, () => ({ vx: rnd(-2, 2), vy: rnd(1.5, 4), vz: rnd(-2, 1), life: 0.45, s: 0.25, s1: 0.03, c: Math.random() < 0.5 ? '#fde68a' : '#fb923c', g: 9 })); }
+      const fu = (t % 2.88) / 2.88; F.uFire.material.opacity = fu > 0.6 && fu < 0.9 ? Math.sin((fu - 0.6) / 0.3 * Math.PI) : 0; F.uFire.position.set(1.6, 6.5 + fu, -0.4); F.uFire.scale.setScalar(1 + 0.3 * Math.sin(t * 9));
+      F.uSpk.tick(dt); },
+    ev(a, t0, t1) { emLoopBeat(a, t0, t1, 2.88, 0.18, (n, B) => {
+      if ([0, 6, 10].includes(n)) { B.d(0, 0.7); B.n('808', [33, 33, 36][[0, 6, 10].indexOf(n)], 0.5, 0.5); } if (n === 4 || n === 12) B.d(2, 0.5);
+      B.d(3, n % 2 ? 0.07 : 0.11); if (n === 7 || n === 15) { B.d(3, 0.08, 0.06); B.d(3, 0.09, 0.12); }
+      const m = [69, 0, 72, 0, 71, 0, 0, 69, 0, 0, 76, 0, 74, 0, 72, 0][n]; if (m) B.n('vibes', m, 0.3, 0.18); }); },
+  },
+  breakdance: { // a cardboard mat, a graffiti wall behind you, a ring of motion lines while you spin, dust; a boom-bap beat with a scratch and a funk stab
+    make(a, F) { const mat = emMesh(F.root, BOX, new THREE.MeshLambertMaterial({ color: '#b08350' }), 0, 0.03, 0); mat.scale.set(4.2, 0.05, 3.2); for (const z of [-0.6, 0.6]) emMesh(F.root, BOX, new THREE.MeshLambertMaterial({ color: '#d6c7a1' }), 0, 0.06, z).scale.set(4.2, 0.02, 0.18);
+      const w = emMesh(F.root, KIT_PLANE, new THREE.MeshLambertMaterial({ map: graffitiTex() }), 0, 3.2, 4.5); w.scale.set(12, 6, 1); w.rotation.y = Math.PI;
+      F.uSpin = emRing(F, '#ffffff', 0.9, 2.4, { map: spinTex(), op: 0 }); F.uDust = emPS(F, 50, { flat: 1 }); F.uSp = emPS(F, 40, { tex: fxTex('twinkle') }); },
+    tick(a, F, t, dt) { const c = t % 4.4, sp = c > 1.55 && c < 3.5 ? smooth((c - 1.55) / 0.2) * (1 - smooth((c - 3.3) / 0.2)) : 0;
+      F.uSpin.material.opacity = 0.6 * sp; F.uSpin.rotation.z = -t * 14; F.uSpin.position.y = 0.3;
+      if (sp > 0.5 && Math.random() < 0.6) { const an = Math.random() * 6.28; F.uDust.add(Math.cos(an) * 1.2, 0.2, Math.sin(an) * 1.2, { vx: -Math.sin(an) * 3, vz: Math.cos(an) * 3, vy: 0.5, life: 0.7, s: 0.5, s1: 1.2, c: '#d6c7a1', op: 0.4 }); F.uSp.add(Math.cos(an) * 1.4, rnd(0.2, 1.5), Math.sin(an) * 1.4, { vy: 1, life: 0.4, s: 0.3, s1: 0.03, c: rainbow(t) }); }
+      F.uDust.tick(dt); F.uSp.tick(dt); },
+    ev(a, t0, t1) { emLoopBeat(a, t0, t1, 4.4, 0.275, (n, B) => { // (16 steps a round, swung)
+      const sw = n % 2 ? 0.05 : 0; if ([0, 5, 8, 10].includes(n)) B.d(0, 0.75, sw); if (n === 4 || n === 12) B.d(1, 0.55, sw); if (n % 2 === 0) B.d(3, 0.1); else B.d(3, 0.06, sw);
+      const b = [40, 0, 0, 40, 0, 43, 0, 45, 40, 0, 47, 0, 45, 43, 0, 38][n]; if (b) B.n('fbass', b, 0.25, 0.42, sw);
+      if (n === 0 || n === 6) B.c('brass', [64, 67, 71, 74], 0.18, 0.2); if (n === 14) emNoise(B, { len: 0.25, v: 0.16, f: 400, f2: 3200, type: 'bandpass', att: 0.01 }); if (n === 15) emNoise(B, { len: 0.18, v: 0.14, f: 3000, f2: 500, type: 'bandpass', att: 0.01 }); }); },
+  },
+  levitate: { // crystals circling you, spirals of light rising, an aura; an ambient piece: a warm pad, a music-box arpeggio, a singing bowl and a deep om
+    make(a, F) { F.uC = ['#a78bfa', '#67e8f9', '#f9a8d4', '#fde68a', '#86efac'].map((c) => { const m = emMesh(F.root, new THREE.OctahedronGeometry(0.22), new THREE.MeshPhongMaterial({ color: c, emissive: c, emissiveIntensity: 0.5, shininess: 120, transparent: true, opacity: 0.9 })); m.scale.y = 1.6; m.userData.gl = kitGlow(m, c, 1.4, 0.6); return m; });
+      F.uAura = emSprite(F.root, glowTex(), 6, { color: '#c4b5fd', blending: THREE.AdditiveBlending, opacity: 0 }); F.uSpi = emPS(F, 100, { tex: fxTex('twinkle') }); },
+    tick(a, F, t, dt) { const on = smooth(t / 1.0), up = a.body.position.y;
+      F.uC.forEach((m, j) => { const an = t * 0.8 + j * 1.2566; m.position.set(Math.cos(an) * 2.2, 3.2 + up + 0.4 * Math.sin(t * 1.3 + j), Math.sin(an) * 2.2); m.rotation.y = t * 2 + j; m.scale.setScalar(on); m.scale.y = 1.6 * on; });
+      F.uAura.material.opacity = on * (0.3 + 0.1 * Math.sin(t * 1.6)); F.uAura.position.y = 3.4 + up;
+      for (let q = 0; q < 2; q++) { const an = t * 3 + q * Math.PI; F.uSpi.add(Math.cos(an) * 1.3, 0.4 + up, Math.sin(an) * 1.3, { vx: -Math.sin(an) * 1.2, vz: Math.cos(an) * 1.2, vy: 2.2, life: 1.8, s: 0.3, s1: 0.04, c: q ? '#c4b5fd' : '#67e8f9', drag: 0.4 }); } F.uSpi.tick(dt); },
+    ev(a, t0, t1) { emLoopBeat(a, t0, t1, 10.4, 0.325, (n, B) => {
+      if (n % 8 === 0) B.c('warm', [[48, 55, 59, 64], [45, 52, 55, 60], [41, 48, 52, 57], [43, 50, 55, 59]][n / 8], 2.8, 0.1);
+      B.n('musicbox', [72, 76, 79, 83, 79, 76, 72, 71, 69, 72, 76, 79, 76, 72, 69, 67, 65, 69, 72, 76, 72, 69, 65, 64, 67, 71, 74, 79, 74, 71, 67, 71][n], 0.6, 0.09);
+      if (n % 16 === 0) { B.n('toll', 48, 4, 0.16); B.n('dark', 36, 5, 0.12); } }); },
+  },
+  nap: { // a crescent moon and twinkling stars over you, sheep jumping a little fence one after another, dream bubbles; a soft pad and a harp under the lullaby
+    make(a, F) { F.uMoon = emSprite(F.root, emoTex('🌙'), 2.2, { opacity: 0 }); F.uMoon.position.set(-2.6, 7.2, 0.5); F.uStars = Array.from({ length: 10 }, (_, j) => { const s = emSprite(F.root, fxTex('twinkle'), 0.5, { color: '#fef9c3', blending: THREE.AdditiveBlending, opacity: 0 }); s.position.set(rnd(-4, 4), rnd(5.5, 8.5), rnd(-1, 2)); return s; });
+      const wood = new THREE.MeshLambertMaterial({ color: '#a16207' }), fg = new THREE.Group(); fg.position.set(2.6, 4.6, -0.6); F.root.add(fg); F.uFence = fg; for (const x of [-0.4, 0.4]) emMesh(fg, BOX, wood, x, 0.35, 0).scale.set(0.1, 0.7, 0.1); for (const y of [0.25, 0.55]) emMesh(fg, BOX, wood, 0, y, 0).scale.set(1, 0.08, 0.06);
+      F.uSheep = [0, 1, 2].map(() => emSprite(F.root, emoTex('🐑'), 0.9, { opacity: 0 })); F.uBub = emPS(F, 30); },
+    tick(a, F, t, dt) { const on = smooth((t - 1.8) / 0.8); F.uMoon.material.opacity = on; F.uFence.scale.setScalar(Math.max(0.001, on)); F.uStars.forEach((s, j) => { s.material.opacity = on * (0.4 + 0.6 * Math.abs(Math.sin(t * (1.3 + j * 0.2) + j))); s.material.rotation = t * 0.5 + j; });
+      F.uSheep.forEach((s, j) => { const u = ((t - 2.2) / 2.4 + j / 3) % 1; s.material.opacity = on * (t > 2.2 ? Math.min(1, u * 6, (1 - u) * 6) : 0); s.position.set(2.6 + 1.6 - u * 3.2, 4.6 + 0.35 + 1.2 * Math.max(0, Math.sin(Math.min(1, Math.max(0, (u - 0.3) / 0.4)) * Math.PI)), -0.6); });
+      if (t > 2.2 && Math.random() < 0.08) F.uBub.add(rnd(-0.6, 0.6), 2.2, -0.3, { vy: rnd(0.4, 0.8), vx: rnd(-0.2, 0.2), life: 2.5, s: 0.2, s1: 0.6, c: '#bfdbfe', op: 0.5 }); F.uBub.tick(dt); },
+    ev(a, t0, t1) { if (t1 > 2.2) { const n = beatOf(t0 - 2.2, t1 - 2.2, 2.0); if (n >= 0) emBand(a, (B) => { B.c('warm', [[48, 55, 64], [53, 57, 65], [48, 55, 64], [43, 55, 62]][n % 4], 2.2, 0.07); [0, 1, 2, 3].forEach((i) => B.n('pluck', [60, 64, 67, 72][i] - (n % 4 === 1 ? -5 : n % 4 === 3 ? 5 : 0), 1.2, 0.07, i * 0.12)); }); } },
+  },
+  disco: { // glitter falling through the lights; a falsetto “ooh”, strings and a horn line over the groove, and a shout of HEY!
+    make(a, F) { F.uGl = emPS(F, 120, { tex: fxTex('twinkle') }); },
+    tick(a, F, t, dt) { for (let q = 0; q < 2; q++) F.uGl.add(rnd(-4, 4), rnd(8, 10), rnd(-4, 3), { vy: rnd(-2, -1), life: 4, s: 0.3, s1: 0.18, c: rainbow(Math.random()), spin: 3 }); F.uGl.tick(dt); },
+    ev(a, t0, t1) { emLoopBeat(a, t0, t1, 13.44, 0.21, (n, B) => {
+      if (n % 16 === 0) { B.c('strings', [[57, 64, 69, 72], [57, 64, 69, 72], [62, 66, 69, 74], [64, 68, 71, 76]][(n / 16) % 4], 3.2, 0.08); emVox(B, { fa: 'u', len: 1.4, f: 520, v: 0.12, n: 3, fall: 1 }); }
+      if (n % 32 === 30) emVox(B, { fa: 'e', len: 0.25, f: 200, v: 0.4, n: 5 });
+      const m = [0, 0, 76, 0, 79, 0, 81, 79, 0, 76, 0, 74, 76, 0, 0, 0][n % 16]; if (m && Math.floor(n / 16) % 2) B.n('brass', m, 0.18, 0.14); }); },
+  },
+  rock: { // a stage: coloured lights sweeping from behind, smoke rolling across the floor; a crowd roaring; a cymbal crash on the big moments
+    make(a, F) { F.uL = ['#ef4444', '#3b82f6', '#a855f7', '#f59e0b'].map((c, j) => { const b = emBeam(F, c, 0.8, 14, { op: 0, top: 3 }); b.position.set(-3 + j * 2, 0, 3.4); return b; }); F.uSm = emPS(F, 60, { flat: 1 }); },
+    tick(a, F, t, dt) { const on = smooth(t / 0.6); F.uL.forEach((b, j) => { b.rotation.set(-0.5, 0, Math.sin(t * 1.2 + j * 1.3) * 0.5); b.material.opacity = on * (0.15 + 0.12 * Math.sin(t * 5 + j)); });
+      if (Math.random() < 0.4) F.uSm.add(rnd(-3, 3), 0.25, rnd(-2, 2), { vx: rnd(-0.5, 0.5), vy: 0.15, life: 3, s: 1.2, s1: 2.6, c: '#cbd5e1', op: 0.3 }); F.uSm.tick(dt); },
+    ev(a, t0, t1) { const [c0, c1] = emCyc(t0, t1, 6.4); if (crossed(c0, c1, 0.02) || crossed(c0, c1, 4.05)) emBand(a, (B) => { emNoise(B, { len: 2.4, v: 0.13, f: 1300, type: 'bandpass', att: 0.3 }); B.d(6, 0.45); emVox(B, { fa: 'o', fu: 'a', len: 1.2, f: 200, v: 0.18, n: 6 }); }); },
+  },
+  zombie: { // ghostly wisps rising from the graves, lightning flickering behind the moon
+    make(a, F) { F.uW = Array.from({ length: 6 }, () => emSprite(F.root, glowTex(), 1.2, { color: '#a7f3d0', blending: THREE.AdditiveBlending, opacity: 0 })); },
+    tick(a, F, t, dt) { F.uW.forEach((s, j) => { const u = (t * 0.25 + j / 6) % 1, x = [-2.6, 2.8, 0.3, -1.6, 1.9, -3.4][j], z = [2.2, 1.8, 3.4, -2.2, -2.6, -0.6][j]; s.position.set(x + Math.sin(u * 8 + j) * 0.4, 0.5 + u * 6, z); s.material.opacity = Math.min(1, u * 4, (1 - u) * 2) * 0.6 * smooth(t / 1.5); s.scale.set(0.8, 1.6, 1); });
+      if (Math.random() < dt * 0.25 && t > 1.5) emFlash(a, '#d1fae5', 0.18); },
+    ev() {},
+  },
+};
+for (const E of EMOTES) { const U = EM_UP[E.id]; if (!U) continue; const f0 = E.fx, e0 = E.ev;
+  E.fx = { make(a, F) { if (f0) f0.make(a, F); U.make(a, F); }, tick(a, F, t, dt) { if (f0) f0.tick(a, F, t, dt); U.tick(a, F, t, dt || 0.016); } };
+  E.ev = (a, t0, t1, F) => { if (e0 && !U.solo) e0(a, t0, t1, F); U.ev(a, t0, t1, F); }; E.mus = 1; }
 const emOwns = (i) => !!EMOTES[i] && (EMOTES[i].price === 0 || W.own.has('em' + i));
 function emStart(a, i, t0) {
   emStop(a, true);
@@ -8228,7 +8358,7 @@ setInterval(() => {
    you've already passed. Rewards go straight to you as you reach them. What they give is yours for good, but it
    can't be traded or refunded; when the season ends, its things that aren't yours are no longer shown.
    ===================================================================== */
-const SP = { start: Date.UTC(2026, 10, 2, 8), end: Date.UTC(2027, 0, 1, 8), lvXp: 1000, price: 2500, max: 100, playXp: 10, playEvery: 30, newExpXp: 100, newExpMax: 5, achXp: 300 };
+const SP = { start: Date.UTC(2026, 10, 2, 0), end: Date.UTC(2027, 0, 1, 8), lvXp: 1000, price: 2500, max: 100, playXp: 10, playEvery: 30, newExpXp: 100, newExpMax: 5, achXp: 300 };
 const spOn = () => { const t = Date.now(); return t >= SP.start && t < SP.end; };
 const spState = () => W.sp || (W.sp = { s: 1, xp: 0, dx: false, got: [], gotD: [], q: null, ex: { d: '', l: [] }, play: 0 });
 const spLvl = () => Math.min(SP.max, 1 + Math.floor(spState().xp / SP.lvXp));
@@ -8303,7 +8433,7 @@ function spQuests() {
   if (!s.q) s.q = { d: '', dl: [], w: '', wl: [] };
   const games = SPQ.game.filter(([k]) => EXPS[k.split('.')[0]]);
   const mk = ([k, n, xp, t], mult = 1, xpm = 1) => ({ k, n: Math.round(n * mult), p: 0, xp: Math.round(xp * xpm / 50) * 50, t: t.replace(/\b(\d+)\b/, () => String(Math.round(n * mult))), done: false });
-  const game = (r, mult, xp) => { const [k, n, t] = games[Math.floor(r() * games.length)]; return mk([k, n, xp, t.replace(/\{(\w+)\}/, (_, e) => (EXPS[e] ? EXPS[e].name : e))], mult); };
+  const game = (r, mult, xp) => { const [k, n, t, mx] = games[Math.floor(r() * games.length)]; return mk([k, n, xp, t.replace(/\{(\w+)\}/, (_, e) => (EXPS[e] ? EXPS[e].name : e))], mx ? 1 : mult); }; // (a best-so-far quest — reach stage 10 — isn't made bigger for the week: there may not be a stage 40)
   if (s.q.d !== day) { const r = mulberry(+day.replace(/-/g, '') * 7 + 1); s.q.d = day; s.q.dl = [mk(SPQ.play[Math.floor(r() * SPQ.play.length)]), mk(SPQ.gen[Math.floor(r() * SPQ.gen.length)]), game(r, 1, 550)]; }
   if (s.q.w !== wk) { const r = mulberry(+wk.replace(/-/g, '') * 13 + 5), g = SPQ.gen.slice().sort(() => r() - 0.5);
     s.q.w = wk; s.q.wl = [mk(['pl.min', 120, 2500, 'Play for 120 minutes']), mk(['pl.exps', 8, 2500, 'Play 8 different experiences']), mk(g[0], 5, 6), game(r, 4, 2500), game(r, 4, 2500)]; }
