@@ -124,7 +124,9 @@
   .spcdbox .go{background:#fffbeb;color:#78350f;font:700 13px var(--fh);border-radius:12px;padding:8px 13px;box-shadow:0 3px 0 #b45309}
   .spdx{margin-top:4px;border:0;cursor:pointer;background:linear-gradient(180deg,#fde68a,#f59e0b);color:#3b1d00;font:700 14px var(--fh);border-radius:12px;padding:9px 14px;box-shadow:0 3px 0 #92400e;display:inline-flex;align-items:center;gap:6px}
   .spdx:hover{filter:brightness(1.08)}.spdx.on{cursor:default;background:linear-gradient(180deg,#7c3aed,#4c1d95);color:#fef3c7;box-shadow:0 3px 0 #2e1065}
-  .spqs{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}.spqs h3{margin:0 0 8px;font:700 16px var(--fh);color:#fde68a;display:flex;justify-content:space-between;align-items:baseline}.spqs h3 small{color:var(--dim);font:700 11px var(--fb)}
+  .spqs{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}.spqs>.sph{grid-column:1/-1}.sphl{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:0 10px}
+  #spPop{position:absolute;left:50%;bottom:96px;transform:translateX(-50%);z-index:30;pointer-events:none;display:none;flex-direction:column;align-items:center;gap:1px;padding:6px 16px 7px;border-radius:999px;background:linear-gradient(180deg,rgba(66,46,10,.86),rgba(30,20,6,.86));border:1px solid rgba(253,230,138,.55);box-shadow:0 4px 18px rgba(0,0,0,.35),0 0 18px rgba(251,191,36,.25)}#spPop b{font:800 17px/1.1 var(--fh);color:#fde68a;text-shadow:0 2px 0 rgba(0,0,0,.4)}#spPop small{font:700 11px/1.1 var(--fb);color:#fef3c7;opacity:.85}#spPop.on{display:flex;animation:spPop 1.7s ease-out forwards}
+  @keyframes spPop{0%{opacity:0;transform:translate(-50%,10px) scale(.88)}12%{opacity:1;transform:translate(-50%,0) scale(1.06)}22%{transform:translate(-50%,0) scale(1)}72%{opacity:1}100%{opacity:0;transform:translate(-50%,-16px)}}.spqs h3{margin:0 0 8px;font:700 16px var(--fh);color:#fde68a;display:flex;justify-content:space-between;align-items:baseline}.spqs h3 small{color:var(--dim);font:700 11px var(--fb)}
   .spq{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;background:linear-gradient(180deg,#2a2140,#181326);border:1px solid rgba(251,191,36,.18);border-radius:14px;padding:9px 12px;margin-bottom:7px}
   .spq .ic{font-size:22px}.spq b{font:700 13.5px var(--fh);color:#fff7ed}.spq small{color:var(--dim);font:700 11px var(--fb)}.spq .xp{font:700 13px var(--fh);color:#fcd34d;white-space:nowrap}
   .spd{font-style:normal;font:700 10px var(--fh);letter-spacing:.04em;text-transform:uppercase;border-radius:999px;padding:1px 7px;margin-left:4px;vertical-align:2px}.spd.d1{background:#166534;color:#bbf7d0}.spd.d2{background:#075985;color:#bae6fd}.spd.d3{background:#9a3412;color:#fed7aa}.spd.d4{background:#6b21a8;color:#f5d0fe}
@@ -7222,8 +7224,8 @@ W.ach = { c: {}, got: new Set() };
 const achTarget = (A) => (A.n === 'all' ? Object.keys(EXPS).length : A.n);
 const achOf = (key) => W.ach.c[key] || 0;
 const achFor = (slot, i) => ACH.find((A) => A.item && A.item[0] === slot && A.item[1] === i);
-function quest(key, n = 1) { if (!(n > 0)) return; W.ach.c[key] = achOf(key) + n; achCheck(key); spQuest(key, n, false); }
-function questMax(key, v) { spQuest(key, v, true); if (!(v > achOf(key))) return; W.ach.c[key] = v; achCheck(key); }
+function quest(key, n = 1) { if (!(n > 0)) return; W.ach.c[key] = achOf(key) + n; achCheck(key); spQuest(key, n, false); spDone(key, n, false); }
+function questMax(key, v) { spQuest(key, v, true); spDone(key, v, true); if (!(v > achOf(key))) return; W.ach.c[key] = v; achCheck(key); }
 function achCheck(key) {
   for (const A of ACH) if (A.key === key && !W.ach.got.has(A.id) && achOf(key) >= achTarget(A)) achAward(A);
   if (!achCheck.t) achCheck.t = setTimeout(() => { achCheck.t = 0; saveAv(); }, 1500); // (counts change often: saved now and then)
@@ -7284,9 +7286,9 @@ function loadAvFrom(d) {
     W.sk = { own: Array.isArray(k.own) ? k.own.filter((x) => typeof x === 'string' && /^[a-z]{1,12}\.[a-z]\d{1,2}$/.test(x)).slice(0, 200) : [], on }; }
   W.beats = Array.isArray(d.beats) ? d.beats.slice(0, 3).map((x) => (typeof x === 'string' && x.length < 260 ? x : '')) : [];
   { const o = d.sp && typeof d.sp === 'object' && d.sp.s === 1 ? d.sp : null, ints = (x) => (Array.isArray(x) ? x.filter((v) => Number.isInteger(v) && v >= 1 && v <= 100).slice(0, 100) : []); // (the season pass: this season's only)
-    const ql = (x) => (Array.isArray(x) ? x.slice(0, 6).filter((q) => q && typeof q.k === 'string').map((q) => ({ k: String(q.k).slice(0, 30), n: Math.max(1, +q.n || 1), p: Math.max(0, +q.p || 0), xp: Math.max(0, Math.min(5000, +q.xp || 0)), t: String(q.t || '').slice(0, 90), done: !!q.done, D: Math.max(1, Math.min(4, +q.D || 2)), src: ['play', 'gen', 'game', 'wplay'].includes(q.src) ? q.src : 'gen' })) : []);
+    const ql = (x) => (Array.isArray(x) ? x.slice(0, 6).filter((q) => q && typeof q.k === 'string').map((q) => ({ k: String(q.k).slice(0, 30), n: Math.max(1, +q.n || 1), p: Math.max(0, +q.p || 0), xp: Math.max(0, Math.min(5000, +q.xp || 0)), t: String(q.t || '').slice(0, 90), done: !!q.done, D: Math.max(1, Math.min(4, +q.D || 2)), src: ['play', 'gen', 'game', 'wplay', 'hgen', 'hgame'].includes(q.src) ? q.src : 'gen' })) : []);
     const cnt = (x) => { const r = {}; if (x && typeof x === 'object') for (const [k, v] of Object.entries(x)) if (/^(bx|bp)\d{1,3}$|^rr$/.test(k) && Number.isInteger(v) && v > 0) r[k] = Math.min(999, v); return r; };
-    W.sp = o ? { s: 1, xp: Math.max(0, Math.min(SP.max * SP.lvXp, Math.floor(+o.xp || 0))), dx: !!o.dx, got: ints(o.got), gotD: ints(o.gotD), q: o.q && typeof o.q === 'object' ? { v: o.q.v === 2 ? 2 : 1, d: String(o.q.d || '').slice(0, 10), dl: ql(o.q.dl), w: String(o.q.w || '').slice(0, 10), wl: ql(o.q.wl) } : null, inv: cnt(o.inv), act: { bx: Math.max(0, +(o.act && o.act.bx) || 0), bp: Math.max(0, +(o.act && o.act.bp) || 0) },
+    W.sp = o ? { s: 1, xp: Math.max(0, Math.min(SP.max * SP.lvXp, Math.floor(+o.xp || 0))), dx: !!o.dx, got: ints(o.got), gotD: ints(o.gotD), q: o.q && typeof o.q === 'object' ? { v: o.q.v === 2 ? 2 : 1, d: String(o.q.d || '').slice(0, 10), dl: ql(o.q.dl), w: String(o.q.w || '').slice(0, 10), wl: ql(o.q.wl), h: String(o.q.h || '').slice(0, 14), hl: ql(o.q.hl) } : null, inv: cnt(o.inv), act: { bx: Math.max(0, +(o.act && o.act.bx) || 0), bp: Math.max(0, +(o.act && o.act.bp) || 0) },
       ex: o.ex && Array.isArray(o.ex.l) ? { d: String(o.ex.d || '').slice(0, 10), l: o.ex.l.filter((x) => typeof x === 'string').slice(0, 40) } : { d: '', l: [] }, play: Math.max(0, +o.play || 0) } : null; }
   W.xown = Array.isArray(d.xown) ? d.xown.filter((x) => typeof x === 'string' && /^[A-Za-z0-9]{1,20}$/.test(x)).slice(0, 300) : [];
   { const w = okAx(d.wear ? [d.wear.h, d.wear.pt, d.wear.f].concat(Array.isArray(d.wear.acc) ? d.wear.acc.slice(0, ACC_WEAR) : []) : []); W.wear = { h: w[0], pt: w[1], f: w[2], acc: w.slice(3), hx: [] }; }
@@ -8741,7 +8743,57 @@ const SPQ = {
     ['bee.honey', 600, 2, 'Make {n} honey in {bee}'], ['hide.find', 1, 2, 'Find someone hiding in {hide}|Find {n} hiders in {hide}'], ['lava.win', 1, 3, 'Survive a round of {lava}|Survive {n} rounds of {lava}'], ['toh.half', 1, 4, 'Climb halfway up {toh}', 1], ['boat.stage', 3, 2, 'Sail to stage {n} in {boat}', 1], ['fruits.eat', 1, 1, 'Eat a Blox Fruit in {fruits}|Eat {n} Blox Fruits in {fruits}']],
 };
 const SPQ_MAX = new Set(['obby.stage', 'speed.zone', 'boat.stage', 'pl.exps', 'toh.half']);
-const SPQ_XP = { d: [0, 300, 550, 850, 1200], w: [0, 1500, 2200, 3000, 4000] }, SPQ_D = ['', 'Easy', 'Medium', 'Hard', 'Epic'];
+const SPQ_XP = { h: [0, 100, 150, 225, 300], d: [0, 300, 550, 850, 1200], w: [0, 1500, 2200, 3000, 4000] }, SPQ_D = ['', 'Easy', 'Medium', 'Hard', 'Epic'];
+// ⏰ hourly quests: three new ones every hour — two quick ones from these and one in a game (the day's game quests made
+// smaller: about half as many, a step easier), worth less than a day's but done in a few minutes
+const SPQ_H = [['pl.min', 10, 1, 'Play for {n} minutes'], ['any.win', 1, 2, 'Win a round, match or race in any game'], ['bv.emote', 2, 1, 'Do {n} emotes in games'], ['bv.jump', 30, 1, 'Jump {n} times'], ['bv.earned', 150, 1, 'Earn {n} Blox Coins'], ['any.win', 2, 3, 'Win {n} rounds, matches or races'], ['pl.min', 20, 2, 'Play for {n} minutes']];
+const spGamesH = () => spGames().map(([k, n, D, t, mx]) => { const nn = Math.max(1, Math.round(n * (mx ? 0.5 : 0.4))); return [k, nn, nn < n ? Math.max(1, D - 1) : D, t, mx]; });
+const hourStr = (t) => `${dayStr(t)}h${new Date(t).getHours()}`;
+/* ⭐ finishing something in a game — a stage, a round, a race, a wave, a match, a night — gives pass XP there and then:
+   10 for the easy ones, 15, 20, up to 30 for the hardest (a whole obby, a boss, the top of the tower). It comes from
+   what the games already count: [XP, what it says, how it's counted]. quest() counts (each time it happens: one each);
+   questMax() bests: 'up' — each step past where you'd got to this visit (the first count when a game opens is where you
+   are, not a step; going back down is a new run starting); 'z' — the same from nothing; 'each' — every count after the
+   first is one; 'n' — each count is that many at once (waves survived in a game, up to 10). Two at once for the same
+   thing (a race finished and won) give the bigger one, not both */
+const SPX = {
+  'obby.win': [30, 'Obby complete!'], 'kart.finish': [15, 'Race finished'], 'kart.win': [20, 'Race won!'], 'lava.win': [20, 'Survived the lava'],
+  'rlgl.finish': [15, 'Made it across'], 'rlgl.win': [20, 'Won the round!'], 'color.win': [20, 'Won Color Block!'], 'murder.win': [15, 'Round won'], 'murder.hero': [30, 'The hero!'],
+  'tag.win': [20, 'Won the round!'], 'blade.win': [20, 'Won the round!'], 'aura.win': [15, 'Round won'], 'forsaken.survive': [20, 'Survived the killer'], 'forsaken.gen': [10, 'Generator fixed'],
+  'golf.round': [15, 'Round of golf done'], 'golf.birdie': [20, 'Birdie!'], 'golf.ace': [30, 'Hole in one!'], 'hide.find': [10, 'Found a hider'], 'hide.hid': [15, 'Stayed hidden'],
+  'speed.finish': [15, 'Course finished'], 'cars.lap': [10, 'Lap done'], 'park.ride': [10, 'Ride done'], 'pizza.deliver': [10, 'Pizza delivered'], 'tds.win': [20, 'Defended the base!'], 'tds.hard': [30, 'Won on hard!'],
+  'zombie.boss': [30, 'Boss down!'], 'fruits.vadmiral': [30, 'Boss beaten!'], 'nds.double': [20, 'Survived a double disaster'], 'army.fought': [15, 'Battle fought'], 'egg.steal': [10, 'Egg stolen'],
+};
+const SPXM = {
+  'obby.stage': [10, 'Stage reached', 'up'], 'boat.stage': [15, 'Stage reached', 'up'], 'speed.zone': [15, 'New zone', 'up'], 'toh.half': [20, 'Halfway up the tower', 'z'], 'toh.win': [30, 'Top of the tower!', 'up'],
+  'nds.survive': [15, 'Survived a disaster', 'up'], 'zombie.night': [20, 'Survived the night', 'up'], 'shaft.layer': [10, 'Deeper than ever', 'up'], 'army.win': [20, 'Battle won!', 'up'], 'rivals.win': [20, 'Match won!', 'up'],
+  'pets.zone': [15, 'New zone', 'up'], 'pvz.lvl': [15, 'Level beaten', 'each'], 'tds.wave': [10, 'Waves survived', 'n'],
+};
+const SPXR = [30, 'Rebirth!', 'up']; // (any game's rebirth: '<game>.rebirth')
+let SPXB = {}, spxLast = { k: '', t: 0, xp: 0 }; // (this visit's bests; the last one given)
+function spDone(key, v, max) {
+  if (!(max ? v >= 0 : v > 0)) return; // (a best of 0 is still where you are: stage 0 of a new obby)
+  let xp, what, units = 1;
+  if (!max) { const r = SPX[key]; if (!r) return; [xp, what] = r; units = Math.min(3, v | 0 || 1); }
+  else { const r = SPXM[key] || (/\.rebirth$/.test(key) ? SPXR : null); if (!r) return; let mode; [xp, what, mode] = r;
+    if (mode === 'n') units = Math.min(10, v | 0);
+    else { const b = SPXB[key];
+      if (b == null && mode !== 'z') { SPXB[key] = v; return; } // (where you are when the game opens)
+      if (mode === 'each') { SPXB[key] = v; units = 1; }
+      else { const b0 = b == null ? 0 : b; if (v === b0) return; units = v > b0 ? Math.min(3, Math.round(v - b0)) : 1; SPXB[key] = v; } } } // (back down: a new run)
+  if (!(units > 0) || !playing || !spOn() || !W.loaded) return; // (where you are is noted even while a game's still opening; XP only once you're in)
+  const now = performance.now(); let n = xp * units;
+  if (now - spxLast.t < 1500 && spxLast.k !== key) { n = Math.max(0, xp - spxLast.xp); spxLast.xp = Math.max(spxLast.xp, xp); } else spxLast = { k: key, t: now, xp }; // (finished and won at once: the bigger one)
+  spxLast.t = now; if (!n) return;
+  spPop(n * (spBoostOn('bp') ? 2 : 1), what); spXp(n);
+}
+// a little "+15 XP" that rises and fades low in the middle of the screen, over the stage / round display (several close together add up)
+let spPopT = 0, spPopN = 0, spPopTO = 0;
+function spPop(n, what) {
+  let el = $('#spPop'); if (!el) { el = document.createElement('div'); el.id = 'spPop'; $('#toast').parentNode.append(el); } // (beside the toasts, over the game)
+  const now = performance.now(); spPopN = now - spPopT < 1600 ? spPopN + n : n; spPopT = now;
+  el.innerHTML = `<b>🏛️ +${spPopN} XP</b><small>${esc(what)}</small>`; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); clearTimeout(spPopTO); spPopTO = setTimeout(() => el.classList.remove('on'), 1750); // (and gone, even where animations don't run)
+}
 const weekStr = (t) => { const d = new Date(t); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return dayStr(d.getTime()); }; // (the Monday it began)
 // a quest from its row: sc 'd' (daily) or 'w' (weekly: bigger numbers — and a step harder — and more XP)
 function spMkQ([k, n, D, t, mx], sc, mult = 1, src = 'gen') {
@@ -8752,26 +8804,30 @@ function spMkQ([k, n, D, t, mx], sc, mult = 1, src = 'gen') {
 const spGames = () => SPQ.game.filter(([k]) => EXPS[k.split('.')[0]]);
 function spQuests() {
   const s = spState(), day = dayStr(Date.now()), wk = weekStr(Date.now());
-  if (!s.q || s.q.v !== 2) s.q = { v: 2, d: '', dl: [], w: '', wl: [] }; // (v2: quests know how hard they are)
+  if (!s.q || s.q.v !== 2) s.q = { v: 2, d: '', dl: [], w: '', wl: [], h: '', hl: [] }; // (v2: quests know how hard they are)
+  if (!s.q.hl) { s.q.h = ''; s.q.hl = []; }
   const games = spGames(), pick = (r, L) => L[Math.floor(r() * L.length)];
   if (s.q.d !== day) { const r = mulberry(+day.replace(/-/g, '') * 7 + 1); s.q.d = day; s.q.dl = [spMkQ(pick(r, SPQ.play), 'd', 1, 'play'), spMkQ(pick(r, SPQ.gen), 'd', 1, 'gen'), spMkQ(pick(r, games), 'd', 1, 'game')]; }
   if (s.q.w !== wk) { const r = mulberry(+wk.replace(/-/g, '') * 13 + 5), g = SPQ.gen.slice(0, 5).sort(() => r() - 0.5), gm = games.slice().sort(() => r() - 0.5);
     s.q.w = wk; s.q.wl = [spMkQ(['pl.min', 120, 3, 'Play for {n} minutes'], 'w', 1, 'wplay'), spMkQ(['pl.exps', 8, 3, 'Play {n} different experiences'], 'w', 1, 'wplay'), spMkQ(g[0], 'w', 5, 'gen'), spMkQ(gm[0], 'w', 4, 'game'), spMkQ(gm[1], 'w', 4, 'game')]; }
+  const hr = hourStr(Date.now());
+  if (s.q.h !== hr) { const r = mulberry(+day.replace(/-/g, '') * 31 + new Date().getHours() * 977 + 3), g = SPQ_H.slice().sort(() => r() - 0.5).filter((x, i, L) => L.findIndex((y) => y[0] === x[0]) === i), gh = spGamesH();
+    s.q.h = hr; s.q.hl = [spMkQ(g[0], 'h', 1, 'hgen'), spMkQ(g[1], 'h', 1, 'hgen'), (gh.length ? spMkQ(pick(r, gh), 'h', 1, 'hgame') : spMkQ(g[2], 'h', 1, 'hgen'))]; } // (two quick ones, never the same counter twice, and one in a game)
   return s.q;
 }
 // 🔄 a quest swapped for another of the same sort (one of your rerolls)
 function spReroll(w, j) {
-  const s = spState(), inv = s.inv || (s.inv = {}), Q = spQuests(), L = w === 'w' ? Q.wl : Q.dl, q = L[j]; if (!q || q.done || !(inv.rr > 0)) return false;
-  const have = new Set(L.map((x) => x.k + x.n)), src = q.src === 'wplay' ? 'game' : q.src || 'gen', pool = src === 'play' ? SPQ.play : src === 'game' ? spGames() : SPQ.gen;
+  const s = spState(), inv = s.inv || (s.inv = {}), Q = spQuests(), L = w === 'w' ? Q.wl : w === 'h' ? Q.hl : Q.dl, q = L[j]; if (!q || q.done || !(inv.rr > 0)) return false;
+  const have = new Set(L.map((x) => x.k + x.n)), src = q.src === 'wplay' ? 'game' : q.src || 'gen', pool = src === 'play' ? SPQ.play : src === 'game' ? spGames() : src === 'hgen' ? SPQ_H : src === 'hgame' ? spGamesH() : SPQ.gen;
   const mult = w === 'w' ? (src === 'game' ? 4 : src === 'gen' ? 5 : 1) : 1, opts = pool.map((d) => spMkQ(d, w, mult, src)).filter((x) => !have.has(x.k + x.n));
-  if (!opts.length) { toast('No other quests like that one today', '#cbd5e1'); return false; }
+  if (!opts.length) { toast(`No other quests like that one ${w === 'h' ? 'this hour' : w === 'w' ? 'this week' : 'today'}`, '#cbd5e1'); return false; }
   inv.rr--; L[j] = opts[Math.floor(Math.random() * opts.length)]; sfx('click'); toast(`🔄 New quest: ${L[j].t} (${SPQ_D[L[j].D]}, +${L[j].xp.toLocaleString('en-US')} XP)`, '#fcd34d'); saveAv(); spRedraw(); return true;
 }
 // something the games counted (quest() / questMax()): any quest waiting for it moves on
 function spQuest(key, n, max) {
   if (!spOn() || !W.loaded) return;
   const Q = spQuests(), win = !max && /\.win$/.test(key);
-  for (const q of Q.dl.concat(Q.wl)) {
+  for (const q of Q.hl.concat(Q.dl, Q.wl)) {
     if (q.done || !(q.k === key || (q.k === 'any.win' && win))) continue;
     q.p = SPQ_MAX.has(q.k) || max ? Math.max(q.p, n) : q.p + n;
     if (q.p >= q.n) { q.p = q.n; q.done = true; sfx('reward'); toast(`🏛️ Quest done: ${q.t}! +${q.xp} XP`, '#fcd34d'); spXp(q.xp, `quest: ${q.t}`); }
@@ -8780,6 +8836,7 @@ function spQuest(key, n, max) {
 }
 // a new experience today: a bonus for the first few; and minutes played
 function spEnter(id) {
+  SPXB = {}; spxLast = { k: '', t: 0, xp: 0 }; // (stages and rounds: counted from where you are in this one)
   if (!spOn() || !W.loaded) return; const s = spState(), day = dayStr(Date.now());
   if (s.ex.d !== day) s.ex = { d: day, l: [] };
   if (!s.ex.l.includes(id)) { s.ex.l.push(id); if (s.ex.l.length <= SP.newExpMax) spXp(SP.newExpXp, `a new experience today (${s.ex.l.length} of ${SP.newExpMax})`); }
@@ -8840,17 +8897,17 @@ function spHtml(inGame) {
       <b>${esc(nm)}</b><small>${esc(kind)}</small>${got ? '<span class="st">✓</span>' : lock ? '<span class="st">🔒</span>' : ''}${cos ? `<button class="sptry" data-sptry="${k}${i}" title="See it on you">👀</button>` : ''}</div>`;
   };
   const cols = []; for (let L0 = 1; L0 <= SP.max; L0++) cols.push(`<div class="spcol${L0 === L ? ' cur' : ''}${L0 <= L ? ' done' : ''}${big(L0, 'f') || big(L0, 'd') ? ' wide' : ''}" data-l="${L0}"><span class="n">${L0}</span>${cell(L0, 'f')}${cell(L0, 'd')}</div>`);
-  const tomorrow = new Date(); tomorrow.setHours(24, 0, 0, 0); const nextWk = new Date(weekStr(Date.now()) + 'T00:00:00').getTime() + 7 * 864e5;
+  const tomorrow = new Date(); tomorrow.setHours(24, 0, 0, 0); const nextHr = new Date(); nextHr.setMinutes(60, 0, 0); const nextWk = new Date(weekStr(Date.now()) + 'T00:00:00').getTime() + 7 * 864e5;
   return `<div class="sppage${inGame ? ' ingame' : ''}">
     <div class="sphero"><div class="spfx"><span class="sun"></span><i class="c1">🏛️</i><i class="c2">⚔️</i><i class="c3">🐉</i></div>
-      <div class="spt"><span class="tag">🏛️ Season 1</span><h2>Legends of Old</h2><p>Gods and monsters, hoplites and knights. Level up by playing any game (XP every 30 seconds), trying new ones each day, earning achievements and doing quests. Rewards are yours the moment you reach them.</p></div>
+      <div class="spt"><span class="tag">🏛️ Season 1</span><h2>Legends of Old</h2><p>Gods and monsters, hoplites and knights. Level up by playing any game (XP every 30 seconds), finishing stages, rounds, races and waves (10–30 XP each — more for harder ones), trying new games each day, earning achievements and doing hourly, daily and weekly quests. Rewards are yours the moment you reach them.</p></div>
       <div class="spcdbox"><small>Level</small><b class="splv">${L}<span>/${SP.max}</span></b><div class="spbar"><i style="width:${(100 * f).toFixed(1)}%"></i></div><small>${L >= SP.max ? 'Max level!' : `${(s.xp % SP.lvXp).toLocaleString('en-US')} / ${SP.lvXp.toLocaleString('en-US')} XP`} · ends in <span class="spcd">${spLeft()}</span></small>
         ${s.dx ? '<span class="spdx on">👑 Deluxe</span>' : `<button class="spdx" data-spbuy="1">👑 Get Deluxe · <span class="coin sm"></span> ${SP.price.toLocaleString('en-US')}</button>`}</div></div>
-    <div class="spqs"><div><h3>📜 Daily quests <small>new in ${spLeft(tomorrow.getTime())}</small></h3>${Q.dl.map((q, j) => qrow(q, j, 'd')).join('')}</div><div><h3>🗓️ Weekly quests <small>new in ${spLeft(nextWk)}</small></h3>${Q.wl.map((q, j) => qrow(q, j, 'w')).join('')}</div></div>
+    <div class="spqs"><div class="sph"><h3>⏰ Hourly quests <small>new in ${Math.max(1, Math.ceil((nextHr.getTime() - Date.now()) / 6e4))} min</small></h3><div class="sphl">${Q.hl.map((q, j) => qrow(q, j, 'h')).join('')}</div></div><div><h3>📜 Daily quests <small>new in ${spLeft(tomorrow.getTime())}</small></h3>${Q.dl.map((q, j) => qrow(q, j, 'd')).join('')}</div><div><h3>🗓️ Weekly quests <small>new in ${spLeft(nextWk)}</small></h3>${Q.wl.map((q, j) => qrow(q, j, 'w')).join('')}</div></div>
     ${invHtml}
     <h3 class="sptitle"><span>🎁 Rewards</span><span class="sptracks"><i class="f">Free</i><i class="d">👑 Deluxe</i></span><button class="spjump" data-spjump="1">Go to level ${L}</button></h3>
     <div class="sptrack">${cols.join('')}</div>
-    <p class="note">🏛️ Avatar items and emotes from the pass are yours for good, but they can't be traded or refunded. Boosts wait here until you use them; game items go straight into that game’s 🛒 Shop (passes for good, the rest to use up). Harder quests give more XP. The Deluxe pass gives you its track's rewards for every level you've already reached, straight away. When the season ends, its rewards you don't have are no longer shown.</p></div>`;
+    <p class="note">🏛️ Avatar items and emotes from the pass are yours for good, but they can't be traded or refunded. Boosts wait here until you use them; game items go straight into that game’s 🛒 Shop (passes for good, the rest to use up). Harder quests give more XP; finishing a stage, round, race or wave gives 10–30 XP straight away, more for harder ones. The Deluxe pass gives you its track's rewards for every level you've already reached, straight away. When the season ends, its rewards you don't have are no longer shown.</p></div>`;
 }
 function spPage() { return `<div class="edetail still"><button class="back" id="backBtn">← All experiences</button>${spHtml(false)}</div>`; }
 function spClick(e) {
