@@ -4582,6 +4582,117 @@ function camShake(a, k) { if (!me || !a || !a.g) return; const p = a.g.position,
 function emFlash(a, col = '#ffffff', k = 0.6) { if (a !== me) return; let el = document.getElementById('emflash'); if (!el) { el = document.createElement('div'); el.id = 'emflash'; el.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:40;opacity:0;transition:opacity .35s ease-out'; document.body.append(el); } el.style.background = col; el.style.transition = 'none'; el.style.opacity = k; void el.offsetWidth; el.style.transition = 'opacity .45s ease-out'; el.style.opacity = 0; }
 // a word in big letters (a battle cry), rising and fading
 function emWord(F, text, col, y = 7.2) { const s = label(text, { size: 1.6, color: col, bg: 'rgba(0,0,0,0)', weight: 900 }); s.material.userData.ownMap = 1; s.position.set(0, y, 0); F.root.add(s); return s; }
+/* ---------------- 🏛️ what the Season Pass emotes are made with ----------------
+   emCyc(t0, t1, cyc): where a looping emote is in its cycle ([c0, c1], c0 below 0 when it's just gone round — so
+   crossed(c0, c1, T) and beatOf work across the loop). emLoopBeat: a step of a looping emote's music, fn(n, B, loop).
+   emAim(o, a, side, psi): a thing held in a hand turned so it points at psi (its pitch on the body: 0 ahead, π/2 straight
+   up) whatever the arm is doing — swords, torches and spears stay where they should. emHand: where a hand is on the
+   emote's ground. emVox: a crowd of voices shouting a vowel (o.fa: from, o.fu: to). The props: a sword, a round shield,
+   a trident, a torch, a lyre, a lute, a bow, an arrow, a laurel wreath, a stone. */
+const emCyc = (t0, t1, cyc) => { let c0 = t0 % cyc; const c1 = t1 % cyc; if (c1 < c0 || t0 <= 0) c0 -= cyc; return [c0, c1]; };
+function emLoopBeat(a, t0, t1, cyc, step, fn) { const [c0, c1] = emCyc(t0, t1, cyc), n = beatOf(c0, c1, step); if (n >= 0) emBand(a, (B) => fn(n, B, Math.floor(t1 / cyc))); }
+const emLoopStep = (t0, t1, cyc, step) => { const [c0, c1] = emCyc(t0, t1, cyc); return beatOf(c0, c1, step); }; // (the same step, for what you see)
+function emAim(o, a, s, psi) { const arm = s < 0 ? a.armL : a.armR, el = a.r15 ? (s < 0 ? a.elL : a.elR) : null; o.rotation.x = psi - arm.rotation.x - (el ? el.rotation.x : 0); }
+function emHand(a, F, s, out) { limbEnd(a, false, s, out); return F.root.worldToLocal(out); }
+const _eh = new THREE.Vector3(), _eh2 = new THREE.Vector3();
+const plat = (c, a, b, ri = 0.3, ro = 0.3) => (c <= a || c >= b ? 0 : smooth((c - a) / ri) * smooth((b - c) / ro)); // (0 → 1, held, → 0)
+const VOW = { a: [760, 1150], o: [500, 880], u: [330, 760], e: [500, 1800], i: [300, 2200] };
+function emVox(B, o) {
+  B.raw((ac, d, t) => { const n = o.n || 4, L = o.len || 0.4;
+    for (let i = 0; i < n; i++) { const f0 = (o.f || 130) * (1 + (i - (n - 1) / 2) * 0.09), T = t + (o.dt || 0) + i * 0.018, os = ac.createOscillator(), g = ac.createGain(), vib = ac.createOscillator(), vg = ac.createGain(); os.type = 'sawtooth';
+      os.frequency.setValueAtTime(f0 * 0.84, T); os.frequency.linearRampToValueAtTime(f0 * 1.1, T + Math.min(0.18, L * 0.3)); os.frequency.linearRampToValueAtTime(f0 * (o.fall || 0.9), T + L);
+      vib.frequency.value = 5 + Math.random(); vg.gain.value = f0 * 0.02; vib.connect(vg); vg.connect(os.frequency); synEnv(g.gain, T, 0.03, L, (o.v || 0.4) / Math.sqrt(n));
+      const fa = VOW[o.fa || 'a'], fu = VOW[o.fu || o.fa || 'a'];
+      for (const [a1, a2, q, kk] of [[fa[0], fu[0], 5, 1], [fa[1], fu[1], 6, 0.6], [2450, 2300, 7, 0.2]]) { const f = ac.createBiquadFilter(), fg = ac.createGain(); f.type = 'bandpass'; f.Q.value = q; f.frequency.setValueAtTime(a1, T); f.frequency.setValueAtTime(a1, T + L * 0.2); f.frequency.exponentialRampToValueAtTime(a2, T + L * 0.6); fg.gain.value = kk * 3; os.connect(f); f.connect(fg); fg.connect(g); }
+      g.connect(d); os.start(T); vib.start(T); os.stop(T + L + 0.1); vib.stop(T + L + 0.1); } });
+}
+// a bird's cry (the phoenix): a bright voice swooping up and down with a fast warble
+const emCry = (B, f = 1300, dt = 0, v = 0.18) => B.raw((ac, d, t) => { const T = t + dt, o = ac.createOscillator(), g = ac.createGain(), w = ac.createOscillator(), wg = ac.createGain(), fl = ac.createBiquadFilter();
+  o.type = 'sawtooth'; o.frequency.setValueAtTime(f * 0.7, T); o.frequency.exponentialRampToValueAtTime(f * 1.4, T + 0.25); o.frequency.exponentialRampToValueAtTime(f * 0.8, T + 1.1);
+  w.frequency.value = 22; wg.gain.value = f * 0.06; w.connect(wg); wg.connect(o.frequency); fl.type = 'bandpass'; fl.frequency.value = f * 1.6; fl.Q.value = 1.4; synEnv(g.gain, T, 0.04, 1.2, v);
+  o.connect(fl); fl.connect(g); g.connect(d); o.start(T); w.start(T); o.stop(T + 1.3); w.stop(T + 1.3); });
+// textures: a laurel leaf, rock with moss, water with foam at the crest, a storm cloud, an all-seeing eye, a banner, sun rays, a ring of Greek letters
+const leafTex = () => kCanvas('laurelLeaf', 32, 64, (g) => { const gr = g.createLinearGradient(0, 0, 32, 0); gr.addColorStop(0, '#3f6212'); gr.addColorStop(0.5, '#84cc16'); gr.addColorStop(1, '#365314'); g.fillStyle = gr;
+  g.beginPath(); g.moveTo(16, 2); g.quadraticCurveTo(31, 30, 16, 62); g.quadraticCurveTo(1, 30, 16, 2); g.fill(); g.strokeStyle = 'rgba(236,252,203,.7)'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(16, 6); g.lineTo(16, 58); g.stroke(); });
+const stoneTex = () => kCanvas('stoneRock', 128, 128, (g, r) => { g.fillStyle = '#8b8d90'; g.fillRect(0, 0, 128, 128);
+  for (let k = 0; k < 700; k++) { const v = 90 + r() * 90; g.fillStyle = `rgba(${v},${v},${v + 4},${0.25 + r() * 0.3})`; g.fillRect(r() * 128, r() * 128, 1 + r() * 4, 1 + r() * 4); }
+  g.strokeStyle = 'rgba(30,30,32,.6)'; g.lineWidth = 1.2; for (let k = 0; k < 7; k++) { let x = r() * 128, y = r() * 128; g.beginPath(); g.moveTo(x, y); for (let q = 0; q < 6; q++) { x += (r() - 0.5) * 30; y += r() * 18; g.lineTo(x, y); } g.stroke(); }
+  for (let k = 0; k < 16; k++) { g.fillStyle = `rgba(${60 + r() * 40},${110 + r() * 50},${30 + r() * 20},${0.35 + r() * 0.3})`; g.beginPath(); g.ellipse(r() * 128, r() * 40, 4 + r() * 12, 3 + r() * 6, 0, 0, 7); g.fill(); } });
+const waterTex = () => kCanvas('tideWater', 128, 128, (g, r) => { const gr = g.createLinearGradient(0, 128, 0, 0); gr.addColorStop(0, 'rgba(8,47,73,.95)'); gr.addColorStop(0.55, 'rgba(14,116,144,.85)'); gr.addColorStop(0.85, 'rgba(103,232,249,.85)'); gr.addColorStop(1, 'rgba(240,253,255,.95)'); g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
+  for (let k = 0; k < 60; k++) { const y = r() * 128; g.strokeStyle = `rgba(236,254,255,${(1 - y / 128) * 0.55 + 0.05})`; g.lineWidth = 1 + r() * 2; g.beginPath(); const x = r() * 128; g.moveTo(x, y); g.quadraticCurveTo(x + 10, y - 4, x + 20 + r() * 20, y + (r() - 0.5) * 6); g.stroke(); } });
+const cloudTex = () => kCanvas('stormCloud', 128, 128, (g, r) => { for (let k = 0; k < 14; k++) { const x = 30 + r() * 68, y = 34 + r() * 60, rr = 18 + r() * 26, gr = g.createRadialGradient(x, y, 2, x, y, rr), v = 70 + r() * 50; gr.addColorStop(0, `rgba(${v},${v},${v + 12},.9)`); gr.addColorStop(1, `rgba(${v},${v},${v + 12},0)`); g.fillStyle = gr; g.fillRect(0, 0, 128, 128); } });
+const eyeTex = () => kCanvas('seeingEye', 128, 64, (g) => { g.shadowColor = '#c084fc'; g.shadowBlur = 10; g.strokeStyle = '#f5d0fe'; g.lineWidth = 4; g.beginPath(); g.moveTo(6, 32); g.quadraticCurveTo(64, -10, 122, 32); g.quadraticCurveTo(64, 74, 6, 32); g.stroke();
+  const gr = g.createRadialGradient(64, 32, 2, 64, 32, 20); gr.addColorStop(0, '#ffffff'); gr.addColorStop(0.35, '#e879f9'); gr.addColorStop(1, '#6b21a8'); g.fillStyle = gr; g.beginPath(); g.arc(64, 32, 19, 0, 7); g.fill(); g.fillStyle = '#1e0533'; g.beginPath(); g.ellipse(64, 32, 4, 13, 0, 0, 7); g.fill(); });
+const bannerTex = () => kCanvas('oathBanner', 128, 256, (g) => { g.fillStyle = '#1e3a8a'; g.beginPath(); g.moveTo(0, 0); g.lineTo(128, 0); g.lineTo(128, 256); g.lineTo(64, 206); g.lineTo(0, 256); g.closePath(); g.fill();
+  g.strokeStyle = '#fbbf24'; g.lineWidth = 8; g.stroke(); g.fillStyle = '#fbbf24'; g.fillRect(58, 30, 12, 140); g.fillRect(30, 62, 68, 11); g.beginPath(); g.arc(64, 26, 9, 0, 7); g.fill(); // (a sword, point down)
+  g.beginPath(); g.moveTo(34, 196); g.lineTo(38, 176); g.lineTo(50, 186); g.lineTo(64, 168); g.lineTo(78, 186); g.lineTo(90, 176); g.lineTo(94, 196); g.closePath(); g.fill(); // (a crown)
+  g.fillStyle = '#dc2626'; for (const x of [50, 64, 78]) { g.beginPath(); g.arc(x, 190, 3, 0, 7); g.fill(); } });
+const raysTex = () => kCanvas('sunRays', 256, 256, (g, r) => { g.translate(128, 128); for (let k = 0; k < 24; k++) { g.rotate(Math.PI * 2 / 24); const w = 4 + r() * 8, gr = g.createLinearGradient(0, 0, 0, -128); gr.addColorStop(0, 'rgba(255,255,255,.9)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.beginPath(); g.moveTo(-w, 0); g.lineTo(0, -(80 + r() * 48)); g.lineTo(w, 0); g.fill(); } });
+const greekRingTex = () => kCanvas('greekRing', 256, 256, (g) => { g.translate(128, 128); g.strokeStyle = '#fff'; g.fillStyle = '#fff'; g.shadowColor = '#fff'; g.shadowBlur = 6;
+  for (const [rr, lw] of [[124, 3], [98, 2], [60, 2]]) { g.lineWidth = lw; g.beginPath(); g.arc(0, 0, rr, 0, 7); g.stroke(); }
+  g.font = 'bold 20px serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; const L = 'ΓΝΩΘΙΣΕΑΥΤΟΝΜΗΔΕΝΑΓΑΝ'; for (let k = 0; k < L.length; k++) { g.save(); g.rotate((k / L.length) * Math.PI * 2); g.fillText(L[k], 0, -111); g.restore(); } // (know thyself; nothing in excess)
+  g.lineWidth = 2; for (let k = 0; k < 8; k++) { const an = k / 8 * Math.PI * 2; g.beginPath(); g.moveTo(Math.cos(an) * 60, Math.sin(an) * 60); g.lineTo(Math.cos(an) * 98, Math.sin(an) * 98); g.stroke(); } });
+// a sword (len: the blade; o.glow: a light in the blade; o.big: a greatsword), along -z from the fist
+function emSwordProp(par, o = {}) {
+  const g = new THREE.Group(); par.add(g); const L = o.len || 3.0, w = o.big ? 0.36 : 0.26;
+  const steel = metalMat(o.steel || '#dfe4ea', { shininess: 120 }), gold = metalMat(o.gold || '#e8b84a', { specular: '#fff2c0' }), grip = new THREE.MeshLambertMaterial({ color: o.grip || '#3b2414', map: leatherTex() });
+  const blade = new THREE.Mesh(kg(`emBlade${L}|${w}`, () => { const sh = new THREE.Shape(); sh.moveTo(-w / 2, 0); sh.lineTo(w / 2, 0); sh.lineTo(w * 0.42, L * 0.82); sh.lineTo(0, L); sh.lineTo(-w * 0.42, L * 0.82); sh.closePath(); const q = new THREE.ExtrudeGeometry(sh, { depth: 0.03, bevelEnabled: true, bevelThickness: 0.025, bevelSize: 0.035, bevelSegments: 1 }); q.translate(0, 0, -0.015); return q; }), steel);
+  blade.rotation.x = -Math.PI / 2; blade.position.z = -0.3; g.add(blade);
+  const ful = new THREE.Mesh(BOX, o.glow ? new THREE.MeshBasicMaterial({ color: o.glow, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false }) : metalMat('#8a929c')); ful.scale.set(w * 0.22, 0.07, L * 0.7); ful.position.set(0, 0, -0.3 - L * 0.38); g.add(ful);
+  const gd = new THREE.Mesh(BOX, gold); gd.scale.set(o.big ? 1.3 : 0.95, 0.14, 0.16); gd.position.z = -0.24; g.add(gd);
+  for (const s of [-1, 1]) { const q = new THREE.Mesh(kSph(), gold); q.scale.setScalar(0.1); q.position.set(s * (o.big ? 0.66 : 0.49), 0, -0.3); g.add(q); }
+  const gp = new THREE.Mesh(kCyl(), grip); gp.scale.set(0.07, o.big ? 0.95 : 0.6, 0.07); gp.rotation.x = Math.PI / 2; gp.position.z = o.big ? 0.22 : 0.06; g.add(gp);
+  const pm = new THREE.Mesh(kSph(), gold); pm.scale.setScalar(0.13); pm.position.z = o.big ? 0.75 : 0.42; g.add(pm);
+  if (o.gem) { const gm = new THREE.Mesh(new THREE.OctahedronGeometry(0.09), new THREE.MeshPhongMaterial({ color: o.gem, emissive: o.gem, emissiveIntensity: 0.5, shininess: 120 })); gm.position.set(0, 0, o.big ? 0.75 : 0.42); gm.scale.set(1, 1, 1.4); g.add(gm);
+    const gc = new THREE.Mesh(BOX, gold); gc.scale.set(0.3, 0.1, 0.1); gc.position.z = -0.24; g.add(gc); }
+  g.userData.tip = new THREE.Object3D(); g.userData.tip.position.z = -0.3 - L; g.add(g.userData.tip);
+  return g;
+}
+// a round shield (its face along -z of the hand), a trident, a torch (flames along -z), a bow (its limbs up and down, the string towards you) and an arrow
+function emShieldProp(par, myr) { const g = new THREE.Group(); par.add(g); const f = new THREE.Mesh(aspisGeo(), metalMat('#ffffff', { map: aspisTex(myr), shininess: 110, reflectivity: 0.45 })); f.rotation.set(-Math.PI / 2, Math.PI, 0); g.add(f);
+  const bk = new THREE.Mesh(aspisGeo(), new THREE.MeshLambertMaterial({ color: '#8a6238', map: woodTex(), side: THREE.BackSide })); bk.rotation.copy(f.rotation); g.add(bk); g.scale.setScalar(0.9); return g; }
+function emTridentProp(par) { const g = new THREE.Group(); par.add(g); const sh = metalMat('#2dd4bf', { specular: '#ccfbf1' }), gold = metalMat('#e8b84a');
+  const s = new THREE.Mesh(kCyl(), sh); s.scale.set(0.07, 5.2, 0.07); s.rotation.x = Math.PI / 2; s.position.z = -0.9; g.add(s);
+  const cr = new THREE.Mesh(BOX, gold); cr.scale.set(0.9, 0.12, 0.14); cr.position.z = -3.5; g.add(cr);
+  for (const x of [-0.42, 0, 0.42]) { const p = new THREE.Mesh(kCyl(), gold); p.scale.set(0.05, x ? 0.9 : 1.15, 0.05); p.rotation.x = Math.PI / 2; p.position.set(x, 0, -3.5 - (x ? 0.45 : 0.57)); g.add(p);
+    const tp = new THREE.Mesh(kCone(), gold); tp.scale.set(0.11, 0.38, 0.06); tp.rotation.x = -Math.PI / 2; tp.position.set(x, 0, -3.5 - (x ? 0.95 : 1.2)); g.add(tp);
+    const bb = new THREE.Mesh(kCone(), gold); bb.scale.set(0.05, 0.2, 0.05); bb.rotation.set(Math.PI / 2, 0, x < 0 ? -0.6 : 0.6); bb.position.set(x + (x < 0 ? 0.08 : x > 0 ? -0.08 : 0.08), 0, -3.5 - (x ? 0.82 : 1.05)); g.add(bb); }
+  const gl = kitGlow(g, '#5eead4', 1.2, 0.5); gl.position.z = -4.1; g.userData.glow = gl; return g; }
+function emTorchProp(par) { const g = new THREE.Group(); par.add(g); const w = new THREE.Mesh(kCyl(), new THREE.MeshLambertMaterial({ color: '#7c4a22', map: woodTex() })); w.scale.set(0.08, 1.1, 0.08); w.rotation.x = Math.PI / 2; w.position.z = -0.25; g.add(w);
+  const cup = new THREE.Mesh(kLathe('torchCup', [[0.06, 0], [0.12, 0.05], [0.22, 0.3], [0.26, 0.36], [0.2, 0.33], [0.05, 0.1]], 16), metalMat('#e8b84a')); cup.rotation.x = -Math.PI / 2; cup.position.z = -0.8; g.add(cup);
+  g.userData.fl = [0, 1, 2, 3].map((k) => { const f = emSprite(g, fxTex('flame'), 0.6, { blending: THREE.AdditiveBlending }); f.position.z = -1.25 - k * 0.12; return f; }); g.userData.gl = kitGlow(g, '#fb923c', 2.2, 0.6); g.userData.gl.position.z = -1.3; return g; }
+function emTorchTick(g, t, k = 1) { g.userData.fl.forEach((f, j) => { const s = (1.15 - j * 0.18) * k * (1 + 0.18 * Math.sin(t * (17 + j * 5) + j)); f.scale.set(s * 0.65, s * 1.3, 1); f.material.opacity = 0.9 - j * 0.15; }); g.userData.gl.material.opacity = 0.45 + 0.15 * Math.sin(t * 13) * k; }
+const BOW_GEO = () => kg('emBow', () => sweepGeo([[0, -1.6, 0.3], [0, -1.2, -0.05], [0, -0.5, 0.12], [0, 0, 0.1], [0, 0.5, 0.12], [0, 1.2, -0.05], [0, 1.6, 0.3]], (t) => 0.055 * (1 - 0.45 * Math.abs(t - 0.5) * 2) + 0.012, 30, 8));
+function emBowProp(par) { const g = new THREE.Group(); par.add(g); g.add(new THREE.Mesh(BOW_GEO(), new THREE.MeshPhongMaterial({ color: '#6b3f1d', map: woodTex(), shininess: 40 })));
+  for (const y of [-0.12, 0.12]) { const w = new THREE.Mesh(kCyl(), new THREE.MeshLambertMaterial({ color: '#b91c1c' })); w.scale.set(0.075, 0.12, 0.075); w.position.y = y; g.add(w); }
+  const str = new THREE.BufferGeometry(); str.setAttribute('position', new THREE.BufferAttribute(new Float32Array([0, 1.6, 0.3, 0, 0, 0.3, 0, -1.6, 0.3]), 3)); g.userData.str = str; g.add(new THREE.Line(str, new THREE.LineBasicMaterial({ color: '#f5f5f4' }))); return g; }
+function emArrowProp(par) { const g = new THREE.Group(); par.add(g); const s = new THREE.Mesh(kCyl(), new THREE.MeshLambertMaterial({ color: '#d6b98c' })); s.scale.set(0.03, 2.4, 0.03); s.rotation.x = Math.PI / 2; s.position.z = -0.9; g.add(s);
+  const h = new THREE.Mesh(kCone(), metalMat('#e8b84a')); h.scale.set(0.07, 0.22, 0.04); h.rotation.x = -Math.PI / 2; h.position.z = -2.2; g.add(h);
+  for (const r of [0, Math.PI / 2]) { const f = new THREE.Mesh(BOX, new THREE.MeshLambertMaterial({ color: '#f8fafc' })); f.scale.set(0.16, 0.01, 0.3); f.rotation.z = r; f.position.z = 0.15; g.add(f); } return g; }
+function emWreath(par, y = 0.62) { const g = new THREE.Group(); g.position.y = y; par.add(g); const gold = metalMat('#e8b84a'), leaf = new THREE.MeshLambertMaterial({ color: '#65a30d', emissive: '#1a2e05' });
+  const B = kitBuild(); for (const s of [-1, 1]) for (let k = 0; k < 10; k++) { const an = s * (0.25 + k * 0.27), x = Math.sin(an) * 0.66, z = Math.cos(an) * 0.66; B.add(kSph(), x, 0.02 + (k % 2) * 0.05, z, 0.05, 0.025, 0.15, 0, an + s * 0.5, s * 0.5); }
+  g.add(new THREE.Mesh(B.geo(), leaf)); const r = new THREE.Mesh(kTor(0.06), gold); r.rotation.x = Math.PI / 2; r.scale.setScalar(0.66); g.add(r); return g; }
+const ROCK_GEO = () => kg('emRock', () => { const g = new THREE.IcosahedronGeometry(1, 2), p = g.attributes.position, r = mulberry(4242), seen = {};
+  for (let i = 0; i < p.count; i++) { const k = `${p.getX(i).toFixed(3)},${p.getY(i).toFixed(3)},${p.getZ(i).toFixed(3)}`, f = seen[k] || (seen[k] = 0.82 + r() * 0.3); p.setXYZ(i, p.getX(i) * f, p.getY(i) * f, p.getZ(i) * f); } g.computeVertexNormals(); return g; });
+// bolts that flicker and go: emZap(F, list, from, to, colour, life)
+function emZap(F, L, a, b, col, life = 0.25, w = 0.12) { const g = emBolt(F.root, a, b, col, w, 10, 0.8); L.push({ g, life, L: life }); }
+function emZapTick(F, L, dt) { for (let i = L.length - 1; i >= 0; i--) { const z = L[i]; z.life -= dt; z.g.visible = Math.random() > 0.2; if (z.life <= 0) { F.root.remove(z.g); z.g.traverse((o) => { if (o.material) o.material.dispose(); }); L.splice(i, 1); } } }
+// the tunes: the lyre's (D Dorian, rising into D major), the jester's jig (G), Medusa's theremin (Phrygian)
+const LYRE_MEL = [62, 0, 69, 0, 67, 65, 64, 65, 62, 0, 60, 62, 64, 0, 0, 0, 65, 0, 69, 72, 74, 72, 69, 67, 66, 69, 74, 78, 81, 0, 0, 0], LYRE_CH = [[50, 57, 62], [48, 55, 64], [53, 60, 65], [50, 57, 66]];
+const JEST_MEL = [67, 71, 74, 71, 72, 71, 69, 67, 66, 69, 72, 69, 67, 66, 64, 62, 67, 71, 74, 79, 78, 76, 74, 72, 0, 0, 0, 0, 0, 0, 0, 0], JEST_CH = [[43, 55, 59, 62], [48, 55, 60, 64], [50, 54, 57, 62]];
+const MEDUSA_MEL = [0, 0, 0, 0, 0, 0, 0, 0, 81, 0, 82, 0, 81, 79, 77, 0, 76, 77, 76, 0, 0, 0, 0, 0];
+// Poseidon’s brass call (A major), the Olympic fanfare (C), the phoenix’s soaring tune (A major), the bard’s lute tune (D Mixolydian), the dragonslayer’s triumph (D)
+const POS_MEL = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 69, 0, 73, 76, 81, 0, 80, 78, 76, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+const OLY_MEL = [67, 0, 67, 72, 0, 67, 72, 76, 74, 0, 72, 74, 76, 0, 79, 0, 0, 84, 83, 79, 81, 0, 79, 76, 77, 79, 72, 0];
+const PHX_MEL = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 69, 0, 73, 76, 81, 0, 80, 76, 78, 0, 76, 73, 0, 0, 0, 0, 0, 0];
+const BARD_MEL = [74, 72, 74, 76, 74, 72, 69, 0, 67, 69, 71, 72, 74, 0, 69, 0, 74, 76, 78, 79, 78, 76, 74, 72, 71, 69, 67, 69, 66, 67, 69, 0];
+const DS_MEL = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 62, 0, 66, 69, 74, 0, 73, 71, 69, 0, 66, 62, 64, 66, 62, 0];
+// the oracle’s aulos (E Phrygian), the oath (D, G, B minor, A, and its tune), Odysseus’ lyre (A minor, then A major), the Excalibur theme (D)
+const ORC_MEL = [64, 65, 64, 62, 64, 0, 67, 65, 64, 62, 60, 62, 64, 0, 0, 0, 71, 72, 71, 69, 67, 69, 67, 65, 64, 65, 62, 64, 64, 0, 0, 0];
+const OATH_CH = [[50, 57, 62, 66], [43, 55, 59, 62], [47, 54, 59, 62], [45, 57, 61, 64]];
+const OATH_MEL = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 74, 0, 76, 78, 81, 0, 79, 78, 76, 0, 74, 0, 73, 0, 74, 0];
+const ODY_ARP = [57, 64, 69, 72, 76, 72, 69, 64], ODY_MEL = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 76, 0, 81, 0, 80, 78, 76, 73, 74, 76, 69, 0, 0, 0];
+const EXC_MEL = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 62, 0, 69, 0, 67, 66, 64, 66, 62, 0, 0, 0, 69, 0, 74, 0, 0, 0];
 const EMOTES = [
   { id: 'wave', nm: 'Wave', ic: '👋', price: 0, len: 2.6, d: 'A big friendly hello',
     pose(J, t, a) {
@@ -5118,6 +5229,662 @@ EMOTES.push(
       const e = beatOf(c0, c1, 0.2); if (e < 0) return;
       const loop = Math.floor(t1 / 6.4); emSynth(a, (ac, out, k, at) => zombieGroove(ac, out, k, at, e % 32, loop));
     },
+  },
+  // ---------------- 🏛️ the Season Pass emotes (price -1: you earn them on the pass; mus: their music takes over) ----------------
+  { id: 'lyre', nm: 'Lyre of Apollo', ic: '🎼', price: -1, loop: 1, snap: 10, mus: 1, pic: 6.7, picR: 6.5, d: '🏛️ Apollo’s golden lyre: a melody in an ancient mode, the sun rising behind you and laurel leaves whirling — then you lift the lyre up to the light',
+    pose(J, t, a) {
+      const r15 = a.r15, c = t % 8, sw = Math.sin(t * 1.57), rs = plat(c, 6.0, 7.85, 0.45, 0.4), n = 1 - rs, st = 0.12 * Math.sin(t * 25);
+      J.hd = [0.05 + 0.45 * rs, 0.12 * sw * n, 0.14 * sw * n]; J.bd = [0.06 * rs, 0.05 * sw * n, 0.04 * sw * n]; J.up = 0.04 * Math.abs(Math.sin(t * 3.14)) + 0.12 * rs;
+      J.lL = [0.08, 0, -0.06]; J.lR = [-0.12, 0, 0.12];
+      if (r15) { J.kR = [-0.3 * n, 0, 0]; J.kL = [-0.05, 0, 0]; J.aL = [1.0 * n + 2.75 * rs, 0, -0.05 * n - 0.15 * rs]; J.eL = [1.35 * n + 0.1 * rs, 0, 0]; J.aR = [0.75 * n + 2.55 * rs, 0, -0.4 * n + 0.25 * rs]; J.eR = [(0.95 + st) * n + 0.1 * rs, 0, 0]; J.ws = [0, 0.12 * sw * n, 0]; }
+      else { J.aL = [1.2 * n + 2.85 * rs, 0, 0.1 * n - 0.15 * rs]; J.aR = [(0.95 + st) * n + 2.65 * rs, 0, -0.45 * n + 0.25 * rs]; }
+    },
+    fx: { // a golden lyre on a tortoiseshell sound box with seven strings; the sun behind you with its rays turning; laurel leaves; sparks off the strings
+      make(a, F) {
+        const gold = metalMat('#f5c542', { specular: '#fff6d5', shininess: 120 }), shell = new THREE.MeshPhongMaterial({ color: '#6b4423', shininess: 80, specular: 0x886644 }), board = new THREE.MeshLambertMaterial({ color: '#e9d5a8' }), str = new THREE.MeshBasicMaterial({ color: '#fef3c7' });
+        const L = new THREE.Group(); F.up.add(L); F.lyre = L; L.scale.setScalar(1.1);
+        const sb = emMesh(L, kDome(), shell, 0, 0.15, 0.02); sb.scale.set(0.42, 0.16, 0.34); sb.rotation.x = Math.PI / 2; emMesh(L, kSph(), board, 0, 0.15, 0.02).scale.set(0.41, 0.33, 0.02);
+        for (const s of [-1, 1]) emMesh(L, kg('lyreArm' + s, () => sweepGeo([[s * 0.26, 0.2, 0], [s * 0.45, 0.58, 0], [s * 0.32, 0.98, 0], [s * 0.36, 1.32, 0], [s * 0.52, 1.52, 0]], (u) => 0.055 * (1 - 0.45 * u) + 0.018, 20, 8)), gold);
+        const yk = emMesh(L, kCyl(), gold, 0, 1.3, 0); yk.scale.set(0.035, 0.8, 0.035); yk.rotation.z = Math.PI / 2; for (const s of [-1, 1]) emMesh(L, kSph(), gold, s * 0.42, 1.3, 0).scale.setScalar(0.06);
+        emMesh(L, BOX, gold, 0, 0.06, -0.03).scale.set(0.5, 0.05, 0.05);
+        for (let k = 0; k < 7; k++) emMesh(L, KIT_CYL, str, -0.21 + k * 0.07, 0.68, -0.035).scale.set(0.008, 1.24, 0.008);
+        F.sun = emSprite(F.root, glowTex(), 7, { color: '#fde68a', blending: THREE.AdditiveBlending, opacity: 0 }); F.sun.position.set(0, 5.6, 2.4);
+        F.rays = emSprite(F.root, raysTex(), 11, { color: '#fcd34d', blending: THREE.AdditiveBlending, opacity: 0 }); F.rays.position.set(0, 5.6, 2.45);
+        F.leaves = Array.from({ length: 18 }, () => emSprite(F.root, leafTex(), 0.5, { color: '#d9f99d' }));
+        F.tw = emPS(F, 60, { tex: fxTex('twinkle') });
+        F.notes = Array.from({ length: 4 }, (_, j) => emSprite(F.root, noteTex(j % 2 ? '♫' : '♪', '#fde68a'), 0.8)); F.noteAt = [-0.4, 4.6, -1.2];
+      },
+      tick(a, F, t, dt) {
+        const c = t % 8, rs = plat(c, 6.0, 7.85, 0.45, 0.4), k = smooth(t / 0.8);
+        F.lyre.position.set(-0.35 + 0.35 * rs, 2.75 + 3.9 * rs, -0.95 + 0.2 * rs); F.lyre.rotation.set(0.15 * (1 - rs), 0, 0.3 * (1 - rs));
+        F.sun.material.opacity = k * (0.5 + 0.4 * rs); F.sun.scale.setScalar(7 + 4 * rs); F.rays.material.rotation = t * 0.15; F.rays.material.opacity = k * (0.32 + 0.5 * rs); F.rays.scale.setScalar(11 + 6 * rs);
+        F.leaves.forEach((s, j) => { const an = j * 2.1 + t * (0.6 + (j % 3) * 0.15) * (j % 2 ? 1 : -1), r = 1.8 + (j % 4) * 0.5, y = ((j * 0.37 + t * 0.3) % 1) * 6.5; s.position.set(Math.cos(an) * r, y + 0.3, Math.sin(an) * r); s.material.rotation = an * 2; s.material.opacity = k * Math.min(1, (6.5 - y) / 1.5) * Math.min(1, y / 0.6); });
+        const n = emLoopStep(t - dt, t, 8, 0.25);
+        if (n >= 0 && LYRE_MEL[n]) { F.lyre.updateWorldMatrix(true, false); const p = F.root.worldToLocal(F.lyre.localToWorld(_eh.set(0, 0.7, -0.1))); F.tw.burst(4, p.x, p.y, p.z, () => ({ vx: rnd(-1, 1), vy: rnd(0.5, 2), vz: rnd(-1.2, 0), life: 0.9, s: 0.35, s1: 0.05, c: Math.random() < 0.5 ? '#fde68a' : '#ffffff', drag: 1.5 })); }
+        if (rs > 0.4 && Math.random() < 0.7) F.tw.add(rnd(-2.2, 2.2), rnd(5, 8.5), rnd(-1.5, 0.8), { vy: -0.7, life: 1.3, s: 0.45, s1: 0.1, c: '#fde68a' });
+        F.tw.tick(dt); emNotesTick(F, t, 0.4);
+      },
+    },
+    ev(a, t0, t1) { emLoopBeat(a, t0, t1, 8, 0.25, (n, B) => { // a lyre in the Dorian mode over a drone, a frame drum and finger cymbals; it brightens into D major as you raise it
+      const m = LYRE_MEL[n]; if (m) B.n('pluck', m, 1.1, 0.42);
+      if (n % 8 === 0) B.c('pluck', LYRE_CH[n / 8], 2, 0.18, 0.12, 0.05);
+      if (n === 0) { B.n('strings', 38, 8.2, 0.1); B.n('strings', 45, 8.2, 0.07); }
+      if (n % 8 === 0 || n % 8 === 3 || n % 8 === 6) B.d(5, n % 8 ? 0.12 : 0.2); if (n % 2) B.d(3, 0.05);
+      if (n === 24) { B.c('celesta', [74, 78, 81, 86], 1.8, 0.16, 0, 0.08); emNoise(B, { len: 1.6, v: 0.07, type: 'highpass', f: 4000, att: 1.0 }); } }); },
+  },
+  { id: 'zeus', nm: 'Wrath of Zeus', ic: '⚡', price: -1, loop: 1, snap: 14, mus: 1, pic: 2.2, picR: 7.5, d: '🏛️ Storm clouds gather over you; lightning strikes your raised hand and you hurl three thunderbolts that blast the ground — then rise into the air, crackling',
+    pose(J, t, a) {
+      const r15 = a.r15, c = t % 8;
+      if (c < 1.6) { const g = smooth(c / 1.6), cr = 0.05 * Math.sin(t * 50) * g; // gathering the storm: up from a crouch, arms rising, fingers crackling
+        J.up = -0.3 * (1 - g); J.bd = [-0.2 * (1 - g), 0, 0]; J.hd = [-0.2 + 0.6 * g, 0, 0]; J.aL = [0.2 + 2.5 * g, 0, -0.5 - 0.3 * g + cr]; J.aR = [0.2 + 2.6 * g, 0, 0.5 + 0.2 * g - cr]; J.lL = [0, 0, -0.15]; J.lR = [0, 0, 0.15];
+        if (r15) { J.kL = J.kR = [-0.5 * (1 - g), 0, 0]; J.eL = J.eR = [0.3, 0, 0]; }
+      } else if (c < 2.0) { // the bolt strikes your hand: you hold it high
+        const sh = 0.04 * Math.sin(t * 60); J.aR = [3.0, 0, 0.15 + sh]; J.aL = [0.3, 0, -0.55]; J.hd = [0.45, 0, 0]; J.bd = [0.12, 0, 0]; J.lL = [0, 0, -0.15]; J.lR = [0, 0, 0.15]; if (r15) { J.eL = [1.4, 0, 0]; J.eR = [0.05, 0, 0]; }
+      } else if (c < 4.9) { // three throws, each wound back over your shoulder and hurled forward with a step
+        const u = Math.max(0, ((c - 1.8) % 1.0) / 1.0), w = smooth(u / 0.5), th = smooth((u - 0.5) / 0.14), rec = smooth((u - 0.75) / 0.25);
+        J.aR = [2.3 + 1.2 * w - 2.5 * th + 0.9 * rec, 0, 0.25]; J.aL = [0.3 + 1.0 * w - 0.9 * th, 0, -0.5]; J.bd = [0.18 * w - 0.45 * th + 0.25 * rec, 0.4 * w - 0.75 * th + 0.35 * rec, 0]; J.hd = [0.15 - 0.1 * th, -0.3 * w + 0.5 * th - 0.2 * rec, 0];
+        J.lL = [0.55 * th * (1 - rec), 0, -0.15]; J.lR = [-0.35 * th * (1 - rec), 0, 0.15]; J.up = -0.15 * th * (1 - rec);
+        if (r15) { J.eR = [0.6 - 0.5 * th, 0, 0]; J.eL = [1.2, 0, 0]; J.kL = [-0.6 * th * (1 - rec), 0, 0]; J.kR = [-0.3, 0, 0]; }
+      } else { // you rise into the air, arms spread, crackling with lightning
+        const lv = plat(c, 4.9, 7.8, 0.6, 0.6); J.up = 1.6 * lv + 0.1 * Math.sin(t * 2.2) * lv; J.aL = [0.45, 0, -1.45 * lv - 0.1]; J.aR = [0.45, 0, 1.45 * lv + 0.1]; J.hd = [0.25 * lv, 0, 0]; J.bd = [0.1 * lv, 0, 0];
+        J.lL = [0.25 * lv, 0, -0.08]; J.lR = [0.05, 0, 0.08]; if (r15) { J.kL = [-0.7 * lv, 0, 0]; J.kR = [-0.35 * lv, 0, 0]; J.eL = J.eR = [0.35, 0, 0]; }
+      }
+    },
+    fx: { // a ring of storm clouds overhead that flashes; a thunderbolt in your hand; bolts from the sky; scorched ground; your eyes blazing
+      make(a, F) {
+        F.clouds = Array.from({ length: 22 }, (_, j) => emSprite(F.root, cloudTex(), 4 + (j % 4), { color: j % 3 ? '#4b5563' : '#374151', opacity: 0 }));
+        F.cfl = emSprite(F.root, glowTex(), 14, { color: '#c7d2fe', blending: THREE.AdditiveBlending, opacity: 0 }); F.cfl.position.y = 11;
+        F.bA = new THREE.Group(); F.hR.add(F.bA);
+        const sh = new THREE.Shape(); sh.moveTo(0, 0); sh.lineTo(0.22, 0.55); sh.lineTo(0.06, 0.6); sh.lineTo(0.3, 1.25); sh.lineTo(0.1, 1.28); sh.lineTo(0.34, 2.0); sh.lineTo(-0.12, 1.05); sh.lineTo(0.08, 1.02); sh.lineTo(-0.16, 0.48); sh.lineTo(0.02, 0.46); sh.closePath();
+        const bolt = emMesh(F.bA, kg('zeusBolt', () => { const q = new THREE.ExtrudeGeometry(sh, { depth: 0.06, bevelEnabled: true, bevelThickness: 0.03, bevelSize: 0.03, bevelSegments: 1 }); q.translate(-0.1, -1.0, -0.03); return q; }), new THREE.MeshBasicMaterial({ color: '#fef9c3' }), 0, 0, -0.5); bolt.rotation.x = -Math.PI / 2;
+        F.bGlow = kitGlow(F.bA, '#93c5fd', 2.4, 0.8); F.bGlow.position.z = -0.6;
+        F.eyes = [-0.21, 0.21].map((x) => { const s = emSprite(F.hd, glowTex(), 0.4, { color: '#e0f2fe', blending: THREE.AdditiveBlending, opacity: 0 }); s.position.set(x, 0.1, -0.64); return s; });
+        F.tg = [[-2.6, -6], [0.6, -8.2], [3.2, -5.8]]; F.scorch = F.tg.map(([x, z]) => { const r = emRing(F, '#111827', 0.01, 1.4, { flat: 1, op: 0 }); r.position.set(x, 0.07, z); return r; });
+        F.gg = F.tg.map(([x, z]) => { const s = emSprite(F.root, glowTex(), 5, { color: '#bfdbfe', blending: THREE.AdditiveBlending, opacity: 0 }); s.position.set(x, 0.8, z); return s; });
+        F.sp = emPS(F, 90, { tex: fxTex('twinkle') }); F.zaps = []; F.zt = 0;
+      },
+      tick(a, F, t, dt) {
+        const c = t % 8, [c0, c1] = emCyc(t - dt, t, 8), k = plat(c, 0, 7.9, 1.2, 0.5) + (t < 1 ? 0 : 0);
+        F.clouds.forEach((s, j) => { const an = j * 2.39 + t * 0.25 * (j % 2 ? 1 : -0.7), r = 1 + (j % 6) * 0.95; s.position.set(Math.cos(an) * r, 10.4 + (j % 3) * 0.6 + 0.2 * Math.sin(t + j), Math.sin(an) * r); s.material.opacity = 0.9 * k; s.material.rotation = an; });
+        F.cfl.material.opacity *= Math.exp(-dt * 6);
+        if (Math.random() < dt * 1.2 * k) F.cfl.material.opacity = 0.35; // (a flicker in the clouds)
+        const held = c > 1.6 && c < 4.95, gone = [2.4, 3.4, 4.4].some((T) => c > T && c < T + 0.25); F.bA.visible = held && !gone; emAim(F.bA, a, 1, c < 2.0 ? Math.PI / 2 : 0.35); F.bGlow.material.opacity = 0.6 + 0.3 * Math.sin(t * 31);
+        const ey = c > 1.6 && c < 2.3 ? 1 : plat(c, 4.9, 7.8, 0.4, 0.4); F.eyes.forEach((s) => { s.material.opacity = ey; s.scale.setScalar(0.35 + 0.25 * ey + 0.05 * Math.sin(t * 40)); });
+        if (crossed(c0, c1, 1.6)) { const h = emHand(a, F, 1, _eh); emZap(F, F.zaps, [h.x * 0.3, 10.5, h.z * 0.3], [h.x, h.y + 0.3, h.z], '#dbeafe', 0.35, 0.16); emFlash(a, '#e0f2fe', 0.55); camShake(a, 0.3); F.cfl.material.opacity = 0.9;
+          F.sp.burst(16, h.x, h.y, h.z, () => ({ vx: rnd(-4, 4), vy: rnd(-1, 4), vz: rnd(-4, 4), life: 0.5, s: 0.3, s1: 0.05, c: '#bfdbfe', g: 6 })); }
+        F.tg.forEach(([x, z], i) => { const T = 2.52 + i;
+          if (crossed(c0, c1, T)) { emZap(F, F.zaps, [x * 0.4, 11, z * 0.4], [x, 0.1, z], '#e0e7ff', 0.4, 0.2); emZap(F, F.zaps, [x * 0.6 + 1, 9, z * 0.6], [x + rnd(-1, 1), 0.1, z + rnd(-1, 1)], '#c7d2fe', 0.25, 0.08); emFlash(a, '#dbeafe', 0.4); camShake(a, 0.4); F.cfl.material.opacity = 0.8;
+            F.sp.burst(22, x, 0.3, z, () => ({ vx: rnd(-6, 6), vy: rnd(2, 8), vz: rnd(-6, 6), life: 0.8, s: 0.35, s1: 0.05, c: Math.random() < 0.5 ? '#fde68a' : '#bfdbfe', g: 12, drag: 0.5 })); }
+          const age = c - T; F.scorch[i].material.opacity = age > 0 ? 0.75 * Math.min(1, age * 8) * Math.max(0, 1 - Math.max(0, c - 6.8) / 1) : 0; F.scorch[i].scale.setScalar(age > 0 ? 1 + 0.4 * smooth(age * 3) : 0.01);
+          F.gg[i].material.opacity = age > 0 ? Math.max(0, 1 - age * 2.2) : 0; });
+        F.zt -= dt; const crackle = (c > 0.6 && c < 1.6) || (c > 4.9 && c < 7.6);
+        if (crackle && F.zt <= 0) { F.zt = 0.07; const lv = c > 4.9, y0 = lv ? 1.6 * plat(c, 4.9, 7.8, 0.6, 0.6) : 0, an = Math.random() * 6.28, an2 = an + rnd(0.6, 1.6), r = rnd(1.0, 1.9);
+          if (lv) emZap(F, F.zaps, [Math.cos(an) * r, y0 + rnd(1, 5.5), Math.sin(an) * r], [Math.cos(an2) * r, y0 + rnd(1, 5.5), Math.sin(an2) * r], '#bfdbfe', 0.1, 0.05);
+          else { const h = emHand(a, F, Math.random() < 0.5 ? -1 : 1, _eh); emZap(F, F.zaps, [h.x, h.y, h.z], [h.x + rnd(-0.8, 0.8), h.y + rnd(-0.3, 0.9), h.z + rnd(-0.8, 0.8)], '#dbeafe', 0.08, 0.04); } }
+        emZapTick(F, F.zaps, dt); F.sp.tick(dt);
+      },
+    },
+    ev(a, t0, t1) { emLoopBeat(a, t0, t1, 8, 0.2, (n, B) => { // a storm: wind, war drums, a choir, a brass chord with every thunderbolt
+      if (n === 0) { B.n('dark', 38, 2.0, 0.22); B.n('dark', 45, 2.0, 0.15); emNoise(B, { len: 1.9, v: 0.14, f: 300, f2: 1400, att: 1.2 }); }
+      if (n < 8 && n % 2 === 0) { B.d(5, 0.22 + n * 0.04); B.n('sub', 26, 0.4, 0.28); }
+      if (n === 8) { emThunder(B, 1); B.d(6, 0.45); B.c('brass', [50, 57, 62, 65], 1.6, 0.3); B.c('dark', [62, 65, 69], 1.6, 0.18); }
+      const i = [12, 17, 22].indexOf(n); if (i >= 0) { emThunder(B, 0.85); B.d(0, 0.8); B.d(5, 0.45); B.c('brass', [[46, 53, 58, 62], [48, 55, 60, 64], [45, 52, 57, 61]][i], 1.2, 0.3); B.n('sub', [34, 36, 33][i], 1.0, 0.4); }
+      if (n === 10 || n === 15 || n === 20) { B.d(5, 0.3); B.d(5, 0.35, 0.1); }
+      if (n === 25) { B.c('strings', [62, 69, 74, 77], 2.6, 0.18); B.c('dark', [50, 57, 62], 2.6, 0.2); B.c('celesta', [86, 89, 93], 2.0, 0.08, 0.1, 0.12); }
+      if (n > 25 && n < 37 && n % 2 === 0) emNoise(B, { len: 0.07, v: 0.07, type: 'highpass', f: 5000, att: 0.002 });
+      if (n === 36) B.n('dark', 38, 1.4, 0.14); }); },
+  },
+  { id: 'jester', nm: 'Court Jester', ic: '🃏', price: -1, loop: 1, snap: 16, mus: 1, pic: 2.1, d: '🏛️ Bells on your cap, three balls in the air and a jig from the minstrels — then a deep bow and a ta-da',
+    pose(J, t, a) {
+      const r15 = a.r15, c = t % 6.4;
+      if (c < 4.8) { const R = Math.sin(c * Math.PI / 0.4), b = Math.abs(Math.sin(c * Math.PI / 0.2)); // juggling: a scoop and a toss from each hand in turn, knees bouncing
+        J.up = -0.12 + 0.06 * b; J.hd = [0.28 + 0.05 * Math.sin(c * 7), 0.08 * Math.sin(c * 1.5), 0.05 * Math.sin(c * 3)]; J.bd = [0.05, 0, 0.04 * Math.sin(c * 3.14)]; J.lL = [0.1, 0, -0.12]; J.lR = [0.1, 0, 0.12];
+        if (r15) { J.kL = J.kR = [-0.35 - 0.12 * b, 0, 0]; J.aL = [0.55, 0, -0.22]; J.eL = [1.15 - 0.3 * R, 0, 0]; J.aR = [0.55, 0, 0.22]; J.eR = [1.15 + 0.3 * R, 0, 0]; }
+        else { J.aL = [1.2 - 0.22 * R, 0, -0.12]; J.aR = [1.2 + 0.22 * R, 0, 0.12]; }
+      } else if (c < 5.75) { const k = plat(c, 4.8, 5.75, 0.25, 0.2); // a deep bow: one arm sweeping across, the other out behind, a leg back
+        J.bd = [-0.8 * k, 0, 0]; J.hd = [-0.2 * k, 0, 0]; J.aR = [0.9 * k, 0, -0.5 * k]; J.aL = [-0.5 * k, 0, -1.1 * k]; J.lR = [-0.45 * k, 0, 0.05]; J.lL = [0.15 * k, 0, 0];
+        if (r15) { J.eR = [1.2 * k, 0, 0]; J.kL = [-0.3 * k, 0, 0]; J.kR = [-0.2 * k, 0, 0]; }
+      } else { const k = smooth((c - 5.75) / 0.15) * (1 - smooth((c - 6.25) / 0.15)), hop = Math.sin(Math.min(1, (c - 5.75) / 0.4) * Math.PI); // ta-da! a hop, arms flung wide, jazz hands
+        J.up = 0.85 * hop; J.aL = [0.35, 0, -2.4 * k]; J.aR = [0.35, 0, 2.4 * k]; J.hd = [0.3 * k, 0, 0]; J.lL = [0.35 * hop, 0, -0.25 * k]; J.lR = [-0.2 * hop, 0, 0.25 * k];
+        if (r15) { J.eL = [0.3, 0.45 * Math.sin(c * 40) * k, 0]; J.eR = [0.3, -0.45 * Math.sin(c * 40) * k, 0]; J.kL = J.kR = [-0.7 * hop, 0, 0]; }
+      }
+    },
+    fx: { // a jester's cap of three floppy horns with gold bells, a ruff collar with points, three balls with trails, confetti at the ta-da
+      make(a, F) {
+        const cols = ['#dc2626', '#16a34a', '#facc15'], gold = metalMat('#f5c542');
+        const hat = new THREE.Group(); hat.position.y = 0.45; F.hd.add(hat); F.hat = hat;
+        emMesh(hat, KIT_CYL, new THREE.MeshLambertMaterial({ color: '#7c3aed' }), 0, 0.08, 0).scale.set(0.7, 0.2, 0.7);
+        const dm = emMesh(hat, kDome(), new THREE.MeshLambertMaterial({ color: '#dc2626' }), 0, 0.15, 0); dm.scale.set(0.68, 0.32, 0.68);
+        F.horns = [0, 1, 2].map((j) => { const g = new THREE.Group(); g.position.y = 0.3; g.rotation.y = [0, Math.PI, -Math.PI / 2][j]; hat.add(g);
+          emMesh(g, kg('jHorn', () => sweepGeo([[0, 0, 0], [0.35, 0.42, 0], [0.8, 0.48, 0], [1.15, 0.12, 0], [1.22, -0.28, 0]], (u) => 0.26 * (1 - u) + 0.035, 22, 10)), new THREE.MeshLambertMaterial({ color: cols[j] }));
+          emMesh(g, kSph(), gold, 1.22, -0.38, 0).scale.setScalar(0.11); return g; });
+        for (let k = 0; k < 10; k++) { const an = k / 10 * Math.PI * 2, p = emMesh(F.up, kCone(), new THREE.MeshLambertMaterial({ color: k % 2 ? '#facc15' : '#dc2626' }), Math.sin(an) * 0.78, 3.95, Math.cos(an) * 0.6); p.scale.set(0.2, 0.42, 0.08); p.rotation.set(Math.PI + Math.cos(an) * 0.9, an, -Math.sin(an) * 0.9);
+          if (k % 2) emMesh(F.up, kSph(), gold, Math.sin(an) * 0.98, 3.7, Math.cos(an) * 0.76).scale.setScalar(0.07); } // (a ruff of points, with little bells)
+        F.balls = ['#ef4444', '#facc15', '#3b82f6'].map((col) => emMesh(F.root, kSph(), new THREE.MeshPhongMaterial({ color: col, emissive: col, emissiveIntensity: 0.25, shininess: 90 })));
+        F.balls.forEach((b) => b.scale.setScalar(0.22)); F.bcol = ['#fca5a5', '#fde68a', '#93c5fd'];
+        F.tr = emPS(F, 90); emConfetti(F, 50);
+      },
+      tick(a, F, t, dt) {
+        const c = t % 6.4;
+        F.horns.forEach((g, j) => { g.rotation.z = 0.12 * Math.sin(t * 15.7 + j * 2) + (c > 5.75 ? 0.25 * Math.sin(t * 30) : 0); });
+        F.balls.forEach((b, k) => { b.visible = c < 5.8;
+          if (c >= 4.8) { const h = emHand(a, F, 1, _eh); b.position.set(h.x + (k - 1) * 0.2, h.y + 0.12, h.z - 0.2); return; }
+          const p = (c + k * 0.4) % 1.2, fromR = p < 0.6, u = p % 0.6, A = emHand(a, F, fromR ? 1 : -1, _eh), Bh = emHand(a, F, fromR ? -1 : 1, _eh2);
+          if (u < 0.4) { const f = u / 0.4; b.position.set(A.x + (Bh.x - A.x) * f, A.y + 0.15 + (Bh.y - A.y) * f + 2.7 * 4 * f * (1 - f), A.z - 0.25 + (Bh.z - A.z) * f); }
+          else { const f = (u - 0.4) / 0.2; b.position.set(Bh.x * (1 - 0.15 * Math.sin(f * Math.PI)), Bh.y + 0.15 - 0.15 * Math.sin(f * Math.PI), Bh.z - 0.25); }
+          F.tr.add(b.position.x, b.position.y, b.position.z, { life: 0.28, s: 0.32, s1: 0.02, c: F.bcol[k] }); });
+        const [c0, c1] = emCyc(t - dt, t, 6.4); if (crossed(c0, c1, 5.85)) emBurst(F, 6.5); // (confetti at the ta-da)
+        F.tr.tick(dt); emConfettiTick(F, dt);
+      },
+    },
+    ev(a, t0, t1) { emLoopBeat(a, t0, t1, 6.4, 0.2, (n, B) => { // a jig in G: a pipe over lute chords and bass, a tambourine; a slide whistle for the bow, a ta-da
+      const m = JEST_MEL[n]; if (m) B.n('flute', m, 0.24, 0.32);
+      if (n < 24 && n % 8 === 0) B.c('pluck', JEST_CH[n / 8], 0.8, 0.2, 0, 0.02); if (n < 24 && n % 2 === 0) B.n('pluck', [43, 50][(n / 2) % 2] + (n >= 8 && n < 16 ? 5 : 0), 0.4, 0.3);
+      if (n < 24) { B.d(3, 0.08); if (n % 4 === 2) B.d(4, 0.12); if (n % 4 === 0) B.d(5, 0.14); if (n % 2) B.n('celesta', 96 + (n % 3) * 2, 0.15, 0.04); }
+      if (n === 24) B.raw((ac, d, at) => { const o = ac.createOscillator(), g = ac.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(1700, at); o.frequency.exponentialRampToValueAtTime(380, at + 0.75); synEnv(g.gain, at, 0.03, 0.8, 0.14); o.connect(g); g.connect(d); o.start(at); o.stop(at + 0.85); });
+      if (n === 29) { B.c('brass', [55, 59, 62, 67], 1.0, 0.3); B.d(6, 0.45); B.d(0, 0.6); for (let i = 0; i < 6; i++) B.n('celesta', 96 + i, 0.2, 0.05, i * 0.04); } }); },
+  },
+  { id: 'medusa', nm: 'Gaze of Medusa', ic: '🐍', price: -1, loop: 1, snap: 10, mus: 1, pic: 3.5, picR: 6.5, d: '🏛️ Snakes writhe up out of your hair; you lift your head and your eyes blaze green — and a wave of stone sweeps out across the ground',
+    pose(J, t, a) {
+      const r15 = a.r15, c = t % 7.2, g = plat(c, 1.8, 6.4, 0.35, 0.6), cov = 1 - g, yaw = c > 2.4 && c < 5.8 ? 0.8 * Math.cos(((c - 2.4) / 3.4) * Math.PI) : c >= 5.8 ? -0.8 * (1 - smooth((c - 5.8) / 0.6)) : 0.8 * smooth((c - 1.8) / 0.6) * g;
+      J.hd = [-0.35 * cov + 0.12 * g, yaw * g, 0.06 * Math.sin(t * 2) * cov]; J.bd = [-0.2 * cov + 0.05 * g, 0.35 * yaw * g, 0]; J.up = -0.1 * cov;
+      J.lL = [0.12 * g, 0, -0.14]; J.lR = [-0.1 * g, 0, 0.14];
+      if (r15) { J.aL = [2.0 * cov + 0.5 * g, 0, 0.55 * cov - 1.35 * g]; J.eL = [1.9 * cov + 0.3 * g, 0, 0]; J.aR = [2.0 * cov + 1.35 * g, 0, -0.55 * cov + 0.45 * g]; J.eR = [1.9 * cov + 0.45 * g + 0.1 * Math.sin(t * 9) * g, 0, 0]; J.kL = J.kR = [-0.25, 0, 0]; }
+      else { J.aL = [2.7 * cov + 0.5 * g, 0, 0.45 * cov - 1.35 * g]; J.aR = [2.7 * cov + 1.45 * g, 0, -0.45 * cov + 0.45 * g]; }
+    },
+    fx: { // nine snakes for hair, writhing, tongues flicking; eyes blazing green and a cone of green light where you look; a ring of stone sweeping out, stones bursting up; a green mist
+      make(a, F) {
+        const skin = new THREE.MeshPhongMaterial({ color: '#ffffff', map: serpTex(), shininess: 70, specular: 0x557733 }), hd = new THREE.MeshPhongMaterial({ color: '#3f6212', shininess: 60 }), red = new THREE.MeshBasicMaterial({ color: '#ef4444' });
+        F.snakes = Array.from({ length: 9 }, (_, k) => { const th = -2.35 + k * (4.7 / 8), segs = Array.from({ length: 8 }, (_, i) => emMesh(F.hd, kSph(), skin)), head = new THREE.Group(); F.hd.add(head);
+          emMesh(head, kSph(), hd, 0, 0, 0.02).scale.set(0.085, 0.06, 0.13); for (const s of [-1, 1]) emMesh(head, kSph(), red, s * 0.05, 0.03, -0.06).scale.setScalar(0.022);
+          const tg = emMesh(head, BOX, red, 0, -0.01, -0.17); tg.scale.set(0.015, 0.01, 0.12); return { th, segs, head, tg }; });
+        F.eyes = [-0.2, 0.2].map((x) => { const s = emSprite(F.hd, glowTex(), 0.5, { color: '#4ade80', blending: THREE.AdditiveBlending, opacity: 0 }); s.position.set(x, 0.1, -0.64); return s; });
+        const cg = kg('gazeCone', () => { const q = new THREE.CylinderGeometry(0.12, 2.6, 13, 24, 1, true); q.translate(0, -6.5, 0); q.rotateX(Math.PI / 2); return q; });
+        F.cone = emMesh(F.hd, cg, new THREE.MeshBasicMaterial({ color: '#22c55e', transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }), 0, 0.1, -0.6);
+        F.cone2 = emMesh(F.hd, cg, new THREE.MeshBasicMaterial({ color: '#bbf7d0', transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }), 0, 0.1, -0.6); F.cone2.scale.set(0.35, 0.35, 1);
+        F.wave = emRing(F, '#a8a29e', 0.86, 1, { op: 0, flat: 1 }); F.wave2 = emRing(F, '#4ade80', 0.93, 1, { op: 0 });
+        const stone = new THREE.MeshLambertMaterial({ color: '#ffffff', map: stoneTex() }); F.shards = Array.from({ length: 30 }, () => { const m = emMesh(F.root, ROCK_GEO(), stone); m.visible = false; m.userData = { ts: -1 }; return m; }); F.sh = 0;
+        F.mist = emPS(F, 50, { flat: 1 }); F.sp = emPS(F, 50, { tex: fxTex('twinkle') });
+      },
+      tick(a, F, t, dt) {
+        const c = t % 7.2, g = plat(c, 1.8, 6.4, 0.35, 0.6), grow = smooth(t / 1.4), gz = plat(c, 2.4, 5.9, 0.3, 0.4), _v = _eh;
+        F.snakes.forEach(({ th, segs, head, tg }, k) => { const d = [Math.sin(th), 0, Math.cos(th)], pp = [Math.cos(th), 0, -Math.sin(th)]; let px = 0, py = 0, pz = 0, qx = 0, qy = 0, qz = 0;
+          segs.forEach((m, i) => { const s = (i + 1) / 9, L = grow * (0.95 + 0.25 * g), w = Math.sin(t * (5 + k * 0.3) + k + s * 4.5) * 0.28 * s, h = Math.sin(t * 3.3 + k * 2 + s * 3) * 0.09;
+            const x = d[0] * (0.45 + (0.15 + 0.95 * s) * L) + pp[0] * w, y = 0.42 + (0.5 * s + 0.45 * s * s) * L + h, z = d[2] * (0.45 + (0.15 + 0.95 * s) * L) + pp[2] * w; m.position.set(x, y, z); m.scale.setScalar(Math.max(0.001, (0.135 - 0.06 * s) * Math.min(1, grow * 3)));
+            qx = px; qy = py; qz = pz; px = x; py = y; pz = z; });
+          _v.set(px - qx, py - qy, pz - qz).normalize(); head.position.set(px + _v.x * 0.08, py + _v.y * 0.08, pz + _v.z * 0.08); head.quaternion.setFromUnitVectors(_eh2.set(0, 0, -1), _v); head.scale.setScalar(Math.max(0.001, grow * 1.35));
+          tg.visible = Math.sin(t * 9 + k * 1.7) > 0.6; });
+        F.eyes.forEach((s) => { s.material.opacity = 0.25 * g + 0.75 * gz; s.scale.setScalar(0.35 + 0.45 * gz + 0.05 * Math.sin(t * 30)); });
+        F.cone.material.opacity = 0.16 * gz * (0.85 + 0.15 * Math.sin(t * 23)); F.cone2.material.opacity = 0.3 * gz;
+        const u = (c - 2.4) / 2.2, on = u > 0 && u < 1; F.wave.scale.setScalar(on ? 1 + 13 * smooth(u) : 0.01); F.wave2.scale.copy(F.wave.scale); F.wave.material.opacity = on ? 0.85 * (1 - u) : 0; F.wave2.material.opacity = on ? 0.7 * (1 - u) : 0;
+        if (c < 2.4) for (const m of F.shards) { m.visible = false; m.userData.ts = -1; }
+        if (on) { F.sh -= dt; if (F.sh <= 0) { F.sh = 0.06; const m = F.shards.find((q) => q.userData.ts < 0); if (m) { const r = 1 + 13 * smooth(u), an = Math.random() * 6.28; m.position.set(Math.cos(an) * r, -0.5, Math.sin(an) * r); m.rotation.set(rnd(0, 3), rnd(0, 3), rnd(0, 3)); m.scale.setScalar(rnd(0.2, 0.45)); m.userData.ts = c; m.visible = true;
+          F.mist.add(m.position.x, 0.3, m.position.z, { vy: 0.6, life: 1.2, s: 1.1, s1: 1.8, c: '#a8a29e', op: 0.5 }); } } }
+        for (const m of F.shards) if (m.userData.ts >= 0) { const age = c - m.userData.ts; m.position.y = -0.5 + 0.7 * smooth(age / 0.25) - 0.9 * smooth((age - 2.6) / 0.6); }
+        if (g > 0.2 && Math.random() < 0.5) { const an = Math.random() * 6.28, r = rnd(0.5, 3); F.mist.add(Math.cos(an) * r, 0.2, Math.sin(an) * r, { vx: rnd(-0.3, 0.3), vy: 0.25, life: 2, s: 1.4, s1: 2.4, c: '#4d7c0f', op: 0.28 }); }
+        if (gz > 0.5 && Math.random() < 0.4) { const h = F.hd.localToWorld(_eh.set(rnd(-0.2, 0.2), 0.1, -0.7)); F.root.worldToLocal(h); F.sp.add(h.x, h.y, h.z, { vx: rnd(-1, 1), vy: rnd(-0.5, 1), vz: rnd(-1, 1), life: 0.6, s: 0.22, s1: 0.02, c: '#86efac' }); }
+        F.mist.tick(dt); F.sp.tick(dt);
+      },
+    },
+    ev(a, t0, t1) { emLoopBeat(a, t0, t1, 7.2, 0.3, (n, B) => { // a heartbeat; hissing; eerie strings; a stinger as your eyes open; a choir and a theremin through the gaze
+      if (n % 4 === 0) B.d(0, 0.45); if (n % 4 === 1) B.d(0, 0.3);
+      if (n === 0) { B.c('eerie', [57, 60, 63, 66], 2.4, 0.1); emNoise(B, { len: 1.4, v: 0.1, type: 'highpass', f: 5500, att: 0.3 }); }
+      if (n === 3 || n === 15 || n === 21) emNoise(B, { len: 0.8, v: 0.08, type: 'highpass', f: 6000, att: 0.1 });
+      if (n === 6) { B.d(6, 0.35); B.c('brass', [45, 51, 54, 57], 1.6, 0.28); B.n('sub', 33, 1.6, 0.42); emNoise(B, { len: 0.5, v: 0.15, f: 2000, f2: 300 }); }
+      if (n === 8) { B.c('dark', [57, 60, 64], 3.4, 0.2); B.n('sub', 33, 3.2, 0.25); }
+      const m = MEDUSA_MEL[n]; if (m) B.n('eerie', m, 0.55, 0.13);
+      if (n === 20) B.c('eerie', [57, 60, 63], 1.3, 0.09); }); },
+  },
+  { id: 'shieldwall', nm: 'Shield Wall', ic: '🛡️', price: -1, loop: 1, snap: 18, mus: 1, pic: 4.0, picR: 8, d: '🏛️ A round shield and a sword, a wall of ghostly warriors either side of you: stamp, stamp, CLASH — three times — then raise your sword and roar',
+    pose(J, t, a) {
+      const r15 = a.r15, c = t % 6.4, b = c % 1.6, sh = plat(c, 4.85, 6.35, 0.2, 0.3), rp = 1 - sh;
+      const liftL = c < 4.8 ? bump(b, 0, 0.22) : 0, liftR = c < 4.8 ? bump(b, 0.4, 0.62) : 0, dip = c < 4.8 ? bump(b, 0.2, 0.42) + bump(b, 0.6, 0.82) : 0;
+      const w = c < 4.8 ? smooth((b - 0.7) / 0.25) * (1 - smooth((b - 0.98) / 0.05)) : 0, hit = c < 4.8 ? bump(b, 0.95, 1.4) : 0;
+      J.lL = [0.12 + 0.7 * liftL * rp, 0, -0.3]; J.lR = [0.12 + 0.7 * liftR * rp, 0, 0.3]; J.up = (-0.35 - 0.12 * dip) * rp; J.bd = [-0.1 * rp + 0.15 * sh, 0.2 * rp, 0]; J.hd = [0.05 + 0.5 * sh - 0.05 * hit, -0.15 * rp, 0];
+      J.aL = [1.25 * rp + 1.6 * sh, 0, 0.42 * rp + 0.2 * sh]; J.aR = [(2.3 + 0.6 * w - 0.9 * hit) * rp + 3.05 * sh, 0, (0.25 - 0.6 * hit) * rp + 0.1 * sh];
+      if (r15) { J.kL = [-(0.5 + 0.7 * liftL) * rp - 0.1 * sh, 0, 0]; J.kR = [-(0.5 + 0.7 * liftR) * rp - 0.1 * sh, 0, 0]; J.eL = [0.9 * rp + 0.5 * sh, 0, 0]; J.eR = [0.6 * rp + 0.05 * sh, 0, 0]; }
+      a.swPsi = (1.1 + 0.8 * w - 0.75 * hit) * rp + (Math.PI / 2) * sh; // (where the sword points: see fx.tick)
+    },
+    fx: { // your shield and sword; four ghostly hoplites in a line either side (shields, helmets and spears of golden light) who stamp and clash with you; dust, sparks; a ring of light and a war cry at the end
+      make(a, F) {
+        F.shA = new THREE.Group(); F.hL.add(F.shA); const s = emShieldProp(F.shA, a.av && a.av[10] === 9); s.position.z = -0.3;
+        F.swA = new THREE.Group(); F.hR.add(F.swA); F.sw = emSwordProp(F.swA, { len: 2.3 });
+        const gm = (op) => new THREE.MeshBasicMaterial({ color: '#fcd34d', transparent: true, opacity: op, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
+        F.ghosts = [-5.8, -3.0, 3.0, 5.8].map((x) => { const g = new THREE.Group(); g.position.set(x, 0, 0.6); F.root.add(g); const m = gm(0.3);
+          const sd = emMesh(g, aspisGeo(), m, 0.2, 2.9, -0.9); sd.rotation.set(-Math.PI / 2, 0, 0); sd.scale.setScalar(1.05);
+          const hm = emMesh(g, corinthGeo(), m, 0, 4.9, 0); hm.scale.setScalar(0.62); const cr = emMesh(g, kSph(), gm(0.25), 0, 5.6, 0.1); cr.scale.set(0.08, 0.35, 0.55);
+          const sp = new THREE.Group(); sp.position.set(-0.7, 3.4, -0.3); g.add(sp); emMesh(sp, kCyl(), gm(0.35), 0, 1.6, 0).scale.set(0.05, 4.6, 0.05); emMesh(sp, kCone(), gm(0.5), 0, 4.1, 0).scale.set(0.12, 0.5, 0.05);
+          const gl = emSprite(g, glowTex(), 4.5, { color: '#fbbf24', blending: THREE.AdditiveBlending, opacity: 0.2 }); gl.position.y = 3.2; return { g, m, sp, gl }; });
+        F.sp = emPS(F, 70, { tex: fxTex('twinkle') }); F.dust = emPS(F, 40, { flat: 1 }); F.rings = [0, 1, 2].map(() => emRing(F, '#fbbf24', 0.9, 1, { op: 0 }));
+        F.word = label('HA!', { size: 1.6, color: '#fde68a', weight: 900 }); F.root.add(F.word); F.word.visible = false;
+      },
+      tick(a, F, t, dt) {
+        const c = t % 6.4, b = c % 1.6, [c0, c1] = emCyc(t - dt, t, 6.4), fade = smooth(t / 0.8), sh = plat(c, 4.85, 6.35, 0.2, 0.3), dip = c < 4.8 ? bump(b, 0.2, 0.42) + bump(b, 0.6, 0.82) : 0, flash = c < 4.8 ? Math.max(0, 1 - Math.abs(b - 1.0) * 5) : 0;
+        emAim(F.shA, a, -1, 0.05); emAim(F.swA, a, 1, a.swPsi || 1.1);
+        F.ghosts.forEach(({ g, m, sp, gl }, j) => { g.position.y = -0.3 * dip; m.opacity = fade * (0.26 + 0.35 * flash + 0.25 * sh); gl.material.opacity = fade * (0.15 + 0.3 * flash + 0.3 * sh); sp.rotation.x = -0.6 * (1 - sh) - 0.1 * Math.sin(t * 2 + j); });
+        for (const T of [0.2, 1.8, 3.4, 0.6, 2.2, 3.8]) if (crossed(c0, c1, T)) { const x = [0.2, 1.8, 3.4].includes(T) ? -0.55 : 0.55; for (let q = 0; q < 6; q++) F.dust.add(x + rnd(-0.4, 0.4), 0.2, rnd(-0.6, 0.4), { vx: rnd(-1.5, 1.5), vy: rnd(0.3, 1), vz: rnd(-1.5, 1.5), life: 0.8, s: 0.6, s1: 1.4, c: '#d6c7a1', op: 0.45, drag: 2 }); }
+        for (const T of [1.0, 2.6, 4.2]) if (crossed(c0, c1, T)) { F.shA.updateWorldMatrix(true, false); const p = F.root.worldToLocal(F.shA.localToWorld(_eh.set(0.5, 0.6, -0.4))); F.sp.burst(14, p.x, p.y, p.z, () => ({ vx: rnd(-4, 4), vy: rnd(1, 5), vz: rnd(-4, 1), life: 0.5, s: 0.3, s1: 0.03, c: Math.random() < 0.5 ? '#fde68a' : '#fb923c', g: 9 })); camShake(a, 0.12); }
+        if (crossed(c0, c1, 5.0)) { F.rings.forEach((r) => (r.userData.t0 = c)); camShake(a, 0.3); emFlash(a, '#fde68a', 0.3); F.sp.burst(24, 0, 6.2, 0, () => ({ vx: rnd(-5, 5), vy: rnd(-1, 4), vz: rnd(-5, 5), life: 0.9, s: 0.4, s1: 0.05, c: '#fde68a', g: 4 })); }
+        F.rings.forEach((r, j) => { const u = r.userData.t0 != null && c >= r.userData.t0 ? (c - r.userData.t0 - j * 0.15) / 0.9 : -1; r.scale.setScalar(u > 0 && u < 1 ? 1 + 12 * smooth(u) : 0.01); r.material.opacity = u > 0 && u < 1 ? 0.8 * (1 - u) : 0; });
+        const wu = (c - 5.0) / 1.2; F.word.visible = wu > 0 && wu < 1; if (F.word.visible) { F.word.position.set(0, 7.4 + wu, 0); F.word.material.opacity = Math.min(1, (1 - wu) * 3); }
+        F.sp.tick(dt); F.dust.tick(dt);
+      },
+    },
+    ev(a, t0, t1) { emLoopBeat(a, t0, t1, 6.4, 0.2, (n, B) => { // stamps you feel, a bronze clash with a shout of HA!, a drone of horns, toms into a great war cry
+      if (n === 0) { B.n('brass', 38, 6.2, 0.07); B.n('dark', 50, 6.2, 0.09); }
+      if ([1, 3, 9, 11, 17, 19].includes(n)) { B.d(0, 0.85); B.n('sub', 31, 0.35, 0.42); emNoise(B, { len: 0.25, v: 0.12, f: 220, f2: 80 }); }
+      if ([5, 13, 21].includes(n)) { B.n('toll', 86, 0.6, 0.17); B.n('toll', 93, 0.4, 0.09); emNoise(B, { len: 0.12, v: 0.2, type: 'highpass', f: 3000, att: 0.002 }); B.d(2, 0.45); emVox(B, { fa: 'a', len: 0.24, f: 118, v: 0.5, n: 5 }); }
+      if (n === 7 || n === 15) { B.d(5, 0.2); B.d(5, 0.25, 0.1); }
+      if (n === 23 || n === 24) { B.d(5, 0.3); B.d(5, 0.35, 0.1); }
+      if (n === 25) { emVox(B, { fa: 'a', fu: 'o', len: 0.95, f: 112, v: 0.7, n: 6 }); B.d(0, 1); B.d(6, 0.5); B.c('brass', [50, 57, 62], 1.4, 0.32); B.c('dark', [62, 66, 69], 1.4, 0.18); } }); },
+  },
+  { id: 'poseidon', nm: 'Poseidon’s Tide', ic: '🔱', price: -1, loop: 1, snap: 12, mus: 1, pic: 4.9, picR: 9, d: '🏛️ Raise Poseidon’s trident as the sea swirls up around you, slam it down — and a towering wave rises behind you, curls over your head and crashes down in a burst of spray',
+    pose(J, t, a) {
+      const r15 = a.r15, c = t % 8;
+      if (c < 2.7) { const r = smooth(c / 0.9); J.aR = [0.3 + 2.75 * r, 0, 0.2]; J.aL = [0.6 * r, 0, -0.4 - 0.8 * r]; J.hd = [0.3 * r, 0, 0]; J.bd = [0.15 * r, 0, 0]; J.lL = [0, 0, -0.12]; J.lR = [0, 0, 0.12]; if (r15) { J.eR = [0.15, 0, 0]; J.eL = [0.5, 0, 0]; } }
+      else if (c < 3.3) { const s = bump(c, 2.65, 3.5); J.aR = [3.05 - 2.1 * smooth((c - 2.7) / 0.12), 0, 0.2]; J.aL = [0.3, 0, -0.9]; J.up = -0.45 * s; J.bd = [-0.3 * s, 0, 0]; J.hd = [-0.1 * s, 0, 0]; J.lL = [0.3 * s, 0, -0.2]; J.lR = [-0.2 * s, 0, 0.2]; if (r15) { J.kL = [-0.8 * s, 0, 0]; J.kR = [-0.6 * s, 0, 0]; J.eR = [0.4, 0, 0]; } }
+      else if (c < 5.7) { const k = plat(c, 3.2, 5.8, 0.3, 0.3); J.aL = [0.8 * k, 0, -0.3 - 1.7 * k]; J.aR = [1.0 + 1.6 * k, 0, 0.2 + 0.4 * k]; J.hd = [0.35 * k, 0, 0]; J.bd = [0.12 * k, 0, 0]; J.lL = [0, 0, -0.2]; J.lR = [0, 0, 0.2]; if (r15) { J.eL = [0.2, 0, 0]; J.eR = [0.3, 0, 0]; } }
+      else { const k = plat(c, 5.6, 8.2, 0.4, 0.4); J.aR = [0.3 * k, 0, 0.3 * k]; J.aL = [0.1, 0, -0.3]; J.hd = [0.12 * k, -0.2 * Math.sin(t * 0.8) * k, 0]; J.bd = [0.08 * k, 0, 0]; J.lL = [0, 0, -0.1]; J.lR = [0, 0, 0.1]; if (r15) { J.eR = [1.2 * k, 0, 0]; J.eL = [1.4 * k, 0, 0.0]; J.aL = [0.15, 0, -0.55 * k]; } }
+    },
+    fx: { // the trident; the sea spiralling up round you; a pool of water underfoot; a column and a ring of foam when you slam it down; a great curling wave of water behind you that crashes in spray
+      make(a, F) {
+        F.trA = new THREE.Group(); F.hR.add(F.trA); F.tr = emTridentProp(F.trA); F.tr.position.z = 1.2;
+        F.pool = emRing(F, '#22d3ee', 0.01, 3.4, { map: waterTex(), op: 0 });
+        F.col = emBeam(F, '#67e8f9', 1.1, 9, { op: 0, top: 0.4 }); F.foam = emRing(F, '#ecfeff', 0.85, 1, { op: 0 }); F.foam2 = emRing(F, '#a5f3fc', 0.9, 1, { op: 0 });
+        const g = new THREE.PlaneGeometry(17, 1, 34, 16); F.wg = g; F.wx = Array.from({ length: g.attributes.position.count }, (_, i) => g.attributes.position.getX(i)); F.wv = Array.from({ length: g.attributes.position.count }, (_, i) => g.attributes.position.getY(i) + 0.5);
+        F.wave = emMesh(F.root, g, new THREE.MeshPhongMaterial({ color: '#ffffff', map: waterTex(), transparent: true, opacity: 0.88, side: THREE.DoubleSide, depthWrite: false, shininess: 90, specular: 0xffffff, emissive: '#0e7490', emissiveIntensity: 0.35 }));
+        F.sw = emPS(F, 140); F.spray = emPS(F, 120); F.crest = [];
+      },
+      tick(a, F, t, dt) {
+        const c = t % 8, [c0, c1] = emCyc(t - dt, t, 8), act = smooth(t / 0.6);
+        emAim(F.trA, a, 1, Math.PI / 2); F.tr.userData.glow.material.opacity = 0.35 + 0.25 * Math.sin(t * 9) + (c > 2.7 && c < 3.4 ? 0.4 : 0);
+        F.pool.material.opacity = 0.35 * act; F.pool.rotation.z = t * 0.4;
+        const swirl = c < 2.9 || (c > 3.2 && c < 5.8); if (swirl) for (let q = 0; q < 3; q++) { const an = Math.random() * 6.28, r = rnd(1.4, 2.4); F.sw.add(Math.cos(an) * r, rnd(0, 0.6), Math.sin(an) * r, { vx: -Math.sin(an) * 3.2, vz: Math.cos(an) * 3.2, vy: rnd(2.5, 5), life: 1.1, s: rnd(0.25, 0.45), s1: 0.08, c: ['#67e8f9', '#22d3ee', '#e0f2fe'][q], drag: 0.6 }); }
+        const sl = c - 2.78; F.col.material.opacity = sl > 0 && sl < 0.8 ? 0.6 * (1 - sl / 0.8) : 0; F.col.scale.set(1, sl > 0 ? 0.3 + smooth(sl * 4) : 0.01, 1);
+        F.foam.scale.setScalar(sl > 0 && sl < 1 ? 1 + 9 * smooth(sl) : 0.01); F.foam.material.opacity = sl > 0 && sl < 1 ? 0.8 * (1 - sl) : 0;
+        if (crossed(c0, c1, 2.78)) { camShake(a, 0.25); F.spray.burst(30, 0, 0.5, 0, () => { const an = Math.random() * 6.28, s = rnd(2, 6); return { vx: Math.cos(an) * s, vy: rnd(4, 9), vz: Math.sin(an) * s, life: 1.0, s: 0.4, s1: 0.1, c: Math.random() < 0.5 ? '#ecfeff' : '#67e8f9', g: 14 }; }); }
+        // the wave: a sheet that rises straight up behind you and curls over at the top (17 wide, lower at the ends)
+        const rise = smooth((c - 3.0) / 1.6), crash = smooth((c - 5.55) / 0.35), H = 9.5 * rise * (1 - crash), z0 = 4.2 - 2.4 * smooth((c - 3.0) / 2.6), p = F.wg.attributes.position;
+        F.wave.visible = c > 3.0 && c < 6.0;
+        if (F.wave.visible) { for (let i = 0; i < p.count; i++) { const x = F.wx[i], v = F.wv[i], hx = H * (1 - 0.4 * (x / 8.5) * (x / 8.5)) + 0.4 * Math.sin(x * 0.7 + t * 2) * rise, h1 = hx * 0.55, R = Math.max(0.3, hx * 0.24), s = v * hx;
+            let y, z; if (s < h1) { y = s; z = z0; } else { const ph = Math.min(2.6, (s - h1) / R) + 0.15 * Math.sin(x * 0.5 + t * 3); y = h1 + R * Math.sin(ph); z = z0 - R * (1 - Math.cos(ph)); }
+            p.setXYZ(i, x, y, z + 0.25 * Math.sin(x * 0.9 + t * 4) * v); }
+          p.needsUpdate = true; F.wg.computeVertexNormals(); F.wg.computeBoundingSphere(); F.wave.material.opacity = 0.88 * (1 - crash * 0.6);
+          if (rise > 0.5 && Math.random() < 0.8) { const x = rnd(-7, 7); F.spray.add(x, H * 0.62, z0 - H * 0.2, { vx: rnd(-0.5, 0.5), vy: rnd(0, 2), vz: rnd(-3, -1), life: 0.8, s: 0.45, s1: 0.15, c: '#ecfeff', g: 6 }); } }
+        if (crossed(c0, c1, 5.6)) { camShake(a, 0.5); emFlash(a, '#a5f3fc', 0.35); F.foam2.userData.t0 = c; F.spray.burst(90, 0, 3, 0, () => ({ vx: rnd(-8, 8), vy: rnd(1, 10), vz: rnd(-8, 4), life: 1.3, s: rnd(0.4, 0.8), s1: 0.15, c: Math.random() < 0.6 ? '#ecfeff' : '#22d3ee', g: 12, drag: 0.3 })); }
+        const fu = F.foam2.userData.t0 != null ? c - F.foam2.userData.t0 : -1; F.foam2.scale.setScalar(fu > 0 && fu < 1.4 ? 1 + 13 * smooth(fu / 1.4) : 0.01); F.foam2.material.opacity = fu > 0 && fu < 1.4 ? 0.7 * (1 - fu / 1.4) : 0;
+        F.sw.tick(dt); F.spray.tick(dt);
+      },
+    },
+    ev(a, t0, t1) { emLoopBeat(a, t0, t1, 8, 0.25, (n, B) => { // the sea and a harp; drums rolling in; a brass call as you slam the trident; the wave breaking; a gentle harp after
+      if (n === 0) { emNoise(B, { len: 3.2, v: 0.15, f: 400, f2: 1300, att: 1.4 }); [57, 60, 64, 67, 69, 72, 76, 79, 81, 84, 88, 91].forEach((m, i) => B.n('pluck', m, 1.2, 0.16, i * 0.05)); B.c('strings', [57, 64, 69, 72], 2.6, 0.15); }
+      if (n === 8) B.c('strings', [53, 60, 65, 69], 1.0, 0.15);
+      if (n >= 6 && n <= 10) { B.d(5, 0.14 + (n - 6) * 0.06); B.d(5, 0.12 + (n - 6) * 0.06, 0.125); }
+      if (n === 11) { B.d(0, 1); B.d(6, 0.5); B.c('brass', [45, 52, 57, 61], 2.0, 0.34); B.n('sub', 33, 1.5, 0.48); emNoise(B, { len: 1.0, v: 0.2, f: 1500, type: 'bandpass', att: 0.01 }); }
+      const m = POS_MEL[n]; if (m) B.n('brass', m, 0.45, 0.22); if (n === 16) B.c('strings', [50, 57, 62, 66], 1.5, 0.16);
+      if (n === 22) { emThunder(B, 0.6); B.d(0, 1); B.d(6, 0.6); emNoise(B, { len: 2.4, v: 0.3, f: 2500, f2: 300, att: 0.02 }); B.c('brass', [45, 52, 57, 61, 64], 2.5, 0.3); }
+      if (n >= 26) B.n('pluck', [81, 76, 73, 69, 64, 61][n - 26], 1.4, 0.2); }); },
+  },
+  { id: 'olympic', nm: 'Olympian Torch', ic: '🔥', price: -1, loop: 1, snap: 14, mus: 1, pic: 5.6, picR: 7, d: '🏛️ Run with the sacred flame held high, win your laurel crown, touch the torch to the great brazier — and it roars into fire as the fanfare plays',
+    pose(J, t, a) {
+      const r15 = a.r15, c = t % 7;
+      if (c < 2.6) { const w = c * 9, s = Math.sin(w); // running on the spot, torch held high
+        J.lL = [0.9 * Math.max(0, s), 0, -0.05]; J.lR = [0.9 * Math.max(0, -s), 0, 0.05]; J.up = 0.12 * Math.abs(s); J.aR = [2.7, 0, 0.25]; J.aL = [0.6 * s, 0, -0.15]; J.hd = [0.2, 0, 0]; J.bd = [-0.08, 0, 0.04 * s];
+        if (r15) { J.kL = [-1.2 * Math.max(0, s), 0, 0]; J.kR = [-1.2 * Math.max(0, -s), 0, 0]; J.eR = [0.2, 0, 0]; J.eL = [1.4, 0, 0]; }
+      } else if (c < 3.4) { J.aR = [3.05, 0, 0.1]; J.aL = [0.3, 0, -0.5]; J.hd = [0.4, 0, 0]; J.bd = [0.1, 0, 0]; J.lL = [0, 0, -0.1]; J.lR = [0, 0, 0.1]; if (r15) { J.eL = [1.5, 0, 0]; J.eR = [0.05, 0, 0]; } }
+      else if (c < 4.3) { const k = plat(c, 3.3, 4.4, 0.25, 0.2); J.aR = [1.7, 0, 0.8 * k]; J.aL = [0.2, 0, -0.4]; J.bd = [-0.2 * k, -0.55 * k, 0]; J.hd = [0, -0.2 * k, 0]; J.lL = [0, 0, -0.12]; J.lR = [0.2 * k, 0, 0.15]; if (r15) { J.eR = [0.1, 0, 0]; J.kR = [-0.3 * k, 0, 0]; } }
+      else { const j = c < 5.0 ? Math.sin(((c - 4.3) / 0.7) * Math.PI) : 0, k = plat(c, 4.3, 7.1, 0.2, 0.4); // a leap for joy, then arms up in a V
+        J.up = 1.3 * j; J.aL = [0.3, 0, -2.6 * k]; J.aR = [0.3, 0, 2.6 * k]; J.hd = [0.35 * k, 0, 0]; J.bd = [0.06 * k, 0, 0.05 * Math.sin(t * 2) * k]; J.lL = [0.5 * j, 0, -0.12]; J.lR = [-0.2 * j, 0, 0.12]; if (r15) { J.kL = [-1.1 * j, 0, 0]; J.kR = [-0.5 * j, 0, 0]; J.eL = J.eR = [0.15, 0, 0]; }
+      }
+    },
+    fx: { // the torch; a laurel wreath appearing on your head; a great bronze brazier on a tripod that bursts into flame; embers; rays of light
+      make(a, F) {
+        F.tA = new THREE.Group(); F.hR.add(F.tA); F.torch = emTorchProp(F.tA);
+        F.wr = emWreath(F.hd);
+        const bz = metalMat('#d9a441', { specular: '#fff2c0' }), g = new THREE.Group(); g.position.set(2.9, 0, -1.9); F.root.add(g); F.braz = g;
+        for (let k = 0; k < 3; k++) { const an = k / 3 * Math.PI * 2, lg = emMesh(g, kCyl(), bz, Math.cos(an) * 0.42, 1.15, Math.sin(an) * 0.42); lg.scale.set(0.06, 2.4, 0.06); lg.rotation.set(Math.sin(an) * 0.18, 0, -Math.cos(an) * 0.18); emMesh(g, kSph(), bz, Math.cos(an) * 0.62, 0.05, Math.sin(an) * 0.62).scale.set(0.12, 0.08, 0.12); }
+        const bowl = emMesh(g, kLathe('brazBowl', [[0.05, 0], [0.55, 0.12], [0.85, 0.42], [0.95, 0.55], [0.88, 0.58], [0.5, 0.2]], 28), bz, 0, 2.3, 0); emMesh(g, kTor(0.08), bz, 0, 2.85, 0).scale.setScalar(0.92); g.children[g.children.length - 1].rotation.x = Math.PI / 2;
+        F.bfl = Array.from({ length: 10 }, (_, j) => emSprite(g, fxTex('flame'), 1, { blending: THREE.AdditiveBlending, opacity: 0 })); F.bgl = emSprite(g, glowTex(), 6, { color: '#fb923c', blending: THREE.AdditiveBlending, opacity: 0 }); F.bgl.position.y = 3.4;
+        F.rays = emSprite(F.root, raysTex(), 13, { color: '#fde68a', blending: THREE.AdditiveBlending, opacity: 0 }); F.rays.position.set(0, 5.5, 2);
+        F.em = emPS(F, 90, { tex: fxTex('twinkle') }); F.tw = emPS(F, 40, { tex: fxTex('twinkle') });
+      },
+      tick(a, F, t, dt) {
+        const c = t % 7, [c0, c1] = emCyc(t - dt, t, 7), lit = c > 4.0 ? smooth((c - 4.0) / 0.3) * (1 - smooth((c - 6.7) / 0.3)) : 0, wr = c > 3.0 ? smooth((c - 3.0) / 0.35) * (1 - smooth((c - 6.75) / 0.25)) : 0;
+        emAim(F.tA, a, 1, c > 3.4 && c < 4.3 ? 0.9 : Math.PI / 2); emTorchTick(F.torch, t);
+        F.wr.scale.setScalar(Math.max(0.001, wr * (1 + 0.25 * Math.sin(Math.min(1, (c - 3.0) / 0.4) * Math.PI)))); F.wr.visible = wr > 0.01;
+        if (crossed(c0, c1, 3.0)) F.tw.burst(20, 0, 5.4, 0, () => ({ vx: rnd(-2, 2), vy: rnd(-1, 2), vz: rnd(-2, 2), life: 0.8, s: 0.4, s1: 0.05, c: Math.random() < 0.5 ? '#fde68a' : '#bef264' }));
+        F.bfl.forEach((f, j) => { const an = j * 2.4 + t, r = j < 4 ? 0.1 : 0.45, s = lit * (1.5 + (j < 4 ? 1.2 : 0.2) + 0.35 * Math.sin(t * (11 + j) + j)); f.position.set(Math.cos(an) * r, 2.85 + s * 0.55, Math.sin(an) * r); f.scale.set(s * 0.6, s * 1.25, 1); f.material.opacity = lit * 0.9; });
+        F.bgl.material.opacity = lit * (0.55 + 0.15 * Math.sin(t * 13)); F.rays.material.opacity = lit * 0.45; F.rays.material.rotation = t * 0.12;
+        if (crossed(c0, c1, 4.0)) { camShake(a, 0.25); emFlash(a, '#fed7aa', 0.3); F.em.burst(40, 2.9, 3.2, -1.9, () => ({ vx: rnd(-4, 4), vy: rnd(3, 9), vz: rnd(-4, 4), life: 1.2, s: 0.4, s1: 0.05, c: Math.random() < 0.5 ? '#fdba74' : '#fde68a', g: 5 })); }
+        if (lit > 0.3 && Math.random() < 0.7) F.em.add(2.9 + rnd(-0.4, 0.4), 3.3, -1.9 + rnd(-0.4, 0.4), { vx: rnd(-0.5, 0.5), vy: rnd(2, 4), vz: rnd(-0.5, 0.5), life: 1.4, s: 0.25, s1: 0.03, c: '#fdba74' });
+        F.em.tick(dt); F.tw.tick(dt);
+      },
+    },
+    ev(a, t0, t1) { emLoopBeat(a, t0, t1, 7, 0.25, (n, B) => { // a fanfare in C over timpani and strings; the brazier roars alight with a crash and a choir
+      const m = OLY_MEL[n]; if (m) B.n('brass', m, 0.4, 0.24);
+      if (n < 10 && n % 2 === 0) { B.d(5, 0.22); B.n('sub', n % 4 ? 43 : 36, 0.3, 0.25); }
+      if (n === 0) B.c('strings', [48, 55, 64, 67], 2.4, 0.13); if (n === 10) B.c('strings', [53, 60, 65, 69], 1.5, 0.14);
+      if (n === 12) { B.d(5, 0.25); B.d(5, 0.3, 0.125); B.d(5, 0.35, 0.25); B.d(5, 0.4, 0.375); }
+      if (n === 16) { B.d(0, 1); B.d(6, 0.55); B.c('brass', [48, 55, 60, 64, 67], 2.2, 0.36); B.c('dark', [64, 67, 72], 2.2, 0.22); emNoise(B, { len: 1.2, v: 0.22, f: 900, f2: 2400, type: 'bandpass', att: 0.05 }); }
+      if (n === 22) B.c('strings', [43, 55, 59, 62], 1.0, 0.14); if (n === 26) { B.c('brass', [48, 55, 60, 64], 0.9, 0.26); B.d(0, 0.6); B.d(6, 0.3); }
+      if (n > 16 && n % 2 === 0) B.d(5, 0.18); }); },
+  },
+  { id: 'phoenix', nm: 'Rise of the Phoenix', ic: '🐦‍🔥', price: -1, loop: 1, snap: 10, mus: 1, pic: 4.3, picR: 8.5, d: '🏛️ Kneel in the embers; fire spirals up around you; you burst up into the air on great wings of flame with a phoenix’s cry, hover in a rain of sparks — and sink back down',
+    pose(J, t, a) {
+      const r15 = a.r15, c = t % 8, kn = 1 - smooth((c - 1.6) / 1.4) + smooth((c - 6.6) / 1.2), rise = Math.min(1, Math.max(0, 1 - kn)), fl = c > 3.0 && c < 7.2 ? smooth((c - 3.0) / 0.5) * (1 - smooth((c - 6.4) / 0.8)) : 0, beat = Math.sin(t * 3.5);
+      const k = Math.min(1, Math.max(0, kn));
+      if (r15) { J.lL = [1.3 * k + 0.3 * fl, 0, -0.05]; J.kL = [-1.5 * k - 0.6 * fl, 0, 0]; J.lR = [-0.1 * k + 0.1 * fl, 0, 0.05]; J.kR = [-1.6 * k - 0.9 * fl, 0, 0]; J.up = -0.95 * k + (2.5 + 0.3 * beat) * fl; }
+      else { J.lL = [1.1 * k, 0, -0.05]; J.lR = [-0.4 * k, 0, 0.05]; J.up = -0.7 * k + (2.5 + 0.3 * beat) * fl; }
+      J.bd = [-0.5 * k + 0.15 * fl, 0, 0]; J.hd = [-0.4 * k + 0.35 * fl + 0.2 * (rise - fl) * (rise > fl ? 1 : 0), 0, 0];
+      const wide = Math.max(fl, c > 2.6 && c < 3.3 ? smooth((c - 2.6) / 0.4) : 0);
+      J.aL = [1.2 * k + (0.5 + 0.1 * beat) * wide + 0.3 * (1 - k - wide), 0, 0.7 * k - (1.8 + 0.45 * beat) * wide - 0.6 * (1 - k - wide)]; J.aR = [1.2 * k + (0.5 + 0.1 * beat) * wide + 0.3 * (1 - k - wide), 0, -0.7 * k + (1.8 + 0.45 * beat) * wide + 0.6 * (1 - k - wide)];
+      if (r15) { J.eL = J.eR = [1.8 * k + 0.25 * wide, 0, 0]; }
+    },
+    fx: { // great wings of fire that unfurl and beat, flames flickering along them; a spiral of fire; a burst and a ring of flame; a rain of embers; a glow behind you
+      make(a, F) {
+        F.wings = [-1, 1].map((s) => { const w = featherWing(F.up, s, { cols: ['#dc2626', '#f97316', '#facc15'], span: 4.6, em: 0x8a2a00 }); w.position.set(s * 0.3, 3.95, 0.62); w.userData.s = s;
+          w.userData.fl = Array.from({ length: 9 }, (_, j) => { const f = emSprite(w, fxTex('flame'), 0.9, { blending: THREE.AdditiveBlending }); f.position.set(s * (0.5 + j * 0.47), 0.75 - j * 0.15 + Math.sin(j) * 0.25, 0.05); return f; }); return w; });
+        F.glow = emSprite(F.root, glowTex(), 9, { color: '#f97316', blending: THREE.AdditiveBlending, opacity: 0 }); F.glow.position.set(0, 4, 1);
+        F.ring = emRing(F, '#fb923c', 0.85, 1, { op: 0 }); F.ground = emRing(F, '#f97316', 0.01, 2.2, { op: 0 });
+        F.fire = emPS(F, 140, { tex: fxTex('flame') }); F.emb = emPS(F, 120, { tex: fxTex('twinkle') });
+      },
+      tick(a, F, t, dt) {
+        const c = t % 8, [c0, c1] = emCyc(t - dt, t, 8), fl = c > 3.0 && c < 7.2 ? smooth((c - 3.0) / 0.4) * (1 - smooth((c - 6.4) / 0.8)) : 0, beat = Math.sin(t * 3.5), up = 2.5 * fl;
+        F.wings.forEach((w) => { const s = w.userData.s; w.scale.setScalar(Math.max(0.001, fl)); w.visible = fl > 0.01; w.rotation.set(0.1, -s * (0.42 - 0.25 * beat), s * (0.35 + 0.35 * beat)); w.userData.fl.forEach((f, j) => { const k = 0.8 + 0.3 * Math.sin(t * (13 + j) + j); f.scale.set(0.85 * k, 1.7 * k, 1); f.material.opacity = 0.85; }); });
+        F.glow.material.opacity = 0.15 + 0.55 * fl + 0.1 * Math.sin(t * 9); F.glow.position.y = 4 + up;
+        F.ground.material.opacity = (c < 3 ? 0.25 * smooth(c / 1.0) : 0.35 * fl) * (0.8 + 0.2 * Math.sin(t * 7)); F.ground.scale.setScalar(1 + 0.3 * fl);
+        if (c < 1.6 && Math.random() < 0.6) F.fire.add(rnd(-1, 1), 0.1, rnd(-1, 1), { vy: rnd(0.5, 1.5), life: 0.6, s: 0.5, s1: 0.1, c: '#ffffff', op: 0.7 }); // (embers smouldering)
+        if (c > 1.6 && c < 3.1) for (let q = 0; q < 3; q++) { const f = (c - 1.6) / 1.5, an = t * 9 + q * 2.1, r = 1.7 - 0.6 * f; F.fire.add(Math.cos(an) * r, f * 5 + rnd(0, 0.5), Math.sin(an) * r, { vy: rnd(2, 4), vx: -Math.sin(an) * 2, vz: Math.cos(an) * 2, life: 0.55, s: 0.9, s1: 0.3, c: '#ffffff' }); }
+        if (crossed(c0, c1, 3.0)) { camShake(a, 0.35); emFlash(a, '#fdba74', 0.4); F.ring.userData.t0 = c; F.emb.burst(60, 0, 3.5, 0, () => ({ vx: rnd(-8, 8), vy: rnd(-2, 8), vz: rnd(-8, 8), life: 1.2, s: 0.45, s1: 0.05, c: Math.random() < 0.5 ? '#fde68a' : '#fb923c', g: 4, drag: 1 })); }
+        const ru = F.ring.userData.t0 != null ? c - F.ring.userData.t0 : -1; F.ring.scale.setScalar(ru > 0 && ru < 1 ? 1 + 11 * smooth(ru) : 0.01); F.ring.material.opacity = ru > 0 && ru < 1 ? 0.9 * (1 - ru) : 0;
+        if (fl > 0.3) { if (Math.random() < 0.8) { const s = Math.random() < 0.5 ? -1 : 1; F.emb.add(s * rnd(0.5, 4), up + rnd(2.5, 5), rnd(0, 1.2), { vy: rnd(-3, -1), vx: rnd(-0.5, 0.5), life: 1.4, s: 0.3, s1: 0.05, c: Math.random() < 0.5 ? '#fdba74' : '#fde68a' }); }
+          if (Math.random() < 0.5) F.fire.add(rnd(-0.4, 0.4), up + rnd(0, 0.5), rnd(-0.4, 0.4), { vy: -2, life: 0.4, s: 0.7, s1: 0.2, c: '#ffffff', op: 0.6 }); }
+        F.fire.tick(dt); F.emb.tick(dt);
+      },
+    },
+    ev(a, t0, t1) { emLoopBeat(a, t0, t1, 8, 0.25, (n, B) => { // a dark choir in A minor rising, strings climbing, timpani — then the burst into A major with a phoenix’s cry and a soaring tune
+      if (n === 0) { B.c('dark', [57, 60, 64], 3.0, 0.2); B.n('strings', 45, 3, 0.12); } if (n === 0 || n === 4) B.d(5, 0.2);
+      if (n >= 6 && n <= 11) { B.n('strings', [57, 60, 64, 69, 72, 76][n - 6], 0.9, 0.16); B.d(5, 0.15 + (n - 6) * 0.06); B.d(5, 0.13 + (n - 6) * 0.06, 0.125); }
+      if (n === 12) { B.d(0, 1); B.d(6, 0.6); B.c('brass', [57, 61, 64, 69], 2.5, 0.38); B.c('dark', [69, 73, 76], 3, 0.24); emCry(B, 1300, 0.05, 0.2); emNoise(B, { len: 1.2, v: 0.22, f: 800, f2: 2600, type: 'bandpass', att: 0.03 }); }
+      const m = PHX_MEL[n]; if (m) { B.n('strings', m, 0.5, 0.2); B.n('brass', m - 12, 0.45, 0.12); }
+      if (n === 18) emCry(B, 1550, 0, 0.12); if (n === 23) emCry(B, 1150, 0, 0.1);
+      if (n === 16 || n === 20 || n === 24) B.d(5, 0.25);
+      if (n === 26) { B.c('strings', [57, 64, 69, 73], 2.0, 0.14); B.d(5, 0.2); } }); },
+  },
+  { id: 'bard', nm: 'Tavern Bard', ic: '🪕', price: -1, loop: 1, snap: 12, mus: 1, pic: 2.2, picR: 6, d: '🏛️ One foot up on a keg, a feather in your cap and a lute in your hands: a merry tavern tune with a pipe and a tambourine, and a flourish at the end',
+    pose(J, t, a) {
+      const r15 = a.r15, c = t % 8, fl = plat(c, 6.0, 7.7, 0.3, 0.4), n = 1 - fl, bob = Math.abs(Math.sin(t * Math.PI * 2)), st = Math.sin(t * (fl > 0.5 ? 38 : 25));
+      J.lR = [r15 ? 1.3 : 0.85, 0, 0.12]; J.lL = [-0.05, 0, -0.1]; if (r15) J.kR = [-1.0, 0, 0];
+      J.bd = [-0.12 * n + 0.2 * fl, 0.15, 0]; J.hd = [0.08 + 0.1 * bob * n + 0.35 * fl, 0.1 * Math.sin(t * 1.3) * n, 0.06 * Math.sin(t * Math.PI) * n]; J.up = 0.02 * bob;
+      if (r15) { J.aL = [1.15 + 0.2 * fl, 0, -0.45]; J.eL = [0.55, 0, 0]; J.aR = [0.55, 0, -0.35]; J.eR = [1.35 + 0.18 * st, 0, 0]; J.ws = [0, 0.1 * Math.sin(t * Math.PI) * n, 0]; }
+      else { J.aL = [1.3 + 0.2 * fl, 0, -0.4]; J.aR = [0.75 + 0.1 * st, 0, -0.4]; }
+    },
+    fx: { // a lute (a round-backed body, a rosette, a bent-back pegbox), a keg to put your foot on and a tankard of ale, a bard’s cap with a long red feather, notes, a warm glow
+      make(a, F) {
+        const wood = new THREE.MeshPhongMaterial({ color: '#a0622d', map: woodTex(), shininess: 60, specular: 0x553311 }), dark = new THREE.MeshLambertMaterial({ color: '#3b2414' }), top = new THREE.MeshLambertMaterial({ color: '#e7c48a' }), str = new THREE.MeshBasicMaterial({ color: '#f5f5f4' });
+        const L = new THREE.Group(); F.up.add(L); F.lute = L;
+        emMesh(L, kSph(), wood, 0, 0, 0.06).scale.set(0.5, 0.62, 0.28); emMesh(L, kSph(), top, 0, 0, -0.17).scale.set(0.47, 0.59, 0.02);
+        emMesh(L, kSph(), dark, 0, 0.15, -0.185).scale.set(0.12, 0.12, 0.01); const ro = emMesh(L, kTor(0.15), new THREE.MeshLambertMaterial({ color: '#7c4a22' }), 0, 0.15, -0.19); ro.scale.setScalar(0.15);
+        emMesh(L, BOX, dark, 0, 1.0, -0.13).scale.set(0.16, 1.05, 0.07); const pb = emMesh(L, BOX, dark, 0, 1.62, -0.03); pb.scale.set(0.15, 0.42, 0.08); pb.rotation.x = 0.9;
+        for (let k = 0; k < 4; k++) for (const s of [-1, 1]) { const pg = emMesh(L, kCyl(), top, s * 0.11, 1.5 + k * 0.07, 0.05 + k * 0.06); pg.scale.set(0.02, 0.1, 0.02); pg.rotation.z = Math.PI / 2; }
+        emMesh(L, BOX, dark, 0, -0.33, -0.185).scale.set(0.3, 0.04, 0.03); for (let k = 0; k < 5; k++) emMesh(L, BOX, str, -0.06 + k * 0.03, 0.62, -0.19).scale.set(0.006, 1.9, 0.006);
+        const kg2 = new THREE.Group(); kg2.position.set(0.55, 0, -1.3); F.root.add(kg2);
+        emMesh(kg2, kLathe('keg', [[0, 0], [0.36, 0], [0.43, 0.2], [0.45, 0.36], [0.43, 0.52], [0.36, 0.72], [0, 0.72]], 20), wood);
+        for (const y of [0.14, 0.58]) { const h = emMesh(kg2, kTor(0.04), metalMat('#4b5563'), 0, y, 0); h.rotation.x = Math.PI / 2; h.scale.setScalar(0.42); }
+        const tk = new THREE.Group(); tk.position.set(-1.0, 0, -1.2); F.root.add(tk); emMesh(tk, kCyl(), metalMat('#9ca3af'), 0, 0.35, 0).scale.set(0.22, 0.7, 0.22); emMesh(tk, kSph(), new THREE.MeshLambertMaterial({ color: '#fefce8' }), 0, 0.72, 0).scale.set(0.24, 0.12, 0.24);
+        const hd = emMesh(tk, kTor(0.25, Math.PI), metalMat('#9ca3af'), 0.24, 0.38, 0); hd.scale.setScalar(0.18); hd.rotation.z = -Math.PI / 2;
+        const cap = new THREE.Group(); cap.position.set(0.05, 0.52, 0); cap.rotation.z = -0.18; F.hd.add(cap); emMesh(cap, kSph(), new THREE.MeshLambertMaterial({ color: '#15803d' }), 0, 0.05, 0).scale.set(0.78, 0.26, 0.78);
+        emMesh(cap, KIT_CYL, new THREE.MeshLambertMaterial({ color: '#166534' }), 0, -0.02, 0).scale.set(0.7, 0.12, 0.7);
+        F.plume = emMesh(cap, kg('bardPlume', () => sweepGeo([[0.35, 0.05, 0.2], [0.55, 0.45, 0.55], [0.6, 0.85, 1.05], [0.45, 1.05, 1.55]], (u) => 0.09 * Math.sin(Math.PI * Math.min(1, u * 1.1)) + 0.012, 20, 6)), new THREE.MeshLambertMaterial({ color: '#dc2626' }));
+        F.warm = emSprite(F.root, glowTex(), 8, { color: '#fb923c', blending: THREE.AdditiveBlending, opacity: 0 }); F.warm.position.set(-1.5, 3.5, 2);
+        emNotes(F, 5, [0.3, 4.9, -1.0]); F.tw = emPS(F, 40, { tex: fxTex('twinkle') });
+      },
+      tick(a, F, t, dt) {
+        const c = t % 8, fl = plat(c, 6.0, 7.7, 0.3, 0.4);
+        F.lute.position.set(0.15, 2.85 + 0.25 * fl, -0.8); F.lute.rotation.set(0, 0.2, 1.05 - 0.3 * fl);
+        F.plume.rotation.x = 0.06 * Math.sin(t * 6); F.warm.material.opacity = smooth(t / 0.6) * (0.22 + 0.04 * Math.sin(t * 9) * Math.sin(t * 5.3));
+        const n = emLoopStep(t - dt, t, 8, 0.25); if (n >= 0 && BARD_MEL[n]) { F.lute.updateWorldMatrix(true, false); const p = F.root.worldToLocal(F.lute.localToWorld(_eh.set(0, 0.1, -0.25))); F.tw.burst(fl > 0.3 ? 4 : 2, p.x, p.y, p.z, () => ({ vx: rnd(-1, 1), vy: rnd(0.5, 2), vz: rnd(-1.5, 0), life: 0.7, s: 0.28, s1: 0.04, c: Math.random() < 0.5 ? '#fde68a' : '#fdba74', drag: 1.5 })); }
+        F.tw.tick(dt); emNotesTick(F, t, 0.5);
+      },
+    },
+    ev(a, t0, t1) { emLoopBeat(a, t0, t1, 8, 0.25, (n, B) => { // a lute tune in D Mixolydian, a pipe above it, a bass on the low strings, a tambourine and a frame drum; a run of quick notes in the flourish
+      const m = BARD_MEL[n]; if (m) { B.n('pluck', m, 0.6, 0.38); if (n >= 24 && n < 31) B.n('pluck', m + 12, 0.3, 0.16, 0.125); }
+      if (n % 8 === 0) B.n('flute', [78, 76, 79, 74][n / 8], 1.8, 0.12); if (n % 4 === 0) B.n('pluck', [38, 36, 38, 45][n >> 3], 0.8, 0.32); if (n % 4 === 2) B.n('pluck', [45, 43, 45, 52][n >> 3], 0.5, 0.2);
+      B.d(3, 0.06); if (n % 4 === 2) B.d(4, 0.13); if ([0, 3, 6].includes(n % 8)) B.d(5, 0.2);
+      if (n === 31) { B.c('pluck', [50, 57, 62, 66], 1.4, 0.2, 0, 0.03); B.d(4, 0.2); } }); },
+  },
+  { id: 'dragonslayer', nm: 'Dragonslayer', ic: '🐉', price: -1, loop: 1, snap: 14, mus: 1, pic: 2.2, picR: 9.5, d: '🏛️ A dragon rises out of the ground and roars fire at you; you hold it off with your greatsword, leap — and cut it down in a blaze of embers. Then the sword goes up on your shoulder',
+    pose(J, t, a) {
+      const r15 = a.r15, c = t % 9; let psi = 1.0;
+      if (c < 1.5) { J.lL = [0.25, 0, -0.3]; J.lR = [-0.2, 0, 0.3]; J.up = -0.25; J.aL = [1.1, 0, 0.4]; J.aR = [1.1, 0, -0.4]; J.bd = [-0.05, 0.15, 0]; J.hd = [0.1, -0.1, 0]; if (r15) { J.kL = [-0.5, 0, 0]; J.kR = [-0.4, 0, 0]; J.eL = J.eR = [0.6, 0, 0]; } }
+      else if (c < 3.0) { const sh = 0.03 * Math.sin(t * 50); J.lL = [0.35, 0, -0.32]; J.lR = [-0.35, 0, 0.32]; J.up = -0.45; J.sx = sh; J.aL = [1.6, 0, 0.45]; J.aR = [1.6, 0, -0.45]; J.bd = [-0.15, 0, 0]; J.hd = [-0.2, 0, 0]; psi = 1.45; if (r15) { J.kL = [-0.8, 0, 0]; J.kR = [-0.6, 0, 0]; J.eL = J.eR = [0.8, 0, 0]; } }
+      else if (c < 3.65) { const u = (c - 3.0) / 0.65, j = Math.sin(u * Math.PI * 0.9); J.up = 3.2 * j; J.aL = [3.1, 0, 0.3]; J.aR = [3.1, 0, -0.3]; J.lL = [0.9, 0, -0.1]; J.lR = [0.3, 0, 0.1]; J.bd = [0.2, 0, 0]; J.hd = [0.3, 0, 0]; psi = 2.6; if (r15) { J.kL = [-1.4, 0, 0]; J.kR = [-1.0, 0, 0]; J.eL = J.eR = [0.4, 0, 0]; } }
+      else if (c < 4.0) { const u = smooth((c - 3.65) / 0.25); J.up = 3.2 * Math.sin(Math.PI * 0.9) * (1 - u); J.aL = [3.1 - 2.5 * u, 0, 0.3]; J.aR = [3.1 - 2.5 * u, 0, -0.3]; J.bd = [0.2 - 0.8 * u, 0, 0]; J.lL = [0.9, 0, -0.1]; J.lR = [-0.3 * u, 0, 0.1]; psi = 2.6 - 3.1 * u; if (r15) { J.kL = [-1.2, 0, 0]; J.kR = [-0.8, 0, 0]; } }
+      else if (c < 5.0) { const k = 1 - smooth((c - 4.3) / 0.7); J.up = -0.6 * k; J.aL = [0.6, 0, 0.3]; J.aR = [0.6, 0, -0.3]; J.bd = [-0.6 * k, 0, 0]; J.lL = [0.9 * k, 0, -0.2]; J.lR = [-0.4 * k, 0, 0.2]; psi = -0.5; if (r15) { J.kL = [-1.3 * k, 0, 0]; J.kR = [-1.0 * k, 0, 0]; } }
+      else { const k = plat(c, 4.9, 9.1, 0.4, 0.4); J.aR = [1.65 * k, 0, 0.25 * k]; J.aL = [0.15, 0, -0.6 * k]; J.hd = [0.15 * k, 0.15 * Math.sin(t * 0.7) * k, 0]; J.bd = [0.08 * k, 0, 0.03 * Math.sin(t)]; J.lL = [0.1, 0, -0.15]; J.lR = [-0.05, 0, 0.15]; psi = 2.8 * k - 0.5 * (1 - k); if (r15) { J.eR = [2.0 * k, 0, 0]; J.eL = [1.6 * k, 0, 0]; } }
+      a.dsPsi = psi;
+    },
+    fx: { // a dragon’s head and neck rising out of the ground — red scales, horns, glowing eyes, jaws full of teeth — breathing fire; your greatsword; the slash in an arc of light; the dragon bursting into embers
+      make(a, F) {
+        F.swA = new THREE.Group(); F.hR.add(F.swA); F.sw = emSwordProp(F.swA, { len: 3.4, big: 1, gem: '#dc2626' });
+        const scale = new THREE.MeshPhongMaterial({ color: '#c2410c', map: serpTex(), shininess: 50, specular: 0x663322, emissive: '#3b0a0a' }), horn = new THREE.MeshPhongMaterial({ color: '#e7dcc4', shininess: 40 }), dark = new THREE.MeshLambertMaterial({ color: '#450a0a' }), eye = new THREE.MeshBasicMaterial({ color: '#fde047' });
+        const D = new THREE.Group(); D.position.set(0, 0, -8); F.root.add(D); F.dr = D;
+        emMesh(D, kg('dragonNeck', () => sweepGeo([[0, -1.5, -1.6], [0, 1.0, -1.4], [0, 3.0, -0.6], [0, 4.2, 0.2]], (u) => 0.8 - 0.3 * u, 20, 14)), scale);
+        for (let k = 0; k < 6; k++) { const sp = emMesh(D, kCone(), horn, 0, 0.2 + k * 0.75, -2.3 + k * 0.33 - (k > 3 ? (k - 3) * 0.25 : 0)); sp.scale.set(0.14, 0.6, 0.14); sp.rotation.x = -0.7; }
+        const H = new THREE.Group(); H.position.set(0, 4.7, 0.6); H.scale.setScalar(1.35); D.add(H); F.dh = H;
+        emMesh(H, kSph(), scale, 0, 0, 0).scale.set(1.1, 0.9, 1.3); emMesh(H, kSph(), scale, 0, -0.1, 1.35).scale.set(0.72, 0.48, 1.25);
+        for (const s of [-1, 1]) { emMesh(H, kSph(), eye, s * 0.58, 0.28, 0.7).scale.set(0.2, 0.13, 0.16); emMesh(H, kSph(), dark, s * 0.62, 0.3, 0.74).scale.set(0.05, 0.12, 0.05);
+          const gl = kitGlow(H, '#fde047', 1.1, 0.7); gl.position.set(s * 0.6, 0.28, 0.8);
+          const br = emMesh(H, kSph(), scale, s * 0.5, 0.48, 0.55); br.scale.set(0.35, 0.14, 0.4); br.rotation.z = -s * 0.3;
+          const hn = emMesh(H, kCone(), horn, s * 0.55, 0.75, -0.7); hn.scale.set(0.2, 1.5, 0.2); hn.rotation.set(-1.1, 0, -s * 0.35);
+          const fr = emMesh(H, kCone(), horn, s * 1.0, 0.0, -0.3); fr.scale.set(0.12, 0.8, 0.12); fr.rotation.set(-0.9, 0, -s * 1.2);
+          const ns = kitGlow(H, '#fb923c', 0.5, 0.8); ns.position.set(s * 0.18, 0.15, 2.55);
+          for (let k = 0; k < 6; k++) { const tt = emMesh(H, kCone(), horn, s * 0.42, -0.42, 0.75 + k * 0.28); tt.scale.set(0.07, 0.24, 0.07); tt.rotation.x = Math.PI; } }
+        const jw = new THREE.Group(); jw.position.set(0, -0.4, 0.2); H.add(jw); F.jaw = jw; emMesh(jw, kSph(), scale, 0, -0.12, 1.05).scale.set(0.62, 0.24, 1.15);
+        for (const s of [-1, 1]) for (let k = 0; k < 5; k++) { const tt = emMesh(jw, kCone(), horn, s * 0.36, 0.08, 0.6 + k * 0.28); tt.scale.set(0.06, 0.2, 0.06); }
+        F.mouth = kitGlow(H, '#f97316', 2.2, 0); F.mouth.position.set(0, -0.35, 1.6);
+        F.arc = emMesh(F.root, new THREE.TorusGeometry(2.6, 0.09, 6, 48, Math.PI * 0.9), new THREE.MeshBasicMaterial({ color: '#fef3c7', transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }), 0, 3.4, -2.2); F.arc.rotation.set(0, Math.PI / 2, 0);
+        F.fire = emPS(F, 150, { tex: fxTex('flame') }); F.emb = emPS(F, 140, { tex: fxTex('twinkle') }); F.chunks = emPS(F, 40, { flat: 1 });
+      },
+      tick(a, F, t, dt) {
+        const c = t % 9, [c0, c1] = emCyc(t - dt, t, 9), up = smooth(c / 1.3), alive = c < 3.95;
+        emAim(F.swA, a, 1, a.dsPsi != null ? a.dsPsi : 1);
+        F.dr.visible = alive; F.dr.position.y = -9 * (1 - up); F.dh.rotation.x = c < 1.5 ? -0.25 * Math.sin(c * 2) : c < 3 ? 0.15 : -0.2; F.dh.rotation.y = 0.15 * Math.sin(t * 1.3);
+        const roar = (c > 0.8 && c < 1.6) || (c > 1.5 && c < 3.0); F.jaw.rotation.x = roar ? 0.55 + 0.08 * Math.sin(t * 20) : 0.1; F.mouth.material.opacity = roar ? 0.8 : 0.15;
+        if (c > 1.5 && c < 3.0) { F.dh.updateWorldMatrix(true, false); const m = F.root.worldToLocal(F.dh.localToWorld(_eh.set(0, -0.4, 2.5))); for (let q = 0; q < 4; q++) { const sx = rnd(-1, 1); F.fire.add(m.x, m.y, m.z, { vx: sx * 3, vy: rnd(-2.6, -1), vz: rnd(9, 13), life: 0.75, s: 0.8, s1: 2.4, c: '#ffffff', drag: 0.4 }); } }
+        if (c > 1.6 && c < 3.0 && Math.random() < 0.8) F.emb.add(rnd(-1.6, 1.6), rnd(2, 5), rnd(-1.2, 0.5), { vx: rnd(-4, 4), vy: rnd(0, 3), vz: rnd(1, 4), life: 0.6, s: 0.25, s1: 0.03, c: '#fdba74' });
+        const au = (c - 3.72) / 0.45; F.arc.material.opacity = au > 0 && au < 1 ? 1 - au : 0; F.arc.scale.setScalar(0.8 + 0.4 * Math.max(0, au)); F.arc.rotation.z = -1.2 + 2.2 * smooth(Math.max(0, au));
+        if (crossed(c0, c1, 3.95)) { camShake(a, 0.6); emFlash(a, '#fed7aa', 0.5);
+          F.emb.burst(90, 0, 4.4, -7.2, () => ({ vx: rnd(-9, 9), vy: rnd(-3, 9), vz: rnd(-5, 7), life: 1.6, s: 0.5, s1: 0.04, c: Math.random() < 0.5 ? '#fb923c' : '#fde68a', g: 3, drag: 0.8 }));
+          F.chunks.burst(30, 0, 3.8, -7.4, () => ({ vx: rnd(-7, 7), vy: rnd(1, 8), vz: rnd(-4, 5), life: 1.3, s: rnd(0.4, 0.8), s1: 0.1, c: '#7f1d1d', g: 14, op: 0.9 }));
+          F.fire.burst(30, 0, 4.4, -7.0, () => ({ vx: rnd(-5, 5), vy: rnd(0, 5), vz: rnd(-3, 4), life: 0.7, s: 1.2, s1: 2.5, c: '#ffffff' })); }
+        if (c > 4.5 && Math.random() < 0.3) F.emb.add(rnd(-3, 3), rnd(0.5, 6), rnd(-6, 1), { vy: rnd(0.3, 1), life: 2, s: 0.25, s1: 0.03, c: '#fdba74' });
+        F.fire.tick(dt); F.emb.tick(dt); F.chunks.tick(dt);
+      },
+    },
+    ev(a, t0, t1) { emLoopBeat(a, t0, t1, 9, 0.25, (n, B) => { // war drums and driving strings in D minor, the dragon’s roar and fire, a great crash as it falls, and a triumphant brass tune in D major
+      if (n < 14) B.n('strings', [38, 38, 41, 38, 43, 38, 41, 40][n % 8], 0.22, 0.14);
+      if (n < 16 && [0, 3, 6].includes(n % 8)) B.d(5, 0.35); if (n < 16 && n % 8 === 0) B.d(0, 0.5);
+      if (n === 0 || n === 8) B.c('dark', n ? [46, 53, 58] : [50, 57, 62], 2, 0.2);
+      if (n === 3) giantRoar(a);
+      if (n === 6) { emNoise(B, { len: 1.6, v: 0.26, f: 1400, type: 'bandpass', att: 0.1 }); B.c('brass', [50, 53, 57], 1.4, 0.2); }
+      if (n === 12) { emNoise(B, { len: 0.6, v: 0.16, f: 600, f2: 3000, type: 'bandpass' }); } if (n >= 12 && n < 16) { B.d(5, 0.25 + (n - 12) * 0.08); B.d(5, 0.25 + (n - 12) * 0.08, 0.125); }
+      if (n === 16) { B.d(0, 1); B.d(6, 0.6); emThunder(B, 0.7); B.c('brass', [50, 57, 62, 66], 2.5, 0.38); B.c('dark', [62, 66, 69], 2.5, 0.24); }
+      const m = DS_MEL[n]; if (m) B.n('brass', m, 0.45, 0.24);
+      if ([20, 24, 28, 32].includes(n)) { B.c('strings', [[50, 57, 62, 66], [43, 55, 59, 62], [45, 57, 61, 64], [50, 57, 62, 66]][(n - 20) / 4], 1.0, 0.13); B.d(5, 0.3); B.d(0, 0.4); } }); },
+  },
+  { id: 'oracle', nm: 'Oracle of Delphi', ic: '🔮', price: -1, loop: 1, snap: 8, mus: 1, pic: 5.6, picR: 8, d: '🏛️ Kneel at the sacred tripod as violet vapours rise; a ring of ancient letters turns beneath you, your eyes glow — and an all-seeing eye opens in the smoke above',
+    pose(J, t, a) {
+      const r15 = a.r15, c = t % 8, ar = smooth((c - 2) / 1.5) * (1 - smooth((c - 6.5) / 1.2)), vis = plat(c, 5.0, 6.8, 0.3, 0.4), sw = Math.sin(t * 1.3);
+      if (r15) { J.up = -0.9; J.lL = [0.25, 0, -0.08]; J.lR = [0.25, 0, 0.08]; J.kL = J.kR = [-1.75, 0, 0]; J.eL = J.eR = [0.5 * (1 - ar) + 0.2 * ar, 0, 0]; }
+      else { J.up = -1.55; J.lL = [1.5, 0, -0.2]; J.lR = [1.5, 0, 0.2]; }
+      J.aL = [1.0 + 1.6 * ar, 0, 0.25 - 1.05 * ar]; J.aR = [1.0 + 1.6 * ar, 0, -0.25 + 1.05 * ar];
+      J.hd = [-0.28 * (1 - ar) + 0.5 * ar, 0.1 * sw * ar, 0.05 * Math.sin(t * 30) * vis]; J.bd = [-0.1 * (1 - ar) + 0.1 * ar, 0.05 * sw, 0.06 * sw * ar];
+    },
+    fx: { // a bronze tripod with a bowl of glowing coals; violet and teal vapours rising and swirling; a ring of Greek letters on the ground; letters drifting round you; an eye opening in the smoke; your eyes glowing
+      make(a, F) {
+        const bz = metalMat('#c99a3a'), g = new THREE.Group(); g.position.set(0, 0, -1.7); F.root.add(g);
+        for (let k = 0; k < 3; k++) { const an = k / 3 * Math.PI * 2 + 0.5, lg = emMesh(g, kCyl(), bz, Math.cos(an) * 0.3, 0.72, Math.sin(an) * 0.3); lg.scale.set(0.05, 1.5, 0.05); lg.rotation.set(Math.sin(an) * 0.2, 0, -Math.cos(an) * 0.2); }
+        emMesh(g, kLathe('brazBowl', [[0.05, 0], [0.55, 0.12], [0.85, 0.42], [0.95, 0.55], [0.88, 0.58], [0.5, 0.2]], 28), bz, 0, 1.38, 0).scale.setScalar(0.62);
+        const coal = new THREE.MeshBasicMaterial({ color: '#f97316' }); for (let k = 0; k < 7; k++) emMesh(g, kSph(), coal, rnd(-0.25, 0.25), 1.68, rnd(-0.25, 0.25)).scale.setScalar(rnd(0.08, 0.13));
+        F.cg = kitGlow(g, '#c084fc', 2.4, 0.6); F.cg.position.y = 1.9;
+        F.rr = emRing(F, '#c084fc', 0.01, 4.2, { map: greekRingTex(), op: 0 });
+        F.lt = 'ΑΩΔΨΦΣΛΘ'.split('').map((ch) => emSprite(F.root, noteTex(ch, '#e9d5ff'), 0.7, { opacity: 0 }));
+        F.eye = emSprite(F.root, eyeTex(), 1, { opacity: 0 }); F.eye.position.set(0, 8, -1.7); F.eg = emSprite(F.root, glowTex(), 7, { color: '#a855f7', blending: THREE.AdditiveBlending, opacity: 0 }); F.eg.position.copy(F.eye.position);
+        F.eyes = [-0.2, 0.2].map((x) => { const s = emSprite(F.hd, glowTex(), 0.45, { color: '#e879f9', blending: THREE.AdditiveBlending, opacity: 0 }); s.position.set(x, 0.1, -0.64); return s; });
+        F.vap = emPS(F, 130); F.tw = emPS(F, 40, { tex: fxTex('twinkle') });
+      },
+      tick(a, F, t, dt) {
+        const c = t % 8, [c0, c1] = emCyc(t - dt, t, 8), ar = smooth((c - 2) / 1.5) * (1 - smooth((c - 6.5) / 1.2)), vis = plat(c, 5.0, 6.8, 0.3, 0.4), on = smooth(t / 0.8);
+        F.cg.material.opacity = 0.4 + 0.2 * Math.sin(t * 5) + 0.3 * vis;
+        F.rr.material.opacity = on * (0.25 + 0.55 * ar); F.rr.rotation.z = t * 0.25;
+        F.lt.forEach((s, j) => { const an = j / 8 * Math.PI * 2 + t * 0.4, r = 2.6 + 0.3 * Math.sin(t + j); s.position.set(Math.cos(an) * r, 2.6 + 1.5 * ar + 0.4 * Math.sin(t * 1.5 + j), Math.sin(an) * r - 0.5); s.material.opacity = on * (0.3 + 0.7 * ar); s.material.rotation = 0.2 * Math.sin(t + j); });
+        F.eye.scale.set(4.2 * vis + 0.001, 2.1 * vis * (0.3 + 0.7 * smooth((c - 5.1) / 0.4)) + 0.001, 1); F.eye.material.opacity = vis; F.eg.material.opacity = 0.6 * vis;
+        F.eyes.forEach((s) => { s.material.opacity = 0.4 * ar + 0.6 * vis; s.scale.setScalar(0.35 + 0.3 * vis); });
+        for (let q = 0; q < (vis > 0.3 ? 3 : 2); q++) F.vap.add(rnd(-0.3, 0.3), 1.8, -1.7 + rnd(-0.3, 0.3), { vx: Math.sin(t * 0.9 + q) * 0.8, vy: rnd(1.0, 1.8) + 1.5 * vis, vz: rnd(-0.2, 0.6), life: 3, s: 0.7, s1: 3.2, c: Math.random() < 0.6 ? '#a855f7' : '#2dd4bf', op: 0.5 });
+        if (crossed(c0, c1, 5.0)) { emFlash(a, '#e9d5ff', 0.3); F.tw.burst(24, 0, 8, -1.7, () => ({ vx: rnd(-3, 3), vy: rnd(-2, 2), vz: rnd(-1, 2), life: 1, s: 0.4, s1: 0.05, c: '#f5d0fe' })); }
+        F.vap.tick(dt); F.tw.tick(dt);
+      },
+    },
+    ev(a, t0, t1) { emLoopBeat(a, t0, t1, 8, 0.25, (n, B) => { // an aulos in the Phrygian mode over a drone, finger cymbals and a frame drum; a swell, a bell and a choir as the eye opens
+      if (n === 0) { B.n('dark', 40, 8.2, 0.16); B.n('dark', 47, 8.2, 0.1); }
+      const m = ORC_MEL[n]; if (m) B.n('flute', m, 0.42, 0.22);
+      if (n % 4 === 2) B.d(3, 0.1); if (n % 8 === 0 || n % 8 === 5) B.d(5, 0.18);
+      if (n === 16) emNoise(B, { len: 1.0, v: 0.12, f: 300, f2: 3000, att: 0.95, type: 'bandpass' });
+      if (n === 20) { B.n('toll', 64, 3, 0.3); B.n('toll', 71, 3, 0.14, 0.02); B.c('dark', [64, 67, 71], 2.5, 0.2); B.c('celesta', [88, 91, 95], 1.6, 0.06, 0.1, 0.09); } }); },
+  },
+  { id: 'oath', nm: 'Knight’s Oath', ic: '⚔️', price: -1, loop: 1, snap: 9, mus: 1, pic: 3.0, picR: 8, d: '🏛️ Kneel with your sword planted before you and swear your oath: a beam of holy light falls on you, your banner unfurls, the bells ring — then rise and salute with your blade',
+    pose(J, t, a) {
+      const r15 = a.r15, c = t % 9, kd = smooth(c / 0.8) * (1 - smooth((c - 5.0) / 0.7)), sal = plat(c, 5.0, 8.7, 0.6, 0.5), lw = smooth((c - 8.2) / 0.6);
+      if (r15) { J.lL = [1.45 * kd, 0, -0.08]; J.kL = [-1.55 * kd, 0, 0]; J.lR = [-0.15 * kd, 0, 0.1]; J.kR = [-1.55 * kd, 0, 0]; J.up = -0.95 * kd; }
+      else { J.lL = [1.1 * kd, 0, -0.05]; J.lR = [-0.5 * kd, 0, 0.05]; J.up = -0.7 * kd; }
+      J.hd = [-0.5 * kd + 0.1 * sal, 0, 0]; J.bd = [-0.12 * kd + 0.05 * sal, 0, 0];
+      J.aL = [0.85 * kd + 0.1 * sal, 0, 0.3 * kd - 0.15 * sal]; J.aR = [0.85 * kd + 1.5 * sal + 0.5 * lw, 0, -0.3 * kd - 0.25 * sal]; if (r15) { J.eL = [0.55 * kd, 0, 0]; J.eR = [0.55 * kd + 1.7 * sal, 0, 0]; }
+      a.oaPsi = Math.PI / 2 * (1 - lw) - 1.3 * lw;
+    },
+    fx: { // your sword planted point down before you, then in your hand; a beam of holy light, rays turning in it, a ring of light underfoot, motes rising; your banner on a pole behind you, unfurling and stirring; a flare on the blade as you salute
+      make(a, F) {
+        F.pl = new THREE.Group(); F.pl.position.set(0, 2.0, -1.45); F.pl.rotation.x = -Math.PI / 2; F.root.add(F.pl); emSwordProp(F.pl, { len: 2.6, gem: '#2563eb' });
+        F.swA = new THREE.Group(); F.hR.add(F.swA); F.sw = emSwordProp(F.swA, { len: 2.6, gem: '#2563eb' });
+        F.beam = emBeam(F, '#fde68a', 2.2, 16, { op: 0, top: 1.5 }); F.rays = [0, 1, 2, 3, 4].map((j) => { const b = emBeam(F, '#fef3c7', 0.18, 14, { op: 0 }); b.userData.j = j; return b; });
+        F.halo = emRing(F, '#fde68a', 1.6, 2.4, { op: 0 });
+        const pole = new THREE.Group(); pole.position.set(-1.9, 0, 1.3); F.root.add(pole); F.pole = pole; const wood = new THREE.MeshLambertMaterial({ color: '#5b3a1e' }), gold = metalMat('#e8b84a');
+        emMesh(pole, kCyl(), wood, 0, 3.6, 0).scale.set(0.07, 7.2, 0.07); emMesh(pole, kSph(), gold, 0, 7.3, 0).scale.setScalar(0.16); const cb = emMesh(pole, kCyl(), wood, 0.85, 6.85, 0); cb.scale.set(0.05, 1.8, 0.05); cb.rotation.z = Math.PI / 2;
+        const bg = new THREE.PlaneGeometry(1.7, 3.2, 8, 12); bg.translate(0, -1.6, 0); F.bg = bg; F.bx = Array.from({ length: bg.attributes.position.count }, (_, i) => [bg.attributes.position.getX(i), bg.attributes.position.getY(i)]);
+        F.ban = emMesh(pole, bg, new THREE.MeshLambertMaterial({ map: bannerTex(), side: THREE.DoubleSide, transparent: true, alphaTest: 0.5 }), 0.9, 6.8, 0);
+        F.mo = emPS(F, 80, { tex: fxTex('twinkle') }); F.fl = emSprite(F.root, fxTex('twinkle'), 1, { color: '#ffffff', blending: THREE.AdditiveBlending, opacity: 0 }); F.blG = emSprite(F.swA, glowTex(), 2.4, { color: '#bfdbfe', blending: THREE.AdditiveBlending, opacity: 0 }); F.blG.position.z = -1.6;
+      },
+      tick(a, F, t, dt) {
+        const c = t % 9, [c0, c1] = emCyc(t - dt, t, 9), lit = plat(c, 0.8, 8.6, 0.8, 0.5), sal = plat(c, 5.0, 8.7, 0.6, 0.5), unf = smooth((c - 1.0) / 1.2) * (1 - smooth((c - 8.4) / 0.6));
+        const inHand = c > 5.05 && c < 8.95; F.pl.visible = !inHand; F.swA.visible = inHand; emAim(F.swA, a, 1, a.oaPsi != null ? a.oaPsi : Math.PI / 2);
+        F.beam.material.opacity = 0.45 * lit + 0.25 * sal; F.halo.material.opacity = 0.5 * lit; F.halo.rotation.z = t * 0.3;
+        F.rays.forEach((b) => { const an = b.userData.j / 5 * Math.PI * 2 + t * 0.35; b.position.set(Math.cos(an) * 1.6, 0, Math.sin(an) * 1.6); b.rotation.set(Math.sin(an) * 0.18, 0, -Math.cos(an) * 0.18); b.material.opacity = 0.3 * lit * (0.6 + 0.4 * Math.sin(t * 2 + b.userData.j)); });
+        F.ban.scale.y = Math.max(0.001, unf); const p = F.bg.attributes.position; F.bx.forEach(([x, y], i) => { const d = -y / 3.2; p.setXYZ(i, x, y, (0.18 * Math.sin(t * 2.4 + x * 2.2 - y * 1.5) + 0.06 * Math.sin(t * 5 + y * 3)) * (0.3 + d)); }); p.needsUpdate = true; F.bg.computeVertexNormals();
+        if (lit > 0.3 && Math.random() < 0.6) { const an = Math.random() * 6.28, r = rnd(0.3, 2); F.mo.add(Math.cos(an) * r, rnd(0, 1), Math.sin(an) * r, { vy: rnd(0.8, 2), life: 2.2, s: 0.3, s1: 0.04, c: Math.random() < 0.6 ? '#fde68a' : '#ffffff' }); }
+        if (crossed(c0, c1, 5.65)) { F.swA.updateWorldMatrix(true, false); const q = F.root.worldToLocal(F.sw.userData.tip.getWorldPosition(_eh)); F.fl.position.copy(q); F.fl.userData.t0 = c; emFlash(a, '#fef9c3', 0.25); F.mo.burst(20, q.x, q.y, q.z, () => ({ vx: rnd(-2, 2), vy: rnd(-2, 2), vz: rnd(-2, 2), life: 0.8, s: 0.35, s1: 0.04, c: '#fde68a' })); }
+        const fu = F.fl.userData.t0 != null ? c - F.fl.userData.t0 : -1; F.fl.material.opacity = fu > 0 && fu < 0.7 ? 1 - fu / 0.7 : 0; F.fl.scale.setScalar(fu > 0 ? 1 + 4 * Math.sin(Math.min(1, fu / 0.7) * Math.PI) : 1); F.fl.material.rotation = c;
+        F.blG.material.opacity = sal * (0.35 + 0.15 * Math.sin(t * 6)); F.mo.tick(dt);
+      },
+    },
+    ev(a, t0, t1) { emLoopBeat(a, t0, t1, 9, 0.25, (n, B) => { // an organ and a choir (D, G, B minor, A), bells as you kneel and as you rise, strings singing the oath
+      if (n % 9 === 0) { const ch = OATH_CH[n / 9]; B.c('organ', ch, 2.3, 0.15); B.c('dark', ch.slice(1).map((m) => m + 12), 2.3, 0.14); }
+      if (n === 0) B.n('toll', 50, 4, 0.28); if (n === 20) { B.n('toll', 62, 4, 0.26); B.n('toll', 69, 3, 0.12, 0.01); B.d(6, 0.28); B.d(5, 0.35); }
+      const m = OATH_MEL[n]; if (m) B.n('strings', m, 0.55, 0.2); if (n >= 18 && n % 4 === 0) B.n('celesta', 86 + (n % 8 ? 4 : 0), 0.6, 0.05); }); },
+  },
+  { id: 'odysseus', nm: 'Odysseus’ Bow', ic: '🏹', price: -1, loop: 1, snap: 12, mus: 1, pic: 3.6, picR: 9.5, d: '🏛️ Twelve axe heads rise in a line before you. Draw the great bow of Odysseus, hold — and loose an arrow clean through every ring, each one flashing as it passes. Then hold the bow up in triumph',
+    pose(J, t, a) {
+      const r15 = a.r15, c = t % 8, rb = smooth((c - 1.2) / 0.8) * (1 - smooth((c - 4.2) / 0.4)), dr = smooth((c - 2.0) / 1.2) * (1 - smooth((c - 3.45) / 0.06)), rel = c > 3.45 && c < 4.3 ? 1 : 0, tr = plat(c, 4.3, 7.4, 0.35, 0.6), tm = 0.015 * Math.sin(t * 37) * dr;
+      J.bd = [0.03, -0.55 * rb, 0]; J.hd = [0.05 + 0.4 * tr, 0.55 * rb + tm, 0]; J.lL = [0.18 * rb, 0, -0.15]; J.lR = [-0.12 * rb, 0, 0.18];
+      J.aL = [0.2 + 1.37 * rb + 2.7 * tr, 0, -0.1 * (1 - rb) - 0.55 * rb - 0.2 * tr]; J.aR = [0.2 * (1 - rb - tr) + 1.45 * rb + (2.3 + 0.25 * Math.sin(t * 9)) * tr, 0, -0.32 * rb + 0.35 * rel + 0.4 * tr];
+      if (r15) { J.eR = [0.4 * rb + 1.8 * dr + 0.3 * tr * Math.max(0, Math.sin(t * 9)), 0, 0]; J.eL = [0.05, 0, 0]; J.kL = [-0.15 * rb, 0, 0]; J.kR = [-0.1, 0, 0]; }
+      else J.aR[2] += 0.5 * dr;
+    },
+    fx: { // twelve bronze axe heads on posts, rising in a line, each with a ring to shoot through; your bow (its string drawn back), an arrow nocked and then flying; each ring flashing, sparks, a burst of light at the end
+      make(a, F) {
+        F.bA = new THREE.Group(); F.hL.add(F.bA); F.bow = emBowProp(F.bA); F.arA = new THREE.Group(); F.hR.add(F.arA); F.nock = emArrowProp(F.arA); F.nock.position.z = 0.15;
+        F.fly = emArrowProp(F.root); F.fly.visible = false;
+        const bz = metalMat('#d9a441', { specular: '#fff2c0' }), wood = new THREE.MeshLambertMaterial({ color: '#6b4423', map: woodTex() });
+        const axe = kg('odyAxe', () => { const sh = new THREE.Shape(); sh.moveTo(-0.15, 0.32); sh.lineTo(0.15, 0.32); sh.quadraticCurveTo(0.35, 0.3, 0.62, 0.56); sh.quadraticCurveTo(0.48, 0, 0.62, -0.56); sh.quadraticCurveTo(0.35, -0.3, 0.15, -0.32); sh.lineTo(-0.15, -0.32); sh.quadraticCurveTo(-0.35, -0.3, -0.62, -0.56); sh.quadraticCurveTo(-0.48, 0, -0.62, 0.56); sh.quadraticCurveTo(-0.35, 0.3, -0.15, 0.32);
+          const h = new THREE.Path(); h.absarc(0, 0, 0.17, 0, Math.PI * 2, true); sh.holes.push(h); const q = new THREE.ExtrudeGeometry(sh, { depth: 0.06, bevelEnabled: true, bevelThickness: 0.02, bevelSize: 0.02, bevelSegments: 1, curveSegments: 14 }); q.translate(0, 0, -0.03); return q; });
+        F.axes = Array.from({ length: 12 }, (_, k) => { const g = new THREE.Group(); g.position.z = -3.4 - k * 1.0; F.root.add(g); const post = emMesh(g, kCyl(), wood, 0, 0, 0); g.userData.post = post; emMesh(g, axe, bz, 0, 0, 0); const fl = emSprite(g, glowTex(), 1.4, { color: '#fde68a', blending: THREE.AdditiveBlending, opacity: 0 }); g.userData.fl = fl; return g; });
+        F.end = emSprite(F.root, raysTex(), 6, { color: '#fde68a', blending: THREE.AdditiveBlending, opacity: 0 }); F.tr = emPS(F, 80); F.sp = emPS(F, 80, { tex: fxTex('twinkle') }); F.line = [0, 4.2];
+      },
+      tick(a, F, t, dt) {
+        const c = t % 8, [c0, c1] = emCyc(t - dt, t, 8), dr = smooth((c - 2.0) / 1.2) * (1 - smooth((c - 3.45) / 0.06)), held = c > 1.2 && c < 7.6;
+        emAim(F.bA, a, -1, 0); F.bA.visible = true; const sp = F.bow.userData.str.attributes.position; sp.setZ(1, 0.3 + 0.95 * dr); sp.needsUpdate = true;
+        F.arA.visible = c > 1.6 && c < 3.47; emAim(F.arA, a, 1, 0);
+        if (c < 3.45 && c > 1.0) { const h = emHand(a, F, -1, _eh); F.line[0] += (h.x - F.line[0]) * Math.min(1, dt * 8); F.line[1] += (h.y - F.line[1]) * Math.min(1, dt * 8); } // (the axes line up with the bow)
+        const rise = (k) => smooth((c - 0.1 - k * 0.07) / 0.5) * (1 - smooth((c - 7.2 - k * 0.03) / 0.5)), [lx, ly] = F.line;
+        F.axes.forEach((g, k) => { const r = rise(k); g.position.set(lx, (ly + 0.6) * (r - 1), g.position.z); g.visible = r > 0.01; g.children[1].position.y = ly; g.userData.post.position.y = (ly - 0.3) / 2; g.userData.post.scale.set(0.07, Math.max(0.01, ly - 0.3), 0.07); g.userData.fl.position.y = ly;
+          const pass = 3.47 + (3.4 + k) / 26; g.userData.fl.material.opacity = c > pass ? Math.max(0, 1 - (c - pass) * 4) : 0;
+          if (crossed(c0, c1, pass)) F.sp.burst(6, lx, ly, g.position.z, () => ({ vx: rnd(-2, 2), vy: rnd(-1, 2.5), vz: rnd(-1, 1), life: 0.5, s: 0.3, s1: 0.03, c: '#fde68a', g: 5 })); });
+        const fu = c - 3.47; F.fly.visible = fu > 0 && fu < 0.68; if (F.fly.visible) { F.fly.position.set(lx, ly, -0.6 - fu * 26); F.tr.add(lx + rnd(-0.03, 0.03), ly + rnd(-0.03, 0.03), F.fly.position.z + 0.6, { life: 0.35, s: 0.35, s1: 0.02, c: '#fde68a' }); }
+        const eu = c - 4.12; F.end.position.set(lx, ly, -16); F.end.material.opacity = eu > 0 && eu < 1.2 ? 1 - eu / 1.2 : 0; F.end.scale.setScalar(3 + 6 * Math.max(0, Math.min(1, eu * 3))); F.end.material.rotation = c;
+        if (crossed(c0, c1, 4.12)) { camShake(a, 0.15); F.sp.burst(30, lx, ly, -16, () => ({ vx: rnd(-5, 5), vy: rnd(-3, 5), vz: rnd(-3, 3), life: 0.9, s: 0.45, s1: 0.04, c: Math.random() < 0.5 ? '#fde68a' : '#ffffff', g: 3 })); }
+        if (c > 4.3 && c < 7.2 && Math.random() < 0.4) { const h = emHand(a, F, -1, _eh); F.sp.add(h.x + rnd(-0.6, 0.6), h.y + rnd(-1.4, 1.4), h.z, { vy: rnd(0.3, 1.2), life: 0.8, s: 0.3, s1: 0.03, c: '#fde68a' }); }
+        F.tr.tick(dt); F.sp.tick(dt);
+      },
+    },
+    ev(a, t0, t1) { emLoopBeat(a, t0, t1, 8, 0.25, (n, B) => { // a lyre and strings in A minor, the tension of the draw, the arrow’s whoosh and a ring of a bell for every axe it passes, then triumph in A major
+      if (n < 14) B.n('pluck', ODY_ARP[n % 8], 0.8, 0.24); if (n === 0) B.c('strings', [45, 52, 57], 3.4, 0.12); if (n < 14 && n % 4 === 0) B.d(5, 0.18);
+      if (n >= 8 && n < 14) { B.n('strings', 64 + (n - 8), 0.25, 0.1 + (n - 8) * 0.02); B.n('strings', 64 + (n - 8), 0.25, 0.1 + (n - 8) * 0.02, 0.125); }
+      if (n === 14) { emNoise(B, { len: 0.55, v: 0.2, f: 3000, f2: 800, type: 'bandpass', att: 0.01 }); for (let k = 0; k < 12; k++) B.n('celesta', 76 + [0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19][k], 0.45, 0.11, (3.4 + k) / 26 - 0.03); }
+      if (n === 16) { B.d(0, 1); B.d(6, 0.55); B.c('brass', [45, 52, 57, 61, 64], 2.4, 0.34); B.c('dark', [69, 73, 76], 2.4, 0.2); }
+      const m = ODY_MEL[n]; if (m) B.n('pluck', m, 0.9, 0.36);
+      if (n === 24) B.c('strings', [50, 57, 62, 66], 1.0, 0.13); if (n === 28) B.c('strings', [52, 56, 59, 64], 1.0, 0.13); if (n >= 18 && n % 2 === 0) B.d(5, 0.14); }); },
+  },
+  { id: 'excalibur', nm: 'The Sword in the Stone', ic: '🗡️', price: -1, loop: 1, snap: 10, mus: 1, pic: 6.0, picR: 9, d: '🏛️ Level 100. A mossy stone rises out of the ground with a sword set in an anvil on top. Grip it, strain as light leaks from the cracks and the drums roll — and draw it free in a pillar of holy light. Excalibur is yours: hold it high',
+    pose(J, t, a) {
+      const r15 = a.r15, c = t % 10, g = smooth((c - 1.2) / 0.9) * (1 - smooth((c - 4.55) / 0.12)), st = c > 2.2 && c < 4.6 ? smooth((c - 2.2) / 0.4) : 0, hi = plat(c, 4.6, 8.8, 0.35, 0.8), sh = 0.03 * Math.sin(t * 45) * st;
+      J.sz = -0.35 * g; J.sx = sh; J.up = -0.3 * st + 0.4 * bump(c, 4.6, 5.0);
+      J.bd = [-0.1 * g + 0.25 * st * g + 0.18 * hi, 0, 0]; J.hd = [-0.25 * (1 - hi) * Math.max(g, c < 1.2 ? 1 : 0) + 0.2 * st * Math.sin(t * 3) + 0.5 * hi, 0, 0];
+      J.lL = [0.2 * st, 0, -0.18]; J.lR = [-0.15 * st, 0, 0.18];
+      const pull = 1.0 + 0.15 * st; J.aL = [pull * g + 0.6 * hi, 0, 0.32 * g - 1.4 * hi]; J.aR = [pull * g + 3.0 * hi, 0, -0.32 * g + 0.1 * hi];
+      if (r15) { J.eL = [0.35 * g, 0, 0]; J.eR = [0.35 * g + 0.05 * hi, 0, 0]; J.kL = [-0.6 * st, 0, 0]; J.kR = [-0.5 * st, 0, 0]; }
+    },
+    fx: { // a mossy stone with an anvil on it and the sword set in it; light leaking from cracks, sparks and dust as you strain; a pillar of light, rings, a flash and a burst of gold as it comes free; the blade blazing, rays behind you, gold falling like rain
+      make(a, F) {
+        const S = new THREE.Group(); S.position.set(0, 0, -1.9); S.scale.setScalar(1.3); F.root.add(S); F.stone = S;
+        const rock = new THREE.MeshLambertMaterial({ color: '#ffffff', map: stoneTex() }), moss = new THREE.MeshLambertMaterial({ color: '#4d7c0f' }), iron = metalMat('#3f444b', { shininess: 50 });
+        emMesh(S, ROCK_GEO(), rock, 0, 0.45, 0).scale.set(1.3, 0.9, 1.05);
+        for (const [x, z, s] of [[0.7, 0.4, 0.35], [-0.6, 0.5, 0.3], [0.2, -0.7, 0.4], [-0.9, -0.2, 0.25]]) emMesh(S, kSph(), moss, x, 0.95 - Math.abs(x) * 0.3, z).scale.set(s, s * 0.25, s);
+        for (let k = 0; k < 6; k++) { const an = k * 1.1, r = rnd(1.4, 1.9); emMesh(S, ROCK_GEO(), rock, Math.cos(an) * r, 0.1, Math.sin(an) * r).scale.setScalar(rnd(0.15, 0.3)); }
+        emMesh(S, BOX, iron, 0, 1.28, 0).scale.set(0.8, 0.35, 0.45); emMesh(S, BOX, iron, 0, 1.52, 0).scale.set(1.1, 0.18, 0.5); const hn = emMesh(S, kCone(), iron, 0.75, 1.52, 0); hn.scale.set(0.15, 0.5, 0.12); hn.rotation.z = -Math.PI / 2;
+        F.leak = [[0.6, 0.6, -0.55], [-0.7, 0.4, -0.45], [0.1, 0.85, -0.7], [-0.3, 0.2, -0.9]].map(([x, y, z]) => { const s = emSprite(S, glowTex(), 1.2, { color: '#fde68a', blending: THREE.AdditiveBlending, opacity: 0 }); s.position.set(x, y, z); return s; });
+        F.slot = emSprite(S, glowTex(), 2.2, { color: '#fef3c7', blending: THREE.AdditiveBlending, opacity: 0 }); F.slot.position.set(0, 1.65, 0);
+        F.ss = new THREE.Group(); F.ss.rotation.x = -Math.PI / 2; F.root.add(F.ss); emSwordProp(F.ss, { len: 2.8, gem: '#3b82f6', glow: '#93c5fd' });
+        F.swA = new THREE.Group(); F.hR.add(F.swA); F.sw = emSwordProp(F.swA, { len: 2.8, gem: '#3b82f6', glow: '#93c5fd' }); F.blade = emSprite(F.swA, glowTex(), 3.2, { color: '#bfdbfe', blending: THREE.AdditiveBlending, opacity: 0 }); F.blade.position.z = -1.8; F.star = emSprite(F.swA, fxTex('twinkle'), 2, { blending: THREE.AdditiveBlending, opacity: 0 }); F.star.position.z = -3.15;
+        F.beam = emBeam(F, '#fde68a', 2.6, 30, { op: 0, top: 1.2 }); F.rings = [0, 1].map(() => emRing(F, '#fde68a', 0.88, 1, { op: 0 })); F.rays = emSprite(F.root, raysTex(), 16, { color: '#fde68a', blending: THREE.AdditiveBlending, opacity: 0 }); F.rays.position.set(0, 7.5, 1.5);
+        F.word = label('EXCALIBUR', { size: 1.25, color: '#fde68a', weight: 900 }); F.root.add(F.word); F.word.visible = false;
+        F.sp = emPS(F, 110, { tex: fxTex('twinkle') }); F.dust = emPS(F, 40, { flat: 1 }); F.gold = emPS(F, 90, { tex: fxTex('twinkle') });
+      },
+      tick(a, F, t, dt) {
+        const c = t % 10, [c0, c1] = emCyc(t - dt, t, 10), up = smooth(c / 1.2) * (1 - smooth((c - 9.0) / 0.9)), st = c > 2.2 && c < 4.6 ? smooth((c - 2.2) / 0.4) : 0, free = c >= 4.6 && c < 9.4, hi = plat(c, 4.6, 8.8, 0.35, 0.8), sink = smooth((c - 2.2) / 2.4);
+        F.stone.position.y = -2.6 * (1 - up); F.stone.visible = up > 0.01;
+        F.ss.visible = !free; F.ss.position.set(0, F.stone.position.y + 2.95 + (c < 4.6 ? 0.5 * sink * (0.9 + 0.1 * Math.sin(c * 31)) : 0), -1.9); F.swA.visible = free; emAim(F.swA, a, 1, Math.PI / 2 + 0.08);
+        F.leak.forEach((s, j) => { s.material.opacity = (0.2 * up + 0.7 * st) * (0.7 + 0.3 * Math.sin(t * (9 + j * 2))) * (free ? Math.max(0, 1 - (c - 4.6)) : 1); s.scale.setScalar(1 + st); });
+        F.slot.material.opacity = (0.3 * up + 0.7 * st) * (free ? Math.max(0, 1 - (c - 4.6) * 2) : 1);
+        if (c < 1.2 && up > 0.05 && Math.random() < 0.7) F.dust.add(rnd(-1.6, 1.6), 0.2, -1.85 + rnd(-1.2, 1.2), { vx: rnd(-1, 1), vy: rnd(0.3, 1), vz: rnd(-1, 1), life: 1.0, s: 0.7, s1: 1.6, c: '#a8a29e', op: 0.45 });
+        if (st > 0 && Math.random() < 0.3 + 0.6 * st) F.sp.add(rnd(-0.15, 0.15), F.stone.position.y + 2.2, -1.9 + rnd(-0.15, 0.15), { vx: rnd(-3, 3), vy: rnd(1, 4), vz: rnd(-3, 2), life: 0.5, s: 0.25, s1: 0.03, c: Math.random() < 0.5 ? '#fde68a' : '#fb923c', g: 9 });
+        for (const T of [2.6, 3.1, 3.5, 3.9, 4.2, 4.4]) if (crossed(c0, c1, T)) camShake(a, 0.08);
+        if (crossed(c0, c1, 4.6)) { camShake(a, 0.55); emFlash(a, '#fffbeb', 0.65); F.rings.forEach((r) => (r.userData.t0 = c)); F.sp.burst(60, 0, 3.5, -1.2, () => ({ vx: rnd(-8, 8), vy: rnd(0, 10), vz: rnd(-8, 8), life: 1.3, s: 0.5, s1: 0.05, c: Math.random() < 0.6 ? '#fde68a' : '#ffffff', g: 6, drag: 0.6 }));
+          F.dust.burst(16, 0, 0.3, -1.85, () => ({ vx: rnd(-4, 4), vy: rnd(0.5, 2), vz: rnd(-4, 4), life: 1.2, s: 0.8, s1: 2, c: '#d6d3d1', op: 0.5, drag: 1.5 })); }
+        F.rings.forEach((r, j) => { const u = r.userData.t0 != null ? (c - r.userData.t0 - j * 0.2) / 1.0 : -1; r.scale.setScalar(u > 0 && u < 1 ? 1 + 15 * smooth(u) : 0.01); r.material.opacity = u > 0 && u < 1 ? 0.9 * (1 - u) : 0; });
+        const bm = free ? (c < 5.2 ? 1 - (c - 4.6) * 0.8 : 0.52) * (1 - smooth((c - 8.4) / 0.8)) : 0; F.beam.material.opacity = bm; F.beam.scale.set(1 + 0.3 * Math.max(0, 1 - (c - 4.6) * 2), 1, 1 + 0.3 * Math.max(0, 1 - (c - 4.6) * 2));
+        F.rays.material.opacity = 0.55 * hi; F.rays.material.rotation = t * 0.18; F.blade.material.opacity = hi * (0.55 + 0.2 * Math.sin(t * 7)); F.star.material.opacity = hi * (0.6 + 0.4 * Math.sin(t * 5)); F.star.material.rotation = t * 1.5; F.star.scale.setScalar(1.6 + 0.6 * Math.sin(t * 5));
+        const wu = (c - 4.9) / 3.0; F.word.visible = wu > 0 && wu < 1; if (F.word.visible) { F.word.position.set(0, 9.4 + 0.4 * wu, 0); F.word.material.opacity = Math.min(1, wu * 5, (1 - wu) * 4); }
+        if (hi > 0.3) for (let q = 0; q < 2; q++) F.gold.add(rnd(-4, 4), rnd(8, 11), rnd(-4, 3), { vy: rnd(-2.5, -1.2), vx: rnd(-0.3, 0.3), life: 3, s: 0.35, s1: 0.1, c: Math.random() < 0.7 ? '#fde68a' : '#ffffff' });
+        F.sp.tick(dt); F.dust.tick(dt); F.gold.tick(dt);
+      },
+    },
+    ev(a, t0, t1) { emLoopBeat(a, t0, t1, 10, 0.25, (n, B) => { // an organ and a choir, a bell, a harp; a timpani roll and strings climbing as you strain; a great fanfare as it comes free; the Excalibur theme on brass
+      if (n === 0) { B.c('organ', [38, 45, 50], 4.5, 0.15); B.c('dark', [50, 57, 62], 4.5, 0.15); B.n('toll', 50, 4, 0.28); emNoise(B, { len: 1.4, v: 0.15, f: 200, f2: 90 }); }
+      if (n === 5) [62, 66, 69, 74, 78, 81, 86].forEach((m, i) => B.n('pluck', m, 1.2, 0.18, i * 0.05));
+      if (n >= 9 && n < 18) { const k = n - 9; B.d(5, 0.12 + k * 0.04); B.d(5, 0.12 + k * 0.04, 0.125); if (k > 4) { B.d(5, 0.14 + k * 0.04, 0.0625); B.d(5, 0.14 + k * 0.04, 0.1875); } B.n('strings', 57 + k, 0.25, 0.08 + k * 0.012); B.n('strings', 57 + k, 0.25, 0.08 + k * 0.012, 0.125); }
+      if (n === 18) { B.d(0, 1); B.d(6, 0.7); emThunder(B, 0.4); B.c('brass', [50, 57, 62, 66, 69], 3, 0.4); B.c('organ', [38, 50, 57, 62], 3, 0.24); B.c('dark', [62, 66, 69, 74], 3, 0.28); emNoise(B, { len: 2.2, v: 0.1, type: 'highpass', f: 3000, att: 0.02 }); B.n('toll', 74, 4, 0.22); }
+      const m = EXC_MEL[n]; if (m) { B.n('brass', m, 0.5, 0.28); B.n('strings', m + 12, 0.5, 0.1); }
+      const ci = [22, 26, 30, 34].indexOf(n); if (ci >= 0) B.c('strings', [[50, 57, 62, 66], [43, 55, 59, 62], [47, 54, 59, 62], [45, 57, 61, 64]][ci], 1.0, 0.13);
+      if (n >= 22 && n < 38 && n % 4 === 2) B.d(5, 0.28); if (n === 38) B.c('dark', [50, 57, 62], 1.2, 0.12); }); },
   },
 );
 const emOwns = (i) => !!EMOTES[i] && (EMOTES[i].price === 0 || W.own.has('em' + i));
