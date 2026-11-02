@@ -2292,75 +2292,202 @@ const BODY_KITS = [null,
 ];
 // animation packs: how you stand, walk / run and jump. pose(J, a, s) fills a pose like an emote's (s: mv moving,
 // air, ph the walk's swing, t time); J.k, if set, is how fast the body eases to it (a flip wants it fast)
+/* ---------------- what the animation packs share ----------------
+   s (what pose() is told): mv moving, air, ph the walk's swing, t time, land (time since landing a jump), vy how fast
+   it's going up (- coming down), spd how fast along the ground (0 standing … 1 a run), turn how hard it's turning.
+   Effects: pfx (things on the avatar, hidden each frame unless the pack shows them), ribbons (streaks of light trailing
+   from a hand or foot, out in the world), shockwaves on the ground. */
+const easeBack = (x) => { const c = 1.9; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); }; // (overshoots, then settles)
+// a value that clicks from setting to setting at given times, overshooting and settling (keys: [[time, value], …])
+function clicks(t, keys, v0, d = 0.22) { let v = v0; for (const [k, x] of keys) { if (t < k) break; v += (x - v) * easeBack(Math.min(1, (t - k) / d)); } return v; }
+const bump = (x, a, b) => (x <= a || x >= b ? 0 : Math.sin(((x - a) / (b - a)) * Math.PI)); // (0 → 1 → 0 between a and b)
+function pfx(a, o, par) { (par || a.g).add(o); (a.pfx || (a.pfx = [])).push(o); o.visible = false; return o; }
+const _hp = new THREE.Vector3();
+function limbEnd(a, leg, s, out = _hp) { // (where a hand or foot is, in the world)
+  const o = leg ? (a.r15 ? (s < 0 ? a.knL : a.knR) : (s < 0 ? a.legL : a.legR)) : (a.r15 ? (s < 0 ? a.elL : a.elR) : (s < 0 ? a.armL : a.armR));
+  o.updateWorldMatrix(true, false); return o.localToWorld(out.set(0, a.r15 ? -0.92 : -1.9, 0));
+}
+// a streak of light following a point (src(): where it is now), drawn while the pack sets r.on each frame, fading behind
+const RIBBONS = new Set(), _rv = new THREE.Vector3(), _rt = new THREE.Vector3(), _rc = new THREE.Vector3();
+function ribbon(a, src, col, w = 0.18, life = 0.32, n = 20) {
+  const geo = new THREE.BufferGeometry(), idx = [];
+  for (let i = 0; i < n - 1; i++) { const k = i * 2; idx.push(k, k + 1, k + 2, k + 1, k + 3, k + 2); }
+  geo.setIndex(idx); geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n * 6), 3)); geo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(n * 6), 3));
+  const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.8, depthWrite: false, side: THREE.DoubleSide })); m.frustumCulled = false;
+  const r = { a, src, m, pts: [], col: new THREE.Color(col), w, life, n, on: false }; RIBBONS.add(r); return r;
+}
+function ribbonsTick(dt) {
+  for (const r of RIBBONS) {
+    for (const p of r.pts) p.t += dt;
+    const live = r.a.g.parent === scene && !r.a.dead, q = live && r.on ? r.src() : null; r.on = false;
+    if (q) r.pts.unshift({ x: q.x, y: q.y, z: q.z, t: 0 });
+    while (r.pts.length > r.n || (r.pts.length && r.pts[r.pts.length - 1].t > r.life)) r.pts.pop();
+    if (r.pts.length < 2) { if (r.m.parent) scene.remove(r.m); if (!live) { RIBBONS.delete(r); r.m.geometry.dispose(); r.m.material.dispose(); } continue; }
+    if (!r.m.parent) scene.add(r.m);
+    const P = r.m.geometry.attributes.position.array, C = r.m.geometry.attributes.color.array, cam = camera.position, N = r.pts.length;
+    for (let i = 0; i < r.n; i++) {
+      const j = Math.min(i, N - 1), p = r.pts[j], p0 = r.pts[Math.max(0, j - 1)], p1 = r.pts[Math.min(N - 1, j + 1)];
+      _rt.set(p1.x - p0.x, p1.y - p0.y, p1.z - p0.z); _rc.set(cam.x - p.x, cam.y - p.y, cam.z - p.z); _rv.crossVectors(_rt, _rc);
+      const l = _rv.length(), f = i >= N ? 0 : Math.max(0, 1 - p.t / r.life) * Math.pow(1 - i / r.n, 0.7), w = l > 1e-6 ? r.w * f / l : 0;
+      P[i * 6] = p.x + _rv.x * w; P[i * 6 + 1] = p.y + _rv.y * w; P[i * 6 + 2] = p.z + _rv.z * w; P[i * 6 + 3] = p.x - _rv.x * w; P[i * 6 + 4] = p.y - _rv.y * w; P[i * 6 + 5] = p.z - _rv.z * w;
+      const wl = Math.max(0, 1 - i / 4) * 0.55; for (let k = 0; k < 2; k++) { C[i * 6 + k * 3] = r.col.r + (1 - r.col.r) * wl; C[i * 6 + k * 3 + 1] = r.col.g + (1 - r.col.g) * wl; C[i * 6 + k * 3 + 2] = r.col.b + (1 - r.col.b) * wl; }
+    }
+    r.m.geometry.attributes.position.needsUpdate = true; r.m.geometry.attributes.color.needsUpdate = true;
+  }
+}
+// a ring of light spreading out across the ground from your feet
+const SHOCK_GEO = new THREE.RingGeometry(0.82, 1, 40);
+function shockwave(a, col, size = 4, life = 0.5, y = 0.08) {
+  if (!emWorld(a)) return; const p = a.g.position, m = new THREE.Mesh(SHOCK_GEO, new THREE.MeshBasicMaterial({ color: col, transparent: true, depthWrite: false, side: THREE.DoubleSide }));
+  m.position.set(p.x, p.y + y, p.z); m.rotation.x = -Math.PI / 2;
+  m.userData = { v: new THREE.Vector3(), life, g: 0, spinless: 1, tick: (o, u) => { const k = 1 - u.life / life; o.scale.setScalar(0.4 + size * (1 - Math.pow(1 - k, 2.5))); o.material.opacity = 0.9 * (1 - k); } };
+  scene.add(m); bits.push(m);
+}
+// a puff of smoke (the ninja's vanish, the robot's steam)
+function smokePuff(a, x, y, z, col, n = 8, o = {}) {
+  for (let k = 0; k < n; k++) { const an = (k / n) * Math.PI * 2 + Math.random(); kitSpark(a, a.g, x + Math.cos(an) * 0.3, y + Math.random() * 0.4, z + Math.sin(an) * 0.3, col, { v: [Math.cos(an) * (o.out || 1.6), (o.up || 0.6) * Math.random(), Math.sin(an) * (o.out || 1.6)], life: o.life || 0.9, s: o.s || 0.9, grow: 1.8, op: o.op || 0.5, flat: 1, j: 0.4 }); }
+}
+// the levitation's magic circle: rings, a star, runes round the edge
+const runeTex = () => kCanvas('runes', 256, 256, (g, r) => {
+  g.translate(128, 128); g.strokeStyle = '#fff'; g.fillStyle = '#fff'; g.shadowColor = '#fff'; g.shadowBlur = 6;
+  for (const [rr, lw] of [[122, 4], [108, 2], [70, 3], [56, 1.5]]) { g.lineWidth = lw; g.beginPath(); g.arc(0, 0, rr, 0, 7); g.stroke(); }
+  g.lineWidth = 2.5; g.beginPath(); for (let k = 0; k <= 6; k++) { const an = (k * 4 * Math.PI) / 6 - Math.PI / 2; g.lineTo(Math.cos(an) * 70, Math.sin(an) * 70); } g.stroke(); // (a six-pointed star, drawn as two triangles)
+  g.beginPath(); for (let k = 0; k <= 6; k++) { const an = (k * 4 * Math.PI) / 6 + Math.PI / 2; g.lineTo(Math.cos(an) * 70, Math.sin(an) * 70); } g.stroke();
+  g.lineWidth = 2; for (let k = 0; k < 18; k++) { g.save(); g.rotate((k / 18) * Math.PI * 2); g.translate(0, -115); g.beginPath(); const t = k % 4; if (t === 0) { g.moveTo(-4, -5); g.lineTo(0, 5); g.lineTo(4, -5); } else if (t === 1) { g.moveTo(-4, 5); g.lineTo(-4, -5); g.lineTo(4, 0); g.lineTo(-4, 0); } else if (t === 2) { g.arc(0, 0, 4, 0, Math.PI * 1.5); } else { g.moveTo(-4, -4); g.lineTo(4, 4); g.moveTo(4, -4); g.lineTo(-4, 4); } g.stroke(); g.restore(); }
+  for (let k = 0; k < 6; k++) { const an = (k / 6) * Math.PI * 2; g.beginPath(); g.arc(Math.cos(an) * 89, Math.sin(an) * 89, 5, 0, 7); g.fill(); }
+});
 const ANIM_PACKS = [null,
-  { snap: 24, // 🤖 Robot
+  { snap: 26, rigid: true, // 🤖 Robot: servos that click from pose to pose, overshooting a little and settling
     pose(J, a, s) {
-      const r15 = a.r15;
-      if (s.air) { J.aL = [0, 0, -0.32]; J.aR = [0, 0, 0.32]; J.lL = [0.12, 0, -0.04]; J.lR = [0.12, 0, 0.04]; J.hd = [-0.25, 0, 0]; if (r15) J.kL = J.kR = [-0.2, 0, 0]; return; }
-      if (s.mv) { // stiff steps that click from pose to pose, forearms level
-        const q = Math.round(s.ph / (Math.PI / 4)) * (Math.PI / 4), sw = Math.sin(q) * 0.62, c = Math.cos(q);
-        J.lL = [sw, 0, 0]; J.lR = [-sw, 0, 0]; J.up = 0.05 * Math.abs(c);
-        if (r15) { J.kL = [-0.55 * Math.max(0, c), 0, 0]; J.kR = [-0.55 * Math.max(0, -c), 0, 0]; J.aL = [-sw * 0.7, 0, -0.06]; J.aR = [sw * 0.7, 0, 0.06]; J.eL = J.eR = [1.57, 0, 0]; }
-        else { J.aL = [-sw, 0, -0.06]; J.aR = [sw, 0, 0.06]; }
-      } else { // to attention; now and then the head scans left, then right
-        const c = s.t % 5.5, look = c > 3.8 && c < 4.3 ? 0.8 : c >= 4.3 && c < 4.8 ? -0.8 : 0;
-        J.hd = [0, look, 0]; J.aL = [0, 0, -0.07]; J.aR = [0, 0, 0.07]; if (r15) J.eL = J.eR = [0.1, 0, 0];
-        J.up = Math.floor(s.t * 6) % 23 === 0 ? 0.03 : 0; // (a servo twitch)
+      const r15 = a.r15, t = s.t, vy = s.vy || 0;
+      if (s.air) { // going up: locked straight, arms out stiff, toes pointed; coming down: knees and forearms ready for the landing
+        const up = vy > 1, f = smooth(Math.min(1, a.airT / 0.18));
+        J.aL = [up ? -0.1 : 0.45, 0, -0.8 * f]; J.aR = [up ? -0.1 : 0.45, 0, 0.8 * f]; J.lL = [up ? -0.05 : 0.3, 0, -0.04]; J.lR = [up ? -0.05 : 0.3, 0, 0.04]; J.hd = [up ? 0.25 : -0.3, 0, 0];
+        if (r15) { J.eL = J.eR = [up ? 0.05 : 1.57, 0, 0]; J.kL = J.kR = [up ? 0 : -0.7, 0, 0]; }
+        J.k = 34; return;
       }
+      if (!s.mv && s.land != null && s.land < 0.55) { // landing: the hydraulics take it, judder, and push it back up
+        const f = s.land / 0.55, d = Math.sin(Math.min(1, f * 1.6) * Math.PI * 0.5) * (1 - f) * 1.4;
+        J.up = -0.42 * d + 0.025 * Math.sin(s.land * 70) * (1 - f); J.bd = [-0.08 * d, 0, 0]; J.hd = [-0.15 * d, 0, 0]; J.aL = [0.5 * d, 0, -0.3 * d]; J.aR = [0.5 * d, 0, 0.3 * d];
+        if (r15) { J.lL = J.lR = [0.55 * d, 0, 0]; J.kL = J.kR = [-1.1 * d, 0, 0]; J.eL = J.eR = [1.4 * d, 0, 0]; }
+        J.k = 34; return;
+      }
+      if (s.mv) { // stiff steps that click from pose to pose, forearms level, the head held still
+        const st = Math.PI / 4, q = Math.floor(s.ph / st), e = easeBack(Math.min(1, (s.ph / st - q) / 0.5)), at = (f) => f(q * st) + (f((q + 1) * st) - f(q * st)) * e, sw = at(Math.sin), c = at(Math.cos);
+        J.lL = [0.62 * sw, 0, 0]; J.lR = [-0.62 * sw, 0, 0]; J.up = 0.06 * Math.abs(c); J.bd = [-0.05, 0, 0.03 * sw + 0.12 * (s.turn || 0)]; J.hd = [0.05, 0, -0.03 * sw];
+        if (r15) { J.kL = [-0.75 * Math.max(0, c), 0, 0]; J.kR = [-0.75 * Math.max(0, -c), 0, 0]; J.aL = [-0.6 * sw, 0, -0.08]; J.aR = [0.6 * sw, 0, 0.08]; J.eL = J.eR = [1.57, 0, 0]; }
+        else { J.aL = [-0.75 * sw, 0, -0.06]; J.aR = [0.75 * sw, 0, 0.06]; }
+        J.k = 40; return;
+      }
+      // to attention, humming; every 9 s a scan (the head clicks left, right and back, a beam sweeping from its eyes) and a
+      // self-test (each forearm comes up in turn and its wrist turns over and back, the head watching it)
+      const c = t % 9, look = clicks(c, [[2.0, 0.85], [2.75, -0.85], [3.6, 0]], 0), R = clicks(c, [[4.8, 1], [6.6, 0]], 0), L = clicks(c, [[6.7, 1], [8.5, 0]], 0);
+      J.up = 0.006 * Math.sin(t * 47); J.lL = [0, 0, -0.04]; J.lR = [0, 0, 0.04];
+      J.hd = [0.02 + clicks(c, [[2.0, 0.12], [3.6, 0]], 0) - 0.22 * (R + L), look - 0.45 * R + 0.45 * L, clicks(c, [[2.0, -0.08], [2.75, 0.08], [3.6, 0]], 0)];
+      if (r15) {
+        J.aR = [0.15 + 0.35 * R, 0, 0.07]; J.eR = [0.08 + 1.5 * R, clicks(c, [[5.1, 1.57], [5.6, -1.57], [6.1, 0]], 0), 0];
+        J.aL = [0.15 + 0.35 * L, 0, -0.07]; J.eL = [0.08 + 1.5 * L, clicks(c, [[7.0, -1.57], [7.5, 1.57], [8.0, 0]], 0), 0];
+      } else { J.aR = [1.45 * R, 0, 0.07]; J.aL = [1.45 * L, 0, -0.07]; }
+      J.k = 40;
     },
-    tick(a, dt, s) { // (a clank on each footfall)
-      if (!s.mv || s.air) return;
-      const n = Math.floor(s.ph / Math.PI); if (n !== a.stepN) { a.stepN = n; emSound(a, 'tick', { pitch: 0.75, vol: 0.3, gap: 0 }); }
+    tick(a, dt, s) {
+      const t = s.t, c = t % 9, idle = !s.mv && !s.air;
+      if (!a.rbBeam) { const g = new THREE.Group(); g.position.set(0, 0.08, -0.62); const m = new THREE.Mesh(kg('beam', () => { const q = new THREE.ConeGeometry(1.1, 7, 18, 1, true); q.translate(0, -3.5, 0); q.rotateX(Math.PI / 2); return q; }), new THREE.MeshBasicMaterial({ color: '#ef1d3d', transparent: true, opacity: 0.2, depthWrite: false, side: THREE.DoubleSide })); m.scale.set(1, 0.16, 1); g.add(m); a.rbBeam = pfx(a, g, a.head); }
+      if (idle && c > 2.0 && c < 3.75) { a.rbBeam.visible = Math.random() > 0.06; a.rbBeam.children[0].material.opacity = 0.17 + 0.06 * Math.sin(t * 31); } // (the scanning beam)
+      if (idle) { const c0 = c - dt; for (const k of [2.0, 2.75, 3.6, 4.8, 5.1, 5.6, 6.1, 6.6, 6.7, 7.0, 7.5, 8.0, 8.5]) if (c0 < k && c >= k) emSound(a, 'tick', { pitch: 1.35, vol: 0.22, gap: 0 }); } // (a click at every move)
+      if (s.mv && !s.air) { const n = Math.floor(s.ph / Math.PI); if (n !== a.stepN) { a.stepN = n; emSound(a, 'tick', { pitch: 0.72, vol: 0.32, gap: 0 }); if (n % 3 === 0) emBits(a, n % 2 ? 0.5 : -0.5, 0.1, -0.25, [0xfde047, 0xfb923c, 0xffffff], 3, { size: 0.07, speed: 2.5, up: 2.5, g: 14, life: 0.35, spread: 0.2 }); } } // (a clank on each footfall, sparks now and then)
+      if (s.air && a.airT <= dt + 1e-6) emSound(a, 'whoosh', { vol: 0.4, pitch: 1.3 });
+      if (!a.rbF) a.rbF = [-1, 1].map((sd) => { const g = new THREE.Group(); g.position.y = a.r15 ? -1.0 : -2.0; for (const [c, w, l] of [['#0ea5e9', 0.2, 0.9], ['#e0f2fe', 0.1, 0.55]]) { const m = new THREE.Mesh(kCone(), new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 0.9, depthWrite: false })); m.scale.set(w, l, w); m.position.y = -l / 2; m.rotation.x = Math.PI; g.add(m); } return pfx(a, g, a.r15 ? (sd < 0 ? a.knL : a.knR) : (sd < 0 ? a.legL : a.legR)); });
+      if (s.air) for (const g of a.rbF) { g.visible = true; g.scale.set(1, ((s.vy || 0) > 0 ? 1 : 0.55) * (0.75 + Math.random() * 0.5), 1); } // (rocket flames under its feet: full going up, gentler coming down)
+      if (s.air && (s.vy || 0) > 0) { a.rbJ = (a.rbJ || 0) - dt; if (a.rbJ <= 0) { a.rbJ = 0.03; for (const sd of [-1, 1]) { const p = limbEnd(a, true, sd); kitSpark(a, scene, p.x, p.y - 0.15, p.z, Math.random() < 0.5 ? '#7dd3fc' : '#e0f2fe', { v: [0, -5, 0], life: 0.26, s: 0.45, j: 0.6 }); } } } // (jets under its feet as it goes up)
+      if (s.land === 0) { emSound(a, 'land', { pitch: 0.6, vol: 0.7 }); smokePuff(a, 0, 0.7, 0, '#e2e8f0', 7, { out: 1.4, up: 0.9, s: 0.6, op: 0.45, life: 0.7 }); } // (a hiss of steam from the hydraulics)
     },
   },
-  { snap: 14, // 🥷 Ninja
+  { snap: 16, // 🥷 Ninja
     pose(J, a, s) {
-      const r15 = a.r15;
-      if (s.air) { // a front flip, tucked up, turning round the hips
-        const f = smooth(Math.min(1, a.airT / 0.62)), th = -EM_TAU * f, h = 2.6, tuck = Math.sin(f * Math.PI);
+      const r15 = a.r15, t = s.t;
+      if (s.air) { // a tucked front flip round the hips, then opening out to land, arms wide
+        const f = smooth(Math.min(1, Math.max(0, (a.airT - 0.03) / 0.52))), th = -EM_TAU * f, h = 2.6, tuck = Math.sin(f * Math.PI), open = f >= 1 ? smooth(Math.min(1, (a.airT - 0.55) / 0.2)) : 0;
         J.bd = [th, 0, 0]; J.up = h - h * Math.cos(th); J.sz = -h * Math.sin(th); J.k = 30;
-        J.lL = J.lR = [1.35 * tuck, 0, 0]; J.aL = [1.1 * tuck - 0.4 * (1 - tuck), 0, -0.25]; J.aR = [1.1 * tuck - 0.4 * (1 - tuck), 0, 0.25];
-        if (r15) { J.kL = J.kR = [-1.8 * tuck, 0, 0]; J.eL = J.eR = [0.9 * tuck, 0, 0]; }
+        J.lL = [1.4 * tuck + 0.35 * open, 0, -0.05]; J.lR = [1.4 * tuck - 0.15 * open, 0, 0.05]; J.hd = [-0.35 * tuck + 0.1 * open, 0, 0];
+        J.aL = [1.2 * tuck - 0.3 * (1 - tuck) + 0.5 * open, 0, -0.3 - 0.7 * open]; J.aR = [1.2 * tuck - 0.3 * (1 - tuck) + 0.5 * open, 0, 0.3 + 0.7 * open];
+        if (r15) { J.kL = J.kR = [-1.9 * tuck - 0.5 * open, 0, 0]; J.eL = J.eR = [1.1 * tuck + 0.2, 0, 0]; J.ws = [-0.35 * tuck, 0, 0]; }
         return;
       }
-      if (s.mv) { // the ninja run: leaning right over, arms streaming out behind
-        const sw = Math.sin(s.ph), c = Math.cos(s.ph);
-        J.bd = [-0.5, 0, 0]; J.hd = [0.42, 0, 0]; J.lL = [sw + 0.3, 0, 0]; J.lR = [-sw + 0.3, 0, 0]; J.aL = [-1.3, 0, -0.16]; J.aR = [-1.3, 0, 0.16]; J.up = -0.1 + 0.12 * Math.abs(c);
-        if (r15) { J.kL = [-(0.3 + 1.15 * Math.max(0, c)), 0, 0]; J.kR = [-(0.3 + 1.15 * Math.max(0, -c)), 0, 0]; J.eL = J.eR = [0.1, 0, 0]; J.ws = [0.08, 0.1 * sw, 0]; }
-      } else { // ready: low, side on, one hand up on guard
-        const br = Math.sin(s.t * 2.2) * 0.035;
-        J.lL = [0.32, 0, -0.16]; J.lR = [-0.18, 0, 0.16]; J.bd = [-0.1, 0.35, 0]; J.hd = [0.06, -0.32, 0];
-        if (r15) { J.kL = [-0.72, 0, 0]; J.kR = [-0.45, 0, 0]; J.up = -0.3 + br; J.aL = [1.0, 0, 0.25]; J.eL = [1.3, 0, 0]; J.aR = [0.35, 0, -0.1]; J.eR = [1.6, 0, 0]; }
-        else { J.up = -0.08 + br; J.aL = [0.95, 0, 0.3]; J.aR = [-0.3, 0, 0.15]; }
+      if (!s.mv && s.land != null && s.land < 0.6) { // a three-point landing: down on one knee, a hand to the ground, then up into the guard
+        const d = s.land < 0.35 ? 1 : 1 - smooth((s.land - 0.35) / 0.25); J.k = 26;
+        if (r15) { J.up = -0.95 * d - 0.3 * (1 - d); J.bd = [-0.35 * d, 0.2 * d, 0]; J.lL = [1.3 * d, 0, -0.12]; J.kL = [-1.8 * d, 0, 0]; J.lR = [-0.35 * d, 0, 0.2]; J.kR = [-1.55 * d, 0, 0]; J.aR = [0.9 * d, 0, 0.25 * d]; J.eR = [0.2 * d, 0, 0]; J.aL = [-0.7 * d, 0, -0.6 * d]; J.eL = [0.3, 0, 0]; J.hd = [0.45 * d, -0.2 * d, 0]; }
+        else { J.up = -0.6 * d; J.bd = [-0.3 * d, 0, 0]; J.lL = [1.1 * d, 0, 0]; J.lR = [-0.8 * d, 0, 0]; J.aR = [1.0 * d, 0, 0.2]; J.aL = [-0.6 * d, 0, -0.5]; }
+        if (d > 0.3) return;
       }
+      if (s.mv) { // the ninja run: leaning right over, arms streaming out behind (fluttering), long low strides, banking into turns
+        const sw = Math.sin(s.ph), c = Math.cos(s.ph), sp = Math.max(0.6, Math.min(1.2, s.spd || 1)), fl = 0.07 * Math.sin(t * 23);
+        J.bd = [-0.55 * sp, 0, 0.2 * (s.turn || 0)]; J.hd = [0.5 * sp, 0, 0]; J.lL = [1.1 * sw + 0.35, 0, 0]; J.lR = [-1.1 * sw + 0.35, 0, 0]; J.aL = [-1.35 + fl, 0, -0.22]; J.aR = [-1.35 - fl, 0, 0.22]; J.up = -0.12 + 0.14 * Math.abs(c);
+        if (r15) { J.kL = [-(0.35 + 1.25 * Math.max(0, c)), 0, 0]; J.kR = [-(0.35 + 1.25 * Math.max(0, -c)), 0, 0]; J.eL = J.eR = [0.08, 0, 0]; J.ws = [0.1, 0.12 * sw, 0]; }
+        J.k = 20; return;
+      }
+      // ready: low, side on, one hand up on guard, breathing; every 8 s it glances round, then brings its hands together in a sign
+      const br = Math.sin(t * 2.2) * 0.035, c = t % 8, sg = c > 5.2 && c < 7.2 ? smooth(Math.min(1, (c - 5.2) / 0.3)) * smooth(Math.min(1, (7.2 - c) / 0.3)) : 0, look = clicks(c, [[2.5, 0.7], [3.3, -0.5], [4.1, 0]], 0, 0.3), n = 1 - sg;
+      J.lL = [0.32, 0, -0.16]; J.lR = [-0.18, 0, 0.16]; J.bd = [-0.1 + 0.1 * sg, 0.35 * n, 0]; J.hd = [0.06 - 0.25 * sg, -0.32 * n + look * n, 0];
+      if (r15) { J.kL = [-0.72, 0, 0]; J.kR = [-0.45, 0, 0]; J.up = -0.3 + br; J.aL = [1.0 * n + 1.05 * sg, 0, 0.25 * n + 0.4 * sg]; J.eL = [1.3 * n + 1.8 * sg, 0, 0]; J.aR = [0.35 * n + 1.05 * sg, 0, -0.1 * n - 0.4 * sg]; J.eR = [1.6 * n + 1.8 * sg, 0, 0]; J.ws = [0, -0.2 * n, 0]; }
+      else { J.up = -0.08 + br; J.aL = [0.95 * n + 1.4 * sg, 0, 0.3 * n + 0.3 * sg]; J.aR = [-0.3 * n + 1.4 * sg, 0, 0.15 * n - 0.3 * sg]; }
     },
-    tick(a, dt, s) { if (s.air && a.airT - dt <= 0.02 && a.airT > 0.02) emSound(a, 'whoosh', { vol: 0.45 }); },
+    tick(a, dt, s) {
+      if (!a.njR) a.njR = [[0, -1], [0, 1], [1, -1], [1, 1]].map(([leg, sd]) => ribbon(a, () => limbEnd(a, leg, sd), leg ? '#818cf8' : '#4f46e5', leg ? 0.16 : 0.13, 0.28));
+      const flip = s.air && a.airT > 0.04 && a.airT < 0.62;
+      if ((s.mv && !s.air) || flip) a.njR[0].on = a.njR[1].on = true; // (streaks from its hands as it runs and flips, and from its feet round the flip)
+      if (flip) a.njR[2].on = a.njR[3].on = true;
+      if (s.air && a.airT <= dt + 1e-6) { emSound(a, 'whoosh', { vol: 0.55 }); smokePuff(a, 0, 0.3, 0, '#94a3b8', 9, { out: 2.2, up: 0.5, s: 1.0, op: 0.42, life: 0.8 }); } // (it vanishes upward in a puff of smoke)
+      if (s.land === 0) { emSound(a, 'land', { vol: 0.35, pitch: 1.3 }); emBits(a, 0, 0.1, -0.3, [0xd6d3d1, 0xa8a29e], 6, { size: 0.12, speed: 3, up: 0.8, g: 6, life: 0.4, spread: 0.8 }); }
+      if (s.mv && !s.air) { const n = Math.floor(s.ph / Math.PI); if (n !== a.stepN) { a.stepN = n; emBits(a, n % 2 ? 0.4 : -0.4, 0.05, 0.3, [0xd6d3d1, 0xe7e5e4], 2, { size: 0.1, speed: 1.2, up: 0.6, g: 4, life: 0.35, spread: 0.3 }); } }
+      if (!s.mv && !s.air) { const c = s.t % 8; if (c > 5.6 && c < 7.0 && Math.random() < 0.5) { const p = limbEnd(a, false, 1); kitSpark(a, scene, p.x, p.y + 0.15, p.z, Math.random() < 0.5 ? '#93c5fd' : '#e0e7ff', { v: [0, 1.3, 0], life: 0.5, s: 0.26, j: 0.7 }); } } // (chakra fizzing round the sign)
+    },
   },
   { snap: 9, // 🧟 Zombie
     pose(J, a, s) {
-      const r15 = a.r15, t = s.t;
-      if (s.air) { const fl = Math.sin(t * 18); J.aL = [2.3 + 0.4 * fl, 0, -0.3]; J.aR = [2.3 - 0.4 * fl, 0, 0.3]; J.lL = [0.45, 0, -0.1]; J.lR = [-0.2, 0, 0.1]; J.hd = [0.3, 0, 0.2]; J.k = 18; if (r15) { J.eL = J.eR = [0.2, 0, 0]; J.kL = [-0.7, 0, 0]; } return; }
-      // arms out in front, a slouch, the head lolling
-      const p = s.mv ? s.ph * 0.75 : 0, sw = Math.sin(p);
-      J.aL = [1.45 + 0.08 * Math.sin(t * 2.1), 0, 0.08]; J.aR = [1.33 + 0.08 * Math.sin(t * 1.7 + 1), 0, -0.08];
-      J.hd = [-0.15, 0.1 * Math.sin(t * 0.8), 0.28 + 0.06 * Math.sin(t * 1.3)]; J.bd = [-0.12, 0, 0.06 * Math.sin(t * 1.1)];
-      if (s.mv) { // a shuffle: one leg drags
-        J.lL = [0.55 * sw, 0, 0]; J.lR = [-0.3 * sw - 0.1, 0, 0.05]; J.bd[2] = 0.12 * sw; J.up = 0.06 * Math.abs(sw); J.hd[2] += 0.1 * sw;
-        if (r15) { J.kL = [-(0.15 + 0.7 * Math.max(0, Math.cos(p))), 0, 0]; J.kR = [-0.12, 0, 0]; }
-      } else if (r15) J.kL = J.kR = [-0.15, 0, 0];
-      if (r15) { J.eL = [0.12, 0, 0]; J.eR = [0.25, 0, 0]; J.ws = [0, 0.08 * Math.sin(t * 0.9), 0]; }
+      const r15 = a.r15, t = s.t, tw = Math.pow(Math.max(0, Math.sin(t * 0.9) * Math.sin(t * 2.3 + 1)), 8), tj = Math.sin(t * 41); // (tw: a twitch, now and then)
+      if (s.air) { // flailing: arms windmilling, legs kicking, the head flopping
+        const w = t * 13; J.aL = [2.1 + 0.7 * Math.sin(w), 0, -0.3 - 0.3 * Math.cos(w)]; J.aR = [2.1 + 0.7 * Math.sin(w + 2), 0, 0.3 + 0.3 * Math.cos(w + 2)]; J.lL = [0.5 * Math.sin(w * 0.8), 0, -0.12]; J.lR = [-0.5 * Math.sin(w * 0.8), 0, 0.12]; J.hd = [0.35, 0.3 * Math.sin(w * 0.5), 0.3]; J.bd = [-0.1, 0, 0.1 * Math.sin(w * 0.4)]; J.k = 18;
+        if (r15) { J.eL = J.eR = [0.4 + 0.3 * Math.sin(w * 1.3), 0, 0]; J.kL = [-0.8 - 0.4 * Math.sin(w), 0, 0]; J.kR = [-0.4, 0, 0]; }
+        return;
+      }
+      if (!s.mv && s.land != null && s.land < 1.0) { // landing: the knees buckle, it slumps, then staggers back up
+        const d = s.land < 0.3 ? smooth(s.land / 0.3) : 1 - smooth((s.land - 0.3) / 0.7); J.k = 14;
+        J.up = -0.55 * d; J.bd = [-0.45 * d, 0, 0.12 * d]; J.hd = [-0.6 * d, 0.2 * d, 0.3]; J.aL = [0.5 + 0.9 * (1 - d), 0, -0.2]; J.aR = [0.3 + 1.0 * (1 - d), 0, 0.25]; J.lL = [0.4 * d, 0, -0.1]; J.lR = [0.2 * d, 0, 0.12];
+        if (r15) { J.kL = [-1.0 * d, 0, 0]; J.kR = [-0.7 * d, 0, 0]; J.eL = J.eR = [0.3, 0, 0]; }
+        return;
+      }
+      const p = s.mv ? s.ph * 0.7 : 0, sw = Math.sin(p), cw = Math.cos(p), lurch = s.mv ? Math.max(0, -sw) : 0, c = t % 6.5, lunge = s.mv ? 0 : bump(c, 4.4, 5.6);
+      // arms out in front at different heights, wavering; a slouch; the head lolling, late to every move, snapping round when it twitches
+      J.aL = [1.5 + 0.1 * Math.sin(t * 2.1) - 0.15 * lurch + 0.3 * lunge, 0, 0.1]; J.aR = [1.3 + 0.1 * Math.sin(t * 1.7 + 1) + 0.2 * lurch + 0.4 * lunge, 0, -0.06];
+      J.hd = [-0.2 - 0.3 * tw + 0.3 * lunge, 0.12 * Math.sin(t * 0.7) + 0.5 * tw, 0.3 + 0.08 * Math.sin(t * 1.2 + 0.5) - 0.55 * tw]; J.bd = [-0.16 - 0.1 * lurch - 0.3 * lunge, 0, 0.07 * Math.sin(t * 1.1)];
+      if (s.mv) { // a shuffle: the left leg steps, the right one swings stiff and drags, toe scraping; the body dips onto the bad leg
+        J.lL = [0.6 * sw + 0.1, 0, -0.03]; J.lR = [-0.4 * sw - 0.12, 0, 0.06]; J.bd[2] += 0.14 * sw; J.up = -0.05 - 0.12 * lurch; J.hd[2] += 0.12 * Math.sin(p - 0.6);
+        if (r15) { J.kL = [-(0.2 + 0.85 * Math.max(0, cw)), 0, 0]; J.kR = [-0.05, 0, 0]; J.ws = [0.05 * lurch, 0.12 * sw, 0]; }
+      } else { // swaying where it stands; every 6.5 s it lunges forward, grabbing, and rocks back
+        J.lL = [0.05 + 0.3 * lunge, 0, -0.08]; J.lR = [-0.1, 0, 0.1]; J.up = -0.04 - 0.12 * lunge; J.bd[1] = 0.06 * Math.sin(t * 0.5);
+        if (r15) { J.kL = [-0.2 - 0.4 * lunge, 0, 0]; J.kR = [-0.12, 0, 0]; J.ws = [0, 0.1 * Math.sin(t * 0.5), 0]; }
+      }
+      if (r15) { J.eL = [0.15 + 0.3 * tw * tj + 0.3 * lunge, 0, 0]; J.eR = [0.3 + 0.1 * Math.sin(t * 3.1) + 0.2 * lunge, 0, 0]; }
     },
-    tick(a, dt, s) { // (the odd groan as it shuffles along)
-      if (!s.mv) return;
-      a.groanT = (a.groanT == null ? 4 : a.groanT) - dt; if (a.groanT <= 0) { a.groanT = 9 + Math.random() * 7; emSound(a, 'groan', { vol: 0.35 }); }
+    tick(a, dt, s) {
+      // flies buzzing round its head
+      if (!a.zbF) { const g = new THREE.Group(); a.zbF = pfx(a, g); for (let k = 0; k < 4; k++) { const m = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), color: '#0b0b0b', transparent: true, depthWrite: false })); m.scale.setScalar(0.17); g.add(m); } }
+      a.zbF.visible = true; const t = s.t; a.zbF.children.forEach((m, k) => { const q = t * (5 + k) + k * 1.7; m.position.set(Math.cos(q) * (0.55 + 0.15 * Math.sin(t * 3 + k)) + 0.07 * Math.sin(t * 31 + k), 5.0 + 0.35 * Math.sin(t * 4.3 + k * 2) + 0.05 * Math.sin(t * 27 + k), Math.sin(q) * (0.55 + 0.15 * Math.cos(t * 2.6 + k)) + 0.07 * Math.cos(t * 29 + k)); });
+      if (s.mv) { a.groanT = (a.groanT == null ? 4 : a.groanT) - dt; if (a.groanT <= 0) { a.groanT = 9 + Math.random() * 7; emSound(a, 'groan', { vol: 0.35 }); } } // (the odd groan as it shuffles along)
+      if (s.mv && !s.air) { const n = Math.floor(s.ph * 0.7 / Math.PI); if (n !== a.stepN) { a.stepN = n; if (n % 2) { emSound(a, 'step', { pitch: 0.55, vol: 0.25, gap: 0 }); emBits(a, 0.5, 0.05, 0.4, [0x78716c, 0xa8a29e, 0x57534e], 3, { size: 0.1, speed: 1, up: 0.5, g: 5, life: 0.5, spread: 0.3 }); } } } // (the dragged foot scraping)
+      a.zbS = (a.zbS || 0) - dt; if (a.zbS <= 0) { a.zbS = 0.32 + Math.random() * 0.2; kitSpark(a, a.g, (Math.random() - 0.5) * 1.6, 1 + Math.random() * 3, (Math.random() - 0.5) * 0.8, Math.random() < 0.5 ? '#65a30d' : '#4d5d29', { v: [0, 0.5, 0], life: 1.6, s: 0.5, grow: 2.2, op: 0.22, flat: 1, j: 0.3 }); } // (a green stink rising off it)
+      if (s.land === 0) emSound(a, 'oof', { vol: 0.3, pitch: 0.7 });
     },
   },
 ];
 const BODY_DESC = ['The classic: six blocks.', 'Fifteen parts: knees, elbows, hands and feet, and it bends as it moves.', 'A mech in your colours: rounded armour over a steel frame, ball joints and pistons, lines of light, a reactor in the chest that spins, a cooling fan in the back, jointed steel hands, a curved screen with your face on it in light (scan lines and the odd glitch), an antenna that blinks — and rocket boots that fire when you jump.',
   'Every bone: a skull with green soul-fire burning in its sockets and a jaw that chatters, a spine and seven pairs of ribs, collarbones and shoulder blades, a pelvis, two bones in each shin and forearm, and hands and feet of little bones — with wisps of soul-fire curling up out of its eyes.',
   'A hulk of craggy rock with lava creeping and pulsing through the cracks all over it, a burning heart in its chest, shards of black obsidian on its shoulders, back and head, huge stone fists — embers drifting up, smoke curling off its shoulders, lava dripping from its fists.'];
-const ANIM_DESC = ['The usual walk, run and jump.', 'Stiff steps that click from pose to pose, forearms level; stands to attention and scans about.', 'Low and ready; runs leaning right over with its arms streaming behind, and front-flips when it jumps.',
-  'Arms out, a dragging shuffle and a lolling head (and the odd groan); flails in the air.'];
+const ANIM_DESC = ['The usual walk, run and jump.',
+  'Servos that click from pose to pose, overshooting and settling: stiff steps with forearms level and a clank (and sparks) on every footfall; stands to attention, scans the room with a red beam from its eyes, and runs a self-test, turning each wrist over; jets fire under its feet as it jumps, and its hydraulics hiss steam when it lands.',
+  'Low and ready, breathing, glancing round and making a hand sign with chakra fizzing; runs leaning right over with its arms streaming behind and streaks of light from its hands; vanishes upward in a puff of smoke into a front flip that draws arcs of light, and lands in a three-point crouch.',
+  'Arms out, lolling and twitching, lunging at you now and then; a limping shuffle with one foot dragging and scraping; flies buzzing round its head, a green stink rising off it, the odd groan; flails in the air and stumbles when it lands.'];
 const KIT_CONE = new THREE.ConeGeometry(1, 1, 10);
 // canvas textures for the emotes' things (the nap's quilt)
 const KIT_TEX = new Map();
@@ -2715,34 +2842,42 @@ BODY_DESC.push('A plush onesie in your shirt colour, soft and rounded all over: 
 ANIM_PACKS.push(
   { snap: 13, // 🦸 Superhero
     pose(J, a, s) {
-      const r15 = a.r15, h = 2.6;
-      if (s.air) { // flying: tipped forward round the hips, one fist out in front, legs together
-        const f = smooth(Math.min(1, a.airT / 0.28)), th = -1.3 * f;
-        J.bd = [th, 0, 0]; J.up = h - h * Math.cos(th); J.sz = -h * Math.sin(th); J.k = 16;
-        J.aR = [Math.PI - 0.1, 0, 0.12]; J.aL = [-0.15, 0, -0.14]; J.lL = [-0.04, 0, 0.03]; J.lR = [0.04 - 0.2 * f, 0, -0.03]; J.hd = [1.0 * f, 0, 0];
-        if (r15) { J.eR = [0.05, 0, 0]; J.eL = [0.1, 0, 0]; J.kR = [-0.55 * f, 0, 0]; }
+      const r15 = a.r15, h = 2.6, t = s.t;
+      if (s.air) { // a crouch to launch from, then flying: tipped forward round the hips, one fist out in front, legs together, the other arm back
+        const lf = a.airT < 0.07 ? 1 - a.airT / 0.07 : 0, f = smooth(Math.min(1, a.airT / 0.28)), th = -1.3 * f, wob = 0.04 * Math.sin(t * 9);
+        J.bd = [th, 0, 0.12 * (s.turn || 0) + wob]; J.up = h - h * Math.cos(th) - 0.3 * lf; J.sz = -h * Math.sin(th); J.k = 16;
+        J.aR = [Math.PI - 0.1, 0, 0.12]; J.aL = [-0.25, 0, -0.18]; J.lL = [-0.04, 0, 0.03]; J.lR = [0.04 - 0.25 * f, 0, -0.03]; J.hd = [1.0 * f, 0, 0];
+        if (r15) { J.eR = [0.05, 0, 0]; J.eL = [0.15, 0, 0]; J.kR = [-0.6 * f, 0, 0]; J.kL = [-0.1, 0, 0]; }
         return;
       }
-      if (s.land != null && s.land < 0.55 && !s.mv) { // a superhero landing: down on one knee, a fist on the ground, looking up
-        J.k = 22; J.bd = [-0.32, 0, 0]; J.hd = [0.5, 0, 0];
-        if (r15) { J.up = -1.0; J.lL = [1.45, 0, -0.1]; J.kL = [-1.9, 0, 0]; J.lR = [-0.45, 0, 0.12]; J.kR = [-1.6, 0, 0]; J.aR = [0.6, 0, 0.3]; J.eR = [0.1, 0, 0]; J.aL = [-0.5, 0, -0.8]; J.eL = [0.3, 0, 0]; }
-        else { J.up = -0.7; J.lL = [1.2, 0, -0.1]; J.lR = [-0.9, 0, 0.12]; J.aR = [0.5, 0, 0.25]; J.aL = [-0.6, 0, -0.85]; }
-        return;
+      if (s.land != null && s.land < 0.65 && !s.mv) { // a superhero landing: down on one knee, a fist to the ground, looking up — then rising
+        const d = s.land < 0.4 ? 1 : 1 - smooth((s.land - 0.4) / 0.25); J.k = 22; J.bd = [-0.32 * d, 0, 0]; J.hd = [0.5 * d, 0, 0];
+        if (r15) { J.up = -1.0 * d; J.lL = [1.45 * d, 0, -0.1]; J.kL = [-1.9 * d, 0, 0]; J.lR = [-0.45 * d, 0, 0.12]; J.kR = [-1.6 * d, 0, 0]; J.aR = [0.6 * d, 0, 0.3 * d]; J.eR = [0.1, 0, 0]; J.aL = [-0.5 * d, 0, -0.8 * d]; J.eL = [0.3 * d, 0, 0]; }
+        else { J.up = -0.7 * d; J.lL = [1.2 * d, 0, -0.1]; J.lR = [-0.9 * d, 0, 0.12]; J.aR = [0.5 * d, 0, 0.25]; J.aL = [-0.6 * d, 0, -0.85 * d]; }
+        if (d > 0.3) return;
       }
-      if (s.mv) { // a hero's sprint: leaning in, fists pumping, knees high
-        const sw = Math.sin(s.ph), c = Math.cos(s.ph);
-        J.bd = [-0.28, 0, 0]; J.hd = [0.25, 0, 0]; J.lL = [1.05 * sw + 0.2, 0, 0]; J.lR = [-1.05 * sw + 0.2, 0, 0]; J.up = 0.1 * Math.abs(c);
-        if (r15) { J.aL = [-1.1 * sw, 0, -0.1]; J.aR = [1.1 * sw, 0, 0.1]; J.eL = J.eR = [1.45, 0, 0]; J.kL = [-(0.25 + 1.3 * Math.max(0, c)), 0, 0]; J.kR = [-(0.25 + 1.3 * Math.max(0, -c)), 0, 0]; J.ws = [0, 0.12 * sw, 0]; }
+      if (s.mv) { // a hero's sprint: leaning in, fists pumping, knees high, banking into turns
+        const sw = Math.sin(s.ph), c = Math.cos(s.ph), sp = Math.max(0.7, Math.min(1.2, s.spd || 1));
+        J.bd = [-0.3 * sp, 0, 0.15 * (s.turn || 0)]; J.hd = [0.27 * sp, 0, 0]; J.lL = [1.05 * sw + 0.2, 0, 0]; J.lR = [-1.05 * sw + 0.2, 0, 0]; J.up = 0.12 * Math.abs(c);
+        if (r15) { J.aL = [-1.1 * sw, 0, -0.1]; J.aR = [1.1 * sw, 0, 0.1]; J.eL = J.eR = [1.45, 0, 0]; J.kL = [-(0.25 + 1.3 * Math.max(0, c)), 0, 0]; J.kR = [-(0.25 + 1.3 * Math.max(0, -c)), 0, 0]; J.ws = [0, 0.14 * sw, 0]; }
         else { J.aL = [-1.2 * sw, 0, -0.1]; J.aR = [1.2 * sw, 0, 0.1]; }
-      } else { // fists on the hips, chest out, looking off into the distance
-        const br = Math.sin(s.t * 1.8);
-        J.lL = [0, 0, -0.16]; J.lR = [0, 0, 0.16]; J.hd = [0.14 + 0.02 * br, -0.25, 0]; J.up = 0.015 * br;
-        if (r15) { J.aL = [0.05, 0, -0.62]; J.eL = [0, 0, 1.55]; J.aR = [0.05, 0, 0.62]; J.eR = [0, 0, -1.55]; J.ws = [-0.08 - 0.015 * br, 0, 0]; }
-        else { J.aL = [0.1, 0, -0.42]; J.aR = [0.1, 0, 0.42]; J.bd = [0.05, 0, 0]; }
+        return;
       }
+      // fists on the hips, chest out, breathing deep, looking off into the distance; every 9 s it hears something: a hand
+      // to its ear, a look up at the sky, a crouch as if it's about to take off
+      const br = Math.sin(t * 1.8), c = t % 9, ear = bump(c, 3.0, 5.0), sky = bump(c, 5.6, 7.6), cr = bump(c, 6.4, 7.6);
+      J.lL = [0, 0, -0.16 - 0.04 * cr]; J.lR = [0, 0, 0.16 + 0.04 * cr]; J.hd = [0.14 + 0.02 * br + 0.55 * sky, -0.25 + 0.6 * ear - 0.2 * sky, -0.15 * ear]; J.up = 0.015 * br - 0.3 * cr;
+      if (r15) { J.aL = [0.05, 0, -0.62]; J.eL = [0, 0, 1.55]; J.aR = [0.05 + 1.0 * ear, 0, 0.62 + 0.5 * ear]; J.eR = [2.1 * ear, 0, -1.55 * (1 - ear)]; J.ws = [-0.08 - 0.015 * br, 0, 0]; J.kL = J.kR = [-0.6 * cr, 0, 0]; }
+      else { J.aL = [0.1, 0, -0.42]; J.aR = [0.1 + 2.2 * ear, 0, 0.42]; J.bd = [0.05, 0, 0]; }
     },
-    tick(a, dt, s) { // (the landing: a thud and a ring of dust)
-      if (s.land === 0) { emSound(a, 'land', { vol: 0.8 }); for (let k = 0; k < 8; k++) { const an = k * Math.PI / 4; emBits(a, Math.cos(an) * 0.9, 0.1, Math.sin(an) * 0.9 - 0.4, [0xd6d3d1, 0xa8a29e, 0xe7e5e4], 2, { size: 0.24, speed: 5, up: 1.2, g: 6, life: 0.55, spread: 0.3 }); } }
+    tick(a, dt, s) {
+      if (!a.shR) { const col = new THREE.Color(SHIRTS[a.av[1]]).lerp(new THREE.Color('#ffffff'), 0.15); a.shR = [ribbon(a, () => limbEnd(a, true, -1), col, 0.2, 0.45, 26), ribbon(a, () => limbEnd(a, true, 1), col, 0.2, 0.45, 26), ribbon(a, () => limbEnd(a, false, 1), '#f59e0b', 0.12, 0.25)];
+        const f = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), color: '#fde68a', transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); f.scale.setScalar(1.3); f.position.y = a.r15 ? -1.0 : -2.0; a.shFist = pfx(a, f, a.r15 ? a.elR : a.armR); }
+      const fly = s.air && a.airT > 0.12;
+      if (fly) { a.shR[0].on = a.shR[1].on = a.shR[2].on = true; a.shFist.visible = true; a.shFist.material.opacity = 0.7 + 0.3 * Math.sin(s.t * 20); } // (a trail of light from its feet as it flies, its fist blazing)
+      if (s.air && a.airT <= dt + 1e-6) { emSound(a, 'whoosh', { vol: 0.7, pitch: 0.8 }); shockwave(a, '#93c5fd', 3.2, 0.45); } // (take-off: a ring of air blasted out)
+      if (s.land === 0) { emSound(a, 'land', { vol: 0.9 }); emSound(a, 'boom', { vol: 0.25 }); shockwave(a, '#f59e0b', 5.5, 0.6); for (let k = 0; k < 10; k++) { const an = k * Math.PI / 5; emBits(a, Math.cos(an) * 0.9, 0.1, Math.sin(an) * 0.9 - 0.3, [0xd6d3d1, 0xa8a29e, 0xe7e5e4], 2, { size: 0.26, speed: 6, up: 1.5, g: 6, life: 0.6, spread: 0.3 }); } } // (landing: the ground shakes)
+      if (s.mv && !s.air) { const n = Math.floor(s.ph / Math.PI); if (n !== a.stepN) { a.stepN = n; emBits(a, n % 2 ? 0.45 : -0.45, 0.05, 0.4, [0xd6d3d1, 0xe7e5e4], 3, { size: 0.14, speed: 1.6, up: 0.9, g: 5, life: 0.4, spread: 0.3 }); } }
     },
   },
   { snap: 11, // 😎 Stylish
@@ -2750,42 +2885,77 @@ ANIM_PACKS.push(
       const r15 = a.r15, t = s.t;
       if (s.air) { // a twirl, arms out, one knee up
         const f = smooth(Math.min(1, a.airT / 0.6));
-        J.bd = [0, Math.PI * 2 * f, 0]; J.aL = [0.2, 0, -1.25]; J.aR = [0.2, 0, 1.25]; J.lL = [0.9, 0, 0]; J.lR = [-0.1, 0, 0]; J.hd = [0.15, 0, 0]; J.k = 24;
+        J.bd = [0, Math.PI * 2 * f, 0]; J.aL = [0.2, 0, -1.3]; J.aR = [0.2, 0, 1.3]; J.lL = [0.9, 0, 0]; J.lR = [-0.1, 0, 0.1]; J.hd = [0.2, 0, 0]; J.k = 24;
         if (r15) { J.kL = [-1.4, 0, 0]; J.eL = J.eR = [0.2, 0, 0]; }
         return;
       }
-      if (s.mv) { // a strut: shoulders rolling, a bounce in every step, arms loose
-        const sw = Math.sin(s.ph), c = Math.cos(s.ph);
-        J.lL = [0.75 * sw, 0, 0.05]; J.lR = [-0.75 * sw, 0, -0.05]; J.up = 0.1 * Math.abs(c) - 0.03; J.bd = [0.06, 0, 0.05 * sw]; J.hd = [0.05 * Math.abs(c) - 0.02, -0.08 * sw, 0];
-        if (r15) { J.aL = [-0.75 * sw, 0, -0.16]; J.aR = [0.75 * sw, 0, 0.16]; J.eL = [0.25 + 0.35 * Math.max(0, -sw), 0, 0]; J.eR = [0.25 + 0.35 * Math.max(0, sw), 0, 0]; J.ws = [0, -0.22 * sw, 0]; J.kL = [-(0.1 + 0.6 * Math.max(0, c)), 0, 0]; J.kR = [-(0.1 + 0.6 * Math.max(0, -c)), 0, 0]; }
-        else { J.aL = [-0.8 * sw, 0, -0.14]; J.aR = [0.8 * sw, 0, 0.14]; }
-      } else { // weight on one leg, a hand in a pocket, nodding along; now and then brushes the dirt off a shoulder
-        const nod = Math.sin(t * 4.6), c = t % 7, brush = c > 5.2 && c < 6.4, flick = Math.sin((c - 5.2) * 14);
-        J.sx = 0.16; J.lL = [0, 0, -0.08]; J.lR = [0.06, 0, 0]; J.bd = [0, 0.1, -0.05]; J.hd = [0.06 + 0.06 * Math.max(0, nod), brush ? -0.6 : -0.12, brush ? -0.12 : 0.05];
-        if (r15) {
-          J.kR = [-0.25, 0, 0]; J.aR = [-0.25, 0, 0.18]; J.eR = [0.55, 0, 0]; // (in the pocket)
-          if (brush) { J.aL = [1.3, 0, 0.62]; J.eL = [1.85 + 0.3 * flick, 0, 0]; } else { J.aL = [0.05, 0, -0.1]; J.eL = [0.2, 0, 0]; }
-        } else { J.aR = [-0.2, 0, 0.12]; J.aL = brush ? [2.5 + 0.2 * flick, 0, 0.7] : [0.05, 0, -0.08]; }
+      if (!s.mv && s.land != null && s.land < 0.9) { // landing: a "ta-da", arms flung up and out, one foot crossed behind, a wink of a head tilt
+        const d = s.land < 0.15 ? smooth(s.land / 0.15) : 1 - smooth((s.land - 0.65) / 0.25); J.k = 20;
+        J.aL = [0.3 * d, 0, -2.2 * d]; J.aR = [0.3 * d, 0, 2.2 * d]; J.lL = [0, 0, -0.05]; J.lR = [-0.25 * d, 0, -0.2 * d]; J.hd = [0.2 * d, 0, -0.25 * d]; J.bd = [0, 0, 0.06 * d]; J.up = -0.06 * d;
+        if (r15) { J.kR = [-0.5 * d, 0, 0]; J.eL = J.eR = [0.15, 0, 0]; }
+        if (d > 0.3) return;
       }
+      if (s.mv) { // a strut: shoulders rolling, hips swaying, a bounce in every step, the head bobbing on the beat, arms loose
+        const sw = Math.sin(s.ph), c = Math.cos(s.ph);
+        J.lL = [0.75 * sw, 0, 0.05]; J.lR = [-0.75 * sw, 0, -0.05]; J.up = 0.11 * Math.abs(c) - 0.03; J.bd = [0.06, 0, 0.07 * sw + 0.1 * (s.turn || 0)]; J.hd = [0.07 * Math.abs(c) - 0.03, -0.1 * sw, -0.04 * sw];
+        if (r15) { J.aL = [-0.75 * sw, 0, -0.16]; J.aR = [0.75 * sw, 0, 0.16]; J.eL = [0.25 + 0.4 * Math.max(0, -sw), 0, 0]; J.eR = [0.25 + 0.4 * Math.max(0, sw), 0, 0]; J.ws = [0, -0.25 * sw, -0.04 * sw]; J.kL = [-(0.1 + 0.6 * Math.max(0, c)), 0, 0]; J.kR = [-(0.1 + 0.6 * Math.max(0, -c)), 0, 0]; }
+        else { J.aL = [-0.8 * sw, 0, -0.14]; J.aR = [0.8 * sw, 0, 0.14]; }
+        return;
+      }
+      // weight on one leg, a hand in a pocket, nodding along; every 12 s: brushes the dirt off a shoulder, clicks its fingers and
+      // points at you ("you!"), then smooths its hair back
+      const nod = Math.sin(t * 4.6), c = t % 12, brush = bump(c, 3.6, 5.0) > 0, flick = Math.sin((c - 3.6) * 14), point = bump(c, 6.0, 8.2), hair = bump(c, 9.2, 10.8), hp = Math.min(1, point * 2), hr = Math.min(1, hair * 2);
+      J.sx = 0.16; J.lL = [0, 0, -0.08]; J.lR = [0.06, 0, 0]; J.bd = [0, 0.1 - 0.15 * hp, -0.05]; J.hd = [0.06 + 0.06 * Math.max(0, nod) + 0.1 * hr, brush ? -0.6 : -0.12 + 0.12 * hp, brush ? -0.12 : 0.05 + 0.15 * hp];
+      if (r15) {
+        J.kR = [-0.25, 0, 0]; J.aR = [-0.25 + 1.75 * hp, 0, 0.18 - 0.1 * hp]; J.eR = [0.55 * (1 - hp) + 0.12 * hp, 0, 0]; // (in the pocket … then out, pointing)
+        if (brush) { J.aL = [1.3, 0, 0.62]; J.eL = [1.85 + 0.3 * flick, 0, 0]; } else { J.aL = [0.05 + 2.6 * hr, 0, -0.1 - 0.35 * hr]; J.eL = [0.2 + 1.7 * hr, 0, 0]; }
+      } else { J.aR = [-0.2 + 1.7 * hp, 0, 0.12]; J.aL = brush ? [2.5 + 0.2 * flick, 0, 0.7] : [0.05 + 2.8 * hr, 0, -0.08]; }
+    },
+    tick(a, dt, s) {
+      if (!a.stR) a.stR = [-1, 1].map((sd) => ribbon(a, () => limbEnd(a, false, sd), '#f59e0b', 0.12, 0.35, 24));
+      const spark = (p, n = 1, col) => { for (let k = 0; k < n; k++) kitSpark(a, scene, p.x + (Math.random() - 0.5) * 0.3, p.y + (Math.random() - 0.5) * 0.3, p.z + (Math.random() - 0.5) * 0.3, col || (Math.random() < 0.5 ? '#fde68a' : '#ffffff'), { v: [0, 0.8, 0], life: 0.6, s: 0.3, j: 1.2 }); };
+      if (s.air) a.stR[0].on = a.stR[1].on = true; // (gold rings of light from its hands as it twirls)
+      if (s.land === 0) { emSound(a, 'magic', { vol: 0.3 }); for (const sd of [-1, 1]) spark(limbEnd(a, false, sd), 6); }
+      if (!s.mv && !s.air) { const c = s.t % 12, c0 = c - dt;
+        if (c > 3.9 && c < 4.9 && Math.random() < 0.35) spark(limbEnd(a, false, -1)); // (dirt off the shoulder: sparkles)
+        for (const k of [6.55, 7.0]) if (c0 < k && c >= k) { emSound(a, 'tick', { pitch: 1.6, vol: 0.4, gap: 0 }); spark(limbEnd(a, false, 1), 4, '#ffffff'); } } // (the finger clicks)
+      if (s.mv && !s.air) { const n = Math.floor(s.ph / Math.PI); if (n !== a.stepN) { a.stepN = n; if (n % 2) { const p = limbEnd(a, true, n % 4 === 1 ? -1 : 1); spark({ x: p.x, y: p.y + 0.1, z: p.z }, 2); } } } // (a glint off its shoes every other step)
     },
   },
   { snap: 6, // 🫧 Levitation
     pose(J, a, s) {
       const r15 = a.r15, t = s.t, bob = Math.sin(t * 1.9) * 0.14;
       J.up = 0.85 + bob;
-      if (s.air) { J.up = 0.5; J.aL = [0.3, 0, -2.1]; J.aR = [0.3, 0, 2.1]; J.lL = [0.2, 0, -0.06]; J.lR = [0.08, 0, 0.06]; J.bd = [0, 0.5 * Math.sin(t * 2.5), 0]; if (r15) { J.kL = J.kR = [-0.45, 0, 0]; J.eL = J.eR = [0.2, 0, 0]; } return; }
-      if (s.mv) { // gliding: tipped forward, legs trailing, arms swept back
-        J.bd = [-0.2, 0, 0.05 * Math.sin(t * 2)]; J.lL = [-0.35 + 0.08 * Math.sin(t * 3), 0, -0.04]; J.lR = [-0.25 + 0.08 * Math.sin(t * 3 + 1), 0, 0.04]; J.aL = [-0.45, 0, -0.45]; J.aR = [-0.45, 0, 0.45]; J.hd = [0.18, 0, 0];
+      if (s.air) { J.up = 0.5; J.aL = [0.3, 0, -2.1]; J.aR = [0.3, 0, 2.1]; J.lL = [0.2, 0, -0.06]; J.lR = [0.08, 0, 0.06]; J.bd = [0, 0.5 * Math.sin(t * 2.5), 0]; J.hd = [0.3, 0, 0]; if (r15) { J.kL = J.kR = [-0.45, 0, 0]; J.eL = J.eR = [0.2, 0, 0]; } return; }
+      if (s.mv) { // gliding: tipped forward, legs trailing, arms swept back, banking into turns
+        J.bd = [-0.22, 0, 0.05 * Math.sin(t * 2) + 0.2 * (s.turn || 0)]; J.lL = [-0.35 + 0.08 * Math.sin(t * 3), 0, -0.04]; J.lR = [-0.25 + 0.08 * Math.sin(t * 3 + 1), 0, 0.04]; J.aL = [-0.45, 0, -0.45]; J.aR = [-0.45, 0, 0.45]; J.hd = [0.2, 0, 0];
         if (r15) { J.kL = [-0.75, 0, 0]; J.kR = [-0.55, 0, 0]; J.eL = J.eR = [0.25, 0, 0]; }
-      } else { // drifting: arms out, legs dangling, swaying gently
-        J.aL = [0.15 + 0.08 * Math.sin(t * 1.3), 0, -0.5 - 0.08 * Math.sin(t * 1.7)]; J.aR = [0.15 + 0.08 * Math.sin(t * 1.3 + 1), 0, 0.5 + 0.08 * Math.sin(t * 1.7 + 0.5)];
-        J.lL = [0.12 + 0.06 * Math.sin(t * 1.5), 0, -0.04]; J.lR = [0.02 + 0.06 * Math.sin(t * 1.5 + 1.2), 0, 0.04]; J.bd = [0.02, 0.08 * Math.sin(t * 0.6), 0.03 * Math.sin(t * 0.9)]; J.hd = [0.05, -0.1 * Math.sin(t * 0.6), 0];
-        if (r15) { J.kL = [-0.35, 0, 0]; J.kR = [-0.55, 0, 0]; J.eL = J.eR = [0.35, 0, 0]; }
+        return;
       }
+      // drifting: arms out, legs dangling, swaying; every 12 s it settles into a floating meditation, knees up, hands on them,
+      // palms up, head bowed, turning slowly round
+      const c = t % 12, m = c > 5.5 && c < 10.5 ? smooth(Math.min(1, (c - 5.5) / 0.8)) * smooth(Math.min(1, (10.5 - c) / 0.8)) : 0, n = 1 - m;
+      J.aL = [(0.15 + 0.08 * Math.sin(t * 1.3)) * n + 0.75 * m, 0, (-0.5 - 0.08 * Math.sin(t * 1.7)) * n - 0.2 * m]; J.aR = [(0.15 + 0.08 * Math.sin(t * 1.3 + 1)) * n + 0.75 * m, 0, (0.5 + 0.08 * Math.sin(t * 1.7 + 0.5)) * n + 0.2 * m];
+      J.lL = [(0.12 + 0.06 * Math.sin(t * 1.5)) * n + 1.4 * m, 0, -0.04 - 0.35 * m]; J.lR = [(0.02 + 0.06 * Math.sin(t * 1.5 + 1.2)) * n + 1.4 * m, 0, 0.04 + 0.35 * m];
+      J.bd = [0.02, 0.08 * Math.sin(t * 0.6) * n + (m > 0 ? (c - 5.5) * 0.5 : 0) * m, 0.03 * Math.sin(t * 0.9) * n]; J.hd = [0.05 - 0.35 * m, -0.1 * Math.sin(t * 0.6) * n, 0]; J.up += 0.25 * m;
+      if (r15) { J.kL = [-0.35 * n - 1.8 * m, 0, 0]; J.kR = [-0.55 * n - 1.8 * m, 0, 0]; J.eL = J.eR = [0.35 * n + 0.6 * m, 0, 0]; }
     },
-    tick(a, dt) { // (a soft sparkle drifting down from under your feet)
-      a.lvT = (a.lvT || 0) - dt; if (a.lvT > 0) return; a.lvT = 0.12;
-      emBits(a, (Math.random() - 0.5) * 0.9, 0.55 + Math.sin(a.packT * 1.9) * 0.14, (Math.random() - 0.5) * 0.5, [0xbae6fd, 0xe0f2fe, 0xc4b5fd, 0xfef9c3], 1, { size: 0.12, speed: 0.3, up: -0.3, g: 0.6, life: 0.9, spread: 0.6 });
+    tick(a, dt, s) {
+      const t = s.t;
+      if (!a.lvC) { // (a magic circle on the ground under it, turning; a glow round it; motes of light circling it)
+        const ring = new THREE.Mesh(kg('lvPlane', () => new THREE.PlaneGeometry(3.6, 3.6)), new THREE.MeshBasicMaterial({ map: runeTex(), color: '#7c3aed', transparent: true, depthWrite: false, side: THREE.DoubleSide })); ring.rotation.x = -Math.PI / 2; ring.position.y = 0.07; a.lvC = pfx(a, ring);
+        const au = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), color: '#c4b5fd', transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.25 })); au.scale.set(4.2, 6.5, 1); au.position.y = 3.3; a.lvA = pfx(a, au, a.body);
+        const mo = new THREE.Group(); a.lvM = pfx(a, mo); for (let k = 0; k < 4; k++) { const m = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), color: ['#bae6fd', '#e9d5ff', '#fef9c3', '#a5f3fc'][k], transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); m.scale.setScalar(0.42); mo.add(m); }
+        a.lvR = [-1, 1].map((sd) => ribbon(a, () => limbEnd(a, true, sd), '#8b5cf6', 0.14, 0.5, 26));
+      }
+      a.lvC.visible = a.lvA.visible = a.lvM.visible = true;
+      a.lvC.rotation.z = t * 0.35; a.lvC.material.opacity = 0.75 + 0.2 * Math.sin(t * 2.2); a.lvC.scale.setScalar(s.air ? 0.8 : 1 + 0.03 * Math.sin(t * 1.9));
+      a.lvA.material.opacity = 0.18 + 0.06 * Math.sin(t * 1.9);
+      a.lvM.children.forEach((m, k) => { const q = t * (0.9 + k * 0.17) + k * Math.PI / 2; m.position.set(Math.cos(q) * 1.6, 2.2 + k * 0.7 + 0.3 * Math.sin(t * 1.3 + k), Math.sin(q) * 1.6); m.material.opacity = 0.6 + 0.4 * Math.sin(t * 3 + k); });
+      if (s.mv) a.lvR[0].on = a.lvR[1].on = true; // (streams of light from its feet as it glides)
+      if (s.air && a.airT <= dt + 1e-6) { shockwave(a, '#8b5cf6', 3.5, 0.6); emSound(a, 'magic', { vol: 0.3, pitch: 1.2 }); }
+      a.lvT = (a.lvT || 0) - dt; if (a.lvT > 0) return; a.lvT = 0.1; // (a soft sparkle drifting down from under its feet)
+      kitSpark(a, a.g, (Math.random() - 0.5) * 1.0, 0.7 + Math.sin(a.packT * 1.9) * 0.14, (Math.random() - 0.5) * 0.6, ['#bae6fd', '#e0f2fe', '#c4b5fd', '#fef9c3'][Math.floor(Math.random() * 4)], { v: [0, -0.45, 0], life: 1.1, s: 0.22, j: 0.4 });
     },
   },
 );
@@ -2816,16 +2986,20 @@ ANIM_PACKS.push({ snap: 10,
     J.aR = [1.9 * (1 - h) + 0.2 * h, 0, -0.55 * (1 - h) + 1.25 * h]; J.aL = [0.15 * (1 - h) + 0.2 * h, 0, -0.08 - 1.17 * h];
     if (r15) { J.eR = [1.3 * (1 - h) + 0.7 * h, 0, 0]; J.eL = [0.15 + 0.55 * h, 0, 0]; }
   },
-  tick(a, dt, s) { // (a burst of bats as you leap; a dark red mist curling at your feet)
+  tick(a, dt, s) { // (eyes glowing red, blazing as it hisses; claw streaks as it stalks; a burst of bats as you leap; a dark red mist curling at your feet)
+    if (!a.vpE) { const g = new THREE.Group(); g.position.set(0, 0.1, -0.72); for (const x of [-0.21, 0.21]) { const m = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), color: '#ff2222', transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); m.position.x = x; g.add(m); } a.vpE = pfx(a, g, a.head); a.vpR = [-1, 1].map((sd) => ribbon(a, () => limbEnd(a, false, sd), '#991b1b', 0.1, 0.3)); }
+    const cyc = s.t % 7, h = !s.mv && !s.air ? bump(cyc, 5.2, 6.4) : 0; a.vpE.visible = true; a.vpE.children.forEach((m) => { m.scale.setScalar(0.32 + 0.35 * h + 0.03 * Math.sin(s.t * 17)); m.material.opacity = 0.75 + 0.25 * h; });
+    if (!s.mv && !s.air && (cyc - dt) < 5.35 && cyc >= 5.35) emSound(a, 'hiss', { vol: 0.35 });
+    if (s.mv || s.air) a.vpR[0].on = a.vpR[1].on = true;
     if (s.air && !a.vBats && a.airT > 0.12) { a.vBats = 1; vampBats(a); } if (!s.air) a.vBats = 0; // (a real leap, not a step off a kerb)
     if (s.mv || s.air) return; a.vmT = (a.vmT || 0) - dt; if (a.vmT > 0) return; a.vmT = 0.3;
     emBits(a, (Math.random() - 0.5) * 1.4, 0.15, (Math.random() - 0.5) * 1.0, [0x450a0a, 0x3b0764, 0x7f1d1d], 1, { size: 0.13, speed: 0.2, up: 0.3, g: -0.15, life: 1.1, spread: 0.4 });
   },
 });
-ANIM_DESC.push('Fists on the hips and chest out; sprints with knees high, flies through the air with a fist out front and lands on one knee.',
-  'Weight on one leg, a hand in the pocket, nodding along and brushing the dirt off a shoulder; struts with a bounce and twirls when it jumps.',
-  'Always floating, legs dangling and arms drifting; glides along leaning forward, with sparkles falling from under your feet.',
-  'Stands tall with the cape drawn across the face, sweeping it open with a hiss now and then; stalks along upright with claws raised; leaps with arms spread like bat wings, flapping, in a burst of bats — and a dark red mist curls at your feet.');
+ANIM_DESC.push('Fists on the hips, chest out; puts a hand to its ear, looks to the sky and crouches as if to take off; sprints with knees high, launches with a blast of air into flight, a fist out front blazing and a trail of light behind, and lands on one knee with a shockwave.',
+  'Weight on one leg, a hand in the pocket, nodding along; brushes the dirt off a shoulder in sparkles, clicks its fingers and points at you, smooths its hair back; struts with swaying hips and a glint off its shoes; twirls through the air in rings of gold light and lands with a ta-da.',
+  'Always floating over a magic circle that turns on the ground beneath it, in a soft glow with motes of light circling it; drifts, or settles into a floating meditation; glides along leaning forward with streams of light from its feet; sparkles falling from under it.',
+  'Stands tall with the cape drawn across the face, eyes glowing red, sweeping it open with a hiss as they blaze; stalks along upright with claws raised, trailing red streaks; leaps with arms spread like bat wings, flapping, in a burst of bats — and a dark red mist curls at your feet.');
 // pictures for the Halloween things: a bat (wings, ears, red eyes), a little ghost, a tombstone, the moon, a zombie hand
 const HW_TEX = {};
 function hwCanvas(key, w, h, draw) { if (HW_TEX[key]) return HW_TEX[key]; const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d')); return (HW_TEX[key] = new THREE.CanvasTexture(c)); }
@@ -3435,13 +3609,21 @@ function animateAvatar(a, dt, moving, air) {
   const wasAir = a.airT || 0;
   a.walk += dt * 10; a.airT = air ? wasAir + dt : 0; a.packT = (a.packT || 0) + dt;
   if (!air && wasAir > 0.35) a.landT = 0; else if (a.landT != null) a.landT = a.landT > 5 ? null : a.landT + dt; // (since landing from a jump)
+  if (a.pfx) for (const o of a.pfx) o.visible = false; // (an animation pack's effects: shown again below if it's running)
   if (a.kitTick) a.kitTick(a, dt);
   if (a.em) { if (moving || air) emStop(a); else { emTick(a, dt); return; } } // (moving ends an emote)
   // an animation pack (not while an experience has you sitting: in a kart, on a horse, on a ride)
   const A = a.pack && performance.now() - (a.seatAt || 0) > 300 ? a.pack : null;
   if (A) {
-    const J = emPose(), s = { mv: moving, air, ph: a.walk, t: a.packT, land: a.landT };
-    A.pose(J, a, s); emApply(a, J, Math.min(1, dt * (J.k || A.snap || 14))); if (A.tick) A.tick(a, dt, s);
+    // (how fast it's going up and along, and turning: from where it's got to since the last frame, smoothed)
+    const p = a.g.position, lp = a.anP || (a.anP = p.clone()), iv = 1 / Math.max(dt, 1e-3), hv = Math.min(40, Math.hypot(p.x - lp.x, p.z - lp.z) * iv), vy = Math.max(-80, Math.min(80, (p.y - lp.y) * iv)); lp.copy(p);
+    let dy = a.g.rotation.y - (a.anYaw == null ? a.g.rotation.y : a.anYaw); dy -= EM_TAU * Math.round(dy / EM_TAU); a.anYaw = a.g.rotation.y;
+    const kk = Math.min(1, dt * 8); a.anSpd = (a.anSpd || 0) + ((moving ? (hv > 0.5 ? Math.min(1.4, hv / 16) : 1) : 0) - (a.anSpd || 0)) * kk; a.anTurn = (a.anTurn || 0) + (Math.max(-1, Math.min(1, dy * iv / 5)) - (a.anTurn || 0)) * kk; a.anVy = (a.anVy || 0) + (vy - (a.anVy || 0)) * Math.min(1, dt * 15);
+    const J = emPose(), s = { mv: moving, air, ph: a.walk, t: a.packT, land: a.landT, vy: a.anVy, spd: a.anSpd, turn: a.anTurn };
+    const sp0 = a.anSpdP == null ? a.anSpd : a.anSpdP; a.anSpdP = a.anSpd; a.anAcc = (a.anAcc || 0) + (Math.max(-8, Math.min(8, (a.anSpd - sp0) / Math.max(dt, 1e-3))) - (a.anAcc || 0)) * Math.min(1, dt * 10);
+    A.pose(J, a, s);
+    if (!air && !A.rigid) { const m = Math.max(-1, Math.min(1, a.anAcc / 4)); J.bd[0] -= 0.12 * m; J.aL[0] -= 0.25 * m; J.aR[0] -= 0.25 * m; J.hd[0] += 0.06 * m; } // (momentum: it leans into a start and rocks back as it stops, arms swinging through)
+    emApply(a, J, Math.min(1, dt * (J.k || A.snap || 14))); if (A.tick) A.tick(a, dt, s);
     a.emOut = 0; a.packOn = true; return;
   }
   if (a.packOn) { a.packOn = false; a.emOut = 0.5; } // (sat down: what the pack turned eases back)
@@ -8432,6 +8614,7 @@ function frame(t, bg) { // (bg: a step while the game's off screen — nothing i
   }
   if (exp.pose) { try { exp.pose(dt); } catch (e) { oops('pose', e); } } // after the walk animation: an experience can pose arms (holding a gun) and the like
   for (let i = bits.length - 1; i >= 0; i--) { const m = bits[i], u = m.userData; u.life -= dt; if (u.tick) u.tick(m, u, dt); u.v.y -= (u.g != null ? u.g : 30) * dt; m.position.addScaledVector(u.v, dt); if (!u.spinless) m.rotation.x += dt * 5; if (u.fade) m.material.opacity = Math.max(0, Math.min(0.9, u.life * 1.5)); if (u.life <= 0) { scene.remove(m); m.material.dispose(); bits.splice(i, 1); } }
+  ribbonsTick(dt);
   updatePrompt();
   // the camera, behind and above you
   stepLift = stepLift > 0.01 ? stepLift * Math.exp(-dt * 12) : 0;
