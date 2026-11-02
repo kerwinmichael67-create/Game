@@ -51,6 +51,7 @@
   .emw .mid b{font:600 16px var(--fh)}.emw .mid small{font:700 11px/1.3 var(--fb);color:#cbd5e1}.emw .mid .hint{color:var(--dim);margin-top:2px}
   .emw .em{position:absolute;width:82px;height:82px;margin:-41px 0 0 -41px;border-radius:50%;border:2px solid rgba(255,255,255,.1);background:linear-gradient(180deg,#3b4a63,#1e293b);color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font:600 11.5px var(--fh);transition:transform .12s,border-color .12s;padding:0;box-shadow:0 3px 0 rgba(0,0,0,.35)}
   .emw .em:hover{transform:scale(1.08);border-color:rgba(255,255,255,.4)}
+  .emw .em.sp{border-color:rgba(251,191,36,.7);background:linear-gradient(180deg,#7c2d12,#3b1d0a)}.emw .empg{display:flex;align-items:center;gap:8px;margin-top:4px;pointer-events:auto}.emw .empg button{border:0;cursor:pointer;background:#334155;color:#fff;border-radius:999px;width:30px;height:30px;font-size:13px}.emw .empg span{font:700 12px var(--fh);color:#cbd5e1}
   .emw .em .i{font-size:29px;line-height:1.05;filter:drop-shadow(0 2px 0 rgba(0,0,0,.3))}
   .emw .em .k{position:absolute;top:5px;left:50%;transform:translateX(-50%);font:800 9.5px var(--fb);color:#94a3b8;display:none}
   .emw .em .pr{font:600 10px var(--fh);color:#fde68a;background:rgba(0,0,0,.45);border-radius:999px;padding:1px 7px;display:inline-flex;align-items:center;gap:3px;margin-top:1px}
@@ -106,6 +107,44 @@
   .rwcard .meter{height:12px;border-radius:999px;background:#1e293b;overflow:hidden;margin-top:6px}.rwcard .meter i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#f472b6,#fde047);transition:width .6s}
   @media (max-width:760px){.rwstrip{grid-template-columns:1fr 1fr}.rwstrip .rwt{grid-column:1/-1}.rwgrid{grid-template-columns:1fr}.rwhero{flex-direction:column;align-items:flex-start}.rwhero h2{font-size:27px}.rwday i{font-size:18px}.rwday b{font-size:11px}}
   .hwban{cursor:pointer;transition:transform .15s}.hwban:hover{transform:translateY(-2px)}
+  /* 🏛️ the Season Pass: marble and gold, a sun behind, the reward track scrolling sideways */
+  .spban,.sphero{position:relative;overflow:hidden;display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;border-radius:22px;padding:18px 22px;margin-bottom:16px;background:radial-gradient(120% 160% at 88% 0%,#b45309 0,#7c2d12 30%,#1e1b4b 70%,#0b1023 100%);border:1px solid rgba(251,191,36,.55);box-shadow:0 10px 30px rgba(0,0,0,.45),inset 0 0 0 1px rgba(255,255,255,.05)}
+  .spban{cursor:pointer;transition:transform .15s}.spban:hover{transform:translateY(-2px)}
+  .sphero{margin:12px 0 16px;padding:26px 24px;min-height:150px;align-items:end}
+  .spfx{position:absolute;inset:0;pointer-events:none}.spfx .sun{position:absolute;right:120px;top:-70px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,#fde68a 0,#f59e0b 35%,rgba(245,158,11,0) 70%);opacity:.55;animation:bob 6s ease-in-out infinite}
+  .spfx i{position:absolute;font-style:normal;font-size:40px;opacity:.22;filter:drop-shadow(0 0 10px rgba(251,191,36,.6))}.spfx .c1{right:300px;bottom:6px;font-size:64px}.spfx .c2{left:52%;top:10px}.spfx .c3{right:24px;bottom:-6px;font-size:54px}
+  .spt{position:relative;z-index:1}.spt .tag{display:inline-flex;background:linear-gradient(180deg,#fde68a,#d97706);color:#2a1500;font:700 11px var(--fh);letter-spacing:.08em;text-transform:uppercase;border-radius:999px;padding:4px 10px}
+  .spt h2{margin:8px 0 4px;font:700 28px/1.1 var(--fh);color:#fffbeb;text-shadow:0 3px 0 rgba(0,0,0,.45)}.sphero .spt h2{font-size:38px}
+  .spt p{margin:0;color:#fde7c7;font:600 13px/1.45 var(--fb);max-width:600px}
+  .spcdbox{display:flex;flex-direction:column;align-items:flex-end;gap:5px;position:relative;z-index:1;min-width:190px}
+  .spcdbox small{color:#fcd34d;font:800 10.5px var(--fb);text-transform:uppercase;letter-spacing:.1em}.spcdbox small span{color:#fff}
+  .splv{font:700 40px/1 var(--fh);color:#fff;text-shadow:0 3px 0 rgba(0,0,0,.45)}.splv span{font-size:18px;color:#fcd34d;margin-left:2px}
+  .spbar{width:190px;height:12px;border-radius:999px;background:rgba(0,0,0,.45);overflow:hidden;box-shadow:inset 0 0 0 1px rgba(251,191,36,.4)}.spbar i{display:block;height:100%;background:linear-gradient(90deg,#f59e0b,#fde68a);border-radius:999px;transition:width .4s}
+  .spbar.sm{width:100%;height:8px;margin:5px 0 2px}
+  .spcdbox .go{background:#fffbeb;color:#78350f;font:700 13px var(--fh);border-radius:12px;padding:8px 13px;box-shadow:0 3px 0 #b45309}
+  .spdx{margin-top:4px;border:0;cursor:pointer;background:linear-gradient(180deg,#fde68a,#f59e0b);color:#3b1d00;font:700 14px var(--fh);border-radius:12px;padding:9px 14px;box-shadow:0 3px 0 #92400e;display:inline-flex;align-items:center;gap:6px}
+  .spdx:hover{filter:brightness(1.08)}.spdx.on{cursor:default;background:linear-gradient(180deg,#7c3aed,#4c1d95);color:#fef3c7;box-shadow:0 3px 0 #2e1065}
+  .spqs{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}.spqs h3{margin:0 0 8px;font:700 16px var(--fh);color:#fde68a;display:flex;justify-content:space-between;align-items:baseline}.spqs h3 small{color:var(--dim);font:700 11px var(--fb)}
+  .spq{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;background:linear-gradient(180deg,#2a2140,#181326);border:1px solid rgba(251,191,36,.18);border-radius:14px;padding:9px 12px;margin-bottom:7px}
+  .spq .ic{font-size:22px}.spq b{font:700 13.5px var(--fh);color:#fff7ed}.spq small{color:var(--dim);font:700 11px var(--fb)}.spq .xp{font:700 13px var(--fh);color:#fcd34d;white-space:nowrap}
+  .spq.done{opacity:.6;border-color:rgba(74,222,128,.4)}.spq.done .spbar i{background:linear-gradient(90deg,#16a34a,#4ade80)}
+  .sptitle{display:flex;align-items:center;gap:12px;margin:6px 0 8px;font:700 18px var(--fh);color:#fde68a}.sptitle>span:first-child{flex:1}
+  .sptracks{display:flex;gap:6px}.sptracks i{font-style:normal;font:700 11px var(--fh);border-radius:999px;padding:3px 9px;background:#334155;color:#e2e8f0}.sptracks .d{background:linear-gradient(180deg,#7c3aed,#4c1d95);color:#fef3c7}
+  .spjump{border:0;cursor:pointer;background:#334155;color:#fff;font:700 12px var(--fh);border-radius:10px;padding:6px 10px}
+  .sptrack{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 12px;scroll-snap-type:x proximity;scrollbar-width:thin}
+  .spcol{flex:0 0 112px;display:flex;flex-direction:column;gap:6px;scroll-snap-align:center}.spcol.wide{flex-basis:150px}
+  .spcol .n{align-self:center;font:700 13px var(--fh);color:#94a3b8;background:#1e293b;border-radius:999px;padding:2px 10px}.spcol.done .n{background:linear-gradient(180deg,#fde68a,#d97706);color:#2a1500}.spcol.cur .n{box-shadow:0 0 0 2px #fff,0 0 14px #fbbf24}
+  .spc{position:relative;height:150px;border-radius:14px;padding:8px 6px 6px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:1px;text-align:center;background:linear-gradient(180deg,#334155,#1e293b);border:1px solid rgba(255,255,255,.08);overflow:hidden}
+  .spc.d{background:linear-gradient(180deg,#4c1d95,#1e1b4b);border-color:rgba(196,181,253,.3)}.spc.item.f{background:radial-gradient(circle at 50% 35%,#b45309,#3b1d0a 75%);border-color:rgba(251,191,36,.6)}.spc.item.d{background:radial-gradient(circle at 50% 35%,#7c3aed,#1e1b4b 75%);border-color:rgba(251,191,36,.6)}
+  .spc.empty{background:rgba(255,255,255,.03);border-style:dashed}
+  .spc img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:.95}.spc .big{font-size:40px;margin-bottom:auto;margin-top:18px}
+  .spc b{position:relative;font:700 12px/1.15 var(--fh);color:#fff;text-shadow:0 1px 3px #000}.spc small{position:relative;font:700 10px var(--fb);color:#fcd34d;text-shadow:0 1px 3px #000}
+  .spc .st{position:absolute;left:6px;top:6px;background:#16a34a;border-radius:999px;width:22px;height:22px;display:grid;place-items:center;font:700 12px var(--fh);color:#fff}.spc.lock .st{background:rgba(0,0,0,.6)}
+  .spc.lock img{filter:grayscale(.5) brightness(.7)}.spc.got{box-shadow:inset 0 0 0 2px rgba(74,222,128,.55)}
+  .sptry{position:absolute;right:5px;top:5px;border:0;cursor:pointer;background:rgba(0,0,0,.55);color:#fff;border-radius:999px;width:28px;height:28px;font-size:14px}
+  .btn.gold{background:linear-gradient(180deg,#fde68a,#f59e0b);color:#3b1d00}
+  .sppage.ingame .sphero{margin-top:0}
+  @media (max-width:640px){.spban,.sphero{grid-template-columns:1fr}.spcdbox{align-items:flex-start}.spqs{grid-template-columns:1fr}.spfx .c1{display:none}}
   .hwhero{margin:12px 0 18px;padding:26px 24px;min-height:150px;align-items:end}
   .hwban .tag,.hwhero .tag{display:inline-flex;background:linear-gradient(180deg,#fb923c,#ea580c);color:#2a0f00;font:700 11px var(--fh);letter-spacing:.08em;text-transform:uppercase;border-radius:999px;padding:4px 10px}
   .hwban h2,.hwhero h2{margin:8px 0 4px;font:700 28px/1.1 var(--fh);color:#fff7ed;text-shadow:0 3px 0 rgba(0,0,0,.4)}.hwhero h2{font-size:36px}
@@ -3162,6 +3201,284 @@ BODY_KITS.push((K) => {
   };
 });
 BODY_DESC.push('A ghost in a long torn robe that billows as you move: a body of ghost-light, see-through with glowing edges and light rippling through it; a deep hood with nothing inside but darkness and two glowing eyes that blink; hands of glowing bone; a ribcage glowing through the open robe; a chain across you and a broken shackle swinging from one wrist; a soul-lantern swinging at your hip; wisps of soul circling you; mist pouring off your hem — and now and then you fade almost away and back.');
+/* ---------------- 🏛️ the Season Pass's body packs: what they're made of ---------------- */
+// a Greek key (meander) round the edge of a disc, drawn on g at radius r0..r1 (for the shields)
+function meander(g, cx, cy, r0, r1, col) { g.save(); g.translate(cx, cy); g.strokeStyle = col; g.lineWidth = (r1 - r0) * 0.16; const n = 26;
+  for (let k = 0; k < n; k++) { const a0 = (k / n) * Math.PI * 2, a1 = ((k + 1) / n) * Math.PI * 2, P = (a, r) => [Math.cos(a) * r, Math.sin(a) * r], m = (r0 + r1) / 2, q = (r1 - r0) * 0.38;
+    g.beginPath(); g.moveTo(...P(a0, r0 + q * 0.2)); g.lineTo(...P(a0, r1 - q * 0.2)); g.lineTo(...P(a0 + (a1 - a0) * 0.75, r1 - q * 0.2)); g.lineTo(...P(a0 + (a1 - a0) * 0.75, m - q * 0.2)); g.lineTo(...P(a0 + (a1 - a0) * 0.35, m - q * 0.2)); g.lineTo(...P(a0 + (a1 - a0) * 0.35, m + q * 0.4)); g.stroke();
+    g.beginPath(); g.moveTo(...P(a0, r0 + q * 0.2)); g.lineTo(...P(a1, r0 + q * 0.2)); g.stroke(); }
+  g.restore(); }
+// bronze: warm, a little uneven, darker in streaks (a patina)
+const bronzeTex = (dark) => kCanvas(dark ? 'bronzeD' : 'bronze', 128, 128, (g, r) => {
+  const gr = g.createLinearGradient(0, 0, 128, 128); gr.addColorStop(0, dark ? '#3a3026' : '#f3d9a4'); gr.addColorStop(0.5, dark ? '#24201c' : '#d9b77a'); gr.addColorStop(1, dark ? '#3a3026' : '#eccd92'); g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
+  for (let k = 0; k < 40; k++) { g.fillStyle = dark ? `rgba(180,120,60,${0.03 + r() * 0.05})` : `rgba(90,60,25,${0.04 + r() * 0.06})`; g.beginPath(); g.ellipse(r() * 128, r() * 128, 4 + r() * 18, 2 + r() * 8, r() * 3, 0, 7); g.fill(); }
+  for (let k = 0; k < 200; k++) { g.fillStyle = `rgba(255,255,255,${r() * 0.07})`; g.fillRect(r() * 128, r() * 128, 6 + r() * 20, 1); }
+});
+// the shields' faces: Sparta's bronze with a red lambda; the Myrmidons' black with a golden ant; a Greek key round each
+const aspisTex = (myr) => kCanvas(myr ? 'aspisM' : 'aspisS', 256, 256, (g, r) => {
+  const gr = g.createRadialGradient(110, 100, 10, 128, 128, 128); gr.addColorStop(0, myr ? '#3a3330' : '#f6dca0'); gr.addColorStop(0.7, myr ? '#1a1614' : '#c99a4c'); gr.addColorStop(1, myr ? '#0d0b0a' : '#9a6c2a');
+  g.fillStyle = gr; g.fillRect(0, 0, 256, 256);
+  for (let k = 0; k < 300; k++) { g.fillStyle = `rgba(${myr ? '200,150,80' : '80,50,20'},${r() * 0.06})`; g.fillRect(r() * 256, r() * 256, 2 + r() * 10, 1); }
+  meander(g, 128, 128, 104, 124, myr ? '#d4a52b' : '#7a1212');
+  g.lineWidth = 3; g.strokeStyle = myr ? '#d4a52b' : '#7a1212'; g.beginPath(); g.arc(128, 128, 100, 0, 7); g.stroke();
+  if (!myr) { g.fillStyle = '#b91c1c'; g.strokeStyle = '#5b0b0b'; g.lineWidth = 4; g.beginPath(); g.moveTo(128, 46); g.lineTo(196, 196); g.lineTo(166, 196); g.lineTo(128, 102); g.lineTo(90, 196); g.lineTo(60, 196); g.closePath(); g.fill(); g.stroke(); }
+  else { // (an ant: head, body and abdomen, six legs, feelers)
+    g.fillStyle = '#e5b638'; g.strokeStyle = '#6b4e0e'; g.lineWidth = 3;
+    for (const [y, rx, ry] of [[78, 20, 18], [122, 16, 22], [176, 30, 38]]) { g.beginPath(); g.ellipse(128, y, rx, ry, 0, 0, 7); g.fill(); g.stroke(); }
+    g.lineWidth = 6; g.strokeStyle = '#e5b638'; g.lineCap = 'round';
+    for (const s of [-1, 1]) { for (const [y, dx, dy] of [[112, 46, -26], [124, 54, 6], [136, 46, 36]]) { g.beginPath(); g.moveTo(128 + s * 12, y); g.lineTo(128 + s * dx * 0.6, y + dy * 0.3); g.lineTo(128 + s * dx, y + dy); g.stroke(); }
+      g.beginPath(); g.moveTo(128 + s * 8, 64); g.quadraticCurveTo(128 + s * 26, 32, 128 + s * 44, 38); g.stroke(); }
+  }
+});
+// small scales, overlapping (the Myrmidon's armour)
+const scaleTex = () => kCanvas('scales', 128, 128, (g, r) => {
+  g.fillStyle = '#16120f'; g.fillRect(0, 0, 128, 128);
+  for (let row = -1; row < 12; row++) for (let c = -1; c < 10; c++) { const x = c * 14 + (row % 2 ? 7 : 0), y = row * 11;
+    const gr = g.createLinearGradient(x, y, x, y + 14); gr.addColorStop(0, '#5a4636'); gr.addColorStop(1, '#221a14'); g.fillStyle = gr;
+    g.beginPath(); g.moveTo(x, y); g.lineTo(x + 14, y); g.lineTo(x + 14, y + 7); g.quadraticCurveTo(x + 7, y + 17, x, y + 7); g.closePath(); g.fill();
+    g.strokeStyle = 'rgba(214,170,90,.35)'; g.lineWidth = 1; g.stroke(); }
+});
+// linen strips (white, red borders) or black leather with bronze studs: the skirt of strips (pteruges)
+const ptergTex = (myr) => kCanvas(myr ? 'ptergM' : 'ptergS', 32, 64, (g) => {
+  g.fillStyle = myr ? '#1c1714' : '#efe6d2'; g.fillRect(0, 0, 32, 64);
+  g.fillStyle = myr ? '#7f1d1d' : '#a31515'; g.fillRect(0, 0, 4, 64); g.fillRect(28, 0, 4, 64); g.fillRect(0, 54, 32, 10);
+  if (myr) { g.fillStyle = '#c9a052'; for (const y of [12, 26, 40]) { g.beginPath(); g.arc(16, y, 3.2, 0, 7); g.fill(); } }
+  for (let x = 6; x < 26; x += 3) { g.fillStyle = 'rgba(0,0,0,.05)'; g.fillRect(x, 0, 1, 54); }
+});
+// chainmail: rings in rows
+const mailTex = () => kCanvas('mail', 64, 64, (g) => { g.fillStyle = '#2a2d33'; g.fillRect(0, 0, 64, 64); g.lineWidth = 1.6;
+  for (let y = 0; y < 66; y += 5) for (let x = 0; x < 66; x += 6) { const ox = (y / 5) % 2 ? 3 : 0; g.strokeStyle = '#9aa3ae'; g.beginPath(); g.ellipse(x + ox, y, 2.6, 2.1, 0, 0, 7); g.stroke(); g.strokeStyle = 'rgba(255,255,255,.35)'; g.beginPath(); g.arc(x + ox, y - 0.6, 2.2, 3.6, 5.4); g.stroke(); } });
+// iron that's seen a lot: scratches, rust running down, grime in the corners
+const ironTex = () => kCanvas('iron', 128, 128, (g, r) => {
+  g.fillStyle = '#bfc3c6'; g.fillRect(0, 0, 128, 128);
+  for (let k = 0; k < 26; k++) { const x = r() * 128, w = 2 + r() * 8; const gr = g.createLinearGradient(0, 0, 0, 128); gr.addColorStop(0, 'rgba(120,60,20,0)'); gr.addColorStop(0.3 + r() * 0.4, `rgba(120,60,20,${0.12 + r() * 0.18})`); gr.addColorStop(1, 'rgba(120,60,20,0)'); g.fillStyle = gr; g.fillRect(x, 0, w, 128); }
+  for (let k = 0; k < 160; k++) { g.strokeStyle = `rgba(${r() < 0.5 ? '255,255,255' : '30,30,30'},${0.08 + r() * 0.15})`; g.lineWidth = 0.6; g.beginPath(); const x = r() * 128, y = r() * 128, a = r() * 6.3, l = 3 + r() * 14; g.moveTo(x, y); g.lineTo(x + Math.cos(a) * l, y + Math.sin(a) * l); g.stroke(); }
+  for (let k = 0; k < 12; k++) { g.fillStyle = `rgba(20,18,16,${0.08 + r() * 0.12})`; g.beginPath(); g.ellipse(r() * 128, r() * 128, 6 + r() * 20, 4 + r() * 12, r() * 3, 0, 7); g.fill(); }
+});
+// the landsknecht's puffed and slashed sleeves: your colour, slashed to show gold silk beneath
+const slashTex = (col) => kCanvas('slash' + col, 64, 64, (g) => { g.fillStyle = col; g.fillRect(0, 0, 64, 64); for (let x = 4; x < 64; x += 16) { const gr = g.createLinearGradient(x, 0, x + 6, 0); gr.addColorStop(0, '#7c5a10'); gr.addColorStop(0.5, '#fde68a'); gr.addColorStop(1, '#7c5a10'); g.fillStyle = gr; g.fillRect(x, 6, 6, 52); } g.fillStyle = 'rgba(0,0,0,.25)'; for (let x = 0; x < 64; x += 16) g.fillRect(x + 12, 0, 2, 64); });
+// a crest of horsehair: strands fanning up and back from the ridge on top of the helmet (k: how many, cols: their shades)
+const crestGeo = (key, cols, n = 150, big = 1) => kg(key, () => { const r = mulberry(key.length * 31 + n), L = [];
+  for (let k = 0; k < n; k++) { const u = r(), th = -1.3 + 2.6 * u + (r() - 0.5) * 0.12, z0 = 0.46 * Math.sin(th) * big, len = (0.55 + 0.25 * Math.cos(th) + r() * 0.08) * big;
+    L.push([[(r() - 0.5) * 0.06, 0.8, z0], [(r() - 0.5) * 0.16, 0.8 + Math.cos(th) * len, z0 + Math.sin(th) * len * 1.15 + 0.1 * big], 0.032, cols[k % cols.length]]); }
+  return strandsGeo(L); });
+// a Corinthian helmet: a rounded bowl coming down into cheek guards that flare a little at the jaw
+const corinthGeo = () => kLathe('corinth2', [[0, -0.62], [0.74, -0.66], [0.78, -0.6], [0.73, -0.42], [0.69, -0.2], [0.7, 0.05], [0.71, 0.25], [0.66, 0.48], [0.55, 0.66], [0.38, 0.8], [0.18, 0.88], [0, 0.9]], 36);
+// a round hoplite shield (aspis): dished, with a flat rim; the picture laid flat across its face
+const aspisGeo = () => kg('aspis', () => { const g = new THREE.LatheGeometry([[1.0, -0.05], [1.03, 0.0], [0.98, 0.05], [0.86, 0.07], [0.6, 0.13], [0.3, 0.17], [0.001, 0.18]].map(([x, y]) => new THREE.Vector2(x, y)), 40), p = g.attributes.position, uv = g.attributes.uv;
+  for (let i = 0; i < p.count; i++) uv.setXY(i, 0.5 + p.getX(i) / 2.08, 0.5 - p.getZ(i) / 2.08); return g; });
+// a gothic sallet: a rounded bowl with a ridge, sweeping back into a long tail
+const salletGeo = () => kg('sallet', () => { const g = new THREE.SphereGeometry(1, 32, 18, 0, Math.PI * 2, 0, Math.PI * 0.6), p = g.attributes.position;
+  for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i), z = p.getZ(i), back = Math.max(0, z), low = Math.max(0, 0.35 - y);
+    p.setXYZ(i, x * (1 + 0.04 * low), y + 0.06 * Math.exp(-x * x * 40) - 0.9 * back * low * 1.6, z + 1.2 * back * low * low * 2.2 + 0.25 * back * low); }
+  g.computeVertexNormals(); return g; });
+// 🛡️ the hoplites: Sparta's in bright bronze, a crimson cloak and crest, a red lambda on the shield; the Myrmidons
+// (Achilles' own) in blackened bronze over dark scale armour, a black crest streaked with red, embers for eyes, a cloak
+// of black lined with red and a golden ant on the shield. Both: a Corinthian helmet (the eyes and a slit for the
+// mouth, cheek guards flaring at the jaw) with a horsehair crest on a ridge; a muscled cuirass (sculpted chest and
+// stomach) with shoulder guards; a skirt of strips; a tunic in your shirt colour at the arms and hem; bronze bracers and
+// greaves over bare arms and legs; sandals; a short sword at the hip and the big round shield on the back
+function hopliteKit(K, myr) {
+  const { mesh, mats, av, grp, skin } = K;
+  const T = { value: 0 }, A = { value: 0.04 }, S = { value: 0 };
+  const bz = metalMat(myr ? '#4a3b2c' : '#e9c27a', { map: bronzeTex(myr), shininess: myr ? 90 : 120, reflectivity: myr ? 0.5 : 0.7 }), gold = metalMat(myr ? '#d4a52b' : '#f5d27a', { specular: '#ffe9a8', shininess: 120 });
+  const tunic = new THREE.MeshLambertMaterial({ color: SHIRTS[av[1]], map: plushTex() }), leather = new THREE.MeshLambertMaterial({ color: myr ? '#1f1712' : '#6b4423' });
+  const scales = new THREE.MeshPhongMaterial({ map: scaleTex(), shininess: 60, specular: '#8a6a3a' }), strip = new THREE.MeshLambertMaterial({ map: ptergTex(myr), side: THREE.DoubleSide });
+  const shield = metalMat('#ffffff', { map: aspisTex(myr), shininess: 110, reflectivity: 0.45 }), crest = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide });
+  const capeC = myr ? '#141012' : '#9f1239', cape = kitCloth(new THREE.MeshLambertMaterial({ color: capeC, map: plushTex(), side: THREE.FrontSide }), T, A, S, 1, 'hopcape'), lining = kitCloth(new THREE.MeshLambertMaterial({ color: myr ? '#7f1d1d' : '#7f1028', side: THREE.BackSide }), T, A, S, 1, 'hopcape');
+  const voidM = new THREE.MeshBasicMaterial({ color: '#07060a' }), eyeM = new THREE.MeshBasicMaterial({ color: myr ? '#ff5a1f' : '#f8fafc' });
+  mats.push(bz, gold, tunic, leather, scales, strip, shield, crest, cape, lining);
+  const P = (geo, m, x, y, z, par, sx = 1, sy = sx, sz = sx) => { const o = mesh(kLod(geo, Math.max(sx, sy, sz)), m, x, y, z, par); o.scale.set(sx, sy, sz); return o; };
+  const R = (w, h, d, r, m, x, y, z, par) => mesh(rboxGeo(w, h, d, r), m, x, y, z, par);
+  const eyes = []; let crestG = null;
+  return {
+    leg(x) {
+      const hip = grp(K.body, x, 2), kn = grp(hip, 0, -1.0, 1), s = Math.sign(x);
+      R(0.92, 1.0, 0.92, 0.32, skin, 0, -0.52, 0, hip); R(0.98, 0.3, 0.98, 0.14, tunic, 0, -0.06, 0, hip); // (the thigh; the tunic's hem)
+      R(0.78, 0.4, 0.78, 0.26, skin, 0, -0.12, 0, kn); // (the knee)
+      mesh(kLathe('greave', [[0, -0.86], [0.3, -0.86], [0.34, -0.74], [0.43, -0.5], [0.46, -0.3], [0.42, -0.16], [0.38, -0.1], [0, -0.1]], 26), bz, 0, 0, -0.02, kn).scale.set(1, 1, 0.92);
+      P(kTor(0.2), gold, 0, -0.3, -0.02, kn, 0.45, 0.45, 0.41).rotation.x = Math.PI / 2; // (the greave's ridge)
+      R(0.74, 0.12, 1.12, 0.05, leather, 0, -0.95, -0.12, kn); R(0.66, 0.16, 0.5, 0.12, skin, 0, -0.84, -0.36, kn); // (the sandal's sole; the toes)
+      for (const z of [-0.5, -0.2, 0.1]) R(0.76, 0.05, 0.12, 0.02, leather, 0, -0.84 + (z > 0 ? 0.04 : 0), z, kn); // (its straps)
+      for (const y of [-0.62, -0.5]) P(kTor(0.08), leather, 0, y, -0.02, kn, 0.4, 0.4, 0.37).rotation.x = Math.PI / 2;
+      return [hip, kn];
+    },
+    lower() {
+      R(1.96, 0.8, 0.96, 0.3, tunic, 0, 2.42, 0); R(2.04, 0.16, 1.04, 0.07, leather, 0, 2.76, 0); R(0.3, 0.2, 0.06, 0.04, gold, 0, 2.76, -0.54);
+      // the skirt of strips, two layers round the hips
+      for (const [y, rr, n, off] of [[2.36, 1.0, 16, 0], [2.28, 1.06, 16, 0.5]]) for (let k = 0; k < n; k++) { const an = ((k + off) / n) * Math.PI * 2, x = Math.cos(an) * rr, z = Math.sin(an) * rr * 0.54; const o = mesh(KIT_PLANE, strip, x, y, z); o.scale.set(0.34, 0.74, 1); o.rotation.y = Math.PI / 2 - an; o.rotation.x = 0.08; }
+      // a short sword (a xiphos) at the left hip: the scabbard, a bronze chape, the crossguard, a grip, a round pommel
+      const sw = grp(K.body, -1.1, 2.55); sw.position.z = 0.1; sw.rotation.set(-0.4, 0, -0.15);
+      P(kLathe('xiphS', [[0, -1.0], [0.05, -0.97], [0.11, -0.7], [0.1, -0.3], [0.12, 0.0], [0, 0.04]], 12), leather, 0, 0, 0, sw, 0.45, 1, 1); P(kSph(), gold, 0, -0.96, 0, sw, 0.07, 0.07, 0.11);
+      R(0.08, 0.06, 0.4, 0.02, gold, 0, 0.08, 0, sw); P(kCyl(), leather, 0, 0.26, 0, sw, 0.045, 0.32, 0.045); P(kSph(), gold, 0, 0.45, 0, sw, 0.08);
+    },
+    upper() {
+      // the cuirass: a sculpted chest (pecs, a stomach in six), bronze (or the Myrmidons' dark scales under bronze plates)
+      R(2.02, 1.2, 1.02, 0.36, myr ? scales : bz, 0, 3.44, 0);
+      for (const sx of [-1, 1]) { P(kSph(), bz, sx * 0.43, 3.74, -0.38, K.body, 0.52, 0.32, 0.2); P(kSph(), bz, sx * 0.43, 3.74, 0.38, K.body, 0.55, 0.36, 0.16); for (const y of [3.36, 3.14, 2.94]) P(kSph(), bz, sx * 0.2, y, -0.44, K.body, 0.19, 0.11, 0.08); }
+      P(kTor(0.06), gold, 0, 4.0, 0, K.body, 0.62, 0.62, 0.5).rotation.x = Math.PI / 2; R(2.06, 0.1, 1.06, 0.05, gold, 0, 2.86, 0);
+      if (myr) { const d = mesh(KIT_PLANE, new THREE.MeshBasicMaterial({ map: aspisTex(true), transparent: true }), 0, 3.42, -0.53); d.scale.setScalar(0.5); d.rotation.y = Math.PI; } // (the ant, small, on the chest)
+      for (const sx of [-1, 1]) { const g = grp(K.body, sx * 0.72, 4.12); g.rotation.z = -sx * 0.2; R(0.74, 0.12, 1.0, 0.05, bz, 0, 0, 0, g); P(kCyl(), gold, 0, 0.07, -0.3, g, 0.1, 0.03, 0.1); } // (shoulder guards, each with a gold stud)
+      // the cloak, clasped at the shoulders, falling and moving behind
+      const cg = kg('hopcape', () => { const W = 2.2, H = 3.2, c = new THREE.PlaneGeometry(W, H, 14, 18); c.translate(0, -H / 2, 0); const p = c.attributes.position;
+        for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i), t = Math.max(0, -y / H); p.setXYZ(i, x * (1 + 0.3 * t), y + (t > 0.9 ? 0.06 * Math.sin(x * 23) * (t - 0.9) * 10 : 0), 0.6 * Math.pow(t, 1.5) + 0.07 * Math.sin(x * 6.5) * (0.2 + t) - 0.18 * Math.pow(x / (W / 2), 2) * (1 - t)); }
+        c.computeVertexNormals(); return c; });
+      mesh(cg, cape, 0, 4.14, 0.57); mesh(cg, lining, 0, 4.14, 0.57);
+      for (const sx of [-1, 1]) P(kCyl(), gold, sx * 0.86, 4.04, -0.3, K.body, 0.13, 0.05, 0.13).rotation.x = Math.PI / 2;
+      // the shield on the back
+      const sh = mesh(aspisGeo(), shield, 0, 3.45, 0.9); sh.rotation.x = Math.PI / 2; P(kTor(0.05), bz, 0, 3.45, 0.88, K.body, 1.04, 1.04, 1.04);
+    },
+    arm(s) {
+      const sh = grp(K.body, s * 1.5, 4), el = grp(sh, 0, -0.98, 1);
+      R(0.9, 0.96, 0.9, 0.32, skin, 0, -0.52, 0, sh); R(1.0, 0.42, 1.0, 0.2, tunic, 0, -0.12, 0, sh); // (the arm; the tunic's sleeve)
+      R(0.84, 0.86, 0.84, 0.3, skin, 0, -0.42, 0, el);
+      mesh(kLathe('bracer', [[0, -0.72], [0.38, -0.72], [0.42, -0.6], [0.47, -0.3], [0.45, -0.18], [0, -0.18]], 22), bz, 0, 0, 0, el);
+      for (const y of [-0.66, -0.24]) P(kTor(0.1), gold, 0, y, 0, el, 0.44).rotation.x = Math.PI / 2;
+      return [sh, el];
+    },
+    head(h) {
+      mesh(corinthGeo(), bz, 0, 0, 0, h); mesh(KIT_CYL, voidM, 0, -0.62, 0, h).scale.set(0.7, 0.02, 0.7); // (the helmet, closed underneath)
+      // the openings: almond eyes either side of the nose guard (following the helmet's curve), a brow embossed over each,
+      // and the gap down to the jaw, widening between the cheek guards
+      for (const s of [-1, 1]) { const x = s * 0.25, r = 0.7, z = -Math.sqrt(r * r - x * x), ry = -Math.asin(x / r);
+        const e = mesh(kSph(), voidM, x, 0.06, z - 0.004, h); e.scale.set(0.22, 0.085, 0.03); e.rotation.set(0, ry, -s * 0.2);
+        const g = new THREE.Mesh(KIT_SPH, eyeM); g.position.set(x * 0.98, 0.065, z - 0.03); g.scale.set(0.04, 0.026, 0.02); h.add(g); eyes.push(g);
+        const br = mesh(kTor(0.12, Math.PI * 0.75), bz, x, 0.08, z - 0.02, h); br.scale.set(0.24, 0.13, 0.24); br.rotation.set(0, ry, Math.PI * 0.125); }
+      const gap = mesh(kTri(), voidM, 0, -0.42, -0.705, h); gap.scale.set(0.2, 0.46, 0.02); gap.rotation.x = 0.05;
+      R(0.12, 0.44, 0.08, 0.03, bz, 0, -0.04, -0.71, h); // (the nose guard)
+      for (const s of [-1, 1]) P(kSph(), gold, s * 0.71, 0.1, 0.05, h, 0.06); // (rivets)
+      // the crest: a ridge along the top, a fan of horsehair on it
+      R(0.1, 0.12, 1.0, 0.04, gold, 0, 0.9, 0.05, h);
+      crestG = grp(h, 0, 0.09); crestG.position.z = 0.05;
+      mesh(crestGeo(myr ? 'crestM' : 'crestS', myr ? ['#0f0f12', '#1c1b20', '#2a1215', '#7f1d1d', '#151418'] : ['#b91c1c', '#dc2626', '#991b1b', '#ef4444', '#7f1d1d']), crest, 0, 0, 0, crestG);
+      return true;
+    },
+    tick(a, dt) {
+      a.kitT = (a.kitT || 0) + dt; const t = a.kitT, run = Math.min(1, kitMove(a, dt)[0] / 14); T.value = t; A.value = 0.035 + 0.05 * run; S.value += (run - S.value) * Math.min(1, dt * 3);
+      if (crestG) { crestG.rotation.x = 0.05 * Math.sin(t * 2.1) - 0.18 * S.value; crestG.rotation.z = 0.04 * Math.sin(t * 1.7); } // (the crest sways, and streams back as you run)
+      if (myr) for (const e of eyes) e.scale.set(0.045, 0.028 * (0.8 + 0.2 * Math.sin(t * 7)), 0.02); // (the Myrmidon's embers flicker)
+    },
+  };
+}
+BODY_KITS.push((K) => hopliteKit(K, true), (K) => hopliteKit(K, false),
+// 🪓 Halberd Knight: late gothic plate, blued almost black and edged in gold. A sallet sweeping back into a long tail
+// with a slit to see through and a red plume, a bevor over the chin; a breastplate with flutes fanning across it; a
+// skirt of mail under the faulds; puffed and slashed sleeves in your shirt colour (gold silk through the slashes) at
+// the shoulders; couters and poleyns with fans; jointed gauntlets; sabatons; a rondel dagger at the belt
+(K) => {
+  const { mesh, mats, av, grp } = K;
+  const st = metalMat('#36404f', { shininess: 140, reflectivity: 0.8, specular: '#cfe0ff' }), gold = metalMat('#d9ad34', { specular: '#ffe08a', shininess: 120 }), G = knGeo();
+  const mail = new THREE.MeshPhongMaterial({ map: mailTex(), shininess: 70, specular: '#cbd5e1', side: THREE.DoubleSide }), puff = new THREE.MeshLambertMaterial({ map: slashTex(SHIRTS[av[1]]) }), leather = new THREE.MeshLambertMaterial({ color: '#3b2414' });
+  const slit = new THREE.MeshBasicMaterial({ color: '#05070b' }), plume = new THREE.MeshPhongMaterial({ color: '#b91c1c', shininess: 30, specular: '#555555' });
+  mats.push(st, gold, mail, puff, leather, plume);
+  const P = (geo, m, x, y, z, par, sx = 1, sy = sx, sz = sx) => { const o = mesh(kLod(geo, Math.max(sx, sy, sz)), m, x, y, z, par); o.scale.set(sx, sy, sz); return o; };
+  const R = (w, h, d, r, m, x, y, z, par) => mesh(rboxGeo(w, h, d, r), m, x, y, z, par);
+  const ring = (m, r, t, y, par, sz = 1) => P(kTor(t), m, 0, y, 0, par, r, r * sz, r).rotation.x = Math.PI / 2;
+  let plumeG = null;
+  return {
+    leg(x) {
+      const hip = grp(K.body, x, 2), kn = grp(hip, 0, -1.0, 1), s = Math.sign(x);
+      mesh(G.cuisse, st, 0, -0.5, 0, hip); ring(gold, 0.46, 0.08, -0.88, hip); for (const y of [-0.3, -0.6]) ring(st, 0.5, 0.05, y, hip);
+      mesh(G['pol' + s], st, 0, 0, 0, kn); P(kSph(), gold, 0, -0.02, -0.49, kn, 0.06); mesh(G.greave, st, 0, 0, 0, kn); mesh(G['sab' + s], st, 0, 0, 0, kn);
+      for (let k = 0; k < 3; k++) R(0.06, 0.5, 0.04, 0.02, gold, (k - 1) * 0.16, -0.48, -0.44, kn); // (gold lines down the greave)
+      return [hip, kn];
+    },
+    lower() {
+      mesh(kLathe('mailskirt', [[0.98, -0.62], [1.0, -0.3], [0.98, 0.0]], 30), mail, 0, 2.5, 0).scale.set(1.04, 1, 0.58); // (a skirt of mail)
+      R(1.96, 0.76, 0.98, 0.3, st, 0, 2.48, 0); for (const [y, k] of [[2.64, 1.0], [2.48, 1.03], [2.32, 1.06]]) { P(G.lame, st, 0, y, 0, K.body, 1.42 * k, 1, 0.74 * k); ring(gold, 1.0 * k, 0.025, y - 0.08, K.body, 0.54); }
+      R(2.08, 0.14, 1.08, 0.06, leather, 0, 2.78, 0); R(0.32, 0.22, 0.06, 0.04, gold, 0, 2.78, -0.56);
+      const dg = grp(K.body, 0.9, 2.62); dg.position.z = -0.3; dg.rotation.set(0.2, 0, 0.15); // (a rondel dagger: two discs, a grip, a thin blade in its sheath)
+      P(kLathe('rondS', [[0, -0.9], [0.06, -0.85], [0.08, -0.4], [0.09, 0], [0, 0.02]], 10), leather, 0, 0, 0, dg); for (const y of [0.05, 0.4]) { P(kCyl(), gold, 0, y, 0, dg, 0.14, 0.03, 0.14); } P(kCyl(), leather, 0, 0.22, 0, dg, 0.04, 0.34, 0.04);
+    },
+    upper() {
+      R(2.0, 1.2, 1.02, 0.3, st, 0, 3.44, 0);
+      // the flutes: ridges fanning out across the breastplate, and down the back
+      for (let k = -4; k <= 4; k++) { const f = mesh(kLod(kSph(), 0), st, k * 0.17, 3.42, -0.5, K.body); f.scale.set(0.035, 0.5, 0.05); f.rotation.z = k * 0.16; const b = mesh(kLod(kSph(), 0), st, k * 0.19, 3.42, 0.5, K.body); b.scale.set(0.035, 0.45, 0.04); b.rotation.z = -k * 0.1; }
+      R(2.04, 0.08, 1.06, 0.04, gold, 0, 2.86, 0); R(0.5, 0.08, 0.06, 0.03, gold, 0, 3.92, -0.52); P(kSph(), gold, 0, 3.42, -0.55, K.body, 0.08);
+      P(G.gorget, st, 0, 3.98, 0, K.body, 1, 1, 0.82); ring(gold, 0.79, 0.045, 4.01, K.body, 0.82);
+    },
+    arm(s) {
+      const sh = grp(K.body, s * 1.5, 4), el = grp(sh, 0, -0.98, 1);
+      const pg = grp(sh, s * 0.1, 0.12); pg.rotation.z = -s * 0.3; mesh(G.paul, st, 0, 0, 0, pg); ring(gold, 0.69, 0.05, 0, pg, 0.94); for (let k = 0; k < 5; k++) { const f = mesh(kLod(kSph(), 0), st, s * 0.12 * (k - 2) * 0.5, 0.25, (k - 2) * 0.16, pg); f.scale.set(0.04, 0.2, 0.06); } // (fluted, like the breastplate)
+      P(kSph(), puff, 0, -0.42, 0, sh, 0.56, 0.42, 0.56); // (the puffed sleeve)
+      mesh(G.rere, st, 0, -0.66, 0, sh); mesh(G['cou' + s], st, 0, 0, 0, el); P(kSph(), gold, s * 0.36, 0, 0.02, el, 0.05);
+      mesh(G.vamb, st, 0, 0, 0, el); mesh(G.cuff, st, 0, 0, 0, el); ring(gold, 0.42, 0.06, -0.55, el); mesh(G['hand' + s], st, 0, 0, 0, el);
+      return [sh, el];
+    },
+    head(h) {
+      // the sallet (its tail sweeping down behind), the slit, a gold brow band, the bevor rising over the chin, a plume
+      mesh(salletGeo(), st, 0, -0.02, 0.02, h).scale.set(0.74, 0.86, 0.76);
+      mesh(kg('salSlit', () => new THREE.CylinderGeometry(0.738, 0.738, 0.09, 20, 1, true, Math.PI - 0.85, 1.7)), slit, 0, 0.06, 0, h);
+      mesh(kg('bevor', () => { const g = new THREE.SphereGeometry(1, 24, 12, Math.PI * 0.5, Math.PI, Math.PI * 0.42, Math.PI * 0.38); return g; }), st, 0, -0.18, 0.02, h).scale.set(0.78, 0.9, 0.8);
+      for (const s2 of [-1, 1]) P(kSph(), gold, s2 * 0.72, 0.06, 0.05, h, 0.055);
+      P(kCyl(), gold, 0, 0.6, 0.4, h, 0.06, 0.18, 0.06).rotation.x = 0.6; plumeG = grp(h, 0, 0.66); plumeG.position.z = 0.48;
+      for (let k = 0; k < 5; k++) { const f = mesh(knGeo().plume[k % 3], plume, 0, 0, 0, plumeG); f.rotation.set(0.3, (k - 2) * 0.16, 0); f.scale.set(1.2, 0.75 - Math.abs(k - 2) * 0.05, 0.85); }
+      return true;
+    },
+    tick(a, dt) { a.kitT = (a.kitT || 0) + dt; const t = a.kitT, run = Math.min(1, kitMove(a, dt)[0] / 14); if (plumeG) { plumeG.rotation.x = 0.06 * Math.sin(t * 2.2) - 0.25 * run; plumeG.rotation.z = 0.05 * Math.sin(t * 1.5); } },
+  };
+},
+// 🗿 Laestrygonian: one of the giant cannibals Odysseus' fleet ran into, as Christopher Nolan's The Odyssey gives
+// them: a colossus in heavy, flat plates of iron (dull silver, scratched, streaked with rust) riveted over leather
+// and padding — a tall flat-faced helm with narrow slits (something burning behind them) and a skirt of mail hanging
+// round its neck; a broad flat breastplate with a raised centre plate and rows of rivets; jointed bands down the arms and
+// legs; enormous stacked pauldrons; huge iron fists; a belt with a great iron buckle over a skirt of studded leather
+// straps; iron-shod boots. Worn, you're half again as big (back to normal size in competitive games like Rivals)
+(K) => {
+  const { mesh, mats, grp } = K;
+  const iron = metalMat('#c8ccd0', { map: ironTex(), shininess: 50, reflectivity: 0.35, specular: '#9aa0a8' }), dark = metalMat('#4a4e54', { map: ironTex(), shininess: 40, reflectivity: 0.25 });
+  const pad = new THREE.MeshLambertMaterial({ color: '#2b2622', map: plushTex() }), leather = new THREE.MeshLambertMaterial({ color: '#3a2618' }), mail = new THREE.MeshPhongMaterial({ map: mailTex(), shininess: 50, side: THREE.DoubleSide });
+  const slitM = new THREE.MeshBasicMaterial({ color: '#030304' }), ember = new THREE.MeshBasicMaterial({ color: '#ff7a1a' }), rivet = metalMat('#8a8f96', { shininess: 80 });
+  mats.push(iron, dark, pad, leather, mail, rivet);
+  const P = (geo, m, x, y, z, par, sx = 1, sy = sx, sz = sx) => { const o = mesh(kLod(geo, Math.max(sx, sy, sz)), m, x, y, z, par); o.scale.set(sx, sy, sz); return o; };
+  const R = (w, h, d, r, m, x, y, z, par) => mesh(rboxGeo(w, h, d, r), m, x, y, z, par);
+  const rivets = (par, pts) => { const B = kitBuild(); for (const [x, y, z] of pts) B.add(kSph(), x, y, z, 0.045); mesh(B.geo(), rivet, 0, 0, 0, par); };
+  const glows = [];
+  return {
+    leg(x) {
+      const hip = grp(K.body, x * 1.12, 2), kn = grp(hip, 0, -1.0, 1);
+      R(1.08, 1.02, 1.08, 0.3, pad, 0, -0.5, 0, hip);
+      for (let k = 0; k < 3; k++) R(1.16 - k * 0.03, 0.26, 1.16 - k * 0.03, 0.08, iron, 0, -0.24 - k * 0.27, 0, hip); // (jointed bands)
+      R(0.62, 0.46, 0.22, 0.08, iron, 0, 0.0, -0.5, kn); P(kSph(), rivet, 0, 0.0, -0.62, kn, 0.07); // (the knee plate)
+      R(1.0, 0.7, 1.0, 0.24, pad, 0, -0.44, 0, kn); R(0.94, 0.62, 0.3, 0.06, iron, 0, -0.44, -0.4, kn); rivets(kn, [[-0.36, -0.2, -0.56], [0.36, -0.2, -0.56], [-0.36, -0.68, -0.56], [0.36, -0.68, -0.56]]);
+      R(1.18, 0.34, 1.5, 0.1, dark, 0, -0.84, -0.14, kn); R(1.0, 0.12, 0.5, 0.04, iron, 0, -0.7, -0.6, kn); // (the boot, iron over the toe)
+      return [hip, kn];
+    },
+    lower() {
+      R(2.3, 0.86, 1.18, 0.3, pad, 0, 2.42, 0);
+      for (let k = 0; k < 12; k++) { const an = (k / 12) * Math.PI * 2, x = Math.cos(an) * 1.22, z = Math.sin(an) * 0.66; const o = mesh(rboxGeo(0.4, 0.86, 0.06, 0.03), leather, x, 2.2, z); o.rotation.y = Math.PI / 2 - an; o.rotation.x = 0.06; P(kSph(), rivet, x * 1.03, 2.0, z * 1.03, K.body, 0.06); } // (a skirt of studded straps)
+      R(2.42, 0.22, 1.28, 0.08, leather, 0, 2.78, 0); R(0.5, 0.36, 0.1, 0.05, dark, 0, 2.78, -0.66); R(0.32, 0.2, 0.12, 0.04, iron, 0, 2.78, -0.68);
+    },
+    upper() {
+      R(2.56, 1.3, 1.24, 0.14, iron, 0, 3.5, 0); R(1.3, 1.0, 0.1, 0.05, dark, 0, 3.5, -0.66); R(1.3, 1.0, 0.1, 0.05, dark, 0, 3.5, 0.66); // (the plates, front and back, with raised centres)
+      rivets(K.body, [...[-1.15, -0.55, 0, 0.55, 1.15].flatMap((x) => [[x, 4.08, -0.64], [x, 2.92, -0.64], [x, 4.08, 0.64]]), ...[3.2, 3.5, 3.8].flatMap((y) => [[-0.6, y, -0.72], [0.6, y, -0.72]])]);
+      for (const [y, w] of [[2.98, 2.62], [2.86, 2.68]]) R(w, 0.14, 1.3, 0.05, iron, 0, y, 0);
+      mesh(kLathe('aventail', [[1.02, -0.5], [0.96, -0.2], [0.82, 0.12], [0.62, 0.3]], 30), mail, 0, 4.2, 0).scale.set(1.15, 1, 0.92); // (mail round the neck, hanging from the helm)
+    },
+    arm(s) {
+      const sh = grp(K.body, s * 1.78, 4), el = grp(sh, 0, -0.98, 1);
+      for (let k = 0; k < 3; k++) { const g = grp(sh, s * 0.08, 0.18 - k * 0.24); g.rotation.z = -s * (0.32 - k * 0.06); R(1.5 - k * 0.12, 0.2, 1.4 - k * 0.1, 0.07, k ? dark : iron, 0, 0, 0, g); rivets(g, [[s * 0.5, 0.1, -0.5], [s * 0.5, 0.1, 0.5], [-s * 0.3, 0.1, -0.5]]); } // (enormous stacked pauldrons)
+      R(1.0, 0.96, 1.0, 0.3, pad, 0, -0.5, 0, sh); for (let k = 0; k < 3; k++) R(1.08, 0.2, 1.08, 0.07, iron, 0, -0.32 - k * 0.24, 0, sh);
+      P(kCyl(), iron, 0, 0, 0.12, el, 0.38, 0.12, 0.38).rotation.x = Math.PI / 2; // (the elbow plate)
+      R(0.98, 0.7, 0.98, 0.26, pad, 0, -0.36, 0, el); for (let k = 0; k < 3; k++) R(1.04, 0.16, 1.04, 0.06, iron, 0, -0.16 - k * 0.2, 0, el);
+      R(0.86, 0.46, 0.86, 0.18, dark, 0, -0.86, -0.02, el); for (let k = 0; k < 4; k++) R(0.2, 0.18, 0.86, 0.07, iron, (k - 1.5) * 0.21, -1.1, -0.04, el); // (an iron fist, its finger plates)
+      return [sh, el];
+    },
+    head(h) {
+      R(1.42, 1.48, 1.42, 0.16, iron, 0, 0.12, 0, h); R(1.46, 0.16, 1.46, 0.06, dark, 0, 0.5, 0, h); R(0.16, 1.3, 0.12, 0.05, dark, 0, 0.06, -0.72, h); // (the helm: flat sides, a brow band, a ridge down the face)
+      for (const s of [-1, 1]) { R(0.44, 0.07, 0.06, 0.02, slitM, s * 0.33, 0.26, -0.715, h); const e = new THREE.Mesh(KIT_SPH, ember); e.position.set(s * 0.33, 0.26, -0.735); e.scale.set(0.06, 0.025, 0.01); h.add(e); glows.push(kitGlow(h, '#ff6a1a', 0.35, 0.6)); glows[glows.length - 1].position.set(s * 0.33, 0.26, -0.78); }
+      const B = kitBuild(); for (const s of [-1, 1]) for (let r = 0; r < 4; r++) for (let c = 0; c < 3; c++) B.add(kCyl(), s * (0.22 + c * 0.13), -0.12 - r * 0.13, -0.715, 0.032, 0.02, 0.032, Math.PI / 2); mesh(B.geo(), slitM, 0, 0, 0, h); // (breaths, both sides)
+      rivets(h, [...[-0.6, -0.3, 0.3, 0.6].map((x) => [x, 0.5, -0.74]), ...[-0.6, 0.6].flatMap((x) => [[x, 0.0, -0.72], [x, -0.4, -0.72]])]);
+      return true;
+    },
+    tick(a, dt) { a.kitT = (a.kitT || 0) + dt; const t = a.kitT, f = 0.75 + 0.25 * Math.sin(t * 3.1) * Math.sin(t * 1.3); for (const g of glows) g.material.opacity = 0.6 * f; },
+  };
+}
+);
+BODY_DESC.push('🏛️ Achilles’ own warriors: blackened bronze over dark scale armour, a Corinthian helmet with embers for eyes and a black horsehair crest streaked with red, a black cloak lined with red that billows behind you, bronze bracers and greaves, sandals, a short sword at the hip and a black shield with a golden ant and a Greek key round its rim.',
+  '🏛️ A hoplite of Sparta in bright bronze: a Corinthian helmet with a crimson horsehair crest that sways and streams back as you run, a sculpted muscle cuirass, a skirt of linen strips, a crimson cloak, bronze bracers and greaves, sandals, a short sword at the hip and the great round shield with a red lambda on your back.',
+  '🏛️ Late gothic plate, blued almost black and edged in gold: a sallet sweeping back to a long tail with a slit to see through, a bevor and a red plume; flutes fanning across the breastplate and pauldrons; a skirt of mail; puffed and slashed sleeves in your colour with gold silk showing through; a rondel dagger at the belt.',
+  '🏛️ A giant from Christopher Nolan’s The Odyssey: heavy, flat plates of scratched, rust-streaked iron riveted over leather — a tall flat-faced helm with something burning behind its slits and mail hanging round the neck, a broad breastplate, jointed bands down the arms and legs, huge stacked pauldrons, iron fists, a studded skirt and iron-shod boots. Worn, you’re half again as big (normal size in competitive games like Rivals).');
 /* ---------------- shapes for the remade items: feathered wings, a bat's wing, a cape that hangs, a shield ---------------- */
 // a feathered wing, fanned out from the shoulder (s: -1 the left, 1 the right): long feathers at the back, shorter rows
 // over them, longest at the tip. o: { cols: [long, middle, short], span, em (a glow), k (feather length) }
@@ -3428,6 +3745,7 @@ function makeAvatar(av, name, mine, ax) {
   for (const L of X.acc) xAttach(a, L); // (made 3D items, each where it goes on the body)
   for (const arm of [armL, armR]) arm.userData.n = arm.children.length; // (more than this: something's in that hand)
   if (!mine && name) { a.tag = label(name, { size: 0.85 }); a.tag.position.y = 6.7; g.add(a.tag); }
+  if (av[10] === 12 && name && exp && !COMPETITIVE.has(exp.id)) { g.scale.setScalar(GIANT); a.giant = GIANT; } // (the Laestrygonian: a giant — but normal size where size would matter)
   // a soft shadow on the ground under them
   a.shadow = new THREE.Mesh(new THREE.CircleGeometry(1.25, 18), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.25, depthWrite: false, ...DECAL }));
   a.shadow.rotation.x = -Math.PI / 2; scene.add(a.shadow); g.userData.shadow = a.shadow;
@@ -4604,18 +4922,21 @@ function emMid(i) {
   const E = EMOTES[i];
   const hint = `<small class="hint">${touchy ? 'Tap outside to close' : 'Keys 1–9, 0 and - · close with . or Esc'}</small>`;
   if (!E) return `<b>🎭 Emotes</b><small>Pick one to play it — it goes on till you move</small>${hint}`;
-  const st = emOwns(i) ? (me && me.em && me.em.i === i ? (E.loop ? '▶️ Playing — pick it again to stop' : '▶️ Playing') : E.loop ? '🔁 Loops till you move' : '✓ Yours') : Emo.ask === i ? (W.coins < E.price ? `Need ${E.price - W.coins} more Blox Coins` : `Tap again to buy for ${E.price}`) : `🔒 <span class="coin sm"></span> ${E.price} Blox Coins`;
+  const st = emOwns(i) ? (me && me.em && me.em.i === i ? (E.loop ? '▶️ Playing — pick it again to stop' : '▶️ Playing') : E.loop ? '🔁 Loops till you move' : '✓ Yours') : E.price < 0 ? '🏛️ A Season Pass reward' : Emo.ask === i ? (W.coins < E.price ? `Need ${E.price - W.coins} more Blox Coins` : `Tap again to buy for ${E.price}`) : `🔒 <span class="coin sm"></span> ${E.price} Blox Coins`;
   return `<b>${E.ic} ${esc(E.nm)}</b><small>${esc(E.d)}</small><small>${st}</small>${hint}`;
 }
+// the wheel: the emotes you can play or buy (the Season Pass's once they're yours), eleven to a page
+const EM_PAGE = 11;
+function emList() { return EMOTES.map((E, i) => i).filter((i) => { const E = EMOTES[i]; return !(E.hw && hwGone('em', i)) && !(E.price < 0 && !emOwns(i)); }); }
+function emPageList() { const L = emList(), n = Math.max(1, Math.ceil(L.length / EM_PAGE)); Emo.page = ((Emo.page || 0) % n + n) % n; return { L: L.slice(Emo.page * EM_PAGE, Emo.page * EM_PAGE + EM_PAGE), n }; }
 function drawEmWheel() {
   const el = $('#emWheel'); if (!el || el.hidden) return;
-  const n = EMOTES.length, cur = me && me.em ? me.em.i : -1;
-  el.innerHTML = `<div class="emw${Emo.fresh ? ' in' : ''}">${EMOTES.map((E, i) => {
-    if (E.hw && hwGone('em', i)) return '';
-    const an = -Math.PI / 2 + i * EM_TAU / n, own = emOwns(i), ask = Emo.ask === i;
+  const { L, n: pages } = emPageList(), n = L.length, cur = me && me.em ? me.em.i : -1;
+  el.innerHTML = `<div class="emw${Emo.fresh ? ' in' : ''}">${L.map((i, j) => {
+    const E = EMOTES[i], an = -Math.PI / 2 + j * EM_TAU / Math.max(n, 6), own = emOwns(i), ask = Emo.ask === i;
     const pr = own ? '' : ask ? `<span class="pr">${W.coins < E.price ? `Need ${E.price - W.coins}` : `Buy? ${E.price}`}</span>` : `<span class="pr"><span class="coin sm"></span>${E.price}</span>`;
-    return `<button class="em${cur === i ? ' on' : ''}${own ? '' : ' lock'}${ask ? ' ask' : ''}" data-em="${i}" style="left:${(50 + Math.cos(an) * 37).toFixed(2)}%;top:${(50 + Math.sin(an) * 37).toFixed(2)}%" title="${esc(E.nm)}"><span class="k">${i < 9 ? i + 1 : i === 9 ? 0 : '-'}</span><span class="i">${E.ic}</span>${esc(E.nm)}${pr}</button>`;
-  }).join('')}<div class="mid">${emMid(Emo.hi >= 0 ? Emo.hi : Emo.ask >= 0 ? Emo.ask : cur)}</div></div>`;
+    return `<button class="em${cur === i ? ' on' : ''}${own ? '' : ' lock'}${ask ? ' ask' : ''}${E.price < 0 ? ' sp' : ''}" data-em="${i}" style="left:${(50 + Math.cos(an) * 37).toFixed(2)}%;top:${(50 + Math.sin(an) * 37).toFixed(2)}%" title="${esc(E.nm)}"><span class="k">${j < 9 ? j + 1 : j === 9 ? 0 : '-'}</span><span class="i">${E.ic}</span>${esc(E.nm)}${pr}</button>`;
+  }).join('')}<div class="mid">${emMid(Emo.hi >= 0 ? Emo.hi : Emo.ask >= 0 ? Emo.ask : cur)}${pages > 1 ? `<div class="empg"><button data-empg="-1" title="Previous page ([)">◀</button><span>${Emo.page + 1} / ${pages}</span><button data-empg="1" title="Next page (])">▶</button></div>` : ''}</div></div>`;
   Emo.fresh = false;
 }
 function openEmWheel(ask) {
@@ -4626,6 +4947,7 @@ function closeEmWheel() { if (!Emo.open) return; Emo.open = false; Emo.ask = -1;
 function toggleEmWheel() { if (Emo.open) closeEmWheel(); else openEmWheel(); }
 function pickEmote(i) {
   const E = EMOTES[i]; if (!E || (E.hw && hwGone('em', i))) return;
+  if (!emOwns(i) && E.price < 0) { const S = spItem('em', i); toast(S ? `🏛️ ${E.nm}: Season Pass level ${S.L}${S.tr === 'd' ? ' (Deluxe)' : ''}` : `${E.nm} is a reward`, '#fcd34d'); return; }
   if (!emOwns(i)) {
     if (Emo.ask !== i) { Emo.ask = i; sfx('click'); if (!Emo.open) openEmWheel(i); else drawEmWheel(); return; }
     if (W.coins < E.price) { sfx('error'); toast(`Need ${(E.price - W.coins).toLocaleString('en-US')} more Blox Coins`, '#fca5a5'); return; }
@@ -4651,7 +4973,7 @@ function emCommand(arg) {
   if (!emOwns(i)) { openEmWheel(i); return; }
   playEmote(i);
 }
-$('#emWheel').addEventListener('click', (e) => { const b = e.target.closest('[data-em]'); if (b) pickEmote(+b.dataset.em); else if (!e.target.closest('.emw')) closeEmWheel(); });
+$('#emWheel').addEventListener('click', (e) => { const pg = e.target.closest('[data-empg]'); if (pg) { Emo.page = (Emo.page || 0) + +pg.dataset.empg; sfx('click'); drawEmWheel(); return; } const b = e.target.closest('[data-em]'); if (b) pickEmote(+b.dataset.em); else if (!e.target.closest('.emw')) closeEmWheel(); });
 $('#emWheel').addEventListener('mouseover', (e) => { const b = e.target.closest('[data-em]'), i = b ? +b.dataset.em : -1, m = $('#emWheel .mid'); if (i !== Emo.hi && m) { Emo.hi = i; m.innerHTML = emMid(i >= 0 ? i : Emo.ask >= 0 ? Emo.ask : me && me.em ? me.em.i : -1); } });
 // "press E" prompts near things: experiences list them as { x, z, r, text, fn }
 let promptCur = null;
@@ -5473,6 +5795,8 @@ async function kvGet(prefix) { try { const raw = window.ChatKV && await window.C
 async function kvSet(prefix, v) { try { if (window.ChatKV) await window.ChatKV.set(await myKey(prefix), JSON.stringify(v)); return true; } catch (e) { return false; } }
 
 let playing = false, exp = null, me = null, joining = false;
+// games where everyone's size should be the same (fights, races, hiding): the Laestrygonian stays normal size in these
+const COMPETITIVE = new Set(['rivals', 'blade', 'murder', 'tag', 'hide', 'forsaken', 'army', 'kart', 'rlgl', 'color', 'aura', 'egg']), GIANT = 1.45;
 async function join(id, n) {
   if (joining) return;
   const E = EXPS[id];
@@ -6473,11 +6797,11 @@ function wearHtml() {
   const itemBtn = (k, i) => {
     const C = COSMETICS[k], nm = C.list[i];
     const own = owns(k, i), price = C.price[i], on = k === 'h' ? (i ? hatsOn().includes('H' + i) : !hatsOn().length) : AV[k] === i && !W.wear[k], ask = avAsk === k + i, tr = ED.open && ED.try[k] === i;
-      if ((ED.own && !own) || hwGone(k, i)) return '';
-      const A = price < 0 ? achFor(k, i) : null;
-      const pr = on ? '<span class="pr own">✓ Wearing</span>' : own ? '<span class="pr own">Owned</span>' : price < 0 ? `<span class="pr">${A ? '🏆 Earn it' : '🎖️ Reward'}</span>` : ask && W.coins < price ? `<span class="pr">Need ${price - W.coins} more</span>` : ask ? `<span class="pr">Buy? ${price}</span>` : `<span class="pr"><span class="coin sm"></span> ${price}</span>`;
+      if ((ED.own && !own) || hwGone(k, i) || spGone(k, i)) return '';
+      const A = price < 0 ? achFor(k, i) : null, SPI = price < 0 && !A ? spItem(k, i) : null;
+      const pr = on ? '<span class="pr own">✓ Wearing</span>' : own ? '<span class="pr own">Owned</span>' : price < 0 ? `<span class="pr">${A ? '🏆 Earn it' : SPI ? `🏛️ Lv ${SPI.L}${SPI.tr === 'd' ? ' 👑' : ''}` : '🎖️ Reward'}</span>` : ask && W.coins < price ? `<span class="pr">Need ${price - W.coins} more</span>` : ask ? `<span class="pr">Buy? ${price}</span>` : `<span class="pr"><span class="coin sm"></span> ${price}</span>`;
       const cant = !own && (price < 0 || W.coins < price);
-      return `<button data-k="${k}" data-i="${i}" class="${on ? 'on' : ''} ${cant ? 'cant' : ''} ${ask ? 'ask' : ''} ${tr ? 'try' : ''}" title="${esc(nm)}${price < 0 && !own ? (A ? ` — earn the “${A.nm}” achievement` : ' — earned in Command an Army’s battle pass') : ''}${isHw(k, i) ? ' — 🎃 Halloween exclusive' : ''}">${isHw(k, i) ? '<span class="hwtag">🎃</span>' : ''}<span class="i">${C.icon[i]}</span>${esc(nm)}${pr}</button>`;
+      return `<button data-k="${k}" data-i="${i}" class="${on ? 'on' : ''} ${cant ? 'cant' : ''} ${ask ? 'ask' : ''} ${tr ? 'try' : ''}" title="${esc(nm)}${price < 0 && !own ? (A ? ` — earn the “${A.nm}” achievement` : SPI ? ` — Season Pass level ${SPI.L}${SPI.tr === 'd' ? ' (Deluxe)' : ''}` : ' — earned in Command an Army’s battle pass') : ''}${isHw(k, i) ? ' — 🎃 Halloween exclusive' : ''}">${isHw(k, i) ? '<span class="hwtag">🎃</span>' : ''}<span class="i">${C.icon[i]}</span>${esc(nm)}${pr}</button>`;
   };
   if (avTab === 'colors') {
     const row = (title, list, key) => `<div class="opt"><small>${title}</small><div class="sw">${list.map((c, i) => `<button data-k="${key}" data-i="${i}" class="${AV[key] === i ? 'on' : ''}" style="background:${c}" title="${title} ${i + 1}"></button>`).join('')}</div></div>`;
@@ -6490,8 +6814,9 @@ function wearHtml() {
   } else if (avTab === 'em') {
     body = `<p class="xp-note">🎭 Tap an emote to see it. In a game, press <b>.</b> or tap 🎭 Emotes for the emote wheel, or type <b>/e wave</b> in the chat. Moving stops one.</p><div class="shop">${EMOTES.map((E, i) => {
       const own = emOwns(i), ask = avAsk === 'em' + i, on = pv.a && pv.a.em && pv.a.em.i === i;
-      if ((ED.own && !own) || (E.hw && hwGone('em', i))) return '';
-      const pr = own ? `<span class="pr own">${E.price ? 'Owned' : 'Free'}</span>` : ask && W.coins < E.price ? `<span class="pr">Need ${E.price - W.coins} more</span>` : ask ? `<span class="pr">Buy? ${E.price}</span>` : `<span class="pr"><span class="coin sm"></span> ${E.price}</span>`;
+      if ((ED.own && !own) || (E.hw && hwGone('em', i)) || spGone('em', i)) return '';
+      const SPI = E.price < 0 ? spItem('em', i) : null;
+      const pr = own ? `<span class="pr own">${E.price ? 'Owned' : 'Free'}</span>` : SPI ? `<span class="pr">🏛️ Lv ${SPI.L}${SPI.tr === 'd' ? ' 👑' : ''}</span>` : ask && W.coins < E.price ? `<span class="pr">Need ${E.price - W.coins} more</span>` : ask ? `<span class="pr">Buy? ${E.price}</span>` : `<span class="pr"><span class="coin sm"></span> ${E.price}</span>`;
       return `<button data-em="${i}" class="${on ? 'try' : ''} ${!own && W.coins < E.price ? 'cant' : ''} ${ask ? 'ask' : ''}" title="${esc(E.nm)} — ${esc(E.d)}${E.hw ? ' — 🎃 Halloween exclusive' : ''}">${E.hw ? '<span class="hwtag">🎃</span>' : ''}<span class="i">${E.ic}</span>${esc(E.nm)}${pr}</button>`;
     }).join('')}</div>`;
   } else if (avTab === 'fits') {
@@ -6504,7 +6829,7 @@ function wearHtml() {
     body = `<div class="shop">${C.list.map((nm, i) => itemBtn(avTab, i)).join('')}</div>`;
     // (a reward you haven't got, tapped: how to get it)
     const ak = avAsk && avAsk.startsWith(avTab) ? +avAsk.slice(avTab.length) : -1, AA = ak >= 0 && C.price[ak] < 0 && !owns(avTab, ak) ? achFor(avTab, ak) : null;
-    if (ak >= 0 && C.price[ak] < 0 && !owns(avTab, ak)) body += `<div class="avnote">${AA ? `🏆 <b>${esc(C.list[ak])}</b> comes with the “${esc(AA.nm)}” achievement${AA.e !== 'bv' && EXPS[AA.e] ? ` in ${esc(EXPS[AA.e].name)}` : ''}: ${esc(AA.d.charAt(0).toLowerCase() + AA.d.slice(1))}.` : `🎖️ <b>${esc(C.list[ak])}</b> is a reward in Command an Army’s battle pass.`}</div>`;
+    if (ak >= 0 && C.price[ak] < 0 && !owns(avTab, ak)) body += `<div class="avnote">${AA ? `🏆 <b>${esc(C.list[ak])}</b> comes with the “${esc(AA.nm)}” achievement${AA.e !== 'bv' && EXPS[AA.e] ? ` in ${esc(EXPS[AA.e].name)}` : ''}: ${esc(AA.d.charAt(0).toLowerCase() + AA.d.slice(1))}.` : spItem(avTab, ak) ? `🏛️ <b>${esc(C.list[ak])}</b> is a Season Pass reward: level ${spItem(avTab, ak).L}${spItem(avTab, ak).tr === 'd' ? ' of the 👑 Deluxe track' : ' (free)'}. Open the pass from the home screen.` : `🎖️ <b>${esc(C.list[ak])}</b> is a reward in Command an Army’s battle pass.`}</div>`;
     if (avTab === 'h') body = `<div class="avnote">🎩 You're wearing <b>${hatsOn().length}</b> of ${HAT_MAX} hats. Tap a hat to put it on or take it off; 🚫 None takes them all off. Made and limited hats count too (in 🎒 My items).</div>` + body;
     else if (XKINDS[avTab] && W.wear[avTab]) { const I = xItem(W.wear[avTab]); body = `<div class="avnote">You're wearing <b>${esc(I ? I.nm : 'an item')}</b> over these. Pick one to wear it instead, or take it off in 🎒 My items.</div>` + body; }
   }
@@ -6520,6 +6845,7 @@ $('#avOpts').onclick = (e) => {
   if (d.em != null) { // an emote: it plays on you here; one you don't have: tap again to buy it
     const i = +d.em, E = EMOTES[i]; if (!E || (E.hw && hwGone('em', i))) return;
     if (pv.a) emStart(pv.a, i);
+    if (!emOwns(i) && E.price < 0) { const S = spItem('em', i); ED.note = S ? `🏛️ <b>${esc(E.nm)}</b> is a Season Pass reward: level ${S.L}${S.tr === 'd' ? ' of the 👑 Deluxe track' : ' (free)'}.` : ''; drawAvatarOpts(); return; }
     if (!emOwns(i)) {
       if (avAsk !== 'em' + i || W.coins < E.price) { avAsk = 'em' + i; sfx('click'); drawAvatarOpts(); return; }
       W.coins -= E.price; W.own.add('em' + i); avAsk = ''; sfx('buy'); questMax('bv.items', W.own.size); ED.note = `🎭 The ${esc(E.nm)} emote is yours! Play it in a game with <b>.</b> or 🎭 Emotes.`; saveAv(); drawMe();
@@ -8776,7 +9102,8 @@ addEventListener('keydown', (e) => {
   if (e.code === 'Escape') { if (Emo.open) { closeEmWheel(); return; } if (performance.now() - View.lostAt < 400) return; if (panelOpen()) closePanel(); else if ($('#pause').hidden) showPause(); else $('#pause').hidden = true; return; } // (Esc that let go of the pointer has opened the menu already)
   if (!$('#pause').hidden) return; // (the menu's open: nothing else happens in the game)
   if (e.code === 'Period' && !e.repeat) { toggleEmWheel(); return; } // the emote wheel: 1–9, 0 and - pick one
-  if (Emo.open && /^(Digit[0-9]|Minus)$/.test(e.code)) { if (!e.repeat) pickEmote(e.code === 'Digit0' ? 9 : e.code === 'Minus' ? 10 : +e.code.slice(5) - 1); return; }
+  if (Emo.open && /^(Digit[0-9]|Minus)$/.test(e.code)) { if (!e.repeat) { const j = e.code === 'Digit0' ? 9 : e.code === 'Minus' ? 10 : +e.code.slice(5) - 1, i = emPageList().L[j]; if (i != null) pickEmote(i); } return; }
+  if (Emo.open && /^Bracket(Left|Right)$/.test(e.code)) { if (!e.repeat) { Emo.page = (Emo.page || 0) + (e.code === 'BracketLeft' ? -1 : 1); sfx('click'); drawEmWheel(); } return; }
   // Ctrl toggles shift lock when it's tapped on its own (with another key it's the browser's shortcut, not ours)
   if (isCtrl(e.code)) { View.ctrlTap = !e.repeat && lockKeyCode(e.code); return; }
   View.ctrlTap = false;
@@ -8887,13 +9214,13 @@ function frame(t, bg) { // (bg: a step while the game's off screen — nothing i
   const cp = Math.cos(cam.pitch);
   if (View.fp && !P.dead) {
     // first person: your eyes, looking where the camera points
-    const ey = P.y + 4.8 - stepLift, ex = P.x + Math.sin(cam.yaw) * 0.6, ez = P.z + Math.cos(cam.yaw) * 0.6; // (a touch behind the middle of the head, so what you hold isn't right in your face)
+    const ey = P.y + 4.8 * ((me && me.giant) || 1) - stepLift, ex = P.x + Math.sin(cam.yaw) * 0.6, ez = P.z + Math.cos(cam.yaw) * 0.6; // (a touch behind the middle of the head, so what you hold isn't right in your face)
     camera.position.set(ex, ey, ez); camera.lookAt(ex - Math.sin(cam.yaw) * cp, ey + Math.sin(cam.pitch), ez - Math.cos(cam.yaw) * cp);
   } else {
     // shift lock: over your right shoulder (aiming: further over, and closer in)
     View.aimK = clamp((View.aimK || 0) + (aimOn() ? dt : -dt) * 8, 0, 1); // (easing in and out of aiming)
     const ak = View.aimK, dist = cam.dist + (Math.min(cam.dist, exp.aimDist || 8) - cam.dist) * ak;
-    const sh = Math.max(lockFacing() ? 1.7 : 0, 2.5 * ak), tx = P.x + Math.cos(cam.yaw) * sh, ty = P.y + 4.4 - stepLift, tz = P.z - Math.sin(cam.yaw) * sh, ux = Math.sin(cam.yaw) * cp, uy = -Math.sin(cam.pitch), uz = Math.cos(cam.yaw) * cp;
+    const sh = Math.max(lockFacing() ? 1.7 : 0, 2.5 * ak), tx = P.x + Math.cos(cam.yaw) * sh, ty = P.y + 4.4 * ((me && me.giant) || 1) - stepLift, tz = P.z - Math.sin(cam.yaw) * sh, ux = Math.sin(cam.yaw) * cp, uy = -Math.sin(cam.pitch), uz = Math.cos(cam.yaw) * cp;
     // a wall or roof between you and the camera: the camera comes in front of it (and eases back out after)
     const want = exp.camClip === false ? dist : Math.min(dist, Math.max(2.5, camRoom(tx, ty, tz, ux, uy, uz, dist) - 0.6));
     if (want < dist - 0.01) camClipAt = t;
