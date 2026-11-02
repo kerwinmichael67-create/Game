@@ -3279,12 +3279,9 @@ const salletGeo = () => kg('sallet', () => { const g = new THREE.SphereGeometry(
   for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i), z = p.getZ(i), back = Math.max(0, z), low = Math.max(0, 0.35 - y);
     p.setXYZ(i, x * (1 + 0.04 * low), y + 0.06 * Math.exp(-x * x * 40) - 0.9 * back * low * 1.6, z + 1.2 * back * low * low * 2.2 + 0.25 * back * low); }
   g.computeVertexNormals(); return g; });
-// 🛡️ the hoplites: Sparta's in bright bronze, a crimson cloak and crest, a red lambda on the shield; the Myrmidons
-// (Achilles' own) in blackened bronze over dark scale armour, a black crest streaked with red, embers for eyes, a cloak
-// of black lined with red and a golden ant on the shield. Both: a Corinthian helmet (the eyes and a slit for the
-// mouth, cheek guards flaring at the jaw) with a horsehair crest on a ridge; a muscled cuirass (sculpted chest and
-// stomach) with shoulder guards; a skirt of strips; a tunic in your shirt colour at the arms and hem; bronze bracers and
-// greaves over bare arms and legs; sandals; a short sword at the hip and the big round shield on the back
+// 🛡️ the Spartan hoplite (Persian Wars): a bronze Corinthian helmet (eyes and a slit for the mouth, cheek guards flaring
+// at the jaw) with a crimson horsehair crest on a ridge; a muscled cuirass over a crimson tunic; a skirt of strips; bronze
+// greaves; bare feet; long hair and a beard; a crimson cloak, a short sword at the hip and the lambda shield on the back
 // 🐜 Myrmidon, as Achilles' men would really have looked at Troy — a warrior of Mycenaean Greece, the late Bronze Age
 // (c. 1300–1200 BC), not a later hoplite: an open-faced boar's-tusk helmet (Homer describes one: rows of tusk plates on a
 // leather cap) with cheek guards and a horsehair plume; a bronze plate cuirass like the one found at Dendra — a high
@@ -3440,7 +3437,7 @@ function hopliteKit(K, myr) {
 
         const br = mesh(kTor(0.12, Math.PI * 0.75), bz, x, 0.08, z - 0.02, h); br.scale.set(0.24, 0.13, 0.24); br.rotation.set(0, ry, Math.PI * 0.125); }
       const gap = mesh(kTri(), myr ? voidM : hairM, 0, -0.42, -0.705, h); gap.scale.set(0.2, 0.46, 0.02); gap.rotation.x = 0.05; // (a beard showing between the cheek pieces)
-      if (!myr) { const B = kitBuild(); for (let k = 0; k < 7; k++) { const x = (k - 3) * 0.18; B.add(kSph(), x, -0.85 - (k % 2) * 0.12, 0.42 + Math.abs(x) * 0.12, 0.1, 0.42, 0.09, 0.15, 0, x * 0.3); } mesh(B.geo(), hairM, 0, 0, 0, h); } // (long hair, in locks down the back of the neck, as Spartans wore it)
+      if (!myr) { const B = kitBuild(); for (let k = 0; k < 7; k++) { const x = (k - 3) * 0.18; B.add(kSph(), x, -0.85 - (k % 2) * 0.12, 0.42 + Math.abs(x) * 0.12, 0.1, 0.42, 0.09, 0.15, 0, x * 0.3); } for (const s2 of [-1, 1]) for (let k = 0; k < 2; k++) B.add(kSph(), s2 * (0.4 + k * 0.17), -0.98 - k * 0.07, -0.66 + k * 0.05, 0.1, 0.42, 0.08, 0.28, 0, s2 * 0.12); mesh(B.geo(), hairM, 0, 0, 0, h); } // (long hair, in locks down the back of the neck and over the shoulders in front, as Spartans wore it)
       R(0.12, 0.44, 0.08, 0.03, bz, 0, -0.04, -0.71, h); // (the nose guard)
       for (const s of [-1, 1]) P(kSph(), gold, s * 0.71, 0.1, 0.05, h, 0.06); // (rivets)
       // the crest: a ridge along the top, a fan of horsehair on it
@@ -3796,7 +3793,7 @@ ANIM_PACKS.push({ snap: 14, // 🏺 Hoplite (🏛️ Season Pass, Deluxe)
       if (!hold) for (let q = 0; q < 14; q++) kitSpark(a, scene, tip.x, gy + 0.2, tip.z, Math.random() < 0.5 ? '#fdba74' : '#fde68a', { v: [(Math.random() - 0.5) * 6, 2 + Math.random() * 5, (Math.random() - 0.5) * 6], g: 12, life: 0.6, s: 0.16, j: 0.5 }); }
   },
 });
-ANIM_DESC.push('🏛️ The phalanx, with a spear and a round shield (your own, if you’re a Myrmidon or a Spartan): side on, shield up, spear overhand; every so often it beats its spear on its shield three times — clang, clang, clang, sparks flying — and thrusts it to the sky with a great AROO! Advances behind the shield with the spear levelled, leaps into a downward spear thrust that draws a streak of light, and slams the shield into the ground as it lands, on one knee, with a ring of bronze light.',
+ANIM_DESC.push('🏛️ The phalanx, with a spear and a shield — a round one, or a great figure-of-eight one if you’re a Myrmidon: side on, shield up, spear overhand; every so often it beats its spear on its shield three times — clang, clang, clang, sparks flying — and thrusts it to the sky with a great AROO! Advances behind the shield with the spear levelled, leaps into a downward spear thrust that draws a streak of light, and slams the shield into the ground as it lands, on one knee, with a ring of bronze light.',
   '🏛️ A wordless giant with its great sword in hand (the giant scimitar — off your back, if you wear it): hunched over the blade, breathing slow inside its helm, it turns its blank face this way and that, searching — then raises the sword high in both hands, drives it point first into the ground in a burst of sparks and cracks, and leans on it, looking down at you. It lumbers along in slow, heavy strides you feel through the ground, the sword dragging behind, its point scraping sparks; it leaps with the sword raised over its head and comes down in a great chop — the ground cracks, rocks fly and the camera shakes.');
 /* ---------------- shapes for the remade items: feathered wings, a bat's wing, a cape that hangs, a shield ---------------- */
 // a feathered wing, fanned out from the shoulder (s: -1 the left, 1 the right): long feathers at the back, shorter rows
