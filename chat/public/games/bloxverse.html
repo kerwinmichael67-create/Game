@@ -1452,7 +1452,7 @@ const TRAILS = ['None', 'Rainbow', 'Fire', 'Ice', 'Neon', 'Gold', 'Hearts', 'Sta
 const BODIES = ['R6', 'R15', 'Robot', 'Skeleton', 'Magma Golem', 'Dino Suit', 'Knight', 'Pumpkin Scarecrow', 'Phantom', 'Myrmidon', 'Spartan', 'Halberd Knight', 'Laestrygonian',
   'Minotaur', 'Anubis', 'Pharaoh', 'Samurai', 'Valkyrie', 'Centurion', 'Gladiator', 'Talos', 'Cyclops', 'Berserker']; // (2 on: body packs, jointed like R15; from 13: 💎 Deluxe Plus)
 // animation packs: how you stand, walk, run and jump
-const ANIMS = ['Default', 'Robot', 'Ninja', 'Zombie', 'Superhero', 'Stylish', 'Levitation', 'Vampire', 'Hoplite', 'Laestrygonian'];
+const ANIMS = ['Default', 'Robot', 'Ninja', 'Zombie', 'Superhero', 'Stylish', 'Levitation', 'Vampire', 'Hoplite', 'Laestrygonian', 'Minotaur', 'Pharaoh', 'Samurai', 'Valkyrie', 'Berserker']; // (from 10: 💎 Deluxe Plus)
 // the shop: what each costs in Blox Coins (0 = free, -1 = only as a reward)
 const COSMETICS = {
   h: { title: 'Hats', list: HATS, price: [0, 0, 0, 0, 0, 100, 250, 300, 150, 800, 200, 120, 220, 80, 1500, -1, 100, 200, 350, 180, 220, 260, 400, 150, 1200, 3000, -1, -1, -1, -1, -1, -1, -1, 400, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
@@ -1463,7 +1463,7 @@ const COSMETICS = {
   pt: { title: 'Shirts', list: PATTERNS, price: [0, 60, 80, 80, 120, 100, 90, 250, 150, 150, 120, 200, 300, -1, -1, -1, 200], icon: ['⬜', '〰️', '⭐', '❤️', '⚡', '🏁', '1️⃣', '👔', '💀', '🔥', '🪖', '🌈', '🌌', '🏆', '🐾', '🌻', '🦴'] },
   pet: { title: 'Pets', list: PETS, price: [0, 400, 400, 350, 1500, 900, 2500, 600, 800, 1200, 4000, -1, -1, 1000, -1, -1], icon: ['🚫', '🐶', '🐱', '🐰', '🐉', '🤖', '🦄', '🐧', '🦊', '🐼', '🦅', '🧟', '🌱', '👻', '🐓', '🦕'] },
   bt: { title: 'Bodies', list: BODIES, price: [0, 0, 900, 600, 1200, 1000, 1100, 800, 1300, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], icon: ['🧍', '🦵', '🤖', '💀', '🌋', '🦖', '⚔️', '🎃', '🫥', '🐜', '🛡️', '🪓', '🗿', '🐂', '🐺', '👑', '⛩️', '🪽', '🦅', '⚔️', '🤖', '👁️', '🐻'], tab: false }, // (bodies and animations are in 🧍 Body)
-  an: { title: 'Animations', list: ANIMS, price: [0, 500, 750, 400, 700, 550, 900, 777, -1, -1], icon: ['🚶', '🤖', '🥷', '🧟', '🦸', '😎', '🫧', '🧛', '🏺', '👣'], tab: false },
+  an: { title: 'Animations', list: ANIMS, price: [0, 500, 750, 400, 700, 550, 900, 777, -1, -1, -1, -1, -1, -1, -1], icon: ['🚶', '🤖', '🥷', '🧟', '🦸', '😎', '🫧', '🧛', '🏺', '👣', '🐂', '👑', '⛩️', '🪽', '🐻'], tab: false },
   tr: { title: 'Trails', list: TRAILS, price: [0, 1500, 800, 600, 500, 2000, 700, -1, -1, 700], icon: ['🚫', '🌈', '🔥', '🧊', '💠', '🪙', '💕', '⭐', '⚡', '🌫️'] },
 };
 let AV = { s: 5, sh: 0, p: 1, h: 0, f: 0, b: 0, a: 0, pt: 0, pet: 0, tr: 0, bt: 0, an: 0 };
@@ -4182,8 +4182,171 @@ ANIM_PACKS.push({ snap: 14, // 🏺 Hoplite (🏛️ Season Pass, Deluxe)
       if (!hold) for (let q = 0; q < 14; q++) kitSpark(a, scene, tip.x, gy + 0.2, tip.z, Math.random() < 0.5 ? '#fdba74' : '#fde68a', { v: [(Math.random() - 0.5) * 6, 2 + Math.random() * 5, (Math.random() - 0.5) * 6], g: 12, life: 0.6, s: 0.16, j: 0.5 }); }
   },
 });
+/* ---------------- 💎 Deluxe Plus animation packs (10–14): the Minotaur, the Pharaoh, the Samurai, the Valkyrie, the Berserker ---------------- */
+// their sounds: a snort and a stamp and a bellow; a harp to the sun; the draw of a blade and its sheathing; wings and a
+// choir; a berserker's roar and his fists on his chest
+const dpSnort = (a) => emBand(a, (B) => { emNoise(B, { len: 0.45, v: 0.16, f: 700, f2: 250, att: 0.03 }); emNoise(B, { len: 0.3, v: 0.07, type: 'highpass', f: 2500, att: 0.01, dt: 0.05 }); });
+const dpStamp = (a, k = 1) => emBand(a, (B) => { B.d(0, 0.5 * k); B.n('sub', 30, 0.3, 0.3 * k); emNoise(B, { len: 0.25, v: 0.1 * k, f: 400, f2: 120 }); });
+const dpBellow = (a) => emBand(a, (B) => { emVox(B, { n: 3, f: 82, len: 1.4, v: 0.45, fa: 'o', fu: 'u', fall: 0.72 }); emNoise(B, { len: 1.2, v: 0.08, f: 300, f2: 120, att: 0.1 }); });
+const dpHarp = (a) => emBand(a, (B) => { [57, 61, 64, 69, 73, 76, 81].forEach((m, i) => B.n('pluck', m, 1.5, 0.18, i * 0.07)); B.c('strings', [45, 57, 64, 69], 2.4, 0.12, 0.1); B.c('celesta', [81, 85, 88], 1.8, 0.06, 0.5, 0.1); });
+const dpShing = (a) => emBand(a, (B) => { emNoise(B, { len: 0.35, v: 0.13, type: 'highpass', f: 3500, f2: 9000, att: 0.004 }); B.n('toll', 96, 0.9, 0.08); B.n('toll', 103, 0.6, 0.05, 0.01); });
+const dpSheathe = (a) => emBand(a, (B) => { emNoise(B, { len: 0.55, v: 0.06, type: 'bandpass', f: 2200, att: 0.25 }); B.d(3, 0.18, 0.5); B.n('toll', 79, 0.4, 0.05, 0.5); });
+const dpWhoosh = (a, k = 1) => emBand(a, (B) => emNoise(B, { len: 0.45, v: 0.07 * k, type: 'bandpass', f: 900, f2: 300, att: 0.12 }));
+const dpChoir = (a) => emBand(a, (B) => { B.c('dark', [62, 66, 69, 74], 2.6, 0.16); B.c('celesta', [86, 90, 93], 2.0, 0.06, 0.2, 0.08); emVox(B, { n: 4, f: 262, len: 2.0, v: 0.16, fa: 'a', fu: 'a', fall: 1.0 }); });
+const dpRoar = (a) => emBand(a, (B) => { emVox(B, { n: 4, f: 105, len: 1.4, v: 0.55, fa: 'a', fu: 'o', fall: 0.7 }); emNoise(B, { len: 1.3, v: 0.12, f: 900, f2: 200, att: 0.05 }); B.d(6, 0.3); });
+const dpThump = (a) => emBand(a, (B) => { B.d(5, 0.5); B.n('sub', 38, 0.2, 0.25); });
+const dpAt = (s, cyc, T, dt) => { const c = s.t % cyc, c0 = c - dt; return c0 < T && c >= T; }; // (the moment T in a cycle just went by)
+const dpDust = (a, s, k = 1) => { const gs = a.giant || 1, p = limbEnd(a, true, s); for (let q = 0; q < 4; q++) kitSpark(a, scene, p.x + (Math.random() - 0.5) * 0.7, p.y - 0.6, p.z + (Math.random() - 0.5) * 0.7, '#a8a29e', { v: [(Math.random() - 0.5) * 1.6, 0.5, (Math.random() - 0.5) * 1.6], life: 0.8, s: 0.45 * gs * k, grow: 2, op: 0.3, flat: 1, j: 0.4 }); };
+const _dpv = new THREE.Vector3();
+ANIM_PACKS.push({ snap: 10, // 🐂 Minotaur
+  pose(J, a, s) {
+    const r15 = a.r15, t = s.t, br = Math.sin(t * 2.2);
+    if (s.air) { const dn = (s.vy || 0) < 0 ? smooth(Math.min(1, -s.vy / 8)) : 0; // (a leap with arms flung up, roaring — and down head first)
+      J.aL = [2.6 - 1.6 * dn, 0, -0.5]; J.aR = [2.6 - 1.6 * dn, 0, 0.5]; J.bd = [0.15 - 0.5 * dn, 0, 0]; J.hd = [0.35 - 0.6 * dn, 0, 0]; J.lL = [0.7, 0, -0.15]; J.lR = [0.2, 0, 0.15];
+      if (r15) { J.eL = J.eR = [0.6, 0, 0]; J.kL = [-1.2, 0, 0]; J.kR = [-0.7, 0, 0]; } J.k = 9; return; }
+    if (!s.mv && s.land != null && s.land < 1.0) { const d = s.land < 0.4 ? 1 : 1 - smooth((s.land - 0.4) / 0.6); // (a crushing landing, crouched, knuckles down)
+      J.up = (r15 ? -0.8 : -0.5) * d; J.bd = [-0.6 * d, 0, 0]; J.hd = [-0.3 * d, 0, 0]; J.aL = [0.7 * d, 0, -0.6 * d]; J.aR = [0.7 * d, 0, 0.6 * d];
+      if (r15) { J.kL = [-1.4 * d, 0, 0]; J.kR = [-1.2 * d, 0, 0]; J.lL = [0.9 * d, 0, -0.1]; J.lR = [0.7 * d, 0, 0.1]; J.eL = J.eR = [0.5 * d, 0, 0]; } J.k = s.land < 0.1 ? 30 : 8; if (d > 0.3) return; }
+    if (s.mv) { const run = Math.min(1, Math.max(0, ((s.spd || 1) - 0.9) / 0.4)), p = s.ph * (0.75 + 0.2 * run), sw = Math.sin(p), c = Math.cos(p); a.dpRun = run;
+      // a heavy swaggering stomp; flat out, a charge — head down, horns first, arms swept back
+      J.lL = [0.7 * sw, 0, -0.12]; J.lR = [-0.7 * sw, 0, 0.12]; J.bd = [-0.3 - 0.45 * run, 0.1 * sw, 0.08 * sw]; J.hd = [-0.15 - 0.45 * run, -0.1 * sw, 0];
+      J.aL = [-0.7 * sw * (1 - run) - 0.8 * run, 0, -0.35 - 0.2 * run]; J.aR = [0.7 * sw * (1 - run) - 0.8 * run, 0, 0.35 + 0.2 * run]; J.up = -0.12 + 0.12 * Math.abs(c);
+      if (r15) { J.kL = [-(0.3 + 0.9 * Math.max(0, c)), 0, 0]; J.kR = [-(0.3 + 0.9 * Math.max(0, -c)), 0, 0]; J.eL = J.eR = [0.5 + 0.3 * run, 0, 0]; J.ws = [0, 0.18 * sw * (1 - run), 0]; }
+      J.k = 10; return; }
+    // standing: hunched, chest heaving, head low and swinging; every 8 s it paws the ground with a hoof and snorts, then tosses its horns and bellows
+    const cy = t % 8, paw = plat(cy, 4.0, 6.0, 0.25, 0.3), tos = plat(cy, 6.0, 7.6, 0.2, 0.4), k = Math.sin((cy - 4.0) * 9), sh = Math.sin((cy - 6) * 7);
+    J.bd = [-0.22 + 0.04 * br - 0.15 * paw + 0.12 * tos, 0.2 * Math.sin(t * 0.5) * (1 - paw), 0]; J.hd = [-0.2 + 0.03 * br - 0.15 * paw + 0.5 * tos * Math.max(0, Math.sin((cy - 6) * 4)), 0.3 * Math.sin(t * 0.7) * (1 - tos) + 0.35 * tos * sh, 0.2 * tos * sh];
+    J.aL = [0.25 + 0.05 * br, 0, -0.45 - 0.05 * br - 0.6 * tos]; J.aR = [0.25 + 0.05 * br, 0, 0.45 + 0.05 * br + 0.6 * tos]; J.up = -0.15 + 0.05 * br;
+    J.lL = [0.05, 0, -0.18]; J.lR = [-0.05 - paw * (0.35 + 0.35 * k), 0, 0.18]; // (the right hoof scrapes back, twice)
+    if (r15) { J.eL = J.eR = [0.7 + 0.05 * br, 0, 0]; J.kL = [-0.35, 0, 0]; J.kR = [-0.35 - paw * (0.6 + 0.4 * Math.max(0, k)), 0, 0]; }
+    J.k = 8;
+  },
+  tick(a, dt, s) { const gs = a.giant || 1;
+    if (s.mv && !s.air) { const run = a.dpRun || 0, n = Math.floor(s.ph * (0.75 + 0.2 * run) / Math.PI); if (n !== a.stepN) { a.stepN = n; dpStamp(a, 0.55 + 0.45 * run); camShake(a, 0.05 + 0.12 * run); dpDust(a, n % 2 ? -1 : 1, 1 + run); if (run > 0.6 && n % 4 === 0) dpSnort(a); } }
+    if (!s.mv && !s.air) { if (dpAt(s, 8, 3.6, dt)) { dpSnort(a); for (const x of [-0.18, 0.18]) kitSpark(a, a.head, x, -0.2, -1.0, '#e5e7eb', { v: [x * 2, -0.4, 0], life: 1.1, s: 0.22 * gs, grow: 1, op: 0.35, flat: 1, j: 0.2 }); }
+      for (const T of [4.35, 4.95, 5.55]) if (dpAt(s, 8, T, dt)) { dpStamp(a, 0.8); dpDust(a, 1, 1.2); camShake(a, 0.1); emBits(a, 0.5, 0.1, 0.6, [0x78716c, 0x57534e, 0xa8a29e], 6, { size: 0.16, speed: 3, up: 3, g: 14, life: 0.7 }); }
+      if (dpAt(s, 8, 6.15, dt)) { dpBellow(a); camShake(a, 0.25); } }
+    if (s.land === 0) { dpStamp(a, 1.5); camShake(a, 0.5); shockwave(a, '#d6d3d1', 6 * gs, 0.7); crackAt(a, 3.5 * gs, a.g.position.x, a.g.position.y, a.g.position.z); smokePuff(a, 0, 0.2, 0, '#a8a29e', 12, { out: 3.5, up: 0.6, s: 1.2, op: 0.4, life: 1.2 }); }
+  },
+}, { snap: 9, // 👑 Pharaoh
+  pose(J, a, s) {
+    const r15 = a.r15, t = s.t, fl = 0.06 * Math.sin(t * 1.8); // (it floats, just off the sand)
+    const cross = (k) => { J.aL = [r15 ? 1.15 * k : 0.6 * k, 0, (r15 ? 0.62 : 0.5) * k - 0.08]; J.aR = [r15 ? 1.15 * k : 0.6 * k, 0, -(r15 ? 0.62 : 0.5) * k + 0.08]; if (r15) { J.eL = [1.55 * k, 0, 0]; J.eR = [1.6 * k, 0, 0]; } }; // (arms crossed on the chest, like a pharaoh holding the crook and flail)
+    if (s.air) { J.aL = [0.3, 0, -1.35]; J.aR = [0.3, 0, 1.35]; J.lL = [-0.1, 0, -0.05]; J.lR = [-0.15, 0, 0.05]; J.hd = [0.2, 0, 0]; J.bd = [0.08, 0, 0]; if (r15) { J.kL = J.kR = [-0.2, 0, 0]; J.eL = J.eR = [0.2, 0, 0]; } J.k = 8; return; }
+    if (!s.mv && s.land != null && s.land < 0.7) { const d = 1 - smooth(s.land / 0.7); J.up = -0.25 * d; cross(1); if (r15) J.kL = J.kR = [-0.5 * d, 0, 0]; J.k = 10; return; }
+    if (s.mv) { const p = s.ph * 0.7, sw = Math.sin(p); // (a stately glide: short, even steps, arms crossed, head high)
+      J.lL = [0.24 * sw, 0, -0.04]; J.lR = [-0.24 * sw, 0, 0.04]; J.bd = [0.04, 0.05 * sw, 0]; J.hd = [0.1, -0.04 * sw, 0]; J.up = 0.12 + fl; cross(1);
+      if (r15) { J.kL = [-0.15 - 0.25 * Math.max(0, Math.cos(p)), 0, 0]; J.kR = [-0.15 - 0.25 * Math.max(0, -Math.cos(p)), 0, 0]; } J.k = 9; return; }
+    // standing: arms crossed, head high, floating a little; every 10 s it lifts its arms to the sun — and a sun blazes up above it
+    const cy = t % 10, rz = plat(cy, 6.0, 8.8, 0.7, 0.8);
+    cross(1 - rz); if (rz > 0) { J.aL[0] += 2.6 * rz; J.aL[2] -= 0.45 * rz; J.aR[0] += 2.6 * rz; J.aR[2] += 0.45 * rz; if (r15) { J.eL[0] += -1.2 * rz; J.eR[0] += -1.2 * rz; } }
+    J.hd = [0.08 + 0.35 * rz, 0.15 * Math.sin(t * 0.4) * (1 - rz), 0]; J.bd = [0.04 + 0.12 * rz, 0, 0]; J.up = 0.12 + fl + 0.25 * rz; J.lL = [0, 0, -0.03]; J.lR = [0, 0, 0.03];
+    if (r15) { J.kL = J.kR = [-0.05, 0, 0]; } a.dpSun = rz; J.k = 7;
+  },
+  tick(a, dt, s) { const gs = a.giant || 1;
+    const G = a.dpPh || (a.dpPh = (() => { const sun = pfx(a, new THREE.Group(), a.g); const disc = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), color: '#fde68a', transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); sun.add(disc);
+      const rays = new THREE.Sprite(new THREE.SpriteMaterial({ map: raysTex(), color: '#fcd34d', transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); sun.add(rays); return { sun, disc, rays }; })());
+    const k = a.dpSun || 0; G.sun.visible = k > 0.01 && !s.mv; G.sun.position.set(0, 9.2, 0); G.disc.scale.setScalar(3.4 * k); G.disc.material.opacity = 0.9 * k; G.rays.scale.setScalar(9 * k); G.rays.material.opacity = 0.55 * k; G.rays.material.rotation += dt * 0.25;
+    if (!s.mv && !s.air && dpAt(s, 10, 6.2, dt)) { dpHarp(a); shockwave(a, '#fcd34d', 4 * gs, 0.9); }
+    if (k > 0.3 && Math.random() < dt * 14) kitSpark(a, a.g, (Math.random() - 0.5) * 3, 0.2, (Math.random() - 0.5) * 3, '#fde68a', { v: [0, 2.5 + Math.random() * 2, 0], life: 1.4, s: 0.16, j: 0.3 });
+    if (Math.random() < dt * (s.mv ? 18 : 5)) { const p = limbEnd(a, true, Math.random() < 0.5 ? -1 : 1); kitSpark(a, scene, p.x, p.y - 0.85, p.z, Math.random() < 0.5 ? '#fcd34d' : '#e9c46a', { v: [(Math.random() - 0.5) * 1.2, 0.6, (Math.random() - 0.5) * 1.2], life: 0.9, s: 0.12, j: 0.4 }); } // (golden sand at its feet)
+    if (s.land === 0) { shockwave(a, '#fcd34d', 4.5 * gs, 0.7); dpHarp(a); }
+  },
+}, { snap: 12, // ⛩️ Samurai
+  pose(J, a, s) {
+    const r15 = a.r15, t = s.t, hold = hopHold(a); a.dpPsi = null;
+    const guard = () => { J.aL = [0.45, 0, 0.32]; J.aR = [0.75, 0, -0.62]; if (r15) { J.eL = [0.95, 0, 0]; J.eR = [1.25, 0, 0]; } }; // (left hand on the scabbard, right on the hilt at the left hip)
+    if (s.air) { const dn = (s.vy || 0) < 0 ? smooth(Math.min(1, -s.vy / 8)) : 0; // (a leap with the sword drawn high, cutting down as it falls)
+      J.aR = [2.9 - 1.9 * dn, 0, 0.1]; J.aL = [2.7 - 1.7 * dn, 0, -0.1]; J.bd = [0.1 - 0.4 * dn, 0, 0]; J.hd = [0.1, 0, 0]; J.lL = [0.8, 0, -0.1]; J.lR = [-0.2, 0, 0.1];
+      if (r15) { J.eR = J.eL = [0.4, 0, 0]; J.kL = [-1.3, 0, 0]; J.kR = [-0.6, 0, 0]; } a.dpPsi = Math.PI / 2 + 0.5 - 2.2 * dn; a.dpDrawn = !hold; J.k = 12; return; }
+    if (!s.mv && s.land != null && s.land < 1.3) { const d = s.land < 0.8 ? 1 : 1 - smooth((s.land - 0.8) / 0.5); // (lands kneeling, the blade low and out to the side)
+      J.up = (r15 ? -0.9 : -0.6) * d; J.bd = [-0.25 * d, 0.2 * d, 0]; J.hd = [-0.1 * d, 0, 0]; J.aR = [0.5 * d, 0, 0.9 * d]; J.aL = [0.4 * d, 0, 0.3 * d];
+      if (r15) { J.lL = [1.4 * d, 0, -0.1]; J.kL = [-1.5 * d, 0, 0]; J.lR = [-0.3 * d, 0, 0.1]; J.kR = [-1.9 * d, 0, 0]; J.eL = [0.9 * d, 0, 0]; J.eR = [0.2 * d, 0, 0]; } a.dpPsi = -0.35; a.dpDrawn = !hold && d > 0.2; J.k = s.land < 0.1 ? 30 : 10; if (d > 0.3) return; }
+    a.dpDrawn = false;
+    if (s.mv) { const run = Math.min(1, Math.max(0, ((s.spd || 1) - 0.9) / 0.4)), p = s.ph * (0.9 + 0.2 * run), sw = Math.sin(p), c = Math.cos(p); // (low and smooth, knees bent, a hand on the sword; flat out, leaning in)
+      J.lL = [0.55 * sw, 0, -0.08]; J.lR = [-0.55 * sw, 0, 0.08]; J.bd = [-0.12 - 0.3 * run, 0.06 * sw, 0]; J.hd = [0.05 + 0.15 * run, 0, 0]; J.up = -0.2 + 0.06 * Math.abs(c); guard(); J.aR = [0.5 * sw * (1 - run) - 0.6 * run + 0.75 * (1 - run), 0, -0.62 * (1 - run) + 0.25 * run];
+      if (r15) { J.kL = [-(0.45 + 0.7 * Math.max(0, c)), 0, 0]; J.kR = [-(0.45 + 0.7 * Math.max(0, -c)), 0, 0]; J.eR = [1.25 * (1 - run) + 0.6 * run, 0, 0]; } J.k = 11; return; }
+    // standing in a low guard, the body turned, a hand on the hilt; every 7 s — iaido: the sword drawn and cut in one lightning stroke, held, then slowly sheathed
+    const cy = t % 7, dr = cy > 4.0 && cy < 6.5, cut = smooth(Math.min(1, Math.max(0, (cy - 4.0) / 0.14))), back = smooth(Math.min(1, Math.max(0, (cy - 5.4) / 1.0)));
+    J.bd = [-0.08, 0.35 - 0.5 * cut * (1 - back), 0]; J.hd = [0.0, -0.3 + 0.35 * cut * (1 - back) + 0.05 * Math.sin(t * 0.5), 0]; J.up = -0.18 + 0.02 * Math.sin(t * 1.5);
+    J.lL = [0.3, 0, -0.18]; J.lR = [-0.2, 0, 0.2]; if (r15) { J.kL = [-0.45, 0, 0]; J.kR = [-0.3, 0, 0]; }
+    guard(); const f = cut * (1 - back); J.aR = [0.75 + 0.75 * f, 0, -0.62 + 1.7 * f]; if (r15) J.eR = [1.25 - 1.1 * f, 0, 0];
+    a.dpPsi = 0.15 - 0.4 * f; a.dpDrawn = !hold && dr && cy < 6.4; J.k = cy > 3.95 && cy < 4.2 ? 40 : 10;
+  },
+  tick(a, dt, s) {
+    const G = a.dpSm || (a.dpSm = (() => { const hR = new THREE.Group(); hR.position.y = a.r15 ? -0.92 : -1.9; pfx(a, hR, a.r15 ? a.elR : a.armR); const sw = emSwordProp(hR, { len: 2.7, steel: '#e8ecf1', gold: '#2a2a33', grip: '#14141a' });
+      const arc = pfx(a, new THREE.Mesh(new THREE.RingGeometry(2.0, 2.6, 40, 1, -0.4, 2.3), new THREE.MeshBasicMaterial({ color: '#f8fafc', transparent: true, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending })), a.g); arc.rotation.x = -Math.PI / 2 + 0.2; arc.position.y = 3.4; return { hR, sw, arc }; })());
+    G.hR.visible = !!a.dpDrawn; if (a.dpPsi != null) emAim(G.sw, a, 1, a.dpPsi);
+    const cy = s.t % 7, ag = cy - 4.04; G.arc.visible = !s.mv && !s.air && ag > 0 && ag < 0.5; if (G.arc.visible) G.arc.material.opacity = 0.85 * (1 - ag / 0.5);
+    if (!s.mv && !s.air) { if (dpAt(s, 7, 4.0, dt)) { dpShing(a); camShake(a, 0.12); for (let q = 0; q < 18; q++) kitSpark(a, a.g, 1.5 + Math.random() * 1.5, 2.5 + Math.random() * 2, -1 - Math.random() * 1.5, Math.random() < 0.6 ? '#f9a8d4' : '#fbcfe8', { v: [(Math.random() - 0.3) * 2, -0.6 - Math.random(), (Math.random() - 0.5) * 2], life: 2.2, s: 0.16, j: 0.6 }); }
+      if (dpAt(s, 7, 5.9, dt)) dpSheathe(a); }
+    if (s.air && a.dpAirDraw !== true) { a.dpAirDraw = true; dpShing(a); } if (!s.air) a.dpAirDraw = false;
+    if (s.land === 0) { dpShing(a); shockwave(a, '#fbcfe8', 4 * (a.giant || 1), 0.6); for (let q = 0; q < 12; q++) kitSpark(a, a.g, (Math.random() - 0.5) * 4, 0.5 + Math.random() * 2, (Math.random() - 0.5) * 4, '#f9a8d4', { v: [(Math.random() - 0.5) * 2, -0.4, (Math.random() - 0.5) * 2], life: 1.8, s: 0.15, j: 0.5 }); }
+  },
+}, { snap: 8, rigid: true, // 🪽 Valkyrie
+  pose(J, a, s) {
+    const r15 = a.r15, t = s.t, hov = 0.5 + 0.12 * Math.sin(t * 1.6); // (hovering on her wings, toes pointed)
+    if (s.air) { J.aL = [0.2, 0, -1.4]; J.aR = [0.2, 0, 1.4]; J.lL = [-0.35, 0, -0.04]; J.lR = [-0.45, 0, 0.04]; J.bd = [-0.2, 0, 0]; J.hd = [0.3, 0, 0]; if (r15) { J.kL = J.kR = [-0.3, 0, 0]; J.eL = J.eR = [0.15, 0, 0]; } a.dpFl = 1; J.k = 7; return; }
+    if (!s.mv && s.land != null && s.land < 0.8) { const d = 1 - smooth(s.land / 0.8); J.up = hov * (1 - d) - 0.2 * d; J.aL = [0.3, 0, -0.9]; J.aR = [0.3, 0, 0.9]; if (r15) J.kL = J.kR = [-0.5 * d, 0, 0]; a.dpFl = 0.6; J.k = 9; return; }
+    if (s.mv) { const p = s.ph * 0.5, sw = Math.sin(p); // (gliding, her legs trailing, leaning into it, arms swept back)
+      J.up = 0.45 + 0.1 * Math.sin(t * 3); J.lL = [-0.35 + 0.1 * sw, 0, -0.04]; J.lR = [-0.5 - 0.1 * sw, 0, 0.04]; J.bd = [-0.3, 0.05 * sw, 0]; J.hd = [0.25, 0, 0];
+      J.aL = [-0.35, 0, -0.55]; J.aR = [-0.35, 0, 0.55]; if (r15) { J.kL = [-0.3, 0, 0]; J.kR = [-0.5, 0, 0]; J.eL = J.eR = [0.25, 0, 0]; } a.dpFl = 0.8; J.k = 8; return; }
+    // hovering: arms a little out, palms open; every 9 s she raises a hand to the sky and a pillar of light comes down on her
+    const cy = t % 9, lt = plat(cy, 5.8, 8.2, 0.5, 0.6);
+    J.up = hov + 0.25 * lt; J.lL = [-0.12, 0, -0.04]; J.lR = [-0.28, 0, 0.04]; J.bd = [0.02 + 0.1 * lt, 0.1 * Math.sin(t * 0.5), 0]; J.hd = [0.08 + 0.4 * lt, 0.2 * Math.sin(t * 0.4) * (1 - lt), 0];
+    J.aL = [0.4, 0, -0.55 - 0.1 * Math.sin(t * 1.6)]; J.aR = [0.4 + 2.5 * lt, 0, 0.55 + 0.1 * Math.sin(t * 1.6) - 0.3 * lt]; if (r15) { J.kL = [-0.2, 0, 0]; J.kR = [-0.45, 0, 0]; J.eL = [0.3, 0, 0]; J.eR = [0.3 - 0.25 * lt, 0, 0]; }
+    a.dpFl = 0.35; a.dpLt = lt; J.k = 7;
+  },
+  tick(a, dt, s) { const gs = a.giant || 1;
+    const G = a.dpVk || (a.dpVk = (() => { const up = a.waist || a.body, w = pfx(a, new THREE.Group(), up); w.position.set(0, a.waist ? 3.95 - 2.84 : 3.95, 0.66);
+      const ws = [-1, 1].map((s2) => { const p = new THREE.Group(); w.add(p); const f = featherWing(p, s2, { cols: ['#fde68a', '#fffbeb', '#ffffff'], span: 3.2, em: '#4a3c10' }); p.rotation.set(0.12, -s2 * 0.35, s2 * 0.5); for (let k = 0; k < 3; k++) { const gl = kitGlow(f, '#fef3c7', 1.1, 0.35); gl.position.set(s2 * (1.1 + k * 0.8), 0.2 - k * 0.15, 0.1); } return [p, s2]; });
+      const beam = pfx(a, new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.6, 30, 24, 1, true), new THREE.MeshBasicMaterial({ map: beamTex(), color: '#fef3c7', transparent: true, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending })), a.g); beam.position.y = 15;
+      return { w, ws, beam, ph: 0 }; })());
+    G.w.visible = true; const sp = 1.6 + 3.4 * (a.dpFl || 0.35); G.ph += dt * sp; for (const [p, s2] of G.ws) { p.rotation.y = -s2 * (0.35 + 0.32 * Math.sin(G.ph)); p.rotation.z = s2 * (0.5 + 0.15 * Math.sin(G.ph)); }
+    if (Math.floor(G.ph / Math.PI) !== G.n) { G.n = Math.floor(G.ph / Math.PI); if (G.n % 2 === 0) dpWhoosh(a, 0.5 + (a.dpFl || 0)); }
+    const lt = s.mv || s.air ? 0 : a.dpLt || 0; G.beam.visible = lt > 0.01; G.beam.material.opacity = 0.55 * lt; G.beam.scale.set(0.6 + 0.4 * lt, 1, 0.6 + 0.4 * lt);
+    if (!s.mv && !s.air && dpAt(s, 9, 5.9, dt)) { dpChoir(a); shockwave(a, '#fef3c7', 5 * gs, 1.0); }
+    if (Math.random() < dt * 3) kitSpark(a, a.g, (Math.random() - 0.5) * 3, 4 + Math.random() * 1.5, 0.8 + Math.random(), '#fffbeb', { v: [(Math.random() - 0.5) * 0.6, -0.8, (Math.random() - 0.5) * 0.6], life: 2.0, s: 0.1, j: 0.2 }); // (a feather of light drifting down)
+    if (s.land === 0) { shockwave(a, '#fef3c7', 4 * gs, 0.7); dpWhoosh(a, 1.4); }
+  },
+}, { snap: 11, // 🐻 Berserker
+  pose(J, a, s) {
+    const r15 = a.r15, t = s.t, br = Math.sin(t * 3.0);
+    if (s.air) { const dn = (s.vy || 0) < 0 ? smooth(Math.min(1, -s.vy / 8)) : 0; // (both fists raised high together — and down for the ground pound)
+      J.aL = [2.95 - 1.3 * dn, 0, 0.3]; J.aR = [2.95 - 1.3 * dn, 0, -0.3]; J.bd = [0.2 - 0.6 * dn, 0, 0]; J.hd = [0.3 - 0.4 * dn, 0, 0]; J.lL = [0.6, 0, -0.2]; J.lR = [0.3, 0, 0.2];
+      if (r15) { J.eL = J.eR = [0.3, 0, 0]; J.kL = [-1.0, 0, 0]; J.kR = [-0.8, 0, 0]; } J.k = 11; return; }
+    if (!s.mv && s.land != null && s.land < 1.1) { const d = s.land < 0.5 ? 1 : 1 - smooth((s.land - 0.5) / 0.6); // (fists smashed into the ground, crouched)
+      J.up = (r15 ? -1.0 : -0.6) * d; J.bd = [-0.75 * d, 0, 0]; J.hd = [0.25 * d, 0, 0]; J.aL = [1.1 * d, 0, 0.25 * d]; J.aR = [1.1 * d, 0, -0.25 * d];
+      if (r15) { J.kL = J.kR = [-1.6 * d, 0, 0]; J.lL = J.lR = [1.0 * d, 0, 0]; J.eL = J.eR = [0.15 * d, 0, 0]; } J.k = s.land < 0.1 ? 34 : 9; if (d > 0.3) return; }
+    if (s.mv) { const run = Math.min(1, Math.max(0, ((s.spd || 1) - 0.9) / 0.4)), p = s.ph * (0.85 + 0.2 * run), sw = Math.sin(p), c = Math.cos(p); a.dpRun = run;
+      J.lL = [0.75 * sw, 0, -0.15]; J.lR = [-0.75 * sw, 0, 0.15]; J.bd = [-0.2 - 0.35 * run, 0.12 * sw, 0.12 * sw * (1 - run)]; J.hd = [0.1 + 0.15 * run, -0.08 * sw, 0];
+      J.aL = [-0.95 * sw, 0, -0.35]; J.aR = [0.95 * sw, 0, 0.35]; J.up = -0.1 + 0.15 * Math.abs(c);
+      if (r15) { J.kL = [-(0.3 + 0.9 * Math.max(0, c)), 0, 0]; J.kR = [-(0.3 + 0.9 * Math.max(0, -c)), 0, 0]; J.eL = J.eR = [0.9 + 0.4 * run, 0, 0]; } J.k = 11; return; }
+    // standing: hunched, breathing hard, fists clenched, rocking; every 7 s he beats his chest — four blows — then throws back his arms and roars
+    const cy = t % 7, bt = plat(cy, 3.4, 4.95, 0.2, 0.2), ro = plat(cy, 5.1, 6.5, 0.15, 0.5), hit = Math.max(0, Math.sin((cy - 3.4) * Math.PI / 0.35));
+    const side = Math.floor((cy - 3.4) / 0.35) % 2 ? 1 : -1;
+    J.bd = [-0.25 + 0.05 * br + 0.45 * ro, 0, 0.06 * Math.sin(t * 1.1) * (1 - bt)]; J.hd = [0.05 + 0.04 * br + 0.5 * ro, 0.2 * Math.sin(t * 0.6) * (1 - ro), 0]; J.up = -0.12 + 0.05 * br + 0.06 * ro;
+    J.aL = [0.15, 0, -0.38 - 0.04 * br]; J.aR = [0.15, 0, 0.38 + 0.04 * br]; J.lL = [0.1, 0, -0.22]; J.lR = [-0.1, 0, 0.22];
+    if (r15) { J.eL = J.eR = [0.9 + 0.05 * br, 0, 0]; J.kL = J.kR = [-0.35, 0, 0]; }
+    if (bt > 0) { const kL = side < 0 ? hit : 0.3, kR = side > 0 ? hit : 0.3; J.aL = [0.15 + 1.1 * bt * (0.6 + 0.4 * kL), 0, -0.38 + 0.95 * bt]; J.aR = [0.15 + 1.1 * bt * (0.6 + 0.4 * kR), 0, 0.38 - 0.95 * bt]; if (r15) { J.eL = [0.9 + 0.8 * bt, 0, 0]; J.eR = [0.9 + 0.8 * bt, 0, 0]; } }
+    if (ro > 0) { J.aL = [J.aL[0] * (1 - ro) - 0.6 * ro, 0, J.aL[2] * (1 - ro) - 0.8 * ro]; J.aR = [J.aR[0] * (1 - ro) - 0.6 * ro, 0, J.aR[2] * (1 - ro) + 0.8 * ro]; if (r15) { J.eL = [J.eL[0] * (1 - ro) + 0.3 * ro, 0, 0]; J.eR = [J.eR[0] * (1 - ro) + 0.3 * ro, 0, 0]; } }
+    J.k = cy > 3.3 && cy < 5.0 ? 18 : 10;
+  },
+  tick(a, dt, s) { const gs = a.giant || 1;
+    if (s.mv && !s.air) { const run = a.dpRun || 0, n = Math.floor(s.ph * (0.85 + 0.2 * run) / Math.PI); if (n !== a.stepN) { a.stepN = n; dpStamp(a, 0.45 + 0.35 * run); dpDust(a, n % 2 ? -1 : 1, 0.8 + run); } }
+    if (!s.mv && !s.air) { for (let i = 0; i < 4; i++) if (dpAt(s, 7, 3.55 + i * 0.35, dt)) { dpThump(a); camShake(a, 0.08); }
+      if (dpAt(s, 7, 5.15, dt)) { dpRoar(a); camShake(a, 0.4); shockwave(a, '#ef4444', 5 * gs, 0.8); for (let q = 0; q < 6; q++) kitSpark(a, a.head, (Math.random() - 0.5) * 0.3, -0.3, -0.9, '#e5e7eb', { v: [(Math.random() - 0.5) * 0.8, 0.4, -1.4], life: 1.0, s: 0.2 * gs, grow: 1, op: 0.3, flat: 1, j: 0.3 }); } }
+    if (s.land === 0) { dpStamp(a, 1.6); dpRoar(a); camShake(a, 0.7); shockwave(a, '#d6d3d1', 8 * gs, 0.9); shockwave(a, '#ef4444', 5 * gs, 0.5, 0.12); crackAt(a, 5 * gs, a.g.position.x, a.g.position.y, a.g.position.z);
+      smokePuff(a, 0, 0.2, -0.6, '#a8a29e', 14, { out: 4, up: 0.7, s: 1.4, op: 0.45, life: 1.3 }); emBits(a, 0, 0.2, -0.8, [0x78716c, 0x57534e, 0xa8a29e, 0x44403c], 14, { size: 0.3, speed: 6, up: 6, g: 18, life: 1.1, spread: 2 }); }
+  },
+});
 ANIM_DESC.push('🏛️ The phalanx, with a spear and a shield — a round one, or a great figure-of-eight one if you’re a Myrmidon: side on, shield up, spear overhand; every so often it beats its spear on its shield three times — clang, clang, clang, sparks flying — and thrusts it to the sky with a great AROO! Advances behind the shield with the spear levelled, leaps into a downward spear thrust that draws a streak of light, and slams the shield into the ground as it lands, on one knee, with a ring of bronze light.',
   '🏛️ A wordless giant with its great sword in hand (the giant scimitar — off your back, if you wear it), held as a real sword is: the grip across its fist, its gauntlet’s fingers closed round it, both hands on the long hilt when it swings or plants it. It stands with the blade resting on its shoulder, breathing slow inside its helm, turning its blank face this way and that, searching — then lifts the sword off its shoulder, turns it point down, takes it in both hands, raises it high and drives it into the ground in a burst of sparks and cracks, and leans on it, looking down at you, before wrenching it out and shouldering it again. It lumbers along in slow, heavy strides you feel through the ground, the sword trailing behind in one hand, its point scraping sparks; it leaps with the sword lifted over its head in both hands and brings it over in a great chop — the ground cracks, rocks fly and the camera shakes.');
+ANIM_DESC.push('💎 The Minotaur: hunched, its chest heaving, head low and swinging; it paws the ground with a hoof — dirt flying, steam snorting — tosses its horns and bellows. It walks with a heavy swaggering stomp you feel, charges head-down and horns-first when it runs, and lands like a falling wall: the ground cracks.',
+  '💎 The Pharaoh: arms crossed on the chest like a god-king holding the crook and flail, head high, floating just off the ground on a drift of golden sand; every so often it lifts its arms to the sky and a sun blazes up overhead, to a harp. It glides along in short, stately steps.',
+  '💎 The Samurai: a low guard, the body turned, a hand on the hilt; then iaido — the sword drawn and cut in one lightning stroke that leaves a crescent of light and a flurry of cherry blossom, held, and slowly sheathed. Walks low and smooth; leaps with the blade raised and lands kneeling, the sword out to the side.',
+  '💎 The Valkyrie: she hovers on great wings of golden light that beat as she breathes, toes pointed, feathers of light drifting down; she raises a hand and a pillar of light comes down on her, to a choir. She glides with her legs trailing and soars when she jumps.',
+  '💎 The Berserker: hunched and breathing hard, fists clenched, rocking; he beats his chest four times and throws back his arms with a roar that shakes the ground. Swaggers with big swinging arms, charges, and leaps with both fists raised to smash them into the ground: a shockwave, cracks, rocks flying.');
 /* ---------------- shapes for the remade items: feathered wings, a bat's wing, a cape that hangs, a shield ---------------- */
 // a feathered wing, fanned out from the shoulder (s: -1 the left, 1 the right): long feathers at the back, shorter rows
 // over them, longest at the tip. o: { cols: [long, middle, short], span, em (a glow), k (feather length) }
