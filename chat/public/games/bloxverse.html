@@ -138,7 +138,7 @@
   .spc.use .big{font-size:44px}
   .spq.done{opacity:.6;border-color:rgba(74,222,128,.4)}.spq.done .spbar i{background:linear-gradient(90deg,#16a34a,#4ade80)}
   .sptitle{display:flex;align-items:center;gap:12px;margin:6px 0 8px;font:700 18px var(--fh);color:#fde68a}.sptitle>span:first-child{flex:1}
-  .sptracks{display:flex;gap:6px}.sptracks i{font-style:normal;font:700 11px var(--fh);border-radius:999px;padding:3px 9px;background:#334155;color:#e2e8f0}.sptracks .d{background:linear-gradient(180deg,#7c3aed,#4c1d95);color:#fef3c7}
+  .sptracks{display:flex;gap:6px}.sptracks i{font-style:normal;font:700 11px var(--fh);border-radius:999px;padding:3px 9px;background:#334155;color:#e2e8f0}.sptracks .d{background:linear-gradient(180deg,#7c3aed,#4c1d95);color:#fef3c7}.sptracks .p{background:linear-gradient(180deg,#22d3ee,#0e7490);color:#042f2e}
   .spjump{border:0;cursor:pointer;background:#334155;color:#fff;font:700 12px var(--fh);border-radius:10px;padding:6px 10px}
   .sptrack{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 12px;scroll-snap-type:x proximity;scrollbar-width:thin}
   .spcol{flex:0 0 112px;display:flex;flex-direction:column;gap:6px;scroll-snap-align:center}.spcol.wide{flex-basis:150px}
@@ -150,6 +150,11 @@
   .spc b{position:relative;font:700 12px/1.15 var(--fh);color:#fff;text-shadow:0 1px 3px #000}.spc small{position:relative;font:700 10px var(--fb);color:#fcd34d;text-shadow:0 1px 3px #000}
   .spc .st{position:absolute;left:6px;top:6px;background:#16a34a;border-radius:999px;width:22px;height:22px;display:grid;place-items:center;font:700 12px var(--fh);color:#fff}.spc.lock .st{background:rgba(0,0,0,.6)}
   .spc.lock img{filter:grayscale(.5) brightness(.7)}.spc.got{box-shadow:inset 0 0 0 2px rgba(74,222,128,.55)}
+  .spc.p{height:178px;background:linear-gradient(180deg,#0e7490,#0b1d3a);border-color:rgba(103,232,249,.4)}.spc.item.p{background:radial-gradient(circle at 50% 32%,#22d3ee,#312e81 60%,#0b1023 85%);border-color:rgba(165,243,252,.75)}.spc.p small{color:#a5f3fc}
+  .spc.p.pcr .big{font-size:42px;filter:drop-shadow(0 0 10px rgba(103,232,249,.8))}
+  .spbuyp{position:relative;margin-top:4px;border:0;cursor:pointer;background:linear-gradient(180deg,#a5f3fc,#22d3ee);color:#083344;font:700 12px var(--fh);border-radius:9px;padding:4px 9px;box-shadow:0 2px 0 #0e7490;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+  .spbuyp:hover{filter:brightness(1.08)}.spbuyp.ask{background:linear-gradient(180deg,#fde68a,#f59e0b);color:#3b1d00;box-shadow:0 2px 0 #92400e}.spbuyp:disabled{cursor:default;background:rgba(0,0,0,.55);color:#cbd5e1;box-shadow:none}
+  .sppc{display:flex;align-items:center;gap:6px}.sppc b{color:#a5f3fc;font:700 15px var(--fh)}
   .sptry{position:absolute;right:5px;top:5px;border:0;cursor:pointer;background:rgba(0,0,0,.55);color:#fff;border-radius:999px;width:28px;height:28px;font-size:14px}
   .btn.gold{background:linear-gradient(180deg,#fde68a,#f59e0b);color:#3b1d00}
   .sppage{min-width:0}.sppage.ingame .sphero{margin-top:0}
@@ -229,6 +234,11 @@
   .coin{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;flex:none;background:radial-gradient(circle at 34% 30%,#fff7c2 0 12%,#fcd34d 34%,#f59e0b 70%,#d97706);box-shadow:inset 0 -2px 0 rgba(146,64,14,.45),0 2px 0 rgba(0,0,0,.35);font:700 13px/1 var(--fh);color:#92400e;text-shadow:0 1px 0 rgba(255,255,255,.4)}
   .coin::before{content:'B'}
   .coin.sm{width:18px;height:18px;font-size:10px;vertical-align:-3px}
+  .pcoin{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;flex:none;background:radial-gradient(circle at 34% 30%,#ffffff 0 12%,#a5f3fc 30%,#22d3ee 52%,#7c3aed 88%);box-shadow:inset 0 -2px 0 rgba(46,16,101,.5),0 2px 0 rgba(0,0,0,.35),0 0 8px rgba(103,232,249,.45);font:700 13px/1 var(--fh);color:#3b0764;text-shadow:0 1px 0 rgba(255,255,255,.5)}
+  .pcoin::before{content:'P'}
+  .pcoin.sm{width:18px;height:18px;font-size:10px;vertical-align:-3px}
+  .pctog{border-color:rgba(103,232,249,.35)!important;color:#a5f3fc!important}.pctog.on{background:linear-gradient(180deg,#0e7490,#4c1d95)!important;border-color:#67e8f9!important;color:#fff!important;box-shadow:0 0 12px rgba(103,232,249,.35)}
+  .pcnum{color:#a5f3fc;margin-left:6px}
   #xhud{position:absolute;inset:0;pointer-events:none}
   /* next to a tycoon's buy pad: what it gives you */
   #boost{position:absolute;left:0;right:0;margin:auto;width:max-content;min-width:240px;max-width:min(400px,calc(100vw - 24px));padding:10px 15px 11px;border-radius:16px;pointer-events:none;animation:rise .15s ease-out}
@@ -471,6 +481,7 @@
   #avPrev{display:block;width:100%;max-width:268px;height:auto;aspect-ratio:240/260;margin:0 auto;position:relative;z-index:1}
   .coinbar{display:flex;align-items:center;justify-content:space-between;gap:8px;background:linear-gradient(180deg,#3a2f12,#2a210b);border:1px solid rgba(253,224,71,.22);border-radius:14px;padding:8px 12px 8px 8px;margin:0 0 10px;font:600 17px var(--fh);color:#fde68a}
   .coinbar span{display:flex;align-items:center;gap:8px;white-space:nowrap}
+  .coinbar.pc{background:linear-gradient(180deg,#123247,#1e1b4b);border-color:rgba(103,232,249,.3);color:#a5f3fc}
   .coinbar small{color:#d6b85a;font:700 11px/1.25 var(--fb);text-align:right}
   .avtabs{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
   .avtabs button{border:1px solid var(--line);border-radius:999px;padding:6px 11px;background:rgba(255,255,255,.05);color:#cbd5e1;font:600 12.5px var(--fh);cursor:pointer;transition:background .12s}
@@ -836,7 +847,7 @@
 </div>
 <div id="avEdit" class="screen" hidden>
   <div class="aved">
-    <div class="avedhead"><button class="back" id="avedBack">← Back</button><h2>✏️ Avatar Editor</h2><span class="edcoins" title="Blox Coins"><span class="coin sm"></span><span id="edCoins">0</span></span><button class="xchip" id="avRand" title="A random outfit from what you own">🎲 Randomize</button><button class="xchip" id="avOwn" title="Only show what you own">✓ Owned only</button><button class="xp-btn" id="avDone">Done</button></div>
+    <div class="avedhead"><button class="back" id="avedBack">← Back</button><h2>✏️ Avatar Editor</h2><span class="edcoins" title="Blox Coins"><span class="coin sm"></span><span id="edCoins">0</span></span><span id="avPayW"></span><button class="xchip" id="avRand" title="A random outfit from what you own">🎲 Randomize</button><button class="xchip" id="avOwn" title="Only show what you own">✓ Owned only</button><button class="xp-btn" id="avDone">Done</button></div>
     <div class="avedbody"><div class="avedstage" id="avedStage"><div id="avTry" hidden></div><div id="avZoom" hidden><button data-z="-1" title="Closer">＋</button><button data-z="1" title="Further">－</button></div><div class="avedhint">↔ Drag to turn</div></div><div class="avedside"><div id="avOpts"></div></div></div>
   </div>
 </div>
@@ -1472,7 +1483,7 @@ const avArr = () => AV_KEYS.map((k) => AV[k] | 0);
 const okAv = (a) => { const d = [5, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]; return AV_LISTS.map((l, i) => (Array.isArray(a) && a[i] != null ? clamp(a[i] | 0, 0, l.length - 1) : d[i])); };
 const avFrom = (o) => { const v = okAv(AV_KEYS.map((k) => o && o[k])); const r = {}; AV_KEYS.forEach((k, i) => (r[k] = v[i])); return r; };
 // Blox Coins: earned in every experience, spent on cosmetics (and a few things inside experiences)
-const W = { coins: 0, own: new Set(), day: '', loaded: false, items: {}, // items: what you bought in experiences' shops ({ 'obby.speed': 1 })
+const W = { coins: 0, pc: 0, pcb: new Set(), own: new Set(), day: '', loaded: false, items: {}, // items: what you bought in experiences' shops ({ 'obby.speed': 1 })
   fr: { f: {}, out: {}, no: {} }, fits: [null, null, null, null, null, null], // fr: friends (see "friends" below); fits: saved outfits
   made: {}, xown: [], wear: { h: '', pt: '', f: '', acc: [], hx: [] } }; // items you made, catalog items you bought, and which made/limited items you're wearing (hx: more hats)
 const axArr = () => XSLOTS.map((k) => W.wear[k] || '').concat((W.wear.acc || []).slice(0, 6), (W.wear.hx || []).slice(0, HAT_MAX - 1));
@@ -7504,7 +7515,8 @@ function emMid(i) {
   const E = EMOTES[i];
   const hint = `<small class="hint">${touchy ? 'Tap outside to close' : 'Keys 1–9, 0 and - · close with . or Esc'}</small>`;
   if (!E) return `<b>🎭 Emotes</b><small>Pick one to play it — it goes on till you move</small>${hint}`;
-  const st = emOwns(i) ? (me && me.em && me.em.i === i ? (E.loop ? '▶️ Playing — pick it again to stop' : '▶️ Playing') : E.loop ? '🔁 Loops till you move' : '✓ Yours') : E.price < 0 ? '🏛️ A Season Pass reward' : Emo.ask === i ? (W.coins < E.price ? `Need ${E.price - W.coins} more Blox Coins` : `Tap again to buy for ${E.price}`) : `🔒 <span class="coin sm"></span> ${E.price} Blox Coins`;
+  const pp = payP('em', i), cur = pp ? 'Premium Blox Coins' : 'Blox Coins';
+  const st = emOwns(i) ? (me && me.em && me.em.i === i ? (E.loop ? '▶️ Playing — pick it again to stop' : '▶️ Playing') : E.loop ? '🔁 Loops till you move' : '✓ Yours') : E.price < 0 ? '🏛️ A Season Pass reward' : Emo.ask === i ? (!canPay(E.price, pp) ? `Need ${payLack(E.price, pp)} more ${cur}` : `Tap again to buy for ${pp ? pcOf(E.price) : E.price} ${cur}`) : `🔒 ${payCost(E.price, pp)} ${cur}`;
   return `<b>${E.ic} ${esc(E.nm)}</b><small>${esc(E.d)}</small><small>${st}</small>${hint}`;
 }
 // the wheel: the emotes you can play or buy (the Season Pass's once they're yours), eleven to a page
@@ -7516,7 +7528,7 @@ function drawEmWheel() {
   const { L, n: pages } = emPageList(), n = L.length, cur = me && me.em ? me.em.i : -1;
   el.innerHTML = `<div class="emw${Emo.fresh ? ' in' : ''}">${L.map((i, j) => {
     const E = EMOTES[i], an = -Math.PI / 2 + j * EM_TAU / Math.max(n, 6), own = emOwns(i), ask = Emo.ask === i;
-    const pr = own ? '' : ask ? `<span class="pr">${W.coins < E.price ? `Need ${E.price - W.coins}` : `Buy? ${E.price}`}</span>` : `<span class="pr"><span class="coin sm"></span>${E.price}</span>`;
+    const pp = payP('em', i), pr = own ? '' : ask ? `<span class="pr">${!canPay(E.price, pp) ? `Need ${payLack(E.price, pp)}` : `Buy? ${pp ? pcOf(E.price) : E.price}`}</span>` : `<span class="pr">${payCost(E.price, pp)}</span>`;
     return `<button class="em${cur === i ? ' on' : ''}${own ? '' : ' lock'}${ask ? ' ask' : ''}${E.price < 0 ? ' sp' : ''}" data-em="${i}" style="left:${(50 + Math.cos(an) * 37).toFixed(2)}%;top:${(50 + Math.sin(an) * 37).toFixed(2)}%" title="${esc(E.nm)}"><span class="k">${j < 9 ? j + 1 : j === 9 ? 0 : '-'}</span><span class="i">${E.ic}</span>${esc(E.nm)}${pr}</button>`;
   }).join('')}<div class="mid">${emMid(Emo.hi >= 0 ? Emo.hi : Emo.ask >= 0 ? Emo.ask : cur)}${pages > 1 ? `<div class="empg"><button data-empg="-1" title="Previous page ([)">◀</button><span>${Emo.page + 1} / ${pages}</span><button data-empg="1" title="Next page (])">▶</button></div>` : ''}</div></div>`;
   Emo.fresh = false;
@@ -7529,11 +7541,11 @@ function closeEmWheel() { if (!Emo.open) return; Emo.open = false; Emo.ask = -1;
 function toggleEmWheel() { if (Emo.open) closeEmWheel(); else openEmWheel(); }
 function pickEmote(i) {
   const E = EMOTES[i]; if (!E || (E.hw && hwGone('em', i))) return;
-  if (!emOwns(i) && E.price < 0) { const S = spItem('em', i); toast(S ? `🏛️ ${E.nm}: Season Pass level ${S.L}${S.tr === 'd' ? ' (Deluxe)' : ''}` : `${E.nm} is a reward`, '#fcd34d'); return; }
+  if (!emOwns(i) && E.price < 0) { const S = spItem('em', i); toast(S ? `🏛️ ${E.nm}: Season Pass level ${S.L}${spTrN(S.tr)}` : `${E.nm} is a reward`, '#fcd34d'); return; }
   if (!emOwns(i)) {
     if (Emo.ask !== i) { Emo.ask = i; sfx('click'); if (!Emo.open) openEmWheel(i); else drawEmWheel(); return; }
-    if (W.coins < E.price) { sfx('error'); toast(`Need ${(E.price - W.coins).toLocaleString('en-US')} more Blox Coins`, '#fca5a5'); return; }
-    W.coins -= E.price; W.own.add('em' + i); Emo.ask = -1; drawCoins(); saveAv(); sfx('buy'); questMax('bv.items', W.own.size);
+    const pp = payP('em', i); if (!canPay(E.price, pp)) { sfx('error'); toast(`Need ${payLack(E.price, pp).toLocaleString('en-US')} more ${pp ? 'Premium ' : ''}Blox Coins`, '#fca5a5'); return; }
+    payFor(E.price, pp, 'em' + i); W.own.add('em' + i); Emo.ask = -1; drawCoins(); saveAv(); sfx('buy'); questMax('bv.items', W.own.size);
     say(`🎭 You got the ${E.nm} emote!`, '#fde68a');
   }
   playEmote(i);
@@ -7605,9 +7617,10 @@ function pickObjects(sx, sy, list) { return rayAt(sx, sy).intersectObjects(list,
 let coinPopT = 0, avSaveT = 0;
 function drawCoins(gain) {
   const t = W.coins.toLocaleString('en-US');
-  $('#coins').innerHTML = `<span class="coin"></span>${t}` + (gain ? `<i>+${gain}</i>` : '');
+  $('#coins').innerHTML = `<span class="coin"></span>${t}` + (W.pc > 0 ? `<span class="pcoin" title="Premium Blox Coins"></span>${(W.pc | 0).toLocaleString('en-US')}` : '') + (gain ? `<i>+${gain}</i>` : '');
   if (gain) { clearTimeout(coinPopT); coinPopT = setTimeout(() => { const i = $('#coins i'); if (i) i.style.opacity = 0; }, 1600); }
   const hc = document.getElementById('homeCoins'); if (hc) hc.textContent = t;
+  const hp = document.getElementById('homePc'); if (hp) hp.textContent = (W.pc | 0).toLocaleString('en-US');
 }
 function earn(n, why) {
   n = Math.floor(n); if (!(n > 0)) return;
@@ -7617,6 +7630,19 @@ function earn(n, why) {
   quest('bv.earned', n);
 }
 function spend(n) { if (W.coins < n) { sfx('error'); return false; } W.coins -= n; drawCoins(); saveAv(); sfx('buy'); return true; }
+/* 💎 Premium Blox Coins: a second currency, from the Season Pass's Deluxe Plus track. They buy game passes and avatar
+   items for a quarter of the Blox Coin price (75% off: a 100-coin pass is 25 of them) — never limiteds, Deluxe Plus
+   levels or anything else. The 💎 switch in the avatar editor and the game shops pays with them instead. */
+const PAY = { p: false };
+const pcOf = (n) => Math.max(1, Math.ceil(n / 4));
+const pcOk = (k, i) => (k === 'em' ? !!EMOTES[i] && !EMOTES[i].hw && EMOTES[i].price > 0 : !!COSMETICS[k] && COSMETICS[k].price[i] > 0 && !isHw(k, i)); // (an avatar item, not a limited)
+const payP = (k, i) => PAY.p && pcOk(k, i); // (this one, paid in Premium now)
+const canPay = (n, p) => (p ? (W.pc | 0) >= pcOf(n) : W.coins >= n);
+const payLack = (n, p) => (p ? pcOf(n) - (W.pc | 0) : n - W.coins); // (how many more you need)
+const payCost = (n, p) => `<span class="${p ? 'pcoin' : 'coin'} sm"></span> ${(p ? pcOf(n) : n).toLocaleString('en-US')}`;
+function payFor(n, p, key) { if (!canPay(n, p)) return false; if (p) { W.pc -= pcOf(n); if (key) W.pcb.add(key); } else W.coins -= n; drawCoins(); return true; } // (key: an avatar item bought with Premium, so it can't be refunded for Blox Coins)
+function spendP(n) { if ((W.pc | 0) < pcOf(n)) { sfx('error'); return false; } W.pc -= pcOf(n); drawCoins(); saveAv(); sfx('buy'); return true; }
+const pcSwitch = (attr) => `<button class="xchip pctog${PAY.p ? ' on' : ''}" ${attr} title="Premium Blox Coins buy game passes and avatar items for a quarter of the price (not limiteds). You have ${(W.pc | 0).toLocaleString('en-US')}."><span class="pcoin sm"></span>${PAY.p ? 'Paying with Premium' : 'Pay with Premium'}<b class="pcnum">${(W.pc | 0).toLocaleString('en-US')}</b></button>`;
 /* ---------------- shops ----------------
    Every experience has its own shop (E.coinShop) of things for that game, bought with Blox Coins:
    { id, e, n, d, price, kind } where kind is 'pass' (yours for good), 'use' (they stack: the game uses
@@ -7929,22 +7955,23 @@ function openShop() {
 }
 function drawShop() {
   const E = exp, card = (it) => {
-    const n = itemCount(it.id), own = it.kind === 'pass' && n > 0, off = own && itemOff(it.id), why = !own && E.shopCan ? E.shopCan(it.id) || '' : '';
+    const n = itemCount(it.id), own = it.kind === 'pass' && n > 0, off = own && itemOff(it.id), why = !own && E.shopCan ? E.shopCan(it.id) || '' : '', pp = PAY.p && it.kind === 'pass'; // (💎 passes can be had for Premium Blox Coins)
     let btn;
     if (own && it.toggle) btn = `<button class="xp-btn ${off ? '' : 'buy'}" data-tog="${it.id}">${off ? '⏸️ Off — turn on' : '✅ On — turn off'}</button>`;
     else if (own) btn = '<button class="xp-btn" disabled>✓ Yours</button>';
     else if (why) btn = `<button class="xp-btn" disabled>${esc(why)}</button>`;
-    else if (shopAsk === it.id) btn = `<button class="xp-btn buy" data-ok="${it.id}">Buy for <span class="coin sm"></span> ${it.price.toLocaleString('en-US')}?</button>`;
-    else btn = `<button class="xp-btn ${W.coins >= it.price ? 'buy' : ''}" data-buy="${it.id}"><span class="coin sm"></span> ${it.price.toLocaleString('en-US')}</button>`;
+    else if (shopAsk === it.id) btn = `<button class="xp-btn buy" data-ok="${it.id}">Buy for ${payCost(it.price, pp)}?</button>`;
+    else btn = `<button class="xp-btn ${canPay(it.price, pp) ? 'buy' : ''}" data-buy="${it.id}">${payCost(it.price, pp)}</button>`;
     const use = it.kind === 'use' && it.tap && n > 0 && E.shopUse ? `<button class="xp-btn" data-use="${it.id}">Use (${n})</button>` : '';
-    const tag = it.kind === 'pass' ? '♾️ Pass · yours for good' : it.kind === 'use' ? `🎒 You have ${n}` : '⚡ Right away';
+    const tag = (it.kind === 'pass' ? '♾️ Pass · yours for good' : it.kind === 'use' ? `🎒 You have ${n}` : '⚡ Right away') + (PAY.p && it.kind !== 'pass' && !own ? ' · Blox Coins only' : '');
     return `<div class="xp-card shopc ${own ? 'on' : ''}"><div class="big">${it.e}</div><b>${esc(it.n)}</b><span>${esc(it.d)}</span><small class="stag">${tag}</small>${btn}${use}</div>`;
   };
   const sk = GSKINS[E.id] ? `<div class="sksect"><h4>🎨 Skins</h4>${skinShopHtml(E.id)}</div><h4 class="skitems">🛒 Items</h4>` : '';
-  openPanel(`🛒 ${E.name} Shop`, `<div class="shophead"><span><span class="coin"></span> <b>${W.coins.toLocaleString('en-US')}</b> Blox Coins</span><small>Things you can only get here, for ${esc(E.name)}. Earn coins by playing any experience — or free in 🎁 Free Rewards on the home screen.</small></div>${sk}<div class="xp-grid">${E.coinShop.map(card).join('')}</div>`, (b) => {
+  openPanel(`🛒 ${E.name} Shop`, `<div class="shophead"><span><span class="coin"></span> <b>${W.coins.toLocaleString('en-US')}</b> Blox Coins</span><small>Things you can only get here, for ${esc(E.name)}. Earn coins by playing any experience — or free in 🎁 Free Rewards on the home screen.${W.pc > 0 || PAY.p ? ' 💎 Premium Blox Coins buy passes here for a quarter of the price.' : ''}</small>${W.pc > 0 || PAY.p ? pcSwitch('data-pay="1"') : ''}</div>${sk}<div class="xp-grid">${E.coinShop.map(card).join('')}</div>`, (b) => {
+    if (b.dataset.pay) { PAY.p = !PAY.p; shopAsk = ''; sfx('toggle'); drawShop(); return; }
     if (skinClick(E.id, b)) { drawShop(); return; }
     const it = shopItem(b.dataset.buy || b.dataset.ok || b.dataset.use || b.dataset.tog); if (!it) return;
-    if (b.dataset.buy) { shopAsk = W.coins >= it.price ? it.id : ''; if (!shopAsk) { sfx('error'); toast('Not enough Blox Coins', '#fca5a5'); } drawShop(); return; }
+    if (b.dataset.buy) { const pp = PAY.p && it.kind === 'pass'; shopAsk = canPay(it.price, pp) ? it.id : ''; if (!shopAsk) { sfx('error'); toast(`Not enough ${pp ? 'Premium ' : ''}Blox Coins`, '#fca5a5'); } drawShop(); return; }
     if (b.dataset.ok) { buyItem(it); return; }
     if (b.dataset.tog) { setItemOff(it.id, !itemOff(it.id)); sfx('toggle'); if (E.onToggle) E.onToggle(it.id); drawShop(); return; }
     if (b.dataset.use) { if (E.shopUse(it.id) && useItem(it.id)) { sfx('select'); toast(`${it.e} ${it.n}!`, '#fde68a'); } else sfx('error'); if (panelOpen() && $('#xpTitle').textContent.startsWith('🛒')) drawShop(); }
@@ -7953,7 +7980,7 @@ function drawShop() {
 function buyItem(it) {
   shopAsk = '';
   const why = exp.shopCan ? exp.shopCan(it.id) || '' : '';
-  if (why || (it.kind === 'pass' && itemCount(it.id) > 0) || !spend(it.price)) { drawShop(); return; }
+  if (why || (it.kind === 'pass' && itemCount(it.id) > 0) || !(PAY.p && it.kind === 'pass' ? spendP(it.price) : spend(it.price))) { drawShop(); return; } // (💎 a pass, in Premium if that's switched on)
   if (it.kind !== 'now') giveItem(it.id, it.pack || 1); // (pack: some come several at a time)
   quest('bv.shop');
   say(`🛒 You bought ${it.e} ${it.n}!`, '#fde68a'); toast(`${it.e} ${it.n}!`, '#fde68a'); sfx('unlock');
@@ -8288,7 +8315,7 @@ function achGroup(e) {
   return `<div class="achg${e === 'bv' ? ' bv' : ''}"><h4>${e === 'bv' ? '🧱 Bloxverse' : `${E ? E.emoji : ''} ${esc(E ? E.name : e)}`}<small>${n} / ${list.length}</small></h4><div class="achrows">${list.map(achRow).join('')}</div></div>`;
 }
 function saveAv() {
-  const d = Object.assign({}, AV, { coins: W.coins, own: [...W.own], day: W.day, at: Date.now(), ach: { c: W.ach.c, got: [...W.ach.got] }, items: W.items, fr: W.fr, fits: W.fits, who: Net.uid || W.who || '', made: W.made, xown: W.xown, wear: W.wear, rw: W.rw, sk: W.sk, beats: W.beats, sp: W.sp });
+  const d = Object.assign({}, AV, { coins: W.coins, pc: W.pc | 0, pcb: [...W.pcb], own: [...W.own], day: W.day, at: Date.now(), ach: { c: W.ach.c, got: [...W.ach.got] }, items: W.items, fr: W.fr, fits: W.fits, who: Net.uid || W.who || '', made: W.made, xown: W.xown, wear: W.wear, rw: W.rw, sk: W.sk, beats: W.beats, sp: W.sp });
   try { localStorage.setItem('rb.av', JSON.stringify(d)); } catch (e) {}
   clearTimeout(avSaveT); avSaveT = setTimeout(() => { if (W.loaded) kvSet('av', d); }, 800);
   pubProfile();
@@ -8296,7 +8323,8 @@ function saveAv() {
 function loadAvFrom(d) {
   if (!d || typeof d !== 'object') return;
   AV = avFrom(d);
-  W.coins = Math.max(0, Math.floor(+d.coins || 0)); W.own = new Set(Array.isArray(d.own) ? d.own.filter((x) => typeof x === 'string').slice(0, 300) : []); W.day = String(d.day || ''); W.at = +d.at || 0;
+  W.coins = Math.max(0, Math.floor(+d.coins || 0)); W.own = new Set(Array.isArray(d.own) ? d.own.filter((x) => typeof x === 'string').slice(0, 600) : []);
+  W.pc = Math.max(0, Math.min(1e6, Math.floor(+d.pc || 0))); W.pcb = new Set(Array.isArray(d.pcb) ? d.pcb.filter((x) => typeof x === 'string' && /^[a-z]{1,3}\d{1,3}$/.test(x)).slice(0, 600) : []); // (💎 Premium Blox Coins, and what you bought with them) W.day = String(d.day || ''); W.at = +d.at || 0;
   const a = d.ach && typeof d.ach === 'object' ? d.ach : {}, c = {};
   if (a.c && typeof a.c === 'object') for (const k in a.c) if (+a.c[k] > 0) c[k] = +a.c[k];
   W.ach = { c, got: new Set(Array.isArray(a.got) ? a.got.filter((x) => ACH.some((A) => A.id === x)) : []) };
@@ -8313,7 +8341,7 @@ function loadAvFrom(d) {
   { const o = d.sp && typeof d.sp === 'object' && d.sp.s === 1 ? d.sp : null, ints = (x) => (Array.isArray(x) ? x.filter((v) => Number.isInteger(v) && v >= 1 && v <= 100).slice(0, 100) : []); // (the season pass: this season's only)
     const ql = (x) => (Array.isArray(x) ? x.slice(0, 6).filter((q) => q && typeof q.k === 'string').map((q) => ({ k: String(q.k).slice(0, 30), n: Math.max(1, +q.n || 1), p: Math.max(0, +q.p || 0), xp: Math.max(0, Math.min(5000, +q.xp || 0)), t: String(q.t || '').slice(0, 90), done: !!q.done, D: Math.max(1, Math.min(4, +q.D || 2)), src: ['play', 'gen', 'game', 'wplay', 'hgen', 'hgame'].includes(q.src) ? q.src : 'gen' })) : []);
     const cnt = (x) => { const r = {}; if (x && typeof x === 'object') for (const [k, v] of Object.entries(x)) if (/^(bx|bp)\d{1,3}$|^rr$/.test(k) && Number.isInteger(v) && v > 0) r[k] = Math.min(999, v); return r; };
-    W.sp = o ? { s: 1, xp: Math.max(0, Math.min(SP_CUM[SP.max], Math.floor(+o.xp || 0))), dx: !!o.dx, got: ints(o.got), gotD: ints(o.gotD), q: o.q && typeof o.q === 'object' ? { v: o.q.v === 2 ? 2 : 1, d: String(o.q.d || '').slice(0, 10), dl: ql(o.q.dl), w: String(o.q.w || '').slice(0, 10), wl: ql(o.q.wl), h: String(o.q.h || '').slice(0, 14), hl: ql(o.q.hl) } : null, inv: cnt(o.inv), act: { bx: Math.max(0, +(o.act && o.act.bx) || 0), bp: Math.max(0, +(o.act && o.act.bp) || 0) },
+    W.sp = o ? { s: 1, xp: Math.max(0, Math.min(SP_CUM[SP.max], Math.floor(+o.xp || 0))), dx: !!o.dx, got: ints(o.got), gotD: ints(o.gotD), gotP: ints(o.gotP), q: o.q && typeof o.q === 'object' ? { v: o.q.v === 2 ? 2 : 1, d: String(o.q.d || '').slice(0, 10), dl: ql(o.q.dl), w: String(o.q.w || '').slice(0, 10), wl: ql(o.q.wl), h: String(o.q.h || '').slice(0, 14), hl: ql(o.q.hl) } : null, inv: cnt(o.inv), act: { bx: Math.max(0, +(o.act && o.act.bx) || 0), bp: Math.max(0, +(o.act && o.act.bp) || 0) },
       ex: o.ex && Array.isArray(o.ex.l) ? { d: String(o.ex.d || '').slice(0, 10), l: o.ex.l.filter((x) => typeof x === 'string').slice(0, 40) } : { d: '', l: [] }, play: Math.max(0, +o.play || 0) } : null; }
   W.xown = Array.isArray(d.xown) ? d.xown.filter((x) => typeof x === 'string' && /^[A-Za-z0-9]{1,20}$/.test(x)).slice(0, 300) : [];
   { const w = okAx(d.wear ? [d.wear.h, d.wear.pt, d.wear.f].concat(Array.isArray(d.wear.acc) ? d.wear.acc.slice(0, ACC_WEAR) : []) : []); W.wear = { h: w[0], pt: w[1], f: w[2], acc: w.slice(3), hx: [] }; }
@@ -9368,7 +9396,7 @@ function drawAvatarOpts() {
   const focus = document.activeElement && document.activeElement.closest && document.activeElement.closest('#avOpts') ? document.activeElement.id : '';
   $('#avOpts').innerHTML = body;
   if (focus && $('#' + focus)) { const el = $('#' + focus); el.focus(); if (el.setSelectionRange && el.type === 'text') el.setSelectionRange(el.value.length, el.value.length); }
-  $('#edCoins').textContent = W.coins.toLocaleString('en-US');
+  $('#edCoins').textContent = W.coins.toLocaleString('en-US'); $('#avPayW').innerHTML = pcSwitch('data-pay="1"');
   $('#avOwn').classList.toggle('on', ED.own);
   drawTry();
   if (ED.mode === 'make') pxBind();
@@ -9383,9 +9411,9 @@ function wearHtml() {
     const own = owns(k, i), price = C.price[i], on = k === 'h' ? (i ? hatsOn().includes('H' + i) : !hatsOn().length) : AV[k] === i && !W.wear[k], ask = avAsk === k + i, tr = ED.open && ED.try[k] === i;
       if ((ED.own && !own) || hwGone(k, i) || spGone(k, i)) return '';
       const A = price < 0 ? achFor(k, i) : null, SPI = price < 0 && !A ? spItem(k, i) : null;
-      const pr = on ? '<span class="pr own">✓ Wearing</span>' : own ? '<span class="pr own">Owned</span>' : price < 0 ? `<span class="pr">${A ? '🏆 Earn it' : SPI ? `🏛️ Lv ${SPI.L}${SPI.tr === 'd' ? ' 👑' : ''}` : '🎖️ Reward'}</span>` : ask && W.coins < price ? `<span class="pr">Need ${price - W.coins} more</span>` : ask ? `<span class="pr">Buy? ${price}</span>` : `<span class="pr"><span class="coin sm"></span> ${price}</span>`;
-      const cant = !own && (price < 0 || W.coins < price);
-      return `<button data-k="${k}" data-i="${i}" class="${on ? 'on' : ''} ${cant ? 'cant' : ''} ${ask ? 'ask' : ''} ${tr ? 'try' : ''}" title="${esc(nm)}${price < 0 && !own ? (A ? ` — earn the “${A.nm}” achievement` : SPI ? ` — Season Pass level ${SPI.L}${SPI.tr === 'd' ? ' (Deluxe)' : ''}` : ' — earned in Command an Army’s battle pass') : ''}${isHw(k, i) ? ' — 🎃 Halloween exclusive' : ''}">${isHw(k, i) ? '<span class="hwtag">🎃</span>' : ''}<span class="i">${C.icon[i]}</span>${esc(nm)}${pr}</button>`;
+      const pp = payP(k, i), pr = on ? '<span class="pr own">✓ Wearing</span>' : own ? '<span class="pr own">Owned</span>' : price < 0 ? `<span class="pr">${A ? '🏆 Earn it' : SPI ? `🏛️ Lv ${SPI.L}${spTrI(SPI.tr)}` : '🎖️ Reward'}</span>` : ask && !canPay(price, pp) ? `<span class="pr">Need ${payLack(price, pp)} more</span>` : ask ? `<span class="pr">Buy? ${pp ? pcOf(price) : price}</span>` : `<span class="pr">${payCost(price, pp)}</span>`;
+      const cant = !own && (price < 0 || !canPay(price, pp));
+      return `<button data-k="${k}" data-i="${i}" class="${on ? 'on' : ''} ${cant ? 'cant' : ''} ${ask ? 'ask' : ''} ${tr ? 'try' : ''}" title="${esc(nm)}${price < 0 && !own ? (A ? ` — earn the “${A.nm}” achievement` : SPI ? ` — Season Pass level ${SPI.L}${spTrN(SPI.tr)}` : ' — earned in Command an Army’s battle pass') : ''}${isHw(k, i) ? ` — 🎃 Halloween exclusive${PAY.p ? ' (limited: Blox Coins only)' : ''}` : ''}">${isHw(k, i) ? '<span class="hwtag">🎃</span>' : ''}<span class="i">${C.icon[i]}</span>${esc(nm)}${pr}</button>`;
   };
   if (avTab === 'colors') {
     const row = (title, list, key) => `<div class="opt"><small>${title}</small><div class="sw">${list.map((c, i) => `<button data-k="${key}" data-i="${i}" class="${AV[key] === i ? 'on' : ''}" style="background:${c}" title="${title} ${i + 1}"></button>`).join('')}</div></div>`;
@@ -9400,8 +9428,8 @@ function wearHtml() {
       const own = emOwns(i), ask = avAsk === 'em' + i, on = pv.a && pv.a.em && pv.a.em.i === i;
       if ((ED.own && !own) || (E.hw && hwGone('em', i)) || spGone('em', i)) return '';
       const SPI = E.price < 0 ? spItem('em', i) : null;
-      const pr = own ? `<span class="pr own">${E.price ? 'Owned' : 'Free'}</span>` : SPI ? `<span class="pr">🏛️ Lv ${SPI.L}${SPI.tr === 'd' ? ' 👑' : ''}</span>` : ask && W.coins < E.price ? `<span class="pr">Need ${E.price - W.coins} more</span>` : ask ? `<span class="pr">Buy? ${E.price}</span>` : `<span class="pr"><span class="coin sm"></span> ${E.price}</span>`;
-      return `<button data-em="${i}" class="${on ? 'try' : ''} ${!own && W.coins < E.price ? 'cant' : ''} ${ask ? 'ask' : ''}" title="${esc(E.nm)} — ${esc(E.d)}${E.hw ? ' — 🎃 Halloween exclusive' : ''}">${E.hw ? '<span class="hwtag">🎃</span>' : ''}<span class="i">${E.ic}</span>${esc(E.nm)}${pr}</button>`;
+      const pp = payP('em', i), pr = own ? `<span class="pr own">${E.price ? 'Owned' : 'Free'}</span>` : SPI ? `<span class="pr">🏛️ Lv ${SPI.L}${spTrI(SPI.tr)}</span>` : ask && !canPay(E.price, pp) ? `<span class="pr">Need ${payLack(E.price, pp)} more</span>` : ask ? `<span class="pr">Buy? ${pp ? pcOf(E.price) : E.price}</span>` : `<span class="pr">${payCost(E.price, pp)}</span>`;
+      return `<button data-em="${i}" class="${on ? 'try' : ''} ${!own && (E.price < 0 || !canPay(E.price, pp)) ? 'cant' : ''} ${ask ? 'ask' : ''}" title="${esc(E.nm)} — ${esc(E.d)}${E.hw ? ' — 🎃 Halloween exclusive' : ''}">${E.hw ? '<span class="hwtag">🎃</span>' : ''}<span class="i">${E.ic}</span>${esc(E.nm)}${pr}</button>`;
     }).join('')}</div>`;
   } else if (avTab === 'fits') {
     body = `<p class="xp-note">Save what you're wearing in a slot, then switch outfits in one tap.</p><div class="fits">${W.fits.map((f, i) => f
@@ -9413,7 +9441,7 @@ function wearHtml() {
     body = `<div class="shop">${C.list.map((nm, i) => itemBtn(avTab, i)).join('')}</div>`;
     // (a reward you haven't got, tapped: how to get it)
     const ak = avAsk && avAsk.startsWith(avTab) ? +avAsk.slice(avTab.length) : -1, AA = ak >= 0 && C.price[ak] < 0 && !owns(avTab, ak) ? achFor(avTab, ak) : null;
-    if (ak >= 0 && C.price[ak] < 0 && !owns(avTab, ak)) body += `<div class="avnote">${AA ? `🏆 <b>${esc(C.list[ak])}</b> comes with the “${esc(AA.nm)}” achievement${AA.e !== 'bv' && EXPS[AA.e] ? ` in ${esc(EXPS[AA.e].name)}` : ''}: ${esc(AA.d.charAt(0).toLowerCase() + AA.d.slice(1))}.` : spItem(avTab, ak) ? `🏛️ <b>${esc(C.list[ak])}</b> is a Season Pass reward: level ${spItem(avTab, ak).L}${spItem(avTab, ak).tr === 'd' ? ' of the 👑 Deluxe track' : ' (free)'}. Open the pass from the home screen.` : `🎖️ <b>${esc(C.list[ak])}</b> is a reward in Command an Army’s battle pass.`}</div>`;
+    if (ak >= 0 && C.price[ak] < 0 && !owns(avTab, ak)) body += `<div class="avnote">${AA ? `🏆 <b>${esc(C.list[ak])}</b> comes with the “${esc(AA.nm)}” achievement${AA.e !== 'bv' && EXPS[AA.e] ? ` in ${esc(EXPS[AA.e].name)}` : ''}: ${esc(AA.d.charAt(0).toLowerCase() + AA.d.slice(1))}.` : spItem(avTab, ak) ? `🏛️ <b>${esc(C.list[ak])}</b> is a Season Pass reward: level ${spItem(avTab, ak).L}${spWhere(spItem(avTab, ak))}. Open the pass from the home screen.` : `🎖️ <b>${esc(C.list[ak])}</b> is a reward in Command an Army’s battle pass.`}</div>`;
     if (avTab === 'h') body = `<div class="avnote">🎩 You're wearing <b>${hatsOn().length}</b> of ${HAT_MAX} hats. Tap a hat to put it on or take it off; 🚫 None takes them all off. Made and limited hats count too (in 🎒 My items).</div>` + body;
     else if (XKINDS[avTab] && W.wear[avTab]) { const I = xItem(W.wear[avTab]); body = `<div class="avnote">You're wearing <b>${esc(I ? I.nm : 'an item')}</b> over these. Pick one to wear it instead, or take it off in 🎒 My items.</div>` + body; }
   }
@@ -9423,16 +9451,17 @@ function wearHtml() {
 $('#avOpts').onclick = (e) => {
   const b = e.target.closest('button'); if (!b || b.disabled) return;
   const d = b.dataset;
+  if (d.pay) { PAY.p = !PAY.p; avAsk = ''; sfx('toggle'); drawAvatarOpts(); return; } // (💎 pay with Premium Blox Coins, or not)
   if (d.mode) { ED.mode = d.mode; ED.view = ''; ED.pub = ''; ED.note = ''; sfx('click'); drawAvatarOpts(); pvAvatar(); return; }
   if (marketClick(b)) return;
   if (d.tab) { avTab = d.tab; avAsk = ''; ED.note = ''; drawAvatarOpts(); return; }
   if (d.em != null) { // an emote: it plays on you here; one you don't have: tap again to buy it
     const i = +d.em, E = EMOTES[i]; if (!E || (E.hw && hwGone('em', i))) return;
     if (pv.a) emStart(pv.a, i);
-    if (!emOwns(i) && E.price < 0) { const S = spItem('em', i); ED.note = S ? `🏛️ <b>${esc(E.nm)}</b> is a Season Pass reward: level ${S.L}${S.tr === 'd' ? ' of the 👑 Deluxe track' : ' (free)'}.` : ''; drawAvatarOpts(); return; }
+    if (!emOwns(i) && E.price < 0) { const S = spItem('em', i); ED.note = S ? `🏛️ <b>${esc(E.nm)}</b> is a Season Pass reward: level ${S.L}${spWhere(S)}.` : ''; drawAvatarOpts(); return; }
     if (!emOwns(i)) {
-      if (avAsk !== 'em' + i || W.coins < E.price) { avAsk = 'em' + i; sfx('click'); drawAvatarOpts(); return; }
-      W.coins -= E.price; W.own.add('em' + i); avAsk = ''; sfx('buy'); questMax('bv.items', W.own.size); ED.note = `🎭 The ${esc(E.nm)} emote is yours! Play it in a game with <b>.</b> or 🎭 Emotes.`; saveAv(); drawMe();
+      const pp = payP('em', i); if (avAsk !== 'em' + i || !canPay(E.price, pp)) { avAsk = 'em' + i; sfx('click'); drawAvatarOpts(); return; }
+      payFor(E.price, pp, 'em' + i); W.own.add('em' + i); avAsk = ''; sfx('buy'); questMax('bv.items', W.own.size); ED.note = `🎭 The ${esc(E.nm)} emote is yours! Play it in a game with <b>.</b> or 🎭 Emotes.`; saveAv(); drawMe();
     } else { avAsk = ''; ED.note = ''; }
     drawAvatarOpts(); return;
   }
@@ -9452,8 +9481,8 @@ $('#avOpts').onclick = (e) => {
       if (hwGone(k, i)) return;
       if (ED.open) ED.try[k] = i; // (on you in the editor, to see how it looks)
       if (price < 0) { avAsk = avAsk === k + i ? '' : k + i; sfx('click'); drawAvatarOpts(); pvAvatar(); return; } // (how to earn it)
-      if (W.coins < price || avAsk !== k + i) { avAsk = k + i; drawAvatarOpts(); pvAvatar(); return; } // tap again to buy
-      W.coins -= price; W.own.add(k + i); ED.note = putOn(k, i); delete ED.try[k]; avAsk = ''; sfx('buy'); questMax('bv.items', W.own.size);
+      const pp = payP(k, i); if (!canPay(price, pp) || avAsk !== k + i) { avAsk = k + i; drawAvatarOpts(); pvAvatar(); return; } // tap again to buy
+      payFor(price, pp, k + i); W.own.add(k + i); ED.note = putOn(k, i); delete ED.try[k]; avAsk = ''; sfx('buy'); questMax('bv.items', W.own.size);
     }
   } else return;
   drawAvatarOpts(); pvAvatar(); saveAv(); drawMe();
@@ -9462,19 +9491,22 @@ $('#avOpts').oninput = (e) => { const t = e.target; if (t.id === 'mkName') ED.dr
 $('#avOpts').addEventListener('change', (e) => { const d = e.target.dataset || {}; if (d.ap || d.pl) { ED.acc.dragging = false; drawAvatarOpts(); } else if (d.v === 'pubPrice' || d.v === 'pubStock') { ED.pubErr = ''; drawAvatarOpts(); } });
 $('#avOpts').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.dataset && e.target.dataset.go) { e.preventDefault(); const b = $('#' + e.target.dataset.go); if (b && !b.disabled) b.click(); } });
 // over the avatar in the editor: what you're only trying on, and buying it all at once
+// what what you're trying on costs: all in Premium Blox Coins if the switch is on and they all can be, else Blox Coins
+function tryCost(t) { const pp = PAY.p && t.length > 0 && t.every(([k, i]) => pcOk(k, i)); return { pp, cost: t.reduce((a, [k, i]) => a + (pp ? pcOf(COSMETICS[k].price[i]) : Math.max(0, COSMETICS[k].price[i])), 0) }; }
 function drawTry() {
   const el = $('#avTry'), t = Object.entries(ED.try).filter(([k, i]) => !owns(k, i)), tx = Object.entries(ED.tryX).filter(([k, id]) => id && !ownsX(id) && !(ED.mode === 'make' && ED.draft.k === k)).map(([, id]) => xItem(id)).filter(Boolean);
   if (!ED.open || (!t.length && !tx.length)) { el.hidden = true; return; }
-  const cost = t.reduce((a, [k, i]) => a + Math.max(0, COSMETICS[k].price[i]), 0), canBuy = t.length && t.every(([k, i]) => COSMETICS[k].price[i] >= 0);
+  const { cost, pp } = tryCost(t), canBuy = t.length && t.every(([k, i]) => COSMETICS[k].price[i] >= 0);
   el.hidden = false;
-  el.innerHTML = `<span>👀 Trying on ${t.map(([k, i]) => `<b>${esc(COSMETICS[k].list[i])}</b>`).concat(tx.map((I) => `<b>${esc(I.nm)}</b>`)).join(', ')}</span>${canBuy ? `<button class="xp-btn gold" data-buyall="1" ${W.coins < cost ? 'disabled' : ''}>🛒 Buy${t.length > 1 ? ' all' : ''} · ${cost.toLocaleString('en-US')}</button>` : ''}<button class="xp-btn alt" data-off="1">Take off</button>`;
+  el.innerHTML = `<span>👀 Trying on ${t.map(([k, i]) => `<b>${esc(COSMETICS[k].list[i])}</b>`).concat(tx.map((I) => `<b>${esc(I.nm)}</b>`)).join(', ')}</span>${canBuy ? `<button class="xp-btn gold" data-buyall="1" ${(pp ? W.pc | 0 : W.coins) < cost ? 'disabled' : ''}>🛒 Buy${t.length > 1 ? ' all' : ''} · <span class="${pp ? 'pcoin' : 'coin'} sm"></span> ${cost.toLocaleString('en-US')}</button>` : ''}<button class="xp-btn alt" data-off="1">Take off</button>`;
 }
+$('#avPayW').onclick = (e) => { if (!e.target.closest('[data-pay]')) return; PAY.p = !PAY.p; avAsk = ''; sfx('toggle'); drawAvatarOpts(); }; // (💎 pay with Premium Blox Coins, or not)
 $('#avTry').onclick = (e) => {
   const b = e.target.closest('button'); if (!b || b.disabled) return;
   if (b.dataset.buyall) {
-    const t = Object.entries(ED.try).filter(([k, i]) => !owns(k, i)), cost = t.reduce((a, [k, i]) => a + COSMETICS[k].price[i], 0);
-    if (W.coins < cost || t.some(([k, i]) => COSMETICS[k].price[i] < 0)) return;
-    W.coins -= cost; for (const [k, i] of t) { W.own.add(k + i); ED.note = putOn(k, i) || ED.note; }
+    const t = Object.entries(ED.try).filter(([k, i]) => !owns(k, i)), { cost, pp } = tryCost(t);
+    if ((pp ? W.pc | 0 : W.coins) < cost || t.some(([k, i]) => COSMETICS[k].price[i] < 0)) return;
+    if (pp) W.pc -= cost; else W.coins -= cost; for (const [k, i] of t) { W.own.add(k + i); if (pp) W.pcb.add(k + i); ED.note = putOn(k, i) || ED.note; } drawCoins();
     sfx('buy'); questMax('bv.items', W.own.size);
   } else sfx('click');
   ED.try = {}; ED.tryX = {}; avAsk = ''; drawAvatarOpts(); pvAvatar(); saveAv(); drawMe();
@@ -9669,7 +9701,7 @@ setInterval(() => {
    ===================================================================== */
 const SP = { start: Date.UTC(2026, 10, 2, 0), end: Date.UTC(2027, 0, 1, 8), price: 2500, max: 100, playXp: 10, playEvery: 30, newExpXp: 100, newExpMax: 5, achXp: 300 };
 const spOn = () => { const t = Date.now(); return t >= SP.start && t < SP.end; };
-const spState = () => W.sp || (W.sp = { s: 1, xp: 0, dx: false, got: [], gotD: [], q: null, ex: { d: '', l: [] }, play: 0, inv: {}, act: {} });
+const spState = () => W.sp || (W.sp = { s: 1, xp: 0, dx: false, got: [], gotD: [], gotP: [], q: null, ex: { d: '', l: [] }, play: 0, inv: {}, act: {} });
 // each level takes more XP than the one before: 300 to go from level 1 to 2, about 4% more each level after, up to
 // 15,000 for the last (99 to 100) — 375,940 in all. SP_REQ[L]: from level L to L + 1; SP_CUM[L]: all it takes to reach L
 const SP_REQ = (() => { const r = Math.pow(50, 1 / 98), q = [0]; for (let L = 1; L < 100; L++) { let v = Math.round(300 * Math.pow(r, L - 1) / 10) * 10; if (L > 1 && v <= q[L - 1]) v = q[L - 1] + 10; q.push(v); } q[99] = 15000; return q; })();
@@ -9707,17 +9739,36 @@ function spRewards() {
   set(80, [['b', 19]], [['pet', 15]]); // the Arquebus / 🦕 Spinosaurus
   set(100, null, [['bt', 12], ['b', 20], ['an', 9]]); // the Laestrygonian: body, giant scimitar, animations
   for (const [id, [L, tr]] of Object.entries(SP_EMOTE_LV)) { const i = EMOTES.findIndex((E) => E.id === id); if (i >= 0) R[L][tr] = [['em', i]]; }
+  // 💎 Deluxe Plus (p): the 60 things made for it — 10 hats, 15 back items, 10 body packs, 5 animation packs and 20
+  // emotes — and 40 lots of Premium Blox Coins, shuffled across the 100 levels once (the same for everyone). The coins
+  // come to SPP_PC in all: 2 a level, and the rest shared out by what each level costs (give or take a little), so a
+  // dear level gives more of them
+  const its = [], rr = mulberry(20261102);
+  for (let i = 34; i <= 43; i++) its.push([['h', i]]); for (let i = 21; i <= 35; i++) its.push([['b', i]]); for (let i = 13; i <= 22; i++) its.push([['bt', i]]); for (let i = 10; i <= 14; i++) its.push([['an', i]]);
+  for (const id of DP_EMOTE_IDS) { const i = EMOTES.findIndex((E) => E.id === id); if (i >= 0) its.push([['em', i]]); }
+  const n = Math.max(0, SP.max - its.length), all = its.concat(Array.from({ length: n }, () => [['pc', 0]]));
+  for (let j = all.length - 1; j > 0; j--) { const q = Math.floor(rr() * (j + 1)); [all[j], all[q]] = [all[q], all[j]]; }
+  for (let L = 1; L <= SP.max; L++) R[L].p = all[L - 1] || [];
+  const pl = []; for (let L = 1; L <= SP.max; L++) if (R[L].p[0] && R[L].p[0][0] === 'pc') pl.push(L);
+  if (pl.length) { const wt = pl.map((L) => SPP_PRICE(L) * (0.8 + 0.4 * rr())), tw = wt.reduce((a, b) => a + b, 0), extra = SPP_PC - 2 * pl.length, raw = wt.map((w) => (extra * w) / tw), amt = raw.map((x) => 2 + Math.floor(x));
+    let left = SPP_PC - amt.reduce((a, b) => a + b, 0); raw.map((x, j) => [x - Math.floor(x), j]).sort((a, b) => b[0] - a[0]).forEach(([, j]) => { if (left > 0) { amt[j]++; left--; } });
+    pl.forEach((L, j) => { R[L].p = [['pc', amt[j]]]; }); }
   return (SPR = R);
 }
+// 💎 a Deluxe Plus level's price: bought on its own, with Blox Coins (never Premium), once you've reached it — 15 for
+// level 1, rising evenly to 250 for level 100
+const SPP_PC = 250, SPP_PRICE = (L) => Math.round(15 + ((L - 1) * 235) / 99);
+const spTrN = (tr) => (tr === 'd' ? ' (Deluxe)' : tr === 'p' ? ' (Deluxe Plus)' : ''), spTrI = (tr) => (tr === 'd' ? ' 👑' : tr === 'p' ? ' 💎' : '');
+const spWhere = (S) => (S.tr === 'd' ? ' of the 👑 Deluxe track' : S.tr === 'p' ? ` of the 💎 Deluxe Plus track — buy it there for ${SPP_PRICE(S.L)} Blox Coins once you reach that level` : ' (free)');
 // which pass level and track an item comes from (or null)
-function spItem(k, i) { const R = spRewards(); for (let L = 1; L <= SP.max; L++) for (const tr of ['f', 'd']) if (R[L][tr].some(([a, b]) => a === k && b === i)) return { L, tr }; return null; }
+function spItem(k, i) { const R = spRewards(); for (let L = 1; L <= SP.max; L++) for (const tr of ['f', 'd', 'p']) if (R[L][tr].some(([a, b]) => a === k && b === i)) return { L, tr }; return null; }
 const spOwns = (k, i) => (k === 'em' ? W.own.has('em' + i) : W.own.has(k + i));
 const spGone = (k, i) => !spOn() && !!spItem(k, i) && !spOwns(k, i); // (the season's over, and it isn't yours: not shown)
-const SP_KIND = { c: 'Blox Coins', h: 'Hat', b: 'Back', pet: 'Pet', bt: 'Body', an: 'Animation', em: 'Emote', bx: 'Boost', bp: 'Boost', rr: 'Quests' };
+const SP_KIND = { c: 'Blox Coins', pc: 'Premium', h: 'Hat', b: 'Back', pet: 'Pet', bt: 'Body', an: 'Animation', em: 'Emote', bx: 'Boost', bp: 'Boost', rr: 'Quests' };
 const spGi = (i) => { const [e, id, n, ic, nm] = SP_GI[i], E = EXPS[e] || { id: e, name: 'a game' }, it = (EXPS[e] && shopItem(id, E)) || { e: ic, n: nm, d: '', kind: i >= SP_GI_USE ? 'pass' : 'use' }; return { E, it, n, e, id, pass: i >= SP_GI_USE }; };
-const spNm = (k, i) => { if (k === 'c') return `${i} Blox Coins`; if (k === 'em') return EMOTES[i].nm; if (k === 'bx') return `2× Blox Coins · ${i} min`; if (k === 'bp') return `2× Pass XP · ${i} min`; if (k === 'rr') return `${i} Quest Reroll${i > 1 ? 's' : ''}`;
+const spNm = (k, i) => { if (k === 'c') return `${i} Blox Coins`; if (k === 'pc') return `${i} Premium Blox Coins`; if (k === 'em') return EMOTES[i].nm; if (k === 'bx') return `2× Blox Coins · ${i} min`; if (k === 'bp') return `2× Pass XP · ${i} min`; if (k === 'rr') return `${i} Quest Reroll${i > 1 ? 's' : ''}`;
   if (k === 'gi') { const g = spGi(i); return g.pass ? g.it.n : `${g.n}× ${g.it.n}`; } return COSMETICS[k].list[i]; };
-const spIc = (k, i) => (k === 'c' ? '🪙' : k === 'em' ? EMOTES[i].ic : k === 'bx' ? '⚡' : k === 'bp' ? '📈' : k === 'rr' ? '🔄' : k === 'gi' ? (spGi(i).it || {}).e || '🎮' : COSMETICS[k].icon[i]);
+const spIc = (k, i) => (k === 'c' ? '🪙' : k === 'pc' ? '💎' : k === 'em' ? EMOTES[i].ic : k === 'bx' ? '⚡' : k === 'bp' ? '📈' : k === 'rr' ? '🔄' : k === 'gi' ? (spGi(i).it || {}).e || '🎮' : COSMETICS[k].icon[i]);
 const spKind = (k, i) => (k === 'gi' ? (spGi(i).E ? spGi(i).E.name : 'Game') : SP_KIND[k]);
 // boosts: kept until you use them (s.inv: 'bx15': how many…), then on for that long (s.act: bx / bp: until when)
 const spBoostOn = (k) => { const a = spState().act; return !!a && a[k] > Date.now(); };
@@ -9752,6 +9803,20 @@ function spClaim() {
       if (R[L][tr].length === 1 || k === 'bt') toast(`🎁 ${spNm(k, i)} is yours!`, '#fcd34d');
     }
   }
+}
+// 💎 buy a Deluxe Plus level you've reached: Blox Coins only
+function spBuyP(L) {
+  const s = spState(), list = (spRewards()[L] || {}).p, gotP = s.gotP || (s.gotP = []);
+  if (!list || !list.length || !spOn() || gotP.includes(L)) return false;
+  if (spLvl() < L) { sfx('error'); toast(`💎 Reach level ${L} first`, '#fca5a5'); return false; }
+  const price = SPP_PRICE(L); if (W.coins < price) { sfx('error'); toast(`Need ${(price - W.coins).toLocaleString('en-US')} more Blox Coins`, '#fca5a5'); return false; }
+  W.coins -= price; gotP.push(L); sfx('buy');
+  for (const [k, i] of list) {
+    if (k === 'pc') { W.pc = (W.pc | 0) + i; say(`💎 +${i} Premium Blox Coins — Deluxe Plus level ${L}`, '#67e8f9'); toast(`💎 +${i} Premium Blox Coins!`, '#67e8f9'); continue; }
+    if (!spOwns(k, i)) { W.own.add(k + i); questMax('bv.items', W.own.size); }
+    say(`💎 ${spNm(k, i)} (${k === 'em' ? 'emote' : SP_KIND[k].toLowerCase()}) — Deluxe Plus level ${L}`, '#67e8f9'); toast(`💎 ${spNm(k, i)} is yours!`, '#67e8f9');
+  }
+  sfx('unlock'); drawCoins(); saveAv(); return true;
 }
 function spBuyDeluxe() {
   const s = spState(); if (s.dx || !spOn()) return false;
@@ -9884,13 +9949,14 @@ function spRedraw() { if (homeView === 'sp' && !playing) drawExps(); else if (pl
 // a picture of a reward on your avatar (a pet on its own; an emote mid-move with its things; an animation mid-stride)
 function spPic(k, i) {
   if (!SP_COS.has(k)) return '';
-  const av = [AV.s, AV.sh, AV.p, 0, 0, 0, 0, 0, 0, 0, 1, 0], slot = { b: 5, pet: 8, bt: 10, an: 11 }[k];
+  const av = [AV.s, AV.sh, AV.p, 0, 0, 0, 0, 0, 0, 0, 1, 0], slot = { h: 3, b: 5, pet: 8, bt: 10, an: 11 }[k];
   if (slot != null) av[slot] = i;
   const o = { w: 200, h: 200, zoom: 0.95 };
   if (k === 'b') Object.assign(o, { dir: [0.75, 0.2, 1], sphere: [[0, 3.6, 0.3], 3.9] });
   else if (k === 'pet') Object.assign(o, { dir: [0.75, 0.25, -1], sphere: [[0, 1.0, 0], 1.6] });
   else if (k === 'bt') Object.assign(o, { dir: [0.4, 0.12, -1], sphere: [[0, 3.4, 0], 3.9] });
   else if (k === 'em') Object.assign(o, { dir: [0.45, 0.16, -1], sphere: [[0, 3.8, 0], (EMOTES[i].picR || 5.2)] });
+  else if (k === 'h') Object.assign(o, { dir: [0.7, 0.25, -1], sphere: [[0, 5.0, 0], 2.5] }); // (a hat: head and shoulders)
   else Object.assign(o, { dir: [0.6, 0.12, -1], sphere: [[0, 3.4, 0], 4.2] });
   return snapshot(`sp:${k}${i}:${av.join(',')}`, () => {
     if (k === 'pet') return petModel(i);
@@ -9904,7 +9970,7 @@ function spPic(k, i) {
 function spBanner() {
   const s = spState(), L = spLvl(), f = spProg().f;
   return `<div class="spban" role="button" tabindex="0" title="Open the Season Pass"><div class="spfx"><span class="sun"></span><i class="c1">🏛️</i><i class="c2">⚔️</i><i class="c3">🐉</i></div>
-    <div class="spt"><span class="tag">🏛️ Season 1 · Legends of Old</span><h2>The Season Pass is here!</h2><p>100 levels of gods, monsters, hoplites and knights: the Spartan, Myrmidon, Halberd Knight and giant Laestrygonian body packs, a cockatrice and a spinosaurus, 14 legendary emotes and more. Level up by playing any game and doing quests.</p></div>
+    <div class="spt"><span class="tag">🏛️ Season 1 · Legends of Old</span><h2>The Season Pass is here!</h2><p>100 levels of gods, monsters, hoplites and knights: the Spartan, Myrmidon, Halberd Knight and giant Laestrygonian body packs, a cockatrice and a spinosaurus, 14 legendary emotes and more — and 💎 Deluxe Plus: 60 more legendary items, from Mjölnir to the Kraken, and Premium Blox Coins, each level bought on its own. Level up by playing any game and doing quests.</p></div>
     <div class="spcdbox"><small>Level</small><b class="splv">${L}</b><div class="spbar"><i style="width:${(100 * f).toFixed(1)}%"></i></div><small>Ends in <span class="spcd">${spLeft()}</span></small><span class="go">${s.dx ? '👑 Deluxe · open' : 'Open the pass →'}</span></div></div>`;
 }
 // the pass: your level, the quests, and the two tracks of rewards
@@ -9917,34 +9983,38 @@ function spHtml(inGame) {
   const invHtml = `<div class="spinv"><h3>🎒 Your pass rewards</h3><div class="row">${bt('bx', '2× Blox Coins', '⚡', 'in every game, when you use one')}${bt('bp', '2× Pass XP', '📈', 'from everything, when you use one')}
     <div class="spb"><span class="ic">🔄</span><div><b>Quest rerolls</b><small>tap 🔄 on a quest to swap it</small></div><span class="use"><b class="cnt">${rr}</b></span></div>
     <div class="spb"><span class="ic">🎮</span><div><b>Game items</b><small>Skip Stage, Shields, Mulligans, Lucky Lures, coils… go straight into that game’s 🛒 Shop</small></div></div></div></div>`;
-  const big = (L0, tr) => R[L0][tr].some(([k]) => SP_COS.has(k));
+  const big = (L0, tr) => (R[L0][tr] || []).some(([k]) => SP_COS.has(k));
   const cell = (L0, tr) => {
-    const list = R[L0][tr], got = (tr === 'f' ? s.got : s.gotD).includes(L0), lock = tr === 'd' && !s.dx;
+    const list = R[L0][tr] || [], got = (tr === 'f' ? s.got : tr === 'd' ? s.gotD : s.gotP || []).includes(L0), lock = tr === 'd' ? !s.dx : tr === 'p' ? !got && L0 > L : false;
     if (!list.length) return `<div class="spc empty"></div>`;
     const [k, i] = list[0], cos = SP_COS.has(k), pic = cos ? spPic(k, i) : '';
     const nm = list.length > 1 ? 'The Laestrygonian bundle' : spNm(k, i), kind = list.length > 1 ? 'Body + weapon + animations' : spKind(k, i);
-    const tip = k === 'em' ? ' — ' + EMOTES[i].d : k === 'gi' ? ` (${spGi(i).E.name})${spGi(i).it.d ? ' — ' + spGi(i).it.d : ''}${spGi(i).pass ? ' — yours for good' : ''}` : k === 'bx' ? ' — double the Blox Coins you earn in every game while it’s on' : k === 'bp' ? ' — double the Season Pass XP you get while it’s on' : k === 'rr' ? ' — swap a quest for a different one' : '';
-    return `<div class="spc ${tr}${got ? ' got' : ''}${lock ? ' lock' : ''}${cos ? ' item' : ' use'}" title="${esc(nm + tip)}">${pic ? `<img src="${pic}" alt="">` : `<span class="big">${list.length > 1 ? '🗿' : spIc(k, i)}</span>`}
-      <b>${esc(nm)}</b><small>${esc(kind)}</small>${got ? '<span class="st">✓</span>' : lock ? '<span class="st">🔒</span>' : ''}${cos ? `<button class="sptry" data-sptry="${k}${i}" title="See it on you">👀</button>` : ''}</div>`;
+    const tip = k === 'em' ? ' — ' + EMOTES[i].d : k === 'pc' ? ' — Premium Blox Coins buy game passes and avatar items for a quarter of the price (not limiteds)' : k === 'gi' ? ` (${spGi(i).E.name})${spGi(i).it.d ? ' — ' + spGi(i).it.d : ''}${spGi(i).pass ? ' — yours for good' : ''}` : k === 'bx' ? ' — double the Blox Coins you earn in every game while it’s on' : k === 'bp' ? ' — double the Season Pass XP you get while it’s on' : k === 'rr' ? ' — swap a quest for a different one' : '';
+    const pp = tr === 'p' ? SPP_PRICE(L0) : 0, ask = SPS.ask === 'p' + L0, tipP = tr === 'p' ? ` — 💎 Deluxe Plus: ${got ? 'yours' : `buy it for ${pp} Blox Coins${lock ? ` once you reach level ${L0}` : ''}`}` : '';
+    const buy = tr !== 'p' || got ? '' : lock ? `<button class="spbuyp" disabled title="Reach level ${L0} to buy it">🔒 <span class="coin sm"></span> ${pp}</button>` : `<button class="spbuyp${ask ? ' ask' : ''}" data-spbuyp="${L0}" title="Buy this level's Deluxe Plus reward (Blox Coins only)">${ask ? (W.coins < pp ? `Need ${(pp - W.coins).toLocaleString('en-US')} more` : `Buy for ${pp}?`) : `<span class="coin sm"></span> ${pp}`}</button>`;
+    return `<div class="spc ${tr}${got ? ' got' : ''}${lock ? ' lock' : ''}${cos ? ' item' : ' use'}${k === 'pc' ? ' pcr' : ''}" title="${esc(nm + tip + tipP)}">${pic ? `<img src="${pic}" alt="">` : `<span class="big">${list.length > 1 ? '🗿' : spIc(k, i)}</span>`}
+      <b>${esc(nm)}</b><small>${esc(kind)}</small>${buy}${got ? '<span class="st">✓</span>' : lock ? '<span class="st">🔒</span>' : ''}${cos ? `<button class="sptry" data-sptry="${k}${i}" title="See it on you">👀</button>` : ''}</div>`;
   };
-  const cols = []; for (let L0 = 1; L0 <= SP.max; L0++) cols.push(`<div class="spcol${L0 === L ? ' cur' : ''}${L0 <= L ? ' done' : ''}${big(L0, 'f') || big(L0, 'd') ? ' wide' : ''}" data-l="${L0}"><span class="n" title="Level ${L0}${L0 > 1 ? `: ${SP_REQ[L0 - 1].toLocaleString('en-US')} XP from level ${L0 - 1} (${SP_CUM[L0].toLocaleString('en-US')} in all)` : ' — where everyone starts'}">${L0}</span><small class="nx">${L0 > 1 ? `${spK(SP_REQ[L0 - 1])} XP` : 'start'}</small>${cell(L0, 'f')}${cell(L0, 'd')}</div>`);
+  const cols = []; for (let L0 = 1; L0 <= SP.max; L0++) cols.push(`<div class="spcol${L0 === L ? ' cur' : ''}${L0 <= L ? ' done' : ''}${big(L0, 'f') || big(L0, 'd') || big(L0, 'p') ? ' wide' : ''}" data-l="${L0}"><span class="n" title="Level ${L0}${L0 > 1 ? `: ${SP_REQ[L0 - 1].toLocaleString('en-US')} XP from level ${L0 - 1} (${SP_CUM[L0].toLocaleString('en-US')} in all)` : ' — where everyone starts'}">${L0}</span><small class="nx">${L0 > 1 ? `${spK(SP_REQ[L0 - 1])} XP` : 'start'}</small>${cell(L0, 'f')}${cell(L0, 'd')}${cell(L0, 'p')}</div>`);
   const tomorrow = new Date(); tomorrow.setHours(24, 0, 0, 0); const nextHr = new Date(); nextHr.setMinutes(60, 0, 0); const nextWk = new Date(weekStr(Date.now()) + 'T00:00:00').getTime() + 7 * 864e5;
   return `<div class="sppage${inGame ? ' ingame' : ''}">
     <div class="sphero"><div class="spfx"><span class="sun"></span><i class="c1">🏛️</i><i class="c2">⚔️</i><i class="c3">🐉</i></div>
-      <div class="spt"><span class="tag">🏛️ Season 1</span><h2>Legends of Old</h2><p>Gods and monsters, hoplites and knights. Level up by playing any game (XP every 30 seconds), finishing stages, rounds, races and waves (10–30 XP each — more for harder ones), trying new games each day, earning achievements and doing hourly, daily and weekly quests. Rewards are yours the moment you reach them.</p></div>
+      <div class="spt"><span class="tag">🏛️ Season 1</span><h2>Legends of Old</h2><p>Gods and monsters, hoplites and knights. Level up by playing any game (XP every 30 seconds), finishing stages, rounds, races and waves (10–30 XP each — more for harder ones), trying new games each day, earning achievements and doing hourly, daily and weekly quests. Rewards are yours the moment you reach them. 💎 Deluxe Plus: every level has one more reward of its own — a legendary hat, back item, body pack, animation pack or emote, or Premium Blox Coins — that you buy on its own once you reach it.</p></div>
       <div class="spcdbox"><small>Level</small><b class="splv">${L}<span>/${SP.max}</span></b><div class="spbar"><i style="width:${(100 * f).toFixed(1)}%"></i></div><small>${L >= SP.max ? 'Max level!' : `${pr.in.toLocaleString('en-US')} / ${pr.need.toLocaleString('en-US')} XP to level ${L + 1}`} · ends in <span class="spcd">${spLeft()}</span></small>
-        ${s.dx ? '<span class="spdx on">👑 Deluxe</span>' : `<button class="spdx" data-spbuy="1">👑 Get Deluxe · <span class="coin sm"></span> ${SP.price.toLocaleString('en-US')}</button>`}</div></div>
+        ${s.dx ? '<span class="spdx on">👑 Deluxe</span>' : `<button class="spdx" data-spbuy="1">👑 Get Deluxe · <span class="coin sm"></span> ${SP.price.toLocaleString('en-US')}</button>`}
+        <small class="sppc" title="Premium Blox Coins, from the Deluxe Plus track: game passes and avatar items for a quarter of the price"><span class="pcoin sm"></span><b>${(W.pc | 0).toLocaleString('en-US')}</b> Premium · 💎 ${(s.gotP || []).length}/${SP.max} Deluxe Plus</small></div></div>
     <div class="spqs"><div class="sph"><h3>⏰ Hourly quests <small>new in ${Math.max(1, Math.ceil((nextHr.getTime() - Date.now()) / 6e4))} min</small></h3><div class="sphl">${Q.hl.map((q, j) => qrow(q, j, 'h')).join('')}</div></div><div><h3>📜 Daily quests <small>new in ${spLeft(tomorrow.getTime())}</small></h3>${Q.dl.map((q, j) => qrow(q, j, 'd')).join('')}</div><div><h3>🗓️ Weekly quests <small>new in ${spLeft(nextWk)}</small></h3>${Q.wl.map((q, j) => qrow(q, j, 'w')).join('')}</div></div>
     ${invHtml}
-    <h3 class="sptitle"><span>🎁 Rewards</span><span class="sptracks"><i class="f">Free</i><i class="d">👑 Deluxe</i></span><button class="spjump" data-spjump="1">Go to level ${L}</button></h3>
+    <h3 class="sptitle"><span>🎁 Rewards</span><span class="sptracks"><i class="f">Free</i><i class="d">👑 Deluxe</i><i class="p">💎 Deluxe Plus</i></span><button class="spjump" data-spjump="1">Go to level ${L}</button></h3>
     <div class="sptrack">${cols.join('')}</div>
-    <p class="note">🏛️ Avatar items and emotes from the pass are yours for good, but they can't be traded or refunded. Boosts wait here until you use them; game items go straight into that game’s 🛒 Shop (passes for good, the rest to use up). Each level takes more XP than the last — 300 for the first, rising to 15,000 for the last. Harder quests give more XP; finishing a stage, round, race or wave gives 10–30 XP straight away, more for harder ones. The Deluxe pass gives you its track's rewards for every level you've already reached, straight away. When the season ends, its rewards you don't have are no longer shown.</p></div>`;
+    <p class="note">🏛️ Avatar items and emotes from the pass are yours for good, but they can't be traded or refunded. Boosts wait here until you use them; game items go straight into that game’s 🛒 Shop (passes for good, the rest to use up). Each level takes more XP than the last — 300 for the first, rising to 15,000 for the last. Harder quests give more XP; finishing a stage, round, race or wave gives 10–30 XP straight away, more for harder ones. The Deluxe pass gives you its track's rewards for every level you've already reached, straight away. 💎 Deluxe Plus isn't one purchase: each level's reward is bought separately with Blox Coins once you reach that level — 15 for level 1, rising to 250 for level 100 — in any order. 60 levels give the 10 hats, 15 back items, 10 body packs, 5 animation packs and 20 emotes made for it; the other 40 give Premium Blox Coins, ${SPP_PC} in all. Premium Blox Coins buy game passes and avatar items for a quarter of the Blox Coin price (switch on 💎 Pay with Premium in the avatar editor or a game’s shop) — but not limiteds or Deluxe Plus levels, and what they buy can’t be refunded. When the season ends, its rewards you don't have are no longer shown.</p></div>`;
 }
 function spPage() { return `<div class="edetail still"><button class="back" id="backBtn">← All experiences</button>${spHtml(false)}</div>`; }
 function spClick(e) {
   const b = e.target.closest('button'); if (!b) return;
   if (b.dataset.spbuy) { const s = spState(); if (SPS.ask !== 'dx') { SPS.ask = 'dx'; b.innerHTML = W.coins < SP.price ? `Need ${(SP.price - W.coins).toLocaleString('en-US')} more` : 'Tap again to buy Deluxe'; sfx('click'); return; } SPS.ask = ''; if (spBuyDeluxe()) spRedraw(); return; }
   if (b.dataset.spuse) { spUse(b.dataset.spuse); return; }
+  if (b.dataset.spbuyp) { const L = +b.dataset.spbuyp, pp = SPP_PRICE(L); if (SPS.ask !== 'p' + L) { SPS.ask = 'p' + L; document.querySelectorAll('.spbuyp.ask').forEach((x) => { x.classList.remove('ask'); x.innerHTML = `<span class="coin sm"></span> ${SPP_PRICE(+x.dataset.spbuyp)}`; }); b.classList.add('ask'); b.innerHTML = W.coins < pp ? `Need ${(pp - W.coins).toLocaleString('en-US')} more` : `Buy for ${pp}?`; sfx('click'); return; } SPS.ask = ''; spBuyP(L); spRedraw(); return; } // (💎 a Deluxe Plus level: tap, then tap again to buy)
   if (b.dataset.sprr) { spReroll(b.dataset.sprr[0], +b.dataset.sprr.slice(1)); return; }
   if (b.dataset.spjump) { const c = document.querySelector(`.sptrack [data-l="${spLvl()}"]`); if (c) c.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }); return; }
   const m = /^([a-z]+)(\d+)$/.exec(b.dataset.sptry || ''); if (!m) return;
@@ -10485,12 +10555,12 @@ function goView(v) { if (ED.open) closeEditor(); Social.back = homeView === v ? 
 // your card on the home screen, and the chip at the top
 function drawMe() {
   const inc = Social.inc.size, onl = onlineFriends().length, conn = !!Net.lobby;
-  const sig = [Net.name, avArr().join(), axArr().join(), Market.items.size, W.coins, inc, onl, conn, Net.uid].join('|');
+  const sig = [Net.name, avArr().join(), axArr().join(), Market.items.size, W.coins, W.pc, inc, onl, conn, Net.uid].join('|');
   if (drawMe.sig === sig) return; drawMe.sig = sig;
   $('#meImg').src = avPic(avArr(), true, axArr()); $('#meNm').textContent = Net.name;
   $('#frN').hidden = !inc; $('#frN').textContent = inc;
   $('#meInfo').innerHTML = `<div class="mename"><b>${esc(Net.name)}</b>${conn ? `<small title="Your friend code: give it to a friend so they can add you">🔖 ${myCode()}</small>` : ''}</div>
-    <div class="coinbar"><span><span class="coin"></span><span id="homeCoins">${W.coins.toLocaleString('en-US')}</span></span><small>Blox Coins · earn them<br>in every experience</small></div>
+    <div class="coinbar"><span><span class="coin"></span><span id="homeCoins">${W.coins.toLocaleString('en-US')}</span></span><small>Blox Coins · earn them<br>in every experience</small></div>${W.pc > 0 || (W.sp && W.sp.gotP && W.sp.gotP.length) ? `<div class="coinbar pc"><span><span class="pcoin"></span><span id="homePc">${(W.pc | 0).toLocaleString('en-US')}</span></span><small>Premium Blox Coins · ¼ price<br>on passes and avatar items</small></div>` : ''}
     <div class="mebtns"><button class="xp-btn gold wide" data-me="edit">✏️ Edit Avatar</button><button class="xp-btn blue" data-me="me">👤 Profile</button><button class="xp-btn purple" data-me="friends">👥 Friends${inc ? `<span class="badge">${inc}</span>` : ''}</button><button class="xp-btn pink" data-me="shop">🛍️ Catalog</button><button class="xp-btn teal" data-me="inv">🎒 Inventory</button></div>
     ${onl ? `<div class="meon">🟢 ${onl} friend${onl === 1 ? '' : 's'} online</div>` : ''}`;
 }
@@ -10644,7 +10714,7 @@ function ownsX(id) {
 const REFUND = 0.65;
 function refundOf(key) { // (coins you'd get back; 0: it can't be refunded)
   const m = /^c:([a-z]+)(\d+)$/.exec(key);
-  if (m) { const C = COSMETICS[m[1]], p = C ? C.price[+m[2]] : 0; return C && W.own.has(m[1] + m[2]) && p > 0 && !isHw(m[1], +m[2]) ? Math.floor(p * REFUND) : 0; } // (not the Halloween exclusives)
+  if (m) { const C = COSMETICS[m[1]], p = C ? C.price[+m[2]] : 0; return C && W.own.has(m[1] + m[2]) && p > 0 && !isHw(m[1], +m[2]) && !W.pcb.has(m[1] + m[2]) ? Math.floor(p * REFUND) : 0; } // (not the Halloween exclusives, nor what Premium Blox Coins paid for)
   const id = key.slice(2), I = key.startsWith('x:') && xItem(id);
   return I && !I.lim && !Object.prototype.hasOwnProperty.call(W.made, id) && W.xown.includes(id) && I.price > 0 ? Math.floor(I.price * REFUND) : 0;
 }
