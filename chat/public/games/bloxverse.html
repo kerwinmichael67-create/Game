@@ -3285,11 +3285,103 @@ const salletGeo = () => kg('sallet', () => { const g = new THREE.SphereGeometry(
 // mouth, cheek guards flaring at the jaw) with a horsehair crest on a ridge; a muscled cuirass (sculpted chest and
 // stomach) with shoulder guards; a skirt of strips; a tunic in your shirt colour at the arms and hem; bronze bracers and
 // greaves over bare arms and legs; sandals; a short sword at the hip and the big round shield on the back
+// 🐜 Myrmidon, as Achilles' men would really have looked at Troy — a warrior of Mycenaean Greece, the late Bronze Age
+// (c. 1300–1200 BC), not a later hoplite: an open-faced boar's-tusk helmet (Homer describes one: rows of tusk plates on a
+// leather cap) with cheek guards and a horsehair plume; a bronze plate cuirass like the one found at Dendra — a high
+// collar, rounded shoulder guards, and hoops of bronze round the hips and thighs, flaring like a bell; a linen tunic,
+// bare arms, bronze greaves, leather boots; a Naue II sword at the hip; and on the back a great figure-of-eight shield of
+// dappled oxhide on a wicker frame
+const tuskTex = () => { const t = kCanvas('boarTusk', 256, 128, (g, r) => { g.fillStyle = '#3a2516'; g.fillRect(0, 0, 256, 128);
+  for (let row = 0; row < 4; row++) { const y0 = row * 32, dir = row % 2 ? 1 : -1; for (let k = 0; k < 9; k++) { const x0 = k * 28.5 + (row % 2 ? 14 : 0);
+    const gr = g.createLinearGradient(x0, y0, x0 + 26, y0 + 28); gr.addColorStop(0, '#fbf6e9'); gr.addColorStop(0.6, '#e8dcc0'); gr.addColorStop(1, '#bfae8a'); g.fillStyle = gr;
+    g.beginPath(); g.moveTo(x0 + 2, y0 + 26); g.quadraticCurveTo(x0 + 13 + dir * 6, y0 - 2, x0 + 26, y0 + 26); g.quadraticCurveTo(x0 + 13 + dir * 4, y0 + 10, x0 + 2, y0 + 26); g.fill(); g.strokeStyle = 'rgba(80,60,40,.5)'; g.lineWidth = 1; g.stroke(); }
+    g.fillStyle = '#24170d'; g.fillRect(0, y0 + 28, 256, 4); } }); t.repeat.set(5, 1); return t; };
+const hideTex = () => kCanvas('oxhide', 256, 256, (g, r) => { g.fillStyle = '#efe6d6'; g.fillRect(0, 0, 256, 256);
+  for (let k = 0; k < 16; k++) { const cx = r() * 256, cy = r() * 256, n = 9, rr = 14 + r() * 34; g.fillStyle = r() < 0.6 ? '#1c1714' : '#5a3a22'; g.beginPath(); for (let i = 0; i <= n; i++) { const an = (i / n) * Math.PI * 2, q = rr * (0.6 + r() * 0.6); g.lineTo(cx + Math.cos(an) * q, cy + Math.sin(an) * q * 0.8); } g.fill(); }
+  for (let k = 0; k < 900; k++) { g.strokeStyle = `rgba(${r() < 0.5 ? '255,255,255' : '60,40,30'},${0.05 + r() * 0.07})`; g.lineWidth = 1; g.beginPath(); const x = r() * 256, y = r() * 256; g.moveTo(x, y); g.lineTo(x + 2, y + 5); g.stroke(); } }); // (dappled hide, the hair lying one way)
+// the figure-of-eight shield: two lobes and a pinched waist, strongly domed, a ridge down the middle, the hide bound with
+// leather round its edge. Its group faces -z (on your arm); turn it round for your back
+function fig8Shield() {
+  const g = new THREE.Group();
+  const geo = kg('fig8', () => { const lobe = (y, c, R) => (Math.abs(y - c) < R ? Math.sqrt(R * R - (y - c) * (y - c)) : 0), w = (y) => Math.max(lobe(y, 0.6, 0.66), lobe(y, -0.62, 0.74)), pts = [];
+    for (let i = 0; i <= 40; i++) { const y = -1.36 + (i / 40) * 2.62; pts.push(new THREE.Vector2(w(y) + 0.001, y)); } for (let i = 40; i >= 0; i--) { const y = -1.36 + (i / 40) * 2.62; pts.push(new THREE.Vector2(-w(y) - 0.001, y)); }
+    const q = new THREE.ExtrudeGeometry(new THREE.Shape(pts), { depth: 0.06, bevelEnabled: true, bevelThickness: 0.04, bevelSize: 0.05, bevelSegments: 2, curveSegments: 8 }), p = q.attributes.position, uv = q.attributes.uv;
+    for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i); p.setZ(i, p.getZ(i) - 0.42 * (1 - Math.min(1, (x / 0.74) * (x / 0.74))) - 0.06 * (1 - Math.min(1, (y / 1.3) * (y / 1.3)))); uv.setXY(i, 0.5 + x / 1.6, 0.5 + y / 2.8); }
+    q.computeVertexNormals(); return q; });
+  const s = new THREE.Mesh(geo, [new THREE.MeshLambertMaterial({ map: hideTex(), side: THREE.DoubleSide }), new THREE.MeshLambertMaterial({ color: '#4a2e18' })]); g.add(s);
+  const ridge = new THREE.Mesh(kCyl(), new THREE.MeshLambertMaterial({ color: '#d9cdb8' })); ridge.scale.set(0.05, 2.4, 0.05); ridge.position.set(0, -0.06, -0.47); g.add(ridge);
+  return g;
+}
+function myrmidonKit(K) {
+  const { mesh, mats, grp, skin } = K;
+  const bz = metalMat('#d9a85c', { map: bronzeTex(false), shininess: 90, reflectivity: 0.5 }), linen = new THREE.MeshLambertMaterial({ color: '#efe6d2', map: plushTex() }), leather = new THREE.MeshLambertMaterial({ color: '#5b3a22' });
+  const tusk = new THREE.MeshLambertMaterial({ map: tuskTex() }), cap = new THREE.MeshLambertMaterial({ color: '#3a2516' }), hair = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide }), beard = new THREE.MeshLambertMaterial({ color: '#3b2416' });
+  mats.push(bz, linen, leather, tusk, cap, hair, beard);
+  const P = (geo, m, x, y, z, par, sx = 1, sy = sx, sz = sx) => { const o = mesh(kLod(geo, Math.max(sx, sy, sz)), m, x, y, z, par); o.scale.set(sx, sy, sz); return o; };
+  const R = (w, h, d, r, m, x, y, z, par) => mesh(rboxGeo(w, h, d, r), m, x, y, z, par);
+  let plumeG = null;
+  return {
+    leg(x) {
+      const hip = grp(K.body, x, 2), kn = grp(hip, 0, -1.0, 1);
+      R(0.92, 1.0, 0.92, 0.32, skin, 0, -0.52, 0, hip); R(0.98, 0.34, 0.98, 0.14, linen, 0, -0.08, 0, hip); // (the thigh; the tunic's hem)
+      R(0.78, 0.4, 0.78, 0.26, skin, 0, -0.12, 0, kn);
+      mesh(kLathe('myrGreave', [[0, -0.74], [0.32, -0.74], [0.36, -0.62], [0.44, -0.42], [0.46, -0.26], [0.42, -0.14], [0.36, -0.08], [0, -0.08]], 24), bz, 0, 0, -0.02, kn).scale.set(1, 1, 0.92); // (a bronze greave, laced at the back)
+      for (const y of [-0.62, -0.38, -0.16]) P(kCyl(), leather, 0, y, 0.36, kn, 0.05, 0.03, 0.05);
+      R(0.82, 0.26, 1.06, 0.1, leather, 0, -0.86, -0.1, kn); R(0.78, 0.18, 0.86, 0.08, leather, 0, -0.72, 0.0, kn); P(kTor(0.25), leather, 0, -0.66, 0, kn, 0.4, 0.4, 0.34).rotation.x = Math.PI / 2; // (a soft leather boot)
+      return [hip, kn];
+    },
+    lower() {
+      R(1.96, 0.8, 0.96, 0.3, linen, 0, 2.42, 0);
+      // the hoops of bronze below the cuirass, each wider than the one above, flaring like a bell over the hips and thighs
+      for (let k = 0; k < 3; k++) { const o = mesh(kg('dendraHoop', () => new THREE.CylinderGeometry(1, 1.1, 1, 32, 1, true)), bz, 0, 2.62 - k * 0.3, 0); o.scale.set(1.12 + k * 0.1, 0.36, 0.62 + k * 0.07); o.material.side = THREE.DoubleSide;
+        const r = mesh(kTor(0.05), bz, 0, 2.44 - k * 0.3, 0); r.rotation.x = Math.PI / 2; r.scale.set(1.23 + k * 0.11, 0.69 + k * 0.077, 0.7); }
+      // a long bronze sword (Naue II: a leaf-shaped blade, a flanged hilt) on a baldric at the left hip, in a wooden scabbard
+      const sw = grp(K.body, -1.18, 2.6); sw.position.z = 0.15; sw.rotation.set(-0.35, 0, -0.12);
+      P(kLathe('naueS', [[0, -1.35], [0.06, -1.3], [0.13, -0.9], [0.1, -0.45], [0.12, 0.0], [0, 0.04]], 12), new THREE.MeshLambertMaterial({ color: '#7a5532', map: woodTex() }), 0, 0, 0, sw, 0.5, 1, 1);
+      R(0.36, 0.08, 0.14, 0.03, bz, 0, 0.08, 0, sw); P(kCyl(), bz, 0, 0.3, 0, sw, 0.06, 0.4, 0.06); P(kSph(), bz, 0, 0.53, 0, sw, 0.1, 0.07, 0.1);
+    },
+    upper() {
+      R(2.04, 1.22, 1.06, 0.36, bz, 0, 3.44, 0); // (breast- and backplate, smooth bronze)
+      R(2.08, 0.1, 1.1, 0.05, bz, 0, 2.86, 0);
+      mesh(kLathe('dendraCollar', [[0.86, 0], [0.8, 0.18], [0.74, 0.36], [0.72, 0.44]], 28), bz, 0, 3.98, 0).scale.set(1.02, 1, 0.84); // (the high collar)
+      for (const sx of [-1, 1]) { const d = P(kDome(), bz, sx * 1.0, 3.96, 0, K.body, 0.72, 0.42, 0.66); d.rotation.z = -sx * 0.35; } // (the rounded shoulder guards)
+      const sh = fig8Shield(); sh.rotation.y = Math.PI; sh.position.set(0, 2.95, 1.1); K.body.add(sh); sh.userData.backShield = 1; sh.scale.setScalar(1.18); // (the great shield on the back)
+    },
+    arm(s) {
+      const sh = grp(K.body, s * 1.5, 4), el = grp(sh, 0, -0.98, 1);
+      R(0.9, 0.96, 0.9, 0.32, skin, 0, -0.52, 0, sh); R(1.0, 0.36, 1.0, 0.2, linen, 0, -0.1, 0, sh); // (a bare arm; the tunic's short sleeve)
+      R(0.84, 0.86, 0.84, 0.3, skin, 0, -0.42, 0, el);
+      return [sh, el];
+    },
+    head(h) {
+      // the boar's-tusk helmet: a domed cap covered in rows of tusk plates (each row facing the other way), a bronze knob
+      // on top with a horsehair plume, cheek guards; open-faced — your face shows. A beard
+      mesh(kLathe('tuskCap', [[0.76, 0.3], [0.75, 0.46], [0.68, 0.68], [0.55, 0.88], [0.34, 1.04], [0.12, 1.12], [0, 1.14]], 30), tusk, 0, 0, 0, h);
+      const rim = mesh(kTor(0.08), cap, 0, 0.3, 0, h); rim.rotation.x = Math.PI / 2; rim.scale.set(0.76, 0.76, 0.7);
+      for (const s2 of [-1, 1]) { const c = R(0.1, 0.62, 0.56, 0.05, tusk, s2 * 0.74, 0.0, -0.08, h); c.rotation.z = s2 * 0.08; } // (the cheek guards)
+      R(1.2, 0.36, 0.1, 0.05, tusk, 0, 0.08, 0.7, h); // (the neck guard)
+      P(kSph(), bz, 0, 1.18, 0, h, 0.12, 0.1, 0.12); P(kCyl(), bz, 0, 1.3, 0, h, 0.05, 0.16, 0.05);
+      // the plume: a horsetail springing up from the knob and falling back over the helmet
+      plumeG = grp(h, 0, 1.44); mesh(kg('myrTail', () => { const r = mulberry(77), L = [], C = ['#1c1714', '#3b2416', '#2a1d14', '#4a3020'];
+        for (let k = 0; k < 90; k++) { const a = r() * Math.PI * 2, q = r() * 0.07, dx = Math.cos(a) * q, dz = Math.sin(a) * q, s = (r() - 0.5) * 0.5, up = 0.32 + r() * 0.12, p0 = [dx, 0, dz], p1 = [dx * 2 + s * 0.3, up, dz * 2 + 0.12], p2 = [s * 0.7, up * 0.6, 0.5 + r() * 0.12], p3 = [s * 1.1, -0.15 - r() * 0.35, 0.82 + r() * 0.15];
+          L.push([p0, p1, 0.035, C[k % 4]], [p1, p2, 0.032, C[k % 4]], [p2, p3, 0.028, C[(k + 1) % 4]]); }
+        return strandsGeo(L); }), hair, 0, 0, 0, plumeG);
+      // a full beard round the jaw: a dark mass, combed in strands
+      const bd = P(kSph(), beard, 0, -0.56, -0.5, h, 0.56, 0.24, 0.26); bd.rotation.x = 0.15;
+      mesh(kg('myrBeard', () => { const r = mulberry(91), L = [], C = ['#2a1a10', '#3b2416', '#4a2e1c'];
+        for (let k = 0; k < 240; k++) { const a = (r() - 0.5) * 2.4, side = Math.max(0, Math.abs(a) - 0.55), y0 = -0.34 - r() * 0.14 + side * 0.4, rr = 0.67, x0 = rr * Math.sin(a), z0 = -rr * Math.cos(a), len = 0.2 + r() * 0.12 + side * 0.1;
+          L.push([[x0, y0, z0], [x0 * 0.8, y0 - len, z0 * 1.12 - 0.04], 0.045, C[k % 3]]); } // (from the sideburns down to the chin)
+        return strandsGeo(L); }), hair, 0, 0, 0, h);
+      return false;
+    },
+    tick(a, dt) { a.kitT = (a.kitT || 0) + dt; const t = a.kitT, run = Math.min(1, kitMove(a, dt)[0] / 14); if (plumeG) { plumeG.rotation.x = 0.05 * Math.sin(t * 2.1) - 0.3 * run; plumeG.rotation.z = 0.04 * Math.sin(t * 1.7); } },
+  };
+}
 function hopliteKit(K, myr) {
   const { mesh, mats, av, grp, skin } = K;
   const T = { value: 0 }, A = { value: 0.04 }, S = { value: 0 };
   const bz = metalMat(myr ? '#4a3b2c' : '#e9c27a', { map: bronzeTex(myr), shininess: myr ? 90 : 120, reflectivity: myr ? 0.5 : 0.7 }), gold = metalMat(myr ? '#d4a52b' : '#f5d27a', { specular: '#ffe9a8', shininess: 120 });
-  const tunic = new THREE.MeshLambertMaterial({ color: SHIRTS[av[1]], map: plushTex() }), leather = new THREE.MeshLambertMaterial({ color: myr ? '#1f1712' : '#6b4423' });
+  const tunic = new THREE.MeshLambertMaterial({ color: '#9b1c2c', map: plushTex() }), leather = new THREE.MeshLambertMaterial({ color: myr ? '#1f1712' : '#6b4423' }), hairM = new THREE.MeshLambertMaterial({ color: '#2e1d12' });
   const scales = new THREE.MeshPhongMaterial({ map: scaleTex(), shininess: 60, specular: '#8a6a3a' }), strip = new THREE.MeshLambertMaterial({ map: ptergTex(myr), side: THREE.DoubleSide });
   const shield = metalMat('#ffffff', { map: aspisTex(myr), shininess: 110, reflectivity: 0.45 }), crest = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide });
   const capeC = myr ? '#141012' : '#9f1239', cape = kitCloth(new THREE.MeshLambertMaterial({ color: capeC, map: plushTex(), side: THREE.FrontSide }), T, A, S, 1, 'hopcape'), lining = kitCloth(new THREE.MeshLambertMaterial({ color: myr ? '#7f1d1d' : '#7f1028', side: THREE.BackSide }), T, A, S, 1, 'hopcape');
@@ -3304,10 +3396,7 @@ function hopliteKit(K, myr) {
       R(0.92, 1.0, 0.92, 0.32, skin, 0, -0.52, 0, hip); R(0.98, 0.3, 0.98, 0.14, tunic, 0, -0.06, 0, hip); // (the thigh; the tunic's hem)
       R(0.78, 0.4, 0.78, 0.26, skin, 0, -0.12, 0, kn); // (the knee)
       mesh(kLathe('greave', [[0, -0.86], [0.3, -0.86], [0.34, -0.74], [0.43, -0.5], [0.46, -0.3], [0.42, -0.16], [0.38, -0.1], [0, -0.1]], 26), bz, 0, 0, -0.02, kn).scale.set(1, 1, 0.92);
-      P(kTor(0.2), gold, 0, -0.3, -0.02, kn, 0.45, 0.45, 0.41).rotation.x = Math.PI / 2; // (the greave's ridge)
-      R(0.74, 0.12, 1.12, 0.05, leather, 0, -0.95, -0.12, kn); R(0.66, 0.16, 0.5, 0.12, skin, 0, -0.84, -0.36, kn); // (the sandal's sole; the toes)
-      for (const z of [-0.5, -0.2, 0.1]) R(0.76, 0.05, 0.12, 0.02, leather, 0, -0.84 + (z > 0 ? 0.04 : 0), z, kn); // (its straps)
-      for (const y of [-0.62, -0.5]) P(kTor(0.08), leather, 0, y, -0.02, kn, 0.4, 0.4, 0.37).rotation.x = Math.PI / 2;
+      R(0.7, 0.2, 1.02, 0.09, skin, 0, -0.9, -0.12, kn); for (let k = 0; k < 5; k++) P(kSph(), skin, -0.24 + k * 0.12, -0.92, -0.6, kn, 0.065, 0.06, 0.07); // (bare feet: Spartans fought barefoot)
       return [hip, kn];
     },
     lower() {
@@ -3325,7 +3414,7 @@ function hopliteKit(K, myr) {
       for (const sx of [-1, 1]) { P(kSph(), bz, sx * 0.43, 3.74, -0.38, K.body, 0.52, 0.32, 0.2); P(kSph(), bz, sx * 0.43, 3.74, 0.38, K.body, 0.55, 0.36, 0.16); for (const y of [3.36, 3.14, 2.94]) P(kSph(), bz, sx * 0.2, y, -0.44, K.body, 0.19, 0.11, 0.08); }
       P(kTor(0.06), gold, 0, 4.0, 0, K.body, 0.62, 0.62, 0.5).rotation.x = Math.PI / 2; R(2.06, 0.1, 1.06, 0.05, gold, 0, 2.86, 0);
       if (myr) { const d = mesh(KIT_PLANE, new THREE.MeshBasicMaterial({ map: aspisTex(true), transparent: true }), 0, 3.42, -0.53); d.scale.setScalar(0.5); d.rotation.y = Math.PI; } // (the ant, small, on the chest)
-      for (const sx of [-1, 1]) { const g = grp(K.body, sx * 0.72, 4.12); g.rotation.z = -sx * 0.2; R(0.74, 0.12, 1.0, 0.05, bz, 0, 0, 0, g); P(kCyl(), gold, 0, 0.07, -0.3, g, 0.1, 0.03, 0.1); } // (shoulder guards, each with a gold stud)
+      for (const sx of [-1, 1]) R(0.62, 0.26, 0.98, 0.12, tunic, sx * 0.72, 4.06, 0); // (the tunic at the shoulders, under the cuirass)
       // the cloak, clasped at the shoulders, falling and moving behind
       const cg = kg('hopcape', () => { const W = 2.2, H = 3.2, c = new THREE.PlaneGeometry(W, H, 14, 18); c.translate(0, -H / 2, 0); const p = c.attributes.position;
         for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i), t = Math.max(0, -y / H); p.setXYZ(i, x * (1 + 0.3 * t), y + (t > 0.9 ? 0.06 * Math.sin(x * 23) * (t - 0.9) * 10 : 0), 0.6 * Math.pow(t, 1.5) + 0.07 * Math.sin(x * 6.5) * (0.2 + t) - 0.18 * Math.pow(x / (W / 2), 2) * (1 - t)); }
@@ -3339,8 +3428,7 @@ function hopliteKit(K, myr) {
       const sh = grp(K.body, s * 1.5, 4), el = grp(sh, 0, -0.98, 1);
       R(0.9, 0.96, 0.9, 0.32, skin, 0, -0.52, 0, sh); R(1.0, 0.42, 1.0, 0.2, tunic, 0, -0.12, 0, sh); // (the arm; the tunic's sleeve)
       R(0.84, 0.86, 0.84, 0.3, skin, 0, -0.42, 0, el);
-      mesh(kLathe('bracer', [[0, -0.72], [0.38, -0.72], [0.42, -0.6], [0.47, -0.3], [0.45, -0.18], [0, -0.18]], 22), bz, 0, 0, 0, el);
-      for (const y of [-0.66, -0.24]) P(kTor(0.1), gold, 0, y, 0, el, 0.44).rotation.x = Math.PI / 2;
+
       return [sh, el];
     },
     head(h) {
@@ -3349,9 +3437,10 @@ function hopliteKit(K, myr) {
       // and the gap down to the jaw, widening between the cheek guards
       for (const s of [-1, 1]) { const x = s * 0.25, r = 0.7, z = -Math.sqrt(r * r - x * x), ry = -Math.asin(x / r);
         const e = mesh(kSph(), voidM, x, 0.06, z - 0.004, h); e.scale.set(0.22, 0.085, 0.03); e.rotation.set(0, ry, -s * 0.2);
-        const g = new THREE.Mesh(KIT_SPH, eyeM); g.position.set(x * 0.98, 0.065, z - 0.03); g.scale.set(0.04, 0.026, 0.02); h.add(g); eyes.push(g);
+
         const br = mesh(kTor(0.12, Math.PI * 0.75), bz, x, 0.08, z - 0.02, h); br.scale.set(0.24, 0.13, 0.24); br.rotation.set(0, ry, Math.PI * 0.125); }
-      const gap = mesh(kTri(), voidM, 0, -0.42, -0.705, h); gap.scale.set(0.2, 0.46, 0.02); gap.rotation.x = 0.05;
+      const gap = mesh(kTri(), myr ? voidM : hairM, 0, -0.42, -0.705, h); gap.scale.set(0.2, 0.46, 0.02); gap.rotation.x = 0.05; // (a beard showing between the cheek pieces)
+      if (!myr) { const B = kitBuild(); for (let k = 0; k < 7; k++) { const x = (k - 3) * 0.18; B.add(kSph(), x, -0.85 - (k % 2) * 0.12, 0.42 + Math.abs(x) * 0.12, 0.1, 0.42, 0.09, 0.15, 0, x * 0.3); } mesh(B.geo(), hairM, 0, 0, 0, h); } // (long hair, in locks down the back of the neck, as Spartans wore it)
       R(0.12, 0.44, 0.08, 0.03, bz, 0, -0.04, -0.71, h); // (the nose guard)
       for (const s of [-1, 1]) P(kSph(), gold, s * 0.71, 0.1, 0.05, h, 0.06); // (rivets)
       // the crest: a ridge along the top, a fan of horsehair on it
@@ -3367,62 +3456,72 @@ function hopliteKit(K, myr) {
     },
   };
 }
-BODY_KITS.push((K) => hopliteKit(K, true), (K) => hopliteKit(K, false),
-// 🪓 Halberd Knight: late gothic plate, blued almost black and edged in gold. A sallet sweeping back into a long tail
-// with a slit to see through and a red plume, a bevor over the chin; a breastplate with flutes fanning across it; a
-// skirt of mail under the faulds; puffed and slashed sleeves in your shirt colour (gold silk through the slashes) at
-// the shoulders; couters and poleyns with fans; jointed gauntlets; sabatons; a rondel dagger at the belt
+BODY_KITS.push((K) => myrmidonKit(K), (K) => hopliteKit(K, false),
+// 🪓 Halberd Knight — dressed as halberdiers really were, around 1510 (the Landsknechts and Swiss of the Italian Wars):
+// half armour over bright clothes. An open kettle hat (a round skull with a comb and a broad, down-turned brim) with
+// ostrich plumes tucked in it, your face showing under it; a steel gorget with plates over the shoulders; a fluted
+// breastplate in bright steel ("white harness") with two tassets hanging over the thighs and a skirt of mail under them;
+// huge puffed and slashed sleeves and breeches in your colours, the cloth slashed to show a lining of another colour,
+// one leg different from the other; gartered hose and broad "cow-mouth" shoes; leather gloves; a Katzbalger — a short,
+// broad sword with an S-shaped guard — at the hip
 (K) => {
-  const { mesh, mats, av, grp } = K;
-  const st = metalMat('#36404f', { shininess: 140, reflectivity: 0.8, specular: '#cfe0ff' }), gold = metalMat('#d9ad34', { specular: '#ffe08a', shininess: 120 }), G = knGeo();
-  const mail = new THREE.MeshPhongMaterial({ map: mailTex(), shininess: 70, specular: '#cbd5e1', side: THREE.DoubleSide }), puff = new THREE.MeshLambertMaterial({ map: slashTex(SHIRTS[av[1]]) }), leather = new THREE.MeshLambertMaterial({ color: '#3b2414' });
-  const slit = new THREE.MeshBasicMaterial({ color: '#05070b' }), plume = new THREE.MeshPhongMaterial({ color: '#b91c1c', shininess: 30, specular: '#555555' });
-  mats.push(st, gold, mail, puff, leather, plume);
+  const { mesh, mats, av, grp, skin } = K;
+  const st = metalMat('#d5dade', { shininess: 120, reflectivity: 0.7, specular: '#ffffff' }), brass = metalMat('#c9962f', { specular: '#ffe08a' }), G = knGeo();
+  const mail = new THREE.MeshPhongMaterial({ map: mailTex(), shininess: 70, specular: '#cbd5e1', side: THREE.DoubleSide }), leather = new THREE.MeshLambertMaterial({ color: '#4a2e18' }), shoe = new THREE.MeshLambertMaterial({ color: '#1f1712' });
+  const c1 = SHIRTS[av[1]], c2 = PANTS[av[2]], alt = '#f5f0e1';
+  const sleeve = new THREE.MeshLambertMaterial({ map: slashTex(c1) }), legA = new THREE.MeshLambertMaterial({ map: slashTex(c2) }), legB = new THREE.MeshLambertMaterial({ map: slashTex(alt) });
+  const hoseA = new THREE.MeshLambertMaterial({ color: c2 }), hoseB = new THREE.MeshLambertMaterial({ color: alt }), garter = new THREE.MeshLambertMaterial({ color: c1 });
+  const featherR = new THREE.MeshLambertMaterial({ color: '#b91c1c', side: THREE.DoubleSide }), featherW = new THREE.MeshLambertMaterial({ color: '#f8fafc', side: THREE.DoubleSide });
+  mats.push(st, brass, mail, leather, shoe, sleeve, legA, legB, hoseA, hoseB, garter, featherR, featherW);
   const P = (geo, m, x, y, z, par, sx = 1, sy = sx, sz = sx) => { const o = mesh(kLod(geo, Math.max(sx, sy, sz)), m, x, y, z, par); o.scale.set(sx, sy, sz); return o; };
   const R = (w, h, d, r, m, x, y, z, par) => mesh(rboxGeo(w, h, d, r), m, x, y, z, par);
-  const ring = (m, r, t, y, par, sz = 1) => P(kTor(t), m, 0, y, 0, par, r, r * sz, r).rotation.x = Math.PI / 2;
   let plumeG = null;
   return {
     leg(x) {
-      const hip = grp(K.body, x, 2), kn = grp(hip, 0, -1.0, 1), s = Math.sign(x);
-      mesh(G.cuisse, st, 0, -0.5, 0, hip); ring(gold, 0.46, 0.08, -0.88, hip); for (const y of [-0.3, -0.6]) ring(st, 0.5, 0.05, y, hip);
-      mesh(G['pol' + s], st, 0, 0, 0, kn); P(kSph(), gold, 0, -0.02, -0.49, kn, 0.06); mesh(G.greave, st, 0, 0, 0, kn); mesh(G['sab' + s], st, 0, 0, 0, kn);
-      for (let k = 0; k < 3; k++) R(0.06, 0.5, 0.04, 0.02, gold, (k - 1) * 0.16, -0.48, -0.44, kn); // (gold lines down the greave)
+      const hip = grp(K.body, x, 2), kn = grp(hip, 0, -1.0, 1), s = Math.sign(x), A = s < 0; // (the left leg in your colour, the right in the other: mi-parti)
+      P(kSph(), A ? legA : legB, 0, -0.42, 0, hip, 0.62, 0.62, 0.6); P(kSph(), A ? legA : legB, 0, -0.82, 0, hip, 0.54, 0.34, 0.54); // (puffed, slashed breeches)
+      R(0.78, 0.5, 0.78, 0.24, A ? hoseA : hoseB, 0, -0.2, 0, kn); for (const s2 of [-1, 1]) { const b = P(kSph(), garter, s2 * 0.3, -0.02, -0.38, kn, 0.14, 0.1, 0.06); b.rotation.z = s2 * 0.5; } P(kTor(0.18), garter, 0, -0.02, 0, kn, 0.42, 0.42, 0.36).rotation.x = Math.PI / 2; // (hose; a garter tied in a bow under the knee)
+      R(0.74, 0.5, 0.74, 0.22, A ? hoseA : hoseB, 0, -0.56, 0, kn);
+      R(0.96, 0.24, 1.12, 0.12, shoe, 0, -0.9, -0.12, kn); R(1.02, 0.16, 0.42, 0.08, shoe, 0, -0.92, -0.56, kn); // (a broad, square-toed "cow-mouth" shoe)
       return [hip, kn];
     },
     lower() {
-      mesh(kLathe('mailskirt', [[0.98, -0.62], [1.0, -0.3], [0.98, 0.0]], 30), mail, 0, 2.5, 0).scale.set(1.04, 1, 0.58); // (a skirt of mail)
-      R(1.96, 0.76, 0.98, 0.3, st, 0, 2.48, 0); for (const [y, k] of [[2.64, 1.0], [2.48, 1.03], [2.32, 1.06]]) { P(G.lame, st, 0, y, 0, K.body, 1.42 * k, 1, 0.74 * k); ring(gold, 1.0 * k, 0.025, y - 0.08, K.body, 0.54); }
-      R(2.08, 0.14, 1.08, 0.06, leather, 0, 2.78, 0); R(0.32, 0.22, 0.06, 0.04, gold, 0, 2.78, -0.56);
-      const dg = grp(K.body, 0.9, 2.62); dg.position.z = -0.3; dg.rotation.set(0.2, 0, 0.15); // (a rondel dagger: two discs, a grip, a thin blade in its sheath)
-      P(kLathe('rondS', [[0, -0.9], [0.06, -0.85], [0.08, -0.4], [0.09, 0], [0, 0.02]], 10), leather, 0, 0, 0, dg); for (const y of [0.05, 0.4]) { P(kCyl(), gold, 0, y, 0, dg, 0.14, 0.03, 0.14); } P(kCyl(), leather, 0, 0.22, 0, dg, 0.04, 0.34, 0.04);
+      R(1.96, 0.76, 0.98, 0.3, legA, 0, 2.48, 0);
+      mesh(kLathe('halMail', [[0.98, -0.5], [1.0, -0.25], [0.98, 0.0]], 30), mail, 0, 2.42, 0).scale.set(1.04, 1, 0.58); // (a skirt of mail)
+      for (const sx of [-1, 1]) { const t = grp(K.body, sx * 0.5, 2.64); t.position.z = -0.46; t.rotation.set(0.14, 0, -sx * 0.06); for (let k = 0; k < 3; k++) R(0.86 - k * 0.04, 0.26, 0.1, 0.05, st, 0, -0.12 - k * 0.2, -k * 0.02, t); P(kSph(), brass, 0, -0.03, -0.07, t, 0.05); } // (two tassets, each of three plates)
+      R(2.06, 0.12, 1.06, 0.05, leather, 0, 2.78, 0); R(0.24, 0.2, 0.06, 0.03, brass, 0, 2.78, -0.55);
+      // a Katzbalger at the left hip: a short broad blade in a leather scabbard, an S-shaped guard, a fanned pommel
+      const sw = grp(K.body, -1.12, 2.62); sw.position.z = 0.0; sw.rotation.set(-0.5, 0, -0.18);
+      P(kLathe('katzS', [[0, -1.0], [0.08, -0.95], [0.14, -0.6], [0.14, 0.0], [0, 0.03]], 12), leather, 0, 0, 0, sw, 0.5, 1, 1);
+      for (const s2 of [-1, 1]) { const q = mesh(kTor(0.22, Math.PI), st, s2 * 0.13, 0.08 + s2 * 0.04, 0, sw); q.scale.setScalar(0.13); q.rotation.z = s2 > 0 ? 0 : Math.PI; } // (the S of the guard)
+      P(kCyl(), leather, 0, 0.3, 0, sw, 0.05, 0.38, 0.05); const pm = P(kCone(), st, 0, 0.55, 0, sw, 0.12, 0.14, 0.06); pm.rotation.x = Math.PI;
     },
     upper() {
       R(2.0, 1.2, 1.02, 0.3, st, 0, 3.44, 0);
-      // the flutes: ridges fanning out across the breastplate, and down the back
-      for (let k = -4; k <= 4; k++) { const f = mesh(kLod(kSph(), 0), st, k * 0.17, 3.42, -0.5, K.body); f.scale.set(0.035, 0.5, 0.05); f.rotation.z = k * 0.16; const b = mesh(kLod(kSph(), 0), st, k * 0.19, 3.42, 0.5, K.body); b.scale.set(0.035, 0.45, 0.04); b.rotation.z = -k * 0.1; }
-      R(2.04, 0.08, 1.06, 0.04, gold, 0, 2.86, 0); R(0.5, 0.08, 0.06, 0.03, gold, 0, 3.92, -0.52); P(kSph(), gold, 0, 3.42, -0.55, K.body, 0.08);
-      P(G.gorget, st, 0, 3.98, 0, K.body, 1, 1, 0.82); ring(gold, 0.79, 0.045, 4.01, K.body, 0.82);
+      for (let k = -4; k <= 4; k++) { const f = mesh(kLod(kSph(), 0), st, k * 0.17, 3.42, -0.5, K.body); f.scale.set(0.035, 0.5, 0.05); f.rotation.z = k * 0.16; } // (the flutes fanning across the breastplate)
+      R(2.04, 0.08, 1.06, 0.04, st, 0, 2.86, 0); R(1.2, 0.08, 0.08, 0.03, st, 0, 3.96, -0.52);
+      for (const sx of [-1, 1]) for (const z of [-0.45, 0.45]) P(kSph(), brass, sx * 0.85, 3.9, z, K.body, 0.05);
+      P(G.gorget, st, 0, 3.98, 0, K.body, 1, 1, 0.82); // (the gorget)
     },
     arm(s) {
       const sh = grp(K.body, s * 1.5, 4), el = grp(sh, 0, -0.98, 1);
-      const pg = grp(sh, s * 0.1, 0.12); pg.rotation.z = -s * 0.3; mesh(G.paul, st, 0, 0, 0, pg); ring(gold, 0.69, 0.05, 0, pg, 0.94); for (let k = 0; k < 5; k++) { const f = mesh(kLod(kSph(), 0), st, s * 0.12 * (k - 2) * 0.5, 0.25, (k - 2) * 0.16, pg); f.scale.set(0.04, 0.2, 0.06); } // (fluted, like the breastplate)
-      P(kSph(), puff, 0, -0.42, 0, sh, 0.56, 0.42, 0.56); // (the puffed sleeve)
-      mesh(G.rere, st, 0, -0.66, 0, sh); mesh(G['cou' + s], st, 0, 0, 0, el); P(kSph(), gold, s * 0.36, 0, 0.02, el, 0.05);
-      mesh(G.vamb, st, 0, 0, 0, el); mesh(G.cuff, st, 0, 0, 0, el); ring(gold, 0.42, 0.06, -0.55, el); mesh(G['hand' + s], st, 0, 0, 0, el);
+      const pg = grp(sh, s * 0.08, 0.1); pg.rotation.z = -s * 0.42; for (let k = 0; k < 4; k++) { P(kDome(), st, s * 0.07 * k, 0.12 - k * 0.15, 0, pg, 0.64 - k * 0.03, 0.34, 0.6 - k * 0.03); P(kSph(), brass, s * (0.07 * k + 0.5 - k * 0.03), 0.12 - k * 0.15, 0, pg, 0.04); } // (lames of steel from the gorget over the shoulder, riveted)
+      P(kSph(), sleeve, 0, -0.5, 0, sh, 0.64, 0.6, 0.64); // (a huge puffed, slashed sleeve)
+      P(kSph(), sleeve, 0, -0.38, 0, el, 0.5, 0.42, 0.5); R(0.78, 0.3, 0.78, 0.14, sleeve, 0, -0.72, 0, el); // (the forearm puffed too; a cuff)
+      R(0.8, 0.36, 0.8, 0.16, leather, 0, -0.98, -0.02, el); // (a leather glove)
       return [sh, el];
     },
     head(h) {
-      // the sallet (its tail sweeping down behind), the slit, a gold brow band, the bevor rising over the chin, a plume
-      mesh(salletGeo(), st, 0, -0.02, 0.02, h).scale.set(0.74, 0.86, 0.76);
-      mesh(kg('salSlit', () => new THREE.CylinderGeometry(0.738, 0.738, 0.09, 20, 1, true, Math.PI - 0.85, 1.7)), slit, 0, 0.06, 0, h);
-      mesh(kg('bevor', () => { const g = new THREE.SphereGeometry(1, 24, 12, Math.PI * 0.5, Math.PI, Math.PI * 0.42, Math.PI * 0.38); return g; }), st, 0, -0.18, 0.02, h).scale.set(0.78, 0.9, 0.8);
-      for (const s2 of [-1, 1]) P(kSph(), gold, s2 * 0.72, 0.06, 0.05, h, 0.055);
-      P(kCyl(), gold, 0, 0.6, 0.4, h, 0.06, 0.18, 0.06).rotation.x = 0.6; plumeG = grp(h, 0, 0.66); plumeG.position.z = 0.48;
-      for (let k = 0; k < 5; k++) { const f = mesh(knGeo().plume[k % 3], plume, 0, 0, 0, plumeG); f.rotation.set(0.3, (k - 2) * 0.16, 0); f.scale.set(1.2, 0.75 - Math.abs(k - 2) * 0.05, 0.85); }
-      return true;
+      // the kettle hat: a round skull with a comb over it, a broad brim turned down all round; ostrich plumes; your face under it
+      mesh(kDome(), st, 0, 0.44, 0, h).scale.set(0.76, 0.66, 0.76);
+      const br = mesh(kLathe('kettleBrim', [[1.14, 0.28], [1.04, 0.36], [0.9, 0.43], [0.76, 0.46]], 32), st, 0, 0, 0, h); br.material.side = THREE.DoubleSide;
+      const cm = P(kTor(0.22, Math.PI), st, 0, 0.44, 0, h, 0.74, 0.7, 0.4); cm.rotation.y = Math.PI / 2; // (the comb)
+      const bd = mesh(kTor(0.08), leather, 0, 0.47, 0, h); bd.rotation.x = Math.PI / 2; bd.scale.set(0.77, 0.77, 0.6);
+      plumeG = grp(h, -0.62, 0.62); plumeG.position.z = 0.1;
+      [[featherR, 0, 0], [featherW, 0.35, 0.15], [featherR, -0.35, 0.3]].forEach(([m, ry, rz]) => { const f = mesh(kg('ostrich', () => sweepGeo([[0, 0, 0], [-0.25, 0.45, 0.2], [-0.45, 0.85, 0.55], [-0.4, 1.1, 1.0]], (u) => 0.15 * Math.sin(Math.PI * Math.min(1, u * 1.05)) + 0.015, 18, 6)), m, 0, 0, 0, plumeG); f.rotation.set(0, ry, rz); });
+      return false;
     },
-    tick(a, dt) { a.kitT = (a.kitT || 0) + dt; const t = a.kitT, run = Math.min(1, kitMove(a, dt)[0] / 14); if (plumeG) { plumeG.rotation.x = 0.06 * Math.sin(t * 2.2) - 0.25 * run; plumeG.rotation.z = 0.05 * Math.sin(t * 1.5); } },
+    tick(a, dt) { a.kitT = (a.kitT || 0) + dt; const t = a.kitT, run = Math.min(1, kitMove(a, dt)[0] / 14); if (plumeG) { plumeG.rotation.x = 0.06 * Math.sin(t * 2.2) - 0.25 * run; plumeG.rotation.z = 0.06 * Math.sin(t * 1.5); } },
   };
 },
 // 🗿 Laestrygonian, as Christopher Nolan's The Odyssey shows them: wordless, faceless giants made, it seems, entirely
@@ -3501,9 +3600,9 @@ BODY_KITS.push((K) => hopliteKit(K, true), (K) => hopliteKit(K, false),
   };
 }
 );
-BODY_DESC.push('🏛️ Achilles’ own warriors: blackened bronze over dark scale armour, a Corinthian helmet with embers for eyes and a black horsehair crest streaked with red, a black cloak lined with red that billows behind you, bronze bracers and greaves, sandals, a short sword at the hip and a black shield with a golden ant and a Greek key round its rim.',
-  '🏛️ A hoplite of Sparta in bright bronze: a Corinthian helmet with a crimson horsehair crest that sways and streams back as you run, a sculpted muscle cuirass, a skirt of linen strips, a crimson cloak, bronze bracers and greaves, sandals, a short sword at the hip and the great round shield with a red lambda on your back.',
-  '🏛️ Late gothic plate, blued almost black and edged in gold: a sallet sweeping back to a long tail with a slit to see through, a bevor and a red plume; flutes fanning across the breastplate and pauldrons; a skirt of mail; puffed and slashed sleeves in your colour with gold silk showing through; a rondel dagger at the belt.',
+BODY_DESC.push('🏛️ Achilles’ men as they’d really have looked at Troy — Mycenaean warriors of the late Bronze Age: an open-faced boar’s-tusk helmet (rows of tusk plates, as Homer describes) with cheek guards and a horsehair plume, a beard; a bronze plate cuirass like the one found at Dendra, with a high collar, rounded shoulder guards and hoops of bronze flaring over the hips; a linen tunic, bare arms, bronze greaves and leather boots; a long Naue II sword at the hip and a great figure-of-eight shield of dappled oxhide on the back.',
+  '🏛️ A Spartan hoplite of the Persian Wars: a bronze Corinthian helmet with a crimson horsehair crest that sways and streams back as you run, long hair in locks down the back of the neck and a beard showing between the cheek pieces; a bronze muscle cuirass over a crimson tunic, a double skirt of linen strips, bronze greaves — and bare feet, as Spartans fought; a crimson cloak, a short sword (a xiphos) at the hip, and the great round shield with the lambda of Lacedaemon on your back.',
+  '🏛️ A halberdier as they really were around 1510, in the Italian Wars: half armour over bright clothes — an open kettle hat with ostrich plumes, a steel gorget with plates over the shoulders, a fluted breastplate in bright steel with tassets and a skirt of mail; huge puffed and slashed sleeves and breeches in your colours (one leg different from the other), gartered hose, broad cow-mouth shoes, leather gloves and a Katzbalger sword at the hip.',
   '🏛️ A giant from Christopher Nolan’s The Odyssey, as wordless and faceless as the film’s: made, it seems, entirely of metal — battered, weathered silver-grey plate from head to foot, dented, scratched and tarnished, nothing of a face or skin showing anywhere. A tall, blank helm with one thin dark slit, set low on a stack of gorget plates; a broad flat breastplate with a raised centre plate and riveted, rolled edges; great pauldrons of overlapping plates; every limb in jointed plates down to gauntlets with jointed fingers and heavy sabatons; a hanging skirt of plates. Worn, you’re a giant — 60% bigger (normal size in competitive games like Rivals)');
 /* ---------------- 🏛️ the Season Pass's animation packs: the Hoplite and the Laestrygonian ---------------- */
 // the hoplite's sounds: bronze rung by a spear shaft, and the war cry — a crowd of voices shouting "a-ROO!" (a buzzing
@@ -3542,9 +3641,9 @@ function quakeCrack(a, size) {
 const _hpv = new THREE.Vector3();
 function hopGear(a) {
   if (a.hpG) return a.hpG;
-  const myr = a.av && a.av[10] === 9, hR = new THREE.Group(); hR.position.y = a.r15 ? -0.92 : -1.9; pfx(a, hR, a.r15 ? a.elR : a.armR);
+  const myr = a.av && a.av[10] === 9, hR = new THREE.Group(); hR.position.y = a.r15 ? -0.92 : -1.9; pfx(a, hR, a.r15 ? a.elR : a.armR); // (myr: a Myrmidon — bronze-age gear)
   const sp = new THREE.Group(); hR.add(sp);
-  const wood = new THREE.MeshPhongMaterial({ color: '#b48452', map: woodTex(), shininess: 25, specular: 0x332211 }), bz = metalMat(myr ? '#5a4a32' : '#e0b25a', { specular: '#ffe3a0' }), lth = new THREE.MeshLambertMaterial({ color: '#ffffff', map: leatherTex() });
+  const wood = new THREE.MeshPhongMaterial({ color: '#b48452', map: woodTex(), shininess: 25, specular: 0x332211 }), bz = metalMat(myr ? '#d9a85c' : '#e0b25a', { specular: '#ffe3a0' }), lth = new THREE.MeshLambertMaterial({ color: '#ffffff', map: leatherTex() });
   const shaft = new THREE.Mesh(kCyl(), wood); shaft.scale.set(0.055, 6.2, 0.055); shaft.rotation.x = Math.PI / 2; shaft.position.z = -0.7; sp.add(shaft); // (2.4 behind the hand to 3.8 in front)
   const grip = new THREE.Mesh(kCyl(), lth); grip.scale.set(0.07, 0.45, 0.07); grip.rotation.x = Math.PI / 2; sp.add(grip);
   const head = new THREE.Mesh(kg('doryHead', () => new THREE.LatheGeometry([[0, 0], [0.07, 0.05], [0.17, 0.32], [0.15, 0.62], [0.0, 1.0]].map(([x, y]) => new THREE.Vector2(x, y)), 4)), bz); head.rotation.x = -Math.PI / 2; head.position.z = -3.72; head.scale.set(1, 1, 0.3); sp.add(head);
@@ -3552,11 +3651,12 @@ function hopGear(a) {
   const butt = new THREE.Mesh(kCone(), bz); butt.scale.set(0.065, 0.5, 0.065); butt.rotation.x = Math.PI / 2; butt.position.z = 2.62; sp.add(butt); // (the butt spike: the sauroter)
   const tip = new THREE.Object3D(); tip.position.z = -4.7; sp.add(tip);
   const sh = new THREE.Group(); pfx(a, sh, a.waist || a.body);
-  const face = new THREE.Mesh(aspisGeo(), metalMat('#ffffff', { map: aspisTex(myr), shininess: 110, reflectivity: 0.45 })); face.rotation.set(-Math.PI / 2, Math.PI, 0); sh.add(face);
-  const back = new THREE.Mesh(aspisGeo(), new THREE.MeshLambertMaterial({ color: '#8a6238', map: woodTex(), side: THREE.BackSide })); back.rotation.copy(face.rotation); sh.add(back);
-  const rim = new THREE.Mesh(kTor(0.05), bz); rim.scale.setScalar(1.03); rim.position.z = 0.04; sh.add(rim);
-  const band = new THREE.Mesh(BOX, bz); band.scale.set(0.5, 0.12, 0.05); band.position.z = 0.1; sh.add(band); // (the arm band inside: the porpax)
-  sh.scale.setScalar(0.95);
+  if (myr) { const f8 = fig8Shield(); f8.position.z = 0.32; sh.add(f8); sh.scale.setScalar(0.85); } // (a Myrmidon's: the Mycenaean figure-of-eight shield)
+  else { const face = new THREE.Mesh(aspisGeo(), metalMat('#ffffff', { map: aspisTex(myr), shininess: 110, reflectivity: 0.45 })); face.rotation.set(-Math.PI / 2, Math.PI, 0); sh.add(face);
+    const back = new THREE.Mesh(aspisGeo(), new THREE.MeshLambertMaterial({ color: '#8a6238', map: woodTex(), side: THREE.BackSide })); back.rotation.copy(face.rotation); sh.add(back);
+    const rim = new THREE.Mesh(kTor(0.05), bz); rim.scale.setScalar(1.03); rim.position.z = 0.04; sh.add(rim);
+    const band = new THREE.Mesh(BOX, bz); band.scale.set(0.5, 0.12, 0.05); band.position.z = 0.1; sh.add(band); // (the arm band inside: the porpax)
+    sh.scale.setScalar(0.95); }
   a.hpBk = []; a.g.traverse((o) => { if (o.userData.backShield) a.hpBk.push(o); });
   const s0 = a.hpSh || [0, 0]; return (a.hpG = { hR, sp, sh, tip, psi: a.hpPsi || 0, rx: s0[0], ry: s0[1], oy: a.hpO || 0 }); // (starting where the pose is)
 }
