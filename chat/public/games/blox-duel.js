@@ -269,138 +269,294 @@
   const now = () => performance.now() / 1000;
 
   /* ---------------- the Colosseum ----------------
-     An oval of sand, a marble podium wall hung with the four empires' banners, braziers burning on top; tiers of seats
-     packed with a crowd that jumps up when blood's drawn; the emperor's box; the three arcaded storeys and the attic of
-     the outer wall, the velarium's awnings above. Next to it, through the trees, the ludus: the courtyard where you wait,
-     pick a fighter, open crates and step onto a pad. Only the arena floor and the courtyard are solid. */
-  const SC = { fires: [], padFx: [], crates: [], legends: [] }; // (the scenery that moves)
-  const CS = 26, CDR = 1.2, CH0 = 6.6, CDH = 1.05, FA = A0 + 3 + CS * CDR + 1.6, FB = B0 + 3 + CS * CDR + 1.6, FH = 43; // (seat rows; each row's depth, the first row's height, each row's rise; the outer wall)
-  const sandTex = () => kCanvas('duSand', 1024, 1024, (g, r) => {
-    g.fillStyle = '#d9b77c'; g.fillRect(0, 0, 1024, 1024);
-    for (let k = 0; k < 26000; k++) { const v = r(); g.fillStyle = v < 0.33 ? 'rgba(120,80,30,.10)' : v < 0.66 ? 'rgba(255,240,200,.13)' : 'rgba(90,60,20,.07)'; g.fillRect(r() * 1024, r() * 1024, 1 + r() * 3, 1 + r() * 2); }
-    g.strokeStyle = 'rgba(150,105,50,.18)'; g.lineWidth = 3; for (let k = 1; k < 26; k++) { g.beginPath(); g.ellipse(512, 512, k * 19, k * 19, 0, 0, 7); g.stroke(); } // (raked in rings)
-    for (let k = 0; k < 9; k++) { const x = 140 + r() * 744, y = 140 + r() * 744, gr = g.createRadialGradient(x, y, 2, x, y, 30 + r() * 50); gr.addColorStop(0, 'rgba(100,60,25,.25)'); gr.addColorStop(1, 'rgba(100,60,25,0)'); g.fillStyle = gr; g.fillRect(x - 90, y - 90, 180, 180); } // (scuffs)
-    g.strokeStyle = 'rgba(70,45,15,.32)'; g.lineWidth = 6; g.beginPath(); g.arc(512, 512, 96, 0, 7); g.stroke(); g.lineWidth = 2; g.beginPath(); g.arc(512, 512, 84, 0, 7); g.stroke(); // (the centre circle, a star in it)
-    g.fillStyle = 'rgba(70,45,15,.22)'; g.beginPath(); for (let k = 0; k < 16; k++) { const a = (k / 16) * Math.PI * 2, rr = k % 2 ? 30 : 78; g.lineTo(512 + Math.cos(a) * rr, 512 + Math.sin(a) * rr); } g.fill();
-    for (const s of [-1, 1]) { g.strokeStyle = 'rgba(40,25,10,.4)'; g.lineWidth = 3; for (let k = 0; k < 7; k++) { g.beginPath(); g.moveTo(512 + s * 300 - 40, 470 + k * 14); g.lineTo(512 + s * 300 + 40, 470 + k * 14); g.stroke(); } } // (trapdoors to the hypogeum)
+     Built the way the real one was, round an oval of sand: the podium (a marble wall carved with fighters and laurel
+     wreaths, a cornice, a balustrade on top, braziers and the four empires' banners); three tiers of seats — marble for
+     the senators at the front, travertine, then wooden benches at the top — with stairways and the dark mouths of the
+     vomitoria, packed with a crowd that leaps up and throws its arms in the air at every big hit, flags waving; a
+     colonnade round the top under a tiled roof; the masts of the velarium, its striped sails and ropes webbing in to a
+     ring over the arena. The gates at each end carry the four legends in gold; the emperor sits in his box under a
+     purple canopy between two of his guard. Outside: three storeys of open arches you can see into, the attic, a paved
+     piazza, cypresses and a triumphal arch on the road to the ludus. Architecture is profiles swept round the oval
+     (cornices, steps, walls), repeated things are instanced, the crowd is two meshes moved by its shader. */
+  const SC = { fires: [], padFx: [], crates: [], legends: [], banners: [], birds: [], motes: null }; // (the scenery that moves)
+  const PA = A0 + 1.2, PB = B0 + 1.2; // (the podium's face)
+  // the rows of seats: each a tread at height y from d to d + depth (d: out from the podium's face); tiers, walkways and the walls between
+  const ROWS = (() => { const R = []; let d = 1.8, y = 6.0;
+    const tier = (n, t, first) => { for (let i = 0; i < n; i++) { const rise = i === 0 ? (first || 1.05) : 1.05; R.push({ d, y0: y, y: y + rise, w: 1.2, t }); y += rise; d += 1.2; } };
+    tier(8, 0, 0.6); R.push({ d, y0: y, y, w: 1.6, t: 0, walk: 1 }); d += 1.6; tier(8, 1, 1.8); R.push({ d, y0: y, y, w: 1.6, t: 1, walk: 1 }); d += 1.6; tier(7, 2, 1.8); R.push({ d, y0: y, y, w: 4.6, t: 2, walk: 1, top: 1 }); d += 4.6;
+    R.end = d; R.yTop = y; return R; })();
+  const YTOP = ROWS.yTop, FH = YTOP + 12.5, FA = PA + ROWS.end + 0.7, FB = PB + ROWS.end + 0.7; // (the top of the seats, the outer wall's height and its oval)
+  // points round an oval, evenly spaced along it (not by angle: that bunches them at the ends), each with the turn that faces its +z outwards
+  const arcCache = new Map();
+  function ellPts(a, b, n, d = 0, off = 0) {
+    const key = a + '|' + b; let L = arcCache.get(key);
+    if (!L) { const N = 2048, cum = [0]; let s = 0; for (let i = 1; i <= N; i++) { const t0 = ((i - 1) / N) * Math.PI * 2, t1 = (i / N) * Math.PI * 2; s += Math.hypot(a * (Math.cos(t1) - Math.cos(t0)), b * (Math.sin(t1) - Math.sin(t0))); cum.push(s); } L = { cum, N, len: s }; arcCache.set(key, L); }
+    const out = []; let j = 0;
+    for (let k = 0; k < n; k++) { const target = ((k + off) / n) * L.len; while (j < L.N && L.cum[j + 1] < target) j++; const f = (target - L.cum[j]) / Math.max(1e-6, L.cum[j + 1] - L.cum[j]), t = ((j + f) / L.N) * Math.PI * 2;
+      const c = Math.cos(t), s = Math.sin(t), nx = c / a, nz = s / b, nl = Math.hypot(nx, nz); out.push({ t, x: a * c + (nx / nl) * d, z: b * s + (nz / nl) * d, ry: Math.atan2(nx / nl, nz / nl), nx: nx / nl, nz: nz / nl }); }
+    out.len = L.len; return out;
+  }
+  // a profile swept round the oval: [[d, y, colour?], …] — bottom to top (or inside to out) faces in and up; o.out: faces out. o.hard: sharp corners
+  function sweep(key, a, b, prof, o = {}) {
+    return kg('duSw' + key, () => {
+      let P = prof; if (o.hard) { P = []; prof.forEach((p, i) => { P.push(p); if (i > 0 && i < prof.length - 1) P.push(p); }); }
+      if (o.out) P = P.slice().reverse();
+      const N = o.N || 192, M = P.length, pos = [], uv = [], col = [], idx = [], C = new THREE.Color(), t0 = o.t0 || 0, t1 = o.t1 == null ? Math.PI * 2 : o.t1, vs = o.vs || 4;
+      for (let k = 0; k <= N; k++) { const t = t0 + (k / N) * (t1 - t0), c = Math.cos(t), s = Math.sin(t), nx = c / a, nz = s / b, nl = Math.hypot(nx, nz); let v = 0;
+        for (let j = 0; j < M; j++) { const [d, y, cc] = P[j]; if (j) v += Math.hypot(d - P[j - 1][0], y - P[j - 1][1]); pos.push(a * c + (nx / nl) * d, y, b * s + (nz / nl) * d); uv.push((k / N) * (o.u || 32), v / vs); C.set(cc || '#ffffff'); col.push(C.r, C.g, C.b); } }
+      for (let k = 0; k < N; k++) for (let j = 0; j < M - 1; j++) { const i0 = k * M + j, i1 = (k + 1) * M + j; idx.push(i0, i1, i0 + 1, i1, i1 + 1, i0 + 1); }
+      const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); g.setIndex(idx); g.computeVertexNormals(); return g;
+    });
+  }
+  // the textures
+  const grain = (g, r, w, h, n, c1, c2) => { for (let k = 0; k < n; k++) { g.fillStyle = r() < 0.5 ? c1 : c2; g.fillRect(r() * w, r() * h, 1 + r() * 3, 1 + r() * 2); } };
+  const veins = (g, r, w, h, n, col) => { g.strokeStyle = col; for (let k = 0; k < n; k++) { g.lineWidth = 0.6 + r() * 1.4; g.beginPath(); let x = r() * w, y = r() * h; g.moveTo(x, y); for (let q = 0; q < 8; q++) { x += (r() - 0.3) * 40; y += (r() - 0.5) * 22; g.lineTo(x, y); } g.stroke(); } };
+  const marbleTex = () => kCanvas('duMarble', 256, 256, (g, r) => { g.fillStyle = '#f1ece2'; g.fillRect(0, 0, 256, 256); grain(g, r, 256, 256, 2500, 'rgba(160,150,130,.06)', 'rgba(255,255,255,.08)'); veins(g, r, 256, 256, 14, 'rgba(150,140,125,.22)'); });
+  const travTex = () => kCanvas('duTrav', 256, 256, (g, r) => { g.fillStyle = '#d9c9a6'; g.fillRect(0, 0, 256, 256); grain(g, r, 256, 256, 5000, 'rgba(120,100,70,.12)', 'rgba(255,245,220,.1)');
+    for (let k = 0; k < 400; k++) { g.fillStyle = 'rgba(110,90,60,.25)'; g.beginPath(); g.ellipse(r() * 256, r() * 256, 1 + r() * 3, 0.6 + r(), 0, 0, 7); g.fill(); } // (the pores)
+    g.strokeStyle = 'rgba(100,85,60,.4)'; g.lineWidth = 1.2; for (let y = 0; y < 256; y += 32) { g.beginPath(); g.moveTo(0, y); g.lineTo(256, y); g.stroke(); for (let x = (y / 32) % 2 ? 32 : 0; x < 256; x += 64) { g.beginPath(); g.moveTo(x, y); g.lineTo(x, y + 32); g.stroke(); } } });
+  const seatTex = () => kCanvas('duSeat', 256, 256, (g, r) => { g.fillStyle = '#e9e1d0'; g.fillRect(0, 0, 256, 256); grain(g, r, 256, 256, 4000, 'rgba(120,105,80,.1)', 'rgba(255,255,255,.1)');
+    g.strokeStyle = 'rgba(90,75,55,.45)'; g.lineWidth = 1.5; for (let x = 0; x < 256; x += 51) { g.beginPath(); g.moveTo(x + r() * 4, 0); g.lineTo(x + r() * 4, 256); g.stroke(); } for (let y = 0; y < 256; y += 64) { g.fillStyle = 'rgba(80,65,45,.18)'; g.fillRect(0, y, 256, 3); } veins(g, r, 256, 256, 6, 'rgba(140,125,105,.18)'); });
+  const plankTex = () => kCanvas('duPlank', 256, 128, (g, r) => { for (let y = 0; y < 128; y += 16) { const c = 120 + r() * 40; g.fillStyle = `rgb(${c},${c * 0.72},${c * 0.45})`; g.fillRect(0, y, 256, 16); g.fillStyle = 'rgba(40,25,10,.5)'; g.fillRect(0, y + 15, 256, 1);
+    for (let k = 0; k < 30; k++) { g.fillStyle = 'rgba(60,35,15,.25)'; g.fillRect(r() * 256, y + r() * 15, 10 + r() * 50, 1); } for (let x = r() * 80; x < 256; x += 90 + r() * 60) { g.fillStyle = 'rgba(30,20,10,.6)'; g.fillRect(x, y, 1.5, 15); } } });
+  const tileTex = () => kCanvas('duTile', 128, 128, (g) => { g.fillStyle = '#9a3d22'; g.fillRect(0, 0, 128, 128); for (let y = 0; y < 128; y += 16) for (let x = (y / 16) % 2 ? 8 : 0; x < 136; x += 16) { const gr = g.createLinearGradient(x, 0, x + 16, 0); gr.addColorStop(0, '#7c2d12'); gr.addColorStop(0.5, '#c2603a'); gr.addColorStop(1, '#7c2d12'); g.fillStyle = gr; g.fillRect(x, y, 15, 15); g.fillStyle = 'rgba(0,0,0,.3)'; g.fillRect(x, y + 13, 15, 3); } });
+  const sandTex = () => kCanvas('duSand2', 1024, 1024, (g, r) => {
+    const gr0 = g.createRadialGradient(512, 512, 60, 512, 512, 520); gr0.addColorStop(0, '#e2c28a'); gr0.addColorStop(0.8, '#d8b67c'); gr0.addColorStop(1, '#b8915a'); g.fillStyle = gr0; g.fillRect(0, 0, 1024, 1024); // (darker where it's piled against the wall)
+    for (let k = 0; k < 60000; k++) { const v = r(); g.fillStyle = v < 0.33 ? 'rgba(120,80,30,.12)' : v < 0.66 ? 'rgba(255,240,205,.15)' : 'rgba(80,55,20,.09)'; g.fillRect(r() * 1024, r() * 1024, 1 + r() * 2.5, 1 + r() * 2); }
+    for (let k = 0; k < 900; k++) { g.fillStyle = `rgba(${90 + r() * 60},${70 + r() * 40},${40 + r() * 30},.55)`; g.beginPath(); g.arc(r() * 1024, r() * 1024, 0.8 + r() * 2.2, 0, 7); g.fill(); } // (pebbles)
+    g.lineWidth = 2.2; for (let k = 3; k < 30; k++) { g.strokeStyle = `rgba(150,105,50,${0.08 + (k % 2) * 0.06})`; g.beginPath(); g.ellipse(512, 512, k * 17.5, k * 17.5, 0, 0, 7); g.stroke(); } // (raked)
+    for (let k = 0; k < 14; k++) { const x = 140 + r() * 744, y = 140 + r() * 744, gr = g.createRadialGradient(x, y, 2, x, y, 30 + r() * 60); gr.addColorStop(0, 'rgba(110,70,30,.28)'); gr.addColorStop(1, 'rgba(110,70,30,0)'); g.fillStyle = gr; g.fillRect(x - 100, y - 100, 200, 200); } // (scuffed)
+    for (let w = 0; w < 9; w++) { let x = 200 + r() * 620, y = 200 + r() * 620, a = r() * 7; for (let k = 0; k < 26; k++) { a += (r() - 0.5) * 0.6; x += Math.cos(a) * 14; y += Math.sin(a) * 14; const s = k % 2 ? 1 : -1; g.fillStyle = 'rgba(95,60,25,.32)'; g.beginPath(); g.ellipse(x + Math.cos(a + 1.57) * 5 * s, y + Math.sin(a + 1.57) * 5 * s, 5, 2.6, a, 0, 7); g.fill(); } } // (footprints)
+    g.strokeStyle = 'rgba(70,45,15,.38)'; g.lineWidth = 7; g.beginPath(); g.arc(512, 512, 100, 0, 7); g.stroke(); g.lineWidth = 2.5; g.beginPath(); g.arc(512, 512, 86, 0, 7); g.stroke();
+    g.fillStyle = 'rgba(70,45,15,.26)'; g.beginPath(); for (let k = 0; k < 16; k++) { const a = (k / 16) * Math.PI * 2, rr = k % 2 ? 30 : 80; g.lineTo(512 + Math.cos(a) * rr, 512 + Math.sin(a) * rr); } g.fill();
   });
-  const podiumTex = () => kCanvas('duPodium', 512, 128, (g, r) => {
-    g.fillStyle = '#e9e1d0'; g.fillRect(0, 0, 512, 128); for (let k = 0; k < 2500; k++) { g.fillStyle = `rgba(${120 + r() * 60},${110 + r() * 50},${90 + r() * 40},${0.05 + r() * 0.06})`; g.fillRect(r() * 512, r() * 128, 2 + r() * 6, 1); }
-    for (let p = 0; p < 4; p++) { const x = 8 + p * 128; g.fillStyle = ['#7f1d1d', '#1e3a8a', '#7f1d1d', '#14532d'][p]; g.fillRect(x, 22, 112, 82); g.strokeStyle = '#e8b84a'; g.lineWidth = 4; g.strokeRect(x + 4, 26, 104, 74);
-      g.fillStyle = 'rgba(255,236,200,.85)'; g.font = 'bold 34px serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(['SPQR', 'ΣΠΑΡΤΗ', 'DEVS VVLT', '武士道'][p], x + 56, 64); }
-    g.fillStyle = '#b8ad97'; g.fillRect(0, 0, 512, 12); g.fillRect(0, 116, 512, 12); g.fillStyle = '#8a7f6a'; g.fillRect(0, 12, 512, 3); g.fillRect(0, 113, 512, 3);
-  });
-  const facadeTex = () => kCanvas('duFacade', 256, 512, (g, r) => { // one bay of the outer wall, top to bottom: the attic, three storeys of arches
-    g.fillStyle = '#d8c9a8'; g.fillRect(0, 0, 256, 512); for (let k = 0; k < 2600; k++) { g.fillStyle = `rgba(${90 + r() * 70},${80 + r() * 60},${60 + r() * 40},${0.06 + r() * 0.08})`; g.fillRect(r() * 256, r() * 512, 1 + r() * 4, 1 + r() * 3); }
-    g.strokeStyle = 'rgba(110,95,70,.35)'; g.lineWidth = 1; for (let y = 0; y < 512; y += 16) { g.beginPath(); g.moveTo(0, y); g.lineTo(256, y); g.stroke(); for (let x = (y / 16) % 2 ? 0 : 24; x < 256; x += 48) { g.beginPath(); g.moveTo(x, y); g.lineTo(x, y + 16); g.stroke(); } } // (the blocks)
-    g.fillStyle = 'rgba(40,30,20,.85)'; for (const [x, y] of [[54, 40], [170, 40]]) g.fillRect(x, y, 32, 26); // (the attic's windows)
-    for (let s = 0; s < 3; s++) { const y0 = 106 + s * 136, h = 118; const gr = g.createLinearGradient(0, y0, 0, y0 + h); gr.addColorStop(0, '#1a140e'); gr.addColorStop(1, '#3b2f22'); g.fillStyle = gr;
-      g.beginPath(); g.moveTo(58, y0 + h); g.lineTo(58, y0 + 46); g.arc(128, y0 + 46, 70, Math.PI, 0); g.lineTo(198, y0 + h); g.closePath(); g.fill();
-      g.strokeStyle = '#efe4c8'; g.lineWidth = 7; g.beginPath(); g.arc(128, y0 + 46, 74, Math.PI, 0); g.stroke(); g.fillStyle = '#efe4c8'; g.fillRect(124, y0 - 32, 8, 14); // (the arch's moulding, its keystone)
-      if (s < 2) { g.fillStyle = 'rgba(245,240,228,.9)'; g.beginPath(); g.arc(128, y0 + 36, 10, 0, 7); g.fill(); g.fillRect(118, y0 + 46, 20, 44); g.fillRect(114, y0 + 90, 28, 22); g.fillRect(104, y0 + 52, 12, 30); g.fillRect(140, y0 + 50, 12, 32); } // (a statue in each upper arch)
-      g.fillStyle = '#c4b493'; g.fillRect(0, y0 - 18, 256, 14); g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(0, y0 - 5, 256, 4); }
-  });
-  const awningTex = () => kCanvas('duAwning', 256, 64, (g) => { for (let x = 0; x < 256; x += 32) { g.fillStyle = (x / 32) % 2 ? '#f5ecd7' : '#b91c1c'; g.fillRect(x, 0, 32, 64); } g.fillStyle = 'rgba(0,0,0,.15)'; g.fillRect(0, 56, 256, 8); });
   const groundTex = () => kCanvas('duGround', 512, 512, (g, r) => { g.fillStyle = '#9a8a5e'; g.fillRect(0, 0, 512, 512); for (let k = 0; k < 9000; k++) { const v = r(); g.fillStyle = v < 0.4 ? 'rgba(90,110,50,.25)' : v < 0.7 ? 'rgba(180,160,110,.2)' : 'rgba(60,50,30,.15)'; g.fillRect(r() * 512, r() * 512, 2 + r() * 4, 2 + r() * 3); } });
-  const paveTex = () => kCanvas('duPave', 256, 256, (g, r) => { g.fillStyle = '#cbbd9d'; g.fillRect(0, 0, 256, 256); for (let y = 0; y < 256; y += 32) for (let x = (y / 32) % 2 ? -32 : 0; x < 256; x += 64) { const c = 175 + r() * 45; g.fillStyle = `rgb(${c},${c * 0.93},${c * 0.8})`; g.fillRect(x + 2, y + 2, 60, 28); } for (let k = 0; k < 1500; k++) { g.fillStyle = 'rgba(80,60,40,.08)'; g.fillRect(r() * 256, r() * 256, 2, 2); } });
-  const bannerTex = (e) => kCanvas('duBan' + e, 128, 384, (g) => {
-    const [bg, fg] = [['#991b1b', '#e8b84a'], ['#1e40af', '#f8fafc'], ['#1e3a8a', '#facc15'], ['#f8fafc', '#b91c1c']][e]; g.fillStyle = bg; g.fillRect(0, 0, 128, 384);
-    g.fillStyle = fg; g.fillRect(0, 0, 128, 10); g.fillRect(0, 374, 128, 10); g.strokeStyle = fg; g.lineWidth = 4; g.strokeRect(10, 18, 108, 348);
+  const paveTex = () => kCanvas('duPave', 256, 256, (g, r) => { g.fillStyle = '#b9ab8c'; g.fillRect(0, 0, 256, 256); for (let y = 0; y < 256; y += 32) for (let x = (y / 32) % 2 ? -32 : 0; x < 256; x += 64) { const c = 175 + r() * 45; g.fillStyle = `rgb(${c},${c * 0.93},${c * 0.8})`; g.fillRect(x + 2, y + 2, 60, 28); g.fillStyle = 'rgba(255,255,255,.12)'; g.fillRect(x + 2, y + 2, 60, 2); } for (let k = 0; k < 1500; k++) { g.fillStyle = 'rgba(80,60,40,.08)'; g.fillRect(r() * 256, r() * 256, 2, 2); } });
+  // the podium's face: carved panels — fighters at it, the wreath and the eagle — between garlands, a moulding above and below
+  const reliefTex = () => kCanvas('duRelief', 512, 256, (g, r) => {
+    g.fillStyle = '#eee7d8'; g.fillRect(0, 0, 512, 256); grain(g, r, 512, 256, 3500, 'rgba(150,135,110,.07)', 'rgba(255,255,255,.08)'); veins(g, r, 512, 256, 10, 'rgba(150,140,125,.16)');
+    const carve = (draw) => { g.save(); g.translate(-1.6, -1.6); g.fillStyle = 'rgba(255,255,255,.9)'; draw(); g.fill(); g.restore(); g.save(); g.translate(2, 2.2); g.fillStyle = 'rgba(90,75,55,.55)'; draw(); g.fill(); g.restore(); g.fillStyle = '#e4dccb'; draw(); g.fill(); };
+    const fighter = (x, y, s, f, shield) => () => { g.beginPath(); g.arc(x, y - 52 * s, 7 * s, 0, 7); g.rect(x - 7 * s, y - 45 * s, 14 * s, 24 * s); g.moveTo(x - 6 * s, y - 21 * s); g.lineTo(x - 14 * s * f, y); g.lineTo(x - 8 * s * f, y); g.lineTo(x, y - 18 * s); g.lineTo(x + 6 * s * f, y); g.lineTo(x + 12 * s * f, y); g.lineTo(x + 6 * s, y - 21 * s); g.closePath();
+      g.rect(x + (f > 0 ? 6 : -26) * s, y - 44 * s, 20 * s, 4 * s); g.moveTo(x + 24 * f * s, y - 46 * s); g.lineTo(x + 46 * f * s, y - 60 * s); g.lineTo(x + 25 * f * s, y - 40 * s); if (shield) g.rect(x - (f > 0 ? 22 : -8) * s, y - 46 * s, 14 * s, 26 * s); };
+    // two panels: a pair of fighters, then the wreath and eagle
+    g.strokeStyle = 'rgba(120,105,80,.6)'; g.lineWidth = 3;
+    for (const [x0, k] of [[14, 0], [266, 1]]) { g.fillStyle = 'rgba(205,192,168,.55)'; g.fillRect(x0, 40, 232, 168); g.strokeRect(x0, 40, 232, 168); g.strokeRect(x0 + 8, 48, 216, 152);
+      if (k === 0) { carve(fighter(x0 + 80, 186, 1.9, 1, true)); carve(fighter(x0 + 156, 186, 1.9, -1, false)); }
+      else { carve(() => { g.beginPath(); g.ellipse(x0 + 116, 124, 54, 54, 0, 0, 7); g.ellipse(x0 + 116, 124, 40, 40, 0, 0, 7, true); }); for (let q = 0; q < 14; q++) { const a = Math.PI * 0.6 + (q / 13) * Math.PI * 1.8; carve(() => { g.beginPath(); g.ellipse(x0 + 116 + Math.cos(a) * 47, 124 + Math.sin(a) * 47, 9, 4, a + 1, 0, 7); }); }
+        carve(() => { const cx = x0 + 116, cy = 120; g.beginPath(); g.moveTo(cx, cy - 26); g.lineTo(cx + 10, cy - 8); g.lineTo(cx + 32, cy - 18); g.lineTo(cx + 22, cy + 2); g.lineTo(cx + 8, cy + 4); g.lineTo(cx + 6, cy + 24); g.lineTo(cx - 6, cy + 24); g.lineTo(cx - 8, cy + 4); g.lineTo(cx - 22, cy + 2); g.lineTo(cx - 32, cy - 18); g.lineTo(cx - 10, cy - 8); g.closePath(); }); } }
+    for (const x of [0, 252, 504]) carve(() => { g.beginPath(); g.rect(x, 30, 8, 190); }); // (pilaster strips)
+    g.fillStyle = 'rgba(120,100,70,.35)'; g.fillRect(0, 26, 512, 4); g.fillRect(0, 218, 512, 4); for (let x = 0; x < 512; x += 16) { g.fillStyle = 'rgba(255,255,255,.5)'; g.fillRect(x, 8, 8, 10); g.fillStyle = 'rgba(110,90,60,.4)'; g.fillRect(x + 8, 8, 8, 10); } // (dentils)
+    for (let x = 0; x < 512; x += 28) { g.strokeStyle = 'rgba(120,140,70,.55)'; g.lineWidth = 4; g.beginPath(); g.arc(x + 14, 226, 14, 0.1, Math.PI - 0.1); g.stroke(); } // (garlands)
+  });
+  // the outer wall, one bay: three storeys of open arches (see-through) and the attic's windows; a keystone and moulding round each arch
+  const arcadeTex = () => kCanvas('duArcade', 256, 512, (g, r) => {
+    g.fillStyle = '#d6c6a2'; g.fillRect(0, 0, 256, 512); grain(g, r, 256, 512, 6000, 'rgba(110,90,60,.13)', 'rgba(255,245,220,.1)');
+    g.strokeStyle = 'rgba(100,85,60,.35)'; g.lineWidth = 1; for (let y = 0; y < 512; y += 14) { g.beginPath(); g.moveTo(0, y); g.lineTo(256, y); g.stroke(); for (let x = (y / 14) % 2 ? 0 : 26; x < 256; x += 52) { g.beginPath(); g.moveTo(x, y); g.lineTo(x, y + 14); g.stroke(); } }
+    g.fillStyle = 'rgba(40,30,20,.85)'; for (const x of [70, 158]) g.fillRect(x, 40, 28, 34); // (the attic's windows)
+    for (let s = 0; s < 3; s++) { const y0 = 134 + s * 126, h = 112;
+      g.save(); g.globalCompositeOperation = 'destination-out'; g.beginPath(); g.moveTo(62, y0 + h); g.lineTo(62, y0 + 48); g.arc(128, y0 + 48, 66, Math.PI, 0); g.lineTo(194, y0 + h); g.closePath(); g.fill(); g.restore(); // (an opening)
+      g.strokeStyle = '#efe4c8'; g.lineWidth = 8; g.beginPath(); g.arc(128, y0 + 48, 70, Math.PI, 0); g.stroke(); g.fillStyle = '#efe4c8'; g.fillRect(122, y0 - 30, 12, 16); g.fillRect(52, y0 + 44, 14, 8); g.fillRect(190, y0 + 44, 14, 8);
+      g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(0, y0 - 6, 256, 5); }
+  });
+  const corridorTex = () => kCanvas('duCorr', 128, 256, (g, r) => { const gr = g.createLinearGradient(0, 256, 0, 0); gr.addColorStop(0, '#5b3a1e'); gr.addColorStop(0.3, '#2b2018'); gr.addColorStop(1, '#14100c'); g.fillStyle = gr; g.fillRect(0, 0, 128, 256); for (const y of [80, 160, 238]) { const gg = g.createRadialGradient(64, y, 2, 64, y, 40); gg.addColorStop(0, 'rgba(255,170,80,.6)'); gg.addColorStop(1, 'rgba(255,170,80,0)'); g.fillStyle = gg; g.fillRect(0, y - 40, 128, 80); } });
+  const sailTex = () => kCanvas('duSail', 256, 128, (g, r) => { for (let x = 0; x < 256; x += 32) { g.fillStyle = (x / 32) % 2 ? '#f3e9d2' : '#a61b1b'; g.fillRect(x, 0, 32, 128); } grain(g, r, 256, 128, 1500, 'rgba(0,0,0,.05)', 'rgba(255,255,255,.06)'); g.fillStyle = 'rgba(80,50,20,.35)'; for (let x = 0; x < 256; x += 32) g.fillRect(x, 0, 1.5, 128); g.fillRect(0, 0, 256, 3); g.fillRect(0, 125, 256, 3); });
+  const vomTex = () => kCanvas('duVom', 128, 128, (g) => { g.clearRect(0, 0, 128, 128); g.fillStyle = '#e9e1d0'; g.beginPath(); g.moveTo(14, 128); g.lineTo(14, 52); g.arc(64, 52, 50, Math.PI, 0); g.lineTo(114, 128); g.closePath(); g.fill(); const gr = g.createLinearGradient(0, 128, 0, 20); gr.addColorStop(0, '#2a1f16'); gr.addColorStop(1, '#0c0907'); g.fillStyle = gr; g.beginPath(); g.moveTo(26, 128); g.lineTo(26, 54); g.arc(64, 54, 38, Math.PI, 0); g.lineTo(102, 128); g.closePath(); g.fill(); g.fillStyle = '#cfc4ad'; g.fillRect(58, 4, 12, 12); });
+  const bannerTex = (e) => kCanvas('duBan2' + e, 128, 448, (g) => {
+    const [bg, fg] = [['#8f1414', '#e8b84a'], ['#1d3f99', '#f8fafc'], ['#16306b', '#facc15'], ['#f7f2e6', '#b91c1c']][e]; g.fillStyle = bg; g.fillRect(0, 0, 128, 400);
+    const sh = g.createLinearGradient(0, 0, 128, 0); sh.addColorStop(0, 'rgba(0,0,0,.25)'); sh.addColorStop(0.5, 'rgba(255,255,255,.08)'); sh.addColorStop(1, 'rgba(0,0,0,.25)'); g.fillStyle = sh; g.fillRect(0, 0, 128, 400);
+    g.fillStyle = fg; g.fillRect(0, 0, 128, 12); g.strokeStyle = fg; g.lineWidth = 4; g.strokeRect(10, 20, 108, 368);
+    for (let x = 4; x < 128; x += 12) { g.beginPath(); g.moveTo(x, 400); g.lineTo(x + 6, 440); g.lineTo(x + 12, 400); g.fill(); } // (the fringe)
     g.textAlign = 'center'; g.textBaseline = 'middle';
-    if (e === 0) { g.font = 'bold 30px serif'; g.fillText('SPQR', 64, 290); g.beginPath(); g.moveTo(64, 70); g.lineTo(96, 120); g.lineTo(80, 118); g.lineTo(100, 170); g.lineTo(64, 140); g.lineTo(28, 170); g.lineTo(48, 118); g.lineTo(32, 120); g.closePath(); g.fill(); g.beginPath(); g.arc(64, 205, 26, 0, 7); g.lineWidth = 6; g.stroke(); } // (the eagle, a wreath)
-    else if (e === 1) { g.lineWidth = 6; g.beginPath(); g.moveTo(26, 260); g.lineTo(64, 110); g.lineTo(102, 260); g.stroke(); for (let x = 16; x < 112; x += 20) { g.strokeRect(x, 320, 14, 14); } } // (a lambda, a key border)
-    else if (e === 2) { g.font = 'bold 120px serif'; g.fillText('⚜', 64, 180); g.fillRect(30, 280, 68, 8); g.fillRect(60, 250, 8, 70); } // (the lily, a cross)
-    else { g.beginPath(); g.arc(64, 150, 44, 0, 7); g.fill(); g.font = 'bold 40px serif'; g.fillText('武', 64, 270); g.fillText('士', 64, 318); } // (the rising sun)
+    if (e === 0) { g.font = 'bold 30px serif'; g.fillText('SPQR', 64, 300); g.beginPath(); g.moveTo(64, 70); g.lineTo(98, 124); g.lineTo(80, 120); g.lineTo(102, 176); g.lineTo(64, 146); g.lineTo(26, 176); g.lineTo(48, 120); g.lineTo(30, 124); g.closePath(); g.fill(); g.beginPath(); g.arc(64, 214, 26, 0, 7); g.lineWidth = 6; g.stroke(); }
+    else if (e === 1) { g.lineWidth = 7; g.beginPath(); g.moveTo(26, 270); g.lineTo(64, 110); g.lineTo(102, 270); g.stroke(); for (let x = 16; x < 112; x += 20) g.strokeRect(x, 330, 14, 14); }
+    else if (e === 2) { g.font = 'bold 120px serif'; g.fillText('⚜', 64, 186); g.fillRect(30, 290, 68, 8); g.fillRect(60, 260, 8, 70); }
+    else { g.beginPath(); g.arc(64, 156, 46, 0, 7); g.fill(); g.font = 'bold 40px serif'; g.fillText('武', 64, 280); g.fillText('士', 64, 328); }
   });
-  // the seats: rows rising round the arena, a walkway between each tier, colours by tier (marble for the senators near the front)
-  const caveaGeo = () => kg('duCavea', () => {
-    const N = 128, pos = [], nor = [], col = [], idx = [], c = new THREE.Color();
-    const quad = (p, n, cc) => { const b = pos.length / 3; for (const q of p) { pos.push(q[0], q[1], q[2]); nor.push(n[0], n[1], n[2]); col.push(cc.r, cc.g, cc.b); } idx.push(b, b + 1, b + 2, b, b + 2, b + 3); };
-    for (let s = 0; s < CS; s++) {
-      const a1 = A0 + 3 + s * CDR, b1 = B0 + 3 + s * CDR, a2 = a1 + CDR, b2 = b1 + CDR, y1 = CH0 + s * CDH, y0 = y1 - CDH, walk = s % 9 === 8;
-      const tier = s < 9 ? '#efe8da' : s < 18 ? '#d8c8a8' : '#b9a789';
-      for (let k = 0; k < N; k++) {
-        const t0 = (k / N) * Math.PI * 2, t1 = ((k + 1) / N) * Math.PI * 2, P = (a, b, t, y) => [a * Math.cos(t), y, b * Math.sin(t)], tm = (t0 + t1) / 2, stair = k % 8 === 0;
-        const nx = -Math.cos(tm) / a1, nz = -Math.sin(tm) / b1, nl = Math.hypot(nx, nz);
-        c.set(stair ? '#9c8f78' : tier).multiplyScalar(0.72); quad([P(a1, b1, t0, y0), P(a1, b1, t1, y0), P(a1, b1, t1, y1), P(a1, b1, t0, y1)], [nx / nl, 0, nz / nl], c); // (the riser)
-        c.set(walk ? '#a8987c' : stair ? '#b4a68c' : tier).multiplyScalar(0.94 + 0.06 * Math.sin(k * 1.7 + s)); quad([P(a1, b1, t0, y1), P(a1, b1, t1, y1), P(a2, b2, t1, y1), P(a2, b2, t0, y1)], [0, 1, 0], c); // (the seat)
-      }
-    }
-    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); g.setIndex(idx); return g;
-  });
-  // the crowd: a block of a body and a head for each, all drawn at once; each bobs up when the crowd's excited (uT, uAmp)
-  const CROWD = { u: { uT: { value: 0 }, uAmp: { value: 0.05 } }, ex: 0 };
-  function crowdMesh(par) {
-    const rnd = mulberry(77), spots = [];
-    for (let s = 0; s < CS; s++) { if (s % 9 === 8) continue; const am = A0 + 3 + (s + 0.45) * CDR, bm = B0 + 3 + (s + 0.45) * CDR, y = CH0 + s * CDH, L = Math.PI * (am + bm), n = Math.floor(L / 1.25);
-      for (let k = 0; k < n; k++) { const t = ((k + rnd() * 0.3) / n) * Math.PI * 2, seg = (t / (Math.PI * 2)) * 128;
-        if (seg % 8 < 0.9 || rnd() > 0.72) continue; // (the stairs; empty seats)
-        const z = bm * Math.sin(t), x = am * Math.cos(t); if (z < -B0 - 2 && Math.abs(x) < 9 && s < 8) continue; // (the emperor's box)
-        if (Math.abs(z) < 7 && s < 4) continue; // (over the gates)
-        spots.push([x, y, z, Math.atan2(x, z) + Math.PI, rnd()]); } }
-    const n = spots.length, body = kg('duCrowdB', () => { const q = new THREE.BoxGeometry(0.85, 1.05, 0.55); q.translate(0, 0.55, 0); return q; }), head = kg('duCrowdH', () => { const q = new THREE.BoxGeometry(0.6, 0.6, 0.6); q.translate(0, 1.42, -0.04); return q; });
-    const ph = new Float32Array(n); spots.forEach((s, i) => (ph[i] = s[4]));
-    const mk = (geo) => { const m = new THREE.MeshLambertMaterial({ color: '#ffffff' }); m.onBeforeCompile = (sh) => { Object.assign(sh.uniforms, CROWD.u); sh.vertexShader = 'attribute float aPh;\nuniform float uT;\nuniform float uAmp;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed.y += uAmp * max(0.0, sin(uT * (6.0 + aPh * 4.0) + aPh * 40.0));'); };
-      const g2 = geo.clone(); g2.setAttribute('aPh', new THREE.InstancedBufferAttribute(ph, 1)); const im = new THREE.InstancedMesh(g2, m, n); im.userData.ownGeo = 1; im.frustumCulled = false; par.add(im); return im; };
-    const B = mk(body), H = mk(head), M = new THREE.Matrix4(), Q = new THREE.Quaternion(), V = new THREE.Vector3(), S = new THREE.Vector3(1, 1, 1), up = new THREE.Vector3(0, 1, 0), c = new THREE.Color();
-    const TOG = ['#f5f1e6', '#f5f1e6', '#e7dcc3', '#b91c1c', '#1d4ed8', '#7c2d12', '#5b21b6', '#15803d', '#ca8a04', '#9a3412', '#334155', '#f5f1e6'], SK = ['#f5cd9b', '#e0ac69', '#c68642', '#8d5524', '#ffe0bd', '#f2c94c'];
-    spots.forEach(([x, y, z, ry], i) => { Q.setFromAxisAngle(up, ry); V.set(x, y, z); M.compose(V, Q, S); B.setMatrixAt(i, M); H.setMatrixAt(i, M); B.setColorAt(i, c.set(TOG[Math.floor(rnd() * TOG.length)])); H.setColorAt(i, c.set(SK[Math.floor(rnd() * SK.length)])); });
-    B.instanceMatrix.needsUpdate = H.instanceMatrix.needsUpdate = true; return n;
+  // the crowd: a body (a robe, folded legs and two arms that go up when they cheer) and a head with hair, all drawn at once,
+  // each with its own moment: uT the time, uAmp how much they bounce, uCheer how high the arms go (the excitement)
+  const CROWD = { u: { uT: { value: 0 }, uAmp: { value: 0.05 }, uCheer: { value: 0.1 } }, ex: 0 };
+  function crowdGeo(key, parts, armIdx) { return kg(key, () => { const B = [], arms = [];
+    for (const [i, [w, h, d, x, y, z, col]] of parts.entries()) { const q = new THREE.BoxGeometry(w, h, d).toNonIndexed(); q.translate(x, y, z); const n = q.attributes.position.count, cc = new THREE.Color(col || '#ffffff'), c = new Float32Array(n * 3), am = new Float32Array(n);
+      for (let k = 0; k < n; k++) { c[k * 3] = cc.r; c[k * 3 + 1] = cc.g; c[k * 3 + 2] = cc.b; am[k] = armIdx[i] || 0; } q.setAttribute('color', new THREE.BufferAttribute(c, 3)); q.setAttribute('aArm', new THREE.BufferAttribute(am, 1)); q.deleteAttribute('uv'); B.push(q); }
+    const pos = [], nor = [], col = [], arm = []; for (const q of B) { pos.push(...q.attributes.position.array); nor.push(...q.attributes.normal.array); col.push(...q.attributes.color.array); arm.push(...q.attributes.aArm.array); }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); g.setAttribute('aArm', new THREE.Float32BufferAttribute(arm, 1)); return g; }); }
+  const crowdMat = (flag) => { const m = new THREE.MeshLambertMaterial({ color: '#ffffff', vertexColors: true, side: flag ? THREE.DoubleSide : THREE.FrontSide });
+    m.onBeforeCompile = (sh) => { Object.assign(sh.uniforms, CROWD.u); sh.vertexShader = 'attribute float aPh;\nattribute float aArm;\nuniform float uT;\nuniform float uAmp;\nuniform float uCheer;\n' + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
+      float ph = aPh * 40.0; float up = uAmp * max(0.0, sin(uT * (6.0 + aPh * 4.0) + ph));
+      if (abs(aArm) > 0.5 && aArm < 1.5) { float raise = uCheer * (2.1 + 0.7 * sin(uT * (7.0 + aPh * 5.0) + ph + aArm)) * step(fract(aPh * 7.3), 0.25 + uCheer * 0.75); vec3 p = transformed - vec3(0.0, 1.05, 0.0); float c = cos(raise), s = sin(raise); transformed = vec3(p.x, p.y * c + p.z * s, -p.y * s + p.z * c) + vec3(0.0, 1.05, 0.0); }
+      if (aArm > 1.5) { float w = (transformed.x + 0.1) * 1.4; transformed.z += sin(uT * 9.0 + ph + w * 2.5) * 0.18 * w; transformed.y += sin(uT * 7.0 + ph + w * 2.0) * 0.06 * w; }
+      transformed.y += up;`); }; m.customProgramCacheKey = () => 'duCrowd' + (flag ? 'f' : ''); return m; };
+  function crowd(par, rnd) {
+    const dens = touchy ? 0.6 : 0.88, spots = [], aisles = ellPts(PA, PB, 24, 0).map((p) => p.t);
+    ROWS.forEach((R, s) => { if (R.walk) return; const pts = ellPts(PA, PB, Math.floor(ellPts(PA, PB, 1, R.d + 0.45).len / 1.12), R.d + 0.45);
+      for (const p of pts) { const dt = Math.min(...aisles.map((a) => Math.abs(wrapA(a - p.t)))); if (dt * (PA + R.d) < 1.1 || rnd() > dens) continue;
+        if (p.z < -PB - 2 && Math.abs(p.x) < 11 && R.t === 0) continue; if (Math.abs(p.z) < 8 && p.x * p.x > 900 && R.t === 0 && s < 4) continue; // (the emperor's box; over the gates)
+        spots.push([p.x, R.y, p.z, p.ry + Math.PI + (rnd() - 0.5) * 0.4, rnd(), R.t]); } });
+    const n = spots.length, ph = new Float32Array(n); spots.forEach((s, i) => (ph[i] = s[4]));
+    const body = crowdGeo('duCrB', [[0.9, 1.0, 0.55, 0, 0.62, 0], [0.86, 0.32, 0.75, 0, 0.16, -0.32, '#d8d0c0'], [0.24, 0.78, 0.26, 0.57, 0.66, 0], [0.24, 0.78, 0.26, -0.57, 0.66, 0]], [0, 0, 1, 1]);
+    const head = crowdGeo('duCrH', [[0.58, 0.56, 0.56, 0, 1.43, -0.03], [0.62, 0.22, 0.62, 0, 1.76, 0.02, '#2a1a0e']], [0, 0]);
+    const flagG = crowdGeo('duCrF', [[0.06, 2.2, 0.06, 0.5, 1.9, -0.1, '#5b3a1e'], [1.1, 0.7, 0.02, 1.07, 2.65, -0.1]], [0, 2]);
+    const mk = (geo, m, cnt) => { const g2 = geo.clone(); g2.setAttribute('aPh', new THREE.InstancedBufferAttribute(cnt === n ? ph : ph.slice(0, cnt), 1)); const im = new THREE.InstancedMesh(g2, m, cnt); im.frustumCulled = false; im.userData.noShadow = true; par.add(im); return im; };
+    const nf = Math.floor(n * 0.05), B = mk(body, crowdMat(), n), H = mk(head, crowdMat(), n), F = mk(flagG, crowdMat(true), nf);
+    const M = new THREE.Matrix4(), Q = new THREE.Quaternion(), V = new THREE.Vector3(), S = new THREE.Vector3(), up = new THREE.Vector3(0, 1, 0), c = new THREE.Color();
+    const TOG = [['#f5f1e6', '#efe6d2', '#e7dcc3', '#f5f1e6', '#b91c1c', '#1d4ed8', '#7c2d12', '#5b21b6', '#15803d', '#ca8a04', '#9a3412', '#334155'], ['#e7dcc3', '#a16207', '#7f1d1d', '#1e3a8a', '#365314', '#78350f', '#57534e'], ['#a8a29e', '#78716c', '#92400e', '#7c2d12', '#3f6212', '#57534e']];
+    const SK = ['#f5cd9b', '#e0ac69', '#c68642', '#8d5524', '#ffe0bd', '#f2c94c'], FLG = ['#b91c1c', '#1d4ed8', '#facc15', '#f8fafc', '#16a34a', '#7c3aed'];
+    let f = 0; const fIdx = new Set(); while (fIdx.size < nf) fIdx.add(Math.floor(rnd() * n));
+    spots.forEach(([x, y, z, ry, r0, t], i) => { const sc = 0.9 + r0 * 0.22; Q.setFromAxisAngle(up, ry); V.set(x, y, z); S.set(sc, sc, sc); M.compose(V, Q, S); B.setMatrixAt(i, M); H.setMatrixAt(i, M);
+      const T = TOG[t]; B.setColorAt(i, c.set(T[Math.floor(rnd() * T.length)])); H.setColorAt(i, c.set(SK[Math.floor(rnd() * SK.length)]));
+      if (fIdx.has(i) && f < nf) { F.setMatrixAt(f, M); F.setColorAt(f, c.set(FLG[Math.floor(rnd() * FLG.length)])); ph[f] = r0; f++; } });
+    for (const im of [B, H, F]) { im.instanceMatrix.needsUpdate = true; if (im.instanceColor) im.instanceColor.needsUpdate = true; }
+    return n;
+  }
+  // a figure that never moves, made into one mesh for each of its materials: hundreds of parts drawn in a few calls (its glows kept as they are)
+  function bake(root) {
+    root.updateMatrixWorld(true); const inv = new THREE.Matrix4().copy(root.matrixWorld).invert(), by = new Map(), keep = [];
+    root.traverse((o) => { let vis = true; for (let q = o; q && q !== root.parent; q = q.parent) if (!q.visible) vis = false; if (!vis) return;
+      const M = new THREE.Matrix4().multiplyMatrices(inv, o.matrixWorld);
+      if (o.isSprite || (o.isMesh && (Array.isArray(o.material) || o.isInstancedMesh))) { const c = o.clone(); c.matrixAutoUpdate = false; c.matrix.copy(M); keep.push(c); return; }
+      if (!o.isMesh) return; const g = (o.geometry.index ? o.geometry.toNonIndexed() : o.geometry.clone()); g.applyMatrix4(M); const k = o.material.uuid; if (!by.has(k)) by.set(k, { m: o.material, gs: [] }); by.get(k).gs.push(g); });
+    const out = new THREE.Group(); out.position.copy(root.position); out.rotation.copy(root.rotation); out.scale.copy(root.scale);
+    for (const { m, gs } of by.values()) { const n = gs.reduce((a, g) => a + g.attributes.position.count, 0), P = new Float32Array(n * 3), N = new Float32Array(n * 3), U = new Float32Array(n * 2), C = m.vertexColors ? new Float32Array(n * 3).fill(1) : null; let o2 = 0;
+      for (const g of gs) { const c = g.attributes.position.count; P.set(g.attributes.position.array.subarray(0, c * 3), o2 * 3); if (g.attributes.normal) N.set(g.attributes.normal.array.subarray(0, c * 3), o2 * 3); if (g.attributes.uv) U.set(g.attributes.uv.array.subarray(0, c * 2), o2 * 2); if (C && g.attributes.color && g.attributes.color.itemSize === 3) C.set(g.attributes.color.array.subarray(0, c * 3), o2 * 3); o2 += c; g.dispose(); }
+      const G2 = new THREE.BufferGeometry(); G2.setAttribute('position', new THREE.BufferAttribute(P, 3)); G2.setAttribute('normal', new THREE.BufferAttribute(N, 3)); G2.setAttribute('uv', new THREE.BufferAttribute(U, 2)); if (C) G2.setAttribute('color', new THREE.BufferAttribute(C, 3));
+      const mesh = new THREE.Mesh(G2, m); mesh.userData.ownGeo = 1; out.add(mesh); }
+    for (const c of keep) out.add(c); return out;
+  }
+  // a figure of one of the legends in gold, for the gates
+  function goldStatue(c, x, y, z, ry, s = 1.15) {
+    const a = makeAvatar([1, 0, 0, 0, 17, 0, 0, 0, 0, 0, DUEL_BT + c, DUEL_AN + c], '', true); scene.remove(a.shadow); for (let k = 0; k < 25; k++) animateAvatar(a, 0.1, false, false);
+    const gold = metalMat('#e8b84a', { specular: '#fff2c0', shininess: 90, reflectivity: 0.6 }); a.g.traverse((o) => { if (o.isMesh) o.material = gold; else if (o.isSprite) o.visible = false; });
+    a.g.position.set(x, y, z); a.g.rotation.y = ry; a.g.scale.setScalar(s); return bake(a.g);
   }
   function buildColosseum() {
-    const G = new THREE.Group(); place.add(G); const L = (c, o) => new THREE.MeshLambertMaterial(Object.assign({ color: c }, o || {})), add = (geo, m, x = 0, y = 0, z = 0, par = G) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); par.add(o); return o; };
-    const marble = L('#ece4d3'), trav = L('#d8c9a8'), bronze = metalMat('#b8763a', { shininess: 90 }), gold = metalMat('#e8b84a', { specular: '#fff2c0' }), dark = L('#2a2118');
-    // the floor
-    const fl = add(kg('duFloor', () => { const q = new THREE.CircleGeometry(1, 96); q.rotateX(-Math.PI / 2); return q; }), L('#ffffff', { map: sandTex() }), 0, 0.01, 0); fl.scale.set(A0 + 1.2, 1, B0 + 1.2);
+    const G = new THREE.Group(); place.add(G); const rnd = mulberry(1907);
+    const Lm = (o) => new THREE.MeshLambertMaterial(Object.assign({ color: '#ffffff' }, o || {})), add = (geo, m, x = 0, y = 0, z = 0, par = G) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); par.add(o); return o; };
+    const MARB = Lm({ map: marbleTex(), vertexColors: true }), TRAV = Lm({ map: travTex(), vertexColors: true }), bronze = metalMat('#b8763a', { shininess: 90 }), gold = metalMat('#e8b84a', { specular: '#fff2c0' }), iron = metalMat('#3f3f46', { shininess: 60 });
+    const inst = (geo, mat, list, f) => { const im = new THREE.InstancedMesh(geo, mat, list.length), M = new THREE.Matrix4(), Q = new THREE.Quaternion(), V = new THREE.Vector3(), S = new THREE.Vector3(), up = new THREE.Vector3(0, 1, 0);
+      list.forEach((p, i) => { const [x, y, z, ry, sx, sy, sz] = f(p, i); Q.setFromAxisAngle(up, ry); V.set(x, y, z); S.set(sx, sy, sz); M.compose(V, Q, S); im.setMatrixAt(i, M); }); im.instanceMatrix.needsUpdate = true; G.add(im); return im; };
+    /* the arena floor: sand (solid underneath), a stone gutter round its edge, wooden trapdoors to the hypogeum */
+    const fl = add(kg('duFloor', () => { const q = new THREE.CircleGeometry(1, 128); q.rotateX(-Math.PI / 2); return q; }), Lm({ map: sandTex() }), 0, 0.01, 0); fl.scale.set(PA, 1, PB);
     const solid = slab(0, 0, 0, 2 * (A0 + 4), 2 * (B0 + 4), 0xd9b77c, { sy: 2 }); solid.m.visible = false;
-    // the podium wall, its rail and the bronze grille on top
-    const pw = add(kg('duPodW', () => uvScale(new THREE.CylinderGeometry(1, 1, CH0 - 0.4, 128, 1, true), -16, 1)), L('#ffffff', { map: podiumTex(), side: THREE.BackSide }), 0, (CH0 - 0.4) / 2, 0); pw.scale.set(A0 + 1.25, 1, B0 + 1.25);
-    const cap = add(kg('duPodCap', () => new THREE.CylinderGeometry(1, 1, 0.5, 128, 1, true)), L('#cfc6b2', { side: THREE.DoubleSide }), 0, CH0 - 0.15, 0); cap.scale.set(A0 + 1.5, 1, B0 + 1.5);
-    const top = add(kg('duPodTop', () => { const q = new THREE.RingGeometry(1, 1.06, 128, 1); q.rotateX(-Math.PI / 2); return q; }), marble, 0, CH0 + 0.1, 0); top.scale.set(A0 + 1.3, 1, B0 + 1.3);
-    const grill = add(kg('duGrill', () => uvScale(new THREE.CylinderGeometry(1, 1, 1.3, 128, 1, true), 90, 1)), L('#ffffff', { map: kCanvas('duGrillT', 64, 64, (g) => { g.clearRect(0, 0, 64, 64); g.fillStyle = '#7c4a22'; g.fillRect(0, 0, 64, 6); g.fillRect(0, 58, 64, 6); for (let x = 4; x < 64; x += 14) g.fillRect(x, 0, 5, 64); g.strokeStyle = '#7c4a22'; g.lineWidth = 3; g.beginPath(); g.moveTo(0, 32); g.lineTo(32, 6); g.lineTo(64, 32); g.lineTo(32, 58); g.closePath(); g.stroke(); }), transparent: true, alphaTest: 0.4, side: THREE.DoubleSide }), 0, CH0 + 0.75, 0); grill.scale.set(A0 + 1.9, 1, B0 + 1.9);
-    // the seats and the crowd on them
-    add(caveaGeo(), L('#ffffff', { vertexColors: true }));
-    for (const s of [8, 17]) { const pr = add(kg('duPrae' + s, () => new THREE.CylinderGeometry(1, 1, 1.2, 128, 1, true)), L('#c8baa0', { side: THREE.DoubleSide }), 0, CH0 + s * CDH + 0.6, 0); pr.scale.set(A0 + 3 + (s + 1) * CDR, 1, B0 + 3 + (s + 1) * CDR); } // (the walls between tiers)
-    CROWD.n = crowdMesh(G);
-    // the outer wall: the arcades outside, plain stone inside; half-columns between the arches, cornices between storeys, the attic's masts
-    const fo = add(kg('duFacO', () => uvScale(new THREE.CylinderGeometry(1, 1, FH, 128, 1, true), 64, 1)), L('#ffffff', { map: facadeTex() }), 0, FH / 2, 0); fo.scale.set(FA, 1, FB);
-    const fi = add(kg('duFacI', () => uvScale(new THREE.CylinderGeometry(1, 1, FH - CH0 - CS * CDH + 2, 128, 1, true), 40, 1)), L('#ffffff', { map: facadeTex(), side: THREE.BackSide }), 0, CH0 + CS * CDH - 1 + (FH - CH0 - CS * CDH + 2) / 2, 0); fi.scale.set(FA - 0.8, 1, FB - 0.8);
-    const fT = add(kg('duFacTop', () => { const q = new THREE.RingGeometry(0.985, 1.0, 128, 1); q.rotateX(-Math.PI / 2); return q; }), trav, 0, FH, 0); fT.scale.set(FA, 1, FB);
-    const colG = kg('duCol', () => new THREE.CylinderGeometry(0.75, 0.82, 1, 12)), mastG = kg('duMast', () => new THREE.CylinderGeometry(0.16, 0.2, 7, 6)), NB = 64;
-    const cols = new THREE.InstancedMesh(colG, trav, NB * 3), masts = new THREE.InstancedMesh(mastG, L('#7c5a36'), NB / 2), M = new THREE.Matrix4(), Sv = new THREE.Vector3(), Q = new THREE.Quaternion(), V = new THREE.Vector3();
-    for (let k = 0; k < NB; k++) { const t = (k / NB) * Math.PI * 2 + Math.PI / NB * 0, x = Math.cos(t), z = Math.sin(t);
-      for (let s = 0; s < 3; s++) { const sh = FH * (136 / 512), y0 = FH * (1 - (106 + s * 136 + 118) / 512); V.set(x * (FA + 0.35), y0 + sh / 2, z * (FB + 0.35)); Sv.set(1, sh, 1); M.compose(V, Q, Sv); cols.setMatrixAt(k * 3 + s, M); }
-      if (k % 2 === 0) { V.set(x * (FA - 0.4), FH + 3.4, z * (FB - 0.4)); Sv.set(1, 1, 1); M.compose(V, Q, Sv); masts.setMatrixAt(k / 2, M); } }
-    G.add(cols); G.add(masts); cols.userData.ownGeo = masts.userData.ownGeo = 0;
-    for (const f of [106 - 18, 242 - 18, 378 - 18, 497]) { const y = FH * (1 - f / 512); const cr = add(kg('duCorn', () => new THREE.CylinderGeometry(1, 1, 0.7, 128, 1, false)), trav, 0, y, 0); cr.scale.set(FA + 0.75, 1, FB + 0.75); }
-    // the velarium: awnings out from the top of the wall, with gaps, on ropes to the masts
-    const aw = add(kg('duAwn', () => { const N = 64, pos = [], uv = [], idx = []; for (let k = 0; k < N; k++) { if (k % 4 === 3) continue; const t0 = (k / N) * Math.PI * 2, t1 = ((k + 1) / N) * Math.PI * 2, b = pos.length / 3;
-        for (const [t, f, y] of [[t0, 1, 0], [t1, 1, 0], [t1, 0.8, -3.2], [t0, 0.8, -3.2]]) pos.push(Math.cos(t) * f, y, Math.sin(t) * f); uv.push(0, 1, 1, 1, 1, 0, 0, 0); idx.push(b, b + 2, b + 1, b, b + 3, b + 2); }
-      const q = new THREE.BufferGeometry(); q.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); q.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); q.setIndex(idx); q.computeVertexNormals(); return q; }), L('#ffffff', { map: awningTex(), side: THREE.DoubleSide }), 0, FH + 5.5, 0);
-    aw.scale.set(FA - 0.6, 1, FB - 0.6);
-    // the gates at each end: a dark arch, a portcullis
-    for (const s of [-1, 1]) { const g = new THREE.Group(); g.position.set(s * (A0 + 1.15), 0, 0); g.rotation.y = s * Math.PI / 2; G.add(g);
-      add(BOX, dark, 0, 2.6, 0.2, g).scale.set(6, 5.2, 0.3); const ar = add(kg('duGateArch', () => new THREE.TorusGeometry(3.2, 0.35, 8, 20, Math.PI)), marble, 0, 3.3, -0.05, g); ar.scale.set(1, 0.9, 1);
-      for (let k = -2; k <= 2; k++) add(BOX, L('#3f3f46'), k * 1.1, 2.6, -0.1, g).scale.set(0.16, 5.2, 0.16); for (let k = 0; k < 4; k++) add(BOX, L('#3f3f46'), 0, 0.8 + k * 1.3, -0.1, g).scale.set(5.2, 0.14, 0.14);
-      for (const x of [-3.7, 3.7]) { add(kg('duPil', () => new THREE.CylinderGeometry(0.45, 0.5, 6.2, 12)), marble, x, 3.1, -0.3, g); add(BOX, marble, x, 6.3, -0.3, g).scale.set(1.2, 0.3, 1.2); } }
-    // the emperor's box: a marble balcony on the north side, purple and gold, the emperor in his laurels between two guards
-    const EB = new THREE.Group(); EB.position.set(0, CH0, -(B0 + 1.4)); G.add(EB);
-    add(BOX, marble, 0, -0.2, -2.4, EB).scale.set(16, 0.5, 6); add(BOX, L('#5b21b6'), 0, 0.6, 0.15, EB).scale.set(15, 1.1, 0.25); add(BOX, gold, 0, 1.2, 0.2, EB).scale.set(15.3, 0.15, 0.4);
-    for (const x of [-7.4, -2.5, 2.5, 7.4]) { add(kg('duEbCol', () => new THREE.CylinderGeometry(0.32, 0.36, 6.5, 12)), marble, x, 3.0, 0.2, EB); add(BOX, gold, x, 6.3, 0.2, EB).scale.set(0.9, 0.25, 0.9); }
-    const can = add(kg('duCanopy', () => { const q = new THREE.PlaneGeometry(16.5, 6.5, 12, 1); const p = q.attributes.position; for (let i = 0; i < p.count; i++) p.setZ(i, 0.6 * Math.sin((p.getX(i) / 16.5 + 0.5) * Math.PI * 6)); q.computeVertexNormals(); q.rotateX(-Math.PI / 2 + 0.25); return q; }), L('#ffffff', { map: awningTex(), side: THREE.DoubleSide }), 0, 6.9, -2.2, EB);
-    const eagle = add(kg('duEagle', () => ovShape('duEagleS', [[0, 0.9], [0.35, 0.45], [1.2, 0.75], [0.8, 0.2], [1.1, 0.0], [0.35, 0.05], [0.25, -0.6], [0, -0.45], [-0.25, -0.6], [-0.35, 0.05], [-1.1, 0.0], [-0.8, 0.2], [-1.2, 0.75], [-0.35, 0.45]], 0.12, 0.03)), gold, 0, 8.1, 0.3, EB); eagle.scale.setScalar(1.4);
-    const ban = add(kg('duEbBan', () => new THREE.PlaneGeometry(2.4, 5.5)), L('#ffffff', { map: bannerTex(0), side: THREE.DoubleSide }), 0, -2.4, 0.32, EB); ban.position.set(0, -2.9, 0.42);
-    // the four empires' banners down the podium wall, all round; braziers on top
-    const BG = kg('duBanG', () => { const q = new THREE.PlaneGeometry(2.0, 5.2, 1, 6); const p = q.attributes.position; for (let i = 0; i < p.count; i++) p.setZ(i, 0.12 * Math.sin(p.getY(i) * 1.5)); q.computeVertexNormals(); return q; });
-    const banM = [0, 1, 2, 3].map((e) => L('#ffffff', { map: bannerTex(e), side: THREE.DoubleSide }));
-    SC.fires = [];
-    for (let k = 0; k < 20; k++) { const t = (k / 20) * Math.PI * 2 + Math.PI / 20, x = Math.cos(t), z = Math.sin(t); if (Math.abs(z) < 0.3) continue; if (z < -0.95) continue;
-      const b = add(BG, banM[k % 4], x * (A0 + 1.0), CH0 - 3.0, z * (B0 + 1.0)); b.lookAt(0, CH0 - 3, 0);
-      if (k % 2 === 0) { const bz = new THREE.Group(); bz.position.set(x * (A0 + 1.7), CH0 + 0.2, z * (B0 + 1.7)); G.add(bz); add(kg('duTripod', () => new THREE.CylinderGeometry(0.15, 0.4, 1.6, 6)), bronze, 0, 0.8, 0, bz);
+    add(sweep('gutter', PA, PB, [[-1.9, 0.02, '#b9ab8c'], [-1.9, 0.08, '#cfc2a4'], [-1.5, 0.1, '#cfc2a4'], [-1.45, 0.03, '#6b5a40'], [-1.0, 0.03, '#6b5a40'], [-0.95, 0.1, '#cfc2a4'], [0, 0.1, '#cfc2a4']], { hard: true, u: 60 }), TRAV);
+    const plank = Lm({ map: plankTex() }); for (const [x, z, w, d] of [[-20, -9, 4, 2.6], [20, 9, 4, 2.6], [-9, 13, 2.6, 4], [9, -13, 2.6, 4], [0, 0, 3, 3]]) { if (!x && !z) continue; const td = add(BOX, plank, x, 0.03, z); td.scale.set(w, 0.06, d); for (const s of [-1, 1]) { const rg = add(kTor(0.25), iron, x + s * w * 0.28, 0.08, z); rg.rotation.x = Math.PI / 2; rg.scale.setScalar(0.22); } }
+    // the debris of earlier fights against the wall: shields leant there, spears in the sand
+    for (const p of ellPts(PA - 1.3, PB - 1.3, 14, 0, 0.3)) { if (Math.abs(p.z) < 8 && Math.abs(p.x) > 25) continue; if (rnd() < 0.5) { const sh = add(kg('duDebSh', () => new THREE.CylinderGeometry(0.9, 0.9, 0.12, 20)), rnd() < 0.5 ? bronze : Lm({ map: woodTex(), color: '#8b5a2b' }), p.x, 0.85, p.z); sh.rotation.set(Math.PI / 2 - 0.35, 0, 0); sh.rotation.y = p.ry; sh.rotateX(0); }
+      else { const sp = add(kCyl(), Lm({ map: woodTex(), color: '#8b5a2b' }), p.x, 1.4, p.z); sp.scale.set(0.07, 3.2, 0.07); sp.rotation.z = (rnd() - 0.5) * 0.5; sp.rotation.x = (rnd() - 0.5) * 0.4; } }
+    /* the podium: a plinth, the carved marble face, a cornice, the walkway on top and a balustrade */
+    add(sweep('podium', PA, PB, [[-0.55, 0, '#8d8473'], [-0.55, 0.85, '#9b917f'], [-0.25, 1.0], [-0.25, 5.15], [-0.45, 5.25], [-0.75, 5.45], [-0.75, 5.62], [-0.45, 5.72], [-0.3, 5.95], [0, 6.0], [1.8, 6.0]], { hard: true, u: 1, vs: 1 }), MARB);
+    const face = add(sweep('podFace2', PA, PB, [[-0.3, 1.0], [-0.3, 5.15]], { u: 24, vs: 4.15, N: 256 }), Lm({ map: reliefTex() })); face.material.map.wrapT = THREE.ClampToEdgeWrapping;
+    const pil = ellPts(PA, PB, 48, -0.32, 0.5); inst(rboxGeo(0.62, 4.2, 0.3, 0.05), Lm({ map: marbleTex() }), pil, (p) => [p.x, 3.08, p.z, p.ry, 1, 1, 1]); inst(rboxGeo(0.95, 0.32, 0.5, 0.05), Lm({ map: marbleTex() }), pil, (p) => [p.x, 5.3, p.z, p.ry, 1, 1, 1]);
+    const gap = (p) => !(Math.abs(p.z) < 4.5 && Math.abs(p.x) > 20) && !(p.z < -PB + 1 && Math.abs(p.x) < 9);
+    const bal = ellPts(PA, PB, 420, 0.35).filter(gap); inst(kLathe('duBaluster', [[0, 0], [0.12, 0], [0.12, 0.08], [0.07, 0.16], [0.14, 0.42], [0.06, 0.62], [0.09, 0.7], [0.12, 0.8], [0, 0.8]], 6), Lm({ map: marbleTex(), color: '#f3eee4' }), bal, (p) => [p.x, 6.0, p.z, 0, 1, 1, 1]).userData.noShadow = true;
+    add(sweep('balRail', PA, PB, [[0.18, 6.78], [0.18, 6.98], [0.24, 7.02], [0.52, 7.02], [0.56, 6.98], [0.56, 6.78], [0.18, 6.78]], { hard: true, u: 90 }), MARB);
+    /* the seats: marble, then travertine, then wooden benches; between the tiers a walkway and a wall (the balteus) */
+    const prof = [[1.8, 6.0, '#efe9dc']]; ROWS.forEach((R) => { const c = R.t === 0 ? '#f2ede2' : R.t === 1 ? '#dfd0b2' : '#c8b796'; prof.push([R.d, R.y0, c], [R.d, R.y, R.walk ? c : c], [R.d + R.w, R.y, c]); if (R.walk && !R.top) prof.push([R.d + R.w, R.y + 0.0, c]); });
+    const stone = prof.filter((p) => p[1] <= ROWS.find((R) => R.t === 2 && !R.walk).y0 + 0.01), wood = prof.slice(stone.length - 1);
+    add(sweep('cavStone', PA, PB, stone, { hard: true, u: 140, vs: 2.4 }), Lm({ map: seatTex(), vertexColors: true }));
+    add(sweep('cavWood', PA, PB, wood, { hard: true, u: 160, vs: 1.2 }), Lm({ map: plankTex(), vertexColors: true }));
+    // parapets along the front of each balteus, and the stairways up through the tiers
+    for (const R of ROWS.filter((q) => q.walk && !q.top)) add(sweep('parapet' + R.d, PA, PB, [[R.d + 0.05, R.y, '#d8cbb0'], [R.d + 0.05, R.y + 0.95, '#e7dcc6'], [R.d + 0.35, R.y + 1.0, '#e7dcc6'], [R.d + 0.35, R.y, '#d8cbb0']], { hard: true, u: 120 }), TRAV);
+    const aisle = ellPts(PA, PB, 24, 0), stairs = []; for (const a of aisle) for (const R of ROWS) { if (R.walk) continue; for (const h of [0, 1]) { const d = R.d + 0.3 + h * 0.6; stairs.push([a.x + a.nx * d, R.y0 + (R.y - R.y0) * (0.5 + 0.5 * h), a.z + a.nz * d, a.ry]); } }
+    inst(BOX, Lm({ map: travTex(), color: '#cdbf9f' }), stairs, ([x, y, z, ry]) => [x, y - 0.25, z, ry, 1.6, 0.55, 0.62]);
+    const voms = []; for (const R of ROWS.filter((q) => q.walk && !q.top)) for (const p of ellPts(PA, PB, 24, R.d + R.w - 0.02, 0.5)) voms.push([p.x, R.y + 0.9, p.z, p.ry]); // (the vomitoria: in the wall at the back of each walkway)
+    const nextWall = (R) => { const i = ROWS.indexOf(R); return ROWS[i + 1]; }; void nextWall;
+    inst(kg('duVomG', () => new THREE.PlaneGeometry(2.4, 1.8)), Lm({ map: vomTex(), transparent: true, alphaTest: 0.5 }), voms, ([x, y, z, ry]) => [x, y, z, ry + Math.PI, 1, 1, 1]);
+    CROWD.n = crowd(G, rnd);
+    /* the colonnade at the top, its tiled roof, and the inside of the attic */
+    const top = ROWS[ROWS.length - 1], cd = top.d + 1.4, cols = ellPts(PA, PB, 120, cd);
+    inst(kLathe('duColShaft', [[0, 0], [0.5, 0], [0.5, 0.18], [0.4, 0.3], [0.36, 5.6], [0.44, 5.75], [0.6, 5.95], [0.6, 6.15], [0, 6.15]], 12), Lm({ map: marbleTex() }), cols, (p) => [p.x, YTOP, p.z, p.ry, 1, 1, 1]);
+    add(sweep('architrave', PA, PB, [[cd - 0.7, YTOP + 6.1], [cd - 0.7, YTOP + 6.9], [cd - 0.9, YTOP + 7.1], [cd - 0.9, YTOP + 7.3]], { hard: true, u: 60 }), MARB);
+    add(sweep('roof', PA, PB, [[cd - 0.9, YTOP + 7.3, '#c2603a'], [ROWS.end + 0.05, YTOP + 9.6, '#c2603a']], { u: 200, vs: 1.5 }), Lm({ map: tileTex(), vertexColors: true }));
+    add(sweep('attIn', PA, PB, [[ROWS.end, YTOP, '#cbb995'], [ROWS.end, FH, '#d8c8a6']], { u: 80, vs: 4 }), TRAV);
+    add(sweep('attTop', PA, PB, [[ROWS.end, FH], [ROWS.end + 0.7, FH]], { u: 80 }), TRAV);
+    /* the outer wall: open arches over a dark corridor (you see in), half-columns, cornices between the storeys, the attic's pilasters; a plinth of steps at its foot */
+    const NB = 80, arc = add(sweep('arcade', FA - 0.7, FB - 0.7, [[0.7, 0], [0.7, FH]], { u: NB, vs: FH, out: true, N: NB * 4 }), Lm({ map: arcadeTex(), alphaTest: 0.5, side: THREE.DoubleSide })); arc.material.map.wrapT = THREE.ClampToEdgeWrapping;
+    // (the texture's v runs bottom to top over the wall's height: its arches are drawn from the top down)
+    add(sweep('corrWall', FA - 0.7, FB - 0.7, [[-4.2, 0], [-4.2, FH * 0.73]], { u: 60, vs: FH * 0.73, out: true }), Lm({ map: corridorTex() }));
+    for (const f of [0, 1, 2]) { const y = FH * (1 - (134 + f * 126 + 112) / 512); add(sweep('corrFl' + f, FA - 0.7, FB - 0.7, [[-4.2, y + 0.02, '#4a3a2a'], [0.6, y + 0.02, '#6b5a40']], { u: 60, out: false }), Lm({ map: travTex(), vertexColors: true })); }
+    const bays = ellPts(FA, FB, NB, 0.15), half = [];
+    for (const p of bays) for (let f = 0; f < 3; f++) { const y0 = FH * (1 - (134 + f * 126 + 112) / 512), y1 = FH * (1 - (134 + f * 126 - 6) / 512); half.push([p, y0, y1 - y0]); }
+    inst(kg('duHalfCol', () => new THREE.CylinderGeometry(0.62, 0.68, 1, 12, 1)), Lm({ map: travTex(), color: '#e2d4b4' }), half, ([p, y, h]) => [p.x, y + h / 2, p.z, p.ry, 1, h, 1]);
+    inst(BOX, Lm({ map: travTex(), color: '#e8dcc0' }), half, ([p, y, h]) => [p.x + p.nx * 0.1, y + h - 0.35, p.z + p.nz * 0.1, p.ry, 1.7, 0.7, 1.3]);
+    const att = ellPts(FA, FB, NB, 0.1); inst(BOX, Lm({ map: travTex(), color: '#e2d4b4' }), att, (p) => [p.x, FH * (1 - 66 / 512), p.z, p.ry, 1.2, FH * (120 / 512), 0.5]);
+    for (const f of [0, 1, 2]) { const y = FH * (1 - (134 + f * 126 - 6) / 512); add(sweep('corn' + f, FA - 0.7, FB - 0.7, [[0.65, y - 0.4], [1.3, y - 0.2], [1.5, y + 0.1], [1.5, y + 0.4], [0.65, y + 0.45]], { hard: true, out: true, u: 120 }), TRAV); }
+    add(sweep('crown', FA - 0.7, FB - 0.7, [[0.65, FH - 0.6], [1.4, FH - 0.3], [1.4, FH + 0.2], [-0.05, FH + 0.2]], { hard: true, out: true, u: 120 }), TRAV);
+    add(sweep('steps', FA - 0.7, FB - 0.7, [[4.2, 0, '#bfb08f'], [4.2, 0.35], [3.2, 0.35], [3.2, 0.7], [2.2, 0.7], [2.2, 1.05], [0.7, 1.05]], { hard: true, out: true, u: 100 }), TRAV);
+    /* the velarium: masts on the attic, sails out over the seats (gaps between them), ropes to a ring above the arena */
+    const masts = ellPts(FA, FB, 64, -0.3); inst(kg('duMast2', () => new THREE.CylinderGeometry(0.16, 0.22, 9, 6)), Lm({ map: woodTex(), color: '#7c5a36' }), masts, (p) => [p.x, FH + 4.5, p.z, 0, 1, 1, 1]);
+    const sail = kg('duSails', () => { const N = 32, pos = [], uv = [], idx = [], R0 = 1.0, R1 = 0.62; let b = 0;
+      for (let k = 0; k < N; k++) { const t0 = (k / N) * Math.PI * 2 + 0.012, t1 = ((k + 1) / N) * Math.PI * 2 - 0.03; for (let i = 0; i <= 6; i++) for (let j = 0; j <= 4; j++) { const r = R0 + (R1 - R0) * (i / 6), t = t0 + (t1 - t0) * (j / 4), sag = Math.sin((i / 6) * Math.PI) * Math.sin((j / 4) * Math.PI) * 1.6;
+          pos.push(Math.cos(t) * r, 8 - (i / 6) * 5 - sag, Math.sin(t) * r); uv.push(j / 4, i / 6); }
+        for (let i = 0; i < 6; i++) for (let j = 0; j < 4; j++) { const q = b + i * 5 + j; idx.push(q, q + 5, q + 1, q + 1, q + 5, q + 6); } b += 35; }
+      const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx); g.computeVertexNormals(); return g; });
+    const sl = add(sail, Lm({ map: sailTex(), side: THREE.DoubleSide }), 0, FH, 0); sl.scale.set(FA - 0.3, 1, FB - 0.3);
+    const ring = add(kg('duOculus', () => new THREE.TorusGeometry(1, 0.012, 6, 96)), Lm({ color: '#6b4a22' }), 0, FH + 2.5, 0); ring.rotation.x = Math.PI / 2; ring.scale.set((FA - 0.3) * 0.36, (FB - 0.3) * 0.36, 1);
+    const rp = []; for (const p of ellPts(FA - 0.3, FB - 0.3, 64, 0)) { const ix = p.x * 0.36, iz = p.z * 0.36; rp.push(p.x, FH + 8.8, p.z, ix, FH + 2.5, iz); }
+    const ropes = new THREE.LineSegments(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(rp, 3)), new THREE.LineBasicMaterial({ color: '#5b4126', transparent: true, opacity: 0.85 })); G.add(ropes);
+    const pen = ellPts(FA, FB, 32, -0.3); inst(kg('duPennant', () => { const q = new THREE.PlaneGeometry(1.8, 0.7); q.translate(0.9, 0, 0); return q; }), Lm({ color: '#b91c1c', side: THREE.DoubleSide }), pen, (p) => [p.x, FH + 8.4, p.z, p.ry + Math.PI / 2, 1, 1, 1]).userData.noShadow = true;
+    /* the gates at each end: an arch through the podium, an iron portcullis, columns, an entablature and two of the legends in gold */
+    const LEG4 = [[4, 9], [14, 19]];
+    [-1, 1].forEach((s, gi) => { const g = new THREE.Group(); g.position.set(s * (PA - 0.15), 0, 0); g.rotation.y = s * Math.PI / 2; G.add(g); const m = Lm({ map: marbleTex() });
+      add(BOX, new THREE.MeshBasicMaterial({ color: '#120d09' }), 0, 2.7, 0.3, g).scale.set(5.4, 5.4, 0.3);
+      for (let k = -2; k <= 2; k++) add(BOX, iron, k * 1.05, 2.6, -0.05, g).scale.set(0.16, 5.2, 0.16); for (let k = 0; k < 5; k++) add(BOX, iron, 0, 0.6 + k * 1.15, -0.05, g).scale.set(5.2, 0.13, 0.13);
+      for (let k = -2; k <= 2; k++) { const sp = add(kCone(), iron, k * 1.05, 0.15, -0.05, g); sp.scale.set(0.12, 0.3, 0.12); sp.rotation.x = Math.PI; }
+      const ar = add(kg('duGateArch2', () => new THREE.TorusGeometry(3.0, 0.42, 10, 24, Math.PI)), m, 0, 4.4, -0.15, g); ar.scale.set(1, 0.55, 1);
+      for (const x of [-4.1, 4.1]) { add(kLathe('duGateCol', [[0, 0], [0.62, 0], [0.62, 0.3], [0.5, 0.45], [0.46, 6.6], [0.55, 6.75], [0.75, 7.0], [0.75, 7.25], [0, 7.25]], 14), m, x, 0, -0.55, g); const t = emTorchProp(new THREE.Group()); t.parent.position.set(x * 0.78, 4.2, -0.9); g.add(t.parent); t.parent.rotation.x = -0.9; SC.fires.push({ fl: t.userData.fl, gl: t.userData.gl, ph: x + gi * 3, torch: 1 }); }
+      add(rboxGeo(10.2, 1.3, 1.8, 0.1), m, 0, 7.9, -0.55, g); add(rboxGeo(10.8, 0.35, 2.2, 0.08), m, 0, 8.7, -0.55, g);
+      const ins = label(gi ? 'PORTA TRIVMPHALIS' : 'PORTA LIBITINENSIS', { size: 0.62, color: '#8a6a2a', weight: 900 }); ins.position.set(0, 7.9, -1.5); g.add(ins);
+      LEG4[gi].forEach((c, k) => { const st = goldStatue(c, (k ? 2.4 : -2.4), 8.9, -0.6, Math.PI + (k ? -0.25 : 0.25)); g.add(st); add(rboxGeo(1.8, 0.4, 1.8, 0.08), m, k ? 2.4 : -2.4, 8.9, -0.6, g); });
+    });
+    /* the emperor's box (north) and the box of the games' giver opposite */
+    const box = (z, big) => { const EB = new THREE.Group(); EB.position.set(0, 6.0, z); EB.rotation.y = z < 0 ? 0 : Math.PI; G.add(EB); const m = Lm({ map: marbleTex() }), pur = Lm({ color: big ? '#5b21b6' : '#f5f1e6' }), W = big ? 9 : 6;
+      add(rboxGeo(W * 2, 0.6, 7, 0.1), m, 0, 0, -2.6, EB); add(rboxGeo(W * 2 - 0.4, 1.2, 0.35, 0.08), pur, 0, 0.9, 0.55, EB); add(BOX, gold, 0, 1.55, 0.6, EB).scale.set(W * 2 - 0.2, 0.14, 0.45);
+      for (let k = 0; k < (big ? 6 : 4); k++) { const x = -W + 1 + k * (2 * W - 2) / ((big ? 6 : 4) - 1); add(kLathe('duEbCol2', [[0, 0], [0.4, 0], [0.4, 0.2], [0.3, 0.3], [0.27, 6.2], [0.34, 6.3], [0.48, 6.5], [0.48, 6.65], [0, 6.65]], 12), m, x, 0.3, 0.4, EB); }
+      add(rboxGeo(W * 2 + 0.6, 0.9, 1.4, 0.08), m, 0, 7.4, 0.3, EB); const ped = add(kg('duPed' + W, () => { const sh = new THREE.Shape(); sh.moveTo(-W - 0.3, 0); sh.lineTo(W + 0.3, 0); sh.lineTo(0, big ? 3.2 : 2.2); sh.closePath(); return new THREE.ExtrudeGeometry(sh, { depth: 1.2, bevelEnabled: false }); }), m, 0, 7.85, -0.3, EB);
+      const can = add(kg('duCan' + W, () => { const q = new THREE.PlaneGeometry(W * 2, 6.6, 16, 1); const p = q.attributes.position; for (let i = 0; i < p.count; i++) p.setZ(i, 0.35 * Math.abs(Math.sin((p.getX(i) / (W * 2) + 0.5) * Math.PI * 8))); q.computeVertexNormals(); q.rotateX(-Math.PI / 2); return q; }), Lm({ map: sailTex(), side: THREE.DoubleSide }), 0, 6.95, -2.8, EB);
+      for (const x of [-W + 0.3, W - 0.3]) { const dr = add(kg('duDrape', () => { const q = new THREE.PlaneGeometry(1.4, 6, 4, 1); const p = q.attributes.position; for (let i = 0; i < p.count; i++) p.setZ(i, 0.18 * Math.sin(p.getX(i) * 7)); q.computeVertexNormals(); return q; }), big ? Lm({ color: '#6d28d9', side: THREE.DoubleSide }) : Lm({ color: '#fef3c7', side: THREE.DoubleSide }), x, 3.6, 0.65, EB); }
+      const ban = add(kg('duEbBan2', () => new THREE.PlaneGeometry(2.6, 6.2)), Lm({ map: bannerTex(big ? 0 : 3), side: THREE.DoubleSide }), 0, -3.4, 0.75, EB);
+      if (big) { const eg = add(ovShape('duEagleS', [[0, 0.9], [0.35, 0.45], [1.2, 0.75], [0.8, 0.2], [1.1, 0.0], [0.35, 0.05], [0.25, -0.6], [0, -0.45], [-0.25, -0.6], [-0.35, 0.05], [-1.1, 0.0], [-0.8, 0.2], [-1.2, 0.75], [-0.35, 0.45]], 0.12, 0.03), gold, 0, 10.9, 0.5, EB); eg.scale.setScalar(1.6);
+        const th = add(rboxGeo(2.4, 2.6, 1.6, 0.2), gold, 0, 1.6, -2.6, EB); const emp = makeAvatar([0, 7, 5, 0, 17, 0, 0, 0, 0, 0, 1, 0], '', true); scene.remove(emp.shadow); emWreath(emp.head); emp.g.position.set(0, 0.3, -2.0); emp.g.rotation.y = Math.PI; EB.add(emp.g);
+        emp.legL.rotation.x = emp.legR.rotation.x = 1.4; if (emp.knL) emp.knL.rotation.x = emp.knR.rotation.x = -1.4; emp.g.position.y = -0.6; emp.g.position.z = -2.3; emp.armR.rotation.x = 0.6; EB.remove(emp.g); EB.add(bake(emp.g));
+        for (const x of [-6, 6]) { const gd = makeAvatar([1, 0, 0, 0, 17, 0, 0, 0, 0, 0, DUEL_BT + 3, DUEL_AN + 3], '', true); scene.remove(gd.shadow); gd.g.position.set(x, 0.3, -1.4); gd.g.rotation.y = Math.PI; EB.add(gd.g); for (let k = 0; k < 25; k++) animateAvatar(gd, 0.1, false, false); EB.remove(gd.g); EB.add(bake(gd.g)); } } };
+    box(-(PB + 0.6), true); box(PB + 0.6, false);
+    /* braziers along the podium; the four empires' banners hanging over its face */
+    const banM = [0, 1, 2, 3].map((e) => Lm({ map: bannerTex(e), side: THREE.DoubleSide, transparent: true, alphaTest: 0.3 }));
+    const BG = kg('duBanG2', () => { const q = new THREE.PlaneGeometry(1.9, 6.4, 1, 8); q.translate(0, -3.2, 0); return q; });
+    ellPts(PA, PB, 28, 0.15, 0.25).forEach((p, k) => { if (!gap(p) || (Math.abs(p.z) > PB - 2 && Math.abs(p.x) < 13)) return;
+      if (k % 2 === 0) { const h = new THREE.Group(); h.position.set(p.x, 6.75, p.z); h.rotation.y = p.ry + Math.PI; G.add(h); const b = add(BG, banM[(k / 2) % 4], 0, 0, -0.05, h); SC.banners.push({ h, ph: k }); }
+      else { const bz = new THREE.Group(); bz.position.set(p.x + p.nx * 0.9, 6.0, p.z + p.nz * 0.9); G.add(bz); for (let q = 0; q < 3; q++) { const leg = add(kCyl(), bronze, Math.cos(q * 2.1) * 0.35, 0.8, Math.sin(q * 2.1) * 0.35, bz); leg.scale.set(0.07, 1.7, 0.07); leg.rotation.set(Math.sin(q * 2.1) * 0.25, 0, -Math.cos(q * 2.1) * 0.25); }
         add(kLathe('duBowl', [[0.1, 0], [0.8, 0.35], [1.05, 0.75], [1.12, 0.85], [0.95, 0.8], [0.1, 0.4]], 18), bronze, 0, 1.55, 0, bz);
-        const fl = [0, 1, 2].map((j) => { const f = emSprite(bz, fxTex('flame'), 1.2, { blending: THREE.AdditiveBlending }); f.position.set((j - 1) * 0.35, 2.7, 0); return f; }); const gl = kitGlow(bz, '#fb923c', 5, 0.55); gl.position.y = 2.6; SC.fires.push({ fl, gl, ph: k }); } }
-    // standards on the gates' posts and over the seats: the four empires' banners on poles
+        const fl = [0, 1, 2, 3].map((j) => { const f = emSprite(bz, fxTex('flame'), 1.3, { blending: THREE.AdditiveBlending }); f.position.set(Math.cos(j * 1.6) * 0.3, 2.7, Math.sin(j * 1.6) * 0.3); return f; }); const gl = kitGlow(bz, '#fb923c', 5, 0.5); gl.position.y = 2.6; SC.fires.push({ fl, gl, ph: k, bz }); } });
+    /* outside: a paved piazza round it, cypresses and pines, the triumphal arch on the road to the ludus */
+    add(kg('duPiazza', () => { const q = new THREE.RingGeometry(0.98, 1.3, 128, 1); q.rotateX(-Math.PI / 2); return q; }), Lm({ map: paveTex(), color: '#e6dcc6' }), 0, 0.005, 0).scale.set(FA, 1, FB);
+    const trees = []; for (const p of ellPts(FA * 1.36, FB * 1.36, 46, 0, 0.3)) if (!(p.z > 0 && Math.abs(p.x) < 14)) trees.push(p);
+    inst(kg('duCypress', () => { const q = new THREE.ConeGeometry(1.6, 11, 9); q.translate(0, 7, 0); return q; }), Lm({ color: '#2f4f2a' }), trees, (p, i) => [p.x, 0, p.z, i, 1, 0.8 + (i % 5) * 0.12, 1]);
+    inst(kg('duTrunk', () => { const q = new THREE.CylinderGeometry(0.25, 0.32, 2, 6); q.translate(0, 1, 0); return q; }), Lm({ color: '#5b4126' }), trees, (p) => [p.x, 0, p.z, 0, 1, 1, 1]);
+    const TA = new THREE.Group(); TA.position.set(0, 0, (FB + LOBBY.z0) / 2 + 2); G.add(TA); const tm = Lm({ map: marbleTex() });
+    for (const x of [-7.5, 7.5]) { add(rboxGeo(5, 13, 4, 0.1), tm, x, 6.5, 0, TA); for (const xx of [-1.7, 1.7]) add(kLathe('duTACol', [[0, 0], [0.45, 0], [0.45, 0.3], [0.36, 0.45], [0.33, 9.4], [0.42, 9.55], [0.58, 9.8], [0, 9.8]], 12), tm, x + xx, 1.2, -2.3, TA); }
+    add(rboxGeo(20, 3.4, 4.4, 0.1), tm, 0, 14.7, 0, TA); add(rboxGeo(20.6, 0.5, 4.8, 0.08), tm, 0, 13.2, 0, TA); const ta = add(kg('duTAArch', () => new THREE.TorusGeometry(5, 0.5, 8, 20, Math.PI)), tm, 0, 8, -2, TA); ta.scale.set(1, 0.9, 1);
+    const tl = label('SENATVS POPVLVSQVE ROMANVS', { size: 0.8, color: '#7a5a1a', weight: 900 }); tl.position.set(0, 14.9, -2.3); TA.add(tl);
+    for (const [c, x] of [[4, -6], [19, 6]]) { const st = goldStatue(c, x, 16.4, 0, Math.PI, 1.0); TA.add(st); }
+    /* life: birds wheeling high over it; motes of dust drifting in the sun over the sand */
+    for (let k = 0; k < 9; k++) { const b = new THREE.Group(), m = new THREE.MeshBasicMaterial({ color: '#2b2b2b', side: THREE.DoubleSide }); for (const s of [-1, 1]) { const w = new THREE.Mesh(kg('duWing', () => { const q = new THREE.BufferGeometry(); q.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, -0.4, 0, 0, 0.3, 2.2, 0.2, 0.1], 3)); q.computeVertexNormals(); return q; }), m); w.scale.x = s; b.add(w); b.userData['w' + s] = w; }
+      b.userData.r = 40 + rnd() * 60; b.userData.h = 62 + rnd() * 30; b.userData.sp = (0.08 + rnd() * 0.08) * (rnd() < 0.5 ? 1 : -1); b.userData.a = rnd() * 7; G.add(b); SC.birds.push(b); }
+    const mp = new Float32Array(240 * 3); for (let k = 0; k < 240; k++) { mp[k * 3] = (rnd() - 0.5) * 2 * A0; mp[k * 3 + 1] = 1 + rnd() * 16; mp[k * 3 + 2] = (rnd() - 0.5) * 2 * B0; }
+    const motes = new THREE.Points(new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(mp, 3)), new THREE.PointsMaterial({ map: glowTex(), color: '#fff1c4', size: 0.45, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending })); G.add(motes); SC.motes = motes;
     return G;
+  }
+  // the scenery's moving parts, every frame
+  function sceneryTick(t, dt) {
+    for (const f of SC.fires) { f.fl.forEach((s, j) => { const k = 1 + 0.22 * Math.sin(t * (13 + j * 4) + f.ph + j); s.scale.set((f.torch ? 0.65 : 1.0) * k, (f.torch ? 1.3 : 2.1) * k, 1); }); f.gl.material.opacity = 0.42 + 0.12 * Math.sin(t * 11 + f.ph);
+      if (f.bz && Math.random() < dt * 3) { const e = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), color: '#fdba74', transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); const p = f.bz.position; e.position.set(p.x + (Math.random() - 0.5), p.y + 2.8, p.z + (Math.random() - 0.5)); e.scale.setScalar(0.18);
+        e.userData = { v: new THREE.Vector3((Math.random() - 0.5) * 1.5, 3 + Math.random() * 2, (Math.random() - 0.5) * 1.5), life: 1.6, g: -0.5, spinless: 1, tick: (o, u) => { o.material.opacity = Math.min(1, u.life); } }; scene.add(e); bits.push(e); } }
+    for (const b of SC.banners) b.h.rotation.x = 0.04 * Math.sin(t * 1.3 + b.ph) + 0.03 * Math.sin(t * 2.9 + b.ph * 2);
+    for (const b of SC.birds) { const u = b.userData; u.a += u.sp * dt; b.position.set(Math.cos(u.a) * u.r, u.h + Math.sin(t * 0.5 + u.r) * 3, Math.sin(u.a) * u.r); b.rotation.y = -u.a + (u.sp > 0 ? 0 : Math.PI); const fl = Math.sin(t * (6 + u.r * 0.05) + u.r) * 0.6; u['w-1'].rotation.z = -fl; u['w1'].rotation.z = fl; }
+    if (SC.motes) { const p = SC.motes.geometry.attributes.position; for (let k = 0; k < p.count; k++) { let y = p.getY(k) + dt * 0.35, x = p.getX(k) + Math.sin(t * 0.3 + k) * dt * 0.4; if (y > 18) y = 1; p.setXY(k, x, y); } p.needsUpdate = true; SC.motes.material.opacity = 0.4 + 0.15 * Math.sin(t * 0.7); }
+  }
+  // rose petals thrown down from the seats for a winner
+  function petals(x, z, n = 40) {
+    for (let k = 0; k < n; k++) { const m = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), color: Math.random() < 0.6 ? '#f43f5e' : Math.random() < 0.5 ? '#fda4af' : '#fef3c7', transparent: true, depthWrite: false })); m.position.set(x + (Math.random() - 0.5) * 18, 14 + Math.random() * 10, z + (Math.random() - 0.5) * 18); m.scale.set(0.35, 0.22, 1);
+      const w = Math.random() * 6; m.userData = { v: new THREE.Vector3((Math.random() - 0.5) * 2, -3 - Math.random() * 2, (Math.random() - 0.5) * 2), life: 5, g: 0, spinless: 1, tick: (o, u) => { o.position.x += Math.sin(u.life * 3 + w) * 0.03; if (o.position.y < 0.15) { o.position.y = 0.15; u.v.set(0, 0, 0); } o.material.opacity = Math.min(1, u.life); } }; scene.add(m); bits.push(m); }
   }
   // a crate for a shrine: a chest in its empire's colours, bound in metal, its emblem on the front, light in its seams
   function crateModel(e) {
@@ -448,7 +604,7 @@
     const lb3 = label('🏆 ACHIEVEMENTS', { size: 1.6, color: '#fff' }); lb3.position.set(TABLET.x, 6.6, TABLET.z); G.add(lb3);
     // the four legends on plinths at the corners, in their guard
     SC.legends = [[4, -41, 151], [9, 41, 151], [14, -41, 97], [19, 41, 97]].map(([c, x, z]) => [c, x, z, angOf(-x, 124 - z)]).map(([c, x, z, ry]) => { const pd = part({ x, y: 1.5, z, sx: 4, sy: 3, sz: 4, c: 0xece4d3 }); pd.m.material = marble;
-      const a = makeAvatar([1, 0, 0, 0, 17, 0, 0, 0, 0, 0, 23 + c, 15 + c], '', true); scene.remove(a.shadow); a.g.position.set(x, 3, z); a.g.rotation.y = ry; G.add(a.g); for (let k = 0; k < 25; k++) animateAvatar(a, 0.1, false, false);
+      const a = makeAvatar([1, 0, 0, 0, 17, 0, 0, 0, 0, 0, 23 + c, 15 + c], '', true); scene.remove(a.shadow); a.g.position.set(x, 3, z); a.g.rotation.y = ry; G.add(a.g); for (let k = 0; k < 25; k++) animateAvatar(a, 0.1, false, false); G.remove(a.g); G.add(bake(a.g));
       const lb = label(`${DUEL_IC[c]} ${DUEL_N[c]}`, { size: 1.1, color: '#fbbf24' }); lb.position.set(x, 11.4, z); G.add(lb); return a; });
     return G;
   }
@@ -879,7 +1035,7 @@
       { w: big ? 300 : 180, h: big ? 360 : 200, dir: [0.55, 0.12, -1], zoom: 0.9, sphere: [[0, 3.6, 0], 4.7] });
   }
   const rollFoe = (Di) => { const w = [[62, 30, 8, 0], [40, 35, 22, 3], [18, 30, 37, 15], [5, 18, 37, 40]][Di]; let r = Math.random() * 100, k = 0; while (k < 3 && r >= w[k]) { r -= w[k]; k++; } const pool = CH.filter((C) => C.r === k); return pool[Math.floor(Math.random() * pool.length)].i; };
-  const DEF_SAVE = () => ({ own: [0], eq: 0, xp: {}, st: {}, ach: [], diff: 1, md: 'c', lock: 1 });
+  const DEF_SAVE = () => ({ own: [0], eq: 0, xp: {}, st: {}, ach: [], diff: 1, md: 'c', lk: 0 }); // (lk: lock-on, off unless you turn it on)
 
   const DU = {
     id: 'duel', code: 'du', genre: 'PvP', rank: 0.001, name: 'Colosseum Duels', emoji: '⚔️', max: 12, stat: 'Wins', killY: -40, banner: true, camDist: 15, noReset: true, noSprint: true, respawnDelay: 2200,
@@ -895,7 +1051,7 @@
       const s = await kvGet('duel'), S = this.save = Object.assign(DEF_SAVE(), s && typeof s === 'object' ? s : {});
       S.own = [...new Set((Array.isArray(S.own) ? S.own : []).map((x) => x | 0).filter((x) => x >= 0 && x < 20))]; if (!S.own.includes(0)) S.own.unshift(0);
       if (!S.own.includes(S.eq | 0)) S.eq = 0; S.eq |= 0; for (const k of ['xp', 'st']) if (!S[k] || typeof S[k] !== 'object') S[k] = {}; if (!Array.isArray(S.ach)) S.ach = []; S.diff = clamp(S.diff | 0, 0, 3); if (S.md !== 'd') S.md = 'c';
-      this.lockOn = S.lock !== 0; send({ dw: S.st.wins | 0, du: null }); this.drawBar();
+      this.lockOn = S.lk === 1; send({ dw: S.st.wins | 0, du: null }); this.drawBar();
     },
     leave() {
       if (this.M) this.cleanMatch(); this.M = null; AVO = null; P.frozen = false;
@@ -907,11 +1063,17 @@
     sortKey(pr, isMe) { return this.statOf(pr, isMe); },
     spawn() {
       const M = this.M;
-      if (M && M.ph !== 'end') { if (M.md === 'd' && M.started) return this.randSpot(M.foe); const s = M.side; return [s ? 15 : -15, 0.5, 0, s ? Math.PI / 2 : -Math.PI / 2]; }
+      if (M && M.ph !== 'end') { if (M.md === 'd' && M.started) { const s = this.randSpot(M.foe); s[3] = cam.yaw; return s; } const s = M.side; return [s ? 15 : -15, 0.5, 0, s ? Math.PI / 2 : -Math.PI / 2]; }
       return [(Math.random() - 0.5) * 12, 0.5, 122 + Math.random() * 6, 0];
     },
     randSpot(avoid) { for (let k = 0; k < 40; k++) { const a = Math.random() * Math.PI * 2, r = 0.25 + Math.sqrt(Math.random()) * 0.6, x = Math.cos(a) * A0 * r, z = Math.sin(a) * B0 * r;
       if (!avoid || Math.hypot(x - avoid.x, z - avoid.z) > 20 || k === 39) return [x, 0.5, z, angOf((avoid ? avoid.x : 0) - x, (avoid ? avoid.z : 0) - z)]; } },
+    camRoom(tx, ty, tz, ux, uy, uz, dist) { // (the podium, the seats rising behind it and the attic: the camera comes in front of them)
+      if (!this.M) return dist; const hTop = YTOP + 0.8;
+      for (let d = 0.6; d < dist; d += 0.5) { const x = tx + ux * d, y = ty + uy * d, z = tz + uz * d, rho = Math.sqrt((x / PA) ** 2 + (z / PB) ** 2); if (rho <= 0.985) continue;
+        const dd = (rho - 1) * Math.hypot(x, z) / rho, h = dd > ROWS.end ? FH + 2 : Math.min(hTop, 6.4 + Math.max(0, dd - 1.2) * 0.86); if (y < h + 0.6) return Math.max(0.6, d - 0.4); }
+      return dist;
+    },
     speed() { const M = this.M; if (!M) return 16; return fSpeed(M.me) * (this.sprinting ? 1.45 : 1); },
     jumpPower() { const M = this.M; if (!M) return JUMP; const F = M.me; return stunned(F) || F.S.root > 0 || F.act || F.blk ? 0 : JUMP * 0.9; },
 
@@ -929,8 +1091,7 @@
 
     tick(dt) {
       const t = now();
-      CROWD.u.uT.value = t; CROWD.ex = Math.max(0, CROWD.ex - dt * 0.35); CROWD.u.uAmp.value = 0.04 + CROWD.ex * 0.9;
-      for (const f of SC.fires) { f.fl.forEach((s, j) => { const k = 1 + 0.22 * Math.sin(t * (13 + j * 4) + f.ph + j); s.scale.set(1.1 * k, 2.1 * k, 1); }); f.gl.material.opacity = 0.45 + 0.12 * Math.sin(t * 11 + f.ph); }
+      CROWD.u.uT.value = t; CROWD.ex = Math.max(0, CROWD.ex - dt * 0.3); CROWD.u.uAmp.value = 0.03 + CROWD.ex * 0.75; CROWD.u.uCheer.value = 0.06 + CROWD.ex * 0.94; sceneryTick(t, dt);
       SC.crates.forEach((c, i) => { c.c.position.y = 3.7 + 0.25 * Math.sin(t * 1.6 + i); c.c.rotation.y = 0.35 * Math.sin(t * 0.7 + i); c.c.userData.gl.material.opacity = 0.28 + 0.12 * Math.sin(t * 3 + i); });
       SC.padFx.forEach((p, i) => { p.glow.material.opacity = 0.35 + 0.3 * Math.sin(t * 3 + i * 1.5); });
       const g = roundState(this);
@@ -963,7 +1124,7 @@
       const M = this.M; M.ph = 'intro'; M.t = 0; M.toT = null; M.toWait = 0; M.left = M.md === 'd' ? DM_T : ROUND_T; M.base = { l: M.l, fl: this.foeL() };
       for (const F of [M.me, M.foe]) { this.revive(F); F.cd = [0, 0, 0]; }
       for (const p of this.proj) scene.remove(p.m); for (const v of this.volleys) scene.remove(v.ring); for (const d of this.drops) scene.remove(d.m); this.proj = []; this.volleys = []; this.drops = [];
-      respawn(true); M.me.x = P.x; M.me.z = P.z; M.me.yaw = P.yaw; cam.yaw = P.yaw;
+      const cy = cam.yaw; respawn(true); M.me.x = P.x; M.me.z = P.z; M.me.yaw = P.yaw; if (!first) cam.yaw = cy; // (the camera stays where you had it)
       if (M.foe.kind === 'bot') { const s = 1 - M.side; Object.assign(M.foe, { x: s ? 15 : -15, z: 0, yaw: s ? Math.PI / 2 : -Math.PI / 2 }); this.botAvatar(M.foe); }
       big(M.md === 'd' ? '💀 DEATHMATCH' : `ROUND ${M.rd}`, M.md === 'd' ? 'most kills in 5:00 — you come back at once' : M.sc[0] === TO - 1 && M.sc[1] === TO - 1 ? 'FINAL ROUND' : `first to ${TO}`, '#fde68a'); if (!first) sfx('horn');
       this.pubDu(true);
@@ -1050,7 +1211,7 @@
     },
     roundOver(r) {
       const M = this.M; M.ph = 'rend'; M.t = 0; M.sc = [this.foeL(), M.l]; CROWD.ex = 1;
-      if (r > 0) { M.roundsWon++; quest('duel.round'); if (!(M.me.rTaken > 0)) { this.bump('flaw', 1); feed('✨ Flawless round!'); } big('🏆 ROUND WON', `${M.sc[0]} — ${M.sc[1]}`, '#86efac'); sfx('levelup'); }
+      if (r > 0) { M.roundsWon++; quest('duel.round'); if (!(M.me.rTaken > 0)) { this.bump('flaw', 1); feed('✨ Flawless round!'); } big('🏆 ROUND WON', `${M.sc[0]} — ${M.sc[1]}`, '#86efac'); sfx('levelup'); petals(M.me.x, M.me.z, 60); }
       else if (r < 0) { big('ROUND LOST', `${M.sc[0]} — ${M.sc[1]}`, '#fca5a5'); sfx('lose'); } else big('DRAW', `${M.sc[0]} — ${M.sc[1]}`, '#e2e8f0');
       this.pubDu(true);
     },
@@ -1061,7 +1222,7 @@
       if (r > 0) { this.bump('wins', 1); if (M.md === 'c') this.bump('cwins', 1); if (!M.pvp) for (let k = 0; k <= M.D; k++) this.bump('b' + k, 1); quest('duel.win'); send({ dw: S.st.wins | 0 }); }
       if (M.md === 'd') { this.bump('dmk', M.kills); if (r > 0 && M.kills >= 15) this.bump('dm15', 1); }
       earn(coins, `${r > 0 ? 'Victory' : r < 0 ? 'Defeat' : 'Draw'} in Colosseum Duels`); const mr = this.addXp(M.me.c, xp);
-      sfx(r > 0 ? 'win' : 'lose'); CROWD.ex = 1; this.result(r, coins, xp, mr); this.pubDu(true);
+      sfx(r > 0 ? 'win' : 'lose'); CROWD.ex = 1; if (r > 0) petals(M.me.x, M.me.z, 110); this.result(r, coins, xp, mr); this.pubDu(true);
     },
     result(r, coins, xp, mr) {
       const M = this.M, C = M.me.C, el = document.createElement('div'); el.id = 'duRes'; el.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(2,6,23,.5);pointer-events:auto;z-index:20';
@@ -1091,7 +1252,7 @@
     tryDodge() { const M = this.M; if (!M) return; const f = (keys.KeyW || keys.ArrowUp ? 1 : 0) - (keys.KeyS || keys.ArrowDown ? 1 : 0) - joy.y, r = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0) + joy.x, cy = cam.yaw;
       dodge(M.me, -Math.sin(cy) * f + Math.cos(cy) * r, -Math.cos(cy) * f - Math.sin(cy) * r); },
     setMode(k) { const M = this.M; if (!M) return; const md = M.me.C.ab[0].modes; if (!md || k >= md.length || M.me.act || k === M.me.mode) return; M.me.mode = k; sfx('select'); floatText(M.me, `${md[k].ic} ${md[k].n}`, 'tag'); this.pubDu(true); },
-    toggleLock() { this.lockOn = !this.lockOn; this.save.lock = this.lockOn ? 1 : 0; this.dirty(); toast(this.lockOn ? '🎯 Lock-on: the camera follows your opponent' : '🎯 Lock-on off'); sfx('click'); },
+    toggleLock() { this.lockOn = !this.lockOn; this.save.lk = this.lockOn ? 1 : 0; this.dirty(); toast(this.lockOn ? '🎯 Lock-on: the camera follows your opponent' : '🎯 Lock-on off'); sfx('click'); },
     press(btn, down) { if (this.M && btn === 2) this.rmb = !!down; },
     click(e) { if (this.M && e.button !== 2 && !$('#duRes')) this.tryAb(0); },
     key(code, down) {

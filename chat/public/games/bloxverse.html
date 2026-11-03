@@ -12763,7 +12763,7 @@ function frame(t, bg) { // (bg: a step while the game's off screen — nothing i
     const ak = View.aimK, dist = cam.dist + (Math.min(cam.dist, exp.aimDist || 8) - cam.dist) * ak;
     const sh = Math.max(lockFacing() ? 1.7 : 0, 2.5 * ak), tx = P.x + Math.cos(cam.yaw) * sh, ty = P.y + 4.4 * ((me && me.giant) || 1) - stepLift, tz = P.z - Math.sin(cam.yaw) * sh, ux = Math.sin(cam.yaw) * cp, uy = -Math.sin(cam.pitch), uz = Math.cos(cam.yaw) * cp;
     // a wall or roof between you and the camera: the camera comes in front of it (and eases back out after)
-    const want = exp.camClip === false ? dist : Math.min(dist, Math.max(2.5, camRoom(tx, ty, tz, ux, uy, uz, dist) - 0.6));
+    const want = exp.camClip === false ? dist : Math.min(dist, Math.max(2.5, Math.min(camRoom(tx, ty, tz, ux, uy, uz, dist), exp.camRoom ? exp.camRoom(tx, ty, tz, ux, uy, uz, dist) : dist) - 0.6)); // (exp.camRoom: walls that aren't parts)
     if (want < dist - 0.01) camClipAt = t;
     const zoomed = dist !== camLastDist; camLastDist = dist;
     camD = want < camD || zoomed || t - camClipAt > 1500 ? want : camD + (want - camD) * Math.min(1, dt * 4); // zooming is instant; only coming back out from behind a wall eases
