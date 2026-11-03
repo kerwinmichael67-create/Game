@@ -3630,6 +3630,15 @@ const dpLamTex = (lace) => kCanvas('dpLames' + lace, 64, 64, (g) => { g.fillStyl
 const dpTattooTex = () => kCanvas('dpWoad', 128, 128, (g) => { g.clearRect(0, 0, 128, 128); g.strokeStyle = 'rgba(29,78,216,.85)'; g.lineWidth = 4; g.lineCap = 'round';
   for (const [cx, cy, rr] of [[34, 40, 20], [94, 40, 20]]) { g.beginPath(); g.arc(cx, cy, rr, 0.4, 5.6); g.stroke(); g.beginPath(); g.arc(cx, cy, rr * 0.5, 2.0, 7.4); g.stroke(); }
   g.beginPath(); g.moveTo(64, 70); g.lineTo(64, 120); g.moveTo(44, 84); g.lineTo(84, 84); g.stroke(); for (let k = 0; k < 4; k++) { g.beginPath(); g.moveTo(40 + k * 16, 100); g.lineTo(48 + k * 16, 116); g.stroke(); } });
+// 💎 (overhauled) faces and finery: an eyeball with veins, an iris, mottled skin, rows of beads, a braid
+const ovEyeballTex = () => kCanvas('ovEyeball', 128, 128, (g, r) => { const gr = g.createRadialGradient(64, 64, 10, 64, 64, 64); gr.addColorStop(0, '#ffffff'); gr.addColorStop(0.7, '#f3ece0'); gr.addColorStop(1, '#e0b8a8'); g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
+  g.strokeStyle = 'rgba(190,30,30,.55)'; g.lineCap = 'round'; for (let k = 0; k < 18; k++) { let a = r() * 6.3, x = 64 + Math.cos(a) * 62, y = 64 + Math.sin(a) * 62, w = 1.6; g.beginPath(); g.moveTo(x, y); for (let j = 0; j < 6; j++) { a += (r() - 0.5) * 0.8; x -= Math.cos(a) * 6; y -= Math.sin(a) * 6; g.lineTo(x, y); } g.lineWidth = w; g.stroke(); } });
+const ovIrisTex = (c) => kCanvas('ovIris' + c, 128, 128, (g, r) => { g.fillStyle = c; g.fillRect(0, 0, 128, 128); g.translate(64, 64); for (let k = 0; k < 90; k++) { g.rotate((Math.PI * 2) / 90); g.strokeStyle = r() < 0.5 ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.35)'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(0, 18 + r() * 6); g.lineTo(0, 56 - r() * 8); g.stroke(); }
+  g.strokeStyle = 'rgba(0,0,0,.8)'; g.lineWidth = 7; g.beginPath(); g.arc(0, 0, 60, 0, 7); g.stroke(); g.fillStyle = '#050505'; g.beginPath(); g.arc(0, 0, 21, 0, 7); g.fill(); g.fillStyle = 'rgba(255,255,255,.9)'; g.beginPath(); g.arc(-14, -16, 7, 0, 7); g.fill(); });
+const ovSkinTex = (c) => kCanvas('ovSkin' + c, 128, 128, (g, r) => { g.fillStyle = c; g.fillRect(0, 0, 128, 128); for (let k = 0; k < 160; k++) { const x = r() * 128, y = r() * 128, rr = 3 + r() * 12, gr = g.createRadialGradient(x, y, 0, x, y, rr); gr.addColorStop(0, r() < 0.5 ? 'rgba(120,40,30,.12)' : 'rgba(255,230,200,.1)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(x - rr, y - rr, rr * 2, rr * 2); }
+  for (let k = 0; k < 500; k++) { g.fillStyle = 'rgba(60,20,10,.08)'; g.fillRect(r() * 128, r() * 128, 1, 1); } });
+const ovBeadTex = () => kCanvas('ovBeads', 256, 64, (g) => { const rows = ['#e8b84a', '#1e3a8a', '#14b8a6', '#b91c1c', '#e8b84a', '#1d4ed8', '#e8b84a']; rows.forEach((c, k) => { const y = 4 + k * 8.6; for (let x = 0; x < 256; x += 8) { const gr = g.createRadialGradient(x + 3, y + 2, 0.5, x + 4, y + 4, 4.5); gr.addColorStop(0, '#ffffff'); gr.addColorStop(0.25, c); gr.addColorStop(1, 'rgba(0,0,0,.6)'); g.fillStyle = gr; g.beginPath(); g.ellipse(x + 4, y + 4, 3.8, 3.6, 0, 0, 7); g.fill(); } }); }); // (rows of glass and gold beads)
+const ovBraidTex = (c) => kCanvas('ovBraid' + c, 32, 64, (g) => { g.fillStyle = c; g.fillRect(0, 0, 32, 64); for (let y = -16; y < 64; y += 8) { g.strokeStyle = 'rgba(0,0,0,.28)'; g.lineWidth = 3; g.beginPath(); g.moveTo(0, y); g.lineTo(32, y + 12); g.stroke(); g.strokeStyle = 'rgba(255,255,255,.22)'; g.lineWidth = 2; g.beginPath(); g.moveTo(0, y + 3); g.lineTo(32, y + 15); g.stroke(); } });
 const dpHelpers = (K) => { const { mesh } = K;
   const P = (geo, m, x, y, z, par, sx = 1, sy = sx, sz = sx) => { const o = mesh(kLod(geo, Math.max(sx, sy, sz)), m, x, y, z, par); o.scale.set(sx, sy, sz); return o; };
   const R = (w, h, d, r, m, x, y, z, par) => mesh(rboxGeo(w, h, d, r), m, x, y, z, par);
@@ -3651,16 +3660,23 @@ function minotaurKit(K) {
       R(2.12, 0.24, 1.12, 0.1, lth, 0, 2.86, 0); const bk = P(kSph(), bz, 0, 2.86, -0.58, K.body, 0.22, 0.17, 0.08); for (const s of [-1, 1]) { const h2 = P(kCone(), bz, s * 0.24, 2.94, -0.58, K.body, 0.05, 0.16, 0.05); h2.rotation.z = -s * 1.1; } },
     upper() { R(2.2, 1.28, 1.14, 0.45, fur, 0, 3.45, 0); for (const s of [-1, 1]) { P(kSph(), furL, s * 0.5, 3.68, -0.5, K.body, 0.52, 0.36, 0.22); P(kSph(), fur, s * 0.92, 3.98, 0, K.body, 0.5, 0.42, 0.52); }
       for (let r = 0; r < 3; r++) for (const s of [-1, 1]) P(kSph(), furL, s * 0.2, 3.25 - r * 0.24, -0.52, K.body, 0.17, 0.11, 0.08);
-      R(0.98, 0.42, 0.9, 0.3, fur, 0, 4.2, 0.05); const st = R(0.2, 2.2, 0.08, 0.04, lth, 0, 3.45, -0.6); st.rotation.z = 0.7; T(bz, 0, 3.45, -0.64, K.body, 0.42, 0); },
+      R(0.98, 0.42, 0.9, 0.3, fur, 0, 4.2, 0.05); const st = R(0.2, 2.2, 0.08, 0.04, lth, 0, 3.45, -0.6); st.rotation.z = 0.7; T(bz, 0, 3.45, -0.64, K.body, 0.42, 0);
+      const lb = grp(K.body, 0, 3.45); lb.position.z = -0.68; P(kCyl(), bz, 0, -0.05, 0, lb, 0.03, 0.5, 0.03); for (const s of [-1, 1]) { const ax = mesh(ovShape('labrys', [[0, -0.16], [0.2, -0.24, 0.24, 0.0], [0.2, 0.24, 0, 0.16]], 0.03, 0.01), bz, s * 0.02, 0.1, 0, lb); ax.scale.x = s; } // (a bronze labrys, the double axe of Crete, on its harness)
+      for (let k = 0; k < 14; k++) { const an = -0.9 + (k / 13) * 1.8; P(kSph(), furL, Math.sin(an) * 0.95, 4.15 + 0.1 * Math.cos(an * 3), Math.cos(an) * 0.4 + 0.1, K.body, 0.22, 0.28, 0.2); } // (a shaggy mane over the shoulders)
+      const tl = mesh(kg('bullTail', () => sweepGeo([[0, 0, 0], [0, -0.4, 0.25], [0.05, -1.0, 0.35], [0.0, -1.5, 0.3]], () => 0.045, 20, 6)), fur, 0, 2.6, 0.55); P(kSph(), furL, 0, 1.05, 0.88, K.body, 0.12, 0.22, 0.12); },
     arm(s) { const sh = grp(K.body, s * 1.58, 4), el = grp(sh, 0, -0.98, 1);
       P(kSph(), fur, 0, -0.45, 0, sh, 0.56, 0.64, 0.56); T(bz, 0, -0.66, 0, sh, 1.04); R(0.82, 0.8, 0.82, 0.3, fur, 0, -0.4, 0, el); T(bz, 0, -0.74, 0, el, 0.86); R(0.8, 0.38, 0.8, 0.18, dark, 0, -0.98, 0, el); return [sh, el]; },
-    head(h) { // a bull's head: a broad skull, a pale muzzle with flaring nostrils and a gold ring through them, eyes burning red, ears out to the sides and great curving horns
-      P(kSph(), fur, 0, 0.12, 0.05, h, 0.74, 0.7, 0.78); R(0.8, 0.62, 0.66, 0.28, muz, 0, -0.26, -0.62, h); P(kSph(), fur, 0, -0.58, -0.3, h, 0.48, 0.28, 0.46);
-      for (const s of [-1, 1]) { P(kSph(), dark, s * 0.18, -0.2, -0.96, h, 0.08, 0.07, 0.04); mesh(kSph(), new THREE.MeshBasicMaterial({ color: '#ef4444' }), s * 0.38, 0.22, -0.6, h).scale.set(0.09, 0.06, 0.04); kitGlow(h, '#f87171', 0.35, 0.6).position.set(s * 0.38, 0.22, -0.66);
-        const e = P(kSph(), furL, s * 0.8, 0.28, 0.06, h, 0.32, 0.12, 0.18); e.rotation.z = s * 0.3;
-        const hn = mesh(kg('bullHorn', () => sweepGeo([[0, 0, 0], [0.4, 0.12, -0.05], [0.72, 0.42, -0.2], [0.8, 0.82, -0.36], [0.66, 1.08, -0.44]], (t) => 0.15 * (1 - t) + 0.025, 26, 10)), horn, s * 0.5, 0.42, -0.05, h); hn.scale.x = s; hn.material.side = THREE.DoubleSide; }
-      R(0.98, 0.16, 0.22, 0.06, dark, 0, 0.38, -0.6, h); P(kSph(), furL, 0, 0.66, -0.2, h, 0.34, 0.16, 0.32);
-      const ring = T(DPM.gold(), 0, -0.42, -0.94, h, 0.34, 0); ring.scale.z = 0.25; nos = new THREE.Object3D(); nos.position.set(0, -0.22, -1.05); h.add(nos); return true; },
+    head(h) { // a bull's head: a broad skull and a long face angled down to a pale, wet muzzle with flaring nostrils and a gold ring through them, curls on its brow, red eyes burning under heavy brows set to the sides, ears out sideways and great horns — dark at the root, ridged, sweeping out and up to ivory points
+      P(kSph(), fur, 0, 0.22, 0.12, h, 0.74, 0.62, 0.78); const fc = grp(h, 0, 0.1); fc.position.z = -0.28; fc.rotation.x = 0.55;
+      P(kSph(), fur, 0, -0.1, -0.3, fc, 0.5, 0.46, 0.78); R(0.78, 0.46, 0.52, 0.22, muz, 0, -0.4, -0.86, fc); P(kSph(), muz, 0, -0.56, -0.82, fc, 0.32, 0.15, 0.26);
+      for (const s of [-1, 1]) { const ns = P(kSph(), new THREE.MeshPhongMaterial({ color: '#1a0f0a', shininess: 120 }), s * 0.19, -0.36, -1.12, fc, 0.09, 0.11, 0.03); ns.rotation.z = s * 0.4; P(kSph(), muz, s * 0.24, -0.26, -1.08, fc, 0.12, 0.08, 0.07); }
+      R(0.56, 0.04, 0.05, 0.02, dark, 0, -0.64, -1.06, fc); P(kSph(), fur, 0, -0.78, -0.48, fc, 0.4, 0.22, 0.36); // (the mouth; the dewlap)
+      for (let k = 0; k < 9; k++) P(kSph(), furL, (k % 3 - 1) * 0.13 + (Math.floor(k / 3) % 2) * 0.06, 0.32 + Math.floor(k / 3) * 0.1, -0.56 + Math.floor(k / 3) * 0.06, fc, 0.09); // (curls on its brow)
+      for (const s of [-1, 1]) { const br = R(0.36, 0.13, 0.22, 0.06, fur, s * 0.36, 0.3, -0.5, h); br.rotation.z = -s * 0.3; mesh(kSph(), new THREE.MeshBasicMaterial({ color: '#ef4444' }), s * 0.43, 0.18, -0.52, h).scale.set(0.08, 0.06, 0.04); kitGlow(h, '#f87171', 0.38, 0.6).position.set(s * 0.44, 0.18, -0.58);
+        const e = mesh(ovShape('bullEar', [[0, -0.07], [0.22, -0.1, 0.42, 0.0], [0.22, 0.1, 0, 0.07]], 0.05, 0.015), furL, s * 0.68, 0.3, 0.1, h); e.scale.x = s; e.rotation.set(0.2, 0, -s * 0.25);
+        const hb = P(kCyl(), new THREE.MeshPhongMaterial({ color: '#5b4632', shininess: 40 }), s * 0.55, 0.48, -0.05, h, 0.15, 0.22, 0.15); hb.rotation.z = -s * 1.2; for (let k = 0; k < 3; k++) { const rg = T(new THREE.MeshPhongMaterial({ color: '#7a644c' }), s * (0.6 + k * 0.08), 0.5 + k * 0.03, -0.05, h, 0.3 - k * 0.02, 0); rg.rotation.set(0, 0, s * 0.37 + Math.PI / 2); } // (ridged at the root)
+        const hn = mesh(kg('bullHorn2', () => sweepGeo([[0, 0, 0], [0.42, 0.1, -0.05], [0.78, 0.4, -0.2], [0.9, 0.84, -0.38], [0.76, 1.14, -0.46]], (t) => 0.16 * (1 - t) + 0.02, 30, 12)), horn, s * 0.58, 0.5, -0.05, h); hn.scale.x = s; hn.material.side = THREE.DoubleSide; }
+      const ring = T(DPM.gold(), 0, -0.52, -1.13, fc, 0.36, 0); ring.scale.z = 0.25; nos = new THREE.Object3D(); nos.position.set(0, -0.36, -1.18); fc.add(nos); return true; },
     tick(a, dt) { a.kitT = (a.kitT || 0) - dt; if (a.kitT <= 0 && nos) { a.kitT = 2.2 + Math.random() * 1.5; for (const s of [-1, 1]) kitSpark(a, nos, s * 0.18, 0, 0, '#e5e7eb', { v: [s * 0.2, -0.3, -0.6], life: 1.0, s: 0.18, grow: 1, op: 0.35, flat: 1, j: 0.15 }); } }, // (snorting steam)
   };
 }
@@ -3670,7 +3686,8 @@ function anubisKit(K) {
   const blk = new THREE.MeshPhongMaterial({ color: '#17140f', shininess: 50, specular: '#5b5040' }), gold = DPM.gold(), lin = new THREE.MeshLambertMaterial({ map: dpPleatTex() }), stripe = new THREE.MeshLambertMaterial({ map: nemesTex() });
   const lap = new THREE.MeshPhongMaterial({ color: '#1e3a8a', shininess: 80 }), tq = new THREE.MeshPhongMaterial({ color: '#14b8a6', shininess: 80 }), cn = new THREE.MeshPhongMaterial({ color: '#b91c1c', shininess: 80 }), amber = new THREE.MeshBasicMaterial({ color: '#fbbf24' }), lth = new THREE.MeshLambertMaterial({ color: '#7c5a32', map: leatherTex() });
   mats.push(blk, gold, lin, stripe, lap, tq, cn, lth); const eyes = [];
-  const collar = (y, w = 1) => [gold, lap, tq, cn, gold].forEach((m, k) => { const c = mesh(new THREE.CylinderGeometry(0.6 + k * 0.13, 0.72 + k * 0.13, 0.08, 36, 1, true), m, 0, y - k * 0.06, 0); c.scale.set(w, 1, 0.74); c.material.side = THREE.DoubleSide; }); // (the broad collar: rows of beads)
+  const bead = new THREE.MeshPhongMaterial({ map: ovBeadTex(), shininess: 120, specular: '#ffffff', side: THREE.DoubleSide }); mats.push(bead);
+  const collar = (y, w = 1) => { const c = mesh(kg('usekh', () => uvScale(new THREE.CylinderGeometry(0.62, 1.22, 0.42, 40, 1, true), 3, 1)), bead, 0, y - 0.12, 0); c.scale.set(w, 1, 0.72); const e = mesh(kTor(0.06), gold, 0, y - 0.33, 0); e.rotation.x = Math.PI / 2; e.scale.set(1.22 * w, 0.88, 1); }; // (the broad collar: rows of glass and gold beads)
   return {
     leg(x) { const hip = grp(K.body, x, 2), kn = grp(hip, 0, -1.0, 1);
       R(0.9, 1.0, 0.9, 0.32, blk, 0, -0.52, 0, hip); R(0.78, 0.86, 0.78, 0.28, blk, 0, -0.4, 0, kn); T(gold, 0, -0.74, 0, kn, 0.86);
@@ -3680,14 +3697,18 @@ function anubisKit(K) {
     upper() { R(2.0, 1.22, 1.02, 0.34, blk, 0, 3.44, 0); collar(4.02); for (const s of [-1, 1]) T(gold, s * 1.5, 3.62, 0, K.body, 1.0); },
     arm(s) { const sh = grp(K.body, s * 1.5, 4), el = grp(sh, 0, -0.98, 1); R(0.9, 0.96, 0.9, 0.32, blk, 0, -0.52, 0, sh); T(gold, 0, -0.42, 0, sh, 0.98); T(lap, 0, -0.5, 0, sh, 0.98);
       R(0.84, 0.86, 0.84, 0.3, blk, 0, -0.42, 0, el); T(gold, 0, -0.72, 0, el, 0.9); T(tq, 0, -0.8, 0, el, 0.9); return [sh, el]; },
-    head(h) { // the jackal: a black head and a long snout, tall pointed ears lined with gold, eyes of amber light, a striped headcloth falling behind them to the shoulders
-      P(kSph(), blk, 0, 0.12, 0.05, h, 0.62, 0.62, 0.66); const sn = R(0.42, 0.38, 1.0, 0.16, blk, 0, -0.1, -0.68, h); sn.rotation.x = 0.12; P(kSph(), blk, 0, -0.18, -1.15, h, 0.11, 0.1, 0.1);
-      R(0.36, 0.08, 0.7, 0.04, blk, 0, -0.34, -0.62, h);
-      for (const s of [-1, 1]) { const e = P(kCone(), blk, s * 0.32, 0.92, 0.08, h, 0.2, 0.72, 0.09); e.rotation.z = -s * 0.12; const ei = P(kCone(), gold, s * 0.32, 0.88, 0.02, h, 0.12, 0.55, 0.02); ei.rotation.z = -s * 0.12;
-        const ey = mesh(kSph(), amber, s * 0.27, 0.16, -0.52, h); ey.scale.set(0.1, 0.05, 0.04); ey.rotation.z = -s * 0.25; const g2 = kitGlow(h, '#fbbf24', 0.4, 0.6); g2.position.set(s * 0.28, 0.16, -0.58); eyes.push(g2);
-        const lp = R(0.32, 1.2, 0.08, 0.03, stripe, s * 0.55, -0.78, -0.25, h); lp.rotation.z = s * 0.08; }
-      const bk = mesh(new THREE.CylinderGeometry(0.66, 0.72, 0.9, 26, 1, true, -0.55 * Math.PI, 1.1 * Math.PI), stripe, 0, -0.32, 0.06, h); bk.material.side = THREE.DoubleSide;
-      T(gold, 0, 0.42, 0.04, h, 1.34); return true; },
+    head(h) { // the jackal: a sleek black head and a long, tapering muzzle with a wet black nose, its eyes rimmed in gold kohl and burning amber, tall pointed ears lined with gold; a striped headcloth falling behind them to the shoulders under a band inlaid with lapis and carnelian
+      P(kSph(), blk, 0, 0.18, 0.1, h, 0.62, 0.6, 0.68);
+      const sn = mesh(kg('jackalSnout', () => sweepGeo([[0, 0.02, 0], [0, -0.04, -0.3], [0, -0.1, -0.6], [0, -0.15, -0.84]], (t) => 0.31 - 0.21 * t, 20, 14)), blk, 0, -0.02, -0.38, h); sn.scale.set(1, 0.78, 1);
+      const jw = mesh(kg('jackalJaw', () => sweepGeo([[0, 0, 0], [0, -0.02, -0.3], [0, -0.03, -0.6]], (t) => 0.18 - 0.1 * t, 14, 10)), blk, 0, -0.27, -0.42, h); jw.scale.set(1, 0.5, 1);
+      P(kSph(), new THREE.MeshPhongMaterial({ color: '#050505', shininess: 200, specular: '#ffffff' }), 0, -0.14, -1.24, h, 0.085, 0.07, 0.07); R(0.03, 0.03, 0.55, 0.01, gold, 0, -0.28, -0.84, h); // (the nose; the mouth, lined in gold)
+      for (const s of [-1, 1]) { const ey = mesh(kSph(), amber, s * 0.26, 0.17, -0.56, h); ey.scale.set(0.1, 0.045, 0.04); ey.rotation.z = -s * 0.28; const g2 = kitGlow(h, '#fbbf24', 0.42, 0.6); g2.position.set(s * 0.27, 0.17, -0.62); eyes.push(g2);
+        const kl = R(0.32, 0.025, 0.03, 0.01, gold, s * 0.36, 0.13, -0.5, h); kl.rotation.set(0, -s * 0.5, -s * 0.15); // (kohl lines, in gold)
+        const ER = ovShape('jackalEar', [[-0.15, 0], [0.15, 0], [0.11, 0.5, 0, 0.98], [-0.11, 0.5, -0.15, 0]], 0.06, 0.02), e = mesh(ER, blk, s * 0.3, 0.6, 0.12, h); e.rotation.set(-0.1, s * 0.25, -s * 0.14);
+        const ei = mesh(ER, gold, 0, 0.06, -0.045, e); ei.scale.set(0.62, 0.78, 0.4);
+        const lp = R(0.34, 1.25, 0.07, 0.03, stripe, s * 0.57, -0.8, -0.22, h); lp.rotation.z = s * 0.08; }
+      const bk = mesh(new THREE.CylinderGeometry(0.66, 0.74, 0.92, 26, 1, true, -0.55 * Math.PI, 1.1 * Math.PI), stripe, 0, -0.3, 0.08, h); bk.material.side = THREE.DoubleSide;
+      mesh(new THREE.CylinderGeometry(0.64, 0.64, 0.14, 30, 1, true), new THREE.MeshPhongMaterial({ map: ovBandTex(), shininess: 100, side: THREE.DoubleSide }), 0, 0.3, 0.1, h); return true; },
     tick(a, dt) { const t = performance.now() / 1000; for (const e of eyes) e.material.opacity = 0.45 + 0.25 * Math.sin(t * 2.2); },
   };
 }
@@ -3703,9 +3724,9 @@ function pharaohKit(K) {
     lower() { mesh(kLathe('phKilt', [[0.98, -1.0], [1.12, -0.55], [1.02, 0.0]], 30), lin, 0, 2.82, 0).scale.set(1.04, 1, 0.62);
       R(0.66, 1.15, 0.07, 0.03, stripe, 0, 2.25, -0.68); P(kSph(), gold, 0, 1.75, -0.7, K.body, 0.1); R(2.12, 0.22, 1.12, 0.08, gold, 0, 2.86, 0);
       const tl = R(0.16, 1.4, 0.12, 0.06, new THREE.MeshLambertMaterial({ color: '#6b4a2a', map: dpFurTex('#6b4a2a', '#3b2616') }), 0, 2.1, 0.62, K.body); tl.rotation.x = -0.12; }, // (the bull's tail the kings wore at the belt)
-    upper() { R(2.0, 1.2, 1.0, 0.32, skin, 0, 3.44, 0); [gold, lap, tq, cn, gold].forEach((m, k) => { const c = mesh(new THREE.CylinderGeometry(0.6 + k * 0.13, 0.72 + k * 0.13, 0.08, 36, 1, true), m, 0, 4.02 - k * 0.06, 0); c.scale.set(1, 1, 0.74); c.material.side = THREE.DoubleSide; });
+    upper() { R(2.0, 1.2, 1.0, 0.32, skin, 0, 3.44, 0); const bead = new THREE.MeshPhongMaterial({ map: ovBeadTex(), shininess: 120, specular: '#ffffff', side: THREE.DoubleSide }); mats.push(bead); const cl = mesh(kg('usekh', () => uvScale(new THREE.CylinderGeometry(0.62, 1.22, 0.42, 40, 1, true), 3, 1)), bead, 0, 3.9, 0); cl.scale.set(1, 1, 0.72); const ce = mesh(kTor(0.06), gold, 0, 3.69, 0); ce.rotation.x = Math.PI / 2; ce.scale.set(1.22, 0.88, 1); // (a broad collar of glass and gold beads)
       const pc = new THREE.Group(); pc.position.set(0, 3.35, -0.56); K.body.add(pc); P(kSph(), lap, 0, 0, 0, pc, 0.16, 0.2, 0.08); for (const s of [-1, 1]) { const w = P(kSph(), gold, s * 0.3, 0.05, 0.02, pc, 0.3, 0.07, 0.03); w.rotation.z = -s * 0.25; const w2 = P(kSph(), tq, s * 0.3, -0.02, 0.0, pc, 0.26, 0.05, 0.03); w2.rotation.z = -s * 0.25; } P(kSph(), cn, 0, 0.26, 0, pc, 0.08); }, // (a gold pectoral: a scarab with spread wings)
-    arm(s) { const sh = grp(K.body, s * 1.5, 4), el = grp(sh, 0, -0.98, 1); R(0.9, 0.96, 0.9, 0.32, skin, 0, -0.52, 0, sh); T(gold, 0, -0.4, 0, sh, 0.98); R(0.84, 0.86, 0.84, 0.3, skin, 0, -0.42, 0, el); T(gold, 0, -0.74, 0, el, 0.9); T(lap, 0, -0.66, 0, el, 0.9); return [sh, el]; },
+    arm(s) { const sh = grp(K.body, s * 1.5, 4), el = grp(sh, 0, -0.98, 1); R(0.9, 0.96, 0.9, 0.32, skin, 0, -0.52, 0, sh); const ab = mesh(kg('phArmBand', () => new THREE.CylinderGeometry(0.5, 0.5, 0.16, 24, 1, true)), new THREE.MeshPhongMaterial({ map: ovBandTex(), shininess: 110, side: THREE.DoubleSide }), 0, -0.4, 0, sh); R(0.84, 0.86, 0.84, 0.3, skin, 0, -0.42, 0, el); T(gold, 0, -0.74, 0, el, 0.9); T(lap, 0, -0.66, 0, el, 0.9); return [sh, el]; },
     head(h) { // the blue crown of war (the khepresh), studded with gold discs, the uraeus at its brow, ribbons behind — and the king's plaited false beard
       const KH = [[0.74, 0.25], [0.8, 0.65], [0.84, 1.05], [0.8, 1.4], [0.64, 1.75], [0.38, 1.98], [0, 2.06]]; const kh = mesh(kLathe('khepresh2', KH, 30), blue, 0, 0, 0.1, h); kh.scale.set(1, 1, 1.18); kh.rotation.x = -0.12; // (tall, swelling up and back)
       const rAt = (y) => { for (let i = 1; i < KH.length; i++) if (y <= KH[i][1]) { const f = (y - KH[i - 1][1]) / (KH[i][1] - KH[i - 1][1]); return KH[i - 1][0] + (KH[i][0] - KH[i - 1][0]) * f; } return 0; };
@@ -3720,7 +3741,7 @@ function pharaohKit(K) {
 // ⛩️ the Samurai
 function samuraiKit(K) {
   const { mesh, mats, grp, av, pants } = K, { P, R, T } = dpHelpers(K);
-  const lace = SHIRTS[av[1]], lam2 = new THREE.MeshPhongMaterial({ map: dpLamTex(lace), shininess: 100, specular: '#666' }), lac = new THREE.MeshPhongMaterial({ color: '#17171c', shininess: 120, specular: '#777' }), gold = DPM.gold();
+  const lace = SHIRTS[av[1]], lam2 = new THREE.MeshPhongMaterial({ map: ovOdoshiTex(lace), shininess: 120, specular: '#777', side: THREE.DoubleSide }), lac = new THREE.MeshPhongMaterial({ color: '#17171c', shininess: 120, specular: '#777' }), gold = DPM.gold();
   const cloth = new THREE.MeshLambertMaterial({ color: '#1e2a4a', map: plushTex() }), tabi = new THREE.MeshLambertMaterial({ color: '#f5f0e1' }), straw = new THREE.MeshLambertMaterial({ color: '#c9a86a' }), red = new THREE.MeshPhongMaterial({ color: '#9f1d1d', shininess: 90 }), laceM = new THREE.MeshLambertMaterial({ color: lace });
   mats.push(lam2, lac, gold, cloth, tabi, straw, red, laceM);
   return {
@@ -3735,9 +3756,11 @@ function samuraiKit(K) {
     arm(s) { const sh = grp(K.body, s * 1.5, 4), el = grp(sh, 0, -0.98, 1); R(0.9, 0.96, 0.9, 0.32, cloth, 0, -0.52, 0, sh); for (let j = 0; j < 3; j++) R(0.92, 0.08, 0.6, 0.03, lac, 0, -0.35 - j * 0.24, -0.2, sh);
       R(0.84, 0.86, 0.84, 0.3, cloth, 0, -0.42, 0, el); R(0.88, 0.7, 0.3, 0.06, lac, 0, -0.42, -0.32, el); P(kSph(), gold, 0, -0.42, -0.48, el, 0.06); R(0.8, 0.3, 0.8, 0.14, new THREE.MeshLambertMaterial({ color: '#2a1d14' }), 0, -0.92, 0, el); return [sh, el]; },
     head(h) { dpHat(36, { head: h, lam: K.lam, mesh, box: K.box, cyl: (rt, rb, hh, sg) => new THREE.CylinderGeometry(rt, rb, hh, sg || 16), mats, av, xt: [] }); // (the kabuto, as the hat)
-      const mp = mesh(new THREE.SphereGeometry(0.69, 24, 10, Math.PI * 1.15, Math.PI * 0.7, Math.PI * 0.55, Math.PI * 0.33), red, 0, 0.0, 0.0, h); mp.material.side = THREE.DoubleSide; // (the menpō: a red lacquered mask over the mouth and chin)
-      for (const s of [-1, 1]) { const m2 = R(0.26, 0.04, 0.04, 0.02, new THREE.MeshLambertMaterial({ color: '#f5f0e1' }), s * 0.14, -0.2, -0.7, h); m2.rotation.z = s * 0.35; }
-      for (let k = 0; k < 3; k++) R(1.0 - k * 0.04, 0.09, 0.12, 0.03, lac, 0, -0.62 - k * 0.1, -0.5 + k * 0.02, h); return false; },
+      // the menpō: a red-lacquered half mask over the mouth and chin — a fierce nose, a white moustache, a mouth slit — and its throat guard of laced lames
+      mesh(kg('menpo2', () => new THREE.CylinderGeometry(0.7, 0.62, 0.48, 28, 1, true, Math.PI * 0.64, Math.PI * 0.72)), red, 0, -0.38, 0, h).material.side = THREE.DoubleSide;
+      const ns = R(0.16, 0.24, 0.16, 0.06, red, 0, -0.08, -0.72, h); ns.rotation.x = -0.25; R(0.34, 0.04, 0.04, 0.02, new THREE.MeshBasicMaterial({ color: '#1a0505' }), 0, -0.42, -0.71, h);
+      for (const s of [-1, 1]) { const m2 = mesh(kg('menpoMou', () => sweepGeo([[0, 0, 0], [0.12, -0.03, 0.02], [0.24, -0.1, 0.06]], (t) => 0.035 - 0.02 * t, 10, 6)), new THREE.MeshLambertMaterial({ color: '#f5f0e1' }), s * 0.04, -0.27, -0.72, h); m2.scale.x = s; }
+      for (let k = 0; k < 3; k++) { const yk = mesh(kg('yodare' + k, () => uvScale(new THREE.CylinderGeometry(0.66 + k * 0.05, 0.7 + k * 0.05, 0.12, 24, 1, true, Math.PI * 0.6, Math.PI * 0.8), 2, 1)), lam2, 0, -0.68 - k * 0.11, 0, h); yk.material.side = THREE.DoubleSide; } return false; },
   };
 }
 // 🪽 the Valkyrie
@@ -3755,11 +3778,13 @@ function valkyrieKit(K) {
       mesh(capeGeo(2.0, 3.4, 0.55), cloak, 0, 2.35, 0.6); R(2.1, 0.2, 0.3, 0.1, fur, 0, 4.0, 0.5); for (const s of [-1, 1]) P(kSph(), gold, s * 0.7, 3.95, -0.55, K.body, 0.14, 0.14, 0.06); },
     arm(s) { const sh = grp(K.body, s * 1.5, 4), el = grp(sh, 0, -0.98, 1); R(0.9, 0.96, 0.9, 0.32, mail, 0, -0.52, 0, sh); const sp = mesh(kDome(), steel, 0, 0.0, 0, sh); sp.scale.set(0.62, 0.36, 0.6);
       R(0.84, 0.86, 0.84, 0.3, skin, 0, -0.42, 0, el); R(0.88, 0.56, 0.88, 0.28, lth, 0, -0.5, 0, el); R(0.3, 0.5, 0.92, 0.06, steel, s * 0.32, -0.5, 0, el); R(0.82, 0.32, 0.82, 0.14, lth, 0, -0.94, 0, el); return [sh, el]; },
-    head(h) { // a winged helm: polished steel with a gold band and nasal, a white wing each side; long golden braids over the shoulders
-      const d = mesh(new THREE.SphereGeometry(0.76, 26, 12, 0, Math.PI * 2, 0, Math.PI / 2), steel, 0, 0.36, 0, h); d.scale.y = 1.1; mesh(new THREE.CylinderGeometry(0.775, 0.775, 0.16, 26, 1, true), gold, 0, 0.42, 0, h).material.side = THREE.DoubleSide;
-      R(0.13, 0.62, 0.08, 0.04, gold, 0, 0.2, -0.76, h);
-      for (const s of [-1, 1]) { const wg = featherWing(h, s, { cols: ['#f1f5f9', '#ffffff', '#e2e8f0'], span: 1.2, k: 0.95 }); wg.position.set(s * 0.72, 0.62, 0.1); wg.rotation.set(0, -s * 0.5, s * 1.1);
-        for (let k = 0; k < 8; k++) P(kSph(), hair, s * (0.62 + Math.min(k, 2) * 0.03), -0.2 - k * 0.2, -0.32 - Math.min(k, 3) * 0.06, h, 0.13, 0.13, 0.13); }
+    head(h) { // a winged helm: polished steel etched with knotwork, a gold brow band and nasal, cheek guards — a white swan's wing rising at each side — and long golden braids over the shoulders, bound with gold
+      const d = mesh(new THREE.SphereGeometry(0.76, 28, 14, 0, Math.PI * 2, 0, Math.PI / 2), steel, 0, 0.36, 0, h); d.scale.y = 1.1; mesh(new THREE.CylinderGeometry(0.775, 0.775, 0.16, 28, 1, true), gold, 0, 0.42, 0, h).material.side = THREE.DoubleSide;
+      R(0.13, 0.62, 0.08, 0.04, gold, 0, 0.2, -0.76, h); for (const s of [-1, 1]) { const cg = R(0.06, 0.55, 0.42, 0.04, steel, s * 0.74, 0.1, -0.32, h); cg.rotation.z = s * 0.05; }
+      const wm = new THREE.MeshPhongMaterial({ vertexColors: true, side: THREE.DoubleSide, shininess: 30, emissive: '#151515' });
+      for (const s of [-1, 1]) { const pv = new THREE.Group(); pv.position.set(s * 0.7, 0.62, 0.12); pv.rotation.set(0.15, -s * 0.55, s * 0.95); h.add(pv); const W = ovWing(pv, s, 'valkHelm', { span: 1.25, cols: ['#ffffff', '#f1f5f9', '#ffffff'], tip: '#cbd5e1' }, wm); W.arm.rotation.z = s * 0.2;
+        const br = mesh(kg('valkBraid', () => uvScale(sweepGeo([[0, 0, 0], [0.02, -0.4, -0.05], [0.0, -0.9, -0.1], [-0.02, -1.4, -0.12]], (t) => 0.12 - 0.04 * t, 30, 8), 1, 6)), new THREE.MeshLambertMaterial({ map: ovBraidTex('#e9c46a') }), s * 0.62, -0.1, -0.3, h);
+        T(gold, s * 0.62, -1.3, -0.42, h, 0.2); T(gold, s * 0.63, -0.75, -0.39, h, 0.24); }
       const bh = mesh(new THREE.CylinderGeometry(0.7, 0.74, 0.9, 24, 1, true, -0.45 * Math.PI, 0.9 * Math.PI), hair, 0, -0.1, 0.02, h); bh.material.side = THREE.DoubleSide; return false; },
   };
 }
@@ -3779,8 +3804,10 @@ function centurionKit(K) {
     upper() { R(2.04, 1.22, 1.06, 0.32, mail, 0, 3.44, 0); for (const s of [-1, 1]) R(0.9, 0.18, 1.1, 0.06, mail, s * 0.6, 4.0, 0);
       const hn = new THREE.Group(); hn.position.set(0, 3.5, -0.56); K.body.add(hn); for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) { const d = P(kCyl(), (r + c) % 2 ? silv : gold, (c - 1) * 0.38, 0.32 - r * 0.32, 0, hn, 0.13, 0.03, 0.13); d.rotation.x = Math.PI / 2; }
       for (const [x, y, w] of [[0, 0.33, 0.9], [0, 0.01, 0.9], [0, -0.31, 0.9]]) R(w, 0.04, 0.03, 0.01, lth, x, y, -0.01, hn); // (the phalerae: his medals, on a harness)
-      mesh(capeGeo(1.9, 3.2, 0.45), cloak, 0.15, 2.4, 0.58).rotation.y = 0.1; const fb = P(kSph(), brass, 0.85, 3.95, -0.45, K.body, 0.16, 0.16, 0.08); },
-    arm(s) { const sh = grp(K.body, s * 1.5, 4), el = grp(sh, 0, -0.98, 1); R(0.92, 0.5, 0.92, 0.3, red, 0, -0.25, 0, sh); R(0.9, 0.62, 0.9, 0.32, skin, 0, -0.68, 0, sh);
+      mesh(capeGeo(1.9, 3.2, 0.45), cloak, 0.15, 2.4, 0.58).rotation.y = 0.1; const fb = P(kSph(), brass, 0.85, 3.95, -0.45, K.body, 0.16, 0.16, 0.08);
+      const face = new THREE.MeshPhongMaterial({ map: ovSunFaceTex(), shininess: 120 }); mats.push(face); for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) { const d = mesh(kg('phalera', () => new THREE.CircleGeometry(0.11, 20)), face, (c - 1) * 0.38, 0.32 - r * 0.32, -0.025, hn); d.rotation.y = Math.PI; } // (each medal a face in relief)
+      const fo = mesh(kTor(0.35), new THREE.MeshLambertMaterial({ color: '#f5f0e1', map: plushTex() }), 0, 4.02, -0.05); fo.rotation.x = Math.PI / 2; fo.scale.set(0.78, 0.6, 0.5); }, // (the focale, a scarf at the neck)
+    arm(s) { const sh = grp(K.body, s * 1.5, 4), el = grp(sh, 0, -0.98, 1); R(0.92, 0.5, 0.92, 0.3, red, 0, -0.25, 0, sh); for (let k = 0; k < 7; k++) { const an = (k / 7) * Math.PI * 2, pt = R(0.16, 0.42, 0.04, 0.02, lth, Math.sin(an) * 0.47, -0.3, Math.cos(an) * 0.47, sh); pt.rotation.y = an; P(kSph(), brass, Math.sin(an) * 0.49, -0.5, Math.cos(an) * 0.49, sh, 0.035); } // (pteruges: leather strips over the shoulder) R(0.9, 0.62, 0.9, 0.32, skin, 0, -0.68, 0, sh);
       R(0.84, 0.86, 0.84, 0.3, skin, 0, -0.42, 0, el); R(0.88, 0.3, 0.88, 0.14, lth, 0, -0.72, 0, el); return [sh, el]; },
     head(h) { dpHat(37, { head: h, lam: K.lam, mesh, box: K.box, cyl: (rt, rb, hh, sg) => new THREE.CylinderGeometry(rt, rb, hh, sg || 16), mats, av, xt: [] }); return false; }, // (the transverse-crested galea)
   };
@@ -3803,12 +3830,16 @@ function gladiatorKit(K) {
       if (s > 0) { for (let k = 0; k < 5; k++) R(0.98 - k * 0.02, 0.2, 0.98 - k * 0.02, 0.08, st, 0, -0.1 - k * 0.19, 0, sh); for (let k = 0; k < 5; k++) R(0.92 - k * 0.02, 0.18, 0.92 - k * 0.02, 0.08, st, 0, -0.05 - k * 0.18, 0, el); const sp = mesh(kDome(), st, 0, 0.05, 0, sh); sp.scale.set(0.7, 0.4, 0.65); } // (the manica: a sleeve of steel plates on the sword arm)
       else { R(0.9, 0.96, 0.9, 0.32, skin, 0, -0.52, 0, sh); R(0.84, 0.86, 0.84, 0.3, skin, 0, -0.42, 0, el); R(0.88, 0.3, 0.88, 0.14, lth, 0, -0.7, 0, el); }
       R(0.8, 0.32, 0.8, 0.14, s > 0 ? st : skin, 0, -0.95, 0, el); return [sh, el]; },
-    head(h) { // the murmillo's helm: a broad brim, a face-grille of crossed bars, and a tall fin of a crest, feathered red and gold
-      const d = mesh(new THREE.SphereGeometry(0.78, 26, 12, 0, Math.PI * 2, 0, Math.PI / 2), st, 0, 0.3, 0.02, h); d.scale.y = 1.05; mesh(kLathe('glBrim', [[0.78, 0.3], [1.0, 0.24], [1.15, 0.12]], 30), st, 0, 0, 0, h).material.side = THREE.DoubleSide;
-      const vz = -0.72; R(0.9, 0.08, 0.06, 0.03, grill, 0, 0.3, vz, h); R(0.9, 0.08, 0.06, 0.03, grill, 0, -0.55, vz, h); for (let k = 0; k < 6; k++) R(0.035, 0.85, 0.035, 0.015, grill, -0.35 + k * 0.14, -0.12, vz, h); for (let k = 0; k < 4; k++) R(0.82, 0.035, 0.035, 0.015, grill, 0, 0.12 - k * 0.17, vz, h);
-      for (const s of [-1, 1]) R(0.06, 0.95, 0.5, 0.04, st, s * 0.74, -0.15, -0.36, h);
-      mesh(kg('glFin', () => { const sh = new THREE.Shape(); sh.moveTo(0, 0); sh.lineTo(0.15, 0.62); sh.quadraticCurveTo(0.5, 0.95, 0.95, 0.7); sh.lineTo(1.0, 0.0); sh.closePath(); const g = new THREE.ExtrudeGeometry(sh, { depth: 0.06, bevelEnabled: false }); g.translate(-0.5, 0, -0.03); g.rotateY(Math.PI / 2); return g; }), bz, 0, 1.04, 0, h);
-      mesh(crestGeo('glPlume', ['#dc2626', '#fbbf24', '#b91c1c', '#f59e0b'], 80, 0.7), fe, 0, 0.62, 0, h); return false; },
+    head(h) { // the murmillo's helm: polished steel with brass trim, a broad brim with a rolled edge, a visor pierced with rows of round holes, and a tall fin of a crest worked with fish scales (the murmillo was the fish-man) and feathered red and gold
+      const pol = metalMat('#c3c9d1', { shininess: 140, reflectivity: 0.55 }), brass = metalMat('#d9a441', { shininess: 120, reflectivity: 0.45 }); mats.push(pol, brass);
+      const d = mesh(new THREE.SphereGeometry(0.78, 30, 14, 0, Math.PI * 2, 0, Math.PI / 2), pol, 0, 0.3, 0.02, h); d.scale.y = 1.08; mesh(kLathe('glBrim2', [[0.78, 0.3], [1.0, 0.24], [1.16, 0.12], [1.2, 0.16]], 36), pol, 0, 0, 0, h).material.side = THREE.DoubleSide;
+      const re = mesh(kTor(0.03), brass, 0, 0.14, 0, h); re.rotation.x = Math.PI / 2; re.scale.set(1.2, 1.2, 1); const bb = mesh(kTor(0.05), brass, 0, 0.32, 0.02, h); bb.rotation.x = Math.PI / 2; bb.scale.set(0.8, 0.8, 1);
+      const VS = kg('glVisor', () => new THREE.CylinderGeometry(0.76, 0.74, 0.9, 30, 1, true, Math.PI * 0.62, Math.PI * 0.76)); mesh(VS, pol, 0, -0.18, 0, h).material.side = THREE.DoubleSide;
+      const hole = new THREE.MeshBasicMaterial({ color: '#0b0b0e' }); mesh(kg('glHoles', () => { const B = kitBuild(); for (let r = 0; r < 5; r++) for (let c = 0; c < 7; c++) { const a = Math.PI + (c - 3) * 0.17 + (r % 2) * 0.085, y = 0.14 - r * 0.15; if (r % 2 && c === 6) continue; B.add(KIT_SPH, Math.sin(a) * 0.765, y, Math.cos(a) * 0.765, 0.04, 0.04, 0.012, 0, a, 0); } return B.geo(); }), hole, 0, -0.18, 0, h);
+      for (const y of [0.27, -0.63]) { const tr = mesh(new THREE.TorusGeometry(0.77, 0.022, 4, 24, Math.PI * 0.76), brass, 0, y, 0, h); tr.rotation.set(-Math.PI / 2, 0, Math.PI / 2 - Math.PI * 0.38); }
+      for (const s of [-1, 1]) R(0.06, 0.95, 0.5, 0.04, pol, s * 0.74, -0.15, -0.3, h);
+      const fin = mesh(kg('glFin2', () => { const sh = new THREE.Shape(); sh.moveTo(0, 0); sh.lineTo(0.15, 0.62); sh.quadraticCurveTo(0.5, 0.95, 0.95, 0.7); sh.lineTo(1.0, 0.0); sh.closePath(); const g = new THREE.ExtrudeGeometry(sh, { depth: 0.06, bevelEnabled: true, bevelThickness: 0.015, bevelSize: 0.015, bevelSegments: 1 }); g.translate(-0.5, 0, -0.03); g.rotateY(Math.PI / 2); return g; }), new THREE.MeshPhongMaterial({ map: dpScaleTex('#e0b062', '#8a5d14'), shininess: 120, specular: '#fff2c0' }), 0, 1.06, 0, h);
+      for (const s of [-1, 1]) { const pl = mesh(crestGeo('glPlume2', ['#dc2626', '#fbbf24', '#b91c1c', '#f59e0b'], 90, 0.72), fe, s * 0.07, 0.66, 0, h); pl.rotation.z = s * 0.12; } return false; },
   };
 }
 // 🤖 Talos, the bronze giant of Crete
@@ -3826,38 +3857,54 @@ function talosKit(K) {
     upper() { R(2.06, 1.24, 1.06, 0.3, bz, 0, 3.44, 0); for (const s of [-1, 1]) { P(kSph(), bz, s * 0.48, 3.7, -0.48, K.body, 0.5, 0.32, 0.16); P(kSph(), dk, s * 1.05, 4.0, 0, K.body, 0.42); }
       for (let r = 0; r < 3; r++) for (const s of [-1, 1]) P(kSph(), bz, s * 0.2, 3.24 - r * 0.24, -0.5, K.body, 0.16, 0.1, 0.07);
       seam(0.04, 1.1, 0.0, 3.4, -0.55); seam(1.6, 0.03, 0, 2.95, -0.55); seam(0.04, 1.6, 0.62, 3.0, -0.4).rotation.y = -0.6; // (seams glowing with ichor; the vein down his right side)
-      for (let k = 0; k < 10; k++) { const an = (k / 10) * Math.PI * 2; P(kSph(), dk, Math.sin(an) * 0.94, 4.02, Math.cos(an) * 0.5, K.body, 0.05); } },
+      for (let k = 0; k < 10; k++) { const an = (k / 10) * Math.PI * 2; P(kSph(), dk, Math.sin(an) * 0.94, 4.02, Math.cos(an) * 0.5, K.body, 0.05); }
+      mesh(kg('talosVein', () => sweepGeo([[0.25, 4.0, -0.53], [0.5, 3.6, -0.55], [0.72, 3.0, -0.48], [0.82, 2.4, -0.4]], () => 0.035, 24, 6)), ich, 0, 0, 0); for (let k = 0; k < 6; k++) P(kCyl(), dk, -0.95 + k * 0.38, 3.95, -0.5, K.body, 0.06, 0.04, 0.06).rotation.x = Math.PI / 2; }, // (his one vein, glowing with ichor; rivets)
     arm(s) { const sh = grp(K.body, s * 1.5, 4), el = grp(sh, 0, -0.98, 1); R(0.92, 0.94, 0.92, 0.24, bz, 0, -0.52, 0, sh); P(kSph(), dk, 0, -0.98, 0, sh, 0.4);
       R(0.84, 0.84, 0.84, 0.22, bz, 0, -0.42, 0, el); R(0.88, 0.34, 0.88, 0.12, dk, 0, -0.94, 0, el); seam(0.04, 0.6, 0, -0.4, -0.43, el); return [sh, el]; },
-    head(h) { // a face of bronze like the old statues: almond eyes full of fire, a straight nose, a calm smile, the hair in rows of tight curls and a curled beard
-      R(1.28, 1.24, 1.28, 0.52, bz, 0, 0.0, 0.0, h); for (let r = 0; r < 3; r++) for (let k = 0; k < 9; k++) { const an = -1.25 + k * 0.31 + (r % 2) * 0.15; P(kSph(), dk, Math.sin(an) * 0.66, 0.42 + r * 0.13, -Math.cos(an) * 0.66 + r * 0.05, h, 0.09); }
-      for (let r = 0; r < 4; r++) for (let k = 0; k < 7 - r; k++) P(kSph(), dk, (k - (6 - r) / 2) * 0.12, -0.42 - r * 0.1, -0.6 + r * 0.04, h, 0.075);
-      for (const s of [-1, 1]) { const e = mesh(kSph(), ich, s * 0.24, 0.12, -0.64, h); e.scale.set(0.13, 0.055, 0.03); const g2 = kitGlow(h, '#ff9a3c', 0.55, 0.55); g2.position.set(s * 0.24, 0.12, -0.7); glows.push(g2); }
-      R(0.12, 0.34, 0.12, 0.05, bz, 0, -0.06, -0.68, h); R(0.3, 0.05, 0.05, 0.02, dk, 0, -0.3, -0.65, h); return true; },
+    head(h) { // a face of bronze like the archaic statues: a heavy brow over almond eyes full of fire, a long straight nose, high cheekbones, lips in the archaic smile, hair in rows of snail-shell curls under a band, and a beard of curls
+      R(1.22, 1.26, 1.2, 0.56, bz, 0, 0.0, 0.0, h); const br = R(0.92, 0.12, 0.2, 0.05, dk, 0, 0.3, -0.58, h); br.rotation.x = -0.15;
+      const AL = ovShape('talosEye', [[-0.13, 0], [0, 0.06, 0.13, 0], [0, -0.05, -0.13, 0]], 0.02, 0.005);
+      for (const s of [-1, 1]) { const e = mesh(AL, ich, s * 0.24, 0.13, -0.62, h); e.rotation.y = s * 0.1; const g2 = kitGlow(h, '#ff9a3c', 0.6, 0.55); g2.position.set(s * 0.24, 0.13, -0.7); glows.push(g2); P(kSph(), bz, s * 0.3, -0.06, -0.55, h, 0.17, 0.11, 0.08); }
+      const ns = R(0.15, 0.4, 0.16, 0.05, bz, 0, -0.02, -0.66, h); ns.rotation.x = -0.12;
+      for (const s of [-1, 1]) { const lp = mesh(kg('talosLip', () => sweepGeo([[0, 0, 0], [0.12, 0.02, 0.01], [0.2, 0.06, 0.04]], (t) => 0.035 - 0.015 * t, 10, 6)), dk, 0, -0.33, -0.63, h); lp.scale.x = s; }
+      mesh(kg('talosCurls', () => { const B = kitBuild(); for (let r = 0; r < 3; r++) for (let k = 0; k < 11; k++) { const an = -1.35 + k * 0.27 + (r % 2) * 0.13; B.add(KIT_SPH, Math.sin(an) * (0.62 + r * 0.02), 0.46 + r * 0.12, -Math.cos(an) * (0.6 + r * 0.02), 0.075, 0.075, 0.045, 0, -an, 0); } // (snail-shell curls in rows)
+        for (let r = 0; r < 4; r++) for (let k = 0; k < 7 - r; k++) B.add(KIT_SPH, (k - (6 - r) / 2) * 0.12, -0.46 - r * 0.1, -0.6 + r * 0.04, 0.07); return B.geo(); }), dk, 0, 0, 0, h);
+      const bd = mesh(kTor(0.08), dk, 0, 0.4, 0, h); bd.rotation.x = Math.PI / 2; bd.scale.set(0.66, 0.64, 1); return true; },
     tick(a, dt) { const t = performance.now() / 1000, k = 0.5 + 0.5 * Math.sin(t * 2.6); ich.color.setRGB(1, 0.42 + 0.18 * k, 0.1); for (const g of glows) g.material.opacity = 0.4 + 0.25 * k; },
   };
 }
 // 👁️ the Cyclops
 function cyclopsKit(K) {
-  const { mesh, mats, grp, skin } = K, { P, R, T } = dpHelpers(K);
-  const sheep = new THREE.MeshLambertMaterial({ map: dpSheepTex() }), rope = new THREE.MeshLambertMaterial({ color: '#a0825a' }), hair = new THREE.MeshLambertMaterial({ map: dpFurTex('#3b2a1e', '#1f150d') }), white = new THREE.MeshPhongMaterial({ color: '#f8fafc', shininess: 120 });
-  const iris = new THREE.MeshBasicMaterial({ color: '#0e7490' }), pup = new THREE.MeshBasicMaterial({ color: '#0a0a0a' }), teeth = new THREE.MeshLambertMaterial({ color: '#f5f0e1' }), mouth = new THREE.MeshLambertMaterial({ color: '#3b0f0f' });
-  mats.push(sheep, rope, hair, white, teeth, mouth); let lid = null, eyeG = null;
+  const { mesh, mats, grp } = K, { P, R, T } = dpHelpers(K);
+  const skin = new THREE.MeshPhongMaterial({ map: ovSkinTex('#c08a6a'), shininess: 14, specular: '#3a2a20' }), skinD = new THREE.MeshPhongMaterial({ map: ovSkinTex('#a06a50'), shininess: 10 }), sheep = new THREE.MeshLambertMaterial({ map: dpSheepTex() }), rope = new THREE.MeshLambertMaterial({ color: '#a0825a', map: woodTex() });
+  const hair = new THREE.MeshLambertMaterial({ map: dpFurTex('#3b2a1e', '#1f150d') }), eyeW = new THREE.MeshPhongMaterial({ map: ovEyeballTex(), shininess: 170, specular: '#ffffff' }), irisM = new THREE.MeshPhongMaterial({ map: ovIrisTex('#0e7490'), shininess: 200, specular: '#ffffff' });
+  const teeth = new THREE.MeshPhongMaterial({ color: '#e9dfc4', shininess: 60 }), mouth = new THREE.MeshLambertMaterial({ color: '#3b0f0f' }), nail = new THREE.MeshPhongMaterial({ color: '#d6c4a8', shininess: 60 }), bone = new THREE.MeshPhongMaterial({ color: '#efe6d0', shininess: 40 });
+  mats.push(skin, skinD, sheep, rope, hair, eyeW, irisM, teeth, mouth, nail, bone); let lidU = null, lidL = null, eyeG = null;
   return {
-    leg(x) { const hip = grp(K.body, x, 2), kn = grp(hip, 0, -1.0, 1); P(kSph(), skin, 0, -0.5, 0, hip, 0.56, 0.62, 0.56); R(0.84, 0.86, 0.84, 0.32, skin, 0, -0.42, 0, kn);
-      R(0.92, 0.24, 1.14, 0.1, skin, 0, -0.9, -0.1, kn); for (let k = 0; k < 4; k++) P(kSph(), skin, -0.3 + k * 0.2, -0.92, -0.66, kn, 0.09, 0.08, 0.1); return [hip, kn]; },
-    lower() { mesh(kLathe('cycSkirt', [[1.0, -0.8], [1.1, -0.4], [1.04, 0.0]], 30), sheep, 0, 2.86, 0).scale.set(1.06, 1, 0.66); const rb = mesh(kTor(0.08), rope, 0, 2.86, 0); rb.rotation.x = Math.PI / 2; rb.scale.set(1.08, 0.68, 1); },
-    upper() { R(2.1, 1.24, 1.08, 0.42, skin, 0, 3.46, 0); P(kSph(), skin, 0, 3.0, -0.32, K.body, 0.98, 0.78, 0.66); for (const s of [-1, 1]) P(kSph(), hair, s * 0.42, 3.7, -0.5, K.body, 0.36, 0.26, 0.12);
-      const sk = R(1.0, 2.0, 0.24, 0.12, sheep, 0.35, 3.35, -0.42); sk.rotation.z = 0.6; const sk2 = R(1.0, 2.0, 0.24, 0.12, sheep, 0.35, 3.35, 0.45); sk2.rotation.z = 0.6; },
-    arm(s) { const sh = grp(K.body, s * 1.56, 4), el = grp(sh, 0, -0.98, 1); P(kSph(), skin, 0, -0.45, 0, sh, 0.55, 0.62, 0.55); R(0.86, 0.86, 0.86, 0.32, skin, 0, -0.42, 0, el); R(0.9, 0.42, 0.9, 0.2, skin, 0, -0.94, 0, el); return [sh, el]; },
-    head(h) { // one great eye — it blinks and looks about — under a heavy brow; a big nose, a gappy grin, a shaggy beard, big ears
-      R(1.42, 1.36, 1.36, 0.6, skin, 0, 0.06, 0.02, h); eyeG = new THREE.Group(); eyeG.position.set(0, 0.2, -0.62); h.add(eyeG);
-      P(kSph(), white, 0, 0, 0, eyeG, 0.34, 0.3, 0.16); const ir = P(kSph(), iris, 0, 0, -0.12, eyeG, 0.15, 0.15, 0.05); P(kSph(), pup, 0, 0, -0.16, eyeG, 0.07, 0.07, 0.03); eyeG.userData.ir = ir;
-      lid = mesh(new THREE.SphereGeometry(1, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2), skin, 0, 0.2, -0.63, h); lid.scale.set(0.36, 0.05, 0.19);
-      const br = R(1.0, 0.2, 0.3, 0.1, hair, 0, 0.56, -0.62, h); br.rotation.x = 0.2; P(kSph(), skin, 0, -0.16, -0.76, h, 0.17, 0.22, 0.17);
-      R(0.62, 0.14, 0.06, 0.05, mouth, 0, -0.45, -0.7, h); for (const x of [-0.18, 0.06, 0.2]) R(0.07, 0.09, 0.03, 0.01, teeth, x, -0.43, -0.73, h);
-      P(kSph(), hair, 0, -0.72, -0.36, h, 0.62, 0.36, 0.48); for (const s of [-1, 1]) { const e = P(kSph(), skin, s * 0.74, 0.1, 0.05, h, 0.12, 0.26, 0.18); e.rotation.z = s * 0.2; } return true; },
-    tick(a, dt) { const t = performance.now() / 1000, c = t % 4.2; if (lid) lid.scale.y = c < 0.16 ? 0.05 + 0.27 * Math.sin((c / 0.16) * Math.PI) : 0.05; if (eyeG) { eyeG.rotation.y = 0.35 * Math.sin(t * 0.7); eyeG.rotation.x = 0.15 * Math.sin(t * 0.43); } },
+    leg(x) { const hip = grp(K.body, x, 2), kn = grp(hip, 0, -1.0, 1); P(kSph(), skin, 0, -0.5, 0, hip, 0.58, 0.64, 0.58); P(kSph(), skin, 0, -0.06, -0.05, kn, 0.4, 0.3, 0.4); R(0.84, 0.82, 0.84, 0.32, skin, 0, -0.44, 0, kn);
+      R(0.94, 0.26, 1.16, 0.11, skin, 0, -0.9, -0.12, kn); for (let k = 0; k < 4; k++) { P(kSph(), skin, -0.3 + k * 0.2, -0.92, -0.68, kn, 0.1, 0.09, 0.11); P(kSph(), nail, -0.3 + k * 0.2, -0.88, -0.77, kn, 0.06, 0.03, 0.04); } return [hip, kn]; },
+    lower() { mesh(kLathe('cycSkirt2', [[1.0, -0.85], [1.12, -0.42], [1.04, 0.0]], 30), sheep, 0, 2.86, 0).scale.set(1.06, 1, 0.66); const rb = mesh(kTor(0.08), rope, 0, 2.86, 0); rb.rotation.x = Math.PI / 2; rb.scale.set(1.08, 0.68, 1);
+      for (const [x, z, rz] of [[-0.6, -0.62, 0.2], [0.55, -0.6, -0.3]]) { const bn = grp(K.body, x, 2.7); bn.position.z = z; bn.rotation.z = rz; P(kCyl(), bone, 0, -0.25, 0, bn, 0.05, 0.5, 0.05); for (const y of [0, -0.5]) for (const s of [-1, 1]) P(kSph(), bone, s * 0.05, y, 0, bn, 0.06); } }, // (bones hung at the belt)
+    upper() { R(2.1, 1.24, 1.08, 0.42, skin, 0, 3.46, 0); P(kSph(), skin, 0, 3.0, -0.3, K.body, 0.98, 0.8, 0.66); P(kSph(), skinD, 0, 3.05, -0.92, K.body, 0.05); // (a great belly, a navel)
+      for (const s of [-1, 1]) { P(kSph(), skin, s * 0.48, 3.7, -0.48, K.body, 0.5, 0.32, 0.17); P(kSph(), hair, s * 0.36, 3.7, -0.58, K.body, 0.26, 0.2, 0.08); }
+      const sk = R(1.0, 2.0, 0.24, 0.12, sheep, 0.35, 3.35, -0.42); sk.rotation.z = 0.6; const sk2 = R(1.0, 2.0, 0.24, 0.12, sheep, 0.35, 3.35, 0.45); sk2.rotation.z = 0.6;
+      for (let k = 0; k < 7; k++) { const an = -0.9 + (k / 6) * 1.8, t = P(kCone(), teeth, Math.sin(an) * 0.62, 3.88 - Math.cos(an * 1.2) * 0.12, -Math.cos(an) * 0.42 - 0.12, K.body, 0.04, 0.14, 0.04); t.rotation.x = Math.PI; } T(rope, 0, 3.98, -0.05, K.body, 1.3, Math.PI / 2).scale.set(0.65, 0.42, 0.65); }, // (a necklace of teeth)
+    arm(s) { const sh = grp(K.body, s * 1.56, 4), el = grp(sh, 0, -0.98, 1); P(kSph(), skin, 0, -0.45, 0, sh, 0.58, 0.64, 0.58); R(0.86, 0.86, 0.86, 0.32, skin, 0, -0.42, 0, el);
+      for (let k = 0; k < 3; k++) { const w = R(0.92, 0.07, 0.92, 0.03, new THREE.MeshLambertMaterial({ color: '#5b3a22', map: leatherTex() }), 0, -0.62 - k * 0.09, 0, el); w.rotation.z = (k % 2 ? 1 : -1) * 0.12; }
+      R(0.9, 0.42, 0.9, 0.2, skin, 0, -0.96, 0, el); return [sh, el]; },
+    head(h) { // one great eye under a heavy brow — veined, its iris sea-blue, wet and shining; it blinks and rolls about — a big knobbly nose, a wide mouth of crooked teeth with two tusks, pointed ears, a shaggy mane and a matted beard
+      P(kSph(), skin, 0, 0.16, 0.02, h, 0.78, 0.8, 0.74); P(kSph(), skin, 0, -0.32, -0.04, h, 0.74, 0.5, 0.68); // (the skull; the jaw)
+      const brow = R(1.08, 0.22, 0.34, 0.1, skinD, 0, 0.5, -0.58, h); brow.rotation.x = 0.25; const bh = R(1.0, 0.12, 0.2, 0.05, hair, 0, 0.62, -0.62, h); bh.rotation.x = 0.3;
+      eyeG = grp(h, 0, 0.2); eyeG.position.z = -0.56; P(kSph(), eyeW, 0, 0, 0, eyeG, 0.3, 0.3, 0.24); const ir = mesh(kg('cycIris', () => new THREE.CircleGeometry(0.16, 32)), irisM, 0, 0, -0.245, eyeG); ir.rotation.y = Math.PI; mesh(kSph(), new THREE.MeshBasicMaterial({ color: '#ffffff' }), -0.07, 0.08, -0.25, eyeG).scale.setScalar(0.025);
+      const sock = mesh(kTor(0.12), skinD, 0, 0.2, -0.6, h); sock.scale.set(0.34, 0.33, 0.6);
+      lidU = mesh(kg('cycLidU', () => new THREE.SphereGeometry(0.32, 24, 10, 0, Math.PI * 2, 0, Math.PI * 0.36)), skin, 0, 0.2, -0.56, h); lidU.scale.z = 0.86; lidL = mesh(kg('cycLidL', () => new THREE.SphereGeometry(0.32, 24, 8, 0, Math.PI * 2, Math.PI * 0.8, Math.PI * 0.2)), skin, 0, 0.2, -0.56, h); lidL.scale.z = 0.86; // (the lids: caps over the eye that close to blink)
+      P(kSph(), skin, 0, -0.16, -0.78, h, 0.17, 0.22, 0.17); for (const s of [-1, 1]) { P(kSph(), skin, s * 0.13, -0.27, -0.8, h, 0.1, 0.08, 0.09); P(kSph(), mouth, s * 0.08, -0.3, -0.88, h, 0.035, 0.03, 0.02); }
+      R(0.7, 0.16, 0.08, 0.06, mouth, 0, -0.5, -0.7, h); for (const [x, hh] of [[-0.24, 0.1], [-0.12, 0.07], [0.02, 0.11], [0.14, 0.06], [0.26, 0.09]]) R(0.08, hh, 0.04, 0.012, teeth, x, -0.45 + (0.1 - hh) / 2, -0.74, h);
+      for (const s of [-1, 1]) { const tk = P(kCone(), teeth, s * 0.3, -0.48, -0.72, h, 0.045, 0.18, 0.045); tk.rotation.z = -s * 0.15; const e = mesh(ovShape('cycEar', [[0, -0.15], [0.16, -0.05, 0.36, 0.22], [0.12, 0.12, 0, 0.15]], 0.06, 0.02), skin, s * 0.74, 0.12, 0.02, h); e.scale.x = s; e.rotation.y = -s * 0.3; }
+      for (let k = 0; k < 14; k++) { const an = (k / 14) * Math.PI * 1.6 - Math.PI * 0.3; P(kSph(), hair, Math.cos(an) * 0.6, 0.72 + Math.sin(k * 1.7) * 0.06, 0.3 + Math.sin(an) * 0.35, h, 0.24, 0.2, 0.22); }
+      P(kSph(), hair, 0, -0.78, -0.36, h, 0.6, 0.36, 0.46); for (let k = 0; k < 6; k++) P(kSph(), hair, (k - 2.5) * 0.18, -1.0 - (k % 2) * 0.08, -0.4, h, 0.13, 0.2, 0.12); return true; },
+    tick(a, dt) { const t = performance.now() / 1000, c = t % 4.2, bl = c < 0.18 ? Math.sin((c / 0.18) * Math.PI) : 0; if (lidU) { lidU.rotation.x = -0.95 * bl; lidL.rotation.x = 0.35 * bl; }
+      if (eyeG) { const lk = Math.floor(t / 1.7) % 4, tx = [0.35, -0.3, 0.1, -0.1][lk], ty = [0.05, -0.1, 0.18, 0][lk]; eyeG.rotation.y += (tx - eyeG.rotation.y) * 0.12; eyeG.rotation.x += (ty - eyeG.rotation.x) * 0.12; } },
   };
 }
 // 🐻 the Viking Berserker
@@ -3877,11 +3924,14 @@ function berserkerKit(K) {
       for (const s of [-1, 1]) { const pw = grp(K.body, s * 0.62, 3.55); pw.position.z = -0.6; P(kSph(), bear, 0, 0, 0, pw, 0.22, 0.32, 0.1); for (let k = 0; k < 4; k++) { const c2 = P(kCone(), claw, -0.12 + k * 0.08, -0.32, -0.04, pw, 0.03, 0.12, 0.03); c2.rotation.x = Math.PI; } } },
     arm(s) { const sh = grp(K.body, s * 1.5, 4), el = grp(sh, 0, -0.98, 1); R(0.9, 0.96, 0.9, 0.32, skin, 0, -0.52, 0, sh); for (let k = 0; k < 2; k++) T(silv, 0, -0.46 - k * 0.1, 0, sh, 0.96);
       R(0.84, 0.86, 0.84, 0.3, skin, 0, -0.42, 0, el); R(0.88, 0.42, 0.88, 0.16, lth, 0, -0.62, 0, el); return [sh, el]; },
-    head(h) { // the bear's head worn as a hood, its jaws over your brow; a braided red beard with silver rings
-      const bh = P(kSph(), bear, 0, 0.6, 0.05, h, 0.74, 0.46, 0.8); R(0.5, 0.34, 0.62, 0.14, bear, 0, 0.58, -0.78, h); P(kSph(), blk, 0, 0.62, -1.1, h, 0.1, 0.08, 0.06);
-      for (let k = 0; k < 6; k++) { const tth = P(kCone(), claw, -0.2 + k * 0.08, 0.4, -0.95 + Math.abs(k - 2.5) * 0.04, h, 0.03, 0.1, 0.03); tth.rotation.x = Math.PI; }
-      for (const s of [-1, 1]) { P(kSph(), bear, s * 0.42, 0.98, 0.15, h, 0.14, 0.16, 0.08); mesh(kSph(), new THREE.MeshBasicMaterial({ color: '#111' }), s * 0.22, 0.78, -0.92, h).scale.setScalar(0.05); }
-      const hb = mesh(new THREE.CylinderGeometry(0.7, 0.8, 0.9, 22, 1, true, -0.55 * Math.PI, 1.1 * Math.PI), bear, 0, 0.0, 0.05, h); hb.material.side = THREE.DoubleSide;
+    head(h) { // the bear's head worn as a hood: a broad furred skull, a long snout with a wet nose, the upper jaw's fangs over your brow, round ears, glass eyes; the pelt falls behind to the shoulders; a braided red beard with silver rings
+      P(kSph(), bear, 0, 0.62, 0.08, h, 0.76, 0.46, 0.82);
+      const sn = mesh(kg('bearSnout', () => sweepGeo([[0, 0, 0], [0, -0.02, -0.25], [0, -0.05, -0.48]], (t) => 0.3 - 0.12 * t, 14, 12)), bear, 0, 0.6, -0.62, h); sn.scale.set(1, 0.72, 1);
+      P(kSph(), new THREE.MeshPhongMaterial({ color: '#0b0b0b', shininess: 160, specular: '#ffffff' }), 0, 0.62, -1.12, h, 0.11, 0.08, 0.07);
+      for (let k = 0; k < 8; k++) { const x = -0.24 + k * 0.068, tth = P(kCone(), claw, x, 0.38, -0.86 + Math.abs(x) * 0.25, h, Math.abs(k - 3.5) > 2.6 ? 0.04 : 0.025, Math.abs(k - 3.5) > 2.6 ? 0.18 : 0.09, 0.03); tth.rotation.x = Math.PI; }
+      for (const s of [-1, 1]) { P(kSph(), bear, s * 0.46, 1.0, 0.12, h, 0.15, 0.15, 0.08); P(kSph(), new THREE.MeshLambertMaterial({ color: '#5a4030' }), s * 0.46, 1.0, 0.08, h, 0.08, 0.08, 0.04);
+        mesh(kSph(), new THREE.MeshPhongMaterial({ color: '#3a1a05', shininess: 200, specular: '#ffcc88' }), s * 0.24, 0.8, -0.86, h).scale.setScalar(0.055); }
+      const hb = mesh(new THREE.CylinderGeometry(0.72, 0.84, 0.95, 24, 1, true, -0.55 * Math.PI, 1.1 * Math.PI), bear, 0, 0.0, 0.08, h); hb.material.side = THREE.DoubleSide;
       P(kSph(), beard, 0, -0.62, -0.42, h, 0.5, 0.36, 0.34); for (const s of [-1, 1]) for (let k = 0; k < 5; k++) { P(kSph(), beard, s * 0.16, -0.95 - k * 0.15, -0.5 - k * 0.02, h, 0.09); if (k === 2 || k === 4) T(silv, s * 0.16, -0.95 - k * 0.15, -0.5 - k * 0.02, h, 0.22); }
       return false; },
   };
