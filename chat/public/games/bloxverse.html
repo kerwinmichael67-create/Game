@@ -3622,6 +3622,8 @@ BODY_KITS.push((K) => myrmidonKit(K), (K) => hopliteKit(K, false),
       R(1.52, 1.74, 1.5, 0.36, steel, 0, 0.22, 0.02, h);
       R(1.32, 1.42, 0.2, 0.1, steel, 0, 0.08, -0.7, h); R(1.38, 0.08, 0.24, 0.04, rim, 0, 0.8, -0.72, h); R(1.38, 0.08, 0.24, 0.04, rim, 0, -0.63, -0.72, h);
       R(1.14, 0.15, 0.06, 0.03, dark, 0, 0.3, -0.81, h); R(0.98, 0.045, 0.05, 0.02, slitM, 0, 0.3, -0.84, h); // (the sight: a recessed band, a slit in it)
+      R(1.3, 0.12, 0.16, 0.05, rim, 0, 0.46, -0.82, h); P(kSph(), rim, 0, -0.14, -0.8, h, 0.06, 0.38, 0.07); // (a brow ridge over it, a ridge down the faceplate below)
+      { const B = kitBuild(); for (const s2 of [-1, 1]) for (let i = 0; i < 3; i++) for (let j = 0; j < 2; j++) B.add(kCyl(), s2 * (0.24 + j * 0.12), -0.1 - i * 0.13, -0.8, 0.03, 0.04, 0.03, Math.PI / 2, 0, 0); mesh(B.geo(), slitM, 0, 0, 0, h); } // (breaths pierced either side of it)
       R(0.08, 0.2, 1.62, 0.04, rim, 0, 1.12, 0.02, h); // (the comb)
       for (const s2 of [-1, 1]) { R(0.1, 1.5, 0.1, 0.04, rim, s2 * 0.7, 0.08, -0.68, h); }
       rivets(h, [...[-0.55, -0.2, 0.2, 0.55].map((x) => [x, 0.72, -0.82]), ...[-0.55, -0.2, 0.2, 0.55].map((x) => [x, -0.54, -0.82]), ...[-1, 1].flatMap((s2) => [[s2 * 0.77, 0.5, -0.4], [s2 * 0.77, 0.0, -0.4], [s2 * 0.77, -0.4, -0.4]])], 0.04);
@@ -4638,27 +4640,64 @@ function duelKit(K, i) {
           mesh(kg('crescMenpo', () => new THREE.CylinderGeometry(0.7, 0.62, 0.42, 26, 1, true, Math.PI * 0.64, Math.PI * 0.72)), lac, 0, -0.4, 0, h).material.side = THREE.DoubleSide; for (const s of [-1, 1]) { const ms = mesh(kg('crescMou', () => sweepGeo([[0, 0, 0], [0.12, -0.03, 0.02], [0.24, -0.1, 0.06]], (t) => 0.035 - 0.02 * t, 10, 6)), gold, s * 0.04, -0.27, -0.72, h); ms.scale.x = s; }
           return false; } };
     },
-    () => { // 🗿 Laestrygonian Warlord, the giant as Command an Army builds them: a hulk of blue-silver plate, worn bright where it's rubbed and dark in its dents — a crested helm with a V-shaped visor (the face inside), a great round breastplate over a scalloped chest, huge layered pauldrons, a thick belt and tassets, fists like anvils
-      const bs = M('#ffffff', { map: dkBlueSteelTex(0), specular: '#dbe7ff', shininess: 70 }), bp = M('#ffffff', { map: dkBlueSteelTex(1), specular: '#ffffff', shininess: 95 });
-      const pl = (w, h, d, m, x, y, z, par) => R(w, h, d, Math.min(0.14, Math.min(w, h, d) * 0.3), m, x, y, z, par);
+    () => { // 🗿 Laestrygonian Warlord, the giant as Command an Army builds them: a hulk in worn blue-silver plate — brushed, scratched, rubbed bright on the edges and dark in its dents — over mail at the joints. A rounded breastplate with a great round plate over the belly, a scalloped band across the chest and a high gorget; pauldrons of four cascading lames; a helm with a tall comb, a V-shaped brow over the face, deep cheek plates and a neck guard; elbow and knee cops with fans, flared vambraces, gauntlets like anvils, layered tassets, barrel greaves and laminated sabatons
+      const W = (k, side) => steel('#ffffff', Object.assign({ map: dkWornSteelTex(k), specular: k ? '#b9c9f2' : '#e6eeff', shininess: k ? 55 : 80, reflectivity: k ? 0.16 : 0.2 }, side ? { side: THREE.DoubleSide } : {}));
+      const W0 = W(0), W1 = W(1), W0d = W(0, 1), W1d = W(1, 1), TR = steel('#e9eef6', { map: dkWornSteelTex(2), shininess: 150, reflectivity: 0.5 }), RV = steel('#8b98b0', { shininess: 120 });
+      const LT = L('#3b2719', { map: leatherTex() }), MAIL = new THREE.MeshPhongMaterial({ map: kTile(mailTex(), 'laeMail', 4), color: '#8d9cbc', shininess: 70, specular: '#cbd5e1' }); mats.push(MAIL); // (fine mail, tiled small)
+      const pl = (w, h, d, m, x, y, z, par) => R(w, h, d, Math.min(0.12, Math.min(w, h, d) * 0.3), m, x, y, z, par);
+      const rv = (par, x, y, z, s = 0.055) => P(kSph(), RV, x, y, z, par, s);
+      const lathe = (key, prof, seg = 24, ph0 = 0, phL = Math.PI * 2) => kg('lae' + key, () => new THREE.LatheGeometry(prof.map(([a, b]) => new THREE.Vector2(a, b)), seg, ph0, phL));
+      const cop = (par, x, y, z, rx, ry, sc) => { const d = mesh(kDome(), W0, x, y, z, par); d.rotation.set(rx, ry, 0); d.scale.set(sc[0], sc[1], sc[2]); return d; }; // (a domed plate facing out)
+      const fan = (par, s, x, y, z, k = 1) => { const f = mesh(ovShape('laeFan', [[0, 0.4], [0.24, 0.36], [0.44, 0.08], [0.36, -0.24], [0, -0.42], [-0.16, -0.1]], 0.06, 0.02), W0, x, y, z, par); f.rotation.y = -s * Math.PI / 2; f.scale.setScalar(k); rv(par, x + s * 0.05, y, z); return f; }; // (the fan on a knee or an elbow)
       return {
-        leg: (x) => { const hip = grp(K.body, x * 1.32, 2), kn = grp(hip, 0, -1.0, 1);
-          pl(1.24, 1.06, 1.28, bs, 0, -0.5, 0, hip); const t1 = pl(1.34, 0.44, 0.3, bp, 0, -0.26, -0.62, hip); t1.rotation.x = -0.14; const t2 = pl(1.3, 0.42, 0.28, bs, 0, -0.66, -0.6, hip); t2.rotation.x = -0.08; // (the thigh and its plates)
-          pl(1.26, 0.96, 1.32, bs, 0, -0.46, 0, kn); P(kSph(), bp, 0, 0.02, -0.58, kn, 0.44, 0.38, 0.28); pl(1.36, 0.3, 1.42, bp, 0, -0.26, 0, kn); pl(1.38, 0.3, 1.44, bp, 0, -0.62, 0, kn); // (the shin, the knee, two bands)
-          pl(1.38, 0.38, 1.76, bs, 0, -0.83, -0.2, kn); return [hip, kn]; }, // (the sabaton)
-        lower() { pl(2.7, 0.86, 1.55, bs, 0, 2.4, 0); pl(2.86, 0.44, 1.68, bp, 0, 2.8, 0);
-          const ft = mesh(ovShape('laeTasset', [[-0.48, 0], [0.48, 0], [0.4, -0.82], [0, -1.2], [-0.4, -0.82]], 0.14, 0.04), bp, 0, 2.62, -0.88); ft.rotation.x = 0.08; // (the pointed tasset in front)
-          for (const s of [-1, 1]) for (let k = 0; k < 2; k++) { const t = pl(0.95, 0.5, 1.12, k ? bs : bp, s * (1.12 + k * 0.05), 2.32 - k * 0.38, 0); t.rotation.z = s * (0.14 + k * 0.05); } },
-        upper() { pl(2.7, 1.5, 1.66, bs, 0, 3.46, 0);
-          const CH = ovShape('laeChest', [[-1.22, 0.5], [1.22, 0.5], [1.22, -0.22], [0.78, -0.46], [0.38, -0.16], [0, -0.46], [-0.38, -0.16], [-0.78, -0.46], [-1.22, -0.22]], 0.2, 0.05);
-          mesh(CH, bp, 0, 3.82, -0.9); const ab = mesh(CH, bs, 0, 3.26, -0.94); ab.scale.set(0.86, 0.8, 1); // (the scalloped chest, over the belly)
-          P(kSph(), bs, 0, 3.0, -0.66, K.body, 1.14, 0.66, 0.52); pl(1.95, 0.46, 1.8, bp, 0, 4.25, 0); pl(2.5, 1.1, 0.3, bp, 0, 3.6, 0.86); }, // (the round belly-plate, the gorget, the backplate)
-        arm: (s) => { const sh = grp(K.body, s * 1.9, 4), el = grp(sh, 0, -1.0, 1);
-          const pd = mesh(kDome(), bp, s * 0.12, 0.14, 0, sh); pd.scale.set(1.0, 0.76, 1.02); for (let k = 0; k < 3; k++) { const b = pl(1.36 - k * 0.06, 0.28, 1.38 - k * 0.04, k % 2 ? bp : bs, s * 0.12, -0.12 - k * 0.26, 0, sh); b.rotation.z = -s * 0.16; } // (the pauldron, its lames)
-          pl(1.08, 1.0, 1.1, bs, 0, -0.56, 0, sh); pl(1.05, 0.86, 1.08, bs, 0, -0.4, 0, el); P(kSph(), bp, 0, 0.0, 0.46, el, 0.36, 0.32, 0.24); pl(1.3, 0.68, 1.34, bp, 0, -0.96, 0, el); return [sh, el]; }, // (the arm, the elbow, a gauntlet)
-        head(h) { pl(1.8, 0.8, 1.8, bp, 0, 0.74, 0.02, h); pl(0.26, 0.32, 1.98, bs, 0, 1.18, 0, h); const pk = P(kCone(), bp, 0, 0.98, -0.94, h, 0.16, 0.5, 0.14); pk.rotation.x = 0.5; // (the crown, the crest, its peak)
-          pl(1.82, 1.5, 0.9, bp, 0, 0.0, 0.5, h); for (const s of [-1, 1]) { const c = pl(0.34, 1.36, 1.12, bp, s * 0.77, -0.05, -0.28, h); c.rotation.y = s * 0.18; const v = pl(0.98, 0.3, 0.28, bs, s * 0.37, 0.42, -0.88, h); v.rotation.z = s * 0.4; } // (the back, the cheek plates, the V of the visor)
-          pl(1.4, 0.22, 0.32, bs, 0, -0.66, -0.74, h); return false; } }; // (the chin guard: the face shows between)
+        leg: (x) => { const s = Math.sign(x) || 1, hip = grp(K.body, x * 1.32, 2), kn = grp(hip, 0, -1.0, 1);
+          pl(1.1, 1.0, 1.12, MAIL, 0, -0.5, 0, hip); // (mail under the plates)
+          mesh(lathe('Cuisse', [[0.6, -0.95], [0.67, -0.62], [0.69, -0.22], [0.64, 0.02]], 20, Math.PI - 1.7, 3.4), W0d, 0, 0, 0, hip); P(kSph(), TR, 0, -0.48, -0.69, hip, 0.06, 0.4, 0.05); // (the cuisse round the front of the thigh, its ridge)
+          cop(kn, 0, 0.02, -0.5, -Math.PI / 2, 0, [0.44, 0.3, 0.42]); fan(kn, s, s * 0.6, 0.02, -0.12); rv(kn, 0, 0.02, -0.8, 0.07); // (the poleyn: a domed knee cop and its fan)
+          mesh(lathe('Greave', [[0.5, -0.94], [0.6, -0.8], [0.65, -0.52], [0.63, -0.24], [0.55, -0.1]], 22), W0d, 0, 0, 0, kn); P(kSph(), TR, 0, -0.5, -0.64, kn, 0.06, 0.36, 0.05); // (the greave and its ridge)
+          for (const y of [-0.2, -0.86]) T(TR, 0, y, 0, kn, 1.22);
+          pl(1.12, 0.34, 0.92, W1, 0, -0.84, 0.08, kn); for (let k = 0; k < 3; k++) { const lm = pl(1.08 - k * 0.06, 0.3 - k * 0.03, 0.36, k % 2 ? W1 : W0, 0, -0.86 - k * 0.015, -0.38 - k * 0.24, kn); lm.rotation.x = 0.12; } // (the sabaton: an ankle plate and lames down to the toe)
+          cop(kn, 0, -0.86, -1.06, -Math.PI / 2, 0, [0.46, 0.22, 0.26]); pl(1.14, 0.09, 1.56, LT, 0, -0.98, -0.32, kn); // (the toe cap, the sole)
+          return [hip, kn]; },
+        lower() { pl(2.62, 0.82, 1.5, MAIL, 0, 2.42, 0);
+          [2.74, 2.52, 2.3].forEach((y, k) => mesh(lathe('Fauld', [[1.22, 0.16], [1.3, 0.02], [1.35, -0.18], [1.31, -0.22]], 32), k % 2 ? W1d : W0d, 0, y, 0).scale.set(1.08, 1, 0.68)); // (the fauld: three lames round the hips)
+          pl(2.98, 0.32, 1.88, LT, 0, 2.9, 0); pl(0.62, 0.46, 0.14, TR, 0, 2.9, -0.96); pl(0.34, 0.22, 0.16, LT, 0, 2.9, -0.98); // (the belt and its great buckle)
+          const tas = ovShape('laeTasF', [[-0.56, 0], [0.56, 0], [0.5, -0.7], [0, -1.18], [-0.5, -0.7]], 0.12, 0.03);
+          const ft = mesh(tas, W0, 0, 2.62, -1.0); ft.rotation.x = 0.1; const fr = mesh(tas, TR, 0, 2.66, -0.95); fr.rotation.x = 0.1; fr.scale.set(1.12, 1.08, 1); // (the pointed front tasset, a bright rim behind it)
+          P(kSph(), TR, 0, 2.18, -1.1, K.body, 0.13, 0.13, 0.08); for (const sx of [-1, 1]) rv(K.body, sx * 0.4, 2.56, -1.08);
+          const side = ovShape('laeTasS', [[-0.56, 0.1], [0.56, 0.1], [0.6, -0.4], [0.44, -0.6], [-0.44, -0.6], [-0.6, -0.4]], 0.1, 0.03);
+          for (const s of [-1, 1]) for (let k = 0; k < 3; k++) { const t = mesh(side, k % 2 ? W1 : W0, s * (1.24 + k * 0.04), 2.62 - k * 0.36, -0.3 + k * 0.03); t.rotation.y = -s * 0.95; t.rotation.z = s * 0.12; t.scale.setScalar(1 - k * 0.05); rv(K.body, s * (1.42 + k * 0.04), 2.66 - k * 0.36, -0.55 + k * 0.03); } // (the side tassets, three lames each over the thighs)
+          pl(2.4, 0.72, 0.22, W1, 0, 2.3, 0.86); }, // (the culet behind)
+        upper() { pl(2.62, 1.5, 1.6, MAIL, 0, 3.46, 0);
+          const prof = [[1.05, -0.78], [1.22, -0.52], [1.3, -0.12], [1.26, 0.28], [1.1, 0.6], [0.82, 0.78]];
+          mesh(lathe('Breast', prof, 32, Math.PI - 1.75, 3.5), W0d, 0, 3.46, 0).scale.set(1.06, 1, 0.78); mesh(lathe('Back', prof, 24, -1.45, 2.9), W1d, 0, 3.46, 0).scale.set(1.04, 1, 0.66); // (the breastplate, the backplate)
+          P(kSph(), TR, 0, 3.66, -1.0, K.body, 0.07, 0.56, 0.08); P(kSph(), TR, 0, 3.6, 0.86, K.body, 0.06, 0.6, 0.06); // (the ridges down the front and the spine)
+          const band = ovShape('laeChest2', [[-1.2, 0.18], [1.2, 0.18], [1.2, -0.12], [0.84, -0.34], [0.46, -0.1], [0, -0.34], [-0.46, -0.1], [-0.84, -0.34], [-1.2, -0.12]], 0.12, 0.03);
+          mesh(band, W1, 0, 3.96, -0.9); for (const x of [-0.84, 0, 0.84]) rv(K.body, x, 3.66, -0.98, 0.07); // (the scalloped band across the chest)
+          const bl = mesh(lathe('Belly', [[0, 0.3], [0.42, 0.28], [0.72, 0.18], [0.9, 0.04], [0.94, -0.04]], 32), W0d, 0, 3.0, -0.9); bl.rotation.x = -Math.PI / 2; bl.scale.set(1.08, 0.9, 0.84); // (the great round plate over the belly)
+          const rim = mesh(kg('laeRim', () => new THREE.TorusGeometry(0.94, 0.075, 8, 40)), TR, 0, 3.0, -0.93); rim.scale.set(1.08, 0.84, 1);
+          P(kSph(), TR, 0, 3.0, -1.2, K.body, 0.17, 0.17, 0.1); for (let k = 0; k < 8; k++) { const an = (k / 8) * Math.PI * 2; rv(K.body, Math.cos(an) * 0.8, 3.0 + Math.sin(an) * 0.62, -1.1); } // (its boss and rivets)
+          mesh(lathe('Gorget', [[1.0, -0.12], [0.94, 0.04], [0.74, 0.2], [0.64, 0.36], [0.68, 0.44]], 32), W0d, 0, 4.14, 0).scale.set(1.12, 1, 0.98); T(TR, 0, 4.03, 0, K.body, 2.18); }, // (the gorget, high round the neck)
+        arm: (s) => { const sh = grp(K.body, s * 1.95, 4), el = grp(sh, 0, -1.0, 1), out = s > 0 ? Math.PI / 2 : -Math.PI / 2;
+          pl(0.98, 1.0, 1.02, MAIL, 0, -0.5, 0, sh); // (mail on the upper arm)
+          const cap = mesh(kDome(), W0, s * 0.1, 0.12, 0, sh); cap.scale.set(1.0, 0.8, 1.02); cap.rotation.z = -s * 0.2; rv(sh, s * 0.1, 0.92, 0, 0.08); // (the pauldron's dome)
+          for (let k = 0; k < 4; k++) { const lm = mesh(lathe('Paul' + s, [[0.9, 0.12], [0.98, 0.0], [1.08, -0.26], [1.13, -0.3], [1.07, -0.33]], 24, out - 1.95, 3.9), k % 2 ? W1d : W0d, s * (0.08 + k * 0.03), 0.04 - k * 0.24, 0, sh); lm.scale.set(1 - k * 0.05, 1, 1 - k * 0.05); lm.rotation.z = -s * (0.18 + k * 0.05); } // (four lames cascading down over the arm)
+          for (const z of [-0.5, 0, 0.5]) rv(sh, s * (0.98 + 0.02), -0.2, z);
+          cop(el, 0, 0, 0.42, Math.PI / 2, 0, [0.42, 0.32, 0.42]); fan(el, s, s * 0.54, 0, 0.12, 0.9); // (the couter at the elbow)
+          mesh(lathe('Vamb', [[0.5, 0.0], [0.54, -0.3], [0.58, -0.6], [0.6, -0.68]], 22), W0d, 0, -0.06, 0, el); P(kSph(), TR, s * 0.5, -0.38, 0, el, 0.05, 0.3, 0.05); // (the vambrace)
+          mesh(lathe('Cuff', [[0.56, 0], [0.68, -0.18], [0.73, -0.27], [0.67, -0.3]], 22), W0d, 0, -0.66, 0, el); // (the gauntlet's flared cuff)
+          pl(0.86, 0.6, 0.9, W1, 0, -1.1, 0, el); pl(0.94, 0.22, 0.38, W0, 0, -1.04, -0.4, el); for (let k = 0; k < 3; k++) pl(0.9 - k * 0.04, 0.14, 0.24, k % 2 ? W1 : W0, 0, -1.22 - k * 0.12, -0.42 + k * 0.05, el); // (the hand, the knuckle plate, the finger lames)
+          const th = pl(0.24, 0.44, 0.3, W0, -s * 0.48, -1.0, -0.18, el); th.rotation.z = s * 0.4; for (const x of [-0.3, 0, 0.3]) rv(el, x, -1.04, -0.6, 0.05); // (the thumb, the knuckles' rivets)
+          return [sh, el]; },
+        head(h) { pl(1.74, 0.64, 1.76, W0, 0, 0.84, 0.02, h); const dm = mesh(kDome(), W0, 0, 1.1, 0.02, h); dm.scale.set(0.87, 0.42, 0.88); // (the helm's crown)
+          const comb = mesh(ovShape('laeComb', [[-0.96, 0], [0.96, 0], [0.88, 0.22], [0.46, 0.5], [-0.24, 0.6], [-0.78, 0.46], [-1.0, 0.2]], 0.16, 0.03), W0, 0, 1.3, 0.02, h); comb.rotation.y = Math.PI / 2; // (the tall comb, front to back)
+          for (let k = 0; k < 5; k++) rv(h, 0.1, 1.42 + Math.sin((k / 4) * Math.PI) * 0.22, -0.7 + k * 0.36, 0.05); P(kSph(), TR, 0, 1.36, -0.98, h, 0.12, 0.12, 0.12); // (rivets along it, a knob at its front)
+          pl(1.84, 0.22, 1.86, TR, 0, 0.66, 0.02, h); for (let k = 0; k < 6; k++) rv(h, -0.75 + k * 0.3, 0.66, -0.95, 0.05); // (the brow band)
+          for (const s of [-1, 1]) { const v = pl(1.0, 0.24, 0.36, W0, s * 0.42, 0.5, -0.9, h); v.rotation.z = s * 0.32; const ve = pl(0.96, 0.06, 0.38, TR, s * 0.43, 0.38, -0.9, h); ve.rotation.z = s * 0.32; // (the V of the brow over the face, its bright lower edge)
+            const c = pl(0.3, 1.28, 1.22, W0, s * 0.79, -0.06, -0.26, h); c.rotation.y = s * 0.2; for (const y of [0.3, -0.1, -0.5]) rv(h, s * 0.96, y, -0.7); // (the cheek plates)
+            const ro = mesh(kg('laeRos', () => new THREE.CylinderGeometry(0.22, 0.22, 0.08, 18)), TR, s * 0.96, 0.1, 0.18, h); ro.rotation.z = Math.PI / 2; rv(h, s * 1.01, 0.1, 0.18, 0.07); } // (a rosette at each ear)
+          pl(1.82, 1.46, 0.9, W0, 0, 0.0, 0.5, h); for (let k = 0; k < 2; k++) mesh(lathe('Avent', [[0.96, 0], [1.1, -0.28], [1.12, -0.32]], 20, -1.7, 3.4), k ? W1d : W0d, 0, -0.5 - k * 0.24, 0.05, h).scale.set(1, 1, 0.95); // (the back of the helm, the neck guard's lames)
+          const ch = pl(1.38, 0.28, 0.42, W0, 0, -0.66, -0.74, h); ch.rotation.x = -0.15; pl(1.3, 0.06, 0.44, TR, 0, -0.52, -0.74, h); return false; } }; // (the chin guard — the face shows between)
     },
     () => { // 💀 Executioner: a black hood to the shoulders with two holes and red eyes in them; bare-chested, broad and hard; a black belt over a skirt of leather pteruges; bracers, wraps and boots
       const blk = L('#ffffff', { map: dkHoodTex() }), lth = L('#2b1d14', { map: leatherTex() }), dk = L('#1c1c22', { map: plushTex() }), iron = steel('#8b919a', { map: ovIronTex() }), eye = M('#ff3030', { emissive: '#ff1010', emissiveIntensity: 1 });
@@ -4880,11 +4919,13 @@ function dgAxe(par) { const g = new THREE.Group(); par.add(g); const wd = new TH
   const hd = new THREE.Mesh(ovShape('dgAxeHead', [[0, 0.18], [0.35, 0.22], [0.7, 0.62, 0.78, 0.7], [0.82, 0.0], [0.78, -0.7], [0.7, -0.62, 0.35, -0.22], [0, -0.18]], 0.06, 0.02), ir); hd.rotation.set(Math.PI / 2, 0, -Math.PI / 2); hd.position.set(0, 0.03, -2.2); hd.scale.setScalar(1.1); g.add(hd); // (a bearded Dane axe)
   g.userData.tip = new THREE.Object3D(); g.userData.tip.position.set(0, 0, -2.3); g.add(g.userData.tip); g.userData.len = 2.6; return g; }
 // the new fighters' textures: the giant's worn blue-silver plate (k: the paler plate), the executioner's hood, a wound turban, Ottoman çintemani silk, Mongol lamellar
-const dkBlueSteelTex = (k) => kCanvas('dkBlueSteel' + k, 256, 256, (g, r) => {
-  const base = k ? ['#9fb3dc', '#d6e2f6'] : ['#2e4f9e', '#7193d8'], gr = g.createLinearGradient(0, 0, 256, 256); gr.addColorStop(0, base[0]); gr.addColorStop(1, base[1]); g.fillStyle = gr; g.fillRect(0, 0, 256, 256);
-  for (let q = 0; q < 80; q++) { const x = r() * 256, y = r() * 256, rad = 8 + r() * 34, c = r() < 0.55 ? 'rgba(255,255,255,' : 'rgba(8,22,70,', rg = g.createRadialGradient(x, y, 1, x, y, rad); rg.addColorStop(0, c + (0.16 + r() * 0.22) + ')'); rg.addColorStop(1, c + '0)'); g.fillStyle = rg; g.fillRect(x - rad, y - rad, rad * 2, rad * 2); } // (rubbed bright, dark in the dents)
-  g.lineWidth = 1; for (let q = 0; q < 70; q++) { g.strokeStyle = r() < 0.6 ? 'rgba(255,255,255,.35)' : 'rgba(10,25,70,.4)'; const x = r() * 256, y = r() * 256; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (r() - 0.5) * 36, y + (r() - 0.5) * 14); g.stroke(); } // (scratches)
-  g.strokeStyle = 'rgba(8,20,64,.55)'; g.lineWidth = 4; g.strokeRect(2, 2, 252, 252);
+const kTile = (tex, key, n) => kg('tile' + key + n, () => { const t = tex.clone(); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(n, n); t.needsUpdate = true; return t; });
+const dkWornSteelTex = (k) => kCanvas('dkWorn' + k, 256, 256, (g, r) => { // (plate armour as it's worn: brushed, scratched, dented, a little grimy) — 0 blue-silver, 1 deep blue, 2 bright trim
+  const B = [['#7f97c8', '#bccbea'], ['#2c4485', '#5874b6'], ['#d3dcee', '#f4f7fc']][k], gr = g.createLinearGradient(0, 0, 0, 256); gr.addColorStop(0, B[1]); gr.addColorStop(0.55, B[0]); gr.addColorStop(1, B[1]); g.fillStyle = gr; g.fillRect(0, 0, 256, 256);
+  for (let q = 0; q < 1600; q++) { const y = r() * 256, x = r() * 256, l = 10 + r() * 70; g.strokeStyle = r() < 0.5 ? `rgba(255,255,255,${0.04 + r() * 0.08})` : `rgba(10,20,50,${0.03 + r() * 0.07})`; g.lineWidth = 0.6 + r() * 0.8; g.beginPath(); g.moveTo(x, y); g.lineTo(x + l, y + (r() - 0.5) * 2); g.stroke(); } // (brushed)
+  for (let q = 0; q < 18; q++) { const x = r() * 256, y = r() * 256, rad = 6 + r() * 26, rg = g.createRadialGradient(x, y, 1, x, y, rad); rg.addColorStop(0, `rgba(12,22,52,${0.1 + r() * 0.14})`); rg.addColorStop(1, 'rgba(12,22,52,0)'); g.fillStyle = rg; g.fillRect(x - rad, y - rad, rad * 2, rad * 2); } // (dents)
+  for (let q = 0; q < 60; q++) { const x = r() * 256, y = r() * 256, a = r() * Math.PI, l = 6 + r() * 30; g.strokeStyle = r() < 0.65 ? 'rgba(255,255,255,.5)' : 'rgba(8,16,40,.45)'; g.lineWidth = 0.7 + r(); g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + Math.cos(a) * l * 0.5 + (r() - 0.5) * 6, y + Math.sin(a) * l * 0.5, x + Math.cos(a) * l, y + Math.sin(a) * l); g.stroke(); } // (scratches)
+  for (let q = 0; q < 8; q++) { g.fillStyle = 'rgba(90,60,40,.12)'; g.beginPath(); g.ellipse(r() * 256, r() * 256, 4 + r() * 12, 2 + r() * 6, r() * 3, 0, 7); g.fill(); } // (grime)
 });
 const dkHoodTex = () => kCanvas('dkHood', 128, 128, (g, r) => { g.fillStyle = '#111114'; g.fillRect(0, 0, 128, 128); for (let x = 0; x < 128; x += 8 + r() * 10) { const gr = g.createLinearGradient(x, 0, x + 10, 0); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(0.5, 'rgba(0,0,0,.45)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(x, 0, 10, 128); } for (let k = 0; k < 900; k++) { g.fillStyle = 'rgba(255,255,255,.035)'; g.fillRect(r() * 128, r() * 128, 1, 2); } });
 const dkTurbanTex = (c) => kCanvas('dkTurban' + c, 128, 64, (g) => { g.fillStyle = c; g.fillRect(0, 0, 128, 64); g.strokeStyle = 'rgba(120,100,70,.35)'; g.lineWidth = 3; for (let x = -64; x < 192; x += 11) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x + 40, 64); g.stroke(); } g.strokeStyle = 'rgba(255,255,255,.4)'; g.lineWidth = 1.5; for (let x = -60; x < 192; x += 11) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x + 40, 64); g.stroke(); } }); // (wound cloth)
@@ -4932,7 +4973,7 @@ DG_GEAR.push(
   (h, l) => [[dgMace(h)], dgShield(l, 'wicker')],
   (h, l) => [[dgSword(h, 'msaber', { fit: '#e8b84a', grip: '#7f1d1d' })], null],
 );
-BODY_DESC.push('⚔️ The Laestrygonian of the Colosseum Duels: a giant in worn blue-silver plate with a crested V-visored helm and a great curved scimitar. A mastery reward in ⚔️ Colosseum Duels.',
+BODY_DESC.push('⚔️ The Laestrygonian of the Colosseum Duels, as Command an Army builds them: a giant in worn blue-silver plate — brushed, scratched and dented — over mail; a rounded breastplate with a great round plate over the belly, a high gorget, pauldrons of four cascading lames, a combed helm with a V-shaped brow over the face, knee and elbow cops with fans, gauntlets like anvils and a great curved scimitar. A ⚔️ Colosseum Duels mastery reward.',
   '⚔️ The Executioner: a black hood with burning red eyes, bare-chested, a skirt of leather pteruges. A mastery reward in ⚔️ Colosseum Duels.',
   '⚔️ An Ottoman azab: a red cap wound with a white turban, a mustard entari, baggy şalvar and yellow boots. A mastery reward in ⚔️ Colosseum Duels.',
   '⚔️ An Ottoman archer: a great white turban, a green çintemani kaftan with gold frogging, a quiver at the hip. A mastery reward in ⚔️ Colosseum Duels.',
@@ -5208,7 +5249,9 @@ const spinoRoar = (a) => emBand(a, (B) => { emNoise(B, { len: 1.5, v: 0.32, f: 6
 // the giants' armour: battered, weathered silver-grey metal — not gleaming: dull, tarnished in patches, hammered,
 // dented and scratched all over, grime gathered in streaks, a few spots of rust
 const giantTex = () => kCanvas('giantSteel', 256, 256, (g, r) => {
-  g.fillStyle = '#b9bdc2'; g.fillRect(0, 0, 256, 256);
+  { const gr = g.createLinearGradient(0, 0, 0, 256); gr.addColorStop(0, '#c2c6cb'); gr.addColorStop(0.5, '#a7acb2'); gr.addColorStop(1, '#b8bcc1'); g.fillStyle = gr; g.fillRect(0, 0, 256, 256); }
+  for (let q = 0; q < 1300; q++) { const y = r() * 256, x = r() * 256, l = 8 + r() * 60; g.strokeStyle = r() < 0.5 ? `rgba(255,255,255,${0.03 + r() * 0.07})` : `rgba(20,22,26,${0.03 + r() * 0.07})`; g.lineWidth = 0.6 + r() * 0.8; g.beginPath(); g.moveTo(x, y); g.lineTo(x + l, y + (r() - 0.5) * 2); g.stroke(); } // (the grain of the hammered, filed metal)
+  { const e = g.createLinearGradient(0, 0, 0, 256); e.addColorStop(0, 'rgba(30,30,32,.22)'); e.addColorStop(0.08, 'rgba(30,30,32,0)'); e.addColorStop(0.92, 'rgba(30,30,32,0)'); e.addColorStop(1, 'rgba(30,30,32,.3)'); g.fillStyle = e; g.fillRect(0, 0, 256, 256); } // (grime gathered at the plates' edges)
   for (let k = 0; k < 40; k++) { const x = r() * 256, y = r() * 256, rr = 10 + r() * 46, gr = g.createRadialGradient(x, y, 0, x, y, rr), v = r() < 0.6 ? '70,74,80' : '220,224,228'; gr.addColorStop(0, `rgba(${v},${0.12 + r() * 0.18})`); gr.addColorStop(1, `rgba(${v},0)`); g.fillStyle = gr; g.fillRect(x - rr, y - rr, rr * 2, rr * 2); } // (tarnish)
   for (let k = 0; k < 90; k++) { const x = r() * 256, y = r() * 256, rr = 2 + r() * 7, gr = g.createRadialGradient(x - rr * 0.3, y - rr * 0.3, 0, x, y, rr); gr.addColorStop(0, 'rgba(255,255,255,.35)'); gr.addColorStop(0.6, 'rgba(90,94,100,.25)'); gr.addColorStop(1, 'rgba(90,94,100,0)'); g.fillStyle = gr; g.beginPath(); g.arc(x, y, rr, 0, 7); g.fill(); } // (hammer marks and dents)
   for (let k = 0; k < 260; k++) { g.strokeStyle = `rgba(${r() < 0.55 ? '245,247,250' : '40,42,46'},${0.1 + r() * 0.22})`; g.lineWidth = 0.5 + r() * 0.8; g.beginPath(); const x = r() * 256, y = r() * 256, a = r() * 6.3, l = 4 + r() * 26; g.moveTo(x, y); g.quadraticCurveTo(x + Math.cos(a + 0.3) * l * 0.5, y + Math.sin(a + 0.3) * l * 0.5, x + Math.cos(a) * l, y + Math.sin(a) * l); g.stroke(); } // (scratches)
