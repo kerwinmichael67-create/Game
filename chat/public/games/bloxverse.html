@@ -1463,11 +1463,13 @@ const TRAILS = ['None', 'Rainbow', 'Fire', 'Ice', 'Neon', 'Gold', 'Hearts', 'Sta
 const BODIES = ['R6', 'R15', 'Robot', 'Skeleton', 'Magma Golem', 'Dino Suit', 'Knight', 'Pumpkin Scarecrow', 'Phantom', 'Myrmidon', 'Spartan', 'Halberd Knight', 'Laestrygonian',
   'Minotaur', 'Anubis', 'Pharaoh', 'Samurai', 'Valkyrie', 'Centurion', 'Gladiator', 'Talos', 'Cyclops', 'Berserker',
   'Legionary', 'Velite', 'Retiarius', 'Praetorian', 'Thraex Gladiator', 'Hoplite', 'Peltast', 'Toxotes', 'Myrmidon Vanguard', 'Spartan Polemarch',
-  'Footman', 'Longbowman', 'Viking Raider', 'Templar', 'Heavy Knight', 'Ashigaru', 'Ronin', 'Shinobi', 'Sohei', 'Crescent Samurai']; // (2 on: body packs, jointed like R15; from 13: 💎 Deluxe Plus; from 23: ⚔️ Colosseum Duels mastery)
+  'Footman', 'Longbowman', 'Viking Raider', 'Templar', 'Heavy Knight', 'Ashigaru', 'Ronin', 'Shinobi', 'Sohei', 'Crescent Samurai',
+  'Laestrygonian Warlord', 'Executioner', 'Azab', 'Okçu Archer', 'Humbaracı', 'Peyk', 'Janissary', 'Arban Spearman', 'Steppe Archer', 'Steppe Shaman', 'Kheshig', 'Great Khan']; // (2 on: body packs, jointed like R15; from 13: 💎 Deluxe Plus; from 23: ⚔️ Colosseum Duels mastery)
 // animation packs: how you stand, walk, run and jump
 const ANIMS = ['Default', 'Robot', 'Ninja', 'Zombie', 'Superhero', 'Stylish', 'Levitation', 'Vampire', 'Hoplite', 'Laestrygonian', 'Minotaur', 'Pharaoh', 'Samurai', 'Valkyrie', 'Berserker',
   'Legionary', 'Velite', 'Retiarius', 'Praetorian', 'Thraex Gladiator', 'Hoplite', 'Peltast', 'Toxotes', 'Myrmidon Vanguard', 'Spartan Polemarch',
-  'Footman', 'Longbowman', 'Viking Raider', 'Templar', 'Heavy Knight', 'Ashigaru', 'Ronin', 'Shinobi', 'Sohei', 'Crescent Samurai']; // (from 10: 💎 Deluxe Plus; from 15: ⚔️ Colosseum Duels mastery)
+  'Footman', 'Longbowman', 'Viking Raider', 'Templar', 'Heavy Knight', 'Ashigaru', 'Ronin', 'Shinobi', 'Sohei', 'Crescent Samurai',
+  'Laestrygonian Warlord', 'Executioner', 'Azab', 'Okçu Archer', 'Humbaracı', 'Peyk', 'Janissary', 'Arban Spearman', 'Steppe Archer', 'Steppe Shaman', 'Kheshig', 'Great Khan']; // (from 10: 💎 Deluxe Plus; from 15: ⚔️ Colosseum Duels mastery)
 // the shop: what each costs in Blox Coins (0 = free, -1 = only as a reward)
 const COSMETICS = {
   h: { title: 'Hats', list: HATS, price: [0, 0, 0, 0, 0, 100, 250, 300, 150, 800, 200, 120, 220, 80, 1500, -1, 100, 200, 350, 180, 220, 260, 400, 150, 1200, 3000, -1, -1, -1, -1, -1, -1, -1, 400, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
@@ -1477,8 +1479,8 @@ const COSMETICS = {
   a: { title: 'Auras', list: AURAS, price: [0, 300, 800, 400, 350, 1000, 1500, 300, 350, 2000, 600, 2500, -1, -1, -1, 900], icon: ['🚫', '✨', '🔥', '💖', '❄️', '⚡', '🌈', '🫧', '🍃', '🌌', '☢️', '💸', '💫', '🌑', '⛈️', '🦇'] },
   pt: { title: 'Shirts', list: PATTERNS, price: [0, 60, 80, 80, 120, 100, 90, 250, 150, 150, 120, 200, 300, -1, -1, -1, 200], icon: ['⬜', '〰️', '⭐', '❤️', '⚡', '🏁', '1️⃣', '👔', '💀', '🔥', '🪖', '🌈', '🌌', '🏆', '🐾', '🌻', '🦴'] },
   pet: { title: 'Pets', list: PETS, price: [0, 400, 400, 350, 1500, 900, 2500, 600, 800, 1200, 4000, -1, -1, 1000, -1, -1], icon: ['🚫', '🐶', '🐱', '🐰', '🐉', '🤖', '🦄', '🐧', '🦊', '🐼', '🦅', '🧟', '🌱', '👻', '🐓', '🦕'] },
-  bt: { title: 'Bodies', list: BODIES, price: [0, 0, 900, 600, 1200, 1000, 1100, 800, 1300, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], icon: ['🧍', '🦵', '🤖', '💀', '🌋', '🦖', '⚔️', '🎃', '🫥', '🐜', '🛡️', '🪓', '🗿', '🐂', '🐺', '👑', '⛩️', '🪽', '🦅', '⚔️', '🤖', '👁️', '🐻', '🦅', '🐺', '🔱', '🦂', '⚔️', '🦉', '🌙', '🏹', '🐜', '🛡️', '🗡️', '🎯', '🪓', '✝️', '🏰', '🎋', '🍂', '🥷', '📿', '🏯'], tab: false }, // (bodies and animations are in 🧍 Body)
-  an: { title: 'Animations', list: ANIMS, price: [0, 500, 750, 400, 700, 550, 900, 777, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], icon: ['🚶', '🤖', '🥷', '🧟', '🦸', '😎', '🫧', '🧛', '🏺', '👣', '🐂', '👑', '⛩️', '🪽', '🐻', '🦅', '🐺', '🔱', '🦂', '⚔️', '🦉', '🌙', '🏹', '🐜', '🛡️', '🗡️', '🎯', '🪓', '✝️', '🏰', '🎋', '🍂', '🥷', '📿', '🏯'], tab: false },
+  bt: { title: 'Bodies', list: BODIES, price: [0, 0, 900, 600, 1200, 1000, 1100, 800, 1300, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], icon: ['🧍', '🦵', '🤖', '💀', '🌋', '🦖', '⚔️', '🎃', '🫥', '🐜', '🛡️', '🪓', '🗿', '🐂', '🐺', '👑', '⛩️', '🪽', '🦅', '⚔️', '🤖', '👁️', '🐻', '🦅', '🐺', '🔱', '🦂', '⚔️', '🦉', '🌙', '🏹', '🐜', '🛡️', '🗡️', '🎯', '🪓', '✝️', '🏰', '🎋', '🍂', '🥷', '📿', '🏯', '🗿', '💀', '🔱', '🏹', '💣', '🪓', '🌙', '🔱', '🏹', '🥁', '🛡️', '👑'], tab: false }, // (bodies and animations are in 🧍 Body)
+  an: { title: 'Animations', list: ANIMS, price: [0, 500, 750, 400, 700, 550, 900, 777, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], icon: ['🚶', '🤖', '🥷', '🧟', '🦸', '😎', '🫧', '🧛', '🏺', '👣', '🐂', '👑', '⛩️', '🪽', '🐻', '🦅', '🐺', '🔱', '🦂', '⚔️', '🦉', '🌙', '🏹', '🐜', '🛡️', '🗡️', '🎯', '🪓', '✝️', '🏰', '🎋', '🍂', '🥷', '📿', '🏯', '🗿', '💀', '🔱', '🏹', '💣', '🪓', '🌙', '🔱', '🏹', '🥁', '🛡️', '👑'], tab: false },
   tr: { title: 'Trails', list: TRAILS, price: [0, 1500, 800, 600, 500, 2000, 700, -1, -1, 700], icon: ['🚫', '🌈', '🔥', '🧊', '💠', '🪙', '💕', '⭐', '⚡', '🌫️'] },
 };
 let AV = { s: 5, sh: 0, p: 1, h: 0, f: 0, b: 0, a: 0, pt: 0, pet: 0, tr: 0, bt: 0, an: 0 };
@@ -4423,8 +4425,9 @@ ANIM_DESC.push('💎 The Minotaur: hunched, its chest heaving, head low and swin
    Gladiator is a griffin-helmed thraex (not the murmillo), the Samurai wears black and a golden crescent, the Spartan
    fights bare-chested under a towering crest, the Myrmidon is black and bronze with mandibled cheek guards. */
 const DUEL_N = ['Legionary', 'Velite', 'Retiarius', 'Praetorian', 'Thraex Gladiator', 'Hoplite', 'Peltast', 'Toxotes', 'Myrmidon Vanguard', 'Spartan Polemarch',
-  'Footman', 'Longbowman', 'Viking Raider', 'Templar', 'Heavy Knight', 'Ashigaru', 'Ronin', 'Shinobi', 'Sohei', 'Crescent Samurai'];
-const DUEL_IC = ['🦅', '🐺', '🔱', '🦂', '⚔️', '🦉', '🌙', '🏹', '🐜', '🛡️', '🗡️', '🎯', '🪓', '✝️', '🏰', '🎋', '🍂', '🥷', '📿', '🏯'];
+  'Footman', 'Longbowman', 'Viking Raider', 'Templar', 'Heavy Knight', 'Ashigaru', 'Ronin', 'Shinobi', 'Sohei', 'Crescent Samurai',
+  'Laestrygonian Warlord', 'Executioner', 'Azab', 'Okçu Archer', 'Humbaracı', 'Peyk', 'Janissary', 'Arban Spearman', 'Steppe Archer', 'Steppe Shaman', 'Kheshig', 'Great Khan'];
+const DUEL_IC = ['🦅', '🐺', '🔱', '🦂', '⚔️', '🦉', '🌙', '🏹', '🐜', '🛡️', '🗡️', '🎯', '🪓', '✝️', '🏰', '🎋', '🍂', '🥷', '📿', '🏯', '🗿', '💀', '🔱', '🏹', '💣', '🪓', '🌙', '🔱', '🏹', '🥁', '🛡️', '👑'];
 const DUEL_BT = 23, DUEL_AN = 15; // (where they start in BODIES and ANIMS)
 const dkSurcoatTex = (c1, c2, kind) => kCanvas('dkSur' + c1 + c2 + kind, 128, 128, (g, r) => { g.fillStyle = c1; g.fillRect(0, 0, 128, 128); for (let k = 0; k < 600; k++) { g.fillStyle = r() < 0.5 ? 'rgba(0,0,0,.05)' : 'rgba(255,255,255,.05)'; g.fillRect(r() * 128, r() * 128, 2, 1); }
   g.fillStyle = c2; if (kind === 'cross') { g.fillRect(52, 8, 24, 112); g.fillRect(16, 36, 96, 22); } else if (kind === 'quarter') { g.fillRect(0, 0, 64, 64); g.fillRect(64, 64, 64, 64); } else if (kind === 'lion') { g.font = 'bold 76px serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('⚜', 64, 66); }
@@ -4630,6 +4633,117 @@ function duelKit(K, i) {
           mesh(kg('crescMenpo', () => new THREE.CylinderGeometry(0.7, 0.62, 0.42, 26, 1, true, Math.PI * 0.64, Math.PI * 0.72)), lac, 0, -0.4, 0, h).material.side = THREE.DoubleSide; for (const s of [-1, 1]) { const ms = mesh(kg('crescMou', () => sweepGeo([[0, 0, 0], [0.12, -0.03, 0.02], [0.24, -0.1, 0.06]], (t) => 0.035 - 0.02 * t, 10, 6)), gold, s * 0.04, -0.27, -0.72, h); ms.scale.x = s; }
           return false; } };
     },
+    () => { // 🗿 Laestrygonian Warlord, the giant as Command an Army builds them: a hulk of blue-silver plate, worn bright where it's rubbed and dark in its dents — a crested helm with a V-shaped visor (the face inside), a great round breastplate over a scalloped chest, huge layered pauldrons, a thick belt and tassets, fists like anvils
+      const bs = M('#ffffff', { map: dkBlueSteelTex(0), specular: '#dbe7ff', shininess: 70 }), bp = M('#ffffff', { map: dkBlueSteelTex(1), specular: '#ffffff', shininess: 95 });
+      const pl = (w, h, d, m, x, y, z, par) => R(w, h, d, Math.min(0.14, Math.min(w, h, d) * 0.3), m, x, y, z, par);
+      return {
+        leg: (x) => { const hip = grp(K.body, x * 1.32, 2), kn = grp(hip, 0, -1.0, 1);
+          pl(1.24, 1.06, 1.28, bs, 0, -0.5, 0, hip); const t1 = pl(1.34, 0.44, 0.3, bp, 0, -0.26, -0.62, hip); t1.rotation.x = -0.14; const t2 = pl(1.3, 0.42, 0.28, bs, 0, -0.66, -0.6, hip); t2.rotation.x = -0.08; // (the thigh and its plates)
+          pl(1.26, 0.96, 1.32, bs, 0, -0.46, 0, kn); P(kSph(), bp, 0, 0.02, -0.58, kn, 0.44, 0.38, 0.28); pl(1.36, 0.3, 1.42, bp, 0, -0.26, 0, kn); pl(1.38, 0.3, 1.44, bp, 0, -0.62, 0, kn); // (the shin, the knee, two bands)
+          pl(1.38, 0.38, 1.76, bs, 0, -0.83, -0.2, kn); return [hip, kn]; }, // (the sabaton)
+        lower() { pl(2.7, 0.86, 1.55, bs, 0, 2.4, 0); pl(2.86, 0.44, 1.68, bp, 0, 2.8, 0);
+          const ft = mesh(ovShape('laeTasset', [[-0.48, 0], [0.48, 0], [0.4, -0.82], [0, -1.2], [-0.4, -0.82]], 0.14, 0.04), bp, 0, 2.62, -0.88); ft.rotation.x = 0.08; // (the pointed tasset in front)
+          for (const s of [-1, 1]) for (let k = 0; k < 2; k++) { const t = pl(0.95, 0.5, 1.12, k ? bs : bp, s * (1.12 + k * 0.05), 2.32 - k * 0.38, 0); t.rotation.z = s * (0.14 + k * 0.05); } },
+        upper() { pl(2.7, 1.5, 1.66, bs, 0, 3.46, 0);
+          const CH = ovShape('laeChest', [[-1.22, 0.5], [1.22, 0.5], [1.22, -0.22], [0.78, -0.46], [0.38, -0.16], [0, -0.46], [-0.38, -0.16], [-0.78, -0.46], [-1.22, -0.22]], 0.2, 0.05);
+          mesh(CH, bp, 0, 3.82, -0.9); const ab = mesh(CH, bs, 0, 3.26, -0.94); ab.scale.set(0.86, 0.8, 1); // (the scalloped chest, over the belly)
+          P(kSph(), bs, 0, 3.0, -0.66, K.body, 1.14, 0.66, 0.52); pl(1.95, 0.46, 1.8, bp, 0, 4.25, 0); pl(2.5, 1.1, 0.3, bp, 0, 3.6, 0.86); }, // (the round belly-plate, the gorget, the backplate)
+        arm: (s) => { const sh = grp(K.body, s * 1.9, 4), el = grp(sh, 0, -1.0, 1);
+          const pd = mesh(kDome(), bp, s * 0.12, 0.14, 0, sh); pd.scale.set(1.0, 0.76, 1.02); for (let k = 0; k < 3; k++) { const b = pl(1.36 - k * 0.06, 0.28, 1.38 - k * 0.04, k % 2 ? bp : bs, s * 0.12, -0.12 - k * 0.26, 0, sh); b.rotation.z = -s * 0.16; } // (the pauldron, its lames)
+          pl(1.08, 1.0, 1.1, bs, 0, -0.56, 0, sh); pl(1.05, 0.86, 1.08, bs, 0, -0.4, 0, el); P(kSph(), bp, 0, 0.0, 0.46, el, 0.36, 0.32, 0.24); pl(1.3, 0.68, 1.34, bp, 0, -0.96, 0, el); return [sh, el]; }, // (the arm, the elbow, a gauntlet)
+        head(h) { pl(1.8, 0.8, 1.8, bp, 0, 0.74, 0.02, h); pl(0.26, 0.32, 1.98, bs, 0, 1.18, 0, h); const pk = P(kCone(), bp, 0, 0.98, -0.94, h, 0.16, 0.5, 0.14); pk.rotation.x = 0.5; // (the crown, the crest, its peak)
+          pl(1.82, 1.5, 0.9, bp, 0, 0.0, 0.5, h); for (const s of [-1, 1]) { const c = pl(0.34, 1.36, 1.12, bp, s * 0.77, -0.05, -0.28, h); c.rotation.y = s * 0.18; const v = pl(0.98, 0.3, 0.28, bs, s * 0.37, 0.42, -0.88, h); v.rotation.z = s * 0.4; } // (the back, the cheek plates, the V of the visor)
+          pl(1.4, 0.22, 0.32, bs, 0, -0.66, -0.74, h); return false; } }; // (the chin guard: the face shows between)
+    },
+    () => { // 💀 Executioner: a black hood to the shoulders with two holes and red eyes in them; bare-chested, broad and hard; a black belt over a skirt of leather pteruges; bracers, wraps and boots
+      const blk = L('#ffffff', { map: dkHoodTex() }), lth = L('#2b1d14', { map: leatherTex() }), dk = L('#1c1c22', { map: plushTex() }), iron = steel('#8b919a', { map: ovIronTex() }), eye = M('#ff3030', { emissive: '#ff1010', emissiveIntensity: 1 });
+      return { leg: (x) => { const r = leg(x, dk, skin); for (let k = 0; k < 4; k++) { const b = R(0.84, 0.07, 0.84, 0.03, lth, 0, -0.18 - k * 0.13, 0, r[1]); b.rotation.z = (k % 2 ? 1 : -1) * 0.2; } boot(r[1], lth, 0.4); return r; },
+        lower() { hips(dk); strips(lth, 2.82, 12, 0.74, iron); belt(blk, 2.9); R(0.44, 0.36, 0.12, 0.04, iron, 0, 2.9, -0.6); },
+        upper() { torso(skin); abs(skin); const st = R(0.18, 2.1, 0.06, 0.03, lth, 0, 3.42, -0.55); st.rotation.z = 0.62; const st2 = R(0.18, 2.1, 0.06, 0.03, lth, 0, 3.42, 0.55); st2.rotation.z = -0.62; },
+        arm: (s) => { const r = arm(s, skin, skin, lth); R(0.9, 0.55, 0.9, 0.2, lth, 0, -0.55, 0, r[1]); R(0.94, 0.12, 0.94, 0.04, iron, 0, -0.3, 0, r[1]); return r; },
+        head(h) { const hd = mesh(kLathe('exHood', [[0, -0.75], [1.04, -0.75], [0.98, -0.4], [0.86, 0.1], [0.8, 0.5], [0.62, 0.95], [0.36, 1.3], [0.12, 1.55], [0, 1.6]], 28), blk, 0, 0, 0.05, h); hd.rotation.x = 0.14;
+          mesh(kLathe('exMantle', [[0.9, 0.05], [1.45, -0.32], [1.58, -0.52], [1.5, -0.6], [0, -0.6]], 28), blk, 0, -0.5, 0, h);
+          for (const s of [-1, 1]) { P(kSph(), L('#000000'), s * 0.27, 0.18, -0.84, h, 0.18, 0.12, 0.06); P(kSph(), eye, s * 0.27, 0.18, -0.88, h, 0.07); const gl = kitGlow(h, '#ff2020', 0.55, 0.75); gl.position.set(s * 0.27, 0.18, -0.92); }
+          return true; } };
+    },
+    () => { // 🔱 Azab: the Ottomans' light infantry — a red felt cap wound with a white turban band, a long mustard entari, a red sash, baggy blue şalvar and yellow boots
+      const ent = L('#c99a2e', { map: plushTex() }), sash = L('#b91c1c', { map: plushTex() }), sal = L('#1e3a8a', { map: plushTex() }), yb = L('#d4a017', { map: leatherTex() }), cap = L('#b91c1c', { map: ovFeltTex('#b91c1c') }), tur = L('#ffffff', { map: dkTurbanTex('#f5f0e1') });
+      return { leg: (x) => { const r = leg(x, sal, sal); P(kSph(), sal, 0, -0.12, 0, r[1], 0.56, 0.46, 0.56); boot(r[1], yb, 0.62); return r; },
+        lower() { hips(ent); skirt('azab', ent, 1.05, 1.16); belt(sash, 2.9); R(0.32, 0.72, 0.06, 0.03, sash, 0.6, 2.42, -0.62); },
+        upper() { torso(ent); const v = R(0.5, 0.5, 0.04, 0.02, skin, 0, 3.85, -0.51); v.rotation.z = Math.PI / 4; }, arm: (s) => arm(s, ent, ent, null),
+        head(h) { bowl(h, cap, 0.34, 1.05, 0.74); ring(h, 0.76, 0.17, 0.36, tur); ring(h, 0.7, 0.14, 0.56, tur); return false; } };
+    },
+    () => { // 🏹 Okçu: an Ottoman archer — a great white turban wound round a red cap, a green kaftan fastened with gold frogging, a sash, a quiver (sadak) at the hip, red şalvar and boots
+      const kaf = L('#ffffff', { map: dkCintTex('#15803d', '#fde68a') }), sash = L('#f5f0e1', { map: plushTex() }), sal = L('#991b1b', { map: plushTex() }), bt = L('#5b3a1e', { map: leatherTex() }), cap = L('#b91c1c', { map: ovFeltTex('#b91c1c') }), tur = L('#ffffff', { map: dkTurbanTex('#ffffff') }), gold2 = gold;
+      return { leg: (x) => { const r = leg(x, sal, sal); P(kSph(), sal, 0, -0.12, 0, r[1], 0.54, 0.44, 0.54); boot(r[1], bt, 0.6); return r; },
+        lower() { hips(kaf); skirt('okcu', kaf, 1.1, 1.18); belt(sash, 2.9); const q = grp(K.body, 1.1, 2.75); q.rotation.z = -0.35; q.position.z = 0.12; R(0.42, 1.0, 0.3, 0.1, L('#7c2d12', { map: leatherTex() }), 0, -0.35, 0, q); for (let k = 0; k < 4; k++) P(kCyl(), L('#f5f5f4'), -0.12 + k * 0.08, 0.25, 0, q, 0.03, 0.4, 0.03); },
+        upper() { torso(kaf); for (let k = 0; k < 4; k++) R(0.7, 0.06, 0.04, 0.02, gold2, 0, 3.0 + k * 0.28, -0.52); }, arm: (s) => arm(s, kaf, kaf, null),
+        head(h) { mesh(kLathe('okTurban', [[0.74, 0.18], [0.92, 0.32], [1.0, 0.55], [0.95, 0.85], [0.75, 1.02], [0.4, 1.08], [0, 1.08]], 28), tur, 0, 0, 0, h); P(kSph(), cap, 0, 1.08, 0, h, 0.34, 0.26, 0.34); return false; } };
+    },
+    () => { // 💣 Humbaracı: an Ottoman grenadier — a red felt külah with a black fur band, a leather vest over a white shirt, a bandolier of bombs, green şalvar, boots
+      const shirt = L('#f5f0e1', { map: plushTex() }), vest = L('#5b3a1e', { map: leatherTex() }), sal = L('#14532d', { map: plushTex() }), bt = L('#2b1d14', { map: leatherTex() }), cap = L('#b91c1c', { map: ovFeltTex('#b91c1c') }), fur = L('#1c1917', { map: dpFurTex('#1c1917', '#000000') }), bomb = M('#1f2937', { shininess: 80 });
+      return { leg: (x) => { const r = leg(x, sal, sal); P(kSph(), sal, 0, -0.12, 0, r[1], 0.55, 0.45, 0.55); boot(r[1], bt, 0.56); return r; },
+        lower() { hips(sal); belt(L('#b91c1c', { map: plushTex() }), 2.88); },
+        upper() { torso(shirt); for (const s of [-1, 1]) R(0.78, 1.18, 1.04, 0.26, vest, s * 0.62, 3.44, 0); const bd = grp(K.body, 0, 3.45); bd.position.z = -0.56; bd.rotation.z = 0.62; R(0.2, 2.3, 0.06, 0.03, vest, 0, 0, 0, bd); for (let k = 0; k < 4; k++) P(kSph(), bomb, 0, -0.8 + k * 0.5, -0.12, bd, 0.17); },
+        arm: (s) => arm(s, shirt, shirt, null),
+        head(h) { mesh(kLathe('humKulah', [[0.75, 0.2], [0.7, 0.6], [0.5, 1.1], [0.25, 1.5], [0, 1.62]], 24), cap, 0, 0, 0, h); ring(h, 0.8, 0.16, 0.3, fur); return false; } };
+    },
+    () => { // 🪓 Peyk: one of the Sultan's guard — a tall gilded helmet under a spray of white feathers, a crimson velvet kaftan bordered in gold, a gold belt, white trousers
+      const kaf = L('#9f1d24', { map: plushTex() }), trim = gold, tr = L('#f5f0e1', { map: plushTex() }), bt = L('#d4a017', { map: leatherTex() }), gh = steel('#e8b84a', { shininess: 140 }), fe = L('#ffffff');
+      return { leg: (x) => { const r = leg(x, tr, tr); boot(r[1], bt, 0.6); return r; },
+        lower() { hips(kaf); skirt('peyk', kaf, 1.2, 1.2); bands(trim, 1.72, 1, 0.2); belt(trim, 2.9); },
+        upper() { torso(kaf); R(0.16, 1.2, 0.04, 0.02, trim, 0, 3.44, -0.52); for (const s of [-1, 1]) R(0.06, 1.2, 0.05, 0.02, trim, s * 0.3, 3.44, -0.52); }, arm: (s) => arm(s, kaf, kaf, null),
+        head(h) { mesh(kLathe('peykHelm', [[0.8, 0.2], [0.82, 0.45], [0.66, 0.9], [0.4, 1.35], [0.16, 1.7], [0.08, 1.9], [0, 1.95]], 28), gh, 0, 0, 0, h); ring(h, 0.82, 0.06, 0.24, gh);
+          for (let k = 0; k < 7; k++) { const a = (k - 3) * 0.28, f = P(kSph(), fe, Math.sin(a) * 0.15, 2.4, 0.15 + Math.cos(a) * 0.05, h, 0.09, 0.62, 0.04); f.rotation.set(-0.3, 0, -a); } return false; } };
+    },
+    () => { // 🌙 Janissary: the Sultan's own infantry — the tall white börk with its flap hanging behind and a gilded spoon-holder at the front, a blue kaftan with its skirts tucked up into the sash, red şalvar, yellow boots, a black moustache
+      const kaf = L('#1e3a8a', { map: plushTex() }), sash = L('#b91c1c', { map: plushTex() }), sal = L('#991b1b', { map: plushTex() }), yb = L('#d4a017', { map: leatherTex() }), felt = L('#f5f5f4', { map: ovFeltTex('#f5f5f4') }), hairM = L('#141414');
+      return { leg: (x) => { const r = leg(x, sal, sal); P(kSph(), sal, 0, -0.12, 0, r[1], 0.55, 0.45, 0.55); boot(r[1], yb, 0.62); return r; },
+        lower() { hips(kaf); skirt('jan', kaf, 0.9, 1.14); belt(sash, 2.9); for (const s of [-1, 1]) { const f = R(0.5, 0.7, 0.06, 0.03, kaf, s * 0.75, 2.45, -0.4); f.rotation.z = s * 0.5; } },
+        upper() { torso(kaf); for (let k = 0; k < 5; k++) P(kSph(), gold, 0, 3.0 + k * 0.24, -0.52, K.body, 0.06); }, arm: (s) => arm(s, kaf, kaf, null),
+        head(h) { mesh(kg('janBork', () => new THREE.CylinderGeometry(0.62, 0.78, 1.3, 24)), felt, 0, 1.0, 0.05, h).rotation.x = 0.1; const fl = mesh(kg('janFlap', () => sweepGeo([[0, 1.5, 0.2], [0, 1.1, 0.75], [0, 0.4, 0.95], [0, -0.4, 0.95]], (t) => 0.34 - 0.1 * t, 16, 10)), felt, 0, 0, 0, h); fl.scale.x = 1.6;
+          const sp = R(0.32, 0.5, 0.06, 0.03, gold, 0, 0.7, -0.7, h); P(kSph(), L('#fef3c7'), 0, 1.15, -0.72, h, 0.08, 0.3, 0.05); for (const s of [-1, 1]) { const m = R(0.36, 0.08, 0.06, 0.03, hairM, s * 0.17, -0.22, -0.62, h); m.rotation.z = s * -0.35; } return false; } };
+    },
+    () => { // 🔱 Arban Spearman: a Mongol foot soldier — a felt cap with an upturned fur brim, a dark blue deel crossed with a yellow border, a red sash, a leather lamellar vest, boots with upturned toes
+      const deel = L('#1e3a5f', { map: plushTex() }), trim = L('#facc15', { map: plushTex() }), sash = L('#b91c1c', { map: plushTex() }), lam = M('#ffffff', { map: dkLamellarTex('#7c4a22', '#3b2414'), shininess: 40 }), fur = L('#7c5a3a', { map: dpFurTex('#7c5a3a', '#3b2a1a') }), cap = L('#1e3a5f', { map: ovFeltTex('#1e3a5f') }), bt = L('#3b2414', { map: leatherTex() });
+      return { leg: (x) => { const r = leg(x, deel, deel); boot(r[1], bt, 0.6); const tp = P(kCone(), bt, 0, -0.88, -0.66, r[1], 0.16, 0.32, 0.1); tp.rotation.x = -1.2; return r; },
+        lower() { hips(deel); skirt('arban', deel, 1.05, 1.16); belt(sash, 2.9); },
+        upper() { torso(lam); const tb = R(0.14, 1.3, 0.05, 0.02, trim, 0.3, 3.44, -0.53); tb.rotation.z = -0.35; }, arm: (s) => arm(s, deel, deel, null),
+        head(h) { mesh(kLathe('mgCap', [[0.74, 0.25], [0.7, 0.6], [0.5, 0.95], [0.2, 1.2], [0, 1.28]], 24), cap, 0, 0, 0, h); const br = mesh(kg('mgBrim', () => new THREE.TorusGeometry(0.82, 0.2, 8, 28)), fur, 0, 0.34, 0, h); br.rotation.x = Math.PI / 2; br.scale.z = 0.8; return false; } };
+    },
+    () => { // 🏹 Steppe Archer: a Mongol archer on foot — a fur hat with ear-flaps, a light brown deel trimmed in fur, a quiver at the right hip and a bow case at the left, boots
+      const deel = L('#a16207', { map: plushTex() }), fur = L('#57534e', { map: dpFurTex('#78716c', '#292524') }), bt = L('#3b2414', { map: leatherTex() }), lth = L('#7c2d12', { map: leatherTex() });
+      return { leg: (x) => { const r = leg(x, deel, deel); boot(r[1], bt, 0.62); return r; },
+        lower() { hips(deel); skirt('march', deel, 1.0, 1.14); belt(lth, 2.9); const q = grp(K.body, 1.1, 2.75); q.rotation.z = -0.3; q.position.z = 0.1; R(0.4, 1.0, 0.3, 0.1, lth, 0, -0.35, 0, q); for (let k = 0; k < 4; k++) P(kCyl(), L('#f5f5f4'), -0.12 + k * 0.08, 0.25, 0, q, 0.03, 0.4, 0.03); },
+        upper() { torso(deel); const c = mesh(kTor(0.35), fur, 0, 4.0, 0); c.rotation.x = Math.PI / 2; c.scale.set(1.15, 0.7, 0.55); }, arm: (s) => arm(s, deel, deel, null),
+        head(h) { bowl(h, fur, 0.32, 1.1, 0.8); for (const s of [-1, 1]) { const f = R(0.12, 0.8, 0.55, 0.05, fur, s * 0.78, -0.2, 0.05, h); f.rotation.z = s * 0.1; } return false; } };
+    },
+    () => { // 🥁 Steppe Shaman: a headdress with a fringe hanging over the eyes and feathers on top; a dark robe hung all over with coloured ribbons and little bronze mirrors; a frame drum and its beater
+      const robe = L('#1e1b4b', { map: plushTex() }), bt = L('#3b2414', { map: leatherTex() }), mir = steel('#e8c07a', { shininess: 150 }), band = L('#7c2d12', { map: leatherTex() }), cols = ['#dc2626', '#f59e0b', '#16a34a', '#2563eb', '#f8fafc'].map((c) => L(c));
+      return { leg: (x) => { const r = leg(x, robe, robe); boot(r[1], bt, 0.5); return r; },
+        lower() { hips(robe); skirt('sham', robe, 1.2, 1.2); for (let k = 0; k < 16; k++) { const an = (k / 16) * Math.PI * 2, s2 = R(0.12, 1.0, 0.03, 0.01, cols[k % 5], Math.sin(an) * 1.12, 2.0, Math.cos(an) * 0.7); s2.rotation.y = an; } },
+        upper() { torso(robe); for (let k = 0; k < 6; k++) P(kCyl(), mir, -0.55 + (k % 3) * 0.55, 3.1 + Math.floor(k / 3) * 0.55, -0.52, K.body, 0.17, 0.03, 0.17).rotation.x = Math.PI / 2; for (let k = 0; k < 10; k++) R(0.1, 0.6, 0.03, 0.01, cols[k % 5], -0.9 + k * 0.2, 3.9, -0.53); },
+        arm: (s) => { const r = arm(s, robe, robe, null); for (let k = 0; k < 3; k++) R(0.1, 0.6, 0.03, 0.01, cols[(k + (s > 0 ? 2 : 0)) % 5], -0.3 + k * 0.3, -0.7, -0.45, r[1]); return r; },
+        head(h) { ring(h, 0.8, 0.12, 0.42, band); for (let k = 0; k < 22; k++) { const a = Math.PI * 0.62 + (k / 21) * Math.PI * 0.76; R(0.05, 0.72, 0.03, 0.01, k % 2 ? L('#0b0b0b') : cols[k % 5], Math.sin(a) * 0.82, 0.05, Math.cos(a) * 0.82, h); }
+          for (let k = 0; k < 6; k++) { const a = (k - 2.5) * 0.3, f = P(kSph(), k % 2 ? L('#1c1917') : L('#f5f5f4'), Math.sin(a) * 0.5, 1.0, Math.cos(a) * 0.2, h, 0.08, 0.5, 0.04); f.rotation.z = -a; } return false; } };
+    },
+    () => { // 🛡️ Kheshig: of the Khan's own guard — a tall iron helmet with a spike and a red tuft, an aventail of lamellar over the neck, a coat of iron lamellar to the knee over red sleeves, boots
+      const lam = M('#ffffff', { map: dkLamellarTex('#9aa3ad', '#3f3f46'), shininess: 80, specular: '#ffffff' }), red = L('#9f1d24', { map: plushTex() }), ir = steel('#8b919a', { map: ovIronTex() }), bt = L('#2b1d14', { map: leatherTex() });
+      return { leg: (x) => { const r = leg(x, red, red); boot(r[1], bt, 0.6); return r; },
+        lower() { hips(lam); skirt('khes', lam, 1.15, 1.18); belt(L('#3b2414', { map: leatherTex() }), 2.9); },
+        upper() { torso(lam); for (const s of [-1, 1]) { const ep = R(0.9, 0.5, 1.1, 0.12, lam, s * 1.2, 3.85, 0); ep.rotation.z = -s * 0.3; } }, arm: (s) => arm(s, red, red, null),
+        head(h) { mesh(kLathe('khHelm', [[0.8, 0.2], [0.78, 0.5], [0.6, 0.85], [0.3, 1.1], [0.1, 1.25], [0.05, 1.7], [0, 1.72]], 28), ir, 0, 0, 0, h); P(kSph(), L('#b91c1c'), 0, 1.85, 0, h, 0.14, 0.24, 0.14);
+          mesh(new THREE.CylinderGeometry(0.82, 1.0, 0.9, 28, 1, true, -0.7 * Math.PI, 1.4 * Math.PI), lam, 0, -0.15, 0.04, h).material.side = THREE.DoubleSide; return false; } };
+    },
+    () => { // 👑 Great Khan: a coat of gilded lamellar over a red deel trimmed in gold, black fur at the collar; a red crowned hat with an upturned brim of black fur, a gold finial and a tall white plume; boots
+      const glam = M('#ffffff', { map: dkLamellarTex('#e8b84a', '#7c5a14'), shininess: 120, specular: '#fff2c0' }), deel = L('#9f1d24', { map: dkCintTex('#9f1d24', '#e8b84a') }), fur = L('#1c1917', { map: dpFurTex('#1c1917', '#000000') }), bt = L('#2b1d14', { map: leatherTex() }), crown = L('#b91c1c', { map: ovFeltTex('#b91c1c') });
+      return { leg: (x) => { const r = leg(x, deel, deel); boot(r[1], bt, 0.62); const tp = P(kCone(), bt, 0, -0.88, -0.66, r[1], 0.16, 0.32, 0.1); tp.rotation.x = -1.2; return r; },
+        lower() { hips(deel); skirt('khan', deel, 1.15, 1.2); belt(gold, 2.9); },
+        upper() { torso(glam); const c = mesh(kTor(0.36), fur, 0, 4.0, 0); c.rotation.x = Math.PI / 2; c.scale.set(1.2, 0.72, 0.56); cape(L('#7f1d1d', { side: THREE.DoubleSide }), 2.0, 3.2, 0.5); },
+        arm: (s) => { const r = arm(s, deel, deel, null); R(0.92, 0.14, 0.92, 0.05, gold, 0, -0.78, 0, r[1]); return r; },
+        head(h) { bowl(h, crown, 0.34, 1.1, 0.74); const br = mesh(kg('khBrim', () => new THREE.TorusGeometry(0.84, 0.24, 8, 28)), fur, 0, 0.36, 0, h); br.rotation.x = Math.PI / 2; br.scale.z = 0.85;
+          P(kCone(), gold, 0, 1.26, 0, h, 0.1, 0.4, 0.1); P(kSph(), gold, 0, 1.06, 0, h, 0.14); const pl = P(kSph(), L('#ffffff'), 0, 1.9, 0.18, h, 0.1, 0.62, 0.05); pl.rotation.x = -0.3; return false; } };
+    },
   ];
   return LOOKS[i]();
 }
@@ -4680,7 +4794,7 @@ function dgSword(par, kind, o = {}) {
 }
 function dgPole(par, kind) { // a spear or polearm along -z, the hand a third of the way up the shaft
   const g = new THREE.Group(); par.add(g); const wd = new THREE.MeshLambertMaterial({ color: kind === 'naginata' || kind === 'yari' ? '#1a1a1f' : '#8b5a2b', map: woodTex() }), st = metalMat('#e3e8ee', { shininess: 140 }), bz = DPM.bronze();
-  const len = { dory: 6.2, javelin: 4.2, yari: 6.8, naginata: 5.6, trident: 5.2, pilum: 5 }[kind], back = len * 0.32;
+  const len = { dory: 6.2, javelin: 4.2, yari: 6.8, naginata: 5.6, trident: 5.2, pilum: 5, teber: 5.6, mspear: 6.2, staff: 4.4 }[kind], back = len * 0.32;
   const sh = new THREE.Mesh(kCyl(), wd); sh.scale.set(0.075, len, 0.075); sh.rotation.x = Math.PI / 2; sh.position.z = back - len / 2; g.add(sh); const tipZ = back - len;
   const head = (geo, m, l, w) => { const o = new THREE.Mesh(geo, m); o.position.z = tipZ - l / 2; g.add(o); return o; };
   if (kind === 'dory' || kind === 'javelin' || kind === 'yari' || kind === 'pilum') { const l = kind === 'yari' ? 1.0 : kind === 'pilum' ? 1.2 : 0.75, m = kind === 'dory' ? bz : st; const hd = new THREE.Mesh(dgBladeGeo('sp' + kind, l, (t) => (kind === 'pilum' ? 0.07 + (t > 0.85 ? (1 - t) * 1.2 : 0) : kind === 'yari' ? 0.2 * (1 - t) : 0.36 * Math.sin(Math.min(1, t * 1.6) * Math.PI * 0.62) * (1 - t * 0.9)) + 0.01), m); hd.position.z = tipZ; g.add(hd);
@@ -4688,6 +4802,12 @@ function dgPole(par, kind) { // a spear or polearm along -z, the hand a third of
     if (kind === 'yari') { const cl = new THREE.Mesh(kCyl(), metalMat('#e8b84a')); cl.scale.set(0.1, 0.25, 0.1); cl.rotation.x = Math.PI / 2; cl.position.z = tipZ + 0.12; g.add(cl); } }
   else if (kind === 'naginata') { const hd = new THREE.Mesh(dgBladeGeo('nag', 1.7, (t) => 0.32 * (t < 0.85 ? 1 - 0.2 * t : (1 - t) * 5.4) + 0.01, 0.55), st); hd.position.z = tipZ; g.add(hd); const ts = new THREE.Mesh(kg('dgTsuba', () => new THREE.CylinderGeometry(0.3, 0.3, 0.06, 8)), metalMat('#e8b84a')); ts.rotation.x = Math.PI / 2; ts.position.z = tipZ + 0.02; ts.scale.setScalar(0.8); g.add(ts); }
   else if (kind === 'trident') { const cr = new THREE.Mesh(rboxGeo(0.95, 0.1, 0.14, 0.04), st); cr.position.z = tipZ; g.add(cr); for (const x of [-0.42, 0, 0.42]) { const p = new THREE.Mesh(kCyl(), st); p.scale.set(0.05, 0.9, 0.05); p.rotation.x = Math.PI / 2; p.position.set(x, 0, tipZ - 0.45); g.add(p); const tp = new THREE.Mesh(kCone(), st); tp.scale.set(0.09, 0.3, 0.05); tp.rotation.x = -Math.PI / 2; tp.position.set(x, 0, tipZ - 1.0); g.add(tp); } }
+  else if (kind === 'teber') { const ax = new THREE.Mesh(ovShape('dgTeber', [[0, 0.25], [0.35, 0.3], [0.9, 0.85], [1.05, 0.5], [1.1, 0], [1.05, -0.5], [0.9, -0.85], [0.35, -0.3], [0, -0.25]], 0.06, 0.02), metalMat('#e5e7eb', { shininess: 150 })); ax.rotation.set(Math.PI / 2, 0, -Math.PI / 2); ax.position.set(0, 0.03, tipZ + 0.5); g.add(ax);
+    const sp = new THREE.Mesh(kCone(), st); sp.scale.set(0.09, 0.6, 0.09); sp.rotation.x = -Math.PI / 2; sp.position.z = tipZ - 0.2; g.add(sp); const cl = new THREE.Mesh(kCyl(), metalMat('#e8b84a')); cl.scale.set(0.11, 0.3, 0.11); cl.rotation.x = Math.PI / 2; cl.position.z = tipZ + 1.0; g.add(cl); }
+  else if (kind === 'mspear') { const hd = new THREE.Mesh(dgBladeGeo('spm', 0.9, (t) => 0.26 * Math.sin(Math.min(1, t * 1.5) * Math.PI * 0.62) * (1 - t * 0.9) + 0.01), st); hd.position.z = tipZ; g.add(hd);
+    const hair = new THREE.Mesh(kCone(), new THREE.MeshLambertMaterial({ color: '#1c1917', map: dpFurTex('#1c1917', '#000000') })); hair.scale.set(0.24, 0.9, 0.24); hair.rotation.x = Math.PI / 2; hair.position.z = tipZ + 0.45; g.add(hair); } // (the horsetail tassel under the blade)
+  else if (kind === 'staff') { const kn = new THREE.Mesh(kSph(), new THREE.MeshLambertMaterial({ color: '#5b3a1e', map: woodTex() })); kn.scale.setScalar(0.22); kn.position.z = tipZ; g.add(kn);
+    for (let k = 0; k < 5; k++) { const a = k * 1.26, b = new THREE.Mesh(kSph(), metalMat('#e8b84a')); b.scale.setScalar(0.09); b.position.set(Math.cos(a) * 0.2, Math.sin(a) * 0.2, tipZ + 0.25); g.add(b); const rb = new THREE.Mesh(BOX, new THREE.MeshLambertMaterial({ color: ['#dc2626', '#2563eb', '#f8fafc', '#16a34a', '#f59e0b'][k] })); rb.scale.set(0.06, 0.02, 0.7); rb.position.set(Math.cos(a) * 0.16, Math.sin(a) * 0.16, tipZ + 0.65); g.add(rb); } }
   g.userData.tip = new THREE.Object3D(); g.userData.tip.position.z = tipZ - 0.8; g.add(g.userData.tip); g.userData.len = len; g.userData.pole = 1; return g;
 }
 const dgScutumTex = () => kCanvas('dgScutum', 256, 256, (g) => { g.fillStyle = '#9f1d24'; g.fillRect(0, 0, 256, 256); for (let k = 0; k < 900; k++) { g.fillStyle = Math.random() < 0.5 ? 'rgba(0,0,0,.05)' : 'rgba(255,255,255,.04)'; g.fillRect(Math.random() * 256, Math.random() * 256, 3, 1); }
@@ -4714,6 +4834,10 @@ function dgShield(par, kind) { // upright, face to -z; then turned so its face i
   else if (kind === 'aspis' || kind === 'myr' || kind === 'lambda') { const f = new THREE.Mesh(aspisGeo(), metalMat('#ffffff', { map: kind === 'lambda' ? dgLambdaTex() : aspisTex(kind === 'myr'), shininess: 110, reflectivity: 0.45 })); f.rotation.set(-Math.PI / 2, Math.PI, 0); g.add(f); const bk = new THREE.Mesh(aspisGeo(), wd); bk.rotation.copy(f.rotation); g.add(bk); g.scale.setScalar(1.25); }
   else if (kind === 'round' || kind === 'parma') { const r = kind === 'round' ? 1.25 : 0.8, f = new THREE.Mesh(kg('dgRound' + r, () => { const q = new THREE.CylinderGeometry(r, r, 0.08, 32); q.rotateX(Math.PI / 2); return q; }), new THREE.MeshLambertMaterial({ map: kind === 'round' ? dgRoundTex() : leatherTex(), color: kind === 'round' ? '#ffffff' : '#7c4a22' })); g.add(f);
     const e = new THREE.Mesh(new THREE.TorusGeometry(r, 0.05, 6, 32), kind === 'round' ? new THREE.MeshLambertMaterial({ color: '#3b2414', map: leatherTex() }) : rim); g.add(e); boss(kind === 'round' ? 0.28 : 0.2, kind === 'round' ? metalMat('#8b919a', { map: ovIronTex() }) : rim, -0.04); }
+  else if (kind === 'kalkan' || kind === 'wicker') { const r = kind === 'kalkan' ? 1.0 : 1.15, tx = kind === 'kalkan' ? kCanvas('dgKalkan', 256, 256, (q) => { ['#7f1d1d', '#e8b84a', '#1e3a8a', '#e8b84a', '#7f1d1d', '#e8b84a', '#14532d'].forEach((c, k) => { q.fillStyle = c; q.beginPath(); q.arc(128, 128, 128 - k * 17, 0, 7); q.fill(); }); q.strokeStyle = 'rgba(255,240,200,.6)'; q.lineWidth = 2; for (let k = 0; k < 24; k++) { const a = (k / 24) * Math.PI * 2; q.beginPath(); q.moveTo(128 + Math.cos(a) * 40, 128 + Math.sin(a) * 40); q.lineTo(128 + Math.cos(a) * 125, 128 + Math.sin(a) * 125); q.stroke(); } })
+        : kCanvas('dgWicker', 256, 256, (q) => { q.fillStyle = '#a16207'; q.fillRect(0, 0, 256, 256); q.strokeStyle = 'rgba(80,45,10,.6)'; q.lineWidth = 3; for (let k = 0; k < 40; k++) { q.beginPath(); q.arc(128, 128, k * 3.4, 0, 7); q.stroke(); } q.strokeStyle = 'rgba(255,230,170,.35)'; q.lineWidth = 2; for (let k = 0; k < 36; k++) { const a = (k / 36) * Math.PI * 2; q.beginPath(); q.moveTo(128, 128); q.lineTo(128 + Math.cos(a) * 130, 128 + Math.sin(a) * 130); q.stroke(); } });
+    const f = new THREE.Mesh(kg('dgCone' + r, () => { const q = new THREE.ConeGeometry(r, 0.28, 32, 1, false); q.rotateX(-Math.PI / 2); return q; }), new THREE.MeshLambertMaterial({ map: tx })); f.position.z = -0.1; g.add(f);
+    const e = new THREE.Mesh(new THREE.TorusGeometry(r, 0.05, 6, 32), kind === 'kalkan' ? rim : new THREE.MeshLambertMaterial({ color: '#713f12' })); e.position.z = 0.02; g.add(e); boss(kind === 'kalkan' ? 0.22 : 0.2, kind === 'kalkan' ? rim : metalMat('#8b919a', { map: ovIronTex() }), -0.25); }
   else if (kind === 'heater' || kind === 'templar') { const geo = ovShape('dgHeater', [[-0.85, 0.9], [0.85, 0.9], [0.85, 0.1], [0.8, -0.7, 0.0, -1.35], [-0.8, -0.7, -0.85, 0.1]], 0.08, 0.03); const tx = kind === 'heater' ? dkSurcoatTex('#1e3a8a', '#eab308', 'quarter') : dkSurcoatTex('#f8fafc', '#b91c1c', 'cross');
     const f = new THREE.Mesh(geo, [new THREE.MeshLambertMaterial({ map: tx }), new THREE.MeshLambertMaterial({ color: '#8a929c' })]); f.rotation.y = Math.PI; g.add(f); uvFit(geo, -0.85, -1.35, 1.7, 2.25); g.scale.setScalar(1.1); }
   else if (kind === 'pelte') { const geo = ovShape('dgPelte', [[-1.0, 0.55], [-0.6, -0.9, 0.0, -1.0], [0.6, -0.9, 1.0, 0.55], [0.45, 0.1, 0.0, 0.25], [-0.45, 0.1, -1.0, 0.55]], 0.06, 0.02); const f = new THREE.Mesh(geo, [new THREE.MeshLambertMaterial({ map: dgPelteTex() }), new THREE.MeshLambertMaterial({ color: '#713f12' })]); f.rotation.y = Math.PI; g.add(f); uvFit(geo, -1, -1, 2, 1.6); }
@@ -4750,27 +4874,98 @@ function dgAxe(par) { const g = new THREE.Group(); par.add(g); const wd = new TH
   const sh = new THREE.Mesh(kCyl(), wd); sh.scale.set(0.08, 2.9, 0.08); sh.rotation.x = Math.PI / 2; sh.position.z = -0.9; g.add(sh);
   const hd = new THREE.Mesh(ovShape('dgAxeHead', [[0, 0.18], [0.35, 0.22], [0.7, 0.62, 0.78, 0.7], [0.82, 0.0], [0.78, -0.7], [0.7, -0.62, 0.35, -0.22], [0, -0.18]], 0.06, 0.02), ir); hd.rotation.set(Math.PI / 2, 0, -Math.PI / 2); hd.position.set(0, 0.03, -2.2); hd.scale.setScalar(1.1); g.add(hd); // (a bearded Dane axe)
   g.userData.tip = new THREE.Object3D(); g.userData.tip.position.set(0, 0, -2.3); g.add(g.userData.tip); g.userData.len = 2.6; return g; }
+// the new fighters' textures: the giant's worn blue-silver plate (k: the paler plate), the executioner's hood, a wound turban, Ottoman çintemani silk, Mongol lamellar
+const dkBlueSteelTex = (k) => kCanvas('dkBlueSteel' + k, 256, 256, (g, r) => {
+  const base = k ? ['#9fb3dc', '#d6e2f6'] : ['#2e4f9e', '#7193d8'], gr = g.createLinearGradient(0, 0, 256, 256); gr.addColorStop(0, base[0]); gr.addColorStop(1, base[1]); g.fillStyle = gr; g.fillRect(0, 0, 256, 256);
+  for (let q = 0; q < 80; q++) { const x = r() * 256, y = r() * 256, rad = 8 + r() * 34, c = r() < 0.55 ? 'rgba(255,255,255,' : 'rgba(8,22,70,', rg = g.createRadialGradient(x, y, 1, x, y, rad); rg.addColorStop(0, c + (0.16 + r() * 0.22) + ')'); rg.addColorStop(1, c + '0)'); g.fillStyle = rg; g.fillRect(x - rad, y - rad, rad * 2, rad * 2); } // (rubbed bright, dark in the dents)
+  g.lineWidth = 1; for (let q = 0; q < 70; q++) { g.strokeStyle = r() < 0.6 ? 'rgba(255,255,255,.35)' : 'rgba(10,25,70,.4)'; const x = r() * 256, y = r() * 256; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (r() - 0.5) * 36, y + (r() - 0.5) * 14); g.stroke(); } // (scratches)
+  g.strokeStyle = 'rgba(8,20,64,.55)'; g.lineWidth = 4; g.strokeRect(2, 2, 252, 252);
+});
+const dkHoodTex = () => kCanvas('dkHood', 128, 128, (g, r) => { g.fillStyle = '#111114'; g.fillRect(0, 0, 128, 128); for (let x = 0; x < 128; x += 8 + r() * 10) { const gr = g.createLinearGradient(x, 0, x + 10, 0); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(0.5, 'rgba(0,0,0,.45)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(x, 0, 10, 128); } for (let k = 0; k < 900; k++) { g.fillStyle = 'rgba(255,255,255,.035)'; g.fillRect(r() * 128, r() * 128, 1, 2); } });
+const dkTurbanTex = (c) => kCanvas('dkTurban' + c, 128, 64, (g) => { g.fillStyle = c; g.fillRect(0, 0, 128, 64); g.strokeStyle = 'rgba(120,100,70,.35)'; g.lineWidth = 3; for (let x = -64; x < 192; x += 11) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x + 40, 64); g.stroke(); } g.strokeStyle = 'rgba(255,255,255,.4)'; g.lineWidth = 1.5; for (let x = -60; x < 192; x += 11) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x + 40, 64); g.stroke(); } }); // (wound cloth)
+const dkCintTex = (c1, c2) => kCanvas('dkCint' + c1 + c2, 128, 128, (g) => { g.fillStyle = c1; g.fillRect(0, 0, 128, 128); g.fillStyle = c2; g.strokeStyle = c2; g.lineWidth = 2.5;
+  for (let y = 0; y < 128; y += 64) for (let x = (y / 64) % 2 ? 32 : 0; x < 160; x += 64) { for (const [dx, dy] of [[0, -7], [-7, 5], [7, 5]]) { g.beginPath(); g.arc(x + dx, y + 20 + dy, 5, 0, 7); g.fill(); } g.beginPath(); g.moveTo(x - 14, y + 44); g.quadraticCurveTo(x - 7, y + 38, x, y + 44); g.quadraticCurveTo(x + 7, y + 50, x + 14, y + 44); g.stroke(); } }); // (three moons over the tiger stripes: çintemani)
+const dkLamellarTex = (c1, c2) => kCanvas('dkLam' + c1 + c2, 128, 128, (g, r) => { g.fillStyle = c2; g.fillRect(0, 0, 128, 128);
+  for (let y = 0; y < 128; y += 16) for (let x = (y / 16) % 2 ? -4 : 0; x < 132; x += 8) { const gr = g.createLinearGradient(x, y, x + 8, y + 14); gr.addColorStop(0, c1); gr.addColorStop(1, 'rgba(0,0,0,.35)'); g.fillStyle = c1; g.fillRect(x + 0.8, y + 0.8, 6.4, 13.6); g.fillStyle = gr; g.globalAlpha = 0.4; g.fillRect(x + 0.8, y + 0.8, 6.4, 13.6); g.globalAlpha = 1; g.fillStyle = 'rgba(255,255,255,.28)'; g.fillRect(x + 1.2, y + 1.2, 1.4, 12); }
+  g.strokeStyle = 'rgba(120,20,20,.7)'; g.lineWidth = 1.4; for (let y = 4; y < 128; y += 16) { g.beginPath(); for (let x = 0; x < 128; x += 4) g.lineTo(x, y + (x % 8 ? 1.5 : -1.5)); g.stroke(); } }); // (rows of little plates, laced)
+// their blades
+Object.assign(DG_BLADES, { gscim: [5.2, (t) => 0.5 * (t < 0.72 ? 1 + 0.45 * t : (1 - t) * 4.8) + 0.02, 1.25], kilij: [2.8, (t) => 0.22 * (t < 0.72 ? 1 : t < 0.8 ? 1.4 : (1 - t) * 7) + 0.01, 0.55],
+  yatagan: [2.6, (t) => 0.2 * (t < 0.88 ? 1 : (1 - t) * 8.3) + 0.01, -0.42], msaber: [2.9, (t) => 0.2 * (t < 0.88 ? 1 - 0.15 * t : (1 - t) * 7) + 0.01, 0.48] });
+function dgExecAxe(par) { // the executioner's axe: a long haft and a great bearded blade, black and bright along its edge
+  const g = new THREE.Group(); par.add(g); const wd = new THREE.MeshLambertMaterial({ color: '#3b2414', map: woodTex() }), ir = metalMat('#4b5563', { map: ovIronTex(), shininess: 70 }), edge = metalMat('#e5e7eb', { shininess: 160 });
+  const sh = new THREE.Mesh(kCyl(), wd); sh.scale.set(0.09, 4.0, 0.09); sh.rotation.x = Math.PI / 2; sh.position.z = -1.2; g.add(sh);
+  for (const z of [0.4, -0.2]) { const w = new THREE.Mesh(kCyl(), new THREE.MeshLambertMaterial({ color: '#1c1917', map: leatherTex() })); w.scale.set(0.11, 0.35, 0.11); w.rotation.x = Math.PI / 2; w.position.z = z; g.add(w); }
+  const HD = ovShape('dgExecHead', [[0, 0.32], [0.5, 0.42], [1.2, 1.05], [1.42, 1.02], [1.5, 0.2], [1.5, -0.6], [1.2, -1.2], [0.95, -1.15], [0.6, -0.4], [0, -0.3]], 0.08, 0.03);
+  const hd = new THREE.Mesh(HD, ir); hd.rotation.set(Math.PI / 2, 0, -Math.PI / 2); hd.position.set(0, 0.04, -3.0); g.add(hd);
+  const ed = new THREE.Mesh(BOX, edge); ed.scale.set(0.05, 0.06, 2.1); ed.position.set(0, 1.48, -3.05); ed.rotation.x = 0.05; g.add(ed); // (the honed edge)
+  const sp = new THREE.Mesh(kCone(), ir); sp.scale.set(0.12, 0.6, 0.12); sp.rotation.x = -Math.PI / 2; sp.position.z = -3.5; g.add(sp);
+  g.userData.tip = new THREE.Object3D(); g.userData.tip.position.set(0, 1.4, -3.0); g.add(g.userData.tip); g.userData.len = 3.6; return g;
+}
+function dgRecurve(par) { const outer = new THREE.Group(); par.add(outer); outer.rotation.x = -Math.PI / 2; // (a composite bow: its tips bent forward, away from the archer)
+  const b = new THREE.Mesh(kg('dgRecurveG', () => sweepGeo([[0, -1.55, -0.38], [0, -1.32, -0.02], [0, -0.7, 0.2], [0, 0, 0.12], [0, 0.7, 0.2], [0, 1.32, -0.02], [0, 1.55, -0.38]], (t) => 0.05 * (1 - 0.5 * Math.abs(t - 0.5) * 2) + 0.012, 30, 8)), new THREE.MeshPhongMaterial({ color: '#5b2c12', map: woodTex(), shininess: 50 })); outer.add(b);
+  for (const y of [-0.13, 0.13]) { const w = new THREE.Mesh(kCyl(), new THREE.MeshLambertMaterial({ color: '#e8b84a' })); w.scale.set(0.07, 0.1, 0.07); w.position.y = y; outer.add(w); }
+  const str = new THREE.BufferGeometry(); str.setAttribute('position', new THREE.BufferAttribute(new Float32Array([0, 1.32, -0.02, 0, 0, 0.3, 0, -1.32, -0.02]), 3)); outer.add(new THREE.Line(str, new THREE.LineBasicMaterial({ color: '#f5f5f4' }))); return outer; }
+function dgBomb(par) { const g = new THREE.Group(); par.add(g); const b = new THREE.Mesh(kSph(), metalMat('#1f2937', { shininess: 90 })); b.scale.setScalar(0.42); g.add(b); const n = new THREE.Mesh(kCyl(), metalMat('#6b7280')); n.scale.set(0.12, 0.16, 0.12); n.position.y = 0.44; g.add(n);
+  const fz = new THREE.Mesh(kCyl(), new THREE.MeshLambertMaterial({ color: '#d6b98c' })); fz.scale.set(0.025, 0.3, 0.025); fz.position.set(0.06, 0.62, 0); fz.rotation.z = -0.4; g.add(fz); kitGlow(g, '#fb923c', 0.7, 0.9).position.set(0.13, 0.78, 0); g.position.z = -0.25; return g; }
+function dgDrum(par) { const outer = new THREE.Group(); par.add(outer); outer.rotation.x = -Math.PI / 2; const fr = new THREE.Mesh(kg('dgDrumG', () => new THREE.CylinderGeometry(0.8, 0.8, 0.22, 28, 1, true)), new THREE.MeshLambertMaterial({ color: '#7c4a22', map: woodTex(), side: THREE.DoubleSide })); fr.rotation.x = Math.PI / 2; outer.add(fr);
+  const sk = new THREE.Mesh(kg('dgDrumS', () => new THREE.CircleGeometry(0.78, 28)), new THREE.MeshLambertMaterial({ color: '#e7d3a8', map: kCanvas('dgDrumT', 128, 128, (g) => { g.fillStyle = '#e7d3a8'; g.fillRect(0, 0, 128, 128); g.strokeStyle = '#7f1d1d'; g.lineWidth = 4; g.beginPath(); g.arc(64, 64, 30, 0, 7); g.stroke(); for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4; g.beginPath(); g.moveTo(64 + Math.cos(a) * 34, 64 + Math.sin(a) * 34); g.lineTo(64 + Math.cos(a) * 56, 64 + Math.sin(a) * 56); g.stroke(); } }), side: THREE.DoubleSide })); sk.position.z = -0.11; sk.rotation.y = Math.PI; outer.add(sk); return outer; }
+function dgMace(par) { const g = new THREE.Group(); par.add(g); const wd = new THREE.MeshLambertMaterial({ color: '#3b2414', map: leatherTex() }), ir = metalMat('#9aa3ad', { map: ovIronTex(), shininess: 100 });
+  const sh = new THREE.Mesh(kCyl(), ir); sh.scale.set(0.07, 2.1, 0.07); sh.rotation.x = Math.PI / 2; sh.position.z = -0.7; g.add(sh); const gp = new THREE.Mesh(kCyl(), wd); gp.scale.set(0.09, 0.6, 0.09); gp.rotation.x = Math.PI / 2; g.add(gp);
+  for (let k = 0; k < 6; k++) { const f = new THREE.Mesh(BOX, ir); f.scale.set(0.05, 0.36, 0.6); const a = k * Math.PI / 3; f.position.set(Math.cos(a) * 0.18, Math.sin(a) * 0.18, -1.75); f.rotation.z = a + Math.PI / 2; g.add(f); }
+  const tp = new THREE.Mesh(kSph(), ir); tp.scale.setScalar(0.14); tp.position.z = -2.1; g.add(tp); g.userData.tip = new THREE.Object3D(); g.userData.tip.position.z = -2.0; g.add(g.userData.tip); g.userData.len = 2.2; return g; }
+DG_GEAR.push(
+  (h, l) => [[dgSword(h, 'gscim', { steel: '#a9bbe0', fit: '#6d8fd4', grip: '#1e2a55', pom: 0.3 }), new THREE.Group()], null], // (the Laestrygonian: 1 the scimitar, 2 bare fists)
+  (h, l) => [[dgExecAxe(h)], null],
+  (h, l) => [[dgPole(h, 'javelin')], dgShield(l, 'kalkan')],
+  (h, l) => [[dgSword(h, 'kilij', { fit: '#d9a441', guard: false })], dgRecurve(l)],
+  (h, l) => [[dgSword(h, 'kilij', { fit: '#d9a441' })], dgBomb(l)],
+  (h, l) => [[dgPole(h, 'teber')], null],
+  (h, l) => [[dgSword(h, 'yatagan', { fit: '#e8b84a', grip: '#f5f0e1', guard: false })], null],
+  (h, l) => [[dgPole(h, 'mspear')], null],
+  (h, l) => [[dgSword(h, 'msaber', { fit: '#c08a3e', guard: false })], dgRecurve(l)],
+  (h, l) => [[dgPole(h, 'staff')], dgDrum(l)],
+  (h, l) => [[dgMace(h)], dgShield(l, 'wicker')],
+  (h, l) => [[dgSword(h, 'msaber', { fit: '#e8b84a', grip: '#7f1d1d' })], null],
+);
+BODY_DESC.push('⚔️ The Laestrygonian of the Colosseum Duels: a giant in worn blue-silver plate with a crested V-visored helm and a great curved scimitar. A mastery reward in ⚔️ Colosseum Duels.',
+  '⚔️ The Executioner: a black hood with burning red eyes, bare-chested, a skirt of leather pteruges. A mastery reward in ⚔️ Colosseum Duels.',
+  '⚔️ An Ottoman azab: a red cap wound with a white turban, a mustard entari, baggy şalvar and yellow boots. A mastery reward in ⚔️ Colosseum Duels.',
+  '⚔️ An Ottoman archer: a great white turban, a green çintemani kaftan with gold frogging, a quiver at the hip. A mastery reward in ⚔️ Colosseum Duels.',
+  '⚔️ An Ottoman humbaracı (grenadier): a red külah banded with fur, a leather vest, a bandolier of bombs. A mastery reward in ⚔️ Colosseum Duels.',
+  '⚔️ A peyk of the Sultan’s guard: a tall gilded helmet under white feathers, a crimson kaftan bordered in gold. A mastery reward in ⚔️ Colosseum Duels.',
+  '⚔️ A Janissary: the tall white börk with its flap and gilded spoon-holder, a blue kaftan tucked into a red sash. A mastery reward in ⚔️ Colosseum Duels.',
+  '⚔️ A Mongol spearman: a felt cap with a fur brim, a blue deel and a lamellar vest, boots with upturned toes. A mastery reward in ⚔️ Colosseum Duels.',
+  '⚔️ A Mongol archer on foot: a fur hat with ear-flaps, a fur-trimmed deel, a quiver and bow case. A mastery reward in ⚔️ Colosseum Duels.',
+  '⚔️ A steppe shaman: a fringe over the eyes, a robe of ribbons and bronze mirrors, a frame drum. A mastery reward in ⚔️ Colosseum Duels.',
+  '⚔️ A kheshig of the Khan’s guard: a spiked iron helmet with an aventail, iron lamellar to the knee. A mastery reward in ⚔️ Colosseum Duels.',
+  '⚔️ The Great Khan: gilded lamellar over a red deel, a fur-brimmed crown with a gold finial and a white plume. A mastery reward in ⚔️ Colosseum Duels.');
 function duelGear(a, i) { // made the first time the pack runs: the hand groups, on the forearms
   const hR = new THREE.Group(), hL = new THREE.Group(), y = a.r15 ? -0.92 : -1.9; hR.position.y = hL.position.y = y; pfx(a, hR, a.r15 ? a.elR : a.armR); pfx(a, hL, a.r15 ? a.elL : a.armL);
   const R0 = new THREE.Group(), L0 = new THREE.Group(); hR.add(R0); hL.add(L0); const [R, L] = DG_GEAR[i](R0, L0);
-  const twoH = new Set([13, 14, 15, 16, 18, 19]);
-  if (i === 7 || i === 11) { R[0].visible = false; } // (archers: the short sword stays out of the way unless it's drawn)
-  R0.rotation.x = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.15, 0.2, 0.25, 0, 0.55, 0.3, 0, 0.55][i]; // (two-handed blades tilt forward, towards the foe)
+  const twoH = new Set([13, 14, 15, 16, 18, 19, 21, 25, 27]), ARCH = new Set([7, 11, 23, 28]);
+  if (ARCH.has(i)) { R[0].visible = false; } // (archers: the short sword stays out of the way unless it's drawn)
+  R0.rotation.x = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.15, 0.2, 0.25, 0, 0.55, 0.3, 0, 0.55, 0.35, 0.35, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0][i] || 0; // (two-handed blades tilt forward, towards the foe)
   for (const o of R) if (o.userData.pole) o.rotation.x = -Math.PI / 2; // (poles: along the forearm, pointing ahead)
-  return { hR, hL, R, L, twoH: twoH.has(i), mode: 0, show(m) { hR.visible = hL.visible = true; R.forEach((o, k) => (o.visible = k === Math.min(m, R.length - 1) && !((i === 7 || i === 11) && !a.dgBlade))); if (L) L.visible = true; } };
+  return { hR, hL, R, L, twoH: twoH.has(i), mode: 0, show(m) { hR.visible = hL.visible = true; R.forEach((o, k) => (o.visible = k === Math.min(m, R.length - 1) && !(ARCH.has(i) && !a.dgBlade))); if (L) L.visible = true; } };
 }
 /* the twenty animation packs: each its own guard (its weapon in hand), walk and leap, and a flourish of its own every
    so often while it stands. g: the guard — arms [aL, aR] [x, y, z], elbows eL, eR — st: stance (legs apart, crouch,
    lean); w: the walk (stride, arm swing, lean, bounce, crouch, rate; keep: how much of the guard it keeps); j: the leap;
    f: the flourish */
 function duelPack(o, i) {
+  const r6 = (J) => { J.aR = [Math.min(3.1, J.aR[0] + J.eR[0]), J.aR[1], J.aR[2]]; J.aL = [Math.min(3.1, J.aL[0] + J.eL[0]), J.aL[1], J.aL[2]]; J.eR = [0, 0, 0]; J.eL = [0, 0, 0]; J.kL = [0, 0, 0]; J.kR = [0, 0, 0]; J.up = Math.max(-0.15, J.up || 0); }; // (R6: each limb one rigid block — the elbow's bend goes to the shoulder, the knees stay straight)
   return { snap: 10, duel: i,
-    pose(J, a, s) {
+    pose(J, a, s) { this.core(J, a, s); if (a.duR6 || (exp && exp.r6)) r6(J); },
+    core(J, a, s) {
       const r15 = a.r15, t = s.t, br = Math.sin(t * 2.0), G = o.g;
       const guard = (k = 1) => { J.aL = [G[0][0] * k, G[0][1] * k, G[0][2] * k]; J.aR = [G[1][0] * k, G[1][1] * k, G[1][2] * k]; if (r15) { J.eL = [G[2] * k, 0, 0]; J.eR = [G[3] * k, 0, 0]; } };
       if (s.air) { const dn = (s.vy || 0) < 0 ? smooth(Math.min(1, -s.vy / 9)) : 0, jp = o.j || [0.4, 0.5];
         guard(0.7); J.aL[2] -= jp[0] * (1 - dn); J.aR[2] += jp[0] * (1 - dn); J.lL = [jp[1], 0, -0.1]; J.lR = [-0.1 + 0.3 * dn, 0, 0.1]; J.bd = [0.1 - 0.2 * dn, 0, 0]; J.hd = [0.15 - 0.3 * dn, 0, 0]; if (r15) { J.kL = [-1.0, 0, 0]; J.kR = [-0.3 - 0.4 * dn, 0, 0]; } J.k = 9; return; }
       if (!s.mv && s.land != null && s.land < 0.6) { const d = 1 - smooth(s.land / 0.6); J.up = -0.4 * d; guard(1); J.bd = [-0.3 * d, 0, 0]; if (r15) { J.kL = J.kR = [-0.9 * d, 0, 0]; J.lL = J.lR = [0.5 * d, 0, 0]; } J.k = 12; return; }
+      if (s.mv && (s.spd || 1) > 1.18) { const W = o.w, p = s.ph * 1.2 * (W.rate || 1), sw = Math.sin(p), c = Math.cos(p); // (running: a lean into it, arms pumping, long strides, the weapon carried low)
+        guard((W.keep != null ? W.keep : 0.6) * 0.3); J.aL[0] += -1.05 * sw; J.aR[0] += 1.05 * sw; J.aL[2] -= 0.12; J.aR[2] += 0.12; if (r15) { J.eL = [1.25 + 0.35 * sw, 0, 0]; J.eR = [1.25 - 0.35 * sw, 0, 0]; }
+        J.lL = [1.05 * sw, 0, -0.04]; J.lR = [-1.05 * sw, 0, 0.04]; J.bd = [-0.42, 0.16 * sw, -(s.turn || 0) * 0.15]; J.hd = [0.32, -0.1 * sw, 0]; J.up = 0.24 * Math.abs(c) - 0.06;
+        if (r15) { J.kL = [-(0.35 + 1.55 * Math.max(0, c)), 0, 0]; J.kR = [-(0.35 + 1.55 * Math.max(0, -c)), 0, 0]; J.ws = [0, 0.2 * sw, 0]; } J.k = 13; return; }
       if (s.mv) { const W = o.w, run = Math.min(1, Math.max(0, ((s.spd || 1) - 0.9) / 0.4)), p = s.ph * (W.rate || 1), sw = Math.sin(p), c = Math.cos(p);
         guard(W.keep != null ? W.keep : 0.6); J.aL[0] += -W.arm * sw * (1 - 0.3 * run); J.aR[0] += W.arm * sw * (1 - 0.3 * run);
         J.lL = [W.str * sw, 0, -0.06]; J.lR = [-W.str * sw, 0, 0.06]; J.bd = [-(W.lean + 0.15 * run), (W.twist || 0.08) * sw + (s.turn || 0) * 0.1, -(s.turn || 0) * 0.08]; J.hd = [W.lean * 0.6, -0.05 * sw, 0]; J.up = -(W.cr || 0) + (W.bob || 0.1) * Math.abs(c);
@@ -4820,8 +5015,20 @@ ANIM_PACKS.push(...[
   { g: [[0.5, 0, -0.5], [0.8, 0, 0.35], 1.0, 1.0], st: [0.3, 0.3, 0.3], w: { str: 0.6, arm: 0.25, lean: 0.4, bob: 0.06, cr: 0.25, keep: 0.8, rate: 1.15 }, j: [0.7, 0.9], f: dfl.crouch(6) }, // Shinobi: low, sneaking
   { g: [[0.85, 0.3, 0.3], [0.8, -0.1, 0.05], 0.8, 0.6], st: [0.26, 0.14, 0.06], w: { str: 0.55, arm: 0.06, lean: 0.1, bob: 0.08, keep: 0.95 }, f: dfl.pray(9) }, // Sohei: naginata in both hands; prayers
   { g: [[0.75, 0.35, 0.3], [0.7, -0.1, 0.05], 1.15, 1.1], st: [0.22, 0.12, 0.06], w: { str: 0.52, arm: 0.04, lean: 0.1, bob: 0.06, keep: 1.0, rate: 0.95 }, f: dfl.bow(10) }, // Samurai: the tachi in both hands — and a bow
+  { g: [[0.5, 0, -0.4], [0.85, 0, 0.35], 0.6, 0.9], st: [0.34, 0.14, 0.14], w: { str: 0.42, arm: 0.22, lean: 0.14, bob: 0.26, keep: 0.7, rate: 0.7, knee: 0.5, twist: 0.22 }, j: [0.3, 0.4], f: dfl.roar(9) }, // Laestrygonian: hunched, heavy, each step a weight
+  { g: [[0.9, 0.25, 0.25], [0.85, -0.1, 0.05], 0.9, 0.8], st: [0.2, 0.08, 0.1], w: { str: 0.62, arm: 0.06, lean: 0.14, bob: 0.08, keep: 0.95, rate: 1.05 }, f: dfl.cut(10) }, // Executioner: the axe in both hands — and a practice stroke
+  { g: [[0.6, 0, -0.25], [1.0, 0, 0.2], 1.0, 0.6], st: [0.16, 0.08, 0.05], w: { str: 0.7, arm: 0.2, lean: 0.12, bob: 0.12, keep: 0.8, rate: 1.05 }, f: dfl.shield(9) }, // Azab
+  { g: [[0.9, 0, -0.1], [0.2, 0, 0.15], 0.4, 0.3], st: [0.14, 0.04, 0.02], w: { str: 0.6, arm: 0.25, lean: 0.08, bob: 0.08 }, f: dfl.draw(7) }, // Okçu
+  { g: [[0.7, 0, -0.3], [0.6, 0, 0.25], 1.2, 0.9], st: [0.18, 0.08, 0.06], w: { str: 0.65, arm: 0.25, lean: 0.12, bob: 0.1, keep: 0.8 }, f: dfl.scan(7) }, // Humbaracı: a bomb ready in the other hand
+  { g: [[0.85, 0.3, 0.3], [0.85, -0.1, 0.05], 0.8, 0.6], st: [0.18, 0.06, 0.02], w: { str: 0.5, arm: 0.06, lean: 0.04, bob: 0.06, keep: 0.95, rate: 0.9 }, f: dfl.salute(10) }, // Peyk: the teber upright, at attention
+  { g: [[0.4, 0, -0.2], [0.7, 0, 0.25], 0.6, 1.0], st: [0.16, 0.06, 0.03], w: { str: 0.58, arm: 0.2, lean: 0.06, bob: 0.07, keep: 0.85 }, f: dfl.salute(9) }, // Janissary
+  { g: [[0.9, 0.3, 0.3], [0.85, -0.1, 0.05], 0.8, 0.6], st: [0.2, 0.1, 0.08], w: { str: 0.6, arm: 0.05, lean: 0.12, bob: 0.08, keep: 1.0 }, f: dfl.scan(8) }, // Arban Spearman
+  { g: [[0.9, 0, -0.1], [0.2, 0, 0.15], 0.4, 0.3], st: [0.16, 0.06, 0.04], w: { str: 0.7, arm: 0.3, lean: 0.12, bob: 0.12, rate: 1.1 }, j: [0.6, 0.6], f: dfl.draw(8) }, // Steppe Archer
+  { g: [[0.9, 0, -0.1], [0.6, 0, 0.2], 1.3, 0.8], st: [0.2, 0.1, 0.12], w: { str: 0.55, arm: 0.2, lean: 0.14, bob: 0.14, twist: 0.2 }, f: dfl.beat(7) }, // Steppe Shaman: drumming
+  { g: [[0.65, 0, -0.1], [0.6, 0, 0.15], 1.0, 0.9], st: [0.18, 0.08, 0.06], w: { str: 0.52, arm: 0.12, lean: 0.06, bob: 0.06, keep: 0.85, rate: 0.9 }, f: dfl.shield(9) }, // Kheshig
+  { g: [[0.4, 0, -0.3], [0.7, 0, 0.25], 0.6, 1.0], st: [0.22, 0.08, 0.02], w: { str: 0.55, arm: 0.15, lean: 0.04, bob: 0.06, keep: 0.85, rate: 0.92 }, f: dfl.salute(11) }, // Great Khan: proud, unhurried
 ].map(duelPack));
-ANIM_DESC.push(...DUEL_N.map((n) => `⚔️ The ${n}’s own guard, walk and leap from ⚔️ Colosseum Duels, its weapon in hand — and a flourish of its own while it stands. A mastery reward.`));
+ANIM_DESC.push(...DUEL_N.map((n, i) => `⚔️ The ${n}’s own guard, walk, run and leap from ⚔️ Colosseum Duels, its weapon in hand — and a flourish of its own while it stands. ${i === 20 ? 'Yours for beating the Laestrygonian boss, or at Season Pass level 100.' : i === 21 ? 'Yours with the Executioner’s quest.' : 'A mastery reward.'}`));
 /* ---------------- shapes for the remade items: feathered wings, a bat's wing, a cape that hangs, a shield ---------------- */
 // a feathered wing, fanned out from the shoulder (s: -1 the left, 1 the right): long feathers at the back, shorter rows
 // over them, longest at the tip. o: { cols: [long, middle, short], span, em (a glow), k (feather length) }

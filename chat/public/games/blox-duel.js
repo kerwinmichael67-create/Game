@@ -118,19 +118,42 @@
     .du-diff button{padding:14px 10px;border-radius:14px;border:2px solid var(--dc);background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(0,0,0,.2));color:#fff;font:800 17px var(--fh);cursor:pointer;text-align:center}
     .du-diff button small{display:block;margin-top:4px;font:600 11.5px/1.3 var(--fb);color:#cbd5e1}.du-diff button.on{background:var(--dc);color:#0b1220}.du-diff button.on small{color:#0b1220}
     .du-res{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+    .du-gwrap{overflow-x:auto;padding:2px 2px 8px;-webkit-overflow-scrolling:touch}
+    .du-g6{display:grid;grid-template-columns:58px repeat(6,minmax(124px,1fr));gap:8px;min-width:850px;align-items:start}
+    .du-gh{font:800 14px var(--fh);color:#fff;text-align:center;padding:6px 4px;border-radius:10px;background:rgba(255,255,255,.07)}
+    .du-gr{align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);padding:6px 2px}
+    .du-gr b{font-size:13px;line-height:1.05;color:var(--rc);text-align:center;word-break:break-all;width:40px;text-shadow:0 1px 2px #000}.du-gr small{font:800 9.5px var(--fb);color:#cbd5e1;text-transform:uppercase;letter-spacing:.03em}
+    .du-gc{display:flex;flex-direction:column;gap:8px;min-height:40px;border-radius:12px;background:rgba(0,0,0,.14)}
+    .du-fcard{position:relative;border-radius:14px;overflow:hidden;padding:0 0 7px;text-align:center;background:var(--cb);border:2px solid var(--cc);box-shadow:0 4px 10px rgba(0,0,0,.35)}
+    .du-fcard.r0{--cb:linear-gradient(180deg,#f1f5f9,#cbd5e1 62%,#94a3b8);--cc:#f8fafc}.du-fcard.r1{--cb:linear-gradient(180deg,#93c5fd,#3b82f6 60%,#1d4ed8);--cc:#bfdbfe}
+    .du-fcard.r2{--cb:linear-gradient(180deg,#d8b4fe,#a855f7 60%,#6b21a8);--cc:#e9d5ff}.du-fcard.r3{--cb:linear-gradient(180deg,#fde68a,#f59e0b 60%,#b45309);--cc:#fef3c7}
+    .du-fcard.r4{--cb:linear-gradient(180deg,#fda4af,#e11d48 60%,#881337);--cc:#fecdd3;animation:duMyth 1.6s infinite alternate}@keyframes duMyth{to{box-shadow:0 0 18px #fb7185,0 4px 10px rgba(0,0,0,.35)}}
+    .du-fcard .pic{display:block;width:100%;padding:0;border:0;background:none;cursor:pointer}.du-fcard img{display:block;width:100%;height:122px;object-fit:cover;background:radial-gradient(circle at 50% 35%,rgba(255,255,255,.35),transparent 70%)}
+    .du-fcard.lock img{filter:grayscale(1) brightness(.5)}.du-fcard.eqd{box-shadow:0 0 0 3px #4ade80}.du-fcard.sel{outline:3px solid #fde68a;outline-offset:1px}
+    .du-fcard b{display:block;font:800 12.5px/1.15 var(--fh);color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.8);padding:4px 5px 0}.du-fcard.r0 b{color:#0f172a;text-shadow:none}
+    .du-fcard small{display:block;font:800 11px var(--fb);color:#fef08a;text-shadow:0 1px 2px rgba(0,0,0,.6);letter-spacing:.02em}.du-fcard.r0 small{color:#475569;text-shadow:none}
+    .du-fcard .st{position:absolute;left:5px;top:5px;z-index:2;padding:3px 8px;border-radius:7px;border:0;background:#dc2626;color:#fff;font:800 10.5px var(--fb);cursor:pointer;box-shadow:0 2px 0 #7f1d1d}
+    .du-fcard .mb{position:absolute;right:5px;top:5px;z-index:2;padding:2px 6px;border-radius:7px;background:rgba(15,23,42,.8);font:800 10px var(--fb);color:#fde68a}
+    .du-fcard .eq{display:block;margin:6px auto 0;width:calc(100% - 14px);padding:6px 0;border-radius:9px;border:0;background:#16a34a;color:#fff;font:800 12.5px var(--fh);cursor:pointer;box-shadow:0 3px 0 #14532d}
+    .du-fcard .eq.on{background:#065f46;box-shadow:none;cursor:default}.du-fcard .eq.lk{background:#475569;box-shadow:0 3px 0 #1e293b}
+    .du-x{float:right;width:30px;height:30px;border-radius:9px;border:1px solid rgba(255,255,255,.2);background:rgba(15,23,42,.7);color:#e2e8f0;font:800 14px var(--fb);cursor:pointer}
     @media (max-width:640px){#duTop{left:8px;right:8px;top:62px}.du-card{width:44vw;padding:6px 8px}.du-card .ch,.du-card .rr{display:none}#duMid .tm{font-size:24px}#duBig{font-size:40px}.du-ab{width:56px;height:56px;font-size:24px}.du-ab.m1{width:64px;height:64px}}`;
   document.head.append(style);
 
   /* ---------------- the four empires and their fighters ---------------- */
   const EMP = [
-    { n: 'Rome', e: '🦅', c1: '#7f1d1d', c2: '#e8b84a', d: 'Legions, the arena’s gladiators and the emperor’s own guard.' },
-    { n: 'Greece', e: '🏛️', c1: '#1e3a8a', c2: '#e2e8f0', d: 'Hoplites, skirmishers and archers of the city-states — and Sparta.' },
-    { n: 'Medieval Europe', e: '🏰', c1: '#1f2937', c2: '#93c5fd', d: 'Men-at-arms, bowmen, Norse raiders, crusaders — and the knight in full plate.' },
-    { n: 'Medieval Japan', e: '🏯', c1: '#450a0a', c2: '#fca5a5', d: 'Foot soldiers, masterless swordsmen, shinobi, warrior monks — and the samurai.' },
+    { n: 'Rome', sn: 'Rome', e: '🦅', c1: '#7f1d1d', c2: '#e8b84a', d: 'Legions, the arena’s gladiators and the emperor’s own guard.' },
+    { n: 'Greece', sn: 'Greece', e: '🏛️', c1: '#1e3a8a', c2: '#e2e8f0', d: 'Hoplites, skirmishers and archers of the city-states — and Sparta.' },
+    { n: 'Medieval Europe', sn: 'Europe', e: '🏰', c1: '#1f2937', c2: '#93c5fd', d: 'Men-at-arms, bowmen, Norse raiders, crusaders — and the knight in full plate.' },
+    { n: 'Medieval Japan', sn: 'Japan', e: '🏯', c1: '#450a0a', c2: '#fca5a5', d: 'Foot soldiers, masterless swordsmen, shinobi, warrior monks — and the samurai.' },
+    { n: 'Ottoman Empire', sn: 'Ottoman', e: '🌙', c1: '#14532d', c2: '#f87171', d: 'Azabs and archers, grenadiers, the Sultan’s own Peyk guard — and the Janissary. All on foot.' },
+    { n: 'Mongols', sn: 'Mongols', e: '🏹', c1: '#78350f', c2: '#7dd3fc', d: 'The arban’s spears, steppe archers, a shaman of the Eternal Blue Sky, the Kheshig — and the Great Khan. All on foot.' },
   ];
-  const RAR = [{ n: 'Common', c: '#94a3b8' }, { n: 'Rare', c: '#38bdf8' }, { n: 'Epic', c: '#c084fc' }, { n: 'Legendary', c: '#fbbf24' }];
+  // the rarities, one star each: ★ common … ★★★★★ mythic
+  const RAR = [{ n: 'Common', c: '#cbd5e1' }, { n: 'Rare', c: '#38bdf8' }, { n: 'Epic', c: '#c084fc' }, { n: 'Legendary', c: '#fbbf24' }, { n: 'Mythic', c: '#f43f5e' }];
+  RAR.forEach((R, i) => { R.s = '★'.repeat(i + 1); R.t = `${R.s} ${R.n}`; });
   const ODDS = [30, 30, 27, 12, 1]; // (a crate's five, in order: common, common, rare, epic, legendary)
-  const CRATE_PRICE = 300;
+  const CRATE_PRICE = 300, CRATE_GOLD = 100; // (a crate: 🪙 300 Blox Coins, or 🥇 100 of the duel's own gold)
   /* An ability: k what it is — melee (one hit), multi (several), combo (the Samurai's), proj (thrown or shot), dash, leap,
      volley (arrows fall where they stand), buff — dmg · cd (seconds) · rng (reach) · arc (degrees in front) · wind (the
      wind-up before it lands) · an (its animation) · fx what it does to them: st stun, rt root, sl [speed, s] slow,
@@ -153,16 +176,16 @@
       { n: 'Trident Flurry', ic: '🌊', k: 'multi', hits: [30, 30, 30, 30], gap: 0.17, cd: 30, rng: 7.5, arc: 60, wind: 0.2, an: 'flurry', d: 'Four quick thrusts, 30 each.' }] },
     { e: 0, r: 2, hp: 520, def: 0.9, ab: [
       { n: 'Spatha Cut', ic: '⚔️', k: 'melee', dmg: 58, cd: 1.4, rng: 7, arc: 100, wind: 0.22, an: 'slash' },
-      { n: 'Testudo', ic: '🛡️', k: 'buff', cd: 14, an: 'testudo', b: { dur: 3, blk: 0.8 }, d: 'Shield up like a whole legion: 80% less damage from every side for 3 s.' },
+      { n: 'Testudo', ic: '🛡️', k: 'buff', cd: 14, an: 'testudo', b: { dur: 2.5, blk: 1 }, d: 'Shield up like a whole legion: blocks every blow, from every side, for 2.5 s.' },
       { n: 'Imperial Charge', ic: '🦂', k: 'dash', dmg: 120, dist: 15, dd: 0.45, cd: 32, wind: 0.25, an: 'charge', fx: { st: 1, kb: 6 }, d: 'Charge behind the shield: 120 damage and they’re knocked down (1 s).' }] },
-    { e: 0, r: 3, hp: 425, ab: [
-      { n: 'Sica Slash', ic: '⚔️', k: 'melee', dmg: 55, cd: 1.5, rng: 6.5, arc: 110, wind: 0.2, an: 'sica', fx: { bl: [65, 5], blc: 0.35 }, d: '35% chance to make them bleed: 65 damage over 5 s.' },
-      { n: 'Shield Rush', ic: '🛡️', k: 'dash', dmg: 70, dist: 11, dd: 0.3, cd: 10, wind: 0.12, an: 'rush', fx: { st: 1 }, d: 'Rush in behind the shield: 70 damage and a 1 s stun.' },
-      { n: 'Berserk', ic: '🔥', k: 'buff', cd: 35, an: 'berserk', b: { dur: 5, cdM: 2, dmgA: 35 }, d: 'For 5 s: cooldowns 50% shorter and +35 damage on every hit.' }] },
+    { e: 0, r: 3, hp: 425, ro: 'Damage dealer', ab: [
+      { n: 'Sica Slash', ic: '⚔️', k: 'melee', dmg: 78, cd: 1.3, rng: 6.5, arc: 110, wind: 0.2, an: 'sica', fx: { bl: [90, 5], blc: 0.4 }, d: '78 damage, and a 40% chance to make them bleed: 90 more over 5 s.' },
+      { n: 'Shield Rush', ic: '🛡️', k: 'dash', dmg: 100, dist: 11, dd: 0.3, cd: 9, wind: 0.12, an: 'rush', fx: { st: 1 }, d: 'Rush in behind the shield: 100 damage and a 1 s stun.' },
+      { n: 'Berserk', ic: '🔥', k: 'buff', cd: 32, an: 'berserk', b: { dur: 6, cdM: 2, dmgA: 45, dmgM: 1.15 }, d: 'For 6 s: cooldowns 50% shorter, +45 damage on every hit and +15% on top.' }] },
     // 🏛️ Greece
     { e: 1, r: 0, hp: 450, ab: [
       { n: 'Dory Thrust', ic: '🔱', k: 'melee', dmg: 40, cd: 1.3, rng: 8.5, arc: 40, wind: 0.2, an: 'overhand' },
-      { n: 'Aspis Wall', ic: '🛡️', k: 'buff', cd: 10, an: 'aspis', b: { dur: 2.5, blk: 0.7 }, d: 'Brace behind the aspis: 70% less damage for 2.5 s.' },
+      { n: 'Aspis Wall', ic: '🛡️', k: 'buff', cd: 10, an: 'aspis', b: { dur: 2.5, blk: 1 }, d: 'Brace behind the aspis: blocks every blow for 2.5 s.' },
       { n: 'Phalanx Push', ic: '🦉', k: 'dash', dmg: 80, dist: 9, dd: 0.35, cd: 28, wind: 0.2, an: 'push', fx: { kb: 12 }, d: 'Drive forward shield first: 80 damage and they’re thrown back.' }] },
     { e: 1, r: 0, hp: 380, spd: 1.1, ab: [
       { n: 'Kopis Cut', ic: '🗡️', k: 'melee', dmg: 38, cd: 1.0, rng: 6, arc: 100, wind: 0.15, an: 'slash' },
@@ -185,7 +208,7 @@
     // 🏰 Medieval Europe
     { e: 2, r: 0, hp: 460, ab: [
       { n: 'Arming Sword', ic: '🗡️', k: 'melee', dmg: 45, cd: 1.3, rng: 6.5, arc: 100, wind: 0.2, an: 'slash' },
-      { n: 'Shield Block', ic: '🛡️', k: 'buff', cd: 10, an: 'shieldup', b: { dur: 2.5, blk: 0.75 }, d: 'Behind the heater shield: 75% less damage for 2.5 s.' },
+      { n: 'Shield Block', ic: '🛡️', k: 'buff', cd: 10, an: 'shieldup', b: { dur: 2.5, blk: 1 }, d: 'Behind the heater shield: blocks every blow for 2.5 s.' },
       { n: 'Rally', ic: '📯', k: 'buff', cd: 28, an: 'rally', b: { dur: 6, heal: 120, dmgM: 1.2 }, d: 'Heal 120 and +20% damage for 6 s.' }] },
     { e: 2, r: 0, hp: 340, ab: [
       { n: 'Longbow', ic: '🏹', k: 'proj', dmg: 48, cd: 1.5, spd: 105, wind: 0.3, an: 'bow', model: 'arrow' },
@@ -195,17 +218,17 @@
       { n: 'Dane Axe', ic: '🪓', k: 'melee', dmg: 55, cd: 1.5, rng: 6.5, arc: 110, wind: 0.25, an: 'chop' },
       { n: 'Axe Throw', ic: '🪓', k: 'proj', dmg: 60, cd: 10, spd: 70, wind: 0.3, an: 'throw', model: 'axe', fx: { sl: [0.6, 2] }, d: 'A spinning throwing axe: 60 damage and a 2 s slow.' },
       { n: 'Berserkergang', ic: '🐻', k: 'buff', cd: 32, an: 'roar', b: { dur: 6, dmgM: 1.4, ls: 0.3 }, d: 'The bear-shirt rage: +40% damage and 30% lifesteal for 6 s.' }] },
-    { e: 2, r: 2, hp: 560, def: 0.85, ab: [
-      { n: 'Longsword', ic: '⚔️', k: 'melee', dmg: 65, cd: 1.6, rng: 7, arc: 100, wind: 0.25, an: 'slash2' },
-      { n: 'Holy Smite', ic: '✝️', k: 'melee', dmg: 100, cd: 13, rng: 7, arc: 60, wind: 0.5, an: 'smite', fx: { st: 1 }, d: 'A great overhead blow wreathed in light: 100 damage and a 1 s stun.' },
-      { n: 'Deus Vult', ic: '🙏', k: 'buff', cd: 35, an: 'pray', b: { dur: 6, healP: 0.3, dmgM: 1.25 }, d: 'Heal 30% of your health and +25% damage for 6 s.' }] },
-    { e: 2, r: 3, hp: 735, def: 0.65, spd: 0.75, ab: [
+    { e: 2, r: 2, hp: 500, def: 0.9, ab: [
+      { n: 'Longsword', ic: '⚔️', k: 'melee', dmg: 56, cd: 1.6, rng: 7, arc: 100, wind: 0.25, an: 'slash2' },
+      { n: 'Holy Smite', ic: '✝️', k: 'melee', dmg: 85, cd: 14, rng: 7, arc: 60, wind: 0.55, an: 'smite', fx: { st: 0.8 }, d: 'A great overhead blow wreathed in light: 85 damage and a 0.8 s stun.' },
+      { n: 'Deus Vult', ic: '🙏', k: 'buff', cd: 38, an: 'pray', b: { dur: 5, healP: 0.2, dmgM: 1.15 }, d: 'Heal 20% of your health and +15% damage for 5 s.' }] },
+    { e: 2, r: 3, hp: 640, def: 0.75, spd: 0.75, ab: [
       { n: 'Sword Modes', ic: '⚔️', k: 'melee', modes: [
-        { n: 'Overhead', ic: '⬇️', dmg: 125, cd: 2.5, rng: 8, arc: 60, wind: 0.45, an: 'overhead' },
-        { n: 'Swing', ic: '↔️', dmg: 75, cd: 1.8, rng: 8, arc: 150, wind: 0.3, an: 'swing' },
-        { n: 'Stab', ic: '🎯', dmg: 300, cd: 5.5, rng: 9.5, arc: 30, wind: 0.65, an: 'stab' }] },
-      { n: 'Pommel Strike', ic: '🔨', k: 'melee', dmg: 50, cd: 12, rng: 5, arc: 70, wind: 0.2, an: 'pommel', fx: { st: 1.2 }, d: 'Murder-stroke with the pommel: 50 damage and a 1.2 s stun.' },
-      { n: 'Iron Fortress', ic: '🏰', k: 'buff', cd: 32, an: 'fortress', b: { dur: 5, def: 0.5, hps: 25, imm: 1 }, d: 'For 5 s: half the damage, heal 25 a second, and nothing stuns, roots or slows you.' }] },
+        { n: 'Overhead', ic: '⬇️', dmg: 105, cd: 2.6, rng: 8, arc: 60, wind: 0.5, an: 'overhead' },
+        { n: 'Swing', ic: '↔️', dmg: 62, cd: 1.9, rng: 8, arc: 150, wind: 0.3, an: 'swing' },
+        { n: 'Stab', ic: '🎯', dmg: 230, cd: 6, rng: 9.5, arc: 30, wind: 0.7, an: 'stab' }] },
+      { n: 'Pommel Strike', ic: '🔨', k: 'melee', dmg: 45, cd: 13, rng: 5, arc: 70, wind: 0.2, an: 'pommel', fx: { st: 1 }, d: 'Murder-stroke with the pommel: 45 damage and a 1 s stun.' },
+      { n: 'Iron Fortress', ic: '🏰', k: 'buff', cd: 34, an: 'fortress', b: { dur: 4, def: 0.6, hps: 16, imm: 1 }, d: 'For 4 s: 40% less damage, heal 16 a second, and nothing stuns, roots or slows you.' }] },
     // 🏯 Medieval Japan
     { e: 3, r: 0, hp: 400, ab: [
       { n: 'Yari Thrust', ic: '🔱', k: 'melee', dmg: 40, cd: 1.2, rng: 9, arc: 35, wind: 0.2, an: 'spear2' },
@@ -227,12 +250,77 @@
       { n: 'Tachi Cut', ic: '🗡️', k: 'melee', dmg: 80, cd: 1.4, rng: 7.5, arc: 100, wind: 0.2, an: 'katana' },
       { n: 'Combo', ic: '🌸', k: 'combo', hits: [75, 35, 40, 25, 40], gap: 0.27, cd: 7, rng: 7.5, arc: 90, wind: 0.2, an: 'combo', d: 'Five cuts: 75, 35, 40, 25, 40. If the first lands they can’t move until it’s done — if it misses you’re stunned for 1.5 s and take 50% more damage.' },
       { n: 'Iaido Strike', ic: '🌙', k: 'dash', dmg: 180, dist: 15, dd: 0.25, cd: 28, wind: 0.35, an: 'iaido', d: 'One perfect draw-cut as you pass through them: 180 damage.' }] },
+    // 🏛️ Greece's myth: the Laestrygonian — not in any crate (beat the boss, or reach Season Pass level 100)
+    { e: 1, r: 4, hp: 1750, spd: 0.5, def: 0.55, big: 1.75, nc: 1, brute: 0.15, ro: 'Giant', how: 'Beat the 👹 Laestrygonian boss, or reach Season Pass level 100', pas: [['🛡️', 'Armored Giant', '50% slower than everyone else, and takes 45% less damage.'], ['💢', 'Brute Force', 'Every hit has a 15% chance to leave them Crushed: double damage until the round ends or they die.']], ab: [
+      { n: 'Scimitar / Punch', ic: '🗡️', k: 'melee', modes: [
+        { n: 'Scimitar', ic: '🗡️', dmg: 225, cd: 1.9, rng: 10.5, arc: 120, wind: 0.5, an: 'gslash' },
+        { n: 'Punch', ic: '👊', dmg: 125, cd: 1.5, rng: 7.5, arc: 70, wind: 0.25, an: 'punch' }] },
+      { n: 'Bloodrush', ic: '🩸', k: 'buff', cd: 10, an: 'bloodrush', b: { dur: 6, dmgM: 1.5, foeSpd: 1.2 }, d: '×1.5 damage on every hit for 6 s — but the blood in the air gives them a ×1.2 speed boost too.' },
+      { n: 'Stomp / Crush', ic: '🦶', k: 'stomp', dmg: 50, crush: 150, near: 7, rad: 26, cd: 1.5, wind: 0.45, an: 'stomp', d: 'A shockwave rolls out across the sand: jump it or take 50. If they’re close it’s a Crush instead — 150 damage, a 1 s stun, and Crushed for the rest of the round.' },
+      { n: 'Rush and Crush', ic: '🐂', k: 'dash', rush: 1, dmg: 275, dmg2: 350, dist: 26, dd: 2, cd: 35, wind: 0.3, an: 'rush', fx: { st: 1.2 }, d: 'Charge for 2 s, scimitar out: 275 damage and a 1.2 s stun to anyone in the way. Hit them head-on and it’s 350 and they’re Crushed for the round.' }] },
+    // 🏰 Europe: the Executioner — the giant’s counter; his contract is in the achievements
+    { e: 2, r: 3, hp: 350, spd: 1.35, def: 1.35, nc: 1, wish: 1, ro: 'Assassin', how: 'Accept the Executioner’s Contract (🏆 Achievements), then defeat 50 fighters and deal 15,000 damage', pas: [['🩻', 'Armorless', 'No armour at all: takes 35% more damage, and 35% faster.'], ['🪓', 'Executioner’s Wish', 'Every hit on a fighter: +10% damage (it stacks, until the round ends or you die) and heals 10% of your health.']], ab: [
+      { n: 'Sever / Chop', ic: '🪓', k: 'melee', modes: [
+        { n: 'Sever', ic: '🪓', dmg: 220, cd: 2.2, rng: 7.5, arc: 70, wind: 0.4, an: 'overhead' },
+        { n: 'Chop', ic: '🔪', dmg: 175, cd: 1.7, rng: 7, arc: 110, wind: 0.28, an: 'chop' }] },
+      { n: 'Behead', ic: '💀', k: 'melee', dmg: 450, cd: 15, rng: 7.5, arc: 60, wind: 1.25, an: 'behead', say: '“OFF WITH HIS HEAD!”', d: '“Off with his head!” A 1.25 s wind-up, the axe high — then 450 damage.' },
+      { n: 'Blade Sharpen', ic: '🔥', k: 'buff', cd: 35, an: 'sharpen', b: { dur: 10, dmgM: 5 }, d: 'Whet the axe’s edge: 5× damage for 10 s.' },
+      { n: 'Parry', ic: '⚔️', k: 'buff', cd: 12, an: 'parry', b: { dur: 3, blk: 1, parry: 1 }, d: 'The axe haft up for 3 s: every blow is blocked — and whoever lands one is stunned for 2 s and takes 1.5× damage.' }] },
+    // 🌙 the Ottoman Empire (no cavalry)
+    { e: 4, r: 0, hp: 430, ro: 'Skirmisher', ab: [
+      { n: 'Javelin Jab', ic: '🔱', k: 'melee', dmg: 40, cd: 1.2, rng: 7.5, arc: 50, wind: 0.16, an: 'jab' },
+      { n: 'Javelin Throw', ic: '🎯', k: 'proj', dmg: 58, cd: 8, spd: 80, wind: 0.3, an: 'throw', model: 'javelin', d: 'Throw the javelin: 58 damage.' },
+      { n: 'Kalkan Wall', ic: '🛡️', k: 'buff', cd: 26, an: 'shieldup', b: { dur: 2.5, blk: 1, dmgM: 1.3 }, d: 'Brace behind the round kalkan: blocks every blow for 2.5 s, then +30% damage while it lasts.' }] },
+    { e: 4, r: 0, hp: 340, spd: 1.05, ro: 'Ranged', ab: [
+      { n: 'Recurve Shot', ic: '🏹', k: 'proj', dmg: 44, cd: 1.25, spd: 110, wind: 0.25, an: 'bow', model: 'arrow' },
+      { n: 'Thumb-Ring Draw', ic: '💍', k: 'proj', dmg: 30, cnt: 3, gap: 0.16, cd: 9, spd: 125, wind: 0.2, an: 'bow', model: 'arrow', d: 'Three arrows loosed fast with the thumb ring, 30 each.' },
+      { n: 'Arrow Rain', ic: '🌧️', k: 'volley', dmg: 34, cnt: 6, rad: 6, delay: 0.9, cd: 30, wind: 0.35, an: 'sky', d: 'Six arrows fall where they stand, 34 each.' }] },
+    { e: 4, r: 1, hp: 380, ro: 'Area damage', ab: [
+      { n: 'Kilij Cut', ic: '🗡️', k: 'melee', dmg: 42, cd: 1.15, rng: 6.5, arc: 100, wind: 0.16, an: 'quick' },
+      { n: 'Humbara', ic: '💣', k: 'proj', dmg: 70, cd: 9, spd: 52, wind: 0.32, an: 'lob', model: 'bomb', fx: { bu: [30, 3] }, d: 'Lob a fused iron grenade: 70 damage, and 30 more as it burns.' },
+      { n: 'Barrage', ic: '🎆', k: 'proj', dmg: 55, cnt: 3, spread: 16, cd: 28, spd: 50, wind: 0.35, an: 'lob', model: 'bomb', fx: { bu: [24, 3], kb: 5 }, d: 'Three grenades at once, 55 each, burning — and they’re thrown back.' }] },
+    { e: 4, r: 2, hp: 530, def: 0.9, ro: 'Tank', ab: [
+      { n: 'Teber Sweep', ic: '🌙', k: 'melee', dmg: 58, cd: 1.5, rng: 8.5, arc: 130, wind: 0.25, an: 'naginata' },
+      { n: 'Crescent Hook', ic: '🪝', k: 'melee', dmg: 45, cd: 10, rng: 8.5, arc: 60, wind: 0.22, an: 'spear2', fx: { sl: [0.5, 2.5], st: 0.4 }, d: 'Hook their legs with the crescent: 45 damage, a stagger and a 2.5 s slow.' },
+      { n: 'Sultan’s Guard', ic: '👳', k: 'buff', cd: 32, an: 'fortress', b: { dur: 5, def: 0.55, rf: 0.3, imm: 1 }, d: 'Stand as the Sultan’s own guard: 45% less damage for 5 s, 30% of it back at them, and nothing stops you.' }] },
+    { e: 4, r: 3, hp: 560, ro: 'Damage dealer', ab: [
+      { n: 'Yatagan Cut', ic: '🗡️', k: 'melee', dmg: 66, cd: 1.3, rng: 7, arc: 100, wind: 0.18, an: 'slash' },
+      { n: 'Tüfek', ic: '🔫', k: 'proj', dmg: 125, cd: 12, spd: 230, wind: 0.9, an: 'gun', model: 'ball', d: 'Shoulder the matchlock for 0.9 s, then fire: 125 damage.' },
+      { n: 'Mehter March', ic: '🥁', k: 'buff', cd: 32, an: 'rally', b: { dur: 7, dmgM: 1.35, spdM: 1.2, hps: 15 }, d: 'The war band strikes up: +35% damage, +20% speed and heal 15 a second for 7 s.' }] },
+    // 🏹 the Mongols (no cavalry)
+    { e: 5, r: 0, hp: 420, ro: 'Bruiser', ab: [
+      { n: 'Spear Thrust', ic: '🔱', k: 'melee', dmg: 42, cd: 1.25, rng: 9, arc: 35, wind: 0.2, an: 'spear2' },
+      { n: 'Lunge', ic: '💨', k: 'dash', dmg: 60, dist: 10, dd: 0.25, cd: 9, wind: 0.15, an: 'charge', d: 'Lunge forward spear-first: 60 damage.' },
+      { n: 'Arban Discipline', ic: '🎖️', k: 'buff', cd: 28, an: 'rally', b: { dur: 6, dmgM: 1.25, def: 0.8 }, d: 'Ten men, one will: +25% damage and 20% less damage taken for 6 s.' }] },
+    { e: 5, r: 0, hp: 340, spd: 1.12, ro: 'Ranged', ab: [
+      { n: 'Composite Shot', ic: '🏹', k: 'proj', dmg: 42, cd: 1.1, spd: 115, wind: 0.24, an: 'bow', model: 'arrow' },
+      { n: 'Parthian Shot', ic: '↩️', k: 'dash', back: true, dist: 10, dd: 0.28, cd: 10, wind: 0.08, an: 'hop', then: { k: 'proj', dmg: 50, cnt: 2, spread: 10, spd: 115, model: 'arrow' }, d: 'Spring back out of reach and loose two arrows as you land, 50 each.' },
+      { n: 'Whistling Arrows', ic: '🎐', k: 'volley', dmg: 32, cnt: 7, rad: 6.5, delay: 0.8, cd: 30, wind: 0.35, an: 'sky', fx: { sl: [0.7, 1.5] }, d: 'Seven screaming arrows fall where they stand, 32 each.' }] },
+    { e: 5, r: 1, hp: 390, ro: 'Support', ab: [
+      { n: 'Staff Strike', ic: '🪄', k: 'melee', dmg: 40, cd: 1.2, rng: 7.5, arc: 80, wind: 0.2, an: 'overhand' },
+      { n: 'Spirit Drum', ic: '🥁', k: 'buff', cd: 14, an: 'drum', b: { dur: 5, heal: 90, dmgM: 1.2 }, d: 'Beat the drum to the spirits: heal 90, and +20% damage for 5 s.' },
+      { n: 'Wrath of Tengri', ic: '⚡', k: 'proj', dmg: 75, cd: 28, spd: 70, wind: 0.4, an: 'fan', model: 'fire', fx: { bu: [45, 4], sl: [0.6, 2] }, d: 'Call down the Eternal Blue Sky: 75 damage, 45 more as it burns, and a 2 s slow.' }] },
+    { e: 5, r: 2, hp: 520, def: 0.9, ro: 'Bruiser', ab: [
+      { n: 'Mace Blow', ic: '🔨', k: 'melee', dmg: 58, cd: 1.4, rng: 6.5, arc: 90, wind: 0.22, an: 'overhand' },
+      { n: 'Guard Rush', ic: '🛡️', k: 'dash', dmg: 75, dist: 11, dd: 0.3, cd: 10, wind: 0.12, an: 'rush', fx: { st: 1 }, d: 'Rush in behind the wicker shield: 75 damage and a 1 s stun.' },
+      { n: 'Night Watch', ic: '🌌', k: 'buff', cd: 32, an: 'resolve', b: { dur: 6, def: 0.6, dmgM: 1.25, imm: 1 }, d: 'The Khan’s night guard: 40% less damage, +25% damage and nothing stops you for 6 s.' }] },
+    { e: 5, r: 3, hp: 600, ro: 'Damage dealer', ab: [
+      { n: 'Khan’s Saber', ic: '🗡️', k: 'melee', dmg: 76, cd: 1.35, rng: 7.5, arc: 110, wind: 0.2, an: 'slash' },
+      { n: 'Feigned Retreat', ic: '↩️', k: 'dash', back: true, dist: 11, dd: 0.3, cd: 9, wind: 0.08, an: 'hop', then: { k: 'proj', dmg: 45, cnt: 3, spread: 14, spd: 100, model: 'arrow' }, d: 'Fall back as if beaten — then three arrows over the shoulder, 45 each.' },
+      { n: 'Mandate of Heaven', ic: '👑', k: 'buff', cd: 34, an: 'wrath', b: { dur: 6, dmgM: 1.4, spdM: 1.2, ls: 0.2 }, d: '+40% damage, +20% speed and 20% lifesteal for 6 s.' }] },
   ];
   CH.forEach((C, i) => { C.i = i; C.n = DUEL_N[i]; C.ic = DUEL_IC[i]; C.spd = C.spd || 1; C.def = C.def || 1; });
-  const CRATE = EMP.map((_, e) => CH.filter((C) => C.e === e).map((C) => C.i)); // (each crate's five, common to legendary)
-  const LEG = new Set([4, 9, 14, 19]);
-  // the fighters' looks for their trails and glows
-  const COL = ['#ef4444', '#f59e0b', '#2dd4bf', '#a855f7', '#f97316', '#60a5fa', '#fbbf24', '#fb923c', '#a3a3a3', '#dc2626', '#facc15', '#84cc16', '#38bdf8', '#fef3c7', '#e2e8f0', '#93c5fd', '#fda4af', '#a78bfa', '#fb923c', '#fde047'];
+  // what each one is for, at a glance
+  const ROLE = ['Tank', 'Skirmisher', 'Controller', 'Tank', 'Damage dealer', 'Tank', 'Skirmisher', 'Ranged', 'Bruiser', 'Bruiser', 'Bruiser', 'Ranged', 'Bruiser', 'Bruiser', 'Tank', 'Skirmisher', 'Duelist', 'Assassin', 'Bruiser', 'Damage dealer'];
+  CH.forEach((C, i) => { C.ro = C.ro || ROLE[i] || 'Fighter'; });
+  const CRATE = EMP.map((_, e) => CH.filter((C) => C.e === e && !C.nc).map((C) => C.i)); // (each crate's five, common to legendary)
+  const LAE = 20, EXE = 21; // (the Laestrygonian and the Executioner: no crate has them)
+  // the boss: the Laestrygonian, bigger still — 5,000 health, a scimitar blow every 5 s for 350, 75% slower, half the damage
+  const BOSS_C = Object.assign({}, CH[LAE], { hp: 5000, def: 0.5, spd: 0.25, big: 2.4, boss: 1, ab: [
+    { n: 'Great Scimitar', ic: '🗡️', k: 'melee', dmg: 350, cd: 5, rng: 12, arc: 150, wind: 1.0, an: 'gslash' },
+    { n: 'Earthshaker', ic: '🦶', k: 'stomp', dmg: 50, rad: 40, cd: 5, wind: 0.6, an: 'stomp' }] });
+    // the fighters' looks for their trails and glows
+  const COL = ['#ef4444', '#f59e0b', '#2dd4bf', '#a855f7', '#f97316', '#60a5fa', '#fbbf24', '#fb923c', '#a3a3a3', '#dc2626', '#facc15', '#84cc16', '#38bdf8', '#fef3c7', '#e2e8f0', '#93c5fd', '#fda4af', '#a78bfa', '#fb923c', '#fde047', '#93c5fd', '#991b1b', '#f87171', '#fbbf24', '#f97316', '#2dd4bf', '#dc2626', '#a16207', '#7dd3fc', '#38bdf8', '#cbd5e1', '#facc15'];
   // the duel's own achievements: each wins a fighter (the 1% ones only come from crates)
   const ACH = [
     { id: 'blood', ic: '🩸', n: 'First Blood', d: 'Defeat a fighter', k: 'kills', n0: 1, c: 1 },
@@ -260,8 +348,9 @@
   const MAST = [0, 100, 250, 450, 700, 1000, 1400, 1900, 2500, 3200, 4000]; // (mastery XP for each level, 1 to 10)
   const mLvl = (xp) => { let l = 0; while (l < 10 && xp >= MAST[l + 1]) l++; return l; };
   const ROUND_T = 180, DM_T = 300, TO = 3, A0 = 34, B0 = 24; // (a round, a deathmatch; first to; the arena's half-length (x) and half-width (z))
-  const LOBBY = { z0: 92, z1: 156, x: 46 }, PADS = [{ md: 'c', x: -16, z: 108, n: '⚔️ CLASSIC 1v1', s: 'first to 3' }, { md: 'd', x: 16, z: 108, n: '💀 DEATHMATCH 1v1', s: 'most kills in 5:00' }];
-  const SHRINES = [{ e: 0, x: -33, z: 132 }, { e: 1, x: -11, z: 140 }, { e: 2, x: 11, z: 140 }, { e: 3, x: 33, z: 132 }];
+  const LOBBY = { z0: 92, z1: 156, x: 46 }, PADS = [{ md: 'c', x: -18, z: 108, n: '⚔️ CLASSIC 1v1', s: 'first to 3' }, { md: 'd', x: 18, z: 108, n: '💀 DEATHMATCH 1v1', s: 'most kills in 5:00' }, { md: 'b', x: 0, z: 103, n: '👹 BOSS · CO-OP', s: 'up to 4 vs the Laestrygonian' }];
+  const SHRINES = [{ e: 1, x: -35, z: 130 }, { e: 0, x: -21, z: 137 }, { e: 2, x: -7, z: 141 }, { e: 3, x: 7, z: 141 }, { e: 4, x: 21, z: 137 }, { e: 5, x: 35, z: 130 }];
+  const BOSS_LIVES = 5, BOSS_T = 600; // (the boss: its health with one of you — more with more — your lives each, and the time you have)
   const ARMORY = { x: -40, z: 120 }, BOTGATE = { x: 40, z: 120 }, TABLET = { x: 0, z: 150 };
   const isFloor = (x, z) => (x / A0) ** 2 + (z / B0) ** 2;
   const angOf = (dx, dz) => Math.atan2(-dx, -dz); // (the yaw that faces along dx, dz)
@@ -560,7 +649,7 @@
   }
   // a crate for a shrine: a chest in its empire's colours, bound in metal, its emblem on the front, light in its seams
   function crateModel(e) {
-    const g = new THREE.Group(), [c1, c2] = [['#7f1d1d', '#e8b84a'], ['#1e3a8a', '#e2e8f0'], ['#374151', '#93c5fd'], ['#450a0a', '#fca5a5']][e];
+    const g = new THREE.Group(), [c1, c2] = [['#7f1d1d', '#e8b84a'], ['#1e3a8a', '#e2e8f0'], ['#374151', '#93c5fd'], ['#450a0a', '#fca5a5'], ['#14532d', '#f87171'], ['#78350f', '#7dd3fc']][e];
     const wood = new THREE.MeshLambertMaterial({ color: c1, map: woodTex() }), band = metalMat(e === 1 || e === 2 ? '#cbd5e1' : '#e8b84a', { shininess: 110 }), glow = new THREE.MeshBasicMaterial({ color: c2 });
     const add = (geo, m, x, y, z, sx, sy, sz) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); o.scale.set(sx, sy, sz); g.add(o); return o; };
     add(rboxGeo(3, 2, 2.2, 0.12), wood, 0, 1, 0, 1, 1, 1); const lid = add(kg('duLid', () => { const q = new THREE.CylinderGeometry(1.1, 1.1, 3, 20, 1, false, 0, Math.PI); q.rotateZ(Math.PI / 2); return q; }), wood, 0, 2, 0, 1, 0.55, 1);
@@ -583,14 +672,14 @@
     // the pads: a ring of bronze, the arena's sand inside, its name over it
     SC.padFx = PADS.map((p, i) => { const g = new THREE.Group(); g.position.set(p.x, 0.02, p.z); G.add(g);
       const r = add(kg('duPadRing', () => { const q = new THREE.RingGeometry(5.2, 6.0, 48); q.rotateX(-Math.PI / 2); return q; }), bronze, 0, 0.05, 0, g); const s = add(kg('duPadIn', () => { const q = new THREE.CircleGeometry(5.2, 48); q.rotateX(-Math.PI / 2); return q; }), L('#ffffff', { map: sandTex() }), 0, 0.04, 0, g);
-      const glow = add(kg('duPadGlow', () => { const q = new THREE.RingGeometry(5.9, 6.6, 48); q.rotateX(-Math.PI / 2); return q; }), new THREE.MeshBasicMaterial({ color: i ? '#ef4444' : '#f59e0b', transparent: true, opacity: 0.6, depthWrite: false }), 0, 0.07, 0, g);
+      const glow = add(kg('duPadGlow', () => { const q = new THREE.RingGeometry(5.9, 6.6, 48); q.rotateX(-Math.PI / 2); return q; }), new THREE.MeshBasicMaterial({ color: ['#f59e0b', '#ef4444', '#a855f7'][i], transparent: true, opacity: 0.6, depthWrite: false }), 0, 0.07, 0, g);
       for (const x of [-6.6, 6.6]) { add(kg('duPadPost', () => new THREE.CylinderGeometry(0.35, 0.4, 7, 10)), marble, x, 3.5, 0, g); const f = emSprite(g, fxTex('flame'), 1.6, { blending: THREE.AdditiveBlending }); f.position.set(x, 7.9, 0); add(kLathe('duBowl', [[0.1, 0], [0.8, 0.35], [1.05, 0.75], [1.12, 0.85], [0.95, 0.8], [0.1, 0.4]], 18), bronze, x, 7, 0, g).scale.setScalar(0.7); }
       const lb = label(p.n, { size: 2.2, color: '#fff' }); lb.position.set(0, 9.6, 0); g.add(lb); const sb = label(p.s, { size: 1.1, color: '#fde68a' }); sb.position.set(0, 8.2, 0); g.add(sb);
       return { g, glow, ring: r }; });
     // the crate shrines
     SC.crates = SHRINES.map((s) => { const g = new THREE.Group(); g.position.set(s.x, 0, s.z); G.add(g); const pd = part({ x: s.x, y: 1.2, z: s.z, sx: 5, sy: 2.4, sz: 5, c: 0xd8c9a8 }); pd.m.material = trav;
       add(BOX, marble, 0, 2.5, 0, g).scale.set(5.6, 0.3, 5.6); const c = crateModel(s.e); c.position.y = 3.6; g.add(c);
-      const lb = label(`${EMP[s.e].e} ${EMP[s.e].n.toUpperCase()} CRATE`, { size: 1.5, color: '#fff' }); lb.position.set(0, 9.2, 0); g.add(lb); const pl = label(`🪙 ${CRATE_PRICE}`, { size: 1.1, color: '#fde68a' }); pl.position.set(0, 8, 0); g.add(pl);
+      const lb = label(`${EMP[s.e].e} ${EMP[s.e].sn.toUpperCase()} CRATE`, { size: 1.35, color: '#fff' }); lb.position.set(0, 9.2, 0); g.add(lb); const pl = label(`🥇 ${CRATE_GOLD} · 🪙 ${CRATE_PRICE}`, { size: 1.0, color: '#fde68a' }); pl.position.set(0, 8, 0); g.add(pl);
       return { g, c, e: s.e }; });
     // the armory: a weapon rack; the bot gate: an arch; the tablet of achievements
     const rack = new THREE.Group(); rack.position.set(ARMORY.x, 0, ARMORY.z); rack.rotation.y = Math.PI / 2; G.add(rack); add(BOX, L('#7c5a36', { map: woodTex() }), 0, 2.2, 0, rack).scale.set(7, 0.3, 0.4); add(BOX, L('#7c5a36', { map: woodTex() }), 0, 0.6, 0, rack).scale.set(7, 0.3, 0.4);
@@ -603,6 +692,9 @@
     const tab = part({ x: TABLET.x, y: 2.5, z: TABLET.z, sx: 7, sy: 5, sz: 1, c: 0xe9e1d0 }); tab.m.material = new THREE.MeshLambertMaterial({ color: '#ffffff', map: kCanvas('duTablet', 256, 192, (g) => { g.fillStyle = '#e9e1d0'; g.fillRect(0, 0, 256, 192); g.strokeStyle = '#b8ad97'; g.lineWidth = 8; g.strokeRect(8, 8, 240, 176); g.fillStyle = '#6b5a3e'; g.font = 'bold 26px serif'; g.textAlign = 'center'; g.fillText('HONORES', 128, 50); g.font = '17px serif'; for (let k = 0; k < 5; k++) g.fillRect(48, 76 + k * 20, 160, 3); }) });
     const lb3 = label('🏆 ACHIEVEMENTS', { size: 1.6, color: '#fff' }); lb3.position.set(TABLET.x, 6.6, TABLET.z); G.add(lb3);
     // the four legends on plinths at the corners, in their guard
+    { const x = 0, z = 95, pd = part({ x, y: 1, z, sx: 6, sy: 2, sz: 4.5, c: 0x9ca3af }); pd.m.material = L('#8b8f99', { map: travTex() });
+      const a = makeAvatar([5, 0, 0, 0, 17, 0, 0, 0, 0, 0, DUEL_BT + LAE, DUEL_AN + LAE], '', true); scene.remove(a.shadow); a.g.position.set(x, 2, z); a.g.rotation.y = Math.PI; a.g.scale.setScalar(1.8); G.add(a.g); for (let k = 0; k < 25; k++) animateAvatar(a, 0.1, false, false); G.remove(a.g); G.add(bake(a.g));
+      const lb = label('👹 THE LAESTRYGONIAN', { size: 1.3, color: '#fca5a5' }); lb.position.set(x, 17, z); G.add(lb); }
     SC.legends = [[4, -41, 151], [9, 41, 151], [14, -41, 97], [19, 41, 97]].map(([c, x, z]) => [c, x, z, angOf(-x, 124 - z)]).map(([c, x, z, ry]) => { const pd = part({ x, y: 1.5, z, sx: 4, sy: 3, sz: 4, c: 0xece4d3 }); pd.m.material = marble;
       const a = makeAvatar([1, 0, 0, 0, 17, 0, 0, 0, 0, 0, 23 + c, 15 + c], '', true); scene.remove(a.shadow); a.g.position.set(x, 3, z); a.g.rotation.y = ry; G.add(a.g); for (let k = 0; k < 25; k++) animateAvatar(a, 0.1, false, false); G.remove(a.g); G.add(bake(a.g));
       const lb = label(`${DUEL_IC[c]} ${DUEL_N[c]}`, { size: 1.1, color: '#fbbf24' }); lb.position.set(x, 11.4, z); G.add(lb); return a; });
@@ -615,9 +707,9 @@
      dodge's moment of not being hit). Bots and I take hits here; the other player takes the hits I send them. */
   const lerp = (a, b, k) => a + (b - a) * k, ease = (k) => smooth(clamp(k, 0, 1));
   function newFighter(c, kind, o = {}) {
-    const C = CH[c], hm = o.hpM || 1;
-    return { c, C, kind, name: o.name || C.n, hp: Math.round(C.hp * hm), mhp: Math.round(C.hp * hm), st: 100, rest: 0, cd: [0, 0, 0], cdMax: [1, 1, 1], mode: 0, act: null, blk: false, nx: 0,
-      S: { stun: 0, root: 0, slow: 0, slowM: 1, vuln: 0, ifr: 0, dots: [], buffs: [] }, dmgM: o.dmgM || 1, D: o.D, peer: o.peer || null, x: 0, y: 0, z: 0, yaw: 0, dead: false, acN: 0, kb: null, a: null, deaths: 0 };
+    const C = o.C || CH[c], hm = o.hpM || 1, n = C.ab.length;
+    return { c, C, kind, name: o.name || C.n, hp: Math.round(C.hp * hm), mhp: Math.round(C.hp * hm), st: 100, rest: 0, cd: Array(n).fill(0), cdMax: Array(n).fill(1), mode: 0, act: null, blk: false, nx: 0, wishN: 0,
+      S: { stun: 0, root: 0, slow: 0, slowM: 1, vuln: 0, ifr: 0, sp: 0, crush: 0, dots: [], buffs: [] }, dmgM: o.dmgM || 1, D: o.D, peer: o.peer || null, x: 0, y: 0, z: 0, yaw: 0, dead: false, acN: 0, kb: null, a: null, deaths: 0 };
   }
   const MULT = new Set(['def', 'dmgM', 'spdM', 'cdM']), SUM = new Set(['dmgA', 'ls', 'rf', 'hps']);
   function bval(F, k) { let v = MULT.has(k) ? 1 : 0; for (const b of F.S.buffs) { const q = b[k]; if (q == null) continue; if (MULT.has(k)) v *= q; else if (SUM.has(k)) v += q; else v = Math.max(v, q); } return v; }
@@ -631,10 +723,14 @@
       case 'dash': return w + ab.dd + (ab.then ? 0.45 : 0.25);
       case 'leap': return w + 0.62 + 0.32;
       case 'volley': return w + 0.45;
+      case 'stomp': return w + 0.55;
       default: return ab.b && ab.b.blk ? ab.b.dur : 0.8;
     }
   }
   const stunned = (F) => F.S.stun > 0;
+  const isBoss = (F) => !!F && (F.kind === 'boss' || F.kind === 'rboss');
+  const local = (T) => T.kind === 'me' || T.kind === 'bot' || T.kind === 'boss'; // (the ones whose hits are judged here)
+  const bigR = (F) => (F && F.C.big ? (F.C.big - 1) * 2.4 : 0); // (how much further a giant reaches, and is reached)
   /* ---------------- the effects ---------------- */
   function sparks(F, col, n = 8, y = 3.4, o = {}) { if (!F.a || F.a.dead || F.a.g.parent !== scene) return; for (let q = 0; q < n; q++) kitSpark(F.a, F.a.g, (Math.random() - 0.5) * 1.4, y + (Math.random() - 0.5) * 1.2, -0.6 + (Math.random() - 0.5), col, Object.assign({ v: [(Math.random() - 0.5) * 9, 2 + Math.random() * 6, (Math.random() - 0.5) * 9], life: 0.45, s: 0.32, g: 18, j: 2 }, o)); }
   function burstAt(x, y, z, col, s = 3, life = 0.35) { const m = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), color: col, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); m.position.set(x, y, z); m.scale.setScalar(s);
@@ -666,7 +762,7 @@
   }
   function dropTrail(a) { if (a && a.duTrail) { scene.remove(a.duTrail.m); a.duTrail.m.geometry.dispose(); a.duTrail.m.material.dispose(); a.duTrail = null; } }
   // a buff's look on the fighter: a coloured glow round them, and for some a shield of light
-  const BUFFLOOK = { testudo: ['#fde68a', 1], aspis: ['#93c5fd', 1], shieldup: ['#93c5fd', 1], berserk: ['#ef4444'], hype: ['#fbbf24'], wrath: ['#38bdf8'], molon: ['#f59e0b', 1], rally: ['#4ade80'], roar: ['#dc2626'], pray: ['#fef3c7'], fortress: ['#cbd5e1', 1], resolve: ['#fda4af'], smoke: ['#6b7280'], benkei: ['#facc15'] };
+  const BUFFLOOK = { testudo: ['#fde68a', 1], aspis: ['#93c5fd', 1], shieldup: ['#93c5fd', 1], berserk: ['#ef4444'], hype: ['#fbbf24'], wrath: ['#38bdf8'], molon: ['#f59e0b', 1], rally: ['#4ade80'], roar: ['#dc2626'], pray: ['#fef3c7'], fortress: ['#cbd5e1', 1], resolve: ['#fda4af'], smoke: ['#6b7280'], benkei: ['#facc15'], bloodrush: ['#dc2626'], sharpen: ['#f97316'], parry: ['#e5e7eb', 1], drum: ['#7dd3fc'], haste: ['#fca5a5'] };
   function buffLook(F) {
     const a = F.a; if (!a || a.dead) return; const B = F.S.buffs.filter((b) => b.an && BUFFLOOK[b.an]), on = B.length > 0 && !bval(F, 'inv');
     let L = a.duAura; if (!L && on) { L = a.duAura = { gl: kitGlow(a.g, '#ffffff', 6, 0.3), sh: new THREE.Mesh(kg('duBubble', () => new THREE.SphereGeometry(4.2, 28, 18)), new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.16, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide })) }; L.gl.position.y = 3.2; L.sh.position.y = 3.3; a.g.add(L.sh); }
@@ -677,6 +773,8 @@
   // stars round the head of the stunned; flames on the burning; blood on the bleeding; a net on the rooted
   function statusLook(F, dt) {
     const a = F.a; if (!a || a.dead || a.g.parent !== scene) return; const t = now();
+    if (F.S.crush && Math.random() < dt * 7) kitSpark(a, a.g, (Math.random() - 0.5) * 1.6, 2 + Math.random() * 4, (Math.random() - 0.5) * 1.2, '#ef4444', { v: [0, 1.5, 0], life: 0.6, s: 0.3, j: 0.4 });
+    if (F.S.sp > 0 && Math.random() < dt * 24) kitSpark(a, a.g, (Math.random() - 0.5) * 2.4, Math.random() * 6, (Math.random() - 0.5) * 2.4, '#fde68a', { v: [0, 2, 0], life: 0.5, s: 0.3, j: 0.2 });
     if (F.S.stun > 0 && Math.random() < dt * 14) { const an = t * 6 + Math.random(); kitSpark(a, a.g, Math.cos(an) * 1.1, 7.0, Math.sin(an) * 1.1, '#fde047', { v: [0, 0.3, 0], life: 0.35, s: 0.45, j: 0 }); }
     if (F.S.dots.some((d) => d.k === 'bu') && Math.random() < dt * 18) kitSpark(a, a.g, (Math.random() - 0.5) * 1.6, 1 + Math.random() * 4, (Math.random() - 0.5) * 1.2, Math.random() < 0.5 ? '#f97316' : '#fde047', { v: [0, 3, 0], life: 0.5, s: 0.45, j: 0.4 });
     if (F.S.dots.some((d) => d.k === 'bl') && Math.random() < dt * 10) kitSpark(a, a.g, (Math.random() - 0.5) * 1.4, 2.5 + Math.random() * 2, (Math.random() - 0.5) * 1, '#b91c1c', { v: [0, -2, 0], life: 0.5, s: 0.22, j: 0.3, flat: true, g: 10 });
@@ -744,11 +842,25 @@
     resolve: { aR: [0.6, 0, -0.6], eR: [1.6], aL: [0.5, 0, 0.4], eL: [1.4], bd: [0.05, 0, 0], hd: [-0.35], up: -0.1 },
     smoke: { aR: [0.3, 0, 0.3], eR: [0.2], up: -0.5, kL: [-1.1], kR: [-1.1], bd: [-0.4, 0, 0], hd: [0.2] },
     benkei: { aR: [0.8, 0, 0.3], eR: [1.2], wr: [-1.9], aL: [0.5, 0, -0.4], lL: [0.3, 0, -0.45], lR: [-0.2, 0, 0.45], up: -0.35, hd: [0.3], bd: [0.1, 0, 0] },
+    // the Laestrygonian's: the great scimitar swept round, a punch, a stomp; the Executioner's: the beheading stroke
+    gslash: [{ aR: [2.5, 0.3, 0.9], eR: [0.5], wr: [-0.8], aL: [1.1, 0, -0.7], eL: [0.6], bd: [0.15, -0.75, 0], hd: [0.15] }, { aR: [1.2, -0.2, -0.9], eR: [0.15], wr: [-0.9], aL: [0.5, 0, -0.4], eL: [0.4], bd: [-0.3, 0.85, 0], lL: [0.5], kL: [-0.45], lR: [-0.3] }],
+    punch: [{ aR: [0.9, 0, 0.4], eR: [1.7], aL: [0.8, 0, -0.3], eL: [1.4], bd: [0.05, -0.45, 0] }, { aR: [1.6, 0, 0], eR: [0.05], aL: [0.7, 0, -0.3], eL: [1.5], bd: [-0.3, 0.5, 0], lL: [0.5], kL: [-0.4], lR: [-0.3] }],
+    stomp: [{ lR: [1.3], kR: [-1.4], bd: [0.2, 0, 0], aL: [0.5, 0, -0.9], aR: [0.5, 0, 0.9], hd: [0.2], up: 0.15 }, { lR: [0.25], kR: [-0.2], lL: [0.3], kL: [-0.6], bd: [-0.45, 0, 0], aL: [0.7, 0, -1.1], aR: [0.7, 0, 1.1], hd: [-0.2], up: -0.4 }],
+    behead: [{ aR: [2.9, 0.4, 0.8], eR: [0.5], aL: [2.7, 0.5, 0.4], eL: [0.6], bd: [0.2, -0.85, 0], hd: [0.25] }, { aR: [1.3, -0.4, -1.0], eR: [0.1], aL: [1.2, -0.3, -0.6], eL: [0.2], bd: [-0.35, 1.0, 0], lL: [0.6], kL: [-0.5], lR: [-0.3] }],
+    lob: [{ aL: [2.7, 0, -0.3], eL: [1.2], aR: [0.8, 0, 0.3], eR: [0.8], bd: [0.2, 0.5, 0] }, { aL: [1.3, 0, 0], eL: [0.1], aR: [0.6, 0, 0.3], bd: [-0.3, -0.4, 0], lR: [-0.3] }],
+    bloodrush: { aR: [0.6, 0, 1.3], eR: [0.4], aL: [0.6, 0, -1.3], eL: [0.4], hd: [0.7], bd: [0.4, 0, 0], up: -0.2 },
+    sharpen: { aR: [1.0, 0, -0.3], eR: [1.4], wr: [-1.6], aL: [1.0, 0.3, 0.45], eL: [1.0], hd: [-0.4], bd: [-0.2, 0, 0] },
+    parry: { aR: [1.5, 0.3, -0.5], eR: [1.2], wr: [-1.57], aL: [1.4, -0.3, 0.6], eL: [1.2], bd: [-0.1, 0, 0], up: -0.15 },
+    drum: { aL: [1.2, 0, 0.6], eL: [1.5], aR: [1.4, 0, -0.4], eR: [1.3], hd: [0.35], bd: [0.1, 0, 0] },
   };
   AN.iaido = AN.iai; AN.rush = AN.charge;
   const JT = ['aR', 'aL', 'eR', 'eL', 'bd', 'hd', 'lL', 'lR', 'kL', 'kR', 'ws'];
+  // R6, as the duels are: no elbows or knees — the elbow's bend goes to the shoulder (so the weapon points where it did)
+  function r6P(P0) { const o = Object.assign({}, P0);
+    for (const [e, sh] of [['eR', 'aR'], ['eL', 'aL']]) { if (o[e] && o[sh]) { const v = o[sh]; o[sh] = v.length > 1 ? [Math.min(3.1, v[0] + o[e][0]), v[1], v[2]] : [Math.min(3.1, v[0] + o[e][0])]; } if (o[e]) o[e] = [0]; }
+    if (o.kL) o.kL = [0]; if (o.kR) o.kR = [0]; if (o.up) o.up = Math.max(-0.15, o.up); return o; }
   function setPose(F, P0, k) { // turn each joint P0 names towards its angle, by k
-    const a = F.a, J = a.jt; if (!J) return;
+    const a = F.a, J = a.jt; if (!J) return; if (DU.r6) P0 = r6P(P0);
     for (const n of JT) { const v = P0[n]; if (!v) continue; const o = J[n]; if (!o) continue; o.rotation.x += (v[0] - o.rotation.x) * k; if (v.length > 1) { o.rotation.y += (v[1] - o.rotation.y) * k; o.rotation.z += (v[2] - o.rotation.z) * k; } }
     if (P0.wr && a.dg) { const w = a.dg.hR; w.rotation.x += (P0.wr[0] - w.rotation.x) * k; }
     if (P0.up) a.body.position.y += (P0.up - a.body.position.y) * k;
@@ -762,7 +874,7 @@
     if (!A) return;
     const ab = A.ab, t = A.t, w0 = Math.max(0.05, ab.wind || 0.05), dur = A.dur, P0 = AN[A.an]; if (!P0) return;
     if (a.dg && (A.an === 'gun' || ((A.an === 'throw' || A.an === 'hop') && t > w0 && A.thrown))) for (const o of a.dg.R) o.visible = false; // (the thrown weapon leaves the hand)
-    if (a.dg && (A.an === 'net') && t > w0 && a.dg.L) a.dg.L.visible = false;
+    if (a.dg && (A.an === 'net' || A.an === 'lob') && t > w0 && a.dg.L) a.dg.L.visible = false;
     let target, k;
     if (!Array.isArray(P0)) { target = P0; k = A.ab.k === 'buff' ? ease(t / 0.25) * (1 - ease((t - (dur - 0.25)) / 0.25)) : 1; } // (a buff's gesture, held)
     else if (Array.isArray(P0[0])) { // several blows: a pair for each
@@ -784,24 +896,27 @@
   }
 
   /* ---------------- doing things ---------------- */
-  const foeOf = (F) => { const M = DU.M; return !M ? null : F === M.me ? M.foe : M.me; };
+  const foeOf = (F) => { const M = DU.M; if (!M) return null; if (F === M.foe) return isBoss(F) ? (F.tgt || M.me) : M.me; return M.foe; };
+  const targetsOf = (F) => { const M = DU.M; if (!M) return []; if (isBoss(F)) return [M.me, ...M.allies].filter((T) => !T.dead && !T.out && !T.gone); const T = foeOf(F); return T ? [T] : []; };
   const live = () => DU.M && DU.M.ph === 'fight';
   function clampArena(x, z, r = 1.6) { const a = A0 - r, b = B0 - r, q = (x / a) ** 2 + (z / b) ** 2; if (q <= 1) return [x, z]; const s = 1 / Math.sqrt(q); return [x * s, z * s]; }
-  function moveF(F, dx, dz) { if (F.kind === 'me') { [P.x, P.z] = clampArena(P.x + dx, P.z + dz); F.x = P.x; F.z = P.z; } else if (F.kind === 'bot') { [F.x, F.z] = clampArena(F.x + dx, F.z + dz); } }
+  function moveF(F, dx, dz) { const r = 1.6 * (F.C.big || 1); if (F.kind === 'me') { [P.x, P.z] = clampArena(P.x + dx, P.z + dz, r); F.x = P.x; F.z = P.z; } else if (F.kind === 'bot' || F.kind === 'boss') { [F.x, F.z] = clampArena(F.x + dx, F.z + dz, r); } }
   function faceF(F, yaw) { F.yaw = yaw; if (F.kind === 'me') P.yaw = yaw; }
   const canAct = (F) => live() && !F.dead && !stunned(F) && !F.act && !(F.kind === 'me' && P.dead);
   // a blow begins: face them (if they're near enough to be what you meant), start the animation, and say so
   function useAb(F, i, vis) {
-    if (!vis && (!canAct(F) || F.cd[i] > 0 || F.blk)) return false;
+    if (i >= F.C.ab.length || (!vis && (!canAct(F) || F.cd[i] > 0 || F.blk))) return false;
     const ab = abOf(F, i), T = foeOf(F);
     if (!vis) { F.cd[i] = F.cdMax[i] = ab.cd;
       if (T && !T.dead) { const dx = T.x - F.x, dz = T.z - F.z, d = Math.hypot(dx, dz), da = wrapA(angOf(dx, dz) - F.yaw), far = ab.k === 'proj' || ab.k === 'volley' || ab.k === 'leap' || ab.k === 'dash';
-        if ((far && Math.abs(da) < 1.3) || d < (ab.rng || 7) + 5 && Math.abs(da) < 1.9 || DU.lockOn && F.kind === 'me' || F.kind === 'bot') faceF(F, angOf(dx, dz) + (F.kind === 'bot' && ab.k === 'proj' ? (Math.random() - 0.5) * 0.5 * (1 - DIFF[F.D].aim) : 0)); } }
+        if ((far && Math.abs(da) < 1.3) || d < (ab.rng || 7) + 5 && Math.abs(da) < 1.9 || DU.lockOn && F.kind === 'me' || F.kind === 'bot' || F.kind === 'boss') faceF(F, angOf(dx, dz) + (F.kind === 'bot' && ab.k === 'proj' ? (Math.random() - 0.5) * 0.5 * (1 - DIFF[F.D].aim) : 0)); } }
     const A = F.act = { i, ab, t: 0, dur: actDur(ab), an: ab.an, h: 0, yaw: F.yaw, vis: !!vis, x0: F.x, z0: F.z };
     if (T && (ab.k === 'volley' || ab.k === 'leap')) { A.tx = T.x; A.tz = T.z; }
     if (ab.k === 'buff' && ab.b && ab.b.blk) A.dur = ab.b.dur;
     if (ab.an === 'stab') A.strikeAt = ab.wind;
-    F.acN++; if (F.kind === 'me') DU.pubAct(F, A);
+    F.acN++; if (F.kind === 'me') DU.pubAct(F, A); if (F.kind === 'boss' && DU.M.coop) { DU.bac = [F.acN, i]; DU.pubDu(true); }
+    if (ab.say) DU.say(F, ab.say);
+    if (isBoss(F)) { if (F.tele) scene.remove(F.tele); F.tele = ab.k === 'melee' ? telegraph(F.x - Math.sin(F.yaw) * 5, F.z - Math.cos(F.yaw) * 5, ab.rng + bigR(F) - 3) : telegraph(F.x, F.z, 9); DU.say(F, ab.k === 'melee' ? '⚠️ THE SCIMITAR — GET BEHIND IT' : '⚠️ STOMP — JUMP!'); }
     sfx3(ab.k === 'buff' ? 'magic' : ab.k === 'proj' || ab.k === 'volley' ? 'whoosh' : 'swing', F.x, F.z, 60, { vol: 0.6 });
     if (ab.k === 'buff' && ab.b) { burstAt(F.x, F.y + 3.5, F.z, BUFFLOOK[ab.an] ? BUFFLOOK[ab.an][0] : COL[F.c], 7, 0.5); ringAt(F.x, F.z, BUFFLOOK[ab.an] ? BUFFLOOK[ab.an][0] : COL[F.c], 8); if (ab.an === 'smoke') smokeAt(F.x, F.y + 1, F.z, 16, '#6b7280', 3); if (ab.an === 'pray') beamAt(F.x, F.z, '#fef3c7', 40, 1.2, 2.2); }
     if (ab.an === 'smite') beamAt(F.x, F.z, '#fde68a', 14, 0.6, 0.8);
@@ -812,7 +927,9 @@
   function actTick(F, dt) {
     const A = F.act; if (!A) return; const ab = A.ab, w = ab.wind || 0, t0 = A.t; A.t += dt; const t = A.t, T = foeOf(F);
     const at = (x) => t0 < x && t >= x;
-    if (ab.k === 'melee') { if (at(w)) { if (ab.an === 'stab' && !A.vis) { moveF(F, -Math.sin(F.yaw) * 2.5, -Math.cos(F.yaw) * 2.5); } meleeHit(F, ab, ab.dmg, ab.fx, A); } }
+    if (ab.k === 'melee') { if (at(w)) { if (ab.an === 'stab' && !A.vis) { moveF(F, -Math.sin(F.yaw) * 2.5, -Math.cos(F.yaw) * 2.5); } meleeHit(F, ab, ab.dmg, ab.fx, A);
+      if (ab.an === 'gslash' && isBoss(F)) { ringAt(F.x - Math.sin(F.yaw) * 6, F.z - Math.cos(F.yaw) * 6, '#fde68a', 14, 0.45); camShake(me, 0.5); sfx3('crash', F.x, F.z, 90); }
+      if (ab.an === 'behead') { slashLine(F.x + Math.cos(F.yaw) * 4, F.z - Math.sin(F.yaw) * 4, F.x - Math.cos(F.yaw) * 4, F.z + Math.sin(F.yaw) * 4, '#ef4444'); sfx3('zap', F.x, F.z, 70); } } }
     else if (ab.k === 'multi' || ab.k === 'combo') {
       for (let h = A.h; h < ab.hits.length && t >= w + h * ab.gap; h++) { A.h = h + 1; const ok = meleeHit(F, ab, ab.hits[h], h === ab.hits.length - 1 ? ab.fx : null, A, h);
         if (ab.k === 'combo' && h === 0 && !A.vis) { if (ok) { A.held = 1; if (T && T.kind !== 'rem') T.S.root = Math.max(T.S.root, ab.gap * (ab.hits.length - 1) + 0.3); }
@@ -822,7 +939,11 @@
     else if (ab.k === 'dash') {
       if (t > w && t0 < w + ab.dd) { const s = (Math.min(t, w + ab.dd) - Math.max(t0, w)) / ab.dd * ab.dist * (ab.back ? -1 : 1); moveF(F, -Math.sin(A.yaw) * s, -Math.cos(A.yaw) * s);
         if (Math.random() < 0.6) kitSpark(F.a, F.a.g, (Math.random() - 0.5) * 2, 0.3, 1, '#d6b98c', { v: [0, 1.5, 3], life: 0.5, s: 0.7, j: 1, flat: true });
-        if (!ab.back && !A.hit && T && !T.dead && Math.hypot(T.x - F.x, T.z - F.z) < 3.4) { A.hit = 1; dealHitAs(F, T, ab.dmg, ab.fx, ab, A); } }
+        if (ab.rush && Math.random() < 0.5) kitSpark(F.a, F.a.g, (Math.random() - 0.5) * 3, 3 + Math.random() * 3, -2, '#fde68a', { v: [0, 0, 6], life: 0.3, s: 0.3, j: 0.5 });
+        if (!ab.back && !A.hit && T && !T.dead && Math.hypot(T.x - F.x, T.z - F.z) < 3.4 + bigR(F) + bigR(T)) { A.hit = 1;
+          if (ab.rush) { const head = Math.abs(wrapA(angOf(T.x - F.x, T.z - F.z) - A.yaw)) < 0.35; // (head-on: a direct hit)
+            dealHitAs(F, T, head ? ab.dmg2 : ab.dmg, head ? Object.assign({ cr: 1 }, ab.fx) : ab.fx, ab, A); if (head && !A.vis) DU.say(F, '💢 DIRECT HIT'); camShake(me, 0.5); }
+          else dealHitAs(F, T, ab.dmg, ab.fx, ab, A); } }
       if (at(w)) { if (ab.an === 'iai' || ab.an === 'iaido') { A.sx = F.x; A.sz = F.z; } burstAt(F.x, F.y + 3, F.z, COL[F.c], 4, 0.3); }
       if (at(w + ab.dd)) { if (A.sx != null) { slashLine(A.sx, A.sz, F.x, F.z, ab.an === 'iaido' ? '#ffffff' : COL[F.c]); if (ab.an === 'iaido') { DU.flash(F); sfx3('zap', F.x, F.z, 70); } }
         if (ab.then && T) { faceF(F, angOf(T.x - F.x, T.z - F.z)); const th = ab.then; for (let k = 0; k < (th.cnt || 1); k++) spawnProj(F, th, (k - ((th.cnt || 1) - 1) / 2) * (th.spread || 0) * Math.PI / 180, A.vis); A.thrown = true; } } }
@@ -834,7 +955,29 @@
         if (!A.vis && T && !T.dead && Math.hypot(T.x - F.x, T.z - F.z) < ab.rad + 1) dealHitAs(F, T, ab.dmg, ab.fx, ab, A); } }
     else if (ab.k === 'volley') { if (at(w) && A.tx != null) DU.volleys.push({ F, ab, x: A.tx, z: A.tz, t: 0, vis: A.vis, n: 0, ring: telegraph(A.tx, A.tz, ab.rad) }); }
     else if (ab.k === 'buff') { if (at(0.22) && !A.vis) buffOn(F, ab); }
+    else if (ab.k === 'stomp') { if (at(w)) stompAt(F, ab, A); }
     if (F.act === A && t >= A.dur) { F.act = null; F.lift = 0; }
+  }
+  // the stomp: up close it crushes (judged by whoever stomped); further out a shockwave rolls across the sand — each one
+  // it reaches judges for itself whether it was in the air
+  function stompAt(F, ab, A) {
+    const big = F.C.big || 1, nr = ab.near ? ab.near + bigR(F) : 0, hit = new Set();
+    ringAt(F.x, F.z, '#d6b98c', 5 * big, 0.5); smokeAt(F.x, 0.5, F.z, 12, '#c8a97e', 2.2 * big); sfx3('boom', F.x, F.z, 90, { vol: 0.9 }); camShake(me, 0.45); CROWD.ex = Math.min(1, CROWD.ex + 0.3);
+    if (nr && !A.vis) for (const T of targetsOf(F)) if (!T.dead && Math.hypot(T.x - F.x, T.z - F.z) < nr + bigR(T)) { hit.add(T); dealHitAs(F, T, ab.crush, { st: 1, cr: 1 }, ab, A); DU.say(F, '💥 CRUSH!'); }
+    const g = new THREE.Group(), mat = (o) => new THREE.MeshBasicMaterial(Object.assign({ color: '#fde68a', transparent: true, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending }, o));
+    g.add(new THREE.Mesh(kg('duWaveR', () => { const q = new THREE.RingGeometry(0.9, 1, 72); q.rotateX(-Math.PI / 2); return q; }), mat({ opacity: 0.9 })));
+    g.add(new THREE.Mesh(kg('duWaveW', () => { const q = new THREE.CylinderGeometry(1, 1, 1.3, 72, 1, true); q.translate(0, 0.65, 0); return q; }), mat({ color: '#d6b98c', opacity: 0.4 })));
+    g.position.set(F.x, 0.15, F.z); scene.add(g);
+    DU.waves.push({ F, x: F.x, z: F.z, r: Math.max(1, nr * 0.5), min: nr, max: ab.rad, spd: 24, dmg: ab.dmg, hit, g, bj: new Set() });
+  }
+  const GROUND = 0.5; // (feet on the sand: P.y)
+  function wavesTick(dt) {
+    for (const w of DU.waves) { w.r += w.spd * dt; const k = w.r / w.max; w.g.scale.set(w.r, 1, w.r); w.g.children[0].material.opacity = 0.9 * (1 - k); w.g.children[1].material.opacity = 0.4 * (1 - k);
+      if (Math.random() < 0.45) { const an = Math.random() * Math.PI * 2; smokeAt(w.x + Math.cos(an) * w.r, 0.3, w.z + Math.sin(an) * w.r, 1, '#d6b98c', 1.3); }
+      for (const T of targetsOf(w.F)) { if (!local(T) || T.dead || w.hit.has(T)) continue; const d = Math.hypot(T.x - w.x, T.z - w.z); if (d < w.min) { w.hit.add(T); continue; } if (Math.abs(d - w.r) > 1.3 + bigR(T)) continue;
+        w.hit.add(T); if ((T.y || 0) + (T.lift || 0) > GROUND + 1.1) { floatText(T, '⤴️ JUMPED IT', 'tag'); if (T.kind === 'me') DU.bump('dodges', 1); continue; }
+        const n = Math.round(w.dmg * bval(w.F, 'dmgM')); takeHit(T, n, { ub: 1 }, w.F); if (w.F.kind === 'me') { DU.bump('dmg', n); DU.M.dealt += n; DU.qBump('d', n); } } }
+    DU.waves = DU.waves.filter((w) => { if (w.r < w.max) return true; scene.remove(w.g); return false; });
   }
   function telegraph(x, z, r) { const m = new THREE.Mesh(kg('duTele', () => { const q = new THREE.RingGeometry(0.85, 1, 40); q.rotateX(-Math.PI / 2); return q; }), new THREE.MeshBasicMaterial({ color: '#ef4444', transparent: true, opacity: 0.8, depthWrite: false, side: THREE.DoubleSide })); m.position.set(x, 0.15, z); m.scale.setScalar(r); scene.add(m); return m; }
   function buffOn(F, ab) {
@@ -843,27 +986,32 @@
     if (b.imm) { F.S.stun = F.S.root = F.S.slow = 0; }
     if (b.nx) F.nx = b.nx;
     if (b.inv) smokeAt(F.x, 1, F.z, 18, '#4b5563', 3.2);
+    if (b.foeSpd) { const T = foeOf(F); if (T && !T.dead) applyFx(T, { hs: [b.foeSpd, b.dur] }, F); } // (the Bloodrush: the blood in the air quickens them too)
     DU.say(F, ab.n.toUpperCase());
   }
   function heal(F, n) { n = Math.round(Math.min(n, F.mhp - F.hp)); if (n <= 0 || F.kind === 'rem') return; F.hp += n; floatText(F, '+' + n, 'heal'); sparks(F, '#4ade80', 6, 3, { v: [0, 4, 0], g: 0 }); }
   // does a blow land? within reach, in front (the arc), not far above or below
   function meleeHit(F, ab, dmg, fx, A, h) {
-    const T = foeOf(F); if (!T || T.dead) return false;
-    const dx = T.x - F.x, dz = T.z - F.z, d = Math.hypot(dx, dz), da = Math.abs(wrapA(angOf(dx, dz) - (A && A.an === 'whirl' ? angOf(dx, dz) : F.yaw)));
-    const reach = (ab.rng || 6) + 1.2 + (ab.an === 'stab' ? 2.5 : 0), arc = (ab.arc || 90) >= 360 ? 9 : (ab.arc || 90) / 2 * Math.PI / 180 + 0.3;
-    if (d > reach || da > arc || Math.abs((T.y + (T.lift || 0)) - (F.y + (F.lift || 0))) > 4.5) { if (!A || !A.vis) sfx3('whoosh', F.x, F.z, 40, { vol: 0.35 }); return false; }
-    if (A && A.vis) return true;
-    dealHitAs(F, T, dmg, fx, ab, A, h); return true;
+    let any = false;
+    for (const T of targetsOf(F)) { if (T.dead) continue;
+      const dx = T.x - F.x, dz = T.z - F.z, d = Math.hypot(dx, dz), da = Math.abs(wrapA(angOf(dx, dz) - (A && A.an === 'whirl' ? angOf(dx, dz) : F.yaw)));
+      const reach = (ab.rng || 6) + 1.2 + (ab.an === 'stab' ? 2.5 : 0) + bigR(F) + bigR(T), arc = (ab.arc || 90) >= 360 ? 9 : (ab.arc || 90) / 2 * Math.PI / 180 + 0.3;
+      if (d > reach || da > arc || Math.abs((T.y + (T.lift || 0)) - (F.y + (F.lift || 0))) > 4.5 * Math.max(F.C.big || 1, T.C.big || 1)) continue;
+      any = true; if (!(A && A.vis)) dealHitAs(F, T, dmg, fx, ab, A, h); }
+    if (!any && (!A || !A.vis)) sfx3('whoosh', F.x, F.z, 40, { vol: 0.35 });
+    return any;
   }
   // a hit: how hard (their buffs and the next-hit bonus), then theirs to take — here, or sent to them
   function dealHitAs(F, T, base, fx, ab, A, h) {
     if (A && A.vis) return;
-    let dmg = (base + bval(F, 'dmgA')) * bval(F, 'dmgM') * F.dmgM; if (F.nx) { dmg *= F.nx; F.nx = 0; F.S.buffs = F.S.buffs.filter((b) => !b.inv); floatText(F, 'AMBUSH ×2', 'big'); }
+    let dmg = (base + bval(F, 'dmgA')) * bval(F, 'dmgM') * F.dmgM * (F.C.wish ? 1 + 0.1 * (F.wishN || 0) : 1); if (F.nx) { dmg *= F.nx; F.nx = 0; F.S.buffs = F.S.buffs.filter((b) => !b.inv); floatText(F, 'AMBUSH ×2', 'big'); }
     dmg = Math.round(dmg); const f2 = Object.assign({}, fx || {}); if (f2.bl && f2.blc != null && Math.random() > f2.blc) delete f2.bl; delete f2.blc;
-    if (T.kind === 'rem') { DU.sendHit(T, dmg, f2, F); hitLook(T, dmg, false, ab); floatText(T, String(dmg), dmg >= 100 ? 'big' : ''); }
+    if (F.C.brute && !f2.cr && Math.random() < F.C.brute) f2.cr = 1; // (Brute Force)
+    if (T.kind === 'rem' || T.kind === 'rboss') { DU.sendHit(T, dmg, f2, F); hitLook(T, dmg, false, ab); floatText(T, String(dmg), dmg >= 100 ? 'big' : ''); if (f2.cr && !T.S.crush) floatText(T, '💢 CRUSHED', 'tag'); }
     else takeHit(T, dmg, f2, F, { ab });
     const ls = bval(F, 'ls'); if (ls) heal(F, dmg * ls);
-    if (F.kind === 'me') { DU.bump('dmg', dmg); DU.M.dealt += dmg; }
+    if (F.C.wish) { F.wishN = (F.wishN || 0) + 1; heal(F, F.mhp * 0.1); if (F.kind === 'me') floatText(F, `🪓 WISH +${F.wishN * 10}%`, 'tag'); } // (the Executioner's Wish)
+    if (F.kind === 'me') { DU.bump('dmg', dmg); DU.M.dealt += dmg; DU.qBump('d', dmg); }
   }
   function hitLook(T, dmg, blocked, ab) {
     const big = dmg >= 100; sfx3(blocked ? 'block' : big ? 'crunch' : 'hit', T.x, T.z, 70, { vol: big ? 1 : 0.8 });
@@ -873,25 +1021,38 @@
     if (big) { ringAt(T.x, T.z, '#fde68a', 6, 0.4); CROWD.ex = Math.min(1, CROWD.ex + 0.5); } else CROWD.ex = Math.min(1, CROWD.ex + 0.18);
     if (T.kind === 'me' || (ab && foeOf(T) && foeOf(T).kind === 'me')) camShake(me, big ? 0.6 : 0.22);
   }
-  // taking a hit (mine, or a bot's): a dodge's moment, a block, armour and buffs, then what it does to you
+  // an effect with no blow (a parry's stun, the Bloodrush's haste): here, or sent to whoever judges them
+  function applyFx(T, fx, from) {
+    if (T.kind === 'rem' || T.kind === 'rboss') { DU.sendHit(T, 0, Object.assign({}, fx, { fo: 1 }), from); return; }
+    if (T.dead) return; const imm = bval(T, 'imm');
+    if (fx.st && !imm) { T.S.stun = Math.max(T.S.stun, fx.st); T.act = null; T.blk = false; floatText(T, '💫 STUNNED', 'tag'); }
+    if (fx.vu) { T.S.vuln = Math.max(T.S.vuln, fx.vu); floatText(T, '⚠️ ×1.5 DAMAGE', 'tag'); }
+    if (fx.hs) { T.S.buffs = T.S.buffs.filter((b) => b.an !== 'haste'); T.S.buffs.push({ an: 'haste', t: fx.hs[1], spdM: fx.hs[0] }); floatText(T, `🩸 ×${fx.hs[0]} SPEED`, 'tag'); }
+  }
+  // taking a hit (mine, or a bot's, or the boss's if it's mine to run): a dodge's moment, a block (all of it), armour and buffs, then what it does to you
   function takeHit(T, dmg, fx, from, o = {}) {
-    if (T.dead || !live()) return;
+    if (T.dead || !live()) return; fx = fx || {};
+    if (fx.fo) { applyFx(T, fx, from); return; }
+    if (T.S.sp > 0) { floatText(T, '✨ PROTECTED', 'tag'); return; } // (just back from a death in the boss fight)
     if (T.S.ifr > 0) { floatText(T, 'DODGED', 'tag'); sfx3('whoosh', T.x, T.z, 50); if (T.kind === 'me') DU.bump('dodges', 1); return; }
-    const imm = bval(T, 'imm'), blkB = bval(T, 'blk'); let mult = T.C.def * bval(T, 'def') * (T.S.vuln > 0 ? 1.5 : 1), blocked = false;
-    if (blkB) { mult *= 1 - blkB; blocked = true; }
-    else if (T.blk && from && Math.abs(wrapA(angOf(from.x - T.x, from.z - T.z) - T.yaw)) < 1.2) { mult *= 0.4; blocked = true; T.st -= 12 + dmg * 0.12; T.rest = 0;
+    const imm = bval(T, 'imm'), ub = !!fx.ub, blkB = ub ? 0 : bval(T, 'blk'); let mult = T.C.def * bval(T, 'def') * (T.S.vuln > 0 ? 1.5 : 1) * (T.S.crush ? 2 : 1), blocked = false;
+    if (blkB) { mult *= 1 - blkB; blocked = true;
+      if (bval(T, 'parry') && from && !o.rf) { floatText(T, '⚔️ PARRIED!', 'big'); sfx3('crash', T.x, T.z, 70); burstAt(T.x, T.y + 4, T.z, '#e5e7eb', 7, 0.45); applyFx(from, { st: 2, vu: 2 }, T); } }
+    else if (!ub && T.blk && from && Math.abs(wrapA(angOf(from.x - T.x, from.z - T.z) - T.yaw)) < 1.2) { mult = 0; blocked = true; T.st -= 12 + dmg * 0.12; T.rest = 0;
       if (T.st <= 0) { T.st = 0; T.blk = false; T.S.stun = Math.max(T.S.stun, 1.2); floatText(T, 'GUARD BROKEN', 'big'); sfx3('crash', T.x, T.z, 60); } }
-    dmg = Math.max(1, Math.round(dmg * mult)); T.hp -= dmg; T.rTaken = (T.rTaken || 0) + dmg;
-    floatText(T, blocked ? `🛡️ ${dmg}` : String(dmg), (T.kind === 'me' ? 'me ' : '') + (dmg >= 100 ? 'big' : '')); hitLook(T, dmg, blocked, o.ab);
+    dmg = mult <= 0 ? 0 : Math.max(1, Math.round(dmg * mult)); T.hp -= dmg; T.rTaken = (T.rTaken || 0) + dmg;
+    floatText(T, blocked ? (dmg ? `🛡️ ${dmg}` : '🛡️ BLOCKED') : String(dmg), (T.kind === 'me' ? 'me ' : '') + (dmg >= 100 ? 'big' : '')); hitLook(T, dmg, blocked, o.ab);
     if (T.kind === 'me') { const h = $('#duHurt'); if (h) { h.style.opacity = blocked ? 0.25 : 0.8; clearTimeout(DU.hurtT); DU.hurtT = setTimeout(() => (h.style.opacity = 0), 200); } }
-    if (fx && !blocked) {
+    if (!blocked) {
       if (!imm) { if (fx.st) { T.S.stun = Math.max(T.S.stun, fx.st); T.act = null; T.blk = false; } if (fx.rt) T.S.root = Math.max(T.S.root, fx.rt); if (fx.sl) { T.S.slow = Math.max(T.S.slow, fx.sl[1]); T.S.slowM = fx.sl[0]; }
         if (fx.kb && from) { const dx = T.x - from.x, dz = T.z - from.z, l = Math.hypot(dx, dz) || 1; T.push = { vx: dx / l * fx.kb / 0.3, vz: dz / l * fx.kb / 0.3, t: 0.3 }; } }
       if (fx.bl) { T.S.dots.push({ k: 'bl', dps: fx.bl[0] / fx.bl[1], t: fx.bl[1], acc: 0 }); floatText(T, '🩸 BLEEDING', 'tag'); }
       if (fx.bu) { T.S.dots.push({ k: 'bu', dps: fx.bu[0] / fx.bu[1], t: fx.bu[1], acc: 0 }); floatText(T, '🔥 BURNING', 'tag'); }
+      if (fx.cr && !T.S.crush) { T.S.crush = 1; floatText(T, '💢 CRUSHED — ×2 DAMAGE', 'big'); sfx3('crunch', T.x, T.z, 70); } // (until the round ends, or they die)
+      if (fx.vu) T.S.vuln = Math.max(T.S.vuln, fx.vu);
       if (fx.st && !imm) floatText(T, '💫 STUNNED', 'tag'); if (fx.rt && !imm) floatText(T, '🕸️ ROOTED', 'tag');
     }
-    const rf = bval(T, 'rf'); if (rf && from && !o.rf) { const back = Math.round(dmg * rf); if (from.kind === 'rem') { DU.sendHit(from, back, { rf: 1 }, T); floatText(from, String(back), ''); } else takeHit(from, back, {}, T, { rf: 1 }); }
+    const rf = bval(T, 'rf'); if (rf && from && !o.rf && dmg > 0) { const back = Math.round(dmg * rf); if (from.kind === 'rem' || from.kind === 'rboss') { DU.sendHit(from, back, { rf: 1 }, T); floatText(from, String(back), ''); } else takeHit(from, back, {}, T, { rf: 1 }); }
     if (T.hp <= 0) { T.hp = 0; DU.killed(T, from); }
   }
   // the dodge: a quick dash with a moment you can't be hit
@@ -904,10 +1065,10 @@
   // every frame: timers, damage over time, healing, stamina, the push of a dodge or a knock
   function statusTick(F, dt) {
     const S = F.S, cdm = bval(F, 'cdM');
-    for (let i = 0; i < 3; i++) if (F.cd[i] > 0) F.cd[i] = Math.max(0, F.cd[i] - dt * cdm);
-    S.stun = Math.max(0, S.stun - dt); S.root = Math.max(0, S.root - dt); S.vuln = Math.max(0, S.vuln - dt); S.ifr = Math.max(0, S.ifr - dt); if ((S.slow = Math.max(0, S.slow - dt)) === 0) S.slowM = 1;
+    for (let i = 0; i < F.cd.length; i++) if (F.cd[i] > 0) F.cd[i] = Math.max(0, F.cd[i] - dt * cdm);
+    S.sp = Math.max(0, S.sp - dt); S.stun = Math.max(0, S.stun - dt); S.root = Math.max(0, S.root - dt); S.vuln = Math.max(0, S.vuln - dt); S.ifr = Math.max(0, S.ifr - dt); if ((S.slow = Math.max(0, S.slow - dt)) === 0) S.slowM = 1;
     for (const b of S.buffs) b.t -= dt; S.buffs = S.buffs.filter((b) => b.t > 0);
-    if (F.kind === 'rem' || F.dead) return;
+    if (F.kind === 'rem' || F.kind === 'rboss' || F.dead) return;
     const hps = bval(F, 'hps'); if (hps && live()) { F.hpAcc = (F.hpAcc || 0) + hps * dt; if (F.hpAcc >= 5) { heal(F, F.hpAcc); F.hpAcc = 0; } }
     for (const d of S.dots) { if (!live()) break; d.t -= dt; d.acc += d.dps * dt; if (d.acc >= 6 || d.t <= 0) { const n = Math.round(d.acc); d.acc = 0; if (n > 0) { F.hp -= n; F.rTaken = (F.rTaken || 0) + n; floatText(F, String(n), d.k === 'bu' ? 'tag' : 'me'); if (F.hp <= 0) { F.hp = 0; DU.killed(F, foeOf(F)); return; } } } }
     S.dots = S.dots.filter((d) => d.t > 0);
@@ -923,25 +1084,30 @@
     else if (kind === 'axe') { const s = new THREE.Group(); g.add(s); dgAxe(s).position.z = 1.2; g.userData.spin = s; }
     else if (kind === 'shuriken') { const s = new THREE.Mesh(ovShape('duShur', [[0, 0.5], [0.12, 0.12], [0.5, 0], [0.12, -0.12], [0, -0.5], [-0.12, -0.12], [-0.5, 0], [-0.12, 0.12]], 0.04, 0.01), metalMat('#cbd5e1', { shininess: 140 })); s.rotation.x = Math.PI / 2; s.scale.setScalar(1.3); const w = new THREE.Group(); w.add(s); g.add(w); g.userData.spin = w; g.userData.spinAx = 'y'; }
     else if (kind === 'net') { const n = new THREE.Mesh(kg('duNetP', () => new THREE.PlaneGeometry(3.2, 3.2, 4, 4)), new THREE.MeshLambertMaterial({ map: dgNetTex(), transparent: true, alphaTest: 0.3, side: THREE.DoubleSide })); const w = new THREE.Group(); w.add(n); g.add(w); g.userData.spin = w; g.userData.spinAx = 'z'; }
+    else if (kind === 'bomb') { const w = new THREE.Group(); g.add(w); dgBomb(w); g.userData.spin = w; g.userData.spinAx = 'x'; const f = emSprite(g, fxTex('flame'), 0.8, { blending: THREE.AdditiveBlending }); f.position.set(0, 0.5, 0); }
     else { const b = new THREE.Mesh(kSph(), new THREE.MeshBasicMaterial({ color: '#fde68a' })); b.scale.setScalar(0.18); g.add(b); const tr = new THREE.Mesh(kCyl(), new THREE.MeshBasicMaterial({ color: '#fef3c7', transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending })); tr.scale.set(0.06, 5, 0.06); tr.rotation.x = Math.PI / 2; tr.position.z = 2.5; g.add(tr); }
     return g;
   }
   function spawnProj(F, ab, off, vis) {
     const yaw = F.yaw + off, dx = -Math.sin(yaw), dz = -Math.cos(yaw), T = foeOf(F), m = projModel(ab.model || 'arrow'), y0 = F.y + (F.lift || 0) + 4.2;
-    const x0 = F.x + dx * 1.6, z0 = F.z + dz * 1.6, ty = T ? T.y + 3 : y0, d = T ? Math.hypot(T.x - x0, T.z - z0) : 30, vy = clamp((ty - y0) / Math.max(0.2, d / ab.spd), -20, 20);
+    const x0 = F.x + dx * 1.6, z0 = F.z + dz * 1.6, ty = T ? T.y + 3 * (T.C.big || 1) : y0, d = T ? Math.hypot(T.x - x0, T.z - z0) : 30, lob = ab.model === 'bomb', tt = Math.max(0.2, Math.min(d, 60) / ab.spd), gr = lob ? 32 : 0;
+    const vy = lob ? (GROUND + 0.5 - y0) / tt + 0.5 * gr * tt : clamp((ty - y0) / tt, -20, 20); // (a grenade: thrown up so it comes down on them)
     m.position.set(x0, y0, z0); scene.add(m);
-    DU.proj.push({ m, F, ab, x: x0, y: y0, z: z0, vx: dx * ab.spd, vy, vz: dz * ab.spd, life: 70 / ab.spd + 0.4, vis, fx: ab.fx });
+    DU.proj.push({ m, F, ab, x: x0, y: y0, z: z0, vx: dx * ab.spd, vy, vz: dz * ab.spd, gr, life: lob ? tt + 0.6 : 70 / ab.spd + 0.4, vis, fx: ab.fx });
     if (ab.model === 'ball') { burstAt(x0, y0, z0, '#fde68a', 4, 0.2); smokeAt(x0, y0, z0, 8, '#d1d5db', 1.6); sfx3('boom', F.x, F.z, 90, { vol: 0.8 }); camShake(F.a, 0.3); }
   }
   function projTick(dt) {
     for (const p of DU.proj) {
-      p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt; p.life -= dt; p.m.position.set(p.x, p.y, p.z); p.m.lookAt(p.x + p.vx, p.y + p.vy, p.z + p.vz); p.m.rotateY(Math.PI);
+      p.vy -= (p.gr || 0) * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt; p.life -= dt; p.m.position.set(p.x, p.y, p.z); p.m.lookAt(p.x + p.vx, p.y + p.vy, p.z + p.vz); p.m.rotateY(Math.PI);
       const sp = p.m.userData.spin; if (sp) sp.rotation[p.m.userData.spinAx || 'x'] += dt * 22;
       const H = foeOf(p.F); if (H && !H.dead && !bval(H, 'inv') && p.ab.model !== 'ball') { const v = Math.hypot(p.vx, p.vz), a0 = Math.atan2(p.vx, p.vz), a1 = Math.atan2(H.x - p.x, H.z - p.z), turn = clamp(wrapA(a1 - a0), -1, 1) * Math.min(1, dt * 2.2 * (p.F.kind === 'bot' ? DIFF[p.F.D].aim : 1)); if (Math.abs(wrapA(a1 - a0)) < 0.9) { p.vx = Math.sin(a0 + turn) * v; p.vz = Math.cos(a0 + turn) * v; } } // (a little help: it bends towards them)
       if (p.ab.model === 'fire' && Math.random() < 0.5) burstAt(p.x, p.y, p.z, '#f97316', 1.2, 0.25);
       const T = foeOf(p.F);
-      if (T && !T.dead && Math.hypot(T.x - p.x, T.z - p.z) < 2.3 && Math.abs(T.y + (T.lift || 0) + 3 - p.y) < 3.8) { p.life = 0; if (!p.vis) dealHitAs(p.F, T, p.ab.dmg, p.fx, p.ab); else burstAt(p.x, p.y, p.z, '#fff7ed', 2); }
-      if (p.y < 0.2 || isFloor(p.x, p.z) > 1.15) { p.life = 0; smokeAt(p.x, 0.4, p.z, 3, '#c8a97e', 1.2); }
+      const bg = T ? T.C.big || 1 : 1;
+      if (T && !T.dead && Math.hypot(T.x - p.x, T.z - p.z) < 2.3 + bigR(T) && Math.abs(T.y + (T.lift || 0) + 3 * bg - p.y) < 3.8 * bg) { p.life = 0; p.boom = 1; if (!p.vis) dealHitAs(p.F, T, p.ab.dmg, p.fx, p.ab); else burstAt(p.x, p.y, p.z, '#fff7ed', 2); }
+      if (p.y < 0.2 || isFloor(p.x, p.z) > 1.15) { p.life = 0; smokeAt(p.x, 0.4, p.z, 3, '#c8a97e', 1.2);
+        if (p.gr && !p.boom) { p.boom = 1; if (!p.vis && T && !T.dead && Math.hypot(T.x - p.x, T.z - p.z) < 4.5 + bigR(T)) dealHitAs(p.F, T, p.ab.dmg, p.fx, p.ab); } } // (a grenade bursts where it lands)
+      if (p.life <= 0 && p.gr) { burstAt(p.x, Math.max(1, p.y), p.z, '#f97316', 7, 0.4); smokeAt(p.x, 0.6, p.z, 8, '#57534e', 2.4); sfx3('boom', p.x, p.z, 80, { vol: 0.7 }); ringAt(p.x, p.z, '#f97316', 5, 0.35); }
     }
     DU.proj = DU.proj.filter((p) => { if (p.life > 0) return true; scene.remove(p.m); return false; });
     for (const v of DU.volleys) { v.t += dt; v.ring.material.opacity = 0.5 + 0.4 * Math.sin(v.t * 20); v.ring.scale.setScalar(v.ab.rad * (1 - 0.15 * Math.min(1, v.t / v.ab.delay)));
@@ -949,7 +1115,7 @@
         DU.drops.push({ m, x, z, y: 26, F: v.F, ab: v.ab, vis: v.vis, done: false }); v.n++; } }
     DU.volleys = DU.volleys.filter((v) => { if (v.n < v.ab.cnt) return true; scene.remove(v.ring); return false; });
     for (const d of DU.drops) { d.y -= 70 * dt; d.m.position.set(d.x + 3 * d.y / 26, d.y, d.z + 3 * d.y / 26); d.m.lookAt(d.x, -10, d.z); d.m.rotateY(Math.PI);
-      if (d.y <= 0.5 && !d.done) { d.done = true; smokeAt(d.x, 0.4, d.z, 2, '#c8a97e', 1); const T = foeOf(d.F); if (T && !T.dead && Math.hypot(T.x - d.x, T.z - d.z) < 2.3) { if (!d.vis) dealHitAs(d.F, T, d.ab.dmg, null, d.ab); } d.t = 1.5; } if (d.done) d.t -= dt; }
+      if (d.y <= 0.5 && !d.done) { d.done = true; smokeAt(d.x, 0.4, d.z, 2, '#c8a97e', 1); const T = foeOf(d.F); if (T && !T.dead && Math.hypot(T.x - d.x, T.z - d.z) < 2.3 + bigR(T)) { if (!d.vis) dealHitAs(d.F, T, d.ab.dmg, null, d.ab); } d.t = 1.5; } if (d.done) d.t -= dt; }
     DU.drops = DU.drops.filter((d) => { if (!d.done || d.t > 0) return true; scene.remove(d.m); return false; });
   }
 
@@ -966,11 +1132,15 @@
     if (ab.k === 'buff') { const b = ab.b; if (b.blk) return !!T.act && d < 12; if (b.heal || b.healP || b.hps) return F.hp / F.mhp < 0.65 || (b.def && d < 10); if (b.inv) return d < 18; return d < 14; }
     if (ab.k === 'dash') return ab.back ? d < 8 : d > 4 && d < ab.dist + 2;
     if (ab.k === 'leap') return d > 6 && d < ab.dist; if (ab.k === 'proj') return d < 45; if (ab.k === 'volley') return true;
+    if (ab.k === 'stomp') return d < (ab.near || 0) + 2 + bigR(F) || d < ab.rad * 0.7;
     return d < (ab.rng || 6) + 0.6;
   }
   function botTick(F, dt) {
     const T = foeOf(F), D = DIFF[F.D], B = F.bot || (F.bot = { t: 0.5, str: 1, strT: 0, seen: -1, blkT: 0, react: null, lx: 0, lz: 0 });
-    F.mv = false; F.sprint = false; if (!T || F.dead || !live()) { F.blk = false; return; }
+    F.mv = false; F.sprint = false;
+    if (F.jT > 0) { F.jT -= dt; F.lift = F.jT > 0 ? Math.sin(Math.PI * (1 - F.jT / 0.75)) * 4.2 : 0; } // (jumping a shockwave)
+    else if (!F.act) for (const w of DU.waves) { if (w.F === F || w.hit.has(F) || w.bj.has(F)) continue; const d = Math.hypot(F.x - w.x, F.z - w.z); if (d > w.r && d - w.r < 4.5 && d > w.min) { w.bj.add(F); if (Math.random() < [0.3, 0.55, 0.8, 0.95][F.D]) F.jT = 0.75; } }
+    if (!T || F.dead || !live()) { F.blk = false; return; }
     const inv = bval(T, 'inv') > 0; if (!inv) { B.lx = T.x; B.lz = T.z; } // (lost in the smoke: where they were last)
     const dx = (inv ? B.lx : T.x) - F.x, dz = (inv ? B.lz : T.z) - F.z, d = Math.max(0.01, Math.hypot(dx, dz)), yawTo = angOf(dx, dz);
     if (T.act && T.acN !== B.seen && !T.act.vis0) { B.seen = T.acN; B.react = D.react * (0.7 + Math.random() * 0.6); B.rab = T.act.ab; }
@@ -983,21 +1153,30 @@
     const orb = d < want + 6 ? 0.75 : 0.25; mx += -dz / d * B.str * orb; mz += dx / d * B.str * orb;
     if (!F.act || F.act.ab.k === 'buff') { const turn = 3 + D.aim * 9; F.yaw += clamp(wrapA(yawTo - F.yaw), -turn * dt, turn * dt); }
     if ((B.t -= dt) <= 0 && !F.act && !F.blk && !stunned(F)) { B.t = D.react * 0.55 + Math.random() * 0.3;
-      for (const i of [2, 1]) { if (F.cd[i] > 0 || Math.random() > D.abil) continue; if (abilityGood(F, abOf(F, i), d, T)) { useAb(F, i); break; } }
+      for (let i = F.C.ab.length - 1; i >= 1; i--) { if (F.cd[i] > 0 || Math.random() > D.abil) continue; if (abilityGood(F, abOf(F, i), d, T)) { useAb(F, i); break; } }
       if (!F.act && F.cd[0] <= 0 && Math.random() < D.aggr && (ranged ? d < 45 : d < (m1.rng || 6) + 1.2) && Math.abs(wrapA(yawTo - F.yaw)) < (ranged ? 0.25 : 0.7)) useAb(F, 0); }
     const l = Math.hypot(mx, mz), sp = fSpeed(F) * (F.sprint ? 1.45 : 1);
     if (l > 0.1 && sp > 0) { F.mv = true; moveF(F, mx / l * sp * dt, mz / l * sp * dt); }
   }
+  function bossTick(F, dt) {
+    const B = F.bot || (F.bot = { sw: 3, stp: 5.5 }), Ts = targetsOf(F); F.mv = false; if (!Ts.length || F.dead || !live()) return;
+    let T = Ts[0], bd = 1e9; for (const q of Ts) { const d = Math.hypot(q.x - F.x, q.z - F.z) + (q.S.sp > 0 ? 8 : 0); if (d < bd) { bd = d; T = q; } }
+    F.tgt = T; const dx = T.x - F.x, dz = T.z - F.z, d = Math.max(0.01, Math.hypot(dx, dz)), yawTo = angOf(dx, dz);
+    if (!F.act && !stunned(F)) F.yaw += clamp(wrapA(yawTo - F.yaw), -1.8 * dt, 1.8 * dt);
+    B.sw -= dt; B.stp -= dt;
+    if (!F.act && !stunned(F)) { if (B.sw <= 0 && d < 12 + bigR(F) && Math.abs(wrapA(yawTo - F.yaw)) < 0.6) { useAb(F, 0); B.sw = 5; } else if (B.stp <= 0) { useAb(F, 1); B.stp = 5; } }
+    const sp = fSpeed(F); if (!F.act && d > 8 + bigR(F) && sp > 0) { F.mv = true; moveF(F, dx / d * sp * dt, dz / d * sp * dt); }
+  }
   /* ---------------- the HUD (as drawn: you on the left, them on the right, the clock between; your abilities bottom left) ---------------- */
-  const KEYS = touchy ? ['TAP', 'TAP', 'TAP'] : ['M1', 'E', 'R'];
+  const KEYS = touchy ? ['TAP', 'TAP', 'TAP', 'TAP'] : ['M1', 'E', 'R', 'G'], KEYN = ['M1', 'E', 'R', 'G'];
   function hudBuild(M) {
     const el = document.createElement('div'); el.id = 'duHud'; const F = M.me, md = F.C.ab[0].modes;
     el.innerHTML = `<div id="duTop"><div class="du-card me" id="duMe"></div><div id="duMid"></div><div class="du-card op" id="duOp"></div></div>
       <div id="duHurt"></div><div id="duBig"></div><div id="duKill"></div>
       <div id="duAb">${md ? `<div class="du-side">${md.map((m, k) => `<button data-mode="${k}"><b>${k + 1}</b>${m.ic} ${m.n}</button>`).join('')}</div>` : ''}
-        ${[0, 1, 2].map((i) => `<button class="du-ab${i === 0 ? ' m1' : i === 2 ? ' ult' : ''}" data-ab="${i}"><span class="k">${KEYS[i]}</span><span class="e"></span><span class="n"></span><span class="cd"></span><span class="s"></span></button>`).join('')}
+        ${F.C.ab.map((_, i) => `<button class="du-ab${i === 0 ? ' m1' : i === F.C.ab.length - 1 ? ' ult' : ''}" data-ab="${i}"><span class="k">${KEYS[i]}</span><span class="e"></span><span class="n"></span><span class="cd"></span><span class="s"></span></button>`).join('')}
         <div class="du-side"><button data-k="dodge"><b>${touchy ? '' : 'Q'}</b>💨 Dodge</button><button data-k="block"><b>${touchy ? '' : 'F'}</b>🛡️ Block</button>${touchy ? '<button data-k="run">🏃 Sprint</button>' : ''}<button data-k="lock"><b>${touchy ? '' : 'T'}</b>🎯 Lock</button></div></div>
-      <div id="duTip">🖱️ Click: ${esc(abOf(F, 0).n)} · E ${esc(F.C.ab[1].n)} · R ${esc(F.C.ab[2].n)} · Q dodge · F / right-click block · Shift sprint${md ? ` · ${md.map((m, k) => k + 1).join('/')} switch` : ''} · T lock-on</div>`;
+      <div id="duTip">🖱️ Click: ${esc(abOf(F, 0).n)} · E ${esc(F.C.ab[1].n)} · R ${esc(F.C.ab[2].n)}${F.C.ab[3] ? ` · G ${esc(F.C.ab[3].n)}` : ''} · Space jump · Q dodge · F / right-click block · Shift sprint${md ? ` · ${md.map((m, k) => k + 1).join('/')} switch` : ''} · T lock-on</div>`;
     $('#xhud').append(el); HUD.el = el; HUD.last = {};
     const ab = el.querySelector('#duAb');
     ab.addEventListener('pointerdown', (e) => { const b = e.target.closest('button'); if (!b) return; e.preventDefault(); e.stopPropagation();
@@ -1008,20 +1187,21 @@
   function hudCard(F, who) {
     const C = F.C, hp = Math.max(0, Math.ceil(F.hp)), st = Math.round(F.st), fx = [];
     if (F.S.stun > 0) fx.push('<span class="bad">💫 Stunned</span>'); if (F.S.root > 0) fx.push('<span class="bad">🕸️ Rooted</span>'); if (F.S.slow > 0) fx.push('<span class="bad">🐌 Slowed</span>');
-    if (F.S.dots.some((d) => d.k === 'bl')) fx.push('<span class="bad">🩸 Bleed</span>'); if (F.S.dots.some((d) => d.k === 'bu')) fx.push('<span class="bad">🔥 Burn</span>'); if (F.S.vuln > 0) fx.push('<span class="bad">⚠️ +50% dmg</span>');
+    if (F.S.dots.some((d) => d.k === 'bl')) fx.push('<span class="bad">🩸 Bleed</span>'); if (F.S.dots.some((d) => d.k === 'bu')) fx.push('<span class="bad">🔥 Burn</span>'); if (F.S.vuln > 0) fx.push('<span class="bad">⚠️ +50% dmg</span>'); if (F.S.crush) fx.push('<span class="bad">💢 Crushed ×2</span>'); if (F.S.sp > 0) fx.push('<span class="good">✨ Protected</span>');
+    if (F.C.wish && F.wishN) fx.push(`<span class="good">🪓 Wish +${F.wishN * 10}%</span>`); if (F.S.buffs.some((b) => b.an === 'haste')) fx.push('<span class="good">🩸 ×1.2 speed</span>');
     for (const b of F.S.buffs) { const ab = C.ab.find((q) => q.an === b.an); if (ab) fx.push(`<span class="good">${ab.ic} ${esc(ab.n)}</span>`); } if (F.blk) fx.push('<span class="good">🛡️ Blocking</span>');
-    return `<div class="tp"><span class="who">[${esc(who)}]</span><span class="ch">${C.ic} ${esc(C.n)}</span><span class="rr" style="background:${RAR[C.r].c}">${RAR[C.r].n.toUpperCase()}</span></div>
+    return `<div class="tp"><span class="who">[${esc(who)}]</span><span class="ch">${C.ic} ${esc(C.n)}</span><span class="rr" style="background:${RAR[C.r].c}">${RAR[C.r].s} ${RAR[C.r].n.toUpperCase()}</span></div>
       <div class="hl"><span>Hp</span><div class="du-bar hp${hp / F.mhp < 0.25 ? ' low' : ''}"><u style="width:${(F.hpLag || hp) / F.mhp * 100}%"></u><i style="width:${hp / F.mhp * 100}%"></i><b>${hp}/${F.mhp}</b></div></div>
       <div class="du-bar st${F.st < 25 ? ' tired' : ''}"><i style="width:${st}%"></i><b>Stamina ${st}/100</b></div><div class="fx">${fx.join('')}</div>`;
   }
   function hudTick(M, dt) {
     if (!HUD.el) return; const L = HUD.last, me = M.me, foe = M.foe;
     for (const F of [me, foe]) { F.hpLag = F.hpLag == null || F.hp > F.hpLag ? F.hp : F.hpLag - Math.max(F.mhp * 0.4 * dt, 0); if (F.hpLag < F.hp) F.hpLag = F.hp; }
-    const a = hudCard(me, 'You'), b = hudCard(foe, M.pvp ? nameOf(M.opp) : `🤖 ${DIFF[M.D].n}`);
+    const a = hudCard(me, 'You'), b = hudCard(foe, M.md === 'b' ? '👹 BOSS' : M.pvp ? nameOf(M.opp) : `🤖 ${DIFF[M.D].n}`);
     if (a !== L.a) { $('#duMe').innerHTML = L.a = a; } if (b !== L.b) { $('#duOp').innerHTML = L.b = b; }
-    const left = Math.max(0, M.left), sc = M.md === 'c' ? `<span class="sc"><span class="a">${M.sc[0]}</span><small>—</small><span class="b">${M.sc[1]}</span></span><span class="md">⚔️ Classic · first to ${TO} · round ${M.rd}</span>` : `<span class="sc"><span class="a">${M.kills}</span><small>kills</small><span class="b">${M.deaths}</span></span><span class="md">💀 Deathmatch · most kills</span>`;
+    const left = Math.max(0, M.left), sc = M.md === 'b' ? `<span class="sc"><span class="a">❤️ ${M.lv}</span><small>${M.lv === 1 ? 'life' : 'lives'}</small>${M.coop ? `<span class="b">👥 ${1 + M.allies.filter((q) => !q.out && !q.gone).length}</span>` : ''}</span><span class="md">👹 Boss · ${M.coop ? 'together vs' : 'you vs'} the Laestrygonian</span>` : M.md === 'c' ? `<span class="sc"><span class="a">${M.sc[0]}</span><small>—</small><span class="b">${M.sc[1]}</span></span><span class="md">⚔️ Classic · first to ${TO} · round ${M.rd}</span>` : `<span class="sc"><span class="a">${M.kills}</span><small>kills</small><span class="b">${M.deaths}</span></span><span class="md">💀 Deathmatch · most kills</span>`;
     const mid = `<div class="tm${left < 20 && M.ph === 'fight' ? ' low' : ''}">${mmss(Math.ceil(left))}</div>${sc}`; if (mid !== L.m) $('#duMid').innerHTML = L.m = mid;
-    for (let i = 0; i < 3; i++) { const ab = abOf(me, i), b = HUD.el.querySelector(`[data-ab="${i}"]`), cd = me.cd[i], key = `${ab.ic}|${ab.n}|${cd > 0 ? Math.ceil(cd * (cd < 1 ? 10 : 1)) : 0}|${Math.round(cd / me.cdMax[i] * 40)}|${canAct(me)}`;
+    for (let i = 0; i < me.C.ab.length; i++) { const ab = abOf(me, i), b = HUD.el.querySelector(`[data-ab="${i}"]`), cd = me.cd[i], key = `${ab.ic}|${ab.n}|${cd > 0 ? Math.ceil(cd * (cd < 1 ? 10 : 1)) : 0}|${Math.round(cd / me.cdMax[i] * 40)}|${canAct(me)}`;
       if (L['ab' + i] === key) continue; L['ab' + i] = key; b.querySelector('.e').textContent = ab.ic; b.querySelector('.n').textContent = ab.n; b.querySelector('.cd').style.setProperty('--p', (cd > 0 ? cd / me.cdMax[i] * 100 : 0) + '%'); b.querySelector('.s').textContent = cd > 0 ? (cd < 1 ? cd.toFixed(1) : Math.ceil(cd)) : ''; b.classList.toggle('ready', cd <= 0); }
     HUD.el.querySelectorAll('[data-mode]').forEach((b) => b.classList.toggle('on', +b.dataset.mode === me.mode));
     const lk = HUD.el.querySelector('[data-k="lock"]'); if (lk) lk.classList.toggle('on', !!DU.lockOn); const rn = HUD.el.querySelector('[data-k="run"]'); if (rn) rn.classList.toggle('on', !!DU.touchRun); const bk = HUD.el.querySelector('[data-k="block"]'); if (bk) bk.classList.toggle('on', !!me.blk);
@@ -1032,30 +1212,31 @@
   // a fighter's picture for the menus and the crate reel: in its guard, weapon in hand
   function fighterPic(c, big) {
     return snapshot(`duPic${c}|${AV.s}|${big ? 1 : 0}`, () => { const a = makeAvatar([AV.s, 0, 0, 0, 17, 0, 0, 0, 0, 0, 23 + c, 15 + c], '', true); scene.remove(a.shadow); for (let k = 0; k < 25; k++) animateAvatar(a, 0.1, false, false); return a.g; },
-      { w: big ? 300 : 180, h: big ? 360 : 200, dir: [0.55, 0.12, -1], zoom: 0.9, sphere: [[0, 3.6, 0], 4.7] });
+      { w: big ? 300 : 180, h: big ? 360 : 200, dir: [0.55, 0.12, -1], zoom: 0.9, sphere: c === LAE ? [[0, 4.4, 0], 5.9] : c === EXE ? [[0, 4.6, 0], 5.6] : [[0, 3.6, 0], 4.7] });
   }
   const rollFoe = (Di) => { const w = [[62, 30, 8, 0], [40, 35, 22, 3], [18, 30, 37, 15], [5, 18, 37, 40]][Di]; let r = Math.random() * 100, k = 0; while (k < 3 && r >= w[k]) { r -= w[k]; k++; } const pool = CH.filter((C) => C.r === k); return pool[Math.floor(Math.random() * pool.length)].i; };
-  const DEF_SAVE = () => ({ own: [0], eq: 0, xp: {}, st: {}, ach: [], diff: 1, md: 'c', lk: 0 }); // (lk: lock-on, off unless you turn it on)
+  const DEF_SAVE = () => ({ own: [0], eq: 0, xp: {}, st: {}, ach: [], diff: 1, md: 'c', lk: 0, gold: 0, q: null, qd: 0 }); // (lk: lock-on, off unless you turn it on; gold: the duel's own; q: the Executioner's Contract)
 
   const DU = {
-    id: 'duel', code: 'du', genre: 'PvP', rank: 0.001, name: 'Colosseum Duels', emoji: '⚔️', max: 12, stat: 'Wins', killY: -40, banner: true, camDist: 15, noReset: true, noSprint: true, respawnDelay: 2200,
+    id: 'duel', code: 'du', genre: 'PvP', rank: 0.001, name: 'Colosseum Duels', emoji: '⚔️', max: 12, stat: 'Wins', killY: -40, banner: true, camDist: 15, noReset: true, noSprint: true, respawnDelay: 2200, r6: true, // (r6: everyone rigid-limbed, R6, in here)
     land: { theme: 'meadow', mode: 'ground', fence: 'none', box: [-86, -76, 86, 166] },
     color: 'linear-gradient(135deg,#7f1d1d,#b45309 45%,#1e3a8a)',
-    desc: 'One on one in the Colosseum. Twenty fighters from Rome, Greece, medieval Europe and medieval Japan — win them from crates (each with a 1% legend: the Gladiator, the Spartan, the Heavy Knight, the Samurai) or the duel’s own achievements. Three abilities each, its own animations, and in a match you become your fighter. Classic (first to 3) or Deathmatch (most kills in 5 minutes), against a friend or a bot from Easy to Extreme. Master a fighter to wear it anywhere.',
-    welcome: '⚔️ Pick a fighter (C), open crates, then stand on a pad to duel — or 🤖 fight a bot. In a match: click to attack, E and R abilities, Q dodge, F block.',
+    desc: 'One on one in the Colosseum. Thirty-two fighters from Greece, Rome, medieval Europe, medieval Japan, the Ottoman Empire and the Mongols, ★ to ★★★★★ — win them from crates (Blox Coins or the duel’s own gold; each with a 1% legend) or the duel’s own achievements. Beat the giant Laestrygonian boss in co-op to make it yours, or take the Executioner’s Contract. Classic (first to 3), Deathmatch or the Boss, against friends or bots from Easy to Extreme. Master a fighter to wear it anywhere.',
+    welcome: '⚔️ Pick a fighter (C), open crates, then stand on a pad to duel, team up on the 👹 boss pad — or 🤖 fight a bot. In a match: click to attack, E R G abilities, Q dodge, F block, Space jump.',
     welcomeTouch: '⚔️ Pick a fighter, open crates, then stand on a pad to duel — or 🤖 fight a bot.',
-    M: null, proj: [], volleys: [], drops: [], save: null,
+    M: null, proj: [], volleys: [], drops: [], waves: [], save: null,
     build() { sky('#4f86c6', '#fde7c2'); buildColosseum(); buildLobby(); },
     async enter() {
-      Object.assign(this, { M: null, proj: [], volleys: [], drops: [], padT: 0, padI: -1, done: new Set(), hitN: 0, hitSeen: 0, acN: 0, ac: null, dq: [], H: null, lastG: null, gSeen: null, blockHeld: false, rmb: false, touchRun: false, sprinting: false, tired: false, duAt: 0, duKey: '', warm: 0 });
+      Object.assign(this, { M: null, proj: [], volleys: [], drops: [], waves: [], hitSeenM: new Map(), bac: null, passT: 0, padT: 0, padI: -1, done: new Set(), hitN: 0, hitSeen: 0, acN: 0, ac: null, dq: [], H: null, lastG: null, gSeen: null, blockHeld: false, rmb: false, touchRun: false, sprinting: false, tired: false, duAt: 0, duKey: '', warm: 0 });
       const s = await kvGet('duel'), S = this.save = Object.assign(DEF_SAVE(), s && typeof s === 'object' ? s : {});
-      S.own = [...new Set((Array.isArray(S.own) ? S.own : []).map((x) => x | 0).filter((x) => x >= 0 && x < 20))]; if (!S.own.includes(0)) S.own.unshift(0);
-      if (!S.own.includes(S.eq | 0)) S.eq = 0; S.eq |= 0; for (const k of ['xp', 'st']) if (!S[k] || typeof S[k] !== 'object') S[k] = {}; if (!Array.isArray(S.ach)) S.ach = []; S.diff = clamp(S.diff | 0, 0, 3); if (S.md !== 'd') S.md = 'c';
-      this.lockOn = S.lk === 1; send({ dw: S.st.wins | 0, du: null }); this.drawBar();
+      S.own = [...new Set((Array.isArray(S.own) ? S.own : []).map((x) => x | 0).filter((x) => x >= 0 && x < CH.length))]; if (!S.own.includes(0)) S.own.unshift(0);
+      if (!S.own.includes(S.eq | 0)) S.eq = 0; S.eq |= 0; for (const k of ['xp', 'st']) if (!S[k] || typeof S[k] !== 'object') S[k] = {}; if (!Array.isArray(S.ach)) S.ach = []; S.diff = clamp(S.diff | 0, 0, 3); if (S.md !== 'd' && S.md !== 'b') S.md = 'c';
+      S.gold = Math.max(0, S.gold | 0); if (!S.q || typeof S.q !== 'object') S.q = null;
+      this.lockOn = S.lk === 1; send({ dw: S.st.wins | 0, du: null }); this.passCheck(); this.drawBar();
     },
     leave() {
       if (this.M) this.cleanMatch(); this.M = null; AVO = null; P.frozen = false;
-      for (const p of this.proj) scene.remove(p.m); for (const v of this.volleys) scene.remove(v.ring); for (const d of this.drops) scene.remove(d.m);
+      for (const p of this.proj) scene.remove(p.m); for (const v of this.volleys) scene.remove(v.ring); for (const d of this.drops) scene.remove(d.m); for (const w of this.waves) scene.remove(w.g);
       dropTrail(me); const r = $('#duReel'); if (r) r.remove(); document.body.classList.remove('duMatch'); if (this.saveT) { clearTimeout(this.saveT); kvSet('duel', this.save); }
     },
     dirty() { clearTimeout(this.saveT); this.saveT = setTimeout(() => { this.saveT = null; kvSet('duel', this.save); }, 700); },
@@ -1063,19 +1244,19 @@
     sortKey(pr, isMe) { return this.statOf(pr, isMe); },
     spawn() {
       const M = this.M;
-      if (M && M.ph !== 'end') { if (M.md === 'd' && M.started) { const s = this.randSpot(M.foe); s[3] = cam.yaw; return s; } const s = M.side; return [s ? 15 : -15, 0.5, 0, s ? Math.PI / 2 : -Math.PI / 2]; }
+      if (M && M.ph !== 'end') { if (M.md === 'b') return [-11 + (Math.random() - 0.5) * 5, 0.5, (Math.random() - 0.5) * 12, -Math.PI / 2]; if (M.md === 'd' && M.started) { const s = this.randSpot(M.foe); s[3] = cam.yaw; return s; } const s = M.side; return [s ? 15 : -15, 0.5, 0, s ? Math.PI / 2 : -Math.PI / 2]; }
       return [(Math.random() - 0.5) * 12, 0.5, 122 + Math.random() * 6, 0];
     },
     randSpot(avoid) { for (let k = 0; k < 40; k++) { const a = Math.random() * Math.PI * 2, r = 0.25 + Math.sqrt(Math.random()) * 0.6, x = Math.cos(a) * A0 * r, z = Math.sin(a) * B0 * r;
       if (!avoid || Math.hypot(x - avoid.x, z - avoid.z) > 20 || k === 39) return [x, 0.5, z, angOf((avoid ? avoid.x : 0) - x, (avoid ? avoid.z : 0) - z)]; } },
     camRoom(tx, ty, tz, ux, uy, uz, dist) { // (the podium, the seats rising behind it and the attic: the camera comes in front of them)
       if (!this.M) return dist; const hTop = YTOP + 0.8;
-      for (let d = 0.6; d < dist; d += 0.5) { const x = tx + ux * d, y = ty + uy * d, z = tz + uz * d, rho = Math.sqrt((x / PA) ** 2 + (z / PB) ** 2); if (rho <= 0.985) continue;
+      for (let d = 0.6; d < dist; d += 0.5) { const x = tx + ux * d, y = ty + uy * d, z = tz + uz * d, rho = Math.sqrt((x / PA) ** 2 + (z / PB) ** 2); if (Math.abs(z) < 6 && Math.abs(x) > PA - 2.5 && y < 19) return Math.max(0.6, d - 0.4); if (rho <= 0.985) continue; // (the gates' gold statues, too)
         const dd = (rho - 1) * Math.hypot(x, z) / rho, h = dd > ROWS.end ? FH + 2 : Math.min(hTop, 6.4 + Math.max(0, dd - 1.2) * 0.86); if (y < h + 0.6) return Math.max(0.6, d - 0.4); }
       return dist;
     },
     speed() { const M = this.M; if (!M) return 16; return fSpeed(M.me) * (this.sprinting ? 1.45 : 1); },
-    jumpPower() { const M = this.M; if (!M) return JUMP; const F = M.me; return stunned(F) || F.S.root > 0 || F.act || F.blk ? 0 : JUMP * 0.9; },
+    jumpPower() { const M = this.M; if (!M) return JUMP; const F = M.me; return stunned(F) || F.S.root > 0 || F.act || F.blk || F.out ? 0 : JUMP * 0.9; },
 
     /* ---------------- the host: pairs up people standing on the same pad ---------------- */
     adopt() { const g = this.lastG; return { gs: 0, left: 0, el: 0, M: g && Array.isArray(g.M) ? g.M.slice() : [] }; },
@@ -1083,6 +1264,10 @@
       const H = this.H; if (!H) return; const pl = players(), t = Date.now(); let ch = false;
       const busy = new Set(H.M.flatMap((m) => m.p));
       PADS.forEach((pd) => { const on = pl.filter((p) => !busy.has(p.peer) && Math.hypot(p.x - pd.x, p.z - pd.z) < 6 && !(p.pr.du && p.pr.du.m));
+        if (pd.md === 'b') { // (two or more of you on the boss pad: a few seconds for anyone else to step on, then in you all go)
+          if (on.length < 2) { H.bT = 0; return; } H.bT = H.bT || t;
+          if (t - H.bT > 6000 || on.length >= 4) { const m = { id: Math.random().toString(36).slice(2, 9), md: 'b', p: on.slice(0, 4).map((q) => q.peer), t }; H.M.push(m); m.p.forEach((x) => busy.add(x)); H.bT = 0; ch = true; }
+          return; }
         if (on.length >= 2) { const m = { id: Math.random().toString(36).slice(2, 9), md: pd.md, p: [on[0].peer, on[1].peer], t }; H.M.push(m); busy.add(m.p[0]); busy.add(m.p[1]); ch = true; } });
       const keep = H.M.filter((m) => { const there = m.p.filter((id) => { const p = pl.find((q) => q.peer === id); return p && p.pr.du && p.pr.du.m === m.id; }).length; return t - m.t < 15000 || (there > 0 && t - m.t < 900000); });
       if (keep.length !== H.M.length) { H.M = keep; ch = true; }
@@ -1098,34 +1283,44 @@
       if (this.M) { this.matchFrame(dt); return; }
       if (this.warm < 20 && !panelOpen()) fighterPic(this.warm++); // (the menus' pictures, one a frame)
       const mine = myPeer(), m = g && Array.isArray(g.M) ? g.M.find((q) => Array.isArray(q.p) && q.p.includes(mine) && !this.done.has(q.id)) : null;
-      if (m) { this.startMatch({ md: m.md === 'd' ? 'd' : 'c', pvp: true, mid: m.id, opp: m.p.find((x) => x !== mine), side: m.p.indexOf(mine) }); return; }
+      if (m) { if (m.md === 'b') this.startMatch({ md: 'b', coop: true, mid: m.id, ps: m.p.slice(0, 4), own: m.p[0] === mine }); else this.startMatch({ md: m.md === 'd' ? 'd' : 'c', pvp: true, mid: m.id, opp: m.p.find((x) => x !== mine), side: m.p.indexOf(mine) }); return; }
+      if ((this.passT -= dt) <= 0) { this.passT = 5; this.passCheck(); }
       const pi = PADS.findIndex((p) => Math.hypot(P.x - p.x, P.z - p.z) < 6) ;
       if (pi !== this.padI) { this.padI = pi; this.padT = 0; if (pi >= 0) sfx('select'); }
       const S = this.save, D = DIFF[S.diff];
-      if (pi >= 0 && !P.dead) { this.padT += dt; setBanner(`${PADS[pi].n} · ⏳ Waiting for an opponent — a ${D.e} ${D.n} bot takes the spot in ${Math.max(1, Math.ceil(8 - this.padT))}s`);
+      if (pi >= 0 && !P.dead && PADS[pi].md === 'b') { this.padT += dt; const pd = PADS[pi], others = [...Net.avatars.values()].filter((a) => Math.hypot(a.g.position.x - pd.x, a.g.position.z - pd.z) < 6).length;
+        setBanner(others ? `👹 BOSS · 👥 ${others + 1} of you here — the fight starts in a moment (up to 4)` : `👹 BOSS · ⏳ Waiting for allies — on your own it starts in ${Math.max(1, Math.ceil(10 - this.padT))}s`);
+        if ((!others && this.padT > 10) || this.padT > 30) { this.padT = 0; this.startMatch({ md: 'b', coop: false, own: true, ps: [mine] }); } }
+      else if (pi >= 0 && !P.dead) { this.padT += dt; setBanner(`${PADS[pi].n} · ⏳ Waiting for an opponent — a ${D.e} ${D.n} bot takes the spot in ${Math.max(1, Math.ceil(8 - this.padT))}s`);
         if (this.padT > 8) { this.padT = 0; this.startMatch({ md: PADS[pi].md, pvp: false, D: S.diff }); } }
       else setBanner(`${CH[S.eq].ic} <b>${esc(CH[S.eq].n)}</b> · stand on a ⚔️ pad to duel, or 🤖 fight a bot`);
     },
 
     /* ---------------- a match ---------------- */
     startMatch(o) {
-      closePanel(); const S = this.save, c = S.eq, M = this.M = Object.assign({ ph: 'intro', t: 0, left: o.md === 'd' ? DM_T : ROUND_T, rd: 1, sc: [0, 0], dr: 0, l: 0, fl: 0, d: 0, kills: 0, deaths: 0, dealt: 0, roundsWon: 0, side: 0, goneT: 0, started: false }, o);
-      M.me = newFighter(c, 'me', { name: Net.name });
-      if (o.pvp) { M.foe = newFighter(0, 'rem', { peer: o.opp, name: nameOf(o.opp) }); M.foe.acSeen = -1; const q = this.foeDu(true); this.hitSeen = Math.max(0, ...((q && Array.isArray(q.dq) ? q.dq : []).map((h) => (Array.isArray(h) ? +h[0] || 0 : 0)))); }
+      closePanel(); const S = this.save, c = S.eq, M = this.M = Object.assign({ ph: 'intro', t: 0, left: o.md === 'd' ? DM_T : o.md === 'b' ? BOSS_T : ROUND_T, rd: 1, sc: [0, 0], dr: 0, l: 0, fl: 0, d: 0, kills: 0, deaths: 0, dealt: 0, roundsWon: 0, side: 0, goneT: 0, started: false, allies: [], ps: [], lv: BOSS_LIVES, res: 0, cam0: cam.dist }, o);
+      M.me = newFighter(c, 'me', { name: Net.name }); this.hitSeenM = new Map(); this.bac = null;
+      const seen = (pid) => { const pr = Net.peers.find((x) => x.peer === pid), q = pr && pr.presence && Array.isArray(pr.presence.dq) ? pr.presence.dq : []; this.hitSeenM.set(pid, Math.max(0, ...q.map((h) => (Array.isArray(h) ? +h[0] || 0 : 0)))); };
+      if (o.md === 'b') { // the boss: whoever's first runs it; its health grows with each of you
+        M.allies = M.ps.filter((x) => x !== myPeer()).map((x) => Object.assign(newFighter(0, 'rem', { peer: x, name: nameOf(x) }), { acSeen: -1 })); M.ps.forEach(seen);
+        M.foe = newFighter(LAE, M.own ? 'boss' : 'rboss', { C: BOSS_C, hpM: 1 + 0.6 * (Math.max(1, M.ps.length) - 1), name: '👹 Laestrygonian Warlord', peer: M.ps[0] || null }); M.foe.av = [5, 0, 0, 0, 17, 0, 0, 0, 0, 0, DUEL_BT + LAE, DUEL_AN + LAE]; }
+      else if (o.pvp) { M.foe = newFighter(0, 'rem', { peer: o.opp, name: nameOf(o.opp) }); M.foe.acSeen = -1; seen(o.opp); }
       else { const D = DIFF[o.D], fc = rollFoe(o.D); M.foe = newFighter(fc, 'bot', { D: o.D, hpM: D.hpM, dmgM: D.dmgM, name: `🤖 ${CH[fc].n}` }); M.side = Math.random() < 0.5 ? 0 : 1; M.foe.av = [Math.floor(Math.random() * 5), 0, 0, 0, 17, 0, 0, 0, 0, 0, 23 + fc, 15 + fc]; }
-      this.respawnDelay = M.md === 'd' ? 450 : 1e9;
+      this.respawnDelay = M.md === 'd' ? 450 : M.md === 'b' ? 2500 : 1e9;
       setAvOverride({ av: [AV.s, AV.sh, AV.p, 0, AV.f, 0, 0, 0, 0, 0, 23 + c, 15 + c] });
+      cam.dist = Math.max(cam.dist, CH[c].big ? 22 : M.md === 'b' ? 18 : 15); // (room to see a giant)
       document.body.classList.add('duMatch'); setBar(''); setBanner(''); hudBuild(M); this.resetRound(true);
-      this.bump('played', 1); sfx('horn'); if (o.pvp) this.pubDu(true);
+      this.bump('played', 1); sfx('horn'); if (o.pvp || M.coop) this.pubDu(true);
     },
-    revive(F) { Object.assign(F, { hp: F.mhp, st: 100, dead: false, act: null, blk: false, push: null, lift: 0, nx: 0, rTaken: 0 }); F.S = { stun: 0, root: 0, slow: 0, slowM: 1, vuln: 0, ifr: 0, dots: [], buffs: [] }; },
+    revive(F) { Object.assign(F, { hp: F.mhp, st: 100, dead: false, act: null, blk: false, push: null, lift: 0, nx: 0, rTaken: 0, wishN: 0, jT: 0 }); F.S = { stun: 0, root: 0, slow: 0, slowM: 1, vuln: 0, ifr: 0, sp: 0, crush: 0, dots: [], buffs: [] }; },
     botAvatar(F) { if (F.a) { dropTrail(F.a); dropAvatar(F.a); } F.a = makeAvatar(F.av, F.name, false); F.a.dgMode = F.mode; scene.add(F.a.g); F.a.g.position.set(F.x, 0, F.z); F.a.g.rotation.y = F.yaw; },
     resetRound(first) {
-      const M = this.M; M.ph = 'intro'; M.t = 0; M.toT = null; M.toWait = 0; M.left = M.md === 'd' ? DM_T : ROUND_T; M.base = { l: M.l, fl: this.foeL() };
-      for (const F of [M.me, M.foe]) { this.revive(F); F.cd = [0, 0, 0]; }
-      for (const p of this.proj) scene.remove(p.m); for (const v of this.volleys) scene.remove(v.ring); for (const d of this.drops) scene.remove(d.m); this.proj = []; this.volleys = []; this.drops = [];
+      const M = this.M; M.ph = 'intro'; M.t = 0; M.toT = null; M.toWait = 0; M.left = M.md === 'd' ? DM_T : M.md === 'b' ? BOSS_T : ROUND_T; M.base = { l: M.l, fl: this.foeL() };
+      for (const F of [M.me, M.foe]) { this.revive(F); F.cd = F.C.ab.map(() => 0); }
+      for (const p of this.proj) scene.remove(p.m); for (const v of this.volleys) scene.remove(v.ring); for (const d of this.drops) scene.remove(d.m); for (const w of this.waves) scene.remove(w.g); this.proj = []; this.volleys = []; this.drops = []; this.waves = [];
       const cy = cam.yaw; respawn(true); M.me.x = P.x; M.me.z = P.z; M.me.yaw = P.yaw; if (!first) cam.yaw = cy; // (the camera stays where you had it)
       if (M.foe.kind === 'bot') { const s = 1 - M.side; Object.assign(M.foe, { x: s ? 15 : -15, z: 0, yaw: s ? Math.PI / 2 : -Math.PI / 2 }); this.botAvatar(M.foe); }
+      if (isBoss(M.foe)) { Object.assign(M.foe, { x: 16, z: 0, yaw: Math.PI / 2 }); this.botAvatar(M.foe); big('👹 THE LAESTRYGONIAN', `${M.coop ? 'beat it together' : 'beat it'} — ${BOSS_LIVES} lives each · jump its stomps, get behind its blade`, '#fca5a5', 2.6); this.pubDu(true); return; }
       big(M.md === 'd' ? '💀 DEATHMATCH' : `ROUND ${M.rd}`, M.md === 'd' ? 'most kills in 5:00 — you come back at once' : M.sc[0] === TO - 1 && M.sc[1] === TO - 1 ? 'FINAL ROUND' : `first to ${TO}`, '#fde68a'); if (!first) sfx('horn');
       this.pubDu(true);
     },
@@ -1133,7 +1328,7 @@
     foeL() { const M = this.M; if (!M.pvp) return M.fl; const du = this.foeDu(); return du ? du.l | 0 : M.flSeen || 0; },
     matchFrame(dt) {
       const M = this.M, F = M.me, T = M.foe; M.t += dt;
-      this.syncF(F); this.syncF(T); if (M.pvp) this.mirror(T, dt); if (!this.M) return;
+      this.syncF(F); this.syncF(T); if (M.pvp) this.mirror(T, dt); if (T.kind === 'rboss') this.mirrorBoss(T, dt); for (const A of M.allies) { this.syncF(A); this.mirrorAlly(A, dt); } if (!this.M) return;
       // my hands: blocking, sprinting
       const f = (keys.KeyW || keys.ArrowUp ? 1 : 0) - (keys.KeyS || keys.ArrowDown ? 1 : 0) - joy.y, r = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0) + joy.x, moving = Math.hypot(f, r) > 0.2;
       F.blk = (this.blockHeld || this.rmb || !!keys.KeyF) && live() && !F.act && !stunned(F) && F.st > 0 && !F.dead;
@@ -1142,11 +1337,13 @@
       if (F.act && F.act.ab.k !== 'buff' && !F.act.vis) { P.yaw = F.yaw = F.act.yaw; }
       if (M.ph === 'intro') { if (M.t > 1.7 && !M.fightSaid) { M.fightSaid = 1; big('⚔️ FIGHT!', '', '#fef3c7'); } if (M.t > 2.6) { M.ph = 'fight'; M.t = 0; M.started = true; M.fightSaid = 0; sfx('go'); CROWD.ex = 1; } }
       else if (M.ph === 'fight') {
-        M.left -= dt; if (M.pvp) this.recvHits();
+        M.left -= dt; if (M.pvp || M.coop) this.recvHits();
         statusTick(F, dt); actTick(F, dt); statusTick(T, dt);
-        if (T.kind === 'bot') { if (!T.dead) { botTick(T, dt); actTick(T, dt); } } else actTick(T, dt);
-        projTick(dt);
-        if (M.md === 'd') {
+        if (T.kind === 'bot') { if (!T.dead) { botTick(T, dt); actTick(T, dt); } } else if (T.kind === 'boss') { if (!T.dead) { bossTick(T, dt); actTick(T, dt); } } else actTick(T, dt);
+        for (const A of M.allies) { statusTick(A, dt); actTick(A, dt); }
+        projTick(dt); wavesTick(dt);
+        if (M.md === 'b') this.bossFrame(dt);
+        else if (M.md === 'd') {
           if (F.dead && !P.dead) { this.revive(F); F.x = P.x; F.z = P.z; burstAt(P.x, 3, P.z, '#fde68a', 6); }
           if (T.kind === 'bot' && T.dead && (T.respT -= dt) <= 0) { this.revive(T); [T.x, , T.z, T.yaw] = this.randSpot(F); this.botAvatar(T); burstAt(T.x, 3, T.z, '#fca5a5', 6); }
           if (M.left <= 0) this.endMatch(M.kills > M.deaths ? 1 : M.kills < M.deaths ? -1 : 0);
@@ -1162,12 +1359,14 @@
       } else if (M.ph === 'rend') { if (M.t > 3.6) { if (M.sc[0] >= TO || M.sc[1] >= TO) this.endMatch(M.sc[0] >= TO ? 1 : -1); else { M.rd++; this.resetRound(); } } }
       else if (M.ph === 'end') { if ((M.autoT -= dt) <= 0) { this.leaveMatch(); return; } }
       // the bot's body
-      if (T.kind === 'bot' && T.a) { if (T.a.dead) updateDead(T.a, dt); else { T.a.g.position.set(T.x, T.y + (T.lift || 0), T.z); T.a.g.rotation.y = T.yaw; animateAvatar(T.a, T.sprint ? dt * 1.4 : dt, !!T.mv, (T.lift || 0) > 0.5); placeShadow(T.a); } }
+      if (isBoss(T) && T.tele) { const A = T.act; if (!A || A.t >= (A.ab.wind || 0)) { scene.remove(T.tele); T.tele = null; } else T.tele.material.opacity = 0.45 + 0.4 * Math.sin(A.t * 22); } // (the warning on the sand, until the blow)
+      if ((T.kind === 'bot' || isBoss(T)) && T.a) { if (T.a.dead) updateDead(T.a, dt); else { T.a.g.position.set(T.x, T.y + (T.lift || 0), T.z); T.a.g.rotation.y = T.yaw; animateAvatar(T.a, T.sprint ? dt * 1.4 : dt, !!T.mv, (T.lift || 0) > 0.5); placeShadow(T.a); } }
       // lock-on: the camera keeps them in view and you face them
       if (this.lockOn && !T.dead && !bval(T, 'inv') && M.ph !== 'end') { const ty = angOf(T.x - P.x, T.z - P.z); cam.yaw += wrapA(ty + 0.32 - cam.yaw) * Math.min(1, dt * 5); if (!this.sprinting && !(F.act && F.act.ab.k !== 'buff') && !F.push && live()) P.yaw = F.yaw = ty; }
-      P.frozen = M.ph !== 'fight' || stunned(F) || F.S.root > 0 || !!F.push || F.dead || !!(F.act && (F.act.ab.k === 'dash' || F.act.ab.k === 'leap'));
+      if (M.ph !== 'end' && !P.dead) { [P.x, P.z] = clampArena(P.x, P.z, 1.6 * (F.C.big || 1)); F.x = P.x; F.z = P.z; } // (the podium wall: nobody walks out of the arena)
+      P.frozen = M.ph !== 'fight' || stunned(F) || F.S.root > 0 || !!F.push || F.dead || F.out || !!(F.act && (F.act.ab.k === 'dash' || F.act.ab.k === 'leap'));
       // nobody else in the arena but the two of you
-      for (const [peer, a] of Net.avatars) { a.g.visible = M.pvp && peer === M.opp && !(T.S.buffs.some((b) => b.inv)); if (a.pet) a.pet.g.visible = false; }
+      for (const [peer, a] of Net.avatars) { const ally = M.allies.find((q) => q.peer === peer); a.g.visible = (M.pvp && peer === M.opp && !(T.S.buffs.some((b) => b.inv))) || !!(ally && !ally.out && !ally.S.buffs.some((b) => b.inv)); if (a.pet) a.pet.g.visible = false; }
       if (T.kind === 'bot' && T.a) T.a.g.visible = !bval(T, 'inv');
       this.pubDu(); hudTick(M, dt); const tip = $('#duTip'); if (tip && M.rd === 1 && M.t > 12 && M.ph === 'fight') tip.style.opacity = 0;
     },
@@ -1176,38 +1375,76 @@
       else if (F.kind === 'rem') { const a = Net.avatars.get(F.peer) || null; if (F.a !== a) { dropTrail(F.a); F.a = a; } if (a) { F.x = a.g.position.x; F.y = a.g.position.y; F.z = a.g.position.z; F.yaw = a.g.rotation.y; } }
       if (F.a) F.a.dgMode = F.mode;
     },
-    // the other player: their numbers from what they say, their blows played out here for the look of it
+    // the other player (or an ally): their numbers from what they say, their blows played out here for the look of it
+    mirrorF(F, du) {
+      if (CH[du.c] && du.c !== F.c) { F.c = du.c | 0; F.C = CH[F.c]; }
+      F.hp = clamp(+du.hp || 0, 0, 5000); F.mhp = Math.max(1, +du.mhp || F.C.hp); F.st = clamp(+du.st || 0, 0, 100); F.mode = du.mo | 0; const sx = String(du.sx || '');
+      F.blk = sx.includes('b'); F.S.stun = sx.includes('s') ? 0.3 : 0; F.S.root = sx.includes('r') ? 0.3 : 0; F.S.slow = sx.includes('w') ? 0.3 : 0; F.S.crush = sx.includes('c') ? 1 : 0; F.S.sp = sx.includes('p') ? 0.3 : 0;
+      F.S.buffs = (Array.isArray(du.bf) ? du.bf : []).slice(0, 4).map((an) => ({ an: String(an), t: 0.3, inv: an === 'smoke' ? 1 : undefined }));
+      if (Array.isArray(du.ac) && du.ac[0] !== F.acSeen) { const first = F.acSeen === -1; F.acSeen = du.ac[0];
+        if (!first) { if (du.ac[3]) { smokeAt(F.x, 0.6, F.z, 5, '#e7d3a8', 1.6); sfx3('whoosh', F.x, F.z, 50); } else if (du.ac[1] >= 0 && du.ac[1] < F.C.ab.length) { F.mode = du.ac[2] | 0; F.act = null; useAb(F, du.ac[1] | 0, true); if (F.act && F.act.ab.k === 'volley') { F.act.tx = +du.ac[4] || 0; F.act.tz = +du.ac[5] || 0; } } } }
+      F.dead = !!du.dead; F.out = !!du.out;
+    },
     mirror(F, dt) {
       const M = this.M, du = this.foeDu();
       if (!du) { M.goneT += dt; if (M.goneT > (M.started ? 5 : 12) && M.ph !== 'end') { feed('🏳️ They left the arena — you win'); this.endMatch(1); } return; }
-      M.goneT = 0; M.flSeen = du.l | 0;
-      if (CH[du.c] && du.c !== F.c) { F.c = du.c | 0; F.C = CH[F.c]; }
-      F.hp = clamp(+du.hp || 0, 0, 2000); F.mhp = Math.max(1, +du.mhp || F.C.hp); F.st = clamp(+du.st || 0, 0, 100); F.mode = du.mo | 0; const sx = String(du.sx || '');
-      F.blk = sx.includes('b'); F.S.stun = sx.includes('s') ? 0.3 : 0; F.S.root = sx.includes('r') ? 0.3 : 0; F.S.slow = sx.includes('w') ? 0.3 : 0;
-      F.S.buffs = (Array.isArray(du.bf) ? du.bf : []).slice(0, 4).map((an) => ({ an: String(an), t: 0.3, inv: an === 'smoke' ? 1 : undefined }));
-      if (Array.isArray(du.ac) && du.ac[0] !== F.acSeen) { const first = F.acSeen === -1; F.acSeen = du.ac[0];
-        if (!first) { if (du.ac[3]) { smokeAt(F.x, 0.6, F.z, 5, '#e7d3a8', 1.6); sfx3('whoosh', F.x, F.z, 50); } else if (du.ac[1] >= 0 && du.ac[1] < 3) { F.mode = du.ac[2] | 0; F.act = null; useAb(F, du.ac[1] | 0, true); if (F.act && F.act.ab.k === 'volley') { F.act.tx = +du.ac[4] || 0; F.act.tz = +du.ac[5] || 0; } } } }
+      M.goneT = 0; M.flSeen = du.l | 0; const dead0 = F.dead; this.mirrorF(F, du); F.dead = dead0;
       const d = du.d | 0; if (F.dSeen == null) F.dSeen = d;
-      if (d > F.dSeen) { F.dSeen = d; M.kills++; this.bump('kills', 1); quest('duel.kill'); feed(`⚔️ You defeated <b>${esc(nameOf(M.opp))}</b>`); big('⚔️ KO!', '', '#fde68a'); CROWD.ex = 1; sfx('kill'); }
+      if (d > F.dSeen) { F.dSeen = d; M.kills++; this.bump('kills', 1); this.qBump('k', 1); quest('duel.kill'); feed(`⚔️ You defeated <b>${esc(nameOf(M.opp))}</b>`); big('⚔️ KO!', '', '#fde68a'); CROWD.ex = 1; sfx('kill'); }
       F.dead = !!du.dead;
     },
-    recvHits() {
-      const M = this.M, du = this.foeDu(), q = du && Array.isArray(du.dq) ? du.dq : (() => { const p = Net.peers.find((x) => x.peer === M.opp); return p && p.presence && Array.isArray(p.presence.dq) ? p.presence.dq : []; })();
-      for (const h of q) { if (!Array.isArray(h) || !(+h[0] > this.hitSeen)) continue; this.hitSeen = +h[0]; if (h[1] !== myPeer() || h[4] !== M.mid) continue;
-        const fx = h[3] && typeof h[3] === 'object' ? h[3] : {}; takeHit(M.me, clamp(+h[2] || 0, 0, 450), fx, M.foe, { rf: !!fx.rf }); }
+    mirrorAlly(F, dt) {
+      const p = Net.peers.find((q) => q.peer === F.peer), du = p && p.presence && p.presence.du;
+      if (!du || du.m !== this.M.mid) { F.gT = (F.gT || 0) + dt; if (F.gT > 6 && !F.gone) { F.gone = true; feed(`🏳️ <b>${esc(F.name)}</b> left the fight`); } return; }
+      F.gT = 0; F.gone = false; this.mirrorF(F, du);
     },
-    sendHit(T, dmg, fx, F) { this.hitN++; this.dq = this.dq.concat([[this.hitN, T.peer, dmg, fx || {}, this.M.mid]]).slice(-10); send({ dq: this.dq }); },
+    bossDu() { const M = this.M, p = Net.peers.find((q) => q.peer === M.ps[0]), du = p && p.presence && p.presence.du; return du && du.m === M.mid && du.bs && typeof du.bs === 'object' ? du.bs : null; },
+    mirrorBoss(F, dt) {
+      const M = this.M, bs = this.bossDu();
+      if (!bs) { M.goneT += dt; if (M.goneT > (M.started ? 6 : 15) && M.ph !== 'end') { feed('🏳️ The boss’s host left — the fight is off'); this.endMatch(0); } return; }
+      M.goneT = 0; const k = Math.min(1, dt * 10), x0 = F.x, z0 = F.z; if (!F.mx) { F.x = +bs.x || 0; F.z = +bs.z || 0; F.mx = 1; }
+      F.x += ((+bs.x || 0) - F.x) * k; F.z += ((+bs.z || 0) - F.z) * k; F.yaw += wrapA((+bs.yaw || 0) - F.yaw) * k; F.mv = Math.hypot(F.x - x0, F.z - z0) > dt * 0.8;
+      F.hp = clamp(+bs.hp || 0, 0, 1e5); F.mhp = Math.max(1, +bs.mhp || F.mhp); const sx = String(bs.sx || ''); F.S.stun = sx.includes('s') ? 0.3 : 0; F.S.crush = sx.includes('c') ? 1 : 0; F.S.vuln = sx.includes('v') ? 0.3 : 0;
+      F.S.buffs = (Array.isArray(bs.bf) ? bs.bf : []).slice(0, 4).map((an) => ({ an: String(an), t: 0.3 }));
+      if (Array.isArray(bs.ac) && bs.ac[0] !== F.acSeen) { const first = F.acSeen == null; F.acSeen = bs.ac[0]; if (!first && bs.ac[1] >= 0 && bs.ac[1] < F.C.ab.length) { F.act = null; useAb(F, bs.ac[1] | 0, true); } }
+      F.tgt = bs.tg === myPeer() ? M.me : M.allies.find((A) => A.peer === bs.tg) || M.me;
+    },
+    // the boss fight, every frame: back from a death (protected for 2 s), and — if it's yours to run — how it ends
+    bossFrame(dt) {
+      const M = this.M, F = M.me, B = M.foe;
+      if (F.dead && !P.dead && !F.out) { this.revive(F); F.x = P.x; F.z = P.z; F.S.sp = 2; burstAt(P.x, 3, P.z, '#fde68a', 6); floatText(F, '✨ PROTECTED FOR 2 s', 'tag'); this.pubDu(true); }
+      if (M.own) { const res = B.hp <= 0 ? 1 : [F, ...M.allies].every((q) => q.out || q.gone) || M.left <= 0 ? -1 : 0;
+        if (res) { if (res < 0 && M.left <= 0) feed('⏰ Out of time'); M.res = res; this.pubDu(true); this.endMatch(res); } }
+      else { const bs = this.bossDu(); if (bs && bs.res) this.endMatch((bs.res | 0) > 0 ? 1 : -1); }
+    },
+    // the hits the others say they've landed: on me — or, if the boss is mine to run, on the boss
+    recvHits() {
+      const M = this.M, mine = myPeer(), ids = M.coop ? M.ps.filter((x) => x !== mine) : [M.opp];
+      for (const pid of ids) { const pr = Net.peers.find((x) => x.peer === pid), q = pr && pr.presence && Array.isArray(pr.presence.dq) ? pr.presence.dq : []; let seen = this.hitSeenM.get(pid) || 0;
+        const from = M.coop ? (pid === M.ps[0] && !M.own ? M.foe : M.allies.find((A) => A.peer === pid) || M.foe) : M.foe;
+        for (const h of q) { if (!Array.isArray(h) || !(+h[0] > seen)) continue; seen = +h[0]; if (h[4] !== M.mid) continue;
+          const fx = h[3] && typeof h[3] === 'object' ? h[3] : {}, dmg = clamp(+h[2] || 0, 0, 5000);
+          if (h[5] === 'b') { if (M.foe.kind === 'boss') takeHit(M.foe, dmg, fx, from, { rf: !!fx.rf }); } else if (h[1] === mine) takeHit(M.me, dmg, fx, from, { rf: !!fx.rf }); }
+        this.hitSeenM.set(pid, seen); }
+    },
+    sendHit(T, dmg, fx, F) { this.hitN++; this.dq = this.dq.concat([[this.hitN, T.peer, dmg, fx || {}, this.M.mid, T.kind === 'rboss' ? 'b' : 0]]).slice(-16); send({ dq: this.dq }); },
     pubAct(F, A, kind) { this.acN++; this.ac = [this.acN, A ? A.i : -1, F.mode, kind === 'dodge' ? 1 : 0, A && A.tx != null ? Math.round(A.tx) : 0, A && A.tz != null ? Math.round(A.tz) : 0]; this.pubDu(true); },
     pubDu(force) {
-      const M = this.M; if (!M || !M.pvp) return; const F = M.me;
+      const M = this.M; if (!M || !(M.pvp || M.coop)) return; const F = M.me, B = M.foe;
       const du = { m: M.mid, c: F.c, hp: Math.max(0, Math.round(F.hp)), mhp: F.mhp, st: Math.round(F.st), l: M.l, d: M.d, dead: F.dead ? 1 : 0, ac: this.ac, mo: F.mode,
-        sx: (F.blk ? 'b' : '') + (F.S.stun > 0 ? 's' : '') + (F.S.root > 0 ? 'r' : '') + (F.S.slow > 0 ? 'w' : ''), bf: F.S.buffs.map((b) => b.an).slice(0, 4) };
+        sx: (F.blk ? 'b' : '') + (F.S.stun > 0 ? 's' : '') + (F.S.root > 0 ? 'r' : '') + (F.S.slow > 0 ? 'w' : '') + (F.S.crush ? 'c' : '') + (F.S.sp > 0 ? 'p' : ''), bf: F.S.buffs.map((b) => b.an).slice(0, 4) };
+      if (M.coop) { du.lv = M.lv; du.out = F.out ? 1 : 0; }
+      if (M.coop && M.own) du.bs = { hp: Math.max(0, Math.round(B.hp)), mhp: B.mhp, x: +B.x.toFixed(2), z: +B.z.toFixed(2), yaw: +B.yaw.toFixed(2), ac: this.bac, tg: B.tgt ? (B.tgt.kind === 'me' ? myPeer() : B.tgt.peer) : '', res: M.res || 0,
+        sx: (B.S.stun > 0 ? 's' : '') + (B.S.crush ? 'c' : '') + (B.S.vuln > 0 ? 'v' : ''), bf: B.S.buffs.map((b) => b.an).slice(0, 4) };
       const key = JSON.stringify(du), t = now(); if (key === this.duKey || (!force && t - this.duAt < 0.1)) return; this.duKey = key; this.duAt = t; send({ du });
     },
     killed(T, from) {
       const M = this.M; if (!M || T.dead) return; T.dead = true; T.act = null; T.blk = false; T.S.dots = []; T.S.buffs = []; CROWD.ex = 1; sfx3('kill', T.x, T.z, 90);
-      if (T.kind === 'me') { M.l++; M.d++; M.deaths++; die(); feed(`💀 <b>${esc(M.foe.name)}</b> defeated you`); big('☠️ DEFEATED', '', '#fca5a5'); this.pubDu(true); }
-      else { M.fl++; M.kills++; T.respT = 0.6; this.bump('kills', 1); quest('duel.kill'); if (T.a && !T.a.dead) scatter(T.a); feed(`⚔️ You defeated <b>${esc(T.name)}</b>`); big('⚔️ KO!', '', '#fde68a'); }
+      if (T.kind === 'me') { M.l++; M.d++; M.deaths++; die(); feed(`💀 <b>${esc(M.foe.name)}</b> defeated you`);
+        if (M.md === 'b') { M.lv--; if (M.lv <= 0) { T.out = true; this.respawnDelay = 1e9; big('☠️ OUT OF LIVES', M.coop ? 'your allies fight on' : '', '#fca5a5', 2.5); } else big('☠️ DOWN', `❤️ ${M.lv} ${M.lv === 1 ? 'life' : 'lives'} left`, '#fca5a5'); }
+        else big('☠️ DEFEATED', '', '#fca5a5'); this.pubDu(true); }
+      else if (isBoss(T)) { M.kills++; if (T.a && !T.a.dead) scatter(T.a); feed('👹 <b>The Laestrygonian</b> is down!'); big('👹 THE GIANT FALLS!', '', '#fde68a', 2.5); camShake(me, 1); sfx('horn'); }
+      else { M.fl++; M.kills++; T.respT = 0.6; this.bump('kills', 1); this.qBump('k', 1); quest('duel.kill'); if (T.a && !T.a.dead) scatter(T.a); feed(`⚔️ You defeated <b>${esc(T.name)}</b>`); big('⚔️ KO!', '', '#fde68a'); }
     },
     roundOver(r) {
       const M = this.M; M.ph = 'rend'; M.t = 0; M.sc = [this.foeL(), M.l]; CROWD.ex = 1;
@@ -1217,29 +1454,34 @@
     },
     endMatch(r) {
       const M = this.M; if (!M || M.ph === 'end') return; M.ph = 'end'; M.t = 0; M.autoT = 25; P.frozen = true; const S = this.save;
-      const D = M.pvp ? null : DIFF[M.D]; let coins = r > 0 ? (M.pvp ? 60 : D.coins) : r < 0 ? (M.pvp ? 15 : 8) : 20; coins += M.roundsWon * 5 + (M.md === 'd' ? M.kills * 3 : 0);
-      const xp = Math.round((M.dealt / 10 + M.kills * 25 + M.roundsWon * 40 + (r > 0 ? 120 : 30)) * (M.pvp ? 1.5 : [0.6, 1, 1.3, 1.6][M.D]));
-      if (r > 0) { this.bump('wins', 1); if (M.md === 'c') this.bump('cwins', 1); if (!M.pvp) for (let k = 0; k <= M.D; k++) this.bump('b' + k, 1); quest('duel.win'); send({ dw: S.st.wins | 0 }); }
+      const boss = M.md === 'b', D = M.pvp || boss ? null : DIFF[M.D]; let coins = r > 0 ? (boss ? 120 : M.pvp ? 60 : D.coins) : r < 0 ? (M.pvp || boss ? 15 : 8) : 20; coins += M.roundsWon * 5 + (M.md === 'd' ? M.kills * 3 : 0);
+      const xp = Math.round((M.dealt / 10 + M.kills * 25 + M.roundsWon * 40 + (r > 0 ? 120 : 30)) * (boss ? 1.6 : M.pvp ? 1.5 : [0.6, 1, 1.3, 1.6][M.D]));
+      const gold = (boss ? (r > 0 ? 150 : 25) : r > 0 ? (M.pvp ? 60 : [20, 30, 45, 60][M.D]) : r < 0 ? 10 : 15) + M.kills * 3; S.gold = (S.gold | 0) + gold; // (the duel's own gold: crates)
+      if (r > 0) { this.bump('wins', 1); if (M.md === 'c') this.bump('cwins', 1); if (!M.pvp && !boss) for (let k = 0; k <= M.D; k++) this.bump('b' + k, 1); quest('duel.win'); send({ dw: S.st.wins | 0 }); }
+      let prize = false; if (boss && r > 0) { this.bump('boss', 1); this.qBump('k', 1); prize = this.unlock(LAE, 'you beat the Laestrygonian'); }
       if (M.md === 'd') { this.bump('dmk', M.kills); if (r > 0 && M.kills >= 15) this.bump('dm15', 1); }
       earn(coins, `${r > 0 ? 'Victory' : r < 0 ? 'Defeat' : 'Draw'} in Colosseum Duels`); const mr = this.addXp(M.me.c, xp);
-      sfx(r > 0 ? 'win' : 'lose'); CROWD.ex = 1; if (r > 0) petals(M.me.x, M.me.z, 110); this.result(r, coins, xp, mr); this.pubDu(true);
+      sfx(r > 0 ? 'win' : 'lose'); CROWD.ex = 1; if (r > 0) petals(M.me.x, M.me.z, 110); this.result(r, coins, xp, mr, gold, prize); this.pubDu(true);
     },
-    result(r, coins, xp, mr) {
+    result(r, coins, xp, mr, gold, prize) {
       const M = this.M, C = M.me.C, el = document.createElement('div'); el.id = 'duRes'; el.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(2,6,23,.5);pointer-events:auto;z-index:20';
-      const sc = M.md === 'c' ? `${M.sc[0]} — ${M.sc[1]}` : `${M.kills} kills · ${M.deaths} deaths`, foe = M.pvp ? esc(nameOf(M.opp)) : `${DIFF[M.D].e} ${DIFF[M.D].n} bot`, lv = mr.after, nx = MAST[Math.min(10, lv + 1)], have = this.save.xp[C.i] | 0;
+      const sc = M.md === 'b' ? `${mmss(Math.ceil(BOSS_T - Math.max(0, M.left)))} · ❤️ ${Math.max(0, M.lv)} left` : M.md === 'c' ? `${M.sc[0]} — ${M.sc[1]}` : `${M.kills} kills · ${M.deaths} deaths`, foe = M.md === 'b' ? '👹 the Laestrygonian' : M.pvp ? esc(nameOf(M.opp)) : `${DIFF[M.D].e} ${DIFF[M.D].n} bot`, lv = mr.after, nx = MAST[Math.min(10, lv + 1)], have = this.save.xp[C.i] | 0;
       el.innerHTML = `<div class="du-res" style="padding:22px 30px;border-radius:22px;background:linear-gradient(180deg,rgba(30,41,59,.96),rgba(15,23,42,.96));border:2px solid ${r > 0 ? '#fbbf24' : '#475569'};box-shadow:0 20px 60px rgba(0,0,0,.6);max-width:min(470px,92vw)">
         <div style="font:800 50px/1 var(--fh);color:${r > 0 ? '#fde68a' : r < 0 ? '#fca5a5' : '#e2e8f0'};-webkit-text-stroke:6px rgba(0,0,0,.4);paint-order:stroke fill">${r > 0 ? '🏆 VICTORY' : r < 0 ? '☠️ DEFEAT' : '🤝 DRAW'}</div>
         <div style="font:700 15px var(--fb);color:#cbd5e1">${C.ic} ${esc(C.n)} vs ${foe} · ${sc}</div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;font:800 15px var(--fh)"><span style="padding:6px 12px;border-radius:10px;background:rgba(250,204,21,.15);color:#fde68a">🪙 +${coins}</span><span style="padding:6px 12px;border-radius:10px;background:rgba(251,191,36,.12);color:#fbbf24">🌟 +${xp} mastery XP</span><span style="padding:6px 12px;border-radius:10px;background:rgba(255,255,255,.08);color:#e2e8f0">💥 ${M.dealt} damage</span></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;font:800 15px var(--fh)"><span style="padding:6px 12px;border-radius:10px;background:rgba(250,204,21,.15);color:#fde68a">🪙 +${coins}</span><span style="padding:6px 12px;border-radius:10px;background:rgba(234,179,8,.18);color:#facc15">🥇 +${gold} gold</span><span style="padding:6px 12px;border-radius:10px;background:rgba(251,191,36,.12);color:#fbbf24">🌟 +${xp} mastery XP</span><span style="padding:6px 12px;border-radius:10px;background:rgba(255,255,255,.08);color:#e2e8f0">💥 ${M.dealt} damage</span></div>
+        ${prize ? `<div style="font:800 16px var(--fh);color:#fde68a">🗿 The Laestrygonian is yours — find it under Greece, ★★★★★ Mythic!</div>` : ''}
         <div style="width:100%"><div style="font:700 12.5px var(--fb);color:#e2e8f0;margin-bottom:4px">${mr.after > mr.before ? `⬆️ <b style="color:#fde68a">Mastery ${lv}!</b>` : `Mastery ${lv}/10`} ${lv >= 10 ? '— mastered: wear it anywhere from the avatar editor' : `· ${have}/${nx} XP`}</div><div class="du-mx" style="margin:0"><i style="width:${lv >= 10 ? 100 : (have - MAST[lv]) / (nx - MAST[lv]) * 100}%"></i></div></div>
-        <div style="display:flex;gap:10px;margin-top:6px"><button class="du-btn" data-x="again">${M.pvp ? '🏛️ Back to the courtyard' : '🔁 Rematch'}</button>${M.pvp ? '' : '<button class="du-btn alt" data-x="lobby">🏛️ Courtyard</button>'}</div></div>`;
+        <div style="display:flex;gap:10px;margin-top:6px"><button class="du-btn" data-x="again">${M.pvp || M.coop ? '🏛️ Back to the courtyard' : M.md === 'b' ? '🔁 Fight it again' : '🔁 Rematch'}</button>${M.pvp || M.coop ? '' : '<button class="du-btn alt" data-x="lobby">🏛️ Courtyard</button>'}</div></div>`;
       HUD.el.append(el); if (document.exitPointerLock) document.exitPointerLock();
-      el.addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; const again = b.dataset.x === 'again' && !M.pvp, o = { md: M.md, pvp: false, D: M.D }; this.leaveMatch(); if (again) this.startMatch(o); });
+      el.addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; const again = b.dataset.x === 'again' && !M.pvp && !M.coop, o = M.md === 'b' ? { md: 'b', coop: false, own: true, ps: [myPeer()] } : { md: M.md, pvp: false, D: M.D }; this.leaveMatch(); if (again) this.startMatch(o); });
     },
     cleanMatch() {
-      const M = this.M; if (!M) return; if (M.foe.kind === 'bot' && M.foe.a) { dropTrail(M.foe.a); dropAvatar(M.foe.a); } dropTrail(M.me.a); if (M.foe.kind === 'rem') dropTrail(M.foe.a);
-      for (const p of this.proj) scene.remove(p.m); for (const v of this.volleys) scene.remove(v.ring); for (const d of this.drops) scene.remove(d.m); this.proj = []; this.volleys = []; this.drops = [];
-      if (HUD.el) HUD.el.remove(); HUD.el = null; document.body.classList.remove('duMatch'); for (const a of Net.avatars.values()) { a.g.visible = true; if (a.pet) a.pet.g.visible = true; }
+      const M = this.M; if (!M) return; if ((M.foe.kind === 'bot' || isBoss(M.foe)) && M.foe.a) { dropTrail(M.foe.a); dropAvatar(M.foe.a); } dropTrail(M.me.a); if (M.foe.kind === 'rem') dropTrail(M.foe.a); for (const A of M.allies) dropTrail(A.a);
+      if (M.foe.tele) { scene.remove(M.foe.tele); M.foe.tele = null; }
+      for (const p of this.proj) scene.remove(p.m); for (const v of this.volleys) scene.remove(v.ring); for (const d of this.drops) scene.remove(d.m); for (const w of this.waves) scene.remove(w.g); this.proj = []; this.volleys = []; this.drops = []; this.waves = [];
+      if (HUD.el) HUD.el.remove(); HUD.el = null; document.body.classList.remove('duMatch'); for (const a of Net.avatars.values()) { a.g.visible = true; a.g.scale.setScalar(1); if (a.pet) a.pet.g.visible = true; }
+      cam.dist = M.cam0 || 15;
       if (M.mid) this.done.add(M.mid);
     },
     leaveMatch() {
@@ -1259,16 +1501,17 @@
       if (!this.M) { if (down && code === 'KeyC') { this.fightersPanel(); return true; } return; }
       if (code === 'KeyF') { this.blockHeld = !!down; return true; }
       if (!down) return;
-      if (code === 'KeyE') { this.tryAb(1); return true; } if (code === 'KeyR') { this.tryAb(2); return true; } if (code === 'KeyQ') { this.tryDodge(); return true; } if (code === 'KeyT') { this.toggleLock(); return true; }
+      if (code === 'KeyE') { this.tryAb(1); return true; } if (code === 'KeyR') { this.tryAb(2); return true; } if (code === 'KeyG') { this.tryAb(3); return true; } if (code === 'KeyQ') { this.tryDodge(); return true; } if (code === 'KeyT') { this.toggleLock(); return true; }
       if (/^Digit[1-3]$/.test(code) && this.M.me.C.ab[0].modes) { this.setMode(+code.slice(5) - 1); return true; }
     },
     menuKey(code) { if (code === 'KeyC') closePanel(); },
     pose(dt) {
       const M = this.M; if (!M) return;
-      for (const F of [M.me, M.foe]) { const a = F.a; if (!a || a.dead) continue;
+      for (const F of [M.me, M.foe, ...M.allies]) { const a = F.a; if (!a || a.dead) continue;
+        const sc = F.C.big || 1; if (Math.abs(a.g.scale.x - sc) > 1e-3) a.g.scale.setScalar(sc); // (the giants, their size)
         poseAct(F, dt); trailTick(F, !!(F.act && F.act.trail)); buffLook(F); statusLook(F, dt);
         if (F.lift) a.g.position.y += F.lift;
-        if (F.blk && !F.act) setPose(F, F.C.ab[1].an === 'bash' || [0, 3, 4, 5, 8, 9, 10, 12, 13].includes(F.c) ? AN.shieldup : { aR: [1.3, 0.3, -0.5], eR: [1.3], aL: [1.2, -0.3, 0.6], eL: [1.3], bd: [-0.1, 0, 0] }, Math.min(1, dt * 14)); // (a block: the shield up, or the blade across)
+        if (F.blk && !F.act) setPose(F, F.C.ab[1].an === 'bash' || [0, 3, 4, 5, 8, 9, 10, 12, 13, 22, 30].includes(F.c) ? AN.shieldup : { aR: [1.3, 0.3, -0.5], eR: [1.3], aL: [1.2, -0.3, 0.6], eL: [1.3], bd: [-0.1, 0, 0] }, Math.min(1, dt * 14)); // (a block: the shield up, or the blade across)
         if (F.kind === 'me') { const inv = bval(F, 'inv') > 0; if (inv !== !!a.duInv) { a.duInv = inv; a.g.traverse((o) => { const m = o.material; if (!m || o.isSprite || Array.isArray(m)) return; if (!m.userData.op0) m.userData.op0 = [m.transparent, m.opacity]; m.transparent = inv || m.userData.op0[0]; m.opacity = inv ? 0.28 : m.userData.op0[1]; }); } } // (in the smoke: half there)
         if (a.shadow && !a.g.visible) a.shadow.visible = false; }
       for (const a of Net.avatars.values()) if (!a.g.visible && a.shadow) a.shadow.visible = false;
@@ -1282,6 +1525,9 @@
     flash() { const d = document.createElement('div'); d.style.cssText = 'position:absolute;inset:0;background:#fff;opacity:.85;pointer-events:none;transition:opacity .45s'; $('#xhud').append(d); requestAnimationFrame(() => { d.style.opacity = 0; }); setTimeout(() => d.remove(), 500); },
 
     /* ---------------- progress: stats, the duel's achievements, mastery ---------------- */
+    unlock(c, why) { const S = this.save; if (S.own.includes(c)) return false; S.own.push(c); this.dirty(); sfx('unlock'); toast(`${CH[c].ic} ${CH[c].n} unlocked — ${why}!`, '#fde68a'); say(`⚔️ Colosseum Duels: the ${CH[c].n} is yours — ${why}!`, '#fde68a'); if (!this.M) this.drawBar(); return true; },
+    passCheck() { try { if (this.save && spLvl() >= 100) this.unlock(LAE, 'you reached Season Pass level 100'); } catch (e) { /* (no pass yet) */ } },
+    qBump(k, n) { const S = this.save, q = S && S.q; if (!q || !q.on) return; q[k] = (q[k] | 0) + n; if ((q.k | 0) >= 50 && (q.d | 0) >= 15000) { q.on = 0; S.qd = 1; this.unlock(EXE, 'the Executioner’s Contract is fulfilled'); } this.dirty(); },
     bump(k, n = 1) { const st = this.save.st; st[k] = (st[k] | 0) + n; this.checkAch(); this.dirty(); },
     checkAch() {
       const S = this.save;
@@ -1301,67 +1547,83 @@
     /* ---------------- the menus ---------------- */
     drawBar() {
       if (this.M || !this.save) { setBar(''); return; } const S = this.save, C = CH[S.eq];
-      setBar(`<button class="xslot" data-k="fi"><span class="k">C</span><span class="e">${C.ic}</span>${esc(C.n)}<small>🌟 mastery ${mLvl(S.xp[S.eq] | 0)}/10</small></button><button class="xslot" data-k="cr"><span class="e">🎁</span>Crates<small>🪙 ${CRATE_PRICE} each</small></button><button class="xslot" data-k="bot"><span class="e">🤖</span>Fight a bot<small>${DIFF[S.diff].e} ${DIFF[S.diff].n}</small></button><button class="xslot" data-k="ach"><span class="e">🏆</span>Achievements<small>${S.ach.length}/${ACH.length}</small></button>`,
+      setBar(`<button class="xslot" data-k="fi"><span class="k">C</span><span class="e">${C.ic}</span>${esc(C.n)}<small>🌟 mastery ${mLvl(S.xp[S.eq] | 0)}/10</small></button><button class="xslot" data-k="cr"><span class="e">🎁</span>Crates<small>🥇 ${S.gold | 0} gold</small></button><button class="xslot" data-k="bot"><span class="e">🤖</span>Fight a bot<small>${DIFF[S.diff].e} ${DIFF[S.diff].n}</small></button><button class="xslot" data-k="ach"><span class="e">🏆</span>Achievements<small>${S.ach.length}/${ACH.length}</small></button>`,
         (b) => { const k = b.dataset.k; if (k === 'fi') this.fightersPanel(); else if (k === 'cr') this.cratesPanel(); else if (k === 'bot') this.botPanel(); else if (k === 'ach') this.achPanel(); });
     },
+    fighterHow(c) { const S = this.save, C = CH[c], A = ACH.find((q) => q.c === c);
+      if (C.how) return `🔒 ${esc(C.how)}${c === EXE && S.q && S.q.on ? ` — ⚔️ ${S.q.k | 0}/50 · 💥 ${(S.q.d | 0).toLocaleString()}/15,000` : ''}`;
+      return `🔒 ${A ? `Win it with the duel achievement <b>${esc(A.n)}</b> (${esc(A.d)}), or find it` : 'Only'} in the ${EMP[C.e].e} ${esc(EMP[C.e].n)} crate (${ODDS[CRATE[C.e].indexOf(c)]}%)`; },
     fightersPanel(sel) {
-      const S = this.save; if (sel == null) sel = S.eq; const C = CH[sel], own = S.own.includes(sel), xp = S.xp[sel] | 0, lv = mLvl(xp), nx = MAST[Math.min(10, lv + 1)], A = ACH.find((q) => q.c === sel);
-      const how = `🔒 ${A ? `Win it with the duel achievement <b>${esc(A.n)}</b> (${esc(A.d)}), or find it` : 'Only'} in the ${EMP[C.e].e} ${esc(EMP[C.e].n)} crate (${ODDS[CRATE[C.e].indexOf(sel)]}%)`;
-      const abl = C.ab.map((ab, i) => ab.modes ? ab.modes.map((m, k) => `<div><i>${m.ic}</i><span><b>${['M1', 'E', 'R'][i]} · ${esc(m.n)}</b> (key ${k + 1}) — <em>${m.dmg}</em> damage, every <em>${m.cd} s</em></span></div>`).join('')
-        : `<div><i>${ab.ic}</i><span><b>${['M1', 'E', 'R'][i]} · ${esc(ab.n)}</b> — ${ab.d ? esc(ab.d) : `<em>${ab.dmg}</em> damage${ab.k === 'proj' ? ' (ranged)' : ''}`} · cooldown <em>${ab.cd} s</em></span></div>`).join('');
-      const det = `<div class="du-det" style="--rc:${RAR[C.r].c}"><img src="${fighterPic(sel, 1)}" alt=""><div><div class="sub">${EMP[C.e].e} ${esc(EMP[C.e].n)} · ${RAR[C.r].n}</div><h3>${C.ic} ${esc(C.n)}</h3>
-        <div class="du-stats"><span>❤️ ${C.hp} HP</span>${C.def < 1 ? `<span>🛡️ −${Math.round((1 - C.def) * 100)}% damage taken</span>` : ''}${C.spd !== 1 ? `<span>${C.spd > 1 ? '🏃 +' : '🐢 −'}${Math.round(Math.abs(C.spd - 1) * 100)}% speed</span>` : ''}<span>💨 Q dodge · 🛡️ F block</span></div>
-        <div class="du-abl">${abl}</div>
-        <div style="margin-top:10px;font:700 12.5px var(--fb);color:#e2e8f0">🌟 Mastery ${lv}/10 ${lv >= 10 ? '— <b style="color:#fde68a">MASTERED</b>: its body and animation pack are in your avatar editor' : `· ${xp}/${nx} XP — master it (10) to wear its body and animations anywhere`}</div><div class="du-mx" style="margin:4px 0 12px"><i style="width:${lv >= 10 ? 100 : (xp - MAST[lv]) / (nx - MAST[lv]) * 100}%"></i></div>
-        ${own ? (S.eq === sel ? '<button class="du-btn alt" disabled>✔ Equipped</button>' : `<button class="du-btn" data-eq="${sel}">⚔️ Equip</button>`) : `<div style="font:600 12.5px/1.45 var(--fb);color:#cbd5e1">${how}</div>`}</div></div>`;
-      const tile = (c) => { const Q = CH[c], o = S.own.includes(c), l = mLvl(S.xp[c] | 0), x = S.xp[c] | 0, n2 = MAST[Math.min(10, l + 1)];
-        return `<button class="du-tile${o ? '' : ' lock'}${c === sel ? ' on' : ''}" data-pick="${c}" style="--rc:${RAR[Q.r].c}"><img src="${fighterPic(c)}" alt="">${o ? '' : '<span class="lk">🔒</span>'}${c === S.eq ? '<span class="eq">EQUIPPED</span>' : ''}${o ? `<span class="mb">🌟 ${l}</span>` : ''}<div class="t"><b>${Q.ic} ${esc(Q.n)}</b><small>${RAR[Q.r].n}</small>${o ? `<div class="du-mx"><i style="width:${l >= 10 ? 100 : (x - MAST[l]) / (n2 - MAST[l]) * 100}%"></i></div>` : ''}</div></button>`; };
-      const grid = EMP.map((E, e) => `<h4 style="margin:12px 0 7px;font:800 16px var(--fh);color:#fff">${E.e} ${esc(E.n)}</h4><div class="du-grid">${CRATE[e].map(tile).join('')}</div>`).join('');
-      openPanel('⚔️ Fighters', det + grid, (b) => { if (b.dataset.eq) { S.eq = +b.dataset.eq; this.dirty(); sfx('select'); this.drawBar(); this.fightersPanel(S.eq); } else if (b.dataset.pick) { sfx('click'); this.fightersPanel(+b.dataset.pick); $('#xpBody').scrollTop = 0; } }, null, { full: true, extra: `<span class="xchip">⚔️ ${S.own.length}/20</span>` });
+      const S = this.save, COLS = [1, 0, 2, 3, 4, 5]; let det = '';
+      if (sel != null) { // the stats: everything about one fighter
+        const C = CH[sel], own = S.own.includes(sel), xp = S.xp[sel] | 0, lv = mLvl(xp), nx = MAST[Math.min(10, lv + 1)];
+        const abl = C.ab.map((ab, i) => ab.modes ? ab.modes.map((m, k) => `<div><i>${m.ic}</i><span><b>${KEYN[i]} · ${esc(m.n)}</b> (key ${k + 1}) — <em>${m.dmg}</em> damage, every <em>${m.cd} s</em>${m.wind >= 0.4 ? ` · ${m.wind} s wind-up` : ''}</span></div>`).join('')
+          : `<div><i>${ab.ic}</i><span><b>${KEYN[i]} · ${esc(ab.n)}</b> — ${ab.d ? esc(ab.d) : `<em>${ab.dmg}</em> damage${ab.k === 'proj' ? ' (ranged)' : ''}`} · cooldown <em>${ab.cd} s</em></span></div>`).join('');
+        const pas = (C.pas || []).map(([ic, n, d]) => `<div><i>${ic}</i><span><b>Passive · ${esc(n)}</b> — ${esc(d)}</span></div>`).join('');
+        det = `<div class="du-det" style="--rc:${RAR[C.r].c}"><img src="${fighterPic(sel, 1)}" alt=""><div><div class="sub">${EMP[C.e].e} ${esc(EMP[C.e].n)} · ${RAR[C.r].t} · ${esc(C.ro)}</div><h3>${C.ic} ${esc(C.n)} <button class="du-x" data-x="close" aria-label="Close">✕</button></h3>
+          <div class="du-stats"><span>❤️ ${C.hp} HP</span>${C.def !== 1 ? `<span>🛡️ ${C.def < 1 ? '−' : '+'}${Math.round(Math.abs(1 - C.def) * 100)}% damage taken</span>` : ''}${C.spd !== 1 ? `<span>${C.spd > 1 ? '🏃 +' : '🐢 −'}${Math.round(Math.abs(C.spd - 1) * 100)}% speed</span>` : ''}<span>💨 Q dodge · 🛡️ F block (all of it)</span></div>
+          <div class="du-abl">${pas}${abl}</div>
+          <div style="margin-top:10px;font:700 12.5px var(--fb);color:#e2e8f0">🌟 Mastery ${lv}/10 ${lv >= 10 ? '— <b style="color:#fde68a">MASTERED</b>: its body and animation pack are in your avatar editor' : `· ${xp}/${nx} XP — master it (10) to wear its body and animations anywhere`}</div><div class="du-mx" style="margin:4px 0 12px"><i style="width:${lv >= 10 ? 100 : (xp - MAST[lv]) / (nx - MAST[lv]) * 100}%"></i></div>
+          ${own ? (S.eq === sel ? '<button class="du-btn alt" disabled>✔ Equipped</button>' : `<button class="du-btn" data-eq="${sel}">⚔️ Equip</button>`) : `<div style="font:600 12.5px/1.45 var(--fb);color:#cbd5e1">${this.fighterHow(sel)}</div>`}</div></div>`; }
+      const card = (c) => { const Q = CH[c], o = S.own.includes(c), l = mLvl(S.xp[c] | 0);
+        return `<div class="du-fcard r${Q.r}${o ? '' : ' lock'}${c === S.eq ? ' eqd' : ''}${c === sel ? ' sel' : ''}"><button class="st" data-st="${c}">stats</button>${o ? `<span class="mb">🌟 ${l}</span>` : '<span class="mb">🔒</span>'}<button class="pic" data-st="${c}" aria-label="${esc(Q.n)} stats"><img src="${fighterPic(c)}" alt=""></button>
+          <b>${Q.ic} ${esc(Q.n)}</b><small>${RAR[Q.r].s}</small>${o ? (c === S.eq ? '<button class="eq on" disabled>✔ equipped</button>' : `<button class="eq" data-eq="${c}">equip</button>`) : `<button class="eq lk" data-st="${c}">🔒 locked</button>`}</div>`; };
+      const head = `<div></div>${COLS.map((e) => `<div class="du-gh">${EMP[e].e} ${esc(EMP[e].sn || EMP[e].n)}</div>`).join('')}`;
+      const rows = RAR.map((R, r) => `<div class="du-gr" style="--rc:${R.c}"><b>${R.s}</b><small>${R.n}</small></div>${COLS.map((e) => `<div class="du-gc">${CH.filter((C) => C.e === e && C.r === r).map((C) => card(C.i)).join('')}</div>`).join('')}`).join('');
+      openPanel('⚔️ Fighters', `${det}<div class="du-gwrap"><div class="du-g6">${head}${rows}</div></div>`, (b) => {
+        if (b.dataset.eq) { S.eq = +b.dataset.eq; this.dirty(); sfx('select'); this.drawBar(); this.fightersPanel(); }
+        else if (b.dataset.st) { sfx('click'); this.fightersPanel(+b.dataset.st); $('#xpBody').scrollTop = 0; } else if (b.dataset.x === 'close') { sfx('click'); this.fightersPanel(); } }, null, { full: true, extra: `<span class="xchip">⚔️ ${S.own.length}/${CH.length}</span>` });
+      if (sel != null) $('#xpBody').scrollTop = 0;
     },
     cratesPanel(only) {
       const S = this.save;
       const html = `<div class="du-crates">${EMP.map((E, e) => `<div class="du-crate" style="--c1:${E.c1};--c2:${E.c2}${only === e ? ';box-shadow:0 0 0 3px #fde68a' : ''}"><h4>${E.e} ${esc(E.n)} Crate</h4><span style="font:600 12px/1.35 var(--fb);color:#cbd5e1">${esc(E.d)}</span>
-        <div class="od">${CRATE[e].map((c, k) => `<span style="--rc:${RAR[CH[c].r].c}"><b>${CH[c].ic} ${esc(CH[c].n)}${S.own.includes(c) ? ' ✔' : ''}</b><i>${ODDS[k]}% · ${RAR[CH[c].r].n}</i></span>`).join('')}</div>
-        <button class="du-btn" data-open="${e}" ${W.coins < CRATE_PRICE ? 'disabled' : ''}>Open · 🪙 ${CRATE_PRICE}</button></div>`).join('')}</div>
-        <p style="font:600 12.5px var(--fb);color:#94a3b8;margin:12px 0 0">Already have the fighter you get? +250 mastery XP for it and 🪙 75 back. Win coins in duels: more for harder bots and other players.</p>`;
-      openPanel('🎁 Crates', html, (b) => { if (b.dataset.open) this.openCrate(+b.dataset.open); }, null, { full: true, extra: `<span class="xchip">🪙 ${W.coins}</span>` });
+        <div class="od">${CRATE[e].map((c, k) => `<span style="--rc:${RAR[CH[c].r].c}"><b>${CH[c].ic} ${esc(CH[c].n)}${S.own.includes(c) ? ' ✔' : ''}</b><i>${ODDS[k]}% · ${RAR[CH[c].r].s}</i></span>`).join('')}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="du-btn" data-open="${e}" data-cur="g" ${(S.gold | 0) < CRATE_GOLD ? 'disabled' : ''}>🥇 ${CRATE_GOLD} gold</button><button class="du-btn alt" data-open="${e}" data-cur="c" ${W.coins < CRATE_PRICE ? 'disabled' : ''}>🪙 ${CRATE_PRICE}</button></div></div>`).join('')}</div>
+        <p style="font:600 12.5px var(--fb);color:#94a3b8;margin:12px 0 0">Pay with the duel’s own 🥇 gold — every match earns some (more for wins, harder bots, other players and the boss) — or with Blox Coins. Already have the fighter you get? +250 mastery XP for it and 🥇 40 back. The Laestrygonian and the Executioner aren’t in any crate.</p>`;
+      openPanel('🎁 Crates', html, (b) => { if (b.dataset.open) this.openCrate(+b.dataset.open, b.dataset.cur); }, null, { full: true, extra: `<span class="xchip">🥇 ${S.gold | 0}</span><span class="xchip">🪙 ${W.coins}</span>` });
     },
-    openCrate(e) {
-      if (W.coins < CRATE_PRICE) { sfx('error'); toast('Not enough Blox Coins — win some duels!'); return; } if (!spend(CRATE_PRICE)) return;
-      let r = Math.random() * 100, k = 0; while (k < 4 && r >= ODDS[k]) { r -= ODDS[k]; k++; } const c = CRATE[e][k], S = this.save, dup = S.own.includes(c);
+    openCrate(e, cur) {
+      const S = this.save;
+      if (cur === 'g') { if ((S.gold | 0) < CRATE_GOLD) { sfx('error'); toast('Not enough 🥇 gold — win some duels!'); return; } S.gold -= CRATE_GOLD; }
+      else { if (W.coins < CRATE_PRICE) { sfx('error'); toast('Not enough Blox Coins — or pay with 🥇 gold'); return; } if (!spend(CRATE_PRICE)) return; }
+      let r = Math.random() * 100, k = 0; while (k < 4 && r >= ODDS[k]) { r -= ODDS[k]; k++; } const c = CRATE[e][k], dup = S.own.includes(c);
       if (!dup) S.own.push(c); this.bump('crates', 1); quest('duel.crate'); this.dirty(); closePanel(); this.reel(e, c, dup);
     },
     reel(e, c, dup) {
       const pick = () => { let r = Math.random() * 100, k = 0; while (k < 4 && r >= ODDS[k]) { r -= ODDS[k]; k++; } return CRATE[e][k]; }, N = 46, win = 40, list = [];
       for (let i = 0; i < N; i++) list.push(i === win ? c : i === win + 1 || i === win - 1 ? CRATE[e][4] : pick()); // (the 1% one, so near…)
-      const card = (q) => `<div class="du-fc" style="--rc:${RAR[CH[q].r].c}"><img src="${fighterPic(q)}" alt=""><b>${CH[q].ic} ${esc(CH[q].n)}</b><small>${RAR[CH[q].r].n}</small></div>`;
+      const card = (q) => `<div class="du-fc" style="--rc:${RAR[CH[q].r].c}"><img src="${fighterPic(q)}" alt=""><b>${CH[q].ic} ${esc(CH[q].n)}</b><small>${RAR[CH[q].r].t}</small></div>`;
       const el = document.createElement('div'); el.id = 'duReel'; el.innerHTML = `<h2>${EMP[e].e} ${esc(EMP[e].n)} Crate</h2><div class="du-strip"><div class="mk"></div><div class="row">${list.map(card).join('')}</div></div><div class="du-out"></div>`;
       $('#xhud').append(el); const row = el.querySelector('.row'), W0 = el.querySelector('.du-strip').clientWidth, off = win * 142 + 66 - W0 / 2 + (Math.random() - 0.5) * 90;
       row.style.transform = 'translateX(0)'; requestAnimationFrame(() => requestAnimationFrame(() => { row.style.transition = 'transform 5.2s cubic-bezier(.08,.62,.12,1)'; row.style.transform = `translateX(${-off}px)`; }));
       let tick = 0; const tk = setInterval(() => { tick++; sfx('click', { vol: 0.4 }); }, 120); setTimeout(() => clearInterval(tk), 4200);
       setTimeout(() => {
         const C = CH[c], leg = C.r === 3, out = el.querySelector('.du-out'); sfx(leg ? 'reward' : 'unlock'); if (leg) { sfx('horn'); CROWD.ex = 1; }
-        if (dup) { this.addXp(c, 250); earn(75, `Duplicate ${C.n}`); }
+        if (dup) { this.addXp(c, 250); this.save.gold = (this.save.gold | 0) + 40; this.dirty(); }
         el.querySelector('.du-strip').style.display = 'none';
-        out.innerHTML = `<div class="du-won${leg ? ' leg' : ''}"><div class="du-fc" style="--rc:${RAR[C.r].c}"><img src="${fighterPic(c, 1)}" alt=""><b>${C.ic} ${esc(C.n)}</b><small>${RAR[C.r].n}</small></div>
-          <p>${dup ? `You already had the ${esc(C.n)} — <b>+250 mastery XP</b> and <b>🪙 75</b> back.` : leg ? `🌟 <b style="color:#fde68a">LEGENDARY!</b> The ${esc(C.n)} is yours — the 1% one.` : `<b>New fighter!</b> The ${esc(C.n)} is yours.`}</p>
+        out.innerHTML = `<div class="du-won${leg ? ' leg' : ''}"><div class="du-fc" style="--rc:${RAR[C.r].c}"><img src="${fighterPic(c, 1)}" alt=""><b>${C.ic} ${esc(C.n)}</b><small>${RAR[C.r].t}</small></div>
+          <p>${dup ? `You already had the ${esc(C.n)} — <b>+250 mastery XP</b> and <b>🥇 40</b> back.` : leg ? `🌟 <b style="color:#fde68a">LEGENDARY!</b> The ${esc(C.n)} is yours — the 1% one.` : `<b>New fighter!</b> The ${esc(C.n)} is yours.`}</p>
           <div style="display:flex;gap:10px">${dup ? '' : `<button class="du-btn" data-x="eq">⚔️ Equip</button>`}<button class="du-btn alt" data-x="again">🎁 Open another</button><button class="du-btn alt" data-x="close">Done</button></div></div>`;
         out.addEventListener('click', (ev) => { const b = ev.target.closest('button'); if (!b) return; el.remove(); if (b.dataset.x === 'eq') { this.save.eq = c; this.dirty(); this.drawBar(); this.fightersPanel(c); } else if (b.dataset.x === 'again') this.cratesPanel(e); });
       }, 5400);
     },
     botPanel() {
-      const S = this.save, md = [['c', '⚔️ Classic', `First to ${TO} rounds, 3 minutes a round`], ['d', '💀 Deathmatch', 'Most kills in 5 minutes — you come back at once, somewhere random']];
+      const S = this.save, md = [['c', '⚔️ Classic', `First to ${TO} rounds, 3 minutes a round`], ['d', '💀 Deathmatch', 'Most kills in 5 minutes — you come back at once, somewhere random'], ['b', '👹 Boss', `You vs the giant Laestrygonian: 5,000 health, ${BOSS_LIVES} lives. Win and it’s yours. (Bring friends: the boss pad, up to 4)`]];
       const html = `<h4 style="margin:0 0 8px;font:800 16px var(--fh);color:#fff">Difficulty</h4><div class="du-diff">${DIFF.map((D, i) => `<button data-d="${i}" style="--dc:${D.c}" class="${S.diff === i ? 'on' : ''}">${D.e} ${D.n}<small>${esc(D.d)}<br>Win: 🪙 ${D.coins}</small></button>`).join('')}</div>
         <h4 style="margin:16px 0 8px;font:800 16px var(--fh);color:#fff">Mode</h4><div class="du-diff">${md.map(([m, n, d]) => `<button data-m="${m}" style="--dc:#fbbf24" class="${S.md === m ? 'on' : ''}">${n}<small>${esc(d)}</small></button>`).join('')}</div>
         <div style="margin-top:18px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="du-btn" data-go="1">⚔️ Fight as ${CH[S.eq].ic} ${esc(CH[S.eq].n)}</button><button class="du-btn alt" data-fi="1">Change fighter</button></div>`;
-      openPanel('🤖 Fight a bot', html, (b) => { if (b.dataset.d) { S.diff = +b.dataset.d; this.dirty(); sfx('click'); this.botPanel(); this.drawBar(); } else if (b.dataset.m) { S.md = b.dataset.m; this.dirty(); sfx('click'); this.botPanel(); } else if (b.dataset.go) this.startMatch({ md: S.md, pvp: false, D: S.diff }); else if (b.dataset.fi) this.fightersPanel(); }, null, { full: true });
+      openPanel('🤖 Fight a bot', html, (b) => { if (b.dataset.d) { S.diff = +b.dataset.d; this.dirty(); sfx('click'); this.botPanel(); this.drawBar(); } else if (b.dataset.m) { S.md = b.dataset.m; this.dirty(); sfx('click'); this.botPanel(); } else if (b.dataset.go) this.startMatch(S.md === 'b' ? { md: 'b', coop: false, own: true, ps: [myPeer()] } : { md: S.md, pvp: false, D: S.diff }); else if (b.dataset.fi) this.fightersPanel(); }, null, { full: true });
     },
     achPanel() {
       const S = this.save;
-      const html = `<p style="font:600 13px var(--fb);color:#cbd5e1;margin:0 0 10px">The Colosseum’s own honours — each one wins you a fighter. (The 1% legends only come from crates.)</p><div class="du-ach">${ACH.map((A) => { const got = S.ach.includes(A.id), v = A.k === 'mast' ? S.st.mast | 0 : S.st[A.k] | 0, C = CH[A.c];
-        return `<div class="${got ? 'got' : ''}"><i>${A.ic}</i><span><b>${esc(A.n)}</b><small>${esc(A.d)} → ${C.ic} ${esc(C.n)} <span style="color:${RAR[C.r].c}">(${RAR[C.r].n})</span></small></span><span class="pr">${got ? '✔ Done' : `${Math.min(v, A.n0).toLocaleString()} / ${A.n0.toLocaleString()}`}</span></div>`; }).join('')}</div>`;
-      openPanel('🏆 Duel Achievements', html, null, null, { full: true, extra: `<span class="xchip">${S.ach.length}/${ACH.length}</span>` });
+      const q = S.q, xo = S.own.includes(EXE), qk = q ? Math.min(50, q.k | 0) : 0, qd = q ? Math.min(15000, q.d | 0) : 0;
+      const ct = `<div class="du-ach" style="margin-bottom:12px"><div class="${xo ? 'got' : ''}" style="border-color:rgba(239,68,68,.55);background:linear-gradient(90deg,rgba(127,29,29,.35),rgba(15,23,42,.2))"><i>💀</i><span style="flex:1"><b>The Executioner’s Contract</b><small>Accept it, then defeat 50 fighters (bots or players) and deal 15,000 damage → ${CH[EXE].ic} the Executioner <span style="color:${RAR[3].c}">(${RAR[3].t})</span>, the giant’s counter</small>
+        ${q && q.on ? `<small style="display:block;margin-top:4px;color:#fecaca">⚔️ ${qk}/50 defeated · 💥 ${qd.toLocaleString()}/15,000 damage</small><div class="du-mx" style="margin:4px 0 0"><i style="width:${(qk / 50 + qd / 15000) * 50}%"></i></div>` : ''}</span>
+        ${xo ? '<span class="pr">✔ Done</span>' : q && q.on ? '<span class="pr">📜 Active</span>' : '<button class="du-btn" data-q="1">📜 Accept</button>'}</div></div>`;
+      const html = `${ct}<p style="font:600 13px var(--fb);color:#cbd5e1;margin:0 0 10px">The Colosseum’s own honours — each one wins you a fighter. (The 1% legends only come from crates; the Laestrygonian from the 👹 boss or Season Pass level 100.)</p><div class="du-ach">${ACH.map((A) => { const got = S.ach.includes(A.id), v = A.k === 'mast' ? S.st.mast | 0 : S.st[A.k] | 0, C = CH[A.c];
+        return `<div class="${got ? 'got' : ''}"><i>${A.ic}</i><span><b>${esc(A.n)}</b><small>${esc(A.d)} → ${C.ic} ${esc(C.n)} <span style="color:${RAR[C.r].c}">(${RAR[C.r].t})</span></small></span><span class="pr">${got ? '✔ Done' : `${Math.min(v, A.n0).toLocaleString()} / ${A.n0.toLocaleString()}`}</span></div>`; }).join('')}</div>`;
+      openPanel('🏆 Duel Achievements', html, (b) => { if (b.dataset.q && !(S.q && S.q.on) && !S.own.includes(EXE)) { S.q = { on: 1, k: 0, d: 0 }; this.dirty(); sfx('unlock'); toast('📜 The Executioner’s Contract: 50 fighters, 15,000 damage', '#fca5a5'); this.achPanel(); } }, null, { full: true, extra: `<span class="xchip">${S.ach.length}/${ACH.length}</span>` });
     },
   };
   addExp(DU);
