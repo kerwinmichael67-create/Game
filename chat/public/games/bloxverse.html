@@ -3575,7 +3575,7 @@ BODY_KITS.push((K) => myrmidonKit(K), (K) => hopliteKit(K, false),
   // a band of plate round a limb (a lame): an open ring, flattened front to back, its lower edge rolled
   const band = (par, y, rx, rz, h, m = steel) => { const o = R(rx * 2 + 0.06, h, rz * 2 + 0.06, Math.min(0.1, h * 0.4), m, 0, y, 0, par); R(rx * 2 + 0.1, 0.06, rz * 2 + 0.1, 0.025, rim, 0, y - h / 2 + 0.02, 0, par); return o; }; // (a plate round the limb, its lower edge rolled)
   const capM = new THREE.MeshPhongMaterial({ color: '#1b1d20', side: THREE.BackSide }); mats.push(capM);
-  return {
+  const KIT = {
     leg(x) {
       const hip = grp(K.body, x * 1.12, 2), kn = grp(hip, 0, -1.0, 1);
       R(1.14, 1.04, 1.14, 0.34, steel, 0, -0.48, 0, hip); for (let k = 0; k < 3; k++) band(hip, -0.12 - k * 0.3, 0.63 - k * 0.01, 0.63 - k * 0.01, 0.28, k % 2 ? dark : steel); // (the thigh plate, in lames)
@@ -3633,6 +3633,7 @@ BODY_KITS.push((K) => myrmidonKit(K), (K) => hopliteKit(K, false),
       return true;
     },
   };
+  return gilt ? lgGilt(K, KIT, { rim, dark }) : KIT; // (gilded: the boss's giant, finished as a king's)
 })
 );
 BODY_DESC.push('🏛️ Achilles’ men as they’d really have looked at Troy — Mycenaean warriors of the late Bronze Age: an open-faced boar’s-tusk helmet (rows of tusk plates, as Homer describes) with cheek guards and a horsehair plume, a beard; a bronze plate cuirass like the one found at Dendra, with a high collar, rounded shoulder guards and hoops of bronze flaring over the hips; a linen tunic, bare arms, bronze greaves and leather boots; a long Naue II sword at the hip and a great figure-of-eight shield of dappled oxhide on the back.',
@@ -4935,7 +4936,7 @@ DG_GEAR.push(
   (h, l) => [[dgMace(h)], dgShield(l, 'wicker')],
   (h, l) => [[dgSword(h, 'msaber', { fit: '#e8b84a', grip: '#7f1d1d' })], null],
 );
-BODY_DESC.push('⚔️ The Laestrygonian of the Colosseum Duels, the same giant as its boss: the faceless giant of The Odyssey plated in polished silver, bronze lames and gold rims and rivets, an ember glowing behind the slit of its helm, a great curved scimitar in its fist. A ⚔️ Colosseum Duels mastery reward.',
+BODY_DESC.push('⚔️ The Laestrygonian of the Colosseum Duels, the same giant as its boss: the faceless giant of The Odyssey plated as a king — silver, bronze and engraved gold, a gold crest with a crimson plume, lions on its pauldrons, knees and buckle, a gorgon on its breast, a crimson cloak and an ember behind its slit — a great curved scimitar in its fist. A ⚔️ Colosseum Duels mastery reward.',
   '⚔️ The Executioner: a black hood with burning red eyes, bare-chested and heavy-shouldered under a crossed leather harness with an iron ring, a leather apron over a skirt of studded pteruges, a chain at the hip, laced leather bracers bound in iron — and the headsman’s axe. A mastery reward in ⚔️ Colosseum Duels.',
   '⚔️ An Ottoman azab: a red cap wound with a white turban, a mustard entari, baggy şalvar and yellow boots. A mastery reward in ⚔️ Colosseum Duels.',
   '⚔️ An Ottoman archer: a great white turban, a green çintemani kaftan with gold frogging, a quiver at the hip. A mastery reward in ⚔️ Colosseum Duels.',
@@ -4947,9 +4948,58 @@ BODY_DESC.push('⚔️ The Laestrygonian of the Colosseum Duels, the same giant 
   '⚔️ A steppe shaman: a fringe over the eyes, a robe of ribbons and bronze mirrors, a frame drum. A mastery reward in ⚔️ Colosseum Duels.',
   '⚔️ A kheshig of the Khan’s guard: a spiked iron helmet with an aventail, iron lamellar to the knee. A mastery reward in ⚔️ Colosseum Duels.',
   '⚔️ The Great Khan: gilded lamellar over a red deel, a fur-brimmed crown with a gold finial and a white plume. A mastery reward in ⚔️ Colosseum Duels.');
+// the gilded giant's finish: engraved gold (a Greek key along its edges, scrolls between), a lion's head in gold, a crimson cloak with a gold-embroidered hem
+const lgEngraveTex = () => kCanvas('lgEngrave', 256, 128, (g) => {
+  const gr = g.createLinearGradient(0, 0, 0, 128); gr.addColorStop(0, '#f6d77a'); gr.addColorStop(0.5, '#d6a136'); gr.addColorStop(1, '#f0c95c'); g.fillStyle = gr; g.fillRect(0, 0, 256, 128);
+  const key = (y0, u) => { g.beginPath(); for (let x = 0; x < 256; x += u * 2) { g.moveTo(x, y0 + u); g.lineTo(x, y0); g.lineTo(x + u * 1.5, y0); g.lineTo(x + u * 1.5, y0 + u * 0.75); g.lineTo(x + u * 0.5, y0 + u * 0.75); g.lineTo(x + u * 0.5, y0 + u * 0.4); } g.stroke(); };
+  g.strokeStyle = 'rgba(90,55,10,.75)'; g.lineWidth = 2.5; key(8, 12); key(102, 12); g.fillStyle = 'rgba(90,55,10,.5)'; g.fillRect(0, 26, 256, 2); g.fillRect(0, 98, 256, 2);
+  g.lineWidth = 2; for (let x = 20; x < 256; x += 54) for (const d of [-1, 1]) { g.beginPath(); for (let a = 0; a < 8.5; a += 0.2) { const rr = 2 + a * 2.1; g.lineTo(x + d * 13 + Math.cos(a * d) * rr, 63 + Math.sin(a) * rr * 0.9); } g.stroke(); } // (scrolls)
+  g.strokeStyle = 'rgba(255,246,205,.55)'; g.lineWidth = 1; g.beginPath(); g.moveTo(0, 30); g.lineTo(256, 30); g.moveTo(0, 96); g.lineTo(256, 96); g.stroke();
+});
+const lgLionTex = () => kCanvas('lgLion', 128, 128, (g) => {
+  const gr = g.createRadialGradient(54, 50, 6, 64, 64, 64); gr.addColorStop(0, '#fff1b0'); gr.addColorStop(0.6, '#e2ac3a'); gr.addColorStop(1, '#8a5a12'); g.fillStyle = gr; g.beginPath(); g.arc(64, 64, 63, 0, 7); g.fill();
+  g.strokeStyle = 'rgba(90,55,10,.8)'; g.lineWidth = 2.2; for (let k = 0; k < 26; k++) { const a = (k / 26) * Math.PI * 2; g.beginPath(); g.moveTo(64 + Math.cos(a) * 30, 64 + Math.sin(a) * 30); g.quadraticCurveTo(64 + Math.cos(a + 0.22) * 46, 64 + Math.sin(a + 0.22) * 46, 64 + Math.cos(a + 0.12) * 58, 64 + Math.sin(a + 0.12) * 58); g.stroke(); } // (the mane)
+  g.fillStyle = 'rgba(120,75,15,.5)'; g.beginPath(); g.ellipse(64, 66, 24, 28, 0, 0, 7); g.fill(); g.fillStyle = '#5a3a0a'; for (const d of [-1, 1]) { g.beginPath(); g.ellipse(64 + d * 10, 58, 5, 3, d * 0.3, 0, 7); g.fill(); }
+  g.beginPath(); g.moveTo(56, 71); g.lineTo(72, 71); g.lineTo(64, 80); g.closePath(); g.fill(); g.strokeStyle = '#5a3a0a'; g.lineWidth = 2; g.beginPath(); g.moveTo(64, 80); g.lineTo(64, 86); g.moveTo(54, 88); g.quadraticCurveTo(64, 95, 74, 88); g.stroke();
+  g.strokeStyle = 'rgba(255,240,190,.75)'; g.lineWidth = 3; g.beginPath(); g.arc(64, 64, 61, 0, 7); g.stroke();
+});
+const lgCloakTex = () => kCanvas('lgCloak', 128, 256, (g, r) => { const gr = g.createLinearGradient(0, 0, 128, 0); for (let k = 0; k <= 8; k++) gr.addColorStop(k / 8, k % 2 ? '#6e0d0d' : '#a51d1d'); g.fillStyle = gr; g.fillRect(0, 0, 128, 256);
+  for (let q = 0; q < 900; q++) { g.fillStyle = r() < 0.5 ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.06)'; g.fillRect(r() * 128, r() * 256, 1, 2 + r() * 4); }
+  g.fillStyle = '#d6a136'; g.fillRect(0, 222, 128, 26); g.strokeStyle = '#7a4a0a'; g.lineWidth = 2; g.beginPath(); for (let x = 0; x < 128; x += 16) { g.moveTo(x, 244); g.lineTo(x, 228); g.lineTo(x + 12, 228); g.lineTo(x + 12, 238); g.lineTo(x + 4, 238); g.lineTo(x + 4, 233); } g.stroke(); });
+function lgGilt(K, B, m) { // the boss's giant (and the one you win from it): the film giant's plate, finished as a king's
+  const { mesh, mats } = K, P = (geo, mt, x, y, z, par, sx = 1, sy = sx, sz = sx) => { const o = mesh(kLod(geo, Math.max(sx, sy, sz)), mt, x, y, z, par); o.scale.set(sx, sy, sz); return o; }, R = (w, h, d, r, mt, x, y, z, par) => mesh(rboxGeo(w, h, d, r), mt, x, y, z, par);
+  const eng = metalMat('#ffffff', { map: lgEngraveTex(), shininess: 110, reflectivity: 0.45, specular: '#fff1b8' }), lion = new THREE.MeshPhongMaterial({ map: lgLionTex(), shininess: 90, specular: '#fff1b8' }), gorg = new THREE.MeshPhongMaterial({ map: gorgonTex(), shininess: 110, specular: '#fff1b8' });
+  const cloak = new THREE.MeshLambertMaterial({ map: lgCloakTex(), side: THREE.DoubleSide }), hair = new THREE.MeshLambertMaterial({ color: '#ffffff', vertexColors: true, side: THREE.DoubleSide }); mats.push(eng, lion, gorg, cloak, hair);
+  const disc = (mt, par, x, y, z, r, ry) => { const d = mesh(kg('lgDisc', () => new THREE.CircleGeometry(1, 28)), mt, x, y, z, par); d.scale.setScalar(r); d.rotation.y = ry; return d; }; // (a flat round picture: a lion's head, a gorgon)
+  const ring = (par, x, y, z, r, ry) => { const t = mesh(kg('lgRing', () => new THREE.TorusGeometry(1, 0.1, 6, 28)), m.rim, x, y, z, par); t.scale.setScalar(r); t.rotation.y = ry; return t; };
+  return {
+    leg(x) { const res = B.leg(x), [hip, kn] = res;
+      R(1.2, 0.2, 1.2, 0.06, eng, 0, -0.06, 0, hip); // (an engraved gold band at the top of the thigh)
+      disc(lion, kn, 0, 0.02, -0.63, 0.16, Math.PI); // (a lion's head on the knee's boss)
+      for (const xx of [-0.22, 0, 0.22]) R(0.05, 0.62, 0.05, 0.02, m.rim, xx, -0.48, -0.56, kn); // (gold fluting down the greave)
+      return res; },
+    lower() { B.lower(); R(2.7, 0.24, 1.44, 0.06, eng, 0, 2.92, 0); P(kSph(), m.rim, 0, 2.92, -0.74, K.body, 0.3, 0.3, 0.1); disc(lion, K.body, 0, 2.92, -0.85, 0.26, Math.PI); }, // (an engraved belt, a lion buckle)
+    upper() { B.upper();
+      disc(gorg, K.body, 0, 3.6, -0.82, 0.3, Math.PI); ring(K.body, 0, 3.6, -0.8, 0.31, 0); // (a gorgon's head on the breast, in a gold ring)
+      for (const sx of [-1, 1]) { R(0.46, 1.22, 0.05, 0.02, eng, sx * 1.04, 3.55, -0.69); R(0.05, 1.22, 0.07, 0.02, m.rim, sx * 0.8, 3.55, -0.7); } // (engraved panels either side of the centre plate)
+      const cl = mesh(capeGeo(2.7, 3.9, 0.8), cloak, 0, 2.42, 0.74); for (const sx of [-1, 1]) { P(kSph(), m.rim, sx * 1.05, 4.32, 0.7, K.body, 0.2, 0.2, 0.1); disc(lion, K.body, sx * 1.05, 4.32, 0.58, 0.16, Math.PI); } }, // (a crimson cloak, clasped at each shoulder)
+    arm(s) { const res = B.arm(s), [sh, el] = res;
+      const bo = mesh(kDome(), m.rim, s * 0.86, 0.12, 0, sh); bo.rotation.z = -s * Math.PI / 2; bo.scale.set(0.36, 0.12, 0.36); disc(lion, sh, s * 0.99, 0.12, 0, 0.3, s * Math.PI / 2); // (a lion's head on each pauldron)
+      R(1.02, 0.14, 1.02, 0.05, eng, 0, -0.66, 0, el); // (an engraved band at the wrist)
+      const wr = el.userData.wr; if (wr) for (let k = 0; k < 4; k++) P(kSph(), m.rim, (k - 1.5) * 0.21, -0.26, -0.47, wr, 0.05); // (gold studs on the knuckles)
+      return res; },
+    head(h) { const v = B.head(h);
+      const comb = mesh(ovShape('lgComb', [[-0.82, 0], [0.82, 0], [0.74, 0.18], [0.38, 0.4], [-0.2, 0.46], [-0.66, 0.36], [-0.86, 0.14]], 0.1, 0.02), eng, 0, 1.1, 0.02, h); comb.rotation.y = Math.PI / 2; // (a tall engraved gold crest)
+      const pl = new THREE.Group(); pl.position.set(0, 0.66, 0.02); h.add(pl); mesh(crestGeo('lgPlume', ['#b91c1c', '#991b1b', '#dc2626'], 150, 0.95), hair, 0, 0, 0, pl); // (a crimson horsehair plume along it)
+      R(1.44, 0.16, 0.06, 0.03, eng, 0, 0.6, -0.8, h); for (const sx of [-1, 1]) R(0.06, 1.0, 1.0, 0.03, eng, sx * 0.79, 0.05, -0.12, h); // (an engraved brow plate, engraved cheeks)
+      const gl = kitGlow(h, '#ff6a00', 1.1, 0.55); gl.position.set(0, 0.3, -0.9); // (the ember behind the slit, glowing)
+      return v; },
+    tick: B.tick,
+  };
+}
 // 👹 the Colosseum's boss: the film's giant plated in silver, bronze and gold (worn by no one else)
 BODY_KITS.push((K) => LG_KIT(K, true));
-BODY_DESC.push('👹 The Laestrygonian Colossus, the boss of ⚔️ Colosseum Duels: the faceless giant of The Odyssey plated in polished silver, bronze lames and gold rims and rivets, an ember glowing behind the slit of its helm.');
+BODY_DESC.push('👹 The Laestrygonian Colossus, the boss of ⚔️ Colosseum Duels: the faceless giant of The Odyssey plated as a king — polished silver, bronze lames, engraved gold (a Greek key along its edges, scrolls between), a gold crest and a crimson horsehair plume, lion-headed pauldrons, knees and buckle, a gorgon on its breast, a crimson cloak with an embroidered hem, and an ember glowing behind the slit of its helm.');
 const LAE_BOSS_BT = BODIES.indexOf('Laestrygonian Colossus');
 function duelGear(a, i) { // made the first time the pack runs: the hand groups, on the forearms
   const hR = new THREE.Group(), hL = new THREE.Group(), y = a.r15 ? -0.92 : -1.9; hR.position.y = hL.position.y = y; pfx(a, hR, a.r15 ? a.elR : a.armR); pfx(a, hL, a.r15 ? a.elL : a.armL);
