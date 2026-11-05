@@ -315,10 +315,11 @@
   CH.forEach((C, i) => { C.ro = C.ro || ROLE[i] || 'Fighter'; });
   const CRATE = EMP.map((_, e) => CH.filter((C) => C.e === e && !C.nc).map((C) => C.i)); // (each crate's five, common to legendary)
   const LAE = 20, EXE = 21; // (the Laestrygonian and the Executioner: no crate has them)
-  // the boss: the Laestrygonian, bigger still — 5,000 health, a scimitar blow every 5 s for 350, 75% slower, half the damage
-  const BOSS_C = Object.assign({}, CH[LAE], { hp: 5000, def: 0.5, spd: 0.25, big: 2.4, boss: 1, ab: [
-    { n: 'Great Scimitar', ic: '🗡️', k: 'melee', dmg: 350, cd: 5, rng: 12, arc: 150, wind: 1.0, an: 'gslash' },
-    { n: 'Earthshaker', ic: '🦶', k: 'stomp', dmg: 50, rad: 40, cd: 5, wind: 0.6, an: 'stomp' }] });
+  // the boss: a Laestrygonian bigger still, in silver, bronze and gold — 4,000 health, a scimitar blow every 6 s for 250 (a
+  // long 1.4 s warning, 120° in front of it), a stomp every 8 s for 30, 75% slower, 40% less damage, 8% Crush
+  const BOSS_C = Object.assign({}, CH[LAE], { hp: 4000, def: 0.6, spd: 0.25, big: 2.4, boss: 1, brute: 0.08, swing: 6, stomp: 8, ab: [
+    { n: 'Great Scimitar', ic: '🗡️', k: 'melee', dmg: 250, cd: 6, rng: 10, arc: 120, wind: 1.4, an: 'gslash' },
+    { n: 'Earthshaker', ic: '🦶', k: 'stomp', dmg: 30, rad: 36, cd: 8, wind: 0.8, an: 'stomp', wspd: 17 }] });
     // the fighters' looks for their trails and glows
   const COL = ['#ef4444', '#f59e0b', '#2dd4bf', '#a855f7', '#f97316', '#60a5fa', '#fbbf24', '#fb923c', '#a3a3a3', '#dc2626', '#facc15', '#84cc16', '#38bdf8', '#fef3c7', '#e2e8f0', '#93c5fd', '#fda4af', '#a78bfa', '#fb923c', '#fde047', '#93c5fd', '#991b1b', '#f87171', '#fbbf24', '#f97316', '#2dd4bf', '#dc2626', '#a16207', '#7dd3fc', '#38bdf8', '#cbd5e1', '#facc15'];
   // the duel's own achievements: each wins a fighter (the 1% ones only come from crates)
@@ -526,6 +527,7 @@
     /* the arena floor: sand (solid underneath), a stone gutter round its edge, wooden trapdoors to the hypogeum */
     const fl = add(kg('duFloor', () => { const q = new THREE.CircleGeometry(1, 128); q.rotateX(-Math.PI / 2); return q; }), Lm({ map: sandTex() }), 0, 0.01, 0); fl.scale.set(PA, 1, PB);
     const solid = slab(0, 0, 0, 2 * (A0 + 4), 2 * (B0 + 4), 0xd9b77c, { sy: 2 }); solid.m.visible = false;
+    for (const p of ellPts(PA + 0.9, PB + 0.9, 96)) { const w = part({ x: p.x, y: 8, z: p.z, sx: 2.6, sy: 16, sz: 2.6 }); w.m.visible = false; } // (an unseen wall round the arena, taller than any jump)
     add(sweep('gutter', PA, PB, [[-1.9, 0.02, '#b9ab8c'], [-1.9, 0.08, '#cfc2a4'], [-1.5, 0.1, '#cfc2a4'], [-1.45, 0.03, '#6b5a40'], [-1.0, 0.03, '#6b5a40'], [-0.95, 0.1, '#cfc2a4'], [0, 0.1, '#cfc2a4']], { hard: true, u: 60 }), TRAV);
     const plank = Lm({ map: plankTex() }); for (const [x, z, w, d] of [[-20, -9, 4, 2.6], [20, 9, 4, 2.6], [-9, 13, 2.6, 4], [9, -13, 2.6, 4], [0, 0, 3, 3]]) { if (!x && !z) continue; const td = add(BOX, plank, x, 0.03, z); td.scale.set(w, 0.06, d); for (const s of [-1, 1]) { const rg = add(kTor(0.25), iron, x + s * w * 0.28, 0.08, z); rg.rotation.x = Math.PI / 2; rg.scale.setScalar(0.22); } }
     // the debris of earlier fights against the wall: shields leant there, spears in the sand
@@ -693,7 +695,7 @@
     const lb3 = label('🏆 ACHIEVEMENTS', { size: 1.6, color: '#fff' }); lb3.position.set(TABLET.x, 6.6, TABLET.z); G.add(lb3);
     // the four legends on plinths at the corners, in their guard
     { const x = 0, z = 95, pd = part({ x, y: 1, z, sx: 6, sy: 2, sz: 4.5, c: 0x9ca3af }); pd.m.material = L('#8b8f99', { map: travTex() });
-      const a = makeAvatar([5, 0, 0, 0, 17, 0, 0, 0, 0, 0, DUEL_BT + LAE, DUEL_AN + LAE], '', true); scene.remove(a.shadow); a.g.position.set(x, 2, z); a.g.rotation.y = Math.PI; a.g.scale.setScalar(1.8); G.add(a.g); for (let k = 0; k < 25; k++) animateAvatar(a, 0.1, false, false); G.remove(a.g); G.add(bake(a.g));
+      const a = makeAvatar([5, 0, 0, 0, 17, 0, 0, 0, 0, 0, LAE_BOSS_BT, DUEL_AN + LAE], '', true); scene.remove(a.shadow); a.g.position.set(x, 2, z); a.g.rotation.y = Math.PI; a.g.scale.setScalar(1.8); G.add(a.g); for (let k = 0; k < 25; k++) animateAvatar(a, 0.1, false, false); G.remove(a.g); G.add(bake(a.g));
       const lb = label('👹 THE LAESTRYGONIAN', { size: 1.3, color: '#fca5a5' }); lb.position.set(x, 17, z); G.add(lb); }
     SC.legends = [[4, -41, 151], [9, 41, 151], [14, -41, 97], [19, 41, 97]].map(([c, x, z]) => [c, x, z, angOf(-x, 124 - z)]).map(([c, x, z, ry]) => { const pd = part({ x, y: 1.5, z, sx: 4, sy: 3, sz: 4, c: 0xece4d3 }); pd.m.material = marble;
       const a = makeAvatar([1, 0, 0, 0, 17, 0, 0, 0, 0, 0, 23 + c, 15 + c], '', true); scene.remove(a.shadow); a.g.position.set(x, 3, z); a.g.rotation.y = ry; G.add(a.g); for (let k = 0; k < 25; k++) animateAvatar(a, 0.1, false, false); G.remove(a.g); G.add(bake(a.g));
@@ -916,7 +918,7 @@
     if (ab.an === 'stab') A.strikeAt = ab.wind;
     F.acN++; if (F.kind === 'me') DU.pubAct(F, A); if (F.kind === 'boss' && DU.M.coop) { DU.bac = [F.acN, i]; DU.pubDu(true); }
     if (ab.say) DU.say(F, ab.say);
-    if (isBoss(F)) { if (F.tele) scene.remove(F.tele); F.tele = ab.k === 'melee' ? telegraph(F.x - Math.sin(F.yaw) * 5, F.z - Math.cos(F.yaw) * 5, ab.rng + bigR(F) - 3) : telegraph(F.x, F.z, 9); DU.say(F, ab.k === 'melee' ? '⚠️ THE SCIMITAR — GET BEHIND IT' : '⚠️ STOMP — JUMP!'); }
+    if (isBoss(F)) { if (F.tele) scene.remove(F.tele); F.tele = ab.k === 'melee' ? telegraph(F.x - Math.sin(F.yaw) * 5, F.z - Math.cos(F.yaw) * 5, ab.rng + bigR(F) - 3) : telegraph(F.x, F.z, 9); DU.say(F, ab.k === 'melee' ? '⚠️ THE SCIMITAR — GET BEHIND IT' : '⚠️ STOMP — JUMP!'); if (ab.k === 'melee') sfx3('horn', F.x, F.z, 90, { vol: 0.5 }); }
     sfx3(ab.k === 'buff' ? 'magic' : ab.k === 'proj' || ab.k === 'volley' ? 'whoosh' : 'swing', F.x, F.z, 60, { vol: 0.6 });
     if (ab.k === 'buff' && ab.b) { burstAt(F.x, F.y + 3.5, F.z, BUFFLOOK[ab.an] ? BUFFLOOK[ab.an][0] : COL[F.c], 7, 0.5); ringAt(F.x, F.z, BUFFLOOK[ab.an] ? BUFFLOOK[ab.an][0] : COL[F.c], 8); if (ab.an === 'smoke') smokeAt(F.x, F.y + 1, F.z, 16, '#6b7280', 3); if (ab.an === 'pray') beamAt(F.x, F.z, '#fef3c7', 40, 1.2, 2.2); }
     if (ab.an === 'smite') beamAt(F.x, F.z, '#fde68a', 14, 0.6, 0.8);
@@ -968,7 +970,7 @@
     g.add(new THREE.Mesh(kg('duWaveR', () => { const q = new THREE.RingGeometry(0.9, 1, 72); q.rotateX(-Math.PI / 2); return q; }), mat({ opacity: 0.9 })));
     g.add(new THREE.Mesh(kg('duWaveW', () => { const q = new THREE.CylinderGeometry(1, 1, 1.3, 72, 1, true); q.translate(0, 0.65, 0); return q; }), mat({ color: '#d6b98c', opacity: 0.4 })));
     g.position.set(F.x, 0.15, F.z); scene.add(g);
-    DU.waves.push({ F, x: F.x, z: F.z, r: Math.max(1, nr * 0.5), min: nr, max: ab.rad, spd: 24, dmg: ab.dmg, hit, g, bj: new Set() });
+    DU.waves.push({ F, x: F.x, z: F.z, r: Math.max(1, nr * 0.5), min: nr, max: ab.rad, spd: ab.wspd || 24, dmg: ab.dmg, hit, g, bj: new Set() });
   }
   const GROUND = 0.5; // (feet on the sand: P.y)
   function wavesTick(dt) {
@@ -1159,12 +1161,12 @@
     if (l > 0.1 && sp > 0) { F.mv = true; moveF(F, mx / l * sp * dt, mz / l * sp * dt); }
   }
   function bossTick(F, dt) {
-    const B = F.bot || (F.bot = { sw: 3, stp: 5.5 }), Ts = targetsOf(F); F.mv = false; if (!Ts.length || F.dead || !live()) return;
+    const B = F.bot || (F.bot = { sw: 3.5, stp: 7 }), Ts = targetsOf(F); F.mv = false; if (!Ts.length || F.dead || !live()) return;
     let T = Ts[0], bd = 1e9; for (const q of Ts) { const d = Math.hypot(q.x - F.x, q.z - F.z) + (q.S.sp > 0 ? 8 : 0); if (d < bd) { bd = d; T = q; } }
     F.tgt = T; const dx = T.x - F.x, dz = T.z - F.z, d = Math.max(0.01, Math.hypot(dx, dz)), yawTo = angOf(dx, dz);
     if (!F.act && !stunned(F)) F.yaw += clamp(wrapA(yawTo - F.yaw), -1.8 * dt, 1.8 * dt);
     B.sw -= dt; B.stp -= dt;
-    if (!F.act && !stunned(F)) { if (B.sw <= 0 && d < 12 + bigR(F) && Math.abs(wrapA(yawTo - F.yaw)) < 0.6) { useAb(F, 0); B.sw = 5; } else if (B.stp <= 0) { useAb(F, 1); B.stp = 5; } }
+    if (!F.act && !stunned(F)) { if (B.sw <= 0 && d < 10 + bigR(F) && Math.abs(wrapA(yawTo - F.yaw)) < 0.5) { useAb(F, 0); B.sw = F.C.swing || 6; } else if (B.stp <= 0) { useAb(F, 1); B.stp = F.C.stomp || 8; } }
     const sp = fSpeed(F); if (!F.act && d > 8 + bigR(F) && sp > 0) { F.mv = true; moveF(F, dx / d * sp * dt, dz / d * sp * dt); }
   }
   /* ---------------- the HUD (as drawn: you on the left, them on the right, the clock between; your abilities bottom left) ---------------- */
@@ -1303,7 +1305,7 @@
       const seen = (pid) => { const pr = Net.peers.find((x) => x.peer === pid), q = pr && pr.presence && Array.isArray(pr.presence.dq) ? pr.presence.dq : []; this.hitSeenM.set(pid, Math.max(0, ...q.map((h) => (Array.isArray(h) ? +h[0] || 0 : 0)))); };
       if (o.md === 'b') { // the boss: whoever's first runs it; its health grows with each of you
         M.allies = M.ps.filter((x) => x !== myPeer()).map((x) => Object.assign(newFighter(0, 'rem', { peer: x, name: nameOf(x) }), { acSeen: -1 })); M.ps.forEach(seen);
-        M.foe = newFighter(LAE, M.own ? 'boss' : 'rboss', { C: BOSS_C, hpM: 1 + 0.6 * (Math.max(1, M.ps.length) - 1), name: '👹 Laestrygonian Warlord', peer: M.ps[0] || null }); M.foe.av = [5, 0, 0, 0, 17, 0, 0, 0, 0, 0, DUEL_BT + LAE, DUEL_AN + LAE]; }
+        M.foe = newFighter(LAE, M.own ? 'boss' : 'rboss', { C: BOSS_C, hpM: 1 + 0.5 * (Math.max(1, M.ps.length) - 1), name: '👹 Laestrygonian Colossus', peer: M.ps[0] || null }); M.foe.av = [5, 0, 0, 0, 17, 0, 0, 0, 0, 0, LAE_BOSS_BT, DUEL_AN + LAE]; } // (in silver, bronze and gold; half as much health again for each of you after the first)
       else if (o.pvp) { M.foe = newFighter(0, 'rem', { peer: o.opp, name: nameOf(o.opp) }); M.foe.acSeen = -1; seen(o.opp); }
       else { const D = DIFF[o.D], fc = rollFoe(o.D); M.foe = newFighter(fc, 'bot', { D: o.D, hpM: D.hpM, dmgM: D.dmgM, name: `🤖 ${CH[fc].n}` }); M.side = Math.random() < 0.5 ? 0 : 1; M.foe.av = [Math.floor(Math.random() * 5), 0, 0, 0, 17, 0, 0, 0, 0, 0, 23 + fc, 15 + fc]; }
       this.respawnDelay = M.md === 'd' ? 450 : M.md === 'b' ? 2500 : 1e9;
@@ -1443,7 +1445,7 @@
       if (T.kind === 'me') { M.l++; M.d++; M.deaths++; die(); feed(`💀 <b>${esc(M.foe.name)}</b> defeated you`);
         if (M.md === 'b') { M.lv--; if (M.lv <= 0) { T.out = true; this.respawnDelay = 1e9; big('☠️ OUT OF LIVES', M.coop ? 'your allies fight on' : '', '#fca5a5', 2.5); } else big('☠️ DOWN', `❤️ ${M.lv} ${M.lv === 1 ? 'life' : 'lives'} left`, '#fca5a5'); }
         else big('☠️ DEFEATED', '', '#fca5a5'); this.pubDu(true); }
-      else if (isBoss(T)) { M.kills++; if (T.a && !T.a.dead) scatter(T.a); feed('👹 <b>The Laestrygonian</b> is down!'); big('👹 THE GIANT FALLS!', '', '#fde68a', 2.5); camShake(me, 1); sfx('horn'); }
+      else if (isBoss(T)) { M.kills++; if (T.a && !T.a.dead) scatter(T.a); feed('👹 <b>The Laestrygonian Colossus</b> is down!'); big('👹 THE GIANT FALLS!', '', '#fde68a', 2.5); camShake(me, 1); sfx('horn'); }
       else { M.fl++; M.kills++; T.respT = 0.6; this.bump('kills', 1); this.qBump('k', 1); quest('duel.kill'); if (T.a && !T.a.dead) scatter(T.a); feed(`⚔️ You defeated <b>${esc(T.name)}</b>`); big('⚔️ KO!', '', '#fde68a'); }
     },
     roundOver(r) {
@@ -1509,6 +1511,7 @@
       const M = this.M; if (!M) return;
       for (const F of [M.me, M.foe, ...M.allies]) { const a = F.a; if (!a || a.dead) continue;
         const sc = F.C.big || 1; if (Math.abs(a.g.scale.x - sc) > 1e-3) a.g.scale.setScalar(sc); // (the giants, their size)
+        if (F.kind === 'me' && !P.dead) { const r = 1.6 * sc, q = (P.x / (A0 - r)) ** 2 + (P.z / (B0 - r)) ** 2; if (q > 1) { const k = 1 / Math.sqrt(q); P.x *= k; P.z *= k; a.g.position.x = P.x; a.g.position.z = P.z; } } // (inside the arena, after the move too)
         poseAct(F, dt); trailTick(F, !!(F.act && F.act.trail)); buffLook(F); statusLook(F, dt);
         if (F.lift) a.g.position.y += F.lift;
         if (F.blk && !F.act) setPose(F, F.C.ab[1].an === 'bash' || [0, 3, 4, 5, 8, 9, 10, 12, 13, 22, 30].includes(F.c) ? AN.shieldup : { aR: [1.3, 0.3, -0.5], eR: [1.3], aL: [1.2, -0.3, 0.6], eL: [1.3], bd: [-0.1, 0, 0] }, Math.min(1, dt * 14)); // (a block: the shield up, or the blade across)
@@ -1609,7 +1612,7 @@
       }, 5400);
     },
     botPanel() {
-      const S = this.save, md = [['c', '⚔️ Classic', `First to ${TO} rounds, 3 minutes a round`], ['d', '💀 Deathmatch', 'Most kills in 5 minutes — you come back at once, somewhere random'], ['b', '👹 Boss', `You vs the giant Laestrygonian: 5,000 health, ${BOSS_LIVES} lives. Win and it’s yours. (Bring friends: the boss pad, up to 4)`]];
+      const S = this.save, md = [['c', '⚔️ Classic', `First to ${TO} rounds, 3 minutes a round`], ['d', '💀 Deathmatch', 'Most kills in 5 minutes — you come back at once, somewhere random'], ['b', '👹 Boss', `You vs the giant Laestrygonian in silver, bronze and gold: ${BOSS_C.hp.toLocaleString()} health, ${BOSS_LIVES} lives. Win and the Laestrygonian is yours. (Bring friends: the boss pad, up to 4)`]];
       const html = `<h4 style="margin:0 0 8px;font:800 16px var(--fh);color:#fff">Difficulty</h4><div class="du-diff">${DIFF.map((D, i) => `<button data-d="${i}" style="--dc:${D.c}" class="${S.diff === i ? 'on' : ''}">${D.e} ${D.n}<small>${esc(D.d)}<br>Win: 🪙 ${D.coins}</small></button>`).join('')}</div>
         <h4 style="margin:16px 0 8px;font:800 16px var(--fh);color:#fff">Mode</h4><div class="du-diff">${md.map(([m, n, d]) => `<button data-m="${m}" style="--dc:#fbbf24" class="${S.md === m ? 'on' : ''}">${n}<small>${esc(d)}</small></button>`).join('')}</div>
         <div style="margin-top:18px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="du-btn" data-go="1">⚔️ Fight as ${CH[S.eq].ic} ${esc(CH[S.eq].n)}</button><button class="du-btn alt" data-fi="1">Change fighter</button></div>`;

@@ -1467,7 +1467,7 @@ const BODIES = ['R6', 'R15', 'Robot', 'Skeleton', 'Magma Golem', 'Dino Suit', 'K
   'Minotaur', 'Anubis', 'Pharaoh', 'Samurai', 'Valkyrie', 'Centurion', 'Gladiator', 'Talos', 'Cyclops', 'Berserker',
   'Legionary', 'Velite', 'Retiarius', 'Praetorian', 'Thraex Gladiator', 'Hoplite', 'Peltast', 'Toxotes', 'Myrmidon Vanguard', 'Spartan Polemarch',
   'Footman', 'Longbowman', 'Viking Raider', 'Templar', 'Heavy Knight', 'Ashigaru', 'Ronin', 'Shinobi', 'Sohei', 'Crescent Samurai',
-  'Laestrygonian Warlord', 'Executioner', 'Azab', 'Okçu Archer', 'Humbaracı', 'Peyk', 'Janissary', 'Arban Spearman', 'Steppe Archer', 'Steppe Shaman', 'Kheshig', 'Great Khan']; // (2 on: body packs, jointed like R15; from 13: 💎 Deluxe Plus; from 23: ⚔️ Colosseum Duels mastery)
+  'Laestrygonian Warlord', 'Executioner', 'Azab', 'Okçu Archer', 'Humbaracı', 'Peyk', 'Janissary', 'Arban Spearman', 'Steppe Archer', 'Steppe Shaman', 'Kheshig', 'Great Khan', 'Laestrygonian Colossus']; // (2 on: body packs, jointed like R15; from 13: 💎 Deluxe Plus; from 23: ⚔️ Colosseum Duels mastery)
 // animation packs: how you stand, walk, run and jump
 const ANIMS = ['Default', 'Robot', 'Ninja', 'Zombie', 'Superhero', 'Stylish', 'Levitation', 'Vampire', 'Hoplite', 'Laestrygonian', 'Minotaur', 'Pharaoh', 'Samurai', 'Valkyrie', 'Berserker',
   'Legionary', 'Velite', 'Retiarius', 'Praetorian', 'Thraex Gladiator', 'Hoplite', 'Peltast', 'Toxotes', 'Myrmidon Vanguard', 'Spartan Polemarch',
@@ -1482,7 +1482,7 @@ const COSMETICS = {
   a: { title: 'Auras', list: AURAS, price: [0, 300, 800, 400, 350, 1000, 1500, 300, 350, 2000, 600, 2500, -1, -1, -1, 900], icon: ['🚫', '✨', '🔥', '💖', '❄️', '⚡', '🌈', '🫧', '🍃', '🌌', '☢️', '💸', '💫', '🌑', '⛈️', '🦇'] },
   pt: { title: 'Shirts', list: PATTERNS, price: [0, 60, 80, 80, 120, 100, 90, 250, 150, 150, 120, 200, 300, -1, -1, -1, 200], icon: ['⬜', '〰️', '⭐', '❤️', '⚡', '🏁', '1️⃣', '👔', '💀', '🔥', '🪖', '🌈', '🌌', '🏆', '🐾', '🌻', '🦴'] },
   pet: { title: 'Pets', list: PETS, price: [0, 400, 400, 350, 1500, 900, 2500, 600, 800, 1200, 4000, -1, -1, 1000, -1, -1], icon: ['🚫', '🐶', '🐱', '🐰', '🐉', '🤖', '🦄', '🐧', '🦊', '🐼', '🦅', '🧟', '🌱', '👻', '🐓', '🦕'] },
-  bt: { title: 'Bodies', list: BODIES, price: [0, 0, 900, 600, 1200, 1000, 1100, 800, 1300, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], icon: ['🧍', '🦵', '🤖', '💀', '🌋', '🦖', '⚔️', '🎃', '🫥', '🐜', '🛡️', '🪓', '🗿', '🐂', '🐺', '👑', '⛩️', '🪽', '🦅', '⚔️', '🤖', '👁️', '🐻', '🦅', '🐺', '🔱', '🦂', '⚔️', '🦉', '🌙', '🏹', '🐜', '🛡️', '🗡️', '🎯', '🪓', '✝️', '🏰', '🎋', '🍂', '🥷', '📿', '🏯', '🗿', '💀', '🔱', '🏹', '💣', '🪓', '🌙', '🔱', '🏹', '🥁', '🛡️', '👑'], tab: false }, // (bodies and animations are in 🧍 Body)
+  bt: { title: 'Bodies', list: BODIES, price: [0, 0, 900, 600, 1200, 1000, 1100, 800, 1300, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], icon: ['🧍', '🦵', '🤖', '💀', '🌋', '🦖', '⚔️', '🎃', '🫥', '🐜', '🛡️', '🪓', '🗿', '🐂', '🐺', '👑', '⛩️', '🪽', '🦅', '⚔️', '🤖', '👁️', '🐻', '🦅', '🐺', '🔱', '🦂', '⚔️', '🦉', '🌙', '🏹', '🐜', '🛡️', '🗡️', '🎯', '🪓', '✝️', '🏰', '🎋', '🍂', '🥷', '📿', '🏯', '🗿', '💀', '🔱', '🏹', '💣', '🪓', '🌙', '🔱', '🏹', '🥁', '🛡️', '👑', '👹'], tab: false }, // (bodies and animations are in 🧍 Body)
   an: { title: 'Animations', list: ANIMS, price: [0, 500, 750, 400, 700, 550, 900, 777, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], icon: ['🚶', '🤖', '🥷', '🧟', '🦸', '😎', '🫧', '🧛', '🏺', '👣', '🐂', '👑', '⛩️', '🪽', '🐻', '🦅', '🐺', '🔱', '🦂', '⚔️', '🦉', '🌙', '🏹', '🐜', '🛡️', '🗡️', '🎯', '🪓', '✝️', '🏰', '🎋', '🍂', '🥷', '📿', '🏯', '🗿', '💀', '🔱', '🏹', '💣', '🪓', '🌙', '🔱', '🏹', '🥁', '🛡️', '👑'], tab: false },
   tr: { title: 'Trails', list: TRAILS, price: [0, 1500, 800, 600, 500, 2000, 700, -1, -1, 700], icon: ['🚫', '🌈', '🔥', '🧊', '💠', '🪙', '💕', '⭐', '⚡', '🌫️'] },
 };
@@ -3485,6 +3485,7 @@ function hopliteKit(K, myr) {
     },
   };
 }
+var LG_KIT; // (the film giant's kit, kept so the Colosseum's boss can wear it gilded)
 BODY_KITS.push((K) => myrmidonKit(K), (K) => hopliteKit(K, false),
 // 🪓 Halberd Knight — dressed as halberdiers really were, around 1510 (the Landsknechts and Swiss of the Italian Wars):
 // half armour over bright clothes. An open kettle hat (a round skull with a comb and a broad, down-turned brim) with
@@ -3560,11 +3561,13 @@ BODY_KITS.push((K) => myrmidonKit(K), (K) => hopliteKit(K, false),
 // great pauldrons of overlapping plates; every limb in articulated plates — cannons, elbow cops, gauntlets with
 // jointed fingers, thigh plates, knee cops, greaves and heavy sabatons; a hanging skirt of plates. Worn, you're a giant
 // (60% bigger, except in competitive games like Rivals, where everyone's the same size)
-(K) => {
+(LG_KIT = (K, gilt) => { // (gilt: the Colosseum's boss — the same giant plated in silver, bronze and gold, an ember glowing behind its slit)
   const { mesh, mats, grp } = K;
-  const steel = metalMat('#c3c7cc', { map: giantTex(), shininess: 36, reflectivity: 0.3, specular: '#8e959d' }), dark = metalMat('#6d7279', { map: giantTex(), shininess: 26, reflectivity: 0.18 });
-  const rim = metalMat('#a7acb2', { map: giantTex(), shininess: 46, reflectivity: 0.26, specular: '#9aa1a8' }), rivet = metalMat('#8f949a', { shininess: 80 }), mail = new THREE.MeshPhongMaterial({ map: mailTex(), shininess: 50, side: THREE.DoubleSide, color: '#b8bcc2' });
-  const slitM = new THREE.MeshBasicMaterial({ color: '#020203' });
+  const steel = gilt ? metalMat('#dde2e8', { map: giantTex(), shininess: 70, reflectivity: 0.42, specular: '#f1f4f8' }) : metalMat('#c3c7cc', { map: giantTex(), shininess: 36, reflectivity: 0.3, specular: '#8e959d' });
+  const dark = gilt ? metalMat('#b5783a', { map: giantTex(), shininess: 60, reflectivity: 0.36, specular: '#ffd29a' }) : metalMat('#6d7279', { map: giantTex(), shininess: 26, reflectivity: 0.18 });
+  const rim = gilt ? metalMat('#e6b53c', { map: giantTex(), shininess: 110, reflectivity: 0.55, specular: '#fff1b8' }) : metalMat('#a7acb2', { map: giantTex(), shininess: 46, reflectivity: 0.26, specular: '#9aa1a8' });
+  const rivet = gilt ? metalMat('#f0c24a', { shininess: 120, specular: '#fff3c4' }) : metalMat('#8f949a', { shininess: 80 }), mail = new THREE.MeshPhongMaterial({ map: mailTex(), shininess: 50, side: THREE.DoubleSide, color: gilt ? '#c79a5c' : '#b8bcc2' });
+  const slitM = new THREE.MeshBasicMaterial({ color: gilt ? '#ff8a2a' : '#020203' });
   mats.push(steel, dark, rim, rivet, mail);
   const P = (geo, m, x, y, z, par, sx = 1, sy = sx, sz = sx) => { const o = mesh(kLod(geo, Math.max(sx, sy, sz)), m, x, y, z, par); o.scale.set(sx, sy, sz); return o; };
   const R = (w, h, d, r, m, x, y, z, par) => mesh(rboxGeo(w, h, d, r), m, x, y, z, par);
@@ -3630,7 +3633,7 @@ BODY_KITS.push((K) => myrmidonKit(K), (K) => hopliteKit(K, false),
       return true;
     },
   };
-}
+})
 );
 BODY_DESC.push('🏛️ Achilles’ men as they’d really have looked at Troy — Mycenaean warriors of the late Bronze Age: an open-faced boar’s-tusk helmet (rows of tusk plates, as Homer describes) with cheek guards and a horsehair plume, a beard; a bronze plate cuirass like the one found at Dendra, with a high collar, rounded shoulder guards and hoops of bronze flaring over the hips; a linen tunic, bare arms, bronze greaves and leather boots; a long Naue II sword at the hip and a great figure-of-eight shield of dappled oxhide on the back.',
   '🏛️ A Spartan hoplite of the Persian Wars: a bronze Corinthian helmet with a crimson horsehair crest that sways and streams back as you run, long hair in locks down the back of the neck and a beard showing between the cheek pieces; a bronze muscle cuirass over a crimson tunic, a double skirt of linen strips, bronze greaves — and bare feet, as Spartans fought; a crimson cloak, a short sword (a xiphos) at the hip, and the great round shield with the lambda of Lacedaemon on your back.',
@@ -4985,6 +4988,10 @@ BODY_DESC.push('⚔️ The Laestrygonian of the Colosseum Duels, as Command an A
   '⚔️ A steppe shaman: a fringe over the eyes, a robe of ribbons and bronze mirrors, a frame drum. A mastery reward in ⚔️ Colosseum Duels.',
   '⚔️ A kheshig of the Khan’s guard: a spiked iron helmet with an aventail, iron lamellar to the knee. A mastery reward in ⚔️ Colosseum Duels.',
   '⚔️ The Great Khan: gilded lamellar over a red deel, a fur-brimmed crown with a gold finial and a white plume. A mastery reward in ⚔️ Colosseum Duels.');
+// 👹 the Colosseum's boss: the film's giant plated in silver, bronze and gold (worn by no one else)
+BODY_KITS.push((K) => LG_KIT(K, true));
+BODY_DESC.push('👹 The Laestrygonian Colossus, the boss of ⚔️ Colosseum Duels: the faceless giant of The Odyssey plated in polished silver, bronze lames and gold rims and rivets, an ember glowing behind the slit of its helm.');
+const LAE_BOSS_BT = BODIES.indexOf('Laestrygonian Colossus');
 function duelGear(a, i) { // made the first time the pack runs: the hand groups, on the forearms
   const hR = new THREE.Group(), hL = new THREE.Group(), y = a.r15 ? -0.92 : -1.9; hR.position.y = hL.position.y = y; pfx(a, hR, a.r15 ? a.elR : a.armR); pfx(a, hL, a.r15 ? a.elL : a.armL);
   const R0 = new THREE.Group(), L0 = new THREE.Group(); hR.add(R0); hL.add(L0); const [R, L] = DG_GEAR[i](R0, L0);
