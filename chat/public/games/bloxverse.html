@@ -4567,7 +4567,7 @@ function duelKit(K, i) {
       return { leg: (x) => { const r = leg(x, hose, hose); boot(r[1], lth, 0.42); return r; }, lower() { hips(gam); skirt('lbow', gam, 0.75); belt(lth); R(0.36, 0.32, 0.18, 0.08, lth, 0.55, 2.62, -0.6); },
         upper() { torso(gam); const hd = mesh(kTor(0.4), gr, 0, 4.0, 0.05); hd.rotation.x = Math.PI / 2; hd.scale.set(1.2, 0.72, 0.6); for (const s of [-1, 1]) R(0.9, 0.3, 1.0, 0.12, gr, s * 0.55, 3.9, 0.04); },
         arm: (s) => { const r = arm(s, gam, gam, lth); if (s < 0) R(0.9, 0.5, 0.9, 0.18, lth, 0, -0.55, 0, r[1]); return r; },
-        head(h) { const hd = mesh(kg('lbHood', () => new THREE.SphereGeometry(0.82, 26, 14, Math.PI * 0.18, Math.PI * 1.64, 0, Math.PI * 0.62)), gr, 0, 0.12, 0.05, h); hd.material.side = THREE.DoubleSide; hd.scale.set(1, 1.15, 1.05);
+        head(h) { const hd = mesh(kg('lbHood2', () => new THREE.SphereGeometry(0.82, 26, 14, Math.PI * 1.7, Math.PI * 1.6, 0, Math.PI * 0.62)), gr, 0, 0.12, 0.05, h); // (open at the front, round the face) hd.material.side = THREE.DoubleSide; hd.scale.set(1, 1.15, 1.05);
           const tl = mesh(kg('lbTail', () => sweepGeo([[0, 0.6, 0.5], [0, 0.3, 0.95], [0, -0.3, 1.1], [0, -0.9, 1.0]], (t) => 0.14 - 0.1 * t, 20, 8)), gr, 0, 0, 0, h); return false; } };
     },
     () => { // 🪓 Viking Raider: a round iron helmet with a nasal, a braided blond beard, a leather lamellar vest over a blue tunic, a fur mantle, silver arm rings, baggy trousers with leg wraps
@@ -4614,11 +4614,16 @@ function duelKit(K, i) {
         head(h) { const hat = mesh(kLathe('amigasa', [[0.05, 1.1], [0.5, 0.95], [0.85, 0.62], [1.05, 0.3], [1.08, 0.18], [0.75, 0.25]], 32), straw, 0, 0, 0, h); hat.material.side = THREE.DoubleSide; hair(h, '#111', 0.4); return false; } };
     },
     () => { // 🥷 Shinobi: all in black — a hood and a mask that leave only the eyes, close-fitting clothes, wrapped forearms and shins, split-toed tabi
-      const blk = L('#141418', { map: plushTex() }), wrap = L('#26262e', { map: plushTex() }), dk = L('#0a0a0d');
+      const blk = L('#262c3e', { map: plushTex() }), wrap = L('#46506a', { map: plushTex() }), dk = L('#121521', { map: plushTex() }), stl = steel('#9ca3af'), blkD = L('#262c3e', { map: plushTex(), side: THREE.DoubleSide });
       return { leg: (x) => { const r = leg(x, blk, blk); for (let k = 0; k < 4; k++) { const b = R(0.84, 0.07, 0.84, 0.03, wrap, 0, -0.15 - k * 0.15, 0, r[1]); b.rotation.z = (k % 2 ? 1 : -1) * 0.2; } R(0.8, 0.22, 0.98, 0.1, dk, 0, -0.87, -0.08, r[1]); return r; },
-        lower() { hips(blk); belt(L('#3f3f46', { map: plushTex() })); }, upper() { torso(blk); const sc = R(0.12, 1.8, 0.06, 0.03, dk, 0, 3.4, 0.55); sc.rotation.z = 0.6; },
+        lower() { hips(blk); belt(L('#6b1d1d', { map: plushTex() })); const kn = R(0.3, 0.26, 0.14, 0.06, L('#6b1d1d', { map: plushTex() }), 0.5, 2.86, -0.58); kn.rotation.z = 0.3; R(0.4, 0.34, 0.2, 0.08, dk, -0.55, 2.62, -0.58); // (a dark red sash knotted at the side, a pouch)
+          for (const s of [-1, 1]) { const f = R(0.95, 0.5, 1.02, 0.16, blk, s * 0.5, 2.15, 0); f.rotation.z = s * 0.06; } }, // (loose hakama over the thighs)
+        upper() { torso(blk); const sc = R(0.12, 1.8, 0.06, 0.03, dk, 0, 3.4, 0.55); sc.rotation.z = 0.6; for (const s of [-1, 1]) { const l = R(0.1, 1.2, 0.06, 0.03, wrap, s * 0.32, 3.55, -0.52); l.rotation.z = -s * 0.5; } // (the jacket's crossed lapels)
+          const sh = P(kSph(), stl, -0.55, 3.0, -0.6, K.body, 0.16, 0.16, 0.03); sh.rotation.z = 0.4; },
         arm: (s) => { const r = arm(s, blk, blk, dk); for (let k = 0; k < 4; k++) { const b = R(0.88, 0.07, 0.88, 0.03, wrap, 0, -0.2 - k * 0.14, 0, r[1]); b.rotation.z = (k % 2 ? 1 : -1) * 0.2; } return r; },
-        head(h) { const hd = mesh(kg('shinHood', () => new THREE.SphereGeometry(0.76, 26, 14, 0, Math.PI * 2, 0, Math.PI * 0.55)), blk, 0, 0.12, 0, h); hd.scale.set(1, 1.1, 1.02); mesh(kg('shinMask', () => new THREE.CylinderGeometry(0.7, 0.72, 0.62, 26, 1, true)), blk, 0, -0.32, 0, h).material.side = THREE.DoubleSide;
+        head(h) { const hd = mesh(kg('shinHood3', () => new THREE.SphereGeometry(0.76, 26, 10, 0, Math.PI * 2, 0, Math.PI * 0.44)), blk, 0, 0.14, 0, h); hd.scale.set(1, 1.1, 1.02); // (the hood, down to the brow)
+          mesh(kg('shinBand2', () => new THREE.CylinderGeometry(0.73, 0.73, 0.5, 26, 1, true, Math.PI * 1.3, Math.PI * 1.4)), blkD, 0, 0.06, 0, h); // (round the sides and back at the eyes: the slit in front)
+          mesh(kg('shinMask2', () => new THREE.CylinderGeometry(0.7, 0.72, 0.46, 26, 1, true)), blkD, 0, -0.42, 0, h); P(kSph(), blk, 0, -0.62, 0, h, 0.7, 0.12, 0.7); // (the mask over the mouth, closed under the chin)
           for (const s of [-1, 1]) { const tl = R(0.1, 0.5, 0.04, 0.02, blk, s * 0.12, -0.2, 0.72, h); tl.rotation.z = s * 0.3; } return false; } };
     },
     () => { // 📿 Sohei: a warrior monk — a white hood wrapped round the head leaving the face, saffron robes under a black lacquered dō, a great string of prayer beads, tall wooden geta
@@ -4627,7 +4632,8 @@ function duelKit(K, i) {
         lower() { hips(saf); skirt('sohei', saf, 1.0, 1.16); belt(L('#f5f5f4', { map: plushTex() })); },
         upper() { torso(saf); const dd = R(2.04, 0.9, 1.04, 0.25, lac, 0, 3.3, 0); for (let k = 0; k < 18; k++) { const an = -1.2 + (k / 17) * 2.4; P(kSph(), bead, Math.sin(an) * 0.62, 3.95 - Math.cos(an * 0.7) * 0.75, -0.55 - 0.05 * Math.cos(an), K.body, 0.1); } },
         arm: (s) => arm(s, wht, saf, null),
-        head(h) { const hd = mesh(kg('soheiHood', () => new THREE.SphereGeometry(0.8, 26, 14, Math.PI * 1.25, Math.PI * 1.5, 0, Math.PI * 0.62)), wht, 0, 0.12, 0, h); hd.scale.set(1, 1.12, 1.06); mesh(kg('soheiWrap', () => new THREE.CylinderGeometry(0.74, 0.8, 0.7, 26, 1, true, Math.PI * 0.2, Math.PI * 1.6)), wht, 0, -0.42, 0, h);
+        head(h) { const hd = mesh(kg('soheiHood2', () => new THREE.SphereGeometry(0.8, 26, 14, Math.PI * 1.78, Math.PI * 1.44, 0, Math.PI * 0.62)), wht, 0, 0.12, 0, h); hd.scale.set(1, 1.12, 1.06); mesh(kg('soheiWrap2', () => new THREE.CylinderGeometry(0.74, 0.8, 0.7, 26, 1, true, Math.PI * 1.3, Math.PI * 1.4)), wht, 0, -0.42, 0, h); // (open in front: the face looks out of the wrapping)
+          P(kSph(), wht, 0, 0.62, 0.62, h, 0.42, 0.34, 0.3); for (const s of [-1, 1]) { const t = R(0.3, 0.9, 0.08, 0.04, wht, s * 0.22, -0.3, 0.74, h); t.rotation.z = s * 0.12; } // (the knot of the wrapping at the back, its ends hanging)
           return false; } };
     },
     () => { // 🏯 Crescent Samurai: black lacquer laced in gold — a ribbed kabuto with a great golden crescent moon, a black half-mask with a gold moustache, broad sode, a laced dō, tassets, thigh plates and shin guards, crimson tassels
@@ -4724,7 +4730,8 @@ function duelKit(K, i) {
       const kaf = L('#ffffff', { map: dkCintTex('#15803d', '#fde68a') }), sash = L('#f5f0e1', { map: plushTex() }), sal = L('#991b1b', { map: plushTex() }), bt = L('#5b3a1e', { map: leatherTex() }), cap = L('#b91c1c', { map: ovFeltTex('#b91c1c') }), tur = L('#ffffff', { map: dkTurbanTex('#ffffff') }), gold2 = gold;
       return { leg: (x) => { const r = leg(x, sal, sal); P(kSph(), sal, 0, -0.12, 0, r[1], 0.54, 0.44, 0.54); boot(r[1], bt, 0.6); return r; },
         lower() { hips(kaf); skirt('okcu', kaf, 1.1, 1.18); belt(sash, 2.9); const q = grp(K.body, 1.1, 2.75); q.rotation.z = -0.35; q.position.z = 0.12; R(0.42, 1.0, 0.3, 0.1, L('#7c2d12', { map: leatherTex() }), 0, -0.35, 0, q); for (let k = 0; k < 4; k++) P(kCyl(), L('#f5f5f4'), -0.12 + k * 0.08, 0.25, 0, q, 0.03, 0.4, 0.03); },
-        upper() { torso(kaf); for (let k = 0; k < 4; k++) R(0.7, 0.06, 0.04, 0.02, gold2, 0, 3.0 + k * 0.28, -0.52); }, arm: (s) => arm(s, kaf, kaf, null),
+        upper() { torso(kaf); for (let k = 0; k < 4; k++) R(0.7, 0.06, 0.04, 0.02, gold2, 0, 3.0 + k * 0.28, -0.52); R(0.06, 1.2, 0.05, 0.02, gold2, 0, 3.44, -0.53); },
+        arm: (s) => { const sl = L('#166534', { map: plushTex() }), r = arm(s, sl, sl, null); T(gold2, 0, -0.66, 0, r[1], 0.86); return r; }, // (plain green sleeves, a gold band at each cuff)
         head(h) { mesh(kLathe('okTurban', [[0.74, 0.18], [0.92, 0.32], [1.0, 0.55], [0.95, 0.85], [0.75, 1.02], [0.4, 1.08], [0, 1.08]], 28), tur, 0, 0, 0, h); P(kSph(), cap, 0, 1.08, 0, h, 0.34, 0.26, 0.34); return false; } };
     },
     () => { // 💣 Humbaracı: an Ottoman grenadier — a red felt külah with a black fur band, a leather vest over a white shirt, a bandolier of bombs, green şalvar, boots
@@ -4759,11 +4766,16 @@ function duelKit(K, i) {
         head(h) { mesh(kLathe('mgCap', [[0.74, 0.25], [0.7, 0.6], [0.5, 0.95], [0.2, 1.2], [0, 1.28]], 24), cap, 0, 0, 0, h); const br = mesh(kg('mgBrim', () => new THREE.TorusGeometry(0.82, 0.2, 8, 28)), fur, 0, 0.34, 0, h); br.rotation.x = Math.PI / 2; br.scale.z = 0.8; return false; } };
     },
     () => { // 🏹 Steppe Archer: a Mongol archer on foot — a fur hat with ear-flaps, a light brown deel trimmed in fur, a quiver at the right hip and a bow case at the left, boots
-      const deel = L('#a16207', { map: plushTex() }), fur = L('#57534e', { map: dpFurTex('#78716c', '#292524') }), bt = L('#3b2414', { map: leatherTex() }), lth = L('#7c2d12', { map: leatherTex() });
-      return { leg: (x) => { const r = leg(x, deel, deel); boot(r[1], bt, 0.62); return r; },
-        lower() { hips(deel); skirt('march', deel, 1.0, 1.14); belt(lth, 2.9); const q = grp(K.body, 1.1, 2.75); q.rotation.z = -0.3; q.position.z = 0.1; R(0.4, 1.0, 0.3, 0.1, lth, 0, -0.35, 0, q); for (let k = 0; k < 4; k++) P(kCyl(), L('#f5f5f4'), -0.12 + k * 0.08, 0.25, 0, q, 0.03, 0.4, 0.03); },
-        upper() { torso(deel); const c = mesh(kTor(0.35), fur, 0, 4.0, 0); c.rotation.x = Math.PI / 2; c.scale.set(1.15, 0.7, 0.55); }, arm: (s) => arm(s, deel, deel, null),
-        head(h) { bowl(h, fur, 0.32, 1.1, 0.8); for (const s of [-1, 1]) { const f = R(0.12, 0.8, 0.55, 0.05, fur, s * 0.78, -0.2, 0.05, h); f.rotation.z = s * 0.1; } return false; } };
+      const deel = L('#b7791f', { map: plushTex() }), fur = L('#57534e', { map: dpFurTex('#78716c', '#292524') }), bt = L('#3b2414', { map: leatherTex() }), lth = L('#7c2d12', { map: leatherTex() }), silk = L('#1e3a8a', { map: plushTex(), side: THREE.DoubleSide }), sash = L('#b91c1c', { map: plushTex() });
+      return { leg: (x) => { const r = leg(x, deel, deel); boot(r[1], bt, 0.62); R(0.92, 0.1, 1.14, 0.04, silk, 0, -0.42, -0.08, r[1]); return r; }, // (boots, a blue band at their tops)
+        lower() { hips(deel); skirt('march', deel, 1.0, 1.14); mesh(kLathe('saHem', [[1.13, -1.0], [1.14, -0.86]], 30), silk, 0, 2.86, 0).scale.set(1.04, 1, 0.62); belt(sash, 2.9); // (the deel's hem bound in blue silk, a red sash)
+          for (const x of [-0.3, -0.15]) { const t = R(0.1, 0.5, 0.05, 0.03, sash, x, 2.55, -0.6); t.rotation.z = 0.1; } // (its tasselled ends)
+          { const bc = grp(K.body, -1.12, 2.6); bc.rotation.z = 0.28; bc.position.z = 0.15; R(0.5, 1.15, 0.22, 0.12, lth, 0, -0.3, 0, bc); for (let k = 0; k < 3; k++) P(kSph(), gold, 0, 0.1 - k * 0.32, -0.12, bc, 0.05); } // (the bow case at the left hip, studded)
+          const q = grp(K.body, 1.1, 2.75); q.rotation.z = -0.3; q.position.z = 0.1; R(0.4, 1.0, 0.3, 0.1, lth, 0, -0.35, 0, q); for (let k = 0; k < 4; k++) P(kCyl(), L('#f5f5f4'), -0.12 + k * 0.08, 0.25, 0, q, 0.03, 0.4, 0.03); },
+        upper() { torso(deel); const c = mesh(kTor(0.35), fur, 0, 4.0, 0); c.rotation.x = Math.PI / 2; c.scale.set(1.15, 0.7, 0.55);
+          const fl = R(1.25, 0.16, 0.06, 0.03, silk, 0.22, 3.62, -0.53); fl.rotation.z = -0.62; for (let k = 0; k < 3; k++) P(kSph(), gold, 0.62, 3.12 + k * 0.22, -0.55, K.body, 0.055); }, // (the flap closing across to the right, bound in blue; knot buttons down the side)
+        arm: (s) => { const r = arm(s, deel, deel, null); T(fur, 0, -0.72, 0, r[1], 0.96); return r; }, // (fur at the cuffs)
+        head(h) { bowl(h, fur, 0.32, 1.1, 0.8); P(kSph(), sash, 0, 0.78, 0, h, 0.44, 0.3, 0.44); P(kSph(), gold, 0, 1.08, 0, h, 0.08); for (const s of [-1, 1]) { const f = R(0.12, 0.8, 0.55, 0.05, fur, s * 0.78, -0.2, 0.05, h); f.rotation.z = s * 0.1; } return false; } }; // (a red cloth crown in the fur, a gold knot on top)
     },
     () => { // 🥁 Steppe Shaman: a headdress with a fringe hanging over the eyes and feathers on top; a dark robe hung all over with coloured ribbons and little bronze mirrors; a frame drum and its beater
       const robe = L('#1e1b4b', { map: plushTex() }), bt = L('#3b2414', { map: leatherTex() }), mir = steel('#e8c07a', { shininess: 150 }), band = L('#7c2d12', { map: leatherTex() }), cols = ['#dc2626', '#f59e0b', '#16a34a', '#2563eb', '#f8fafc'].map((c) => L(c));
@@ -4940,15 +4952,16 @@ const dkLamellarTex = (c1, c2) => kCanvas('dkLam' + c1 + c2, 128, 128, (g, r) =>
 // their blades
 Object.assign(DG_BLADES, { gscim: [5.2, (t) => 0.5 * (t < 0.72 ? 1 + 0.45 * t : (1 - t) * 4.8) + 0.02, 1.25], kilij: [2.8, (t) => 0.22 * (t < 0.72 ? 1 : t < 0.8 ? 1.4 : (1 - t) * 7) + 0.01, 0.55],
   yatagan: [2.6, (t) => 0.2 * (t < 0.88 ? 1 : (1 - t) * 8.3) + 0.01, -0.42], msaber: [2.9, (t) => 0.2 * (t < 0.88 ? 1 - 0.15 * t : (1 - t) * 7) + 0.01, 0.48] });
-function dgExecAxe(par) { // the executioner's axe: a long haft and a great bearded blade, black and bright along its edge
-  const g = new THREE.Group(); par.add(g); const wd = new THREE.MeshLambertMaterial({ color: '#3b2414', map: woodTex() }), ir = metalMat('#4b5563', { map: ovIronTex(), shininess: 70 }), edge = metalMat('#e5e7eb', { shininess: 160 });
-  const sh = new THREE.Mesh(kCyl(), wd); sh.scale.set(0.09, 4.0, 0.09); sh.rotation.x = Math.PI / 2; sh.position.z = -1.2; g.add(sh);
-  for (const z of [0.4, -0.2]) { const w = new THREE.Mesh(kCyl(), new THREE.MeshLambertMaterial({ color: '#1c1917', map: leatherTex() })); w.scale.set(0.11, 0.35, 0.11); w.rotation.x = Math.PI / 2; w.position.z = z; g.add(w); }
-  const HD = ovShape('dgExecHead', [[0, 0.32], [0.5, 0.42], [1.2, 1.05], [1.42, 1.02], [1.5, 0.2], [1.5, -0.6], [1.2, -1.2], [0.95, -1.15], [0.6, -0.4], [0, -0.3]], 0.08, 0.03);
-  const hd = new THREE.Mesh(HD, ir); hd.rotation.set(Math.PI / 2, 0, -Math.PI / 2); hd.position.set(0, 0.04, -3.0); g.add(hd);
-  const ed = new THREE.Mesh(BOX, edge); ed.scale.set(0.05, 0.06, 2.1); ed.position.set(0, 1.48, -3.05); ed.rotation.x = 0.05; g.add(ed); // (the honed edge)
-  const sp = new THREE.Mesh(kCone(), ir); sp.scale.set(0.12, 0.6, 0.12); sp.rotation.x = -Math.PI / 2; sp.position.z = -3.5; g.add(sp);
-  g.userData.tip = new THREE.Object3D(); g.userData.tip.position.set(0, 1.4, -3.0); g.add(g.userData.tip); g.userData.len = 3.6; return g;
+function dgExecAxe(par) { // the executioner's axe: a stout haft, a great bearded blade of dark iron, its edge honed bright (the blade up, along +y; the haft along -z)
+  const g = new THREE.Group(); par.add(g); const wd = new THREE.MeshLambertMaterial({ color: '#4a2c17', map: woodTex() }), ir = metalMat('#3b4049', { shininess: 90, reflectivity: 0.35, specular: '#9aa3ad' }), edge = metalMat('#eef1f5', { shininess: 170, reflectivity: 0.6 }), lth = new THREE.MeshLambertMaterial({ color: '#1c1917', map: leatherTex() });
+  const sh = new THREE.Mesh(kCyl(), wd); sh.scale.set(0.085, 3.3, 0.085); sh.rotation.x = Math.PI / 2; sh.position.z = -1.1; g.add(sh); // (the haft)
+  for (const z of [0.3, -0.3]) { const w = new THREE.Mesh(kCyl(), lth); w.scale.set(0.105, 0.42, 0.105); w.rotation.x = Math.PI / 2; w.position.z = z; g.add(w); } // (the grips, bound in leather)
+  const bt = new THREE.Mesh(kSph(), ir); bt.scale.set(0.12, 0.12, 0.14); bt.position.z = 0.58; g.add(bt); // (an iron cap on its butt)
+  const BL = ovShape('dgExecBlade', [[-0.24, 0], [0.24, 0], [0.42, 0.36], [0.68, 1.02], [0.86, 1.52], [0.42, 1.6], [0, 1.64], [-0.46, 1.56], [-0.98, 1.3], [-0.78, 0.96], [-0.42, 0.42]], 0.07, 0.02);
+  const ED = ovShape('dgExecEdge', [[0.86, 1.52], [0.42, 1.6], [0, 1.64], [-0.46, 1.56], [-0.98, 1.3], [-0.9, 1.2], [-0.44, 1.43], [0, 1.5], [0.4, 1.46], [0.78, 1.4]], 0.09, 0.01);
+  for (const [geo, m] of [[BL, ir], [ED, edge]]) { const b = new THREE.Mesh(geo, m); b.rotation.y = Math.PI / 2; b.position.set(0, 0.04, -2.62); g.add(b); } // (the blade, its bright edge)
+  const so = new THREE.Mesh(rboxGeo(0.26, 0.3, 0.62, 0.06), ir); so.position.z = -2.62; g.add(so); const tp = new THREE.Mesh(kCone(), ir); tp.scale.set(0.09, 0.22, 0.09); tp.rotation.x = -Math.PI / 2; tp.position.z = -2.98; g.add(tp); // (the socket round the haft, a spike on top)
+  g.userData.tip = new THREE.Object3D(); g.userData.tip.position.set(0, 1.5, -2.62); g.add(g.userData.tip); g.userData.len = 3.1; return g;
 }
 function dgRecurve(par) { const outer = new THREE.Group(); par.add(outer); outer.rotation.x = -Math.PI / 2; // (a composite bow: its tips bent forward, away from the archer)
   const b = new THREE.Mesh(kg('dgRecurveG', () => sweepGeo([[0, -1.55, -0.38], [0, -1.32, -0.02], [0, -0.7, 0.2], [0, 0, 0.12], [0, 0.7, 0.2], [0, 1.32, -0.02], [0, 1.55, -0.38]], (t) => 0.05 * (1 - 0.5 * Math.abs(t - 0.5) * 2) + 0.012, 30, 8)), new THREE.MeshPhongMaterial({ color: '#5b2c12', map: woodTex(), shininess: 50 })); outer.add(b);

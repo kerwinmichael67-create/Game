@@ -251,7 +251,7 @@
       { n: 'Combo', ic: '🌸', k: 'combo', hits: [75, 35, 40, 25, 40], gap: 0.27, cd: 7, rng: 7.5, arc: 90, wind: 0.2, an: 'combo', d: 'Five cuts: 75, 35, 40, 25, 40. If the first lands they can’t move until it’s done — if it misses you’re stunned for 1.5 s and take 50% more damage.' },
       { n: 'Iaido Strike', ic: '🌙', k: 'dash', dmg: 180, dist: 15, dd: 0.25, cd: 28, wind: 0.35, an: 'iaido', d: 'One perfect draw-cut as you pass through them: 180 damage.' }] },
     // 🏛️ Greece's myth: the Laestrygonian — not in any crate (beat the boss, or reach Season Pass level 100)
-    { e: 1, r: 4, hp: 1750, spd: 0.5, def: 0.55, big: 1.75, nc: 1, brute: 0.15, ro: 'Giant', how: 'Beat the 👹 Laestrygonian boss, or reach Season Pass level 100', pas: [['🛡️', 'Armored Giant', '50% slower than everyone else, and takes 45% less damage.'], ['💢', 'Brute Force', 'Every hit has a 15% chance to leave them Crushed: double damage until the round ends or they die.']], ab: [
+    { e: 1, r: 4, hp: 1750, spd: 0.5, def: 0.55, big: 1.35, nc: 1, brute: 0.15, ro: 'Giant', how: 'Beat the 👹 Laestrygonian boss, or reach Season Pass level 100', pas: [['🛡️', 'Armored Giant', '50% slower than everyone else, and takes 45% less damage.'], ['💢', 'Brute Force', 'Every hit has a 15% chance to leave them Crushed: double damage until the round ends or they die.']], ab: [
       { n: 'Scimitar / Punch', ic: '🗡️', k: 'melee', modes: [
         { n: 'Scimitar', ic: '🗡️', dmg: 225, cd: 1.9, rng: 10.5, arc: 120, wind: 0.5, an: 'gslash' },
         { n: 'Punch', ic: '👊', dmg: 125, cd: 1.5, rng: 7.5, arc: 70, wind: 0.25, an: 'punch' }] },
@@ -1220,7 +1220,7 @@
   const DEF_SAVE = () => ({ own: [0], eq: 0, xp: {}, st: {}, ach: [], diff: 1, md: 'c', lk: 0, gold: 0, q: null, qd: 0 }); // (lk: lock-on, off unless you turn it on; gold: the duel's own; q: the Executioner's Contract)
 
   const DU = {
-    id: 'duel', code: 'du', genre: 'PvP', rank: 0.001, name: 'Colosseum Duels', emoji: '⚔️', max: 12, stat: 'Wins', killY: -40, banner: true, camDist: 15, noReset: true, noSprint: true, respawnDelay: 2200, r6: true, // (r6: everyone rigid-limbed, R6, in here)
+    id: 'duel', code: 'du', genre: 'PvP', rank: 0.001, name: 'Colosseum Duels', emoji: '⚔️', max: 12, stat: 'Wins', killY: -40, banner: true, camDist: 15, noReset: true, noSprint: true, respawnDelay: 2200, r6: false, // (r6: rigid limbs for everyone in here — off: the fighters are R15 again, knees and elbows bending)
     land: { theme: 'meadow', mode: 'ground', fence: 'none', box: [-86, -76, 86, 166] },
     color: 'linear-gradient(135deg,#7f1d1d,#b45309 45%,#1e3a8a)',
     desc: 'One on one in the Colosseum. Thirty-two fighters from Greece, Rome, medieval Europe, medieval Japan, the Ottoman Empire and the Mongols, ★ to ★★★★★ — win them from crates (Blox Coins or the duel’s own gold; each with a 1% legend) or the duel’s own achievements. Beat the giant Laestrygonian boss in co-op to make it yours, or take the Executioner’s Contract. Classic (first to 3), Deathmatch or the Boss, against friends or bots from Easy to Extreme. Master a fighter to wear it anywhere.',
@@ -1310,7 +1310,7 @@
       else { const D = DIFF[o.D], fc = rollFoe(o.D); M.foe = newFighter(fc, 'bot', { D: o.D, hpM: D.hpM, dmgM: D.dmgM, name: `🤖 ${CH[fc].n}` }); M.side = Math.random() < 0.5 ? 0 : 1; M.foe.av = [Math.floor(Math.random() * 5), 0, 0, 0, 17, 0, 0, 0, 0, 0, 23 + fc, 15 + fc]; }
       this.respawnDelay = M.md === 'd' ? 450 : M.md === 'b' ? 2500 : 1e9;
       setAvOverride({ av: [AV.s, AV.sh, AV.p, 0, AV.f, 0, 0, 0, 0, 0, 23 + c, 15 + c] });
-      cam.dist = Math.max(cam.dist, CH[c].big ? 22 : M.md === 'b' ? 18 : 15); // (room to see a giant)
+      cam.dist = Math.max(cam.dist, CH[c].big ? 19 : M.md === 'b' ? 18 : 15); // (room to see a giant)
       document.body.classList.add('duMatch'); setBar(''); setBanner(''); hudBuild(M); this.resetRound(true);
       this.bump('played', 1); sfx('horn'); if (o.pvp || M.coop) this.pubDu(true);
     },
