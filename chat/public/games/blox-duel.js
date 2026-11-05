@@ -104,7 +104,7 @@
     @media (max-width:640px){.du-det{grid-template-columns:1fr}}
     .du-det img{width:100%;border-radius:12px;background:radial-gradient(circle at 50% 30%,var(--rc),#0f172a 72%)}
     .du-det h3{margin:0 0 2px;font:800 22px var(--fh);color:#fff}.du-det .sub{font:700 12px var(--fb);color:var(--rc);text-transform:uppercase;letter-spacing:.05em}
-    .du-stats{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.du-stats span{padding:3px 9px;border-radius:8px;background:rgba(255,255,255,.08);font:700 12px var(--fb)}
+    .du-stats{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.du-sb{display:grid;grid-template-columns:170px 1fr;gap:12px;margin:10px 0 12px;align-items:stretch}.du-dps{display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:10px;border-radius:14px;background:radial-gradient(circle at 50% 30%,rgba(250,204,21,.28),rgba(15,23,42,.6) 75%);border:1px solid rgba(250,204,21,.45)}.du-dps small{font:800 12px var(--fh);color:#fde68a;letter-spacing:.08em}.du-dps b{font:900 40px/1.05 var(--fh);color:#fff;text-shadow:0 0 18px rgba(250,204,21,.7),0 2px 0 rgba(0,0,0,.4);font-variant-numeric:tabular-nums}.du-dps span{font:600 10.5px/1.3 var(--fb);color:#94a3b8;margin-top:4px}.du-bars{display:flex;flex-direction:column;gap:5px;justify-content:center}.du-bars .r{display:grid;grid-template-columns:122px 1fr 128px;gap:8px;align-items:center;font:700 12px var(--fb);color:#e2e8f0}.du-bars .v{color:#cbd5e1;font-weight:600;text-align:right;white-space:nowrap}.du-bars .b{height:11px;border-radius:6px;background:rgba(0,0,0,.45);overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,.5)}.du-bars .b i{display:block;height:100%;width:0;border-radius:6px;background:linear-gradient(90deg,#22c55e,#a3e635);transition:width .9s cubic-bezier(.2,.8,.2,1)}.du-bars .r:nth-child(2) .b i{background:linear-gradient(90deg,#ef4444,#fb923c)}.du-bars .r:nth-child(3) .b i{background:linear-gradient(90deg,#f59e0b,#fde047)}.du-bars .r:nth-child(4) .b i{background:linear-gradient(90deg,#0ea5e9,#67e8f9)}.du-bars .r:nth-child(5) .b i{background:linear-gradient(90deg,#64748b,#cbd5e1)}.du-bars .r:nth-child(6) .b i{background:linear-gradient(90deg,#eab308,#fef08a)}.du-bars .ov .b{height:14px}.du-bars .ov .b i{background:linear-gradient(90deg,#a855f7,#f43f5e,#fbbf24)}.du-bars .ov .v b{color:#fde68a;font-size:14px}.du-fcard .dp{display:block;font:800 10px var(--fb);color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.85);margin:1px 0 2px;opacity:.92}@media (max-width:640px){.du-sb{grid-template-columns:1fr}.du-bars .r{grid-template-columns:96px 1fr 92px;font-size:11px}.du-dps b{font-size:32px}}.du-stats span{padding:3px 9px;border-radius:8px;background:rgba(255,255,255,.08);font:700 12px var(--fb)}
     .du-abl{display:flex;flex-direction:column;gap:6px}.du-abl div{display:flex;gap:9px;align-items:flex-start;padding:7px 9px;border-radius:10px;background:rgba(255,255,255,.05);font:600 12.5px/1.35 var(--fb);color:#cbd5e1}
     .du-abl div>i{font-style:normal;font-size:22px}.du-abl b{color:#fff}.du-abl em{font-style:normal;color:#fde68a;font-weight:800}
     .du-pity{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 12px}.du-pity>div{padding:10px 12px;border-radius:12px;background:rgba(15,23,42,.55);border:1px solid rgba(255,255,255,.12);font:700 13px/1.35 var(--fb);color:#e2e8f0}.du-pity>div b{color:#fde68a}.du-pity .lk{border-color:rgba(74,222,128,.55);background:linear-gradient(90deg,rgba(21,128,61,.35),rgba(15,23,42,.3))}.du-pity .lk b{color:#86efac}.du-pity small{display:block;font:600 11.5px var(--fb);color:#94a3b8;margin-top:2px}@media (max-width:640px){.du-pity{grid-template-columns:1fr}}.du-luck{padding:6px 16px;border-radius:999px;font:800 15px var(--fh);color:#052e16;background:linear-gradient(90deg,#4ade80,#bbf7d0);box-shadow:0 0 30px rgba(74,222,128,.6);animation:duBigPop .5s cubic-bezier(.2,1.6,.5,1)}.du-luck.sure{color:#451a03;background:linear-gradient(90deg,#f59e0b,#fde68a);box-shadow:0 0 40px rgba(245,158,11,.7)}.du-crates{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
@@ -1278,6 +1278,53 @@
   function feed(html) { const k = $('#duKill'); if (!k) return; const d = document.createElement('div'); d.innerHTML = html; k.prepend(d); setTimeout(() => d.remove(), 5000); while (k.children.length > 4) k.lastChild.remove(); }
 
   // a fighter's picture for the menus and the crate reel: in its guard, weapon in hand
+  /* ---------------- a fighter's numbers: DPS, and bars against the whole roster ----------------
+     DPS: 30 s against a foe standing in front of them, every blow used as it comes off cooldown (a damage buff first,
+     then whatever hits hardest; the M1 in its best mode), buffs and passives counted — bleeds and burns, critical hits,
+     the Wish's stacks, Crushed (double damage once it lands), the killing stroke. Attack: the M1's damage a blow. Attack
+     speed: its hits a second. Defense: health lasts this many times as long (1 ÷ damage taken). Overall: out of 10,
+     from DPS, toughness (health × defense), speed and attack speed */
+  function fStats(C) {
+    const T = 30, dt = 0.05, m1s = C.ab[0].modes ? C.ab[0].modes.map((m) => Object.assign({}, C.ab[0], m, { modes: null })) : [C.ab[0]];
+    const hitsOf = (ab) => ab.k === 'multi' || ab.k === 'combo' ? ab.hits.slice() : ab.k === 'proj' || ab.k === 'volley' ? Array(ab.cnt || 1).fill(ab.dmg) : ab.k === 'dash' ? [ab.dmg || 0].concat(ab.then ? Array(ab.then.cnt || 1).fill(ab.then.dmg) : []).filter((x) => x > 0) : ab.k === 'stomp' ? [ab.crush || ab.dmg] : ab.k === 'buff' ? [] : [ab.dmg || 0];
+    const boosts = (ab) => ab.k === 'buff' && ab.b && ((ab.b.dmgM || 1) > 1 || ab.b.dmgA || (ab.b.cdM || 1) > 1 || ab.b.nx);
+    let best = null;
+    for (const m1 of m1s) {
+      const abs = [m1].concat(C.ab.slice(1)), cd = abs.map(() => 0), buffs = [], dots = {}; let t = 0, busy = 0, dmg = 0, wish = 0, nx = 0, n = 0, crushed = 0;
+      const mult = (k) => buffs.reduce((m, b) => (b.end > t && b[k] ? m * b[k] : m), 1), add = (k) => buffs.reduce((m, b) => (b.end > t && b[k] ? m + b[k] : m), 0);
+      while (t < T) {
+        for (const k in dots) if (dots[k].end > t) dmg += dots[k].rate * dt * (1 + crushed);
+        const cm = mult('cdM'); for (let i = 0; i < cd.length; i++) cd[i] = Math.max(0, cd[i] - dt * cm);
+        if (busy <= 0) { let pick = -1, bv = -1;
+          for (let i = 0; i < abs.length; i++) { if (cd[i] > 0) continue; const ab = abs[i], v = ab.k === 'buff' ? (boosts(ab) ? 1e9 : -1) : hitsOf(ab).reduce((a, b) => a + b, 0); if (v > bv && v > 0) { bv = v; pick = i; } }
+          if (pick >= 0) { const ab = abs[pick]; cd[pick] = ab.cd; busy = actDur(ab);
+            if (ab.k === 'buff') { buffs.push(Object.assign({ end: t + (ab.b.dur || 0) }, ab.b)); if (ab.b.nx) nx = ab.b.nx; }
+            else { for (const h of hitsOf(ab)) { let d = (h + add('dmgA')) * mult('dmgM') * (C.wish ? 1 + 0.1 * wish : 1) * (1 + crushed); if (nx) { d *= nx; nx = 0; } if (C.crit) d *= 1 + C.crit[0] * (C.crit[1] - 1); dmg += d; n++; if (C.wish) wish++; if (C.brute) crushed = 1 - Math.pow(1 - C.brute, n); }
+              if (ab.k === 'stomp' && ab.crush) crushed = 1;
+              const fx = ab.fx || {}; if (fx.bl) dots.bl = { end: t + busy + fx.bl[1], rate: fx.bl[0] / fx.bl[1] * (fx.blc != null ? fx.blc : 1) }; if (fx.bu) dots.bu = { end: t + busy + fx.bu[1], rate: fx.bu[0] / fx.bu[1] }; } } }
+        busy -= dt; t += dt;
+      }
+      const dps = dmg / T * (C.exe ? 1 / (1 - C.exe[0] + C.exe[0] / C.exe[1]) : 1), h = hitsOf(m1);
+      if (!best || dps > best.dps) best = { dps, atk: h.reduce((a, b) => a + b, 0), aspd: h.length / Math.max(0.2, m1.cd), m1: m1.n, hits: n };
+    }
+    // how long they last: health, armour, and what their blows and buffs add — blocks and damage cut while they're up,
+    // heals, lifesteal, the Wish's heal on every hit — and how much of the fight their stuns, roots and slows take away
+    let red = 1, heal = 0, ctrl = 0;
+    for (const ab of C.ab.flatMap((q) => (q.modes ? q.modes.map((m) => Object.assign({}, q, m)) : [q]))) { const per = T / Math.max(0.3, ab.cd, actDur(ab)) / (ab.modes || C.ab[0] === ab ? 1 : 1), b = ab.b, fx = ab.fx || {};
+      if (ab.k === 'buff' && b) { const up = Math.min(1, (b.dur || 0) / ab.cd); if (b.def) red *= 1 - (1 - b.def) * up; if (b.blk) red *= 1 - 0.85 * up; heal += ((b.heal || 0) + (b.healP || 0) * C.hp + (b.hps || 0) * (b.dur || 0) + (b.ls || 0) * best.dps * (b.dur || 0)) * per; }
+      ctrl += ((fx.st || 0) + (fx.rt || 0) * 0.6 + (fx.sl ? fx.sl[1] * (1 - fx.sl[0]) : 0) + (fx.kb ? 0.4 : 0)) * per * (C.ab[0].modes && C.ab[0].modes.includes && false ? 0.5 : 1); }
+    if (C.wish) heal += 0.1 * C.hp * best.hits; const cf = Math.min(0.5, ctrl / T), def = 1 / (C.def * red);
+    return Object.assign(best, { hp: C.hp, spd: C.spd, def, armor: 1 / C.def, guard: red < 1, ctrl: cf, ehp: (C.hp + heal) * def / (1 - cf) });
+  }
+  let FST = null;
+  function fStatsAll() { // (everyone's, and the roster's lows and highs for the bars; an overall rating out of 10)
+    if (FST) return FST; const L = CH.map(fStats), rng = {}, LOG = { dps: 1, atk: 1, hp: 1, ehp: 1 }; // (those spread widest go on a log scale, so the giant doesn't squash everyone else)
+    for (const k of ['dps', 'atk', 'aspd', 'hp', 'spd', 'def', 'ehp', 'ctrl']) { const v = L.map((x) => x[k]); rng[k] = [Math.min(...v), Math.max(...v)]; }
+    const nrm = (k, v) => { const [a, b] = rng[k]; return LOG[k] ? clamp(Math.log(v / a) / Math.max(1e-6, Math.log(b / a)), 0, 1) : clamp((v - a) / Math.max(1e-6, b - a), 0, 1); };
+    for (const x of L) x.pw = 0.42 * nrm('dps', x.dps) + 0.33 * nrm('ehp', x.ehp) + 0.1 * nrm('ctrl', x.ctrl) + 0.08 * nrm('spd', x.spd) + 0.07 * nrm('aspd', x.aspd);
+    const p1 = Math.max(...L.map((x) => x.pw)); for (const x of L) x.ov = Math.max(1, Math.round((1 + 9 * x.pw / p1) * 10) / 10);
+    return (FST = { L, rng, nrm, bar: (k, v) => 8 + 92 * nrm(k, v) });
+  }
   function fighterPic(c, big) {
     return snapshot(`duPic${c}|${AV.s}|${big ? 1 : 0}`, () => { const a = makeAvatar([AV.s, 0, 0, 0, 17, 0, 0, 0, 0, 0, 23 + c, 15 + c], '', true); scene.remove(a.shadow); for (let k = 0; k < 25; k++) animateAvatar(a, 0.1, false, false); return a.g; },
       { w: big ? 300 : 180, h: big ? 360 : 200, dir: [0.55, 0.12, -1], zoom: 0.9, sphere: c === LAE ? [[0, 4.4, 0], 5.9] : c === EXE ? [[0, 4.6, 0], 5.6] : [[0, 3.6, 0], 4.7] });
@@ -1497,6 +1544,7 @@
     },
     sendHit(T, dmg, fx, F) { this.hitN++; this.dq = this.dq.concat([[this.hitN, T.peer, dmg, fx || {}, this.M.mid, T.kind === 'rboss' ? 'b' : 0]]).slice(-16); send({ dq: this.dq }); },
     pubAct(F, A, kind) { this.acN++; this.ac = [this.acN, A ? A.i : -1, F.mode, kind === 'dodge' ? 1 : 0, A && A.tx != null ? Math.round(A.tx) : 0, A && A.tz != null ? Math.round(A.tz) : 0]; this.pubDu(true); },
+    fStatsAll() { return fStatsAll(); },
     pubDu(force) {
       const M = this.M; if (!M || !(M.pvp || M.coop)) return; const F = M.me, B = M.foe;
       const du = { m: M.mid, c: F.c, hp: Math.max(0, Math.round(F.hp)), mhp: F.mhp, st: Math.round(F.st), l: M.l, d: M.d, dead: F.dead ? 1 : 0, ac: this.ac, mo: F.mode,
@@ -1632,19 +1680,34 @@
           : `<div><i>${ab.ic}</i><span><b>${KEYN[i]} · ${esc(ab.n)}</b> — ${ab.d ? esc(ab.d) : `<em>${ab.dmg}</em> damage${ab.k === 'proj' ? ' (ranged)' : ''}`} · cooldown <em>${ab.cd} s</em></span></div>`).join('');
         const pas = (C.pas || []).map(([ic, n, d]) => `<div><i>${ic}</i><span><b>Passive · ${esc(n)}</b> — ${esc(d)}</span></div>`).join('');
         det = `<div class="du-det" style="--rc:${RAR[C.r].c}"><img src="${fighterPic(sel, 1)}" alt=""><div><div class="sub">${EMP[C.e].e} ${esc(EMP[C.e].n)} · ${RAR[C.r].t} · ${esc(C.ro)}</div><h3>${C.ic} ${esc(C.n)} <button class="du-x" data-x="close" aria-label="Close">✕</button></h3>
-          <div class="du-stats"><span>❤️ ${C.hp} HP</span>${C.def !== 1 ? `<span>🛡️ ${C.def < 1 ? '−' : '+'}${Math.round(Math.abs(1 - C.def) * 100)}% damage taken</span>` : ''}${C.spd !== 1 ? `<span>${C.spd > 1 ? '🏃 +' : '🐢 −'}${Math.round(Math.abs(C.spd - 1) * 100)}% speed</span>` : ''}<span>💨 Q dodge · 🛡️ F block (all of it)</span></div>
+          ${this.statBars(sel)}
           <div class="du-abl">${pas}${abl}</div>
           <div style="margin-top:10px;font:700 12.5px var(--fb);color:#e2e8f0">🌟 Mastery ${lv}/10 ${lv >= 10 ? '— <b style="color:#fde68a">MASTERED</b>: its body and animation pack are in your avatar editor' : `· ${xp}/${nx} XP — master it (10) to wear its body and animations anywhere`}</div><div class="du-mx" style="margin:4px 0 12px"><i style="width:${lv >= 10 ? 100 : (xp - MAST[lv]) / (nx - MAST[lv]) * 100}%"></i></div>
           ${own ? (S.eq === sel ? '<button class="du-btn alt" disabled>✔ Equipped</button>' : `<button class="du-btn" data-eq="${sel}">⚔️ Equip</button>`) : `<div style="font:600 12.5px/1.45 var(--fb);color:#cbd5e1">${this.fighterHow(sel)}</div>`}</div></div>`; }
       const card = (c) => { const Q = CH[c], o = S.own.includes(c), l = mLvl(S.xp[c] | 0);
         return `<div class="du-fcard r${Q.r}${o ? '' : ' lock'}${c === S.eq ? ' eqd' : ''}${c === sel ? ' sel' : ''}"><button class="st" data-st="${c}">stats</button>${o ? `<span class="mb">🌟 ${l}</span>` : '<span class="mb">🔒</span>'}<button class="pic" data-st="${c}" aria-label="${esc(Q.n)} stats"><img src="${fighterPic(c)}" alt=""></button>
-          <b>${Q.ic} ${esc(Q.n)}</b><small>${RAR[Q.r].s}</small>${o ? (c === S.eq ? '<button class="eq on" disabled>✔ equipped</button>' : `<button class="eq" data-eq="${c}">equip</button>`) : `<button class="eq lk" data-st="${c}">🔒 locked</button>`}</div>`; };
+          <b>${Q.ic} ${esc(Q.n)}</b><small>${RAR[Q.r].s}</small><span class="dp">⚡ ${Math.round(fStatsAll().L[c].dps)} DPS · ⭐ ${fStatsAll().L[c].ov.toFixed(1)}</span>${o ? (c === S.eq ? '<button class="eq on" disabled>✔ equipped</button>' : `<button class="eq" data-eq="${c}">equip</button>`) : `<button class="eq lk" data-st="${c}">🔒 locked</button>`}</div>`; };
       const head = `<div></div>${COLS.map((e) => `<div class="du-gh">${EMP[e].e} ${esc(EMP[e].sn || EMP[e].n)}</div>`).join('')}`;
       const rows = RAR.map((R, r) => `<div class="du-gr" style="--rc:${R.c}"><b>${R.s}</b><small>${R.n}</small></div>${COLS.map((e) => `<div class="du-gc">${CH.filter((C) => C.e === e && C.r === r).map((C) => card(C.i)).join('')}</div>`).join('')}`).join('');
       openPanel('⚔️ Fighters', `${det}<div class="du-gwrap"><div class="du-g6">${head}${rows}</div></div>`, (b) => {
         if (b.dataset.eq) { S.eq = +b.dataset.eq; this.dirty(); sfx('select'); this.drawBar(); this.fightersPanel(); }
         else if (b.dataset.st) { sfx('click'); this.fightersPanel(+b.dataset.st); $('#xpBody').scrollTop = 0; } else if (b.dataset.x === 'close') { sfx('click'); this.fightersPanel(); } }, null, { full: true, extra: `<span class="xchip">⚔️ ${S.own.length}/${CH.length}</span>` });
-      if (sel != null) $('#xpBody').scrollTop = 0;
+      if (sel != null) { $('#xpBody').scrollTop = 0; this.statAnim(); }
+    },
+    // the stats area: a DPS counter (counting up as it opens) and a bar for each stat — filled by where it sits among all
+    // the fighters — with an overall rating out of 10
+    statBars(c) {
+      const F = fStatsAll(), x = F.L[c], C = CH[c], pct = (v) => `${v > 0 ? '+' : '−'}${Math.round(Math.abs(v) * 100)}%`;
+      const rows = [['❤️', 'Health', 'hp', x.hp, `${x.hp.toLocaleString()} HP`], ['⚔️', 'Attack', 'atk', x.atk, `${x.atk} a blow`], ['⏱️', 'Attack speed', 'aspd', x.aspd, `${x.aspd.toFixed(2)} hits/s`],
+        ['🏃', 'Speed', 'spd', x.spd, x.spd === 1 ? 'normal' : `${pct(x.spd - 1)} speed`], ['🛡️', 'Defense', 'def', x.def, `${C.def === 1 ? 'normal armour' : `${pct(C.def - 1)} dmg taken`}${x.guard ? ' · +guard' : ''}`]]; // (+guard: blocks or damage cut from its abilities, in the bar too)
+      const bar = (ic, n, w, val, cls = '') => `<div class="r${cls}"><span class="l">${ic} ${n}</span><div class="b"><i data-w="${w.toFixed(1)}"></i></div><span class="v">${val}</span></div>`;
+      return `<div class="du-sb"><div class="du-dps"><small>⚡ DPS</small><b data-dps="${Math.round(x.dps)}">0</b><span>damage a second over 30 s against a foe in front of it, every ability used as it’s ready (M1: ${esc(x.m1)}), buffs, bleeds, burns and passives counted</span></div>
+        <div class="du-bars">${rows.map(([ic, n, k, v, val]) => bar(ic, n, F.bar(k, v), val)).join('')}${bar('⚡', 'DPS', F.bar('dps', x.dps), `${Math.round(x.dps)}`)}${bar('⭐', 'Overall', x.ov * 10, `<b>${x.ov.toFixed(1)}</b> / 10`, ' ov')}</div></div>`;
+    },
+    statAnim() { // (the bars fill and the DPS counts up)
+      const box = $('#xpBody'); if (!box) return; const b = box.querySelector('.du-dps b'), is = box.querySelectorAll('.du-bars i[data-w]');
+      requestAnimationFrame(() => requestAnimationFrame(() => { for (const i of is) i.style.width = i.dataset.w + '%'; }));
+      if (b) { const to = +b.dataset.dps, t0 = performance.now(), step = (n) => { const k = Math.min(1, (n - t0) / 900); b.textContent = Math.round(to * (1 - Math.pow(1 - k, 3))).toLocaleString(); if (k < 1 && b.isConnected) requestAnimationFrame(step); }; requestAnimationFrame(step); }
     },
     cratesPanel(only) {
       const S = this.save, luck = ((S.rolls | 0) + 1) % LUCK_N === 0, sure = (S.pity | 0) + 1 >= PITY_N, od = sure ? [0, 0, 0, 0, 100] : luck ? LUCK_ODDS : ODDS, toL = LUCK_N - ((S.rolls | 0) % LUCK_N), toP = PITY_N - (S.pity | 0);
