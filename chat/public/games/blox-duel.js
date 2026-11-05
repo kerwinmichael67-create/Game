@@ -317,21 +317,41 @@
       { n: 'Flash Step', ic: '💨', k: 'dash', dmg: 150, dist: 16, dd: 0.18, cd: 8, wind: 0.12, an: 'iai', fx: { bl: [60, 3] }, d: 'Gone in a flash, through them and out the other side: 150 damage, and they bleed 60 more over 3 s.' },
       { n: 'Thousand Cuts', ic: '🌸', k: 'multi', hits: [28, 28, 28, 28, 28, 28, 28, 70], gap: 0.1, cd: 15, rng: 8, arc: 140, wind: 0.2, an: 'storm', fx: { bl: [80, 4] }, d: 'A storm of eight cuts with both blades — seven of 28, then one of 70 that leaves them bleeding 80 more.' },
       { n: 'Mushin', ic: '🧘', k: 'buff', cd: 32, an: 'mushin', b: { dur: 6, dmgM: 1.35, spdM: 1.25, cdM: 1.6, imm: 1 }, d: 'No-mind: for 6 s, +35% damage, +25% speed, cooldowns run 60% faster, and nothing stuns, roots or slows him.' }] },
+    // 🦅 Rome's myth: the Imperator, the general who is emperor, with a gilded gladius and the legion's eagle — not in any crate (his Triumph is in the achievements)
+    { e: 0, r: 4, hp: 560, spd: 1.05, def: 0.85, nc: 1, stunP: [0.15, 0.6], lsP: 0.15, ro: 'Commander', how: 'Accept the Imperator’s Triumph (🏆 Achievements), then win 15 Classic duels and defeat 40 fighters', pas: [['🦅', 'Imperium', '15% of his hits stagger them: a 0.6 s stun.'], ['🌿', 'Triumph', 'Heals 15% of the damage he deals.']], ab: [
+      { n: 'Imperial Gladius', ic: '🗡️', k: 'melee', dmg: 78, cd: 1.05, rng: 7, arc: 90, wind: 0.16, an: 'thrust' },
+      { n: 'Pila of the Legion', ic: '🎯', k: 'volley', dmg: 34, cnt: 8, rad: 7, delay: 0.8, cd: 11, wind: 0.3, an: 'sky', model: 'pilum', fx: { sl: [0.7, 1.5] }, d: 'He signals, and the legion behind him throws: eight pila fall where they stand, 34 each, and each one slows them.' },
+      { n: 'Aquila', ic: '🦅', k: 'buff', cd: 28, an: 'aquila', b: { dur: 7, dmgM: 1.35, def: 0.7, hps: 18 }, d: 'Raise the eagle: for 7 s, +35% damage, 30% less damage taken, and heal 18 a second.' },
+      { n: 'Triumph', ic: '👑', k: 'leap', dmg: 210, dist: 20, rad: 8, cd: 30, wind: 0.2, an: 'leap', fx: { st: 1.2 }, d: 'A triumphant leap with the eagle held high, and down on them: 210 damage all round and a 1.2 s stun.' }] },
+    // 🏰 Europe's myth: the Frost Jötunn, a giant of the frozen north — not in any crate (its Frost Saga is in the achievements)
+    { e: 2, r: 4, hp: 1650, spd: 0.55, def: 0.6, big: 1.4, nc: 1, frost: [0.7, 1.5], ro: 'Giant', how: 'Accept the Frost Saga (🏆 Achievements), then beat the 👹 boss 3 times and deal 25,000 damage', pas: [['🧊', 'Frost Giant', '45% slower than everyone else, and takes 40% less damage.'], ['❄️', 'Rime', 'Every hit chills them: 30% slower for 1.5 s.']], ab: [
+      { n: 'Rime Club', ic: '🏏', k: 'melee', dmg: 205, cd: 2.0, rng: 10, arc: 110, wind: 0.5, an: 'overhead' },
+      { n: 'Ice Boulder', ic: '🧊', k: 'proj', dmg: 150, cd: 9, spd: 42, wind: 0.6, an: 'lob', model: 'ice', fx: { sl: [0.5, 3] }, d: 'Wrench a boulder of ice from the ground and hurl it: 150 damage, and they’re 50% slower for 3 s.' },
+      { n: 'Frost Stomp', ic: '🦶', k: 'stomp', dmg: 45, crush: 140, near: 7, rad: 28, cd: 5, wind: 0.5, an: 'stomp', wspd: 20, d: 'A shockwave of frost rolls out: jump it or take 45. Up close it’s a Crush — 140, a 1 s stun and Crushed for the rest of the round.' },
+      { n: 'Fimbulwinter', ic: '🌨️', k: 'volley', dmg: 34, cnt: 12, rad: 8, delay: 0.9, cd: 30, wind: 0.45, an: 'roar', model: 'hail', fx: { sl: [0.6, 2] }, d: 'The great winter: twelve shards of hail crash down where they stand, 34 each, and each one chills them.' }] },
   ];
   CH.forEach((C, i) => { C.i = i; C.n = DUEL_N[i]; C.ic = DUEL_IC[i]; C.spd = C.spd || 1; C.def = C.def || 1; });
   // what each one is for, at a glance
   const ROLE = ['Tank', 'Skirmisher', 'Controller', 'Tank', 'Damage dealer', 'Tank', 'Skirmisher', 'Ranged', 'Bruiser', 'Bruiser', 'Bruiser', 'Ranged', 'Bruiser', 'Bruiser', 'Tank', 'Skirmisher', 'Duelist', 'Assassin', 'Bruiser', 'Damage dealer'];
   CH.forEach((C, i) => { C.ro = C.ro || ROLE[i] || 'Fighter'; });
   const CRATE = EMP.map((_, e) => CH.filter((C) => C.e === e && !C.nc).map((C) => C.i)); // (each crate's five, common to legendary)
-  const LAE = 20, EXE = 21, KEN = 32; // (the mythics — the Laestrygonian, the Executioner, the Kensei: no crate has them)
+  const LAE = 20, EXE = 21, KEN = 32, IMP = 33, JOT = 34; // (the mythics — the Laestrygonian, the Executioner, the Kensei: no crate has them)
   const KEN_W = 20, KEN_D = 20000; // (the Sword Saint's Trial: wins, damage)
+  // the mythics' quests: each accepted in the achievements, then two counts to reach (k kills, d damage, w wins, c Classic
+  // wins, b boss wins)
+  const QUESTS = [
+    { key: 'q', c: EXE, ic: '💀', n: 'The Executioner’s Contract', need: [['k', 50, '⚔️', 'defeated'], ['d', 15000, '💥', 'damage']], how: 'defeat 50 fighters (bots or players) and deal 15,000 damage', tail: 'the giant’s counter', done: 'the Executioner’s Contract is fulfilled', col: ['239,68,68', '127,29,29', '#fecaca', '#ef4444,#fca5a5'] },
+    { key: 'q2', c: KEN, ic: '👺', n: 'The Sword Saint’s Trial', need: [['w', KEN_W, '🏆', 'wins'], ['d', KEN_D, '💥', 'damage']], how: `win ${KEN_W} duels (any mode, bots or players) and deal ${KEN_D.toLocaleString()} damage`, tail: 'the sword saint: two blades, critical hits and a killing stroke', done: 'the Sword Saint’s Trial is complete', col: ['244,63,94', '136,19,55', '#fecdd3', '#e11d48,#fda4af'] },
+    { key: 'q3', c: IMP, ic: '🌿', n: 'The Imperator’s Triumph', need: [['c', 15, '🏛️', 'Classic wins'], ['k', 40, '⚔️', 'defeated']], how: 'win 15 Classic duels and defeat 40 fighters', tail: 'Rome’s general-emperor: the legion’s pila, the eagle and a triumphant leap', done: 'Rome grants you a Triumph', col: ['250,204,21', '113,63,18', '#fef08a', '#ca8a04,#fde68a'] },
+    { key: 'q4', c: JOT, ic: '🧊', n: 'The Frost Saga', need: [['b', 3, '👹', 'boss wins'], ['d', 25000, '💥', 'damage']], how: 'beat the 👹 Laestrygonian boss 3 times and deal 25,000 damage', tail: 'a giant of the frozen north: ice, frost and a great club', done: 'the Frost Saga is sung', col: ['125,211,252', '12,74,110', '#bae6fd', '#0284c7,#bae6fd'] },
+  ];
   // the boss: a Laestrygonian bigger still, in silver, bronze and gold — 4,000 health, a scimitar blow every 6 s for 250 (a
   // long 1.4 s warning, 120° in front of it), a stomp every 8 s for 30, 75% slower, 40% less damage, 8% Crush
   const BOSS_C = Object.assign({}, CH[LAE], { hp: 4000, def: 0.6, spd: 0.25, big: 2.4, boss: 1, brute: 0.08, swing: 6, stomp: 8, ab: [
     { n: 'Great Scimitar', ic: '🗡️', k: 'melee', dmg: 250, cd: 6, rng: 10, arc: 120, wind: 1.4, an: 'bcleave' },
     { n: 'Earthshaker', ic: '🦶', k: 'stomp', dmg: 30, rad: 36, cd: 8, wind: 0.8, an: 'bplant', wspd: 17 }] }); // (bcleave, bplant: its own two-handed blows — the pack holds the sword for them)
     // the fighters' looks for their trails and glows
-  const COL = ['#ef4444', '#f59e0b', '#2dd4bf', '#a855f7', '#f97316', '#60a5fa', '#fbbf24', '#fb923c', '#a3a3a3', '#dc2626', '#facc15', '#84cc16', '#38bdf8', '#fef3c7', '#e2e8f0', '#93c5fd', '#fda4af', '#a78bfa', '#fb923c', '#fde047', '#fbbf24', '#991b1b', '#f87171', '#fbbf24', '#f97316', '#2dd4bf', '#dc2626', '#a16207', '#7dd3fc', '#38bdf8', '#cbd5e1', '#facc15', '#f43f5e'];
+  const COL = ['#ef4444', '#f59e0b', '#2dd4bf', '#a855f7', '#f97316', '#60a5fa', '#fbbf24', '#fb923c', '#a3a3a3', '#dc2626', '#facc15', '#84cc16', '#38bdf8', '#fef3c7', '#e2e8f0', '#93c5fd', '#fda4af', '#a78bfa', '#fb923c', '#fde047', '#fbbf24', '#991b1b', '#f87171', '#fbbf24', '#f97316', '#2dd4bf', '#dc2626', '#a16207', '#7dd3fc', '#38bdf8', '#cbd5e1', '#facc15', '#f43f5e', '#fbbf24', '#7dd3fc'];
   // the duel's own achievements: each wins a fighter (the 1% ones only come from crates)
   const ACH = [
     { id: 'blood', ic: '🩸', n: 'First Blood', d: 'Defeat a fighter', k: 'kills', n0: 1, c: 1 },
@@ -774,7 +794,7 @@
   }
   function dropTrail(a) { if (a && a.duTrail) { scene.remove(a.duTrail.m); a.duTrail.m.geometry.dispose(); a.duTrail.m.material.dispose(); a.duTrail = null; } }
   // a buff's look on the fighter: a coloured glow round them, and for some a shield of light
-  const BUFFLOOK = { mushin: ['#f43f5e'], testudo: ['#fde68a', 1], aspis: ['#93c5fd', 1], shieldup: ['#93c5fd', 1], berserk: ['#ef4444'], hype: ['#fbbf24'], wrath: ['#38bdf8'], molon: ['#f59e0b', 1], rally: ['#4ade80'], roar: ['#dc2626'], pray: ['#fef3c7'], fortress: ['#cbd5e1', 1], resolve: ['#fda4af'], smoke: ['#6b7280'], benkei: ['#facc15'], bloodrush: ['#dc2626'], sharpen: ['#f97316'], parry: ['#e5e7eb', 1], drum: ['#7dd3fc'], haste: ['#fca5a5'] };
+  const BUFFLOOK = { aquila: ['#fbbf24'], mushin: ['#f43f5e'], testudo: ['#fde68a', 1], aspis: ['#93c5fd', 1], shieldup: ['#93c5fd', 1], berserk: ['#ef4444'], hype: ['#fbbf24'], wrath: ['#38bdf8'], molon: ['#f59e0b', 1], rally: ['#4ade80'], roar: ['#dc2626'], pray: ['#fef3c7'], fortress: ['#cbd5e1', 1], resolve: ['#fda4af'], smoke: ['#6b7280'], benkei: ['#facc15'], bloodrush: ['#dc2626'], sharpen: ['#f97316'], parry: ['#e5e7eb', 1], drum: ['#7dd3fc'], haste: ['#fca5a5'] };
   function buffLook(F) {
     const a = F.a; if (!a || a.dead) return; const B = F.S.buffs.filter((b) => b.an && BUFFLOOK[b.an]), on = B.length > 0 && !bval(F, 'inv');
     let L = a.duAura; if (!L && on) { L = a.duAura = { gl: kitGlow(a.g, '#ffffff', 6, 0.3), sh: new THREE.Mesh(kg('duBubble', () => new THREE.SphereGeometry(4.2, 28, 18)), new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.16, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide })) }; L.gl.position.y = 3.2; L.sh.position.y = 3.3; a.g.add(L.sh); }
@@ -849,6 +869,7 @@
     testudo: { aL: [1.6, 0, 0.5], eL: [1.5], aR: [0.8, 0, 0.3], eR: [1.3], up: -0.45, kL: [-1.0], kR: [-1.0], bd: [-0.3, 0, 0] },
     aspis: { aL: [1.5, 0, 0.45], eL: [1.3], aR: [2.2, 0, 0.3], eR: [0.9], wr: [-1.6], up: -0.25, kL: [-0.6], kR: [-0.6], bd: [-0.2, 0.2, 0] },
     shieldup: { aL: [1.5, 0, 0.45], eL: [1.3], aR: [1.0, 0, 0.4], eR: [1.0], up: -0.2, kL: [-0.5], kR: [-0.5], bd: [-0.15, 0.25, 0] },
+    aquila: { aL: [2.9, 0, -0.15], eL: [0.05], aR: [0.7, 0, 0.3], eR: [0.9], hd: [0.35], bd: [0.12, 0, 0] }, // (the eagle raised high)
     mushin: { aR: [1.25, 0, -0.55], eR: [0.95], aL: [1.25, 0, 0.55], eL: [0.95], hd: [-0.3], bd: [0.05, 0, 0], up: -0.25, kL: [-0.6], kR: [-0.6] }, // (the blades crossed before him, eyes down: no-mind)
     berserk: { aR: [2.6, 0, 0.9], eR: [0.3], aL: [2.5, 0, -0.9], eL: [0.3], hd: [0.6], bd: [0.3, 0, 0] },
     roar: { aR: [0.5, 0, 1.2], eR: [0.6], aL: [0.5, 0, -1.2], eL: [0.6], hd: [0.7], bd: [0.35, 0, 0], up: -0.2 },
@@ -939,6 +960,7 @@
     sfx3(ab.k === 'buff' ? 'magic' : ab.k === 'proj' || ab.k === 'volley' ? 'whoosh' : 'swing', F.x, F.z, 60, { vol: 0.6 });
     if (ab.k === 'buff' && ab.b) { burstAt(F.x, F.y + 3.5, F.z, BUFFLOOK[ab.an] ? BUFFLOOK[ab.an][0] : COL[F.c], 7, 0.5); ringAt(F.x, F.z, BUFFLOOK[ab.an] ? BUFFLOOK[ab.an][0] : COL[F.c], 8); if (ab.an === 'smoke') smokeAt(F.x, F.y + 1, F.z, 16, '#6b7280', 3); if (ab.an === 'pray') beamAt(F.x, F.z, '#fef3c7', 40, 1.2, 2.2); }
     if (ab.an === 'smite') beamAt(F.x, F.z, '#fde68a', 14, 0.6, 0.8);
+    if (ab.an === 'aquila') { beamAt(F.x, F.z, '#fde68a', 34, 1.1, 2.2); ringAt(F.x, F.z, '#fbbf24', 12, 0.6); }
     if (ab.an === 'gun') sfx3('count', F.x, F.z, 60, { vol: 0.5 });
     if (ab.k === 'combo') { DU.say(F, '🌸 COMBO'); }
     return true;
@@ -1074,10 +1096,12 @@
     if (F.C.exe && T.mhp && T.hp > 0 && T.hp / T.mhp < F.C.exe[0]) dmg *= F.C.exe[1]; // (and Ichigeki)
     dmg = Math.round(dmg); const f2 = Object.assign({}, fx || {}); if (f2.bl && f2.blc != null && Math.random() > f2.blc) delete f2.bl; delete f2.blc;
     if (F.C.brute && !f2.cr && Math.random() < F.C.brute) f2.cr = 1; // (Brute Force)
+    if (F.C.stunP && Math.random() < F.C.stunP[0]) f2.st = Math.max(f2.st || 0, F.C.stunP[1]); // (the Imperator: Imperium)
+    if (F.C.frost && !f2.sl) f2.sl = F.C.frost.slice(); // (the Jötunn: Rime)
     if (T.kind === 'rem' || T.kind === 'rboss') { DU.sendHit(T, dmg, f2, F); hitLook(T, dmg, false, ab); floatText(T, String(dmg), dmg >= 100 ? 'big' : ''); if (f2.cr && !T.S.crush) floatText(T, '💢 CRUSHED', 'tag'); }
     else takeHit(T, dmg, f2, F, { ab });
     if (crit) { floatText(T, `✴️ CRIT ${dmg}`, 'big'); sparks(T, '#f43f5e', 10, 3.4, { s: 0.28 }); burstAt(T.x, T.y + 3.4, T.z, '#fb7185', 4.5, 0.3); }
-    const ls = bval(F, 'ls'); if (ls) heal(F, dmg * ls);
+    const ls = bval(F, 'ls') + (F.C.lsP || 0); if (ls) heal(F, dmg * ls);
     if (F.C.wish) { F.wishN = (F.wishN || 0) + 1; heal(F, F.mhp * 0.1); if (F.kind === 'me') floatText(F, `🪓 WISH +${F.wishN * 10}%`, 'tag'); } // (the Executioner's Wish)
     if (F.kind === 'me') { DU.bump('dmg', dmg); DU.M.dealt += dmg; DU.qBump('d', dmg); }
   }
@@ -1152,6 +1176,8 @@
     else if (kind === 'axe') { const s = new THREE.Group(); g.add(s); dgAxe(s).position.z = 1.2; g.userData.spin = s; }
     else if (kind === 'shuriken') { const s = new THREE.Mesh(ovShape('duShur', [[0, 0.5], [0.12, 0.12], [0.5, 0], [0.12, -0.12], [0, -0.5], [-0.12, -0.12], [-0.5, 0], [-0.12, 0.12]], 0.04, 0.01), metalMat('#cbd5e1', { shininess: 140 })); s.rotation.x = Math.PI / 2; s.scale.setScalar(1.3); const w = new THREE.Group(); w.add(s); g.add(w); g.userData.spin = w; g.userData.spinAx = 'y'; }
     else if (kind === 'net') { const n = new THREE.Mesh(kg('duNetP', () => new THREE.PlaneGeometry(3.2, 3.2, 4, 4)), new THREE.MeshLambertMaterial({ map: dgNetTex(), transparent: true, alphaTest: 0.3, side: THREE.DoubleSide })); const w = new THREE.Group(); w.add(n); g.add(w); g.userData.spin = w; g.userData.spinAx = 'z'; }
+    else if (kind === 'ice' || kind === 'hail') { const s2 = new THREE.Group(); g.add(s2); const m = new THREE.Mesh(kg('duIceB', () => new THREE.IcosahedronGeometry(1, 0)), new THREE.MeshPhongMaterial({ color: '#cfeeff', emissive: '#3b82f6', emissiveIntensity: 0.35, shininess: 150, specular: '#ffffff', transparent: true, opacity: 0.92, flatShading: true }));
+      m.scale.setScalar(kind === 'ice' ? 1.25 : 0.45); s2.add(m); kitGlow(g, '#93c5fd', kind === 'ice' ? 3.6 : 1.4, 0.5); g.userData.spin = s2; } // (a boulder of ice, spinning; or a shard of hail)
     else if (kind === 'bomb') { const w = new THREE.Group(); g.add(w); dgBomb(w); g.userData.spin = w; g.userData.spinAx = 'x'; const f = emSprite(g, fxTex('flame'), 0.8, { blending: THREE.AdditiveBlending }); f.position.set(0, 0.5, 0); }
     else { const b = new THREE.Mesh(kSph(), new THREE.MeshBasicMaterial({ color: '#fde68a' })); b.scale.setScalar(0.18); g.add(b); const tr = new THREE.Mesh(kCyl(), new THREE.MeshBasicMaterial({ color: '#fef3c7', transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending })); tr.scale.set(0.06, 5, 0.06); tr.rotation.x = Math.PI / 2; tr.position.z = 2.5; g.add(tr); }
     return g;
@@ -1179,11 +1205,11 @@
     }
     DU.proj = DU.proj.filter((p) => { if (p.life > 0) return true; scene.remove(p.m); return false; });
     for (const v of DU.volleys) { v.t += dt; v.ring.material.opacity = 0.5 + 0.4 * Math.sin(v.t * 20); v.ring.scale.setScalar(v.ab.rad * (1 - 0.15 * Math.min(1, v.t / v.ab.delay)));
-      while (v.n < v.ab.cnt && v.t >= v.ab.delay + v.n * 0.08) { const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * v.ab.rad, x = v.x + Math.cos(a) * r, z = v.z + Math.sin(a) * r, m = projModel('arrow'); m.position.set(x + 3, 26, z + 3); scene.add(m);
+      while (v.n < v.ab.cnt && v.t >= v.ab.delay + v.n * 0.08) { const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * v.ab.rad, x = v.x + Math.cos(a) * r, z = v.z + Math.sin(a) * r, m = projModel(v.ab.model || 'arrow'); m.position.set(x + 3, 26, z + 3); scene.add(m);
         DU.drops.push({ m, x, z, y: 26, F: v.F, ab: v.ab, vis: v.vis, done: false }); v.n++; } }
     DU.volleys = DU.volleys.filter((v) => { if (v.n < v.ab.cnt) return true; scene.remove(v.ring); return false; });
     for (const d of DU.drops) { d.y -= 70 * dt; d.m.position.set(d.x + 3 * d.y / 26, d.y, d.z + 3 * d.y / 26); d.m.lookAt(d.x, -10, d.z); d.m.rotateY(Math.PI);
-      if (d.y <= 0.5 && !d.done) { d.done = true; smokeAt(d.x, 0.4, d.z, 2, '#c8a97e', 1); const T = foeOf(d.F); if (T && !T.dead && Math.hypot(T.x - d.x, T.z - d.z) < 2.3 + bigR(T)) { if (!d.vis) dealHitAs(d.F, T, d.ab.dmg, null, d.ab); } d.t = 1.5; } if (d.done) d.t -= dt; }
+      if (d.y <= 0.5 && !d.done) { d.done = true; smokeAt(d.x, 0.4, d.z, 2, d.ab.model === 'hail' ? '#e0f2fe' : '#c8a97e', 1); if (d.ab.model === 'hail') burstAt(d.x, 0.6, d.z, '#bfdbfe', 2.4, 0.25); const T = foeOf(d.F); if (T && !T.dead && Math.hypot(T.x - d.x, T.z - d.z) < 2.3 + bigR(T)) { if (!d.vis) dealHitAs(d.F, T, d.ab.dmg, d.ab.model ? d.ab.fx || null : null, d.ab); } d.t = 1.5; } if (d.done) d.t -= dt; } // (the newer volleys — pila, hail — carry their effect)
     DU.drops = DU.drops.filter((d) => { if (!d.done || d.t > 0) return true; scene.remove(d.m); return false; });
   }
 
@@ -1313,7 +1339,8 @@
     for (const ab of C.ab.flatMap((q) => (q.modes ? q.modes.map((m) => Object.assign({}, q, m)) : [q]))) { const per = T / Math.max(0.3, ab.cd, actDur(ab)) / (ab.modes || C.ab[0] === ab ? 1 : 1), b = ab.b, fx = ab.fx || {};
       if (ab.k === 'buff' && b) { const up = Math.min(1, (b.dur || 0) / ab.cd); if (b.def) red *= 1 - (1 - b.def) * up; if (b.blk) red *= 1 - 0.85 * up; heal += ((b.heal || 0) + (b.healP || 0) * C.hp + (b.hps || 0) * (b.dur || 0) + (b.ls || 0) * best.dps * (b.dur || 0)) * per; }
       ctrl += ((fx.st || 0) + (fx.rt || 0) * 0.6 + (fx.sl ? fx.sl[1] * (1 - fx.sl[0]) : 0) + (fx.kb ? 0.4 : 0)) * per * (C.ab[0].modes && C.ab[0].modes.includes && false ? 0.5 : 1); }
-    if (C.wish) heal += 0.1 * C.hp * best.hits; const cf = Math.min(0.5, ctrl / T), def = 1 / (C.def * red);
+    if (C.wish) heal += 0.1 * C.hp * best.hits; if (C.lsP) heal += C.lsP * best.dps * T; if (C.stunP) ctrl += best.hits * C.stunP[0] * C.stunP[1]; if (C.frost) ctrl += Math.min(T, best.hits * C.frost[1]) * (1 - C.frost[0]);
+    const cf = Math.min(0.5, ctrl / T), def = 1 / (C.def * red);
     return Object.assign(best, { hp: C.hp, spd: C.spd, def, armor: 1 / C.def, guard: red < 1, ctrl: cf, ehp: (C.hp + heal) * def / (1 - cf) });
   }
   let FST = null;
@@ -1330,7 +1357,7 @@
       { w: big ? 300 : 180, h: big ? 360 : 200, dir: [0.55, 0.12, -1], zoom: 0.9, sphere: c === LAE ? [[0, 4.4, 0], 5.9] : c === EXE ? [[0, 4.6, 0], 5.6] : [[0, 3.6, 0], 4.7] });
   }
   const rollFoe = (Di) => { const w = [[62, 30, 8, 0], [40, 35, 22, 3], [18, 30, 37, 15], [5, 18, 37, 40]][Di]; let r = Math.random() * 100, k = 0; while (k < 3 && r >= w[k]) { r -= w[k]; k++; } const pool = CH.filter((C) => C.r === k); return pool[Math.floor(Math.random() * pool.length)].i; };
-  const DEF_SAVE = () => ({ own: [0], eq: 0, xp: {}, st: {}, ach: [], diff: 1, md: 'c', lk: 0, gold: 0, q: null, qd: 0, q2: null, rolls: 0, pity: 0 }); // (lk: lock-on, off unless you turn it on; gold: the duel's own; q: the Executioner's Contract)
+  const DEF_SAVE = () => ({ own: [0], eq: 0, xp: {}, st: {}, ach: [], diff: 1, md: 'c', lk: 0, gold: 0, q: null, qd: 0, q2: null, q3: null, q4: null, rolls: 0, pity: 0 }); // (lk: lock-on, off unless you turn it on; gold: the duel's own; q: the Executioner's Contract)
 
   const DU = {
     id: 'duel', code: 'du', genre: 'PvP', rank: 0.001, name: 'Colosseum Duels', emoji: '⚔️', max: 12, stat: 'Wins', killY: -40, banner: true, camDist: 15, noReset: true, noSprint: true, respawnDelay: 2200, r6: false, // (r6: rigid limbs for everyone in here — off: the fighters are R15 again, knees and elbows bending)
@@ -1346,7 +1373,7 @@
       const s = await kvGet('duel'), S = this.save = Object.assign(DEF_SAVE(), s && typeof s === 'object' ? s : {});
       S.own = [...new Set((Array.isArray(S.own) ? S.own : []).map((x) => x | 0).filter((x) => x >= 0 && x < CH.length))]; if (!S.own.includes(0)) S.own.unshift(0);
       if (!S.own.includes(S.eq | 0)) S.eq = 0; S.eq |= 0; for (const k of ['xp', 'st']) if (!S[k] || typeof S[k] !== 'object') S[k] = {}; if (!Array.isArray(S.ach)) S.ach = []; S.diff = clamp(S.diff | 0, 0, 3); if (S.md !== 'd' && S.md !== 'b') S.md = 'c';
-      S.gold = Math.max(0, S.gold | 0); if (!S.q || typeof S.q !== 'object') S.q = null; if (!S.q2 || typeof S.q2 !== 'object') S.q2 = null; S.rolls = Math.max(0, S.rolls | 0); S.pity = clamp(S.pity | 0, 0, PITY_N - 1); // (rolls: crates opened; pity: since the last legendary)
+      S.gold = Math.max(0, S.gold | 0); for (const Q of QUESTS) if (!S[Q.key] || typeof S[Q.key] !== 'object') S[Q.key] = null; S.rolls = Math.max(0, S.rolls | 0); S.pity = clamp(S.pity | 0, 0, PITY_N - 1); // (rolls: crates opened; pity: since the last legendary)
       this.lockOn = S.lk === 1; send({ dw: S.st.wins | 0, du: null }); this.passCheck(); this.drawBar();
     },
     leave() {
@@ -1573,8 +1600,8 @@
       const boss = M.md === 'b', D = M.pvp || boss ? null : DIFF[M.D]; let coins = r > 0 ? (boss ? 120 : M.pvp ? 60 : D.coins) : r < 0 ? (M.pvp || boss ? 15 : 8) : 20; coins += M.roundsWon * 5 + (M.md === 'd' ? M.kills * 3 : 0);
       const xp = Math.round((M.dealt / 10 + M.kills * 25 + M.roundsWon * 40 + (r > 0 ? 120 : 30)) * (boss ? 1.6 : M.pvp ? 1.5 : [0.6, 1, 1.3, 1.6][M.D]));
       const gold = (boss ? (r > 0 ? 150 : 25) : r > 0 ? (M.pvp ? 60 : [20, 30, 45, 60][M.D]) : r < 0 ? 10 : 15) + M.kills * 3; S.gold = (S.gold | 0) + gold; // (the duel's own gold: crates)
-      if (r > 0) { this.bump('wins', 1); this.qBump('w', 1); if (M.md === 'c') this.bump('cwins', 1); if (!M.pvp && !boss) for (let k = 0; k <= M.D; k++) this.bump('b' + k, 1); quest('duel.win'); send({ dw: S.st.wins | 0 }); }
-      let prize = false; if (boss && r > 0) { this.bump('boss', 1); this.qBump('k', 1); prize = this.unlock(LAE, 'you beat the Laestrygonian'); }
+      if (r > 0) { this.bump('wins', 1); this.qBump('w', 1); if (M.md === 'c') { this.bump('cwins', 1); this.qBump('c', 1); } if (!M.pvp && !boss) for (let k = 0; k <= M.D; k++) this.bump('b' + k, 1); quest('duel.win'); send({ dw: S.st.wins | 0 }); }
+      let prize = false; if (boss && r > 0) { this.bump('boss', 1); this.qBump('k', 1); this.qBump('b', 1); prize = this.unlock(LAE, 'you beat the Laestrygonian'); }
       if (M.md === 'd') { this.bump('dmk', M.kills); if (r > 0 && M.kills >= 15) this.bump('dm15', 1); }
       earn(coins, `${r > 0 ? 'Victory' : r < 0 ? 'Defeat' : 'Draw'} in Colosseum Duels`); const mr = this.addXp(M.me.c, xp);
       sfx(r > 0 ? 'win' : 'lose'); CROWD.ex = 1; if (r > 0) petals(M.me.x, M.me.z, 110); this.result(r, coins, xp, mr, gold, prize); this.pubDu(true);
@@ -1644,9 +1671,9 @@
     /* ---------------- progress: stats, the duel's achievements, mastery ---------------- */
     unlock(c, why) { const S = this.save; if (S.own.includes(c)) return false; S.own.push(c); this.dirty(); sfx('unlock'); toast(`${CH[c].ic} ${CH[c].n} unlocked — ${why}!`, '#fde68a'); say(`⚔️ Colosseum Duels: the ${CH[c].n} is yours — ${why}!`, '#fde68a'); if (!this.M) this.drawBar(); return true; },
     passCheck() { try { if (this.save && spLvl() >= 100) this.unlock(LAE, 'you reached Season Pass level 100'); } catch (e) { /* (no pass yet) */ } },
-    qBump(k, n) { const S = this.save; if (!S) return; const q = S.q, q2 = S.q2; // (q: the Executioner's Contract — kills, damage; q2: the Sword Saint's Trial — wins, damage)
-      if (q && q.on && k !== 'w') { q[k] = (q[k] | 0) + n; if ((q.k | 0) >= 50 && (q.d | 0) >= 15000) { q.on = 0; S.qd = 1; this.unlock(EXE, 'the Executioner’s Contract is fulfilled'); } this.dirty(); }
-      if (q2 && q2.on && k !== 'k') { q2[k] = (q2[k] | 0) + n; if ((q2.w | 0) >= KEN_W && (q2.d | 0) >= KEN_D) { q2.on = 0; this.unlock(KEN, 'the Sword Saint’s Trial is complete'); } this.dirty(); } },
+    qBump(k, n) { const S = this.save; if (!S) return; // (the mythics' quests: each counts what it needs)
+      for (const Q of QUESTS) { const q = S[Q.key]; if (!q || !q.on || !Q.need.some(([x]) => x === k)) continue; q[k] = (q[k] | 0) + n;
+        if (Q.need.every(([x, v]) => (q[x] | 0) >= v)) { q.on = 0; if (Q.key === 'q') S.qd = 1; this.unlock(Q.c, Q.done); } this.dirty(); } },
     bump(k, n = 1) { const st = this.save.st; st[k] = (st[k] | 0) + n; this.checkAch(); this.dirty(); },
     checkAch() {
       const S = this.save;
@@ -1716,7 +1743,7 @@
       const html = `${pity}<div class="du-crates">${EMP.map((E, e) => `<div class="du-crate" style="--c1:${E.c1};--c2:${E.c2}${only === e ? ';box-shadow:0 0 0 3px #fde68a' : ''}"><h4>${E.e} ${esc(E.n)} Crate</h4><span style="font:600 12px/1.35 var(--fb);color:#cbd5e1">${esc(E.d)}</span>
         <div class="od">${CRATE[e].map((c, k) => `<span style="--rc:${RAR[CH[c].r].c}"><b>${CH[c].ic} ${esc(CH[c].n)}${S.own.includes(c) ? ' ✔' : ''}</b><i>${od[k]}% · ${RAR[CH[c].r].s}</i></span>`).join('')}</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="du-btn" data-open="${e}" data-cur="g" ${(S.gold | 0) < CRATE_GOLD ? 'disabled' : ''}>🥇 ${CRATE_GOLD} gold</button><button class="du-btn alt" data-open="${e}" data-cur="c" ${W.coins < CRATE_PRICE ? 'disabled' : ''}>🪙 ${CRATE_PRICE}</button></div></div>`).join('')}</div>
-        <p style="font:600 12.5px var(--fb);color:#94a3b8;margin:12px 0 0">Pay with the duel’s own 🥇 gold — every match earns some (more for wins, harder bots, other players and the boss) — or with Blox Coins. Already have the fighter you get? +250 mastery XP for it and 🥇 40 back. The mythics — the Laestrygonian, the Executioner and the Kensei — aren’t in any crate.</p>`;
+        <p style="font:600 12.5px var(--fb);color:#94a3b8;margin:12px 0 0">Pay with the duel’s own 🥇 gold — every match earns some (more for wins, harder bots, other players and the boss) — or with Blox Coins. Already have the fighter you get? +250 mastery XP for it and 🥇 40 back. The mythics — the Laestrygonian, the Executioner, the Kensei, the Imperator and the Frost Jötunn — aren’t in any crate.</p>`;
       openPanel('🎁 Crates', html, (b) => { if (b.dataset.open) this.openCrate(+b.dataset.open, b.dataset.cur); }, null, { full: true, extra: `<span class="xchip">🥇 ${S.gold | 0}</span><span class="xchip">🪙 ${W.coins}</span>` });
     },
     openCrate(e, cur) {
@@ -1754,18 +1781,14 @@
     },
     achPanel() {
       const S = this.save;
-      const q = S.q, xo = S.own.includes(EXE), qk = q ? Math.min(50, q.k | 0) : 0, qd = q ? Math.min(15000, q.d | 0) : 0;
-      const ct = `<div class="du-ach" style="margin-bottom:12px"><div class="${xo ? 'got' : ''}" style="border-color:rgba(239,68,68,.55);background:linear-gradient(90deg,rgba(127,29,29,.35),rgba(15,23,42,.2))"><i>💀</i><span style="flex:1"><b>The Executioner’s Contract</b><small>Accept it, then defeat 50 fighters (bots or players) and deal 15,000 damage → ${CH[EXE].ic} the Executioner <span style="color:${RAR[CH[EXE].r].c}">(${RAR[CH[EXE].r].t})</span>, the giant’s counter</small>
-        ${q && q.on ? `<small style="display:block;margin-top:4px;color:#fecaca">⚔️ ${qk}/50 defeated · 💥 ${qd.toLocaleString()}/15,000 damage</small><div class="du-mx" style="margin:4px 0 0"><i style="width:${(qk / 50 + qd / 15000) * 50}%"></i></div>` : ''}</span>
-        ${xo ? '<span class="pr">✔ Done</span>' : q && q.on ? '<span class="pr">📜 Active</span>' : '<button class="du-btn" data-q="1">📜 Accept</button>'}</div></div>`;
-      const q2 = S.q2, ko = S.own.includes(KEN), tw = q2 ? Math.min(KEN_W, q2.w | 0) : 0, td = q2 ? Math.min(KEN_D, q2.d | 0) : 0;
-      const tr = `<div class="du-ach" style="margin-bottom:12px"><div class="${ko ? 'got' : ''}" style="border-color:rgba(244,63,94,.55);background:linear-gradient(90deg,rgba(136,19,55,.35),rgba(15,23,42,.2))"><i>👺</i><span style="flex:1"><b>The Sword Saint’s Trial</b><small>Accept it, then win ${KEN_W} duels (any mode, bots or players) and deal ${KEN_D.toLocaleString()} damage → ${CH[KEN].ic} the Kensei <span style="color:${RAR[CH[KEN].r].c}">(${RAR[CH[KEN].r].t})</span>, the sword saint: two blades, critical hits and a killing stroke</small>
-        ${q2 && q2.on ? `<small style="display:block;margin-top:4px;color:#fecdd3">🏆 ${tw}/${KEN_W} wins · 💥 ${td.toLocaleString()}/${KEN_D.toLocaleString()} damage</small><div class="du-mx" style="margin:4px 0 0"><i style="width:${(tw / KEN_W + td / KEN_D) * 50}%;background:linear-gradient(90deg,#e11d48,#fda4af)"></i></div>` : ''}</span>
-        ${ko ? '<span class="pr">✔ Done</span>' : q2 && q2.on ? '<span class="pr">📜 Active</span>' : '<button class="du-btn" data-q2="1">📜 Accept</button>'}</div></div>`;
-      const html = `${ct}${tr}<p style="font:600 13px var(--fb);color:#cbd5e1;margin:0 0 10px">The Colosseum’s own honours — each one wins you a fighter. (The 1% legends only come from crates; the Laestrygonian from the 👹 boss or Season Pass level 100.)</p><div class="du-ach">${ACH.map((A) => { const got = S.ach.includes(A.id), v = A.k === 'mast' ? S.st.mast | 0 : S.st[A.k] | 0, C = CH[A.c];
+      const qb = QUESTS.map((Q) => { const q = S[Q.key], got = S.own.includes(Q.c), C = CH[Q.c], [b1, b2, tc, bar] = Q.col, prog = Q.need.map(([x, v, ic, nm]) => [Math.min(v, q ? q[x] | 0 : 0), v, ic, nm]);
+        return `<div class="du-ach" style="margin-bottom:12px"><div class="${got ? 'got' : ''}" style="border-color:rgba(${b1},.55);background:linear-gradient(90deg,rgba(${b2},.35),rgba(15,23,42,.2))"><i>${Q.ic}</i><span style="flex:1"><b>${esc(Q.n)}</b><small>Accept it, then ${esc(Q.how)} → ${C.ic} the ${esc(C.n)} <span style="color:${RAR[C.r].c}">(${RAR[C.r].t})</span>, ${esc(Q.tail)}</small>
+          ${q && q.on ? `<small style="display:block;margin-top:4px;color:${tc}">${prog.map(([a, v, ic, nm]) => `${ic} ${a.toLocaleString()}/${v.toLocaleString()} ${nm}`).join(' · ')}</small><div class="du-mx" style="margin:4px 0 0"><i style="width:${prog.reduce((m, [a, v]) => m + a / v, 0) / prog.length * 100}%;background:linear-gradient(90deg,${bar})"></i></div>` : ''}</span>
+          ${got ? '<span class="pr">✔ Done</span>' : q && q.on ? '<span class="pr">📜 Active</span>' : `<button class="du-btn" data-qk="${Q.key}">📜 Accept</button>`}</div></div>`; }).join('');
+      const html = `${qb}<p style="font:600 13px var(--fb);color:#cbd5e1;margin:0 0 10px">The Colosseum’s own honours — each one wins you a fighter. (The 1% legends only come from crates; the Laestrygonian from the 👹 boss or Season Pass level 100.)</p><div class="du-ach">${ACH.map((A) => { const got = S.ach.includes(A.id), v = A.k === 'mast' ? S.st.mast | 0 : S.st[A.k] | 0, C = CH[A.c];
         return `<div class="${got ? 'got' : ''}"><i>${A.ic}</i><span><b>${esc(A.n)}</b><small>${esc(A.d)} → ${C.ic} ${esc(C.n)} <span style="color:${RAR[C.r].c}">(${RAR[C.r].t})</span></small></span><span class="pr">${got ? '✔ Done' : `${Math.min(v, A.n0).toLocaleString()} / ${A.n0.toLocaleString()}`}</span></div>`; }).join('')}</div>`;
-      openPanel('🏆 Duel Achievements', html, (b) => { if (b.dataset.q2 && !(S.q2 && S.q2.on) && !S.own.includes(KEN)) { S.q2 = { on: 1, w: 0, d: 0 }; this.dirty(); sfx('unlock'); toast(`📜 The Sword Saint’s Trial: ${KEN_W} wins, ${KEN_D.toLocaleString()} damage`, '#fda4af'); this.achPanel(); return; }
-        if (b.dataset.q && !(S.q && S.q.on) && !S.own.includes(EXE)) { S.q = { on: 1, k: 0, d: 0 }; this.dirty(); sfx('unlock'); toast('📜 The Executioner’s Contract: 50 fighters, 15,000 damage', '#fca5a5'); this.achPanel(); } }, null, { full: true, extra: `<span class="xchip">${S.ach.length}/${ACH.length}</span>` });
+      openPanel('🏆 Duel Achievements', html, (b) => { const Q = b.dataset.qk && QUESTS.find((x) => x.key === b.dataset.qk);
+        if (Q && !(S[Q.key] && S[Q.key].on) && !S.own.includes(Q.c)) { S[Q.key] = Object.assign({ on: 1 }, ...Q.need.map(([x]) => ({ [x]: 0 }))); this.dirty(); sfx('unlock'); toast(`📜 ${Q.n}: ${Q.how}`, Q.col[2]); this.achPanel(); } }, null, { full: true, extra: `<span class="xchip">${S.ach.length}/${ACH.length}</span>` });
     },
   };
   addExp(DU);
