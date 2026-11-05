@@ -602,6 +602,9 @@
   .achhead .meter{flex:1;min-width:200px;height:14px;border-radius:8px;background:rgba(0,0,0,.4);overflow:hidden}
   .achhead .meter i{display:block;height:100%;background:linear-gradient(90deg,#f59e0b,#fde047)}
   .shop button{min-width:0}.shop button .pr{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pmix{display:flex;align-items:center;gap:8px;margin-top:6px}.pmix>b{flex:none;width:76px;font:800 12px var(--fb);color:#e2e8f0}
+  .pmrow{display:flex;gap:6px;overflow-x:auto;padding-bottom:3px;min-width:0}.pmrow button{flex:none;padding:6px 10px;border-radius:10px;border:1.5px solid rgba(255,255,255,.16);background:rgba(15,23,42,.6);color:#e2e8f0;font:700 12px var(--fb);cursor:pointer;white-space:nowrap}
+  .pmrow button.on{border-color:#fde68a;background:rgba(253,224,71,.16);color:#fff}
   .avnote{margin-top:9px;padding:9px 11px;border-radius:12px;background:rgba(253,224,71,.08);border:1px solid rgba(253,224,71,.25);color:#fde68a;font:700 12.5px/1.35 var(--fb)}
   .edetail.still{animation:none}
   .edetail{background:var(--solid);border:1px solid var(--line);border-radius:22px;padding:18px;box-shadow:var(--drop),var(--hi);animation:rise .2s ease-out}
@@ -1483,10 +1486,12 @@ const COSMETICS = {
   an: { title: 'Animations', list: ANIMS, price: [0, 500, 750, 400, 700, 550, 900, 777, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], icon: ['🚶', '🤖', '🥷', '🧟', '🦸', '😎', '🫧', '🧛', '🏺', '👣', '🐂', '👑', '⛩️', '🪽', '🐻', '🦅', '🐺', '🔱', '🦂', '⚔️', '🦉', '🌙', '🏹', '🐜', '🛡️', '🗡️', '🎯', '🪓', '✝️', '🏰', '🎋', '🍂', '🥷', '📿', '🏯', '🗿', '💀', '🔱', '🏹', '💣', '🪓', '🌙', '🔱', '🏹', '🥁', '🛡️', '👑'], tab: false },
   tr: { title: 'Trails', list: TRAILS, price: [0, 1500, 800, 600, 500, 2000, 700, -1, -1, 700], icon: ['🚫', '🌈', '🔥', '🧊', '💠', '🪙', '💕', '⭐', '⚡', '🌫️'] },
 };
-let AV = { s: 5, sh: 0, p: 1, h: 0, f: 0, b: 0, a: 0, pt: 0, pet: 0, tr: 0, bt: 0, an: 0 };
-const AV_KEYS = ['s', 'sh', 'p', 'h', 'f', 'b', 'a', 'pt', 'pet', 'tr', 'bt', 'an'], AV_LISTS = [SKINS, SHIRTS, PANTS, HATS, FACES, BACKS, AURAS, PATTERNS, PETS, TRAILS, BODIES, ANIMS];
+let AV = { s: 5, sh: 0, p: 1, h: 0, f: 0, b: 0, a: 0, pt: 0, pet: 0, tr: 0, bt: 0, an: 0, bh: 0, bu: 0, ba: 0, bl: 0 };
+const AV_KEYS = ['s', 'sh', 'p', 'h', 'f', 'b', 'a', 'pt', 'pet', 'tr', 'bt', 'an', 'bh', 'bu', 'ba', 'bl'], AV_LISTS = [SKINS, SHIRTS, PANTS, HATS, FACES, BACKS, AURAS, PATTERNS, PETS, TRAILS, BODIES, ANIMS, BODIES, BODIES, BODIES, BODIES];
+// a body's parts on their own: the helmet (head), the torso, the arms, the legs — each from any body pack you own (0: the body's own)
+const PARTS = [['bh', '🪖', 'Helmet'], ['bu', '👕', 'Torso'], ['ba', '💪', 'Arms'], ['bl', '🦵', 'Legs']], PART_KEYS = PARTS.map((q) => q[0]);
 const avArr = () => AV_KEYS.map((k) => AV[k] | 0);
-const okAv = (a) => { const d = [5, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]; return AV_LISTS.map((l, i) => (Array.isArray(a) && a[i] != null ? clamp(a[i] | 0, 0, l.length - 1) : d[i])); };
+const okAv = (a) => { const d = [5, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; return AV_LISTS.map((l, i) => (Array.isArray(a) && a[i] != null ? clamp(a[i] | 0, 0, l.length - 1) : d[i])); };
 const avFrom = (o) => { const v = okAv(AV_KEYS.map((k) => o && o[k])); const r = {}; AV_KEYS.forEach((k, i) => (r[k] = v[i])); return r; };
 // Blox Coins: earned in every experience, spent on cosmetics (and a few things inside experiences)
 const W = { coins: 0, pc: 0, pcb: new Set(), own: new Set(), day: '', loaded: false, items: {}, // items: what you bought in experiences' shops ({ 'obby.speed': 1 })
@@ -1518,7 +1523,7 @@ function toggleHat(ref) { // ('' when done, or why not)
 }
 const hatsOff = () => { AV.h = 0; W.wear.h = ''; W.wear.hx = []; };
 // take a shop item off if it's on (sold, traded or refunded)
-function takeOff(k, i) { if (k === 'h') { if (hatsOn().includes('H' + i)) toggleHat('H' + i); } else if (AV[k] === i) AV[k] = 0; }
+function takeOff(k, i) { if (k === 'h') { if (hatsOn().includes('H' + i)) toggleHat('H' + i); } else if (AV[k] === i) AV[k] = 0; if (k === 'bt') for (const q of PART_KEYS) if (AV[q] === i) AV[q] = 0; } // (a body gone: its parts too)
 const owns = (slot, i) => COSMETICS[slot] ? COSMETICS[slot].price[i] === 0 || W.own.has(slot + i) : true;
 function putOn(k, i) { if (k === 'h') { if (!i) hatsOff(); else if (!hatsOn().includes('H' + i)) return toggleHat('H' + i); } else { AV[k] = i; if (XKINDS[k]) W.wear[k] = ''; } return ''; }
 const FACE_TEX = FACES.map((_, k) => {
@@ -5768,7 +5773,8 @@ function makeAvatar(av, name, mine, ax) {
   const mesh = (geo, m, x, y, z, parent) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); (parent || body).add(o); return o; };
   const limb = (m, x, y) => { const piv = new THREE.Group(); piv.position.set(x, y, 0); body.add(piv); box(m, 0.98, 2, 0.98, 0, -1, 0, piv); return piv; };
   const frontTex = X.pt || av[7] ? (X.pt ? pixTex(X.pt.px, SHIRTS[av[1]]) : patternTex(av[7], SHIRTS[av[1]])) : null;
-  const r15 = av[10] >= 1; // (R15 and the body packs: jointed)
+  const mixed = av.length > 12 && [12, 13, 14, 15].some((j) => av[j] >= 2), bt = av[10] === 0 && mixed ? 1 : av[10]; // (parts of other bodies want joints: R15 under them)
+  const r15 = bt >= 1; // (R15 and the body packs: jointed)
   let legL, legR, armL, armR, waist = null, upFrom = 0, kit = null;
   const J = {}; // (the knees and elbows)
   if (!r15) {
@@ -5779,11 +5785,18 @@ function makeAvatar(av, name, mine, ax) {
     box(shirt, 1.02, 0.84, 1.02, 0, -0.4, 0, armL); box(shirt, 1.02, 0.84, 1.02, 0, -0.4, 0, armR); // a hair above the arm's top, or the two tops flicker
   } else {
     const grp = (par, x, y, joint) => { const o = new THREE.Group(); o.position.set(x, y, 0); par.add(o); if (joint) o.userData.limb = 1; return o; };
-    kit = BODY_KITS[av[10]]({ body, box, mesh, lam, grp, mats, av, shirt, pants, skin, frontTex, faceTex: X.f ? pixTex(X.f.px, '') : FACE_TEX[av[4]], faceCanvas: (X.f ? pixTex(X.f.px, '') : FACE_TEX[av[4]]).image });
-    [legL, J.knL] = kit.leg(-0.5); [legR, J.knR] = kit.leg(0.5); kit.lower();
+    const KC = { body, box, mesh, lam, grp, mats, av, shirt, pants, skin, frontTex, faceTex: X.f ? pixTex(X.f.px, '') : FACE_TEX[av[4]], faceCanvas: (X.f ? pixTex(X.f.px, '') : FACE_TEX[av[4]]).image };
+    kit = BODY_KITS[bt](KC); const kits = new Map([[bt, kit]]);
+    const kitFor = (j) => { const b = av[j] | 0; if (b < 2 || !BODY_KITS[b]) return kit; if (!kits.has(b)) { try { kits.set(b, BODY_KITS[b](KC)); } catch (e) { kits.set(b, kit); } } return kits.get(b); };
+    const part = (j, f) => { const k = kitFor(j); if (k !== kit) { const n = body.children.length; try { return f(k); } catch (e) { while (body.children.length > n) body.remove(body.children[body.children.length - 1]); } } return f(kit); }; // (a part that won't come: the body's own instead)
+    const KL = kitFor(15), KU = kitFor(13), KA = kitFor(14);
+    [legL, J.knL] = part(15, (k) => k.leg(-0.5)); [legR, J.knR] = part(15, (k) => k.leg(0.5)); part(13, (k) => k.lower());
     waist = new THREE.Group(); waist.position.set(0, 2.84, 0); body.add(waist);
     upFrom = body.children.length; // (from here on, it all goes on the upper body)
-    kit.upper(); [armL, J.elL] = kit.arm(-1); [armR, J.elR] = kit.arm(1);
+    part(13, (k) => k.upper()); [armL, J.elL] = part(14, (k) => k.arm(-1)); [armR, J.elR] = part(14, (k) => k.arm(1));
+    const hk = kitFor(12), ticks = [...new Set([kit, KL, KU, KA, hk])].map((k) => k.tick).filter(Boolean);
+    const k0 = kit; kit = Object.assign({}, k0, { head: hk === k0 ? k0.head : hk.head ? (h) => { try { return hk.head(h); } catch (e) { return k0.head ? k0.head(h) : false; } } : undefined,
+      tick: ticks.length ? (a, dt) => { for (const t of ticks) { try { t(a, dt); } catch (e) { /* (a part's motion, missing its other half) */ } } } : null });
   }
   const head = new THREE.Group(); head.position.set(0, 4.66, 0); body.add(head);
   if (!(kit && kit.head && kit.head(head))) {
@@ -10382,7 +10395,7 @@ function wearHtml() {
   const itemBtn = (k, i) => {
     const C = COSMETICS[k], nm = C.list[i];
     const own = owns(k, i), price = C.price[i], on = k === 'h' ? (i ? hatsOn().includes('H' + i) : !hatsOn().length) : AV[k] === i && !W.wear[k], ask = avAsk === k + i, tr = ED.open && ED.try[k] === i;
-      if ((ED.own && !own) || hwGone(k, i) || spGone(k, i)) return '';
+      if ((ED.own && !own) || hwGone(k, i) || spGone(k, i) || (price < 0 && !own)) return ''; // (not for Blox Coins: here once it's yours)
       const A = price < 0 ? achFor(k, i) : null, SPI = price < 0 && !A ? spItem(k, i) : null;
       const pp = payP(k, i), pr = on ? '<span class="pr own">✓ Wearing</span>' : own ? '<span class="pr own">Owned</span>' : price < 0 ? `<span class="pr">${A ? '🏆 Earn it' : SPI ? `🏛️ Lv ${SPI.L}${spTrI(SPI.tr)}` : '🎖️ Reward'}</span>` : ask && !canPay(price, pp) ? `<span class="pr">Need ${payLack(price, pp)} more</span>` : ask ? `<span class="pr">Buy? ${pp ? pcOf(price) : price}</span>` : `<span class="pr">${payCost(price, pp)}</span>`;
       const cant = !own && (price < 0 || !canPay(price, pp));
@@ -10395,11 +10408,14 @@ function wearHtml() {
     const bi = which('bt'), ai = which('an');
     const bodies = `<div class="opt"><small>Body · R6, R15 or a body pack</small><div class="shop">${BODIES.map((_, i) => itemBtn('bt', i)).join('')}</div><div class="avnote">${COSMETICS.bt.icon[bi]} <b>${esc(BODIES[bi])}</b> — ${esc(BODY_DESC[bi])}${bi >= 2 ? ' Jointed like R15, so it bends, dances and wears your hats.' : ''}</div></div>`
       + `<div class="opt"><small>Animations · how you stand, walk and jump</small><div class="shop">${ANIMS.map((_, i) => itemBtn('an', i)).join('')}</div><div class="avnote">${COSMETICS.an.icon[ai]} <b>${esc(ANIMS[ai])}</b> — ${esc(ANIM_DESC[ai])} Tap one to see it walk.</div></div>`;
-    body = bodies + row('Skin', SKINS, 's') + row('Shirt', SHIRTS, 'sh') + row('Pants', PANTS, 'p');
+    // a body's parts on their own: any body pack you own lends its helmet, torso, arms or legs
+    const mine = BODIES.map((_, i) => i).filter((i) => i >= 2 && owns('bt', i));
+    const parts = mine.length ? `<div class="opt"><small>Mix parts · wear just the helmet (or the torso, arms, legs) of a body you own</small>${PARTS.map(([k, ic, n]) => `<div class="pmix"><b>${ic} ${n}</b><div class="pmrow"><button data-pk="${k}" data-pi="0" class="${!AV[k] ? 'on' : ''}">Body’s own</button>${mine.map((i) => `<button data-pk="${k}" data-pi="${i}" class="${AV[k] === i ? 'on' : ''}" title="${esc(BODIES[i])}’s ${n.toLowerCase()}">${COSMETICS.bt.icon[i]} ${esc(BODIES[i])}</button>`).join('')}</div></div>`).join('')}${PART_KEYS.some((k) => AV[k]) && AV.bt === 0 ? '<div class="avnote">Parts of a body pack bend at the knees and elbows, so you’re R15 under them.</div>' : ''}</div>` : '';
+    body = bodies + parts + row('Skin', SKINS, 's') + row('Shirt', SHIRTS, 'sh') + row('Pants', PANTS, 'p');
   } else if (avTab === 'em') {
     body = `<p class="xp-note">🎭 Tap an emote to see it. In a game, press <b>.</b> or tap 🎭 Emotes for the emote wheel, or type <b>/e wave</b> in the chat. Moving stops one.</p><div class="shop">${EMOTES.map((E, i) => {
       const own = emOwns(i), ask = avAsk === 'em' + i, on = pv.a && pv.a.em && pv.a.em.i === i;
-      if ((ED.own && !own) || (E.hw && hwGone('em', i)) || spGone('em', i)) return '';
+      if ((ED.own && !own) || (E.hw && hwGone('em', i)) || spGone('em', i) || (E.price < 0 && !own)) return '';
       const SPI = E.price < 0 ? spItem('em', i) : null;
       const pp = payP('em', i), pr = own ? `<span class="pr own">${E.price ? 'Owned' : 'Free'}</span>` : SPI ? `<span class="pr">🏛️ Lv ${SPI.L}${spTrI(SPI.tr)}</span>` : ask && !canPay(E.price, pp) ? `<span class="pr">Need ${payLack(E.price, pp)} more</span>` : ask ? `<span class="pr">Buy? ${pp ? pcOf(E.price) : E.price}</span>` : `<span class="pr">${payCost(E.price, pp)}</span>`;
       return `<button data-em="${i}" class="${on ? 'try' : ''} ${!own && (E.price < 0 || !canPay(E.price, pp)) ? 'cant' : ''} ${ask ? 'ask' : ''}" title="${esc(E.nm)} — ${esc(E.d)}${E.hw ? ' — 🎃 Halloween exclusive' : ''}">${E.hw ? '<span class="hwtag">🎃</span>' : ''}<span class="i">${E.ic}</span>${esc(E.nm)}${pr}</button>`;
@@ -10438,9 +10454,10 @@ $('#avOpts').onclick = (e) => {
     } else { avAsk = ''; ED.note = ''; }
     drawAvatarOpts(); return;
   }
+  if (d.pk) { const i = +d.pi; if (PART_KEYS.includes(d.pk) && (i === 0 || owns('bt', i))) { AV[d.pk] = i; sfx('select'); ED.note = ''; drawAvatarOpts(); pvAvatar(); saveAv(); drawMe(); } return; } // (a body's part on its own)
   if (d.fitsave) { W.fits[+d.fitsave] = avArr(); sfx('select'); saveAv(); drawAvatarOpts(); return; }
   if (d.fitx) { W.fits[+d.fitx] = null; sfx('click'); saveAv(); drawAvatarOpts(); return; }
-  if (d.fit) { const v = okAv(W.fits[+d.fit]); AV_KEYS.forEach((k, j) => { if (owns(k, v[j])) AV[k] = v[j]; }); W.wear.hx = []; ED.try = {}; sfx('select'); } // (an outfit has one shop hat)
+  if (d.fit) { const v = okAv(W.fits[+d.fit]); AV_KEYS.forEach((k, j) => { if (PART_KEYS.includes(k) ? !v[j] || owns('bt', v[j]) : owns(k, v[j])) AV[k] = v[j]; }); W.wear.hx = []; ED.try = {}; sfx('select'); } // (an outfit has one shop hat)
   else if (d.k) {
     const k = d.k, i = +d.i;
     if (k === 'an') pv.walkUntil = performance.now() + 3200; // (an animation: watch it walk)
