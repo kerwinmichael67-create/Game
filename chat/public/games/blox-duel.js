@@ -321,7 +321,7 @@
     { n: 'Great Scimitar', ic: '🗡️', k: 'melee', dmg: 250, cd: 6, rng: 10, arc: 120, wind: 1.4, an: 'gslash' },
     { n: 'Earthshaker', ic: '🦶', k: 'stomp', dmg: 30, rad: 36, cd: 8, wind: 0.8, an: 'stomp', wspd: 17 }] });
     // the fighters' looks for their trails and glows
-  const COL = ['#ef4444', '#f59e0b', '#2dd4bf', '#a855f7', '#f97316', '#60a5fa', '#fbbf24', '#fb923c', '#a3a3a3', '#dc2626', '#facc15', '#84cc16', '#38bdf8', '#fef3c7', '#e2e8f0', '#93c5fd', '#fda4af', '#a78bfa', '#fb923c', '#fde047', '#93c5fd', '#991b1b', '#f87171', '#fbbf24', '#f97316', '#2dd4bf', '#dc2626', '#a16207', '#7dd3fc', '#38bdf8', '#cbd5e1', '#facc15'];
+  const COL = ['#ef4444', '#f59e0b', '#2dd4bf', '#a855f7', '#f97316', '#60a5fa', '#fbbf24', '#fb923c', '#a3a3a3', '#dc2626', '#facc15', '#84cc16', '#38bdf8', '#fef3c7', '#e2e8f0', '#93c5fd', '#fda4af', '#a78bfa', '#fb923c', '#fde047', '#fbbf24', '#991b1b', '#f87171', '#fbbf24', '#f97316', '#2dd4bf', '#dc2626', '#a16207', '#7dd3fc', '#38bdf8', '#cbd5e1', '#facc15'];
   // the duel's own achievements: each wins a fighter (the 1% ones only come from crates)
   const ACH = [
     { id: 'blood', ic: '🩸', n: 'First Blood', d: 'Defeat a fighter', k: 'kills', n0: 1, c: 1 },
@@ -869,7 +869,7 @@
   }
   const mixP = (A, B, k) => { const o = {}; for (const n of new Set(Object.keys(A).concat(Object.keys(B)))) { const x = A[n], y = B[n]; if (n === 'up') { o.up = lerp(x || 0, y || 0, k); continue; } const p = x || [0, 0, 0], q = y || x; o[n] = [lerp(p[0], q[0], k), lerp(p[1] || 0, q[1] || 0, k), lerp(p[2] || 0, q[2] || 0, k)]; if (!x) o[n] = q; } return o; };
   function poseAct(F, dt) {
-    const A = F.act, a = F.a; if (!a || a.dead) return;
+    const A = F.act, a = F.a; if (!a || a.dead) return; a.duActing = !!(A && A.an); // (a pack that holds its weapon itself — the giant's — hands it to the blow)
     if (a.dg) { if (!A || !A.an || !(AN[A.an] && (AN[A.an].wr || (Array.isArray(AN[A.an]) && (AN[A.an][0].wr || AN[A.an][1].wr))))) a.dg.hR.rotation.x *= Math.max(0, 1 - dt * 10); } // (the wrist back to its guard)
     if (A && A.an === 'gun' && a.dg && !a.duGun) { const g = new THREE.Group(); a.dg.hR.add(g); g.rotation.x = -Math.PI / 2; const wd = new THREE.MeshLambertMaterial({ color: '#5b3a1e', map: woodTex() }), ir = metalMat('#3f3f46'); const st = new THREE.Mesh(BOX, wd); st.scale.set(0.22, 0.3, 2.4); st.position.z = -0.4; g.add(st); const br = new THREE.Mesh(kCyl(), ir); br.scale.set(0.07, 2.6, 0.07); br.rotation.x = Math.PI / 2; br.position.set(0, 0.16, -1.6); g.add(br); g.userData.tip = new THREE.Object3D(); g.userData.tip.position.set(0, 0.16, -2.9); g.add(g.userData.tip); a.duGun = g; }
     if (a.duGun) a.duGun.visible = !!(A && A.an === 'gun');

@@ -4102,13 +4102,13 @@ const LGK = {
   pull: lgKey([0.05, -0.05, -1.0], [0, -1, 0.04], [1, 0, 0], 1, 0, [1.5, -0.5, 0.5], [-1.5, -0.5, 0.5]), // (wrenched out)
   land: lgKey([0.05, -0.85, -1.2], [0, -0.78, -0.62], [1, 0, 0], 1, 1, [1.5, -0.6, 0.6], [-1.5, -0.6, 0.6], 0.5), // (landed, the sword driven in at a slant ahead of it)
 };
-function lgGear(a) {
+function lgGear(a, gilt) {
   if (a.lgG) return a.lgG;
   const kit = a.r15 && a.elR.userData.wr, L1 = a.r15 ? a.elR.position.length() : 0;
   let wrR, wrL, c, L2;
   if (kit) { wrR = a.elR.userData.wr; wrL = a.elL.userData.wr; c = wrR.userData.fist; L2 = wrR.position.length(); a.lgW = [wrR, wrL]; } // (its own gauntlets, with wrists)
   else { const mk = (par) => { const w = new THREE.Group(); w.position.y = a.r15 ? -0.92 : -1.9; w.userData.pg = 1; par.add(w); return w; }; wrR = mk(a.r15 ? a.elR : a.armR); wrL = mk(a.r15 ? a.elL : a.armL); c = new THREE.Vector3(); L2 = a.r15 ? 0.92 : 1.9; }
-  const f = (L1 + L2 + c.length()) / 2.36, sc = 0.9 * f, hR = new THREE.Group(); hR.userData.pg = 1; pfx(a, hR, wrR); hR.scale.setScalar(sc); const sw = scimModel(); hR.add(sw);
+  const f = (L1 + L2 + c.length()) / 2.36, sc = 0.9 * f, hR = new THREE.Group(); hR.userData.pg = 1; pfx(a, hR, wrR); hR.scale.setScalar(sc); const sw = scimModel(gilt); hR.add(sw);
   a.hpBk = []; a.g.traverse((o) => { if (o.userData.backShield || o.userData.backSword) a.hpBk.push(o); });
   return (a.lgG = { hR, sw, tip: sw.userData.tip, wrR, wrL, c, L1, L2, f, sc, S: null });
 }
@@ -4243,9 +4243,9 @@ ANIM_PACKS.push({ snap: 14, // 🏺 Hoplite (🏛️ Season Pass, Deluxe)
     J.k = c > 6.6 && c < 6.9 ? 30 : 8;
   },
   tick(a, dt, s) {
-    const G = lgGear(a), fp = a === me && me.fpOn, hold = hopHold(a), gs = a.giant || 1, on = !hold && !fp;
+    const G = lgGear(a), fp = a === me && me.fpOn, hold = hopHold(a) || a.lgFree, gs = a.giant || a.g.scale.y || 1, on = !hopHold(a) && !fp && !a.lgNoS; // (lgNoS, lgFree: the duels' fists, and a blow holding the sword itself)
     G.hR.visible = on; for (const o of a.hpBk) o.visible = false; // (the sword's in your hands, so not on your back)
-    if (on && a.lgK) lgHold(a, G, a.lgK, dt); else G.S = null;
+    if (on && a.lgK && !a.lgFree) lgHold(a, G, a.lgK, dt); else if (!on) G.S = null;
     const tip = G.tip.getWorldPosition(_lgv), gy = a.g.position.y, scraping = !hold && tip.y < gy + 0.45 * gs;
     if (s.mv && !s.air) { const n = Math.floor(s.ph * 0.6 / Math.PI);
       if (n !== a.stepN) { a.stepN = n; giantStep2(a, scraping); camShake(a, 0.1); shockwave(a, '#a8a29e', 2.4 * gs, 0.5); const p = limbEnd(a, true, n % 2 ? -1 : 1);
@@ -4923,7 +4923,7 @@ function dgMace(par) { const g = new THREE.Group(); par.add(g); const wd = new T
   for (let k = 0; k < 6; k++) { const f = new THREE.Mesh(BOX, ir); f.scale.set(0.05, 0.36, 0.6); const a = k * Math.PI / 3; f.position.set(Math.cos(a) * 0.18, Math.sin(a) * 0.18, -1.75); f.rotation.z = a + Math.PI / 2; g.add(f); }
   const tp = new THREE.Mesh(kSph(), ir); tp.scale.setScalar(0.14); tp.position.z = -2.1; g.add(tp); g.userData.tip = new THREE.Object3D(); g.userData.tip.position.z = -2.0; g.add(g.userData.tip); g.userData.len = 2.2; return g; }
 DG_GEAR.push(
-  (h, l) => [[dgSword(h, 'gscim', { steel: '#a9bbe0', fit: '#6d8fd4', grip: '#1e2a55', pom: 0.3 }), new THREE.Group()], null], // (the Laestrygonian: 1 the scimitar, 2 bare fists)
+  (h, l) => [[lgDuelSlot(h), new THREE.Group()], null], // (the Laestrygonian: 1 its great sword — the pack holds it — 2 bare fists)
   (h, l) => [[dgExecAxe(h)], null],
   (h, l) => [[dgPole(h, 'javelin')], dgShield(l, 'kalkan')],
   (h, l) => [[dgSword(h, 'kilij', { fit: '#d9a441', guard: false })], dgRecurve(l)],
@@ -4948,6 +4948,30 @@ BODY_DESC.push('⚔️ The Laestrygonian of the Colosseum Duels, the same giant 
   '⚔️ A steppe shaman: a fringe over the eyes, a robe of ribbons and bronze mirrors, a frame drum. A mastery reward in ⚔️ Colosseum Duels.',
   '⚔️ A kheshig of the Khan’s guard: a spiked iron helmet with an aventail, iron lamellar to the knee. A mastery reward in ⚔️ Colosseum Duels.',
   '⚔️ The Great Khan: gilded lamellar over a red deel, a fur-brimmed crown with a gold finial and a white plume. A mastery reward in ⚔️ Colosseum Duels.');
+// the gilded giant in the duels: the film giant's own pack — its moves, its sword held where its keys say (its arms
+// reaching for it), its steps and breaths and quakes — with that sword re-forged in silver, bronze and gold. A blow takes
+// the sword from the keys: it goes into the fist like any duel weapon (the blow turns the wrist), then back to the keys
+// from wherever the blow left it. In its fists mode the sword's away and the arms keep the pack's pose
+const _lgDE = new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2, Math.PI / 2, 0)), _lgDq = new THREE.Quaternion(), _lgDv = new THREE.Vector3(), _lgDx = new THREE.Euler(), _lgD1 = new THREE.Quaternion();
+function lgDuelSlot(par) { const g = new THREE.Group(), tip = new THREE.Object3D(); tip.position.z = -3.2; g.add(tip); par.add(g); g.userData.tip = tip; g.userData.len = 3.2; return g; } // (its place in the duels' gear: the trail reads the real sword's point once the pack's made it)
+function lgDuelPack() {
+  const P = ANIM_PACKS[ANIMS.indexOf('Laestrygonian')];
+  return { snap: 8, duel: 20,
+    pose(J, a, s) { P.pose(J, a, s); },
+    tick(a, dt, s) {
+      const D = a.dg && a.dg.i === 20 ? a.dg : (a.dg = Object.assign(duelGear(a, 20), { i: 20 })), m = a.dgMode || 0; D.show(m);
+      const L = lgGear(a, true), blow = !!a.duActing && m === 0; D.R[0].userData.tip = L.tip;
+      a.lgNoS = m !== 0; a.lgFree = blow;
+      if (blow || m !== 0) { const k = 1 - Math.exp(-dt * 16); L.wrR.quaternion.slerp(_lgD1.identity(), k); if (a.lgW) L.wrL.quaternion.slerp(_lgD1.identity(), k); } // (the gauntlets' wrists straighten)
+      if (blow) { // (the sword in the fist along the forearm, its edge leading, turned as the blow turns the duels' wrist)
+        const q = _lgDq.setFromEuler(_lgDx.set(D.hR.rotation.x + D.R[0].parent.rotation.x, 0, 0)).multiply(_lgDE), p = _lgDv.set(0, LG_YR * L.sc, 0).applyQuaternion(q).negate().add(L.c); a.lgBw = Math.min(1, (a.lgSeed ? a.lgBw : 0) + dt * 4); const k = a.lgBw >= 1 ? 1 : 1 - Math.exp(-dt * 14); // (eased into the fist for a quarter of a second, then held fast through the swing)
+        L.hR.quaternion.slerp(q, k); L.hR.position.lerp(p, k); a.lgSeed = 1;
+      } else if (a.lgSeed) { a.lgSeed = 0; if (L.S) { a.g.updateMatrixWorld(true); const par = a.armR.parent, S = L.S; // (back to the keys from wherever the blow left it)
+        S.q.copy(a.g.quaternion).invert().multiply(L.hR.getWorldQuaternion(_lgD1)); par.worldToLocal(L.hR.localToWorld(S.p.set(0, LG_YR, 0))).sub(_lgDv.copy(a.armR.position).add(a.armL.position).multiplyScalar(0.5)).divideScalar(L.f); S.two = 0; S.gr = 0; } }
+      P.tick(a, dt, s);
+    },
+  };
+}
 // the gilded giant's finish: engraved gold (a Greek key along its edges, scrolls between), a lion's head in gold, a crimson cloak with a gold-embroidered hem
 const lgEngraveTex = () => kCanvas('lgEngrave', 256, 128, (g) => {
   const gr = g.createLinearGradient(0, 0, 0, 128); gr.addColorStop(0, '#f6d77a'); gr.addColorStop(0.5, '#d6a136'); gr.addColorStop(1, '#f0c95c'); g.fillStyle = gr; g.fillRect(0, 0, 256, 128);
@@ -5001,6 +5025,7 @@ function lgGilt(K, B, m) { // the boss's giant (and the one you win from it): th
 BODY_KITS.push((K) => LG_KIT(K, true));
 BODY_DESC.push('👹 The Laestrygonian Colossus, the boss of ⚔️ Colosseum Duels: the faceless giant of The Odyssey plated as a king — polished silver, bronze lames, engraved gold (a Greek key along its edges, scrolls between), a gold crest and a crimson horsehair plume, lion-headed pauldrons, knees and buckle, a gorgon on its breast, a crimson cloak with an embroidered hem, and an ember glowing behind the slit of its helm.');
 const LAE_BOSS_BT = BODIES.indexOf('Laestrygonian Colossus');
+ANIM_PACKS[DUEL_AN + 20] = lgDuelPack(); // (the Laestrygonian Warlord's pack: the film giant's own, the gilded sword)
 function duelGear(a, i) { // made the first time the pack runs: the hand groups, on the forearms
   const hR = new THREE.Group(), hL = new THREE.Group(), y = a.r15 ? -0.92 : -1.9; hR.position.y = hL.position.y = y; pfx(a, hR, a.r15 ? a.elR : a.armR); pfx(a, hL, a.r15 ? a.elL : a.armL);
   const R0 = new THREE.Group(), L0 = new THREE.Group(); hR.add(R0); hL.add(L0); const [R, L] = DG_GEAR[i](R0, L0);
@@ -5091,6 +5116,7 @@ ANIM_PACKS.push(...[
   { g: [[0.4, 0, -0.3], [0.7, 0, 0.25], 0.6, 1.0], st: [0.22, 0.08, 0.02], w: { str: 0.55, arm: 0.15, lean: 0.04, bob: 0.06, keep: 0.85, rate: 0.92 }, f: dfl.salute(11) }, // Great Khan: proud, unhurried
 ].map(duelPack));
 ANIM_DESC.push(...DUEL_N.map((n, i) => `⚔️ The ${n}’s own guard, walk, run and leap from ⚔️ Colosseum Duels, its weapon in hand — and a flourish of its own while it stands. ${i === 20 ? 'Yours for beating the Laestrygonian boss, or at Season Pass level 100.' : i === 21 ? 'Yours with the Executioner’s quest.' : 'A mastery reward.'}`));
+ANIM_DESC[DUEL_AN + 20] = '⚔️ The Laestrygonian Warlord’s own: the Season Pass giant’s every move — its great sword on its shoulder, a slow look round, the lumber with the point scraping sparks, the leap with a chop as it falls, the quake as it lands, and the sword driven into the ground and leaned on every 12 s — with that sword re-forged: a polished silver blade, bronze at its root, gold rings and pommel. Yours for beating the Laestrygonian boss, or at Season Pass level 100.';
 /* ---------------- shapes for the remade items: feathered wings, a bat's wing, a cape that hangs, a shield ---------------- */
 // a feathered wing, fanned out from the shoulder (s: -1 the left, 1 the right): long feathers at the back, shorter rows
 // over them, longest at the tip. o: { cols: [long, middle, short], span, em (a glow), k (feather length) }
@@ -5277,15 +5303,15 @@ const giantTex = () => kCanvas('giantSteel', 256, 256, (g, r) => {
 // the giant's sword, as the film's are: all iron — a huge, heavy curved blade, crudely forged and hammered, its edge honed
 // bright and its back nicked; an iron crossguard flaring at the ends, a grip of iron rings, a heavy iron disc for a
 // pommel; the grip long enough for two great hands. (Its own group: the guard at 0, the blade up along +y, the grip down along -y.)
-function scimModel() {
+function scimModel(gilt) { // (gilt: the gilded giant's — a polished silver blade, bronze at the root and guard, gold rings and pommel)
   const g = new THREE.Group(), add = (geo, m, x, y, z) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); g.add(o); return o; };
-  const iron = metalMat('#80858c', { map: giantTex(), shininess: 48, reflectivity: 0.35 }), dk = metalMat('#50545a', { map: giantTex(), shininess: 40, reflectivity: 0.25 }), rim = metalMat('#c9ced4', { shininess: 80 });
+  const iron = gilt ? metalMat('#e1e6ec', { map: giantTex(), shininess: 110, reflectivity: 0.45, specular: '#ffffff' }) : metalMat('#80858c', { map: giantTex(), shininess: 48, reflectivity: 0.35 }), dk = gilt ? metalMat('#a8743a', { map: giantTex(), shininess: 70, reflectivity: 0.35, specular: '#ffd29a' }) : metalMat('#50545a', { map: giantTex(), shininess: 40, reflectivity: 0.25 }), rim = gilt ? metalMat('#e6b53c', { shininess: 110, reflectivity: 0.5, specular: '#fff1b8' }) : metalMat('#c9ced4', { shininess: 80 });
   const edge = new THREE.MeshPhongMaterial({ color: '#e3e8ee', emissive: '#3c434c', specular: 0xffffff, shininess: 140, polygonOffset: true, polygonOffsetFactor: -2, side: THREE.DoubleSide }), groove = metalMat('#2a2d32', { shininess: 30, reflectivity: 0.2, polygonOffset: true, polygonOffsetFactor: -2, side: THREE.DoubleSide });
   add(SCIM_BLADE(), iron, 0, 0, 0);
   for (const z of [-0.0575, 0.0575]) { add(SCIM_STRIP(0.62, 1, 0.02, 1, 'scimEdge'), edge, 0, 0, z); add(SCIM_STRIP(-0.42, -0.66, 0.04, 0.6, 'scimFuller'), groove, 0, 0, z); }
   add(rboxGeo(0.36, 0.4, 0.2, 0.05), dk, 0, 0.18, 0); // (the blade's thick root)
   add(rboxGeo(1.12, 0.17, 0.26, 0.06), dk, 0, -0.03, 0); for (const s of [-1, 1]) { const q = add(kCone(), dk, s * 0.64, 0.03, 0); q.scale.set(0.13, 0.32, 0.15); q.rotation.z = -s * 1.25; add(kSph(), rim, s * 0.79, 0.09, 0).scale.setScalar(0.075); } // (the crossguard)
-  add(kCyl(), dk, 0, -1.02, 0).scale.set(0.09, 1.84, 0.09); const B = kitBuild(); for (let k = 0; k < 19; k++) B.add(kTor(0.3), 0, -0.15 - k * 0.095, 0, 0.1, 0.1, 0.1, Math.PI / 2, 0, 0); add(B.geo(), iron, 0, 0, 0); // (a long grip of iron rings, room for both its hands)
+  add(kCyl(), dk, 0, -1.02, 0).scale.set(0.09, 1.84, 0.09); const B = kitBuild(); for (let k = 0; k < 19; k++) B.add(kTor(0.3), 0, -0.15 - k * 0.095, 0, 0.1, 0.1, 0.1, Math.PI / 2, 0, 0); add(B.geo(), gilt ? rim : iron, 0, 0, 0); // (a long grip of iron rings, room for both its hands)
   const pm = add(kCyl(), dk, 0, -2.04, 0); pm.scale.set(0.25, 0.13, 0.25); pm.rotation.x = Math.PI / 2; const pr = add(kTor(0.2), rim, 0, -2.04, 0); pr.scale.setScalar(0.25); add(kSph(), rim, 0, -2.04, 0).scale.set(0.08, 0.08, 0.17);
   g.userData.tip = new THREE.Object3D(); g.userData.tip.position.set(-0.78, 3.54, 0); g.add(g.userData.tip); // (the point)
   return g;
