@@ -358,7 +358,7 @@
       if (!a) return;
       let k = this.karts.get(key);
       const sk = skinOf(key, 'kart', 'c'); // (their kart skin: 🎨 in the shop)
-      if (!k || k.a !== a || k.sk !== sk) { if (k && k.g.parent) k.g.parent.remove(k.g); k = skinModel('kart', 'c', sk, SHIRTS[a.av ? a.av[1] : 0] || '#ef4444') || kartMesh(SHIRTS[a.av ? a.av[1] : 0] || '#ef4444'); k.a = a; k.sk = sk; a.g.add(k.g); this.karts.set(key, k); }
+      if (!k || k.a !== a || k.sk !== sk) { if (k && k.g.parent) k.g.parent.remove(k.g); k = skinModel('kart', 'c', sk, shirtHex(a.av ? a.av[1] : 0) || '#ef4444') || kartMesh(shirtHex(a.av ? a.av[1] : 0) || '#ef4444'); k.a = a; k.sk = sk; a.g.add(k.g); this.karts.set(key, k); }
       const sir = k.g.userData.siren; if (sir) { const on = Math.floor(performance.now() / 180) % 2; sir[0].visible = !!on; sir[1].visible = !on; }
       if (a.dead) return;
       a.body.position.y = -1.0; a.seatAt = performance.now(); // (seatAt: sitting, so no animation pack)

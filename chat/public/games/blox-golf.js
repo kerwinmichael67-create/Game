@@ -243,7 +243,7 @@
         if (p.isMe || !p.presence || !Array.isArray(p.presence.gb)) continue;
         const gb = p.presence.gb; seen.add(p.peer);
         let m = this.balls.get(p.peer);
-        if (!m) { const av = okAv(p.presence.av); m = new THREE.Mesh(new THREE.SphereGeometry(R, 14, 10), new THREE.MeshLambertMaterial({ color: SHIRTS[av[1]] || '#fff' })); m.position.set(gb[1], R, gb[2]); scene.add(m); this.balls.set(p.peer, m); }
+        if (!m) { const av = okAv(p.presence.av); m = new THREE.Mesh(new THREE.SphereGeometry(R, 14, 10), new THREE.MeshLambertMaterial({ color: shirtHex(av[1]) || '#fff' })); m.position.set(gb[1], R, gb[2]); scene.add(m); this.balls.set(p.peer, m); }
         const k = Math.min(1, dt * 12); m.position.x += (gb[1] - m.position.x) * k; m.position.z += (gb[2] - m.position.z) * k; m.position.y = R + (gb[3] ? -0.6 : 0.02); m.visible = !gb[3];
       }
       for (const [peer, m] of this.balls) if (!seen.has(peer)) { scene.remove(m); this.balls.delete(peer); }

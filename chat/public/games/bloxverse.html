@@ -1457,6 +1457,8 @@ const SKINS = ['#f5cd9b', '#e0ac69', '#c68642', '#8d5524', '#ffe0bd', '#f2c94c']
 const SKIN_C = 1000, skinHex = (v) => (v >= SKIN_C ? '#' + ((v - SKIN_C) & 0xffffff).toString(16).padStart(6, '0') : SKINS[v] || SKINS[5]);
 const SHIRTS = ['#1e88e5', '#e53935', '#43a047', '#fdd835', '#8e24aa', '#fb8c00', '#212121', '#f5f5f5', '#00acc1', '#d81b60'];
 const PANTS = ['#1565c0', '#2e7d32', '#424242', '#6d4c41', '#c62828', '#eeeeee', '#283593', '#9e9d24'];
+// a shirt or pants colour of your own, from the colour picker: kept in the same slot as SKIN_C + 0xRRGGBB, like the skin's
+const colHex = (list, v) => (v >= SKIN_C ? '#' + ((v - SKIN_C) & 0xffffff).toString(16).padStart(6, '0') : list[v] || list[0]), shirtHex = (v) => colHex(SHIRTS, v), pantsHex = (v) => colHex(PANTS, v);
 const HATS = ['None', 'Cap', 'Top hat', 'Crown', 'Party hat', 'Cowboy hat', 'Viking helmet', 'Wizard hat', 'Headphones', 'Halo', 'Bunny ears', 'Chef hat', 'Pirate hat', 'Traffic cone', 'Shadow hood', 'Warlord helmet',
   'Beanie', 'Santa hat', 'Propeller cap', 'Fedora', 'Graduation cap', 'Flower crown', 'Devil horns', 'Ninja headband', 'Astronaut helmet', 'Valkyrie helm',
   'Laurel wreath', 'Straw hat', 'Racing helmet', 'Bee antennae', 'Sheriff hat', 'Bucket hat', 'Champion crown', 'Witch hat',
@@ -1497,7 +1499,7 @@ const AV_KEYS = ['s', 'sh', 'p', 'h', 'f', 'b', 'a', 'pt', 'pet', 'tr', 'bt', 'a
 // a body's parts on their own: the helmet (head), the torso, the arms, the legs — each from any body pack you own (0: the body's own)
 const PARTS = [['bh', '🪖', 'Helmet'], ['bu', '👕', 'Torso'], ['ba', '💪', 'Arms'], ['bl', '🦵', 'Legs']], PART_KEYS = PARTS.map((q) => q[0]);
 const avArr = () => AV_KEYS.map((k) => AV[k] | 0);
-const okAv = (a) => { const d = [5, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; return AV_LISTS.map((l, i) => (Array.isArray(a) && a[i] != null ? (i === 0 && a[0] >= SKIN_C && a[0] <= SKIN_C + 0xffffff ? a[0] | 0 : clamp(a[i] | 0, 0, l.length - 1)) : d[i])); };
+const okAv = (a) => { const d = [5, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; return AV_LISTS.map((l, i) => (Array.isArray(a) && a[i] != null ? (i <= 2 && a[i] >= SKIN_C && a[i] <= SKIN_C + 0xffffff ? a[i] | 0 : clamp(a[i] | 0, 0, l.length - 1)) : d[i])); };
 const avFrom = (o) => { const v = okAv(AV_KEYS.map((k) => o && o[k])); const r = {}; AV_KEYS.forEach((k, i) => (r[k] = v[i])); return r; };
 // Blox Coins: earned in every experience, spent on cosmetics (and a few things inside experiences)
 const W = { coins: 0, pc: 0, pcb: new Set(), own: new Set(), day: '', loaded: false, items: {}, // items: what you bought in experiences' shops ({ 'obby.speed': 1 })
@@ -2210,7 +2212,7 @@ const BODY_KITS = [null,
   // forearm and a hand on each arm; a lower torso with a belt and an upper torso. The same size as R6 all over.
   (K) => {
     const { box, lam, mats, av, shirt, pants, skin, frontTex, grp } = K;
-    const shoe = lam(new THREE.Color(PANTS[av[2]]).multiplyScalar(0.6)), belt = lam('#3b2614'), buckle = lam('#facc15', { emissive: '#2a1e00' }); mats.push(shoe, belt, buckle);
+    const shoe = lam(new THREE.Color(pantsHex(av[2])).multiplyScalar(0.6)), belt = lam('#3b2614'), buckle = lam('#facc15', { emissive: '#2a1e00' }); mats.push(shoe, belt, buckle);
     // (the torso's picture runs over both halves: the top 58% on the upper torso, the rest on the lower one)
     const half = (top) => { if (!frontTex) return shirt; const cut = (x) => { const t = x.clone(); t.needsUpdate = true; t.repeat.set(1, top ? 0.58 : 0.42); t.offset.set(0, top ? 0.42 : 0); return t; }, m = lam('#ffffff', { map: cut(frontTex) }); if (PAT_GLOW.has(frontTex)) { m.emissive.set('#ffffff'); m.emissiveMap = cut(PAT_GLOW.get(frontTex)); } mats.push(m); return m; };
     const torso = (m, sx, sy, sz, y) => { const o = new THREE.Mesh(BOX, [shirt, shirt, shirt, shirt, shirt, m]); o.scale.set(sx, sy, sz); o.position.set(0, y, 0); K.body.add(o); };
@@ -2227,7 +2229,7 @@ const BODY_KITS = [null,
   // scan lines rolling down it, the odd glitch); ear-lights; an antenna that blinks; rocket boots that fire as it jumps
   (K) => {
     const { mesh, mats, av, grp } = K;
-    const pn = robPanelTex(), shA = metalMat(SHIRTS[av[1]], { map: pn, shininess: 120 }), shB = metalMat(PANTS[av[2]], { map: pn, shininess: 120 }), wht = metalMat('#e6eaf0', { map: pn }), frm = metalMat('#2a3039', { shininess: 70 }), chr = metalMat('#dfe5ee', { reflectivity: 0.9, shininess: 140 });
+    const pn = robPanelTex(), shA = metalMat(shirtHex(av[1]), { map: pn, shininess: 120 }), shB = metalMat(pantsHex(av[2]), { map: pn, shininess: 120 }), wht = metalMat('#e6eaf0', { map: pn }), frm = metalMat('#2a3039', { shininess: 70 }), chr = metalMat('#dfe5ee', { reflectivity: 0.9, shininess: 140 });
     const lit = new THREE.MeshBasicMaterial({ color: '#38e1ff' }), tipM = new THREE.MeshBasicMaterial({ color: '#ff4d6d' }), jetM = new THREE.MeshBasicMaterial({ color: '#a5f3fc', transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false });
     mats.push(shA, shB, wht, frm, chr);
     const T = { value: 0 }, GL = { value: 0 }, glows = [], spins = [], jets = []; let tipG = null;
@@ -2695,7 +2697,7 @@ BODY_KITS.push(
   // nostrils, blushing cheeks and a mouth of felt teeth with your face peeking out of it
   (K) => {
     const { mesh, mats, av, grp, skin } = K;
-    const c0 = new THREE.Color(SHIRTS[av[1]]), fz = plushTex(), L = (c, o) => new THREE.MeshLambertMaterial(Object.assign({ color: c, map: fz }, o || {}));
+    const c0 = new THREE.Color(shirtHex(av[1])), fz = plushTex(), L = (c, o) => new THREE.MeshLambertMaterial(Object.assign({ color: c, map: fz }, o || {}));
     const suit = L(c0), suitDS = L(c0, { side: THREE.DoubleSide }), dk = L(c0.clone().multiplyScalar(0.72)), spk = L(dinoSpike(c0)), belly = L('#fde9b8'), felt = L('#fffaf0');
     const blush = new THREE.MeshBasicMaterial({ color: '#fb7185', transparent: true, opacity: 0.5, depthWrite: false }), eyeW = new THREE.MeshPhongMaterial({ color: '#ffffff', shininess: 80, specular: '#888888' }), eyeB = new THREE.MeshPhongMaterial({ color: '#0f172a', shininess: 120, specular: '#ffffff' }), shine = new THREE.MeshBasicMaterial({ color: '#ffffff' }), zipM = metalMat('#cbd5e1'), hole = new THREE.MeshBasicMaterial({ color: '#3b0d12' });
     mats.push(suit, suitDS, dk, spk, belly, felt);
@@ -2766,7 +2768,7 @@ BODY_KITS.push(
   // longsword in its scabbard at the hip
   (K) => {
     const { mesh, mats, av, grp } = K;
-    const col = SHIRTS[av[1]], T = { value: 0 }, A = { value: 0.04 }, S = { value: 0 }, G = knGeo();
+    const col = shirtHex(av[1]), T = { value: 0 }, A = { value: 0.04 }, S = { value: 0 }, G = knGeo();
     const steel = metalMat('#d8dde5', { shininess: 130, reflectivity: 0.72 }), st2 = metalMat('#8f98a6', { shininess: 110 }), gold = metalMat('#d9ad34', { specular: '#ffe08a', shininess: 110 }), leather = new THREE.MeshLambertMaterial({ color: '#5b3a1e' }), grip = new THREE.MeshLambertMaterial({ color: '#2a1a0e' });
     const tab = new THREE.MeshLambertMaterial({ map: heraldTex(col), side: THREE.DoubleSide }), fl = (d) => kitCloth(new THREE.MeshLambertMaterial({ map: skirtTex(col), side: THREE.DoubleSide }), T, A, S, d, 'knflap');
     const flapF = fl(-1), flapB = fl(1), cape = kitCloth(new THREE.MeshLambertMaterial({ map: knCapeTex(col), side: THREE.DoubleSide }), T, A, S, 1, 'kncape');
@@ -2836,7 +2838,7 @@ BODY_KITS.push(
   // and a crow on the shoulder that looks about, pecks, ruffles its wings and caws
   (K) => {
     const { mesh, mats, av, grp } = K;
-    const G = scGeo(), F = { value: 1 }, sc = SHIRTS[av[1]], pc = PANTS[av[2]];
+    const G = scGeo(), F = { value: 1 }, sc = shirtHex(av[1]), pc = pantsHex(av[2]);
     const fl = new THREE.MeshLambertMaterial({ map: flannelTex(sc) }), cuff = new THREE.MeshLambertMaterial({ color: new THREE.Color(sc).multiplyScalar(0.6), map: plushTex() }), den = new THREE.MeshLambertMaterial({ map: denimTex(pc) }), den2 = new THREE.MeshLambertMaterial({ color: '#b8b8b8', map: denimTex(pc) });
     const patchM = new THREE.MeshLambertMaterial({ map: patchTex() }), patch2 = new THREE.MeshLambertMaterial({ map: flannelTex('#b91c1c') }), straw = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide }), rope = new THREE.MeshLambertMaterial({ map: ropeTex() }), burlap = new THREE.MeshLambertMaterial({ map: burlapTex() });
     const boot = new THREE.MeshPhongMaterial({ color: '#4a3220', shininess: 18, specular: '#3a2a1a' }), sole = new THREE.MeshLambertMaterial({ color: '#1f160e' }), brass = metalMat('#c9a227'), stemM = new THREE.MeshLambertMaterial({ color: '#5b6b2a' }), leafM = new THREE.MeshLambertMaterial({ color: '#4d7c0f', side: THREE.DoubleSide }), vineM = new THREE.MeshLambertMaterial({ color: '#65a30d' });
@@ -2955,7 +2957,7 @@ ANIM_PACKS.push(
       else { J.aL = [0.1, 0, -0.42]; J.aR = [0.1 + 2.2 * ear, 0, 0.42]; J.bd = [0.05, 0, 0]; }
     },
     tick(a, dt, s) {
-      if (!a.shR) { const col = new THREE.Color(SHIRTS[a.av[1]]).lerp(new THREE.Color('#ffffff'), 0.15); a.shR = [ribbon(a, () => limbEnd(a, true, -1), col, 0.2, 0.45, 26), ribbon(a, () => limbEnd(a, true, 1), col, 0.2, 0.45, 26), ribbon(a, () => limbEnd(a, false, 1), '#f59e0b', 0.12, 0.25)];
+      if (!a.shR) { const col = new THREE.Color(shirtHex(a.av[1])).lerp(new THREE.Color('#ffffff'), 0.15); a.shR = [ribbon(a, () => limbEnd(a, true, -1), col, 0.2, 0.45, 26), ribbon(a, () => limbEnd(a, true, 1), col, 0.2, 0.45, 26), ribbon(a, () => limbEnd(a, false, 1), '#f59e0b', 0.12, 0.25)];
         const f = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), color: '#fde68a', transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); f.scale.setScalar(1.3); f.position.y = a.r15 ? -1.0 : -2.0; a.shFist = pfx(a, f, a.r15 ? a.elR : a.armR); }
       const fly = s.air && a.airT > 0.12;
       if (fly) { a.shR[0].on = a.shR[1].on = a.shR[2].on = true; a.shFist.visible = true; a.shFist.material.opacity = 0.7 + 0.3 * Math.sin(s.t * 20); } // (a trail of light from its feet as it flies, its fist blazing)
@@ -3504,7 +3506,7 @@ BODY_KITS.push((K) => myrmidonKit(K), (K) => hopliteKit(K, false),
   const { mesh, mats, av, grp, skin } = K;
   const st = metalMat('#d5dade', { shininess: 120, reflectivity: 0.7, specular: '#ffffff' }), brass = metalMat('#c9962f', { specular: '#ffe08a' }), G = knGeo();
   const mail = new THREE.MeshPhongMaterial({ map: mailTex(), shininess: 70, specular: '#cbd5e1', side: THREE.DoubleSide }), leather = new THREE.MeshLambertMaterial({ color: '#4a2e18' }), shoe = new THREE.MeshLambertMaterial({ color: '#1f1712' });
-  const c1 = SHIRTS[av[1]], c2 = PANTS[av[2]], alt = '#f5f0e1';
+  const c1 = shirtHex(av[1]), c2 = pantsHex(av[2]), alt = '#f5f0e1';
   const sleeve = new THREE.MeshLambertMaterial({ map: slashTex(c1) }), legA = new THREE.MeshLambertMaterial({ map: slashTex(c2) }), legB = new THREE.MeshLambertMaterial({ map: slashTex(alt) });
   const hoseA = new THREE.MeshLambertMaterial({ color: c2 }), hoseB = new THREE.MeshLambertMaterial({ color: alt }), garter = new THREE.MeshLambertMaterial({ color: c1 });
   const featherR = new THREE.MeshLambertMaterial({ color: '#b91c1c', side: THREE.DoubleSide }), featherW = new THREE.MeshLambertMaterial({ color: '#f8fafc', side: THREE.DoubleSide });
@@ -3768,7 +3770,7 @@ function pharaohKit(K) {
 // ⛩️ the Samurai
 function samuraiKit(K) {
   const { mesh, mats, grp, av, pants } = K, { P, R, T } = dpHelpers(K);
-  const lace = SHIRTS[av[1]], lam2 = new THREE.MeshPhongMaterial({ map: ovOdoshiTex(lace), shininess: 120, specular: '#777', side: THREE.DoubleSide }), lac = new THREE.MeshPhongMaterial({ color: '#17171c', shininess: 120, specular: '#777' }), gold = DPM.gold();
+  const lace = shirtHex(av[1]), lam2 = new THREE.MeshPhongMaterial({ map: ovOdoshiTex(lace), shininess: 120, specular: '#777', side: THREE.DoubleSide }), lac = new THREE.MeshPhongMaterial({ color: '#17171c', shininess: 120, specular: '#777' }), gold = DPM.gold();
   const cloth = new THREE.MeshLambertMaterial({ color: '#1e2a4a', map: plushTex() }), tabi = new THREE.MeshLambertMaterial({ color: '#f5f0e1' }), straw = new THREE.MeshLambertMaterial({ color: '#c9a86a' }), red = new THREE.MeshPhongMaterial({ color: '#9f1d1d', shininess: 90 }), laceM = new THREE.MeshLambertMaterial({ color: lace });
   mats.push(lam2, lac, gold, cloth, tabi, straw, red, laceM);
   return {
@@ -3794,7 +3796,7 @@ function samuraiKit(K) {
 function valkyrieKit(K) {
   const { mesh, mats, grp, av, skin, pants } = K, { P, R, T } = dpHelpers(K);
   const mail = new THREE.MeshPhongMaterial({ map: mailTex(), color: '#c8ced6', shininess: 80, side: THREE.DoubleSide }), steel = metalMat('#dfe4ea', { map: knotTex(), shininess: 110 }), gold = DPM.gold(), fur = new THREE.MeshLambertMaterial({ map: dpFurTex('#e5e7eb', '#a8a29e') });
-  const lth = new THREE.MeshLambertMaterial({ color: '#5b3a22', map: leatherTex() }), cloak = new THREE.MeshLambertMaterial({ color: SHIRTS[av[1]], side: THREE.DoubleSide }), hair = new THREE.MeshLambertMaterial({ color: '#e9c46a' });
+  const lth = new THREE.MeshLambertMaterial({ color: '#5b3a22', map: leatherTex() }), cloak = new THREE.MeshLambertMaterial({ color: shirtHex(av[1]), side: THREE.DoubleSide }), hair = new THREE.MeshLambertMaterial({ color: '#e9c46a' });
   mats.push(mail, steel, gold, fur, lth, cloak, hair);
   return {
     leg(x) { const hip = grp(K.body, x, 2), kn = grp(hip, 0, -1.0, 1); R(0.9, 1.0, 0.9, 0.32, pants, 0, -0.52, 0, hip); R(0.8, 0.5, 0.8, 0.26, pants, 0, -0.16, 0, kn);
@@ -5870,7 +5872,7 @@ function dpHat(n, C) {
     mesh(mailG, P('#a3a9b1', { map: mailTex(), shininess: 70, specular: '#dde3ea', side: THREE.DoubleSide }), 0, -0.12, 0.02, head);
     glint(head, 0.5, 0.95, -0.3, 0.2, 0.5, 1); glint(head, -0.21, 0.24, -0.82, 0.14, 0.42, 3.5);
   } else if (n === 36) { // ⛩️ a samurai's kabuto: a ribbed bowl of black lacquer studded with gold, a gold rosette at the crown, a lacquered peak edged in gold, a neck guard of five lames laced in silk of your colour, great turn-backs bearing a gold crest, tall golden horns (kuwagata) round a red sun in gold flames — and silk cords that swing
-    const lac = P('#141418', { shininess: 150, specular: '#9a9aa8', side: THREE.DoubleSide }), col = SHIRTS[av[1]], cord = P(col, { shininess: 60 }); mats.push(cord);
+    const lac = P('#141418', { shininess: 150, specular: '#9a9aa8', side: THREE.DoubleSide }), col = shirtHex(av[1]), cord = P(col, { shininess: 60 }); mats.push(cord);
     mesh(kLathe('kabutoBowl2', [[0.8, 0], [0.8, 0.08], [0.77, 0.3], [0.68, 0.52], [0.52, 0.7], [0.3, 0.82], [0.12, 0.86], [0, 0.87]], 40), lac, 0, 0.3, 0, head);
     for (let k = 0; k < 24; k++) { const rb = mesh(kg('kabutoRib', () => new THREE.TorusGeometry(0.795, 0.016, 4, 18, Math.PI / 2)), lac, 0, 0.3, 0, head); rb.rotation.y = (k / 24) * Math.PI * 2; rb.scale.y = 1.09; }
     mesh(kg('kabutoRivets', () => { const B = kitBuild(); for (let k = 0; k < 24; k++) { const a = (k / 24) * Math.PI * 2; for (const v of [0.12, 0.42, 0.75]) { const an = v * Math.PI / 2; B.add(KIT_SPH, Math.sin(a) * Math.cos(an) * 0.81, Math.sin(an) * 0.88, Math.cos(a) * Math.cos(an) * 0.81, 0.022); } } return B.geo(); }), gold, 0, 0.3, 0, head);
@@ -6170,7 +6172,7 @@ function dpBack(n, C) {
     glint(g, 0.5, 0.5, 0.25, 0.3, 0.45, 0); glint(g, -0.6, -0.3, 0.2, 0.24, 0.5, 2.5);
     xt.push(() => { const t = nowS(), k = 0.55 + 0.45 * Math.pow(Math.max(0, Math.sin(t * 1.3)), 6); eyes.forEach((e) => { e.material.opacity = k; e.scale.setScalar(0.15 + 0.12 * k); }); });
   } else if (n === 28) { // 🪓 a Viking's round shield and bearded axe: limewood planks painted in your colours with a swirling design, nailed and rimmed in stitched rawhide, an iron boss with a flange of rivets — and a bearded axe crossed behind it, its iron blade etched with knotwork, its haft bound in leather
-    const g = G(0, 3.05, 0.88); const sp = spiralTex(SHIRTS[av[1]], '#f5f0e1');
+    const g = G(0, 3.05, 0.88); const sp = spiralTex(shirtHex(av[1]), '#f5f0e1');
     const f = mesh(aspisGeo(), lam('#ffffff', { map: sp }), 0, 0, 0, g); f.rotation.set(Math.PI / 2, 0, 0); f.scale.set(1, 0.35, 1);
     const bk = mesh(aspisGeo(), lam('#8b6a3e', { map: woodTex(), side: THREE.BackSide }), 0, 0, 0, g); bk.rotation.copy(f.rotation); bk.scale.copy(f.scale);
     for (let k = -3; k <= 3; k++) { const pl = mesh(BOX, lam('#3b2a14'), k * 0.27, 0, 0.068, g); pl.scale.set(0.008, 1.9 * Math.sqrt(Math.max(0, 1 - (k * 0.27) ** 2)), 0.004); } // (the seams between the planks)
@@ -6184,7 +6186,7 @@ function dpBack(n, C) {
     mesh(BA, metalMat('#c3c9d1', { map: knotTex(), shininess: 120, reflectivity: 0.45 }), 0.04, 1.45, 0, ax); const ed = mesh(kg('axeEdge', () => sweepGeo([[0.6, 0.24, 0], [0.63, -0.1, 0], [0.57, -0.47, 0], [0.43, -0.63, 0]], () => 0.012, 16, 4)), metalMat('#f1f5f9', { shininess: 160, reflectivity: 0.6 }), 0.04, 1.45, 0, ax);
     strap('#4a2e18', metalMat('#8a9099')); glint(ax, 0.6, 1.45, 0.04, 0.22, 0.5, 1); glint(g, 0.1, 0.1, 0.32, 0.2, 0.45, 3);
   } else if (n === 29) { // 🎌 a samurai's sashimono: a lacquered pole held on your back in a holder bound with cords, a gold crescent at its top, flying a tall banner of cream silk with bands of your colour, your crest in a gold ring and “valour” brushed in black — it streams and ripples in the wind
-    const pole = P('#16161a', { shininess: 140, specular: '#888' }), col = SHIRTS[av[1]];
+    const pole = P('#16161a', { shininess: 140, specular: '#888' }), col = shirtHex(av[1]);
     mesh(kCyl(), pole, 0, 4.7, 0.78).scale.set(0.05, 4.5, 0.05); box(pole, 1.06, 0.05, 0.05, 0.0, 6.85, 0.78);
     const MC = ovShape('sashCrescent', [[-0.22, 0.0], [-0.3, 0.3, -0.16, 0.42], [-0.18, 0.2, 0.0, 0.12], [0.18, 0.2, 0.16, 0.42], [0.3, 0.3, 0.22, 0.0]], 0.02, 0.008);
     mesh(MC, gold, 0, 6.92, 0.78); glint(body, 0.0, 7.2, 0.82, 0.3, 0.5, 0);
@@ -6278,11 +6280,11 @@ function makeAvatar(av, name, mine, ax) {
   const X = xLooks(ax); // (made and limited items on top: a hat, a shirt's front, a face)
   const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
   const lam = (c, o) => new THREE.MeshLambertMaterial(Object.assign({ color: c }, o || {}));
-  const skin = lam(skinHex(av[0])), shirt = lam(SHIRTS[av[1]]), pants = lam(PANTS[av[2]]), mats = [skin, shirt, pants];
+  const skin = lam(skinHex(av[0])), shirt = lam(shirtHex(av[1])), pants = lam(pantsHex(av[2])), mats = [skin, shirt, pants];
   const box = (m, sx, sy, sz, x, y, z, parent) => { const o = new THREE.Mesh(BOX, m); o.scale.set(sx, sy, sz); o.position.set(x, y, z); (parent || body).add(o); return o; };
   const mesh = (geo, m, x, y, z, parent) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); (parent || body).add(o); return o; };
   const limb = (m, x, y) => { const piv = new THREE.Group(); piv.position.set(x, y, 0); body.add(piv); box(m, 0.98, 2, 0.98, 0, -1, 0, piv); return piv; };
-  const frontTex = X.pt || av[7] ? (X.pt ? pixTex(X.pt.px, SHIRTS[av[1]]) : patternTex(av[7], SHIRTS[av[1]])) : null;
+  const frontTex = X.pt || av[7] ? (X.pt ? pixTex(X.pt.px, shirtHex(av[1])) : patternTex(av[7], shirtHex(av[1]))) : null;
   const mixed = av.length > 12 && [12, 13, 14, 15].some((j) => av[j] >= 2), bt = av[10] === 0 && mixed ? 1 : av[10]; // (parts of other bodies want joints: R15 under them)
   const r15 = bt >= 1; // (R15 and the body packs: jointed)
   let legL, legR, armL, armR, waist = null, upFrom = 0, kit = null;
@@ -6317,7 +6319,7 @@ function makeAvatar(av, name, mine, ax) {
   const cyl = (rt, rb, h, seg) => new THREE.CylinderGeometry(rt, rb, h, seg || 16), a_spin = [], a_xt = []; // (a_xt: things on you that move by themselves: a smouldering match)
   for (const L of X.hats) xHat(L, head, lam, mesh, box, cyl); // (made and limited hats; a few can be worn at once)
   const shopHat = (hat) => {
-  if (hat === 1) { const m = lam(SHIRTS[av[1]]), dk = lam('#' + new THREE.Color(SHIRTS[av[1]]).multiplyScalar(0.62).getHexString()); mats.push(m); // cap: a rounded crown, a curved peak, a button, a badge
+  if (hat === 1) { const m = lam(shirtHex(av[1])), dk = lam('#' + new THREE.Color(shirtHex(av[1])).multiplyScalar(0.62).getHexString()); mats.push(m); // cap: a rounded crown, a curved peak, a button, a badge
     const cr = mesh(new THREE.SphereGeometry(0.74, 22, 10, 0, Math.PI * 2, 0, Math.PI / 2), m, 0, 0.42, 0, head); cr.scale.y = 0.95; mesh(cyl(0.75, 0.75, 0.16, 22), dk, 0, 0.48, 0, head);
     const br = mesh(new THREE.CylinderGeometry(0.78, 0.78, 0.07, 24, 1, false, Math.PI / 2, Math.PI), dk, 0, 0.45, -0.1, head); br.scale.set(0.98, 1, 1.28); br.rotation.x = -0.12;
     mesh(new THREE.SphereGeometry(0.09, 10, 8), dk, 0, 1.12, 0, head); const lg = mesh(cyl(0.19, 0.19, 0.03, 18), lam('#ffffff'), 0, 0.83, -0.6, head); lg.rotation.x = -0.96; const st = mesh(cyl(0.09, 0.09, 0.035, 5), lam('#facc15'), 0, 0.836, -0.606, head); st.rotation.x = -0.96; }
@@ -7467,7 +7469,7 @@ EMOTES.push(
         F.bed = new THREE.Group(); F.root.add(F.bed);
         const pil = lam('#e0f2fe'); add(F.bed, pil, 1.8, 0.4, 1.0, 0, 0.2, 4.75); for (const s of [-1, 1]) add(F.bed, pil, 0.24, 0.2, 0.5, s * 0.9, 0.2, 4.75, KIT_SPH);
         add(F.bed, lam('#bae6fd'), 1.82, 0.05, 0.3, 0, 0.42, 4.75);
-        const q = lam('#ffffff', { map: quiltTex(SHIRTS[a.av[1]]) });
+        const q = lam('#ffffff', { map: quiltTex(shirtHex(a.av[1])) });
         F.blanket = add(F.bed, q, 2.5, 0.16, 3.6, 0, 1.36, 1.95); add(F.bed, lam('#f8fafc'), 2.56, 0.2, 0.44, 0, 1.4, 3.76);
         for (const s of [-1, 1]) add(F.bed, q, 0.12, 1.1, 3.6, s * 1.25, 0.86, 1.95);
         // a teddy bear tucked in beside you, with a red bow
@@ -10921,8 +10923,8 @@ function wearHtml() {
     // a body's parts on their own: any body pack you own lends its helmet, torso, arms or legs
     const mine = BODIES.map((_, i) => i).filter((i) => i >= 2 && owns('bt', i));
     const parts = mine.length ? `<div class="opt"><small>Mix parts · wear just the helmet (or the torso, arms, legs) of a body you own</small>${PARTS.map(([k, ic, n]) => `<div class="pmix"><b>${ic} ${n}</b><div class="pmrow"><button data-pk="${k}" data-pi="0" class="${!AV[k] ? 'on' : ''}">Body’s own</button>${mine.map((i) => `<button data-pk="${k}" data-pi="${i}" class="${AV[k] === i ? 'on' : ''}" title="${esc(BODIES[i])}’s ${n.toLowerCase()}">${COSMETICS.bt.icon[i]} ${esc(BODIES[i])}</button>`).join('')}</div></div>`).join('')}${PART_KEYS.some((k) => AV[k]) && AV.bt === 0 ? '<div class="avnote">Parts of a body pack bend at the knees and elbows, so you’re R15 under them.</div>' : ''}</div>` : '';
-    const own = AV.s >= SKIN_C, skRow = row('Skin', SKINS, 's').replace('</div></div>', `<label class="skpick${own ? ' on' : ''}" title="Pick any skin tone"><input type="color" data-skin="1" value="${skinHex(AV.s)}"><span>🎨 ${own ? skinHex(AV.s).toUpperCase() : 'Any colour'}</span></label></div></div>`);
-    body = bodies + parts + skRow + row('Shirt', SHIRTS, 'sh') + row('Pants', PANTS, 'p');
+    const pickRow = (title, list, key, what) => { const v = AV[key], own = v >= SKIN_C, hx = colHex(list, v); return row(title, list, key).replace('</div></div>', `<label class="skpick${own ? ' on' : ''}" title="Pick any ${what}"><input type="color" data-pick="${key}" value="${hx}"><span>🎨 ${own ? hx.toUpperCase() : 'Any colour'}</span></label></div></div>`); };
+    body = bodies + parts + pickRow('Skin', SKINS, 's', 'skin tone') + pickRow('Shirt', SHIRTS, 'sh', 'shirt colour') + pickRow('Pants', PANTS, 'p', 'pants colour');
   } else if (avTab === 'em') {
     body = `<p class="xp-note">🎭 Tap an emote to see it. In a game, press <b>.</b> or tap 🎭 Emotes for the emote wheel, or type <b>/e wave</b> in the chat. Moving stops one.</p><div class="shop">${EMOTES.map((E, i) => {
       const own = emOwns(i), ask = avAsk === 'em' + i, on = pv.a && pv.a.em && pv.a.em.i === i;
@@ -10988,15 +10990,15 @@ $('#avOpts').onclick = (e) => {
   } else return;
   drawAvatarOpts(); pvAvatar(); saveAv(); drawMe();
 };
-$('#avOpts').oninput = (e) => { const t = e.target; if (t.dataset && t.dataset.skin) { skinPick(t); return; } if (t.id === 'mkName') ED.draft.nm = t.value; else if (t.dataset && (t.dataset.ap || t.dataset.pl)) builderInput(t); else if (t.dataset && t.dataset.v) ED[t.dataset.v] = t.value; };
+$('#avOpts').oninput = (e) => { const t = e.target; if (t.dataset && t.dataset.pick) { skinPick(t); return; } if (t.id === 'mkName') ED.draft.nm = t.value; else if (t.dataset && (t.dataset.ap || t.dataset.pl)) builderInput(t); else if (t.dataset && t.dataset.v) ED[t.dataset.v] = t.value; };
 // the skin colour picker: your avatar takes the colour as you drag; saved (and sent to the server) when you let go
-function skinPick(t, done) {
-  const v = /^#[0-9a-f]{6}$/i.test(t.value) ? SKIN_C + parseInt(t.value.slice(1), 16) : AV.s; if (v === AV.s && !done) return;
-  AV.s = v; const L = t.closest('.skpick'); if (L) { L.classList.add('on'); L.querySelector('span').textContent = '🎨 ' + skinHex(v).toUpperCase(); }
-  document.querySelectorAll('#avOpts .sw button[data-k="s"]').forEach((b) => b.classList.remove('on'));
+function skinPick(t, done) { // (the skin, shirt or pants picker: data-pick names which)
+  const k = ['s', 'sh', 'p'].includes(t.dataset.pick) ? t.dataset.pick : 's', v = /^#[0-9a-f]{6}$/i.test(t.value) ? SKIN_C + parseInt(t.value.slice(1), 16) : AV[k]; if (v === AV[k] && !done) return;
+  AV[k] = v; const L = t.closest('.skpick'); if (L) { L.classList.add('on'); L.querySelector('span').textContent = '🎨 ' + ('#' + (v - SKIN_C).toString(16).padStart(6, '0')).toUpperCase(); }
+  document.querySelectorAll(`#avOpts .sw button[data-k="${k}"]`).forEach((b) => b.classList.remove('on'));
   pvAvatar(); clearTimeout(skinPick.t); skinPick.t = setTimeout(() => { saveAv(); drawMe(); }, done ? 0 : 400);
 }
-$('#avOpts').addEventListener('change', (e) => { const d = e.target.dataset || {}; if (d.skin) { skinPick(e.target, true); return; } if (d.ap || d.pl) { ED.acc.dragging = false; drawAvatarOpts(); } else if (d.v === 'pubPrice' || d.v === 'pubStock') { ED.pubErr = ''; drawAvatarOpts(); } });
+$('#avOpts').addEventListener('change', (e) => { const d = e.target.dataset || {}; if (d.pick) { skinPick(e.target, true); return; } if (d.ap || d.pl) { ED.acc.dragging = false; drawAvatarOpts(); } else if (d.v === 'pubPrice' || d.v === 'pubStock') { ED.pubErr = ''; drawAvatarOpts(); } });
 $('#avOpts').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.dataset && e.target.dataset.go) { e.preventDefault(); const b = $('#' + e.target.dataset.go); if (b && !b.disabled) b.click(); } });
 // over the avatar in the editor: what you're only trying on, and buying it all at once
 // what what you're trying on costs: all in Premium Blox Coins if the switch is on and they all can be, else Blox Coins
@@ -12620,7 +12622,7 @@ function pxBind() {
   const D = ED.draft, g = cv.getContext('2d');
   const draw = () => {
     const px = draftLook().px; g.clearRect(0, 0, 240, 240);
-    g.fillStyle = D.k === 'f' ? skinHex(AV.s) : SHIRTS[AV.sh]; g.fillRect(0, 0, 240, 240);
+    g.fillStyle = D.k === 'f' ? skinHex(AV.s) : shirtHex(AV.sh); g.fillRect(0, 0, 240, 240);
     for (let i = 0; i < 144; i++) { const v = parseInt(px[i], 16); if (v) { g.fillStyle = XPAL[v]; g.fillRect((i % 12) * 20, Math.floor(i / 12) * 20, 20, 20); } }
     g.strokeStyle = 'rgba(0,0,0,.12)'; for (let i = 1; i < 12; i++) { g.beginPath(); g.moveTo(i * 20, 0); g.lineTo(i * 20, 240); g.moveTo(0, i * 20); g.lineTo(240, i * 20); g.stroke(); }
   };
