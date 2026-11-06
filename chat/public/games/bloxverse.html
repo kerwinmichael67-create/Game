@@ -502,6 +502,10 @@
   .sw button{width:28px;height:28px;border-radius:9px;border:2px solid rgba(255,255,255,.15);cursor:pointer;padding:0;box-shadow:0 2px 0 rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.3);transition:transform .1s}
   .sw button:hover{transform:scale(1.12)}
   .sw button.on{border-color:#fff;box-shadow:0 0 0 3px #22c55e,0 2px 0 rgba(0,0,0,.35)}
+  .skpick{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px 0 3px;border-radius:9px;border:2px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);cursor:pointer;font-size:12px;font-weight:700;color:#e2e8f0}
+  .skpick.on{border-color:#fff;box-shadow:0 0 0 3px #22c55e}
+  .skpick input{width:22px;height:22px;padding:0;border:0;border-radius:6px;background:none;cursor:pointer}
+  .skpick input::-webkit-color-swatch-wrapper{padding:0}.skpick input::-webkit-color-swatch{border:0;border-radius:6px}.skpick input::-moz-color-swatch{border:0;border-radius:6px}
   /* the featured experience */
   .feat{position:relative;overflow:hidden;display:grid;grid-template-columns:1fr auto;align-items:end;gap:16px;min-height:200px;border-radius:24px;padding:22px 24px;margin-bottom:22px;background:var(--exp);box-shadow:var(--drop),inset 0 0 0 1px rgba(255,255,255,.14);cursor:pointer;border:0;color:#fff;text-align:left;width:100%;font:inherit}
   .feat::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.55),rgba(0,0,0,.1) 70%);pointer-events:none}
@@ -1449,6 +1453,8 @@ function groundBelow(x, y, z) {
 
 /* ---------------- avatars and cosmetics ---------------- */
 const SKINS = ['#f5cd9b', '#e0ac69', '#c68642', '#8d5524', '#ffe0bd', '#f2c94c'];
+// a skin tone of your own, from the colour picker: kept in the same slot as SKIN_C + 0xRRGGBB (older players just see a swatch)
+const SKIN_C = 1000, skinHex = (v) => (v >= SKIN_C ? '#' + ((v - SKIN_C) & 0xffffff).toString(16).padStart(6, '0') : SKINS[v] || SKINS[5]);
 const SHIRTS = ['#1e88e5', '#e53935', '#43a047', '#fdd835', '#8e24aa', '#fb8c00', '#212121', '#f5f5f5', '#00acc1', '#d81b60'];
 const PANTS = ['#1565c0', '#2e7d32', '#424242', '#6d4c41', '#c62828', '#eeeeee', '#283593', '#9e9d24'];
 const HATS = ['None', 'Cap', 'Top hat', 'Crown', 'Party hat', 'Cowboy hat', 'Viking helmet', 'Wizard hat', 'Headphones', 'Halo', 'Bunny ears', 'Chef hat', 'Pirate hat', 'Traffic cone', 'Shadow hood', 'Warlord helmet',
@@ -1467,12 +1473,12 @@ const BODIES = ['R6', 'R15', 'Robot', 'Skeleton', 'Magma Golem', 'Dino Suit', 'K
   'Minotaur', 'Anubis', 'Pharaoh', 'Samurai', 'Valkyrie', 'Centurion', 'Gladiator', 'Talos', 'Cyclops', 'Berserker',
   'Legionary', 'Velite', 'Retiarius', 'Praetorian', 'Thraex Gladiator', 'Hoplite', 'Peltast', 'Toxotes', 'Myrmidon Vanguard', 'Spartan Polemarch',
   'Footman', 'Longbowman', 'Viking Raider', 'Templar', 'Heavy Knight', 'Ashigaru', 'Ronin', 'Shinobi', 'Sohei', 'Crescent Samurai',
-  'Laestrygonian Warlord', 'Executioner', 'Azab', 'Okçu Archer', 'Humbaracı', 'Peyk', 'Janissary', 'Arban Spearman', 'Steppe Archer', 'Steppe Shaman', 'Kheshig', 'Great Khan', 'Kensei', 'Imperator', 'Frost Jötunn', 'Phalangite', 'Halberdier', 'Cyclops', 'Oni', 'Cacus', 'Chötgör', 'Laestrygonian Colossus']; // (2 on: body packs, jointed like R15; from 13: 💎 Deluxe Plus; from 23: ⚔️ Colosseum Duels mastery)
+  'Laestrygonian Warlord', 'Executioner', 'Azab', 'Okçu Archer', 'Humbaracı', 'Peyk', 'Janissary', 'Arban Spearman', 'Steppe Archer', 'Steppe Shaman', 'Kheshig', 'Great Khan', 'Kensei', 'Imperator', 'Frost Jötunn', 'Phalangite', 'Halberdier', 'Cyclops', 'Oni', 'Cacus', 'Chötgör', 'Yūrei', 'Laestrygonian Colossus']; // (2 on: body packs, jointed like R15; from 13: 💎 Deluxe Plus; from 23: ⚔️ Colosseum Duels mastery)
 // animation packs: how you stand, walk, run and jump
 const ANIMS = ['Default', 'Robot', 'Ninja', 'Zombie', 'Superhero', 'Stylish', 'Levitation', 'Vampire', 'Hoplite', 'Laestrygonian', 'Minotaur', 'Pharaoh', 'Samurai', 'Valkyrie', 'Berserker',
   'Legionary', 'Velite', 'Retiarius', 'Praetorian', 'Thraex Gladiator', 'Hoplite', 'Peltast', 'Toxotes', 'Myrmidon Vanguard', 'Spartan Polemarch',
   'Footman', 'Longbowman', 'Viking Raider', 'Templar', 'Heavy Knight', 'Ashigaru', 'Ronin', 'Shinobi', 'Sohei', 'Crescent Samurai',
-  'Laestrygonian Warlord', 'Executioner', 'Azab', 'Okçu Archer', 'Humbaracı', 'Peyk', 'Janissary', 'Arban Spearman', 'Steppe Archer', 'Steppe Shaman', 'Kheshig', 'Great Khan', 'Kensei', 'Imperator', 'Frost Jötunn', 'Phalangite', 'Halberdier', 'Cyclops', 'Oni', 'Cacus', 'Chötgör']; // (from 10: 💎 Deluxe Plus; from 15: ⚔️ Colosseum Duels mastery)
+  'Laestrygonian Warlord', 'Executioner', 'Azab', 'Okçu Archer', 'Humbaracı', 'Peyk', 'Janissary', 'Arban Spearman', 'Steppe Archer', 'Steppe Shaman', 'Kheshig', 'Great Khan', 'Kensei', 'Imperator', 'Frost Jötunn', 'Phalangite', 'Halberdier', 'Cyclops', 'Oni', 'Cacus', 'Chötgör', 'Yūrei']; // (from 10: 💎 Deluxe Plus; from 15: ⚔️ Colosseum Duels mastery)
 // the shop: what each costs in Blox Coins (0 = free, -1 = only as a reward)
 const COSMETICS = {
   h: { title: 'Hats', list: HATS, price: [0, 0, 0, 0, 0, 100, 250, 300, 150, 800, 200, 120, 220, 80, 1500, -1, 100, 200, 350, 180, 220, 260, 400, 150, 1200, 3000, -1, -1, -1, -1, -1, -1, -1, 400, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
@@ -1482,8 +1488,8 @@ const COSMETICS = {
   a: { title: 'Auras', list: AURAS, price: [0, 300, 800, 400, 350, 1000, 1500, 300, 350, 2000, 600, 2500, -1, -1, -1, 900], icon: ['🚫', '✨', '🔥', '💖', '❄️', '⚡', '🌈', '🫧', '🍃', '🌌', '☢️', '💸', '💫', '🌑', '⛈️', '🦇'] },
   pt: { title: 'Shirts', list: PATTERNS, price: [0, 60, 80, 80, 120, 100, 90, 250, 150, 150, 120, 200, 300, -1, -1, -1, 200], icon: ['⬜', '〰️', '⭐', '❤️', '⚡', '🏁', '1️⃣', '👔', '💀', '🔥', '🪖', '🌈', '🌌', '🏆', '🐾', '🌻', '🦴'] },
   pet: { title: 'Pets', list: PETS, price: [0, 400, 400, 350, 1500, 900, 2500, 600, 800, 1200, 4000, -1, -1, 1000, -1, -1], icon: ['🚫', '🐶', '🐱', '🐰', '🐉', '🤖', '🦄', '🐧', '🦊', '🐼', '🦅', '🧟', '🌱', '👻', '🐓', '🦕'] },
-  bt: { title: 'Bodies', list: BODIES, price: [0, 0, 900, 600, 1200, 1000, 1100, 800, 1300, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], icon: ['🧍', '🦵', '🤖', '💀', '🌋', '🦖', '⚔️', '🎃', '🫥', '🐜', '🛡️', '🪓', '🗿', '🐂', '🐺', '👑', '⛩️', '🪽', '🦅', '⚔️', '🤖', '👁️', '🐻', '🦅', '🐺', '🔱', '🦂', '⚔️', '🦉', '🌙', '🏹', '🐜', '🛡️', '🗡️', '🎯', '🪓', '✝️', '🏰', '🎋', '🍂', '🥷', '📿', '🏯', '🗿', '💀', '🔱', '🏹', '💣', '🪓', '🌙', '🔱', '🏹', '🥁', '🛡️', '👑', '👺', '🌿', '🧊', '🌞', '🪓', '👁️', '👹', '🔥', '👻', '👹'], tab: false }, // (bodies and animations are in 🧍 Body)
-  an: { title: 'Animations', list: ANIMS, price: [0, 500, 750, 400, 700, 550, 900, 777, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], icon: ['🚶', '🤖', '🥷', '🧟', '🦸', '😎', '🫧', '🧛', '🏺', '👣', '🐂', '👑', '⛩️', '🪽', '🐻', '🦅', '🐺', '🔱', '🦂', '⚔️', '🦉', '🌙', '🏹', '🐜', '🛡️', '🗡️', '🎯', '🪓', '✝️', '🏰', '🎋', '🍂', '🥷', '📿', '🏯', '🗿', '💀', '🔱', '🏹', '💣', '🪓', '🌙', '🔱', '🏹', '🥁', '🛡️', '👑', '👺', '🌿', '🧊', '🌞', '🪓', '👁️', '👹', '🔥', '👻'], tab: false },
+  bt: { title: 'Bodies', list: BODIES, price: [0, 0, 900, 600, 1200, 1000, 1100, 800, 1300, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], icon: ['🧍', '🦵', '🤖', '💀', '🌋', '🦖', '⚔️', '🎃', '🫥', '🐜', '🛡️', '🪓', '🗿', '🐂', '🐺', '👑', '⛩️', '🪽', '🦅', '⚔️', '🤖', '👁️', '🐻', '🦅', '🐺', '🔱', '🦂', '⚔️', '🦉', '🌙', '🏹', '🐜', '🛡️', '🗡️', '🎯', '🪓', '✝️', '🏰', '🎋', '🍂', '🥷', '📿', '🏯', '🗿', '💀', '🔱', '🏹', '💣', '🪓', '🌙', '🔱', '🏹', '🥁', '🛡️', '👑', '👺', '🌿', '🧊', '🌞', '🪓', '👁️', '👹', '🔥', '👻', '🏮', '👹'], tab: false }, // (bodies and animations are in 🧍 Body)
+  an: { title: 'Animations', list: ANIMS, price: [0, 500, 750, 400, 700, 550, 900, 777, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], icon: ['🚶', '🤖', '🥷', '🧟', '🦸', '😎', '🫧', '🧛', '🏺', '👣', '🐂', '👑', '⛩️', '🪽', '🐻', '🦅', '🐺', '🔱', '🦂', '⚔️', '🦉', '🌙', '🏹', '🐜', '🛡️', '🗡️', '🎯', '🪓', '✝️', '🏰', '🎋', '🍂', '🥷', '📿', '🏯', '🗿', '💀', '🔱', '🏹', '💣', '🪓', '🌙', '🔱', '🏹', '🥁', '🛡️', '👑', '👺', '🌿', '🧊', '🌞', '🪓', '👁️', '👹', '🔥', '👻', '🏮'], tab: false },
   tr: { title: 'Trails', list: TRAILS, price: [0, 1500, 800, 600, 500, 2000, 700, -1, -1, 700], icon: ['🚫', '🌈', '🔥', '🧊', '💠', '🪙', '💕', '⭐', '⚡', '🌫️'] },
 };
 let AV = { s: 5, sh: 0, p: 1, h: 0, f: 0, b: 0, a: 0, pt: 0, pet: 0, tr: 0, bt: 0, an: 0, bh: 0, bu: 0, ba: 0, bl: 0 };
@@ -1491,7 +1497,7 @@ const AV_KEYS = ['s', 'sh', 'p', 'h', 'f', 'b', 'a', 'pt', 'pet', 'tr', 'bt', 'a
 // a body's parts on their own: the helmet (head), the torso, the arms, the legs — each from any body pack you own (0: the body's own)
 const PARTS = [['bh', '🪖', 'Helmet'], ['bu', '👕', 'Torso'], ['ba', '💪', 'Arms'], ['bl', '🦵', 'Legs']], PART_KEYS = PARTS.map((q) => q[0]);
 const avArr = () => AV_KEYS.map((k) => AV[k] | 0);
-const okAv = (a) => { const d = [5, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; return AV_LISTS.map((l, i) => (Array.isArray(a) && a[i] != null ? clamp(a[i] | 0, 0, l.length - 1) : d[i])); };
+const okAv = (a) => { const d = [5, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; return AV_LISTS.map((l, i) => (Array.isArray(a) && a[i] != null ? (i === 0 && a[0] >= SKIN_C && a[0] <= SKIN_C + 0xffffff ? a[0] | 0 : clamp(a[i] | 0, 0, l.length - 1)) : d[i])); };
 const avFrom = (o) => { const v = okAv(AV_KEYS.map((k) => o && o[k])); const r = {}; AV_KEYS.forEach((k, i) => (r[k] = v[i])); return r; };
 // Blox Coins: earned in every experience, spent on cosmetics (and a few things inside experiences)
 const W = { coins: 0, pc: 0, pcb: new Set(), own: new Set(), day: '', loaded: false, items: {}, // items: what you bought in experiences' shops ({ 'obby.speed': 1 })
@@ -4437,8 +4443,8 @@ ANIM_DESC.push('💎 The Minotaur: hunched, its chest heaving, head low and swin
    fights bare-chested under a towering crest, the Myrmidon is black and bronze with mandibled cheek guards. */
 const DUEL_N = ['Legionary', 'Velite', 'Retiarius', 'Praetorian', 'Thraex Gladiator', 'Hoplite', 'Peltast', 'Toxotes', 'Myrmidon Vanguard', 'Spartan Polemarch',
   'Footman', 'Longbowman', 'Viking Raider', 'Templar', 'Heavy Knight', 'Ashigaru', 'Ronin', 'Shinobi', 'Sohei', 'Crescent Samurai',
-  'Laestrygonian Warlord', 'Executioner', 'Azab', 'Okçu Archer', 'Humbaracı', 'Peyk', 'Janissary', 'Arban Spearman', 'Steppe Archer', 'Steppe Shaman', 'Kheshig', 'Great Khan', 'Kensei', 'Imperator', 'Frost Jötunn', 'Phalangite', 'Halberdier', 'Cyclops', 'Oni', 'Cacus', 'Chötgör'];
-const DUEL_IC = ['🦅', '🐺', '🔱', '🦂', '⚔️', '🦉', '🌙', '🏹', '🐜', '🛡️', '🗡️', '🎯', '🪓', '✝️', '🏰', '🎋', '🍂', '🥷', '📿', '🏯', '🗿', '💀', '🔱', '🏹', '💣', '🪓', '🌙', '🔱', '🏹', '🥁', '🛡️', '👑', '👺', '🌿', '🧊', '🌞', '🪓', '👁️', '👹', '🔥', '👻'];
+  'Laestrygonian Warlord', 'Executioner', 'Azab', 'Okçu Archer', 'Humbaracı', 'Peyk', 'Janissary', 'Arban Spearman', 'Steppe Archer', 'Steppe Shaman', 'Kheshig', 'Great Khan', 'Kensei', 'Imperator', 'Frost Jötunn', 'Phalangite', 'Halberdier', 'Cyclops', 'Oni', 'Cacus', 'Chötgör', 'Yūrei'];
+const DUEL_IC = ['🦅', '🐺', '🔱', '🦂', '⚔️', '🦉', '🌙', '🏹', '🐜', '🛡️', '🗡️', '🎯', '🪓', '✝️', '🏰', '🎋', '🍂', '🥷', '📿', '🏯', '🗿', '💀', '🔱', '🏹', '💣', '🪓', '🌙', '🔱', '🏹', '🥁', '🛡️', '👑', '👺', '🌿', '🧊', '🌞', '🪓', '👁️', '👹', '🔥', '👻', '🏮'];
 const DUEL_BT = 23, DUEL_AN = 15; // (where they start in BODIES and ANIMS)
 const dkSurcoatTex = (c1, c2, kind) => kCanvas('dkSur' + c1 + c2 + kind, 128, 128, (g, r) => { g.fillStyle = c1; g.fillRect(0, 0, 128, 128); for (let k = 0; k < 600; k++) { g.fillStyle = r() < 0.5 ? 'rgba(0,0,0,.05)' : 'rgba(255,255,255,.05)'; g.fillRect(r() * 128, r() * 128, 2, 1); }
   g.fillStyle = c2; if (kind === 'cross') { g.fillRect(52, 8, 24, 112); g.fillRect(16, 36, 96, 22); } else if (kind === 'quarter') { g.fillRect(0, 0, 64, 64); g.fillRect(64, 64, 64, 64); } else if (kind === 'lion') { g.font = 'bold 76px serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('⚜', 64, 66); }
@@ -4875,6 +4881,36 @@ function duelKit(K, i) {
           for (let k = 0; k < 6; k++) mesh(kg('chotHair', () => sweepGeo([[0, 0, 0], [0, -0.5, 0.2], [0, -1.2, 0.35], [0, -1.8, 0.55]], (t) => 0.1 * (1 - t) + 0.02, 10, 6)), hairM, -0.5 + k * 0.2, 0.3, 0.55, h); return true; }, // (long dark hair, drifting)
         tick(a, dt) { if (!emWorld(a) || a.dead) return; if (Math.random() < dt * 9) kitSpark(a, a.g, (Math.random() - 0.5) * 2, 0.5 + Math.random() * 4.5, (Math.random() - 0.5) * 1.4, Math.random() < 0.6 ? '#5eead4' : '#ccfbf1', { v: [0, 0.8 + Math.random(), 0], life: 1.1, s: 0.22, grow: 1.4, op: 0.5, j: 0.5 }); } }; // (wisps rising off it)
     },
+    () => { // 🏮 Yūrei: a ghost of old Japan — the white burial kimono (kyōkatabira), wrapped right over left as the dead are dressed; the white triangle (hitaikakushi) on its brow; long black hair hanging loose over its face and down its back, one cold eye showing through; pale, half-seen-through skin; long hands hanging limp; no feet — below the knee it fades into mist; two hitodama (ghost-fires) drifting round it
+      const kim = M('#dfe4ea', { map: plushTex(), emissive: '#93c5fd', emissiveIntensity: 0.06, transparent: true, opacity: 0.92, shininess: 6 }), kimE = M('#94a3b8', { emissive: '#60a5fa', emissiveIntensity: 0.12 }), obi = M('#cbd5e1', { map: plushTex(), shininess: 20 });
+      const gh = M('#cfe3f5', { emissive: '#3b82f6', emissiveIntensity: 0.22, transparent: true, opacity: 0.78, depthWrite: false, shininess: 60 }), mist = M('#e0f2fe', { emissive: '#93c5fd', emissiveIntensity: 0.6, transparent: true, opacity: 0.3, depthWrite: false, side: THREE.DoubleSide });
+      const hairM = M('#05070c', { shininess: 80, specular: '#475569' }), tri = L('#ffffff', { side: THREE.DoubleSide, emissive: '#e2e8f0', emissiveIntensity: 0.35 }), eye = M('#f0f9ff', { emissive: '#7dd3fc', emissiveIntensity: 1.8 }), hole = M('#0b1020'), lip = M('#94a3b8');
+      const fl = M('#dbeafe', { emissive: '#3b82f6', emissiveIntensity: 1.4, transparent: true, opacity: 0.85, depthWrite: false });
+      let orb = null, tt = 0; // (the ghost-fires, going round it)
+      return { leg: (x) => leg(x, kim, mist),
+        lower() { hips(kim); mesh(kLathe('yurSk', [[0.86, -1.75], [1.0, -1.3], [1.08, -0.7], [1.04, 0]], 28), kim, 0, 2.86, 0).scale.set(1, 1, 0.66); // (the kimono to the knee…)
+          mesh(kLathe('yurMist', [[0, -1.12], [0.3, -1.04], [0.7, -0.74], [0.95, -0.34], [0.86, 0]], 26), mist, 0, 1.12, 0).scale.set(1, 1, 0.7); // (…and below it, only mist)
+          for (let k = 0; k < 11; k++) { const an = (k / 11) * Math.PI * 2, s2 = R(0.3, 0.45 + (k % 3) * 0.2, 0.04, 0.02, kim, Math.sin(an) * 0.88, 1.06 - (k % 3) * 0.1, Math.cos(an) * 0.56); s2.rotation.y = an; } }, // (a ragged hem)
+        upper() { torso(kim);
+          const e1 = R(0.17, 1.32, 0.06, 0.03, kimE, -0.1, 3.5, -0.53); e1.rotation.z = -0.66; // (the collar: the right side over the left, as the dead wear it)
+          const e2 = R(0.15, 0.52, 0.05, 0.03, kimE, -0.16, 3.82, -0.52); e2.rotation.z = 0.64; R(0.9, 0.18, 0.22, 0.06, kimE, 0, 4.0, 0.4); // (the under-collar at the throat, the collar round the back)
+          R(2.12, 0.42, 1.12, 0.1, obi, 0, 3.0, 0); R(2.16, 0.06, 1.16, 0.03, kimE, 0, 3.0, 0); R(0.5, 0.36, 0.14, 0.06, obi, 0, 3.0, 0.6); // (a plain white obi, a cord, the knot behind)
+          orb = new THREE.Group(); orb.position.y = 4.7; K.body.add(orb);
+          for (const s2 of [-1, 1]) { const f = new THREE.Group(); f.position.set(s2 * 2.7, 0, 0); orb.add(f); P(kSph(), fl, 0, 0, 0, f, 0.2); const tl = P(kCone(), fl, 0, 0, s2 * 0.34, f, 0.15, 0.5, 0.15); tl.rotation.x = s2 * Math.PI / 2; kitGlow(f, '#60a5fa', 1.4, 0.75); kitGlow(f, '#e0f2fe', 0.5, 0.9); } }, // (two hitodama, tails behind them)
+        arm: (s2) => { const r = arm(s2, kim, kim, gh); R(0.96, 1.2, 0.8, 0.2, kim, 0, -0.6, 0.5, r[1]); // (the deep sleeve, hanging below the arm when it's held out)
+          for (let k = 0; k < 4; k++) R(0.1, 0.5, 0.1, 0.045, gh, -0.27 + k * 0.18, -1.22, 0.26, r[1]).rotation.x = -0.9; // (long fingers, hanging limp)
+          return r; },
+        head(h) { R(1.3, 1.38, 1.3, 0.46, gh, 0, 0, 0, h);
+          for (const s2 of [-1, 1]) P(kSph(), hole, s2 * 0.27, 0.06, -0.63, h, 0.16, 0.1, 0.05); P(kSph(), eye, 0.27, 0.06, -0.67, h, 0.06); kitGlow(h, '#7dd3fc', 0.45, 0.9).position.set(0.27, 0.06, -0.76); // (hollow eyes — one cold light showing)
+          R(0.3, 0.05, 0.04, 0.02, lip, 0.02, -0.4, -0.66, h); // (a thin, bloodless mouth)
+          bowl(h, hairM, 0.24, 1.08, 0.74); ring(h, 0.72, 0.035, 0.4, tri); // (the hair, and the band of the hitaikakushi)
+          mesh(kg('yurTri', () => { const sh = new THREE.Shape(); sh.moveTo(-0.24, 0); sh.lineTo(0.24, 0); sh.lineTo(0, 0.34); sh.closePath(); return new THREE.ShapeGeometry(sh); }), tri, 0, 0.36, -0.78, h); // (the white triangle on the brow)
+          for (const x of [-0.58, -0.45, -0.32, -0.19, -0.06, 0.07, 0.48, 0.6]) mesh(kg('yurFr', () => sweepGeo([[0, 0, 0], [0, -0.5, -0.06], [0, -1.1, -0.05], [0, -1.75, 0.02]], (t) => 0.07 * (1 - t * 0.5), 8, 5)), hairM, x, 0.32, -0.72, h); // (hair over its face, parted over one eye)
+          for (let k = 0; k < 10; k++) mesh(kg('yurBk', () => sweepGeo([[0, 0, 0], [0, -0.8, 0.18], [0, -1.8, 0.3], [0, -2.9, 0.36]], (t) => 0.13 * (1 - t * 0.5), 10, 6)), hairM, -0.62 + k * 0.138, 0.5, 0.62, h); // (and down its back)
+          for (const s2 of [-1, 1]) for (let k = 0; k < 3; k++) mesh(kg('yurSd', () => sweepGeo([[0, 0, 0], [0, -0.7, 0.04], [0, -1.6, 0.1], [0, -2.3, 0.12]], (t) => 0.1 * (1 - t * 0.5), 8, 5)), hairM, s2 * 0.72, 0.4, -0.3 + k * 0.3, h); // (and down its sides)
+          return true; },
+        tick(a, dt) { if (!orb) return; tt += dt; orb.rotation.y += dt * 1.3; orb.children.forEach((f, k) => { f.position.y = Math.sin(tt * 2.1 + k * 3.1) * 0.35; if (emWorld(a) && !a.dead && Math.random() < dt * 9) kitSpark(a, f, 0, 0, 0, Math.random() < 0.6 ? '#93c5fd' : '#e0f2fe', { v: [0, 0.6, 0], life: 0.7, s: 0.26, grow: 1.2, op: 0.6, j: 0.2 }); }); } };
+    },
   ];
   return LOOKS[i]();
 }
@@ -5068,6 +5104,7 @@ DG_GEAR.push(
   (h, l) => [[dgKanabo(h)], null], // (the Oni: the iron kanabō)
   (h, l) => [[dgForgeHammer(h)], null], // (Cacus: his father's forge hammer)
   (h, l) => [[dgGhostClaw(h)], null], // (the Chötgör: spectral claws)
+  (h, l) => [[dgGhostClaw(h, ['#eff6ff', '#60a5fa', '#93c5fd'])], dgLantern(l)], // (the Yūrei: pale claws, the ghost-lantern in the other hand)
 );
 // the legion's eagle on its standard: a gilded pole along -z (upright when the forearm's raised), the eagle with its wings
 // up, a laurel wreath under it, a red SPQR plaque with gold fringes, gold discs (phalerae) down the pole
@@ -5111,10 +5148,24 @@ function dgForgeHammer(par) {
   const hd = new THREE.Mesh(rboxGeo(1.6, 0.78, 0.78, 0.12), ir); hd.position.z = -3.25; g.add(hd); for (const s of [-1, 1]) { const f = new THREE.Mesh(BOX, hot); f.scale.set(0.06, 0.66, 0.66); f.position.set(s * 0.82, 0, -3.25); g.add(f); kitGlow(g, '#ff6a00', 1.4, 0.55).position.set(s * 0.9, 0, -3.25); } // (an iron head, both faces glowing from the forge)
   g.userData.tip = new THREE.Object3D(); g.userData.tip.position.set(0.8, 0, -3.25); g.add(g.userData.tip); g.userData.len = 3.6; return g;
 }
-function dgGhostClaw(par) {
-  const g = new THREE.Group(); par.add(g); const m = new THREE.MeshPhongMaterial({ color: '#ccfbf1', emissive: '#2dd4bf', emissiveIntensity: 0.9, transparent: true, opacity: 0.85 });
-  for (const x of [-0.16, 0, 0.16]) { const c = new THREE.Mesh(kCone(), m); c.scale.set(0.05, 0.55, 0.05); c.rotation.x = -Math.PI / 2; c.position.set(x, -0.05, -0.45); g.add(c); } kitGlow(g, '#5eead4', 1.1, 0.6).position.z = -0.4; // (three spectral claws)
+function dgGhostClaw(par, c = ['#ccfbf1', '#2dd4bf', '#5eead4']) {
+  const g = new THREE.Group(); par.add(g); const m = new THREE.MeshPhongMaterial({ color: c[0], emissive: c[1], emissiveIntensity: 0.9, transparent: true, opacity: 0.85 });
+  for (const x of [-0.16, 0, 0.16]) { const c = new THREE.Mesh(kCone(), m); c.scale.set(0.05, 0.55, 0.05); c.rotation.x = -Math.PI / 2; c.position.set(x, -0.05, -0.45); g.add(c); } kitGlow(g, c[2], 1.1, 0.6).position.z = -0.4; // (three spectral claws)
   g.userData.tip = new THREE.Object3D(); g.userData.tip.position.z = -1.1; g.add(g.userData.tip); g.userData.len = 1.1; return g;
+}
+// the Yūrei's lantern: an old paper chōchin on a cord, hanging from the hand (down the hand's +z when the arm's held out),
+// lit from inside with a cold blue ghost-light — ribbed paper, black lacquered caps
+function dgLantern(par) {
+  const g = new THREE.Group(); par.add(g); const lg = new THREE.Group(); lg.rotation.x = -Math.PI / 2; lg.position.z = 0.1; g.add(lg); // (inside: -y is down the cord)
+  const lac = new THREE.MeshPhongMaterial({ color: '#111114', shininess: 90 }), cord = new THREE.MeshLambertMaterial({ color: '#3f2a1a' }), rib = new THREE.MeshLambertMaterial({ color: '#5b4632' });
+  const pap = new THREE.MeshPhongMaterial({ color: '#f3ecd6', emissive: '#7dd3fc', emissiveIntensity: 0.55, transparent: true, opacity: 0.92, side: THREE.DoubleSide, shininess: 5 });
+  const c = new THREE.Mesh(kCyl(), cord); c.scale.set(0.03, 0.4, 0.03); c.position.y = -0.2; lg.add(c);
+  const prof = [[0.16, -1.22], [0.3, -1.14], [0.4, -1.0], [0.44, -0.82], [0.42, -0.64], [0.34, -0.5], [0.16, -0.42]];
+  lg.add(new THREE.Mesh(kLathe('dgChochin', prof.map(([r, y]) => [r, y]), 20), pap));
+  for (let k = 1; k < 6; k++) { const y = -1.14 + k * 0.12, r = 0.3 + 0.14 * Math.sin((k / 6) * Math.PI) ; const t = new THREE.Mesh(kTor(0.06), rib); t.scale.setScalar(r + 0.01); t.rotation.x = Math.PI / 2; t.position.y = y; lg.add(t); } // (the bamboo ribs)
+  for (const y of [-0.42, -1.22]) { const cp = new THREE.Mesh(kCyl(), lac); cp.scale.set(0.2, 0.08, 0.2); cp.position.y = y; lg.add(cp); } // (the caps)
+  kitGlow(lg, '#93c5fd', 1.8, 0.65).position.y = -0.82; kitGlow(lg, '#e0f2fe', 0.6, 0.9).position.y = -0.82; // (the ghost-light in it)
+  return g;
 }
 // the Jötunn's club: a great log, bound in iron, crusted and spiked with ice that glows faintly
 function dgFrostClub(par) {
@@ -5145,7 +5196,8 @@ BODY_DESC.push('⚔️ The Laestrygonian of the Colosseum Duels, the same giant 
   '👁️ The Cyclops of ⚔️ Colosseum Duels, the one-eyed giant of the Greek myths — wear it and you’re a giant too: one great eye under a heavy brow, a bald crown, a brown beard, ruddy skin and a sheepskin over one shoulder. A mastery reward in ⚔️ Colosseum Duels.',
   '👹 The Oni of ⚔️ Colosseum Duels, a giant demon of Japan — wear it and you’re a giant too: red skin, ivory horns, a wild white mane, burning eyes, tusks, a tiger-skin loincloth and black-lacquered armour laced in gold. A mastery reward in ⚔️ Colosseum Duels.',
   '🔥 Cacus of ⚔️ Colosseum Duels, the fire-breathing giant of Roman myth, son of Vulcan — wear it and you’re a giant too: skin like cooling lava, cracked and glowing, a black mane and beard, short horns, fire in his mouth and smoke from his nose. A mastery reward in ⚔️ Colosseum Duels.',
-  '👻 The Chötgör of ⚔️ Colosseum Duels, a restless spirit of the steppe: pale, glowing and half-seen-through, a tattered deel, a shaman’s crown of feathers over hollow eyes with cold lights in them, its legs fading into mist. A mastery reward in ⚔️ Colosseum Duels.');
+  '👻 The Chötgör of ⚔️ Colosseum Duels, a restless spirit of the steppe: pale, glowing and half-seen-through, a tattered deel, a shaman’s crown of feathers over hollow eyes with cold lights in them, its legs fading into mist. A mastery reward in ⚔️ Colosseum Duels.',
+  '🏮 The Yūrei of ⚔️ Colosseum Duels, a ghost of old Japan: the white burial kimono wrapped right over left as the dead are dressed, the white triangle on its brow, long black hair hanging over its face with one cold eye through it, limp hands, no feet — only mist — and two blue ghost-fires drifting round it. A mastery reward in ⚔️ Colosseum Duels.');
 // the gilded giant in the duels: the film giant's own pack — its moves, its sword held where its keys say (its arms
 // reaching for it), its steps and breaths and quakes — with that sword re-forged in silver, bronze and gold. A blow takes
 // the sword from the keys: it goes into the fist like any duel weapon (the blow turns the wrist), then back to the keys
@@ -5305,6 +5357,7 @@ function duelPack(o, i) {
   };
 }
 const dfl = { // the flourishes: each sets what it turns while it's under way
+  haunt: (per) => (J, t, r15) => { const c = t % per, k = plat(c, 0, 2.4, 0.5, 0.7); if (!k) return; const sw = Math.sin(c * 1.6); J.aL = [J.aL[0] * (1 - k) + 1.05 * k, 0, -0.08 * k]; J.aR = [J.aR[0] * (1 - k) + 1.05 * k, 0, 0.08 * k]; if (r15) { J.eL = [0.45 * k, 0, 0]; J.eR = [0.45 * k, 0, 0]; } J.hd = [0.42 * k, 0.1 * sw * k, 0.32 * k]; J.bd = [0.12 * k, 0, 0.06 * sw * k]; }, // (the yūrei's urameshiya: hands up and limp, the head dropped to one side)
   twirl: (per, d = 1) => (J, t, r15) => { const c = t % per, k = plat(c, 0, 1.6, 0.3, 0.4); if (!k) return; J.aR = [0.9 + 0.6 * Math.sin(c * 8) * k, 0, 0.3 + 0.8 * k * d]; if (r15) J.eR = [0.4 + 0.5 * Math.cos(c * 8) * k, 0, 0]; },
   shield: (per) => (J, t, r15) => { const c = t % per, k = plat(c, 0, 2.2, 0.3, 0.5); if (!k) return; J.aL = [1.4 * k + J.aL[0] * (1 - k), 0, 0.3 * k]; if (r15) J.eL = [1.3 * k, 0, 0]; J.hd = [-0.1 * k, 0, 0]; J.up -= 0.15 * k; },
   salute: (per) => (J, t, r15) => { const c = t % per, k = plat(c, 0, 2.0, 0.3, 0.5); if (!k) return; J.aR = [1.0 * k, 0, -0.5 * k]; if (r15) J.eR = [1.9 * k, 0, 0]; J.hd = [0.15 * k, 0, 0]; },
@@ -5361,6 +5414,7 @@ ANIM_PACKS.push(...[
   { g: [[0.6, 0, -0.4], [0.95, 0, 0.35], 0.7, 0.8], st: [0.4, 0.2, 0.12], w: { str: 0.4, arm: 0.18, lean: 0.12, bob: 0.22, keep: 0.8, rate: 0.6, knee: 0.45, twist: 0.2 }, j: [0.25, 0.35], f: dfl.roar(8) }, // Oni: wide and planted, the kanabō ready — and a roar
   { g: [[0.5, 0, -0.45], [0.9, 0, 0.4], 0.6, 0.9], st: [0.34, 0.16, 0.16], w: { str: 0.42, arm: 0.22, lean: 0.16, bob: 0.26, keep: 0.7, rate: 0.68, knee: 0.5, twist: 0.24 }, j: [0.3, 0.4], f: dfl.roar(9) }, // Cacus: heavy and hunched, smoke at his mouth
   { g: [[0.9, 0, -0.5], [0.9, 0, 0.5], 0.5, 0.5], st: [0.1, -0.5, -0.05], w: { str: 0.12, arm: 0.2, lean: 0.25, bob: 0.14, cr: -0.5, keep: 0.75, rate: 0.75, knee: 0.15 }, j: [0.6, 0.3], f: dfl.stretch(6) }, // Chötgör: floating off the ground, claws out, drifting rather than walking
+  { g: [[0.55, 0, -0.12], [0.6, 0, 0.12], 1.0, 0.95], st: [0.06, -0.45, -0.02], w: { str: 0.06, arm: 0.04, lean: 0.1, bob: 0.16, cr: -0.45, keep: 0.95, rate: 0.55, knee: 0.08 }, j: [0.3, 0.15], f: dfl.haunt(7) }, // Yūrei: drifting just off the ground, both hands held out and hanging limp, the lantern on its cord
 ].map(duelPack));
 ANIM_PACKS[DUEL_AN + 20] = lgDuelPack(); // (the Laestrygonian Warlord's pack: the film giant's own, the gilded sword — after the others, in its own place)
 ANIM_PACKS[DUEL_AN + 21] = exDuelPack(); // (the Executioner's own: the axe on his shoulder)
@@ -6103,7 +6157,7 @@ function makeAvatar(av, name, mine, ax) {
   const X = xLooks(ax); // (made and limited items on top: a hat, a shirt's front, a face)
   const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
   const lam = (c, o) => new THREE.MeshLambertMaterial(Object.assign({ color: c }, o || {}));
-  const skin = lam(SKINS[av[0]]), shirt = lam(SHIRTS[av[1]]), pants = lam(PANTS[av[2]]), mats = [skin, shirt, pants];
+  const skin = lam(skinHex(av[0])), shirt = lam(SHIRTS[av[1]]), pants = lam(PANTS[av[2]]), mats = [skin, shirt, pants];
   const box = (m, sx, sy, sz, x, y, z, parent) => { const o = new THREE.Mesh(BOX, m); o.scale.set(sx, sy, sz); o.position.set(x, y, z); (parent || body).add(o); return o; };
   const mesh = (geo, m, x, y, z, parent) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); (parent || body).add(o); return o; };
   const limb = (m, x, y) => { const piv = new THREE.Group(); piv.position.set(x, y, 0); body.add(piv); box(m, 0.98, 2, 0.98, 0, -1, 0, piv); return piv; };
@@ -10746,7 +10800,8 @@ function wearHtml() {
     // a body's parts on their own: any body pack you own lends its helmet, torso, arms or legs
     const mine = BODIES.map((_, i) => i).filter((i) => i >= 2 && owns('bt', i));
     const parts = mine.length ? `<div class="opt"><small>Mix parts · wear just the helmet (or the torso, arms, legs) of a body you own</small>${PARTS.map(([k, ic, n]) => `<div class="pmix"><b>${ic} ${n}</b><div class="pmrow"><button data-pk="${k}" data-pi="0" class="${!AV[k] ? 'on' : ''}">Body’s own</button>${mine.map((i) => `<button data-pk="${k}" data-pi="${i}" class="${AV[k] === i ? 'on' : ''}" title="${esc(BODIES[i])}’s ${n.toLowerCase()}">${COSMETICS.bt.icon[i]} ${esc(BODIES[i])}</button>`).join('')}</div></div>`).join('')}${PART_KEYS.some((k) => AV[k]) && AV.bt === 0 ? '<div class="avnote">Parts of a body pack bend at the knees and elbows, so you’re R15 under them.</div>' : ''}</div>` : '';
-    body = bodies + parts + row('Skin', SKINS, 's') + row('Shirt', SHIRTS, 'sh') + row('Pants', PANTS, 'p');
+    const own = AV.s >= SKIN_C, skRow = row('Skin', SKINS, 's').replace('</div></div>', `<label class="skpick${own ? ' on' : ''}" title="Pick any skin tone"><input type="color" data-skin="1" value="${skinHex(AV.s)}"><span>🎨 ${own ? skinHex(AV.s).toUpperCase() : 'Any colour'}</span></label></div></div>`);
+    body = bodies + parts + skRow + row('Shirt', SHIRTS, 'sh') + row('Pants', PANTS, 'p');
   } else if (avTab === 'em') {
     body = `<p class="xp-note">🎭 Tap an emote to see it. In a game, press <b>.</b> or tap 🎭 Emotes for the emote wheel, or type <b>/e wave</b> in the chat. Moving stops one.</p><div class="shop">${EMOTES.map((E, i) => {
       const own = emOwns(i), ask = avAsk === 'em' + i, on = pv.a && pv.a.em && pv.a.em.i === i;
@@ -10812,8 +10867,15 @@ $('#avOpts').onclick = (e) => {
   } else return;
   drawAvatarOpts(); pvAvatar(); saveAv(); drawMe();
 };
-$('#avOpts').oninput = (e) => { const t = e.target; if (t.id === 'mkName') ED.draft.nm = t.value; else if (t.dataset && (t.dataset.ap || t.dataset.pl)) builderInput(t); else if (t.dataset && t.dataset.v) ED[t.dataset.v] = t.value; };
-$('#avOpts').addEventListener('change', (e) => { const d = e.target.dataset || {}; if (d.ap || d.pl) { ED.acc.dragging = false; drawAvatarOpts(); } else if (d.v === 'pubPrice' || d.v === 'pubStock') { ED.pubErr = ''; drawAvatarOpts(); } });
+$('#avOpts').oninput = (e) => { const t = e.target; if (t.dataset && t.dataset.skin) { skinPick(t); return; } if (t.id === 'mkName') ED.draft.nm = t.value; else if (t.dataset && (t.dataset.ap || t.dataset.pl)) builderInput(t); else if (t.dataset && t.dataset.v) ED[t.dataset.v] = t.value; };
+// the skin colour picker: your avatar takes the colour as you drag; saved (and sent to the server) when you let go
+function skinPick(t, done) {
+  const v = /^#[0-9a-f]{6}$/i.test(t.value) ? SKIN_C + parseInt(t.value.slice(1), 16) : AV.s; if (v === AV.s && !done) return;
+  AV.s = v; const L = t.closest('.skpick'); if (L) { L.classList.add('on'); L.querySelector('span').textContent = '🎨 ' + skinHex(v).toUpperCase(); }
+  document.querySelectorAll('#avOpts .sw button[data-k="s"]').forEach((b) => b.classList.remove('on'));
+  pvAvatar(); clearTimeout(skinPick.t); skinPick.t = setTimeout(() => { saveAv(); drawMe(); }, done ? 0 : 400);
+}
+$('#avOpts').addEventListener('change', (e) => { const d = e.target.dataset || {}; if (d.skin) { skinPick(e.target, true); return; } if (d.ap || d.pl) { ED.acc.dragging = false; drawAvatarOpts(); } else if (d.v === 'pubPrice' || d.v === 'pubStock') { ED.pubErr = ''; drawAvatarOpts(); } });
 $('#avOpts').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.dataset && e.target.dataset.go) { e.preventDefault(); const b = $('#' + e.target.dataset.go); if (b && !b.disabled) b.click(); } });
 // over the avatar in the editor: what you're only trying on, and buying it all at once
 // what what you're trying on costs: all in Premium Blox Coins if the switch is on and they all can be, else Blox Coins
@@ -12437,7 +12499,7 @@ function pxBind() {
   const D = ED.draft, g = cv.getContext('2d');
   const draw = () => {
     const px = draftLook().px; g.clearRect(0, 0, 240, 240);
-    g.fillStyle = D.k === 'f' ? SKINS[AV.s] : SHIRTS[AV.sh]; g.fillRect(0, 0, 240, 240);
+    g.fillStyle = D.k === 'f' ? skinHex(AV.s) : SHIRTS[AV.sh]; g.fillRect(0, 0, 240, 240);
     for (let i = 0; i < 144; i++) { const v = parseInt(px[i], 16); if (v) { g.fillStyle = XPAL[v]; g.fillRect((i % 12) * 20, Math.floor(i / 12) * 20, 20, 20); } }
     g.strokeStyle = 'rgba(0,0,0,.12)'; for (let i = 1; i < 12; i++) { g.beginPath(); g.moveTo(i * 20, 0); g.lineTo(i * 20, 240); g.moveTo(0, i * 20); g.lineTo(240, i * 20); g.stroke(); }
   };

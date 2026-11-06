@@ -366,13 +366,19 @@
       { n: 'Phase', ic: '🌫️', k: 'buff', cd: 9, an: 'smoke', b: { dur: 1.6, ph: 1, imm: 1 }, d: 'It fades out of the world for 1.6 s: every blow and arrow passes through it.' },
       { n: 'Soul Drain', ic: '💀', k: 'proj', dmg: 55, cd: 7, spd: 70, wind: 0.25, an: 'fan', model: 'soul', drain: 1, fx: { sl: [0.6, 2] }, d: 'A wisp of its cold: 55 damage and a 2 s slow — and all of it heals the Chötgör.' },
       { n: 'Possession', ic: '🕯️', k: 'dash', dmg: 30, dist: 14, dd: 0.22, cd: 26, wind: 0.15, an: 'iai', fx: { pos: 3, bl: [60, 3] }, d: 'It flies into them and takes them over: for 3 s they walk wherever it looks and can’t fight back — and their soul bleeds 60.' }] },
+    // 🏯 Japan's spirit: the Yūrei — the ghost of one who died with a grudge: the white burial kimono, long black hair over its face, ghost-fires round it
+    { e: 3, r: 4, hp: 320, spd: 1.25, nc: 1, ro: 'Spirit', how: 'Accept The Haunting (🏆 Achievements → 📜 Quests), then win 12 duels and deal 15,000 damage', pas: [['👻', 'Spirit', 'Only half here: little health, but quick — and its touch is cold enough to slow.'], ['👺', 'Onryō', 'Its G lays a grudge on the foe: for 5 s every blow they land does half — and hurts them just as much.']], ab: [
+      { n: 'Grave Touch', ic: '🖐️', k: 'melee', dmg: 34, cd: 0.5, rng: 6.5, arc: 110, wind: 0.08, an: 'quick', fx: { sl: [0.8, 0.6] } },
+      { n: 'Hitodama', ic: '🏮', k: 'proj', dmg: 24, cnt: 3, spread: 14, cd: 6.5, spd: 50, wind: 0.25, an: 'fan', model: 'hitodama', fx: { bu: [18, 3] }, d: 'Three ghost-fires drift at them: 24 each, and their cold blue flame burns for 18 more.' },
+      { n: 'Kanashibari', ic: '🫥', k: 'dash', dmg: 20, dist: 13, dd: 0.2, cd: 15, wind: 0.15, an: 'iai', fx: { st: 1.2, vu: 2.5 }, d: 'Sleep paralysis: it rushes through them in a cold breath — 20 damage, frozen stiff for 1.2 s, and ×1.5 damage taken for 2.5 s.' },
+      { n: 'Onryō’s Grudge', ic: '👺', k: 'proj', dmg: 40, cd: 22, spd: 62, wind: 0.3, an: 'fan', model: 'grudge', fx: { cu: 5 }, d: 'A vengeful spirit flies at them: 40 damage and the Grudge for 5 s — every blow they land does half, and hurts them just as much.' }] },
   ];
   CH.forEach((C, i) => { C.i = i; C.n = DUEL_N[i]; C.ic = DUEL_IC[i]; C.spd = C.spd || 1; C.def = C.def || 1; });
   // what each one is for, at a glance
   const ROLE = ['Tank', 'Skirmisher', 'Controller', 'Tank', 'Damage dealer', 'Tank', 'Skirmisher', 'Ranged', 'Bruiser', 'Bruiser', 'Bruiser', 'Ranged', 'Bruiser', 'Bruiser', 'Tank', 'Skirmisher', 'Duelist', 'Assassin', 'Bruiser', 'Damage dealer'];
   CH.forEach((C, i) => { C.ro = C.ro || ROLE[i] || 'Fighter'; });
   const CRATE = EMP.map((_, e) => CH.filter((C) => C.e === e && !C.nc).map((C) => C.i)); // (each crate's five, common to legendary)
-  const LAE = 20, EXE = 21, KEN = 32, IMP = 33, JOT = 34, PHA = 35, HAL = 36, CYC = 37, ONI = 38, CAC = 39, CHO = 40;
+  const LAE = 20, EXE = 21, KEN = 32, IMP = 33, JOT = 34, PHA = 35, HAL = 36, CYC = 37, ONI = 38, CAC = 39, CHO = 40, YUR = 41;
   for (const i of [0, 1, 3, 4, 5, 6, 8, 9, 10, 12, 13, 22, 30, 35]) CH[i].sh = 1; // (the ones with a shield: blocking stops everything — without one it halves the damage) // (the mythics — the Laestrygonian, the Executioner, the Kensei: no crate has them)
   const KEN_W = 20, KEN_D = 20000; // (the Sword Saint's Trial: wins, damage)
   // the mythics' quests: each accepted in the achievements, then two counts to reach (k kills, d damage, w wins, c Classic
@@ -387,6 +393,7 @@
     { key: 'q8', c: ONI, ic: '👹', n: 'The Oni’s Gate', need: [['w', 20, '🏆', 'wins'], ['d', 30000, '💥', 'damage']], how: 'win 20 duels and deal 30,000 damage', tail: 'a giant tank: vast health, half damage taken, slow heavy blows', done: 'the Oni’s gate opens', col: ['220,38,38', '69,10,10', '#fecaca', '#b91c1c,#fca5a5'] },
     { key: 'q9', c: CAC, ic: '🔥', n: 'The Cave of Cacus', need: [['b', 2, '👹', 'boss wins'], ['d', 20000, '💥', 'damage']], how: 'beat the 👹 boss 2 times and deal 20,000 damage', tail: 'Rome’s fire-breathing giant, son of Vulcan', done: 'Cacus comes out of his cave', col: ['249,115,22', '67,20,7', '#fed7aa', '#ea580c,#fdba74'] },
     { key: 'q10', c: CHO, ic: '👻', n: 'The Shaman’s Call', need: [['k', 60, '⚔️', 'defeated'], ['w', 15, '🏆', 'wins']], how: 'defeat 60 fighters and win 15 duels', tail: 'a spirit of the steppe that possesses its foes', done: 'the spirit answers the drum', col: ['45,212,191', '17,72,68', '#99f6e4', '#0d9488,#99f6e4'] },
+    { key: 'q11', c: YUR, ic: '🏮', n: 'The Haunting', need: [['w', 12, '🏆', 'wins'], ['d', 15000, '💥', 'damage']], how: 'win 12 duels and deal 15,000 damage', tail: 'a vengeful ghost of old Japan: ghost-fires, sleep paralysis and a grudge', done: 'the lantern gutters — the Yūrei follows you home', col: ['147,197,253', '30,41,82', '#dbeafe', '#3b82f6,#dbeafe'] },
     { key: 'q4', c: JOT, ic: '🧊', n: 'The Frost Saga', need: [['b', 3, '👹', 'boss wins'], ['d', 25000, '💥', 'damage']], how: 'beat the 👹 Laestrygonian boss 3 times and deal 25,000 damage', tail: 'a giant of the frozen north: ice, frost and a great club', done: 'the Frost Saga is sung', col: ['125,211,252', '12,74,110', '#bae6fd', '#0284c7,#bae6fd'] },
   ];
   // the boss: a Laestrygonian bigger still, in silver, bronze and gold — 4,000 health, a scimitar blow every 6 s for 250 (a
@@ -395,7 +402,7 @@
     { n: 'Great Scimitar', ic: '🗡️', k: 'melee', dmg: 250, cd: 6, rng: 10, arc: 120, wind: 1.4, an: 'bcleave' },
     { n: 'Earthshaker', ic: '🦶', k: 'stomp', dmg: 30, rad: 36, cd: 8, wind: 0.8, an: 'bplant', wspd: 17 }] }); // (bcleave, bplant: its own two-handed blows — the pack holds the sword for them)
     // the fighters' looks for their trails and glows
-  const COL = ['#ef4444', '#f59e0b', '#2dd4bf', '#a855f7', '#f97316', '#60a5fa', '#fbbf24', '#fb923c', '#a3a3a3', '#dc2626', '#facc15', '#84cc16', '#38bdf8', '#fef3c7', '#e2e8f0', '#93c5fd', '#fda4af', '#a78bfa', '#fb923c', '#fde047', '#fbbf24', '#991b1b', '#f87171', '#fbbf24', '#f97316', '#2dd4bf', '#dc2626', '#a16207', '#7dd3fc', '#38bdf8', '#cbd5e1', '#facc15', '#f43f5e', '#fbbf24', '#7dd3fc', '#f59e0b', '#ef4444', '#d6a77a', '#dc2626', '#fb923c', '#5eead4'];
+  const COL = ['#ef4444', '#f59e0b', '#2dd4bf', '#a855f7', '#f97316', '#60a5fa', '#fbbf24', '#fb923c', '#a3a3a3', '#dc2626', '#facc15', '#84cc16', '#38bdf8', '#fef3c7', '#e2e8f0', '#93c5fd', '#fda4af', '#a78bfa', '#fb923c', '#fde047', '#fbbf24', '#991b1b', '#f87171', '#fbbf24', '#f97316', '#2dd4bf', '#dc2626', '#a16207', '#7dd3fc', '#38bdf8', '#cbd5e1', '#facc15', '#f43f5e', '#fbbf24', '#7dd3fc', '#f59e0b', '#ef4444', '#d6a77a', '#dc2626', '#fb923c', '#5eead4', '#bfdbfe'];
   // the duel's own achievements: each wins a fighter (the 1% ones only come from crates)
   const ACH = [
     { id: 'blood', ic: '🩸', n: 'First Blood', d: 'Defeat a fighter', k: 'kills', n0: 1, c: 1 },
@@ -1141,6 +1148,7 @@
     let crit = false; if (F.C.crit && Math.random() < F.C.crit[0]) { dmg *= F.C.crit[1]; crit = true; } // (the Kensei: Sword Saint)
     if (F.C.exe && T.mhp && T.hp > 0 && T.hp / T.mhp < F.C.exe[0]) dmg *= F.C.exe[1]; // (and Ichigeki)
     if (F.C.rage && F.hp / F.mhp < F.C.rage[0]) dmg *= F.C.rage[1]; // (the Cyclops' rage)
+    const cu = F.S.cu > 0; if (cu) dmg *= 0.5; // (under a grudge: half the blow…)
     dmg = Math.round(dmg); const f2 = Object.assign({}, fx || {}); if (f2.bl && f2.blc != null && Math.random() > f2.blc) delete f2.bl; delete f2.blc;
     if (F.C.brute && !f2.cr && Math.random() < F.C.brute) f2.cr = 1; // (Brute Force)
     if (F.C.stunP && Math.random() < F.C.stunP[0]) f2.st = Math.max(f2.st || 0, F.C.stunP[1]); // (the Imperator: Imperium)
@@ -1150,6 +1158,8 @@
     if (crit) { floatText(T, `✴️ CRIT ${dmg}`, 'big'); sparks(T, '#f43f5e', 10, 3.4, { s: 0.28 }); burstAt(T.x, T.y + 3.4, T.z, '#fb7185', 4.5, 0.3); }
     const ls = bval(F, 'ls') + (F.C.lsP || 0); if (ls) heal(F, dmg * ls); if (ab && ab.drain) heal(F, dmg * ab.drain); // (the Soul Drain)
     if (f2.pos && !isBoss(T) && !(T.C && T.S && bval(T, 'imm'))) { F.possT = T; F.possEnd = performance.now() + f2.pos * 1000; } // (the spirit goes into them)
+    if (cu && dmg > 0 && !F.dead) { floatText(F, '👺 GRUDGE', 'tag'); sparks(F, '#a78bfa', 6, 3.4, { s: 0.3 }); takeHit(F, dmg, { ub: 1 }, F.S.cuBy && !F.S.cuBy.dead ? F.S.cuBy : null, { rf: 1 }); } // (…and as much again to themselves)
+    if (f2.cu && (T.kind === 'rem' || T.kind === 'rboss')) T.S.cu = Math.max(T.S.cu || 0, f2.cu); // (to see it on them here)
     if (F.C.wish) { F.wishN = (F.wishN || 0) + 1; heal(F, F.mhp * 0.1); if (F.kind === 'me') floatText(F, `🪓 WISH +${F.wishN * 10}%`, 'tag'); } // (the Executioner's Wish)
     if (F.kind === 'me') { DU.bump('dmg', dmg); DU.M.dealt += dmg; DU.qBump('d', dmg); }
   }
@@ -1190,6 +1200,7 @@
       if (fx.bl) { T.S.dots.push({ k: 'bl', dps: fx.bl[0] / fx.bl[1], t: fx.bl[1], acc: 0 }); floatText(T, '🩸 BLEEDING', 'tag'); }
       if (fx.bu && !T.C.fireImm) { T.S.dots.push({ k: 'bu', dps: fx.bu[0] / fx.bu[1], t: fx.bu[1], acc: 0 }); floatText(T, '🔥 BURNING', 'tag'); }
       if (fx.pos && !isBoss(T)) { T.S.pos = Math.max(T.S.pos || 0, fx.pos); T.S.posBy = from || null; T.act = null; T.blk = false; floatText(T, '👻 POSSESSED', 'big'); sfx3('magic', T.x, T.z, 70); } // (possessed: it walks them where it looks)
+      if (fx.cu) { T.S.cu = Math.max(T.S.cu || 0, fx.cu); T.S.cuBy = from || null; floatText(T, '👺 CURSED', 'big'); sfx3('magic', T.x, T.z, 60); } // (the Yūrei's grudge: see dealHitAs)
       if (fx.cr && !T.S.crush) { T.S.crush = 1; floatText(T, '💢 CRUSHED — ×2 DAMAGE', 'big'); sfx3('crunch', T.x, T.z, 70); } // (until the round ends, or they die)
       if (fx.vu) T.S.vuln = Math.max(T.S.vuln, fx.vu);
       if (fx.st && !imm) floatText(T, '💫 STUNNED', 'tag'); if (fx.rt && !imm) floatText(T, '🕸️ ROOTED', 'tag');
@@ -1208,7 +1219,7 @@
   function statusTick(F, dt) {
     const S = F.S, cdm = bval(F, 'cdM');
     for (let i = 0; i < F.cd.length; i++) if (F.cd[i] > 0) F.cd[i] = Math.max(0, F.cd[i] - dt * cdm);
-    S.sp = Math.max(0, S.sp - dt); S.stun = Math.max(0, S.stun - dt); if (S.pos > 0 && (S.pos -= dt) <= 0) { S.pos = 0; S.posBy = null; } S.root = Math.max(0, S.root - dt); S.vuln = Math.max(0, S.vuln - dt); S.ifr = Math.max(0, S.ifr - dt); if ((S.slow = Math.max(0, S.slow - dt)) === 0) S.slowM = 1;
+    S.sp = Math.max(0, S.sp - dt); S.stun = Math.max(0, S.stun - dt); if (S.pos > 0 && (S.pos -= dt) <= 0) { S.pos = 0; S.posBy = null; } S.root = Math.max(0, S.root - dt); S.vuln = Math.max(0, S.vuln - dt); if (S.cu > 0 && (S.cu -= dt) <= 0) { S.cu = 0; S.cuBy = null; } S.ifr = Math.max(0, S.ifr - dt); if ((S.slow = Math.max(0, S.slow - dt)) === 0) S.slowM = 1;
     for (const b of S.buffs) b.t -= dt; S.buffs = S.buffs.filter((b) => b.t > 0);
     if (F.kind === 'rem' || F.kind === 'rboss' || F.dead) return;
     const hps = bval(F, 'hps'); if (hps && live()) { F.hpAcc = (F.hpAcc || 0) + hps * dt; if (F.hpAcc >= 5) { heal(F, F.hpAcc); F.hpAcc = 0; } }
@@ -1229,6 +1240,8 @@
     else if (kind === 'rock') { const s2 = new THREE.Group(); g.add(s2); const m = new THREE.Mesh(kg('duRockB', () => new THREE.IcosahedronGeometry(1, 0)), new THREE.MeshLambertMaterial({ color: '#8b8378', flatShading: true })); m.scale.set(1.25, 1.05, 1.15); s2.add(m); g.userData.spin = s2; } // (a boulder)
     else if (kind === 'bolt') { const mt = new THREE.MeshBasicMaterial({ color: '#fef9c3', transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending, depthWrite: false }); let z = 0.6; for (let k = 0; k < 5; k++) { const b = new THREE.Mesh(BOX, mt); const l = 0.7; b.scale.set(0.14, 0.14, l); b.position.set(k % 2 ? 0.18 : -0.18, 0, z - l / 2); b.rotation.y = k % 2 ? -0.5 : 0.5; g.add(b); z -= l * 0.85; } kitGlow(g, '#fde047', 4.2, 0.85); kitGlow(g, '#ffffff', 1.8, 0.9); } // (a thunderbolt)
     else if (kind === 'flame') { const f = emSprite(g, fxTex('flame'), 1.6, { blending: THREE.AdditiveBlending }); kitGlow(g, '#f97316', 2.6, 0.75); } // (a gout of fire)
+    else if (kind === 'hitodama') { kitGlow(g, '#3b82f6', 2.4, 0.8); kitGlow(g, '#e0f2fe', 0.9, 0.95); const t2 = emSprite(g, fxTex('flame'), 1.2, { blending: THREE.AdditiveBlending, color: '#93c5fd' }); t2.position.z = 0.7; } // (a ghost-fire: a cold blue flame with a tail)
+    else if (kind === 'grudge') { kitGlow(g, '#7c3aed', 2.8, 0.85); kitGlow(g, '#f5f3ff', 0.9, 0.9); for (const z of [0.6, 1.2]) { const t2 = emSprite(g, fxTex('flame'), 1.3 - z * 0.3, { blending: THREE.AdditiveBlending, color: '#a78bfa' }); t2.position.z = z; } } // (a vengeful spirit: violet, trailing)
     else if (kind === 'soul') { kitGlow(g, '#5eead4', 2.2, 0.85); kitGlow(g, '#ecfeff', 0.9, 0.95); const t2 = emSprite(g, fxTex('flame'), 1.0, { blending: THREE.AdditiveBlending, color: '#5eead4' }); t2.position.z = 0.6; } // (a wisp of soul)
     else if (kind === 'ice' || kind === 'hail') { const s2 = new THREE.Group(); g.add(s2); const m = new THREE.Mesh(kg('duIceB', () => new THREE.IcosahedronGeometry(1, 0)), new THREE.MeshPhongMaterial({ color: '#cfeeff', emissive: '#3b82f6', emissiveIntensity: 0.35, shininess: 150, specular: '#ffffff', transparent: true, opacity: 0.92, flatShading: true }));
       m.scale.setScalar(kind === 'ice' ? 1.25 : 0.45); s2.add(m); kitGlow(g, '#93c5fd', kind === 'ice' ? 3.6 : 1.4, 0.5); g.userData.spin = s2; } // (a boulder of ice, spinning; or a shard of hail)
@@ -1287,6 +1300,7 @@
   // where they go (unseen, nothing reaches it) until it lets go
   function possTick(F, dt) {
     if (F.S.pos > 0 && F.S.posBy && F.kind !== 'rem' && F.kind !== 'rboss') { const y = F.S.posBy.yaw, sp = 9 * dt; moveF(F, -Math.sin(y) * sp, -Math.cos(y) * sp); faceF(F, y); if (F.a && Math.random() < dt * 14) kitSpark(F.a, F.a.g, (Math.random() - 0.5) * 2, 1 + Math.random() * 4, (Math.random() - 0.5) * 1.5, '#5eead4', { v: [0, 1.5, 0], life: 0.9, s: 0.3, grow: 1.2, op: 0.6, j: 0.5 }); }
+    if (F.S.cu > 0 && F.a && Math.random() < dt * 10) kitSpark(F.a, F.a.g, (Math.random() - 0.5) * 2.4, 1 + Math.random() * 4, (Math.random() - 0.5) * 1.6, Math.random() < 0.5 ? '#a78bfa' : '#4c1d95', { v: [0, 1.2, 0], life: 0.8, s: 0.3, grow: 1.2, op: 0.55, j: 0.4 }); // (a grudge on them)
     const inside = F.possEnd && F.possEnd > performance.now() && F.possT && !F.possT.dead;
     if (inside && (F.kind === 'me' || F.kind === 'bot')) { const T = F.possT; if (F.kind === 'me') { P.x = T.x; P.z = T.z; } F.x = T.x; F.z = T.z; if (F.kind === 'bot') F.yaw += dt * 1.1; }
     if (inside && F.a) { F.a.g.visible = false; F.wasIn = 1; } else if (F.wasIn) { if (F.a) F.a.g.visible = true; F.wasIn = 0; } if (!inside && F.possEnd) { F.possEnd = 0; F.possT = null; }
@@ -1344,7 +1358,7 @@
   function hudCard(F, who) {
     const C = F.C, hp = Math.max(0, Math.ceil(F.hp)), st = Math.round(F.st), fx = [];
     if (F.S.stun > 0) fx.push('<span class="bad">💫 Stunned</span>'); if (F.S.root > 0) fx.push('<span class="bad">🕸️ Rooted</span>'); if (F.S.slow > 0) fx.push('<span class="bad">🐌 Slowed</span>');
-    if (F.S.dots.some((d) => d.k === 'bl')) fx.push('<span class="bad">🩸 Bleed</span>'); if (F.S.dots.some((d) => d.k === 'bu')) fx.push('<span class="bad">🔥 Burn</span>'); if (F.S.vuln > 0) fx.push('<span class="bad">⚠️ +50% dmg</span>'); if (F.S.crush) fx.push('<span class="bad">💢 Crushed ×2</span>'); if (F.S.sp > 0) fx.push('<span class="good">✨ Protected</span>');
+    if (F.S.dots.some((d) => d.k === 'bl')) fx.push('<span class="bad">🩸 Bleed</span>'); if (F.S.dots.some((d) => d.k === 'bu')) fx.push('<span class="bad">🔥 Burn</span>'); if (F.S.vuln > 0) fx.push('<span class="bad">⚠️ +50% dmg</span>'); if (F.S.cu > 0) fx.push('<span class="bad">👺 Grudge</span>'); if (F.S.crush) fx.push('<span class="bad">💢 Crushed ×2</span>'); if (F.S.sp > 0) fx.push('<span class="good">✨ Protected</span>');
     if (F.C.wish && F.wishN) fx.push(`<span class="good">🪓 Wish +${F.wishN * 10}%</span>`); if (F.S.buffs.some((b) => b.an === 'haste')) fx.push('<span class="good">🩸 ×1.2 speed</span>');
     for (const b of F.S.buffs) { const ab = C.ab.find((q) => q.an === b.an); if (ab) fx.push(`<span class="good">${ab.ic} ${esc(ab.n)}</span>`); } if (F.blk) fx.push('<span class="good">🛡️ Blocking</span>');
     return `<div class="tp"><span class="who">[${esc(who)}]</span><span class="ch">${C.ic} ${esc(C.n)}</span><span class="rr" style="background:${RAR[C.r].c}">${RAR[C.r].s} ${RAR[C.r].n.toUpperCase()}</span></div>
@@ -1403,7 +1417,7 @@
       if (ab.k === 'buff' && b) { const up = Math.min(1, (b.dur || 0) / ab.cd); if (b.def) red *= 1 - (1 - b.def) * up; if (b.blk) red *= 1 - 0.85 * up; heal += ((b.heal || 0) + (b.healP || 0) * C.hp + (b.hps || 0) * (b.dur || 0) + (b.ls || 0) * best.dps * (b.dur || 0)) * per; }
       ctrl += ((fx.st || 0) + (fx.rt || 0) * 0.6 + (fx.sl ? fx.sl[1] * (1 - fx.sl[0]) : 0) + (fx.kb ? 0.4 : 0)) * per * (C.ab[0].modes && C.ab[0].modes.includes && false ? 0.5 : 1); }
     if (C.wish) heal += 0.1 * C.hp * best.hits; if (C.lsP) heal += C.lsP * best.dps * T; if (C.stunP) ctrl += best.hits * C.stunP[0] * C.stunP[1]; if (C.frost) ctrl += Math.min(T, best.hits * C.frost[1]) * (1 - C.frost[0]);
-    for (const ab of C.ab) { if (ab.fx && ab.fx.pos) ctrl += ab.fx.pos * T / Math.max(ab.cd, 1); if (ab.drain) heal += ab.dmg * T / ab.cd; } if (C.rage) best.dps *= 1 + (C.rage[1] - 1) * C.rage[0];
+    for (const ab of C.ab) { if (ab.fx && ab.fx.pos) ctrl += ab.fx.pos * T / Math.max(ab.cd, 1); if (ab.fx && ab.fx.cu) ctrl += ab.fx.cu * 0.4 * T / Math.max(ab.cd, 1); if (ab.drain) heal += ab.dmg * T / ab.cd; } if (C.rage) best.dps *= 1 + (C.rage[1] - 1) * C.rage[0];
     const cf = Math.min(0.5, ctrl / T), def = 1 / (C.def * red);
     return Object.assign(best, { hp: C.hp, spd: C.spd, def, armor: 1 / C.def, guard: red < 1, ctrl: cf, ehp: (C.hp + heal) * def / (1 - cf) });
   }
