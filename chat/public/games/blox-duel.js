@@ -119,7 +119,7 @@
     .du-diff button small{display:block;margin-top:4px;font:600 11.5px/1.3 var(--fb);color:#cbd5e1}.du-diff button.on{background:var(--dc);color:#0b1220}.du-diff button.on small{color:#0b1220}
     .du-res{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
     .du-gwrap{overflow-x:auto;padding:2px 2px 8px;-webkit-overflow-scrolling:touch}
-    .du-g6{display:grid;grid-template-columns:58px repeat(7,minmax(124px,1fr));gap:8px;min-width:980px;align-items:start}
+    .du-g6{display:grid;grid-template-columns:58px repeat(8,minmax(120px,1fr));gap:8px;min-width:1080px;align-items:start}
     .du-code{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:14px 0 0;padding:10px 12px;border-radius:14px;background:rgba(15,23,42,.55);border:1px dashed rgba(253,230,138,.45);font:700 13px var(--fb,sans-serif);color:#fde68a}
     .du-code input{flex:1;min-width:160px;padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:rgba(2,6,23,.6);color:#fff;font:800 14px ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase}
     .du-code #duCodeMsg{flex-basis:100%;font:600 12.5px var(--fb,sans-serif)}.du-code #duCodeMsg.ok{color:#86efac}.du-code #duCodeMsg.bad{color:#fca5a5}
@@ -160,6 +160,7 @@
     { n: 'Ottoman Empire', sn: 'Ottoman', e: '🌙', c1: '#14532d', c2: '#f87171', d: 'Azabs and archers, grenadiers, the Sultan’s own Peyk guard — and the Janissary. All on foot.' },
     { n: 'Mongols', sn: 'Mongols', e: '🏹', c1: '#78350f', c2: '#7dd3fc', d: 'The arban’s spears, steppe archers, a shaman of the Eternal Blue Sky, the Kheshig — and the Great Khan. All on foot.' },
     { n: 'Colonial America', sn: 'Colonials', e: '🔔', c1: '#1e3a8a', c2: '#e7d3a1', d: 'Minutemen and frontier riflemen, the Continental line, light dragoons — and a colonel of the Continental Army. Early gunpowder: muskets that hit hard and reload slowly, and the bayonet.' },
+    { n: 'Aztec Empire', sn: 'Aztecs', e: '🐍', c1: '#065f46', c2: '#fbbf24', d: 'Warriors of the Triple Alliance (1428–1521): the macuahuitl edged with obsidian, slings and the atlatl, and the eagle and jaguar orders. All on foot.' },
   ];
   // the rarities, one star each: ★ common … ★★★★★ mythic
   const RAR = [{ n: 'Common', c: '#cbd5e1' }, { n: 'Rare', c: '#38bdf8' }, { n: 'Epic', c: '#c084fc' }, { n: 'Legendary', c: '#fbbf24' }, { n: 'Mythic', c: '#f43f5e' }];
@@ -266,12 +267,12 @@
       { n: 'Combo', ic: '🌸', k: 'combo', hits: [75, 35, 40, 25, 40], gap: 0.27, cd: 7, rng: 7.5, arc: 90, wind: 0.2, an: 'combo', d: 'Five cuts: 75, 35, 40, 25, 40. If the first lands they can’t move until it’s done — if it misses you’re stunned for 1.5 s and take 50% more damage.' },
       { n: 'Iaido Strike', ic: '🌙', k: 'dash', dmg: 180, dist: 15, dd: 0.25, cd: 28, wind: 0.35, an: 'iaido', d: 'One perfect draw-cut as you pass through them: 180 damage.' }] },
     // 🏛️ Greece's myth: the Laestrygonian — not in any crate (beat the boss, or reach Season Pass level 100)
-    { e: 1, r: 4, hp: 1750, spd: 0.5, def: 0.55, big: 1.35, nc: 1, brute: 0.15, ro: 'Giant', how: 'Beat the 👹 Laestrygonian boss, or reach Season Pass level 100', pas: [['🛡️', 'Armored Giant', '50% slower than everyone else, and takes 45% less damage.'], ['💢', 'Brute Force', 'Every hit has a 15% chance to leave them Crushed: double damage until the round ends or they die.']], ab: [
+    { e: 1, r: 4, hp: 1600, spd: 0.5, def: 0.55, big: 1.35, nc: 1, brute: 0.15, ro: 'Giant', how: 'Beat the 👹 Laestrygonian boss, or reach Season Pass level 100', pas: [['🛡️', 'Armored Giant', '50% slower than everyone else, and takes 45% less damage.'], ['💢', 'Brute Force', 'Every hit has a 15% chance to leave them Crushed: double damage until the round ends or they die.']], ab: [
       { n: 'Scimitar / Punch', ic: '🗡️', k: 'melee', modes: [
-        { n: 'Scimitar', ic: '🗡️', dmg: 205, cd: 1.9, rng: 10.5, arc: 120, wind: 0.5, an: 'gslash' },
-        { n: 'Punch', ic: '👊', dmg: 125, cd: 1.5, rng: 7.5, arc: 70, wind: 0.25, an: 'punch' }] },
+        { n: 'Scimitar', ic: '🗡️', dmg: 185, cd: 1.9, rng: 10.5, arc: 120, wind: 0.5, an: 'gslash' },
+        { n: 'Punch', ic: '👊', dmg: 110, cd: 1.5, rng: 7.5, arc: 70, wind: 0.25, an: 'punch' }] },
       { n: 'Bloodrush', ic: '🩸', k: 'buff', cd: 12, an: 'bloodrush', b: { dur: 6, dmgM: 1.35, foeSpd: 1.2 }, d: '×1.35 damage on every hit for 6 s — but the blood in the air gives them a ×1.2 speed boost too.' },
-      { n: 'Stomp / Crush', ic: '🦶', k: 'stomp', dmg: 45, crush: 120, near: 7, rad: 26, cd: 3.5, wind: 0.45, an: 'stomp', d: 'A shockwave rolls out across the sand: jump it or take 45. If they’re close it’s a Crush instead — 120 damage, a 1 s stun, and Crushed for the rest of the round.' },
+      { n: 'Stomp / Crush', ic: '🦶', k: 'stomp', dmg: 40, crush: 105, near: 7, rad: 26, cd: 3.5, wind: 0.45, an: 'stomp', d: 'A shockwave rolls out across the sand: jump it or take 40. If they’re close it’s a Crush instead — 105 damage, a 1 s stun, and Crushed for the rest of the round.' },
       { n: 'Rush and Crush', ic: '🐂', k: 'dash', rush: 1, dmg: 275, dmg2: 350, dist: 26, dd: 2, cd: 35, wind: 0.3, an: 'rush', fx: { st: 1.2 }, d: 'Charge for 2 s, scimitar out: 275 damage and a 1.2 s stun to anyone in the way. Hit them head-on and it’s 350 and they’re Crushed for the round.' }] },
     // 🏰 Europe: the Executioner — the giant’s counter; his contract is in the achievements
     { e: 2, r: 4, hp: 420, spd: 1.35, def: 1.2, nc: 1, wish: 1, ro: 'Assassin', how: 'Accept the Executioner’s Contract (🏆 Achievements → 📜 Quests), then defeat 50 fighters and deal 15,000 damage', pas: [['🩻', 'Armorless', 'No armour at all: takes 20% more damage, and 35% faster.'], ['🪓', 'Executioner’s Wish', 'Every hit on a fighter: +10% damage (it stacks, until the round ends or you die) and heals 10% of your health.']], ab: [
@@ -336,11 +337,11 @@
       { n: 'Aquila', ic: '🦅', k: 'buff', cd: 28, an: 'aquila', b: { dur: 7, dmgM: 1.35, def: 0.7, hps: 18 }, d: 'Raise the eagle: for 7 s, +35% damage, 30% less damage taken, and heal 18 a second.' },
       { n: 'Triumph', ic: '👑', k: 'leap', dmg: 210, dist: 20, rad: 8, cd: 30, wind: 0.2, an: 'leap', fx: { st: 1.2 }, d: 'A triumphant leap with the eagle held high, and down on them: 210 damage all round and a 1.2 s stun.' }] },
     // 🏰 Europe's myth: the Frost Jötunn, a giant of the frozen north — not in any crate (its Frost Saga is in the achievements)
-    { e: 2, r: 4, hp: 1350, spd: 0.55, def: 0.62, big: 1.4, nc: 1, frost: [0.8, 1.2], ro: 'Giant', how: 'Accept the Frost Saga (🏆 Achievements → 📜 Quests), then beat the 👹 boss 3 times and deal 25,000 damage', pas: [['🧊', 'Frost Giant', '45% slower than everyone else, and takes 38% less damage.'], ['❄️', 'Rime', 'Every hit chills them: 20% slower for 1.2 s.']], ab: [
-      { n: 'Rime Club', ic: '🏏', k: 'melee', dmg: 185, cd: 2.0, rng: 10, arc: 110, wind: 0.5, an: 'overhead' },
-      { n: 'Ice Boulder', ic: '🧊', k: 'proj', dmg: 150, cd: 9, spd: 42, wind: 0.6, an: 'lob', model: 'ice', fx: { sl: [0.5, 3] }, d: 'Wrench a boulder of ice from the ground and hurl it: 150 damage, and they’re 50% slower for 3 s.' },
+    { e: 2, r: 4, hp: 1250, spd: 0.55, def: 0.62, big: 1.4, nc: 1, frost: [0.8, 1.2], ro: 'Giant', how: 'Accept the Frost Saga (🏆 Achievements → 📜 Quests), then beat the 👹 boss 3 times and deal 25,000 damage', pas: [['🧊', 'Frost Giant', '45% slower than everyone else, and takes 38% less damage.'], ['❄️', 'Rime', 'Every hit chills them: 20% slower for 1.2 s.']], ab: [
+      { n: 'Rime Club', ic: '🏏', k: 'melee', dmg: 165, cd: 2.0, rng: 10, arc: 110, wind: 0.5, an: 'overhead' },
+      { n: 'Ice Boulder', ic: '🧊', k: 'proj', dmg: 130, cd: 9, spd: 42, wind: 0.6, an: 'lob', model: 'ice', fx: { sl: [0.5, 3] }, d: 'Wrench a boulder of ice from the ground and hurl it: 130 damage, and they’re 50% slower for 3 s.' },
       { n: 'Frost Stomp', ic: '🦶', k: 'stomp', dmg: 40, crush: 100, near: 7, rad: 28, cd: 6.5, wind: 0.5, an: 'stomp', wspd: 20, d: 'A shockwave of frost rolls out: jump it or take 40. Up close it’s a Crush — 100, a 1 s stun and Crushed for the rest of the round.' },
-      { n: 'Fimbulwinter', ic: '🌨️', k: 'volley', dmg: 32, cnt: 10, rad: 8, delay: 0.9, cd: 32, wind: 0.45, an: 'roar', model: 'hail', fx: { sl: [0.7, 1.5] }, d: 'The great winter: ten shards of hail crash down where they stand, 32 each, and each one chills them.' }] },
+      { n: 'Fimbulwinter', ic: '🌨️', k: 'volley', dmg: 26, cnt: 10, rad: 8, delay: 0.9, cd: 32, wind: 0.45, an: 'roar', model: 'hail', fx: { sl: [0.7, 1.5] }, d: 'The great winter: ten shards of hail crash down where they stand, 26 each, and each one chills them.' }] },
     // 🏛️ Macedon: the Phalangite, a pikeman of the phalanx — a legendary with a quest of his own (no crate has him)
     { e: 1, r: 3, hp: 560, spd: 0.95, def: 0.85, nc: 1, sh: 1, ro: 'Tank', how: 'Accept The Sarissa (🏆 Achievements → 📜 Quests), then defeat 25 fighters and deal 10,000 damage', pas: [['📏', 'Sarissa', 'The longest reach in the Colosseum: his pike strikes from 13 m.']], ab: [
       { n: 'Sarissa Thrust', ic: '🔱', k: 'melee', dmg: 72, cd: 1.5, rng: 13, arc: 30, wind: 0.26, an: 'spear' },
@@ -355,11 +356,11 @@
       { n: 'Hook', ic: '🪝', k: 'melee', dmg: 35, cd: 9, rng: 9.5, arc: 60, wind: 0.22, an: 'spear2', fx: { rt: 1.2, st: 0.3 }, d: 'Catch them with the hook behind the blade: 35 damage, and they can’t move for 1.2 s.' },
       { n: 'Pike Square', ic: '🏰', k: 'buff', cd: 24, an: 'fortress', b: { dur: 4, def: 0.6, imm: 1 }, d: 'Stand as the Swiss square: 40% less damage, and nothing stuns, roots or slows you for 4 s.' }] },
     // 🏛️ Greece's myth: the Cyclops, a giant
-    { e: 1, r: 4, hp: 1550, spd: 0.55, def: 0.62, big: 1.4, nc: 1, rage: [0.5, 1.3], ro: 'Giant', how: 'Accept The Forge of Zeus (🏆 Achievements → 📜 Quests), then beat the 👹 boss 2 times and defeat 30 fighters', pas: [['👁️', 'Giant of Sicily', '45% slower than everyone else, and takes 38% less damage.'], ['💢', 'Rage', 'Below half health: +30% damage.']], ab: [
-      { n: 'Olive Club', ic: '🏏', k: 'melee', dmg: 190, cd: 2.2, rng: 10, arc: 110, wind: 0.5, an: 'overhead' },
-      { n: 'Hurl Boulder', ic: '🪨', k: 'proj', dmg: 160, cd: 10, spd: 40, wind: 0.65, an: 'lob', model: 'rock', fx: { st: 0.8 }, d: 'Tear up a rock and hurl it: 160 damage and a 0.8 s stun.' },
+    { e: 1, r: 4, hp: 1400, spd: 0.55, def: 0.62, big: 1.4, nc: 1, rage: [0.5, 1.3], ro: 'Giant', how: 'Accept The Forge of Zeus (🏆 Achievements → 📜 Quests), then beat the 👹 boss 2 times and defeat 30 fighters', pas: [['👁️', 'Giant of Sicily', '45% slower than everyone else, and takes 38% less damage.'], ['💢', 'Rage', 'Below half health: +30% damage.']], ab: [
+      { n: 'Olive Club', ic: '🏏', k: 'melee', dmg: 170, cd: 2.2, rng: 10, arc: 110, wind: 0.5, an: 'overhead' },
+      { n: 'Hurl Boulder', ic: '🪨', k: 'proj', dmg: 140, cd: 10, spd: 40, wind: 0.65, an: 'lob', model: 'rock', fx: { st: 0.8 }, d: 'Tear up a rock and hurl it: 140 damage and a 0.8 s stun.' },
       { n: 'Quake', ic: '🦶', k: 'stomp', dmg: 40, crush: 115, near: 7, rad: 26, cd: 6.5, wind: 0.5, an: 'stomp', wspd: 18, d: 'A shockwave rolls out: jump it or take 40. Up close it’s a Crush — 115, a 1 s stun and Crushed for the round.' },
-      { n: 'Thunderbolt', ic: '⚡', k: 'proj', dmg: 220, cd: 28, spd: 150, wind: 0.8, an: 'lob', model: 'bolt', fx: { st: 1.2 }, d: 'The Cyclopes forged the thunderbolts of Zeus — he hurls one: 220 damage and a 1.2 s stun.' }] },
+      { n: 'Thunderbolt', ic: '⚡', k: 'proj', dmg: 190, cd: 28, spd: 150, wind: 0.8, an: 'lob', model: 'bolt', fx: { st: 1.2 }, d: 'The Cyclopes forged the thunderbolts of Zeus — he hurls one: 190 damage and a 1.2 s stun.' }] },
     // 🏯 Japan's myth: the Oni, a giant and a tank — vast, armoured, and slow to swing
     { e: 3, r: 4, hp: 2300, spd: 0.6, def: 0.5, big: 1.45, nc: 1, ro: 'Giant', how: 'Accept The Oni’s Gate (🏆 Achievements → 📜 Quests), then win 20 duels and deal 30,000 damage', pas: [['👹', 'Demon Hide', '40% slower than everyone else, and takes half damage.'], ['🐢', 'Slow and Heavy', 'Its kanabō swings only every 2.8 s — but every blow staggers.']], ab: [
       { n: 'Kanabō', ic: '🏏', k: 'melee', dmg: 72, cd: 2.8, rng: 9.5, arc: 120, wind: 0.6, an: 'overhead', fx: { st: 0.4 } },
@@ -367,8 +368,8 @@
       { n: 'Oni Roar', ic: '📢', k: 'stomp', dmg: 25, crush: 60, near: 6, rad: 22, cd: 10, wind: 0.6, an: 'stomp', wspd: 16, d: 'A roar and a stamp that shakes the sand: jump it or take 25 — up close, 60 and Crushed.' },
       { n: 'Demon Gate', ic: '⛩️', k: 'buff', cd: 32, an: 'benkei', b: { dur: 6, def: 0.5, rf: 0.5, hps: 30 }, d: 'It stands like a gate of hell: half damage for 6 s, half of it back at them, and it heals 30 a second.' }] },
     // 🦅 Rome's myth: Cacus, the fire-breathing giant, son of Vulcan
-    { e: 0, r: 4, hp: 1500, spd: 0.58, def: 0.62, big: 1.4, nc: 1, fireImm: 1, ro: 'Giant', how: 'Accept The Cave of Cacus (🏆 Achievements → 📜 Quests), then beat the 👹 boss 2 times and deal 20,000 damage', pas: [['🔥', 'Son of Vulcan', 'Burns can’t hurt him — and his hammer sets them alight.'], ['🗿', 'Giant of the Aventine', '42% slower than everyone else, and takes 38% less damage.']], ab: [
-      { n: 'Forge Hammer', ic: '🔨', k: 'melee', dmg: 185, cd: 2.1, rng: 10, arc: 110, wind: 0.5, an: 'overhead', fx: { bu: [30, 3] } },
+    { e: 0, r: 4, hp: 1400, spd: 0.58, def: 0.62, big: 1.4, nc: 1, fireImm: 1, ro: 'Giant', how: 'Accept The Cave of Cacus (🏆 Achievements → 📜 Quests), then beat the 👹 boss 2 times and deal 20,000 damage', pas: [['🔥', 'Son of Vulcan', 'Burns can’t hurt him — and his hammer sets them alight.'], ['🗿', 'Giant of the Aventine', '42% slower than everyone else, and takes 38% less damage.']], ab: [
+      { n: 'Forge Hammer', ic: '🔨', k: 'melee', dmg: 165, cd: 2.1, rng: 10, arc: 110, wind: 0.5, an: 'overhead', fx: { bu: [30, 3] } },
       { n: 'Fire Breath', ic: '🔥', k: 'proj', dmg: 30, cnt: 5, spread: 10, cd: 8, spd: 60, wind: 0.35, an: 'roar', model: 'flame', fx: { bu: [20, 3] }, d: 'A gout of fire from his mouth: five flames, 30 each, and they burn.' },
       { n: 'Molten Stomp', ic: '🦶', k: 'stomp', dmg: 40, crush: 115, near: 7, rad: 24, cd: 6.5, wind: 0.5, an: 'stomp', wspd: 18, d: 'A shockwave of fire rolls out: jump it or take 40. Up close it’s a Crush — 115, a 1 s stun and Crushed for the round.' },
       { n: 'Cave of Smoke', ic: '💨', k: 'buff', cd: 28, an: 'smoke', b: { dur: 3, inv: 1, nx: 2 }, d: 'He hides in smoke, as he hid in his cave: unseen for 3 s, and his next blow does double damage.' }] },
@@ -416,6 +417,33 @@
         { n: 'Sword', ic: '⚔️', dmg: 42, cd: 0.75, rng: 6.5, arc: 100, wind: 0.12, an: 'slash' }] },
       { n: 'Rally the Line', ic: '🎖️', k: 'buff', cd: 22, an: 'rally', b: { dur: 6, dmgM: 1.25, def: 0.8, heal: 80 }, d: '“Steady, boys!”: heal 80, +25% damage and 20% less damage taken for 6 s.' },
       { n: 'Artillery!', ic: '💣', k: 'volley', dmg: 60, cnt: 4, rad: 7, delay: 1.2, cd: 26, wind: 0.4, an: 'sky', model: 'cannon', d: 'His sword points and the guns answer: four cannonballs fall where they stand, 60 each.' }] },
+    // 🔔 America's myth: the Headless Horseman of Sleepy Hollow — a Hessian trooper's ghost (1790), a Spirit with a quest
+    { e: 6, r: 4, hp: 440, spd: 1.3, def: 0.92, nc: 1, ro: 'Spirit', how: 'Accept The Legend of Sleepy Hollow (🏆 Achievements → 📜 Quests), then win 18 duels and deal 20,000 damage', pas: [['🎃', 'Headless', 'Only half of him is here — the half without a head: quick on his feet, and he takes 8% less damage.'], ['😱', 'Terror', 'His laugh sends them running: for 2.5 s they flee from him and can’t fight back.']], ab: [
+      { n: 'Hessian Sabre', ic: '🗡️', k: 'melee', dmg: 60, cd: 0.8, rng: 7, arc: 110, wind: 0.12, an: 'slash' },
+      { n: 'Jack-o’-Lantern', ic: '🎃', k: 'proj', dmg: 75, cd: 8, spd: 55, wind: 0.3, an: 'lob', model: 'pumpkin', fx: { bu: [40, 4] }, d: 'He hurls the flaming pumpkin he carries for a head: 75 damage, and it burns for 40 more.' },
+      { n: 'Phantom Gallop', ic: '🐎', k: 'dash', dmg: 70, dist: 20, dd: 0.35, cd: 14, wind: 0.2, an: 'charge', fx: { kb: 12, st: 0.6 }, d: 'The ghost of his horse carries him through them: 70 damage, a 0.6 s stun, and they’re thrown back.' },
+      { n: 'Hollow Laugh', ic: '😱', k: 'proj', dmg: 30, cd: 22, spd: 70, wind: 0.25, an: 'roar', model: 'laugh', fx: { fr: 2.5 }, d: 'His laugh rings across the sand: 30 damage and Terror for 2.5 s — they flee from him and can’t fight back.' }] },
+    // 🐍 the Aztec Empire: a crate of five, from the macehualli of the city's levy to the eagle warrior
+    { e: 7, r: 0, hp: 400, ro: 'Bruiser', ab: [
+      { n: 'Macuahuitl', ic: '🗡️', k: 'melee', dmg: 38, cd: 1.0, rng: 6.5, arc: 110, wind: 0.18, an: 'slash', fx: { bl: [24, 3], blc: 0.3 } },
+      { n: 'Chimalli Bash', ic: '🛡️', k: 'melee', dmg: 30, cd: 9, rng: 5.5, arc: 70, wind: 0.15, an: 'bash', fx: { st: 0.6, kb: 6 }, d: 'The round shield in their face: 30 damage, a 0.6 s stun, and they stagger back.' },
+      { n: 'Death Whistle', ic: '💀', k: 'buff', cd: 24, an: 'roar', b: { dur: 6, dmgM: 1.2, spdM: 1.1 }, d: 'The skull whistle shrieks: +20% damage and 10% faster for 6 s.' }] },
+    { e: 7, r: 0, hp: 340, spd: 1.08, ro: 'Ranger', ab: [
+      { n: 'Sling Stone', ic: '🪨', k: 'proj', dmg: 34, cd: 0.9, spd: 95, wind: 0.22, an: 'fan', model: 'stone' },
+      { n: 'Hail of Stones', ic: '🌧️', k: 'proj', dmg: 22, cnt: 3, spread: 10, cd: 7, spd: 90, wind: 0.3, an: 'fan', model: 'stone', d: 'Three stones whirled and loosed at once, 22 each.' },
+      { n: 'Obsidian Knife', ic: '🔪', k: 'melee', dmg: 48, cd: 6, rng: 5, arc: 80, wind: 0.1, an: 'quick', fx: { bl: [30, 3] }, d: 'Up close, the volcanic-glass knife: 48 damage, and 30 more as they bleed.' }] },
+    { e: 7, r: 1, hp: 400, spd: 1.1, ro: 'Skirmisher', ab: [
+      { n: 'Atlatl Dart', ic: '🎯', k: 'proj', dmg: 56, cd: 1.5, spd: 85, wind: 0.3, an: 'throw', model: 'javelin' },
+      { n: 'Tepoztopilli', ic: '🔱', k: 'melee', dmg: 50, cd: 6, rng: 8.5, arc: 45, wind: 0.2, an: 'spear2', d: 'A thrust of the obsidian-edged spear: 50 damage, with a long reach.' },
+      { n: 'Rain of Darts', ic: '🌧️', k: 'volley', dmg: 30, cnt: 5, rad: 6, delay: 1.0, cd: 24, wind: 0.35, an: 'sky', model: 'javelin', d: 'Five atlatl darts fall where they stand, 30 each.' }] },
+    { e: 7, r: 2, hp: 430, spd: 1.15, ro: 'Assassin', ab: [
+      { n: 'Macuahuitl', ic: '🗡️', k: 'melee', dmg: 50, cd: 0.9, rng: 6.5, arc: 110, wind: 0.14, an: 'slash', fx: { bl: [30, 3], blc: 0.35 } },
+      { n: 'Pounce', ic: '🐆', k: 'leap', dmg: 75, dist: 18, rad: 6, cd: 10, wind: 0.12, an: 'leap', fx: { bl: [40, 3] }, d: 'The jaguar springs: 75 damage where it lands, and 40 more as they bleed.' },
+      { n: 'Jungle Shadow', ic: '🌿', k: 'buff', cd: 24, an: 'smoke', b: { dur: 2.5, inv: 1, nx: 2 }, d: 'Gone into the shadows: unseen for 2.5 s, and the next blow does double damage.' }] },
+    { e: 7, r: 3, hp: 520, spd: 1.05, ro: 'Damage dealer', ab: [
+      { n: 'Macuahuitl', ic: '🗡️', k: 'melee', dmg: 62, cd: 1.05, rng: 7, arc: 120, wind: 0.18, an: 'slash', fx: { bl: [40, 3], blc: 0.4 } },
+      { n: 'Eagle Dive', ic: '🦅', k: 'leap', dmg: 110, dist: 22, rad: 7, cd: 11, wind: 0.2, an: 'leap', fx: { st: 0.8 }, d: 'The eagle stoops on them from on high: 110 damage all round and a 0.8 s stun.' },
+      { n: 'Flowery War', ic: '🌺', k: 'buff', cd: 28, an: 'rally', b: { dur: 7, dmgM: 1.3, spdM: 1.15, ls: 0.2 }, d: 'The war for captives: +30% damage, 15% faster and 20% lifesteal for 7 s.' }] },
   ];
   CH.forEach((C, i) => { C.i = i; C.n = DUEL_N[i]; C.ic = DUEL_IC[i]; C.spd = C.spd || 1; C.def = C.def || 1; });
   // what each one is for, at a glance
@@ -425,8 +453,8 @@
   const WTS = [['Light', '🪶', ['Assassin', 'Spirit', 'Ranger', 'Skirmisher']], ['Medium', '⚔️', ['Bruiser', 'Damage dealer', 'Duelist', 'All-rounder']], ['Heavy', '🛡️', ['Tank', 'Giant']]];
   CH.forEach((C) => { const W = WTS.find((w) => w[2].includes(C.ro)); if (!W) console.error('duel: no weight for', C.n, C.ro); C.wt = W ? W[0] : 'Medium'; C.wtI = W ? W[1] : '⚔️'; });
   const CRATE = EMP.map((_, e) => CH.filter((C) => C.e === e && !C.nc).map((C) => C.i)); // (each crate's five, common to legendary)
-  const LAE = 20, EXE = 21, KEN = 32, IMP = 33, JOT = 34, PHA = 35, HAL = 36, CYC = 37, ONI = 38, CAC = 39, CHO = 40, YUR = 41, MIN = 42, RIF = 43, REG = 44, DRA = 45, COLN = 46;
-  for (const i of [0, 1, 3, 4, 5, 6, 8, 9, 10, 12, 13, 22, 30, 35]) CH[i].sh = 1; // (the ones with a shield: blocking stops everything — without one it halves the damage) // (the mythics — the Laestrygonian, the Executioner, the Kensei: no crate has them)
+  const LAE = 20, EXE = 21, KEN = 32, IMP = 33, JOT = 34, PHA = 35, HAL = 36, CYC = 37, ONI = 38, CAC = 39, CHO = 40, YUR = 41, MIN = 42, RIF = 43, REG = 44, DRA = 45, COLN = 46, HH = 47;
+  for (const i of [0, 1, 3, 4, 5, 6, 8, 9, 10, 12, 13, 22, 30, 35, 48, 51, 52]) CH[i].sh = 1; // (the ones with a shield: blocking stops everything — without one it halves the damage) // (the mythics — the Laestrygonian, the Executioner, the Kensei: no crate has them)
   const KEN_W = 20, KEN_D = 20000; // (the Sword Saint's Trial: wins, damage)
   // the mythics' quests: each accepted in the achievements, then two counts to reach (k kills, d damage, w wins, c Classic
   // wins, b boss wins)
@@ -440,6 +468,7 @@
     { key: 'q8', c: ONI, ic: '👹', n: 'The Oni’s Gate', need: [['w', 20, '🏆', 'wins'], ['d', 30000, '💥', 'damage']], how: 'win 20 duels and deal 30,000 damage', tail: 'a giant tank: vast health, half damage taken, slow heavy blows', done: 'the Oni’s gate opens', col: ['220,38,38', '69,10,10', '#fecaca', '#b91c1c,#fca5a5'] },
     { key: 'q9', c: CAC, ic: '🔥', n: 'The Cave of Cacus', need: [['b', 2, '👹', 'boss wins'], ['d', 20000, '💥', 'damage']], how: 'beat the 👹 boss 2 times and deal 20,000 damage', tail: 'Rome’s fire-breathing giant, son of Vulcan', done: 'Cacus comes out of his cave', col: ['249,115,22', '67,20,7', '#fed7aa', '#ea580c,#fdba74'] },
     { key: 'q10', c: CHO, ic: '👻', n: 'The Shaman’s Call', need: [['k', 60, '⚔️', 'defeated'], ['w', 15, '🏆', 'wins']], how: 'defeat 60 fighters and win 15 duels', tail: 'a spirit of the steppe that possesses its foes', done: 'the spirit answers the drum', col: ['45,212,191', '17,72,68', '#99f6e4', '#0d9488,#99f6e4'] },
+    { key: 'q12', c: HH, ic: '🎃', n: 'The Legend of Sleepy Hollow', need: [['w', 18, '🏆', 'wins'], ['d', 20000, '💥', 'damage']], how: 'win 18 duels and deal 20,000 damage', tail: 'the headless Hessian of Sleepy Hollow: a flaming jack-o’-lantern, a phantom gallop and a laugh that sends them running', done: 'the Horseman rides out of the Hollow', col: ['251,146,60', '67,20,7', '#fed7aa', '#ea580c,#fdba74'] },
     { key: 'q11', c: YUR, ic: '🏮', n: 'The Haunting', need: [['w', 12, '🏆', 'wins'], ['d', 15000, '💥', 'damage']], how: 'win 12 duels and deal 15,000 damage', tail: 'a vengeful ghost of old Japan: ghost-fires, sleep paralysis and a grudge', done: 'the lantern gutters — the Yūrei follows you home', col: ['147,197,253', '30,41,82', '#dbeafe', '#3b82f6,#dbeafe'] },
     { key: 'q4', c: JOT, ic: '🧊', n: 'The Frost Saga', need: [['b', 3, '👹', 'boss wins'], ['d', 25000, '💥', 'damage']], how: 'beat the 👹 Laestrygonian boss 3 times and deal 25,000 damage', tail: 'a giant of the frozen north: ice, frost and a great club', done: 'the Frost Saga is sung', col: ['125,211,252', '12,74,110', '#bae6fd', '#0284c7,#bae6fd'] },
   ];
@@ -449,7 +478,7 @@
     { n: 'Great Scimitar', ic: '🗡️', k: 'melee', dmg: 320, cd: 5, rng: 10, arc: 120, wind: 1.4, an: 'bcleave' },
     { n: 'Earthshaker', ic: '🦶', k: 'stomp', dmg: 45, rad: 36, cd: 6.5, wind: 0.8, an: 'bplant', wspd: 17 }] }); // (bcleave, bplant: its own two-handed blows — the pack holds the sword for them)
     // the fighters' looks for their trails and glows
-  const COL = ['#ef4444', '#f59e0b', '#2dd4bf', '#a855f7', '#f97316', '#60a5fa', '#fbbf24', '#fb923c', '#a3a3a3', '#dc2626', '#facc15', '#84cc16', '#38bdf8', '#fef3c7', '#e2e8f0', '#93c5fd', '#fda4af', '#a78bfa', '#fb923c', '#fde047', '#fbbf24', '#991b1b', '#f87171', '#fbbf24', '#f97316', '#2dd4bf', '#dc2626', '#a16207', '#7dd3fc', '#38bdf8', '#cbd5e1', '#facc15', '#f43f5e', '#fbbf24', '#7dd3fc', '#f59e0b', '#ef4444', '#d6a77a', '#dc2626', '#fb923c', '#5eead4', '#bfdbfe', '#a16207', '#65a30d', '#3b82f6', '#16a34a', '#e7d3a1'];
+  const COL = ['#ef4444', '#f59e0b', '#2dd4bf', '#a855f7', '#f97316', '#60a5fa', '#fbbf24', '#fb923c', '#a3a3a3', '#dc2626', '#facc15', '#84cc16', '#38bdf8', '#fef3c7', '#e2e8f0', '#93c5fd', '#fda4af', '#a78bfa', '#fb923c', '#fde047', '#fbbf24', '#991b1b', '#f87171', '#fbbf24', '#f97316', '#2dd4bf', '#dc2626', '#a16207', '#7dd3fc', '#38bdf8', '#cbd5e1', '#facc15', '#f43f5e', '#fbbf24', '#7dd3fc', '#f59e0b', '#ef4444', '#d6a77a', '#dc2626', '#fb923c', '#5eead4', '#bfdbfe', '#a16207', '#65a30d', '#3b82f6', '#16a34a', '#e7d3a1', '#fb923c', '#10b981', '#a8a29e', '#14b8a6', '#facc15', '#f59e0b'];
   // the duel's own achievements: each wins a fighter (the 1% ones only come from crates)
   const ACH = [
     { id: 'blood', ic: '🩸', n: 'First Blood', d: 'Defeat a fighter', k: 'kills', n0: 1, c: 1 },
@@ -479,7 +508,7 @@
   const ROUND_T = 180, DM_T = 300, TO = 3, A0 = 50, B0 = 36; // (a round, a deathmatch; first to; the arena's half-length (x) and half-width (z))
   const LZ = 12; // (the ludus, set back to make room for the Colosseum: everything in it is this much further along z)
   const LOBBY = { z0: 92 + LZ, z1: 156 + LZ, x: 46 }, PADS = [{ md: 'c', x: -18, z: 108 + LZ, n: '⚔️ CLASSIC 1v1', s: 'first to 3' }, { md: 'd', x: 18, z: 108 + LZ, n: '💀 DEATHMATCH 1v1', s: 'most kills in 5:00' }, { md: 'b', x: 0, z: 103 + LZ, n: '👹 BOSS · CO-OP', s: 'up to 4 vs the Laestrygonian' }];
-  const SHRINES = [1, 0, 2, 3, 4, 5, 6].map((e, k) => { const x = -36 + k * 12; return { e, x, z: Math.round(141 - x * x * 0.009) + LZ }; }); // (an arc of shrines, oldest to newest)
+  const SHRINES = [1, 0, 2, 3, 4, 5, 7, 6].map((e, k) => { const x = -38.5 + k * 11; return { e, x, z: Math.round(141 - x * x * 0.009) + LZ }; }); // (an arc of shrines, oldest to newest)
   // one-time codes: only a SHA-256 of each code lives here (never the code), with the fighter it gives. Its claim is a
   // shared document named by a second hash of the code — one nobody can work out without the code — so once anyone
   // redeems it, nobody else can, and nobody without it can spoil it
@@ -865,7 +894,7 @@
       default: return ab.b && ab.b.blk ? ab.b.dur : 0.8;
     }
   }
-  const stunned = (F) => F.S.stun > 0 || F.S.pos > 0; // (stunned, or possessed)
+  const stunned = (F) => F.S.stun > 0 || F.S.pos > 0 || F.S.fear > 0; // (stunned, possessed, or terrified)
   const isBoss = (F) => !!F && (F.kind === 'boss' || F.kind === 'rboss');
   const local = (T) => T.kind === 'me' || T.kind === 'bot' || T.kind === 'boss'; // (the ones whose hits are judged here)
   const bigR = (F) => (F && F.C.big ? (F.C.big - 1) * 2.4 : 0); // (how much further a giant reaches, and is reached)
@@ -1079,7 +1108,7 @@
       c.material.color.set(col); c.scale.set(r, h, r); c.position.set(F.x, y0 + h / 2, F.z);
       const A = F.act, ab = A && A.ab; if (!ab) continue;
       const w = ab.wind || 0, sector = (half, reach, color, op) => { const m = hbPool(HB.sec, () => new THREE.Mesh(hbSecGeo(1), new THREE.MeshBasicMaterial({ color: '#fff', transparent: true, depthWrite: false, depthTest: false, side: THREE.DoubleSide })), si++); m.geometry = hbSecGeo(half); m.material.color.set(color); m.material.opacity = op; m.scale.set(reach, 1, reach); m.position.set(F.x, y0 + 0.12, F.z); m.rotation.y = A.an === 'whirl' ? 0 : F.yaw; };
-      if (ab.k === 'melee' || ab.k === 'multi' || ab.k === 'combo') { const reach = (ab.rng || 6) + (ab.an === 'stab' ? 2.5 : 0) + bigR(F), half = (ab.arc || 90) >= 360 || A.an === 'whirl' ? Math.PI : Math.min(Math.PI, (ab.arc || 90) / 2 * Math.PI / 180 + 0.3), hot = A.t >= w - 0.06; sector(half, reach, hot ? '#ef4444' : '#f59e0b', hot ? 0.42 : 0.24); }
+      if (ab.k === 'melee' || ab.k === 'multi' || ab.k === 'combo') { const reach = (ab.rng || 6) + (ab.an === 'stab' ? 2.5 : 0) + bigR(F), half = (ab.arc || 90) >= 360 || A.an === 'whirl' ? Math.PI : Math.min(Math.PI, (ab.arc || 90) / 2 * Math.PI / 180 + 0.3), hot = A.t >= w - 0.06, live = ab.k !== 'melee' || A.t <= (A.live || w + 0.3); sector(half, reach, !hot ? '#f59e0b' : live ? '#ef4444' : '#94a3b8', !hot ? 0.24 : live ? 0.42 : 0.14); }
       else if (ab.k === 'dash' && A.t > w && A.t < w + (ab.dd || 0.3) + 0.1) sector(Math.PI, 2.2 + bigR(F), '#a855f7', 0.35); }
     for (const p of DU.proj) { if (p.life <= 0) continue; const r = (p.F.kind === 'me' ? 2.9 : 2.3) - 1.2, m = hbPool(HB.sph, () => new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(1, 10, 6)), new THREE.LineBasicMaterial({ color: '#facc15', transparent: true, opacity: 0.9, depthTest: false })), pi++); m.scale.setScalar(r); m.position.set(p.x, p.y, p.z); }
   }
@@ -1119,7 +1148,8 @@
   function actTick(F, dt) {
     const A = F.act; if (!A) return; const ab = A.ab, w = ab.wind || 0, t0 = A.t; A.t += dt; const t = A.t, T = foeOf(F);
     const at = (x) => t0 < x && t >= x;
-    if (ab.k === 'melee') { if (at(w)) { if (ab.an === 'stab' && !A.vis) { moveF(F, -Math.sin(F.yaw) * 2.5, -Math.cos(F.yaw) * 2.5); } meleeHit(F, ab, ab.dmg, ab.fx, A);
+    if (ab.k === 'melee') { if (A.live == null) A.live = w + Math.min(0.5, Math.max(0.15, actDur(ab) - w)); if (A.struck && t0 >= w && t0 < A.live) meleeHit(F, ab, ab.dmg, ab.fx, A, undefined, true); // (still swinging: still live — each target once)
+      if (at(w)) { A.struck = 1; if (ab.an === 'stab' && !A.vis) { moveF(F, -Math.sin(F.yaw) * 2.5, -Math.cos(F.yaw) * 2.5); } meleeHit(F, ab, ab.dmg, ab.fx, A);
       if (ab.an === 'bcleave') bossCleaveFx(F, ab); else if (ab.an === 'gslash' && isBoss(F)) { ringAt(F.x - Math.sin(F.yaw) * 6, F.z - Math.cos(F.yaw) * 6, '#fde68a', 14, 0.45); camShake(me, 0.5); sfx3('crash', F.x, F.z, 90); }
       if (ab.an === 'behead') { slashLine(F.x + Math.cos(F.yaw) * 4, F.z - Math.sin(F.yaw) * 4, F.x - Math.cos(F.yaw) * 4, F.z + Math.sin(F.yaw) * 4, '#ef4444'); sfx3('zap', F.x, F.z, 70); } } }
     else if (ab.k === 'multi' || ab.k === 'combo') {
@@ -1230,14 +1260,14 @@
   }
   function heal(F, n) { n = Math.round(Math.min(n, F.mhp - F.hp)); if (n <= 0 || F.kind === 'rem') return; F.hp += n; floatText(F, '+' + n, 'heal'); sparks(F, '#4ade80', 6, 3, { v: [0, 4, 0], g: 0 }); }
   // does a blow land? within reach, in front (the arc), not far above or below
-  function meleeHit(F, ab, dmg, fx, A, h) {
+  function meleeHit(F, ab, dmg, fx, A, h, late) {
     let any = false;
-    for (const T of targetsOf(F)) { if (T.dead) continue;
+    for (const T of targetsOf(F)) { if (T.dead || (A && A.hitT && A.hitT.has(T))) continue;
       const dx = T.x - F.x, dz = T.z - F.z, d = Math.hypot(dx, dz), da = Math.abs(wrapA(angOf(dx, dz) - (A && A.an === 'whirl' ? angOf(dx, dz) : F.yaw)));
       const reach = (ab.rng || 6) + 1.2 + (ab.an === 'stab' ? 2.5 : 0) + bigR(F) + bigR(T), arc = (ab.arc || 90) >= 360 ? 9 : (ab.arc || 90) / 2 * Math.PI / 180 + 0.3;
       if (d > reach || da > arc || Math.abs((T.y + (T.lift || 0)) - (F.y + (F.lift || 0))) > 4.5 * Math.max(F.C.big || 1, T.C.big || 1)) continue;
-      any = true; if (!(A && A.vis)) dealHitAs(F, T, dmg, fx, ab, A, h); }
-    if (!any && (!A || !A.vis)) sfx3('whoosh', F.x, F.z, 40, { vol: 0.35 });
+      any = true; if (A) (A.hitT || (A.hitT = new Set())).add(T); if (!(A && A.vis)) dealHitAs(F, T, dmg, fx, ab, A, h); }
+    if (!any && !late && (!A || !A.vis)) sfx3('whoosh', F.x, F.z, 40, { vol: 0.35 });
     return any;
   }
   // a hit: how hard (their buffs and the next-hit bonus), then theirs to take — here, or sent to them
@@ -1299,6 +1329,7 @@
       if (fx.bl) { T.S.dots.push({ k: 'bl', dps: fx.bl[0] / fx.bl[1], t: fx.bl[1], acc: 0 }); floatText(T, '🩸 BLEEDING', 'tag'); }
       if (fx.bu && !T.C.fireImm) { T.S.dots.push({ k: 'bu', dps: fx.bu[0] / fx.bu[1], t: fx.bu[1], acc: 0 }); floatText(T, '🔥 BURNING', 'tag'); }
       if (fx.pos && !isBoss(T)) { T.S.pos = Math.max(T.S.pos || 0, fx.pos); T.S.posBy = from || null; T.act = null; T.blk = false; floatText(T, '👻 POSSESSED', 'big'); sfx3('magic', T.x, T.z, 70); } // (possessed: it walks them where it looks)
+      if (fx.fr && !isBoss(T)) { T.S.fear = Math.max(T.S.fear || 0, fx.fr); T.S.fearBy = from || null; T.act = null; T.blk = false; floatText(T, '😱 TERRIFIED', 'big'); sfx3('magic', T.x, T.z, 70); } // (the Horseman's laugh: they run from him)
       if (fx.cu) { T.S.cu = Math.max(T.S.cu || 0, fx.cu); T.S.cuBy = from || null; floatText(T, '👺 CURSED', 'big'); sfx3('magic', T.x, T.z, 60); } // (the Yūrei's grudge: see dealHitAs)
       if (fx.cr && !T.S.crush) { T.S.crush = 1; floatText(T, '💢 CRUSHED — ×2 DAMAGE', 'big'); sfx3('crunch', T.x, T.z, 70); } // (until the round ends, or they die)
       if (fx.vu) T.S.vuln = Math.max(T.S.vuln, fx.vu);
@@ -1318,7 +1349,7 @@
   function statusTick(F, dt) {
     const S = F.S, cdm = bval(F, 'cdM');
     for (let i = 0; i < F.cd.length; i++) if (F.cd[i] > 0) F.cd[i] = Math.max(0, F.cd[i] - dt * cdm); if (F.mcd) for (let k = 0; k < F.mcd.length; k++) if (k !== F.mode && F.mcd[k] > 0) F.mcd[k] = Math.max(0, F.mcd[k] - dt * cdm); // (the other mode's, too)
-    S.sp = Math.max(0, S.sp - dt); S.stun = Math.max(0, S.stun - dt); if (S.pos > 0 && (S.pos -= dt) <= 0) { S.pos = 0; S.posBy = null; } S.root = Math.max(0, S.root - dt); S.vuln = Math.max(0, S.vuln - dt); if (S.cu > 0 && (S.cu -= dt) <= 0) { S.cu = 0; S.cuBy = null; } S.ifr = Math.max(0, S.ifr - dt); if ((S.slow = Math.max(0, S.slow - dt)) === 0) S.slowM = 1;
+    S.sp = Math.max(0, S.sp - dt); S.stun = Math.max(0, S.stun - dt); if (S.pos > 0 && (S.pos -= dt) <= 0) { S.pos = 0; S.posBy = null; } S.root = Math.max(0, S.root - dt); S.vuln = Math.max(0, S.vuln - dt); if (S.cu > 0 && (S.cu -= dt) <= 0) { S.cu = 0; S.cuBy = null; } if (S.fear > 0 && (S.fear -= dt) <= 0) { S.fear = 0; S.fearBy = null; } S.ifr = Math.max(0, S.ifr - dt); if ((S.slow = Math.max(0, S.slow - dt)) === 0) S.slowM = 1;
     for (const b of S.buffs) b.t -= dt; S.buffs = S.buffs.filter((b) => b.t > 0);
     if (F.kind === 'rem' || F.kind === 'rboss' || F.dead) return;
     const hps = bval(F, 'hps'); if (hps && live()) { F.hpAcc = (F.hpAcc || 0) + hps * dt; if (F.hpAcc >= 5) { heal(F, F.hpAcc); F.hpAcc = 0; } }
@@ -1339,6 +1370,9 @@
     else if (kind === 'rock') { const s2 = new THREE.Group(); g.add(s2); const m = new THREE.Mesh(kg('duRockB', () => new THREE.IcosahedronGeometry(1, 0)), new THREE.MeshLambertMaterial({ color: '#8b8378', flatShading: true })); m.scale.set(1.25, 1.05, 1.15); s2.add(m); g.userData.spin = s2; } // (a boulder)
     else if (kind === 'bolt') { const mt = new THREE.MeshBasicMaterial({ color: '#fef9c3', transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending, depthWrite: false }); let z = 0.6; for (let k = 0; k < 5; k++) { const b = new THREE.Mesh(BOX, mt); const l = 0.7; b.scale.set(0.14, 0.14, l); b.position.set(k % 2 ? 0.18 : -0.18, 0, z - l / 2); b.rotation.y = k % 2 ? -0.5 : 0.5; g.add(b); z -= l * 0.85; } kitGlow(g, '#fde047', 4.2, 0.85); kitGlow(g, '#ffffff', 1.8, 0.9); } // (a thunderbolt)
     else if (kind === 'flame') { const f = emSprite(g, fxTex('flame'), 1.6, { blending: THREE.AdditiveBlending }); kitGlow(g, '#f97316', 2.6, 0.75); } // (a gout of fire)
+    else if (kind === 'pumpkin') { const b = new THREE.Mesh(kSph(), new THREE.MeshPhongMaterial({ color: '#ea580c', emissive: '#f97316', emissiveIntensity: 0.55, shininess: 40 })); b.scale.set(0.75, 0.62, 0.75); g.add(b); const st = new THREE.Mesh(kCyl(), new THREE.MeshLambertMaterial({ color: '#3f6212' })); st.scale.set(0.08, 0.3, 0.08); st.position.y = 0.6; g.add(st); kitGlow(g, '#fb923c', 2.2, 0.8); const f = emSprite(g, fxTex('flame'), 1.3, { blending: THREE.AdditiveBlending }); f.position.z = 0.9; g.userData.spin = b; g.userData.spinAx = 'x'; } // (a jack-o'-lantern, alight)
+    else if (kind === 'laugh') { kitGlow(g, '#84cc16', 2.8, 0.85); kitGlow(g, '#fef9c3', 0.9, 0.95); for (const z of [0.6, 1.3]) { const t2 = emSprite(g, fxTex('flame'), 1.3 - z * 0.3, { blending: THREE.AdditiveBlending, color: '#a3e635' }); t2.position.z = z; } } // (a laugh you can see: sickly green)
+    else if (kind === 'stone') { const b = new THREE.Mesh(kSph(), new THREE.MeshLambertMaterial({ color: '#78716c' })); b.scale.setScalar(0.28); g.add(b); } // (a sling stone)
     else if (kind === 'hitodama') { kitGlow(g, '#3b82f6', 2.4, 0.8); kitGlow(g, '#e0f2fe', 0.9, 0.95); const t2 = emSprite(g, fxTex('flame'), 1.2, { blending: THREE.AdditiveBlending, color: '#93c5fd' }); t2.position.z = 0.7; } // (a ghost-fire: a cold blue flame with a tail)
     else if (kind === 'grudge') { kitGlow(g, '#7c3aed', 2.8, 0.85); kitGlow(g, '#f5f3ff', 0.9, 0.9); for (const z of [0.6, 1.2]) { const t2 = emSprite(g, fxTex('flame'), 1.3 - z * 0.3, { blending: THREE.AdditiveBlending, color: '#a78bfa' }); t2.position.z = z; } } // (a vengeful spirit: violet, trailing)
     else if (kind === 'cannon') { const b = new THREE.Mesh(kSph(), metalMat('#1f2937', { shininess: 60 })); b.scale.setScalar(0.55); g.add(b); const t2 = emSprite(g, fxTex('flame'), 1.2, { blending: THREE.AdditiveBlending, color: '#fdba74' }); t2.position.z = 0.8; } // (a cannonball, hot from the gun)
@@ -1401,13 +1435,14 @@
   // where they go (unseen, nothing reaches it) until it lets go
   function possTick(F, dt) {
     if (F.S.pos > 0 && F.S.posBy && F.kind !== 'rem' && F.kind !== 'rboss') { const y = F.S.posBy.yaw, sp = 9 * dt; moveF(F, -Math.sin(y) * sp, -Math.cos(y) * sp); faceF(F, y); if (F.a && Math.random() < dt * 14) kitSpark(F.a, F.a.g, (Math.random() - 0.5) * 2, 1 + Math.random() * 4, (Math.random() - 0.5) * 1.5, '#5eead4', { v: [0, 1.5, 0], life: 0.9, s: 0.3, grow: 1.2, op: 0.6, j: 0.5 }); }
+    if (F.S.fear > 0 && F.S.fearBy && F.kind !== 'rem' && F.kind !== 'rboss') { const B = F.S.fearBy, dx = F.x - B.x, dz = F.z - B.z, l = Math.hypot(dx, dz) || 1, sp = 10 * dt; moveF(F, dx / l * sp, dz / l * sp); faceF(F, angOf(dx, dz)); if (F.a && Math.random() < dt * 10) kitSpark(F.a, F.a.g, (Math.random() - 0.5) * 2, 5 + Math.random(), (Math.random() - 0.5) * 1.5, Math.random() < 0.5 ? '#fb923c' : '#a3e635', { v: [0, 1.2, 0], life: 0.7, s: 0.3, op: 0.6, j: 0.4 }); } // (terrified: away from him, as fast as they can)
     if (F.S.cu > 0 && F.a && Math.random() < dt * 10) kitSpark(F.a, F.a.g, (Math.random() - 0.5) * 2.4, 1 + Math.random() * 4, (Math.random() - 0.5) * 1.6, Math.random() < 0.5 ? '#a78bfa' : '#4c1d95', { v: [0, 1.2, 0], life: 0.8, s: 0.3, grow: 1.2, op: 0.55, j: 0.4 }); // (a grudge on them)
     const inside = F.possEnd && F.possEnd > performance.now() && F.possT && !F.possT.dead;
     if (inside && (F.kind === 'me' || F.kind === 'bot')) { const T = F.possT; if (F.kind === 'me') { P.x = T.x; P.z = T.z; } F.x = T.x; F.z = T.z; if (F.kind === 'bot') F.yaw += dt * 1.1; }
     if (inside && F.a) { F.a.g.visible = false; F.wasIn = 1; } else if (F.wasIn) { if (F.a) F.a.g.visible = true; F.wasIn = 0; } if (!inside && F.possEnd) { F.possEnd = 0; F.possT = null; }
   }
   function botTick(F, dt) {
-    if (F.S.pos > 0) { F.mv = true; F.blk = false; return; } // (possessed: it isn't theirs to move)
+    if (F.S.pos > 0 || F.S.fear > 0) { F.mv = true; F.blk = false; return; } // (possessed or terrified: it isn't theirs to move)
     const T = foeOf(F), D = DIFF[F.D], B = F.bot || (F.bot = { t: 0.5, str: 1, strT: 0, seen: -1, blkT: 0, react: null, lx: 0, lz: 0 });
     F.mv = false; F.sprint = false;
     if (F.jT > 0) { F.jT -= dt; F.lift = F.jT > 0 ? Math.sin(Math.PI * (1 - F.jT / 0.75)) * 4.2 : 0; } // (jumping a shockwave)
@@ -1455,14 +1490,14 @@
     $('#xhud').append(el); HUD.el = el; HUD.last = {};
     const ab = el.querySelector('#duAb');
     ab.addEventListener('pointerdown', (e) => { const b = e.target.closest('button'); if (!b) return; e.preventDefault(); e.stopPropagation();
-      if (b.dataset.ab) DU.tryAb(+b.dataset.ab); else if (b.dataset.mode) DU.setMode(+b.dataset.mode); else if (b.dataset.k === 'dodge') DU.tryDodge(); else if (b.dataset.k === 'block') DU.blockHeld = true;
+      if (b.dataset.ab) { DU.tryAb(+b.dataset.ab); if (b.dataset.ab === '0') { DU.lmb = true; DU.lmbPid = e.pointerId; } } else if (b.dataset.mode) DU.setMode(+b.dataset.mode); else if (b.dataset.k === 'dodge') DU.tryDodge(); else if (b.dataset.k === 'block') DU.blockHeld = true;
       else if (b.dataset.k === 'run') DU.touchRun = !DU.touchRun; else if (b.dataset.k === 'lock') DU.toggleLock(); else if (b.dataset.k === 'hb') DU.toggleOpt('hb'); });
-    for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) ab.addEventListener(ev, (e) => { const b = e.target.closest && e.target.closest('button'); if (b && b.dataset.k === 'block') DU.blockHeld = false; });
+    for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) ab.addEventListener(ev, (e) => { const b = e.target.closest && e.target.closest('button'); if (b && b.dataset.k === 'block') DU.blockHeld = false; if (e.pointerId === DU.lmbPid) { DU.lmb = false; DU.lmbPid = null; } }); // (holding the M1 button swings again and again, as holding the mouse does)
   }
   function hudCard(F, who) {
     const C = F.C, hp = Math.max(0, Math.ceil(F.hp)), st = Math.round(F.st), fx = [];
     if (F.S.stun > 0) fx.push('<span class="bad">💫 Stunned</span>'); if (F.S.root > 0) fx.push('<span class="bad">🕸️ Rooted</span>'); if (F.S.slow > 0) fx.push('<span class="bad">🐌 Slowed</span>');
-    if (F.S.dots.some((d) => d.k === 'bl')) fx.push('<span class="bad">🩸 Bleed</span>'); if (F.S.dots.some((d) => d.k === 'bu')) fx.push('<span class="bad">🔥 Burn</span>'); if (F.S.vuln > 0) fx.push('<span class="bad">⚠️ +50% dmg</span>'); if (F.S.cu > 0) fx.push('<span class="bad">👺 Grudge</span>'); if (F.S.crush) fx.push('<span class="bad">💢 Crushed ×2</span>'); if (F.S.sp > 0) fx.push('<span class="good">✨ Protected</span>');
+    if (F.S.dots.some((d) => d.k === 'bl')) fx.push('<span class="bad">🩸 Bleed</span>'); if (F.S.dots.some((d) => d.k === 'bu')) fx.push('<span class="bad">🔥 Burn</span>'); if (F.S.vuln > 0) fx.push('<span class="bad">⚠️ +50% dmg</span>'); if (F.S.cu > 0) fx.push('<span class="bad">👺 Grudge</span>'); if (F.S.fear > 0) fx.push('<span class="bad">😱 Terrified</span>'); if (F.S.crush) fx.push('<span class="bad">💢 Crushed ×2</span>'); if (F.S.sp > 0) fx.push('<span class="good">✨ Protected</span>');
     if (F.C.wish && F.wishN) fx.push(`<span class="good">🪓 Wish +${F.wishN * 10}%</span>`); if (F.S.buffs.some((b) => b.an === 'haste')) fx.push('<span class="good">🩸 ×1.2 speed</span>');
     for (const b of F.S.buffs) { const ab = C.ab.find((q) => q.an === b.an); if (ab) fx.push(`<span class="good">${ab.ic} ${esc(ab.n)}</span>`); } if (F.blk) fx.push('<span class="good">🛡️ Blocking</span>');
     return `<div class="tp"><span class="who">[${esc(who)}]</span><span class="ch">${C.ic} ${esc(C.n)}</span><span class="rr" style="background:${RAR[C.r].c}">${RAR[C.r].s} ${RAR[C.r].n.toUpperCase()}</span></div>
@@ -1521,7 +1556,7 @@
       if (ab.k === 'buff' && b) { const up = Math.min(1, (b.dur || 0) / ab.cd); if (b.def) red *= 1 - (1 - b.def) * up; if (b.blk) red *= 1 - 0.85 * up; heal += ((b.heal || 0) + (b.healP || 0) * C.hp + (b.hps || 0) * (b.dur || 0) + (b.ls || 0) * best.dps * (b.dur || 0)) * per; }
       ctrl += ((fx.st || 0) + (fx.rt || 0) * 0.6 + (fx.sl ? fx.sl[1] * (1 - fx.sl[0]) : 0) + (fx.kb ? 0.4 : 0)) * per * (C.ab[0].modes && C.ab[0].modes.includes && false ? 0.5 : 1); }
     if (C.wish) heal += 0.1 * C.hp * best.hits; if (C.lsP) heal += C.lsP * best.dps * T; if (C.stunP) ctrl += best.hits * C.stunP[0] * C.stunP[1]; if (C.frost) ctrl += Math.min(T, best.hits * C.frost[1]) * (1 - C.frost[0]);
-    for (const ab of C.ab) { if (ab.fx && ab.fx.pos) ctrl += ab.fx.pos * T / Math.max(ab.cd, 1); if (ab.fx && ab.fx.cu) ctrl += ab.fx.cu * 0.4 * T / Math.max(ab.cd, 1); if (ab.drain) heal += ab.dmg * T / ab.cd; } if (C.rage) best.dps *= 1 + (C.rage[1] - 1) * C.rage[0];
+    for (const ab of C.ab) { if (ab.fx && ab.fx.pos) ctrl += ab.fx.pos * T / Math.max(ab.cd, 1); if (ab.fx && ab.fx.cu) ctrl += ab.fx.cu * 0.4 * T / Math.max(ab.cd, 1); if (ab.fx && ab.fx.fr) ctrl += ab.fx.fr * T / Math.max(ab.cd, 1); if (ab.drain) heal += ab.dmg * T / ab.cd; } if (C.rage) best.dps *= 1 + (C.rage[1] - 1) * C.rage[0];
     const cf = Math.min(0.5, ctrl / T), def = 1 / (C.def * red);
     return Object.assign(best, { hp: C.hp, spd: C.spd, def, armor: 1 / C.def, guard: red < 1, ctrl: cf, ehp: (C.hp + heal) * def / (1 - cf) });
   }
@@ -1660,9 +1695,11 @@
       // my hands: blocking, sprinting
       const f = (keys.KeyW || keys.ArrowUp ? 1 : 0) - (keys.KeyS || keys.ArrowDown ? 1 : 0) - joy.y, r = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0) + joy.x, moving = Math.hypot(f, r) > 0.2;
       F.blk = (this.blockHeld || this.rmb || !!keys.KeyF) && live() && !F.act && !stunned(F) && F.st > 0 && !F.dead;
+      if (this.lmb && M.ph === 'fight' && !F.act && F.cd[0] <= 0 && !F.blk && canAct(F) && !$('#duRes')) this.tryAb(0); // (holding the M1: the next swing as soon as it's ready)
       if (F.st <= 0) this.tired = true; else if (F.st > 30) this.tired = false;
       this.sprinting = (sprintHeld() || this.touchRun) && moving && !this.tired && !F.blk && !F.act && live() && fSpeed(F) > 0;
-      if (F.act && F.act.ab.k !== 'buff' && !F.act.vis) { P.yaw = F.yaw = F.act.yaw; }
+      // mid-attack you keep facing the blow; with shift lock (or first person) on, your swing and your aim follow the camera as you turn it — a dash or a leap is already on its way
+      if (F.act && F.act.ab.k !== 'buff' && !F.act.vis) { const k = F.act.ab.k; if (lockFacing() && !this.lockOn && k !== 'dash' && k !== 'leap' && live()) F.act.yaw += wrapA(cam.yaw - F.act.yaw) * Math.min(1, dt * 12); P.yaw = F.yaw = F.act.yaw; }
       if (M.ph === 'intro') { if (M.t > 1.7 && !M.fightSaid) { M.fightSaid = 1; big('⚔️ FIGHT!', '', '#fef3c7'); } if (M.t > 2.6) { M.ph = 'fight'; M.t = 0; M.started = true; M.fightSaid = 0; sfx('go'); CROWD.ex = 1; } }
       else if (M.ph === 'fight') {
         M.left -= dt; if (M.pvp || M.coop) this.recvHits();
@@ -1814,7 +1851,7 @@
       if (M.mid) this.done.add(M.mid);
     },
     leaveMatch() { if (this.aimM) this.aimM.visible = false; if (HB.g) HB.g.visible = false;
-      if (!this.M) return; this.cleanMatch(); this.M = null; this.respawnDelay = 2200; this.blockHeld = this.rmb = false; this.sprinting = false;
+      if (!this.M) return; this.cleanMatch(); this.M = null; this.respawnDelay = 2200; this.blockHeld = this.rmb = this.lmb = false; this.sprinting = false;
       setAvOverride(null); respawn(true); P.frozen = false; send({ du: null }); this.drawBar(); this.padI = -1;
     },
 
@@ -1830,8 +1867,8 @@
       openPanel('⚙️ Duel options', html, (b) => { if (b.dataset.o) { this.toggleOpt(b.dataset.o); this.optionsPanel(); } });
     },
     toggleLock() { this.lockOn = !this.lockOn; this.save.lk = this.lockOn ? 1 : 0; this.dirty(); toast(this.lockOn ? '🎯 Lock-on: the camera follows your opponent' : '🎯 Lock-on off'); sfx('click'); },
-    press(btn, down) { if (this.M && btn === 2) this.rmb = !!down; },
-    click(e) { if (this.M && e.button !== 2 && !$('#duRes')) this.tryAb(0); },
+    press(btn, down) { if (!this.M) return; if (btn === 2) this.rmb = !!down; else if (btn === 0) { this.lmb = !!down; if (down && !$('#duRes')) { this.lmbT = performance.now(); this.tryAb(0); } } }, // (the M1 on the press, so you can drag the camera while you swing; held, it keeps swinging)
+    click(e) { if (this.M && e.button !== 2 && !$('#duRes') && !(this.lmbT && performance.now() - this.lmbT < 2000)) this.tryAb(0); }, // (a tap without a press: touch)
     key(code, down) {
       if (!this.M) { if (down && code === 'KeyC') { this.fightersPanel(); return true; } return; }
       if (code === 'KeyF') { this.blockHeld = !!down; return true; }
@@ -1892,7 +1929,7 @@
       if (C.how) return `🔒 ${esc(C.how)}${c === EXE && S.q && S.q.on ? ` — ⚔️ ${S.q.k | 0}/50 · 💥 ${(S.q.d | 0).toLocaleString()}/15,000` : ''}`;
       return `🔒 ${A ? `Win it with the duel achievement <b>${esc(A.n)}</b> (${esc(A.d)}), or find it` : 'Only'} in the ${EMP[C.e].e} ${esc(EMP[C.e].n)} crate (${ODDS[CRATE[C.e].indexOf(c)]}%)`; },
     fightersPanel(sel) {
-      const S = this.save, COLS = [1, 0, 2, 3, 4, 5, 6]; let det = '';
+      const S = this.save, COLS = [1, 0, 2, 3, 4, 5, 7, 6]; let det = '';
       if (sel != null) { // the stats: everything about one fighter
         const C = CH[sel], own = S.own.includes(sel), xp = S.xp[sel] | 0, lv = mLvl(xp), nx = MAST[Math.min(10, lv + 1)];
         const abl = C.ab.map((ab, i) => ab.modes ? ab.modes.map((m, k) => `<div><i>${m.ic}</i><span><b>${KEYN[i]} · ${esc(m.n)}</b> (key ${k + 1}) — <em>${m.dmg}</em> damage, every <em>${m.cd} s</em>${m.wind >= 0.4 ? ` · ${m.wind} s wind-up` : ''}</span></div>`).join('')
