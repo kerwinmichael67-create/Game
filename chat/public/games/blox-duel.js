@@ -60,7 +60,7 @@
     .du-ab.ult.ready{border-color:#f472b6;box-shadow:0 0 0 2px rgba(244,114,182,.3),0 0 20px rgba(244,114,182,.45),0 5px 14px rgba(0,0,0,.5)}
     .du-ab.act{animation:duPop .35s}@keyframes duPop{0%{transform:scale(1.18);filter:brightness(1.8)}}
     .du-ab.no{animation:duNo .3s}@keyframes duNo{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
-    .du-side{display:flex;flex-direction:column;gap:5px}
+    .du-side{display:grid;grid-template-columns:repeat(2,auto);gap:5px;align-content:end}
     .du-side button{min-width:50px;height:30px;padding:0 8px;border-radius:9px;border:1.5px solid rgba(255,255,255,.2);background:rgba(15,23,42,.85);color:#e2e8f0;font:800 11px var(--fb);cursor:pointer;white-space:nowrap}
     .du-side button.on{background:#b45309;border-color:#fde68a;color:#fff}.du-side button b{color:#fde68a;margin-right:3px}
     #duBig{position:absolute;left:50%;top:31%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;font:800 64px/1.05 var(--fh);letter-spacing:.04em;-webkit-text-stroke:9px rgba(10,12,18,.75);paint-order:stroke fill;white-space:nowrap;color:#fff}
@@ -123,6 +123,13 @@
     .du-code{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:14px 0 0;padding:10px 12px;border-radius:14px;background:rgba(15,23,42,.55);border:1px dashed rgba(253,230,138,.45);font:700 13px var(--fb,sans-serif);color:#fde68a}
     .du-code input{flex:1;min-width:160px;padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:rgba(2,6,23,.6);color:#fff;font:800 14px ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase}
     .du-code #duCodeMsg{flex-basis:100%;font:600 12.5px var(--fb,sans-serif)}.du-code #duCodeMsg.ok{color:#86efac}.du-code #duCodeMsg.bad{color:#fca5a5}
+    .du-qn{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 12px;font:700 13px var(--fb,sans-serif);color:#e2e8f0}.du-qn button,.du-ff button{padding:6px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:rgba(15,23,42,.6);color:#cbd5e1;font:800 12.5px var(--fh,sans-serif);cursor:pointer}.du-qn button.on,.du-ff button.on{background:#fde68a;color:#422006;border-color:#fde68a}.du-qn small{flex-basis:100%;font:600 12px var(--fb,sans-serif);color:#94a3b8}
+    .du-ff{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 10px}.du-ff input{flex:1;min-width:200px;padding:8px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:rgba(2,6,23,.6);color:#fff;font:700 13.5px var(--fb,sans-serif)}.du-ff span{font:700 12px var(--fb,sans-serif);color:#94a3b8;margin-left:4px}
+    .du-fcard.dim{opacity:.18;filter:grayscale(1);transform:scale(.96)}
+    #duReel.multi{justify-content:flex-start;padding:28px 12px;overflow:auto}.du-mgrid{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;max-width:min(1100px,96vw)}
+    .du-mres{display:flex;flex-direction:column;align-items:center;gap:5px;animation:duMPop .45s cubic-bezier(.2,1.5,.5,1) both}.du-mres span{font:800 11.5px var(--fb,sans-serif);color:#cbd5e1}.du-mres.new span{color:#86efac}.du-mres.dup .du-fc{filter:saturate(.55) brightness(.85)}.du-mres.leg .du-fc{box-shadow:0 0 30px #f59e0b,0 0 70px rgba(245,158,11,.45)}.du-mres .du-btn{padding:5px 12px;font-size:12px}
+    @keyframes duMPop{from{opacity:0;transform:translateY(16px) scale(.7) rotateY(80deg)}to{opacity:1;transform:none}}.du-msum{margin:0;font:700 15px var(--fb,sans-serif);color:#e2e8f0;text-align:center}
+    .du-opts{display:flex;flex-direction:column;gap:8px}.du-opt{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:rgba(15,23,42,.55);color:#e2e8f0;text-align:left;cursor:pointer}.du-opt .ic{font-size:22px}.du-opt span{flex:1;display:flex;flex-direction:column;gap:2px}.du-opt b{font:800 14.5px var(--fh,sans-serif)}.du-opt small{font:600 12px var(--fb,sans-serif);color:#94a3b8}.du-opt i{font:900 12px var(--fh,sans-serif);font-style:normal;padding:5px 10px;border-radius:999px;background:#334155;color:#cbd5e1}.du-opt.on i{background:#22c55e;color:#052e16}
     .du-wts{display:flex;flex-wrap:wrap;gap:6px 14px;margin:0 0 10px;font:600 12px var(--fb,sans-serif);color:#94a3b8}.du-wts b{color:#e2e8f0;margin-right:4px}
     .du-gh{font:800 14px var(--fh);color:#fff;text-align:center;padding:6px 4px;border-radius:10px;background:rgba(255,255,255,.07)}
     .du-gr{align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);padding:6px 2px}
@@ -877,7 +884,7 @@
     m.userData = { v: new THREE.Vector3(), life: 0.5, g: 0, spinless: 1, tick: (o, u) => { o.material.opacity = u.life * 2; o.scale.x = 0.35 + (0.5 - u.life) * 1.5; } }; scene.add(m); bits.push(m); }
   const HUD = { el: null };
   function toScreen(x, y, z) { const v = new THREE.Vector3(x, y, z).project(camera); if (v.z > 1) return null; const r = renderer.domElement.getBoundingClientRect(); return { x: r.left + (v.x + 1) / 2 * r.width, y: r.top + (1 - v.y) / 2 * r.height }; }
-  function floatText(F, text, cls = '') { const p = toScreen(F.x + (Math.random() - 0.5) * 1.5, F.y + 7 + Math.random(), F.z); if (!p) return; const d = document.createElement('div'); d.className = 'du-dmg ' + cls; d.textContent = text; d.style.left = p.x + 'px'; d.style.top = p.y + 'px'; $('#xhud').append(d); setTimeout(() => d.remove(), 950); }
+  function floatText(F, text, cls = '') { if (!opt('num') && /^(🛡️ )?\d+$|CRIT \d/.test(text)) return; const p = toScreen(F.x + (Math.random() - 0.5) * 1.5, F.y + 7 + Math.random(), F.z); if (!p) return; const d = document.createElement('div'); d.className = 'du-dmg ' + cls; d.textContent = text; d.style.left = p.x + 'px'; d.style.top = p.y + 'px'; $('#xhud').append(d); setTimeout(() => d.remove(), 950); }
   // the weapon's trail: a ribbon from the hand to the tip, a few frames long, fading
   function trailTick(F, on) {
     const a = F.a; if (!a || !a.dg) return; let T = a.duTrail;
@@ -1055,10 +1062,31 @@
   function leadAt(F, T, spd) { let x = T.x, z = T.z; for (let i = 0; i < 3; i++) { const t = Math.hypot(x - F.x, z - F.z) / Math.max(20, spd || 60); x = T.x + (T.mvx || 0) * t; z = T.z + (T.mvz || 0) * t; } return angOf(x - F.x, z - F.z); }
   const aimOff = (F, a) => F.kind === 'me' ? Math.min(Math.abs(wrapA(a - F.yaw)), Math.abs(wrapA(a - cam.yaw))) : Math.abs(wrapA(a - F.yaw)); // (yours: how far from where you OR your camera face)
   function aimAssist(F, ab) { const T = foeOf(F); if (!T || T.dead || bval(T, 'inv') || Math.hypot(T.x - F.x, T.z - F.z) > AIM_RANGE) return; const a = leadAt(F, T, ab.spd); if (aimOff(F, a) < AIM_CONE) faceF(F, a); }
+  /* 🟥 hitboxes: each fighter's body as a wire cylinder (green you, red them, blue allies) — a blow lands when its
+     reach (the sector on the sand: amber as it winds up, red as it strikes) touches it — a dash's contact ring, and
+     each shot's hit sphere */
+  const HB = { g: null, cyl: [], sec: [], sph: [] };
+  function hbPool(list, make, i) { let m = list[i]; if (!m) { m = list[i] = make(); HB.g.add(m); } m.visible = true; return m; }
+  const hbSecGeo = (half) => kg('duHbSec' + half.toFixed(2), () => { const q = new THREE.CircleGeometry(1, 40, Math.PI / 2 - half, half * 2); q.rotateX(-Math.PI / 2); return q; });
+  function hbTick(M) {
+    if (!opt('hb') || !M) { if (HB.g) HB.g.visible = false; return; }
+    if (!HB.g || !HB.g.parent) { HB.g = new THREE.Group(); HB.g.renderOrder = 998; scene.add(HB.g); HB.cyl = []; HB.sec = []; HB.sph = []; }
+    HB.g.visible = true; for (const L of [HB.cyl, HB.sec, HB.sph]) for (const m of L) m.visible = false;
+    let ci = 0, si = 0, pi = 0;
+    for (const F of [M.me, M.foe].concat(M.allies || [])) { if (!F || F.dead || F.out || (F.a && !F.a.g.visible)) continue;
+      const bg = F.C.big || 1, r = 1.2 + bigR(F), h = 5.6 * bg, y0 = F.y + (F.lift || 0), col = F === M.me ? '#22c55e' : (M.allies || []).includes(F) ? '#3b82f6' : '#ef4444';
+      const c = hbPool(HB.cyl, () => new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(1, 1, 1, 20, 3, true)), new THREE.LineBasicMaterial({ color: '#fff', transparent: true, opacity: 0.85, depthTest: false })), ci++);
+      c.material.color.set(col); c.scale.set(r, h, r); c.position.set(F.x, y0 + h / 2, F.z);
+      const A = F.act, ab = A && A.ab; if (!ab) continue;
+      const w = ab.wind || 0, sector = (half, reach, color, op) => { const m = hbPool(HB.sec, () => new THREE.Mesh(hbSecGeo(1), new THREE.MeshBasicMaterial({ color: '#fff', transparent: true, depthWrite: false, depthTest: false, side: THREE.DoubleSide })), si++); m.geometry = hbSecGeo(half); m.material.color.set(color); m.material.opacity = op; m.scale.set(reach, 1, reach); m.position.set(F.x, y0 + 0.12, F.z); m.rotation.y = A.an === 'whirl' ? 0 : F.yaw; };
+      if (ab.k === 'melee' || ab.k === 'multi' || ab.k === 'combo') { const reach = (ab.rng || 6) + (ab.an === 'stab' ? 2.5 : 0) + bigR(F), half = (ab.arc || 90) >= 360 || A.an === 'whirl' ? Math.PI : Math.min(Math.PI, (ab.arc || 90) / 2 * Math.PI / 180 + 0.3), hot = A.t >= w - 0.06; sector(half, reach, hot ? '#ef4444' : '#f59e0b', hot ? 0.42 : 0.24); }
+      else if (ab.k === 'dash' && A.t > w && A.t < w + (ab.dd || 0.3) + 0.1) sector(Math.PI, 2.2 + bigR(F), '#a855f7', 0.35); }
+    for (const p of DU.proj) { if (p.life <= 0) continue; const r = (p.F.kind === 'me' ? 2.9 : 2.3) - 1.2, m = hbPool(HB.sph, () => new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(1, 10, 6)), new THREE.LineBasicMaterial({ color: '#facc15', transparent: true, opacity: 0.9, depthTest: false })), pi++); m.scale.setScalar(r); m.position.set(p.x, p.y, p.z); }
+  }
   const aimTex = () => kCanvas('duAim', 128, 128, (g) => { g.strokeStyle = '#fff'; g.lineWidth = 7; g.beginPath(); g.arc(64, 64, 38, 0, Math.PI * 2); g.stroke(); g.lineWidth = 8; for (const [x0, y0, x1, y1] of [[64, 6, 64, 34], [64, 94, 64, 122], [6, 64, 34, 64], [94, 64, 122, 64]]) { g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke(); } g.fillStyle = '#fff'; g.beginPath(); g.arc(64, 64, 6, 0, 7); g.fill(); });
   function aimMark(F, T, M, dt) {
     let m = DU.aimM; const ab = abOf(F, 0), A = F.act, ranged = ab.k === 'proj' || F.C.ro === 'Ranger' || !!(A && A.ab.k === 'proj');
-    if (!(M.ph === 'fight' && ranged && T && !T.dead && !F.dead && !bval(T, 'inv'))) { if (m) m.visible = false; return; }
+    if (!(opt('aim') && M.ph === 'fight' && ranged && T && !T.dead && !F.dead && !bval(T, 'inv'))) { if (m) m.visible = false; return; }
     if (!m || !m.parent) { m = DU.aimM = new THREE.Sprite(new THREE.SpriteMaterial({ map: aimTex(), transparent: true, depthTest: false, depthWrite: false })); m.renderOrder = 999; scene.add(m); }
     const d = Math.hypot(T.x - F.x, T.z - F.z), on = d < AIM_RANGE && aimOff(F, angOf(T.x - F.x, T.z - F.z)) < AIM_CONE, bg = T.C.big || 1, s = (3.2 + d * 0.07) * Math.sqrt(bg);
     m.visible = true; m.position.set(T.x, T.y + (T.lift || 0) + 3.2 * bg, T.z); m.scale.set(s, s, 1); m.material.rotation += dt * 1.5;
@@ -1422,13 +1450,13 @@
       <div id="duHurt"></div><div id="duBig"></div><div id="duKill"></div>
       <div id="duAb">${md ? `<div class="du-side">${md.map((m, k) => `<button data-mode="${k}"><b>${k + 1}</b>${m.ic} ${m.n}</button>`).join('')}</div>` : ''}
         ${F.C.ab.map((_, i) => `<button class="du-ab${i === 0 ? ' m1' : i === F.C.ab.length - 1 ? ' ult' : ''}" data-ab="${i}"><span class="k">${KEYS[i]}</span><span class="e"></span><span class="n"></span><span class="cd"></span><span class="s"></span></button>`).join('')}
-        <div class="du-side"><button data-k="dodge"><b>${touchy ? '' : 'Q'}</b>💨 Dodge</button><button data-k="block"><b>${touchy ? '' : 'F'}</b>🛡️ Block</button>${touchy ? '<button data-k="run">🏃 Sprint</button>' : ''}<button data-k="lock"><b>${touchy ? '' : 'T'}</b>🎯 Lock</button></div></div>
-      <div id="duTip">🖱️ Click: ${esc(abOf(F, 0).n)} · E ${esc(F.C.ab[1].n)} · R ${esc(F.C.ab[2].n)}${F.C.ab[3] ? ` · G ${esc(F.C.ab[3].n)}` : ''} · Space jump · Q dodge · F / right-click block · Shift sprint${md ? ` · ${md.map((m, k) => k + 1).join('/')} switch` : ''} · T lock-on</div>`;
+        <div class="du-side"><button data-k="dodge"><b>${touchy ? '' : 'Q'}</b>💨 Dodge</button><button data-k="block"><b>${touchy ? '' : 'F'}</b>🛡️ Block</button>${touchy ? '<button data-k="run">🏃 Sprint</button>' : ''}<button data-k="lock"><b>${touchy ? '' : 'T'}</b>🎯 Lock</button><button data-k="hb"><b>${touchy ? '' : 'H'}</b>🟥 Hitboxes</button></div></div>
+      <div id="duTip">🖱️ Click: ${esc(abOf(F, 0).n)} · E ${esc(F.C.ab[1].n)} · R ${esc(F.C.ab[2].n)}${F.C.ab[3] ? ` · G ${esc(F.C.ab[3].n)}` : ''} · Space jump · Q dodge · F / right-click block · Shift sprint${md ? ` · ${md.map((m, k) => k + 1).join('/')} switch` : ''} · T lock-on · H hitboxes</div>`;
     $('#xhud').append(el); HUD.el = el; HUD.last = {};
     const ab = el.querySelector('#duAb');
     ab.addEventListener('pointerdown', (e) => { const b = e.target.closest('button'); if (!b) return; e.preventDefault(); e.stopPropagation();
       if (b.dataset.ab) DU.tryAb(+b.dataset.ab); else if (b.dataset.mode) DU.setMode(+b.dataset.mode); else if (b.dataset.k === 'dodge') DU.tryDodge(); else if (b.dataset.k === 'block') DU.blockHeld = true;
-      else if (b.dataset.k === 'run') DU.touchRun = !DU.touchRun; else if (b.dataset.k === 'lock') DU.toggleLock(); });
+      else if (b.dataset.k === 'run') DU.touchRun = !DU.touchRun; else if (b.dataset.k === 'lock') DU.toggleLock(); else if (b.dataset.k === 'hb') DU.toggleOpt('hb'); });
     for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) ab.addEventListener(ev, (e) => { const b = e.target.closest && e.target.closest('button'); if (b && b.dataset.k === 'block') DU.blockHeld = false; });
   }
   function hudCard(F, who) {
@@ -1451,7 +1479,7 @@
     for (let i = 0; i < me.C.ab.length; i++) { const ab = abOf(me, i), b = HUD.el.querySelector(`[data-ab="${i}"]`), cd = me.cd[i], key = `${ab.ic}|${ab.n}|${cd > 0 ? Math.ceil(cd * (cd < 1 ? 10 : 1)) : 0}|${Math.round(cd / me.cdMax[i] * 40)}|${canAct(me)}`;
       if (L['ab' + i] === key) continue; L['ab' + i] = key; b.querySelector('.e').textContent = ab.ic; b.querySelector('.n').textContent = ab.n; b.querySelector('.cd').style.setProperty('--p', (cd > 0 ? cd / me.cdMax[i] * 100 : 0) + '%'); b.querySelector('.s').textContent = cd > 0 ? (cd < 1 ? cd.toFixed(1) : Math.ceil(cd)) : ''; b.classList.toggle('ready', cd <= 0); }
     HUD.el.querySelectorAll('[data-mode]').forEach((b) => b.classList.toggle('on', +b.dataset.mode === me.mode));
-    const lk = HUD.el.querySelector('[data-k="lock"]'); if (lk) lk.classList.toggle('on', !!DU.lockOn); const rn = HUD.el.querySelector('[data-k="run"]'); if (rn) rn.classList.toggle('on', !!DU.touchRun); const bk = HUD.el.querySelector('[data-k="block"]'); if (bk) bk.classList.toggle('on', !!me.blk);
+    const lk = HUD.el.querySelector('[data-k="lock"]'); if (lk) lk.classList.toggle('on', !!DU.lockOn); const hb = HUD.el.querySelector('[data-k="hb"]'); if (hb) hb.classList.toggle('on', !!opt('hb')); const rn = HUD.el.querySelector('[data-k="run"]'); if (rn) rn.classList.toggle('on', !!DU.touchRun); const bk = HUD.el.querySelector('[data-k="block"]'); if (bk) bk.classList.toggle('on', !!me.blk);
   }
   function big(text, sub, color, hold = 1.7) { const b = $('#duBig'); if (!b) return; b.innerHTML = text ? `${text}${sub ? `<small>${sub}</small>` : ''}` : ''; b.style.color = color || '#fff'; b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); clearTimeout(HUD.bigT); HUD.bigT = setTimeout(() => { if (b.isConnected) b.innerHTML = ''; }, hold * 1000); }
   function feed(html) { const k = $('#duKill'); if (!k) return; const d = document.createElement('div'); d.innerHTML = html; k.prepend(d); setTimeout(() => d.remove(), 5000); while (k.children.length > 4) k.lastChild.remove(); }
@@ -1511,7 +1539,11 @@
       { w: big ? 300 : 180, h: big ? 360 : 200, dir: [0.55, 0.12, -1], zoom: 0.9, sphere: c === LAE ? [[0, 4.4, 0], 5.9] : c === EXE ? [[0, 4.6, 0], 5.6] : [[0, 3.6, 0], 4.7] });
   }
   const rollFoe = (Di) => { const w = [[62, 30, 8, 0], [40, 35, 22, 3], [18, 30, 37, 15], [5, 18, 37, 40]][Di]; let r = Math.random() * 100, k = 0; while (k < 3 && r >= w[k]) { r -= w[k]; k++; } const pool = CH.filter((C) => C.r === k); return pool[Math.floor(Math.random() * pool.length)].i; };
-  const DEF_SAVE = () => ({ own: [0], eq: 0, xp: {}, st: {}, ach: [], diff: 1, md: 'c', lk: 0, gold: 0, q: null, qd: 0, q2: null, q3: null, q4: null, rolls: 0, pity: 0 }); // (lk: lock-on, off unless you turn it on; gold: the duel's own; q: the Executioner's Contract)
+  const DEF_SAVE = () => ({ own: [0], eq: 0, xp: {}, st: {}, ach: [], diff: 1, md: 'c', lk: 0, gold: 0, q: null, qd: 0, q2: null, q3: null, q4: null, rolls: 0, pity: 0, qn: 1, opt: {} });
+  // ⚙️ the duel's options (saved with it): hitboxes shown, screen shake, damage numbers, the 🎯 aim mark
+  const OPT_DEF = { hb: 0, shake: 1, num: 1, aim: 1 }, OPTS = [['hb', '🟥', 'Show hitboxes', 'Every fighter’s body, each blow’s reach (amber as it winds up, red as it lands) and every shot’s hit sphere. H in a match.'], ['shake', '📳', 'Screen shake', 'The camera jolts on big hits, stomps and shots.'], ['num', '🔢', 'Damage numbers', 'The numbers that pop up over whoever’s hit.'], ['aim', '🎯', 'Aim mark', 'The mark on your opponent that turns green when a shot will hit (ranged fighters).']];
+  const opt = (k) => { const o = DU.save && DU.save.opt; return o && o[k] != null ? o[k] : OPT_DEF[k]; };
+  const camShake = (a, k) => { if (opt('shake')) window.camShake(a, k); }; // (Bloxverse's own, unless it's switched off) // (lk: lock-on, off unless you turn it on; gold: the duel's own; q: the Executioner's Contract)
 
   const DU = {
     id: 'duel', code: 'du', genre: 'PvP', rank: 0.001, name: 'Colosseum Duels', emoji: '⚔️', max: 12, stat: 'Wins', killY: -40, banner: true, camDist: 15, noReset: true, noSprint: true, respawnDelay: 2200, r6: false, // (r6: rigid limbs for everyone in here — off: the fighters are R15 again, knees and elbows bending)
@@ -1634,7 +1666,7 @@
       if (M.ph === 'intro') { if (M.t > 1.7 && !M.fightSaid) { M.fightSaid = 1; big('⚔️ FIGHT!', '', '#fef3c7'); } if (M.t > 2.6) { M.ph = 'fight'; M.t = 0; M.started = true; M.fightSaid = 0; sfx('go'); CROWD.ex = 1; } }
       else if (M.ph === 'fight') {
         M.left -= dt; if (M.pvp || M.coop) this.recvHits();
-        trackVel(F, dt); trackVel(T, dt); statusTick(F, dt); actTick(F, dt); statusTick(T, dt); possTick(F, dt); possTick(T, dt); aimMark(F, T, M, dt); for (const A of M.allies) possTick(A, dt);
+        trackVel(F, dt); trackVel(T, dt); statusTick(F, dt); actTick(F, dt); statusTick(T, dt); possTick(F, dt); possTick(T, dt); aimMark(F, T, M, dt); hbTick(M); for (const A of M.allies) possTick(A, dt);
         if (T.kind === 'bot') { if (!T.dead) { botTick(T, dt); actTick(T, dt); } } else if (T.kind === 'boss') { if (!T.dead) { bossTick(T, dt); actTick(T, dt); } } else actTick(T, dt);
         for (const A of M.allies) { statusTick(A, dt); actTick(A, dt); }
         projTick(dt); wavesTick(dt);
@@ -1781,7 +1813,7 @@
       cam.dist = M.cam0 || 15;
       if (M.mid) this.done.add(M.mid);
     },
-    leaveMatch() { if (this.aimM) this.aimM.visible = false;
+    leaveMatch() { if (this.aimM) this.aimM.visible = false; if (HB.g) HB.g.visible = false;
       if (!this.M) return; this.cleanMatch(); this.M = null; this.respawnDelay = 2200; this.blockHeld = this.rmb = false; this.sprinting = false;
       setAvOverride(null); respawn(true); P.frozen = false; send({ du: null }); this.drawBar(); this.padI = -1;
     },
@@ -1791,6 +1823,12 @@
     tryDodge() { const M = this.M; if (!M) return; const f = (keys.KeyW || keys.ArrowUp ? 1 : 0) - (keys.KeyS || keys.ArrowDown ? 1 : 0) - joy.y, r = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0) + joy.x, cy = cam.yaw;
       dodge(M.me, -Math.sin(cy) * f + Math.cos(cy) * r, -Math.cos(cy) * f - Math.sin(cy) * r); },
     setMode(k) { const M = this.M; if (!M) return; const md = M.me.C.ab[0].modes; if (!md || k >= md.length || M.me.act || k === M.me.mode) return; swapMode(M.me, k); sfx('select'); floatText(M.me, `${md[k].ic} ${md[k].n}`, 'tag'); this.pubDu(true); },
+    toggleOpt(k) { const S = this.save; S.opt = Object.assign({}, OPT_DEF, S.opt || {}); S.opt[k] = S.opt[k] ? 0 : 1; this.dirty(); sfx('click'); const O = OPTS.find((q) => q[0] === k); if (O) toast(`${O[1]} ${O[2]}: ${S.opt[k] ? 'on' : 'off'}`); },
+    optionsPanel() {
+      const html = `<div class="du-opts">${OPTS.map(([k, ic, n, d]) => `<button class="du-opt${opt(k) ? ' on' : ''}" data-o="${k}"><span class="ic">${ic}</span><span><b>${n}</b><small>${d}</small></span><i>${opt(k) ? 'ON' : 'OFF'}</i></button>`).join('')}</div>
+        <p style="font:600 12.5px var(--fb);color:#94a3b8;margin:12px 0 0">Keys in a match: <b>M1/E/R/G</b> abilities · <b>1/2</b> switch weapon · <b>Q</b> dodge · <b>F</b> block · <b>T</b> lock-on · <b>H</b> hitboxes. In the ludus: <b>C</b> fighters.</p>`;
+      openPanel('⚙️ Duel options', html, (b) => { if (b.dataset.o) { this.toggleOpt(b.dataset.o); this.optionsPanel(); } });
+    },
     toggleLock() { this.lockOn = !this.lockOn; this.save.lk = this.lockOn ? 1 : 0; this.dirty(); toast(this.lockOn ? '🎯 Lock-on: the camera follows your opponent' : '🎯 Lock-on off'); sfx('click'); },
     press(btn, down) { if (this.M && btn === 2) this.rmb = !!down; },
     click(e) { if (this.M && e.button !== 2 && !$('#duRes')) this.tryAb(0); },
@@ -1798,7 +1836,7 @@
       if (!this.M) { if (down && code === 'KeyC') { this.fightersPanel(); return true; } return; }
       if (code === 'KeyF') { this.blockHeld = !!down; return true; }
       if (!down) return;
-      if (code === 'KeyE') { this.tryAb(1); return true; } if (code === 'KeyR') { this.tryAb(2); return true; } if (code === 'KeyG') { this.tryAb(3); return true; } if (code === 'KeyQ') { this.tryDodge(); return true; } if (code === 'KeyT') { this.toggleLock(); return true; }
+      if (code === 'KeyE') { this.tryAb(1); return true; } if (code === 'KeyR') { this.tryAb(2); return true; } if (code === 'KeyG') { this.tryAb(3); return true; } if (code === 'KeyQ') { this.tryDodge(); return true; } if (code === 'KeyT') { this.toggleLock(); return true; } if (code === 'KeyH') { this.toggleOpt('hb'); return true; }
       if (/^Digit[1-3]$/.test(code) && this.M.me.C.ab[0].modes) { this.setMode(+code.slice(5) - 1); return true; }
     },
     menuKey(code) { if (code === 'KeyC') closePanel(); },
@@ -1847,8 +1885,8 @@
     /* ---------------- the menus ---------------- */
     drawBar() {
       if (this.M || !this.save) { setBar(''); return; } const S = this.save, C = CH[S.eq];
-      setBar(`<button class="xslot" data-k="fi"><span class="k">C</span><span class="e">${C.ic}</span>${esc(C.n)}<small>🌟 mastery ${mLvl(S.xp[S.eq] | 0)}/10</small></button><button class="xslot" data-k="cr"><span class="e">🎁</span>Crates<small>🥇 ${S.gold | 0} gold</small></button><button class="xslot" data-k="bot"><span class="e">🤖</span>Fight a bot<small>${DIFF[S.diff].e} ${DIFF[S.diff].n}</small></button><button class="xslot" data-k="ach"><span class="e">🏆</span>Achievements<small>${S.ach.length}/${ACH.length}</small></button>`,
-        (b) => { const k = b.dataset.k; if (k === 'fi') this.fightersPanel(); else if (k === 'cr') this.cratesPanel(); else if (k === 'bot') this.botPanel(); else if (k === 'ach') this.achPanel(); });
+      setBar(`<button class="xslot" data-k="fi"><span class="k">C</span><span class="e">${C.ic}</span>${esc(C.n)}<small>🌟 mastery ${mLvl(S.xp[S.eq] | 0)}/10</small></button><button class="xslot" data-k="cr"><span class="e">🎁</span>Crates<small>🥇 ${S.gold | 0} gold</small></button><button class="xslot" data-k="bot"><span class="e">🤖</span>Fight a bot<small>${DIFF[S.diff].e} ${DIFF[S.diff].n}</small></button><button class="xslot" data-k="ach"><span class="e">🏆</span>Achievements<small>${S.ach.length}/${ACH.length}</small></button><button class="xslot" data-k="opt"><span class="e">⚙️</span>Options<small>${opt('hb') ? '🟥 hitboxes on' : 'hitboxes, shake…'}</small></button>`,
+        (b) => { const k = b.dataset.k; if (k === 'fi') this.fightersPanel(); else if (k === 'cr') this.cratesPanel(); else if (k === 'bot') this.botPanel(); else if (k === 'ach') this.achPanel(); else if (k === 'opt') this.optionsPanel(); });
     },
     fighterHow(c) { const S = this.save, C = CH[c], A = ACH.find((q) => q.c === c);
       if (C.how) return `🔒 ${esc(C.how)}${c === EXE && S.q && S.q.on ? ` — ⚔️ ${S.q.k | 0}/50 · 💥 ${(S.q.d | 0).toLocaleString()}/15,000` : ''}`;
@@ -1866,15 +1904,22 @@
           <div style="margin-top:10px;font:700 12.5px var(--fb);color:#e2e8f0">🌟 Mastery ${lv}/10 ${lv >= 10 ? '— <b style="color:#fde68a">MASTERED</b>: its body and animation pack are in your avatar editor' : `· ${xp}/${nx} XP — master it (10) to wear its body and animations anywhere`}</div><div class="du-mx" style="margin:4px 0 12px"><i style="width:${lv >= 10 ? 100 : (xp - MAST[lv]) / (nx - MAST[lv]) * 100}%"></i></div>
           ${own ? (S.eq === sel ? '<button class="du-btn alt" disabled>✔ Equipped</button>' : `<button class="du-btn" data-eq="${sel}">⚔️ Equip</button>`) : `<div style="font:600 12.5px/1.45 var(--fb);color:#cbd5e1">${this.fighterHow(sel)}</div>`}</div></div>`; }
       const card = (c) => { const Q = CH[c], o = S.own.includes(c), l = mLvl(S.xp[c] | 0);
-        return `<div class="du-fcard r${Q.r}${o ? '' : ' lock'}${c === S.eq ? ' eqd' : ''}${c === sel ? ' sel' : ''}"><button class="st" data-st="${c}">stats</button>${o ? `<span class="mb">🌟 ${l}</span>` : '<span class="mb">🔒</span>'}<button class="pic" data-st="${c}" aria-label="${esc(Q.n)} stats"><img src="${fighterPic(c)}" alt=""></button>
+        return `<div class="du-fcard r${Q.r}${o ? '' : ' lock'}${c === S.eq ? ' eqd' : ''}${c === sel ? ' sel' : ''}" data-fn="${esc((Q.n + ' ' + Q.ro + ' ' + EMP[Q.e].n + ' ' + RAR[Q.r].n).toLowerCase())}" data-wt="${Q.wt}" data-own="${o ? 1 : 0}"><button class="st" data-st="${c}">stats</button>${o ? `<span class="mb">🌟 ${l}</span>` : '<span class="mb">🔒</span>'}<button class="pic" data-st="${c}" aria-label="${esc(Q.n)} stats"><img src="${fighterPic(c)}" alt=""></button>
           <b>${Q.ic} ${esc(Q.n)}</b><small>${RAR[Q.r].s}</small><span class="dp">⚡ ${Math.round(fStatsAll().L[c].dps)} DPS · ⭐ ${fStatsAll().L[c].ov.toFixed(1)}</span>${o ? (c === S.eq ? '<button class="eq on" disabled>✔ equipped</button>' : `<button class="eq" data-eq="${c}">equip</button>`) : `<button class="eq lk" data-st="${c}">🔒 locked</button>`}</div>`; };
       const head = `<div></div>${COLS.map((e) => `<div class="du-gh">${EMP[e].e} ${esc(EMP[e].sn || EMP[e].n)}</div>`).join('')}`;
       const rows = RAR.map((R, r) => `<div class="du-gr" style="--rc:${R.c}"><b>${R.s}</b><small>${R.n}</small></div>${COLS.map((e) => `<div class="du-gc">${CH.filter((C) => C.e === e && C.r === r).map((C) => card(C.i)).join('')}</div>`).join('')}`).join('');
-      openPanel('⚔️ Fighters', `${det}<div class="du-wts">${WTS.map(([n, ic, L]) => `<span><b>${ic} ${n}</b> ${L.join(' · ')}</span>`).join('')}</div><div class="du-gwrap"><div class="du-g6">${head}${rows}</div></div>`, (b) => {
+      const FF = this.ff || (this.ff = { f: 'all', q: '' }), FLT = [['all', 'All'], ['own', '✔ Owned'], ['lock', '🔒 Not yet'], ['Light', '🪶 Light'], ['Medium', '⚔️ Medium'], ['Heavy', '🛡️ Heavy']];
+      const fbar = `<div class="du-ff"><input id="duFq" placeholder="🔎 Search fighters, classes, empires…" value="${esc(FF.q)}" autocomplete="off" spellcheck="false">${FLT.map(([k, n]) => `<button data-ff="${k}" class="${FF.f === k ? 'on' : ''}">${n}</button>`).join('')}<span id="duFn"></span></div>`;
+      openPanel('⚔️ Fighters', `${det}${fbar}<div class="du-wts">${WTS.map(([n, ic, L]) => `<span><b>${ic} ${n}</b> ${L.join(' · ')}</span>`).join('')}</div><div class="du-gwrap"><div class="du-g6">${head}${rows}</div></div>`, (b) => {
+        if (b.dataset.ff) { FF.f = b.dataset.ff; sfx('click'); document.querySelectorAll('#xpBody [data-ff]').forEach((q) => q.classList.toggle('on', q.dataset.ff === FF.f)); this.fFilter(); return; }
         if (b.dataset.eq) { S.eq = +b.dataset.eq; this.dirty(); sfx('select'); this.drawBar(); this.fightersPanel(); }
         else if (b.dataset.st) { sfx('click'); this.fightersPanel(+b.dataset.st); $('#xpBody').scrollTop = 0; } else if (b.dataset.x === 'close') { sfx('click'); this.fightersPanel(); } }, null, { full: true, extra: `<span class="xchip">⚔️ ${S.own.length}/${CH.length}</span>` });
+      const fq = $('#duFq'); if (fq) fq.addEventListener('input', () => { FF.q = fq.value; this.fFilter(); }); this.fFilter();
       if (sel != null) { $('#xpBody').scrollTop = 0; this.statAnim(); }
     },
+    fFilter() { const FF = this.ff || { f: 'all', q: '' }, q = FF.q.trim().toLowerCase(); let n = 0, all = 0;
+      document.querySelectorAll('#xpBody .du-fcard').forEach((el) => { all++; const ok = (FF.f === 'all' || (FF.f === 'own' ? el.dataset.own === '1' : FF.f === 'lock' ? el.dataset.own === '0' : el.dataset.wt === FF.f)) && (!q || el.dataset.fn.includes(q)); el.classList.toggle('dim', !ok); if (ok) n++; });
+      const c = $('#duFn'); if (c) c.textContent = n === all ? `${all} fighters` : `${n} of ${all}`; },
     // the stats area: a DPS counter (counting up as it opens) and a bar for each stat — filled by where it sits among all
     // the fighters — with an overall rating out of 10
     statBars(c) {
@@ -1894,12 +1939,15 @@
       const S = this.save, luck = ((S.rolls | 0) + 1) % LUCK_N === 0, sure = (S.pity | 0) + 1 >= PITY_N, od = sure ? [0, 0, 0, 0, 100] : luck ? LUCK_ODDS : ODDS, toL = LUCK_N - ((S.rolls | 0) % LUCK_N), toP = PITY_N - (S.pity | 0);
       const pity = `<div class="du-pity"><div class="${luck ? 'lk' : ''}">🍀 2× luck ${luck ? '<b>on your next crate!</b>' : `in <b>${toL}</b> crates`}<small>Every 10th crate doubles the rare, epic and legendary chances (2% legendary, 24% epic, 54% rare).</small><div class="du-mx"><i style="width:${((S.rolls | 0) % LUCK_N) / LUCK_N * 100}%;background:linear-gradient(90deg,#22c55e,#bbf7d0)"></i></div></div>
         <div class="${sure ? 'lk' : ''}">🌟 A legendary, guaranteed, ${sure ? '<b>on your next crate!</b>' : `in <b>${toP}</b> crates`}<small>Pity: ${S.pity | 0}/${PITY_N} crates since your last legendary — the ${PITY_N}th is always one.</small><div class="du-mx"><i style="width:${(S.pity | 0) / PITY_N * 100}%"></i></div></div></div>`;
-      const html = `${pity}<div class="du-crates">${EMP.map((E, e) => `<div class="du-crate" style="--c1:${E.c1};--c2:${E.c2}${only === e ? ';box-shadow:0 0 0 3px #fde68a' : ''}"><h4>${E.e} ${esc(E.n)} Crate</h4><span style="font:600 12px/1.35 var(--fb);color:#cbd5e1">${esc(E.d)}</span>
+      const QN = [1, 2, 5, 10, 'max'], qn = QN.includes(S.qn) ? S.qn : 1, MAXN = 50;
+      const ng = qn === 'max' ? Math.min(MAXN, Math.floor((S.gold | 0) / CRATE_GOLD)) : qn, nc = qn === 'max' ? Math.min(MAXN, Math.floor(W.coins / CRATE_PRICE)) : qn;
+      const qrow = `<div class="du-qn"><b>Open at once:</b>${QN.map((q) => `<button data-qn="${q}" class="${q === qn ? 'on' : ''}">${q === 'max' ? 'Max' : '×' + q}</button>`).join('')}<small>${qn === 'max' ? `Max: as many as you can pay for (up to ${MAXN}) — 🥇 ${Math.floor((S.gold | 0) / CRATE_GOLD)} with gold, 🪙 ${Math.floor(W.coins / CRATE_PRICE)} with coins` : qn > 1 ? 'They open together and show you everything at once — the luck rolls and the pity count every one.' : 'One at a time, with the reel.'}</small></div>`;
+      const html = `${pity}${qrow}<div class="du-crates">${EMP.map((E, e) => `<div class="du-crate" style="--c1:${E.c1};--c2:${E.c2}${only === e ? ';box-shadow:0 0 0 3px #fde68a' : ''}"><h4>${E.e} ${esc(E.n)} Crate</h4><span style="font:600 12px/1.35 var(--fb);color:#cbd5e1">${esc(E.d)}</span>
         <div class="od">${CRATE[e].map((c, k) => `<span style="--rc:${RAR[CH[c].r].c}"><b>${CH[c].ic} ${esc(CH[c].n)}${S.own.includes(c) ? ' ✔' : ''}</b><i>${od[k]}% · ${RAR[CH[c].r].s}</i></span>`).join('')}</div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="du-btn" data-open="${e}" data-cur="g" ${(S.gold | 0) < CRATE_GOLD ? 'disabled' : ''}>🥇 ${CRATE_GOLD} gold</button><button class="du-btn alt" data-open="${e}" data-cur="c" ${W.coins < CRATE_PRICE ? 'disabled' : ''}>🪙 ${CRATE_PRICE}</button></div></div>`).join('')}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="du-btn" data-open="${e}" data-cur="g" data-n="${ng}" ${ng < 1 || (S.gold | 0) < CRATE_GOLD * ng ? 'disabled' : ''}>🥇 ${(CRATE_GOLD * Math.max(1, ng)).toLocaleString()} gold${ng > 1 ? ` · ×${ng}` : ''}</button><button class="du-btn alt" data-open="${e}" data-cur="c" data-n="${nc}" ${nc < 1 || W.coins < CRATE_PRICE * nc ? 'disabled' : ''}>🪙 ${(CRATE_PRICE * Math.max(1, nc)).toLocaleString()}${nc > 1 ? ` · ×${nc}` : ''}</button></div></div>`).join('')}</div>
         <p style="font:600 12.5px var(--fb);color:#94a3b8;margin:12px 0 0">Pay with the duel’s own 🥇 gold — every match earns some (more for wins, harder bots, other players and the boss) — or with Blox Coins. Already have the fighter you get? +250 mastery XP for it and 🥇 40 back. The mythics, the giants, the spirit and the other quest fighters aren’t in any crate — they’re in 🏆 Achievements → 📜 Quests.</p>`;
       const codeBox = `<div class="du-code"><b>🎟️ Have a code?</b><input id="duCode" maxlength="40" placeholder="Type it here" autocomplete="off" spellcheck="false"><button class="du-btn" data-code="1">Redeem</button><span id="duCodeMsg"></span></div>`;
-      openPanel('🎁 Crates', html + codeBox, (b) => { if (b.dataset.open) this.openCrate(+b.dataset.open, b.dataset.cur); else if (b.dataset.code) this.redeem($('#duCode').value); }, null, { full: true, extra: `<span class="xchip">🥇 ${S.gold | 0}</span><span class="xchip">🪙 ${W.coins}</span>` });
+      openPanel('🎁 Crates', html + codeBox, (b) => { if (b.dataset.qn) { S.qn = b.dataset.qn === 'max' ? 'max' : +b.dataset.qn; this.dirty(); sfx('click'); this.cratesPanel(only); } else if (b.dataset.open) { const n = +b.dataset.n || 1; if (n > 1) this.openCrates(+b.dataset.open, b.dataset.cur, n); else this.openCrate(+b.dataset.open, b.dataset.cur); } else if (b.dataset.code) this.redeem($('#duCode').value); }, null, { full: true, extra: `<span class="xchip">🥇 ${S.gold | 0}</span><span class="xchip">🪙 ${W.coins}</span>` });
       const ci = $('#duCode'); if (ci) ci.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); this.redeem(ci.value); } });
     },
     // a one-time code: right, not yours yet, and nobody has used it — then it's claimed for everyone, and the fighter's yours
@@ -1928,9 +1976,31 @@
       const S = this.save;
       if (cur === 'g') { if ((S.gold | 0) < CRATE_GOLD) { sfx('error'); toast('Not enough 🥇 gold — win some duels!'); return; } S.gold -= CRATE_GOLD; }
       else { if (W.coins < CRATE_PRICE) { sfx('error'); toast('Not enough Blox Coins — or pay with 🥇 gold'); return; } if (!spend(CRATE_PRICE)) return; }
-      S.rolls = (S.rolls | 0) + 1; S.pity = (S.pity | 0) + 1; const luck = S.rolls % LUCK_N === 0, sure = S.pity >= PITY_N, od = luck ? LUCK_ODDS : ODDS; // (🍀 the 10th, 20th… crate; 🌟 the pity)
+      const R = this.rollCrate(e); this.dirty(); closePanel(); this.reel(e, R.c, R.dup, R.luck, R.sure);
+    },
+    rollCrate(e) { // (one crate's roll: the luck and the pity, the fighter, whether you had it)
+      const S = this.save; S.rolls = (S.rolls | 0) + 1; S.pity = (S.pity | 0) + 1; const luck = S.rolls % LUCK_N === 0, sure = S.pity >= PITY_N, od = luck ? LUCK_ODDS : ODDS; // (🍀 the 10th, 20th… crate; 🌟 the pity)
       let k = 4; if (!sure) { let r = Math.random() * 100; k = 0; while (k < 4 && r >= od[k]) { r -= od[k]; k++; } } if (k === 4) S.pity = 0; const c = CRATE[e][k], dup = S.own.includes(c);
-      if (!dup) S.own.push(c); this.bump('crates', 1); quest('duel.crate'); this.dirty(); closePanel(); this.reel(e, c, dup, luck, sure);
+      if (!dup) S.own.push(c); this.bump('crates', 1); quest('duel.crate'); return { c, dup, luck, sure };
+    },
+    // several at once: paid together, rolled one by one (luck and pity as ever), then everything shown in a grid
+    openCrates(e, cur, n) {
+      const S = this.save; n = Math.max(1, Math.min(50, n | 0));
+      if (cur === 'g') { if ((S.gold | 0) < CRATE_GOLD * n) { sfx('error'); toast(`Not enough 🥇 gold for ${n} crates`); return; } S.gold -= CRATE_GOLD * n; }
+      else { if (W.coins < CRATE_PRICE * n) { sfx('error'); toast(`Not enough Blox Coins for ${n} crates`); return; } if (!spend(CRATE_PRICE * n)) return; }
+      const res = []; for (let i = 0; i < n; i++) { const R = this.rollCrate(e); if (R.dup) { this.addXp(R.c, 250); S.gold = (S.gold | 0) + 40; } res.push(R); }
+      this.dirty(); closePanel(); this.crateResults(e, res);
+    },
+    crateResults(e, res) {
+      const nw = res.filter((r) => !r.dup), legs = res.filter((r) => CH[r.c].r >= 3), dups = res.length - nw.length;
+      const cell = (r, i) => { const C = CH[r.c]; return `<div class="du-mres${r.dup ? ' dup' : ' new'}${C.r >= 3 ? ' leg' : ''}" style="animation-delay:${(i * 0.09).toFixed(2)}s"><div class="du-fc" style="--rc:${RAR[C.r].c}"><img src="${fighterPic(r.c)}" alt=""><b>${C.ic} ${esc(C.n)}</b><small>${RAR[C.r].t}</small></div><span>${r.dup ? '+250 XP · 🥇 40' : '✨ NEW'}${r.luck ? ' · 🍀' : ''}${r.sure ? ' · 🌟' : ''}</span>${r.dup ? '' : `<button class="du-btn" data-eq="${r.c}">⚔️ Equip</button>`}</div>`; };
+      const el = document.createElement('div'); el.id = 'duReel'; el.className = 'multi';
+      el.innerHTML = `<h2>${EMP[e].e} ${esc(EMP[e].n)} Crate × ${res.length}</h2><div class="du-mgrid">${res.map(cell).join('')}</div>
+        <p class="du-msum">${nw.length ? `<b>${nw.length} new fighter${nw.length > 1 ? 's' : ''}!</b>` : 'No new fighters this time.'}${legs.length ? ` 🌟 <b style="color:#fde68a">${legs.length} legendary!</b>` : ''}${dups ? ` · ${dups} you already had: <b>+${(dups * 250).toLocaleString()} mastery XP</b> and <b>🥇 ${dups * 40}</b> back` : ''}</p>
+        <div style="display:flex;gap:10px"><button class="du-btn alt" data-x="again">🎁 Open more</button><button class="du-btn alt" data-x="close">Done</button></div>`;
+      $('#xhud').append(el); sfx(legs.length ? 'reward' : nw.length ? 'unlock' : 'coin'); if (legs.length) { sfx('horn'); CROWD.ex = 1; }
+      el.addEventListener('click', (ev) => { const b = ev.target.closest('button'); if (!b) return;
+        if (b.dataset.eq) { el.remove(); this.save.eq = +b.dataset.eq; this.dirty(); this.drawBar(); this.fightersPanel(+b.dataset.eq); } else if (b.dataset.x === 'again') { el.remove(); this.cratesPanel(e); } else if (b.dataset.x === 'close') { el.remove(); this.drawBar(); } });
     },
     reel(e, c, dup, luck, sure) {
       const pick = () => { let r = Math.random() * 100, k = 0; while (k < 4 && r >= ODDS[k]) { r -= ODDS[k]; k++; } return CRATE[e][k]; }, N = 46, win = 40, list = [];
