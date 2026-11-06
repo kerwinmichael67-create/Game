@@ -1046,6 +1046,24 @@
   function clampArena(x, z, r = 1.6) { const a = A0 - r, b = B0 - r, q = (x / a) ** 2 + (z / b) ** 2; if (q <= 1) return [x, z]; const s = 1 / Math.sqrt(q); return [x * s, z * s]; }
   function moveF(F, dx, dz) { const r = 1.6 * (F.C.big || 1); if (F.kind === 'me') { [P.x, P.z] = clampArena(P.x + dx, P.z + dz, r); F.x = P.x; F.z = P.z; } else if (F.kind === 'bot' || F.kind === 'boss') { [F.x, F.z] = clampArena(F.x + dx, F.z + dz, r); } }
   function faceF(F, yaw) { F.yaw = yaw; if (F.kind === 'me') P.yaw = yaw; }
+  /* aiming made easy (your own shots; bots aim by their difficulty): a shot turns you to them if they're anywhere
+     within AIM_CONE of where you or your camera face, it's let go where they'll BE when it gets there (their speed,
+     smoothed, times its flight), it homes in harder and hits a little wider, and a volley follows them until just
+     before it falls. A mark on them says whether a shot now would find them */
+  const AIM_CONE = 1.75, AIM_RANGE = 60;
+  function trackVel(F, dt) { if (!F || !(dt > 0)) return; if (F.lpx == null) { F.lpx = F.x; F.lpz = F.z; F.mvx = F.mvz = 0; return; } const ix = (F.x - F.lpx) / dt, iz = (F.z - F.lpz) / dt; F.lpx = F.x; F.lpz = F.z; if (Math.hypot(ix, iz) > 70) return; const k = Math.min(1, dt * 7); F.mvx += (ix - F.mvx) * k; F.mvz += (iz - F.mvz) * k; } // (a jump of the camera or a respawn isn't speed)
+  function leadAt(F, T, spd) { let x = T.x, z = T.z; for (let i = 0; i < 3; i++) { const t = Math.hypot(x - F.x, z - F.z) / Math.max(20, spd || 60); x = T.x + (T.mvx || 0) * t; z = T.z + (T.mvz || 0) * t; } return angOf(x - F.x, z - F.z); }
+  const aimOff = (F, a) => F.kind === 'me' ? Math.min(Math.abs(wrapA(a - F.yaw)), Math.abs(wrapA(a - cam.yaw))) : Math.abs(wrapA(a - F.yaw)); // (yours: how far from where you OR your camera face)
+  function aimAssist(F, ab) { const T = foeOf(F); if (!T || T.dead || bval(T, 'inv') || Math.hypot(T.x - F.x, T.z - F.z) > AIM_RANGE) return; const a = leadAt(F, T, ab.spd); if (aimOff(F, a) < AIM_CONE) faceF(F, a); }
+  const aimTex = () => kCanvas('duAim', 128, 128, (g) => { g.strokeStyle = '#fff'; g.lineWidth = 7; g.beginPath(); g.arc(64, 64, 38, 0, Math.PI * 2); g.stroke(); g.lineWidth = 8; for (const [x0, y0, x1, y1] of [[64, 6, 64, 34], [64, 94, 64, 122], [6, 64, 34, 64], [94, 64, 122, 64]]) { g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke(); } g.fillStyle = '#fff'; g.beginPath(); g.arc(64, 64, 6, 0, 7); g.fill(); });
+  function aimMark(F, T, M, dt) {
+    let m = DU.aimM; const ab = abOf(F, 0), A = F.act, ranged = ab.k === 'proj' || F.C.ro === 'Ranger' || !!(A && A.ab.k === 'proj');
+    if (!(M.ph === 'fight' && ranged && T && !T.dead && !F.dead && !bval(T, 'inv'))) { if (m) m.visible = false; return; }
+    if (!m || !m.parent) { m = DU.aimM = new THREE.Sprite(new THREE.SpriteMaterial({ map: aimTex(), transparent: true, depthTest: false, depthWrite: false })); m.renderOrder = 999; scene.add(m); }
+    const d = Math.hypot(T.x - F.x, T.z - F.z), on = d < AIM_RANGE && aimOff(F, angOf(T.x - F.x, T.z - F.z)) < AIM_CONE, bg = T.C.big || 1, s = (3.2 + d * 0.07) * Math.sqrt(bg);
+    m.visible = true; m.position.set(T.x, T.y + (T.lift || 0) + 3.2 * bg, T.z); m.scale.set(s, s, 1); m.material.rotation += dt * 1.5;
+    m.material.color.set(!on ? '#94a3b8' : ab.k === 'proj' && F.cd[0] > 0 ? '#fbbf24' : '#4ade80'); m.material.opacity = on ? 0.95 : 0.45; // (green: it'll find them; amber: reloading; grey: turn towards them)
+  }
   const canAct = (F) => live() && !F.dead && !stunned(F) && !F.act && !(F.kind === 'me' && P.dead) && !(F.possEnd && F.possEnd > performance.now()); // (a spirit inside someone can't strike)
   // a blow begins: face them (if they're near enough to be what you meant), start the animation, and say so
   function useAb(F, i, vis) {
@@ -1053,7 +1071,7 @@
     const ab = abOf(F, i), T = foeOf(F);
     if (!vis) { F.cd[i] = F.cdMax[i] = ab.cd;
       if (T && !T.dead) { const dx = T.x - F.x, dz = T.z - F.z, d = Math.hypot(dx, dz), da = wrapA(angOf(dx, dz) - F.yaw), far = ab.k === 'proj' || ab.k === 'volley' || ab.k === 'leap' || ab.k === 'dash';
-        if ((far && Math.abs(da) < 1.3) || d < (ab.rng || 7) + 5 && Math.abs(da) < 1.9 || DU.lockOn && F.kind === 'me' || F.kind === 'bot' || F.kind === 'boss') faceF(F, angOf(dx, dz) + (F.kind === 'bot' && ab.k === 'proj' ? (Math.random() - 0.5) * 0.5 * (1 - DIFF[F.D].aim) : 0)); } }
+        if ((far && (F.kind === 'me' ? aimOff(F, angOf(dx, dz)) < AIM_CONE : Math.abs(da) < 1.3)) || d < (ab.rng || 7) + 5 && Math.abs(da) < 1.9 || DU.lockOn && F.kind === 'me' || F.kind === 'bot' || F.kind === 'boss') faceF(F, angOf(dx, dz) + (F.kind === 'bot' && ab.k === 'proj' ? (Math.random() - 0.5) * 0.5 * (1 - DIFF[F.D].aim) : 0)); } }
     const A = F.act = { i, ab, t: 0, dur: actDur(ab), an: ab.an, h: 0, yaw: F.yaw, vis: !!vis, x0: F.x, z0: F.z };
     if (T && (ab.k === 'volley' || ab.k === 'leap')) { A.tx = T.x; A.tz = T.z; }
     if (ab.k === 'buff' && ab.b && ab.b.blk) A.dur = ab.b.dur;
@@ -1083,7 +1101,7 @@
         if (ab.k === 'combo' && h === 0 && !A.vis) { if (ok) { A.held = 1; if (T && T.kind !== 'rem') T.S.root = Math.max(T.S.root, ab.gap * (ab.hits.length - 1) + 0.3); }
           else { F.act = null; F.S.stun = 1.5; F.S.vuln = 1.5; DU.say(F, 'MISSED!'); floatText(F, 'MISSED — STUNNED', 'me'); sfx3('error', F.x, F.z, 60); return; } }
         if (ab.k === 'combo' && A.held && T) { if (T.kind !== 'rem') T.S.root = Math.max(T.S.root, 0.4); for (let q = 0; q < 6; q++) kitSpark(F.a, F.a.g, (Math.random() - 0.5) * 3, 2 + Math.random() * 3, -2 - Math.random() * 2, Math.random() < 0.6 ? '#f9a8d4' : '#fce7f3', { v: [(Math.random() - 0.5) * 3, -1, (Math.random() - 0.5) * 3], life: 1.2, s: 0.22, j: 0.6 }); } } }
-    else if (ab.k === 'proj') { const n = ab.cnt || 1; for (let k = 0; k < n; k++) { const tk = w + (ab.spread ? 0 : k * (ab.gap || 0)); if (at(tk)) { spawnProj(F, ab, ab.spread ? (k - (n - 1) / 2) * ab.spread * Math.PI / 180 : 0, A.vis); A.thrown = true; } } }
+    else if (ab.k === 'proj') { const n = ab.cnt || 1; for (let k = 0; k < n; k++) { const tk = w + (ab.spread ? 0 : k * (ab.gap || 0)); if (at(tk)) { if (F.kind === 'me' && !A.vis) aimAssist(F, ab); spawnProj(F, ab, ab.spread ? (k - (n - 1) / 2) * ab.spread * Math.PI / 180 : 0, A.vis); A.thrown = true; } } }
     else if (ab.k === 'dash') {
       if (t > w && t0 < w + ab.dd) { const s = (Math.min(t, w + ab.dd) - Math.max(t0, w)) / ab.dd * ab.dist * (ab.back ? -1 : 1); moveF(F, -Math.sin(A.yaw) * s, -Math.cos(A.yaw) * s);
         if (Math.random() < 0.6) kitSpark(F.a, F.a.g, (Math.random() - 0.5) * 2, 0.3, 1, '#d6b98c', { v: [0, 1.5, 3], life: 0.5, s: 0.7, j: 1, flat: true });
@@ -1313,19 +1331,20 @@
   }
   function projTick(dt) {
     for (const p of DU.proj) {
-      p.vy -= (p.gr || 0) * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt; p.life -= dt; p.m.position.set(p.x, p.y, p.z); p.m.lookAt(p.x + p.vx, p.y + p.vy, p.z + p.vz); p.m.rotateY(Math.PI);
+      const ox = p.x, oy = p.y, oz = p.z; p.vy -= (p.gr || 0) * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt; // (where it was: a fast shot is checked along the whole way it went) p.life -= dt; p.m.position.set(p.x, p.y, p.z); p.m.lookAt(p.x + p.vx, p.y + p.vy, p.z + p.vz); p.m.rotateY(Math.PI);
       const sp = p.m.userData.spin; if (sp) sp.rotation[p.m.userData.spinAx || 'x'] += dt * 22;
-      const H = foeOf(p.F); if (H && !H.dead && !bval(H, 'inv') && p.ab.model !== 'ball') { const v = Math.hypot(p.vx, p.vz), a0 = Math.atan2(p.vx, p.vz), a1 = Math.atan2(H.x - p.x, H.z - p.z), turn = clamp(wrapA(a1 - a0), -1, 1) * Math.min(1, dt * 2.2 * (p.F.kind === 'bot' ? DIFF[p.F.D].aim : 1)); if (Math.abs(wrapA(a1 - a0)) < 0.9) { p.vx = Math.sin(a0 + turn) * v; p.vz = Math.cos(a0 + turn) * v; } } // (a little help: it bends towards them)
+      const H = foeOf(p.F), mine = p.F.kind === 'me'; if (H && !H.dead && !bval(H, 'inv') && (p.ab.model !== 'ball' || mine)) { const v = Math.hypot(p.vx, p.vz), a0 = Math.atan2(p.vx, p.vz), a1 = Math.atan2(H.x - p.x, H.z - p.z), turn = clamp(wrapA(a1 - a0), -1, 1) * Math.min(1, dt * 2.2 * (p.F.kind === 'bot' ? DIFF[p.F.D].aim : mine ? 2 : 1)); if (Math.abs(wrapA(a1 - a0)) < (mine ? 1.25 : 0.9)) { p.vx = Math.sin(a0 + turn) * v; p.vz = Math.cos(a0 + turn) * v; } } // (a little help: it bends towards them)
       if (p.ab.model === 'fire' && Math.random() < 0.5) burstAt(p.x, p.y, p.z, '#f97316', 1.2, 0.25);
       const T = foeOf(p.F);
       const bg = T ? T.C.big || 1 : 1;
-      if (T && !T.dead && Math.hypot(T.x - p.x, T.z - p.z) < 2.3 + bigR(T) && Math.abs(T.y + (T.lift || 0) + 3 * bg - p.y) < 3.8 * bg) { p.life = 0; p.boom = 1; if (!p.vis) dealHitAs(p.F, T, p.ab.dmg, p.fx, p.ab); else burstAt(p.x, p.y, p.z, '#fff7ed', 2); }
+      const sx = p.x - ox, sz = p.z - oz, sl = sx * sx + sz * sz, st = sl > 1e-6 ? clamp(((T ? T.x : 0) - ox) * sx / sl + ((T ? T.z : 0) - oz) * sz / sl, 0, 1) : 1, cx = ox + sx * st, cz = oz + sz * st, cy = oy + (p.y - oy) * st; // (the nearest it came to them this frame)
+      if (T && !T.dead && Math.hypot(T.x - cx, T.z - cz) < (p.F.kind === 'me' ? 2.9 : 2.3) + bigR(T) && Math.abs(T.y + (T.lift || 0) + 3 * bg - cy) < 4.2 * bg) { p.life = 0; p.boom = 1; if (!p.vis) dealHitAs(p.F, T, p.ab.dmg, p.fx, p.ab); else burstAt(p.x, p.y, p.z, '#fff7ed', 2); }
       if (p.y < 0.2 || isFloor(p.x, p.z) > 1.15) { p.life = 0; smokeAt(p.x, 0.4, p.z, 3, '#c8a97e', 1.2);
         if (p.gr && !p.boom) { p.boom = 1; if (!p.vis && T && !T.dead && Math.hypot(T.x - p.x, T.z - p.z) < 4.5 + bigR(T)) dealHitAs(p.F, T, p.ab.dmg, p.fx, p.ab); } } // (a grenade bursts where it lands)
       if (p.life <= 0 && p.gr) { burstAt(p.x, Math.max(1, p.y), p.z, '#f97316', 7, 0.4); smokeAt(p.x, 0.6, p.z, 8, '#57534e', 2.4); sfx3('boom', p.x, p.z, 80, { vol: 0.7 }); ringAt(p.x, p.z, '#f97316', 5, 0.35); }
     }
     DU.proj = DU.proj.filter((p) => { if (p.life > 0) return true; scene.remove(p.m); return false; });
-    for (const v of DU.volleys) { v.t += dt; v.ring.material.opacity = 0.5 + 0.4 * Math.sin(v.t * 20); v.ring.scale.setScalar(v.ab.rad * (1 - 0.15 * Math.min(1, v.t / v.ab.delay)));
+    for (const v of DU.volleys) { v.t += dt; if (v.F.kind === 'me' && !v.vis && v.t < v.ab.delay * 0.75) { const T = foeOf(v.F); if (T && !T.dead && !bval(T, 'inv')) { const k = Math.min(1, dt * 5); v.x += (T.x - v.x) * k; v.z += (T.z - v.z) * k; v.ring.position.x = v.x; v.ring.position.z = v.z; } } v.ring.material.opacity = 0.5 + 0.4 * Math.sin(v.t * 20); v.ring.scale.setScalar(v.ab.rad * (1 - 0.15 * Math.min(1, v.t / v.ab.delay)));
       while (v.n < v.ab.cnt && v.t >= v.ab.delay + v.n * 0.08) { const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * v.ab.rad, x = v.x + Math.cos(a) * r, z = v.z + Math.sin(a) * r, m = projModel(v.ab.model || 'arrow'); m.position.set(x + 3, 26, z + 3); scene.add(m);
         DU.drops.push({ m, x, z, y: 26, F: v.F, ab: v.ab, vis: v.vis, done: false }); v.n++; } }
     DU.volleys = DU.volleys.filter((v) => { if (v.n < v.ab.cnt) return true; scene.remove(v.ring); return false; });
@@ -1615,7 +1634,7 @@
       if (M.ph === 'intro') { if (M.t > 1.7 && !M.fightSaid) { M.fightSaid = 1; big('⚔️ FIGHT!', '', '#fef3c7'); } if (M.t > 2.6) { M.ph = 'fight'; M.t = 0; M.started = true; M.fightSaid = 0; sfx('go'); CROWD.ex = 1; } }
       else if (M.ph === 'fight') {
         M.left -= dt; if (M.pvp || M.coop) this.recvHits();
-        statusTick(F, dt); actTick(F, dt); statusTick(T, dt); possTick(F, dt); possTick(T, dt); for (const A of M.allies) possTick(A, dt);
+        trackVel(F, dt); trackVel(T, dt); statusTick(F, dt); actTick(F, dt); statusTick(T, dt); possTick(F, dt); possTick(T, dt); aimMark(F, T, M, dt); for (const A of M.allies) possTick(A, dt);
         if (T.kind === 'bot') { if (!T.dead) { botTick(T, dt); actTick(T, dt); } } else if (T.kind === 'boss') { if (!T.dead) { bossTick(T, dt); actTick(T, dt); } } else actTick(T, dt);
         for (const A of M.allies) { statusTick(A, dt); actTick(A, dt); }
         projTick(dt); wavesTick(dt);
@@ -1762,7 +1781,7 @@
       cam.dist = M.cam0 || 15;
       if (M.mid) this.done.add(M.mid);
     },
-    leaveMatch() {
+    leaveMatch() { if (this.aimM) this.aimM.visible = false;
       if (!this.M) return; this.cleanMatch(); this.M = null; this.respawnDelay = 2200; this.blockHeld = this.rmb = false; this.sprinting = false;
       setAvOverride(null); respawn(true); P.frozen = false; send({ du: null }); this.drawBar(); this.padI = -1;
     },
