@@ -1467,12 +1467,12 @@ const BODIES = ['R6', 'R15', 'Robot', 'Skeleton', 'Magma Golem', 'Dino Suit', 'K
   'Minotaur', 'Anubis', 'Pharaoh', 'Samurai', 'Valkyrie', 'Centurion', 'Gladiator', 'Talos', 'Cyclops', 'Berserker',
   'Legionary', 'Velite', 'Retiarius', 'Praetorian', 'Thraex Gladiator', 'Hoplite', 'Peltast', 'Toxotes', 'Myrmidon Vanguard', 'Spartan Polemarch',
   'Footman', 'Longbowman', 'Viking Raider', 'Templar', 'Heavy Knight', 'Ashigaru', 'Ronin', 'Shinobi', 'Sohei', 'Crescent Samurai',
-  'Laestrygonian Warlord', 'Executioner', 'Azab', 'Okçu Archer', 'Humbaracı', 'Peyk', 'Janissary', 'Arban Spearman', 'Steppe Archer', 'Steppe Shaman', 'Kheshig', 'Great Khan', 'Kensei', 'Imperator', 'Frost Jötunn', 'Laestrygonian Colossus']; // (2 on: body packs, jointed like R15; from 13: 💎 Deluxe Plus; from 23: ⚔️ Colosseum Duels mastery)
+  'Laestrygonian Warlord', 'Executioner', 'Azab', 'Okçu Archer', 'Humbaracı', 'Peyk', 'Janissary', 'Arban Spearman', 'Steppe Archer', 'Steppe Shaman', 'Kheshig', 'Great Khan', 'Kensei', 'Imperator', 'Frost Jötunn', 'Phalangite', 'Halberdier', 'Cyclops', 'Oni', 'Cacus', 'Chötgör', 'Laestrygonian Colossus']; // (2 on: body packs, jointed like R15; from 13: 💎 Deluxe Plus; from 23: ⚔️ Colosseum Duels mastery)
 // animation packs: how you stand, walk, run and jump
 const ANIMS = ['Default', 'Robot', 'Ninja', 'Zombie', 'Superhero', 'Stylish', 'Levitation', 'Vampire', 'Hoplite', 'Laestrygonian', 'Minotaur', 'Pharaoh', 'Samurai', 'Valkyrie', 'Berserker',
   'Legionary', 'Velite', 'Retiarius', 'Praetorian', 'Thraex Gladiator', 'Hoplite', 'Peltast', 'Toxotes', 'Myrmidon Vanguard', 'Spartan Polemarch',
   'Footman', 'Longbowman', 'Viking Raider', 'Templar', 'Heavy Knight', 'Ashigaru', 'Ronin', 'Shinobi', 'Sohei', 'Crescent Samurai',
-  'Laestrygonian Warlord', 'Executioner', 'Azab', 'Okçu Archer', 'Humbaracı', 'Peyk', 'Janissary', 'Arban Spearman', 'Steppe Archer', 'Steppe Shaman', 'Kheshig', 'Great Khan', 'Kensei', 'Imperator', 'Frost Jötunn']; // (from 10: 💎 Deluxe Plus; from 15: ⚔️ Colosseum Duels mastery)
+  'Laestrygonian Warlord', 'Executioner', 'Azab', 'Okçu Archer', 'Humbaracı', 'Peyk', 'Janissary', 'Arban Spearman', 'Steppe Archer', 'Steppe Shaman', 'Kheshig', 'Great Khan', 'Kensei', 'Imperator', 'Frost Jötunn', 'Phalangite', 'Halberdier', 'Cyclops', 'Oni', 'Cacus', 'Chötgör']; // (from 10: 💎 Deluxe Plus; from 15: ⚔️ Colosseum Duels mastery)
 // the shop: what each costs in Blox Coins (0 = free, -1 = only as a reward)
 const COSMETICS = {
   h: { title: 'Hats', list: HATS, price: [0, 0, 0, 0, 0, 100, 250, 300, 150, 800, 200, 120, 220, 80, 1500, -1, 100, 200, 350, 180, 220, 260, 400, 150, 1200, 3000, -1, -1, -1, -1, -1, -1, -1, 400, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
@@ -1482,8 +1482,8 @@ const COSMETICS = {
   a: { title: 'Auras', list: AURAS, price: [0, 300, 800, 400, 350, 1000, 1500, 300, 350, 2000, 600, 2500, -1, -1, -1, 900], icon: ['🚫', '✨', '🔥', '💖', '❄️', '⚡', '🌈', '🫧', '🍃', '🌌', '☢️', '💸', '💫', '🌑', '⛈️', '🦇'] },
   pt: { title: 'Shirts', list: PATTERNS, price: [0, 60, 80, 80, 120, 100, 90, 250, 150, 150, 120, 200, 300, -1, -1, -1, 200], icon: ['⬜', '〰️', '⭐', '❤️', '⚡', '🏁', '1️⃣', '👔', '💀', '🔥', '🪖', '🌈', '🌌', '🏆', '🐾', '🌻', '🦴'] },
   pet: { title: 'Pets', list: PETS, price: [0, 400, 400, 350, 1500, 900, 2500, 600, 800, 1200, 4000, -1, -1, 1000, -1, -1], icon: ['🚫', '🐶', '🐱', '🐰', '🐉', '🤖', '🦄', '🐧', '🦊', '🐼', '🦅', '🧟', '🌱', '👻', '🐓', '🦕'] },
-  bt: { title: 'Bodies', list: BODIES, price: [0, 0, 900, 600, 1200, 1000, 1100, 800, 1300, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], icon: ['🧍', '🦵', '🤖', '💀', '🌋', '🦖', '⚔️', '🎃', '🫥', '🐜', '🛡️', '🪓', '🗿', '🐂', '🐺', '👑', '⛩️', '🪽', '🦅', '⚔️', '🤖', '👁️', '🐻', '🦅', '🐺', '🔱', '🦂', '⚔️', '🦉', '🌙', '🏹', '🐜', '🛡️', '🗡️', '🎯', '🪓', '✝️', '🏰', '🎋', '🍂', '🥷', '📿', '🏯', '🗿', '💀', '🔱', '🏹', '💣', '🪓', '🌙', '🔱', '🏹', '🥁', '🛡️', '👑', '👺', '🌿', '🧊', '👹'], tab: false }, // (bodies and animations are in 🧍 Body)
-  an: { title: 'Animations', list: ANIMS, price: [0, 500, 750, 400, 700, 550, 900, 777, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], icon: ['🚶', '🤖', '🥷', '🧟', '🦸', '😎', '🫧', '🧛', '🏺', '👣', '🐂', '👑', '⛩️', '🪽', '🐻', '🦅', '🐺', '🔱', '🦂', '⚔️', '🦉', '🌙', '🏹', '🐜', '🛡️', '🗡️', '🎯', '🪓', '✝️', '🏰', '🎋', '🍂', '🥷', '📿', '🏯', '🗿', '💀', '🔱', '🏹', '💣', '🪓', '🌙', '🔱', '🏹', '🥁', '🛡️', '👑', '👺', '🌿', '🧊'], tab: false },
+  bt: { title: 'Bodies', list: BODIES, price: [0, 0, 900, 600, 1200, 1000, 1100, 800, 1300, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], icon: ['🧍', '🦵', '🤖', '💀', '🌋', '🦖', '⚔️', '🎃', '🫥', '🐜', '🛡️', '🪓', '🗿', '🐂', '🐺', '👑', '⛩️', '🪽', '🦅', '⚔️', '🤖', '👁️', '🐻', '🦅', '🐺', '🔱', '🦂', '⚔️', '🦉', '🌙', '🏹', '🐜', '🛡️', '🗡️', '🎯', '🪓', '✝️', '🏰', '🎋', '🍂', '🥷', '📿', '🏯', '🗿', '💀', '🔱', '🏹', '💣', '🪓', '🌙', '🔱', '🏹', '🥁', '🛡️', '👑', '👺', '🌿', '🧊', '🌞', '🪓', '👁️', '👹', '🔥', '👻', '👹'], tab: false }, // (bodies and animations are in 🧍 Body)
+  an: { title: 'Animations', list: ANIMS, price: [0, 500, 750, 400, 700, 550, 900, 777, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], icon: ['🚶', '🤖', '🥷', '🧟', '🦸', '😎', '🫧', '🧛', '🏺', '👣', '🐂', '👑', '⛩️', '🪽', '🐻', '🦅', '🐺', '🔱', '🦂', '⚔️', '🦉', '🌙', '🏹', '🐜', '🛡️', '🗡️', '🎯', '🪓', '✝️', '🏰', '🎋', '🍂', '🥷', '📿', '🏯', '🗿', '💀', '🔱', '🏹', '💣', '🪓', '🌙', '🔱', '🏹', '🥁', '🛡️', '👑', '👺', '🌿', '🧊', '🌞', '🪓', '👁️', '👹', '🔥', '👻'], tab: false },
   tr: { title: 'Trails', list: TRAILS, price: [0, 1500, 800, 600, 500, 2000, 700, -1, -1, 700], icon: ['🚫', '🌈', '🔥', '🧊', '💠', '🪙', '💕', '⭐', '⚡', '🌫️'] },
 };
 let AV = { s: 5, sh: 0, p: 1, h: 0, f: 0, b: 0, a: 0, pt: 0, pet: 0, tr: 0, bt: 0, an: 0, bh: 0, bu: 0, ba: 0, bl: 0 };
@@ -4437,8 +4437,8 @@ ANIM_DESC.push('💎 The Minotaur: hunched, its chest heaving, head low and swin
    fights bare-chested under a towering crest, the Myrmidon is black and bronze with mandibled cheek guards. */
 const DUEL_N = ['Legionary', 'Velite', 'Retiarius', 'Praetorian', 'Thraex Gladiator', 'Hoplite', 'Peltast', 'Toxotes', 'Myrmidon Vanguard', 'Spartan Polemarch',
   'Footman', 'Longbowman', 'Viking Raider', 'Templar', 'Heavy Knight', 'Ashigaru', 'Ronin', 'Shinobi', 'Sohei', 'Crescent Samurai',
-  'Laestrygonian Warlord', 'Executioner', 'Azab', 'Okçu Archer', 'Humbaracı', 'Peyk', 'Janissary', 'Arban Spearman', 'Steppe Archer', 'Steppe Shaman', 'Kheshig', 'Great Khan', 'Kensei', 'Imperator', 'Frost Jötunn'];
-const DUEL_IC = ['🦅', '🐺', '🔱', '🦂', '⚔️', '🦉', '🌙', '🏹', '🐜', '🛡️', '🗡️', '🎯', '🪓', '✝️', '🏰', '🎋', '🍂', '🥷', '📿', '🏯', '🗿', '💀', '🔱', '🏹', '💣', '🪓', '🌙', '🔱', '🏹', '🥁', '🛡️', '👑', '👺', '🌿', '🧊'];
+  'Laestrygonian Warlord', 'Executioner', 'Azab', 'Okçu Archer', 'Humbaracı', 'Peyk', 'Janissary', 'Arban Spearman', 'Steppe Archer', 'Steppe Shaman', 'Kheshig', 'Great Khan', 'Kensei', 'Imperator', 'Frost Jötunn', 'Phalangite', 'Halberdier', 'Cyclops', 'Oni', 'Cacus', 'Chötgör'];
+const DUEL_IC = ['🦅', '🐺', '🔱', '🦂', '⚔️', '🦉', '🌙', '🏹', '🐜', '🛡️', '🗡️', '🎯', '🪓', '✝️', '🏰', '🎋', '🍂', '🥷', '📿', '🏯', '🗿', '💀', '🔱', '🏹', '💣', '🪓', '🌙', '🔱', '🏹', '🥁', '🛡️', '👑', '👺', '🌿', '🧊', '🌞', '🪓', '👁️', '👹', '🔥', '👻'];
 const DUEL_BT = 23, DUEL_AN = 15; // (where they start in BODIES and ANIMS)
 const dkSurcoatTex = (c1, c2, kind) => kCanvas('dkSur' + c1 + c2 + kind, 128, 128, (g, r) => { g.fillStyle = c1; g.fillRect(0, 0, 128, 128); for (let k = 0; k < 600; k++) { g.fillStyle = r() < 0.5 ? 'rgba(0,0,0,.05)' : 'rgba(255,255,255,.05)'; g.fillRect(r() * 128, r() * 128, 2, 1); }
   g.fillStyle = c2; if (kind === 'cross') { g.fillRect(52, 8, 24, 112); g.fillRect(16, 36, 96, 22); } else if (kind === 'quarter') { g.fillRect(0, 0, 64, 64); g.fillRect(64, 64, 64, 64); } else if (kind === 'lion') { g.font = 'bold 76px serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('⚜', 64, 66); }
@@ -4807,6 +4807,74 @@ function duelKit(K, i) {
         tick(a, dt) { if (!emWorld(a) || a.dead) return; a.jotB = (a.jotB || 0) - dt; if (a.jotB <= 0) { a.jotB = 2.2 + Math.random(); for (let q = 0; q < 6; q++) kitSpark(a, a.g, (Math.random() - 0.5) * 0.3, 5.0, -1.1, '#e0f2fe', { v: [(Math.random() - 0.5) * 0.6, 0.15, -1.2 - Math.random()], life: 1.2, s: 0.35, grow: 2.2, op: 0.45, j: 0.3 }); } // (its breath, a cold mist)
           if (Math.random() < dt * 3) kitSpark(a, a.g, (Math.random() - 0.5) * 3, 3 + Math.random() * 3, (Math.random() - 0.5) * 2, '#f0f9ff', { v: [0, -0.6, 0], life: 1.6, s: 0.12, j: 0.4 }); } }; // (snow falling off it)
     },
+    () => { // 🌞 Phalangite: a Macedonian of the phalanx — a bronze Phrygian helmet curving forward to a peak, with cheek pieces; a white linen cuirass with the star of Vergina on it; a red tunic, bronze greaves and sandals; a little round shield with the star on his left arm
+      const red = L('#9f1d24', { map: plushTex() }), lin = L('#f3efe2', { map: plushTex() }), lth = L('#5c3a1e', { map: leatherTex() }), sunM = new THREE.MeshPhongMaterial({ map: dkVerginaTex(), shininess: 80 }); mats.push(sunM);
+      return { leg: (x) => { const r = leg(x, skin, skin); greave(r[1], bronze); sandal(r[1], lth); return r; },
+        lower() { hips(red); skirt('phal', red, 0.72, 1.06); belt(lth, 2.86); strips(lin, 2.78, 12, 0.6, null); },
+        upper() { torso(lin); bands(lin, 3.0, 2, 0.22); R(2.08, 0.5, 1.08, 0.12, lin, 0, 4.0, 0); for (const s2 of [-1, 1]) R(0.5, 0.12, 1.1, 0.04, lin, s2 * 0.75, 4.22, 0); const sun = mesh(kg('phSunDisc', () => new THREE.CircleGeometry(0.36, 28)), sunM, 0, 3.55, -0.515); sun.rotation.y = Math.PI; },
+        arm: (s2) => { const r = arm(s2, red, skin, null); R(1.0, 0.4, 1.0, 0.12, lin, 0, -0.12, 0, r[0]); return r; },
+        head(h) { mesh(kLathe('phrygHelm', [[0.82, 0], [0.84, 0.18], [0.8, 0.42], [0.7, 0.62], [0.5, 0.78], [0.25, 0.86], [0, 0.88]], 28), bronze, 0, 0.28, 0, h); ring(h, 0.84, 0.045, 0.3, bronze); // (the bronze bowl, its rim)
+          mesh(kg('phrygPeak', () => sweepGeo([[0, 0, 0.15], [0, 0.22, -0.05], [0, 0.34, -0.4], [0, 0.24, -0.72]], (t) => 0.32 * (1 - t) + 0.05, 12, 10)), bronze, 0, 0.96, 0.05, h); // (the Phrygian cap's peak, curving forward)
+          for (const s2 of [-1, 1]) { const ch = R(0.08, 0.58, 0.52, 0.04, bronze, s2 * 0.79, -0.12, -0.24, h); ch.rotation.y = s2 * 0.28; } return false; } }; // (cheek pieces)
+    },
+    () => { // 🪓 Halberdier: a Swiss halberdier — a steel morion with a high comb and a red plume, a steel breastplate and gorget over a slashed doublet striped red and yellow, puffed sleeves and hose, parti-coloured legs, black shoes
+      const strA = L('#ffffff', { map: dkStripeTex('#b91c1c', '#facc15') }), strB = L('#ffffff', { map: dkStripeTex('#facc15', '#b91c1c') }), red = L('#b91c1c', { map: plushTex() }), yel = L('#facc15', { map: plushTex() }), blk = L('#18181b', { map: leatherTex() }), st = steel('#d4d9df');
+      return { leg: (x) => { const r = leg(x, x < 0 ? red : yel, x < 0 ? yel : red); P(kSph(), x < 0 ? strA : strB, 0, -0.32, 0, r[0], 0.6, 0.55, 0.6); boot(r[1], blk, 0.3); return r; }, // (puffed upper hose, parti-coloured legs)
+        lower() { hips(strA); skirt('halb', strA, 0.6, 1.14); belt(blk, 2.86); },
+        upper() { torso(strA); R(1.84, 1.24, 0.24, 0.2, st, 0, 3.42, -0.46); R(0.07, 1.2, 0.08, 0.03, steel('#f1f4f8'), 0, 3.42, -0.6); mesh(kLathe('halbGorget', [[0.72, 0.22], [1.02, 0.02], [1.12, -0.18], [0, -0.18]], 24), st, 0, 4.22, 0); }, // (the breastplate, its ridge, the gorget)
+        arm: (s2) => { const r = arm(s2, strB, strA, null); P(kSph(), s2 < 0 ? strA : strB, 0, -0.38, 0, r[0], 0.64, 0.62, 0.64); return r; }, // (puffed sleeves)
+        head(h) { hair(h, '#6b4a2b', 0.4); mesh(kLathe('halbMorion', [[1.12, 0.06], [1.0, 0.16], [0.78, 0.2], [0.76, 0.46], [0.6, 0.7], [0.3, 0.82], [0, 0.84]], 30), st, 0, 0.25, 0, h).scale.set(0.95, 1, 1.12); // (the morion, brimmed)
+          const cm = mesh(ovShape('halbComb', [[-0.7, 0], [-0.55, 0.35, 0, 0.42], [0.55, 0.35, 0.7, 0], [0, 0.05]], 0.03, 0.01), st, 0, 0.98, 0, h); cm.rotation.y = Math.PI / 2; plume(h, 'halbPl', ['#dc2626', '#fecaca'], 40, 0.55, 1.15); return false; } }; // (its comb, a red plume)
+    },
+    () => { // 👁️ Cyclops: a one-eyed giant of the Greek myths — one great eye under one heavy brow, a bald crown with tufts of hair, a brown beard, crooked teeth, ruddy skin, a sheepskin over one shoulder, a sheepskin kilt and a rope belt
+      const sk = L('#c98e64', { map: plushTex() }), skD = L('#a8714d', { map: plushTex() }), wool = L('#f1ead8', { map: dpFurTex('#f3ecda', '#b8ab8c') }), rope = L('#a8875c', { map: leatherTex() }), hairM = L('#5b3a1e', { map: dpFurTex('#5b3a1e', '#2a1a0d') });
+      return { leg: (x) => { const r = leg(x, sk, sk); P(kSph(), sk, 0, -0.35, 0, r[0], 0.6, 0.6, 0.6); for (let k = 0; k < 3; k++) R(0.86, 0.06, 0.86, 0.02, rope, 0, -0.5 - k * 0.15, 0, r[1]); R(0.9, 0.22, 1.08, 0.1, skD, 0, -0.88, -0.1, r[1]); return r; },
+        lower() { hips(wool); skirt('cyc', wool, 0.85, 1.3); belt(rope, 2.9); },
+        upper() { torso(sk); abs(skD); const pelt = R(1.2, 1.4, 1.12, 0.3, wool, 0.42, 3.55, 0); pelt.rotation.z = -0.35; P(kSph(), wool, 0.95, 4.1, 0, K.body, 0.6, 0.5, 0.65); }, // (a sheepskin over one shoulder)
+        arm: (s2) => { const r = arm(s2, sk, sk, skD); P(kSph(), sk, 0, -0.4, 0, r[0], 0.62, 0.6, 0.62); R(0.92, 0.36, 0.92, 0.12, rope, 0, -0.62, 0, r[1]); return r; },
+        head(h) { R(1.56, 1.5, 1.5, 0.4, sk, 0, 0, 0, h); R(1.3, 0.2, 0.36, 0.1, skD, 0, 0.44, -0.62, h); // (the head, one heavy brow)
+          P(kSph(), M('#f8f6ef', { shininess: 90 }), 0, 0.12, -0.7, h, 0.38, 0.31, 0.16); P(kSph(), M('#6b4a2b'), 0, 0.12, -0.83, h, 0.17, 0.17, 0.05); P(kSph(), M('#050505'), 0, 0.12, -0.87, h, 0.08, 0.08, 0.03); P(kSph(), L('#ffffff'), 0.06, 0.18, -0.885, h, 0.03, 0.03, 0.01); // (the one great eye)
+          P(kCone(), skD, 0, -0.22, -0.8, h, 0.14, 0.26, 0.14).rotation.x = -1.3; R(0.72, 0.12, 0.08, 0.04, M('#3b1c10'), 0, -0.48, -0.74, h); for (const s2 of [-1, 1]) P(kCone(), L('#f5f0e1'), s2 * 0.2, -0.4, -0.77, h, 0.05, 0.13, 0.05); // (a broad nose, a wide mouth, two crooked teeth)
+          P(kSph(), hairM, 0, -0.74, -0.45, h, 0.72, 0.55, 0.42); for (const s2 of [-1, 1]) P(kSph(), hairM, s2 * 0.78, 0.18, 0.08, h, 0.12, 0.36, 0.42); return true; } }; // (a brown beard, tufts at the sides)
+    },
+    () => { // 👹 Oni: a giant demon of Japan in black-lacquered armour — red skin, two ivory horns, a wild white mane, burning yellow eyes, tusks, a tiger-skin loincloth, spiked iron bracers
+      const red = L('#b4231c', { map: plushTex() }), redD = L('#8a1a14', { map: plushTex() }), tig = L('#ffffff', { map: dkTigerTex() }), lm = M('#ffffff', { map: ovOdoshiTex('#d4a017'), shininess: 130, specular: '#888', side: THREE.DoubleSide }), lac = M('#141418', { shininess: 150, specular: '#999' });
+      const mane = L('#f3f4f6', { map: dpFurTex('#f5f5f5', '#a1a1aa') }), ivory = M('#f1ead8', { shininess: 70 }), eye = M('#fde047', { emissive: '#f59e0b', emissiveIntensity: 1.1 }), ir = steel('#6b7280', { map: ovIronTex() });
+      return { leg: (x) => { const r = leg(x, tig, red); R(0.96, 0.7, 1.0, 0.26, lac, 0, -0.5, -0.02, r[1]); R(1.0, 0.26, 1.2, 0.12, redD, 0, -0.86, -0.1, r[1]); return r; }, // (tiger-skin thighs, lacquered shin guards, great bare feet)
+        lower() { hips(tig); skirt('oni', tig, 0.8, 1.2); belt(M('#7f1d1d'), 2.9); for (let k = 0; k < 4; k++) { const an = (k / 4) * Math.PI * 2 + Math.PI / 4, g2 = grp(K.body, Math.sin(an) * 0.88, 2.76); g2.position.z = Math.cos(an) * 0.5; g2.rotation.y = an; for (let j = 0; j < 3; j++) R(1.08, 0.22, 0.08, 0.03, lm, 0, -0.12 - j * 0.2, 0.04 + j * 0.03, g2); } }, // (lacquered tassets)
+        upper() { torso(red); abs(redD); R(2.12, 0.95, 1.1, 0.26, lm, 0, 3.28, 0); R(2.14, 0.22, 1.12, 0.06, lac, 0, 3.78, 0); for (const s2 of [-1, 1]) { const so = grp(K.body, s2 * 1.5, 4.2); so.rotation.z = s2 * 0.35; for (let j = 0; j < 5; j++) R(0.18, 0.26, 1.22, 0.04, lm, s2 * 0.36, -0.12 - j * 0.24, 0, so); } }, // (a dō laced in gold below the bare red chest, great sode)
+        arm: (s2) => { const r = arm(s2, red, red, redD); P(kSph(), red, 0, -0.4, 0, r[0], 0.6, 0.6, 0.6); R(0.94, 0.6, 0.94, 0.18, ir, 0, -0.45, 0, r[1]); for (let k = 0; k < 3; k++) P(kCone(), ir, 0, -0.3 - k * 0.18, -0.5, r[1], 0.06, 0.16, 0.06).rotation.x = -Math.PI / 2; return r; }, // (iron bracers, spiked)
+        head(h) { R(1.55, 1.48, 1.48, 0.38, red, 0, 0, 0, h); R(1.4, 0.2, 0.3, 0.08, redD, 0, 0.3, -0.64, h); for (const s2 of [-1, 1]) { P(kSph(), eye, s2 * 0.3, 0.1, -0.73, h, 0.13, 0.1, 0.05); const gl = kitGlow(h, '#fbbf24', 0.5, 0.8); gl.position.set(s2 * 0.3, 0.1, -0.8); } // (a heavy brow, burning eyes)
+          P(kCone(), redD, 0, -0.12, -0.8, h, 0.12, 0.22, 0.12).rotation.x = -1.3; R(0.8, 0.14, 0.08, 0.04, M('#2a0a08'), 0, -0.45, -0.74, h); for (const s2 of [-1, 1]) P(kCone(), ivory, s2 * 0.28, -0.32, -0.77, h, 0.06, 0.22, 0.06); // (a flat nose, a snarl, tusks)
+          for (const s2 of [-1, 1]) { const hn = mesh(kg('oniHorn', () => sweepGeo([[0, 0, 0], [0.1, 0.35, -0.05], [0.12, 0.7, -0.2], [0.05, 0.95, -0.4]], (t) => 0.16 * (1 - t) + 0.02, 12, 8)), ivory, s2 * 0.42, 0.72, -0.1, h); hn.scale.x = s2; } // (two ivory horns)
+          P(kSph(), mane, 0, 0.4, 0.32, h, 0.98, 0.9, 0.85); P(kSph(), mane, 0, -0.25, 0.55, h, 0.95, 0.85, 0.6); return true; } }; // (a wild white mane)
+    },
+    () => { // 🔥 Cacus: the fire-breathing giant of Roman myth, son of Vulcan — skin like cooling lava, cracked and glowing; a shaggy black mane and beard, two short horns, fire in his mouth and eyes, smoke from his nostrils; a bull's hide over his shoulders and a bronze torque
+      const lavaT = dkEmberTex(), lava = M('#ffffff', { map: lavaT, emissive: '#ff6a2a', emissiveMap: lavaT, emissiveIntensity: 1.0, shininess: 20 }), dark = L('#2a2220', { map: plushTex() }), hide = L('#ffffff', { map: dpFurTex('#6b4226', '#2e1a0e') }), mane = L('#1c1917', { map: dpFurTex('#1c1917', '#0a0a0a') }), fire = M('#ffd27a', { emissive: '#ff7a1a', emissiveIntensity: 1.4 }), horn = M('#3a2e2a', { shininess: 60 });
+      return { leg: (x) => { const r = leg(x, lava, lava); P(kSph(), lava, 0, -0.35, 0, r[0], 0.6, 0.6, 0.6); R(0.92, 0.26, 1.1, 0.1, dark, 0, -0.86, -0.1, r[1]); return r; },
+        lower() { hips(hide); skirt('cacus', hide, 0.9, 1.3); belt(dark, 2.9); },
+        upper() { torso(lava); abs(lava); mesh(kLathe('cacHide', [[0.85, 0.1], [1.45, -0.25], [1.62, -0.55], [1.5, -0.68], [0, -0.68]], 24), hide, 0, 4.5, 0); const tq = mesh(kTor(0.08), bronze, 0, 4.12, -0.12); tq.scale.setScalar(0.62); tq.rotation.x = Math.PI / 2 - 0.25; }, // (a bull's hide, a bronze torque)
+        arm: (s2) => { const r = arm(s2, lava, lava, lava); P(kSph(), lava, 0, -0.4, 0, r[0], 0.62, 0.6, 0.62); T(bronze, 0, -0.6, 0, r[1], 0.98); return r; },
+        head(h) { R(1.55, 1.48, 1.48, 0.38, lava, 0, 0, 0, h); R(1.4, 0.2, 0.3, 0.08, dark, 0, 0.3, -0.64, h); for (const s2 of [-1, 1]) { P(kSph(), fire, s2 * 0.3, 0.08, -0.73, h, 0.12, 0.08, 0.05); const gl = kitGlow(h, '#ff7a1a', 0.55, 0.85); gl.position.set(s2 * 0.3, 0.08, -0.8); } // (eyes like coals)
+          R(0.66, 0.2, 0.1, 0.06, fire, 0, -0.42, -0.74, h); kitGlow(h, '#ff6a00', 0.9, 0.7).position.set(0, -0.42, -0.86); // (the fire in his mouth)
+          for (const s2 of [-1, 1]) { const hn = mesh(kg('cacHorn', () => sweepGeo([[0, 0, 0], [0.2, 0.25, 0], [0.3, 0.5, -0.15]], (t) => 0.13 * (1 - t) + 0.02, 10, 8)), horn, s2 * 0.5, 0.62, 0, h); hn.scale.x = s2; }
+          P(kSph(), mane, 0, 0.32, 0.26, h, 0.95, 0.9, 0.85); P(kSph(), mane, 0, -0.8, -0.38, h, 0.7, 0.55, 0.42); return true; }, // (a shaggy black mane and beard)
+        tick(a, dt) { if (!emWorld(a) || a.dead) return; a.cacT = (a.cacT || 0) - dt; if (a.cacT <= 0) { a.cacT = 0.35 + Math.random() * 0.4; kitSpark(a, a.g, (Math.random() - 0.5) * 0.3, 4.95, -1.0, Math.random() < 0.5 ? '#fdba74' : '#fb923c', { v: [(Math.random() - 0.5) * 0.6, 1.2, -0.8], life: 0.7, s: 0.22, j: 0.3 }); kitSpark(a, a.g, 0, 5.2, -0.95, '#57534e', { v: [0, 1.4, -0.3], life: 1.4, s: 0.5, grow: 2, op: 0.35, flat: 1, j: 0.4 }); } // (sparks and smoke from his mouth and nose)
+          if (Math.random() < dt * 4) kitSpark(a, a.g, (Math.random() - 0.5) * 2.6, 2 + Math.random() * 3, (Math.random() - 0.5) * 1.6, '#fb923c', { v: [0, 0.8, 0], life: 0.9, s: 0.12, j: 0.4 }); } }; // (embers rising off his skin)
+    },
+    () => { // 👻 Chötgör: a restless spirit of the steppe, the ghost of a shaman — pale and glowing and half-seen-through; a tattered dark deel; a shaman's crown of feathers with a fringe over hollow eyes and two cold lights in them; long dark hair drifting; its legs fading into mist
+      const gh = M('#a7f3e4', { emissive: '#14b8a6', emissiveIntensity: 0.55, transparent: true, opacity: 0.6, depthWrite: false, shininess: 60 }), robe = M('#1e293b', { transparent: true, opacity: 0.78, map: plushTex(), shininess: 10 }), robeE = M('#0f766e', { emissive: '#0d9488', emissiveIntensity: 0.45, transparent: true, opacity: 0.75 });
+      const mist = M('#ccfbf1', { emissive: '#5eead4', emissiveIntensity: 0.6, transparent: true, opacity: 0.32, depthWrite: false, side: THREE.DoubleSide }), hairM = M('#0b1220', { transparent: true, opacity: 0.85 }), eye = M('#ecfeff', { emissive: '#67e8f9', emissiveIntensity: 1.6 }), fr = M('#334155'), fe = L('#e7e5e4'), hole = M('#020617');
+      return { leg: (x) => leg(x, gh, mist),
+        lower() { hips(robe); mesh(kLathe('chotMist', [[1.0, 0], [1.2, -0.6], [1.0, -1.4], [0.6, -2.2], [0.15, -2.8], [0, -2.9]], 26), mist, 0, 2.86, 0).scale.set(1, 1, 0.7); belt(robeE, 2.9); for (let k = 0; k < 12; k++) { const an = (k / 12) * Math.PI * 2, st2 = R(0.24, 0.7 + (k % 3) * 0.3, 0.04, 0.02, robe, Math.sin(an) * 1.04, 2.4 - (k % 3) * 0.15, Math.cos(an) * 0.62); st2.rotation.y = an; } }, // (mist where its legs should be, the tattered hem of its deel)
+        upper() { torso(robe); const cl = R(0.16, 1.25, 0.06, 0.03, robeE, 0.3, 3.45, -0.52); cl.rotation.z = 0.5; R(2.1, 0.1, 1.1, 0.04, robeE, 0, 4.0, 0); }, // (the deel, closed on the right as the Mongols wear it)
+        arm: (s2) => { const r = arm(s2, robe, gh, gh); R(1.06, 0.5, 1.06, 0.16, robeE, 0, -0.78, 0, r[0]); return r; }, // (wide sleeves; ghostly forearms)
+        head(h) { R(1.4, 1.42, 1.36, 0.46, gh, 0, 0, 0, h); for (const s2 of [-1, 1]) { P(kSph(), hole, s2 * 0.28, 0.04, -0.66, h, 0.17, 0.13, 0.05); P(kSph(), eye, s2 * 0.28, 0.04, -0.7, h, 0.06); kitGlow(h, '#67e8f9', 0.5, 0.9).position.set(s2 * 0.28, 0.04, -0.78); } R(0.4, 0.08, 0.05, 0.02, hole, 0, -0.42, -0.69, h); // (hollow eyes, cold lights in them, a thin mouth)
+          ring(h, 0.74, 0.07, 0.48, fr); for (let k = 0; k < 11; k++) { const an = -1.2 + (k / 10) * 2.4 + Math.PI, f2 = R(0.13, 0.95, 0.03, 0.02, fe, Math.sin(an) * 0.74, 0.98, Math.cos(an) * 0.74, h); f2.rotation.set(Math.cos(an) * 0.25, an, 0); } // (a shaman's crown of feathers)
+          for (let k = 0; k < 15; k++) R(0.03, 0.42 + (k % 2) * 0.1, 0.03, 0.01, fr, -0.6 + k * 0.085, 0.24, -0.74, h); // (the fringe over its eyes)
+          for (let k = 0; k < 6; k++) mesh(kg('chotHair', () => sweepGeo([[0, 0, 0], [0, -0.5, 0.2], [0, -1.2, 0.35], [0, -1.8, 0.55]], (t) => 0.1 * (1 - t) + 0.02, 10, 6)), hairM, -0.5 + k * 0.2, 0.3, 0.55, h); return true; }, // (long dark hair, drifting)
+        tick(a, dt) { if (!emWorld(a) || a.dead) return; if (Math.random() < dt * 9) kitSpark(a, a.g, (Math.random() - 0.5) * 2, 0.5 + Math.random() * 4.5, (Math.random() - 0.5) * 1.4, Math.random() < 0.6 ? '#5eead4' : '#ccfbf1', { v: [0, 0.8 + Math.random(), 0], life: 1.1, s: 0.22, grow: 1.4, op: 0.5, j: 0.5 }); } }; // (wisps rising off it)
+    },
   ];
   return LOOKS[i]();
 }
@@ -4857,7 +4925,7 @@ function dgSword(par, kind, o = {}) {
 }
 function dgPole(par, kind) { // a spear or polearm along -z, the hand a third of the way up the shaft
   const g = new THREE.Group(); par.add(g); const wd = new THREE.MeshLambertMaterial({ color: kind === 'naginata' || kind === 'yari' ? '#1a1a1f' : '#8b5a2b', map: woodTex() }), st = metalMat('#e3e8ee', { shininess: 140 }), bz = DPM.bronze();
-  const len = { dory: 6.2, javelin: 4.2, yari: 6.8, naginata: 5.6, trident: 5.2, pilum: 5, teber: 5.6, mspear: 6.2, staff: 4.4 }[kind], back = len * 0.32;
+  const len = { dory: 6.2, javelin: 4.2, yari: 6.8, naginata: 5.6, trident: 5.2, pilum: 5, teber: 5.6, mspear: 6.2, staff: 4.4, sarissa: 9.6, halberd: 6.2 }[kind], back = len * (kind === 'sarissa' ? 0.2 : 0.32);
   const sh = new THREE.Mesh(kCyl(), wd); sh.scale.set(0.075, len, 0.075); sh.rotation.x = Math.PI / 2; sh.position.z = back - len / 2; g.add(sh); const tipZ = back - len;
   const head = (geo, m, l, w) => { const o = new THREE.Mesh(geo, m); o.position.z = tipZ - l / 2; g.add(o); return o; };
   if (kind === 'dory' || kind === 'javelin' || kind === 'yari' || kind === 'pilum') { const l = kind === 'yari' ? 1.0 : kind === 'pilum' ? 1.2 : 0.75, m = kind === 'dory' ? bz : st; const hd = new THREE.Mesh(dgBladeGeo('sp' + kind, l, (t) => (kind === 'pilum' ? 0.07 + (t > 0.85 ? (1 - t) * 1.2 : 0) : kind === 'yari' ? 0.2 * (1 - t) : 0.36 * Math.sin(Math.min(1, t * 1.6) * Math.PI * 0.62) * (1 - t * 0.9)) + 0.01), m); hd.position.z = tipZ; g.add(hd);
@@ -4867,6 +4935,11 @@ function dgPole(par, kind) { // a spear or polearm along -z, the hand a third of
   else if (kind === 'trident') { const cr = new THREE.Mesh(rboxGeo(0.95, 0.1, 0.14, 0.04), st); cr.position.z = tipZ; g.add(cr); for (const x of [-0.42, 0, 0.42]) { const p = new THREE.Mesh(kCyl(), st); p.scale.set(0.05, 0.9, 0.05); p.rotation.x = Math.PI / 2; p.position.set(x, 0, tipZ - 0.45); g.add(p); const tp = new THREE.Mesh(kCone(), st); tp.scale.set(0.09, 0.3, 0.05); tp.rotation.x = -Math.PI / 2; tp.position.set(x, 0, tipZ - 1.0); g.add(tp); } }
   else if (kind === 'teber') { const ax = new THREE.Mesh(ovShape('dgTeber', [[0, 0.25], [0.35, 0.3], [0.9, 0.85], [1.05, 0.5], [1.1, 0], [1.05, -0.5], [0.9, -0.85], [0.35, -0.3], [0, -0.25]], 0.06, 0.02), metalMat('#e5e7eb', { shininess: 150 })); ax.rotation.set(Math.PI / 2, 0, -Math.PI / 2); ax.position.set(0, 0.03, tipZ + 0.5); g.add(ax);
     const sp = new THREE.Mesh(kCone(), st); sp.scale.set(0.09, 0.6, 0.09); sp.rotation.x = -Math.PI / 2; sp.position.z = tipZ - 0.2; g.add(sp); const cl = new THREE.Mesh(kCyl(), metalMat('#e8b84a')); cl.scale.set(0.11, 0.3, 0.11); cl.rotation.x = Math.PI / 2; cl.position.z = tipZ + 1.0; g.add(cl); }
+  else if (kind === 'sarissa') { const hd = new THREE.Mesh(dgBladeGeo('spSar', 0.55, (t) => 0.2 * Math.sin(Math.min(1, t * 1.7) * Math.PI * 0.62) * (1 - t * 0.9) + 0.01), st); hd.position.z = tipZ; g.add(hd); // (a small iron head on a very long pike)
+    for (const [z, l] of [[back + 0.3, 0.6], [tipZ * 0.45, 0.35]]) { const o = new THREE.Mesh(kCyl(), bz); o.scale.set(0.11, l, 0.11); o.rotation.x = Math.PI / 2; o.position.z = z; g.add(o); } const sp = new THREE.Mesh(kCone(), bz); sp.scale.set(0.1, 0.5, 0.1); sp.rotation.x = Math.PI / 2; sp.position.z = back + 0.8; g.add(sp); } // (the bronze butt spike and the sleeve joining its two halves)
+  else if (kind === 'halberd') { const ax = new THREE.Mesh(ovShape('dgHalbAx', [[0, 0.32], [0.3, 0.34], [0.85, 0.72], [1.0, 0.3], [1.02, -0.05], [0.9, -0.42], [0.3, -0.36], [0, -0.32]], 0.05, 0.02), metalMat('#e5e7eb', { shininess: 150 })); ax.rotation.set(Math.PI / 2, 0, -Math.PI / 2); ax.position.set(0, 0.03, tipZ + 0.55); g.add(ax); // (the axe blade)
+    const hk = new THREE.Mesh(kg('dgHalbHook', () => sweepGeo([[0, 0, 0], [-0.3, 0, 0.02], [-0.55, 0, -0.12], [-0.62, 0, -0.32]], (t) => 0.07 * (1 - t) + 0.015, 8, 6)), st); hk.position.set(0, 0, tipZ + 0.5); hk.rotation.z = Math.PI / 2; g.add(hk); // (the hook behind)
+    const sp = new THREE.Mesh(kCone(), st); sp.scale.set(0.08, 0.9, 0.08); sp.rotation.x = -Math.PI / 2; sp.position.z = tipZ - 0.35; g.add(sp); for (const z of [tipZ + 0.95, tipZ + 1.3]) { const lg = new THREE.Mesh(BOX, metalMat('#9aa3ad')); lg.scale.set(0.05, 0.16, 0.5); lg.position.z = z; g.add(lg); } } // (the spike on top, the langets down the shaft)
   else if (kind === 'mspear') { const hd = new THREE.Mesh(dgBladeGeo('spm', 0.9, (t) => 0.26 * Math.sin(Math.min(1, t * 1.5) * Math.PI * 0.62) * (1 - t * 0.9) + 0.01), st); hd.position.z = tipZ; g.add(hd);
     const hair = new THREE.Mesh(kCone(), new THREE.MeshLambertMaterial({ color: '#1c1917', map: dpFurTex('#1c1917', '#000000') })); hair.scale.set(0.24, 0.9, 0.24); hair.rotation.x = Math.PI / 2; hair.position.z = tipZ + 0.45; g.add(hair); } // (the horsetail tassel under the blade)
   else if (kind === 'staff') { const kn = new THREE.Mesh(kSph(), new THREE.MeshLambertMaterial({ color: '#5b3a1e', map: woodTex() })); kn.scale.setScalar(0.22); kn.position.z = tipZ; g.add(kn);
@@ -4904,6 +4977,8 @@ function dgShield(par, kind) { // upright, face to -z; then turned so its face i
   else if (kind === 'heater' || kind === 'templar') { const geo = ovShape('dgHeater', [[-0.85, 0.9], [0.85, 0.9], [0.85, 0.1], [0.8, -0.7, 0.0, -1.35], [-0.8, -0.7, -0.85, 0.1]], 0.08, 0.03); const tx = kind === 'heater' ? dkSurcoatTex('#1e3a8a', '#eab308', 'quarter') : dkSurcoatTex('#f8fafc', '#b91c1c', 'cross');
     const f = new THREE.Mesh(geo, [new THREE.MeshLambertMaterial({ map: tx }), new THREE.MeshLambertMaterial({ color: '#8a929c' })]); f.rotation.y = Math.PI; g.add(f); uvFit(geo, -0.85, -1.35, 1.7, 2.25); g.scale.setScalar(1.1); }
   else if (kind === 'pelte') { const geo = ovShape('dgPelte', [[-1.0, 0.55], [-0.6, -0.9, 0.0, -1.0], [0.6, -0.9, 1.0, 0.55], [0.45, 0.1, 0.0, 0.25], [-0.45, 0.1, -1.0, 0.55]], 0.06, 0.02); const f = new THREE.Mesh(geo, [new THREE.MeshLambertMaterial({ map: dgPelteTex() }), new THREE.MeshLambertMaterial({ color: '#713f12' })]); f.rotation.y = Math.PI; g.add(f); uvFit(geo, -1, -1, 2, 1.6); }
+  else if (kind === 'vergina') { const f = new THREE.Mesh(kg('dgVerg', () => { const q = new THREE.CylinderGeometry(0.95, 0.95, 0.08, 32); q.rotateX(Math.PI / 2); return q; }), [new THREE.MeshPhongMaterial({ color: '#c08a3e', shininess: 90 }), new THREE.MeshPhongMaterial({ map: dkVerginaTex(), shininess: 90 }), new THREE.MeshPhongMaterial({ map: dkVerginaTex(), shininess: 90 })]); g.add(f);
+    const e = new THREE.Mesh(new THREE.TorusGeometry(0.95, 0.05, 6, 32), rim); g.add(e); } // (the phalangite's little shield, the star of Vergina on it)
   else if (kind === 'net') { const n = new THREE.Mesh(kg('dgNetG', () => { const q = new THREE.PlaneGeometry(1.6, 2.2, 6, 8); const p = q.attributes.position; for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i); p.setZ(i, 0.18 * Math.sin(x * 3 + y * 2) + 0.12 * Math.cos(y * 4)); p.setX(i, x * (0.4 + 0.6 * (1 - (y + 1.1) / 2.2))); } q.translate(0, -1.0, 0); q.computeVertexNormals(); return q; }), new THREE.MeshLambertMaterial({ map: dgNetTex(), transparent: true, alphaTest: 0.3, side: THREE.DoubleSide })); n.rotation.x = Math.PI / 2; outer.rotation.x = 0; g.add(n);
     for (let k = 0; k < 6; k++) { const w = new THREE.Mesh(kSph(), metalMat('#6b7280')); w.scale.setScalar(0.07); n.add(w); w.position.set(-0.7 + k * 0.28, -2.05, 0.05); } } // (lead weights along its edge)
   return outer;
@@ -4987,6 +5062,12 @@ DG_GEAR.push(
   (h, l) => [[dgSword(h, 'katana', { tsuba: true, fit: '#c9a227', grip: '#14141a', wrap: true, steel: '#eef1f6', hamon: '#ff3355' })], dgSword(l, 'wakizashi', { tsuba: true, fit: '#c9a227', grip: '#14141a', wrap: true, steel: '#eef1f6', hamon: '#ff3355' })], // (the Kensei: katana and wakizashi, the two heavens)
   (h, l) => [[dgSword(h, 'gladius', { fit: '#e8b84a', grip: '#5b1a7a', pom: 0.17, steel: '#f1f4f8' })], dgAquila(l)], // (the Imperator: a gilded gladius, and the legion's eagle)
   (h, l) => [[dgFrostClub(h)], null], // (the Frost Jötunn: a great club, iron-bound, crusted with ice)
+  (h, l) => [[dgPole(h, 'sarissa')], dgShield(l, 'vergina')], // (the Phalangite: the sarissa, his little shield on the arm)
+  (h, l) => [[dgPole(h, 'halberd')], null], // (the Halberdier: one halberd, two ways to use it)
+  (h, l) => [[dgTreeClub(h)], null], // (the Cyclops: an olive tree for a club)
+  (h, l) => [[dgKanabo(h)], null], // (the Oni: the iron kanabō)
+  (h, l) => [[dgForgeHammer(h)], null], // (Cacus: his father's forge hammer)
+  (h, l) => [[dgGhostClaw(h)], null], // (the Chötgör: spectral claws)
 );
 // the legion's eagle on its standard: a gilded pole along -z (upright when the forearm's raised), the eagle with its wings
 // up, a laurel wreath under it, a red SPQR plaque with gold fringes, gold discs (phalerae) down the pole
@@ -5002,6 +5083,38 @@ function dgAquila(par) {
   T(BOX, gd, 0, 0.12, 0, 0.46, 0.08, 0.16); T(kSph(), gd, 0, 0.45, 0.02, 0.2, 0.28, 0.17); T(kSph(), gd, 0, 0.82, -0.06, 0.12, 0.12, 0.12); T(kCone(), gd, 0, 0.8, -0.2, 0.05, 0.09, 0.05).rotation.x = -Math.PI / 2; // (its perch, body, head, beak)
   for (const s of [-1, 1]) { const w = T(ovShape('dgAqWing', [[0, 0], [0.25, 0.25], [0.55, 0.75, 0.62, 0.95], [0.48, 0.6], [0.36, 0.42], [0.2, 0.18]], 0.03, 0.01), gd, s * 0.1, 0.38, 0); w.scale.set(s * 1.3, 1.3, 1); } // (its wings, raised)
   g.userData.tip = new THREE.Object3D(); g.userData.tip.position.z = -4.6; g.add(g.userData.tip); g.userData.len = 4.6; return g;
+}
+// the new fighters' textures: the star of Vergina, a tiger's skin, Swiss stripes, skin like cooling lava
+const dkVerginaTex = () => kCanvas('dkVergina', 256, 256, (g) => { g.fillStyle = '#8f1d1d'; g.fillRect(0, 0, 256, 256); g.translate(128, 128); g.fillStyle = '#f0c24a'; g.shadowColor = 'rgba(0,0,0,.4)'; g.shadowBlur = 4;
+  for (let k = 0; k < 16; k++) { const a = (k / 16) * Math.PI * 2, L = k % 2 ? 78 : 108; g.beginPath(); g.moveTo(Math.cos(a - 0.12) * 24, Math.sin(a - 0.12) * 24); g.lineTo(Math.cos(a) * L, Math.sin(a) * L); g.lineTo(Math.cos(a + 0.12) * 24, Math.sin(a + 0.12) * 24); g.fill(); } g.beginPath(); g.arc(0, 0, 28, 0, 7); g.fill(); g.strokeStyle = '#f0c24a'; g.lineWidth = 6; g.beginPath(); g.arc(0, 0, 118, 0, 7); g.stroke(); });
+const dkTigerTex = () => kCanvas('dkTiger', 128, 128, (g, r) => { g.fillStyle = '#e09a32'; g.fillRect(0, 0, 128, 128); g.fillStyle = '#1c1208'; for (let k = 0; k < 9; k++) { const y = k * 15 + r() * 6; g.beginPath(); g.moveTo(0, y); g.quadraticCurveTo(40 + r() * 40, y + 8 + r() * 8, 128, y + r() * 6); g.lineTo(128, y + 5); g.quadraticCurveTo(60, y + 16, 0, y + 6); g.fill(); } });
+const dkStripeTex = (c1, c2) => kCanvas('dkStr' + c1 + c2, 128, 128, (g) => { for (let x = 0; x < 128; x += 16) { g.fillStyle = (x / 16) % 2 ? c2 : c1; g.fillRect(x, 0, 16, 128); } g.strokeStyle = 'rgba(0,0,0,.35)'; g.lineWidth = 2; for (let x = 8; x < 128; x += 32) for (let y = 10; y < 128; y += 30) { g.beginPath(); g.moveTo(x, y); g.lineTo(x, y + 16); g.stroke(); } }); // (slashed and striped, the Swiss way)
+const dkEmberTex = () => kCanvas('dkEmber', 256, 256, (g, r) => { g.fillStyle = '#1d1512'; g.fillRect(0, 0, 256, 256); for (let k = 0; k < 900; k++) { g.fillStyle = r() < 0.5 ? 'rgba(0,0,0,.3)' : 'rgba(90,60,50,.25)'; g.fillRect(r() * 256, r() * 256, 3, 3); }
+  g.strokeStyle = '#ff8a2a'; g.shadowColor = '#ffb347'; g.shadowBlur = 8; for (let k = 0; k < 16; k++) { g.lineWidth = 1.5 + r() * 2.5; g.beginPath(); let x = r() * 256, y = r() * 256; g.moveTo(x, y); for (let j = 0; j < 6; j++) { x += (r() - 0.5) * 60; y += (r() - 0.5) * 60; g.lineTo(x, y); } g.stroke(); } }); // (dark, cracked, the fire showing through)
+// the giants' weapons: the Cyclops' olive-wood club, the Oni's iron kanabō, Cacus' forge hammer; the spirit's claws
+function dgTreeClub(par) {
+  const g = new THREE.Group(); par.add(g); const wd = new THREE.MeshLambertMaterial({ color: '#6b4a2b', map: woodTex() }), lf = new THREE.MeshLambertMaterial({ color: '#5b7a3a' });
+  const hd = new THREE.Mesh(kLathe('dgTreeClub', [[0, 0.4], [0.18, 0.3], [0.22, -0.5], [0.3, -1.6], [0.44, -2.8], [0.56, -3.7], [0.5, -4.3], [0, -4.5]], 9), wd); hd.rotation.x = Math.PI / 2; g.add(hd);
+  for (let k = 0; k < 7; k++) { const a = k * 2.3, z = -1.4 - k * 0.45, kn = new THREE.Mesh(kSph(), wd); kn.scale.set(0.2, 0.2, 0.26); kn.position.set(Math.cos(a) * (0.25 + k * 0.04), Math.sin(a) * (0.25 + k * 0.04), z); g.add(kn); } // (knots)
+  for (let k = 0; k < 3; k++) { const a = k * 2.1 + 0.5, tw = new THREE.Mesh(kCyl(), wd); tw.scale.set(0.06, 0.6, 0.06); tw.position.set(Math.cos(a) * 0.5, Math.sin(a) * 0.5, -3.2 - k * 0.3); tw.rotation.set(Math.sin(a) * 0.9, 0, -Math.cos(a) * 0.9); g.add(tw); const l = new THREE.Mesh(kSph(), lf); l.scale.set(0.18, 0.06, 0.3); l.position.set(Math.cos(a) * 0.78, Math.sin(a) * 0.78, -3.25 - k * 0.3); g.add(l); } // (snapped branches, a few leaves left on)
+  g.userData.tip = new THREE.Object3D(); g.userData.tip.position.z = -4.6; g.add(g.userData.tip); g.userData.len = 4.6; return g;
+}
+function dgKanabo(par) {
+  const g = new THREE.Group(); par.add(g); const ir = metalMat('#3f444b', { map: ovIronTex(), shininess: 90 }), stud = metalMat('#9aa3ad', { shininess: 120 }), wrap = new THREE.MeshLambertMaterial({ color: '#7f1d1d', map: plushTex() });
+  const cl = new THREE.Mesh(kg('dgKanaboG', () => { const q = new THREE.CylinderGeometry(0.44, 0.17, 4.2, 8); q.rotateX(Math.PI / 2); q.translate(0, 0, -2.2); return q; }), ir); g.add(cl); const gp = new THREE.Mesh(kCyl(), wrap); gp.scale.set(0.2, 0.9, 0.2); gp.rotation.x = Math.PI / 2; gp.position.z = 0.15; g.add(gp); // (eight-sided iron, tapering to the grip, wrapped in red)
+  for (let k = 0; k < 8; k++) for (let j = 0; j < 6; j++) { const a = (k / 8) * Math.PI * 2 + (j % 2) * 0.39, z = -1.6 - j * 0.48, r = 0.2 + 0.24 * ((-z - 0.1) / 4.2), sp = new THREE.Mesh(kCone(), stud); sp.scale.set(0.07, 0.16, 0.07); sp.position.set(Math.cos(a) * r, Math.sin(a) * r, z); sp.lookAt(sp.position.clone().add(new THREE.Vector3(Math.cos(a), Math.sin(a), 0))); sp.rotateX(Math.PI / 2); g.add(sp); } // (rows of iron studs)
+  g.userData.tip = new THREE.Object3D(); g.userData.tip.position.z = -4.4; g.add(g.userData.tip); g.userData.len = 4.4; return g;
+}
+function dgForgeHammer(par) {
+  const g = new THREE.Group(); par.add(g); const wd = new THREE.MeshLambertMaterial({ color: '#4a2c17', map: woodTex() }), ir = metalMat('#2f3237', { map: ovIronTex(), shininess: 60 }), hot = new THREE.MeshPhongMaterial({ color: '#ffb35c', emissive: '#ff5a1f', emissiveIntensity: 1.3 });
+  const sh = new THREE.Mesh(kCyl(), wd); sh.scale.set(0.12, 3.7, 0.12); sh.rotation.x = Math.PI / 2; sh.position.z = -1.3; g.add(sh);
+  const hd = new THREE.Mesh(rboxGeo(1.6, 0.78, 0.78, 0.12), ir); hd.position.z = -3.25; g.add(hd); for (const s of [-1, 1]) { const f = new THREE.Mesh(BOX, hot); f.scale.set(0.06, 0.66, 0.66); f.position.set(s * 0.82, 0, -3.25); g.add(f); kitGlow(g, '#ff6a00', 1.4, 0.55).position.set(s * 0.9, 0, -3.25); } // (an iron head, both faces glowing from the forge)
+  g.userData.tip = new THREE.Object3D(); g.userData.tip.position.set(0.8, 0, -3.25); g.add(g.userData.tip); g.userData.len = 3.6; return g;
+}
+function dgGhostClaw(par) {
+  const g = new THREE.Group(); par.add(g); const m = new THREE.MeshPhongMaterial({ color: '#ccfbf1', emissive: '#2dd4bf', emissiveIntensity: 0.9, transparent: true, opacity: 0.85 });
+  for (const x of [-0.16, 0, 0.16]) { const c = new THREE.Mesh(kCone(), m); c.scale.set(0.05, 0.55, 0.05); c.rotation.x = -Math.PI / 2; c.position.set(x, -0.05, -0.45); g.add(c); } kitGlow(g, '#5eead4', 1.1, 0.6).position.z = -0.4; // (three spectral claws)
+  g.userData.tip = new THREE.Object3D(); g.userData.tip.position.z = -1.1; g.add(g.userData.tip); g.userData.len = 1.1; return g;
 }
 // the Jötunn's club: a great log, bound in iron, crusted and spiked with ice that glows faintly
 function dgFrostClub(par) {
@@ -5026,7 +5139,13 @@ BODY_DESC.push('⚔️ The Laestrygonian of the Colosseum Duels, the same giant 
   '⚔️ The Great Khan: gilded lamellar over a red deel, a fur-brimmed crown with a gold finial and a white plume. A mastery reward in ⚔️ Colosseum Duels.',
   '👺 The Kensei, the sword saint of ⚔️ Colosseum Duels: long white hair tied high under a crimson hachimaki, a crimson-lacquered oni half-mask with gold fangs, a black kimono under a long crimson haori with a white mon on its back, crimson tasuki cords, wide charcoal hakama, black-lacquered forearm guards and two scabbards at the hip. A mastery reward in ⚔️ Colosseum Duels.',
   '🌿 The Imperator of ⚔️ Colosseum Duels, the general who is emperor: a golden laurel wreath, a gilded muscle cuirass with a ruby gorgon medallion, white-and-gold pteruges, an imperial purple cloak pinned with gold, the red sash of command, gilded greaves and red boots. A mastery reward in ⚔️ Colosseum Duels.',
-  '🧊 The Frost Jötunn of ⚔️ Colosseum Duels, a giant of the frozen north — wear it and you’re a giant too: frost-blue skin, a white wolf-pelt mantle, crystals of ice grown out of its shoulders and back, a horned iron helm over pale glowing eyes, a white beard hung with icicles, a cold mist on its breath and snow falling off it. A mastery reward in ⚔️ Colosseum Duels.');
+  '🧊 The Frost Jötunn of ⚔️ Colosseum Duels, a giant of the frozen north — wear it and you’re a giant too: frost-blue skin, a white wolf-pelt mantle, crystals of ice grown out of its shoulders and back, a horned iron helm over pale glowing eyes, a white beard hung with icicles, a cold mist on its breath and snow falling off it. A mastery reward in ⚔️ Colosseum Duels.',
+  '🌞 The Phalangite of ⚔️ Colosseum Duels, a Macedonian of the phalanx: a bronze Phrygian helmet curving forward to a peak, a white linen cuirass with the star of Vergina, a red tunic, bronze greaves, a little round shield on his arm. A mastery reward in ⚔️ Colosseum Duels.',
+  '🪓 The Halberdier of ⚔️ Colosseum Duels, a Swiss halberdier: a combed steel morion with a red plume, a steel breastplate and gorget over a slashed doublet striped red and yellow, puffed sleeves and parti-coloured hose. A mastery reward in ⚔️ Colosseum Duels.',
+  '👁️ The Cyclops of ⚔️ Colosseum Duels, the one-eyed giant of the Greek myths — wear it and you’re a giant too: one great eye under a heavy brow, a bald crown, a brown beard, ruddy skin and a sheepskin over one shoulder. A mastery reward in ⚔️ Colosseum Duels.',
+  '👹 The Oni of ⚔️ Colosseum Duels, a giant demon of Japan — wear it and you’re a giant too: red skin, ivory horns, a wild white mane, burning eyes, tusks, a tiger-skin loincloth and black-lacquered armour laced in gold. A mastery reward in ⚔️ Colosseum Duels.',
+  '🔥 Cacus of ⚔️ Colosseum Duels, the fire-breathing giant of Roman myth, son of Vulcan — wear it and you’re a giant too: skin like cooling lava, cracked and glowing, a black mane and beard, short horns, fire in his mouth and smoke from his nose. A mastery reward in ⚔️ Colosseum Duels.',
+  '👻 The Chötgör of ⚔️ Colosseum Duels, a restless spirit of the steppe: pale, glowing and half-seen-through, a tattered deel, a shaman’s crown of feathers over hollow eyes with cold lights in them, its legs fading into mist. A mastery reward in ⚔️ Colosseum Duels.');
 // the gilded giant in the duels: the film giant's own pack — its moves, its sword held where its keys say (its arms
 // reaching for it), its steps and breaths and quakes — with that sword re-forged in silver, bronze and gold. A blow takes
 // the sword from the keys: it goes into the fist like any duel weapon (the blow turns the wrist), then back to the keys
@@ -5051,6 +5170,22 @@ function lgBossPose(J, a) {
     else if (t < w + 0.6) { const f = t < w ? 0 : smooth(Math.min(1, (t - w) / 0.6)); set({ bd: [-0.5 + 0.2 * f, 0, 0], hd: [0.3, 0, 0], up: -0.7 + 0.45 * f, lL: [0.9 - 0.5 * f, 0, -0.25], lR: [0.7 - 0.45 * f, 0, 0.25] }); if (r15) set({ kL: [-1.5 + 0.9 * f, 0, 0], kR: [-1.3 + 0.8 * f, 0, 0] }); a.lgK = t < w + 0.15 ? LGK.plant : LGK.lean; a.lgFast = t < w + 0.05 ? 1 : 0; J.k = t < w + 0.05 ? 30 : 9; } // (driven down, crouched over it)
     else { set({ bd: [-0.3, 0, 0], hd: [0.1, 0, 0], up: -0.2, lL: [0.3, 0, -0.2], lR: [-0.2, 0, 0.2] }); a.lgK = LGK.pull; a.lgFast = 0; J.k = 8; } // (wrenched out)
   }
+}
+// the Executioner's own pack: the axe rested on his right shoulder, both hands on the haft, the head behind him; a slow,
+// deliberate walk; running, it's carried low across him; and every 10 s he lowers it, sets its head on the ground before
+// him and rests both hands on the end of the haft, looking down — then hoists it back. Between blows his wrist sets the
+// axe (exW); the blows take it over
+function exDuelPack() {
+  const i = 21, B = duelPack({ g: [[0.8, 0, 0.45], [0.4, 0, -0.2], 0.95, 1.4], st: [0.2, 0.08, 0.06], w: { str: 0.55, arm: 0.03, lean: 0.06, bob: 0.06, keep: 1.0, rate: 0.9, knee: 0.7 } }, i);
+  return { snap: 9, duel: i,
+    pose(J, a, s) { B.core(J, a, s); const r15 = a.r15;
+      if (s.air || (s.land != null && s.land < 0.6)) { a.exW = 0.25; return; }
+      if (s.mv) { a.exW = (s.spd || 1) > 1.18 ? -1.1 : 0.25; return; }
+      const c = s.t % 10, k = plat(c, 6, 9.4, 0.6, 0.7); a.exW = 0.25 + (-3.05 - 0.25) * k; // (the axe set down and leaned on)
+      if (k) { const m = (x, y) => x + (y - x) * k; J.aR = [m(J.aR[0], 0.75), 0, m(J.aR[2], -0.3)]; J.aL = [m(J.aL[0], 0.8), 0, m(J.aL[2], 0.38)]; if (r15) { J.eR = [m(J.eR[0], 0.45), 0, 0]; J.eL = [m(J.eL[0], 0.5), 0, 0]; } J.hd = [0.35 * k, 0, 0]; J.bd = [J.bd[0] - 0.15 * k, J.bd[1], J.bd[2]]; }
+    },
+    tick(a, dt, s) { const G = a.dg && a.dg.i === i ? a.dg : (a.dg = Object.assign(duelGear(a, i), { i })); G.show(a.dgMode || 0); G.own = !a.duActing; if (G.own) G.hR.rotation.x += ((a.exW != null ? a.exW : 0.25) - G.hR.rotation.x) * Math.min(1, dt * 8); },
+  };
 }
 function lgDuelPack() {
   const P = ANIM_PACKS[ANIMS.indexOf('Laestrygonian')], _e = new THREE.Vector3(), _f = new THREE.Vector3();
@@ -5131,7 +5266,7 @@ const LAE_BOSS_BT = BODIES.indexOf('Laestrygonian Colossus');
 function duelGear(a, i) { // made the first time the pack runs: the hand groups, on the forearms
   const hR = new THREE.Group(), hL = new THREE.Group(), y = a.r15 ? -0.92 : -1.9; hR.position.y = hL.position.y = y; pfx(a, hR, a.r15 ? a.elR : a.armR); pfx(a, hL, a.r15 ? a.elL : a.armL);
   const R0 = new THREE.Group(), L0 = new THREE.Group(); hR.add(R0); hL.add(L0); const [R, L] = DG_GEAR[i](R0, L0);
-  const twoH = new Set([13, 14, 15, 16, 18, 19, 21, 25, 27]), ARCH = new Set([7, 11, 23, 28]);
+  const twoH = new Set([13, 14, 15, 16, 18, 19, 21, 25, 27, 35, 36, 38]), ARCH = new Set([7, 11, 23, 28]);
   if (ARCH.has(i)) { R[0].visible = false; } // (archers: the short sword stays out of the way unless it's drawn)
   R0.rotation.x = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.15, 0.2, 0.25, 0, 0.55, 0.3, 0, 0.55, 0.35, 0.35, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0][i] || 0; // (two-handed blades tilt forward, towards the foe)
   for (const o of R) if (o.userData.pole) o.rotation.x = -Math.PI / 2; // (poles: along the forearm, pointing ahead)
@@ -5220,10 +5355,17 @@ ANIM_PACKS.push(...[
   { g: [[0.5, 0.1, 0.12], [1.35, 0.15, 0.3], 0.35, 1.0], st: [0.3, 0.2, 0.14], turn: -0.25, w: { str: 0.62, arm: 0.06, lean: 0.22, bob: 0.04, cr: 0.1, keep: 0.95, rate: 1.12, knee: 0.6 }, j: [0.5, 0.9], f: dfl.chiburi(7) }, // Kensei: low and coiled, the katana high, the wakizashi forward — a gliding step, and the chiburi
   { g: [[0.95, 0.1, -0.1], [0.55, 0, 0.2], 0.62, 0.95], st: [0.18, 0.06, -0.04], w: { str: 0.52, arm: 0.08, lean: 0.02, bob: 0.05, keep: 0.9, rate: 0.88 }, f: dfl.salute(10) }, // Imperator: upright, the eagle held high in his left hand
   { g: [[0.5, 0, -0.45], [0.9, 0, 0.4], 0.6, 0.9], st: [0.36, 0.16, 0.16], w: { str: 0.42, arm: 0.22, lean: 0.16, bob: 0.26, keep: 0.7, rate: 0.68, knee: 0.5, twist: 0.24 }, j: [0.3, 0.4], f: dfl.roar(9) }, // Frost Jötunn: hunched, vast, each step a weight
+  { g: [[0.9, 0.3, 0.3], [0.85, -0.1, 0.05], 0.8, 0.6], st: [0.22, 0.12, 0.1], w: { str: 0.5, arm: 0.04, lean: 0.1, bob: 0.06, keep: 1.0, rate: 0.92 }, f: dfl.scan(8) }, // Phalangite: the sarissa levelled in both hands, the shield on his arm
+  { g: [[0.85, 0.3, 0.3], [0.85, -0.1, 0.05], 0.8, 0.6], st: [0.2, 0.08, 0.04], w: { str: 0.55, arm: 0.05, lean: 0.06, bob: 0.07, keep: 0.95 }, f: dfl.salute(9) }, // Halberdier: the halberd in both hands, at attention
+  { g: [[0.5, 0, -0.45], [0.9, 0, 0.4], 0.6, 0.9], st: [0.36, 0.16, 0.18], w: { str: 0.42, arm: 0.24, lean: 0.18, bob: 0.26, keep: 0.7, rate: 0.66, knee: 0.5, twist: 0.26 }, j: [0.3, 0.4], f: dfl.scan(8) }, // Cyclops: lumbering, the club over its shoulder, its one eye searching
+  { g: [[0.6, 0, -0.4], [0.95, 0, 0.35], 0.7, 0.8], st: [0.4, 0.2, 0.12], w: { str: 0.4, arm: 0.18, lean: 0.12, bob: 0.22, keep: 0.8, rate: 0.6, knee: 0.45, twist: 0.2 }, j: [0.25, 0.35], f: dfl.roar(8) }, // Oni: wide and planted, the kanabō ready — and a roar
+  { g: [[0.5, 0, -0.45], [0.9, 0, 0.4], 0.6, 0.9], st: [0.34, 0.16, 0.16], w: { str: 0.42, arm: 0.22, lean: 0.16, bob: 0.26, keep: 0.7, rate: 0.68, knee: 0.5, twist: 0.24 }, j: [0.3, 0.4], f: dfl.roar(9) }, // Cacus: heavy and hunched, smoke at his mouth
+  { g: [[0.9, 0, -0.5], [0.9, 0, 0.5], 0.5, 0.5], st: [0.1, -0.5, -0.05], w: { str: 0.12, arm: 0.2, lean: 0.25, bob: 0.14, cr: -0.5, keep: 0.75, rate: 0.75, knee: 0.15 }, j: [0.6, 0.3], f: dfl.stretch(6) }, // Chötgör: floating off the ground, claws out, drifting rather than walking
 ].map(duelPack));
 ANIM_PACKS[DUEL_AN + 20] = lgDuelPack(); // (the Laestrygonian Warlord's pack: the film giant's own, the gilded sword — after the others, in its own place)
+ANIM_PACKS[DUEL_AN + 21] = exDuelPack(); // (the Executioner's own: the axe on his shoulder)
 if (ANIM_PACKS.length !== ANIMS.length) console.error('Bloxverse: animation packs and their names are out of step', ANIM_PACKS.length, ANIMS.length);
-ANIM_DESC.push(...DUEL_N.map((n, i) => `⚔️ The ${n}’s own guard, walk, run and leap from ⚔️ Colosseum Duels, its weapon in hand — and a flourish of its own while it stands. ${i === 20 ? 'Yours for beating the Laestrygonian boss, or at Season Pass level 100.' : i === 21 ? 'Yours with the Executioner’s quest.' : i === 32 ? 'Yours with the Sword Saint’s Trial.' : i === 33 ? 'Yours with the Imperator’s Triumph.' : i === 34 ? 'Yours with the Frost Saga.' : 'A mastery reward.'}`));
+ANIM_DESC.push(...DUEL_N.map((n, i) => `⚔️ The ${n}’s own guard, walk, run and leap from ⚔️ Colosseum Duels, its weapon in hand — and a flourish of its own while it stands. ${i === 20 ? 'Yours for beating the Laestrygonian boss, or at Season Pass level 100.' : i === 21 ? 'Yours with the Executioner’s quest.' : i === 32 ? 'Yours with the Sword Saint’s Trial.' : i === 33 ? 'Yours with the Imperator’s Triumph.' : i === 34 ? 'Yours with the Frost Saga.' : i >= 35 ? 'Yours with its quest (🏆 Achievements → 📜 Quests).' : 'A mastery reward.'}`));
 ANIM_DESC[DUEL_AN + 20] = '⚔️ The Laestrygonian Warlord’s own: the Season Pass giant’s every move — its great sword on its shoulder, a slow look round, the lumber with the point scraping sparks, the leap with a chop as it falls, the quake as it lands, and the sword driven into the ground and leaned on every 12 s — with that sword re-forged: a polished silver blade, bronze at its root, gold rings and pommel. Yours for beating the Laestrygonian boss, or at Season Pass level 100.';
 /* ---------------- shapes for the remade items: feathered wings, a bat's wing, a cape that hangs, a shield ---------------- */
 // a feathered wing, fanned out from the shoulder (s: -1 the left, 1 the right): long feathers at the back, shorter rows
@@ -6189,7 +6331,7 @@ function makeAvatar(av, name, mine, ax) {
   for (const L of X.acc) xAttach(a, L); // (made 3D items, each where it goes on the body)
   for (const arm of [armL, armR]) arm.userData.n = arm.children.length; // (more than this: something's in that hand)
   if (!mine && name) { a.tag = label(name, { size: 0.85 }); a.tag.position.y = 6.7; g.add(a.tag); }
-  if ((av[10] === 12 || av[10] === DUEL_BT + 34) && name && exp && !COMPETITIVE.has(exp.id)) { g.scale.setScalar(GIANT); a.giant = GIANT; } // (the Laestrygonian: a giant — but normal size where size would matter)
+  if ((av[10] === 12 || [34, 37, 38, 39].some((q) => av[10] === DUEL_BT + q)) && name && exp && !COMPETITIVE.has(exp.id)) { g.scale.setScalar(GIANT); a.giant = GIANT; } // (the Laestrygonian: a giant — but normal size where size would matter)
   // a soft shadow on the ground under them
   a.shadow = new THREE.Mesh(new THREE.CircleGeometry(1.25, 18), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.25, depthWrite: false, ...DECAL }));
   a.shadow.rotation.x = -Math.PI / 2; scene.add(a.shadow); g.userData.shadow = a.shadow;

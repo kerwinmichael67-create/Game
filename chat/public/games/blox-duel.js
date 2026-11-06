@@ -107,7 +107,7 @@
     .du-stats{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.du-sb{display:grid;grid-template-columns:170px 1fr;gap:12px;margin:10px 0 12px;align-items:stretch}.du-dps{display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:10px;border-radius:14px;background:radial-gradient(circle at 50% 30%,rgba(250,204,21,.28),rgba(15,23,42,.6) 75%);border:1px solid rgba(250,204,21,.45)}.du-dps small{font:800 12px var(--fh);color:#fde68a;letter-spacing:.08em}.du-dps b{font:900 40px/1.05 var(--fh);color:#fff;text-shadow:0 0 18px rgba(250,204,21,.7),0 2px 0 rgba(0,0,0,.4);font-variant-numeric:tabular-nums}.du-dps span{font:600 10.5px/1.3 var(--fb);color:#94a3b8;margin-top:4px}.du-bars{display:flex;flex-direction:column;gap:5px;justify-content:center}.du-bars .r{display:grid;grid-template-columns:122px 1fr 128px;gap:8px;align-items:center;font:700 12px var(--fb);color:#e2e8f0}.du-bars .v{color:#cbd5e1;font-weight:600;text-align:right;white-space:nowrap}.du-bars .b{height:11px;border-radius:6px;background:rgba(0,0,0,.45);overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,.5)}.du-bars .b i{display:block;height:100%;width:0;border-radius:6px;background:linear-gradient(90deg,#22c55e,#a3e635);transition:width .9s cubic-bezier(.2,.8,.2,1)}.du-bars .r:nth-child(2) .b i{background:linear-gradient(90deg,#ef4444,#fb923c)}.du-bars .r:nth-child(3) .b i{background:linear-gradient(90deg,#f59e0b,#fde047)}.du-bars .r:nth-child(4) .b i{background:linear-gradient(90deg,#0ea5e9,#67e8f9)}.du-bars .r:nth-child(5) .b i{background:linear-gradient(90deg,#64748b,#cbd5e1)}.du-bars .r:nth-child(6) .b i{background:linear-gradient(90deg,#eab308,#fef08a)}.du-bars .ov .b{height:14px}.du-bars .ov .b i{background:linear-gradient(90deg,#a855f7,#f43f5e,#fbbf24)}.du-bars .ov .v b{color:#fde68a;font-size:14px}.du-fcard .dp{display:block;font:800 10px var(--fb);color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.85);margin:1px 0 2px;opacity:.92}@media (max-width:640px){.du-sb{grid-template-columns:1fr}.du-bars .r{grid-template-columns:96px 1fr 92px;font-size:11px}.du-dps b{font-size:32px}}.du-stats span{padding:3px 9px;border-radius:8px;background:rgba(255,255,255,.08);font:700 12px var(--fb)}
     .du-abl{display:flex;flex-direction:column;gap:6px}.du-abl div{display:flex;gap:9px;align-items:flex-start;padding:7px 9px;border-radius:10px;background:rgba(255,255,255,.05);font:600 12.5px/1.35 var(--fb);color:#cbd5e1}
     .du-abl div>i{font-style:normal;font-size:22px}.du-abl b{color:#fff}.du-abl em{font-style:normal;color:#fde68a;font-weight:800}
-    .du-pity{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 12px}.du-pity>div{padding:10px 12px;border-radius:12px;background:rgba(15,23,42,.55);border:1px solid rgba(255,255,255,.12);font:700 13px/1.35 var(--fb);color:#e2e8f0}.du-pity>div b{color:#fde68a}.du-pity .lk{border-color:rgba(74,222,128,.55);background:linear-gradient(90deg,rgba(21,128,61,.35),rgba(15,23,42,.3))}.du-pity .lk b{color:#86efac}.du-pity small{display:block;font:600 11.5px var(--fb);color:#94a3b8;margin-top:2px}@media (max-width:640px){.du-pity{grid-template-columns:1fr}}.du-luck{padding:6px 16px;border-radius:999px;font:800 15px var(--fh);color:#052e16;background:linear-gradient(90deg,#4ade80,#bbf7d0);box-shadow:0 0 30px rgba(74,222,128,.6);animation:duBigPop .5s cubic-bezier(.2,1.6,.5,1)}.du-luck.sure{color:#451a03;background:linear-gradient(90deg,#f59e0b,#fde68a);box-shadow:0 0 40px rgba(245,158,11,.7)}.du-crates{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+    .du-tabs{display:flex;gap:8px;margin:0 0 12px;flex-wrap:wrap}.du-tabs button{flex:1;min-width:150px;padding:9px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(15,23,42,.55);color:#cbd5e1;font:800 14px var(--fh);cursor:pointer}.du-tabs button small{font:700 11px var(--fb);opacity:.8;margin-left:4px}.du-tabs button.on{background:linear-gradient(180deg,#f59e0b,#b45309);color:#fff;border-color:#fde68a;box-shadow:0 0 14px rgba(245,158,11,.45)}.du-blk{margin-top:6px;font:700 11.5px var(--fb);color:#94a3b8}.du-pity{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 12px}.du-pity>div{padding:10px 12px;border-radius:12px;background:rgba(15,23,42,.55);border:1px solid rgba(255,255,255,.12);font:700 13px/1.35 var(--fb);color:#e2e8f0}.du-pity>div b{color:#fde68a}.du-pity .lk{border-color:rgba(74,222,128,.55);background:linear-gradient(90deg,rgba(21,128,61,.35),rgba(15,23,42,.3))}.du-pity .lk b{color:#86efac}.du-pity small{display:block;font:600 11.5px var(--fb);color:#94a3b8;margin-top:2px}@media (max-width:640px){.du-pity{grid-template-columns:1fr}}.du-luck{padding:6px 16px;border-radius:999px;font:800 15px var(--fh);color:#052e16;background:linear-gradient(90deg,#4ade80,#bbf7d0);box-shadow:0 0 30px rgba(74,222,128,.6);animation:duBigPop .5s cubic-bezier(.2,1.6,.5,1)}.du-luck.sure{color:#451a03;background:linear-gradient(90deg,#f59e0b,#fde68a);box-shadow:0 0 40px rgba(245,158,11,.7)}.du-crates{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
     .du-crate{border-radius:16px;padding:12px;background:linear-gradient(160deg,var(--c1),#0f172a 78%);border:2px solid var(--c2);display:flex;flex-direction:column;gap:7px;color:#e2e8f0}
     .du-crate h4{margin:0;font:800 18px var(--fh);color:#fff}.du-crate .od{display:flex;flex-direction:column;gap:3px;font:700 12px var(--fb)}
     .du-crate .od span{display:flex;justify-content:space-between;gap:8px;padding:3px 8px;border-radius:7px;background:rgba(0,0,0,.3)}.du-crate .od span i{font-style:normal;color:var(--rc)}
@@ -256,18 +256,18 @@
     // 🏛️ Greece's myth: the Laestrygonian — not in any crate (beat the boss, or reach Season Pass level 100)
     { e: 1, r: 4, hp: 1750, spd: 0.5, def: 0.55, big: 1.35, nc: 1, brute: 0.15, ro: 'Giant', how: 'Beat the 👹 Laestrygonian boss, or reach Season Pass level 100', pas: [['🛡️', 'Armored Giant', '50% slower than everyone else, and takes 45% less damage.'], ['💢', 'Brute Force', 'Every hit has a 15% chance to leave them Crushed: double damage until the round ends or they die.']], ab: [
       { n: 'Scimitar / Punch', ic: '🗡️', k: 'melee', modes: [
-        { n: 'Scimitar', ic: '🗡️', dmg: 225, cd: 1.9, rng: 10.5, arc: 120, wind: 0.5, an: 'gslash' },
+        { n: 'Scimitar', ic: '🗡️', dmg: 205, cd: 1.9, rng: 10.5, arc: 120, wind: 0.5, an: 'gslash' },
         { n: 'Punch', ic: '👊', dmg: 125, cd: 1.5, rng: 7.5, arc: 70, wind: 0.25, an: 'punch' }] },
-      { n: 'Bloodrush', ic: '🩸', k: 'buff', cd: 10, an: 'bloodrush', b: { dur: 6, dmgM: 1.5, foeSpd: 1.2 }, d: '×1.5 damage on every hit for 6 s — but the blood in the air gives them a ×1.2 speed boost too.' },
-      { n: 'Stomp / Crush', ic: '🦶', k: 'stomp', dmg: 50, crush: 150, near: 7, rad: 26, cd: 1.5, wind: 0.45, an: 'stomp', d: 'A shockwave rolls out across the sand: jump it or take 50. If they’re close it’s a Crush instead — 150 damage, a 1 s stun, and Crushed for the rest of the round.' },
+      { n: 'Bloodrush', ic: '🩸', k: 'buff', cd: 12, an: 'bloodrush', b: { dur: 6, dmgM: 1.35, foeSpd: 1.2 }, d: '×1.35 damage on every hit for 6 s — but the blood in the air gives them a ×1.2 speed boost too.' },
+      { n: 'Stomp / Crush', ic: '🦶', k: 'stomp', dmg: 45, crush: 120, near: 7, rad: 26, cd: 3.5, wind: 0.45, an: 'stomp', d: 'A shockwave rolls out across the sand: jump it or take 45. If they’re close it’s a Crush instead — 120 damage, a 1 s stun, and Crushed for the rest of the round.' },
       { n: 'Rush and Crush', ic: '🐂', k: 'dash', rush: 1, dmg: 275, dmg2: 350, dist: 26, dd: 2, cd: 35, wind: 0.3, an: 'rush', fx: { st: 1.2 }, d: 'Charge for 2 s, scimitar out: 275 damage and a 1.2 s stun to anyone in the way. Hit them head-on and it’s 350 and they’re Crushed for the round.' }] },
     // 🏰 Europe: the Executioner — the giant’s counter; his contract is in the achievements
-    { e: 2, r: 4, hp: 350, spd: 1.35, def: 1.35, nc: 1, wish: 1, ro: 'Assassin', how: 'Accept the Executioner’s Contract (🏆 Achievements), then defeat 50 fighters and deal 15,000 damage', pas: [['🩻', 'Armorless', 'No armour at all: takes 35% more damage, and 35% faster.'], ['🪓', 'Executioner’s Wish', 'Every hit on a fighter: +10% damage (it stacks, until the round ends or you die) and heals 10% of your health.']], ab: [
+    { e: 2, r: 4, hp: 350, spd: 1.35, def: 1.35, nc: 1, wish: 1, ro: 'Assassin', how: 'Accept the Executioner’s Contract (🏆 Achievements → 📜 Quests), then defeat 50 fighters and deal 15,000 damage', pas: [['🩻', 'Armorless', 'No armour at all: takes 35% more damage, and 35% faster.'], ['🪓', 'Executioner’s Wish', 'Every hit on a fighter: +10% damage (it stacks, until the round ends or you die) and heals 10% of your health.']], ab: [
       { n: 'Sever / Chop', ic: '🪓', k: 'melee', modes: [
-        { n: 'Sever', ic: '🪓', dmg: 220, cd: 2.2, rng: 7.5, arc: 70, wind: 0.4, an: 'overhead' },
-        { n: 'Chop', ic: '🔪', dmg: 175, cd: 1.7, rng: 7, arc: 110, wind: 0.28, an: 'chop' }] },
-      { n: 'Behead', ic: '💀', k: 'melee', dmg: 450, cd: 15, rng: 7.5, arc: 60, wind: 1.25, an: 'behead', say: '“OFF WITH HIS HEAD!”', d: '“Off with his head!” A 1.25 s wind-up, the axe high — then 450 damage.' },
-      { n: 'Blade Sharpen', ic: '🔥', k: 'buff', cd: 35, an: 'sharpen', b: { dur: 10, dmgM: 5 }, d: 'Whet the axe’s edge: 5× damage for 10 s.' },
+        { n: 'Sever', ic: '🪓', dmg: 200, cd: 2.2, rng: 7.5, arc: 70, wind: 0.42, an: 'xsever' },
+        { n: 'Chop', ic: '🔪', dmg: 160, cd: 1.7, rng: 7, arc: 110, wind: 0.3, an: 'xchop' }] },
+      { n: 'Behead', ic: '💀', k: 'melee', dmg: 400, cd: 15, rng: 7.5, arc: 60, wind: 1.25, an: 'behead', say: '“OFF WITH HIS HEAD!”', d: '“Off with his head!” A 1.25 s wind-up, the axe raised high behind him — then 400 damage.' },
+      { n: 'Blade Sharpen', ic: '🔥', k: 'buff', cd: 35, an: 'sharpen', b: { dur: 8, dmgM: 2.5 }, d: 'Whet the axe’s edge: 2.5× damage for 8 s.' },
       { n: 'Parry', ic: '⚔️', k: 'buff', cd: 12, an: 'parry', b: { dur: 3, blk: 1, parry: 1 }, d: 'The axe haft up for 3 s: every blow is blocked — and whoever lands one is stunned for 2 s and takes 1.5× damage.' }] },
     // 🌙 the Ottoman Empire (no cavalry)
     { e: 4, r: 0, hp: 430, ro: 'Skirmisher', ab: [
@@ -312,30 +312,68 @@
       { n: 'Feigned Retreat', ic: '↩️', k: 'dash', back: true, dist: 11, dd: 0.3, cd: 9, wind: 0.08, an: 'hop', then: { k: 'proj', dmg: 45, cnt: 3, spread: 14, spd: 100, model: 'arrow' }, d: 'Fall back as if beaten — then three arrows over the shoulder, 45 each.' },
       { n: 'Mandate of Heaven', ic: '👑', k: 'buff', cd: 34, an: 'wrath', b: { dur: 6, dmgM: 1.4, spdM: 1.2, ls: 0.2 }, d: '+40% damage, +20% speed and 20% lifesteal for 6 s.' }] },
     // 🏯 Japan's myth: the Kensei, the sword saint, with katana and wakizashi — not in any crate (his trial is in the achievements)
-    { e: 3, r: 4, hp: 470, spd: 1.18, nc: 1, crit: [0.25, 1.8], exe: [0.3, 1.5], ro: 'Damage dealer', how: 'Accept the Sword Saint’s Trial (🏆 Achievements), then win 20 duels and deal 20,000 damage', pas: [['✴️', 'Sword Saint', '25% of his hits are critical: ×1.8 damage.'], ['🩸', 'Ichigeki', 'One strike, one kill: ×1.5 damage to anyone below 30% health.']], ab: [
+    { e: 3, r: 4, hp: 470, spd: 1.18, nc: 1, crit: [0.25, 1.8], exe: [0.3, 1.5], ro: 'Damage dealer', how: 'Accept the Sword Saint’s Trial (🏆 Achievements → 📜 Quests), then win 20 duels and deal 20,000 damage', pas: [['✴️', 'Sword Saint', '25% of his hits are critical: ×1.8 damage.'], ['🩸', 'Ichigeki', 'One strike, one kill: ×1.5 damage to anyone below 30% health.']], ab: [
       { n: 'Twin Cut', ic: '⚔️', k: 'multi', hits: [54, 54], gap: 0.14, cd: 1.15, rng: 7.5, arc: 120, wind: 0.14, an: 'twin', d: 'Katana, then wakizashi: two cuts of 54.' },
       { n: 'Flash Step', ic: '💨', k: 'dash', dmg: 150, dist: 16, dd: 0.18, cd: 8, wind: 0.12, an: 'iai', fx: { bl: [60, 3] }, d: 'Gone in a flash, through them and out the other side: 150 damage, and they bleed 60 more over 3 s.' },
       { n: 'Thousand Cuts', ic: '🌸', k: 'multi', hits: [28, 28, 28, 28, 28, 28, 28, 70], gap: 0.1, cd: 15, rng: 8, arc: 140, wind: 0.2, an: 'storm', fx: { bl: [80, 4] }, d: 'A storm of eight cuts with both blades — seven of 28, then one of 70 that leaves them bleeding 80 more.' },
       { n: 'Mushin', ic: '🧘', k: 'buff', cd: 32, an: 'mushin', b: { dur: 6, dmgM: 1.35, spdM: 1.25, cdM: 1.6, imm: 1 }, d: 'No-mind: for 6 s, +35% damage, +25% speed, cooldowns run 60% faster, and nothing stuns, roots or slows him.' }] },
     // 🦅 Rome's myth: the Imperator, the general who is emperor, with a gilded gladius and the legion's eagle — not in any crate (his Triumph is in the achievements)
-    { e: 0, r: 4, hp: 560, spd: 1.05, def: 0.85, nc: 1, stunP: [0.15, 0.6], lsP: 0.15, ro: 'Commander', how: 'Accept the Imperator’s Triumph (🏆 Achievements), then win 15 Classic duels and defeat 40 fighters', pas: [['🦅', 'Imperium', '15% of his hits stagger them: a 0.6 s stun.'], ['🌿', 'Triumph', 'Heals 15% of the damage he deals.']], ab: [
+    { e: 0, r: 4, hp: 560, spd: 1.05, def: 0.85, nc: 1, stunP: [0.15, 0.6], lsP: 0.15, ro: 'Commander', how: 'Accept the Imperator’s Triumph (🏆 Achievements → 📜 Quests), then win 15 Classic duels and defeat 40 fighters', pas: [['🦅', 'Imperium', '15% of his hits stagger them: a 0.6 s stun.'], ['🌿', 'Triumph', 'Heals 15% of the damage he deals.']], ab: [
       { n: 'Imperial Gladius', ic: '🗡️', k: 'melee', dmg: 78, cd: 1.05, rng: 7, arc: 90, wind: 0.16, an: 'thrust' },
       { n: 'Pila of the Legion', ic: '🎯', k: 'volley', dmg: 34, cnt: 8, rad: 7, delay: 0.8, cd: 11, wind: 0.3, an: 'sky', model: 'pilum', fx: { sl: [0.7, 1.5] }, d: 'He signals, and the legion behind him throws: eight pila fall where they stand, 34 each, and each one slows them.' },
       { n: 'Aquila', ic: '🦅', k: 'buff', cd: 28, an: 'aquila', b: { dur: 7, dmgM: 1.35, def: 0.7, hps: 18 }, d: 'Raise the eagle: for 7 s, +35% damage, 30% less damage taken, and heal 18 a second.' },
       { n: 'Triumph', ic: '👑', k: 'leap', dmg: 210, dist: 20, rad: 8, cd: 30, wind: 0.2, an: 'leap', fx: { st: 1.2 }, d: 'A triumphant leap with the eagle held high, and down on them: 210 damage all round and a 1.2 s stun.' }] },
     // 🏰 Europe's myth: the Frost Jötunn, a giant of the frozen north — not in any crate (its Frost Saga is in the achievements)
-    { e: 2, r: 4, hp: 1650, spd: 0.55, def: 0.6, big: 1.4, nc: 1, frost: [0.7, 1.5], ro: 'Giant', how: 'Accept the Frost Saga (🏆 Achievements), then beat the 👹 boss 3 times and deal 25,000 damage', pas: [['🧊', 'Frost Giant', '45% slower than everyone else, and takes 40% less damage.'], ['❄️', 'Rime', 'Every hit chills them: 30% slower for 1.5 s.']], ab: [
-      { n: 'Rime Club', ic: '🏏', k: 'melee', dmg: 205, cd: 2.0, rng: 10, arc: 110, wind: 0.5, an: 'overhead' },
+    { e: 2, r: 4, hp: 1350, spd: 0.55, def: 0.62, big: 1.4, nc: 1, frost: [0.8, 1.2], ro: 'Giant', how: 'Accept the Frost Saga (🏆 Achievements → 📜 Quests), then beat the 👹 boss 3 times and deal 25,000 damage', pas: [['🧊', 'Frost Giant', '45% slower than everyone else, and takes 38% less damage.'], ['❄️', 'Rime', 'Every hit chills them: 20% slower for 1.2 s.']], ab: [
+      { n: 'Rime Club', ic: '🏏', k: 'melee', dmg: 185, cd: 2.0, rng: 10, arc: 110, wind: 0.5, an: 'overhead' },
       { n: 'Ice Boulder', ic: '🧊', k: 'proj', dmg: 150, cd: 9, spd: 42, wind: 0.6, an: 'lob', model: 'ice', fx: { sl: [0.5, 3] }, d: 'Wrench a boulder of ice from the ground and hurl it: 150 damage, and they’re 50% slower for 3 s.' },
-      { n: 'Frost Stomp', ic: '🦶', k: 'stomp', dmg: 45, crush: 140, near: 7, rad: 28, cd: 5, wind: 0.5, an: 'stomp', wspd: 20, d: 'A shockwave of frost rolls out: jump it or take 45. Up close it’s a Crush — 140, a 1 s stun and Crushed for the rest of the round.' },
-      { n: 'Fimbulwinter', ic: '🌨️', k: 'volley', dmg: 34, cnt: 12, rad: 8, delay: 0.9, cd: 30, wind: 0.45, an: 'roar', model: 'hail', fx: { sl: [0.6, 2] }, d: 'The great winter: twelve shards of hail crash down where they stand, 34 each, and each one chills them.' }] },
+      { n: 'Frost Stomp', ic: '🦶', k: 'stomp', dmg: 40, crush: 100, near: 7, rad: 28, cd: 6.5, wind: 0.5, an: 'stomp', wspd: 20, d: 'A shockwave of frost rolls out: jump it or take 40. Up close it’s a Crush — 100, a 1 s stun and Crushed for the rest of the round.' },
+      { n: 'Fimbulwinter', ic: '🌨️', k: 'volley', dmg: 32, cnt: 10, rad: 8, delay: 0.9, cd: 32, wind: 0.45, an: 'roar', model: 'hail', fx: { sl: [0.7, 1.5] }, d: 'The great winter: ten shards of hail crash down where they stand, 32 each, and each one chills them.' }] },
+    // 🏛️ Macedon: the Phalangite, a pikeman of the phalanx — a legendary with a quest of his own (no crate has him)
+    { e: 1, r: 3, hp: 560, spd: 0.95, def: 0.85, nc: 1, sh: 1, ro: 'Pikeman', how: 'Accept The Sarissa (🏆 Achievements → 📜 Quests), then defeat 25 fighters and deal 10,000 damage', pas: [['📏', 'Sarissa', 'The longest reach in the Colosseum: his pike strikes from 13 m.']], ab: [
+      { n: 'Sarissa Thrust', ic: '🔱', k: 'melee', dmg: 72, cd: 1.5, rng: 13, arc: 30, wind: 0.26, an: 'spear' },
+      { n: 'Shield Wall', ic: '🛡️', k: 'buff', cd: 13, an: 'aspis', b: { dur: 2.5, blk: 1, rf: 0.3 }, d: 'Brace behind pike and shield: blocks every blow for 2.5 s, and 30% of it goes back at them.' },
+      { n: 'Hedgehog', ic: '🦔', k: 'multi', hits: [45, 45, 60], gap: 0.28, cd: 11, rng: 12.5, arc: 50, wind: 0.2, an: 'flurry', fx: { kb: 10 }, d: 'Three thrusts of the sarissa — 45, 45, 60 — and the last drives them back.' },
+      { n: 'Macedonian Charge', ic: '☀️', k: 'dash', dmg: 160, dist: 16, dd: 0.5, cd: 26, wind: 0.25, an: 'charge', fx: { st: 1, kb: 10 }, d: 'Charge with the pike levelled: 160 damage, a 1 s stun, and they’re thrown back.' }] },
+    // 🏰 Europe: the Halberdier — an epic with a quest of his own
+    { e: 2, r: 2, hp: 520, def: 0.9, nc: 1, ro: 'Polearm', how: 'Accept The Swiss Guard (🏆 Achievements → 📜 Quests), then win 8 Classic duels and defeat 20 fighters', ab: [
+      { n: 'Axe / Spike', ic: '🪓', k: 'melee', modes: [
+        { n: 'Axe', ic: '🪓', dmg: 66, cd: 1.6, rng: 9, arc: 110, wind: 0.26, an: 'naginata' },
+        { n: 'Spike', ic: '🔱', dmg: 50, cd: 1.15, rng: 10, arc: 40, wind: 0.18, an: 'spear2' }] },
+      { n: 'Hook', ic: '🪝', k: 'melee', dmg: 35, cd: 9, rng: 9.5, arc: 60, wind: 0.22, an: 'spear2', fx: { rt: 1.2, st: 0.3 }, d: 'Catch them with the hook behind the blade: 35 damage, and they can’t move for 1.2 s.' },
+      { n: 'Pike Square', ic: '🏰', k: 'buff', cd: 24, an: 'fortress', b: { dur: 4, def: 0.6, imm: 1 }, d: 'Stand as the Swiss square: 40% less damage, and nothing stuns, roots or slows you for 4 s.' }] },
+    // 🏛️ Greece's myth: the Cyclops, a giant
+    { e: 1, r: 4, hp: 1550, spd: 0.55, def: 0.62, big: 1.4, nc: 1, rage: [0.5, 1.3], ro: 'Giant', how: 'Accept The Forge of Zeus (🏆 Achievements → 📜 Quests), then beat the 👹 boss 2 times and defeat 30 fighters', pas: [['👁️', 'Giant of Sicily', '45% slower than everyone else, and takes 38% less damage.'], ['💢', 'Rage', 'Below half health: +30% damage.']], ab: [
+      { n: 'Olive Club', ic: '🏏', k: 'melee', dmg: 190, cd: 2.2, rng: 10, arc: 110, wind: 0.5, an: 'overhead' },
+      { n: 'Hurl Boulder', ic: '🪨', k: 'proj', dmg: 160, cd: 10, spd: 40, wind: 0.65, an: 'lob', model: 'rock', fx: { st: 0.8 }, d: 'Tear up a rock and hurl it: 160 damage and a 0.8 s stun.' },
+      { n: 'Quake', ic: '🦶', k: 'stomp', dmg: 40, crush: 115, near: 7, rad: 26, cd: 6.5, wind: 0.5, an: 'stomp', wspd: 18, d: 'A shockwave rolls out: jump it or take 40. Up close it’s a Crush — 115, a 1 s stun and Crushed for the round.' },
+      { n: 'Thunderbolt', ic: '⚡', k: 'proj', dmg: 220, cd: 28, spd: 150, wind: 0.8, an: 'lob', model: 'bolt', fx: { st: 1.2 }, d: 'The Cyclopes forged the thunderbolts of Zeus — he hurls one: 220 damage and a 1.2 s stun.' }] },
+    // 🏯 Japan's myth: the Oni, a giant and a tank — vast, armoured, and slow to swing
+    { e: 3, r: 4, hp: 2300, spd: 0.6, def: 0.5, big: 1.45, nc: 1, ro: 'Giant Tank', how: 'Accept The Oni’s Gate (🏆 Achievements → 📜 Quests), then win 20 duels and deal 30,000 damage', pas: [['👹', 'Demon Hide', '40% slower than everyone else, and takes half damage.'], ['🐢', 'Slow and Heavy', 'Its kanabō swings only every 2.8 s — but every blow staggers.']], ab: [
+      { n: 'Kanabō', ic: '🏏', k: 'melee', dmg: 72, cd: 2.8, rng: 9.5, arc: 120, wind: 0.6, an: 'overhead', fx: { st: 0.4 } },
+      { n: 'Iron Hide', ic: '🛡️', k: 'buff', cd: 16, an: 'fortress', b: { dur: 5, def: 0.45, imm: 1 }, d: 'Its hide like iron: 55% less damage, and nothing stuns, roots or slows it for 5 s.' },
+      { n: 'Oni Roar', ic: '📢', k: 'stomp', dmg: 25, crush: 60, near: 6, rad: 22, cd: 10, wind: 0.6, an: 'stomp', wspd: 16, d: 'A roar and a stamp that shakes the sand: jump it or take 25 — up close, 60 and Crushed.' },
+      { n: 'Demon Gate', ic: '⛩️', k: 'buff', cd: 32, an: 'benkei', b: { dur: 6, def: 0.5, rf: 0.5, hps: 30 }, d: 'It stands like a gate of hell: half damage for 6 s, half of it back at them, and it heals 30 a second.' }] },
+    // 🦅 Rome's myth: Cacus, the fire-breathing giant, son of Vulcan
+    { e: 0, r: 4, hp: 1500, spd: 0.58, def: 0.62, big: 1.4, nc: 1, fireImm: 1, ro: 'Giant', how: 'Accept The Cave of Cacus (🏆 Achievements → 📜 Quests), then beat the 👹 boss 2 times and deal 20,000 damage', pas: [['🔥', 'Son of Vulcan', 'Burns can’t hurt him — and his hammer sets them alight.'], ['🗿', 'Giant of the Aventine', '42% slower than everyone else, and takes 38% less damage.']], ab: [
+      { n: 'Forge Hammer', ic: '🔨', k: 'melee', dmg: 185, cd: 2.1, rng: 10, arc: 110, wind: 0.5, an: 'overhead', fx: { bu: [30, 3] } },
+      { n: 'Fire Breath', ic: '🔥', k: 'proj', dmg: 30, cnt: 5, spread: 10, cd: 8, spd: 60, wind: 0.35, an: 'roar', model: 'flame', fx: { bu: [20, 3] }, d: 'A gout of fire from his mouth: five flames, 30 each, and they burn.' },
+      { n: 'Molten Stomp', ic: '🦶', k: 'stomp', dmg: 40, crush: 115, near: 7, rad: 24, cd: 6.5, wind: 0.5, an: 'stomp', wspd: 18, d: 'A shockwave of fire rolls out: jump it or take 40. Up close it’s a Crush — 115, a 1 s stun and Crushed for the round.' },
+      { n: 'Cave of Smoke', ic: '💨', k: 'buff', cd: 28, an: 'smoke', b: { dur: 3, inv: 1, nx: 2 }, d: 'He hides in smoke, as he hid in his cave: unseen for 3 s, and his next blow does double damage.' }] },
+    // 🏹 the Mongols' spirit: the Chötgör — a new class, the Spirit: little health, quick claws, and possession
+    { e: 5, r: 4, hp: 300, spd: 1.3, nc: 1, ro: 'Spirit', how: 'Accept The Shaman’s Call (🏆 Achievements → 📜 Quests), then defeat 60 fighters and win 15 duels', pas: [['👻', 'Spirit', 'Only half here: little health, but quick — and while it phases, blows pass straight through it.'], ['🕯️', 'Possession', 'Its G takes the foe over: for 3 s they walk where it looks, and can’t fight back.']], ab: [
+      { n: 'Spirit Claw', ic: '👻', k: 'melee', dmg: 36, cd: 0.5, rng: 6.5, arc: 110, wind: 0.08, an: 'quick' },
+      { n: 'Phase', ic: '🌫️', k: 'buff', cd: 9, an: 'smoke', b: { dur: 1.6, ph: 1, imm: 1 }, d: 'It fades out of the world for 1.6 s: every blow and arrow passes through it.' },
+      { n: 'Soul Drain', ic: '💀', k: 'proj', dmg: 55, cd: 7, spd: 70, wind: 0.25, an: 'fan', model: 'soul', drain: 1, fx: { sl: [0.6, 2] }, d: 'A wisp of its cold: 55 damage and a 2 s slow — and all of it heals the Chötgör.' },
+      { n: 'Possession', ic: '🕯️', k: 'dash', dmg: 30, dist: 14, dd: 0.22, cd: 26, wind: 0.15, an: 'iai', fx: { pos: 3, bl: [60, 3] }, d: 'It flies into them and takes them over: for 3 s they walk wherever it looks and can’t fight back — and their soul bleeds 60.' }] },
   ];
   CH.forEach((C, i) => { C.i = i; C.n = DUEL_N[i]; C.ic = DUEL_IC[i]; C.spd = C.spd || 1; C.def = C.def || 1; });
   // what each one is for, at a glance
   const ROLE = ['Tank', 'Skirmisher', 'Controller', 'Tank', 'Damage dealer', 'Tank', 'Skirmisher', 'Ranged', 'Bruiser', 'Bruiser', 'Bruiser', 'Ranged', 'Bruiser', 'Bruiser', 'Tank', 'Skirmisher', 'Duelist', 'Assassin', 'Bruiser', 'Damage dealer'];
   CH.forEach((C, i) => { C.ro = C.ro || ROLE[i] || 'Fighter'; });
   const CRATE = EMP.map((_, e) => CH.filter((C) => C.e === e && !C.nc).map((C) => C.i)); // (each crate's five, common to legendary)
-  const LAE = 20, EXE = 21, KEN = 32, IMP = 33, JOT = 34; // (the mythics — the Laestrygonian, the Executioner, the Kensei: no crate has them)
+  const LAE = 20, EXE = 21, KEN = 32, IMP = 33, JOT = 34, PHA = 35, HAL = 36, CYC = 37, ONI = 38, CAC = 39, CHO = 40;
+  for (const i of [0, 1, 3, 4, 5, 6, 8, 9, 10, 12, 13, 22, 30, 35]) CH[i].sh = 1; // (the ones with a shield: blocking stops everything — without one it halves the damage) // (the mythics — the Laestrygonian, the Executioner, the Kensei: no crate has them)
   const KEN_W = 20, KEN_D = 20000; // (the Sword Saint's Trial: wins, damage)
   // the mythics' quests: each accepted in the achievements, then two counts to reach (k kills, d damage, w wins, c Classic
   // wins, b boss wins)
@@ -343,6 +381,12 @@
     { key: 'q', c: EXE, ic: '💀', n: 'The Executioner’s Contract', need: [['k', 50, '⚔️', 'defeated'], ['d', 15000, '💥', 'damage']], how: 'defeat 50 fighters (bots or players) and deal 15,000 damage', tail: 'the giant’s counter', done: 'the Executioner’s Contract is fulfilled', col: ['239,68,68', '127,29,29', '#fecaca', '#ef4444,#fca5a5'] },
     { key: 'q2', c: KEN, ic: '👺', n: 'The Sword Saint’s Trial', need: [['w', KEN_W, '🏆', 'wins'], ['d', KEN_D, '💥', 'damage']], how: `win ${KEN_W} duels (any mode, bots or players) and deal ${KEN_D.toLocaleString()} damage`, tail: 'the sword saint: two blades, critical hits and a killing stroke', done: 'the Sword Saint’s Trial is complete', col: ['244,63,94', '136,19,55', '#fecdd3', '#e11d48,#fda4af'] },
     { key: 'q3', c: IMP, ic: '🌿', n: 'The Imperator’s Triumph', need: [['c', 15, '🏛️', 'Classic wins'], ['k', 40, '⚔️', 'defeated']], how: 'win 15 Classic duels and defeat 40 fighters', tail: 'Rome’s general-emperor: the legion’s pila, the eagle and a triumphant leap', done: 'Rome grants you a Triumph', col: ['250,204,21', '113,63,18', '#fef08a', '#ca8a04,#fde68a'] },
+    { key: 'q5', c: PHA, ic: '🌞', n: 'The Sarissa', need: [['k', 25, '⚔️', 'defeated'], ['d', 10000, '💥', 'damage']], how: 'defeat 25 fighters and deal 10,000 damage', tail: 'a Macedonian of the phalanx with the longest reach in the Colosseum', done: 'the phalanx takes you in', col: ['251,191,36', '120,53,15', '#fde68a', '#d97706,#fde68a'] },
+    { key: 'q6', c: HAL, ic: '🪓', n: 'The Swiss Guard', need: [['c', 8, '🏛️', 'Classic wins'], ['k', 20, '⚔️', 'defeated']], how: 'win 8 Classic duels and defeat 20 fighters', tail: 'a halberd that cuts, thrusts and hooks', done: 'you’ve joined the Swiss Guard', col: ['239,68,68', '127,29,29', '#fecaca', '#dc2626,#facc15'] },
+    { key: 'q7', c: CYC, ic: '👁️', n: 'The Forge of Zeus', need: [['b', 2, '👹', 'boss wins'], ['k', 30, '⚔️', 'defeated']], how: 'beat the 👹 boss 2 times and defeat 30 fighters', tail: 'a one-eyed giant who throws boulders and thunderbolts', done: 'the Cyclops answers your call', col: ['214,167,122', '67,40,20', '#fed7aa', '#b45309,#fed7aa'] },
+    { key: 'q8', c: ONI, ic: '👹', n: 'The Oni’s Gate', need: [['w', 20, '🏆', 'wins'], ['d', 30000, '💥', 'damage']], how: 'win 20 duels and deal 30,000 damage', tail: 'a giant tank: vast health, half damage taken, slow heavy blows', done: 'the Oni’s gate opens', col: ['220,38,38', '69,10,10', '#fecaca', '#b91c1c,#fca5a5'] },
+    { key: 'q9', c: CAC, ic: '🔥', n: 'The Cave of Cacus', need: [['b', 2, '👹', 'boss wins'], ['d', 20000, '💥', 'damage']], how: 'beat the 👹 boss 2 times and deal 20,000 damage', tail: 'Rome’s fire-breathing giant, son of Vulcan', done: 'Cacus comes out of his cave', col: ['249,115,22', '67,20,7', '#fed7aa', '#ea580c,#fdba74'] },
+    { key: 'q10', c: CHO, ic: '👻', n: 'The Shaman’s Call', need: [['k', 60, '⚔️', 'defeated'], ['w', 15, '🏆', 'wins']], how: 'defeat 60 fighters and win 15 duels', tail: 'a spirit of the steppe that possesses its foes', done: 'the spirit answers the drum', col: ['45,212,191', '17,72,68', '#99f6e4', '#0d9488,#99f6e4'] },
     { key: 'q4', c: JOT, ic: '🧊', n: 'The Frost Saga', need: [['b', 3, '👹', 'boss wins'], ['d', 25000, '💥', 'damage']], how: 'beat the 👹 Laestrygonian boss 3 times and deal 25,000 damage', tail: 'a giant of the frozen north: ice, frost and a great club', done: 'the Frost Saga is sung', col: ['125,211,252', '12,74,110', '#bae6fd', '#0284c7,#bae6fd'] },
   ];
   // the boss: a Laestrygonian bigger still, in silver, bronze and gold — 4,000 health, a scimitar blow every 6 s for 250 (a
@@ -351,7 +395,7 @@
     { n: 'Great Scimitar', ic: '🗡️', k: 'melee', dmg: 250, cd: 6, rng: 10, arc: 120, wind: 1.4, an: 'bcleave' },
     { n: 'Earthshaker', ic: '🦶', k: 'stomp', dmg: 30, rad: 36, cd: 8, wind: 0.8, an: 'bplant', wspd: 17 }] }); // (bcleave, bplant: its own two-handed blows — the pack holds the sword for them)
     // the fighters' looks for their trails and glows
-  const COL = ['#ef4444', '#f59e0b', '#2dd4bf', '#a855f7', '#f97316', '#60a5fa', '#fbbf24', '#fb923c', '#a3a3a3', '#dc2626', '#facc15', '#84cc16', '#38bdf8', '#fef3c7', '#e2e8f0', '#93c5fd', '#fda4af', '#a78bfa', '#fb923c', '#fde047', '#fbbf24', '#991b1b', '#f87171', '#fbbf24', '#f97316', '#2dd4bf', '#dc2626', '#a16207', '#7dd3fc', '#38bdf8', '#cbd5e1', '#facc15', '#f43f5e', '#fbbf24', '#7dd3fc'];
+  const COL = ['#ef4444', '#f59e0b', '#2dd4bf', '#a855f7', '#f97316', '#60a5fa', '#fbbf24', '#fb923c', '#a3a3a3', '#dc2626', '#facc15', '#84cc16', '#38bdf8', '#fef3c7', '#e2e8f0', '#93c5fd', '#fda4af', '#a78bfa', '#fb923c', '#fde047', '#fbbf24', '#991b1b', '#f87171', '#fbbf24', '#f97316', '#2dd4bf', '#dc2626', '#a16207', '#7dd3fc', '#38bdf8', '#cbd5e1', '#facc15', '#f43f5e', '#fbbf24', '#7dd3fc', '#f59e0b', '#ef4444', '#d6a77a', '#dc2626', '#fb923c', '#5eead4'];
   // the duel's own achievements: each wins a fighter (the 1% ones only come from crates)
   const ACH = [
     { id: 'blood', ic: '🩸', n: 'First Blood', d: 'Defeat a fighter', k: 'kills', n0: 1, c: 1 },
@@ -759,7 +803,7 @@
       default: return ab.b && ab.b.blk ? ab.b.dur : 0.8;
     }
   }
-  const stunned = (F) => F.S.stun > 0;
+  const stunned = (F) => F.S.stun > 0 || F.S.pos > 0; // (stunned, or possessed)
   const isBoss = (F) => !!F && (F.kind === 'boss' || F.kind === 'rboss');
   const local = (T) => T.kind === 'me' || T.kind === 'bot' || T.kind === 'boss'; // (the ones whose hits are judged here)
   const bigR = (F) => (F && F.C.big ? (F.C.big - 1) * 2.4 : 0); // (how much further a giant reaches, and is reached)
@@ -886,7 +930,9 @@
     gslash: [{ aR: [2.5, 0.3, 0.9], eR: [0.5], wr: [-0.8], aL: [1.1, 0, -0.7], eL: [0.6], bd: [0.15, -0.75, 0], hd: [0.15] }, { aR: [1.2, -0.2, -0.9], eR: [0.15], wr: [-0.9], aL: [0.5, 0, -0.4], eL: [0.4], bd: [-0.3, 0.85, 0], lL: [0.5], kL: [-0.45], lR: [-0.3] }],
     punch: [{ aR: [0.9, 0, 0.4], eR: [1.7], aL: [0.8, 0, -0.3], eL: [1.4], bd: [0.05, -0.45, 0] }, { aR: [1.6, 0, 0], eR: [0.05], aL: [0.7, 0, -0.3], eL: [1.5], bd: [-0.3, 0.5, 0], lL: [0.5], kL: [-0.4], lR: [-0.3] }],
     stomp: [{ lR: [1.3], kR: [-1.4], bd: [0.2, 0, 0], aL: [0.5, 0, -0.9], aR: [0.5, 0, 0.9], hd: [0.2], up: 0.15 }, { lR: [0.25], kR: [-0.2], lL: [0.3], kL: [-0.6], bd: [-0.45, 0, 0], aL: [0.7, 0, -1.1], aR: [0.7, 0, 1.1], hd: [-0.2], up: -0.4 }],
-    behead: [{ aR: [2.9, 0.4, 0.8], eR: [0.5], aL: [2.7, 0.5, 0.4], eL: [0.6], bd: [0.2, -0.85, 0], hd: [0.25] }, { aR: [1.3, -0.4, -1.0], eR: [0.1], aL: [1.2, -0.3, -0.6], eL: [0.2], bd: [-0.35, 1.0, 0], lL: [0.6], kL: [-0.5], lR: [-0.3] }],
+    behead: [{ aR: [3.1, 0, 0.15], eR: [1.1], wr: [0.6], aL: [3.0, 0, -0.15], eL: [1.1], bd: [0.35, 0, 0], hd: [0.35], up: 0.1, lL: [0.2], lR: [-0.15] }, { aR: [0.55, 0, 0], eR: [0.05], wr: [-0.8], aL: [0.6, 0, 0], eL: [0.1], bd: [-0.75, 0, 0], hd: [0.4], lL: [0.8], kL: [-1.0], lR: [-0.45], kR: [-0.4], up: -0.5 }], // (the axe raised high behind him in both hands, then down through it)
+    xsever: [{ aR: [3.0, 0.1, 0.1], eR: [0.8], wr: [0.3], aL: [2.9, 0.2, -0.1], eL: [0.8], bd: [0.25, 0, 0], hd: [0.15], up: 0.05 }, { aR: [0.7, 0, -0.05], eR: [0.1], wr: [-0.5], aL: [0.75, 0, 0.1], eL: [0.15], bd: [-0.65, 0, 0], hd: [0.3], lL: [0.65], kL: [-0.85], lR: [-0.35], kR: [-0.3], up: -0.4 }], // (Sever: off the shoulder, up over the head, straight down)
+    xchop: [{ aR: [2.6, 0.3, 0.9], eR: [0.9], wr: [0.2], aL: [2.0, 0.4, 0.4], eL: [1.0], bd: [0.15, -0.7, 0] }, { aR: [1.1, -0.3, -0.9], eR: [0.15], wr: [-0.6], aL: [1.0, -0.2, -0.5], eL: [0.25], bd: [-0.35, 0.8, 0], lL: [0.55], kL: [-0.5], lR: [-0.3] }], // (Chop: from the shoulder, down across)
     lob: [{ aL: [2.7, 0, -0.3], eL: [1.2], aR: [0.8, 0, 0.3], eR: [0.8], bd: [0.2, 0.5, 0] }, { aL: [1.3, 0, 0], eL: [0.1], aR: [0.6, 0, 0.3], bd: [-0.3, -0.4, 0], lR: [-0.3] }],
     bloodrush: { aR: [0.6, 0, 1.3], eR: [0.4], aL: [0.6, 0, -1.3], eL: [0.4], hd: [0.7], bd: [0.4, 0, 0], up: -0.2 },
     sharpen: { aR: [1.0, 0, -0.3], eR: [1.4], wr: [-1.6], aL: [1.0, 0.3, 0.45], eL: [1.0], hd: [-0.4], bd: [-0.2, 0, 0] },
@@ -908,7 +954,7 @@
   const mixP = (A, B, k) => { const o = {}; for (const n of new Set(Object.keys(A).concat(Object.keys(B)))) { const x = A[n], y = B[n]; if (n === 'up') { o.up = lerp(x || 0, y || 0, k); continue; } const p = x || [0, 0, 0], q = y || x; o[n] = [lerp(p[0], q[0], k), lerp(p[1] || 0, q[1] || 0, k), lerp(p[2] || 0, q[2] || 0, k)]; if (!x) o[n] = q; } return o; };
   function poseAct(F, dt) {
     const A = F.act, a = F.a; if (!a || a.dead) return; a.duActing = !!(A && A.an); a.duAn = A ? A.an : null; a.duT = A ? A.t : 0; a.duW = A ? A.ab.wind || 0 : 0; // (a pack that holds its weapon itself — the giant's — hands it to the blow)
-    if (a.dg) { if (!A || !A.an || !(AN[A.an] && (AN[A.an].wr || (Array.isArray(AN[A.an]) && (AN[A.an][0].wr || AN[A.an][1].wr))))) a.dg.hR.rotation.x *= Math.max(0, 1 - dt * 10); } // (the wrist back to its guard)
+    if (a.dg && !a.dg.own) { if (!A || !A.an || !(AN[A.an] && (AN[A.an].wr || (Array.isArray(AN[A.an]) && (AN[A.an][0].wr || AN[A.an][1].wr))))) a.dg.hR.rotation.x *= Math.max(0, 1 - dt * 10); } // (the wrist back to its guard)
     if (A && A.an === 'gun' && a.dg && !a.duGun) { const g = new THREE.Group(); a.dg.hR.add(g); g.rotation.x = -Math.PI / 2; const wd = new THREE.MeshLambertMaterial({ color: '#5b3a1e', map: woodTex() }), ir = metalMat('#3f3f46'); const st = new THREE.Mesh(BOX, wd); st.scale.set(0.22, 0.3, 2.4); st.position.z = -0.4; g.add(st); const br = new THREE.Mesh(kCyl(), ir); br.scale.set(0.07, 2.6, 0.07); br.rotation.x = Math.PI / 2; br.position.set(0, 0.16, -1.6); g.add(br); g.userData.tip = new THREE.Object3D(); g.userData.tip.position.set(0, 0.16, -2.9); g.add(g.userData.tip); a.duGun = g; }
     if (a.duGun) a.duGun.visible = !!(A && A.an === 'gun');
     if (!A) return;
@@ -942,7 +988,7 @@
   function clampArena(x, z, r = 1.6) { const a = A0 - r, b = B0 - r, q = (x / a) ** 2 + (z / b) ** 2; if (q <= 1) return [x, z]; const s = 1 / Math.sqrt(q); return [x * s, z * s]; }
   function moveF(F, dx, dz) { const r = 1.6 * (F.C.big || 1); if (F.kind === 'me') { [P.x, P.z] = clampArena(P.x + dx, P.z + dz, r); F.x = P.x; F.z = P.z; } else if (F.kind === 'bot' || F.kind === 'boss') { [F.x, F.z] = clampArena(F.x + dx, F.z + dz, r); } }
   function faceF(F, yaw) { F.yaw = yaw; if (F.kind === 'me') P.yaw = yaw; }
-  const canAct = (F) => live() && !F.dead && !stunned(F) && !F.act && !(F.kind === 'me' && P.dead);
+  const canAct = (F) => live() && !F.dead && !stunned(F) && !F.act && !(F.kind === 'me' && P.dead) && !(F.possEnd && F.possEnd > performance.now()); // (a spirit inside someone can't strike)
   // a blow begins: face them (if they're near enough to be what you meant), start the animation, and say so
   function useAb(F, i, vis) {
     if (i >= F.C.ab.length || (!vis && (!canAct(F) || F.cd[i] > 0 || F.blk))) return false;
@@ -1094,6 +1140,7 @@
     let dmg = (base + bval(F, 'dmgA')) * bval(F, 'dmgM') * F.dmgM * (F.C.wish ? 1 + 0.1 * (F.wishN || 0) : 1); if (F.nx) { dmg *= F.nx; F.nx = 0; F.S.buffs = F.S.buffs.filter((b) => !b.inv); floatText(F, 'AMBUSH ×2', 'big'); }
     let crit = false; if (F.C.crit && Math.random() < F.C.crit[0]) { dmg *= F.C.crit[1]; crit = true; } // (the Kensei: Sword Saint)
     if (F.C.exe && T.mhp && T.hp > 0 && T.hp / T.mhp < F.C.exe[0]) dmg *= F.C.exe[1]; // (and Ichigeki)
+    if (F.C.rage && F.hp / F.mhp < F.C.rage[0]) dmg *= F.C.rage[1]; // (the Cyclops' rage)
     dmg = Math.round(dmg); const f2 = Object.assign({}, fx || {}); if (f2.bl && f2.blc != null && Math.random() > f2.blc) delete f2.bl; delete f2.blc;
     if (F.C.brute && !f2.cr && Math.random() < F.C.brute) f2.cr = 1; // (Brute Force)
     if (F.C.stunP && Math.random() < F.C.stunP[0]) f2.st = Math.max(f2.st || 0, F.C.stunP[1]); // (the Imperator: Imperium)
@@ -1101,7 +1148,8 @@
     if (T.kind === 'rem' || T.kind === 'rboss') { DU.sendHit(T, dmg, f2, F); hitLook(T, dmg, false, ab); floatText(T, String(dmg), dmg >= 100 ? 'big' : ''); if (f2.cr && !T.S.crush) floatText(T, '💢 CRUSHED', 'tag'); }
     else takeHit(T, dmg, f2, F, { ab });
     if (crit) { floatText(T, `✴️ CRIT ${dmg}`, 'big'); sparks(T, '#f43f5e', 10, 3.4, { s: 0.28 }); burstAt(T.x, T.y + 3.4, T.z, '#fb7185', 4.5, 0.3); }
-    const ls = bval(F, 'ls') + (F.C.lsP || 0); if (ls) heal(F, dmg * ls);
+    const ls = bval(F, 'ls') + (F.C.lsP || 0); if (ls) heal(F, dmg * ls); if (ab && ab.drain) heal(F, dmg * ab.drain); // (the Soul Drain)
+    if (f2.pos && !isBoss(T) && !(T.C && T.S && bval(T, 'imm'))) { F.possT = T; F.possEnd = performance.now() + f2.pos * 1000; } // (the spirit goes into them)
     if (F.C.wish) { F.wishN = (F.wishN || 0) + 1; heal(F, F.mhp * 0.1); if (F.kind === 'me') floatText(F, `🪓 WISH +${F.wishN * 10}%`, 'tag'); } // (the Executioner's Wish)
     if (F.kind === 'me') { DU.bump('dmg', dmg); DU.M.dealt += dmg; DU.qBump('d', dmg); }
   }
@@ -1126,11 +1174,12 @@
     if (T.dead || !live()) return; fx = fx || {};
     if (fx.fo) { applyFx(T, fx, from); return; }
     if (T.S.sp > 0) { floatText(T, '✨ PROTECTED', 'tag'); return; } // (just back from a death in the boss fight)
+    if (bval(T, 'ph') || (T.possEnd && T.possEnd > performance.now())) { floatText(T, '🌫️ PHASED', 'tag'); return; } // (the spirit: out of the world, or inside someone)
     if (T.S.ifr > 0) { floatText(T, 'DODGED', 'tag'); sfx3('whoosh', T.x, T.z, 50); if (T.kind === 'me') DU.bump('dodges', 1); return; }
     const imm = bval(T, 'imm'), ub = !!fx.ub, blkB = ub ? 0 : bval(T, 'blk'); let mult = T.C.def * bval(T, 'def') * (T.S.vuln > 0 ? 1.5 : 1) * (T.S.crush ? 2 : 1), blocked = false;
     if (blkB) { mult *= 1 - blkB; blocked = true;
       if (bval(T, 'parry') && from && !o.rf) { floatText(T, '⚔️ PARRIED!', 'big'); sfx3('crash', T.x, T.z, 70); burstAt(T.x, T.y + 4, T.z, '#e5e7eb', 7, 0.45); applyFx(from, { st: 2, vu: 2 }, T); } }
-    else if (!ub && T.blk && from && Math.abs(wrapA(angOf(from.x - T.x, from.z - T.z) - T.yaw)) < 1.2) { mult = 0; blocked = true; T.st -= 12 + dmg * 0.12; T.rest = 0;
+    else if (!ub && T.blk && from && Math.abs(wrapA(angOf(from.x - T.x, from.z - T.z) - T.yaw)) < 1.2) { mult = T.C.sh ? 0 : mult * 0.5; blocked = true; // (a shield stops it all; a blade or a staff only takes half of it) T.st -= 12 + dmg * 0.12; T.rest = 0;
       if (T.st <= 0) { T.st = 0; T.blk = false; T.S.stun = Math.max(T.S.stun, 1.2); floatText(T, 'GUARD BROKEN', 'big'); sfx3('crash', T.x, T.z, 60); } }
     dmg = mult <= 0 ? 0 : Math.max(1, Math.round(dmg * mult)); T.hp -= dmg; T.rTaken = (T.rTaken || 0) + dmg;
     floatText(T, blocked ? (dmg ? `🛡️ ${dmg}` : '🛡️ BLOCKED') : String(dmg), (T.kind === 'me' ? 'me ' : '') + (dmg >= 100 ? 'big' : '')); hitLook(T, dmg, blocked, o.ab);
@@ -1139,7 +1188,8 @@
       if (!imm) { if (fx.st) { T.S.stun = Math.max(T.S.stun, fx.st); T.act = null; T.blk = false; } if (fx.rt) T.S.root = Math.max(T.S.root, fx.rt); if (fx.sl) { T.S.slow = Math.max(T.S.slow, fx.sl[1]); T.S.slowM = fx.sl[0]; }
         if (fx.kb && from) { const dx = T.x - from.x, dz = T.z - from.z, l = Math.hypot(dx, dz) || 1; T.push = { vx: dx / l * fx.kb / 0.3, vz: dz / l * fx.kb / 0.3, t: 0.3 }; } }
       if (fx.bl) { T.S.dots.push({ k: 'bl', dps: fx.bl[0] / fx.bl[1], t: fx.bl[1], acc: 0 }); floatText(T, '🩸 BLEEDING', 'tag'); }
-      if (fx.bu) { T.S.dots.push({ k: 'bu', dps: fx.bu[0] / fx.bu[1], t: fx.bu[1], acc: 0 }); floatText(T, '🔥 BURNING', 'tag'); }
+      if (fx.bu && !T.C.fireImm) { T.S.dots.push({ k: 'bu', dps: fx.bu[0] / fx.bu[1], t: fx.bu[1], acc: 0 }); floatText(T, '🔥 BURNING', 'tag'); }
+      if (fx.pos && !isBoss(T)) { T.S.pos = Math.max(T.S.pos || 0, fx.pos); T.S.posBy = from || null; T.act = null; T.blk = false; floatText(T, '👻 POSSESSED', 'big'); sfx3('magic', T.x, T.z, 70); } // (possessed: it walks them where it looks)
       if (fx.cr && !T.S.crush) { T.S.crush = 1; floatText(T, '💢 CRUSHED — ×2 DAMAGE', 'big'); sfx3('crunch', T.x, T.z, 70); } // (until the round ends, or they die)
       if (fx.vu) T.S.vuln = Math.max(T.S.vuln, fx.vu);
       if (fx.st && !imm) floatText(T, '💫 STUNNED', 'tag'); if (fx.rt && !imm) floatText(T, '🕸️ ROOTED', 'tag');
@@ -1158,7 +1208,7 @@
   function statusTick(F, dt) {
     const S = F.S, cdm = bval(F, 'cdM');
     for (let i = 0; i < F.cd.length; i++) if (F.cd[i] > 0) F.cd[i] = Math.max(0, F.cd[i] - dt * cdm);
-    S.sp = Math.max(0, S.sp - dt); S.stun = Math.max(0, S.stun - dt); S.root = Math.max(0, S.root - dt); S.vuln = Math.max(0, S.vuln - dt); S.ifr = Math.max(0, S.ifr - dt); if ((S.slow = Math.max(0, S.slow - dt)) === 0) S.slowM = 1;
+    S.sp = Math.max(0, S.sp - dt); S.stun = Math.max(0, S.stun - dt); if (S.pos > 0 && (S.pos -= dt) <= 0) { S.pos = 0; S.posBy = null; } S.root = Math.max(0, S.root - dt); S.vuln = Math.max(0, S.vuln - dt); S.ifr = Math.max(0, S.ifr - dt); if ((S.slow = Math.max(0, S.slow - dt)) === 0) S.slowM = 1;
     for (const b of S.buffs) b.t -= dt; S.buffs = S.buffs.filter((b) => b.t > 0);
     if (F.kind === 'rem' || F.kind === 'rboss' || F.dead) return;
     const hps = bval(F, 'hps'); if (hps && live()) { F.hpAcc = (F.hpAcc || 0) + hps * dt; if (F.hpAcc >= 5) { heal(F, F.hpAcc); F.hpAcc = 0; } }
@@ -1176,6 +1226,10 @@
     else if (kind === 'axe') { const s = new THREE.Group(); g.add(s); dgAxe(s).position.z = 1.2; g.userData.spin = s; }
     else if (kind === 'shuriken') { const s = new THREE.Mesh(ovShape('duShur', [[0, 0.5], [0.12, 0.12], [0.5, 0], [0.12, -0.12], [0, -0.5], [-0.12, -0.12], [-0.5, 0], [-0.12, 0.12]], 0.04, 0.01), metalMat('#cbd5e1', { shininess: 140 })); s.rotation.x = Math.PI / 2; s.scale.setScalar(1.3); const w = new THREE.Group(); w.add(s); g.add(w); g.userData.spin = w; g.userData.spinAx = 'y'; }
     else if (kind === 'net') { const n = new THREE.Mesh(kg('duNetP', () => new THREE.PlaneGeometry(3.2, 3.2, 4, 4)), new THREE.MeshLambertMaterial({ map: dgNetTex(), transparent: true, alphaTest: 0.3, side: THREE.DoubleSide })); const w = new THREE.Group(); w.add(n); g.add(w); g.userData.spin = w; g.userData.spinAx = 'z'; }
+    else if (kind === 'rock') { const s2 = new THREE.Group(); g.add(s2); const m = new THREE.Mesh(kg('duRockB', () => new THREE.IcosahedronGeometry(1, 0)), new THREE.MeshLambertMaterial({ color: '#8b8378', flatShading: true })); m.scale.set(1.25, 1.05, 1.15); s2.add(m); g.userData.spin = s2; } // (a boulder)
+    else if (kind === 'bolt') { const mt = new THREE.MeshBasicMaterial({ color: '#fef9c3', transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending, depthWrite: false }); let z = 0.6; for (let k = 0; k < 5; k++) { const b = new THREE.Mesh(BOX, mt); const l = 0.7; b.scale.set(0.14, 0.14, l); b.position.set(k % 2 ? 0.18 : -0.18, 0, z - l / 2); b.rotation.y = k % 2 ? -0.5 : 0.5; g.add(b); z -= l * 0.85; } kitGlow(g, '#fde047', 4.2, 0.85); kitGlow(g, '#ffffff', 1.8, 0.9); } // (a thunderbolt)
+    else if (kind === 'flame') { const f = emSprite(g, fxTex('flame'), 1.6, { blending: THREE.AdditiveBlending }); kitGlow(g, '#f97316', 2.6, 0.75); } // (a gout of fire)
+    else if (kind === 'soul') { kitGlow(g, '#5eead4', 2.2, 0.85); kitGlow(g, '#ecfeff', 0.9, 0.95); const t2 = emSprite(g, fxTex('flame'), 1.0, { blending: THREE.AdditiveBlending, color: '#5eead4' }); t2.position.z = 0.6; } // (a wisp of soul)
     else if (kind === 'ice' || kind === 'hail') { const s2 = new THREE.Group(); g.add(s2); const m = new THREE.Mesh(kg('duIceB', () => new THREE.IcosahedronGeometry(1, 0)), new THREE.MeshPhongMaterial({ color: '#cfeeff', emissive: '#3b82f6', emissiveIntensity: 0.35, shininess: 150, specular: '#ffffff', transparent: true, opacity: 0.92, flatShading: true }));
       m.scale.setScalar(kind === 'ice' ? 1.25 : 0.45); s2.add(m); kitGlow(g, '#93c5fd', kind === 'ice' ? 3.6 : 1.4, 0.5); g.userData.spin = s2; } // (a boulder of ice, spinning; or a shard of hail)
     else if (kind === 'bomb') { const w = new THREE.Group(); g.add(w); dgBomb(w); g.userData.spin = w; g.userData.spinAx = 'x'; const f = emSprite(g, fxTex('flame'), 0.8, { blending: THREE.AdditiveBlending }); f.position.set(0, 0.5, 0); }
@@ -1229,7 +1283,16 @@
     if (ab.k === 'stomp') return d < (ab.near || 0) + 2 + bigR(F) || d < ab.rad * 0.7;
     return d < (ab.rng || 6) + 0.6;
   }
+  // possession: each frame, the possessed walk the way the spirit that has them is looking; the spirit, inside them, goes
+  // where they go (unseen, nothing reaches it) until it lets go
+  function possTick(F, dt) {
+    if (F.S.pos > 0 && F.S.posBy && F.kind !== 'rem' && F.kind !== 'rboss') { const y = F.S.posBy.yaw, sp = 9 * dt; moveF(F, -Math.sin(y) * sp, -Math.cos(y) * sp); faceF(F, y); if (F.a && Math.random() < dt * 14) kitSpark(F.a, F.a.g, (Math.random() - 0.5) * 2, 1 + Math.random() * 4, (Math.random() - 0.5) * 1.5, '#5eead4', { v: [0, 1.5, 0], life: 0.9, s: 0.3, grow: 1.2, op: 0.6, j: 0.5 }); }
+    const inside = F.possEnd && F.possEnd > performance.now() && F.possT && !F.possT.dead;
+    if (inside && (F.kind === 'me' || F.kind === 'bot')) { const T = F.possT; if (F.kind === 'me') { P.x = T.x; P.z = T.z; } F.x = T.x; F.z = T.z; if (F.kind === 'bot') F.yaw += dt * 1.1; }
+    if (inside && F.a) { F.a.g.visible = false; F.wasIn = 1; } else if (F.wasIn) { if (F.a) F.a.g.visible = true; F.wasIn = 0; } if (!inside && F.possEnd) { F.possEnd = 0; F.possT = null; }
+  }
   function botTick(F, dt) {
+    if (F.S.pos > 0) { F.mv = true; F.blk = false; return; } // (possessed: it isn't theirs to move)
     const T = foeOf(F), D = DIFF[F.D], B = F.bot || (F.bot = { t: 0.5, str: 1, strT: 0, seen: -1, blkT: 0, react: null, lx: 0, lz: 0 });
     F.mv = false; F.sprint = false;
     if (F.jT > 0) { F.jT -= dt; F.lift = F.jT > 0 ? Math.sin(Math.PI * (1 - F.jT / 0.75)) * 4.2 : 0; } // (jumping a shockwave)
@@ -1340,6 +1403,7 @@
       if (ab.k === 'buff' && b) { const up = Math.min(1, (b.dur || 0) / ab.cd); if (b.def) red *= 1 - (1 - b.def) * up; if (b.blk) red *= 1 - 0.85 * up; heal += ((b.heal || 0) + (b.healP || 0) * C.hp + (b.hps || 0) * (b.dur || 0) + (b.ls || 0) * best.dps * (b.dur || 0)) * per; }
       ctrl += ((fx.st || 0) + (fx.rt || 0) * 0.6 + (fx.sl ? fx.sl[1] * (1 - fx.sl[0]) : 0) + (fx.kb ? 0.4 : 0)) * per * (C.ab[0].modes && C.ab[0].modes.includes && false ? 0.5 : 1); }
     if (C.wish) heal += 0.1 * C.hp * best.hits; if (C.lsP) heal += C.lsP * best.dps * T; if (C.stunP) ctrl += best.hits * C.stunP[0] * C.stunP[1]; if (C.frost) ctrl += Math.min(T, best.hits * C.frost[1]) * (1 - C.frost[0]);
+    for (const ab of C.ab) { if (ab.fx && ab.fx.pos) ctrl += ab.fx.pos * T / Math.max(ab.cd, 1); if (ab.drain) heal += ab.dmg * T / ab.cd; } if (C.rage) best.dps *= 1 + (C.rage[1] - 1) * C.rage[0];
     const cf = Math.min(0.5, ctrl / T), def = 1 / (C.def * red);
     return Object.assign(best, { hp: C.hp, spd: C.spd, def, armor: 1 / C.def, guard: red < 1, ctrl: cf, ehp: (C.hp + heal) * def / (1 - cf) });
   }
@@ -1480,7 +1544,7 @@
       if (M.ph === 'intro') { if (M.t > 1.7 && !M.fightSaid) { M.fightSaid = 1; big('⚔️ FIGHT!', '', '#fef3c7'); } if (M.t > 2.6) { M.ph = 'fight'; M.t = 0; M.started = true; M.fightSaid = 0; sfx('go'); CROWD.ex = 1; } }
       else if (M.ph === 'fight') {
         M.left -= dt; if (M.pvp || M.coop) this.recvHits();
-        statusTick(F, dt); actTick(F, dt); statusTick(T, dt);
+        statusTick(F, dt); actTick(F, dt); statusTick(T, dt); possTick(F, dt); possTick(T, dt); for (const A of M.allies) possTick(A, dt);
         if (T.kind === 'bot') { if (!T.dead) { botTick(T, dt); actTick(T, dt); } } else if (T.kind === 'boss') { if (!T.dead) { bossTick(T, dt); actTick(T, dt); } } else actTick(T, dt);
         for (const A of M.allies) { statusTick(A, dt); actTick(A, dt); }
         projTick(dt); wavesTick(dt);
@@ -1729,7 +1793,7 @@
         ['🏃', 'Speed', 'spd', x.spd, x.spd === 1 ? 'normal' : `${pct(x.spd - 1)} speed`], ['🛡️', 'Defense', 'def', x.def, `${C.def === 1 ? 'normal armour' : `${pct(C.def - 1)} dmg taken`}${x.guard ? ' · +guard' : ''}`]]; // (+guard: blocks or damage cut from its abilities, in the bar too)
       const bar = (ic, n, w, val, cls = '') => `<div class="r${cls}"><span class="l">${ic} ${n}</span><div class="b"><i data-w="${w.toFixed(1)}"></i></div><span class="v">${val}</span></div>`;
       return `<div class="du-sb"><div class="du-dps"><small>⚡ DPS</small><b data-dps="${Math.round(x.dps)}">0</b><span>damage a second over 30 s against a foe in front of it, every ability used as it’s ready (M1: ${esc(x.m1)}), buffs, bleeds, burns and passives counted</span></div>
-        <div class="du-bars">${rows.map(([ic, n, k, v, val]) => bar(ic, n, F.bar(k, v), val)).join('')}${bar('⚡', 'DPS', F.bar('dps', x.dps), `${Math.round(x.dps)}`)}${bar('⭐', 'Overall', x.ov * 10, `<b>${x.ov.toFixed(1)}</b> / 10`, ' ov')}</div></div>`;
+        <div class="du-bars">${rows.map(([ic, n, k, v, val]) => bar(ic, n, F.bar(k, v), val)).join('')}${bar('⚡', 'DPS', F.bar('dps', x.dps), `${Math.round(x.dps)}`)}${bar('⭐', 'Overall', x.ov * 10, `<b>${x.ov.toFixed(1)}</b> / 10`, ' ov')}<div class="du-blk">${C.sh ? '🛡️ Shield: blocking stops every blow from the front' : '✋ No shield: blocking halves the damage from the front'}</div></div></div>`;
     },
     statAnim() { // (the bars fill and the DPS counts up)
       const box = $('#xpBody'); if (!box) return; const b = box.querySelector('.du-dps b'), is = box.querySelectorAll('.du-bars i[data-w]');
@@ -1743,7 +1807,7 @@
       const html = `${pity}<div class="du-crates">${EMP.map((E, e) => `<div class="du-crate" style="--c1:${E.c1};--c2:${E.c2}${only === e ? ';box-shadow:0 0 0 3px #fde68a' : ''}"><h4>${E.e} ${esc(E.n)} Crate</h4><span style="font:600 12px/1.35 var(--fb);color:#cbd5e1">${esc(E.d)}</span>
         <div class="od">${CRATE[e].map((c, k) => `<span style="--rc:${RAR[CH[c].r].c}"><b>${CH[c].ic} ${esc(CH[c].n)}${S.own.includes(c) ? ' ✔' : ''}</b><i>${od[k]}% · ${RAR[CH[c].r].s}</i></span>`).join('')}</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="du-btn" data-open="${e}" data-cur="g" ${(S.gold | 0) < CRATE_GOLD ? 'disabled' : ''}>🥇 ${CRATE_GOLD} gold</button><button class="du-btn alt" data-open="${e}" data-cur="c" ${W.coins < CRATE_PRICE ? 'disabled' : ''}>🪙 ${CRATE_PRICE}</button></div></div>`).join('')}</div>
-        <p style="font:600 12.5px var(--fb);color:#94a3b8;margin:12px 0 0">Pay with the duel’s own 🥇 gold — every match earns some (more for wins, harder bots, other players and the boss) — or with Blox Coins. Already have the fighter you get? +250 mastery XP for it and 🥇 40 back. The mythics — the Laestrygonian, the Executioner, the Kensei, the Imperator and the Frost Jötunn — aren’t in any crate.</p>`;
+        <p style="font:600 12.5px var(--fb);color:#94a3b8;margin:12px 0 0">Pay with the duel’s own 🥇 gold — every match earns some (more for wins, harder bots, other players and the boss) — or with Blox Coins. Already have the fighter you get? +250 mastery XP for it and 🥇 40 back. The mythics, the giants, the spirit and the other quest fighters aren’t in any crate — they’re in 🏆 Achievements → 📜 Quests.</p>`;
       openPanel('🎁 Crates', html, (b) => { if (b.dataset.open) this.openCrate(+b.dataset.open, b.dataset.cur); }, null, { full: true, extra: `<span class="xchip">🥇 ${S.gold | 0}</span><span class="xchip">🪙 ${W.coins}</span>` });
     },
     openCrate(e, cur) {
@@ -1779,16 +1843,17 @@
         <div style="margin-top:18px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="du-btn" data-go="1">⚔️ Fight as ${CH[S.eq].ic} ${esc(CH[S.eq].n)}</button><button class="du-btn alt" data-fi="1">Change fighter</button></div>`;
       openPanel('🤖 Fight a bot', html, (b) => { if (b.dataset.d) { S.diff = +b.dataset.d; this.dirty(); sfx('click'); this.botPanel(); this.drawBar(); } else if (b.dataset.m) { S.md = b.dataset.m; this.dirty(); sfx('click'); this.botPanel(); } else if (b.dataset.go) this.startMatch(S.md === 'b' ? { md: 'b', coop: false, own: true, ps: [myPeer()] } : { md: S.md, pvp: false, D: S.diff }); else if (b.dataset.fi) this.fightersPanel(); }, null, { full: true });
     },
-    achPanel() {
-      const S = this.save;
+    achPanel(tab) {
+      const S = this.save; tab = tab || this.achTab || 'q'; this.achTab = tab; const done = QUESTS.filter((Q) => S.own.includes(Q.c)).length;
       const qb = QUESTS.map((Q) => { const q = S[Q.key], got = S.own.includes(Q.c), C = CH[Q.c], [b1, b2, tc, bar] = Q.col, prog = Q.need.map(([x, v, ic, nm]) => [Math.min(v, q ? q[x] | 0 : 0), v, ic, nm]);
         return `<div class="du-ach" style="margin-bottom:12px"><div class="${got ? 'got' : ''}" style="border-color:rgba(${b1},.55);background:linear-gradient(90deg,rgba(${b2},.35),rgba(15,23,42,.2))"><i>${Q.ic}</i><span style="flex:1"><b>${esc(Q.n)}</b><small>Accept it, then ${esc(Q.how)} → ${C.ic} the ${esc(C.n)} <span style="color:${RAR[C.r].c}">(${RAR[C.r].t})</span>, ${esc(Q.tail)}</small>
           ${q && q.on ? `<small style="display:block;margin-top:4px;color:${tc}">${prog.map(([a, v, ic, nm]) => `${ic} ${a.toLocaleString()}/${v.toLocaleString()} ${nm}`).join(' · ')}</small><div class="du-mx" style="margin:4px 0 0"><i style="width:${prog.reduce((m, [a, v]) => m + a / v, 0) / prog.length * 100}%;background:linear-gradient(90deg,${bar})"></i></div>` : ''}</span>
           ${got ? '<span class="pr">✔ Done</span>' : q && q.on ? '<span class="pr">📜 Active</span>' : `<button class="du-btn" data-qk="${Q.key}">📜 Accept</button>`}</div></div>`; }).join('');
-      const html = `${qb}<p style="font:600 13px var(--fb);color:#cbd5e1;margin:0 0 10px">The Colosseum’s own honours — each one wins you a fighter. (The 1% legends only come from crates; the Laestrygonian from the 👹 boss or Season Pass level 100.)</p><div class="du-ach">${ACH.map((A) => { const got = S.ach.includes(A.id), v = A.k === 'mast' ? S.st.mast | 0 : S.st[A.k] | 0, C = CH[A.c];
+      const tabs = `<div class="du-tabs"><button data-tab="q" class="${tab === 'q' ? 'on' : ''}">📜 Quests <small>${done}/${QUESTS.length}</small></button><button data-tab="ach" class="${tab === 'ach' ? 'on' : ''}">🏆 Achievements <small>${S.ach.length}/${ACH.length}</small></button></div>`;
+      const html = tab === 'q' ? `${tabs}<p style="font:600 13px var(--fb);color:#cbd5e1;margin:0 0 12px">Every new fighter has a quest of its own — the mythics, the giants, the spirit and the rest. Accept one, play, and when both counts are full it’s yours.</p>${qb}` : `${tabs}<p style="font:600 13px var(--fb);color:#cbd5e1;margin:0 0 10px">The Colosseum’s own honours — each one wins you a fighter. (The 1% legends only come from crates; the Laestrygonian from the 👹 boss or Season Pass level 100.)</p><div class="du-ach">${ACH.map((A) => { const got = S.ach.includes(A.id), v = A.k === 'mast' ? S.st.mast | 0 : S.st[A.k] | 0, C = CH[A.c];
         return `<div class="${got ? 'got' : ''}"><i>${A.ic}</i><span><b>${esc(A.n)}</b><small>${esc(A.d)} → ${C.ic} ${esc(C.n)} <span style="color:${RAR[C.r].c}">(${RAR[C.r].t})</span></small></span><span class="pr">${got ? '✔ Done' : `${Math.min(v, A.n0).toLocaleString()} / ${A.n0.toLocaleString()}`}</span></div>`; }).join('')}</div>`;
-      openPanel('🏆 Duel Achievements', html, (b) => { const Q = b.dataset.qk && QUESTS.find((x) => x.key === b.dataset.qk);
-        if (Q && !(S[Q.key] && S[Q.key].on) && !S.own.includes(Q.c)) { S[Q.key] = Object.assign({ on: 1 }, ...Q.need.map(([x]) => ({ [x]: 0 }))); this.dirty(); sfx('unlock'); toast(`📜 ${Q.n}: ${Q.how}`, Q.col[2]); this.achPanel(); } }, null, { full: true, extra: `<span class="xchip">${S.ach.length}/${ACH.length}</span>` });
+      openPanel('🏆 Duel Achievements', html, (b) => { if (b.dataset.tab) { sfx('click'); this.achPanel(b.dataset.tab); return; } const Q = b.dataset.qk && QUESTS.find((x) => x.key === b.dataset.qk);
+        if (Q && !(S[Q.key] && S[Q.key].on) && !S.own.includes(Q.c)) { S[Q.key] = Object.assign({ on: 1 }, ...Q.need.map(([x]) => ({ [x]: 0 }))); this.dirty(); sfx('unlock'); toast(`📜 ${Q.n}: ${Q.how}`, Q.col[2]); this.achPanel('q'); } }, null, { full: true, extra: `<span class="xchip">${S.ach.length}/${ACH.length}</span>` });
     },
   };
   addExp(DU);
