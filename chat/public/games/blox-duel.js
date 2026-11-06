@@ -119,7 +119,8 @@
     .du-diff button small{display:block;margin-top:4px;font:600 11.5px/1.3 var(--fb);color:#cbd5e1}.du-diff button.on{background:var(--dc);color:#0b1220}.du-diff button.on small{color:#0b1220}
     .du-res{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
     .du-gwrap{overflow-x:auto;padding:2px 2px 8px;-webkit-overflow-scrolling:touch}
-    .du-g6{display:grid;grid-template-columns:58px repeat(6,minmax(124px,1fr));gap:8px;min-width:850px;align-items:start}
+    .du-g6{display:grid;grid-template-columns:58px repeat(7,minmax(124px,1fr));gap:8px;min-width:980px;align-items:start}
+    .du-wts{display:flex;flex-wrap:wrap;gap:6px 14px;margin:0 0 10px;font:600 12px var(--fb,sans-serif);color:#94a3b8}.du-wts b{color:#e2e8f0;margin-right:4px}
     .du-gh{font:800 14px var(--fh);color:#fff;text-align:center;padding:6px 4px;border-radius:10px;background:rgba(255,255,255,.07)}
     .du-gr{align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);padding:6px 2px}
     .du-gr b{font-size:13px;line-height:1.05;color:var(--rc);text-align:center;word-break:break-all;width:40px;text-shadow:0 1px 2px #000}.du-gr small{font:800 9.5px var(--fb);color:#cbd5e1;text-transform:uppercase;letter-spacing:.03em}
@@ -148,6 +149,7 @@
     { n: 'Medieval Japan', sn: 'Japan', e: '🏯', c1: '#450a0a', c2: '#fca5a5', d: 'Foot soldiers, masterless swordsmen, shinobi, warrior monks — and the samurai.' },
     { n: 'Ottoman Empire', sn: 'Ottoman', e: '🌙', c1: '#14532d', c2: '#f87171', d: 'Azabs and archers, grenadiers, the Sultan’s own Peyk guard — and the Janissary. All on foot.' },
     { n: 'Mongols', sn: 'Mongols', e: '🏹', c1: '#78350f', c2: '#7dd3fc', d: 'The arban’s spears, steppe archers, a shaman of the Eternal Blue Sky, the Kheshig — and the Great Khan. All on foot.' },
+    { n: 'Colonial America', sn: 'Colonials', e: '🔔', c1: '#1e3a8a', c2: '#e7d3a1', d: 'Minutemen and frontier riflemen, the Continental line, light dragoons — and a colonel of the Continental Army. Early gunpowder: muskets that hit hard and reload slowly, and the bayonet.' },
   ];
   // the rarities, one star each: ★ common … ★★★★★ mythic
   const RAR = [{ n: 'Common', c: '#cbd5e1' }, { n: 'Rare', c: '#38bdf8' }, { n: 'Epic', c: '#c084fc' }, { n: 'Legendary', c: '#fbbf24' }, { n: 'Mythic', c: '#f43f5e' }];
@@ -274,11 +276,11 @@
       { n: 'Javelin Jab', ic: '🔱', k: 'melee', dmg: 40, cd: 1.2, rng: 7.5, arc: 50, wind: 0.16, an: 'jab' },
       { n: 'Javelin Throw', ic: '🎯', k: 'proj', dmg: 58, cd: 8, spd: 80, wind: 0.3, an: 'throw', model: 'javelin', d: 'Throw the javelin: 58 damage.' },
       { n: 'Kalkan Wall', ic: '🛡️', k: 'buff', cd: 26, an: 'shieldup', b: { dur: 2.5, blk: 1, dmgM: 1.3 }, d: 'Brace behind the round kalkan: blocks every blow for 2.5 s, then +30% damage while it lasts.' }] },
-    { e: 4, r: 0, hp: 340, spd: 1.05, ro: 'Ranged', ab: [
+    { e: 4, r: 0, hp: 340, spd: 1.05, ro: 'Ranger', ab: [
       { n: 'Recurve Shot', ic: '🏹', k: 'proj', dmg: 44, cd: 1.25, spd: 110, wind: 0.25, an: 'bow', model: 'arrow' },
       { n: 'Thumb-Ring Draw', ic: '💍', k: 'proj', dmg: 30, cnt: 3, gap: 0.16, cd: 9, spd: 125, wind: 0.2, an: 'bow', model: 'arrow', d: 'Three arrows loosed fast with the thumb ring, 30 each.' },
       { n: 'Arrow Rain', ic: '🌧️', k: 'volley', dmg: 34, cnt: 6, rad: 6, delay: 0.9, cd: 30, wind: 0.35, an: 'sky', d: 'Six arrows fall where they stand, 34 each.' }] },
-    { e: 4, r: 1, hp: 380, ro: 'Area damage', ab: [
+    { e: 4, r: 1, hp: 380, ro: 'Ranger', ab: [
       { n: 'Kilij Cut', ic: '🗡️', k: 'melee', dmg: 42, cd: 1.15, rng: 6.5, arc: 100, wind: 0.16, an: 'quick' },
       { n: 'Humbara', ic: '💣', k: 'proj', dmg: 70, cd: 9, spd: 52, wind: 0.32, an: 'lob', model: 'bomb', fx: { bu: [30, 3] }, d: 'Lob a fused iron grenade: 70 damage, and 30 more as it burns.' },
       { n: 'Barrage', ic: '🎆', k: 'proj', dmg: 55, cnt: 3, spread: 16, cd: 28, spd: 50, wind: 0.35, an: 'lob', model: 'bomb', fx: { bu: [24, 3], kb: 5 }, d: 'Three grenades at once, 55 each, burning — and they’re thrown back.' }] },
@@ -295,11 +297,11 @@
       { n: 'Spear Thrust', ic: '🔱', k: 'melee', dmg: 42, cd: 1.25, rng: 9, arc: 35, wind: 0.2, an: 'spear2' },
       { n: 'Lunge', ic: '💨', k: 'dash', dmg: 60, dist: 10, dd: 0.25, cd: 9, wind: 0.15, an: 'charge', d: 'Lunge forward spear-first: 60 damage.' },
       { n: 'Arban Discipline', ic: '🎖️', k: 'buff', cd: 28, an: 'rally', b: { dur: 6, dmgM: 1.25, def: 0.8 }, d: 'Ten men, one will: +25% damage and 20% less damage taken for 6 s.' }] },
-    { e: 5, r: 0, hp: 340, spd: 1.12, ro: 'Ranged', ab: [
+    { e: 5, r: 0, hp: 340, spd: 1.12, ro: 'Ranger', ab: [
       { n: 'Composite Shot', ic: '🏹', k: 'proj', dmg: 42, cd: 1.1, spd: 115, wind: 0.24, an: 'bow', model: 'arrow' },
       { n: 'Parthian Shot', ic: '↩️', k: 'dash', back: true, dist: 10, dd: 0.28, cd: 10, wind: 0.08, an: 'hop', then: { k: 'proj', dmg: 50, cnt: 2, spread: 10, spd: 115, model: 'arrow' }, d: 'Spring back out of reach and loose two arrows as you land, 50 each.' },
       { n: 'Whistling Arrows', ic: '🎐', k: 'volley', dmg: 32, cnt: 7, rad: 6.5, delay: 0.8, cd: 30, wind: 0.35, an: 'sky', fx: { sl: [0.7, 1.5] }, d: 'Seven screaming arrows fall where they stand, 32 each.' }] },
-    { e: 5, r: 1, hp: 390, ro: 'Support', ab: [
+    { e: 5, r: 1, hp: 390, ro: 'All-rounder', ab: [
       { n: 'Staff Strike', ic: '🪄', k: 'melee', dmg: 40, cd: 1.2, rng: 7.5, arc: 80, wind: 0.2, an: 'overhand' },
       { n: 'Spirit Drum', ic: '🥁', k: 'buff', cd: 14, an: 'drum', b: { dur: 5, heal: 90, dmgM: 1.2 }, d: 'Beat the drum to the spirits: heal 90, and +20% damage for 5 s.' },
       { n: 'Wrath of Tengri', ic: '⚡', k: 'proj', dmg: 75, cd: 28, spd: 70, wind: 0.4, an: 'fan', model: 'fire', fx: { bu: [45, 4], sl: [0.6, 2] }, d: 'Call down the Eternal Blue Sky: 75 damage, 45 more as it burns, and a 2 s slow.' }] },
@@ -318,7 +320,7 @@
       { n: 'Thousand Cuts', ic: '🌸', k: 'multi', hits: [28, 28, 28, 28, 28, 28, 28, 70], gap: 0.1, cd: 15, rng: 8, arc: 140, wind: 0.2, an: 'storm', fx: { bl: [80, 4] }, d: 'A storm of eight cuts with both blades — seven of 28, then one of 70 that leaves them bleeding 80 more.' },
       { n: 'Mushin', ic: '🧘', k: 'buff', cd: 32, an: 'mushin', b: { dur: 6, dmgM: 1.35, spdM: 1.25, cdM: 1.6, imm: 1 }, d: 'No-mind: for 6 s, +35% damage, +25% speed, cooldowns run 60% faster, and nothing stuns, roots or slows him.' }] },
     // 🦅 Rome's myth: the Imperator, the general who is emperor, with a gilded gladius and the legion's eagle — not in any crate (his Triumph is in the achievements)
-    { e: 0, r: 4, hp: 560, spd: 1.05, def: 0.85, nc: 1, stunP: [0.15, 0.6], lsP: 0.15, ro: 'Commander', how: 'Accept the Imperator’s Triumph (🏆 Achievements → 📜 Quests), then win 15 Classic duels and defeat 40 fighters', pas: [['🦅', 'Imperium', '15% of his hits stagger them: a 0.6 s stun.'], ['🌿', 'Triumph', 'Heals 15% of the damage he deals.']], ab: [
+    { e: 0, r: 4, hp: 560, spd: 1.05, def: 0.85, nc: 1, stunP: [0.15, 0.6], lsP: 0.15, ro: 'All-rounder', how: 'Accept the Imperator’s Triumph (🏆 Achievements → 📜 Quests), then win 15 Classic duels and defeat 40 fighters', pas: [['🦅', 'Imperium', '15% of his hits stagger them: a 0.6 s stun.'], ['🌿', 'Triumph', 'Heals 15% of the damage he deals.']], ab: [
       { n: 'Imperial Gladius', ic: '🗡️', k: 'melee', dmg: 78, cd: 1.05, rng: 7, arc: 90, wind: 0.16, an: 'thrust' },
       { n: 'Pila of the Legion', ic: '🎯', k: 'volley', dmg: 34, cnt: 8, rad: 7, delay: 0.8, cd: 11, wind: 0.3, an: 'sky', model: 'pilum', fx: { sl: [0.7, 1.5] }, d: 'He signals, and the legion behind him throws: eight pila fall where they stand, 34 each, and each one slows them.' },
       { n: 'Aquila', ic: '🦅', k: 'buff', cd: 28, an: 'aquila', b: { dur: 7, dmgM: 1.35, def: 0.7, hps: 18 }, d: 'Raise the eagle: for 7 s, +35% damage, 30% less damage taken, and heal 18 a second.' },
@@ -330,13 +332,13 @@
       { n: 'Frost Stomp', ic: '🦶', k: 'stomp', dmg: 40, crush: 100, near: 7, rad: 28, cd: 6.5, wind: 0.5, an: 'stomp', wspd: 20, d: 'A shockwave of frost rolls out: jump it or take 40. Up close it’s a Crush — 100, a 1 s stun and Crushed for the rest of the round.' },
       { n: 'Fimbulwinter', ic: '🌨️', k: 'volley', dmg: 32, cnt: 10, rad: 8, delay: 0.9, cd: 32, wind: 0.45, an: 'roar', model: 'hail', fx: { sl: [0.7, 1.5] }, d: 'The great winter: ten shards of hail crash down where they stand, 32 each, and each one chills them.' }] },
     // 🏛️ Macedon: the Phalangite, a pikeman of the phalanx — a legendary with a quest of his own (no crate has him)
-    { e: 1, r: 3, hp: 560, spd: 0.95, def: 0.85, nc: 1, sh: 1, ro: 'Pikeman', how: 'Accept The Sarissa (🏆 Achievements → 📜 Quests), then defeat 25 fighters and deal 10,000 damage', pas: [['📏', 'Sarissa', 'The longest reach in the Colosseum: his pike strikes from 13 m.']], ab: [
+    { e: 1, r: 3, hp: 560, spd: 0.95, def: 0.85, nc: 1, sh: 1, ro: 'Tank', how: 'Accept The Sarissa (🏆 Achievements → 📜 Quests), then defeat 25 fighters and deal 10,000 damage', pas: [['📏', 'Sarissa', 'The longest reach in the Colosseum: his pike strikes from 13 m.']], ab: [
       { n: 'Sarissa Thrust', ic: '🔱', k: 'melee', dmg: 72, cd: 1.5, rng: 13, arc: 30, wind: 0.26, an: 'spear' },
       { n: 'Shield Wall', ic: '🛡️', k: 'buff', cd: 13, an: 'aspis', b: { dur: 2.5, blk: 1, rf: 0.3 }, d: 'Brace behind pike and shield: blocks every blow for 2.5 s, and 30% of it goes back at them.' },
       { n: 'Hedgehog', ic: '🦔', k: 'multi', hits: [45, 45, 60], gap: 0.28, cd: 11, rng: 12.5, arc: 50, wind: 0.2, an: 'flurry', fx: { kb: 10 }, d: 'Three thrusts of the sarissa — 45, 45, 60 — and the last drives them back.' },
       { n: 'Macedonian Charge', ic: '☀️', k: 'dash', dmg: 160, dist: 16, dd: 0.5, cd: 26, wind: 0.25, an: 'charge', fx: { st: 1, kb: 10 }, d: 'Charge with the pike levelled: 160 damage, a 1 s stun, and they’re thrown back.' }] },
     // 🏰 Europe: the Halberdier — an epic with a quest of his own
-    { e: 2, r: 2, hp: 520, def: 0.9, nc: 1, ro: 'Polearm', how: 'Accept The Swiss Guard (🏆 Achievements → 📜 Quests), then win 8 Classic duels and defeat 20 fighters', ab: [
+    { e: 2, r: 2, hp: 520, def: 0.9, nc: 1, ro: 'Bruiser', how: 'Accept The Swiss Guard (🏆 Achievements → 📜 Quests), then win 8 Classic duels and defeat 20 fighters', ab: [
       { n: 'Axe / Spike', ic: '🪓', k: 'melee', modes: [
         { n: 'Axe', ic: '🪓', dmg: 66, cd: 1.6, rng: 9, arc: 110, wind: 0.26, an: 'naginata' },
         { n: 'Spike', ic: '🔱', dmg: 50, cd: 1.15, rng: 10, arc: 40, wind: 0.18, an: 'spear2' }] },
@@ -349,7 +351,7 @@
       { n: 'Quake', ic: '🦶', k: 'stomp', dmg: 40, crush: 115, near: 7, rad: 26, cd: 6.5, wind: 0.5, an: 'stomp', wspd: 18, d: 'A shockwave rolls out: jump it or take 40. Up close it’s a Crush — 115, a 1 s stun and Crushed for the round.' },
       { n: 'Thunderbolt', ic: '⚡', k: 'proj', dmg: 220, cd: 28, spd: 150, wind: 0.8, an: 'lob', model: 'bolt', fx: { st: 1.2 }, d: 'The Cyclopes forged the thunderbolts of Zeus — he hurls one: 220 damage and a 1.2 s stun.' }] },
     // 🏯 Japan's myth: the Oni, a giant and a tank — vast, armoured, and slow to swing
-    { e: 3, r: 4, hp: 2300, spd: 0.6, def: 0.5, big: 1.45, nc: 1, ro: 'Giant Tank', how: 'Accept The Oni’s Gate (🏆 Achievements → 📜 Quests), then win 20 duels and deal 30,000 damage', pas: [['👹', 'Demon Hide', '40% slower than everyone else, and takes half damage.'], ['🐢', 'Slow and Heavy', 'Its kanabō swings only every 2.8 s — but every blow staggers.']], ab: [
+    { e: 3, r: 4, hp: 2300, spd: 0.6, def: 0.5, big: 1.45, nc: 1, ro: 'Giant', how: 'Accept The Oni’s Gate (🏆 Achievements → 📜 Quests), then win 20 duels and deal 30,000 damage', pas: [['👹', 'Demon Hide', '40% slower than everyone else, and takes half damage.'], ['🐢', 'Slow and Heavy', 'Its kanabō swings only every 2.8 s — but every blow staggers.']], ab: [
       { n: 'Kanabō', ic: '🏏', k: 'melee', dmg: 72, cd: 2.8, rng: 9.5, arc: 120, wind: 0.6, an: 'overhead', fx: { st: 0.4 } },
       { n: 'Iron Hide', ic: '🛡️', k: 'buff', cd: 16, an: 'fortress', b: { dur: 5, def: 0.45, imm: 1 }, d: 'Its hide like iron: 55% less damage, and nothing stuns, roots or slows it for 5 s.' },
       { n: 'Oni Roar', ic: '📢', k: 'stomp', dmg: 25, crush: 60, near: 6, rad: 22, cd: 10, wind: 0.6, an: 'stomp', wspd: 16, d: 'A roar and a stamp that shakes the sand: jump it or take 25 — up close, 60 and Crushed.' },
@@ -372,13 +374,48 @@
       { n: 'Hitodama', ic: '🏮', k: 'proj', dmg: 24, cnt: 3, spread: 14, cd: 6.5, spd: 50, wind: 0.25, an: 'fan', model: 'hitodama', fx: { bu: [18, 3] }, d: 'Three ghost-fires drift at them: 24 each, and their cold blue flame burns for 18 more.' },
       { n: 'Kanashibari', ic: '🫥', k: 'dash', dmg: 20, dist: 13, dd: 0.2, cd: 15, wind: 0.15, an: 'iai', fx: { st: 1.2, vu: 2.5 }, d: 'Sleep paralysis: it rushes through them in a cold breath — 20 damage, frozen stiff for 1.2 s, and ×1.5 damage taken for 2.5 s.' },
       { n: 'Onryō’s Grudge', ic: '👺', k: 'proj', dmg: 40, cd: 22, spd: 62, wind: 0.3, an: 'fan', model: 'grudge', fx: { cu: 5 }, d: 'A vengeful spirit flies at them: 40 damage and the Grudge for 5 s — every blow they land does half, and hurts them just as much.' }] },
+    // 🔔 Colonial America: early gunpowder. Each carries a gun and a blade, and switches between them (1 and 2): the gun hits
+    // much harder but takes a long time to reload; the blade is quick. Each has its own cooldown, so stab while you reload
+    { e: 6, r: 0, hp: 430, ro: 'All-rounder', pas: [['⚖️', 'All-rounder', 'Average at everything — health, damage, range, attack speed and speed — and weak at nothing.']], ab: [
+      { n: 'Musket / Bayonet', ic: '🔫', k: 'melee', split: 1, modes: [
+        { n: 'Musket', ic: '🔫', k: 'proj', dmg: 75, cd: 3.4, spd: 230, wind: 0.35, an: 'musket', model: 'ball' },
+        { n: 'Bayonet', ic: '🗡️', dmg: 26, cd: 0.95, rng: 8.5, arc: 45, wind: 0.16, an: 'spear2' }] },
+      { n: 'Minute’s Notice', ic: '⏱️', k: 'buff', cd: 14, an: 'ram', b: { dur: 4, spdM: 1.3, rl: 1 }, d: 'Ready at a minute’s notice: the musket’s loaded at once, and you’re 30% faster for 4 s.' },
+      { n: 'Butt Stroke', ic: '💥', k: 'melee', dmg: 32, cd: 9, rng: 5.5, arc: 70, wind: 0.2, an: 'pommel', fx: { st: 0.6, kb: 8 }, d: 'The musket’s butt to the face: 32 damage, a 0.6 s stun and they’re knocked back.' }] },
+    { e: 6, r: 0, hp: 350, spd: 1.08, ro: 'Ranger', pas: [['🎯', 'Long Rifle', 'The rifled barrel reaches furthest and hits hardest — and takes longest to load.']], ab: [
+      { n: 'Rifle / Tomahawk', ic: '🎯', k: 'melee', split: 1, modes: [
+        { n: 'Long Rifle', ic: '🎯', k: 'proj', dmg: 100, cd: 4.8, spd: 300, wind: 0.5, an: 'musket', model: 'ball' },
+        { n: 'Tomahawk', ic: '🪓', dmg: 25, cd: 0.8, rng: 6, arc: 100, wind: 0.12, an: 'slash' }] },
+      { n: 'Tomahawk Throw', ic: '🪓', k: 'proj', dmg: 45, cd: 8, spd: 60, wind: 0.3, an: 'throw', model: 'axe', fx: { bl: [30, 3] }, d: 'The tomahawk end over end: 45 damage, and 30 more as they bleed.' },
+      { n: 'Dead Aim', ic: '🦌', k: 'proj', dmg: 120, cd: 18, spd: 340, wind: 1.1, an: 'musket', model: 'ball', fx: { st: 0.6 }, d: 'Draw a bead for 1.1 s, as a hunter does: 120 damage, and it staggers them.' }] },
+    { e: 6, r: 1, hp: 480, def: 0.95, ro: 'All-rounder', pas: [['⚖️', 'All-rounder', 'Average at everything — health, damage, range, attack speed and speed — and weak at nothing.']], ab: [
+      { n: 'Musket / Bayonet', ic: '🔫', k: 'melee', split: 1, modes: [
+        { n: 'Musket', ic: '🔫', k: 'proj', dmg: 80, cd: 3.2, spd: 230, wind: 0.35, an: 'musket', model: 'ball' },
+        { n: 'Bayonet', ic: '🗡️', dmg: 30, cd: 0.9, rng: 8.5, arc: 45, wind: 0.16, an: 'spear2' }] },
+      { n: 'Platoon Fire', ic: '🥁', k: 'proj', dmg: 28, cnt: 3, spread: 7, cd: 11, spd: 220, wind: 0.4, an: 'musket', model: 'ball', d: 'The file beside you fires with you: three musket balls, 28 each.' },
+      { n: 'Bayonet Charge', ic: '🗡️', k: 'dash', dmg: 50, dist: 14, dd: 0.3, cd: 14, wind: 0.25, an: 'charge', fx: { kb: 10, st: 0.4 }, d: 'Fix bayonets and charge: 50 damage, and they’re thrown back.' }] },
+    { e: 6, r: 2, hp: 420, spd: 1.15, ro: 'Skirmisher', pas: [['🐎', 'Light Dragoon', '15% faster than most: in with the sabre, out with the pistol.']], ab: [
+      { n: 'Pistol / Sabre', ic: '🔫', k: 'melee', split: 1, modes: [
+        { n: 'Pistol', ic: '🔫', k: 'proj', dmg: 62, cd: 2.6, spd: 210, wind: 0.2, an: 'pistol', model: 'ball' },
+        { n: 'Sabre', ic: '🗡️', dmg: 34, cd: 0.75, rng: 6.5, arc: 110, wind: 0.1, an: 'slash' }] },
+      { n: 'Brace of Pistols', ic: '🔫', k: 'proj', dmg: 52, cnt: 2, gap: 0.25, cd: 9, spd: 210, wind: 0.2, an: 'pistol', model: 'ball', d: 'The second and third pistols from the holsters: two shots, 52 each.' },
+      { n: 'Sabre Charge', ic: '🐎', k: 'dash', dmg: 55, dist: 16, dd: 0.25, cd: 12, wind: 0.15, an: 'iai', fx: { bl: [30, 3] }, d: 'A dragoon’s charge, sabre out: 55 damage, and 30 more as they bleed.' }] },
+    { e: 6, r: 3, hp: 560, spd: 1.05, def: 0.88, ro: 'All-rounder', pas: [['⚖️', 'All-rounder', 'Good at everything — health, damage, range, attack speed and speed — and weak at nothing.'], ['🎖️', 'Colonel', 'He leads from the front: his Rally heals and steels him, and the guns answer when he calls.']], ab: [
+      { n: 'Pistol / Sword', ic: '🔫', k: 'melee', split: 1, modes: [
+        { n: 'Pistol', ic: '🔫', k: 'proj', dmg: 75, cd: 2.6, spd: 230, wind: 0.22, an: 'pistol', model: 'ball' },
+        { n: 'Sword', ic: '⚔️', dmg: 42, cd: 0.75, rng: 6.5, arc: 100, wind: 0.12, an: 'slash' }] },
+      { n: 'Rally the Line', ic: '🎖️', k: 'buff', cd: 22, an: 'rally', b: { dur: 6, dmgM: 1.25, def: 0.8, heal: 80 }, d: '“Steady, boys!”: heal 80, +25% damage and 20% less damage taken for 6 s.' },
+      { n: 'Artillery!', ic: '💣', k: 'volley', dmg: 60, cnt: 4, rad: 7, delay: 1.2, cd: 26, wind: 0.4, an: 'sky', model: 'cannon', d: 'His sword points and the guns answer: four cannonballs fall where they stand, 60 each.' }] },
   ];
   CH.forEach((C, i) => { C.i = i; C.n = DUEL_N[i]; C.ic = DUEL_IC[i]; C.spd = C.spd || 1; C.def = C.def || 1; });
   // what each one is for, at a glance
-  const ROLE = ['Tank', 'Skirmisher', 'Controller', 'Tank', 'Damage dealer', 'Tank', 'Skirmisher', 'Ranged', 'Bruiser', 'Bruiser', 'Bruiser', 'Ranged', 'Bruiser', 'Bruiser', 'Tank', 'Skirmisher', 'Duelist', 'Assassin', 'Bruiser', 'Damage dealer'];
-  CH.forEach((C, i) => { C.ro = C.ro || ROLE[i] || 'Fighter'; });
+  const ROLE = ['Tank', 'Skirmisher', 'Skirmisher', 'Tank', 'Damage dealer', 'Tank', 'Skirmisher', 'Ranger', 'Bruiser', 'Bruiser', 'Bruiser', 'Ranger', 'Bruiser', 'Bruiser', 'Tank', 'Skirmisher', 'Duelist', 'Assassin', 'Bruiser', 'Damage dealer'];
+  CH.forEach((C, i) => { C.ro = C.ro || ROLE[i] || 'All-rounder'; });
+  // three weights, and the classes in each: 🪶 Light (quick, fragile), ⚔️ Medium, 🛡️ Heavy (slow, hard to kill)
+  const WTS = [['Light', '🪶', ['Assassin', 'Spirit', 'Ranger', 'Skirmisher']], ['Medium', '⚔️', ['Bruiser', 'Damage dealer', 'Duelist', 'All-rounder']], ['Heavy', '🛡️', ['Tank', 'Giant']]];
+  CH.forEach((C) => { const W = WTS.find((w) => w[2].includes(C.ro)); if (!W) console.error('duel: no weight for', C.n, C.ro); C.wt = W ? W[0] : 'Medium'; C.wtI = W ? W[1] : '⚔️'; });
   const CRATE = EMP.map((_, e) => CH.filter((C) => C.e === e && !C.nc).map((C) => C.i)); // (each crate's five, common to legendary)
-  const LAE = 20, EXE = 21, KEN = 32, IMP = 33, JOT = 34, PHA = 35, HAL = 36, CYC = 37, ONI = 38, CAC = 39, CHO = 40, YUR = 41;
+  const LAE = 20, EXE = 21, KEN = 32, IMP = 33, JOT = 34, PHA = 35, HAL = 36, CYC = 37, ONI = 38, CAC = 39, CHO = 40, YUR = 41, MIN = 42, RIF = 43, REG = 44, DRA = 45, COLN = 46;
   for (const i of [0, 1, 3, 4, 5, 6, 8, 9, 10, 12, 13, 22, 30, 35]) CH[i].sh = 1; // (the ones with a shield: blocking stops everything — without one it halves the damage) // (the mythics — the Laestrygonian, the Executioner, the Kensei: no crate has them)
   const KEN_W = 20, KEN_D = 20000; // (the Sword Saint's Trial: wins, damage)
   // the mythics' quests: each accepted in the achievements, then two counts to reach (k kills, d damage, w wins, c Classic
@@ -402,7 +439,7 @@
     { n: 'Great Scimitar', ic: '🗡️', k: 'melee', dmg: 250, cd: 6, rng: 10, arc: 120, wind: 1.4, an: 'bcleave' },
     { n: 'Earthshaker', ic: '🦶', k: 'stomp', dmg: 30, rad: 36, cd: 8, wind: 0.8, an: 'bplant', wspd: 17 }] }); // (bcleave, bplant: its own two-handed blows — the pack holds the sword for them)
     // the fighters' looks for their trails and glows
-  const COL = ['#ef4444', '#f59e0b', '#2dd4bf', '#a855f7', '#f97316', '#60a5fa', '#fbbf24', '#fb923c', '#a3a3a3', '#dc2626', '#facc15', '#84cc16', '#38bdf8', '#fef3c7', '#e2e8f0', '#93c5fd', '#fda4af', '#a78bfa', '#fb923c', '#fde047', '#fbbf24', '#991b1b', '#f87171', '#fbbf24', '#f97316', '#2dd4bf', '#dc2626', '#a16207', '#7dd3fc', '#38bdf8', '#cbd5e1', '#facc15', '#f43f5e', '#fbbf24', '#7dd3fc', '#f59e0b', '#ef4444', '#d6a77a', '#dc2626', '#fb923c', '#5eead4', '#bfdbfe'];
+  const COL = ['#ef4444', '#f59e0b', '#2dd4bf', '#a855f7', '#f97316', '#60a5fa', '#fbbf24', '#fb923c', '#a3a3a3', '#dc2626', '#facc15', '#84cc16', '#38bdf8', '#fef3c7', '#e2e8f0', '#93c5fd', '#fda4af', '#a78bfa', '#fb923c', '#fde047', '#fbbf24', '#991b1b', '#f87171', '#fbbf24', '#f97316', '#2dd4bf', '#dc2626', '#a16207', '#7dd3fc', '#38bdf8', '#cbd5e1', '#facc15', '#f43f5e', '#fbbf24', '#7dd3fc', '#f59e0b', '#ef4444', '#d6a77a', '#dc2626', '#fb923c', '#5eead4', '#bfdbfe', '#a16207', '#65a30d', '#3b82f6', '#16a34a', '#e7d3a1'];
   // the duel's own achievements: each wins a fighter (the 1% ones only come from crates)
   const ACH = [
     { id: 'blood', ic: '🩸', n: 'First Blood', d: 'Defeat a fighter', k: 'kills', n0: 1, c: 1 },
@@ -431,7 +468,7 @@
   const mLvl = (xp) => { let l = 0; while (l < 10 && xp >= MAST[l + 1]) l++; return l; };
   const ROUND_T = 180, DM_T = 300, TO = 3, A0 = 34, B0 = 24; // (a round, a deathmatch; first to; the arena's half-length (x) and half-width (z))
   const LOBBY = { z0: 92, z1: 156, x: 46 }, PADS = [{ md: 'c', x: -18, z: 108, n: '⚔️ CLASSIC 1v1', s: 'first to 3' }, { md: 'd', x: 18, z: 108, n: '💀 DEATHMATCH 1v1', s: 'most kills in 5:00' }, { md: 'b', x: 0, z: 103, n: '👹 BOSS · CO-OP', s: 'up to 4 vs the Laestrygonian' }];
-  const SHRINES = [{ e: 1, x: -35, z: 130 }, { e: 0, x: -21, z: 137 }, { e: 2, x: -7, z: 141 }, { e: 3, x: 7, z: 141 }, { e: 4, x: 21, z: 137 }, { e: 5, x: 35, z: 130 }];
+  const SHRINES = [1, 0, 2, 3, 4, 5, 6].map((e, k) => { const x = -36 + k * 12; return { e, x, z: Math.round(141 - x * x * 0.009) }; }); // (an arc of shrines, oldest to newest)
   const BOSS_LIVES = 5, BOSS_T = 600; // (the boss: its health with one of you — more with more — your lives each, and the time you have)
   const ARMORY = { x: -40, z: 120 }, BOTGATE = { x: 40, z: 120 }, TABLET = { x: 0, z: 150 };
   const isFloor = (x, z) => (x / A0) ** 2 + (z / B0) ** 2;
@@ -732,7 +769,7 @@
   }
   // a crate for a shrine: a chest in its empire's colours, bound in metal, its emblem on the front, light in its seams
   function crateModel(e) {
-    const g = new THREE.Group(), [c1, c2] = [['#7f1d1d', '#e8b84a'], ['#1e3a8a', '#e2e8f0'], ['#374151', '#93c5fd'], ['#450a0a', '#fca5a5'], ['#14532d', '#f87171'], ['#78350f', '#7dd3fc']][e];
+    const g = new THREE.Group(), [c1, c2] = [['#7f1d1d', '#e8b84a'], ['#1e3a8a', '#e2e8f0'], ['#374151', '#93c5fd'], ['#450a0a', '#fca5a5'], ['#14532d', '#f87171'], ['#78350f', '#7dd3fc'], ['#1e3a8a', '#e7d3a1']][e] || [EMP[e].c1, EMP[e].c2];
     const wood = new THREE.MeshLambertMaterial({ color: c1, map: woodTex() }), band = metalMat(e === 1 || e === 2 ? '#cbd5e1' : '#e8b84a', { shininess: 110 }), glow = new THREE.MeshBasicMaterial({ color: c2 });
     const add = (geo, m, x, y, z, sx, sy, sz) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); o.scale.set(sx, sy, sz); g.add(o); return o; };
     add(rboxGeo(3, 2, 2.2, 0.12), wood, 0, 1, 0, 1, 1, 1); const lid = add(kg('duLid', () => { const q = new THREE.CylinderGeometry(1.1, 1.1, 3, 20, 1, false, 0, Math.PI); q.rotateZ(Math.PI / 2); return q; }), wood, 0, 2, 0, 1, 0.55, 1);
@@ -796,7 +833,9 @@
   }
   const MULT = new Set(['def', 'dmgM', 'spdM', 'cdM']), SUM = new Set(['dmgA', 'ls', 'rf', 'hps']);
   function bval(F, k) { let v = MULT.has(k) ? 1 : 0; for (const b of F.S.buffs) { const q = b[k]; if (q == null) continue; if (MULT.has(k)) v *= q; else if (SUM.has(k)) v += q; else v = Math.max(v, q); } return v; }
-  function abOf(F, i) { const ab = F.C.ab[i]; if (ab.modes) { const m = ab.modes[Math.min(F.mode, ab.modes.length - 1)]; return Object.assign({}, ab, m, { k: 'melee' }); } return ab; }
+  function abOf(F, i) { const ab = F.C.ab[i]; if (ab.modes) { const m = ab.modes[Math.min(F.mode, ab.modes.length - 1)]; return Object.assign({}, ab, m, { k: m.k || 'melee' }); } return ab; }
+  // switching between a gun and a blade: with split cooldowns each keeps its own (the gun reloads while you stab)
+  function swapMode(F, k) { if (k === F.mode) return; if (F.C.ab[0].split) { F.mcd = F.mcd || []; F.mcd[F.mode] = F.cd[0]; F.cd[0] = F.mcd[k] || 0; F.cdMax[0] = Math.max(F.cd[0], F.C.ab[0].modes[k].cd); } F.mode = k; }
   function actDur(ab) {
     const w = ab.wind || 0;
     switch (ab.k) {
@@ -845,7 +884,7 @@
   }
   function dropTrail(a) { if (a && a.duTrail) { scene.remove(a.duTrail.m); a.duTrail.m.geometry.dispose(); a.duTrail.m.material.dispose(); a.duTrail = null; } }
   // a buff's look on the fighter: a coloured glow round them, and for some a shield of light
-  const BUFFLOOK = { aquila: ['#fbbf24'], mushin: ['#f43f5e'], testudo: ['#fde68a', 1], aspis: ['#93c5fd', 1], shieldup: ['#93c5fd', 1], berserk: ['#ef4444'], hype: ['#fbbf24'], wrath: ['#38bdf8'], molon: ['#f59e0b', 1], rally: ['#4ade80'], roar: ['#dc2626'], pray: ['#fef3c7'], fortress: ['#cbd5e1', 1], resolve: ['#fda4af'], smoke: ['#6b7280'], benkei: ['#facc15'], bloodrush: ['#dc2626'], sharpen: ['#f97316'], parry: ['#e5e7eb', 1], drum: ['#7dd3fc'], haste: ['#fca5a5'] };
+  const BUFFLOOK = { ram: ['#e7d3a1'], aquila: ['#fbbf24'], mushin: ['#f43f5e'], testudo: ['#fde68a', 1], aspis: ['#93c5fd', 1], shieldup: ['#93c5fd', 1], berserk: ['#ef4444'], hype: ['#fbbf24'], wrath: ['#38bdf8'], molon: ['#f59e0b', 1], rally: ['#4ade80'], roar: ['#dc2626'], pray: ['#fef3c7'], fortress: ['#cbd5e1', 1], resolve: ['#fda4af'], smoke: ['#6b7280'], benkei: ['#facc15'], bloodrush: ['#dc2626'], sharpen: ['#f97316'], parry: ['#e5e7eb', 1], drum: ['#7dd3fc'], haste: ['#fca5a5'] };
   function buffLook(F) {
     const a = F.a; if (!a || a.dead) return; const B = F.S.buffs.filter((b) => b.an && BUFFLOOK[b.an]), on = B.length > 0 && !bval(F, 'inv');
     let L = a.duAura; if (!L && on) { L = a.duAura = { gl: kitGlow(a.g, '#ffffff', 6, 0.3), sh: new THREE.Mesh(kg('duBubble', () => new THREE.SphereGeometry(4.2, 28, 18)), new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.16, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide })) }; L.gl.position.y = 3.2; L.sh.position.y = 3.3; a.g.add(L.sh); }
@@ -903,6 +942,9 @@
     draw: [{ aL: [1.6, 0, 0.05], eL: [0], aR: [1.5, 0.6, 0.45], eR: [2.3], bd: [0.05, -0.6, 0], hd: [0, 0.5, 0], lL: [0.3], lR: [-0.2] }, { aL: [1.6, 0, 0.05], eL: [0], aR: [1.3, 0.7, 0.9], eR: [1.1], bd: [-0.05, -0.6, 0], hd: [0, 0.5, 0] }],
     sky: [{ aL: [2.4, 0, 0.05], eL: [0.05], aR: [2.3, 0.5, 0.3], eR: [2.0], bd: [0.25, -0.5, 0], hd: [0.6, 0.3, 0] }, { aL: [2.4, 0, 0.05], eL: [0.05], aR: [2.2, 0.6, 0.8], eR: [1.2], bd: [0.25, -0.5, 0], hd: [0.6, 0.3, 0] }],
     gun: [{ aR: [1.5, 0.2, 0.05], eR: [0.15], aL: [1.45, 0.4, 0.4], eL: [0.5], bd: [-0.05, -0.3, 0], hd: [-0.1, 0.3, 0], lL: [0.3], lR: [-0.2] }, { aR: [1.9, 0.2, 0.05], eR: [0.1], aL: [1.8, 0.4, 0.4], eL: [0.4], bd: [0.2, -0.3, 0], hd: [0.1, 0.3, 0] }],
+    musket: [{ aR: [1.5, 0.05, 0.12], eR: [0.08], aL: [1.42, 0.45, 0.5], eL: [0.42], bd: [-0.05, -0.35, 0], hd: [0.05, 0.3, 0.12], lL: [0.35], lR: [-0.2] }, { aR: [1.74, 0.05, 0.12], eR: [0.05], aL: [1.66, 0.45, 0.5], eL: [0.38], bd: [0.12, -0.35, 0], hd: [0.12, 0.3, 0.12], lL: [0.3], lR: [-0.2] }], // (to the shoulder, cheek to the stock — and the kick)
+    pistol: [{ aR: [1.55, 0.1, 0], eR: [0.05], aL: [0.15, 0, -0.35], eL: [0.3], bd: [0, -0.6, 0], hd: [0, 0.55, 0], lL: [0.25], lR: [-0.15] }, { aR: [1.88, 0.1, 0], eR: [0.05], aL: [0.15, 0, -0.35], eL: [0.3], bd: [0.08, -0.6, 0], hd: [0.05, 0.55, 0] }], // (side-on, arm out, as a duellist stands)
+    ram: { aR: [2.3, 0, 0.3], eR: [1.5], aL: [1.15, 0.3, 0.35], eL: [0.9], hd: [-0.25, 0, 0], bd: [-0.05, 0, 0] }, // (ramming a charge home)
     hop: [{ up: -0.35, kL: [-0.9], kR: [-0.9], bd: [-0.25, 0, 0], aR: [0.2, 0, 0.5] }, { lL: [0.8], lR: [-0.3], kL: [-1.2], kR: [-0.6], aR: [2.6, 0, 0.3], eR: [1.2], wr: [-2.3], aL: [1.3, 0, -0.2], bd: [0.2, -0.4, 0] }],
     charge: [{ aL: [1.4, 0, 0.4], eL: [1.3], bd: [-0.5, 0.3, 0], up: -0.25, aR: [0.6, 0, 0.4], eR: [1.2] }, { aL: [1.5, 0, 0.3], eL: [1.0], bd: [-0.55, -0.2, 0], up: -0.2, aR: [1.2, 0, 0.2], eR: [0.6], lL: [0.7], kL: [-0.5] }],
     push: [{ aL: [1.3, 0, 0.3], eL: [1.3], aR: [1.0, 0, 0.2], eR: [0.6], bd: [-0.3, 0.2, 0], up: -0.2 }, { aL: [1.6, 0, 0.2], eL: [0.6], aR: [1.3, 0, 0], eR: [0.2], bd: [-0.5, -0.2, 0], lL: [0.8], kL: [-0.6], lR: [-0.5] }],
@@ -1015,6 +1057,7 @@
     if (ab.an === 'smite') beamAt(F.x, F.z, '#fde68a', 14, 0.6, 0.8);
     if (ab.an === 'aquila') { beamAt(F.x, F.z, '#fde68a', 34, 1.1, 2.2); ringAt(F.x, F.z, '#fbbf24', 12, 0.6); }
     if (ab.an === 'gun') sfx3('count', F.x, F.z, 60, { vol: 0.5 });
+    if (i === 0 && ab.k === 'proj' && F.C.ab[0].split && F.kind === 'me' && !vis) setTimeout(() => { if (DU.M && DU.M.me === F && F.cd[0] > 0.4) floatText(F, `🔄 Reloading… ${ab.cd} s`, 'tag'); }, (ab.wind + 0.15) * 1000);
     if (ab.k === 'combo') { DU.say(F, '🌸 COMBO'); }
     return true;
   }
@@ -1125,6 +1168,7 @@
     if (b.heal) heal(F, b.heal); if (b.healP) heal(F, F.mhp * b.healP);
     if (b.imm) { F.S.stun = F.S.root = F.S.slow = 0; }
     if (b.nx) F.nx = b.nx;
+    if (b.rl) { F.cd[0] = 0; F.mcd = []; floatText(F, '🔄 LOADED', 'tag'); } // (the Minuteman: loaded at once)
     if (b.inv) smokeAt(F.x, 1, F.z, 18, '#4b5563', 3.2);
     if (b.foeSpd) { const T = foeOf(F); if (T && !T.dead) applyFx(T, { hs: [b.foeSpd, b.dur] }, F); } // (the Bloodrush: the blood in the air quickens them too)
     DU.say(F, ab.n.toUpperCase());
@@ -1218,7 +1262,7 @@
   // every frame: timers, damage over time, healing, stamina, the push of a dodge or a knock
   function statusTick(F, dt) {
     const S = F.S, cdm = bval(F, 'cdM');
-    for (let i = 0; i < F.cd.length; i++) if (F.cd[i] > 0) F.cd[i] = Math.max(0, F.cd[i] - dt * cdm);
+    for (let i = 0; i < F.cd.length; i++) if (F.cd[i] > 0) F.cd[i] = Math.max(0, F.cd[i] - dt * cdm); if (F.mcd) for (let k = 0; k < F.mcd.length; k++) if (k !== F.mode && F.mcd[k] > 0) F.mcd[k] = Math.max(0, F.mcd[k] - dt * cdm); // (the other mode's, too)
     S.sp = Math.max(0, S.sp - dt); S.stun = Math.max(0, S.stun - dt); if (S.pos > 0 && (S.pos -= dt) <= 0) { S.pos = 0; S.posBy = null; } S.root = Math.max(0, S.root - dt); S.vuln = Math.max(0, S.vuln - dt); if (S.cu > 0 && (S.cu -= dt) <= 0) { S.cu = 0; S.cuBy = null; } S.ifr = Math.max(0, S.ifr - dt); if ((S.slow = Math.max(0, S.slow - dt)) === 0) S.slowM = 1;
     for (const b of S.buffs) b.t -= dt; S.buffs = S.buffs.filter((b) => b.t > 0);
     if (F.kind === 'rem' || F.kind === 'rboss' || F.dead) return;
@@ -1242,6 +1286,7 @@
     else if (kind === 'flame') { const f = emSprite(g, fxTex('flame'), 1.6, { blending: THREE.AdditiveBlending }); kitGlow(g, '#f97316', 2.6, 0.75); } // (a gout of fire)
     else if (kind === 'hitodama') { kitGlow(g, '#3b82f6', 2.4, 0.8); kitGlow(g, '#e0f2fe', 0.9, 0.95); const t2 = emSprite(g, fxTex('flame'), 1.2, { blending: THREE.AdditiveBlending, color: '#93c5fd' }); t2.position.z = 0.7; } // (a ghost-fire: a cold blue flame with a tail)
     else if (kind === 'grudge') { kitGlow(g, '#7c3aed', 2.8, 0.85); kitGlow(g, '#f5f3ff', 0.9, 0.9); for (const z of [0.6, 1.2]) { const t2 = emSprite(g, fxTex('flame'), 1.3 - z * 0.3, { blending: THREE.AdditiveBlending, color: '#a78bfa' }); t2.position.z = z; } } // (a vengeful spirit: violet, trailing)
+    else if (kind === 'cannon') { const b = new THREE.Mesh(kSph(), metalMat('#1f2937', { shininess: 60 })); b.scale.setScalar(0.55); g.add(b); const t2 = emSprite(g, fxTex('flame'), 1.2, { blending: THREE.AdditiveBlending, color: '#fdba74' }); t2.position.z = 0.8; } // (a cannonball, hot from the gun)
     else if (kind === 'soul') { kitGlow(g, '#5eead4', 2.2, 0.85); kitGlow(g, '#ecfeff', 0.9, 0.95); const t2 = emSprite(g, fxTex('flame'), 1.0, { blending: THREE.AdditiveBlending, color: '#5eead4' }); t2.position.z = 0.6; } // (a wisp of soul)
     else if (kind === 'ice' || kind === 'hail') { const s2 = new THREE.Group(); g.add(s2); const m = new THREE.Mesh(kg('duIceB', () => new THREE.IcosahedronGeometry(1, 0)), new THREE.MeshPhongMaterial({ color: '#cfeeff', emissive: '#3b82f6', emissiveIntensity: 0.35, shininess: 150, specular: '#ffffff', transparent: true, opacity: 0.92, flatShading: true }));
       m.scale.setScalar(kind === 'ice' ? 1.25 : 0.45); s2.add(m); kitGlow(g, '#93c5fd', kind === 'ice' ? 3.6 : 1.4, 0.5); g.userData.spin = s2; } // (a boulder of ice, spinning; or a shard of hail)
@@ -1276,7 +1321,7 @@
         DU.drops.push({ m, x, z, y: 26, F: v.F, ab: v.ab, vis: v.vis, done: false }); v.n++; } }
     DU.volleys = DU.volleys.filter((v) => { if (v.n < v.ab.cnt) return true; scene.remove(v.ring); return false; });
     for (const d of DU.drops) { d.y -= 70 * dt; d.m.position.set(d.x + 3 * d.y / 26, d.y, d.z + 3 * d.y / 26); d.m.lookAt(d.x, -10, d.z); d.m.rotateY(Math.PI);
-      if (d.y <= 0.5 && !d.done) { d.done = true; smokeAt(d.x, 0.4, d.z, 2, d.ab.model === 'hail' ? '#e0f2fe' : '#c8a97e', 1); if (d.ab.model === 'hail') burstAt(d.x, 0.6, d.z, '#bfdbfe', 2.4, 0.25); const T = foeOf(d.F); if (T && !T.dead && Math.hypot(T.x - d.x, T.z - d.z) < 2.3 + bigR(T)) { if (!d.vis) dealHitAs(d.F, T, d.ab.dmg, d.ab.model ? d.ab.fx || null : null, d.ab); } d.t = 1.5; } if (d.done) d.t -= dt; } // (the newer volleys — pila, hail — carry their effect)
+      if (d.y <= 0.5 && !d.done) { d.done = true; const cn = d.ab.model === 'cannon'; smokeAt(d.x, 0.4, d.z, cn ? 9 : 2, d.ab.model === 'hail' ? '#e0f2fe' : cn ? '#78716c' : '#c8a97e', cn ? 2.6 : 1); if (d.ab.model === 'hail') burstAt(d.x, 0.6, d.z, '#bfdbfe', 2.4, 0.25); if (cn) { burstAt(d.x, 1, d.z, '#fb923c', 6, 0.3); ringAt(d.x, d.z, '#fdba74', 7, 0.4); sfx3('boom', d.x, d.z, 90, { vol: 0.7 }); } const T = foeOf(d.F); if (T && !T.dead && Math.hypot(T.x - d.x, T.z - d.z) < (cn ? 3.6 : 2.3) + bigR(T)) { if (!d.vis) dealHitAs(d.F, T, d.ab.dmg, d.ab.model ? d.ab.fx || null : null, d.ab); } d.t = 1.5; } if (d.done) d.t -= dt; } // (the newer volleys — pila, hail — carry their effect)
     DU.drops = DU.drops.filter((d) => { if (!d.done || d.t > 0) return true; scene.remove(d.m); return false; });
   }
 
@@ -1318,7 +1363,8 @@
     if (B.react != null && (B.react -= dt) <= 0) { B.react = null; const ab = B.rab, threat = ab.k !== 'buff' && (d < (ab.rng || 8) + 4 || ab.k === 'proj' || ab.k === 'dash' || ab.k === 'leap' || ab.k === 'volley');
       if (threat && !F.act && !stunned(F)) { const r = Math.random(); if (r < D.dodge) { const s = Math.random() < 0.5 ? 1 : -1; dodge(F, -dz / d * s - dx / d * 0.5, dx / d * s - dz / d * 0.5); } else if (r < D.dodge + D.guard && ab.k !== 'volley' && F.st > 30) { F.blk = true; B.blkT = 0.45 + Math.random() * 0.4; } } }
     if (B.blkT > 0 && ((B.blkT -= dt) <= 0 || F.st <= 0 || F.act)) { F.blk = false; B.blkT = 0; }
-    const m1 = abOf(F, 0), ranged = m1.k === 'proj', want = ranged ? 18 : (m1.rng || 6) * 0.72;
+    const md = F.C.ab[0].split && F.C.ab[0].modes; if (md && !F.act) { const g = md.findIndex((q) => q.k === 'proj'), bl = g ? 0 : 1, gcd = F.mode === g ? F.cd[0] : (F.mcd && F.mcd[g]) || 0, k = d < 8 || (d < 13 && gcd > 0.5) ? bl : d > 11 ? g : F.mode; if (k !== F.mode) swapMode(F, k); } // (a musket: the bayonet when they're close, or while it reloads)
+    const m1 = abOf(F, 0), ranged = m1.k === 'proj', want = ranged ? (md ? 14 : 18) : (m1.rng || 6) * 0.72;
     if ((B.strT -= dt) <= 0) { B.strT = 1 + Math.random() * 2.2; B.str = Math.random() < 0.5 ? 1 : -1; }
     let mx = 0, mz = 0; if (d > want + 1.5) { mx += dx / d; mz += dz / d; F.sprint = d > 22 && F.st > 40 && !F.blk; } else if (d < want - 2.5) { mx -= dx / d; mz -= dz / d; }
     const orb = d < want + 6 ? 0.75 : 0.25; mx += -dz / d * B.str * orb; mz += dx / d * B.str * orb;
@@ -1392,15 +1438,15 @@
     const hitsOf = (ab) => ab.k === 'multi' || ab.k === 'combo' ? ab.hits.slice() : ab.k === 'proj' || ab.k === 'volley' ? Array(ab.cnt || 1).fill(ab.dmg) : ab.k === 'dash' ? [ab.dmg || 0].concat(ab.then ? Array(ab.then.cnt || 1).fill(ab.then.dmg) : []).filter((x) => x > 0) : ab.k === 'stomp' ? [ab.crush || ab.dmg] : ab.k === 'buff' ? [] : [ab.dmg || 0];
     const boosts = (ab) => ab.k === 'buff' && ab.b && ((ab.b.dmgM || 1) > 1 || ab.b.dmgA || (ab.b.cdM || 1) > 1 || ab.b.nx);
     let best = null;
-    for (const m1 of m1s) {
-      const abs = [m1].concat(C.ab.slice(1)), cd = abs.map(() => 0), buffs = [], dots = {}; let t = 0, busy = 0, dmg = 0, wish = 0, nx = 0, n = 0, crushed = 0;
+    for (const m1 of C.ab[0].split ? [m1s[0]] : m1s) {
+      const sp = C.ab[0].split ? m1s.length : 0, abs = (sp ? m1s : [m1]).concat(C.ab.slice(1)), cd = abs.map(() => 0), buffs = [], dots = {}; let lastM = -1, t = 0, busy = 0, dmg = 0, wish = 0, nx = 0, n = 0, crushed = 0;
       const mult = (k) => buffs.reduce((m, b) => (b.end > t && b[k] ? m * b[k] : m), 1), add = (k) => buffs.reduce((m, b) => (b.end > t && b[k] ? m + b[k] : m), 0);
       while (t < T) {
         for (const k in dots) if (dots[k].end > t) dmg += dots[k].rate * dt * (1 + crushed);
         const cm = mult('cdM'); for (let i = 0; i < cd.length; i++) cd[i] = Math.max(0, cd[i] - dt * cm);
         if (busy <= 0) { let pick = -1, bv = -1;
           for (let i = 0; i < abs.length; i++) { if (cd[i] > 0) continue; const ab = abs[i], v = ab.k === 'buff' ? (boosts(ab) ? 1e9 : -1) : hitsOf(ab).reduce((a, b) => a + b, 0); if (v > bv && v > 0) { bv = v; pick = i; } }
-          if (pick >= 0) { const ab = abs[pick]; cd[pick] = ab.cd; busy = actDur(ab);
+          if (pick >= 0) { const ab = abs[pick]; cd[pick] = ab.cd; busy = actDur(ab); if (pick < sp) { if (lastM >= 0 && pick !== lastM) busy += 0.4; lastM = pick; } // (a split weapon: a moment to switch)
             if (ab.k === 'buff') { buffs.push(Object.assign({ end: t + (ab.b.dur || 0) }, ab.b)); if (ab.b.nx) nx = ab.b.nx; }
             else { for (const h of hitsOf(ab)) { let d = (h + add('dmgA')) * mult('dmgM') * (C.wish ? 1 + 0.1 * wish : 1) * (1 + crushed); if (nx) { d *= nx; nx = 0; } if (C.crit) d *= 1 + C.crit[0] * (C.crit[1] - 1); dmg += d; n++; if (C.wish) wish++; if (C.brute) crushed = 1 - Math.pow(1 - C.brute, n); }
               if (ab.k === 'stomp' && ab.crush) crushed = 1;
@@ -1714,7 +1760,7 @@
     tryAb(i) { const M = this.M; if (!M) return; const ok = useAb(M.me, i); const b = HUD.el && HUD.el.querySelector(`[data-ab="${i}"]`); if (b) { b.classList.remove('act', 'no'); void b.offsetWidth; b.classList.add(ok ? 'act' : 'no'); } },
     tryDodge() { const M = this.M; if (!M) return; const f = (keys.KeyW || keys.ArrowUp ? 1 : 0) - (keys.KeyS || keys.ArrowDown ? 1 : 0) - joy.y, r = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0) + joy.x, cy = cam.yaw;
       dodge(M.me, -Math.sin(cy) * f + Math.cos(cy) * r, -Math.cos(cy) * f - Math.sin(cy) * r); },
-    setMode(k) { const M = this.M; if (!M) return; const md = M.me.C.ab[0].modes; if (!md || k >= md.length || M.me.act || k === M.me.mode) return; M.me.mode = k; sfx('select'); floatText(M.me, `${md[k].ic} ${md[k].n}`, 'tag'); this.pubDu(true); },
+    setMode(k) { const M = this.M; if (!M) return; const md = M.me.C.ab[0].modes; if (!md || k >= md.length || M.me.act || k === M.me.mode) return; swapMode(M.me, k); sfx('select'); floatText(M.me, `${md[k].ic} ${md[k].n}`, 'tag'); this.pubDu(true); },
     toggleLock() { this.lockOn = !this.lockOn; this.save.lk = this.lockOn ? 1 : 0; this.dirty(); toast(this.lockOn ? '🎯 Lock-on: the camera follows your opponent' : '🎯 Lock-on off'); sfx('click'); },
     press(btn, down) { if (this.M && btn === 2) this.rmb = !!down; },
     click(e) { if (this.M && e.button !== 2 && !$('#duRes')) this.tryAb(0); },
@@ -1778,13 +1824,13 @@
       if (C.how) return `🔒 ${esc(C.how)}${c === EXE && S.q && S.q.on ? ` — ⚔️ ${S.q.k | 0}/50 · 💥 ${(S.q.d | 0).toLocaleString()}/15,000` : ''}`;
       return `🔒 ${A ? `Win it with the duel achievement <b>${esc(A.n)}</b> (${esc(A.d)}), or find it` : 'Only'} in the ${EMP[C.e].e} ${esc(EMP[C.e].n)} crate (${ODDS[CRATE[C.e].indexOf(c)]}%)`; },
     fightersPanel(sel) {
-      const S = this.save, COLS = [1, 0, 2, 3, 4, 5]; let det = '';
+      const S = this.save, COLS = [1, 0, 2, 3, 4, 5, 6]; let det = '';
       if (sel != null) { // the stats: everything about one fighter
         const C = CH[sel], own = S.own.includes(sel), xp = S.xp[sel] | 0, lv = mLvl(xp), nx = MAST[Math.min(10, lv + 1)];
         const abl = C.ab.map((ab, i) => ab.modes ? ab.modes.map((m, k) => `<div><i>${m.ic}</i><span><b>${KEYN[i]} · ${esc(m.n)}</b> (key ${k + 1}) — <em>${m.dmg}</em> damage, every <em>${m.cd} s</em>${m.wind >= 0.4 ? ` · ${m.wind} s wind-up` : ''}</span></div>`).join('')
           : `<div><i>${ab.ic}</i><span><b>${KEYN[i]} · ${esc(ab.n)}</b> — ${ab.d ? esc(ab.d) : `<em>${ab.dmg}</em> damage${ab.k === 'proj' ? ' (ranged)' : ''}`} · cooldown <em>${ab.cd} s</em></span></div>`).join('');
         const pas = (C.pas || []).map(([ic, n, d]) => `<div><i>${ic}</i><span><b>Passive · ${esc(n)}</b> — ${esc(d)}</span></div>`).join('');
-        det = `<div class="du-det" style="--rc:${RAR[C.r].c}"><img src="${fighterPic(sel, 1)}" alt=""><div><div class="sub">${EMP[C.e].e} ${esc(EMP[C.e].n)} · ${RAR[C.r].t} · ${esc(C.ro)}</div><h3>${C.ic} ${esc(C.n)} <button class="du-x" data-x="close" aria-label="Close">✕</button></h3>
+        det = `<div class="du-det" style="--rc:${RAR[C.r].c}"><img src="${fighterPic(sel, 1)}" alt=""><div><div class="sub">${EMP[C.e].e} ${esc(EMP[C.e].n)} · ${RAR[C.r].t} · ${C.wtI} ${C.wt} · ${esc(C.ro)}</div><h3>${C.ic} ${esc(C.n)} <button class="du-x" data-x="close" aria-label="Close">✕</button></h3>
           ${this.statBars(sel)}
           <div class="du-abl">${pas}${abl}</div>
           <div style="margin-top:10px;font:700 12.5px var(--fb);color:#e2e8f0">🌟 Mastery ${lv}/10 ${lv >= 10 ? '— <b style="color:#fde68a">MASTERED</b>: its body and animation pack are in your avatar editor' : `· ${xp}/${nx} XP — master it (10) to wear its body and animations anywhere`}</div><div class="du-mx" style="margin:4px 0 12px"><i style="width:${lv >= 10 ? 100 : (xp - MAST[lv]) / (nx - MAST[lv]) * 100}%"></i></div>
@@ -1794,7 +1840,7 @@
           <b>${Q.ic} ${esc(Q.n)}</b><small>${RAR[Q.r].s}</small><span class="dp">⚡ ${Math.round(fStatsAll().L[c].dps)} DPS · ⭐ ${fStatsAll().L[c].ov.toFixed(1)}</span>${o ? (c === S.eq ? '<button class="eq on" disabled>✔ equipped</button>' : `<button class="eq" data-eq="${c}">equip</button>`) : `<button class="eq lk" data-st="${c}">🔒 locked</button>`}</div>`; };
       const head = `<div></div>${COLS.map((e) => `<div class="du-gh">${EMP[e].e} ${esc(EMP[e].sn || EMP[e].n)}</div>`).join('')}`;
       const rows = RAR.map((R, r) => `<div class="du-gr" style="--rc:${R.c}"><b>${R.s}</b><small>${R.n}</small></div>${COLS.map((e) => `<div class="du-gc">${CH.filter((C) => C.e === e && C.r === r).map((C) => card(C.i)).join('')}</div>`).join('')}`).join('');
-      openPanel('⚔️ Fighters', `${det}<div class="du-gwrap"><div class="du-g6">${head}${rows}</div></div>`, (b) => {
+      openPanel('⚔️ Fighters', `${det}<div class="du-wts">${WTS.map(([n, ic, L]) => `<span><b>${ic} ${n}</b> ${L.join(' · ')}</span>`).join('')}</div><div class="du-gwrap"><div class="du-g6">${head}${rows}</div></div>`, (b) => {
         if (b.dataset.eq) { S.eq = +b.dataset.eq; this.dirty(); sfx('select'); this.drawBar(); this.fightersPanel(); }
         else if (b.dataset.st) { sfx('click'); this.fightersPanel(+b.dataset.st); $('#xpBody').scrollTop = 0; } else if (b.dataset.x === 'close') { sfx('click'); this.fightersPanel(); } }, null, { full: true, extra: `<span class="xchip">⚔️ ${S.own.length}/${CH.length}</span>` });
       if (sel != null) { $('#xpBody').scrollTop = 0; this.statAnim(); }

@@ -1473,12 +1473,12 @@ const BODIES = ['R6', 'R15', 'Robot', 'Skeleton', 'Magma Golem', 'Dino Suit', 'K
   'Minotaur', 'Anubis', 'Pharaoh', 'Samurai', 'Valkyrie', 'Centurion', 'Gladiator', 'Talos', 'Cyclops', 'Berserker',
   'Legionary', 'Velite', 'Retiarius', 'Praetorian', 'Thraex Gladiator', 'Hoplite', 'Peltast', 'Toxotes', 'Myrmidon Vanguard', 'Spartan Polemarch',
   'Footman', 'Longbowman', 'Viking Raider', 'Templar', 'Heavy Knight', 'Ashigaru', 'Ronin', 'Shinobi', 'Sohei', 'Crescent Samurai',
-  'Laestrygonian Warlord', 'Executioner', 'Azab', 'Okçu Archer', 'Humbaracı', 'Peyk', 'Janissary', 'Arban Spearman', 'Steppe Archer', 'Steppe Shaman', 'Kheshig', 'Great Khan', 'Kensei', 'Imperator', 'Frost Jötunn', 'Phalangite', 'Halberdier', 'Cyclops', 'Oni', 'Cacus', 'Chötgör', 'Yūrei', 'Laestrygonian Colossus']; // (2 on: body packs, jointed like R15; from 13: 💎 Deluxe Plus; from 23: ⚔️ Colosseum Duels mastery)
+  'Laestrygonian Warlord', 'Executioner', 'Azab', 'Okçu Archer', 'Humbaracı', 'Peyk', 'Janissary', 'Arban Spearman', 'Steppe Archer', 'Steppe Shaman', 'Kheshig', 'Great Khan', 'Kensei', 'Imperator', 'Frost Jötunn', 'Phalangite', 'Halberdier', 'Cyclops', 'Oni', 'Cacus', 'Chötgör', 'Yūrei', 'Minuteman', 'Frontier Rifleman', 'Continental Regular', 'Light Dragoon', 'Continental Colonel', 'Laestrygonian Colossus']; // (2 on: body packs, jointed like R15; from 13: 💎 Deluxe Plus; from 23: ⚔️ Colosseum Duels mastery)
 // animation packs: how you stand, walk, run and jump
 const ANIMS = ['Default', 'Robot', 'Ninja', 'Zombie', 'Superhero', 'Stylish', 'Levitation', 'Vampire', 'Hoplite', 'Laestrygonian', 'Minotaur', 'Pharaoh', 'Samurai', 'Valkyrie', 'Berserker',
   'Legionary', 'Velite', 'Retiarius', 'Praetorian', 'Thraex Gladiator', 'Hoplite', 'Peltast', 'Toxotes', 'Myrmidon Vanguard', 'Spartan Polemarch',
   'Footman', 'Longbowman', 'Viking Raider', 'Templar', 'Heavy Knight', 'Ashigaru', 'Ronin', 'Shinobi', 'Sohei', 'Crescent Samurai',
-  'Laestrygonian Warlord', 'Executioner', 'Azab', 'Okçu Archer', 'Humbaracı', 'Peyk', 'Janissary', 'Arban Spearman', 'Steppe Archer', 'Steppe Shaman', 'Kheshig', 'Great Khan', 'Kensei', 'Imperator', 'Frost Jötunn', 'Phalangite', 'Halberdier', 'Cyclops', 'Oni', 'Cacus', 'Chötgör', 'Yūrei']; // (from 10: 💎 Deluxe Plus; from 15: ⚔️ Colosseum Duels mastery)
+  'Laestrygonian Warlord', 'Executioner', 'Azab', 'Okçu Archer', 'Humbaracı', 'Peyk', 'Janissary', 'Arban Spearman', 'Steppe Archer', 'Steppe Shaman', 'Kheshig', 'Great Khan', 'Kensei', 'Imperator', 'Frost Jötunn', 'Phalangite', 'Halberdier', 'Cyclops', 'Oni', 'Cacus', 'Chötgör', 'Yūrei', 'Minuteman', 'Frontier Rifleman', 'Continental Regular', 'Light Dragoon', 'Continental Colonel']; // (from 10: 💎 Deluxe Plus; from 15: ⚔️ Colosseum Duels mastery)
 // the shop: what each costs in Blox Coins (0 = free, -1 = only as a reward)
 const COSMETICS = {
   h: { title: 'Hats', list: HATS, price: [0, 0, 0, 0, 0, 100, 250, 300, 150, 800, 200, 120, 220, 80, 1500, -1, 100, 200, 350, 180, 220, 260, 400, 150, 1200, 3000, -1, -1, -1, -1, -1, -1, -1, 400, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
@@ -1488,8 +1488,8 @@ const COSMETICS = {
   a: { title: 'Auras', list: AURAS, price: [0, 300, 800, 400, 350, 1000, 1500, 300, 350, 2000, 600, 2500, -1, -1, -1, 900], icon: ['🚫', '✨', '🔥', '💖', '❄️', '⚡', '🌈', '🫧', '🍃', '🌌', '☢️', '💸', '💫', '🌑', '⛈️', '🦇'] },
   pt: { title: 'Shirts', list: PATTERNS, price: [0, 60, 80, 80, 120, 100, 90, 250, 150, 150, 120, 200, 300, -1, -1, -1, 200], icon: ['⬜', '〰️', '⭐', '❤️', '⚡', '🏁', '1️⃣', '👔', '💀', '🔥', '🪖', '🌈', '🌌', '🏆', '🐾', '🌻', '🦴'] },
   pet: { title: 'Pets', list: PETS, price: [0, 400, 400, 350, 1500, 900, 2500, 600, 800, 1200, 4000, -1, -1, 1000, -1, -1], icon: ['🚫', '🐶', '🐱', '🐰', '🐉', '🤖', '🦄', '🐧', '🦊', '🐼', '🦅', '🧟', '🌱', '👻', '🐓', '🦕'] },
-  bt: { title: 'Bodies', list: BODIES, price: [0, 0, 900, 600, 1200, 1000, 1100, 800, 1300, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], icon: ['🧍', '🦵', '🤖', '💀', '🌋', '🦖', '⚔️', '🎃', '🫥', '🐜', '🛡️', '🪓', '🗿', '🐂', '🐺', '👑', '⛩️', '🪽', '🦅', '⚔️', '🤖', '👁️', '🐻', '🦅', '🐺', '🔱', '🦂', '⚔️', '🦉', '🌙', '🏹', '🐜', '🛡️', '🗡️', '🎯', '🪓', '✝️', '🏰', '🎋', '🍂', '🥷', '📿', '🏯', '🗿', '💀', '🔱', '🏹', '💣', '🪓', '🌙', '🔱', '🏹', '🥁', '🛡️', '👑', '👺', '🌿', '🧊', '🌞', '🪓', '👁️', '👹', '🔥', '👻', '🏮', '👹'], tab: false }, // (bodies and animations are in 🧍 Body)
-  an: { title: 'Animations', list: ANIMS, price: [0, 500, 750, 400, 700, 550, 900, 777, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], icon: ['🚶', '🤖', '🥷', '🧟', '🦸', '😎', '🫧', '🧛', '🏺', '👣', '🐂', '👑', '⛩️', '🪽', '🐻', '🦅', '🐺', '🔱', '🦂', '⚔️', '🦉', '🌙', '🏹', '🐜', '🛡️', '🗡️', '🎯', '🪓', '✝️', '🏰', '🎋', '🍂', '🥷', '📿', '🏯', '🗿', '💀', '🔱', '🏹', '💣', '🪓', '🌙', '🔱', '🏹', '🥁', '🛡️', '👑', '👺', '🌿', '🧊', '🌞', '🪓', '👁️', '👹', '🔥', '👻', '🏮'], tab: false },
+  bt: { title: 'Bodies', list: BODIES, price: [0, 0, 900, 600, 1200, 1000, 1100, 800, 1300, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], icon: ['🧍', '🦵', '🤖', '💀', '🌋', '🦖', '⚔️', '🎃', '🫥', '🐜', '🛡️', '🪓', '🗿', '🐂', '🐺', '👑', '⛩️', '🪽', '🦅', '⚔️', '🤖', '👁️', '🐻', '🦅', '🐺', '🔱', '🦂', '⚔️', '🦉', '🌙', '🏹', '🐜', '🛡️', '🗡️', '🎯', '🪓', '✝️', '🏰', '🎋', '🍂', '🥷', '📿', '🏯', '🗿', '💀', '🔱', '🏹', '💣', '🪓', '🌙', '🔱', '🏹', '🥁', '🛡️', '👑', '👺', '🌿', '🧊', '🌞', '🪓', '👁️', '👹', '🔥', '👻', '🏮', '⏱️', '🦌', '🥁', '🐎', '🎖️', '👹'], tab: false }, // (bodies and animations are in 🧍 Body)
+  an: { title: 'Animations', list: ANIMS, price: [0, 500, 750, 400, 700, 550, 900, 777, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1], icon: ['🚶', '🤖', '🥷', '🧟', '🦸', '😎', '🫧', '🧛', '🏺', '👣', '🐂', '👑', '⛩️', '🪽', '🐻', '🦅', '🐺', '🔱', '🦂', '⚔️', '🦉', '🌙', '🏹', '🐜', '🛡️', '🗡️', '🎯', '🪓', '✝️', '🏰', '🎋', '🍂', '🥷', '📿', '🏯', '🗿', '💀', '🔱', '🏹', '💣', '🪓', '🌙', '🔱', '🏹', '🥁', '🛡️', '👑', '👺', '🌿', '🧊', '🌞', '🪓', '👁️', '👹', '🔥', '👻', '🏮', '⏱️', '🦌', '🥁', '🐎', '🎖️'], tab: false },
   tr: { title: 'Trails', list: TRAILS, price: [0, 1500, 800, 600, 500, 2000, 700, -1, -1, 700], icon: ['🚫', '🌈', '🔥', '🧊', '💠', '🪙', '💕', '⭐', '⚡', '🌫️'] },
 };
 let AV = { s: 5, sh: 0, p: 1, h: 0, f: 0, b: 0, a: 0, pt: 0, pet: 0, tr: 0, bt: 0, an: 0, bh: 0, bu: 0, ba: 0, bl: 0 };
@@ -4443,8 +4443,8 @@ ANIM_DESC.push('💎 The Minotaur: hunched, its chest heaving, head low and swin
    fights bare-chested under a towering crest, the Myrmidon is black and bronze with mandibled cheek guards. */
 const DUEL_N = ['Legionary', 'Velite', 'Retiarius', 'Praetorian', 'Thraex Gladiator', 'Hoplite', 'Peltast', 'Toxotes', 'Myrmidon Vanguard', 'Spartan Polemarch',
   'Footman', 'Longbowman', 'Viking Raider', 'Templar', 'Heavy Knight', 'Ashigaru', 'Ronin', 'Shinobi', 'Sohei', 'Crescent Samurai',
-  'Laestrygonian Warlord', 'Executioner', 'Azab', 'Okçu Archer', 'Humbaracı', 'Peyk', 'Janissary', 'Arban Spearman', 'Steppe Archer', 'Steppe Shaman', 'Kheshig', 'Great Khan', 'Kensei', 'Imperator', 'Frost Jötunn', 'Phalangite', 'Halberdier', 'Cyclops', 'Oni', 'Cacus', 'Chötgör', 'Yūrei'];
-const DUEL_IC = ['🦅', '🐺', '🔱', '🦂', '⚔️', '🦉', '🌙', '🏹', '🐜', '🛡️', '🗡️', '🎯', '🪓', '✝️', '🏰', '🎋', '🍂', '🥷', '📿', '🏯', '🗿', '💀', '🔱', '🏹', '💣', '🪓', '🌙', '🔱', '🏹', '🥁', '🛡️', '👑', '👺', '🌿', '🧊', '🌞', '🪓', '👁️', '👹', '🔥', '👻', '🏮'];
+  'Laestrygonian Warlord', 'Executioner', 'Azab', 'Okçu Archer', 'Humbaracı', 'Peyk', 'Janissary', 'Arban Spearman', 'Steppe Archer', 'Steppe Shaman', 'Kheshig', 'Great Khan', 'Kensei', 'Imperator', 'Frost Jötunn', 'Phalangite', 'Halberdier', 'Cyclops', 'Oni', 'Cacus', 'Chötgör', 'Yūrei', 'Minuteman', 'Frontier Rifleman', 'Continental Regular', 'Light Dragoon', 'Continental Colonel'];
+const DUEL_IC = ['🦅', '🐺', '🔱', '🦂', '⚔️', '🦉', '🌙', '🏹', '🐜', '🛡️', '🗡️', '🎯', '🪓', '✝️', '🏰', '🎋', '🍂', '🥷', '📿', '🏯', '🗿', '💀', '🔱', '🏹', '💣', '🪓', '🌙', '🔱', '🏹', '🥁', '🛡️', '👑', '👺', '🌿', '🧊', '🌞', '🪓', '👁️', '👹', '🔥', '👻', '🏮', '⏱️', '🦌', '🥁', '🐎', '🎖️'];
 const DUEL_BT = 23, DUEL_AN = 15; // (where they start in BODIES and ANIMS)
 const dkSurcoatTex = (c1, c2, kind) => kCanvas('dkSur' + c1 + c2 + kind, 128, 128, (g, r) => { g.fillStyle = c1; g.fillRect(0, 0, 128, 128); for (let k = 0; k < 600; k++) { g.fillStyle = r() < 0.5 ? 'rgba(0,0,0,.05)' : 'rgba(255,255,255,.05)'; g.fillRect(r() * 128, r() * 128, 2, 1); }
   g.fillStyle = c2; if (kind === 'cross') { g.fillRect(52, 8, 24, 112); g.fillRect(16, 36, 96, 22); } else if (kind === 'quarter') { g.fillRect(0, 0, 64, 64); g.fillRect(64, 64, 64, 64); } else if (kind === 'lion') { g.font = 'bold 76px serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('⚜', 64, 66); }
@@ -4480,6 +4480,15 @@ function duelKit(K, i) {
   const plume = (h, key, cols, n, big, y = 0.28, side) => { const g = new THREE.Group(); g.position.y = y; if (side) g.rotation.y = Math.PI / 2; h.add(g); mesh(crestGeo(key, cols, n, big), L('#ffffff', { vertexColors: true, side: THREE.DoubleSide }), 0, 0, 0, g); return g; };
   const bowl = (h, m, y = 0.3, sy = 1.05, r = 0.78) => { const d = mesh(new THREE.SphereGeometry(r, 28, 12, 0, Math.PI * 2, 0, Math.PI / 2), m, 0, y, 0.02, h); d.scale.y = sy; return d; };
   const ring = (h, r, tb, y, m) => { const o = mesh(kg(`dkRing${r}_${tb}`, () => new THREE.TorusGeometry(r, tb, 6, 36)), m, 0, y, 0, h); o.rotation.x = Math.PI / 2; return o; };
+  // a tricorne: a low round crown, its brim cocked up on three sides with a point to the front, tape on the edge, a cockade on the left
+  const tricorn = (h, m, tape, ck, y = 0.27) => { const g = new THREE.Group(); g.position.y = y; h.add(g); const V = [[0, -1.04], [-0.98, 0.56], [0.98, 0.56]];
+    mesh(kLathe('dkTriCrown', [[0.7, 0], [0.7, 0.4], [0.62, 0.55], [0.3, 0.63], [0, 0.65]], 24), m, 0, 0, 0.04, g);
+    mesh(kg('dkTriBrim', () => { const sh = new THREE.Shape(); sh.moveTo(V[0][0], -V[0][1]); sh.lineTo(V[1][0], -V[1][1]); sh.lineTo(V[2][0], -V[2][1]); sh.closePath(); const q = new THREE.ShapeGeometry(sh); q.rotateX(-Math.PI / 2); return q; }), m, 0, 0.01, 0, g);
+    for (const [a, b] of [[0, 1], [1, 2], [2, 0]]) { const dx = V[b][0] - V[a][0], dz = V[b][1] - V[a][1], len = Math.hypot(dx, dz), mx = (V[a][0] + V[b][0]) / 2, mz = (V[a][1] + V[b][1]) / 2, ph = Math.atan2(-dz, dx), sg = Math.sign(Math.sin(ph) * mx + Math.cos(ph) * (mz - 0.03)) || 1;
+      const w = R(len * 0.98, 0.38, 0.05, 0.02, m, mx, 0.18, mz, g); w.rotation.order = 'YXZ'; w.rotation.set(0.24 * sg, ph, 0); if (tape) R(len * 0.98, 0.06, 0.08, 0.02, tape, 0, 0.18, 0, w);
+      if (ck && a === 0) { const c = P(kCyl(), ck, len * 0.22, 0.04, 0.05 * sg, w, 0.17, 0.03, 0.17); c.rotation.x = Math.PI / 2; } } // (the cockade on the front left)
+    return g; };
+  const queue = (h, c) => { const m = L(c, { map: dpFurTex(c, '#1f150d') }); hair(h, c, 0.26); R(0.2, 0.62, 0.14, 0.06, m, 0, -0.36, 0.7, h); R(0.3, 0.12, 0.08, 0.03, L('#111114'), 0, -0.1, 0.76, h); return m; }; // (hair clubbed back in a queue, a black ribbon)
   const LOOKS = [
     () => { // 🦅 Legionary: a red tunic under the lorica segmentata — bands of steel round the body and over the shoulders, brass hinges — an Imperial Italic helmet without a crest, a red scarf, caligae
       const red = L('#9f1d24', { map: plushTex() }), st = steel(), dst = steel('#6b7280', { shininess: 60 }), br = steel('#d9a441'), lth = L('#4a2e18', { map: leatherTex() });
@@ -4911,6 +4920,62 @@ function duelKit(K, i) {
           return true; },
         tick(a, dt) { if (!orb) return; tt += dt; orb.rotation.y += dt * 1.3; orb.children.forEach((f, k) => { f.position.y = Math.sin(tt * 2.1 + k * 3.1) * 0.35; if (emWorld(a) && !a.dead && Math.random() < dt * 9) kitSpark(a, f, 0, 0, 0, Math.random() < 0.6 ? '#93c5fd' : '#e0f2fe', { v: [0, 0.6, 0], life: 0.7, s: 0.26, grow: 1.2, op: 0.6, j: 0.2 }); }); } };
     },
+    () => { // ⏱️ Minuteman: colonial militia, ready at a minute's notice — a brown felt tricorne, his own linen shirt and a red checked neckerchief, a brown waistcoat with pewter buttons, buff breeches, white stockings and buckled shoes; a powder horn on a strap and a cartridge box at the hip
+      const sh = L('#ebe1cb', { map: plushTex() }), wc = L('#6b4226', { map: plushTex() }), br = L('#c8b48a', { map: plushTex() }), sto = L('#f3efe6'), sho = M('#18181b', { shininess: 60 }), felt = L('#4a3828', { map: plushTex(), side: THREE.DoubleSide }), nk = L('#b91c1c', { map: dkCheckTex('#b91c1c', '#fca5a5') }), pw = steel('#a8a29e'), lth = L('#4a2e18', { map: leatherTex() }), horn = M('#eadfc4', { shininess: 70 });
+      return { leg: (x) => { const r = leg(x, br, sto); boot(r[1], sho, 0.24); R(0.28, 0.1, 0.05, 0.02, pw, 0, -0.84, -0.56, r[1]); R(0.86, 0.14, 0.86, 0.05, br, 0, -0.02, 0, r[1]); return r; }, // (shoes with buckles; the breeches buckled at the knee)
+        lower() { hips(br); belt(lth, 2.84); R(0.56, 0.36, 0.26, 0.06, lth, 0.62, 2.62, 0.52); }, // (the cartridge box behind the right hip)
+        upper() { torso(wc); R(0.5, 0.3, 0.1, 0.05, sh, 0, 3.92, -0.5); for (let k = 0; k < 6; k++) P(kSph(), pw, 0, 3.72 - k * 0.17, -0.53, K.body, 0.05); // (the shirt at his throat; the waistcoat's buttons)
+          const nkm = mesh(kTor(0.35), nk, 0, 4.06, -0.04); nkm.rotation.x = Math.PI / 2; nkm.scale.set(0.62, 0.52, 0.45); R(0.24, 0.3, 0.06, 0.03, nk, 0.06, 3.86, -0.56).rotation.z = 0.3; // (the neckerchief, knotted)
+          const st2 = R(0.14, 2.0, 0.04, 0.02, lth, 0.05, 3.42, -0.55); st2.rotation.z = -0.58; R(0.14, 2.0, 0.04, 0.02, lth, 0.05, 3.42, 0.55).rotation.z = -0.58; // (the horn's strap, right shoulder to left hip)
+          const hn = mesh(kLathe('dkHorn', [[0, -0.9], [0.06, -0.8], [0.11, -0.4], [0.16, 0], [0.17, 0.08], [0, 0.1]], 12), horn, -0.95, 2.7, -0.2); hn.rotation.set(0.3, 0, 1.4); R(0.1, 0.06, 0.1, 0.02, lth, -0.95, 2.72, -0.2); }, // (the powder horn at his left hip)
+        arm: (s2) => { const r = arm(s2, sh, sh, skin); R(0.9, 0.16, 0.9, 0.06, sh, 0, -0.75, 0, r[1]); return r; }, // (shirtsleeves, cuffed)
+        head(h) { queue(h, '#5b3a1e'); tricorn(h, felt, null, null); return false; } };
+    },
+    () => { // 🦌 Frontier Rifleman: a hunting shirt of tow linen with a fringed shoulder cape, a dark sash, fringed leggings and moccasins; a round felt hat with a buck's tail; a shot pouch and a powder horn — and the long rifle
+      const fr = L('#a39069', { map: plushTex() }), fg = L('#d6c49a'), sa = L('#3f3f46', { map: plushTex() }), lg2 = L('#6b4f33', { map: leatherTex() }), moc = L('#8a6440', { map: leatherTex() }), hat = L('#2a2622', { map: plushTex(), side: THREE.DoubleSide }), tail = L('#c8a27a', { map: dpFurTex('#c8a27a', '#f5f5f4') }), horn = M('#eadfc4', { shininess: 70 }), lth = L('#4a2e18', { map: leatherTex() });
+      return { leg: (x) => { const r = leg(x, lg2, lg2); boot(r[1], moc, 0.22); for (let k = 0; k < 5; k++) R(0.05, 0.22, 0.05, 0.02, fg, Math.sign(x) * 0.46, -0.1 - k * 0.16, 0, r[1]); return r; }, // (leggings fringed down the outside, moccasins)
+        lower() { hips(fr); belt(sa, 2.9); R(0.3, 0.5, 0.1, 0.04, sa, -0.7, 2.5, -0.52); skirt('rif', fr, 0.55); for (let k = 0; k < 14; k++) { const an = (k / 14) * Math.PI * 2; R(0.05, 0.22, 0.05, 0.02, fg, Math.sin(an) * 1.06, 2.2, Math.cos(an) * 0.66); } }, // (the shirt's skirt, fringed; the sash, its ends hanging)
+        upper() { torso(fr); R(2.3, 0.42, 1.26, 0.14, fr, 0, 3.94, 0); for (let k = 0; k < 20; k++) { const an = (k / 20) * Math.PI * 2; R(0.05, 0.28, 0.05, 0.02, fg, Math.sin(an) * 1.16, 3.62, Math.cos(an) * 0.66); } // (the shoulder cape and its fringe)
+          for (let k = 0; k < 6; k++) R(0.24, 0.05, 0.05, 0.02, fg, 0.06, 3.7 - k * 0.17, -0.53); // (fringe down the opening)
+          const st2 = R(0.12, 2.0, 0.04, 0.02, lth, 0, 3.42, -0.56); st2.rotation.z = 0.58; R(0.46, 0.42, 0.14, 0.06, lth, 0.75, 2.62, -0.3); // (the shot pouch's strap, and the pouch)
+          const hn = mesh(kLathe('dkHorn', [[0, -0.9], [0.06, -0.8], [0.11, -0.4], [0.16, 0], [0.17, 0.08], [0, 0.1]], 12), horn, 0.9, 2.85, 0.2); hn.rotation.set(-0.3, 0, -1.4); },
+        arm: (s2) => { const r = arm(s2, fr, fr, skin); for (let k = 0; k < 5; k++) R(0.05, 0.24, 0.05, 0.02, fg, s2 * 0.47, -0.3 - k * 0.16, 0, r[1]); return r; }, // (fringed sleeves)
+        head(h) { queue(h, '#7a4b28'); mesh(kLathe('dkRoundHat', [[0.64, 0], [0.62, 0.42], [0.54, 0.52], [0, 0.55]], 24), hat, 0, 0.5, 0.03, h); mesh(kg('dkHatBrim', () => new THREE.CylinderGeometry(1.08, 1.08, 0.04, 28)), hat, 0, 0.52, 0.03, h);
+          const t = mesh(kSph(), tail, -0.64, 0.75, 0.25, h); t.scale.set(0.12, 0.42, 0.12); t.rotation.z = 0.5; R(1.3, 0.1, 1.3, 0.05, lth, 0, 0.58, 0.03, h); return false; } }; // (a round hat, a band, a buck's tail)
+    },
+    () => { // 🥁 Continental Regular: a blue coat faced red, brass buttons, its tails turned back to show the white lining; a white waistcoat and breeches; white cross-belts and a brass plate; black gaiters; a black stock at the neck; a black tricorne edged in white tape with a black cockade
+      const bl = L('#1f2f6b', { map: plushTex() }), fc = L('#a11d24', { map: plushTex() }), wh = L('#f1ede4', { map: plushTex() }), wb = L('#f8fafc'), bk = M('#141418', { shininess: 40 }), felt = L('#16161a', { map: plushTex(), side: THREE.DoubleSide }), tape = L('#f8fafc'), ck = L('#09090b'), bra = DPM.gold(), lth = L('#1c1917', { map: leatherTex() });
+      mats.push(bra);
+      return { leg: (x) => { const r = leg(x, wh, bk); boot(r[1], bk, 0.24); for (let k = 0; k < 4; k++) P(kSph(), bra, Math.sign(x) * 0.42, -0.2 - k * 0.17, -0.1, r[1], 0.04); return r; }, // (black gaiters, buttoned up the outside)
+        lower() { hips(wh); for (const s2 of [-1, 1]) { const t = R(0.6, 1.5, 0.08, 0.04, bl, s2 * 0.34, 2.2, 0.55); t.rotation.set(0.1, 0, s2 * 0.06); R(0.36, 0.95, 0.03, 0.02, wh, s2 * 0.34, 2.15, 0.6).rotation.set(0.1, 0, s2 * 0.06); R(0.12, 1.25, 0.9, 0.04, bl, s2 * 1.05, 2.35, 0.1); } R(0.56, 0.36, 0.26, 0.06, lth, 0.62, 2.7, 0.62); }, // (the coat's tails, turned back; its skirts at the hips; the cartridge box)
+        upper() { torso(bl); R(0.6, 1.24, 0.05, 0.02, wh, 0, 3.4, -0.52); for (const s2 of [-1, 1]) { R(0.3, 1.12, 0.06, 0.03, fc, s2 * 0.45, 3.45, -0.54); for (let k = 0; k < 5; k++) P(kSph(), bra, s2 * 0.45, 3.86 - k * 0.2, -0.58, K.body, 0.055); } // (the white waistcoat between red lapels and their buttons)
+          R(1.0, 0.24, 0.16, 0.05, fc, 0, 4.1, 0.38); R(0.75, 0.2, 0.72, 0.08, bk, 0, 4.08, -0.05); // (the collar; the black stock)
+          for (const s2 of [-1, 1]) { R(0.17, 2.0, 0.04, 0.02, wb, 0, 3.4, -0.61).rotation.z = s2 * 0.58; R(0.17, 2.0, 0.04, 0.02, wb, 0, 3.4, 0.61).rotation.z = s2 * 0.58; } R(0.24, 0.17, 0.03, 0.02, bra, 0, 3.4, -0.64); }, // (the cross-belts, and the plate where they cross)
+        arm: (s2) => { const r = arm(s2, bl, bl, skin); R(0.92, 0.3, 0.92, 0.1, fc, 0, -0.66, 0, r[1]); return r; }, // (red cuffs)
+        head(h) { queue(h, '#3b2a1e'); tricorn(h, felt, tape, ck); return false; } };
+    },
+    () => { // 🐎 Light Dragoon (as Lee's Legion were): a leather helmet with a bearskin turban and a black horsehair crest, a brass plate on its front; a short green jacket faced buff; buff breeches and gauntlets; a white sword belt over the shoulder; tall black riding boots
+      const gr = L('#2f5a3a', { map: plushTex() }), bf = L('#e2cf9e', { map: plushTex() }), wb = L('#f8fafc'), bk = M('#111114', { shininess: 90 }), lea = M('#18181b', { shininess: 80 }), fur = L('#3b2a1e', { map: dpFurTex('#3b2a1e', '#120c08') }), hh = L('#0c0a09', { map: dpFurTex('#0c0a09', '#292524') }), bra = DPM.gold();
+      mats.push(bra);
+      return { leg: (x) => { const r = leg(x, bf, bk); boot(r[1], bk, 0.34); R(0.92, 0.2, 0.92, 0.07, L('#7a5230', { map: leatherTex() }), 0, -0.08, 0, r[1]); return r; }, // (tall boots, turned down at the top)
+        lower() { hips(bf); R(2.12, 0.22, 1.12, 0.08, wb, 0, 2.86, 0); },
+        upper() { torso(gr); R(0.58, 1.2, 0.05, 0.02, bf, 0, 3.42, -0.52); for (const s2 of [-1, 1]) { R(0.22, 1.1, 0.06, 0.03, bf, s2 * 0.42, 3.45, -0.54); for (let k = 0; k < 5; k++) P(kSph(), bra, s2 * 0.42, 3.86 - k * 0.2, -0.58, K.body, 0.05); } // (a buff waistcoat between buff facings)
+          R(1.0, 0.24, 0.16, 0.05, bf, 0, 4.1, 0.38); R(0.75, 0.2, 0.72, 0.08, L('#f8fafc'), 0, 4.08, -0.05); const b = R(0.2, 2.0, 0.04, 0.02, wb, 0, 3.4, -0.61); b.rotation.z = 0.58; R(0.2, 2.0, 0.04, 0.02, wb, 0, 3.4, 0.61).rotation.z = 0.58; }, // (the collar, a white stock, the sword belt)
+        arm: (s2) => { const r = arm(s2, gr, gr, bf); R(0.96, 0.42, 0.96, 0.14, bf, 0, -0.74, 0, r[1]); return r; }, // (buff gauntlets)
+        head(h) { queue(h, '#4a3020'); bowl(h, lea, 0.2, 1.0, 0.86); ring(h, 0.84, 0.15, 0.26, fur); R(0.4, 0.3, 0.05, 0.03, bra, 0, 0.48, -0.9, h); // (the leather helmet, its bearskin turban, the plate)
+          for (let k = 0; k < 7; k++) mesh(kg('dkHorseHair', () => sweepGeo([[0, 0, 0], [0, 0.3, 0.35], [0, 0.1, 0.9], [0, -0.5, 1.15], [0, -1.2, 1.1]], (t) => 0.1 * (1 - t * 0.6), 12, 6)), hh, -0.12 + k * 0.04, 1.0, -0.5 + k * 0.03, h); return false; } }; // (the horsehair crest, flowing back)
+    },
+    () => { // 🎖️ Continental Colonel: the Army's blue and buff — a blue coat with buff facings, cuffs and turnbacks, gold buttons and gold epaulettes; a buff waistcoat and breeches; a crimson silk sash; a white cravat; tall black boots; a black tricorne laced in gold with a black cockade
+      const bl = L('#1c2b63', { map: plushTex() }), bf = L('#e2cf9e', { map: plushTex() }), cr = M('#9f1239', { map: plushTex(), shininess: 50 }), wh = L('#f8fafc'), bk = M('#0f0f12', { shininess: 110 }), felt = L('#16161a', { map: plushTex(), side: THREE.DoubleSide }), au = DPM.gold(), ck = L('#09090b');
+      mats.push(au);
+      return { leg: (x) => { const r = leg(x, bf, bk); boot(r[1], bk, 0.34); R(0.92, 0.2, 0.92, 0.07, L('#7a5230', { map: leatherTex() }), 0, -0.08, 0, r[1]); return r; },
+        lower() { hips(bf); for (const s2 of [-1, 1]) { const t = R(0.62, 1.6, 0.08, 0.04, bl, s2 * 0.34, 2.15, 0.55); t.rotation.set(0.1, 0, s2 * 0.06); R(0.38, 1.05, 0.03, 0.02, bf, s2 * 0.34, 2.1, 0.6).rotation.set(0.1, 0, s2 * 0.06); R(0.12, 1.35, 0.9, 0.04, bl, s2 * 1.05, 2.3, 0.1); for (const y of [2.6, 1.6]) P(kSph(), au, s2 * 0.34, y, 0.62, K.body, 0.05); } }, // (long tails turned back in buff, gold buttons)
+        upper() { torso(bl); R(0.6, 1.24, 0.05, 0.02, bf, 0, 3.4, -0.52); for (const s2 of [-1, 1]) { R(0.32, 1.14, 0.06, 0.03, bf, s2 * 0.46, 3.45, -0.54); for (let k = 0; k < 6; k++) P(kSph(), au, s2 * 0.46, 3.9 - k * 0.18, -0.58, K.body, 0.055); }
+          R(1.0, 0.26, 0.16, 0.05, bf, 0, 4.1, 0.38); const cv = mesh(kTor(0.35), wh, 0, 4.06, -0.04); cv.rotation.x = Math.PI / 2; cv.scale.set(0.62, 0.52, 0.45); R(0.26, 0.4, 0.07, 0.04, wh, 0, 3.84, -0.56); // (the collar; a white cravat, its jabot)
+          R(2.08, 0.32, 1.08, 0.12, cr, 0, 2.95, 0); R(0.2, 0.7, 0.1, 0.05, cr, -0.78, 2.5, -0.5).rotation.z = 0.15; R(0.2, 0.55, 0.1, 0.05, cr, -0.62, 2.45, -0.52).rotation.z = -0.1; }, // (the crimson sash, knotted at the left)
+        arm: (s2) => { const r = arm(s2, bl, bl, skin); R(0.92, 0.32, 0.92, 0.1, bf, 0, -0.66, 0, r[1]); R(0.66, 0.1, 0.7, 0.05, au, 0, 0.02, 0, r[0]); for (let k = 0; k < 9; k++) { const an = -1.4 + (k / 8) * 2.8; R(0.06, 0.32, 0.06, 0.02, au, s2 * Math.cos(an) * 0.32 + s2 * 0.06, -0.12, Math.sin(an) * 0.32, r[0]); } return r; }, // (buff cuffs; a gold epaulette with its bullion fringe)
+        head(h) { queue(h, '#e7e5e4'); tricorn(h, felt, au, ck); return false; } }; // (his hair powdered)
+    },
   ];
   return LOOKS[i]();
 }
@@ -4946,6 +5011,7 @@ const DG_BLADES = { // the blades: how long, how wide along the way (t: 0 at the
   gladius: [2.0, (t) => 0.3 * (t < 0.75 ? 1 - 0.18 * t : (1 - t) * 3.3)], spatha: [2.7, (t) => 0.24 * (t < 0.85 ? 1 : (1 - t) * 6.7)], sica: [1.9, (t) => 0.26 * (1 - t * 0.6), -0.55],
   xiphos: [2.0, (t) => 0.26 * (t < 0.6 ? 1 + 0.35 * Math.sin(t / 0.6 * Math.PI) : (1 - t) * 2.5)], arming: [2.8, (t) => 0.26 * (1 - 0.55 * t) + 0.01], longsword: [3.3, (t) => 0.28 * (1 - 0.6 * t) + 0.01],
   great: [4.4, (t) => 0.38 * (1 - 0.5 * t) * (t > 0.9 ? (1 - t) * 10 : 1) + 0.01], katana: [3.1, (t) => 0.2 * (t < 0.92 ? 1 - 0.2 * t : (1 - t) * 10), 0.3], ninjato: [2.1, (t) => 0.2 * (t < 0.9 ? 1 : (1 - t) * 10)],
+  sabre: [2.5, (t) => 0.22 * (t < 0.85 ? 1 - 0.2 * t : (1 - t) * 5.5), 0.35], spadroon: [2.5, (t) => 0.15 * (t < 0.88 ? 1 - 0.25 * t : (1 - t) * 7)],
   short: [1.7, (t) => 0.24 * (t < 0.7 ? 1 : (1 - t) * 3.3)], tachi: [3.4, (t) => 0.21 * (t < 0.92 ? 1 - 0.2 * t : (1 - t) * 10), 0.42] };
 function dgSword(par, kind, o = {}) {
   const g = new THREE.Group(); par.add(g); const [L, wf, cv] = DG_BLADES[kind], steel = metalMat(o.steel || '#e3e8ee', { shininess: 140, reflectivity: 0.55 }), fit = metalMat(o.fit || '#e8b84a', { specular: '#fff2c0' });
@@ -4955,6 +5021,7 @@ function dgSword(par, kind, o = {}) {
   const gl = o.two ? 0.95 : 0.55;
   if (o.tsuba) { const ts = new THREE.Mesh(kg('dgTsuba', () => new THREE.CylinderGeometry(0.3, 0.3, 0.06, 8)), fit); ts.rotation.x = Math.PI / 2; ts.position.z = -0.23; ts.scale.set(1, 1, 0.85); g.add(ts); }
   else if (o.guard !== false) { const gd = new THREE.Mesh(rboxGeo(o.wide ? 1.4 : 0.9, 0.12, 0.14, 0.05), fit); gd.position.z = -0.24; if (o.bent) gd.rotation.z = 0; g.add(gd); if (o.wide) for (const s of [-1, 1]) { const q = new THREE.Mesh(kSph(), fit); q.scale.setScalar(0.11); q.position.set(s * 0.72, 0, -0.24); g.add(q); } }
+  if (o.bow) { const kb = new THREE.Mesh(kTor(0.12, Math.PI), fit); kb.scale.set(0.34, 0.34, 0.34); kb.rotation.set(Math.PI / 2, 0, Math.PI / 2); kb.position.z = -0.2 + gl / 2; g.add(kb); } // (a stirrup hilt: the knuckle bow)
   const gp = new THREE.Mesh(kCyl(), grip); gp.scale.set(o.tsuba ? 0.085 : 0.075, gl, o.tsuba ? 0.11 : 0.075); gp.rotation.x = Math.PI / 2; gp.position.z = -0.2 + gl / 2; g.add(gp);
   const pm = new THREE.Mesh(o.tsuba ? kCyl() : kSph(), fit); if (o.tsuba) { pm.scale.set(0.1, 0.08, 0.12); pm.rotation.x = Math.PI / 2; } else pm.scale.setScalar(o.pom || 0.13); pm.position.z = -0.2 + gl + 0.04; g.add(pm);
   g.userData.tip = new THREE.Object3D(); g.userData.tip.position.z = -0.26 - L; g.add(g.userData.tip); g.userData.len = L; return g;
@@ -5105,6 +5172,11 @@ DG_GEAR.push(
   (h, l) => [[dgForgeHammer(h)], null], // (Cacus: his father's forge hammer)
   (h, l) => [[dgGhostClaw(h)], null], // (the Chötgör: spectral claws)
   (h, l) => [[dgGhostClaw(h, ['#eff6ff', '#60a5fa', '#93c5fd'])], dgLantern(l)], // (the Yūrei: pale claws, the ghost-lantern in the other hand)
+  (h, l) => [[dgMusket(h), dgMusket(h, { bay: 1 })], null], // (the Minuteman: the musket — and with the bayonet fixed)
+  (h, l) => [[dgMusket(h, { rifle: 1 }), dgTomahawk(h)], null], // (the Rifleman: the long rifle, or the tomahawk)
+  (h, l) => [[dgMusket(h, { bands: 1 }), dgMusket(h, { bands: 1, bay: 1 })], null], // (the Continental: a Charleville, bayonet fixed or not)
+  (h, l) => [[dgPistol(h), dgSword(h, 'sabre', { bow: 1, fit: '#c3c9d1', grip: '#1c1917' })], null], // (the Dragoon: a pistol, or the sabre)
+  (h, l) => [[dgPistol(h, { gilt: 1 }), dgSword(h, 'spadroon', { bow: 1, fit: '#e8b84a', grip: '#1c1917', wrap: 1 })], null], // (the Colonel: a pistol, or his spadroon)
 );
 // the legion's eagle on its standard: a gilded pole along -z (upright when the forearm's raised), the eagle with its wings
 // up, a laurel wreath under it, a red SPQR plaque with gold fringes, gold discs (phalerae) down the pole
@@ -5153,6 +5225,45 @@ function dgGhostClaw(par, c = ['#ccfbf1', '#2dd4bf', '#5eead4']) {
   for (const x of [-0.16, 0, 0.16]) { const c = new THREE.Mesh(kCone(), m); c.scale.set(0.05, 0.55, 0.05); c.rotation.x = -Math.PI / 2; c.position.set(x, -0.05, -0.45); g.add(c); } kitGlow(g, c[2], 1.1, 0.6).position.z = -0.4; // (three spectral claws)
   g.userData.tip = new THREE.Object3D(); g.userData.tip.position.z = -1.1; g.add(g.userData.tip); g.userData.len = 1.1; return g;
 }
+// the colonials' guns: a flintlock musket — a walnut stock (the butt back along the arm, the wrist in the hand), a steel
+// barrel pinned to it (o.bands: held by three steel bands, as the French Charleville was), brass furniture, the lock with
+// its flint; o.bay: a socket bayonet on the muzzle; o.rifle: the frontier's long rifle, longer and slimmer, curly maple
+// with a brass patchbox. Held like a pole: along the forearm, pointing ahead
+function dgMusket(par, o = {}) {
+  const g = new THREE.Group(); par.add(g); const rf = !!o.rifle, L = rf ? 4.5 : 3.9;
+  const wd = new THREE.MeshLambertMaterial({ color: rf ? '#b4672c' : '#5a3418', map: woodTex() }), st = metalMat(rf ? '#5b6270' : '#c3c9d1', { shininess: 110 }), br = metalMat('#d9a441', { specular: '#fff2c0' }), dk = metalMat('#3f3f46', { shininess: 60 });
+  const add = (geo, m, x, y, z, sx, sy, sz) => { const q = new THREE.Mesh(geo, m); q.position.set(x, y, z); q.scale.set(sx, sy, sz); g.add(q); return q; };
+  g.add(new THREE.Mesh(kg('dgMkButt' + (rf ? 'R' : ''), () => { const sh = new THREE.Shape(), d = rf ? 0.3 : 0.4; sh.moveTo(0, 0.06); sh.lineTo(1.55, 0.13); sh.lineTo(1.6, -d); sh.lineTo(1.12, -d + 0.08); sh.lineTo(0.22, -0.12); sh.lineTo(-0.1, -0.1); sh.closePath();
+    const q = new THREE.ExtrudeGeometry(sh, { depth: 0.15, bevelEnabled: true, bevelThickness: 0.03, bevelSize: 0.03, bevelSegments: 1 }); q.translate(0, 0, -0.075); q.rotateY(-Math.PI / 2); return q; }), wd)); // (the butt and the wrist)
+  add(BOX, wd, 0, -0.02, -L * 0.42, 0.17, 0.15, L * 0.84); // (the fore-end, under the barrel)
+  const bar = add(kCyl(), st, 0, 0.1, -L / 2 + 0.05, 0.065, L, 0.065); bar.rotation.x = Math.PI / 2; // (the barrel)
+  const rod = add(kCyl(), st, 0, -0.1, -L * 0.45, 0.025, L * 0.85, 0.025); rod.rotation.x = Math.PI / 2; // (the ramrod)
+  for (const z of o.bands ? [-1.3, -2.4, -3.5] : [-1.6, -2.8]) { const b = add(kCyl(), o.bands ? st : br, 0, 0.03, z, 0.13, 0.08, 0.13); b.rotation.x = Math.PI / 2; } // (bands, or brass pipes)
+  add(BOX, br, 0, -0.06, 1.6, 0.19, rf ? 0.42 : 0.5, 0.05); add(BOX, dk, 0.1, 0.04, 0.05, 0.03, 0.14, 0.42); // (the butt plate; the lock)
+  const ck = add(BOX, dk, 0.12, 0.17, 0.18, 0.04, 0.16, 0.06); ck.rotation.x = -0.5; add(BOX, dk, 0.12, 0.14, -0.06, 0.04, 0.14, 0.05); // (the cock with its flint; the frizzen)
+  const tg = add(kTor(0.14, Math.PI), br, 0, -0.13, 0.16, 0.16, 0.16, 0.16); tg.rotation.set(0, Math.PI / 2, Math.PI); // (the trigger guard)
+  if (rf) add(BOX, br, 0.09, -0.06, 1.15, 0.02, 0.18, 0.42); // (the patchbox)
+  let tipZ = -L;
+  if (o.bay) { const so = add(kCyl(), st, 0, 0.1, -L + 0.12, 0.1, 0.26, 0.1); so.rotation.x = Math.PI / 2; add(BOX, st, 0, 0.0, -L + 0.02, 0.05, 0.16, 0.06);
+    const bl = add(kCone(), st, 0, -0.08, -L - 0.68, 0.07, 1.45, 0.035); bl.rotation.x = -Math.PI / 2; tipZ = -L - 1.4; } // (the socket bayonet, its blade below the muzzle)
+  g.userData.tip = new THREE.Object3D(); g.userData.tip.position.z = tipZ; g.add(g.userData.tip); g.userData.len = -tipZ; g.userData.pole = 1; return g;
+}
+// a flintlock pistol, the hand round its grip and the barrel above (o.gilt: an officer's, brass-mounted and silver-barrelled)
+function dgPistol(par, o = {}) {
+  const g = new THREE.Group(); par.add(g); const wd = new THREE.MeshLambertMaterial({ color: '#5a3418', map: woodTex() }), st = metalMat(o.gilt ? '#e5e7eb' : '#9ca3af', { shininess: 120 }), br = metalMat('#d9a441', { specular: '#fff2c0' }), dk = metalMat('#3f3f46', { shininess: 60 });
+  const add = (geo, m, x, y, z, sx, sy, sz) => { const q = new THREE.Mesh(geo, m); q.position.set(x, y, z); q.scale.set(sx, sy, sz); g.add(q); return q; };
+  const bar = add(kCyl(), st, 0, 0.28, -0.62, 0.06, 1.05, 0.06); bar.rotation.x = Math.PI / 2; add(BOX, wd, 0, 0.19, -0.45, 0.13, 0.12, 0.9); // (the barrel, the stock under it)
+  const gr = add(BOX, wd, 0, -0.02, 0.06, 0.15, 0.55, 0.22); gr.rotation.x = -0.4; add(kSph(), br, 0, -0.28, 0.17, 0.11, 0.1, 0.13); // (the grip, the butt cap)
+  add(BOX, dk, 0.08, 0.22, 0.02, 0.03, 0.12, 0.3); const ck = add(BOX, dk, 0.09, 0.34, 0.12, 0.035, 0.13, 0.05); ck.rotation.x = -0.5; // (the lock and its cock)
+  const tg = add(kTor(0.12, Math.PI), br, 0, 0.1, -0.08, 0.12, 0.12, 0.12); tg.rotation.set(0, Math.PI / 2, Math.PI); add(BOX, br, 0, 0.22, -1.08, 0.1, 0.1, 0.05);
+  g.userData.tip = new THREE.Object3D(); g.userData.tip.position.set(0, 0.28, -1.15); g.add(g.userData.tip); g.userData.len = 1.15; g.userData.pole = 1; return g;
+}
+// the frontier's tomahawk: a short hickory haft, a small iron head, a pair of feathers tied below it
+function dgTomahawk(par) { const g = new THREE.Group(); par.add(g); const wd = new THREE.MeshLambertMaterial({ color: '#8b5a2b', map: woodTex() }), ir = metalMat('#9ca3af', { map: ovIronTex(), shininess: 90 }), fe = new THREE.MeshLambertMaterial({ color: '#f5f5f4' }), fd = new THREE.MeshLambertMaterial({ color: '#292524' });
+  const sh = new THREE.Mesh(kCyl(), wd); sh.scale.set(0.065, 1.75, 0.065); sh.rotation.x = Math.PI / 2; sh.position.z = -0.62; g.add(sh);
+  const hd = new THREE.Mesh(ovShape('dgAxeHead', [[0, 0.18], [0.35, 0.22], [0.7, 0.62, 0.78, 0.7], [0.82, 0.0], [0.78, -0.7], [0.7, -0.62, 0.35, -0.22], [0, -0.18]], 0.06, 0.02), ir); hd.rotation.set(Math.PI / 2, 0, -Math.PI / 2); hd.position.set(0, 0.03, -1.36); hd.scale.setScalar(0.6); g.add(hd);
+  for (const s of [-1, 1]) { const f = new THREE.Mesh(BOX, fe); f.scale.set(0.12, 0.42, 0.03); f.position.set(s * 0.06, -0.22, -1.05); f.rotation.z = s * 0.25; g.add(f); const t = new THREE.Mesh(BOX, fd); t.scale.set(0.12, 0.1, 0.035); t.position.set(s * 0.11, -0.42, -1.05); t.rotation.z = s * 0.25; g.add(t); } // (feathers)
+  g.userData.tip = new THREE.Object3D(); g.userData.tip.position.z = -1.45; g.add(g.userData.tip); g.userData.len = 1.5; return g; }
 // the Yūrei's lantern: an old paper chōchin on a cord, hanging from the hand (down the hand's +z when the arm's held out),
 // lit from inside with a cold blue ghost-light — ribbed paper, black lacquered caps
 function dgLantern(par) {
@@ -5197,7 +5308,12 @@ BODY_DESC.push('⚔️ The Laestrygonian of the Colosseum Duels, the same giant 
   '👹 The Oni of ⚔️ Colosseum Duels, a giant demon of Japan — wear it and you’re a giant too: red skin, ivory horns, a wild white mane, burning eyes, tusks, a tiger-skin loincloth and black-lacquered armour laced in gold. A mastery reward in ⚔️ Colosseum Duels.',
   '🔥 Cacus of ⚔️ Colosseum Duels, the fire-breathing giant of Roman myth, son of Vulcan — wear it and you’re a giant too: skin like cooling lava, cracked and glowing, a black mane and beard, short horns, fire in his mouth and smoke from his nose. A mastery reward in ⚔️ Colosseum Duels.',
   '👻 The Chötgör of ⚔️ Colosseum Duels, a restless spirit of the steppe: pale, glowing and half-seen-through, a tattered deel, a shaman’s crown of feathers over hollow eyes with cold lights in them, its legs fading into mist. A mastery reward in ⚔️ Colosseum Duels.',
-  '🏮 The Yūrei of ⚔️ Colosseum Duels, a ghost of old Japan: the white burial kimono wrapped right over left as the dead are dressed, the white triangle on its brow, long black hair hanging over its face with one cold eye through it, limp hands, no feet — only mist — and two blue ghost-fires drifting round it. A mastery reward in ⚔️ Colosseum Duels.');
+  '🏮 The Yūrei of ⚔️ Colosseum Duels, a ghost of old Japan: the white burial kimono wrapped right over left as the dead are dressed, the white triangle on its brow, long black hair hanging over its face with one cold eye through it, limp hands, no feet — only mist — and two blue ghost-fires drifting round it. A mastery reward in ⚔️ Colosseum Duels.',
+  '🔔 A Minuteman of the colonial militia, ready at a minute’s notice: a brown felt tricorne, a linen shirt and a red neckerchief, a brown waistcoat, buff breeches and white stockings, a powder horn and a cartridge box, a Brown Bess musket. A mastery reward in ⚔️ Colosseum Duels.',
+  '🔔 A frontier rifleman: a fringed hunting shirt with a shoulder cape, a round felt hat with a buck’s tail, fringed leggings and moccasins, a shot pouch and a powder horn — and the long rifle, its stock of curly maple. A mastery reward in ⚔️ Colosseum Duels.',
+  '🔔 A soldier of the Continental line: a blue coat faced red with brass buttons and turned-back tails, a white waistcoat and breeches, white cross-belts with a brass plate, black gaiters, and a black tricorne edged in white with a cockade — a musket and bayonet. A mastery reward in ⚔️ Colosseum Duels.',
+  '🔔 A Continental light dragoon: a leather helmet with a bearskin turban and a black horsehair crest, a short green jacket, buff breeches and gauntlets, tall riding boots, a sabre and a pistol. A mastery reward in ⚔️ Colosseum Duels.',
+  '🔔 A colonel of the Continental Army in blue and buff: gold epaulettes and buttons, a crimson sash, a black tricorne laced in gold, tall boots, a spadroon and a pistol. A mastery reward in ⚔️ Colosseum Duels.');
 // the gilded giant in the duels: the film giant's own pack — its moves, its sword held where its keys say (its arms
 // reaching for it), its steps and breaths and quakes — with that sword re-forged in silver, bronze and gold. A blow takes
 // the sword from the keys: it goes into the fist like any duel weapon (the blow turns the wrist), then back to the keys
@@ -5415,11 +5531,16 @@ ANIM_PACKS.push(...[
   { g: [[0.5, 0, -0.45], [0.9, 0, 0.4], 0.6, 0.9], st: [0.34, 0.16, 0.16], w: { str: 0.42, arm: 0.22, lean: 0.16, bob: 0.26, keep: 0.7, rate: 0.68, knee: 0.5, twist: 0.24 }, j: [0.3, 0.4], f: dfl.roar(9) }, // Cacus: heavy and hunched, smoke at his mouth
   { g: [[0.9, 0, -0.5], [0.9, 0, 0.5], 0.5, 0.5], st: [0.1, -0.5, -0.05], w: { str: 0.12, arm: 0.2, lean: 0.25, bob: 0.14, cr: -0.5, keep: 0.75, rate: 0.75, knee: 0.15 }, j: [0.6, 0.3], f: dfl.stretch(6) }, // Chötgör: floating off the ground, claws out, drifting rather than walking
   { g: [[0.55, 0, -0.12], [0.6, 0, 0.12], 1.0, 0.95], st: [0.06, -0.45, -0.02], w: { str: 0.06, arm: 0.04, lean: 0.1, bob: 0.16, cr: -0.45, keep: 0.95, rate: 0.55, knee: 0.08 }, j: [0.3, 0.15], f: dfl.haunt(7) }, // Yūrei: drifting just off the ground, both hands held out and hanging limp, the lantern on its cord
+  { g: [[1.3, 0.35, 0.45], [0.6, 0, 0.12], 0.45, 1.0], st: [0.18, 0.06, 0.04], w: { str: 0.55, arm: 0.06, lean: 0.06, bob: 0.06, keep: 0.95 }, f: dfl.scan(8) }, // Minuteman: the musket levelled at the hip, looking out
+  { g: [[1.3, 0.35, 0.45], [0.6, 0, 0.12], 0.45, 1.0], st: [0.16, 0.08, 0.06], w: { str: 0.6, arm: 0.06, lean: 0.1, bob: 0.07, keep: 0.95, rate: 1.05 }, j: [0.5, 0.6], f: dfl.scan(7) }, // Frontier Rifleman: low and watchful, a hunter's walk
+  { g: [[1.3, 0.35, 0.45], [0.6, 0, 0.12], 0.45, 1.0], st: [0.2, 0.05, 0.02], w: { str: 0.52, arm: 0.04, lean: 0.02, bob: 0.05, keep: 1.0, rate: 0.95 }, f: dfl.scan(9) }, // Continental Regular: upright, bayonet to the front, in step
+  { g: [[0.4, 0, -0.3], [0.75, 0, 0.2], 0.6, 1.05], st: [0.2, 0.08, 0.06], w: { str: 0.62, arm: 0.12, lean: 0.12, bob: 0.08, rate: 1.05, keep: 0.85 }, f: dfl.twirl(8) }, // Light Dragoon: the sabre on guard, and a twirl of it
+  { g: [[0.3, 0, -0.35], [0.85, 0, 0.15], 0.5, 1.0], st: [0.18, 0.05, -0.02], w: { str: 0.52, arm: 0.1, lean: 0.02, bob: 0.05, keep: 0.85, rate: 0.95 }, f: dfl.salute(10) }, // Continental Colonel: upright, his sword ready, a salute
 ].map(duelPack));
 ANIM_PACKS[DUEL_AN + 20] = lgDuelPack(); // (the Laestrygonian Warlord's pack: the film giant's own, the gilded sword — after the others, in its own place)
 ANIM_PACKS[DUEL_AN + 21] = exDuelPack(); // (the Executioner's own: the axe on his shoulder)
 if (ANIM_PACKS.length !== ANIMS.length) console.error('Bloxverse: animation packs and their names are out of step', ANIM_PACKS.length, ANIMS.length);
-ANIM_DESC.push(...DUEL_N.map((n, i) => `⚔️ The ${n}’s own guard, walk, run and leap from ⚔️ Colosseum Duels, its weapon in hand — and a flourish of its own while it stands. ${i === 20 ? 'Yours for beating the Laestrygonian boss, or at Season Pass level 100.' : i === 21 ? 'Yours with the Executioner’s quest.' : i === 32 ? 'Yours with the Sword Saint’s Trial.' : i === 33 ? 'Yours with the Imperator’s Triumph.' : i === 34 ? 'Yours with the Frost Saga.' : i >= 35 ? 'Yours with its quest (🏆 Achievements → 📜 Quests).' : 'A mastery reward.'}`));
+ANIM_DESC.push(...DUEL_N.map((n, i) => `⚔️ The ${n}’s own guard, walk, run and leap from ⚔️ Colosseum Duels, its weapon in hand — and a flourish of its own while it stands. ${i === 20 ? 'Yours for beating the Laestrygonian boss, or at Season Pass level 100.' : i === 21 ? 'Yours with the Executioner’s quest.' : i === 32 ? 'Yours with the Sword Saint’s Trial.' : i === 33 ? 'Yours with the Imperator’s Triumph.' : i === 34 ? 'Yours with the Frost Saga.' : i >= 35 && i <= 41 ? 'Yours with its quest (🏆 Achievements → 📜 Quests).' : 'A mastery reward.'}`));
 ANIM_DESC[DUEL_AN + 20] = '⚔️ The Laestrygonian Warlord’s own: the Season Pass giant’s every move — its great sword on its shoulder, a slow look round, the lumber with the point scraping sparks, the leap with a chop as it falls, the quake as it lands, and the sword driven into the ground and leaned on every 12 s — with that sword re-forged: a polished silver blade, bronze at its root, gold rings and pommel. Yours for beating the Laestrygonian boss, or at Season Pass level 100.';
 /* ---------------- shapes for the remade items: feathered wings, a bat's wing, a cape that hangs, a shield ---------------- */
 // a feathered wing, fanned out from the shoulder (s: -1 the left, 1 the right): long feathers at the back, shorter rows
