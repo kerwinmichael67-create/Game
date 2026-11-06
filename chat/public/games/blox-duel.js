@@ -466,11 +466,12 @@
   ];
   const MAST = [0, 100, 250, 450, 700, 1000, 1400, 1900, 2500, 3200, 4000]; // (mastery XP for each level, 1 to 10)
   const mLvl = (xp) => { let l = 0; while (l < 10 && xp >= MAST[l + 1]) l++; return l; };
-  const ROUND_T = 180, DM_T = 300, TO = 3, A0 = 34, B0 = 24; // (a round, a deathmatch; first to; the arena's half-length (x) and half-width (z))
-  const LOBBY = { z0: 92, z1: 156, x: 46 }, PADS = [{ md: 'c', x: -18, z: 108, n: '⚔️ CLASSIC 1v1', s: 'first to 3' }, { md: 'd', x: 18, z: 108, n: '💀 DEATHMATCH 1v1', s: 'most kills in 5:00' }, { md: 'b', x: 0, z: 103, n: '👹 BOSS · CO-OP', s: 'up to 4 vs the Laestrygonian' }];
-  const SHRINES = [1, 0, 2, 3, 4, 5, 6].map((e, k) => { const x = -36 + k * 12; return { e, x, z: Math.round(141 - x * x * 0.009) }; }); // (an arc of shrines, oldest to newest)
+  const ROUND_T = 180, DM_T = 300, TO = 3, A0 = 50, B0 = 36; // (a round, a deathmatch; first to; the arena's half-length (x) and half-width (z))
+  const LZ = 12; // (the ludus, set back to make room for the Colosseum: everything in it is this much further along z)
+  const LOBBY = { z0: 92 + LZ, z1: 156 + LZ, x: 46 }, PADS = [{ md: 'c', x: -18, z: 108 + LZ, n: '⚔️ CLASSIC 1v1', s: 'first to 3' }, { md: 'd', x: 18, z: 108 + LZ, n: '💀 DEATHMATCH 1v1', s: 'most kills in 5:00' }, { md: 'b', x: 0, z: 103 + LZ, n: '👹 BOSS · CO-OP', s: 'up to 4 vs the Laestrygonian' }];
+  const SHRINES = [1, 0, 2, 3, 4, 5, 6].map((e, k) => { const x = -36 + k * 12; return { e, x, z: Math.round(141 - x * x * 0.009) + LZ }; }); // (an arc of shrines, oldest to newest)
   const BOSS_LIVES = 5, BOSS_T = 600; // (the boss: its health with one of you — more with more — your lives each, and the time you have)
-  const ARMORY = { x: -40, z: 120 }, BOTGATE = { x: 40, z: 120 }, TABLET = { x: 0, z: 150 };
+  const ARMORY = { x: -40, z: 120 + LZ }, BOTGATE = { x: 40, z: 120 + LZ }, TABLET = { x: 0, z: 150 + LZ };
   const isFloor = (x, z) => (x / A0) ** 2 + (z / B0) ** 2;
   const angOf = (dx, dz) => Math.atan2(-dx, -dz); // (the yaw that faces along dx, dz)
   const wrapA = (a) => { while (a > Math.PI) a -= Math.PI * 2; while (a < -Math.PI) a += Math.PI * 2; return a; };
@@ -647,7 +648,7 @@
     const solid = slab(0, 0, 0, 2 * (A0 + 4), 2 * (B0 + 4), 0xd9b77c, { sy: 2 }); solid.m.visible = false;
     for (const p of ellPts(PA + 0.9, PB + 0.9, 96)) { const w = part({ x: p.x, y: 8, z: p.z, sx: 2.6, sy: 16, sz: 2.6 }); w.m.visible = false; } // (an unseen wall round the arena, taller than any jump)
     add(sweep('gutter', PA, PB, [[-1.9, 0.02, '#b9ab8c'], [-1.9, 0.08, '#cfc2a4'], [-1.5, 0.1, '#cfc2a4'], [-1.45, 0.03, '#6b5a40'], [-1.0, 0.03, '#6b5a40'], [-0.95, 0.1, '#cfc2a4'], [0, 0.1, '#cfc2a4']], { hard: true, u: 60 }), TRAV);
-    const plank = Lm({ map: plankTex() }); for (const [x, z, w, d] of [[-20, -9, 4, 2.6], [20, 9, 4, 2.6], [-9, 13, 2.6, 4], [9, -13, 2.6, 4], [0, 0, 3, 3]]) { if (!x && !z) continue; const td = add(BOX, plank, x, 0.03, z); td.scale.set(w, 0.06, d); for (const s of [-1, 1]) { const rg = add(kTor(0.25), iron, x + s * w * 0.28, 0.08, z); rg.rotation.x = Math.PI / 2; rg.scale.setScalar(0.22); } }
+    const plank = Lm({ map: plankTex() }); for (const [x, z, w, d] of [[-30, -13, 4, 2.6], [30, 13, 4, 2.6], [-13, 20, 2.6, 4], [13, -20, 2.6, 4], [0, 0, 3, 3]]) { if (!x && !z) continue; const td = add(BOX, plank, x, 0.03, z); td.scale.set(w, 0.06, d); for (const s of [-1, 1]) { const rg = add(kTor(0.25), iron, x + s * w * 0.28, 0.08, z); rg.rotation.x = Math.PI / 2; rg.scale.setScalar(0.22); } }
     // the debris of earlier fights against the wall: shields leant there, spears in the sand
     for (const p of ellPts(PA - 1.3, PB - 1.3, 14, 0, 0.3)) { if (Math.abs(p.z) < 8 && Math.abs(p.x) > 25) continue; if (rnd() < 0.5) { const sh = add(kg('duDebSh', () => new THREE.CylinderGeometry(0.9, 0.9, 0.12, 20)), rnd() < 0.5 ? bronze : Lm({ map: woodTex(), color: '#8b5a2b' }), p.x, 0.85, p.z); sh.rotation.set(Math.PI / 2 - 0.35, 0, 0); sh.rotation.y = p.ry; sh.rotateX(0); }
       else { const sp = add(kCyl(), Lm({ map: woodTex(), color: '#8b5a2b' }), p.x, 1.4, p.z); sp.scale.set(0.07, 3.2, 0.07); sp.rotation.z = (rnd() - 0.5) * 0.5; sp.rotation.x = (rnd() - 0.5) * 0.4; } }
@@ -781,7 +782,7 @@
     const G = new THREE.Group(); place.add(G); const L = (c, o) => new THREE.MeshLambertMaterial(Object.assign({ color: c }, o || {})), add = (geo, m, x = 0, y = 0, z = 0, par = G) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); par.add(o); return o; };
     const marble = L('#ece4d3'), trav = L('#d8c9a8'), gold = metalMat('#e8b84a', { specular: '#fff2c0' }), bronze = metalMat('#b8763a', { shininess: 90 }), zc = (LOBBY.z0 + LOBBY.z1) / 2, W = LOBBY.x * 2, D = LOBBY.z1 - LOBBY.z0;
     // the ground all round and the road to the Colosseum's gate
-    const gr = add(kg('duGroundG', () => { const q = new THREE.PlaneGeometry(1, 1); q.rotateX(-Math.PI / 2); return q; }), L('#ffffff', { map: groundTex() }), 0, -0.04, 45); gr.scale.set(170, 1, 240); gr.material.map.repeat.set(10, 14);
+    const gr = add(kg('duGroundG', () => { const q = new THREE.PlaneGeometry(1, 1); q.rotateX(-Math.PI / 2); return q; }), L('#ffffff', { map: groundTex() }), 0, -0.04, 50); gr.scale.set(280, 1, 300); gr.material.map.repeat.set(16, 18);
     const rd = add(kg('duRoad', () => { const q = new THREE.PlaneGeometry(1, 1); q.rotateX(-Math.PI / 2); return q; }), L('#ffffff', { map: paveTex() }), 0, -0.01, (FB + LOBBY.z0) / 2); rd.scale.set(12, 1, LOBBY.z0 - FB + 2); rd.material.map.repeat.set(2, 6);
     const fl = slab(0, 0, zc, W, D, 0xcbbd9d, { sy: 1 }); fl.m.material = L('#ffffff', { map: paveTex() }); fl.m.material.map.repeat.set(10, 7); // (the courtyard's paving)
     // walls you can't get past, a colonnade on top so you see the Colosseum over it
@@ -812,10 +813,10 @@
     const tab = part({ x: TABLET.x, y: 2.5, z: TABLET.z, sx: 7, sy: 5, sz: 1, c: 0xe9e1d0 }); tab.m.material = new THREE.MeshLambertMaterial({ color: '#ffffff', map: kCanvas('duTablet', 256, 192, (g) => { g.fillStyle = '#e9e1d0'; g.fillRect(0, 0, 256, 192); g.strokeStyle = '#b8ad97'; g.lineWidth = 8; g.strokeRect(8, 8, 240, 176); g.fillStyle = '#6b5a3e'; g.font = 'bold 26px serif'; g.textAlign = 'center'; g.fillText('HONORES', 128, 50); g.font = '17px serif'; for (let k = 0; k < 5; k++) g.fillRect(48, 76 + k * 20, 160, 3); }) });
     const lb3 = label('🏆 ACHIEVEMENTS', { size: 1.6, color: '#fff' }); lb3.position.set(TABLET.x, 6.6, TABLET.z); G.add(lb3);
     // the four legends on plinths at the corners, in their guard
-    { const x = 0, z = 95, pd = part({ x, y: 1, z, sx: 6, sy: 2, sz: 4.5, c: 0x9ca3af }); pd.m.material = L('#8b8f99', { map: travTex() });
+    { const x = 0, z = 95 + LZ, pd = part({ x, y: 1, z, sx: 6, sy: 2, sz: 4.5, c: 0x9ca3af }); pd.m.material = L('#8b8f99', { map: travTex() });
       const a = makeAvatar([5, 0, 0, 0, 17, 0, 0, 0, 0, 0, LAE_BOSS_BT, DUEL_AN + LAE], '', true); scene.remove(a.shadow); a.g.position.set(x, 2, z); a.g.rotation.y = Math.PI; a.g.scale.setScalar(1.8); G.add(a.g); for (let k = 0; k < 25; k++) animateAvatar(a, 0.1, false, false); G.remove(a.g); G.add(bake(a.g));
       const lb = label('👹 THE LAESTRYGONIAN', { size: 1.3, color: '#fca5a5' }); lb.position.set(x, 17, z); G.add(lb); }
-    SC.legends = [[4, -41, 151], [9, 41, 151], [14, -41, 97], [19, 41, 97]].map(([c, x, z]) => [c, x, z, angOf(-x, 124 - z)]).map(([c, x, z, ry]) => { const pd = part({ x, y: 1.5, z, sx: 4, sy: 3, sz: 4, c: 0xece4d3 }); pd.m.material = marble;
+    SC.legends = [[4, -41, 151], [9, 41, 151], [14, -41, 97], [19, 41, 97]].map(([c, x, z]) => [c, x, z + LZ, angOf(-x, 124 - z)]).map(([c, x, z, ry]) => { const pd = part({ x, y: 1.5, z, sx: 4, sy: 3, sz: 4, c: 0xece4d3 }); pd.m.material = marble;
       const a = makeAvatar([1, 0, 0, 0, 17, 0, 0, 0, 0, 0, 23 + c, 15 + c], '', true); scene.remove(a.shadow); a.g.position.set(x, 3, z); a.g.rotation.y = ry; G.add(a.g); for (let k = 0; k < 25; k++) animateAvatar(a, 0.1, false, false); G.remove(a.g); G.add(bake(a.g));
       const lb = label(`${DUEL_IC[c]} ${DUEL_N[c]}`, { size: 1.1, color: '#fbbf24' }); lb.position.set(x, 11.4, z); G.add(lb); return a; });
     return G;
@@ -1510,8 +1511,8 @@
     sortKey(pr, isMe) { return this.statOf(pr, isMe); },
     spawn() {
       const M = this.M;
-      if (M && M.ph !== 'end') { if (M.md === 'b') return [-11 + (Math.random() - 0.5) * 5, 0.5, (Math.random() - 0.5) * 12, -Math.PI / 2]; if (M.md === 'd' && M.started) { const s = this.randSpot(M.foe); s[3] = cam.yaw; return s; } const s = M.side; return [s ? 15 : -15, 0.5, 0, s ? Math.PI / 2 : -Math.PI / 2]; }
-      return [(Math.random() - 0.5) * 12, 0.5, 122 + Math.random() * 6, 0];
+      if (M && M.ph !== 'end') { if (M.md === 'b') return [-11 + (Math.random() - 0.5) * 5, 0.5, (Math.random() - 0.5) * 12, -Math.PI / 2]; if (M.md === 'd' && M.started) { const s = this.randSpot(M.foe); s[3] = cam.yaw; return s; } const s = M.side; return [s ? 18 : -18, 0.5, 0, s ? Math.PI / 2 : -Math.PI / 2]; }
+      return [(Math.random() - 0.5) * 12, 0.5, 122 + LZ + Math.random() * 6, 0];
     },
     randSpot(avoid) { for (let k = 0; k < 40; k++) { const a = Math.random() * Math.PI * 2, r = 0.25 + Math.sqrt(Math.random()) * 0.6, x = Math.cos(a) * A0 * r, z = Math.sin(a) * B0 * r;
       if (!avoid || Math.hypot(x - avoid.x, z - avoid.z) > 20 || k === 39) return [x, 0.5, z, angOf((avoid ? avoid.x : 0) - x, (avoid ? avoid.z : 0) - z)]; } },
@@ -1585,7 +1586,7 @@
       for (const F of [M.me, M.foe]) { this.revive(F); F.cd = F.C.ab.map(() => 0); }
       for (const p of this.proj) scene.remove(p.m); for (const v of this.volleys) scene.remove(v.ring); for (const d of this.drops) scene.remove(d.m); for (const w of this.waves) scene.remove(w.g); this.proj = []; this.volleys = []; this.drops = []; this.waves = [];
       const cy = cam.yaw; respawn(true); M.me.x = P.x; M.me.z = P.z; M.me.yaw = P.yaw; if (!first) cam.yaw = cy; // (the camera stays where you had it)
-      if (M.foe.kind === 'bot') { const s = 1 - M.side; Object.assign(M.foe, { x: s ? 15 : -15, z: 0, yaw: s ? Math.PI / 2 : -Math.PI / 2 }); this.botAvatar(M.foe); }
+      if (M.foe.kind === 'bot') { const s = 1 - M.side; Object.assign(M.foe, { x: s ? 18 : -18, z: 0, yaw: s ? Math.PI / 2 : -Math.PI / 2 }); this.botAvatar(M.foe); }
       if (isBoss(M.foe)) { Object.assign(M.foe, { x: 16, z: 0, yaw: Math.PI / 2 }); this.botAvatar(M.foe); big('👹 THE LAESTRYGONIAN', `${M.coop ? 'beat it together' : 'beat it'} — ${BOSS_LIVES} lives each · jump its stomps, get behind its blade`, '#fca5a5', 2.6); this.pubDu(true); return; }
       big(M.md === 'd' ? '💀 DEATHMATCH' : `ROUND ${M.rd}`, M.md === 'd' ? 'most kills in 5:00 — you come back at once' : M.sc[0] === TO - 1 && M.sc[1] === TO - 1 ? 'FINAL ROUND' : `first to ${TO}`, '#fde68a'); if (!first) sfx('horn');
       this.pubDu(true);
