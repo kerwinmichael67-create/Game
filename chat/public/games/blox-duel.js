@@ -120,6 +120,9 @@
     .du-res{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
     .du-gwrap{overflow-x:auto;padding:2px 2px 8px;-webkit-overflow-scrolling:touch}
     .du-g6{display:grid;grid-template-columns:58px repeat(7,minmax(124px,1fr));gap:8px;min-width:980px;align-items:start}
+    .du-code{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:14px 0 0;padding:10px 12px;border-radius:14px;background:rgba(15,23,42,.55);border:1px dashed rgba(253,230,138,.45);font:700 13px var(--fb,sans-serif);color:#fde68a}
+    .du-code input{flex:1;min-width:160px;padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:rgba(2,6,23,.6);color:#fff;font:800 14px ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase}
+    .du-code #duCodeMsg{flex-basis:100%;font:600 12.5px var(--fb,sans-serif)}.du-code #duCodeMsg.ok{color:#86efac}.du-code #duCodeMsg.bad{color:#fca5a5}
     .du-wts{display:flex;flex-wrap:wrap;gap:6px 14px;margin:0 0 10px;font:600 12px var(--fb,sans-serif);color:#94a3b8}.du-wts b{color:#e2e8f0;margin-right:4px}
     .du-gh{font:800 14px var(--fh);color:#fff;text-align:center;padding:6px 4px;border-radius:10px;background:rgba(255,255,255,.07)}
     .du-gr{align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);padding:6px 2px}
@@ -264,12 +267,12 @@
       { n: 'Stomp / Crush', ic: '🦶', k: 'stomp', dmg: 45, crush: 120, near: 7, rad: 26, cd: 3.5, wind: 0.45, an: 'stomp', d: 'A shockwave rolls out across the sand: jump it or take 45. If they’re close it’s a Crush instead — 120 damage, a 1 s stun, and Crushed for the rest of the round.' },
       { n: 'Rush and Crush', ic: '🐂', k: 'dash', rush: 1, dmg: 275, dmg2: 350, dist: 26, dd: 2, cd: 35, wind: 0.3, an: 'rush', fx: { st: 1.2 }, d: 'Charge for 2 s, scimitar out: 275 damage and a 1.2 s stun to anyone in the way. Hit them head-on and it’s 350 and they’re Crushed for the round.' }] },
     // 🏰 Europe: the Executioner — the giant’s counter; his contract is in the achievements
-    { e: 2, r: 4, hp: 350, spd: 1.35, def: 1.35, nc: 1, wish: 1, ro: 'Assassin', how: 'Accept the Executioner’s Contract (🏆 Achievements → 📜 Quests), then defeat 50 fighters and deal 15,000 damage', pas: [['🩻', 'Armorless', 'No armour at all: takes 35% more damage, and 35% faster.'], ['🪓', 'Executioner’s Wish', 'Every hit on a fighter: +10% damage (it stacks, until the round ends or you die) and heals 10% of your health.']], ab: [
+    { e: 2, r: 4, hp: 420, spd: 1.35, def: 1.2, nc: 1, wish: 1, ro: 'Assassin', how: 'Accept the Executioner’s Contract (🏆 Achievements → 📜 Quests), then defeat 50 fighters and deal 15,000 damage', pas: [['🩻', 'Armorless', 'No armour at all: takes 20% more damage, and 35% faster.'], ['🪓', 'Executioner’s Wish', 'Every hit on a fighter: +10% damage (it stacks, until the round ends or you die) and heals 10% of your health.']], ab: [
       { n: 'Sever / Chop', ic: '🪓', k: 'melee', modes: [
-        { n: 'Sever', ic: '🪓', dmg: 200, cd: 2.2, rng: 7.5, arc: 70, wind: 0.42, an: 'xsever' },
-        { n: 'Chop', ic: '🔪', dmg: 160, cd: 1.7, rng: 7, arc: 110, wind: 0.3, an: 'xchop' }] },
-      { n: 'Behead', ic: '💀', k: 'melee', dmg: 400, cd: 15, rng: 7.5, arc: 60, wind: 1.25, an: 'behead', say: '“OFF WITH HIS HEAD!”', d: '“Off with his head!” A 1.25 s wind-up, the axe raised high behind him — then 400 damage.' },
-      { n: 'Blade Sharpen', ic: '🔥', k: 'buff', cd: 35, an: 'sharpen', b: { dur: 8, dmgM: 2.5 }, d: 'Whet the axe’s edge: 2.5× damage for 8 s.' },
+        { n: 'Sever', ic: '🪓', dmg: 225, cd: 2.1, rng: 7.5, arc: 70, wind: 0.42, an: 'xsever' },
+        { n: 'Chop', ic: '🔪', dmg: 180, cd: 1.6, rng: 7, arc: 110, wind: 0.3, an: 'xchop' }] },
+      { n: 'Behead', ic: '💀', k: 'melee', dmg: 480, cd: 14, rng: 7.5, arc: 60, wind: 1.1, an: 'behead', say: '“OFF WITH HIS HEAD!”', d: '“Off with his head!” A 1.1 s wind-up, the axe raised high behind him — then 480 damage.' },
+      { n: 'Blade Sharpen', ic: '🔥', k: 'buff', cd: 30, an: 'sharpen', b: { dur: 8, dmgM: 2.5 }, d: 'Whet the axe’s edge: 2.5× damage for 8 s.' },
       { n: 'Parry', ic: '⚔️', k: 'buff', cd: 12, an: 'parry', b: { dur: 3, blk: 1, parry: 1 }, d: 'The axe haft up for 3 s: every blow is blocked — and whoever lands one is stunned for 2 s and takes 1.5× damage.' }] },
     // 🌙 the Ottoman Empire (no cavalry)
     { e: 4, r: 0, hp: 430, ro: 'Skirmisher', ab: [
@@ -435,9 +438,9 @@
   ];
   // the boss: a Laestrygonian bigger still, in silver, bronze and gold — 4,000 health, a scimitar blow every 6 s for 250 (a
   // long 1.4 s warning, 120° in front of it), a stomp every 8 s for 30, 75% slower, 40% less damage, 8% Crush
-  const BOSS_C = Object.assign({}, CH[LAE], { hp: 4000, def: 0.6, spd: 0.25, big: 2.4, boss: 1, brute: 0.08, swing: 6, stomp: 8, ab: [
-    { n: 'Great Scimitar', ic: '🗡️', k: 'melee', dmg: 250, cd: 6, rng: 10, arc: 120, wind: 1.4, an: 'bcleave' },
-    { n: 'Earthshaker', ic: '🦶', k: 'stomp', dmg: 30, rad: 36, cd: 8, wind: 0.8, an: 'bplant', wspd: 17 }] }); // (bcleave, bplant: its own two-handed blows — the pack holds the sword for them)
+  const BOSS_C = Object.assign({}, CH[LAE], { hp: 6000, def: 0.5, spd: 0.3, big: 2.4, boss: 1, brute: 0.12, swing: 5, stomp: 6.5, ab: [
+    { n: 'Great Scimitar', ic: '🗡️', k: 'melee', dmg: 320, cd: 5, rng: 10, arc: 120, wind: 1.4, an: 'bcleave' },
+    { n: 'Earthshaker', ic: '🦶', k: 'stomp', dmg: 45, rad: 36, cd: 6.5, wind: 0.8, an: 'bplant', wspd: 17 }] }); // (bcleave, bplant: its own two-handed blows — the pack holds the sword for them)
     // the fighters' looks for their trails and glows
   const COL = ['#ef4444', '#f59e0b', '#2dd4bf', '#a855f7', '#f97316', '#60a5fa', '#fbbf24', '#fb923c', '#a3a3a3', '#dc2626', '#facc15', '#84cc16', '#38bdf8', '#fef3c7', '#e2e8f0', '#93c5fd', '#fda4af', '#a78bfa', '#fb923c', '#fde047', '#fbbf24', '#991b1b', '#f87171', '#fbbf24', '#f97316', '#2dd4bf', '#dc2626', '#a16207', '#7dd3fc', '#38bdf8', '#cbd5e1', '#facc15', '#f43f5e', '#fbbf24', '#7dd3fc', '#f59e0b', '#ef4444', '#d6a77a', '#dc2626', '#fb923c', '#5eead4', '#bfdbfe', '#a16207', '#65a30d', '#3b82f6', '#16a34a', '#e7d3a1'];
   // the duel's own achievements: each wins a fighter (the 1% ones only come from crates)
@@ -470,6 +473,11 @@
   const LZ = 12; // (the ludus, set back to make room for the Colosseum: everything in it is this much further along z)
   const LOBBY = { z0: 92 + LZ, z1: 156 + LZ, x: 46 }, PADS = [{ md: 'c', x: -18, z: 108 + LZ, n: '⚔️ CLASSIC 1v1', s: 'first to 3' }, { md: 'd', x: 18, z: 108 + LZ, n: '💀 DEATHMATCH 1v1', s: 'most kills in 5:00' }, { md: 'b', x: 0, z: 103 + LZ, n: '👹 BOSS · CO-OP', s: 'up to 4 vs the Laestrygonian' }];
   const SHRINES = [1, 0, 2, 3, 4, 5, 6].map((e, k) => { const x = -36 + k * 12; return { e, x, z: Math.round(141 - x * x * 0.009) + LZ }; }); // (an arc of shrines, oldest to newest)
+  // one-time codes: only a SHA-256 of each code lives here (never the code), with the fighter it gives. Its claim is a
+  // shared document named by a second hash of the code — one nobody can work out without the code — so once anyone
+  // redeems it, nobody else can, and nobody without it can spoil it
+  const CODES = [{ h: '6124d1a5e45ade300695bd33962ba7fc2cd580976a6e7fe50b0e2fda3e56bc37', c: 4 }]; // (🎟️ the Thraex Gladiator)
+  const sha = async (t) => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)))].map((b) => b.toString(16).padStart(2, '0')).join('');
   const BOSS_LIVES = 5, BOSS_T = 600; // (the boss: its health with one of you — more with more — your lives each, and the time you have)
   const ARMORY = { x: -40, z: 120 + LZ }, BOTGATE = { x: 40, z: 120 + LZ }, TABLET = { x: 0, z: 150 + LZ };
   const isFloor = (x, z) => (x / A0) ** 2 + (z / B0) ** 2;
@@ -1381,8 +1389,10 @@
     let T = Ts[0], bd = 1e9; for (const q of Ts) { const d = Math.hypot(q.x - F.x, q.z - F.z) + (q.S.sp > 0 ? 8 : 0); if (d < bd) { bd = d; T = q; } }
     F.tgt = T; const dx = T.x - F.x, dz = T.z - F.z, d = Math.max(0.01, Math.hypot(dx, dz)), yawTo = angOf(dx, dz);
     if (!F.act && !stunned(F)) F.yaw += clamp(wrapA(yawTo - F.yaw), -1.8 * dt, 1.8 * dt);
-    B.sw -= dt; B.stp -= dt;
-    if (!F.act && !stunned(F)) { if (B.sw <= 0 && d < 10 + bigR(F) && Math.abs(wrapA(yawTo - F.yaw)) < 0.5) { useAb(F, 0); B.sw = F.C.swing || 6; } else if (B.stp <= 0) { useAb(F, 1); B.stp = F.C.stomp || 8; } }
+    if (!B.rage && F.hp < F.mhp * 0.5) { B.rage = 1; F.dmgM = (F.dmgM || 1) * 1.25; floatText(F, '😡 ENRAGED', 'big'); DU.say(F, '😡 THE GIANT IS ENRAGED — FASTER, HARDER'); ringAt(F.x, F.z, '#ef4444', 22, 0.7); burstAt(F.x, 9, F.z, '#f87171', 9, 0.5); sfx3('horn', F.x, F.z, 90); camShake(me, 0.5); } // (at half health: +25% damage, and it swings and stamps a third more often)
+    const rg = B.rage ? 0.7 : 1; B.sw -= dt; B.stp -= dt;
+    if (!F.act && !stunned(F)) { if (B.sw <= 0 && d < 10 + bigR(F) && Math.abs(wrapA(yawTo - F.yaw)) < 0.5) { useAb(F, 0); B.sw = (F.C.swing || 6) * rg; } else if (B.stp <= 0) { useAb(F, 1); B.stp = (F.C.stomp || 8) * rg; } }
+    if (B.rage && F.a && Math.random() < dt * 8) kitSpark(F.a, F.a.g, (Math.random() - 0.5) * 3, 2 + Math.random() * 6, (Math.random() - 0.5) * 2, Math.random() < 0.6 ? '#ef4444' : '#fca5a5', { v: [0, 2, 0], life: 0.8, s: 0.5, grow: 1.4, op: 0.6, j: 0.6 }); // (red heat off it)
     const sp = fSpeed(F); if (!F.act && d > 8 + bigR(F) && sp > 0) { F.mv = true; moveF(F, dx / d * sp * dt, dz / d * sp * dt); }
   }
   /* ---------------- the HUD (as drawn: you on the left, them on the right, the clock between; your abilities bottom left) ---------------- */
@@ -1869,7 +1879,31 @@
         <div class="od">${CRATE[e].map((c, k) => `<span style="--rc:${RAR[CH[c].r].c}"><b>${CH[c].ic} ${esc(CH[c].n)}${S.own.includes(c) ? ' ✔' : ''}</b><i>${od[k]}% · ${RAR[CH[c].r].s}</i></span>`).join('')}</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="du-btn" data-open="${e}" data-cur="g" ${(S.gold | 0) < CRATE_GOLD ? 'disabled' : ''}>🥇 ${CRATE_GOLD} gold</button><button class="du-btn alt" data-open="${e}" data-cur="c" ${W.coins < CRATE_PRICE ? 'disabled' : ''}>🪙 ${CRATE_PRICE}</button></div></div>`).join('')}</div>
         <p style="font:600 12.5px var(--fb);color:#94a3b8;margin:12px 0 0">Pay with the duel’s own 🥇 gold — every match earns some (more for wins, harder bots, other players and the boss) — or with Blox Coins. Already have the fighter you get? +250 mastery XP for it and 🥇 40 back. The mythics, the giants, the spirit and the other quest fighters aren’t in any crate — they’re in 🏆 Achievements → 📜 Quests.</p>`;
-      openPanel('🎁 Crates', html, (b) => { if (b.dataset.open) this.openCrate(+b.dataset.open, b.dataset.cur); }, null, { full: true, extra: `<span class="xchip">🥇 ${S.gold | 0}</span><span class="xchip">🪙 ${W.coins}</span>` });
+      const codeBox = `<div class="du-code"><b>🎟️ Have a code?</b><input id="duCode" maxlength="40" placeholder="Type it here" autocomplete="off" spellcheck="false"><button class="du-btn" data-code="1">Redeem</button><span id="duCodeMsg"></span></div>`;
+      openPanel('🎁 Crates', html + codeBox, (b) => { if (b.dataset.open) this.openCrate(+b.dataset.open, b.dataset.cur); else if (b.dataset.code) this.redeem($('#duCode').value); }, null, { full: true, extra: `<span class="xchip">🥇 ${S.gold | 0}</span><span class="xchip">🪙 ${W.coins}</span>` });
+      const ci = $('#duCode'); if (ci) ci.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); this.redeem(ci.value); } });
+    },
+    // a one-time code: right, not yours yet, and nobody has used it — then it's claimed for everyone, and the fighter's yours
+    async redeem(raw) {
+      const code = String(raw || '').toUpperCase().replace(/[^A-Z0-9]/g, ''), S = this.save;
+      const msg = (t, ok) => { const m = $('#duCodeMsg'); if (m) { m.textContent = t; m.className = ok ? 'ok' : 'bad'; } if (!ok) sfx('error'); };
+      if (!code) return msg('Type a code first.'); if (this.redeeming) return;
+      this.redeeming = 1;
+      try {
+        const h = await sha('bv-code|' + code), C = CODES.find((q) => q.h === h);
+        if (!C) return msg('That code isn’t valid.');
+        if (S.own.includes(C.c)) return msg(`You already have the ${CH[C.c].n} — the code is still unused.`);
+        if (Market.state === 'off') await marketStart(); for (let k = 0; k < 40 && Market.state === 'wait'; k++) await new Promise((r) => setTimeout(r, 100));
+        const db = Market.db; if (!db) return msg('Codes need the shared server, and it isn’t reachable here right now.');
+        msg('Checking…', true);
+        const id = (await sha('bv-claim|' + code)).slice(0, 40), ref = db.doc('codes/' + id), me0 = myId();
+        if (!(await lease(ref, 8000))) return msg('Someone else is redeeming that code right now.');
+        const snap = await ref.get(); if (snap.exists && (snap.data() || {}).by) return msg('That code has already been used.');
+        await ref.set({ by: me0, at: Date.now(), c: C.c });
+        const chk = await ref.get(); if (!chk.exists || (chk.data() || {}).by !== me0) return msg('That code has already been used.');
+        if (!S.own.includes(C.c)) S.own.push(C.c); S.codes = (S.codes || []).concat(id).slice(-20); this.dirty(); this.drawBar();
+        sfx('unlock'); msg(`🎉 The ${CH[C.c].n} is yours! This code can’t be used again.`, true); toast(`🎟️ Code redeemed — the ${CH[C.c].ic} ${CH[C.c].n} is yours!`); CROWD.ex = 1;
+      } catch (e) { msg('Couldn’t reach the server — try again.'); } finally { this.redeeming = 0; }
     },
     openCrate(e, cur) {
       const S = this.save;
