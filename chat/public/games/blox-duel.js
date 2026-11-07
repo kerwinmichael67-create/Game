@@ -157,6 +157,8 @@
     @media (max-width:640px){#duShop .dsh-top>b{font-size:20px}#duShop .dsh-wal{margin-left:0}#duShop .dsh-pic,#duShop .dsh-c.hero .dsh-pic{height:240px}}
     .du-exq{display:flex;gap:14px;align-items:flex-start;padding:14px;border-radius:16px;margin-bottom:12px;border:2px solid rgba(34,211,238,.55);background:linear-gradient(120deg,rgba(8,47,73,.85),rgba(30,27,75,.7));box-shadow:0 0 22px rgba(34,211,238,.18) inset}.du-exq.got{border-color:#86efac}.du-exq img{width:120px;height:150px;object-fit:cover;border-radius:12px;background:rgba(0,0,0,.3);flex:none}.du-exq>i{font-style:normal;font-size:46px;width:120px;text-align:center;flex:none}.du-exq b{font:800 18px var(--fh);color:#e0f2fe}.du-exq small{display:block;font:600 12.5px var(--fb);color:#cbd5e1;margin-top:3px}.du-exq.sec{border-style:dashed;border-color:rgba(186,230,253,.4);background:linear-gradient(120deg,rgba(15,23,42,.9),rgba(30,41,59,.7))}
     .du-exg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}.du-exg>div{display:flex;gap:8px;align-items:center;padding:7px 9px;border-radius:10px;background:rgba(255,255,255,.06);font:700 12.5px var(--fb);color:#e2e8f0}.du-exg>div.ok{background:rgba(34,197,94,.16)}.du-exg i{font-style:normal;font-size:18px}.du-exg span{flex:1;min-width:0}.du-exg em{display:block;font-style:normal;color:#a5f3fc;font-size:11.5px}.du-exg u{display:block;height:5px;border-radius:3px;background:rgba(0,0,0,.35);margin-top:3px;overflow:hidden}.du-exg s{display:block;height:100%;background:linear-gradient(90deg,#22d3ee,#a78bfa)}
+    .du-skins{margin-top:14px}.du-skins h4{margin:0 0 8px;font:800 15px var(--fh);color:#fff}.du-skins .row{display:flex;gap:10px;flex-wrap:wrap}.du-skin{width:200px;border-radius:14px;padding:8px;background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.1);display:flex;flex-direction:column;gap:5px}.du-skin.on{border-color:#4ade80;background:rgba(74,222,128,.1)}.du-skin img{width:100%;height:190px;object-fit:cover;border-radius:10px;background:radial-gradient(circle at 50% 35%,rgba(255,255,255,.25),transparent 70%)}.du-skin b{font:800 13.5px var(--fh);color:#fff}.du-skin small{flex:1;font:600 11.5px/1.35 var(--fb);color:#cbd5e1}.du-skin .bt{display:flex;gap:6px}.du-skin .bt .du-btn{flex:1;padding:7px 4px;font-size:12.5px}.du-skin .du-btn{width:100%}.du-skin .pr{font:800 12.5px var(--fh);color:#86efac;text-align:center;padding:6px 0}.du-skin .pr.lk{color:#cbd5e1}
+    .du-fcard .skb{position:absolute;right:6px;top:34px;z-index:2;padding:1px 5px;border-radius:7px;background:rgba(15,23,42,.72);font-size:12px} /* (🎨 it has skins) */
     @media (max-width:640px){.du-exg{grid-template-columns:1fr}.du-exq img{width:80px;height:100px}.du-exq>i{width:80px}}
     .du-rw{display:flex;flex-direction:column;gap:7px;width:100%;margin:2px 0}.du-rw>div{display:flex;align-items:center;gap:12px;padding:8px 14px;border-radius:12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);font:800 17px var(--fh);color:#f8fafc;text-align:left;opacity:0;transform:translateY(8px);animation:duRw .35s ease forwards}
     .du-rw>div i{font-style:normal;font-size:21px;width:30px;text-align:center}.du-rw>div img{width:42px;height:42px;object-fit:cover;border-radius:9px;background:rgba(0,0,0,.25)}.du-rw>div small{margin-left:auto;font:700 12px var(--fb);color:#94a3b8;text-align:right}
@@ -260,9 +262,10 @@
       { n: 'Testudo', ic: '🛡️', k: 'buff', cd: 14, an: 'testudo', b: { dur: 2.5, blk: 1 }, d: 'Shield up like a whole legion: blocks every blow, from every side, for 2.5 s.' },
       { n: 'Imperial Charge', ic: '🦂', k: 'dash', dmg: 120, dist: 15, dd: 0.45, cd: 32, wind: 0.25, an: 'charge', fx: { st: 1, kb: 6 }, d: 'Charge behind the shield: 120 damage and they’re knocked down (1 s).' }] },
     { e: 0, r: 3, hp: 500, spd: 1.1, def: 0.88, ro: 'Damage dealer', ab: [
-      { n: 'Sica Slash', ic: '⚔️', k: 'melee', dmg: 92, cd: 1.15, rng: 7, arc: 120, wind: 0.18, an: 'sica', fx: { bl: [110, 5], blc: 0.5 }, d: '92 damage, and a 50% chance to make them bleed: 110 more over 5 s.' },
-      { n: 'Shield Rush', ic: '🛡️', k: 'dash', dmg: 125, dist: 13, dd: 0.3, cd: 7.5, wind: 0.1, an: 'rush', fx: { st: 1.2 }, d: 'Rush in behind the shield: 125 damage and a 1.2 s stun.' },
-      { n: 'Berserk', ic: '🔥', k: 'buff', cd: 26, an: 'berserk', b: { dur: 7, cdM: 2, dmgA: 55, dmgM: 1.25, ls: 0.15 }, d: 'For 7 s: cooldowns 50% shorter, +55 damage on every hit, +25% on top, and 15% lifesteal.' }] },
+      { n: 'Sica Slash', ic: '⚔️', k: 'melee', dmg: 72, cd: 1.1, rng: 7, arc: 120, wind: 0.18, an: 'sica', fx: { bl: [60, 4], blc: 0.4 }, d: '72 damage, and a 40% chance to make them bleed: 60 more over 4 s.' },
+      { n: 'Shield Rush', ic: '🛡️', k: 'dash', dmg: 90, dist: 13, dd: 0.3, cd: 8, wind: 0.1, an: 'rush', fx: { st: 0.9 }, d: 'Rush in behind the shield: 90 damage and a 0.9 s stun.' },
+      { n: 'Thraex Feint', ic: '🎭', k: 'multi', hits: [25, 70], gap: 0.3, cd: 10, rng: 7.5, arc: 110, wind: 0.12, an: 'flurry', fx: { vu: 2.5 }, d: 'A feint with the little shield, then the sica where they opened up: 25, then 70 — and they take ×1.5 damage for 2.5 s.' },
+      { n: 'Berserk', ic: '🔥', k: 'buff', cd: 28, an: 'berserk', b: { dur: 6, cdM: 1.5, dmgA: 25, dmgM: 1.15, ls: 0.1 }, d: 'For 6 s: cooldowns a third shorter, +25 damage on every hit, +15% on top, and 10% lifesteal.' }] },
     // 🏛️ Greece
     { e: 1, r: 0, hp: 450, ab: [
       { n: 'Dory Thrust', ic: '🔱', k: 'melee', dmg: 40, cd: 1.3, rng: 8.5, arc: 40, wind: 0.2, an: 'overhand' },
@@ -303,13 +306,14 @@
       { n: 'Longsword', ic: '⚔️', k: 'melee', dmg: 56, cd: 1.6, rng: 7, arc: 100, wind: 0.25, an: 'slash2' },
       { n: 'Holy Smite', ic: '✝️', k: 'melee', dmg: 85, cd: 14, rng: 7, arc: 60, wind: 0.55, an: 'smite', fx: { st: 0.8 }, d: 'A great overhead blow wreathed in light: 85 damage and a 0.8 s stun.' },
       { n: 'Deus Vult', ic: '🙏', k: 'buff', cd: 38, an: 'pray', b: { dur: 5, healP: 0.2, dmgM: 1.15 }, d: 'Heal 20% of your health and +15% damage for 5 s.' }] },
-    { e: 2, r: 3, hp: 640, def: 0.75, spd: 0.75, ab: [
+    { e: 2, r: 3, hp: 700, def: 0.72, spd: 0.78, ab: [
       { n: 'Sword Modes', ic: '⚔️', k: 'melee', modes: [
-        { n: 'Overhead', ic: '⬇️', dmg: 105, cd: 2.6, rng: 8, arc: 60, wind: 0.5, an: 'overhead' },
-        { n: 'Swing', ic: '↔️', dmg: 62, cd: 1.9, rng: 8, arc: 150, wind: 0.3, an: 'swing' },
+        { n: 'Overhead', ic: '⬇️', dmg: 115, cd: 2.4, rng: 8, arc: 60, wind: 0.5, an: 'overhead' },
+        { n: 'Swing', ic: '↔️', dmg: 70, cd: 1.7, rng: 8, arc: 150, wind: 0.3, an: 'swing' },
         { n: 'Stab', ic: '🎯', dmg: 230, cd: 6, rng: 9.5, arc: 30, wind: 0.7, an: 'stab' }] },
-      { n: 'Pommel Strike', ic: '🔨', k: 'melee', dmg: 45, cd: 13, rng: 5, arc: 70, wind: 0.2, an: 'pommel', fx: { st: 1 }, d: 'Murder-stroke with the pommel: 45 damage and a 1 s stun.' },
-      { n: 'Iron Fortress', ic: '🏰', k: 'buff', cd: 34, an: 'fortress', b: { dur: 4, def: 0.6, hps: 16, imm: 1 }, d: 'For 4 s: 40% less damage, heal 16 a second, and nothing stuns, roots or slows you.' }] },
+      { n: 'Pommel Strike', ic: '🔨', k: 'melee', dmg: 55, cd: 10, rng: 5, arc: 70, wind: 0.2, an: 'pommel', fx: { st: 1 }, d: 'Murder-stroke with the pommel: 55 damage and a 1 s stun.' },
+      { n: 'Crusader’s Charge', ic: '✝️', k: 'dash', dmg: 95, dist: 16, dd: 0.3, cd: 12, wind: 0.15, an: 'charge', fx: { kb: 10, st: 0.5 }, d: 'He drops his shoulder and charges in full plate: 95 damage, a 0.5 s stun, and they’re thrown back.' },
+      { n: 'Iron Fortress', ic: '🏰', k: 'buff', cd: 26, an: 'fortress', b: { dur: 4, def: 0.6, hps: 16, imm: 1 }, d: 'For 4 s: 40% less damage, heal 16 a second, and nothing stuns, roots or slows you.' }] },
     // 🏯 Medieval Japan
     { e: 3, r: 0, hp: 400, ab: [
       { n: 'Yari Thrust', ic: '🔱', k: 'melee', dmg: 40, cd: 1.2, rng: 9, arc: 35, wind: 0.2, an: 'spear2' },
@@ -340,13 +344,14 @@
       { n: 'Stomp / Crush', ic: '🦶', k: 'stomp', dmg: 40, crush: 105, near: 7, rad: 26, cd: 3.5, wind: 0.45, an: 'stomp', d: 'A shockwave rolls out across the sand: jump it or take 40. If they’re close it’s a Crush instead — 105 damage, a 1 s stun, and Crushed for the rest of the round.' },
       { n: 'Rush and Crush', ic: '🐂', k: 'dash', rush: 1, dmg: 275, dmg2: 350, dist: 26, dd: 2, cd: 35, wind: 0.3, an: 'rush', fx: { st: 1.2 }, d: 'Charge for 2 s, scimitar out: 275 damage and a 1.2 s stun to anyone in the way. Hit them head-on and it’s 350 and they’re Crushed for the round.' }] },
     // 🏰 Europe: the Executioner — the giant’s counter; his contract is in the achievements
-    { e: 2, r: 4, hp: 420, spd: 1.35, def: 1.2, nc: 1, wish: 1, ro: 'Assassin', how: 'Accept the Executioner’s Contract (🏆 Achievements → 📜 Quests), then defeat 50 fighters and deal 15,000 damage', pas: [['🩻', 'Armorless', 'No armour at all: takes 20% more damage, and 35% faster.'], ['🪓', 'Executioner’s Wish', 'Every hit on a fighter: +10% damage (it stacks, until the round ends or you die) and heals 10% of your health.']], ab: [
+    { e: 2, r: 4, hp: 420, spd: 1.35, def: 1.2, nc: 1, wish: 0.05, ro: 'Assassin', how: 'Accept the Executioner’s Contract (🏆 Achievements → 📜 Quests), then defeat 50 fighters and deal 15,000 damage', pas: [['🩻', 'Armorless', 'No armour at all: takes 20% more damage, and 35% faster.'], ['🪓', 'Executioner’s Wish', 'Every hit on a fighter: +5% damage (it stacks, until the round ends or you die) and heals 5% of your health.']], ab: [
       { n: 'Sever / Chop', ic: '🪓', k: 'melee', modes: [
-        { n: 'Sever', ic: '🪓', dmg: 225, cd: 2.1, rng: 7.5, arc: 70, wind: 0.42, an: 'xsever' },
-        { n: 'Chop', ic: '🔪', dmg: 180, cd: 1.6, rng: 7, arc: 110, wind: 0.3, an: 'xchop' }] },
-      { n: 'Behead', ic: '💀', k: 'melee', dmg: 480, cd: 14, rng: 7.5, arc: 60, wind: 1.1, an: 'behead', say: '“OFF WITH HIS HEAD!”', d: '“Off with his head!” A 1.1 s wind-up, the axe raised high behind him — then 480 damage.' },
-      { n: 'Blade Sharpen', ic: '🔥', k: 'buff', cd: 30, an: 'sharpen', b: { dur: 8, dmgM: 2.5 }, d: 'Whet the axe’s edge: 2.5× damage for 8 s.' },
-      { n: 'Parry', ic: '⚔️', k: 'buff', cd: 12, an: 'parry', b: { dur: 3, blk: 1, parry: 1 }, d: 'The axe haft up for 3 s: every blow is blocked — and whoever lands one is stunned for 2 s and takes 1.5× damage.' }] },
+        { n: 'Sever', ic: '🪓', dmg: 160, cd: 2.1, rng: 7.5, arc: 70, wind: 0.42, an: 'xsever' },
+        { n: 'Chop', ic: '🔪', dmg: 110, cd: 1.5, rng: 7, arc: 110, wind: 0.3, an: 'xchop' }] },
+      { n: 'Behead', ic: '💀', k: 'melee', dmg: 320, cd: 14, rng: 7.5, arc: 60, wind: 1.1, an: 'behead', say: '“OFF WITH HIS HEAD!”', d: '“Off with his head!” A 1.1 s wind-up, the axe raised high behind him — then 320 damage.' },
+      { n: 'Blade Sharpen', ic: '🔥', k: 'buff', cd: 30, an: 'sharpen', b: { dur: 6, dmgM: 1.8 }, d: 'Whet the axe’s edge: 1.8× damage for 6 s.' },
+      { n: 'Parry', ic: '⚔️', k: 'buff', cd: 12, an: 'parry', b: { dur: 3, blk: 1, parry: 1 }, d: 'The axe haft up for 3 s: every blow is blocked — and whoever lands one is stunned for 2 s and takes 1.5× damage.' },
+      { n: 'Chain Drag', ic: '⛓️', k: 'proj', dmg: 40, cd: 15, spd: 75, wind: 0.3, an: 'throw', model: 'chain', fx: { pl: 1, st: 0.5 }, d: 'A hooked chain thrown, and they’re hauled to the block: 40 damage, dragged to him and stunned for 0.5 s — right where Behead lands.' }] },
     // 🌙 the Ottoman Empire (no cavalry)
     { e: 4, r: 0, hp: 430, ro: 'Skirmisher', ab: [
       { n: 'Javelin Jab', ic: '🔱', k: 'melee', dmg: 40, cd: 1.2, rng: 7.5, arc: 50, wind: 0.16, an: 'jab' },
@@ -402,10 +407,10 @@
       { n: 'Aquila', ic: '🦅', k: 'buff', cd: 28, an: 'aquila', b: { dur: 7, dmgM: 1.35, def: 0.7, hps: 18 }, d: 'Raise the eagle: for 7 s, +35% damage, 30% less damage taken, and heal 18 a second.' },
       { n: 'Triumph', ic: '👑', k: 'leap', dmg: 210, dist: 20, rad: 8, cd: 30, wind: 0.2, an: 'leap', fx: { st: 1.2 }, d: 'A triumphant leap with the eagle held high, and down on them: 210 damage all round and a 1.2 s stun.' }] },
     // 🏰 Europe's myth: the Frost Jötunn, a giant of the frozen north — not in any crate (its Frost Saga is in the achievements)
-    { e: 2, r: 4, hp: 1250, spd: 0.55, def: 0.62, big: 1.4, nc: 1, frost: [0.8, 1.2], ro: 'Giant', how: 'Accept the Frost Saga (🏆 Achievements → 📜 Quests), then beat the 👹 boss 3 times and deal 25,000 damage', pas: [['🧊', 'Frost Giant', '45% slower than everyone else, and takes 38% less damage.'], ['❄️', 'Rime', 'Every hit chills them: 20% slower for 1.2 s.']], ab: [
-      { n: 'Rime Club', ic: '🏏', k: 'melee', dmg: 165, cd: 2.0, rng: 10, arc: 110, wind: 0.5, an: 'overhead' },
+    { e: 2, r: 4, hp: 1100, spd: 0.55, def: 0.68, big: 1.4, nc: 1, frost: [0.8, 1.2], ro: 'Giant', how: 'Accept the Frost Saga (🏆 Achievements → 📜 Quests), then beat the 👹 boss 3 times and deal 25,000 damage', pas: [['🧊', 'Frost Giant', '45% slower than everyone else, and takes 32% less damage.'], ['❄️', 'Rime', 'Every hit chills them: 20% slower for 1.2 s.']], ab: [
+      { n: 'Rime Club', ic: '🏏', k: 'melee', dmg: 150, cd: 2.0, rng: 10, arc: 110, wind: 0.5, an: 'overhead' },
       { n: 'Ice Boulder', ic: '🧊', k: 'proj', dmg: 130, cd: 9, spd: 42, wind: 0.6, an: 'lob', model: 'ice', fx: { sl: [0.5, 3] }, d: 'Wrench a boulder of ice from the ground and hurl it: 130 damage, and they’re 50% slower for 3 s.' },
-      { n: 'Frost Stomp', ic: '🦶', k: 'stomp', dmg: 40, crush: 100, near: 7, rad: 28, cd: 6.5, wind: 0.5, an: 'stomp', wspd: 20, d: 'A shockwave of frost rolls out: jump it or take 40. Up close it’s a Crush — 100, a 1 s stun and Crushed for the rest of the round.' },
+      { n: 'Frost Stomp', ic: '🦶', k: 'stomp', dmg: 40, crush: 90, crT: 4, near: 7, rad: 28, cd: 7, wind: 0.5, an: 'stomp', wspd: 20, d: 'A shockwave of frost rolls out: jump it or take 40. Up close it’s a Crush — 90, a 1 s stun and Crushed (×2 damage) for 4 s, till the frost thaws.' },
       { n: 'Fimbulwinter', ic: '🌨️', k: 'volley', dmg: 26, cnt: 10, rad: 8, delay: 0.9, cd: 32, wind: 0.45, an: 'roar', model: 'hail', fx: { sl: [0.7, 1.5] }, d: 'The great winter: ten shards of hail crash down where they stand, 26 each, and each one chills them.' }] },
     // 🏛️ Macedon: the Phalangite, a pikeman of the phalanx — a legendary with a quest of his own (no crate has him)
     { e: 1, r: 3, hp: 560, spd: 0.95, def: 0.85, nc: 1, sh: 1, ro: 'Tank', how: 'Accept The Sarissa (🏆 Achievements → 📜 Quests), then defeat 25 fighters and deal 10,000 damage', pas: [['📏', 'Sarissa', 'The longest reach in the Colosseum: his pike strikes from 13 m.']], ab: [
@@ -483,11 +488,12 @@
       { n: 'Rally the Line', ic: '🎖️', k: 'buff', cd: 22, an: 'rally', b: { dur: 6, dmgM: 1.25, def: 0.8, heal: 80 }, d: '“Steady, boys!”: heal 80, +25% damage and 20% less damage taken for 6 s.' },
       { n: 'Artillery!', ic: '💣', k: 'volley', dmg: 60, cnt: 4, rad: 7, delay: 1.2, cd: 26, wind: 0.4, an: 'sky', model: 'cannon', d: 'His sword points and the guns answer: four cannonballs fall where they stand, 60 each.' }] },
     // 🔔 America's myth: the Headless Horseman of Sleepy Hollow — a Hessian trooper's ghost (1790), a Spirit with a quest
-    { e: 6, r: 4, hp: 440, spd: 1.3, def: 0.92, nc: 1, ro: 'Spirit', how: 'Accept The Legend of Sleepy Hollow (🏆 Achievements → 📜 Quests), then win 18 duels and deal 20,000 damage', pas: [['🎃', 'Headless', 'Only half of him is here — the half without a head: quick on his feet, and he takes 8% less damage.'], ['😱', 'Terror', 'His laugh sends them running: for 2.5 s they flee from him and can’t fight back.']], ab: [
-      { n: 'Hessian Sabre', ic: '🗡️', k: 'melee', dmg: 60, cd: 0.8, rng: 7, arc: 110, wind: 0.12, an: 'slash' },
-      { n: 'Jack-o’-Lantern', ic: '🎃', k: 'proj', dmg: 75, cd: 8, spd: 55, wind: 0.3, an: 'lob', model: 'pumpkin', fx: { bu: [40, 4] }, d: 'He hurls the flaming pumpkin he carries for a head: 75 damage, and it burns for 40 more.' },
+    { e: 6, r: 4, hp: 480, spd: 1.3, def: 0.92, nc: 1, ro: 'Spirit', how: 'Accept The Legend of Sleepy Hollow (🏆 Achievements → 📜 Quests), then win 18 duels and deal 20,000 damage', pas: [['🎃', 'Headless', 'Only half of him is here — the half without a head: quick on his feet, and he takes 8% less damage.'], ['😱', 'Terror', 'His laugh sends them running: for 2.5 s they flee from him and can’t fight back.']], ab: [
+      { n: 'Hessian Sabre', ic: '🗡️', k: 'melee', dmg: 66, cd: 0.8, rng: 7, arc: 110, wind: 0.12, an: 'slash' },
+      { n: 'Jack-o’-Lantern', ic: '🎃', k: 'proj', dmg: 85, cd: 7, spd: 55, wind: 0.3, an: 'lob', model: 'pumpkin', fx: { bu: [40, 4] }, d: 'He hurls the flaming pumpkin he carries for a head: 85 damage, and it burns for 40 more.' },
       { n: 'Phantom Gallop', ic: '🐎', k: 'dash', dmg: 70, dist: 20, dd: 0.35, cd: 14, wind: 0.2, an: 'charge', fx: { kb: 12, st: 0.6 }, d: 'The ghost of his horse carries him through them: 70 damage, a 0.6 s stun, and they’re thrown back.' },
-      { n: 'Hollow Laugh', ic: '😱', k: 'proj', dmg: 30, cd: 22, spd: 70, wind: 0.25, an: 'roar', model: 'laugh', fx: { fr: 2.5 }, d: 'His laugh rings across the sand: 30 damage and Terror for 2.5 s — they flee from him and can’t fight back.' }] },
+      { n: 'Hollow Laugh', ic: '😱', k: 'proj', dmg: 30, cd: 22, spd: 70, wind: 0.25, an: 'roar', model: 'laugh', fx: { fr: 2.5 }, d: 'His laugh rings across the sand: 30 damage and Terror for 2.5 s — they flee from him and can’t fight back.' },
+      { n: 'Night Ride', ic: '🌑', k: 'buff', cd: 24, an: 'rally', b: { dur: 5, spdM: 1.5, dmgM: 1.3, imm: 1 }, d: 'The headless rider of the night: for 5 s he’s 50% faster and hits 30% harder, and nothing slows, roots or stuns him.' }] },
     // 🐍 the Aztec Empire: a crate of five, from the macehualli of the city's levy to the eagle warrior
     { e: 7, r: 0, hp: 400, ro: 'Bruiser', ab: [
       { n: 'Macuahuitl', ic: '🗡️', k: 'melee', dmg: 38, cd: 1.0, rng: 6.5, arc: 110, wind: 0.18, an: 'slash', fx: { bl: [24, 3], blc: 0.3 } },
@@ -515,11 +521,12 @@
       { n: 'Rattling Chain', ic: '⛓️', k: 'proj', dmg: 55, cd: 9, spd: 85, wind: 0.3, an: 'throw', model: 'chain', fx: { pl: 1, st: 0.5 }, d: 'He flings his chain and hooks them: 55 damage, and they’re dragged in to him and stunned for 0.5 s.' },
       { n: 'Into the Basket', ic: '🧺', k: 'melee', dmg: 95, cd: 15, rng: 6.5, arc: 90, wind: 0.3, an: 'overhead', fx: { st: 1.5, bl: [40, 3] }, d: 'He stuffs them into the basket on his back: 95 damage, a 1.5 s stun, and 40 more as the switches cut.' },
       { n: 'Krampusnacht', ic: '🔔', k: 'buff', cd: 28, an: 'roar', b: { dur: 8, dmgM: 1.35, spdM: 1.25, ls: 0.2 }, d: 'Krampus Night — every bell rings: +35% damage, 25% faster and 20% lifesteal for 8 s.' }] },
-    { e: 1, r: 4, hp: 520, spd: 1.12, def: 0.9, nc: 1, lim: [6000], ro: 'Ranger', pas: [['🐍', 'Serpent Born', 'Her arrows are dipped in her own venom: every one of them poisons.'], ['🗿', 'The Gorgon’s Gaze', 'Meet her eyes and you turn to stone — frozen where you stand, unable to move, fight or block.']], ab: [
-      { n: 'Venom Arrow', ic: '🏹', k: 'proj', dmg: 58, cd: 1.05, spd: 115, wind: 0.25, an: 'bow', model: 'arrow', fx: { bl: [28, 3] } },
+    { e: 1, r: 4, hp: 560, spd: 1.12, def: 0.9, nc: 1, lim: [6000], ro: 'Ranger', pas: [['🐍', 'Serpent Born', 'Her arrows are dipped in her own venom: every one of them poisons.'], ['🗿', 'The Gorgon’s Gaze', 'Meet her eyes and you turn to stone — frozen where you stand, unable to move, fight or block.']], ab: [
+      { n: 'Venom Arrow', ic: '🏹', k: 'proj', dmg: 62, cd: 1.05, spd: 115, wind: 0.25, an: 'bow', model: 'arrow', fx: { bl: [28, 3] } },
       { n: 'Serpent Volley', ic: '🐍', k: 'proj', dmg: 38, cnt: 3, spread: 12, cd: 8, spd: 105, wind: 0.3, an: 'bow', model: 'arrow', fx: { bl: [30, 3] }, d: 'Three venomed arrows at once, 38 each, and they poison for 30 more.' },
       { n: 'Coils', ic: '🌀', k: 'dash', dmg: 75, dist: 14, dd: 0.3, cd: 12, wind: 0.15, an: 'charge', fx: { rt: 1.4 }, d: 'She slithers through them and her coils close round them: 75 damage, and they’re held fast for 1.4 s.' },
-      { n: 'Petrifying Gaze', ic: '🗿', k: 'proj', dmg: 50, cd: 18, spd: 90, wind: 0.45, an: 'roar', model: 'gaze', fx: { pt: 2.5 }, d: 'She lifts her eyes to theirs: 50 damage, and they turn to stone for 2.5 s — they can’t move, act or block.' }] },
+      { n: 'Petrifying Gaze', ic: '🗿', k: 'proj', dmg: 50, cd: 18, spd: 90, wind: 0.45, an: 'roar', model: 'gaze', fx: { pt: 2.5 }, d: 'She lifts her eyes to theirs: 50 damage, and they turn to stone for 2.5 s — they can’t move, act or block.' },
+      { n: 'Snakes of the Gorgon', ic: '🐍', k: 'melee', dmg: 45, cd: 10, rng: 9, arc: 360, wind: 0.2, an: 'roar', fx: { bl: [45, 3], sl: [0.7, 2] }, d: 'Her hair lashes out all round her: 45 damage, they bleed for 45 more, and they’re slowed 30% for 2 s.' }] },
     { e: 2, r: 3, hp: 520, spd: 1.08, def: 0.88, nc: 1, lim: [2500], ro: 'Damage dealer', pas: [['🪽', 'The Wings', 'The eagle feathers on his back roar as he charges: his Kopia Charge throws them further than any other.']], ab: [
       { n: 'Szabla', ic: '🗡️', k: 'melee', dmg: 56, cd: 0.9, rng: 7, arc: 115, wind: 0.13, an: 'slash' },
       { n: 'Kopia Charge', ic: '🐎', k: 'dash', dmg: 95, dist: 20, dd: 0.3, cd: 10, wind: 0.2, an: 'charge', fx: { kb: 14, st: 0.6 }, d: 'He couches the long kopia lance and charges through them: 95 damage, a 0.6 s stun, and they’re thrown back.' },
@@ -563,7 +570,7 @@
       { n: 'Hasta of Mars', ic: '🔱', k: 'melee', dmg: 75, cd: 1.0, rng: 9, arc: 80, wind: 0.14, an: 'thrust' },
       { n: 'Pilum of Flame', ic: '🔥', k: 'proj', dmg: 95, cd: 10, spd: 85, wind: 0.3, an: 'throw', model: 'firepilum', fx: { bu: [30, 3] }, d: 'A burning pilum from the god’s own hand: 95 damage, and it burns for 30 more.' },
       { n: 'Shield of Heaven', ic: '🛡️', k: 'dash', dmg: 70, dist: 14, dd: 0.25, cd: 10, wind: 0.12, an: 'charge', fx: { st: 1, kb: 10 }, d: 'He drives the Ancile into them: 70 damage, a 1 s stun, and they’re thrown back.' },
-      { n: 'Bellum', ic: '💥', k: 'stomp', dmg: 45, crush: 100, near: 6, rad: 24, cd: 18, wind: 0.45, an: 'stomp', wspd: 18, d: 'War itself: his spear strikes the earth and a shockwave rolls out — jump it or take 45. Up close it’s a Crush: 100, a 1 s stun and Crushed for the round.' },
+      { n: 'Bellum', ic: '💥', k: 'stomp', dmg: 45, crush: 100, crT: 5, near: 6, rad: 24, cd: 18, wind: 0.45, an: 'stomp', wspd: 18, d: 'War itself: his spear strikes the earth and a shockwave rolls out — jump it or take 45. Up close it’s a Crush: 100, a 1 s stun and Crushed (×2 damage) for 5 s.' },
       { n: 'Mars Ultor', ic: '🩸', k: 'buff', cd: 30, an: 'rally', b: { dur: 7, dmgM: 1.35, ls: 0.25, def: 0.7 }, d: 'Mars the Avenger: +35% damage, 30% less damage taken, and he heals 25% of what he deals for 7 s.' }] },
     { e: 1, r: 5, hp: 700, def: 0.85, nc: 1, lsP: 0.12, aura: [7, 0.8], auraC: ['#4ade80', '💀 THE CHILL OF THE DEAD'], ro: 'All-rounder', how: 'Complete the Quest of Hades (🏆 Achievements → 🌑 Exotic)', pas: [['💀', 'Lord of the Dead', 'Every blow draws a little of their life to him: he heals 12% of the damage he deals, and takes 15% less.'], ['🌫️', 'The Underworld', 'The cold of the dead lies round him: anyone who comes near is slowed 20%.']], ab: [
       { n: 'Bident', ic: '🔱', k: 'melee', dmg: 76, cd: 0.9, rng: 8.5, arc: 90, wind: 0.14, an: 'thrust' },
@@ -1207,6 +1214,7 @@
   const pasOf = (C) => { const P = {}; for (const k of PASK) if (C[k] !== undefined && !(k === 'spd' && C[k] === 1)) P[k] = Array.isArray(C[k]) ? C[k].slice() : C[k]; return P; };
   const MULT = new Set(['def', 'dmgM', 'spdM', 'cdM']), SUM = new Set(['dmgA', 'ls', 'rf', 'hps']);
   function bval(F, k) { let v = MULT.has(k) ? 1 : 0; for (const b of F.S.buffs) { const q = b[k]; if (q == null) continue; if (MULT.has(k)) v *= q; else if (SUM.has(k)) v += q; else v = Math.max(v, q); } return v; }
+  const wishV = (F) => { const w = pv(F, 'wish'); return w === true || w >= 1 ? 0.1 : +w || 0; }; // (the Executioner's Wish: how much each hit adds)
   function abOf(F, i) { if (i === 1 && F.mim && F.C.skin) return F.mim.ab; const ab = F.C.ab[i]; if (ab.low && F.mhp && F.hp > 0 && F.hp / F.mhp < 0.1) return WEN_IMM; if (ab.modes) { const m = ab.modes[Math.min(F.mode, ab.modes.length - 1)]; return Object.assign({}, ab, m, { k: m.k || 'melee' }); } return ab; }
   // switching between a gun and a blade: with split cooldowns each keeps its own (the gun reloads while you stab)
   function swapMode(F, k) { if (k === F.mode) return; if (F.C.ab[0].split) { F.mcd = F.mcd || []; F.mcd[F.mode] = F.cd[0]; F.cd[0] = F.mcd[k] || 0; F.cdMax[0] = Math.max(F.cd[0], F.C.ab[0].modes[k].cd); } F.mode = k; }
@@ -1546,7 +1554,7 @@
   function stompAt(F, ab, A) {
     const big = F.C.big || 1, nr = ab.near ? ab.near + bigR(F) : 0, hit = new Set();
     ringAt(F.x, F.z, '#d6b98c', 5 * big, 0.5); smokeAt(F.x, 0.5, F.z, 12, '#c8a97e', 2.2 * big); sfx3('boom', F.x, F.z, 90, { vol: 0.9 }); camShake(me, 0.45); CROWD.ex = Math.min(1, CROWD.ex + 0.3); if (ab.an === 'bplant') bossPlantFx(F);
-    if (nr && !A.vis) for (const T of targetsOf(F)) if (!T.dead && Math.hypot(T.x - F.x, T.z - F.z) < nr + bigR(T)) { hit.add(T); dealHitAs(F, T, ab.crush, { st: 1, cr: 1 }, ab, A); DU.say(F, '💥 CRUSH!'); }
+    if (nr && !A.vis) for (const T of targetsOf(F)) if (!T.dead && Math.hypot(T.x - F.x, T.z - F.z) < nr + bigR(T)) { hit.add(T); dealHitAs(F, T, ab.crush, ab.crT ? { st: 1, cr: 1, crT: ab.crT } : { st: 1, cr: 1 }, ab, A); DU.say(F, '💥 CRUSH!'); }
     const g = new THREE.Group(), mat = (o) => new THREE.MeshBasicMaterial(Object.assign({ color: '#fde68a', transparent: true, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending }, o));
     g.add(new THREE.Mesh(kg('duWaveR', () => { const q = new THREE.RingGeometry(0.9, 1, 72); q.rotateX(-Math.PI / 2); return q; }), mat({ opacity: 0.9 })));
     g.add(new THREE.Mesh(kg('duWaveW', () => { const q = new THREE.CylinderGeometry(1, 1, 1.3, 72, 1, true); q.translate(0, 0.65, 0); return q; }), mat({ color: '#d6b98c', opacity: 0.4 })));
@@ -1621,19 +1629,19 @@
   function heal(F, n) { n = Math.round(Math.min(n, F.mhp - F.hp)); if (n <= 0 || F.kind === 'rem') return; F.hp += n; floatText(F, '+' + n, 'heal'); sparks(F, '#4ade80', 6, 3, { v: [0, 4, 0], g: 0 }); }
   // does a blow land? within reach, in front (the arc), not far above or below
   function meleeHit(F, ab, dmg, fx, A, h, late) {
-    let any = false;
-    for (const T of targetsOf(F)) { if (T.dead || (A && A.hitT && A.hitT.has(T))) continue;
+    let any = false; const hk = h != null && (ab.k === 'multi' || ab.k === 'combo') ? 'hitT' + h : 'hitT'; // (who this blow has already hit — each blow of a flurry its own: v131, the second and third blows of a flurry were being skipped)
+    for (const T of targetsOf(F)) { if (T.dead || (A && A[hk] && A[hk].has(T))) continue;
       const dx = T.x - F.x, dz = T.z - F.z, d = Math.hypot(dx, dz), da = Math.abs(wrapA(angOf(dx, dz) - (A && A.an === 'whirl' ? angOf(dx, dz) : F.yaw)));
       const reach = (ab.rng || 6) + 1.2 + (ab.an === 'stab' ? 2.5 : 0) + bigR(F) + bigR(T), arc = (ab.arc || 90) >= 360 ? 9 : (ab.arc || 90) / 2 * Math.PI / 180 + 0.3;
       if (d > reach || da > arc || Math.abs((T.y + (T.lift || 0)) - (F.y + (F.lift || 0))) > 4.5 * Math.max(F.C.big || 1, T.C.big || 1)) continue;
-      any = true; if (A) (A.hitT || (A.hitT = new Set())).add(T); if (!(A && A.vis)) dealHitAs(F, T, dmg, fx, ab, A, h); }
+      any = true; if (A) (A[hk] || (A[hk] = new Set())).add(T); if (!(A && A.vis)) dealHitAs(F, T, dmg, fx, ab, A, h); }
     if (!any && !late && (!A || !A.vis)) sfx3('whoosh', F.x, F.z, 40, { vol: 0.35 });
     return any;
   }
   // a hit: how hard (their buffs and the next-hit bonus), then theirs to take — here, or sent to them
   function dealHitAs(F, T, base, fx, ab, A, h) {
     if (A && A.vis) return;
-    let dmg = (base + bval(F, 'dmgA')) * bval(F, 'dmgM') * F.dmgM * (pv(F, 'wish') ? 1 + 0.1 * (F.wishN || 0) : 1) * (pv(F, 'stages') ? 1 + 0.25 * (stageOf(F) - 1) : 1); if (F.nx) { dmg *= F.nx; F.nx = 0; F.S.buffs = F.S.buffs.filter((b) => !b.inv); floatText(F, 'AMBUSH ×2', 'big'); }
+    let dmg = (base + bval(F, 'dmgA')) * bval(F, 'dmgM') * F.dmgM * (pv(F, 'wish') ? 1 + wishV(F) * (F.wishN || 0) : 1) * (pv(F, 'stages') ? 1 + 0.25 * (stageOf(F) - 1) : 1); if (F.nx) { dmg *= F.nx; F.nx = 0; F.S.buffs = F.S.buffs.filter((b) => !b.inv); floatText(F, 'AMBUSH ×2', 'big'); }
     let crit = false; const cr0 = pv(F, 'crit'); if (cr0 && Math.random() < cr0[0]) { dmg *= cr0[1]; crit = true; } // (the Kensei: Sword Saint)
     const ex0 = pv(F, 'exe'); if (ex0 && T.mhp && T.hp > 0 && T.hp / T.mhp < ex0[0]) dmg *= ex0[1]; // (and Ichigeki)
     const rg0 = pv(F, 'rage'); if (rg0 && F.hp / F.mhp < rg0[0]) dmg *= rg0[1]; // (the Cyclops' rage)
@@ -1650,7 +1658,7 @@
     if (f2.pos && !isBoss(T) && !(T.C && T.S && bval(T, 'imm'))) { F.possT = T; F.possEnd = performance.now() + f2.pos * 1000; } // (the spirit goes into them)
     if (cu && dmg > 0 && !F.dead) { floatText(F, '👺 GRUDGE', 'tag'); sparks(F, '#a78bfa', 6, 3.4, { s: 0.3 }); takeHit(F, dmg, { ub: 1 }, F.S.cuBy && !F.S.cuBy.dead ? F.S.cuBy : null, { rf: 1 }); } // (…and as much again to themselves)
     if (f2.cu && (T.kind === 'rem' || T.kind === 'rboss')) T.S.cu = Math.max(T.S.cu || 0, f2.cu); // (to see it on them here)
-    if (pv(F, 'wish')) { F.wishN = (F.wishN || 0) + 1; heal(F, F.mhp * 0.1); if (F.kind === 'me') floatText(F, `🪓 WISH +${F.wishN * 10}%`, 'tag'); } // (the Executioner's Wish)
+    if (pv(F, 'wish')) { F.wishN = (F.wishN || 0) + 1; heal(F, F.mhp * wishV(F)); if (F.kind === 'me') floatText(F, `🪓 WISH +${Math.round(F.wishN * wishV(F) * 100)}%`, 'tag'); } // (the Executioner's Wish)
     if (F.kind === 'me') { DU.bump('dmg', dmg); DU.M.hits = (DU.M.hits | 0) + 1; DU.M.best = Math.max(DU.M.best | 0, dmg); DU.M.dealt += dmg; DU.qBump('d', dmg); }
   }
   function hitLook(T, dmg, blocked, ab) {
@@ -1921,7 +1929,7 @@
     if (F.S.stun > 0) fx.push('<span class="bad">💫 Stunned</span>'); if (F.S.root > 0) fx.push('<span class="bad">🕸️ Rooted</span>'); if (F.S.slow > 0) fx.push('<span class="bad">🐌 Slowed</span>');
     if (F.S.dots.some((d) => d.k === 'bl')) fx.push('<span class="bad">🩸 Bleed</span>'); if (F.S.dots.some((d) => d.k === 'bu')) fx.push('<span class="bad">🔥 Burn</span>'); if (F.S.vuln > 0) fx.push('<span class="bad">⚠️ +50% dmg</span>'); if (F.S.cu > 0) fx.push('<span class="bad">👺 Grudge</span>'); if (F.S.fear > 0) fx.push('<span class="bad">😱 Terrified</span>'); if (F.S.stone > 0) fx.push('<span class="bad">🗿 Stone</span>'); if (F.S.fog > 0) fx.push('<span class="bad">🌫️ Fogged</span>'); if (F.S.chill > 0) fx.push('<span class="bad">❄️ Chilled</span>');
     if (F.mim) fx.push(`<span class="good">🎭 ${esc(F.mim.ab.n)} ${Math.ceil(F.mim.t)}s</span>`); if (F.mimF) fx.push(`<span class="good">🧬 ${{ h: 'Health', b: 'Block', p: 'Passives' }[F.mimF.k]} ${Math.ceil(F.mimF.t)}s</span>`); if (pv(F, 'stages')) fx.push(`<span class="${stageOf(F) > 1 ? 'bad' : 'good'}">🩸 Stage ${stageOf(F)}</span>`); if (F.S.crush) fx.push('<span class="bad">💢 Crushed ×2</span>'); if (F.S.sp > 0) fx.push('<span class="good">✨ Protected</span>');
-    if (F.C.wish && F.wishN) fx.push(`<span class="good">🪓 Wish +${F.wishN * 10}%</span>`); if (F.S.buffs.some((b) => b.an === 'haste')) fx.push('<span class="good">🩸 ×1.2 speed</span>');
+    if (F.C.wish && F.wishN) fx.push(`<span class="good">🪓 Wish +${Math.round(F.wishN * wishV(F) * 100)}%</span>`); if (F.S.buffs.some((b) => b.an === 'haste')) fx.push('<span class="good">🩸 ×1.2 speed</span>');
     for (const b of F.S.buffs) { const ab = C.ab.find((q) => q.an === b.an); if (ab) fx.push(`<span class="good">${ab.ic} ${esc(ab.n)}</span>`); } if (F.blk) fx.push('<span class="good">🛡️ Blocking</span>');
     return `<div class="tp"><span class="who">[${esc(who)}]</span><span class="ch">${C.ic} ${esc(C.n)}</span><span class="rr" style="background:${RAR[C.r].c}">${RAR[C.r].s} ${RAR[C.r].n.toUpperCase()}</span></div>
       <div class="hl"><span>Hp</span><div class="du-bar hp${hp / F.mhp < 0.25 ? ' low' : ''}"><u style="width:${(F.hpLag || hp) / F.mhp * 100}%"></u><i style="width:${hp / F.mhp * 100}%"></i><b>${hp}/${F.mhp}</b></div></div>
@@ -2009,8 +2017,11 @@
     const p1 = Math.max(...L.map((x) => x.pw)); for (const x of L) x.ov = Math.max(1, Math.round((1 + 9 * x.pw / p1) * 10) / 10);
     return (FST = { L, rng, nrm, bar: (k, v) => 8 + 92 * nrm(k, v) });
   }
-  function fighterPic(c, big) {
-    return snapshotLazy(`duPic${c}|${AV.s}|${big ? 1 : 0}`, () => { const a = makeAvatar([AV.s, 0, 0, 0, 17, 0, 0, 0, 0, 0, 23 + c, 15 + c], '', true); scene.remove(a.shadow); for (let k = 0; k < 25; k++) animateAvatar(a, 0.1, false, false); return a.g; },
+  // 🎨 the skin a fighter wears (v131): only one that's yours, on a fighter that's yours; and the body that makes it
+  const duSkinOf = (S, c) => { const id = S && S.skin && S.skin[c], k = id && DK_SKINS.find((q) => q.id === id && q.c === c); return k && k.bt >= 0 && (S.skins || []).includes(k.id) && S.own.includes(c) ? k : null; };
+  const bodyOf = (S, c) => { const k = duSkinOf(S, c); return k ? k.bt : 23 + c; };
+  function fighterPic(c, big, bt) {
+    return snapshotLazy(`duPic${c}|${AV.s}|${big ? 1 : 0}|${bt || ''}`, () => { const a = makeAvatar([AV.s, 0, 0, 0, 17, 0, 0, 0, 0, 0, bt || 23 + c, 15 + c], '', true); scene.remove(a.shadow); for (let k = 0; k < 25; k++) animateAvatar(a, 0.1, false, false); return a.g; },
       { w: big ? 300 : 180, h: big ? 360 : 200, dir: [0.55, 0.12, -1], zoom: 0.9, sphere: c === LAE ? [[0, 4.4, 0], 5.9] : c === EXE ? [[0, 4.6, 0], 5.6] : [[0, 3.6, 0], 4.7] });
   }
   const rollFoe = (Di) => { const w = [[62, 30, 8, 0], [40, 35, 22, 3], [18, 30, 37, 15], [5, 18, 37, 40]][Di]; let r = Math.random() * 100, k = 0; while (k < 3 && r >= w[k]) { r -= w[k]; k++; } const pool = CH.filter((C) => C.r === k); return pool[Math.floor(Math.random() * pool.length)].i; };
@@ -2035,7 +2046,7 @@
       const s = await kvGet('duel'), S = this.save = Object.assign(DEF_SAVE(), s && typeof s === 'object' ? s : {});
       S.own = [...new Set((Array.isArray(S.own) ? S.own : []).map((x) => x | 0).filter((x) => x >= 0 && x < CH.length))]; if (!S.own.includes(0)) S.own.unshift(0);
       if (!S.own.includes(S.eq | 0)) S.eq = 0; S.eq |= 0; for (const k of ['xp', 'st']) if (!S[k] || typeof S[k] !== 'object') S[k] = {}; if (!Array.isArray(S.ach)) S.ach = []; S.diff = clamp(S.diff | 0, 0, 3); if (S.md !== 'd' && S.md !== 'b') S.md = 'c';
-      S.gold = Math.max(0, S.gold | 0); for (const Q of QUESTS) if (!S[Q.key] || typeof S[Q.key] !== 'object') S[Q.key] = null; S.rolls = Math.max(0, S.rolls | 0); S.pity = clamp(S.pity | 0, 0, PITY_N - 1); // (rolls: crates opened; pity: since the last legendary)
+      S.gold = Math.max(0, S.gold | 0); if (!S.skin || typeof S.skin !== 'object' || Array.isArray(S.skin)) S.skin = {}; if (!Array.isArray(S.skins)) S.skins = []; // (🎨 skins: the ones you have; the one each fighter wears) for (const Q of QUESTS) if (!S[Q.key] || typeof S[Q.key] !== 'object') S[Q.key] = null; S.rolls = Math.max(0, S.rolls | 0); S.pity = clamp(S.pity | 0, 0, PITY_N - 1); // (rolls: crates opened; pity: since the last legendary)
       this.lockOn = S.lk === 1; send({ dw: S.st.wins | 0, du: null }); this.passCheck(); this.drawBar(); this.perfApply(); this.warmT = 2; snapLoad('duPic').catch(() => 0);
     },
     leave() {
@@ -2113,7 +2124,7 @@
       else if (o.pvp) { M.foe = newFighter(0, 'rem', { peer: o.opp, name: nameOf(o.opp) }); M.foe.acSeen = -1; seen(o.opp); }
       else { const D = DIFF[o.D], fc = rollFoe(o.D); M.foe = newFighter(fc, 'bot', { D: o.D, hpM: D.hpM, dmgM: D.dmgM, name: `🤖 ${CH[fc].n}` }); M.side = Math.random() < 0.5 ? 0 : 1; M.foe.av = [Math.floor(Math.random() * 5), 0, 0, 0, 17, 0, 0, 0, 0, 0, 23 + fc, 15 + fc]; }
       this.respawnDelay = M.md === 'd' ? 450 : M.md === 'b' ? 2500 : 1e9;
-      setAvOverride({ av: [AV.s, AV.sh, AV.p, 0, AV.f, 0, 0, 0, 0, 0, 23 + c, 15 + c] });
+      setAvOverride({ av: [AV.s, AV.sh, AV.p, 0, AV.f, 0, 0, 0, 0, 0, bodyOf(this.save, c), 15 + c] }); // (🎨 in its skin, if it's wearing one)
       cam.dist = Math.max(cam.dist, CH[c].big ? 19 : M.md === 'b' ? 18 : 15); // (room to see a giant)
       document.body.classList.add('duMatch'); setBar(''); setBanner(''); hudBuild(M); this.resetRound(true);
       this.bump('played', 1); sfx('horn'); if (o.pvp || M.coop) this.pubDu(true);
@@ -2463,6 +2474,14 @@
       if (cur === 'g') { const pr = C.lim[1]; if (!pr) return false; if ((S.gold | 0) < pr) { sfx('error'); toast(`Not enough 🥇 gold — ${(pr - (S.gold | 0)).toLocaleString()} more`); return false; } S.gold -= pr; sfx('buy'); }
       else { const pr = C.lim[0]; if (W.coins < pr) { sfx('error'); toast(`Not enough Blox Coins — ${(pr - W.coins).toLocaleString()} more`); return false; } if (!spend(pr)) return false; }
       S.own.push(c); this.dirty(); this.drawBar(); sfx('unlock'); CROWD.ex = 1; toast(`⏳ ${C.ic} ${C.n} is yours — equip it in ⚔️ Fighters!`, '#fde68a'); say(`🛒 Limited Shop: the ${C.n} is yours!`, '#fde68a'); this.shopPanel(); return true; },
+    skinsHtml(c) { const S = this.save, L0 = DK_SKINS.filter((k) => k.c === c && k.bt >= 0); if (!L0.length) return ''; const own = S.own.includes(c), cur = duSkinOf(S, c), ask = this.skAsk || ''; // 🎨 a fighter's skins: its own look, then each skin — wear it, or buy it (🥇 or 🪙, asked twice)
+      return `<div class="du-skins"><h4>🎨 Skins</h4><div class="row">${[null, ...L0].map((k) => { const id = k ? k.id : '', on = (cur ? cur.id : '') === id, has = !k || S.skins.includes(k.id);
+        const btn = on ? '<span class="pr">✔ Wearing it</span>' : !own ? '<span class="pr lk">🔒 Get the fighter first</span>' : has ? `<button class="du-btn" data-skeq="${id || '-'}">🎨 Wear it</button>` : ask.split('|')[0] === id ? `<button class="du-btn" data-skok="${ask}">Buy for ${ask.endsWith('|g') ? '🥇 ' + k.price[1].toLocaleString() : '🪙 ' + k.price[0].toLocaleString()}?</button>` : `<div class="bt"><button class="du-btn" data-skbuy="${id}|g">🥇 ${k.price[1].toLocaleString()}</button><button class="du-btn alt" data-skbuy="${id}|c">🪙 ${k.price[0].toLocaleString()}</button></div>`;
+        return `<div class="du-skin${on ? ' on' : ''}"><img src="${fighterPic(c, false, k ? k.bt : 23 + c)}" alt=""><b>${k ? k.ic + ' ' + esc(k.n) : '⚔️ Its own look'}</b><small>${k ? esc(k.d) : `The ${esc(CH[c].n)} as it comes.`}</small>${btn}</div>`; }).join('')}</div></div>`; },
+    buySkin(id, cur) { const S = this.save, k = DK_SKINS.find((q) => q.id === id); if (!k || !S.own.includes(k.c) || S.skins.includes(id)) return false;
+      if (cur === 'g') { const pr = k.price[1]; if ((S.gold | 0) < pr) { sfx('error'); toast(`Not enough 🥇 gold — ${(pr - (S.gold | 0)).toLocaleString()} more`); this.fightersPanel(k.c); return false; } S.gold -= pr; sfx('buy'); }
+      else { const pr = k.price[0]; if (W.coins < pr) { sfx('error'); toast(`Not enough Blox Coins — ${(pr - W.coins).toLocaleString()} more`); this.fightersPanel(k.c); return false; } if (!spend(pr)) return false; }
+      S.skins.push(id); S.skin[k.c] = id; this.dirty(); this.drawBar(); sfx('unlock'); toast(`🎨 ${k.ic} ${k.n} is yours — and the ${CH[k.c].n} is wearing it!`, '#fde68a'); say(`🎨 New skin: ${k.n} for the ${CH[k.c].n}!`, '#fde68a'); this.fightersPanel(k.c); return true; },
     fightersPanel(sel) {
       const S = this.save, COLS = [1, 0, 2, 3, 4, 5, 7, 6]; let det = '';
       if (sel != null) { // the stats: everything about one fighter
@@ -2470,19 +2489,23 @@
         const abl = C.ab.map((ab, i) => ab.modes ? ab.modes.map((m, k) => `<div><i>${m.ic}</i><span><b>${KEYN[i]} · ${esc(m.n)}</b> (key ${k + 1}) — <em>${m.dmg}</em> damage, every <em>${m.cd} s</em>${m.wind >= 0.4 ? ` · ${m.wind} s wind-up` : ''}</span></div>`).join('')
           : `<div><i>${ab.ic}</i><span><b>${KEYN[i]} · ${esc(ab.n)}</b> — ${ab.d ? esc(ab.d) : `<em>${ab.dmg}</em> damage${ab.k === 'proj' ? ' (ranged)' : ''}`} · cooldown <em>${ab.cd} s</em></span></div>`).join('');
         const pas = (C.pas || []).map(([ic, n, d]) => `<div><i>${ic}</i><span><b>Passive · ${esc(n)}</b> — ${esc(d)}</span></div>`).join('');
-        det = `<div class="du-det" style="--rc:${RAR[C.r].c}"><img src="${fighterPic(sel, 1)}" alt=""><div><div class="sub">${EMP[C.e].e} ${esc(EMP[C.e].n)} · ${RAR[C.r].t} · ${C.wtI} ${C.wt} · ${esc(C.ro)}</div><h3>${C.ic} ${esc(C.n)} <button class="du-x" data-x="close" aria-label="Close">✕</button></h3>
+        det = `<div class="du-det" style="--rc:${RAR[C.r].c}"><img src="${fighterPic(sel, 1, bodyOf(S, sel))}" alt=""><div><div class="sub">${EMP[C.e].e} ${esc(EMP[C.e].n)} · ${RAR[C.r].t} · ${C.wtI} ${C.wt} · ${esc(C.ro)}</div><h3>${C.ic} ${esc(C.n)} <button class="du-x" data-x="close" aria-label="Close">✕</button></h3>
           ${this.statBars(sel)}
           <div class="du-abl">${pas}${abl}</div>
           <div style="margin-top:10px;font:700 12.5px var(--fb);color:#e2e8f0">🌟 Mastery ${lv}/10 ${lv >= 10 ? '— <b style="color:#fde68a">MASTERED</b>: its body and animation pack are in your avatar editor' : `· ${xp}/${nx} XP — master it (10) to wear its body and animations anywhere`}</div><div class="du-mx" style="margin:4px 0 12px"><i style="width:${lv >= 10 ? 100 : (xp - MAST[lv]) / (nx - MAST[lv]) * 100}%"></i></div>
-          ${own ? (S.eq === sel ? '<button class="du-btn alt" disabled>✔ Equipped</button>' : `<button class="du-btn" data-eq="${sel}">⚔️ Equip</button>`) : `<div style="font:600 12.5px/1.45 var(--fb);color:#cbd5e1">${this.fighterHow(sel)}</div>${C.lim && limBack(sel) === 0 ? '<button class="du-btn" data-shop="1" style="margin-top:8px">🛒 Open the Limited Shop</button>' : ''}`}</div></div>`; }
+          ${own ? (S.eq === sel ? '<button class="du-btn alt" disabled>✔ Equipped</button>' : `<button class="du-btn" data-eq="${sel}">⚔️ Equip</button>`) : `<div style="font:600 12.5px/1.45 var(--fb);color:#cbd5e1">${this.fighterHow(sel)}</div>${C.lim && limBack(sel) === 0 ? '<button class="du-btn" data-shop="1" style="margin-top:8px">🛒 Open the Limited Shop</button>' : ''}`}${this.skinsHtml(sel)}</div></div>`; }
       const FV = S.fav || (S.fav = []), card = (c) => { const Q = CH[c], o = S.own.includes(c), l = mLvl(S.xp[c] | 0), fv = FV.includes(c);
-        return `<div class="du-fcard r${Q.r}${o ? '' : ' lock'}${c === S.eq ? ' eqd' : ''}${c === sel ? ' sel' : ''}" data-fn="${esc((Q.n + ' ' + Q.ro + ' ' + EMP[Q.e].n + ' ' + RAR[Q.r].n).toLowerCase())}" data-wt="${Q.wt}" data-own="${o ? 1 : 0}" data-fv="${fv ? 1 : 0}"><button class="fv${fv ? ' on' : ''}" data-fav="${c}" title="${fv ? 'Unfavourite' : 'Favourite'}" aria-label="Favourite">${fv ? '★' : '☆'}</button>${o ? `<span class="mb">🌟 ${l}</span>` : '<span class="mb">🔒</span>'}${Q.lim ? '<span class="lt">⏳ LIMITED</span>' : ''}<button class="pic" data-st="${c}" aria-label="${esc(Q.n)} stats"><img src="${fighterPic(c)}" alt=""></button>
+        return `<div class="du-fcard r${Q.r}${o ? '' : ' lock'}${c === S.eq ? ' eqd' : ''}${c === sel ? ' sel' : ''}" data-fn="${esc((Q.n + ' ' + Q.ro + ' ' + EMP[Q.e].n + ' ' + RAR[Q.r].n).toLowerCase())}" data-wt="${Q.wt}" data-own="${o ? 1 : 0}" data-fv="${fv ? 1 : 0}"><button class="fv${fv ? ' on' : ''}" data-fav="${c}" title="${fv ? 'Unfavourite' : 'Favourite'}" aria-label="Favourite">${fv ? '★' : '☆'}</button>${o ? `<span class="mb">🌟 ${l}</span>` : '<span class="mb">🔒</span>'}${Q.lim ? '<span class="lt">⏳ LIMITED</span>' : ''}${DK_SKINS.some((k) => k.c === c) ? '<span class="skb" title="Has skins">🎨</span>' : ''}<button class="pic" data-st="${c}" aria-label="${esc(Q.n)} stats"><img src="${fighterPic(c, false, bodyOf(S, c))}" alt=""></button>
           <b>${Q.ic} ${esc(Q.n)}</b><small>${RAR[Q.r].s}</small><span class="dp">⚡ ${Math.round(fStatsAll().L[c].dps)} DPS · ⭐ ${fStatsAll().L[c].ov.toFixed(1)}</span><div class="ft">${o ? (c === S.eq ? '<button class="eq on" disabled>✔ equipped</button>' : `<button class="eq" data-eq="${c}">equip</button>`) : Q.lim ? (limBack(c) === 0 ? '<button class="eq lim" data-shop="1">🛒 in the shop</button>' : `<button class="eq lk" data-st="${c}">⏳ limited</button>`) : `<button class="eq lk" data-st="${c}">🔒 locked</button>`}<button class="st" data-st="${c}" title="Stats" aria-label="${esc(Q.n)} stats">📊</button></div></div>`; };
       const head = `${COLS.map((e) => `<div class="du-gh">${EMP[e].e} ${esc(EMP[e].sn || EMP[e].n)}</div>`).join('')}`;
       const vis = (C) => !C.secret || S.own.includes(C.i), rows = RAR.map((R, r) => `<div class="du-gr" style="--rc:${R.c}"><b>${R.s}</b><span>${R.n}</span><small>${CH.filter((C) => C.r === r && vis(C)).length} fighters</small></div>${COLS.map((e) => `<div class="du-gc">${CH.filter((C) => C.e === e && C.r === r && vis(C)).map((C) => card(C.i)).join('')}</div>`).join('')}`).join(''); // (each rarity a band across the top of its row, then the empires' columns under it)
       const FF = this.ff || (this.ff = { f: 'all', q: '' }), FLT = [['all', 'All'], ['own', '✔ Owned'], ['lock', '🔒 Not yet'], ['Light', '🪶 Light'], ['Medium', '⚔️ Medium'], ['Heavy', '🛡️ Heavy'], ['fav', '★ Favourites']];
       const fbar = `<div class="du-ff"><input id="duFq" placeholder="🔎 Search fighters, classes, empires…" value="${esc(FF.q)}" autocomplete="off" spellcheck="false">${FLT.map(([k, n]) => `<button data-ff="${k}" class="${FF.f === k ? 'on' : ''}">${n}</button>`).join('')}<button data-rnd="1" class="rnd">🎲 Random fighter</button><span id="duFn"></span></div>`;
+      this.skSel = sel; // (🎨 which fighter's skins are showing)
       openPanel('⚔️ Fighters', `${det}${fbar}<div class="du-wts">${WTS.map(([n, ic, L]) => `<span><b>${ic} ${n}</b> ${L.join(' · ')}</span>`).join('')}</div><div class="du-gwrap"><div class="du-g6">${head}${rows}</div></div>`, (b) => {
+        if (b.dataset.skeq) { const id = b.dataset.skeq; if (id === '-') delete S.skin[sel]; else S.skin[sel] = id; this.dirty(); sfx('select'); this.drawBar(); this.fightersPanel(sel); return; } // (🎨 wear a skin — or its own look)
+        if (b.dataset.skbuy) { this.skAsk = b.dataset.skbuy; sfx('click'); this.fightersPanel(sel); return; } // (buying asks first)
+        if (b.dataset.skok) { const [id, cur] = b.dataset.skok.split('|'); this.skAsk = ''; this.buySkin(id, cur); return; }
         if (b.dataset.ff) { FF.f = b.dataset.ff; sfx('click'); document.querySelectorAll('#xpBody [data-ff]').forEach((q) => q.classList.toggle('on', q.dataset.ff === FF.f)); this.fFilter(); return; }
         if (b.dataset.shop) { sfx('click'); this.shopPanel(); return; }
         if (b.dataset.fav) { const c = +b.dataset.fav, k = FV.indexOf(c); if (k >= 0) FV.splice(k, 1); else FV.push(c); this.dirty(); sfx('click'); const on = k < 0; b.classList.toggle('on', on); b.textContent = on ? '★' : '☆'; b.title = on ? 'Unfavourite' : 'Favourite'; const cd = b.closest('.du-fcard'); if (cd) cd.dataset.fv = on ? '1' : '0'; this.fFilter(); return; } // (★ a favourite: the ★ filter shows just those; 🎲 picks from them)
