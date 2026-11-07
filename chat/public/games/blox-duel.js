@@ -139,6 +139,25 @@
     .du-fcard.r0{--cb:linear-gradient(180deg,#f1f5f9,#cbd5e1 62%,#94a3b8);--cc:#f8fafc}.du-fcard.r1{--cb:linear-gradient(180deg,#93c5fd,#3b82f6 60%,#1d4ed8);--cc:#bfdbfe}
     .du-fcard.r2{--cb:linear-gradient(180deg,#d8b4fe,#a855f7 60%,#6b21a8);--cc:#e9d5ff}.du-fcard.r3{--cb:linear-gradient(180deg,#fde68a,#f59e0b 60%,#b45309);--cc:#fef3c7}
     .du-fcard.r4{--cb:linear-gradient(180deg,#fda4af,#e11d48 60%,#881337);--cc:#fecdd3;animation:duMyth 1.6s infinite alternate}@keyframes duMyth{to{box-shadow:0 0 18px #fb7185,0 4px 10px rgba(0,0,0,.35)}}
+    .du-fcard.r3{animation:duLegG 2.4s infinite alternate}@keyframes duLegG{to{box-shadow:0 0 14px rgba(253,224,71,.6),0 4px 10px rgba(0,0,0,.35)}}
+    .du-fcard.r3::after,.du-fcard.r4::after{content:'';position:absolute;left:0;right:0;top:0;height:122px;pointer-events:none;z-index:1;background:linear-gradient(115deg,transparent 38%,rgba(255,255,255,.42) 48%,transparent 58%);background-size:260% 100%;animation:duShine 3.4s linear infinite}
+    .du-fcard.r4::after{animation-duration:2.6s}@keyframes duShine{from{background-position:130% 0}to{background-position:-130% 0}}
+    .du-fcard.r4 .pic{position:relative}.du-fcard.r4 .pic::before{content:'';position:absolute;inset:0;pointer-events:none;z-index:1;background-image:radial-gradient(circle,rgba(255,255,255,.95) 0 1.2px,transparent 2px),radial-gradient(circle,rgba(253,164,175,.95) 0 1px,transparent 2px);background-size:31px 37px,23px 29px;background-position:0 0,11px 7px;animation:duMotes 3.6s linear infinite;opacity:.8}
+    @keyframes duMotes{to{background-position:0 -37px,11px -58px}}
+    .du-fcard .lt{position:absolute;left:0;right:0;top:27px;z-index:2;font:800 9.5px var(--fb);letter-spacing:.08em;color:#fff;background:linear-gradient(90deg,transparent,rgba(124,58,237,.9),transparent);padding:2px 0;pointer-events:none}
+    .du-fcard .eq.lim{background:#7c3aed;box-shadow:0 3px 0 #4c1d95}
+    .du-shoph{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 12px;flex-wrap:wrap}.du-shoph>div>b{font:800 16px var(--fh);color:#fff;display:block}.du-shoph small{font:600 12.5px var(--fb);color:#cbd5e1}.du-shoph small b{color:#fde68a}
+    .du-wal{font:800 13px var(--fb);color:#fde68a;background:rgba(15,23,42,.6);border-radius:10px;padding:6px 12px}
+    .du-limg{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+    .du-lim{position:relative;border-radius:16px;overflow:hidden;background:linear-gradient(180deg,var(--a),var(--b));border:2px solid var(--c);box-shadow:0 6px 18px rgba(0,0,0,.4);display:flex;flex-direction:column}
+    .du-lim.r3{--a:#fde68a;--b:#92400e;--c:#fef3c7;animation:duLegG 2.4s infinite alternate}.du-lim.r4{--a:#fda4af;--b:#4c0519;--c:#fecdd3;animation:duMyth 1.6s infinite alternate}
+    .du-lim img{width:100%;height:230px;object-fit:cover;background:radial-gradient(circle at 50% 40%,rgba(255,255,255,.45),transparent 70%)}
+    .du-lim .lt{position:absolute;left:10px;top:10px;padding:3px 9px;border-radius:999px;background:#7c3aed;color:#fff;font:800 11px var(--fb);letter-spacing:.06em;box-shadow:0 2px 0 #4c1d95}
+    .du-lim .in{padding:10px 12px 12px;background:rgba(2,6,23,.6);display:flex;flex-direction:column;gap:6px;flex:1}
+    .du-lim .in small{font:700 11px var(--fb);color:#e2e8f0}.du-lim .in>b{font:800 18px var(--fh);color:#fff}.du-lim .dp{font:700 12px var(--fb);color:#fde68a}
+    .du-lim .buy.gold{background:linear-gradient(180deg,#fde047,#ca8a04);color:#422006}
+    .du-lim .du-lnk{align-self:flex-start;background:none;border:0;color:#93c5fd;font:700 12px var(--fb);cursor:pointer;padding:0;text-decoration:underline}
+    .du-next{margin:14px 0 0;display:flex;flex-wrap:wrap;gap:8px;align-items:center;font:700 12.5px var(--fb);color:#cbd5e1}.du-next b{color:#fff;margin-right:4px}.du-next span{padding:5px 10px;border-radius:999px;background:rgba(15,23,42,.6);border:1px solid rgba(255,255,255,.14)}.du-next span.r4{border-color:#fb7185}.du-next span.r3{border-color:#fbbf24}.du-next small{color:#fde68a}
     .du-fcard .pic{display:block;width:100%;padding:0;border:0;background:none;cursor:pointer}.du-fcard img{display:block;width:100%;height:122px;object-fit:cover;background:radial-gradient(circle at 50% 35%,rgba(255,255,255,.35),transparent 70%)}
     .du-fcard.lock img{filter:grayscale(1) brightness(.5)}.du-fcard.eqd{box-shadow:0 0 0 3px #4ade80}.du-fcard.sel{outline:3px solid #fde68a;outline-offset:1px}
     .du-fcard b{display:block;font:800 12.5px/1.15 var(--fh);color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.8);padding:4px 5px 0}.du-fcard.r0 b{color:#0f172a;text-shadow:none}
@@ -444,6 +463,29 @@
       { n: 'Macuahuitl', ic: '🗡️', k: 'melee', dmg: 62, cd: 1.05, rng: 7, arc: 120, wind: 0.18, an: 'slash', fx: { bl: [40, 3], blc: 0.4 } },
       { n: 'Eagle Dive', ic: '🦅', k: 'leap', dmg: 110, dist: 22, rad: 7, cd: 11, wind: 0.2, an: 'leap', fx: { st: 0.8 }, d: 'The eagle stoops on them from on high: 110 damage all round and a 0.8 s stun.' },
       { n: 'Flowery War', ic: '🌺', k: 'buff', cd: 28, an: 'rally', b: { dur: 7, dmgM: 1.3, spdM: 1.15, ls: 0.2 }, d: 'The war for captives: +30% damage, 15% faster and 20% lifesteal for 7 s.' }] },
+    // ⏳ the limited fighters (v128): in no crate — each in the 🛒 Limited Shop a week at a time, for Blox Coins (lim: [Blox Coins, gold])
+    { e: 2, r: 4, hp: 640, spd: 1.05, def: 0.85, big: 1.12, nc: 1, lim: [10000, 30000], exe: [0.5, 1.25], ro: 'Bruiser', pas: [['📜', 'The Naughty List', 'He knows who’s been bad: +25% damage to anyone under half health.'], ['🔔', 'Bells and Chains', 'The cowbells on his belt ring as he comes, and his chain drags them in to him.']], ab: [
+      { n: 'Birch Switches', ic: '🌿', k: 'multi', hits: [36, 36], gap: 0.16, cd: 1.0, rng: 7, arc: 120, wind: 0.14, an: 'flurry', d: 'The bundle of birch switches, twice: 36 and 36.' },
+      { n: 'Rattling Chain', ic: '⛓️', k: 'proj', dmg: 55, cd: 9, spd: 85, wind: 0.3, an: 'throw', model: 'chain', fx: { pl: 1, st: 0.5 }, d: 'He flings his chain and hooks them: 55 damage, and they’re dragged in to him and stunned for 0.5 s.' },
+      { n: 'Into the Basket', ic: '🧺', k: 'melee', dmg: 95, cd: 15, rng: 6.5, arc: 90, wind: 0.3, an: 'overhead', fx: { st: 1.5, bl: [40, 3] }, d: 'He stuffs them into the basket on his back: 95 damage, a 1.5 s stun, and 40 more as the switches cut.' },
+      { n: 'Krampusnacht', ic: '🔔', k: 'buff', cd: 28, an: 'roar', b: { dur: 8, dmgM: 1.35, spdM: 1.25, ls: 0.2 }, d: 'Krampus Night — every bell rings: +35% damage, 25% faster and 20% lifesteal for 8 s.' }] },
+    { e: 1, r: 4, hp: 520, spd: 1.12, def: 0.9, nc: 1, lim: [6000], ro: 'Ranger', pas: [['🐍', 'Serpent Born', 'Her arrows are dipped in her own venom: every one of them poisons.'], ['🗿', 'The Gorgon’s Gaze', 'Meet her eyes and you turn to stone — frozen where you stand, unable to move, fight or block.']], ab: [
+      { n: 'Venom Arrow', ic: '🏹', k: 'proj', dmg: 58, cd: 1.05, spd: 115, wind: 0.25, an: 'bow', model: 'arrow', fx: { bl: [28, 3] } },
+      { n: 'Serpent Volley', ic: '🐍', k: 'proj', dmg: 38, cnt: 3, spread: 12, cd: 8, spd: 105, wind: 0.3, an: 'bow', model: 'arrow', fx: { bl: [30, 3] }, d: 'Three venomed arrows at once, 38 each, and they poison for 30 more.' },
+      { n: 'Coils', ic: '🌀', k: 'dash', dmg: 75, dist: 14, dd: 0.3, cd: 12, wind: 0.15, an: 'charge', fx: { rt: 1.4 }, d: 'She slithers through them and her coils close round them: 75 damage, and they’re held fast for 1.4 s.' },
+      { n: 'Petrifying Gaze', ic: '🗿', k: 'proj', dmg: 50, cd: 18, spd: 90, wind: 0.45, an: 'roar', model: 'gaze', fx: { pt: 2.5 }, d: 'She lifts her eyes to theirs: 50 damage, and they turn to stone for 2.5 s — they can’t move, act or block.' }] },
+    { e: 2, r: 3, hp: 520, spd: 1.08, def: 0.88, nc: 1, lim: [2500], ro: 'Damage dealer', pas: [['🪽', 'The Wings', 'The eagle feathers on his back roar as he charges: his Kopia Charge throws them further than any other.']], ab: [
+      { n: 'Szabla', ic: '🗡️', k: 'melee', dmg: 56, cd: 0.9, rng: 7, arc: 115, wind: 0.13, an: 'slash' },
+      { n: 'Kopia Charge', ic: '🐎', k: 'dash', dmg: 95, dist: 20, dd: 0.3, cd: 10, wind: 0.2, an: 'charge', fx: { kb: 14, st: 0.6 }, d: 'He couches the long kopia lance and charges through them: 95 damage, a 0.6 s stun, and they’re thrown back.' },
+      { n: 'Thunder of Wings', ic: '🪽', k: 'buff', cd: 24, an: 'rally', b: { dur: 7, dmgM: 1.3, spdM: 1.2, def: 0.85 }, d: 'The wings roar like a storm: +30% damage, 20% faster and 15% less damage taken for 7 s.' }] },
+    { e: 3, r: 3, hp: 480, spd: 1.12, nc: 1, lim: [2500], ro: 'Duelist', pas: [['🌸', 'Bushidō', 'Her naginata keeps them at a distance: the longest reach of any blade in Japan.']], ab: [
+      { n: 'Naginata Cut', ic: '🌙', k: 'melee', dmg: 54, cd: 1.0, rng: 9, arc: 125, wind: 0.18, an: 'naginata' },
+      { n: 'Whirling Blade', ic: '🌀', k: 'multi', hits: [26, 26, 26, 40], gap: 0.16, cd: 9, rng: 8.5, arc: 360, wind: 0.12, an: 'whirl', fx: { kb: 6 }, d: 'She spins the naginata round her: three cuts of 26, then 40 that throws them back.' },
+      { n: 'Petal Storm', ic: '🌸', k: 'multi', hits: [24, 24, 24, 24, 24, 70], gap: 0.11, cd: 18, rng: 9, arc: 140, wind: 0.2, an: 'flurry', fx: { bl: [50, 3] }, d: 'Six strokes as fast as falling petals — five of 24, then 70 — and a 50 bleed.' }] },
+    { e: 0, r: 3, hp: 580, spd: 0.98, def: 0.86, nc: 1, lim: [2500], ro: 'Tank', pas: [['🪖', 'Primus Pilus', 'A centurion of the first rank: his scutum stops every blow from the front, and the phalerae on his chest say he has never lost.']], ab: [
+      { n: 'Gladius', ic: '🗡️', k: 'melee', dmg: 50, cd: 0.85, rng: 6, arc: 80, wind: 0.12, an: 'stab' },
+      { n: 'Vitis', ic: '🌿', k: 'melee', dmg: 40, cd: 8, rng: 6, arc: 90, wind: 0.15, an: 'bash', fx: { st: 1.0 }, d: 'A crack of the vine stick that keeps the line in order: 40 damage and a 1 s stun.' },
+      { n: 'Hold the Line!', ic: '🦅', k: 'buff', cd: 22, an: 'rally', b: { dur: 7, dmgM: 1.2, def: 0.7, heal: 60 }, d: '“Hold the line!”: heal 60, +20% damage and 30% less damage taken for 7 s.' }] },
   ];
   CH.forEach((C, i) => { C.i = i; C.n = DUEL_N[i]; C.ic = DUEL_IC[i]; C.spd = C.spd || 1; C.def = C.def || 1; });
   // what each one is for, at a glance
@@ -453,8 +495,8 @@
   const WTS = [['Light', '🪶', ['Assassin', 'Spirit', 'Ranger', 'Skirmisher']], ['Medium', '⚔️', ['Bruiser', 'Damage dealer', 'Duelist', 'All-rounder']], ['Heavy', '🛡️', ['Tank', 'Giant']]];
   CH.forEach((C) => { const W = WTS.find((w) => w[2].includes(C.ro)); if (!W) console.error('duel: no weight for', C.n, C.ro); C.wt = W ? W[0] : 'Medium'; C.wtI = W ? W[1] : '⚔️'; });
   const CRATE = EMP.map((_, e) => CH.filter((C) => C.e === e && !C.nc).map((C) => C.i)); // (each crate's five, common to legendary)
-  const LAE = 20, EXE = 21, KEN = 32, IMP = 33, JOT = 34, PHA = 35, HAL = 36, CYC = 37, ONI = 38, CAC = 39, CHO = 40, YUR = 41, MIN = 42, RIF = 43, REG = 44, DRA = 45, COLN = 46, HH = 47;
-  for (const i of [0, 1, 3, 4, 5, 6, 8, 9, 10, 12, 13, 22, 30, 35, 48, 51, 52]) CH[i].sh = 1; // (the ones with a shield: blocking stops everything — without one it halves the damage) // (the mythics — the Laestrygonian, the Executioner, the Kensei: no crate has them)
+  const LAE = 20, EXE = 21, KEN = 32, IMP = 33, JOT = 34, PHA = 35, HAL = 36, CYC = 37, ONI = 38, CAC = 39, CHO = 40, YUR = 41, MIN = 42, RIF = 43, REG = 44, DRA = 45, COLN = 46, HH = 47, KRA = 53, MED = 54, HUS = 55, ONN = 56, CEN = 57;
+  for (const i of [0, 1, 3, 4, 5, 6, 8, 9, 10, 12, 13, 22, 30, 35, 48, 51, 52, 57]) CH[i].sh = 1; // (the ones with a shield: blocking stops everything — without one it halves the damage) // (the mythics — the Laestrygonian, the Executioner, the Kensei: no crate has them)
   const KEN_W = 20, KEN_D = 20000; // (the Sword Saint's Trial: wins, damage)
   // the mythics' quests: each accepted in the achievements, then two counts to reach (k kills, d damage, w wins, c Classic
   // wins, b boss wins)
@@ -478,7 +520,15 @@
     { n: 'Great Scimitar', ic: '🗡️', k: 'melee', dmg: 320, cd: 5, rng: 10, arc: 120, wind: 1.4, an: 'bcleave' },
     { n: 'Earthshaker', ic: '🦶', k: 'stomp', dmg: 45, rad: 36, cd: 6.5, wind: 0.8, an: 'bplant', wspd: 17 }] }); // (bcleave, bplant: its own two-handed blows — the pack holds the sword for them)
     // the fighters' looks for their trails and glows
-  const COL = ['#ef4444', '#f59e0b', '#2dd4bf', '#a855f7', '#f97316', '#60a5fa', '#fbbf24', '#fb923c', '#a3a3a3', '#dc2626', '#facc15', '#84cc16', '#38bdf8', '#fef3c7', '#e2e8f0', '#93c5fd', '#fda4af', '#a78bfa', '#fb923c', '#fde047', '#fbbf24', '#991b1b', '#f87171', '#fbbf24', '#f97316', '#2dd4bf', '#dc2626', '#a16207', '#7dd3fc', '#38bdf8', '#cbd5e1', '#facc15', '#f43f5e', '#fbbf24', '#7dd3fc', '#f59e0b', '#ef4444', '#d6a77a', '#dc2626', '#fb923c', '#5eead4', '#bfdbfe', '#a16207', '#65a30d', '#3b82f6', '#16a34a', '#e7d3a1', '#fb923c', '#10b981', '#a8a29e', '#14b8a6', '#facc15', '#f59e0b'];
+  /* ⏳ the Limited Shop: the limited fighters are in no crate. The shop has three a week — a mythic and two legendaries — and
+     turns over at midnight UTC every Monday (week 0 began on Monday 2 November 2026); each costs Blox Coins, Krampus gold too */
+  const LIM_M = [KRA, MED], LIM_L = [HUS, ONN, CEN], LIM_W0 = Date.UTC(2026, 10, 2), LIM_WK = 6048e5, wmod = (a, n) => ((a % n) + n) % n;
+  const limWeek = (t = Date.now()) => Math.floor((t - LIM_W0) / LIM_WK);
+  const limShop = (w = limWeek()) => { const l = wmod(w, 3); return [LIM_M[wmod(w, 2)], LIM_L[l], LIM_L[(l + 1) % 3]]; };
+  const limBack = (c) => { const w = limWeek(); for (let k = 0; k < 6; k++) if (limShop(w + k).includes(c)) return k; return 6; }; // (weeks till it's in the shop: 0 = it is now)
+  const limLeft = () => LIM_W0 + (limWeek() + 1) * LIM_WK - Date.now();
+  const fmtLeft = (ms) => { const d = Math.floor(ms / 864e5), h = Math.floor(ms % 864e5 / 36e5), m = Math.floor(ms % 36e5 / 6e4); return d ? `${d}d ${h}h` : h ? `${h}h ${m}m` : `${Math.max(1, m)}m`; };
+  const COL = ['#ef4444', '#f59e0b', '#2dd4bf', '#a855f7', '#f97316', '#60a5fa', '#fbbf24', '#fb923c', '#a3a3a3', '#dc2626', '#facc15', '#84cc16', '#38bdf8', '#fef3c7', '#e2e8f0', '#93c5fd', '#fda4af', '#a78bfa', '#fb923c', '#fde047', '#fbbf24', '#991b1b', '#f87171', '#fbbf24', '#f97316', '#2dd4bf', '#dc2626', '#a16207', '#7dd3fc', '#38bdf8', '#cbd5e1', '#facc15', '#f43f5e', '#fbbf24', '#7dd3fc', '#f59e0b', '#ef4444', '#d6a77a', '#dc2626', '#fb923c', '#5eead4', '#bfdbfe', '#a16207', '#65a30d', '#3b82f6', '#16a34a', '#e7d3a1', '#fb923c', '#10b981', '#a8a29e', '#14b8a6', '#facc15', '#f59e0b', '#dc2626', '#4ade80', '#e11d48', '#f472b6', '#ef4444'];
   // the duel's own achievements: each wins a fighter (the 1% ones only come from crates)
   const ACH = [
     { id: 'blood', ic: '🩸', n: 'First Blood', d: 'Defeat a fighter', k: 'kills', n0: 1, c: 1 },
@@ -515,7 +565,7 @@
   const CODES = [{ h: '6124d1a5e45ade300695bd33962ba7fc2cd580976a6e7fe50b0e2fda3e56bc37', c: 4 }]; // (🎟️ the Thraex Gladiator)
   const sha = async (t) => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)))].map((b) => b.toString(16).padStart(2, '0')).join('');
   const BOSS_LIVES = 5, BOSS_T = 600; // (the boss: its health with one of you — more with more — your lives each, and the time you have)
-  const ARMORY = { x: -40, z: 120 + LZ }, BOTGATE = { x: 40, z: 120 + LZ }, TABLET = { x: 0, z: 150 + LZ };
+  const ARMORY = { x: -40, z: 120 + LZ }, BOTGATE = { x: 40, z: 120 + LZ }, TABLET = { x: 0, z: 150 + LZ }, SHOP = { x: 24, z: 147 + LZ };
   const isFloor = (x, z) => (x / A0) ** 2 + (z / B0) ** 2;
   const angOf = (dx, dz) => Math.atan2(-dx, -dz); // (the yaw that faces along dx, dz)
   const wrapA = (a) => { while (a > Math.PI) a -= Math.PI * 2; while (a < -Math.PI) a += Math.PI * 2; return a; };
@@ -856,6 +906,16 @@
     const lb2 = label('🤖 FIGHT A BOT', { size: 1.8, color: '#fff' }); lb2.position.set(BOTGATE.x, 9.4, BOTGATE.z); G.add(lb2);
     const tab = part({ x: TABLET.x, y: 2.5, z: TABLET.z, sx: 7, sy: 5, sz: 1, c: 0xe9e1d0 }); tab.m.material = new THREE.MeshLambertMaterial({ color: '#ffffff', map: kCanvas('duTablet', 256, 192, (g) => { g.fillStyle = '#e9e1d0'; g.fillRect(0, 0, 256, 192); g.strokeStyle = '#b8ad97'; g.lineWidth = 8; g.strokeRect(8, 8, 240, 176); g.fillStyle = '#6b5a3e'; g.font = 'bold 26px serif'; g.textAlign = 'center'; g.fillText('HONORES', 128, 50); g.font = '17px serif'; for (let k = 0; k < 5; k++) g.fillRect(48, 76 + k * 20, 160, 3); }) });
     const lb3 = label('🏆 ACHIEVEMENTS', { size: 1.6, color: '#fff' }); lb3.position.set(TABLET.x, 6.6, TABLET.z); G.add(lb3);
+    // 🛒 the Limited Shop: a merchant's stall behind the shrines — posts, a striped awning, a counter with a cloth, a chest of coins — and the week's three fighters standing on it
+    { const sh = new THREE.Group(); sh.position.set(SHOP.x, 0, SHOP.z); sh.rotation.y = Math.atan2(SHOP.x, SHOP.z - 124); G.add(sh); const wd = L('#6b4423', { map: woodTex() });
+      const aw = L('#ffffff', { map: kCanvas('duAwning', 128, 32, (g) => { for (let x = 0; x < 128; x += 16) { g.fillStyle = (x / 16) % 2 ? '#fde68a' : '#b91c1c'; g.fillRect(x, 0, 16, 32); } g.fillStyle = 'rgba(0,0,0,.18)'; g.fillRect(0, 26, 128, 6); }) });
+      for (const x of [-4.2, 4.2]) for (const z of [-2.2, 2.2]) add(BOX, wd, x, 2.7, z, sh).scale.set(0.35, 5.4, 0.35); // (posts)
+      const awn = add(BOX, aw, 0, 5.75, 0.3, sh); awn.scale.set(9.6, 0.16, 5.8); awn.rotation.x = -0.12; for (let k = 0; k < 9; k++) add(kCone(), L(k % 2 ? '#fde68a' : '#b91c1c'), -4.3 + k * 1.075, 5.2, -2.65, sh).scale.set(0.5, 0.5, 0.12); // (the awning, scalloped)
+      add(BOX, wd, 0, 1.15, -1.6, sh).scale.set(8.6, 2.3, 1.3); add(BOX, L('#5b21b6', { map: plushTex() }), 0, 2.36, -1.6, sh).scale.set(8.8, 0.12, 1.5); add(BOX, L('#5b21b6', { map: plushTex() }), 0, 1.7, -2.36, sh).scale.set(8.8, 1.3, 0.06); // (the counter, a purple cloth)
+      const ch = add(BOX, L('#7c4a1e', { map: woodTex() }), 3.6, 0.5, 1.2, sh); ch.scale.set(1.4, 1, 1); for (let k = 0; k < 6; k++) add(kCyl(), metalMat('#e8b84a', { shininess: 140 }), 3.2 + (k % 3) * 0.35, 1.05 + Math.floor(k / 3) * 0.1, 1.0 + (k % 2) * 0.3, sh).scale.set(0.22, 0.05, 0.22); // (a chest of coins)
+      limShop().forEach((c, k) => { const x = [0, -2.9, 2.9][k], col = CH[c].r === 4 ? '#fb7185' : '#fbbf24'; add(kCyl(), new THREE.MeshBasicMaterial({ color: col }), x, 2.45, -1.6, sh).scale.set(1.0, 0.06, 0.7);
+        const a = makeAvatar([1, 0, 0, 0, 17, 0, 0, 0, 0, 0, 23 + c, 15 + c], '', true); scene.remove(a.shadow); a.g.position.set(x, 2.5, -1.6); a.g.scale.setScalar(k ? 0.42 : 0.5); sh.add(a.g); for (let n = 0; n < 25; n++) animateAvatar(a, 0.1, false, false); sh.remove(a.g); sh.add(bake(a.g)); });
+      const lb4 = label('🛒 LIMITED SHOP', { size: 1.8, color: '#fde68a' }); lb4.position.set(SHOP.x, 8.4, SHOP.z); G.add(lb4); const lb5 = label('⏳ new fighters every Monday', { size: 0.8, color: '#e9d5ff' }); lb5.position.set(SHOP.x, 7.2, SHOP.z); G.add(lb5); }
     // the four legends on plinths at the corners, in their guard
     { const x = 0, z = 95 + LZ, pd = part({ x, y: 1, z, sx: 6, sy: 2, sz: 4.5, c: 0x9ca3af }); pd.m.material = L('#8b8f99', { map: travTex() });
       const a = makeAvatar([5, 0, 0, 0, 17, 0, 0, 0, 0, 0, LAE_BOSS_BT, DUEL_AN + LAE], '', true); scene.remove(a.shadow); a.g.position.set(x, 2, z); a.g.rotation.y = Math.PI; a.g.scale.setScalar(1.8); G.add(a.g); for (let k = 0; k < 25; k++) animateAvatar(a, 0.1, false, false); G.remove(a.g); G.add(bake(a.g));
@@ -894,7 +954,7 @@
       default: return ab.b && ab.b.blk ? ab.b.dur : 0.8;
     }
   }
-  const stunned = (F) => F.S.stun > 0 || F.S.pos > 0 || F.S.fear > 0; // (stunned, possessed, or terrified)
+  const stunned = (F) => F.S.stun > 0 || F.S.pos > 0 || F.S.fear > 0 || F.S.stone > 0; // (stunned, possessed, terrified, or turned to stone)
   const isBoss = (F) => !!F && (F.kind === 'boss' || F.kind === 'rboss');
   const local = (T) => T.kind === 'me' || T.kind === 'bot' || T.kind === 'boss'; // (the ones whose hits are judged here)
   const bigR = (F) => (F && F.C.big ? (F.C.big - 1) * 2.4 : 0); // (how much further a giant reaches, and is reached)
@@ -1330,6 +1390,8 @@
       if (fx.bu && !T.C.fireImm) { T.S.dots.push({ k: 'bu', dps: fx.bu[0] / fx.bu[1], t: fx.bu[1], acc: 0 }); floatText(T, '🔥 BURNING', 'tag'); }
       if (fx.pos && !isBoss(T)) { T.S.pos = Math.max(T.S.pos || 0, fx.pos); T.S.posBy = from || null; T.act = null; T.blk = false; floatText(T, '👻 POSSESSED', 'big'); sfx3('magic', T.x, T.z, 70); } // (possessed: it walks them where it looks)
       if (fx.fr && !isBoss(T)) { T.S.fear = Math.max(T.S.fear || 0, fx.fr); T.S.fearBy = from || null; T.act = null; T.blk = false; floatText(T, '😱 TERRIFIED', 'big'); sfx3('magic', T.x, T.z, 70); } // (the Horseman's laugh: they run from him)
+      if (fx.pl && from && !isBoss(T)) { const dx = T.x - from.x, dz = T.z - from.z, l = Math.hypot(dx, dz) || 1, d = Math.max(0, l - 3.4 - bigR(T) - bigR(from)); if (d > 0) T.push = { vx: -dx / l * d / 0.3, vz: -dz / l * d / 0.3, t: 0.3 }; floatText(T, '⛓️ DRAGGED IN', 'tag'); } // (Krampus's chain: dragged in to him)
+      if (fx.pt && !isBoss(T)) { T.S.stone = Math.max(T.S.stone || 0, fx.pt); T.act = null; T.blk = false; stoneFx(T, true); floatText(T, '🗿 TURNED TO STONE', 'big'); sfx3('crunch', T.x, T.z, 70); } // (Medusa's gaze)
       if (fx.cu) { T.S.cu = Math.max(T.S.cu || 0, fx.cu); T.S.cuBy = from || null; floatText(T, '👺 CURSED', 'big'); sfx3('magic', T.x, T.z, 60); } // (the Yūrei's grudge: see dealHitAs)
       if (fx.cr && !T.S.crush) { T.S.crush = 1; floatText(T, '💢 CRUSHED — ×2 DAMAGE', 'big'); sfx3('crunch', T.x, T.z, 70); } // (until the round ends, or they die)
       if (fx.vu) T.S.vuln = Math.max(T.S.vuln, fx.vu);
@@ -1346,9 +1408,14 @@
     sfx3('whoosh', F.x, F.z, 50, { vol: 0.8 }); smokeAt(F.x, 0.6, F.z, 5, '#e7d3a8', 1.6); if (F.kind === 'me') DU.pubAct(F, null, 'dodge'); return true;
   }
   // every frame: timers, damage over time, healing, stamina, the push of a dodge or a knock
+  // Medusa's gaze: they go grey as stone (and a bot freezes mid-move) until it wears off
+  function stoneFx(T, on) { const a = T.a;
+    if (on) { if (T.stoneM || !a) return; T.stoneM = []; a.g.traverse((o) => { if (!o.isMesh || !o.material) return; for (const m of [].concat(o.material)) { if (!m.color || m.transparent || m.blending === THREE.AdditiveBlending || T.stoneM.some((q) => q[0] === m)) continue; T.stoneM.push([m, m.color.getHex(), m.emissive ? m.emissive.getHex() : null]); m.color.setHex(0x9a9690); if (m.emissive) m.emissive.setHex(0x000000); } }); smokeAt(T.x, 2.5, T.z, 10, '#a8a29e', 2.2); }
+    else if (T.stoneM) { for (const [m, c, e] of T.stoneM) { m.color.setHex(c); if (e != null && m.emissive) m.emissive.setHex(e); } T.stoneM = null; if (a) smokeAt(T.x, 2.5, T.z, 8, '#a8a29e', 2); } }
   function statusTick(F, dt) {
     const S = F.S, cdm = bval(F, 'cdM');
     for (let i = 0; i < F.cd.length; i++) if (F.cd[i] > 0) F.cd[i] = Math.max(0, F.cd[i] - dt * cdm); if (F.mcd) for (let k = 0; k < F.mcd.length; k++) if (k !== F.mode && F.mcd[k] > 0) F.mcd[k] = Math.max(0, F.mcd[k] - dt * cdm); // (the other mode's, too)
+    if (S.stone > 0 && (S.stone -= dt) <= 0) S.stone = 0; if (F.stoneM && !(S.stone > 0)) stoneFx(F, false);
     S.sp = Math.max(0, S.sp - dt); S.stun = Math.max(0, S.stun - dt); if (S.pos > 0 && (S.pos -= dt) <= 0) { S.pos = 0; S.posBy = null; } S.root = Math.max(0, S.root - dt); S.vuln = Math.max(0, S.vuln - dt); if (S.cu > 0 && (S.cu -= dt) <= 0) { S.cu = 0; S.cuBy = null; } if (S.fear > 0 && (S.fear -= dt) <= 0) { S.fear = 0; S.fearBy = null; } S.ifr = Math.max(0, S.ifr - dt); if ((S.slow = Math.max(0, S.slow - dt)) === 0) S.slowM = 1;
     for (const b of S.buffs) b.t -= dt; S.buffs = S.buffs.filter((b) => b.t > 0);
     if (F.kind === 'rem' || F.kind === 'rboss' || F.dead) return;
@@ -1372,6 +1439,8 @@
     else if (kind === 'flame') { const f = emSprite(g, fxTex('flame'), 1.6, { blending: THREE.AdditiveBlending }); kitGlow(g, '#f97316', 2.6, 0.75); } // (a gout of fire)
     else if (kind === 'pumpkin') { const b = new THREE.Mesh(kSph(), new THREE.MeshPhongMaterial({ color: '#ea580c', emissive: '#f97316', emissiveIntensity: 0.55, shininess: 40 })); b.scale.set(0.75, 0.62, 0.75); g.add(b); const st = new THREE.Mesh(kCyl(), new THREE.MeshLambertMaterial({ color: '#3f6212' })); st.scale.set(0.08, 0.3, 0.08); st.position.y = 0.6; g.add(st); kitGlow(g, '#fb923c', 2.2, 0.8); const f = emSprite(g, fxTex('flame'), 1.3, { blending: THREE.AdditiveBlending }); f.position.z = 0.9; g.userData.spin = b; g.userData.spinAx = 'x'; } // (a jack-o'-lantern, alight)
     else if (kind === 'laugh') { kitGlow(g, '#84cc16', 2.8, 0.85); kitGlow(g, '#fef9c3', 0.9, 0.95); for (const z of [0.6, 1.3]) { const t2 = emSprite(g, fxTex('flame'), 1.3 - z * 0.3, { blending: THREE.AdditiveBlending, color: '#a3e635' }); t2.position.z = z; } } // (a laugh you can see: sickly green)
+    else if (kind === 'chain') { const ir = metalMat('#4b5058', { shininess: 70 }); for (let k = 0; k < 6; k++) { const o = new THREE.Mesh(kTor(0.24), ir); o.scale.set(0.12, 0.2, 0.12); o.rotation.x = Math.PI / 2; if (k % 2) o.rotateY(Math.PI / 2); o.position.z = 0.35 + k * 0.32; g.add(o); } const hk = new THREE.Mesh(dkHookGeo(), ir); hk.scale.setScalar(1.8); hk.rotation.x = Math.PI / 2; g.add(hk); } // (Krampus's chain, the hook first)
+    else if (kind === 'gaze') { kitGlow(g, '#4ade80', 3.2, 0.85); kitGlow(g, '#f0fdf4', 1.1, 0.95); const e = new THREE.Mesh(kSph(), new THREE.MeshBasicMaterial({ color: '#bbf7d0' })); e.scale.set(0.38, 0.24, 0.2); g.add(e); const pu = new THREE.Mesh(kSph(), new THREE.MeshBasicMaterial({ color: '#052e16' })); pu.scale.set(0.07, 0.22, 0.24); g.add(pu); } // (her gaze: a green eye of light)
     else if (kind === 'stone') { const b = new THREE.Mesh(kSph(), new THREE.MeshLambertMaterial({ color: '#78716c' })); b.scale.setScalar(0.28); g.add(b); } // (a sling stone)
     else if (kind === 'hitodama') { kitGlow(g, '#3b82f6', 2.4, 0.8); kitGlow(g, '#e0f2fe', 0.9, 0.95); const t2 = emSprite(g, fxTex('flame'), 1.2, { blending: THREE.AdditiveBlending, color: '#93c5fd' }); t2.position.z = 0.7; } // (a ghost-fire: a cold blue flame with a tail)
     else if (kind === 'grudge') { kitGlow(g, '#7c3aed', 2.8, 0.85); kitGlow(g, '#f5f3ff', 0.9, 0.9); for (const z of [0.6, 1.2]) { const t2 = emSprite(g, fxTex('flame'), 1.3 - z * 0.3, { blending: THREE.AdditiveBlending, color: '#a78bfa' }); t2.position.z = z; } } // (a vengeful spirit: violet, trailing)
@@ -1443,6 +1512,7 @@
   }
   function botTick(F, dt) {
     if (F.S.pos > 0 || F.S.fear > 0) { F.mv = true; F.blk = false; return; } // (possessed or terrified: it isn't theirs to move)
+    if (F.S.stone > 0) { F.mv = false; F.blk = false; return; } // (stone)
     const T = foeOf(F), D = DIFF[F.D], B = F.bot || (F.bot = { t: 0.5, str: 1, strT: 0, seen: -1, blkT: 0, react: null, lx: 0, lz: 0 });
     F.mv = false; F.sprint = false;
     if (F.jT > 0) { F.jT -= dt; F.lift = F.jT > 0 ? Math.sin(Math.PI * (1 - F.jT / 0.75)) * 4.2 : 0; } // (jumping a shockwave)
@@ -1497,7 +1567,7 @@
   function hudCard(F, who) {
     const C = F.C, hp = Math.max(0, Math.ceil(F.hp)), st = Math.round(F.st), fx = [];
     if (F.S.stun > 0) fx.push('<span class="bad">💫 Stunned</span>'); if (F.S.root > 0) fx.push('<span class="bad">🕸️ Rooted</span>'); if (F.S.slow > 0) fx.push('<span class="bad">🐌 Slowed</span>');
-    if (F.S.dots.some((d) => d.k === 'bl')) fx.push('<span class="bad">🩸 Bleed</span>'); if (F.S.dots.some((d) => d.k === 'bu')) fx.push('<span class="bad">🔥 Burn</span>'); if (F.S.vuln > 0) fx.push('<span class="bad">⚠️ +50% dmg</span>'); if (F.S.cu > 0) fx.push('<span class="bad">👺 Grudge</span>'); if (F.S.fear > 0) fx.push('<span class="bad">😱 Terrified</span>'); if (F.S.crush) fx.push('<span class="bad">💢 Crushed ×2</span>'); if (F.S.sp > 0) fx.push('<span class="good">✨ Protected</span>');
+    if (F.S.dots.some((d) => d.k === 'bl')) fx.push('<span class="bad">🩸 Bleed</span>'); if (F.S.dots.some((d) => d.k === 'bu')) fx.push('<span class="bad">🔥 Burn</span>'); if (F.S.vuln > 0) fx.push('<span class="bad">⚠️ +50% dmg</span>'); if (F.S.cu > 0) fx.push('<span class="bad">👺 Grudge</span>'); if (F.S.fear > 0) fx.push('<span class="bad">😱 Terrified</span>'); if (F.S.stone > 0) fx.push('<span class="bad">🗿 Stone</span>'); if (F.S.crush) fx.push('<span class="bad">💢 Crushed ×2</span>'); if (F.S.sp > 0) fx.push('<span class="good">✨ Protected</span>');
     if (F.C.wish && F.wishN) fx.push(`<span class="good">🪓 Wish +${F.wishN * 10}%</span>`); if (F.S.buffs.some((b) => b.an === 'haste')) fx.push('<span class="good">🩸 ×1.2 speed</span>');
     for (const b of F.S.buffs) { const ab = C.ab.find((q) => q.an === b.an); if (ab) fx.push(`<span class="good">${ab.ic} ${esc(ab.n)}</span>`); } if (F.blk) fx.push('<span class="good">🛡️ Blocking</span>');
     return `<div class="tp"><span class="who">[${esc(who)}]</span><span class="ch">${C.ic} ${esc(C.n)}</span><span class="rr" style="background:${RAR[C.r].c}">${RAR[C.r].s} ${RAR[C.r].n.toUpperCase()}</span></div>
@@ -1556,7 +1626,7 @@
       if (ab.k === 'buff' && b) { const up = Math.min(1, (b.dur || 0) / ab.cd); if (b.def) red *= 1 - (1 - b.def) * up; if (b.blk) red *= 1 - 0.85 * up; heal += ((b.heal || 0) + (b.healP || 0) * C.hp + (b.hps || 0) * (b.dur || 0) + (b.ls || 0) * best.dps * (b.dur || 0)) * per; }
       ctrl += ((fx.st || 0) + (fx.rt || 0) * 0.6 + (fx.sl ? fx.sl[1] * (1 - fx.sl[0]) : 0) + (fx.kb ? 0.4 : 0)) * per * (C.ab[0].modes && C.ab[0].modes.includes && false ? 0.5 : 1); }
     if (C.wish) heal += 0.1 * C.hp * best.hits; if (C.lsP) heal += C.lsP * best.dps * T; if (C.stunP) ctrl += best.hits * C.stunP[0] * C.stunP[1]; if (C.frost) ctrl += Math.min(T, best.hits * C.frost[1]) * (1 - C.frost[0]);
-    for (const ab of C.ab) { if (ab.fx && ab.fx.pos) ctrl += ab.fx.pos * T / Math.max(ab.cd, 1); if (ab.fx && ab.fx.cu) ctrl += ab.fx.cu * 0.4 * T / Math.max(ab.cd, 1); if (ab.fx && ab.fx.fr) ctrl += ab.fx.fr * T / Math.max(ab.cd, 1); if (ab.drain) heal += ab.dmg * T / ab.cd; } if (C.rage) best.dps *= 1 + (C.rage[1] - 1) * C.rage[0];
+    for (const ab of C.ab) { if (ab.fx && ab.fx.pos) ctrl += ab.fx.pos * T / Math.max(ab.cd, 1); if (ab.fx && ab.fx.cu) ctrl += ab.fx.cu * 0.4 * T / Math.max(ab.cd, 1); if (ab.fx && ab.fx.fr) ctrl += ab.fx.fr * T / Math.max(ab.cd, 1); if (ab.fx && ab.fx.pt) ctrl += ab.fx.pt * T / Math.max(ab.cd, 1); if (ab.fx && ab.fx.pl) ctrl += 0.5 * T / Math.max(ab.cd, 1); if (ab.drain) heal += ab.dmg * T / ab.cd; } if (C.rage) best.dps *= 1 + (C.rage[1] - 1) * C.rage[0];
     const cf = Math.min(0.5, ctrl / T), def = 1 / (C.def * red);
     return Object.assign(best, { hp: C.hp, spd: C.spd, def, armor: 1 / C.def, guard: red < 1, ctrl: cf, ehp: (C.hp + heal) * def / (1 - cf) });
   }
@@ -1598,7 +1668,7 @@
       this.lockOn = S.lk === 1; send({ dw: S.st.wins | 0, du: null }); this.passCheck(); this.drawBar();
     },
     leave() {
-      if (this.M) this.cleanMatch(); this.M = null; AVO = null; P.frozen = false;
+      if (this.M) { for (const F of [this.M.me, this.M.foe]) if (F && F.stoneM) stoneFx(F, false); this.cleanMatch(); } this.M = null; AVO = null; P.frozen = false;
       for (const p of this.proj) scene.remove(p.m); for (const v of this.volleys) scene.remove(v.ring); for (const d of this.drops) scene.remove(d.m); for (const w of this.waves) scene.remove(w.g);
       dropTrail(me); const r = $('#duReel'); if (r) r.remove(); document.body.classList.remove('duMatch'); if (this.saveT) { clearTimeout(this.saveT); kvSet('duel', this.save); }
     },
@@ -1678,7 +1748,7 @@
     revive(F) { Object.assign(F, { hp: F.mhp, st: 100, dead: false, act: null, blk: false, push: null, lift: 0, nx: 0, rTaken: 0, wishN: 0, jT: 0 }); F.S = { stun: 0, root: 0, slow: 0, slowM: 1, vuln: 0, ifr: 0, sp: 0, crush: 0, dots: [], buffs: [] }; },
     botAvatar(F) { if (F.a) { dropTrail(F.a); dropAvatar(F.a); } F.a = makeAvatar(F.av, F.name, false); F.a.dgMode = F.mode; scene.add(F.a.g); F.a.g.position.set(F.x, 0, F.z); F.a.g.rotation.y = F.yaw; },
     resetRound(first) {
-      const M = this.M; M.ph = 'intro'; M.t = 0; M.toT = null; M.toWait = 0; M.left = M.md === 'd' ? DM_T : M.md === 'b' ? BOSS_T : ROUND_T; M.base = { l: M.l, fl: this.foeL() };
+      const M = this.M; for (const F of [M.me, M.foe]) if (F && F.stoneM) stoneFx(F, false); M.ph = 'intro'; M.t = 0; M.toT = null; M.toWait = 0; M.left = M.md === 'd' ? DM_T : M.md === 'b' ? BOSS_T : ROUND_T; M.base = { l: M.l, fl: this.foeL() };
       for (const F of [M.me, M.foe]) { this.revive(F); F.cd = F.C.ab.map(() => 0); }
       for (const p of this.proj) scene.remove(p.m); for (const v of this.volleys) scene.remove(v.ring); for (const d of this.drops) scene.remove(d.m); for (const w of this.waves) scene.remove(w.g); this.proj = []; this.volleys = []; this.drops = []; this.waves = [];
       const cy = cam.yaw; respawn(true); M.me.x = P.x; M.me.z = P.z; M.me.yaw = P.yaw; if (!first) cam.yaw = cy; // (the camera stays where you had it)
@@ -1725,7 +1795,7 @@
       else if (M.ph === 'end') { if ((M.autoT -= dt) <= 0) { this.leaveMatch(); return; } }
       // the bot's body
       if (isBoss(T) && T.tele) { const A = T.act; if (!A || A.t >= (A.ab.wind || 0)) { scene.remove(T.tele); T.tele = null; } else { const k = clamp(A.t / Math.max(0.05, A.ab.wind || 0.05), 0, 1), f = T.tele.userData.fill; T.tele.material.opacity = 0.45 + 0.4 * Math.sin(A.t * (14 + 18 * k)); if (f) { f.scale.setScalar(Math.max(0.01, k)); f.material.opacity = 0.16 + 0.3 * k; } } } // (the warning on the sand, until the blow)
-      if ((T.kind === 'bot' || isBoss(T)) && T.a) { if (T.a.dead) updateDead(T.a, dt); else { T.a.g.position.set(T.x, T.y + (T.lift || 0), T.z); T.a.g.rotation.y = T.yaw; animateAvatar(T.a, T.sprint ? dt * 1.4 : dt, !!T.mv, (T.lift || 0) > 0.5); placeShadow(T.a); } }
+      if ((T.kind === 'bot' || isBoss(T)) && T.a) { if (T.a.dead) updateDead(T.a, dt); else { T.a.g.position.set(T.x, T.y + (T.lift || 0), T.z); T.a.g.rotation.y = T.yaw; animateAvatar(T.a, T.S.stone > 0 ? 0 : T.sprint ? dt * 1.4 : dt, !!T.mv, (T.lift || 0) > 0.5); placeShadow(T.a); } }
       // lock-on: the camera keeps them in view and you face them
       if (this.lockOn && !T.dead && !bval(T, 'inv') && M.ph !== 'end') { const ty = angOf(T.x - P.x, T.z - P.z); cam.yaw += wrapA(ty + 0.32 - cam.yaw) * Math.min(1, dt * 5); if (!this.sprinting && !(F.act && F.act.ab.k !== 'buff') && !F.push && live()) P.yaw = F.yaw = ty; }
       if (M.ph !== 'end' && !P.dead) { [P.x, P.z] = clampArena(P.x, P.z, 1.6 * (F.C.big || 1)); F.x = P.x; F.z = P.z; } // (the podium wall: nobody walks out of the arena)
@@ -1819,7 +1889,7 @@
       this.pubDu(true);
     },
     endMatch(r) {
-      const M = this.M; if (!M || M.ph === 'end') return; M.ph = 'end'; M.t = 0; M.autoT = 25; P.frozen = true; const S = this.save;
+      const M = this.M; if (!M || M.ph === 'end') return; for (const F of [M.me, M.foe]) if (F && F.stoneM) stoneFx(F, false); M.ph = 'end'; M.t = 0; M.autoT = 25; P.frozen = true; const S = this.save;
       const boss = M.md === 'b', D = M.pvp || boss ? null : DIFF[M.D]; let coins = r > 0 ? (boss ? 120 : M.pvp ? 60 : D.coins) : r < 0 ? (M.pvp || boss ? 15 : 8) : 20; coins += M.roundsWon * 5 + (M.md === 'd' ? M.kills * 3 : 0);
       const xp = Math.round((M.dealt / 10 + M.kills * 25 + M.roundsWon * 40 + (r > 0 ? 120 : 30)) * (boss ? 1.6 : M.pvp ? 1.5 : [0.6, 1, 1.3, 1.6][M.D]));
       const gold = (boss ? (r > 0 ? 150 : 25) : r > 0 ? (M.pvp ? 60 : [20, 30, 45, 60][M.D]) : r < 0 ? 10 : 15) + M.kills * 3; S.gold = (S.gold | 0) + gold; // (the duel's own gold: crates)
@@ -1891,7 +1961,7 @@
     },
     prompts() {
       if (this.M) return [];
-      return [{ x: ARMORY.x, z: ARMORY.z, r: 7, text: 'Fighters', fn: () => this.fightersPanel() }, { x: BOTGATE.x, z: BOTGATE.z, r: 7, text: 'Fight a bot', fn: () => this.botPanel() }, { x: TABLET.x, z: TABLET.z - 1.5, r: 7, text: 'Achievements', fn: () => this.achPanel() }]
+      return [{ x: ARMORY.x, z: ARMORY.z, r: 7, text: 'Fighters', fn: () => this.fightersPanel() }, { x: BOTGATE.x, z: BOTGATE.z, r: 7, text: 'Fight a bot', fn: () => this.botPanel() }, { x: TABLET.x, z: TABLET.z - 1.5, r: 7, text: 'Achievements', fn: () => this.achPanel() }, { x: SHOP.x - 2, z: SHOP.z - 3.5, r: 7, text: 'Limited Shop', fn: () => this.shopPanel() }]
         .concat(SHRINES.map((s) => ({ x: s.x, z: s.z, r: 6.5, text: `Open the ${EMP[s.e].n} crate`, fn: () => this.cratesPanel(s.e) })));
     },
     say(F, text) { floatText(F, text, 'tag'); },
@@ -1922,12 +1992,30 @@
     /* ---------------- the menus ---------------- */
     drawBar() {
       if (this.M || !this.save) { setBar(''); return; } const S = this.save, C = CH[S.eq];
-      setBar(`<button class="xslot" data-k="fi"><span class="k">C</span><span class="e">${C.ic}</span>${esc(C.n)}<small>🌟 mastery ${mLvl(S.xp[S.eq] | 0)}/10</small></button><button class="xslot" data-k="cr"><span class="e">🎁</span>Crates<small>🥇 ${S.gold | 0} gold</small></button><button class="xslot" data-k="bot"><span class="e">🤖</span>Fight a bot<small>${DIFF[S.diff].e} ${DIFF[S.diff].n}</small></button><button class="xslot" data-k="ach"><span class="e">🏆</span>Achievements<small>${S.ach.length}/${ACH.length}</small></button><button class="xslot" data-k="opt"><span class="e">⚙️</span>Options<small>${opt('hb') ? '🟥 hitboxes on' : 'hitboxes, shake…'}</small></button>`,
-        (b) => { const k = b.dataset.k; if (k === 'fi') this.fightersPanel(); else if (k === 'cr') this.cratesPanel(); else if (k === 'bot') this.botPanel(); else if (k === 'ach') this.achPanel(); else if (k === 'opt') this.optionsPanel(); });
+      setBar(`<button class="xslot" data-k="fi"><span class="k">C</span><span class="e">${C.ic}</span>${esc(C.n)}<small>🌟 mastery ${mLvl(S.xp[S.eq] | 0)}/10</small></button><button class="xslot" data-k="cr"><span class="e">🎁</span>Crates<small>🥇 ${S.gold | 0} gold</small></button><button class="xslot" data-k="bot"><span class="e">🤖</span>Fight a bot<small>${DIFF[S.diff].e} ${DIFF[S.diff].n}</small></button><button class="xslot" data-k="ach"><span class="e">🏆</span>Achievements<small>${S.ach.length}/${ACH.length}</small></button><button class="xslot" data-k="shop"><span class="e">🛒</span>Shop<small>⏳ ${fmtLeft(limLeft())}</small></button><button class="xslot" data-k="opt"><span class="e">⚙️</span>Options<small>${opt('hb') ? '🟥 hitboxes on' : 'hitboxes, shake…'}</small></button>`,
+        (b) => { const k = b.dataset.k; if (k === 'fi') this.fightersPanel(); else if (k === 'cr') this.cratesPanel(); else if (k === 'bot') this.botPanel(); else if (k === 'ach') this.achPanel(); else if (k === 'shop') this.shopPanel(); else if (k === 'opt') this.optionsPanel(); });
     },
     fighterHow(c) { const S = this.save, C = CH[c], A = ACH.find((q) => q.c === c);
+      if (C.lim) { const k = limBack(c); return k === 0 ? `⏳ <b>Limited</b> — in the 🛒 Limited Shop this week for 🪙 ${C.lim[0].toLocaleString()} Blox Coins${C.lim[1] ? ` or 🥇 ${C.lim[1].toLocaleString()} gold` : ''} (gone in ${fmtLeft(limLeft())})` : `⏳ <b>Limited</b> — only ever in the 🛒 Limited Shop, a week at a time: back in ${k} week${k > 1 ? 's' : ''}`; }
       if (C.how) return `🔒 ${esc(C.how)}${c === EXE && S.q && S.q.on ? ` — ⚔️ ${S.q.k | 0}/50 · 💥 ${(S.q.d | 0).toLocaleString()}/15,000` : ''}`;
       return `🔒 ${A ? `Win it with the duel achievement <b>${esc(A.n)}</b> (${esc(A.d)}), or find it` : 'Only'} in the ${EMP[C.e].e} ${esc(EMP[C.e].n)} crate (${ODDS[CRATE[C.e].indexOf(c)]}%)`; },
+    shopPanel() {
+      const S = this.save, w = limWeek(), now = limShop(w), nx = limShop(w + 1);
+      const card = (c) => { const C = CH[c], own = S.own.includes(c), [pb, pg] = C.lim;
+        return `<div class="du-lim r${C.r}${own ? ' own' : ''}"><span class="lt">⏳ LIMITED</span><img src="${fighterPic(c, 1)}" alt=""><div class="in"><small>${RAR[C.r].s} ${RAR[C.r].t} · ${EMP[C.e].e} ${esc(EMP[C.e].sn || EMP[C.e].n)} · ${esc(C.ro)}</small><b>${C.ic} ${esc(C.n)}</b>
+          <span class="dp">⚡ ${Math.round(fStatsAll().L[c].dps)} DPS · ⭐ ${fStatsAll().L[c].ov.toFixed(1)}</span>
+          ${own ? '<button class="du-btn alt" disabled>✔ Yours</button>' : `<button class="du-btn buy" data-buy="${c}" data-cur="b">🪙 ${pb.toLocaleString()} Blox Coins</button>${pg ? `<button class="du-btn buy gold" data-buy="${c}" data-cur="g">🥇 ${pg.toLocaleString()} gold</button>` : ''}`}
+          <button class="du-lnk" data-st="${c}">abilities and stats</button></div></div>`; };
+      const html = `<div class="du-shoph"><div><b>⏳ This week’s limited fighters</b><small>Only in this shop, and only this week — once bought, yours for good. New ones in <b>${fmtLeft(limLeft())}</b> (every Monday, 00:00 UTC).</small></div><div class="du-wal">🪙 ${(W.coins | 0).toLocaleString()} · 🥇 ${(S.gold | 0).toLocaleString()}</div></div>
+        <div class="du-limg">${now.map(card).join('')}</div>
+        <div class="du-next"><b>🔮 Next week</b>${nx.map((c) => `<span class="r${CH[c].r}">${CH[c].ic} ${esc(CH[c].n)} <small>${RAR[CH[c].r].s}</small></span>`).join('')}</div>`;
+      openPanel('🛒 Limited Shop', html, (b) => { if (b.dataset.buy) this.buyLim(+b.dataset.buy, b.dataset.cur); else if (b.dataset.st) { sfx('click'); this.fightersPanel(+b.dataset.st); } });
+    },
+    buyLim(c, cur) { const S = this.save, C = CH[c]; if (!C || !C.lim || S.own.includes(c)) return false;
+      if (!limShop().includes(c)) { sfx('error'); toast('That fighter has left the shop — it’ll be back'); this.shopPanel(); return false; }
+      if (cur === 'g') { const pr = C.lim[1]; if (!pr) return false; if ((S.gold | 0) < pr) { sfx('error'); toast(`Not enough 🥇 gold — ${(pr - (S.gold | 0)).toLocaleString()} more`); return false; } S.gold -= pr; sfx('buy'); }
+      else { const pr = C.lim[0]; if (W.coins < pr) { sfx('error'); toast(`Not enough Blox Coins — ${(pr - W.coins).toLocaleString()} more`); return false; } if (!spend(pr)) return false; }
+      S.own.push(c); this.dirty(); this.drawBar(); sfx('unlock'); CROWD.ex = 1; toast(`⏳ ${C.ic} ${C.n} is yours — equip it in ⚔️ Fighters!`, '#fde68a'); say(`🛒 Limited Shop: the ${C.n} is yours!`, '#fde68a'); this.shopPanel(); return true; },
     fightersPanel(sel) {
       const S = this.save, COLS = [1, 0, 2, 3, 4, 5, 7, 6]; let det = '';
       if (sel != null) { // the stats: everything about one fighter
@@ -1939,16 +2027,17 @@
           ${this.statBars(sel)}
           <div class="du-abl">${pas}${abl}</div>
           <div style="margin-top:10px;font:700 12.5px var(--fb);color:#e2e8f0">🌟 Mastery ${lv}/10 ${lv >= 10 ? '— <b style="color:#fde68a">MASTERED</b>: its body and animation pack are in your avatar editor' : `· ${xp}/${nx} XP — master it (10) to wear its body and animations anywhere`}</div><div class="du-mx" style="margin:4px 0 12px"><i style="width:${lv >= 10 ? 100 : (xp - MAST[lv]) / (nx - MAST[lv]) * 100}%"></i></div>
-          ${own ? (S.eq === sel ? '<button class="du-btn alt" disabled>✔ Equipped</button>' : `<button class="du-btn" data-eq="${sel}">⚔️ Equip</button>`) : `<div style="font:600 12.5px/1.45 var(--fb);color:#cbd5e1">${this.fighterHow(sel)}</div>`}</div></div>`; }
+          ${own ? (S.eq === sel ? '<button class="du-btn alt" disabled>✔ Equipped</button>' : `<button class="du-btn" data-eq="${sel}">⚔️ Equip</button>`) : `<div style="font:600 12.5px/1.45 var(--fb);color:#cbd5e1">${this.fighterHow(sel)}</div>${C.lim && limBack(sel) === 0 ? '<button class="du-btn" data-shop="1" style="margin-top:8px">🛒 Open the Limited Shop</button>' : ''}`}</div></div>`; }
       const card = (c) => { const Q = CH[c], o = S.own.includes(c), l = mLvl(S.xp[c] | 0);
-        return `<div class="du-fcard r${Q.r}${o ? '' : ' lock'}${c === S.eq ? ' eqd' : ''}${c === sel ? ' sel' : ''}" data-fn="${esc((Q.n + ' ' + Q.ro + ' ' + EMP[Q.e].n + ' ' + RAR[Q.r].n).toLowerCase())}" data-wt="${Q.wt}" data-own="${o ? 1 : 0}"><button class="st" data-st="${c}">stats</button>${o ? `<span class="mb">🌟 ${l}</span>` : '<span class="mb">🔒</span>'}<button class="pic" data-st="${c}" aria-label="${esc(Q.n)} stats"><img src="${fighterPic(c)}" alt=""></button>
-          <b>${Q.ic} ${esc(Q.n)}</b><small>${RAR[Q.r].s}</small><span class="dp">⚡ ${Math.round(fStatsAll().L[c].dps)} DPS · ⭐ ${fStatsAll().L[c].ov.toFixed(1)}</span>${o ? (c === S.eq ? '<button class="eq on" disabled>✔ equipped</button>' : `<button class="eq" data-eq="${c}">equip</button>`) : `<button class="eq lk" data-st="${c}">🔒 locked</button>`}</div>`; };
+        return `<div class="du-fcard r${Q.r}${o ? '' : ' lock'}${c === S.eq ? ' eqd' : ''}${c === sel ? ' sel' : ''}" data-fn="${esc((Q.n + ' ' + Q.ro + ' ' + EMP[Q.e].n + ' ' + RAR[Q.r].n).toLowerCase())}" data-wt="${Q.wt}" data-own="${o ? 1 : 0}"><button class="st" data-st="${c}">stats</button>${o ? `<span class="mb">🌟 ${l}</span>` : '<span class="mb">🔒</span>'}${Q.lim ? '<span class="lt">⏳ LIMITED</span>' : ''}<button class="pic" data-st="${c}" aria-label="${esc(Q.n)} stats"><img src="${fighterPic(c)}" alt=""></button>
+          <b>${Q.ic} ${esc(Q.n)}</b><small>${RAR[Q.r].s}</small><span class="dp">⚡ ${Math.round(fStatsAll().L[c].dps)} DPS · ⭐ ${fStatsAll().L[c].ov.toFixed(1)}</span>${o ? (c === S.eq ? '<button class="eq on" disabled>✔ equipped</button>' : `<button class="eq" data-eq="${c}">equip</button>`) : Q.lim ? (limBack(c) === 0 ? '<button class="eq lim" data-shop="1">🛒 in the shop</button>' : `<button class="eq lk" data-st="${c}">⏳ limited</button>`) : `<button class="eq lk" data-st="${c}">🔒 locked</button>`}</div>`; };
       const head = `<div></div>${COLS.map((e) => `<div class="du-gh">${EMP[e].e} ${esc(EMP[e].sn || EMP[e].n)}</div>`).join('')}`;
       const rows = RAR.map((R, r) => `<div class="du-gr" style="--rc:${R.c}"><b>${R.s}</b><small>${R.n}</small></div>${COLS.map((e) => `<div class="du-gc">${CH.filter((C) => C.e === e && C.r === r).map((C) => card(C.i)).join('')}</div>`).join('')}`).join('');
       const FF = this.ff || (this.ff = { f: 'all', q: '' }), FLT = [['all', 'All'], ['own', '✔ Owned'], ['lock', '🔒 Not yet'], ['Light', '🪶 Light'], ['Medium', '⚔️ Medium'], ['Heavy', '🛡️ Heavy']];
       const fbar = `<div class="du-ff"><input id="duFq" placeholder="🔎 Search fighters, classes, empires…" value="${esc(FF.q)}" autocomplete="off" spellcheck="false">${FLT.map(([k, n]) => `<button data-ff="${k}" class="${FF.f === k ? 'on' : ''}">${n}</button>`).join('')}<span id="duFn"></span></div>`;
       openPanel('⚔️ Fighters', `${det}${fbar}<div class="du-wts">${WTS.map(([n, ic, L]) => `<span><b>${ic} ${n}</b> ${L.join(' · ')}</span>`).join('')}</div><div class="du-gwrap"><div class="du-g6">${head}${rows}</div></div>`, (b) => {
         if (b.dataset.ff) { FF.f = b.dataset.ff; sfx('click'); document.querySelectorAll('#xpBody [data-ff]').forEach((q) => q.classList.toggle('on', q.dataset.ff === FF.f)); this.fFilter(); return; }
+        if (b.dataset.shop) { sfx('click'); this.shopPanel(); return; }
         if (b.dataset.eq) { S.eq = +b.dataset.eq; this.dirty(); sfx('select'); this.drawBar(); this.fightersPanel(); }
         else if (b.dataset.st) { sfx('click'); this.fightersPanel(+b.dataset.st); $('#xpBody').scrollTop = 0; } else if (b.dataset.x === 'close') { sfx('click'); this.fightersPanel(); } }, null, { full: true, extra: `<span class="xchip">⚔️ ${S.own.length}/${CH.length}</span>` });
       const fq = $('#duFq'); if (fq) fq.addEventListener('input', () => { FF.q = fq.value; this.fFilter(); }); this.fFilter();
