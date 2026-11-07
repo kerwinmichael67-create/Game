@@ -922,12 +922,12 @@ THREE.Mesh.prototype.onBeforeRender = function () { this.receiveShadow = true; }
 const softGL = (() => { try { const gl = renderer.getContext(), ext = gl.getExtension('WEBGL_debug_renderer_info'); return /swiftshader|llvmpipe|softpipe|software|basic render/i.test(String(gl.getParameter(ext ? ext.UNMASKED_RENDERER_WEBGL : gl.RENDERER))); } catch (e) { return false; } })();
 const GFX = { pick: 'auto', hi: !touchy && !softGL, slow: 0, castAt: 0, since: 0 };
 try { const v = localStorage.getItem('bv-gfx'); if (['auto', 'high', 'low'].includes(v)) GFX.pick = v; } catch (e) {}
-const gfxHigh = () => GFX.pick === 'high' || (GFX.pick === 'auto' && GFX.hi);
+const gfxHigh = () => !GFX.lowForce && (GFX.pick === 'high' || (GFX.pick === 'auto' && GFX.hi)); // (lowForce: an experience's performance mode, for as long as you're in it)
 function gfxApply() {
   const hi = gfxHigh();
   if (renderer.shadowMap.enabled !== hi) { renderer.shadowMap.enabled = hi; scene.traverse((o) => { for (const m of [].concat(o.material || [])) m.needsUpdate = true; }); GFX.castAt = 0; }
   hemiL.intensity = hi ? 0.64 : 0.78; sunL.intensity = hi ? 0.68 : 0.5; // with shadows, more of the light comes from the sun (lit things stay as bright, shadows show)
-  const pr = hi ? Math.min(2, devicePixelRatio || 1) : 1;
+  const pr = (hi ? Math.min(2, devicePixelRatio || 1) : 1) * (GFX.scale || 1); // (scale: fewer pixels drawn, stretched to fit — the biggest saving on a weak graphics chip)
   if (renderer.getPixelRatio() !== pr) { renderer.setPixelRatio(pr); resize(); }
 }
 const gfxLabel = () => `🖼️ Graphics: ${GFX.pick === 'auto' ? `Auto (${GFX.hi ? 'high' : 'low'})` : GFX.pick === 'high' ? 'High' : 'Low'}`;
@@ -2074,9 +2074,9 @@ function kitBuild() {
 // fall, life, s its size, j how much it wanders, op, grow (smoke: it swells as it fades), flat (not additive: smoke))
 function kitGlow(par, col, sc, op = 0.8, list) { const g = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), color: col, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: op })); g.scale.setScalar(sc); g.userData.o = op; par.add(g); if (list) list.push(g); return g; }
 const _kp = new THREE.Vector3();
-const FXQ = { lite: false }; // (🚀 performance mode: far fewer sparks)
+const FXQ = { lite: 0 }; // (🚀 performance mode: 1 on, 2 max — far fewer sparks, and a cap on how many are alive)
 function kitSpark(a, par, x, y, z, col, o = {}) {
-  if (!emWorld(a) || a.dead || (FXQ.lite && Math.random() < 0.7)) return;
+  if (!emWorld(a) || a.dead || (FXQ.lite && (Math.random() < (FXQ.lite > 1 ? 0.9 : 0.65) || bits.length > (FXQ.lite > 1 ? 15 : 40)))) return;
   par.localToWorld(_kp.set(x, y, z)); const s0 = o.s || 0.3, L = o.life || 1, op = o.op || 0.9, j = o.j != null ? o.j : 0.3, v = o.v || [0, 1, 0];
   const m = new THREE.Sprite(new THREE.SpriteMaterial({ map: o.map || glowTex(), color: col, transparent: true, depthWrite: false, blending: o.flat ? THREE.NormalBlending : THREE.AdditiveBlending, opacity: op }));
   m.position.copy(_kp); m.scale.setScalar(s0);
@@ -12333,6 +12333,28 @@ function snapshot(key, make, o = {}) {
   snap.cache.set(key, url);
   return url;
 }
+/* pictures made a few at a time (v129.1): a menu of many (the duel's fighters: 60) used to freeze the game while every one
+   was drawn. Now one not made yet comes back at once as a placeholder figure, is drawn in a moment — a few a frame, the
+   game running in between — and swaps in wherever it's shown. And they're kept on this device (IndexedDB), so the next
+   time they're there at once */
+const snapQ = []; let snapQT = 0;
+const SNAP_V = 'p1291', snapDB = { db: null, wait: null };
+function snapDbOpen() { if (snapDB.wait) return snapDB.wait; snapDB.wait = new Promise((ok) => { try { const r = indexedDB.open('bv-pics', 1); r.onupgradeneeded = () => r.result.createObjectStore('p'); r.onsuccess = () => { snapDB.db = r.result; ok(r.result); }; r.onerror = () => ok(null); } catch (e) { ok(null); } }); return snapDB.wait; }
+async function snapLoad(prefix) { const db = await snapDbOpen(); if (!db) return 0; return new Promise((ok) => { let n = 0; try { const st = db.transaction('p', 'readwrite').objectStore('p'), r = st.openCursor(); r.onsuccess = () => { const c = r.result; if (!c) { ok(n); return; } const k = String(c.key); if (!k.startsWith(SNAP_V + ':')) c.delete(); else if (k.startsWith(SNAP_V + ':' + prefix) && !snap.cache.has(k.slice(SNAP_V.length + 1))) { snap.cache.set(k.slice(SNAP_V.length + 1), c.value); n++; } c.continue(); }; r.onerror = () => ok(n); } catch (e) { ok(n); } }); } // (older versions' pictures are cleared out)
+function snapSave(key, url) { if (!url || !snapDB.db) return; try { snapDB.db.transaction('p', 'readwrite').objectStore('p').put(url, SNAP_V + ':' + key); } catch (e) { /* (not kept: drawn again next time) */ } }
+const snapPh = (key, o) => 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${o.w || 160}" height="${o.h || 160}" viewBox="0 0 100 120"><!--${String(key).replace(/-/g, '_')}--><g fill="rgba(255,255,255,0.14)"><circle cx="50" cy="31" r="12"/><rect x="35" y="46" width="30" height="36" rx="6"/><rect x="24" y="48" width="9" height="30" rx="4.5"/><rect x="67" y="48" width="9" height="30" rx="4.5"/><rect x="37" y="83" width="11" height="29" rx="5"/><rect x="52" y="83" width="11" height="29" rx="5"/></g></svg>`);
+function snapshotLazy(key, make, o = {}) {
+  if (snap.cache.has(key)) return snap.cache.get(key);
+  const ph = snapPh(key, o); if (!snapQ.some((j) => j.key === key)) snapQ.push({ key, make, o, ph });
+  if (!snapQT) snapQT = setTimeout(snapPump, 0); return ph;
+}
+function snapPump() {
+  snapQT = 0; const t0 = performance.now();
+  while (snapQ.length && performance.now() - t0 < 12) { const j = snapQ.shift(); if (snap.cache.has(j.key)) continue; const url = snapshot(j.key, j.make, j.o); snapSave(j.key, url);
+    for (const im of document.images) if (im.getAttribute('src') === j.ph) im.src = url || ''; }
+  if (snapQ.length) snapQT = setTimeout(snapPump, 20); // (the frame back to the game, then the next)
+}
+const snapBusy = () => snapQ.length > 0;
 // a picture of an avatar (yours, a friend's) for lists and profiles; head: just the head and shoulders, for little circles
 // (head 'item': framed round the head and whatever's on it, for a picture of a hat)
 function avPic(av, head, ax) {

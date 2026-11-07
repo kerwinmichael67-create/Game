@@ -521,6 +521,8 @@ const scenery = (() => {
   let cur = null, slow = false, hemi = null;
   build.tick = (dt) => {
     if (!cur || cur.place !== place) return;
+    if (build.hide) { for (const m of cur.chunks) m.visible = false; if (cur.clouds) cur.clouds.visible = false; return; } // (an experience somewhere else for a while — the duel's winter forest: none of the land shows)
+    if (cur.clouds) cur.clouds.visible = true;
     if (cur.clouds) cur.clouds.rotation.y = (now() * 0.0025) % TAU;
     if (!slow && (cur.wait -= dt) < 0) {
       cur.ft += dt; cur.fn++;

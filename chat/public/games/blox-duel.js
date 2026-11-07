@@ -126,6 +126,7 @@
     .du-diff button{padding:14px 10px;border-radius:14px;border:2px solid var(--dc);background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(0,0,0,.2));color:#fff;font:800 17px var(--fh);cursor:pointer;text-align:center}
     .du-diff button small{display:block;margin-top:4px;font:600 11.5px/1.3 var(--fb);color:#cbd5e1}.du-diff button.on{background:var(--dc);color:#0b1220}.du-diff button.on small{color:#0b1220}
     .du-res{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+    #duPerfTip{position:absolute;left:50%;top:150px;transform:translateX(-50%);display:flex;align-items:center;gap:10px;padding:9px 12px 9px 16px;border-radius:14px;background:rgba(15,23,42,.92);border:1px solid rgba(165,243,252,.45);font:700 13.5px var(--fb);color:#e2e8f0;pointer-events:auto;z-index:15;box-shadow:0 10px 30px rgba(0,0,0,.45);animation:dshIn .3s ease}#duPerfTip b{color:#a5f3fc}#duPerfTip button{border:0;border-radius:10px;padding:7px 12px;font:800 13px var(--fh);cursor:pointer;background:linear-gradient(180deg,#67e8f9,#0891b2);color:#082f49}#duPerfTip button[data-p=no]{background:rgba(255,255,255,.12);color:#fff;padding:7px 10px}
     #duShop{position:fixed;inset:0;z-index:9000;display:flex;flex-direction:column;overflow:auto;color:#f8fafc;background:radial-gradient(ellipse at 50% -10%,rgba(124,58,237,.42),transparent 60%),radial-gradient(ellipse at 50% 115%,rgba(225,29,72,.28),transparent 60%),linear-gradient(180deg,#0b1020,#04060d);animation:dshIn .28s ease}@keyframes dshIn{from{opacity:0;transform:scale(1.015)}to{opacity:1;transform:none}}
     #duShop .dsh-top{position:sticky;top:0;z-index:3;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 20px;background:rgba(4,6,13,.78);backdrop-filter:blur(8px);border-bottom:1px solid rgba(255,255,255,.08)}
     #duShop .dsh-top>b{font:900 26px var(--fh);letter-spacing:.05em;background:linear-gradient(90deg,#fde68a,#f472b6,#a78bfa);-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -786,12 +787,12 @@
     return n;
   }
   // a figure that never moves, made into one mesh for each of its materials: hundreds of parts drawn in a few calls (its glows kept as they are)
-  function bake(root) {
+  function bake(root, keyOf = (m) => m.uuid) { // (keyOf: what counts as the same material — by default the very same one)
     root.updateMatrixWorld(true); const inv = new THREE.Matrix4().copy(root.matrixWorld).invert(), by = new Map(), keep = [];
     root.traverse((o) => { let vis = true; for (let q = o; q && q !== root.parent; q = q.parent) if (!q.visible) vis = false; if (!vis) return;
       const M = new THREE.Matrix4().multiplyMatrices(inv, o.matrixWorld);
       if (o.isSprite || (o.isMesh && (Array.isArray(o.material) || o.isInstancedMesh))) { const c = o.clone(); c.matrixAutoUpdate = false; c.matrix.copy(M); keep.push(c); return; }
-      if (!o.isMesh) return; const g = (o.geometry.index ? o.geometry.toNonIndexed() : o.geometry.clone()); g.applyMatrix4(M); const k = o.material.uuid; if (!by.has(k)) by.set(k, { m: o.material, gs: [] }); by.get(k).gs.push(g); });
+      if (!o.isMesh) return; const g = (o.geometry.index ? o.geometry.toNonIndexed() : o.geometry.clone()); g.applyMatrix4(M); const k = keyOf(o.material); if (!by.has(k)) by.set(k, { m: o.material, gs: [] }); by.get(k).gs.push(g); });
     const out = new THREE.Group(); out.position.copy(root.position); out.rotation.copy(root.rotation); out.scale.copy(root.scale);
     for (const { m, gs } of by.values()) { const n = gs.reduce((a, g) => a + g.attributes.position.count, 0), P = new Float32Array(n * 3), N = new Float32Array(n * 3), U = new Float32Array(n * 2), C = m.vertexColors ? new Float32Array(n * 3).fill(1) : null; let o2 = 0;
       for (const g of gs) { const c = g.attributes.position.count; P.set(g.attributes.position.array.subarray(0, c * 3), o2 * 3); if (g.attributes.normal) N.set(g.attributes.normal.array.subarray(0, c * 3), o2 * 3); if (g.attributes.uv) U.set(g.attributes.uv.array.subarray(0, c * 2), o2 * 2); if (C && g.attributes.color && g.attributes.color.itemSize === 3) C.set(g.attributes.color.array.subarray(0, c * 3), o2 * 3); o2 += c; g.dispose(); }
@@ -799,6 +800,48 @@
       const mesh = new THREE.Mesh(G2, m); mesh.userData.ownGeo = 1; out.add(mesh); }
     for (const c of keep) out.add(c); return out;
   }
+  /* 🚀 performance mode: the Colosseum's still parts merged — one draw for every look (same colour, texture and finish)
+     instead of one for every piece: ~290 pieces become ~55. Made the first time it's needed; the pieces themselves are
+     kept (hidden), so turning it off puts back exactly what was there. Anything that moves — the crowd, the fires, the
+     banners, the crates — isn't touched */
+  const matSig = (m) => Object.prototype.hasOwnProperty.call(m, 'onBeforeCompile') ? m.uuid : [m.type, m.color && m.color.getHexString(), m.emissive && m.emissive.getHexString(), m.emissiveIntensity, m.specular && m.specular.getHexString(), m.shininess, m.reflectivity,
+    m.map && m.map.uuid, m.emissiveMap && m.emissiveMap.uuid, m.normalMap && m.normalMap.uuid, m.bumpMap && m.bumpMap.uuid, m.envMap && m.envMap.uuid, m.opacity, m.transparent, m.side, m.vertexColors, m.flatShading, m.alphaTest, m.depthWrite, m.blending, m.fog].join('|');
+  function colBake() {
+    if (SC.colB !== undefined) return SC.colB; SC.colB = null; const G = SC.colG; if (!G) return null;
+    try { const refs = new Set(), walk = (v, d) => { if (!v || d > 3) return; if (v.isObject3D) { refs.add(v); return; } if (Array.isArray(v)) v.forEach((x) => walk(x, d + 1)); else if (typeof v === 'object' && v.constructor === Object) Object.values(v).forEach((x) => walk(x, d + 1)); };
+      for (const k in SC) if (!['colG', 'lobG', 'lobX', 'win', 'colB', 'colS'].includes(k)) walk(SC[k], 0);
+      G.updateMatrixWorld(true); const inv = new THREE.Matrix4().copy(G.matrixWorld).invert(), by = new Map(), orig = [];
+      const moves = (o) => { for (let q = o; q && q !== G; q = q.parent) if (refs.has(q) || !q.visible || (q.userData && q.userData.tick)) return true; return false; }; // (anything that moves, or lives in something that does — or is hidden — stays as it is)
+      G.traverse((o) => { if (!o.isMesh || o.isInstancedMesh || Array.isArray(o.material) || Object.prototype.hasOwnProperty.call(o.material, 'onBeforeCompile') || moves(o)) return;
+        const g = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry.clone(); g.applyMatrix4(new THREE.Matrix4().multiplyMatrices(inv, o.matrixWorld)); const k = matSig(o.material);
+        if (!by.has(k)) by.set(k, { m: o.material, gs: [] }); by.get(k).gs.push(g); orig.push(o); });
+      if (orig.length < 8) { SC.colWhy = `only ${orig.length} still pieces`; return null; }
+      const B = new THREE.Group(); B.name = 'colMerged';
+      for (const { m, gs } of by.values()) { const n = gs.reduce((a, g) => a + g.attributes.position.count, 0), P = new Float32Array(n * 3), N = new Float32Array(n * 3), U = new Float32Array(n * 2), C = m.vertexColors ? new Float32Array(n * 3).fill(1) : null; let o2 = 0;
+        for (const g of gs) { const c = g.attributes.position.count; P.set(g.attributes.position.array.subarray(0, c * 3), o2 * 3); if (g.attributes.normal) N.set(g.attributes.normal.array.subarray(0, c * 3), o2 * 3); if (g.attributes.uv) U.set(g.attributes.uv.array.subarray(0, c * 2), o2 * 2); if (C && g.attributes.color && g.attributes.color.itemSize === 3) C.set(g.attributes.color.array.subarray(0, c * 3), o2 * 3); o2 += c; g.dispose(); }
+        const G2 = new THREE.BufferGeometry(); G2.setAttribute('position', new THREE.BufferAttribute(P, 3)); G2.setAttribute('normal', new THREE.BufferAttribute(N, 3)); G2.setAttribute('uv', new THREE.BufferAttribute(U, 2)); if (C) G2.setAttribute('color', new THREE.BufferAttribute(C, 3));
+        const mesh = new THREE.Mesh(G2, m); mesh.userData.ownGeo = 1; mesh.userData.noShadow = true; B.add(mesh); }
+      G.add(B); SC.colB = B; SC.colS = orig; SC.colWhy = `${orig.length} pieces → ${B.children.length}`; } catch (e) { console.warn('duel: no merged Colosseum', e); SC.colWhy = 'error: ' + e.message; SC.colB = null; }
+    return SC.colB; }
+  /* 🚀 a fighter's pieces merged: every piece that sits straight on one of its joints (body, waist, hips, knees, shoulders,
+     elbows, head), with the same material, becomes one — so a fighter of ~100 pieces draws in ~25. Each joint still moves;
+     anything in a group of its own (a hand, a jaw, a weapon, a wound shown later) is left alone, as is anything with a shader
+     of its own (capes that ripple). The pieces are kept, hidden, to put back when performance mode is turned off */
+  function rigMerge(a) {
+    if (a.rigM !== undefined) return a.rigM; a.rigM = null; if (!a.jt || !a.body) return null;
+    try { const skip = new Set([...(a.hpBk || []), ...(a.pfx || [])]), M = { merged: [], orig: [] };
+      for (const J of new Set([a.body, ...Object.values(a.jt)].filter(Boolean))) { const by = new Map();
+        for (const o of J.children) { if (!o.isMesh || o.isInstancedMesh || o.isSkinnedMesh || o.children.length || !o.visible || skip.has(o) || Array.isArray(o.material) || Object.prototype.hasOwnProperty.call(o.material, 'onBeforeCompile')) continue;
+          o.updateMatrix(); const g = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry.clone(); g.applyMatrix4(o.matrix); const k = o.material.uuid; if (!by.has(k)) by.set(k, { m: o.material, gs: [], os: [] }); const e = by.get(k); e.gs.push(g); e.os.push(o); }
+        for (const { m, gs, os } of by.values()) { if (gs.length < 2) { gs[0].dispose(); continue; } // (one alone gains nothing)
+          const n = gs.reduce((q, g) => q + g.attributes.position.count, 0), P = new Float32Array(n * 3), N = new Float32Array(n * 3), U = new Float32Array(n * 2); let o2 = 0;
+          for (const g of gs) { const c = g.attributes.position.count; P.set(g.attributes.position.array.subarray(0, c * 3), o2 * 3); if (g.attributes.normal) N.set(g.attributes.normal.array.subarray(0, c * 3), o2 * 3); if (g.attributes.uv) U.set(g.attributes.uv.array.subarray(0, c * 2), o2 * 2); o2 += c; g.dispose(); }
+          const G2 = new THREE.BufferGeometry(); G2.setAttribute('position', new THREE.BufferAttribute(P, 3)); G2.setAttribute('normal', new THREE.BufferAttribute(N, 3)); G2.setAttribute('uv', new THREE.BufferAttribute(U, 2));
+          const mm = new THREE.Mesh(G2, m); mm.userData.ownGeo = 1; mm.castShadow = os[0].castShadow; J.add(mm); M.merged.push(mm); M.orig.push(...os); } }
+      a.rigM = M.merged.length ? M : null; } catch (e) { console.warn('duel: fighter not merged', e); a.rigM = null; }
+    return a.rigM; }
+  const rigShow = (a, on) => { const M = a && a.rigM; if (!M || M.on === on) return; M.on = on; for (const o of M.merged) o.visible = on; for (const o of M.orig) o.visible = !on; };
+  const colMerged = (on) => { if (!SC.colB) return; SC.colB.visible = on; for (const o of SC.colS) o.visible = !on; }; // (the merged Colosseum, or the pieces it was made from)
   // a figure of one of the legends in gold, for the gates
   function goldStatue(c, x, y, z, ry, s = 1.15) {
     const a = makeAvatar([1, 0, 0, 0, 17, 0, 0, 0, 0, 0, DUEL_BT + c, DUEL_AN + c], '', true); scene.remove(a.shadow); for (let k = 0; k < 25; k++) animateAvatar(a, 0.1, false, false);
@@ -924,8 +967,9 @@
   }
   // the scenery's moving parts, every frame
   function sceneryTick(t, dt) {
-    if (SC.win && SC.win.g.visible) { hemiL.intensity = 0.62; sunL.intensity = 0.36; } // (the forest's own light, whatever the graphics setting does)
-    if (SC.win && SC.win.g.visible && SC.win.snow.visible) { const W2 = SC.win, p = W2.snow.geometry.attributes.position, A = p.array, cx = camera.position.x, cz = camera.position.z; for (let k = 0; k < W2.N; k++) { A[k * 3 + 1] -= dt * (3 + (k % 5)); A[k * 3] += Math.sin(t * 0.7 + k) * dt * 0.8; if (A[k * 3 + 1] < 0) A[k * 3 + 1] += 40; } p.needsUpdate = true; W2.snow.position.set(Math.round(cx / 60) * 60, 0, Math.round(cz / 60) * 60); } // (❄️ snow in the winter forest)
+    if (SC.win && SC.win.g.visible) { hemiL.intensity = 0.62; sunL.intensity = 0.36; const W2 = SC.win; if ((W2.chk = (W2.chk || 0) - dt) <= 0) { W2.chk = 0.5; for (const o of place.children) if (o !== W2.g && o.visible) { o.visible = false; (W2.hid || (W2.hid = [])).push(o); } } } // (the forest's own light, whatever the graphics setting does; and anything of the meadow made since, hidden too)
+    DU.lobVis();
+    if (SC.win && SC.win.g.visible && SC.win.snow.visible) { const W2 = SC.win, p = W2.snow.geometry.attributes.position, A = p.array, cx = camera.position.x, cz = camera.position.z; for (let k = 0, nn = W2.n != null ? W2.n : W2.N; k < nn; k++) { A[k * 3 + 1] -= dt * (3 + (k % 5)); A[k * 3] += Math.sin(t * 0.7 + k) * dt * 0.8; if (A[k * 3 + 1] < 0) A[k * 3 + 1] += 40; } p.needsUpdate = true; W2.snow.position.set(Math.round(cx / 60) * 60, 0, Math.round(cz / 60) * 60); } // (❄️ snow in the winter forest)
     for (const f of SC.fires) { f.fl.forEach((s, j) => { const k = 1 + 0.22 * Math.sin(t * (13 + j * 4) + f.ph + j); s.scale.set((f.torch ? 0.65 : 1.0) * k, (f.torch ? 1.3 : 2.1) * k, 1); }); f.gl.material.opacity = 0.42 + 0.12 * Math.sin(t * 11 + f.ph);
       if (f.bz && Math.random() < dt * 3) { const e = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), color: '#fdba74', transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); const p = f.bz.position; e.position.set(p.x + (Math.random() - 0.5), p.y + 2.8, p.z + (Math.random() - 0.5)); e.scale.setScalar(0.18);
         e.userData = { v: new THREE.Vector3((Math.random() - 0.5) * 1.5, 3 + Math.random() * 2, (Math.random() - 0.5) * 1.5), life: 1.6, g: -0.5, spinless: 1, tick: (o, u) => { o.material.opacity = Math.min(1, u.life); } }; scene.add(e); bits.push(e); } }
@@ -1115,7 +1159,7 @@
   function toScreen(x, y, z) { const v = new THREE.Vector3(x, y, z).project(camera); if (v.z > 1) return null; const r = renderer.domElement.getBoundingClientRect(); return { x: r.left + (v.x + 1) / 2 * r.width, y: r.top + (1 - v.y) / 2 * r.height }; }
   function floatText(F, text, cls = '') { if (!opt('num') && /^(🛡️ )?\d+$|CRIT \d/.test(text)) return; const p = toScreen(F.x + (Math.random() - 0.5) * 1.5, F.y + 7 + Math.random(), F.z); if (!p) return; const d = document.createElement('div'); d.className = 'du-dmg ' + cls; d.textContent = text; d.style.left = p.x + 'px'; d.style.top = p.y + 'px'; $('#xhud').append(d); setTimeout(() => d.remove(), 950); }
   // the weapon's trail: a ribbon from the hand to the tip, a few frames long, fading
-  function trailTick(F, on) {
+  function trailTick(F, on) { if (FXQ.lite > 1) on = false; // (🚀 Max: no trails)
     const a = F.a; if (!a || !a.dg) return; let T = a.duTrail;
     if (!T) { const n = 14, g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n * 2 * 3), 3)); g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(n * 2 * 3), 3)); const idx = []; for (let i = 0; i < n - 1; i++) idx.push(i * 2, i * 2 + 1, i * 2 + 2, i * 2 + 1, i * 2 + 3, i * 2 + 2); g.setIndex(idx);
       const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending })); m.frustumCulled = false; scene.add(m); T = a.duTrail = { m, h: [], n, col: new THREE.Color(COL[F.c]) }; a.duTrailOwn = m; }
@@ -1776,7 +1820,9 @@
   }
   function hudTick(M, dt) {
     if (!HUD.el) return; for (const F of [M.me, M.foe, ...M.allies]) if (F && F.a) { if (pv(F, 'stages')) F.a.wdStage = stageOf(F); if (F.C.skin) F.a.swMim = !!(F.mim || F.mimF); } // (🩸 the Wendigo's wounds, on its body; 🎭 the Skinwalker's eyes while it wears another's power)
-    if (DU.pick && (DU.pick.t -= dt) <= 0) DU.pickDo(-1); const L = HUD.last, me = M.me, foe = M.foe;
+    if (DU.pick && (DU.pick.t -= dt) <= 0) DU.pickDo(-1); DU.perfWatch();
+    if (FXQ.lite) { HUD.acc = (HUD.acc || 0) + dt; if (HUD.acc < 0.08) return; dt = HUD.acc; HUD.acc = 0; } // (🚀 the HUD rewritten ~12 times a second)
+    const L = HUD.last, me = M.me, foe = M.foe;
     for (const F of [me, foe]) { F.hpLag = F.hpLag == null || F.hp > F.hpLag ? F.hp : F.hpLag - Math.max(F.mhp * 0.4 * dt, 0); if (F.hpLag < F.hp) F.hpLag = F.hp; }
     const a = hudCard(me, 'You'), b = hudCard(foe, M.md === 'b' ? (M.wen ? '❄️ BOSS' : '👹 BOSS') : M.pvp ? nameOf(M.opp) : `🤖 ${DIFF[M.D].n}`);
     if (a !== L.a) { $('#duMe').innerHTML = L.a = a; } if (b !== L.b) { $('#duOp').innerHTML = L.b = b; }
@@ -1842,13 +1888,14 @@
     return (FST = { L, rng, nrm, bar: (k, v) => 8 + 92 * nrm(k, v) });
   }
   function fighterPic(c, big) {
-    return snapshot(`duPic${c}|${AV.s}|${big ? 1 : 0}`, () => { const a = makeAvatar([AV.s, 0, 0, 0, 17, 0, 0, 0, 0, 0, 23 + c, 15 + c], '', true); scene.remove(a.shadow); for (let k = 0; k < 25; k++) animateAvatar(a, 0.1, false, false); return a.g; },
+    return snapshotLazy(`duPic${c}|${AV.s}|${big ? 1 : 0}`, () => { const a = makeAvatar([AV.s, 0, 0, 0, 17, 0, 0, 0, 0, 0, 23 + c, 15 + c], '', true); scene.remove(a.shadow); for (let k = 0; k < 25; k++) animateAvatar(a, 0.1, false, false); return a.g; },
       { w: big ? 300 : 180, h: big ? 360 : 200, dir: [0.55, 0.12, -1], zoom: 0.9, sphere: c === LAE ? [[0, 4.4, 0], 5.9] : c === EXE ? [[0, 4.6, 0], 5.6] : [[0, 3.6, 0], 4.7] });
   }
   const rollFoe = (Di) => { const w = [[62, 30, 8, 0], [40, 35, 22, 3], [18, 30, 37, 15], [5, 18, 37, 40]][Di]; let r = Math.random() * 100, k = 0; while (k < 3 && r >= w[k]) { r -= w[k]; k++; } const pool = CH.filter((C) => C.r === k); return pool[Math.floor(Math.random() * pool.length)].i; };
   const DEF_SAVE = () => ({ own: [0], eq: 0, xp: {}, st: {}, ach: [], diff: 1, md: 'c', lk: 0, gold: 0, q: null, qd: 0, q2: null, q3: null, q4: null, rolls: 0, pity: 0, qn: 1, opt: {} });
   // ⚙️ the duel's options (saved with it): hitboxes shown, screen shake, damage numbers, the 🎯 aim mark
-  const OPT_DEF = { hb: 0, shake: 1, num: 1, aim: 1, perf: 0 }, OPTS = [['perf', '🚀', 'Performance mode', 'For a smoother game on a slow computer or phone: the stands emptied, far fewer sparks, motes and smoke, no falling snow, graphics on Low.'], ['hb', '🟥', 'Show hitboxes', 'Every fighter’s body, each blow’s reach (amber as it winds up, red as it lands) and every shot’s hit sphere. H in a match.'], ['shake', '📳', 'Screen shake', 'The camera jolts on big hits, stomps and shots.'], ['num', '🔢', 'Damage numbers', 'The numbers that pop up over whoever’s hit.'], ['aim', '🎯', 'Aim mark', 'The mark on your opponent that turns green when a shot will hit (ranged fighters).']];
+  const PERF_N = ['Off', 'On', 'Max'];
+  const OPT_DEF = { hb: 0, shake: 1, num: 1, aim: 1, perf: 0 }, OPTS = [['perf', '🚀', 'Performance mode', 'Click to step through Off → On → Max. On: graphics held at Low (no shadows or glow), the stands emptied, the courtyard outside not drawn during a fight, far fewer sparks and smoke, the HUD refreshed less often, a little less resolution. Max: all that, plus far less resolution (65%), almost no sparks, no weapon trails and no falling snow — for a slow laptop or phone.'], ['hb', '🟥', 'Show hitboxes', 'Every fighter’s body, each blow’s reach (amber as it winds up, red as it lands) and every shot’s hit sphere. H in a match.'], ['shake', '📳', 'Screen shake', 'The camera jolts on big hits, stomps and shots.'], ['num', '🔢', 'Damage numbers', 'The numbers that pop up over whoever’s hit.'], ['aim', '🎯', 'Aim mark', 'The mark on your opponent that turns green when a shot will hit (ranged fighters).']];
   const opt = (k) => { const o = DU.save && DU.save.opt; return o && o[k] != null ? o[k] : OPT_DEF[k]; };
   const camShake = (a, k) => { if (opt('shake')) window.camShake(a, k); }; // (Bloxverse's own, unless it's switched off) // (lk: lock-on, off unless you turn it on; gold: the duel's own; q: the Executioner's Contract)
 
@@ -1860,19 +1907,19 @@
     welcome: '⚔️ Pick a fighter (C), open crates, then stand on a pad to duel, team up on the 👹 boss pad — or 🤖 fight a bot. In a match: click to attack, E R G abilities, Q dodge, F block, Space jump.',
     welcomeTouch: '⚔️ Pick a fighter, open crates, then stand on a pad to duel — or 🤖 fight a bot.',
     M: null, proj: [], volleys: [], drops: [], waves: [], save: null,
-    build() { sky('#4f86c6', '#fde7c2'); buildColosseum(); SC.lobG = buildLobby(); SC.win = null; },
+    build() { sky('#4f86c6', '#fde7c2'); SC.colB = undefined; SC.colS = null; buildColosseum(); const n0 = place.children.length; SC.lobG = buildLobby(); SC.lobX = place.children.slice(n0).filter((o) => o !== SC.lobG && o.visible); SC.win = null; },
     async enter() {
       Object.assign(this, { M: null, proj: [], volleys: [], drops: [], waves: [], hitSeenM: new Map(), bac: null, passT: 0, padT: 0, padI: -1, done: new Set(), hitN: 0, hitSeen: 0, acN: 0, ac: null, dq: [], H: null, lastG: null, gSeen: null, blockHeld: false, rmb: false, touchRun: false, sprinting: false, tired: false, duAt: 0, duKey: '', warm: 0 });
       const s = await kvGet('duel'), S = this.save = Object.assign(DEF_SAVE(), s && typeof s === 'object' ? s : {});
       S.own = [...new Set((Array.isArray(S.own) ? S.own : []).map((x) => x | 0).filter((x) => x >= 0 && x < CH.length))]; if (!S.own.includes(0)) S.own.unshift(0);
       if (!S.own.includes(S.eq | 0)) S.eq = 0; S.eq |= 0; for (const k of ['xp', 'st']) if (!S[k] || typeof S[k] !== 'object') S[k] = {}; if (!Array.isArray(S.ach)) S.ach = []; S.diff = clamp(S.diff | 0, 0, 3); if (S.md !== 'd' && S.md !== 'b') S.md = 'c';
       S.gold = Math.max(0, S.gold | 0); for (const Q of QUESTS) if (!S[Q.key] || typeof S[Q.key] !== 'object') S[Q.key] = null; S.rolls = Math.max(0, S.rolls | 0); S.pity = clamp(S.pity | 0, 0, PITY_N - 1); // (rolls: crates opened; pity: since the last legendary)
-      this.lockOn = S.lk === 1; send({ dw: S.st.wins | 0, du: null }); this.passCheck(); this.drawBar(); this.perfApply();
+      this.lockOn = S.lk === 1; send({ dw: S.st.wins | 0, du: null }); this.passCheck(); this.drawBar(); this.perfApply(); this.warmT = 2; snapLoad('duPic').catch(() => 0);
     },
     leave() {
       if (this.M) { for (const F of [this.M.me, this.M.foe]) if (F && F.stoneM) stoneFx(F, false); this.cleanMatch(); } this.M = null; AVO = null; P.frozen = false;
       for (const p of this.proj) scene.remove(p.m); for (const v of this.volleys) scene.remove(v.ring); for (const d of this.drops) scene.remove(d.m); for (const w of this.waves) scene.remove(w.g);
-      this.shopClose(); FXQ.lite = false; dropTrail(me); const r = $('#duReel'); if (r) r.remove(); document.body.classList.remove('duMatch'); if (this.saveT) { clearTimeout(this.saveT); kvSet('duel', this.save); }
+      this.shopClose(); this.perfOff(); dropTrail(me); const r = $('#duReel'); if (r) r.remove(); document.body.classList.remove('duMatch'); if (this.saveT) { clearTimeout(this.saveT); kvSet('duel', this.save); }
     },
     dirty() { clearTimeout(this.saveT); this.saveT = setTimeout(() => { this.saveT = null; kvSet('duel', this.save); }, 700); },
     statOf(pr, isMe) { return isMe ? (this.save ? this.save.st.wins | 0 : 0) : +pr.dw || 0; },
@@ -1916,7 +1963,7 @@
       SC.padFx.forEach((p, i) => { p.glow.material.opacity = 0.35 + 0.3 * Math.sin(t * 3 + i * 1.5); });
       const g = roundState(this);
       if (this.M) { this.matchFrame(dt); return; }
-      if (this.warm < 20 && !panelOpen()) fighterPic(this.warm++); // (the menus' pictures, one a frame)
+      if (this.warm < CH.length && !panelOpen() && !snapBusy() && FXQ.lite < 2 && (this.warmT -= dt) <= 0) { this.warmT = FXQ.lite ? 0.6 : 0.25; fighterPic(this.warm++); } // (the menus' pictures made in the background, gently, until they're all kept on the device)
       const mine = myPeer(), m = g && Array.isArray(g.M) ? g.M.find((q) => Array.isArray(q.p) && q.p.includes(mine) && !this.done.has(q.id)) : null;
       if (m) { if (m.md === 'b') this.startMatch({ md: 'b', coop: true, mid: m.id, ps: m.p.slice(0, 4), own: m.p[0] === mine }); else this.startMatch({ md: m.md === 'd' ? 'd' : 'c', pvp: true, mid: m.id, opp: m.p.find((x) => x !== mine), side: m.p.indexOf(mine) }); return; }
       if ((this.passT -= dt) <= 0) { this.passT = 5; this.passCheck(); }
@@ -1965,6 +2012,7 @@
     foeDu(any) { const M = this.M, p = M && Net.peers.find((q) => q.peer === M.opp), du = p && p.presence && p.presence.du; return du && (any || du.m === M.mid) ? du : null; },
     foeL() { const M = this.M; if (!M.pvp) return M.fl; const du = this.foeDu(); return du ? du.l | 0 : M.flSeen || 0; },
     matchFrame(dt) {
+      if (this.M) for (const F of [this.M.me, this.M.foe, ...(this.M.allies || [])]) if (F && F.a && !F.a.dead) { if (FXQ.lite && F.a.rigM === undefined) rigMerge(F.a); rigShow(F.a, !!FXQ.lite); } // (🚀 fighters merged)
       const M = this.M, F = M.me, T = M.foe; M.t += dt;
       this.syncF(F); this.syncF(T); if (M.pvp) this.mirror(T, dt); if (T.kind === 'rboss') this.mirrorBoss(T, dt); for (const A of M.allies) { this.syncF(A); this.mirrorAlly(A, dt); } if (!this.M) return;
       // my hands: blocking, sprinting
@@ -2152,17 +2200,17 @@
     fogOn(d) { if (!HUD.el) return; let f = $('#duFog'); if (!f) { f = document.createElement('div'); f.id = 'duFog'; HUD.el.prepend(f); } f.classList.add('on'); clearTimeout(this.fogT); this.fogT = setTimeout(() => f.classList.remove('on'), d * 1000); },
     winterOn() { if (!SC.win) SC.win = buildWinter(); const W2 = SC.win; if (W2.g.visible) return; W2.g.visible = true; if (SC.colG) SC.colG.visible = false; if (SC.lobG) SC.lobG.visible = false;
       W2.save = { fog: scene.fog, top: SKYC.top, bot: SKYC.bot, h: [hemiL.color.getHex(), hemiL.groundColor.getHex(), hemiL.intensity], s: [sunL.color.getHex(), sunL.intensity] };
-      W2.theme = this.land.theme; this.land.theme = 'night'; if (opt('perf')) W2.snow.visible = false;
-      sky('#0a1222', '#4d5b70'); scene.fog = new THREE.Fog('#5d6b80', 26, 135); hemiL.color.set('#a9bddf'); hemiL.groundColor.set('#3a4354'); hemiL.intensity = 0.62; sunL.color.set('#c4d6ff'); sunL.intensity = 0.36; }, // (night, and a freezing fog)
+      W2.theme = this.land.theme; this.land.theme = 'night'; W2.hid = place.children.filter((o) => o !== W2.g && o.visible); for (const o of W2.hid) o.visible = false; if (typeof scenery === 'function') scenery.hide = true; // (nothing of the meadow's hills or the courtyard showing through the fog)
+      sky('#0a1222', '#4d5b70'); scene.fog = new THREE.Fog('#5d6b80', 26, 135); hemiL.color.set('#a9bddf'); hemiL.groundColor.set('#3a4354'); hemiL.intensity = 0.62; sunL.color.set('#c4d6ff'); sunL.intensity = 0.36; this.perfApply(); }, // (night, and a freezing fog; the snow as performance mode allows)
     winterOff() { const W2 = SC.win; if (!W2 || !W2.g.visible) return; W2.g.visible = false; if (SC.colG) SC.colG.visible = true; if (SC.lobG) SC.lobG.visible = true; const sv = W2.save;
-      sky(sv.top || '#4f86c6', sv.bot || '#fde7c2'); scene.fog = sv.fog; hemiL.color.setHex(sv.h[0]); hemiL.groundColor.setHex(sv.h[1]); hemiL.intensity = sv.h[2]; sunL.color.setHex(sv.s[0]); sunL.intensity = sv.s[1]; this.land.theme = W2.theme || 'meadow'; gfxApply(); },
+      sky(sv.top || '#4f86c6', sv.bot || '#fde7c2'); scene.fog = sv.fog; hemiL.color.setHex(sv.h[0]); hemiL.groundColor.setHex(sv.h[1]); hemiL.intensity = sv.h[2]; sunL.color.setHex(sv.s[0]); sunL.intensity = sv.s[1]; this.land.theme = W2.theme || 'meadow'; for (const o of W2.hid || []) o.visible = true; W2.hid = null; if (typeof scenery === 'function') scenery.hide = false; gfxApply(); },
     themeId() { const M = this.M; return M && M.wen && M.ph !== 'end' ? 'wendigo' : null; }, // (🎵 the Wendigo's own song, only in its fight)
     tryDodge() { const M = this.M; if (!M) return; const f = (keys.KeyW || keys.ArrowUp ? 1 : 0) - (keys.KeyS || keys.ArrowDown ? 1 : 0) - joy.y, r = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0) + joy.x, cy = cam.yaw;
       dodge(M.me, -Math.sin(cy) * f + Math.cos(cy) * r, -Math.cos(cy) * f - Math.sin(cy) * r); },
     setMode(k) { const M = this.M; if (!M) return; const md = M.me.C.ab[0].modes; if (!md || k >= md.length || M.me.act || k === M.me.mode) return; swapMode(M.me, k); sfx('select'); floatText(M.me, `${md[k].ic} ${md[k].n}`, 'tag'); this.pubDu(true); },
-    toggleOpt(k) { const S = this.save; S.opt = Object.assign({}, OPT_DEF, S.opt || {}); S.opt[k] = S.opt[k] ? 0 : 1; this.dirty(); sfx('click'); if (k === 'perf') { this.perfApply(); if (S.opt.perf) { GFX.pick = 'low'; try { localStorage.setItem('bv-gfx', 'low'); } catch (e) { /* (not saved) */ } gfxApply(); } } const O = OPTS.find((q) => q[0] === k); if (O) toast(`${O[1]} ${O[2]}: ${S.opt[k] ? 'on' : 'off'}`); },
+    toggleOpt(k, v) { const S = this.save; S.opt = Object.assign({}, OPT_DEF, S.opt || {}); S.opt[k] = v != null ? v : k === 'perf' ? ((S.opt.perf | 0) + 1) % 3 : S.opt[k] ? 0 : 1; this.dirty(); sfx('click'); if (k === 'perf') this.perfApply(); const O = OPTS.find((q) => q[0] === k); if (O) toast(`${O[1]} ${O[2]}: ${k === 'perf' ? PERF_N[S.opt.perf] : S.opt[k] ? 'on' : 'off'}`); },
     optionsPanel() {
-      const html = `<div class="du-opts">${OPTS.map(([k, ic, n, d]) => `<button class="du-opt${opt(k) ? ' on' : ''}" data-o="${k}"><span class="ic">${ic}</span><span><b>${n}</b><small>${d}</small></span><i>${opt(k) ? 'ON' : 'OFF'}</i></button>`).join('')}</div>
+      const html = `<div class="du-opts">${OPTS.map(([k, ic, n, d]) => `<button class="du-opt${opt(k) ? ' on' : ''}" data-o="${k}"><span class="ic">${ic}</span><span><b>${n}</b><small>${d}</small>${k === 'perf' ? `<small style="color:#a5f3fc">Right now: ${Meter.fps > 0 ? Math.round(Meter.fps) + ' frames a second' : '—'}${GFX.pick !== 'low' && !opt('perf') ? ' · your graphics setting: ' + GFX.pick : ''}</small>` : ''}</span><i>${k === 'perf' ? PERF_N[opt('perf') | 0].toUpperCase() : opt(k) ? 'ON' : 'OFF'}</i></button>`).join('')}</div>
         <p style="font:600 12.5px var(--fb);color:#94a3b8;margin:12px 0 0">Keys in a match: <b>M1/E/R/G</b> abilities · <b>1/2</b> switch weapon · <b>Q</b> dodge · <b>F</b> block · <b>T</b> lock-on · <b>H</b> hitboxes. In the ludus: <b>C</b> fighters.</p>`;
       openPanel('⚙️ Duel options', html, (b) => { if (b.dataset.o) { this.toggleOpt(b.dataset.o); this.optionsPanel(); } });
     },
@@ -2200,7 +2248,22 @@
 
     /* ---------------- progress: stats, the duel's achievements, mastery ---------------- */
     unlock(c, why) { const S = this.save; if (S.own.includes(c)) return false; S.own.push(c); this.dirty(); sfx('unlock'); toast(`${CH[c].ic} ${CH[c].n} unlocked — ${why}!`, '#fde68a'); say(`⚔️ Colosseum Duels: the ${CH[c].n} is yours — ${why}!`, '#fde68a'); if (!this.M) this.drawBar(); return true; },
-    perfApply() { const on = !!opt('perf'); FXQ.lite = on; if (SC.crowdM) for (const m of SC.crowdM) m.visible = !on; if (SC.win) SC.win.snow.visible = !on; }, // (🚀: what performance mode turns off)
+    perfApply() { const lv = Math.min(2, opt('perf') | 0); FXQ.lite = lv; GFX.lowForce = lv > 0; GFX.scale = [1, 0.85, 0.65][lv]; gfxApply(); // (🚀: Low graphics held, fewer pixels drawn…)
+      if (SC.crowdM) for (const m of SC.crowdM) m.visible = !lv; // (…the stands emptied…)
+      if (lv && !SC.colB) colBake(); colMerged(!!lv); // (…the Colosseum's still parts merged into a few big ones…)
+      for (const f of SC.fires) { f.fl.forEach((q, j) => (q.visible = !lv || j < (lv > 1 ? 1 : 2))); if (f.gl) f.gl.visible = lv < 2; } // (…the torches: two flames of four, at Max one and no glow…)
+      if (SC.win) { const W2 = SC.win, n = lv > 1 ? 0 : lv ? Math.floor(W2.N / 3) : W2.N; W2.n = n; W2.snow.geometry.setDrawRange(0, n); W2.snow.visible = n > 0; } // (…a third of the snow, or none)
+      this.lobVis(); },
+    perfInfo() { return { merged: SC.colB ? SC.colB.children.length : 0, from: SC.colS ? SC.colS.length : 0, on: !!(SC.colB && SC.colB.visible), lob: !!(SC.lobG && SC.lobG.visible), why: SC.colWhy }; }, // (for checking)
+    perfOff() { FXQ.lite = 0; GFX.lowForce = false; GFX.scale = 1; gfxApply(); },
+    lobVis() { const v = !(SC.win && SC.win.g.visible) && !(FXQ.lite && this.M); if (SC.lobG && SC.lobG.visible !== v) { SC.lobG.visible = v; for (const o of SC.lobX || []) o.visible = v; } else if (SC.lobX && SC.lobX[0] && SC.lobX[0].visible !== v) for (const o of SC.lobX) o.visible = v; }, // (the courtyard outside: not drawn in the winter forest, nor in a fight in performance mode — the Colosseum's walls hide it anyway)
+    perfWatch() { // (lagging? offer performance mode — or Max, if On isn't enough — once a visit)
+      const lv = opt('perf') | 0, now = performance.now(); if (lv >= 2 || !(Meter.fps > 0)) return; const lim = lv ? 22 : 28;
+      if (Meter.fps >= lim) { this.lowAt = 0; return; } if (!this.lowAt) this.lowAt = now; if (now - this.lowAt < 7000 || (this.perfTipped | 0) > lv) return;
+      this.perfTipped = lv + 1; if (!HUD.el || $('#duPerfTip')) return; const el = document.createElement('div'); el.id = 'duPerfTip';
+      el.innerHTML = `<span>🐢 ${Math.round(Meter.fps)} frames a second — ${lv ? 'still slow? <b>Max</b> cuts much more' : 'lagging? <b>Performance mode</b> makes it smoother'}</span><button data-p="go">🚀 ${lv ? 'Max' : 'Turn it on'}</button><button data-p="no" aria-label="No thanks">✕</button>`;
+      el.addEventListener('pointerdown', (e) => { const b = e.target.closest('button'); if (!b) return; e.preventDefault(); e.stopPropagation(); if (b.dataset.p === 'go') this.toggleOpt('perf', lv + 1); el.remove(); });
+      HUD.el.append(el); setTimeout(() => el.remove(), 15000); },
     exoCheck() { const S = this.save; if (!S || !S.st || S.own.includes(SKW)) return; if (exoGoals(S).every(([, , v, n]) => v >= n)) this.unlock(SKW, 'you completed the Skinwalker’s quest'); },
     passCheck() { try { if (this.save && spLvl() >= 100) this.unlock(LAE, 'you reached Season Pass level 100'); } catch (e) { /* (no pass yet) */ } },
     qBump(k, n) { const S = this.save; if (!S) return; // (the mythics' quests: each counts what it needs)
