@@ -566,6 +566,17 @@
   #achPop span{font:700 12.5px/1.3 var(--fb);color:#cbd5e1}
   #achPop em{font:600 13.5px var(--fh);font-style:normal;color:#fde68a;display:flex;align-items:center;gap:5px;margin-top:2px}
   .t0{--tc:#d6a26a;--tg:rgba(214,162,106,.25)}.t1{--tc:#cbd5e1;--tg:rgba(203,213,225,.25)}.t2{--tc:#fde047;--tg:rgba(253,224,71,.35)}.tb{--tc:#c4b5fd;--tg:rgba(196,181,253,.3)}
+  .admbtn{border:1px solid rgba(248,113,113,.45);border-radius:999px;padding:7px 14px;background:linear-gradient(180deg,#5b1d1d,#3b1111);color:#fecaca;font:600 14px var(--fh);cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:var(--drop)}
+  #admTop{width:46px;height:46px;border-radius:14px;color:#fecaca;cursor:pointer;display:grid;place-items:center;padding:0;font-size:20px;border-color:rgba(248,113,113,.5)}
+  #admBtn[hidden],#admTop[hidden]{display:none!important}
+  .adm h4{margin:14px 0 6px;font:700 15px var(--fh);color:#fff}.adm h4 small{font:600 12.5px var(--fb);color:var(--dim);margin-left:8px}.adm h4:first-child{margin-top:0}
+  .adm .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.adm input{width:160px;padding:9px 12px;border-radius:10px;border:1px solid var(--line);background:rgba(15,23,42,.7);color:#fff;font:700 14px var(--fb)}
+  .adm .admmsg{padding:9px 12px;border-radius:10px;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.35);color:#bbf7d0;font:700 13.5px var(--fb);margin-bottom:10px}.adm .admtip{font:600 12.5px var(--fb);color:var(--dim);margin:8px 0 0}
+  #admModal{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(2,6,23,.6);padding:12px}#admModal[hidden]{display:none}
+  .admbox{width:min(660px,94vw);max-height:88vh;overflow:auto;border-radius:18px;background:linear-gradient(180deg,#1e293b,#0f172a);border:1px solid rgba(248,113,113,.5);box-shadow:0 20px 60px rgba(0,0,0,.65);padding:16px 18px;color:#e2e8f0}
+  .admhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.admhead b{font:800 20px var(--fh);color:#fecaca}.admhead button{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.06);color:#fff;font-size:16px;cursor:pointer}
+  .pcode{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}.pcode input{flex:0 1 250px;min-width:0;padding:9px 12px;border-radius:10px;border:1px solid var(--line);background:rgba(15,23,42,.6);color:#fff;font:700 14px var(--fb);letter-spacing:.04em}
+  #bvCodeMsg{font:600 13px var(--fb)}#bvCodeMsg.ok{color:#86efac}#bvCodeMsg.bad{color:#fca5a5}
   .achbtn{border:1px solid rgba(253,224,71,.3);border-radius:999px;padding:7px 14px;background:linear-gradient(180deg,#3a2f12,#2a210b);color:#fde68a;font:600 14px var(--fh);cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:var(--drop)}
   .achbtn:hover{filter:brightness(1.15)}
   .achcols{columns:2 250px;column-gap:10px}
@@ -825,7 +836,7 @@
 <body>
 <canvas id="view"></canvas>
 <div id="hud" hidden>
-  <div id="topbar"><button id="menuBtn" class="glass" title="Menu (Esc)"><span class="mark"></span></button><div id="title" class="glass"></div><div id="coins" class="glass" title="Blox Coins"></div></div>
+  <div id="topbar"><button id="menuBtn" class="glass" title="Menu (Esc)"><span class="mark"></span></button><div id="title" class="glass"></div><div id="coins" class="glass" title="Blox Coins"></div><button id="admTop" class="glass" title="Admin panel" hidden>🛡️</button></div>
   <div id="xhud"></div>
   <div id="xside"></div>
   <div id="prompt" class="glass"></div>
@@ -844,7 +855,7 @@
 </div>
 <div id="home" class="screen">
   <div class="homewrap">
-    <header class="hbar"><div class="logo">BL<span class="sq"></span>XVERSE</div><div class="hright"><div id="hi"></div><button id="meChip" class="mechip" title="Your profile"><img id="meImg" class="avimg" alt=""><span id="meNm">Profile</span></button><button id="frBtn" class="frbtn" title="Friends">👥 Friends<span class="badge" id="frN" hidden></span></button><button id="achBtn" class="achbtn" title="Achievements">🏆 <span id="achN">0</span></button></div></header>
+    <header class="hbar"><div class="logo">BL<span class="sq"></span>XVERSE</div><div class="hright"><div id="hi"></div><button id="meChip" class="mechip" title="Your profile"><img id="meImg" class="avimg" alt=""><span id="meNm">Profile</span></button><button id="frBtn" class="frbtn" title="Friends">👥 Friends<span class="badge" id="frN" hidden></span></button><button id="achBtn" class="achbtn" title="Achievements">🏆 <span id="achN">0</span></button><button id="admBtn" class="admbtn" title="Admin panel" hidden>🛡️ Admin</button></div></header>
     <div id="homeStatus" class="status" hidden></div>
     <div class="hcols">
       <section class="hcard" id="meCard"><h3>🧍 Your avatar</h3><div class="avstage click" id="avStage" title="Edit your avatar"><canvas id="avPrev" width="240" height="260"></canvas><span class="avedit">✏️ Edit</span></div><div id="meInfo"></div></section>
@@ -1376,7 +1387,7 @@ function physics(dt) {
   const cy = cam.yaw, fx = -Math.sin(cy), fz = -Math.cos(cy), rx = Math.cos(cy), rz = -Math.sin(cy);
   let mx = fx * f + rx * r, mz = fz * f + rz * r; const l = Math.hypot(mx, mz);
   if (l > 1) { mx /= l; mz /= l; }
-  const sp = (exp && exp.speed ? exp.speed() : 16) * (View.sprinting ? SPRINT : 1) * coilK('speed'), acc = P.ground ? 22 : 12, jp = (exp && exp.jumpPower ? exp.jumpPower() : JUMP) * coilK('jump'), gr = exp && exp.gravity ? exp.gravity() : GRAV;
+  const sp = (exp && exp.speed ? exp.speed() : 16) * (View.sprinting ? SPRINT : 1) * coilK('speed') * (ADM.ok ? ADM.spd : 1), acc = P.ground ? 22 : 12, jp = (exp && exp.jumpPower ? exp.jumpPower() : JUMP) * coilK('jump') * (ADM.ok ? ADM.jmp : 1), gr = exp && exp.gravity ? exp.gravity() : GRAV;
   // an experience can steer you itself (a kart): drive(dt, forward, right) gives [vx, vz, yaw]
   const drive = exp && exp.drive;
   if (drive) { const d = exp.drive(dt, f, r); P.vx = d[0]; P.vz = d[1]; P.yaw = d[2]; }
@@ -1389,6 +1400,7 @@ function physics(dt) {
   if (wantJump && canJump && !P.frozen && !chatOpen() && !drive && $('#pause').hidden) { P.vy = jp; P.ground = null; jumpQ = -1; jumpedT = physT; sfx('jump'); spQuest('bv.jump', 1, false); }
   // trusses: walk into one and you climb it
   if (!P.frozen && (f > 0.1 || keys.Space || jumpHeld) && onTruss()) P.vy = 13;
+  else if (ADM.ok && ADM.fly && !P.frozen) { const up = (keys.Space || jumpHeld ? 1 : 0) - (keys.KeyC ? 1 : 0); P.vy += (up * 40 - P.vy) * Math.min(1, dt * 8); P.ground = null; } // (🛡️ flying: Space up, C down)
   else P.vy = Math.max(-170, P.vy - gr * dt);
   const cv = P.ground && P.ground.conv, air = !P.ground, vy0 = P.vy;
   moveP((P.vx + (cv ? cv[0] : 0)) * dt, P.vy * dt, (P.vz + (cv ? cv[1] : 0)) * dt);
@@ -1431,6 +1443,7 @@ function triggers() {
 }
 function die() {
   if (P.dead) return;
+  if (ADM.ok && ADM.god && P.y > (exp && exp.killY != null ? exp.killY : -40) + 2) { if (!(performance.now() - (P.godT || 0) < 1500)) { P.godT = performance.now(); say('🛡️ God mode — you didn’t die', '#fca5a5'); } return; } // (🛡️ god mode: no dying — but falling out of the world still sends you back)
   P.dead = true; P.deadAt = performance.now(); P.vx = P.vy = P.vz = 0;
   sfx('oof');
   Net.dd = (Net.dd || 0) + 1; send({ dd: Net.dd });
@@ -10153,6 +10166,88 @@ function earn(n, why) {
   quest('bv.earned', n);
 }
 function spend(n) { if (W.coins < n) { sfx('error'); return false; } W.coins -= n; drawCoins(); saveAv(); sfx('buy'); return true; }
+/* 🛡️ v134: the admin panel. A single-use code makes one account an admin. Only a SHA-256 of the code is here (never the
+   code); using it claims a shared document named by a second hash of it, so it works once, for one account, and nobody
+   without the code can find it or spoil it. Your save keeps that claim's name — checked against a third hash, and against
+   the shared document (it must name your account) — and only then do the 🛡️ Admin buttons show (on the home screen and
+   in every game); nobody else ever sees them. Everything it does is to your own account: Blox Coins and Premium Blox Coins
+   (give or set any amount), every avatar item and emote, the Season Pass (level 100, Deluxe and Deluxe Plus), everything
+   in the shop of the game you're in, flying, speed, jump, god mode, and the game's own tools (exp.adminOps: Colosseum
+   Duels has every fighter and skin, mastery, gold, any boss, a win) */
+const ADMIN_H = 'f27852fa36ecf7dd43eb83a53514eb6159a4d84182c1142bcb78a2a7505981b5', ADMIN_C = 'b8028aaf457ea041026ae64a189ff8559b4c9ab30684c87919e0333dff29bfe0', ADM = { ok: false, fly: false, spd: 1, jmp: 1, god: false, n: 10000 }, CODEUI = { msg: '', ok: false };
+const admSha = async (t) => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)))].map((b) => b.toString(16).padStart(2, '0')).join('');
+async function adminRedeem(raw) {
+  const code = String(raw || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); if (!code || (await admSha('bv-admin|' + code)) !== ADMIN_H) return null;
+  if (ADM.ok) return { t: '🛡️ You’re already an admin.', ok: true };
+  try { await lobby(); } catch (e) {} // (so the claim is in your account's name)
+  if (Market.state === 'off') await marketStart(); for (let k = 0; k < 40 && Market.state === 'wait'; k++) await new Promise((r) => setTimeout(r, 100));
+  const db = Market.db; if (!db) return { t: 'Codes need the shared server, and it isn’t reachable here right now.', ok: false };
+  const id = (await admSha('bv-claim|' + code)).slice(0, 40), ref = db.doc('codes/' + id), me0 = myId();
+  try {
+    if (!(await lease(ref, 8000))) return { t: 'Someone else is redeeming that code right now.', ok: false };
+    const snap = await ref.get(), d0 = snap.exists ? snap.data() || {} : {};
+    if (d0.by && d0.by !== me0) return { t: 'That code has already been used.', ok: false };
+    if (!d0.by) await ref.set({ by: me0, at: Date.now(), k: 'admin' });
+    const chk = await ref.get(); if (!chk.exists || (chk.data() || {}).by !== me0) return { t: 'That code has already been used.', ok: false };
+  } catch (e) { return { t: 'Couldn’t reach the server — try again.', ok: false }; }
+  W.adm = id; ADM.ok = true; saveAv(); admShow(); sfx('unlock'); toast('🛡️ You’re an admin — the 🛡️ Admin button is yours', '#fca5a5');
+  return { t: '🛡️ Done — you’re an admin. The 🛡️ Admin button is on your screen now (nobody else sees it). This code can’t be used again.', ok: true };
+}
+async function admCheck() { // (at start: is the admin this save says it is really yours?)
+  const id = W.adm; if (!id || (await admSha('bv-adminok|' + id)) !== ADMIN_C) { ADM.ok = false; admShow(); return; }
+  ADM.ok = true; admShow();
+  for (let k = 0; k < 80 && Market.state !== 'on' && Market.state !== 'none'; k++) await new Promise((r) => setTimeout(r, 100));
+  const db = Market.db; if (!db) return;
+  try { const sn = await db.doc('codes/' + id).get(), d = sn.exists ? sn.data() || {} : null; if (!d || d.by !== myId() || d.k !== 'admin') { ADM.ok = false; W.adm = ''; saveAv(); admShow(); } } catch (e) {}
+}
+function admShow() { for (const q of ['#admBtn', '#admTop']) { const b = $(q); if (b) b.hidden = !ADM.ok; } if (!ADM.ok) Object.assign(ADM, { fly: false, god: false, spd: 1, jmp: 1 }); }
+async function codeRedeem() {
+  const ci = $('#bvCode'), msg = (t, ok) => { CODEUI.msg = t; CODEUI.ok = !!ok; const m = $('#bvCodeMsg'); if (m) { m.textContent = t; m.className = ok ? 'ok' : 'bad'; } if (!ok) sfx('error'); };
+  if (!ci || codeRedeem.busy) return; const v = ci.value; if (!v.trim()) return msg('Type a code first.');
+  codeRedeem.busy = 1; msg('Checking…', true);
+  try { const r = await adminRedeem(v); if (r) { msg(r.t, r.ok); if (r.ok) { ci.value = ''; if (!playing) drawExps(); } return; } msg('That code isn’t valid here. (⚔️ Colosseum Duels codes go in its 🎁 Crates.)'); }
+  catch (e) { msg('Couldn’t reach the server — try again.'); } finally { codeRedeem.busy = 0; }
+}
+function admPanel(note) {
+  if (!ADM.ok) return;
+  const E = playing && exp, sh = E && E.coinShop ? E.coinShop : [], ops = E && E.adminOps ? E.adminOps() : [], n0 = (v) => Math.round(v).toLocaleString('en-US');
+  const tg = (k, on, l) => `<button class="xp-btn${on ? ' gold' : ' alt'}" data-adm="${k}">${l}</button>`;
+  const html = `<div class="adm">${note ? `<div class="admmsg">${esc(note)}</div>` : ''}
+    <h4>🪙 Blox Coins <small>you have ${n0(W.coins)}</small></h4>
+    <div class="row"><input id="admN" type="number" min="0" step="1" inputmode="numeric" placeholder="Amount" value="${ADM.n}"><button class="xp-btn gold" data-adm="give">➕ Give</button><button class="xp-btn alt" data-adm="set">✏️ Set to</button>${[1e3, 1e4, 1e5, 1e6].map((v) => `<button class="xp-btn" data-adm="q${v}">+${n0(v)}</button>`).join('')}</div>
+    <h4>💎 Premium Blox Coins <small>you have ${n0(W.pc | 0)} · at most 1,000,000</small></h4>
+    <div class="row"><button class="xp-btn purple" data-adm="pgive">➕ Give the amount above</button><button class="xp-btn alt" data-adm="pset">✏️ Set to it</button></div>
+    <h4>🎁 Unlocks</h4><div class="row"><button class="xp-btn gold" data-adm="items">🧥 Every avatar item and emote</button>${spOn() ? '<button class="xp-btn gold" data-adm="pass">🏛️ Season Pass: level 100, Deluxe and Deluxe Plus</button>' : ''}</div>
+    <h4>🕹️ You, in any game</h4><div class="row">${tg('fly', ADM.fly, `🕊️ Fly: ${ADM.fly ? 'on' : 'off'}`)}${tg('spd', ADM.spd > 1, `🏃 Speed ×${ADM.spd}`)}${tg('jmp', ADM.jmp > 1, `🦘 Jump ×${ADM.jmp}`)}${tg('god', ADM.god, `🛡️ God mode: ${ADM.god ? 'on' : 'off'}`)}</div>
+    <p class="admtip">Fly: hold Space to rise, C to sink. God mode: lava, traps and kill bricks don’t kill you${E && E.id === 'duel' ? ', and in duels against bots or bosses you take no damage' : ''} (turn it off to reset). These last until you close Bloxverse.</p>
+    ${E ? `<h4>${E.emoji} ${esc(E.name)}</h4><div class="row">${sh.length ? '<button class="xp-btn gold" data-adm="shop">🛒 Everything in its shop</button>' : ''}${ops.map((o, k) => `<button class="xp-btn${o[2] ? ' ' + o[2] : ''}" data-admop="${k}">${o[0]}</button>`).join('')}${!sh.length && !ops.length ? '<span class="admtip">This game has nothing of its own to give.</span>' : ''}</div>` : '<p class="admtip">Join a game and open this again for that game’s own tools (its shop; in ⚔️ Colosseum Duels, every fighter, skin and boss).</p>'}
+    <p class="admtip">🛡️ Only you can see this panel and its buttons. Everything here changes your own account — never anyone else’s.</p></div>`;
+  let el = $('#admModal'); // (its own window, over the home screen or a game alike)
+  if (!el) { el = document.createElement('div'); el.id = 'admModal'; document.body.appendChild(el);
+    el.addEventListener('click', (e) => { if (e.target === el) { admClose(); return; } const b = e.target.closest('button'); if (!b) return; if (b.dataset.admx) { admClose(); return; } admDo(b); });
+    addEventListener('keydown', (e) => { if (e.key === 'Escape' && !el.hidden) { e.preventDefault(); e.stopImmediatePropagation(); admClose(); } }, true); }
+  const was = !el.hidden; el.innerHTML = `<div class="admbox"><div class="admhead"><b>🛡️ Admin panel</b><button data-admx="1" title="Close (Esc)">✕</button></div>${html}</div>`; el.hidden = false; if (!was) { sfx('open'); for (const k in keys) keys[k] = false; if (document.pointerLockElement) document.exitPointerLock(); }
+  const ni = $('#admN'); if (ni) ni.onkeydown = (e) => { e.stopPropagation(); if (e.key === 'Enter') { e.preventDefault(); admDo({ dataset: { adm: 'give' } }); } };
+}
+function admClose() { const el = $('#admModal'); if (el && !el.hidden) { el.hidden = true; sfx('close'); } }
+function admDo(b) {
+  if (!ADM.ok) return; const a = b.dataset.adm, ni = $('#admN'), N = Math.max(0, Math.min(1e12, Math.floor(+(ni && ni.value) || 0))); if (ni) ADM.n = N;
+  const n0 = (v) => Math.round(v).toLocaleString('en-US'); let m = '';
+  if (b.dataset.admop != null) { const E = playing && exp, o = E && E.adminOps ? E.adminOps()[+b.dataset.admop] : null; if (o) { const r = o[1](); if (r === false) return; m = typeof r === 'string' && r ? r : `✔ ${o[0]}`; } if (!$('#admModal') || $('#admModal').hidden) return; }
+  else if (a === 'give' || /^q\d+$/.test(a || '')) { const n = a === 'give' ? N : +a.slice(1); if (!(n > 0)) return; W.coins = Math.min(1e12, W.coins + n); drawCoins(n); m = `🪙 +${n0(n)} Blox Coins — you have ${n0(W.coins)}`; }
+  else if (a === 'set') { W.coins = N; drawCoins(); m = `🪙 Blox Coins set to ${n0(N)}`; }
+  else if (a === 'pgive') { if (!(N > 0)) return; W.pc = Math.min(1e6, (W.pc | 0) + N); drawCoins(); m = `💎 Premium Blox Coins: ${n0(W.pc)}`; }
+  else if (a === 'pset') { W.pc = Math.min(1e6, N); drawCoins(); m = `💎 Premium Blox Coins set to ${n0(W.pc)}`; }
+  else if (a === 'items') { let n = 0; for (const k in COSMETICS) COSMETICS[k].list.forEach((_, i) => { if (!W.own.has(k + i)) { W.own.add(k + i); n++; } }); EMOTES.forEach((_, i) => { if (!W.own.has('em' + i)) { W.own.add('em' + i); n++; } }); questMax('bv.items', W.own.size); if (!playing) drawAvatarOpts(); m = `🧥 ${n0(n)} items and emotes unlocked — every one is yours`; }
+  else if (a === 'pass') { const st = spState(); st.dx = true; st.xp = SP_CUM[SP.max]; spClaim(); for (let L = 1; L <= SP.max; L++) { const list = (spRewards()[L] || {}).p; if (list && list.length && !(st.gotP || []).includes(L)) { W.coins += SPP_PRICE(L); spBuyP(L); } } spRedraw(); m = '🏛️ Season Pass: level 100 with Deluxe and Deluxe Plus — every reward claimed'; }
+  else if (a === 'fly') { ADM.fly = !ADM.fly; m = ADM.fly ? '🕊️ Flying — hold Space to rise, C to sink' : '🕊️ Flying off'; }
+  else if (a === 'spd') { ADM.spd = { 1: 2, 2: 3, 3: 5 }[ADM.spd] || 1; m = `🏃 Speed ×${ADM.spd}`; }
+  else if (a === 'jmp') { ADM.jmp = { 1: 2, 2: 3 }[ADM.jmp] || 1; m = `🦘 Jump ×${ADM.jmp}`; }
+  else if (a === 'god') { ADM.god = !ADM.god; m = ADM.god ? '🛡️ God mode on' : '🛡️ God mode off'; }
+  else if (a === 'shop') { const E = exp; let n = 0; for (const it of (E && E.coinShop) || []) { if (it.kind === 'pass') { if (itemCount(it.id, E) < 1) { giveItem(it.id, 1, E); n++; } } else { giveItem(it.id, 99, E); n++; } } m = `🛒 ${n} things from ${E ? E.name : 'the'} shop are yours (99 of anything you use up)`; }
+  else return;
+  saveAv(); sfx('click'); admPanel(m);
+}
 /* 💎 Premium Blox Coins: a second currency, from the Season Pass's Deluxe Plus track. They buy game passes and avatar
    items for a quarter of the Blox Coin price (75% off: a 100-coin pass is 25 of them) — never limiteds, Deluxe Plus
    levels or anything else. The 💎 switch in the avatar editor and the game shops pays with them instead. */
@@ -10842,7 +10937,7 @@ function achGroup(e) {
   return `<div class="achg${e === 'bv' ? ' bv' : ''}"><h4>${e === 'bv' ? '🧱 Bloxverse' : `${E ? E.emoji : ''} ${esc(E ? E.name : e)}`}<small>${n} / ${list.length}</small></h4><div class="achrows">${list.map(achRow).join('')}</div></div>`;
 }
 function saveAv() {
-  const d = Object.assign({}, AV, { coins: W.coins, pc: W.pc | 0, pcb: [...W.pcb], own: [...W.own], day: W.day, at: Date.now(), ach: { c: W.ach.c, got: [...W.ach.got] }, items: W.items, fr: W.fr, fits: W.fits, who: Net.uid || W.who || '', made: W.made, xown: W.xown, wear: W.wear, rw: W.rw, sk: W.sk, beats: W.beats, sp: W.sp });
+  const d = Object.assign({}, AV, { coins: W.coins, adm: W.adm || '', pc: W.pc | 0, pcb: [...W.pcb], own: [...W.own], day: W.day, at: Date.now(), ach: { c: W.ach.c, got: [...W.ach.got] }, items: W.items, fr: W.fr, fits: W.fits, who: Net.uid || W.who || '', made: W.made, xown: W.xown, wear: W.wear, rw: W.rw, sk: W.sk, beats: W.beats, sp: W.sp });
   try { localStorage.setItem('rb.av', JSON.stringify(d)); } catch (e) {}
   clearTimeout(avSaveT); avSaveT = setTimeout(() => { if (W.loaded) kvSet('av', d); }, 800);
   pubProfile();
@@ -10850,7 +10945,7 @@ function saveAv() {
 function loadAvFrom(d) {
   if (!d || typeof d !== 'object') return;
   AV = avFrom(d);
-  W.coins = Math.max(0, Math.floor(+d.coins || 0)); W.own = new Set(Array.isArray(d.own) ? d.own.filter((x) => typeof x === 'string').slice(0, 600) : []);
+  W.coins = Math.max(0, Math.floor(+d.coins || 0)); W.own = new Set(Array.isArray(d.own) ? d.own.filter((x) => typeof x === 'string').slice(0, 5000) : []); W.adm = typeof d.adm === 'string' && /^[0-9a-f]{40}$/.test(d.adm) ? d.adm : ''; // (🛡️ adm: the name of your admin code's claim, if you've used one)
   W.pc = Math.max(0, Math.min(1e6, Math.floor(+d.pc || 0))); W.pcb = new Set(Array.isArray(d.pcb) ? d.pcb.filter((x) => typeof x === 'string' && /^[a-z]{1,3}\d{1,3}$/.test(x)).slice(0, 600) : []); // (💎 Premium Blox Coins, and what you bought with them) W.day = String(d.day || ''); W.at = +d.at || 0;
   const a = d.ach && typeof d.ach === 'object' ? d.ach : {}, c = {};
   if (a.c && typeof a.c === 'object') for (const k in a.c) if (+a.c[k] > 0) c[k] = +a.c[k];
@@ -13135,7 +13230,7 @@ $('#frBtn').onclick = () => goView('friends');
 function socialPage(again) {
   const html = homeView === 'friends' ? friendsPage() : homeView === 'inv' ? invPage() : profilePage(homeView === 'me' ? '' : homeView.slice(2));
   if (again && html === socialPage.last && $('#expArea .social')) return;
-  if (again && document.activeElement && (document.activeElement.id === 'frCode' || document.activeElement.id === 'invQ')) return; // (typing)
+  if (again && document.activeElement && (document.activeElement.id === 'frCode' || document.activeElement.id === 'invQ' || document.activeElement.id === 'bvCode')) return; // (typing)
   socialPage.last = html;
   $('#expArea').innerHTML = html;
   if (again) $('#expArea .edetail').classList.add('still');
@@ -13144,6 +13239,7 @@ function socialPage(again) {
     const b = e.target.closest('button'); if (!b || b.disabled) return;
     if (b.id === 'backBtn') { homeView = Social.back && Social.back !== homeView ? Social.back : null; Social.back = null; drawExps(); return; }
     if (b.dataset.edit) { openEditor(); return; }
+    if (b.dataset.redeem) { codeRedeem(); return; } if (b.dataset.admin) { admPanel(); return; }
     if (b.dataset.xopen) { openEditor('shop', b.dataset.xopen); return; }
     if (b.dataset.goto) { goView(b.dataset.goto); return; }
     if (b.dataset.e && expOf(b.dataset.e)) { Social.back = null; homeView = b.dataset.e; drawExps(); window.scrollTo(0, 0); return; }
@@ -13152,6 +13248,7 @@ function socialPage(again) {
   };
   const iq = $('#invQ');
   if (iq) iq.oninput = () => { INV.q = iq.value; const at = iq.selectionStart; drawExps.view = ''; drawExps(); const n = $('#invQ'); if (n) { n.focus(); n.setSelectionRange(at, at); } };
+  const bc = $('#bvCode'); if (bc) bc.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); codeRedeem(); } };
   const ci = $('#frCode');
   if (ci) { ci.oninput = () => { Social.code = ci.value; }; ci.onkeydown = (e) => { if (e.key === 'Enter') { addByCode(ci.value); drawExps(); } }; }
 }
@@ -13171,7 +13268,8 @@ function profilePage(id) {
     <div><h2>${esc(nm)}</h2><div class="meta"><span class="pill">${esc(s.t)}</span><span class="pill" title="Friend code">🔖 ${mine ? myCode() : fcOf(id)}</span>${!mine && f ? '<span class="pill">🤝 Friends</span>' : ''}</div>`;
   if (mine) {
     h += `<div class="pstats">${stat(`${pr.ac} / ${ACH.length}`, '🏆 Achievements')}${stat(nf, '👥 Friends')}${stat(W.own.size, '🧥 Items owned')}${stat(copiesOwnedBy(myId()).length, '⭐ Limiteds')}${stat(Object.keys(RECENT).filter((x) => EXPS[x]).length, '🎮 Games played')}${stat(W.coins.toLocaleString('en-US'), '🪙 Blox Coins')}</div>
-      <div class="pbtns"><button class="xp-btn gold" data-edit="1">✏️ Edit avatar</button><button class="xp-btn purple" data-goto="friends">👥 Friends${Social.inc.size ? ` · ${Social.inc.size} new` : ''}</button></div></div></div>`;
+      <div class="pbtns"><button class="xp-btn gold" data-edit="1">✏️ Edit avatar</button><button class="xp-btn purple" data-goto="friends">👥 Friends${Social.inc.size ? ` · ${Social.inc.size} new` : ''}</button>${ADM.ok ? '<button class="xp-btn red" data-admin="1">🛡️ Admin panel</button>' : ''}</div>
+      <div class="pcode"><input id="bvCode" maxlength="32" placeholder="🎟️ Got a code? Type it here" autocomplete="off" spellcheck="false"><button class="xp-btn gold" data-redeem="1">🎟️ Redeem</button><span id="bvCodeMsg" class="${CODEUI.ok ? 'ok' : 'bad'}">${esc(CODEUI.msg)}</span></div></div></div>`;
   } else {
     h += `<div class="pstats">${stat(o ? (+pr.ac || 0) : '—', '🏆 Achievements')}${stat(favs.length, '❤️ Favourites')}${stat(copiesOwnedBy(id).length, '⭐ Limiteds')}</div>
       <div class="pbtns">${friendBtn(id)}${f && s.play ? `<button class="xp-btn blue" data-join="${esc(id)}">▶ Join them</button>` : ''}${f ? `<button class="xp-btn ${Social.rmAsk === id ? 'red' : 'alt'}" data-rm="${esc(id)}">${Social.rmAsk === id ? 'Tap again to remove' : 'Remove friend'}</button>` : ''}${Social.inc.has(id) ? `<button class="xp-btn alt" data-dec="${esc(id)}">Decline</button>` : ''}</div></div></div>`;
@@ -14311,6 +14409,7 @@ function openAch() { openPanel(`🏆 Achievements · ${ACH.filter((A) => A.e ===
 $('#menuBtn').onclick = showPause;
 $('#board').addEventListener('click', (e) => { const r = e.target.closest('tr[data-peer]'); if (r && playing) playerMenu(r.dataset.peer); });
 $('#coins').onclick = () => { if (playing && exp && exp.coinShop && exp.coinShop.length) openShop(); };
+$('#admBtn').onclick = () => admPanel(); $('#admTop').onclick = () => admPanel(); // (🛡️ only there for an admin)
 $('#achBtn').onclick = () => { homeView = 'ach'; sfx('open'); drawExps(); window.scrollTo(0, 0); };
 
 /* ---------------- shift lock, first person and sprinting ----------------
@@ -14645,7 +14744,7 @@ else {
     W.loaded = true;
     const today = new Date().toISOString().slice(0, 10);
     if (W.day !== today) { W.day = today; W.coins += 50; $('#hi').textContent = `Hi, ${Net.name}! Daily bonus: +50 🪙`; }
-    saveAv(); drawAvatarOpts(); pvAvatar(); socialScan(); drawMe(); drawExps(); marketStart();
+    saveAv(); drawAvatarOpts(); pvAvatar(); socialScan(); drawMe(); drawExps(); marketStart(); admCheck();
   });
 }
 </script>

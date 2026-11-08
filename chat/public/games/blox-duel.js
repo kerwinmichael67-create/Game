@@ -1378,6 +1378,7 @@
   }
   const stunned = (F) => F.S.stun > 0 || F.S.pos > 0 || F.S.fear > 0 || F.S.stone > 0; // (stunned, possessed, terrified, or turned to stone)
   const stageOf = (F) => { const f = F.hp / Math.max(1, F.mhp); return f > 0.75 ? 1 : f > 0.5 ? 2 : f > 0.25 ? 3 : 4; }; // (🩸 the Wendigo's wounds: 1 at full health … 4 under a quarter)
+  const admGod = () => typeof ADM !== 'undefined' && ADM.ok && ADM.god && DU.M && !DU.M.pvp;
   const isBoss = (F) => !!F && (F.kind === 'boss' || F.kind === 'rboss');
   const local = (T) => T.kind === 'me' || T.kind === 'bot' || T.kind === 'boss'; // (the ones whose hits are judged here)
   const bigR = (F) => (F && F.C.big ? (F.C.big - 1) * 2.4 : 0); // (how much further a giant reaches, and is reached)
@@ -1861,6 +1862,7 @@
   // taking a hit (mine, or a bot's, or the boss's if it's mine to run): a dodge's moment, a block (all of it), armour and buffs, then what it does to you
   function takeHit(T, dmg, fx, from, o = {}) {
     if (T.dead || !live()) return; fx = fx || {};
+    if (T.kind === 'me' && admGod()) { floatText(T, '🛡️ GOD MODE', 'tag'); return; } // (🛡️ an admin's god mode — never in a fight against another player)
     if (fx.fo) { applyFx(T, fx, from); return; }
     if (T.S.sp > 0) { floatText(T, '✨ PROTECTED', 'tag'); return; } // (just back from a death in the boss fight)
     if (bval(T, 'ph') || (T.possEnd && T.possEnd > performance.now())) { floatText(T, '🌫️ PHASED', 'tag'); return; } // (the spirit: out of the world, or inside someone)
@@ -1914,6 +1916,7 @@
   const frostRingTex = () => kCanvas('duFrostRingT', 256, 256, (g, r) => { const gr = g.createRadialGradient(128, 128, 40, 128, 128, 128); gr.addColorStop(0, 'rgba(255,255,255,0)'); gr.addColorStop(0.62, 'rgba(255,255,255,.1)'); gr.addColorStop(0.9, 'rgba(255,255,255,.55)'); gr.addColorStop(0.97, 'rgba(255,255,255,.85)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 256, 256);
     g.strokeStyle = 'rgba(255,255,255,.75)'; g.lineWidth = 1.2; for (let k = 0; k < 40; k++) { const a = r() * 6.283, d = 70 + r() * 52, x = 128 + Math.cos(a) * d, y = 128 + Math.sin(a) * d, l = 3 + r() * 5; for (let j = 0; j < 3; j++) { const b = (j * Math.PI) / 3; g.beginPath(); g.moveTo(x - Math.cos(b) * l, y - Math.sin(b) * l); g.lineTo(x + Math.cos(b) * l, y + Math.sin(b) * l); g.stroke(); } } }); // (frost: a ring of it, and crystals)
   function statusTick(F, dt) {
+    if (F.kind === 'me' && admGod()) { F.S.dots = []; F.pbl = 0; }
     const S = F.S, cdm = bval(F, 'cdM') * (S.chill > 0 ? 0.8 : 1); // (the Wendigo boss's cold: cooldowns 25% slower)
     for (let i = 0; i < F.cd.length; i++) if (F.cd[i] > 0) F.cd[i] = Math.max(0, F.cd[i] - dt * cdm); if (F.mcd) for (let k = 0; k < F.mcd.length; k++) if (k !== F.mode && F.mcd[k] > 0) F.mcd[k] = Math.max(0, F.mcd[k] - dt * cdm); // (the other mode's, too)
     if (S.stone > 0 && (S.stone -= dt) <= 0) S.stone = 0; if (F.stoneM && !(S.stone > 0)) stoneFx(F, false);
@@ -2507,6 +2510,18 @@
     sendHit(T, dmg, fx, F) { this.hitN++; this.dq = this.dq.concat([[this.hitN, T.peer, dmg, fx || {}, this.M.mid, T.kind === 'rboss' ? 'b' : 0]]).slice(-16); send({ dq: this.dq }); },
     pubAct(F, A, kind) { this.acN++; this.ac = [this.acN, A ? A.i : -1, F.mode, kind === 'dodge' ? 1 : 0, A && A.tx != null ? Math.round(A.tx) : 0, A && A.tz != null ? Math.round(A.tz) : 0, A && A.bagI != null ? A.bagI : -1]; this.pubDu(true); },
     fStatsAll() { return fStatsAll(); },
+    adminOps() { // (🛡️ the admin panel's Colosseum Duels tools: your own save and your own fights — never another player's)
+      const S = this.save, M = this.M, all = CH.map((C) => C.i);
+      const ops = [
+        ['⚔️ Every fighter', () => { for (const c of all) if (!S.own.includes(c)) S.own.push(c); this.dirty(); this.drawBar(); return '⚔️ Every fighter is yours — the secret ones too'; }, 'gold'],
+        ['🎨 Every skin', () => { S.skins = DK_SKINS.map((k) => k.id); this.dirty(); return '🎨 Every skin is yours (wear them from a fighter’s 📊 stats)'; }, 'gold'],
+        ['👑 Mastery 10 on every fighter', () => { for (const c of all) { const h = S.xp[c] | 0; if (h < MAST[10]) this.addXp(c, MAST[10] - h); } this.dirty(); return '👑 Every fighter mastered — their bodies and animations are yours too'; }],
+        ['🥇 +100,000 gold', () => { S.gold = (S.gold | 0) + 100000; this.dirty(); this.drawBar(); return `🥇 Gold: ${S.gold.toLocaleString('en-US')}`; }],
+        ['👹 Fight the Laestrygonian', () => this.admBoss({ wen: false })], ['❄️ Fight the Wendigo', () => this.admBoss({ wen: true })], ['⚕️ Fight the Plague Doctor', () => this.admBoss({ plg: true })]];
+      if (M && M.ph !== 'end' && !M.pvp) ops.push(['🏆 Win this fight', () => { if (typeof admClose === 'function') admClose(); this.endMatch(1); return false; }, 'gold'], ['💚 Full health, cooldowns ready', () => { const F = M.me; F.hp = F.mhp; F.cd = F.cd.map(() => 0); F.S.dots = []; F.pbl = 0; return '💚 Healed, every ability ready'; }]);
+      return ops;
+    },
+    admBoss(o) { if (typeof admClose === 'function') admClose(); closePanel(); if (this.M) this.leaveMatch(); this.startMatch(Object.assign({ md: 'b', coop: false, own: true, ps: [myPeer()] }, o)); return false; },
     pubDu(force) {
       const M = this.M; if (!M || !(M.pvp || M.coop)) return; const F = M.me, B = M.foe;
       const du = { m: M.mid, c: F.c, hp: Math.max(0, Math.round(F.hp)), mhp: F.mhp, st: Math.round(F.st), l: M.l, d: M.d, dead: F.dead ? 1 : 0, ac: this.ac, mo: F.mode,
@@ -2815,7 +2830,7 @@
       this.redeeming = 1;
       try {
         const h = await sha('bv-code|' + code), C = CODES.find((q) => q.h === h);
-        if (!C) return msg('That code isn’t valid.');
+        if (!C) { const r = typeof adminRedeem === 'function' ? await adminRedeem(code) : null; return r ? msg(r.t, r.ok) : msg('That code isn’t valid.'); } // (🛡️ the admin code works here too)
         if (S.own.includes(C.c)) return msg(`You already have the ${CH[C.c].n} — the code is still unused.`);
         if (Market.state === 'off') await marketStart(); for (let k = 0; k < 40 && Market.state === 'wait'; k++) await new Promise((r) => setTimeout(r, 100));
         const db = Market.db; if (!db) return msg('Codes need the shared server, and it isn’t reachable here right now.');
