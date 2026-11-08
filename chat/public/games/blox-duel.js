@@ -66,7 +66,9 @@
     .du-mim button{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:104px;padding:9px 10px 7px;border-radius:12px;border:2px solid rgba(255,255,255,.18);background:linear-gradient(180deg,#1e293b,#0f172a);color:#fff;cursor:pointer;font:700 12px var(--fb)}
     .du-mim button:hover{border-color:#67e8f9;transform:translateY(-2px)}.du-mim button i{position:absolute;left:6px;top:4px;font:800 11px var(--fb);color:#fde68a;font-style:normal}.du-mim .ic{font-size:26px}.du-mim .nm{font:800 13px var(--fh)}.du-mim small{color:#94a3b8;font:600 10.5px var(--fb)}.du-mim .hint{display:block;margin-top:7px}
     #duFog{position:absolute;inset:0;pointer-events:none;z-index:1;opacity:0;transition:opacity .45s;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);background:radial-gradient(ellipse at 50% 55%,rgba(226,232,240,.12),rgba(203,213,225,.55) 70%,rgba(148,163,184,.75));animation:duFogD 6s ease-in-out infinite alternate}
-    #duFog.on{opacity:1}@keyframes duFogD{from{background-position:0 0}to{background-position:30px -20px}}
+    #duFog.on{opacity:1}#duBlur{position:absolute;inset:0;pointer-events:none;z-index:1;display:none}#duBlur.on{display:block}
+    .du-ab.bag{border-color:var(--bag);box-shadow:0 0 0 2px color-mix(in srgb,var(--bag) 35%,transparent),0 0 16px color-mix(in srgb,var(--bag) 40%,transparent),0 5px 14px rgba(0,0,0,.5)}.du-ab.bag .n{color:var(--bag)}.du-ab .e svg{display:block;margin:auto}
+    .du-dmg.po{color:#a3e635}.du-abl div.bagi{margin-left:26px;background:rgba(132,204,22,.07)}@keyframes duFogD{from{background-position:0 0}to{background-position:30px -20px}}
     .du-ab.no{animation:duNo .3s}@keyframes duNo{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
     .du-side{display:grid;grid-template-columns:repeat(2,auto);gap:5px;align-content:end}
     .du-side button{min-width:50px;height:30px;padding:0 8px;border-radius:9px;border:1.5px solid rgba(255,255,255,.2);background:rgba(15,23,42,.85);color:#e2e8f0;font:800 11px var(--fb);cursor:pointer;white-space:nowrap}
@@ -612,7 +614,28 @@
       { n: 'Plumed Storm', ic: '🌈', k: 'volley', dmg: 38, cnt: 8, rad: 7, delay: 0.8, cd: 15, wind: 0.35, an: 'sky', model: 'feather', fx: { sl: [0.7, 1.5] }, d: 'A storm of jade feathers falls where they stand: eight of 38, and each one slows them.' },
       { n: 'Morning Star', ic: '🌟', k: 'proj', dmg: 165, cd: 14, spd: 70, wind: 0.45, an: 'lob', model: 'star', fx: { bu: [40, 3] }, d: 'He hurls Venus, the morning star: 165 damage, and it burns for 40 more.' },
       { n: 'Feathered Serpent', ic: '🐉', k: 'buff', cd: 26, an: 'rally', b: { dur: 7, dmgM: 1.3, hps: 40, spdM: 1.25 }, d: 'He becomes the Feathered Serpent: +30% damage, +25% speed and 40 health a second for 7 s.' }] },
+    // ⚕️ v132: a secret — the Plague Doctor. Met only on Extreme (1 bot in 10 is it), and yours only if you beat it. An
+    // all-rounder that poisons, weakens and throws chemicals: a cane that bleeds them, the Doctor's Bag (one of five things,
+    // a new one every 12 s), a cloud of miasma, a lancet, and the Black Death
+    { e: 2, r: 5, hp: 550, spd: 1.25, def: 0.95, nc: 1, secret: 1, dpsX: 1.3, ro: 'All-rounder', how: '⚕️ A secret. On Extreme, not every bot is what it seems…', pas: [['⚕️', 'The Beaked Mask', 'Stuffed with herbs against the miasma: 5% less damage taken, and 25% faster than most.'], ['🩸', 'Bloodletting', 'Each blow of the cane has a 15% chance to bleed them of 5% of the health they have left — and the doctor drinks it.'], ['☠️', 'Physician of Poisons', 'Poisoned, they heal half as much. Weakened, they deal less damage. Scalded, they take ×1.75 damage for the rest of the round. Cut, every bleed, burn, poison, slow and weakness on them is ×2.5.']], ab: [
+      { n: 'Cane', ic: '🦯', k: 'melee', dmg: 50, cd: 1.25, rng: 7, arc: 100, wind: 0.14, an: 'slash', steal: [0.15, 0.05] },
+      { n: 'Doctor’s Bag', ic: '👜', k: 'bag', cd: 12, est: 125, estH: 22, d: 'Every 12 s the doctor digs in the bag and pulls out one of five things — your button shows which: a flask (the liquid’s colour tells you: green poisons, red burns), a bucket of boiling water (hold E), herbs (healing herbs or hemlock), a scalpel, or a jar of leeches.' },
+      { n: 'Miasma', ic: '🌫️', k: 'proj', dmg: 30, cd: 11, spd: 42, wind: 0.3, an: 'lob', model: 'miasma', lob: 1, est: 130, cloud: { r: 7, dur: 5, tick: 1, dmg: 14, fx: { po: [30, 3], wk: [0.7, 2], sl: [0.75, 1.2] } }, d: 'A vial of plague-air, lobbed: 30 damage where it bursts, then a green cloud for 5 s — 14 damage a second inside, and while they stand in it they’re Poisoned, Weakened (−30% damage) and choking (slowed 25%).' },
+      { n: 'Lancet', ic: '🗡️', k: 'dash', dmg: 85, dist: 16, dd: 0.22, cd: 8, wind: 0.12, an: 'charge', drain: 0.4, fx: { bl: [50, 4], sl: [0.7, 2] }, d: 'A lunge with the lancet: 85 damage, they bleed 50 more and are slowed 30% for 2 s, and the doctor heals 40% of the blow.' },
+      { n: 'The Black Death', ic: '💀', k: 'melee', dmg: 160, cd: 24, rng: 11, arc: 360, wind: 0.45, an: 'roar', burst: '#84cc16', cloud: { r: 8, dur: 4, tick: 1, dmg: 8, fx: { po: [16, 2], wk: [0.7, 2] } }, fx: { cut: 6, st: 0.8, po: [110, 6], wk: [0.75, 5] }, d: 'The plague itself, let out all round: 160 damage, they double over (stunned 0.8 s), Cut for 6 s, Poisoned for 110 more and Weakened for 5 s — and a cloud of miasma left behind for 4 s.' }] },
   ];
+  // 👜 the Doctor's Bag: what can come out of it (two of them are two things — the flask's liquid red or green, the herbs
+  // healing or hemlock — and which one is shown before it's used). Every item has the bag's 12 s cooldown
+  const FLASK_SVG = (c) => `<svg viewBox="0 0 32 32" width="36" height="36"><path d="M12.5 3h7v2.2h-1v6.6l6.8 11a4 4 0 0 1-3.4 6.2H10.1a4 4 0 0 1-3.4-6.2l6.8-11V5.2h-1z" fill="rgba(226,232,240,.18)" stroke="#e2e8f0" stroke-width="1.6" stroke-linejoin="round"/><path d="M9.6 18h12.8l2.7 4.5a2.5 2.5 0 0 1-2.1 3.8H9a2.5 2.5 0 0 1-2.1-3.8z" fill="${c}"/><circle cx="13.5" cy="22" r="1.3" fill="#fff" fill-opacity=".7"/><circle cx="18" cy="20.4" r=".8" fill="#fff" fill-opacity=".55"/></svg>`;
+  const BAG = [
+    { n: 'Green Flask', ic: '🧪', k: 'proj', bag: 1, cd: 12, dmg: 45, spd: 50, wind: 0.22, an: 'lob', model: 'flaskG', bagC: '#4ade80', svg: FLASK_SVG('#22c55e'), fx: { po: [80, 5] }, d: 'Green liquid: 45 damage and Poisoned for 80 more over 5 s.' },
+    { n: 'Red Flask', ic: '🧪', k: 'proj', bag: 1, cd: 12, dmg: 45, spd: 50, wind: 0.22, an: 'lob', model: 'flaskR', bagC: '#f87171', svg: FLASK_SVG('#dc2626'), fx: { bu: [80, 5] }, d: 'Red liquid — a pepper mixture: 45 damage and Burning for 80 more over 5 s.' },
+    { n: 'Boiling Water', ic: '🪣', k: 'pour', bag: 1, cd: 12, wind: 0.18, max: 5, rate: 0.15, rng: 15, an: 'pour', bagC: '#7dd3fc', drop: { n: 'Boiling Water', model: 'water', spd: 34, dmg: 5, arc: 1, rng: 15, fx: { bu: [25, 5], sc: 1, src: 'boil', q: 1 } }, d: 'Hold E to keep tossing boiling water (it runs out after 5 s): 5 a splash, Burning for 5 s, and Scalded for the rest of the round — ×1.75 damage taken. Water in the face blurs their eyes.' },
+    { n: 'Healing Herbs', ic: '🌿', k: 'buff', bag: 1, cd: 12, an: 'herb', bagC: '#86efac', b: { dur: 5, hpsP: 0.03, brk: 1 }, d: 'Chewed under the beak: 15% of the doctor’s health back over 5 s — but a hit stops it.' },
+    { n: 'Hemlock', ic: '☠️', k: 'proj', bag: 1, cd: 12, dmg: 20, spd: 55, wind: 0.2, an: 'lob', model: 'hemlock', bagC: '#d9f99d', fx: { po: [84, 7] }, d: 'A pouch of crushed hemlock: 20 damage and Poisoned for 7 s (84 more).' },
+    { n: 'Scalpel', ic: '🔪', k: 'proj', bag: 1, cd: 12, dmg: 35, spd: 85, wind: 0.14, an: 'fan', model: 'scalpel', bagC: '#e2e8f0', fx: { pbl: 2.5, cut: 8 }, d: '35 damage, a bleed that lasts the whole match (2.5 every second), and Cut for 8 s: every bleed, burn, poison, slow and weakness on them ×2.5.' },
+    { n: 'Leeches', ic: '🪱', k: 'proj', bag: 1, cd: 12, dmg: 20, spd: 55, wind: 0.2, an: 'lob', model: 'leech', bagC: '#a16207', fx: { lc: [72, 6] }, d: 'A jar of leeches: 20 damage, then they drink 72 over 6 s — and the doctor gets all of it back.' }];
+  const bagRoll = (F) => { const k = Math.floor(Math.random() * 5); F.bag = k === 0 ? (Math.random() < 0.5 ? 0 : 1) : k === 1 ? 2 : k === 2 ? (Math.random() < 0.5 ? 3 : 4) : k === 3 ? 5 : 6; return F.bag; };
   CH.forEach((C, i) => { C.i = i; C.n = DUEL_N[i]; C.ic = DUEL_IC[i]; C.spdX = C.spd != null; C.spd = C.spd || 1; C.def = C.def || 1; });
   // what each one is for, at a glance
   const ROLE = ['Tank', 'Skirmisher', 'Skirmisher', 'Tank', 'Damage dealer', 'Tank', 'Skirmisher', 'Ranger', 'Bruiser', 'Bruiser', 'Bruiser', 'Ranger', 'Bruiser', 'Bruiser', 'Tank', 'Skirmisher', 'Duelist', 'Assassin', 'Bruiser', 'Damage dealer'];
@@ -625,7 +648,7 @@
   CH.forEach((C) => { const W = WTS.find((w) => w[2].includes(C.ro)); if (!W) console.error('duel: no weight for', C.n, C.ro); C.wt = W ? W[0] : 'Medium'; C.wtI = W ? W[1] : '⚔️'; });
   const rosterN = (S) => CH.filter((C) => !C.secret || S.own.includes(C.i)).length;
   const CRATE = EMP.map((_, e) => CH.filter((C) => C.e === e && !C.nc).map((C) => C.i)); // (each crate's five, common to legendary)
-  const LAE = 20, EXE = 21, KEN = 32, IMP = 33, JOT = 34, PHA = 35, HAL = 36, CYC = 37, ONI = 38, CAC = 39, CHO = 40, YUR = 41, MIN = 42, RIF = 43, REG = 44, DRA = 45, COLN = 46, HH = 47, KRA = 53, MED = 54, HUS = 55, ONN = 56, CEN = 57, SKW = 58, WEN = 59, SUL = 60, TZI = 61, MARS = 62, HAD = 63, VLAD = 64, KIT = 65, IFR = 66, BWO = 67, QUE = 68;
+  const LAE = 20, EXE = 21, KEN = 32, IMP = 33, JOT = 34, PHA = 35, HAL = 36, CYC = 37, ONI = 38, CAC = 39, CHO = 40, YUR = 41, MIN = 42, RIF = 43, REG = 44, DRA = 45, COLN = 46, HH = 47, KRA = 53, MED = 54, HUS = 55, ONN = 56, CEN = 57, SKW = 58, WEN = 59, SUL = 60, TZI = 61, MARS = 62, HAD = 63, VLAD = 64, KIT = 65, IFR = 66, BWO = 67, QUE = 68, PLG = 69;
   for (const i of [0, 1, 3, 4, 5, 6, 8, 9, 10, 12, 13, 22, 30, 35, 48, 51, 52, 57]) CH[i].sh = 1; // (the ones with a shield: blocking stops everything — without one it halves the damage) // (the mythics — the Laestrygonian, the Executioner, the Kensei: no crate has them)
   const KEN_W = 20, KEN_D = 20000; // (the Sword Saint's Trial: wins, damage)
   // the mythics' quests: each accepted in the achievements, then two counts to reach (k kills, d damage, w wins, c Classic
@@ -697,7 +720,7 @@
   const limBack = (c) => { const w = limWeek(); for (let k = 0; k < 6; k++) if (limShop(w + k).includes(c)) return k; return 6; }; // (weeks till it's in the shop: 0 = it is now)
   const limLeft = () => LIM_W0 + (limWeek() + 1) * LIM_WK - Date.now();
   const fmtLeft = (ms) => { const d = Math.floor(ms / 864e5), h = Math.floor(ms % 864e5 / 36e5), m = Math.floor(ms % 36e5 / 6e4); return d ? `${d}d ${h}h` : h ? `${h}h ${m}m` : `${Math.max(1, m)}m`; };
-  const COL = ['#ef4444', '#f59e0b', '#2dd4bf', '#a855f7', '#f97316', '#60a5fa', '#fbbf24', '#fb923c', '#a3a3a3', '#dc2626', '#facc15', '#84cc16', '#38bdf8', '#fef3c7', '#e2e8f0', '#93c5fd', '#fda4af', '#a78bfa', '#fb923c', '#fde047', '#fbbf24', '#991b1b', '#f87171', '#fbbf24', '#f97316', '#2dd4bf', '#dc2626', '#a16207', '#7dd3fc', '#38bdf8', '#cbd5e1', '#facc15', '#f43f5e', '#fbbf24', '#7dd3fc', '#f59e0b', '#ef4444', '#d6a77a', '#dc2626', '#fb923c', '#5eead4', '#bfdbfe', '#a16207', '#65a30d', '#3b82f6', '#16a34a', '#e7d3a1', '#fb923c', '#10b981', '#a8a29e', '#14b8a6', '#facc15', '#f59e0b', '#dc2626', '#4ade80', '#e11d48', '#f472b6', '#ef4444', '#22d3ee', '#bae6fd', '#10b981', '#a78bfa', '#dc2626', '#4ade80', '#b91c1c', '#fb923c', '#f97316', '#60a5fa', '#34d399'];
+  const COL = ['#ef4444', '#f59e0b', '#2dd4bf', '#a855f7', '#f97316', '#60a5fa', '#fbbf24', '#fb923c', '#a3a3a3', '#dc2626', '#facc15', '#84cc16', '#38bdf8', '#fef3c7', '#e2e8f0', '#93c5fd', '#fda4af', '#a78bfa', '#fb923c', '#fde047', '#fbbf24', '#991b1b', '#f87171', '#fbbf24', '#f97316', '#2dd4bf', '#dc2626', '#a16207', '#7dd3fc', '#38bdf8', '#cbd5e1', '#facc15', '#f43f5e', '#fbbf24', '#7dd3fc', '#f59e0b', '#ef4444', '#d6a77a', '#dc2626', '#fb923c', '#5eead4', '#bfdbfe', '#a16207', '#65a30d', '#3b82f6', '#16a34a', '#e7d3a1', '#fb923c', '#10b981', '#a8a29e', '#14b8a6', '#facc15', '#f59e0b', '#dc2626', '#4ade80', '#e11d48', '#f472b6', '#ef4444', '#22d3ee', '#bae6fd', '#10b981', '#a78bfa', '#dc2626', '#4ade80', '#b91c1c', '#fb923c', '#f97316', '#60a5fa', '#34d399', '#84cc16'];
   // the duel's own achievements: each wins a fighter (the 1% ones only come from crates)
   const ACH = [
     { id: 'blood', ic: '🩸', n: 'First Blood', d: 'Defeat a fighter', k: 'kills', n0: 1, c: 1 },
@@ -1215,7 +1238,7 @@
   const MULT = new Set(['def', 'dmgM', 'spdM', 'cdM']), SUM = new Set(['dmgA', 'ls', 'rf', 'hps']);
   function bval(F, k) { let v = MULT.has(k) ? 1 : 0; for (const b of F.S.buffs) { const q = b[k]; if (q == null) continue; if (MULT.has(k)) v *= q; else if (SUM.has(k)) v += q; else v = Math.max(v, q); } return v; }
   const wishV = (F) => { const w = pv(F, 'wish'); return w === true || w >= 1 ? 0.1 : +w || 0; }; // (the Executioner's Wish: how much each hit adds)
-  function abOf(F, i) { if (i === 1 && F.mim && F.C.skin) return F.mim.ab; const ab = F.C.ab[i]; if (ab.low && F.mhp && F.hp > 0 && F.hp / F.mhp < 0.1) return WEN_IMM; if (ab.modes) { const m = ab.modes[Math.min(F.mode, ab.modes.length - 1)]; return Object.assign({}, ab, m, { k: m.k || 'melee' }); } return ab; }
+  function abOf(F, i) { if (i === 1 && F.mim && F.C.skin) return F.mim.ab; const ab = F.C.ab[i]; if (ab.k === 'bag') return BAG[F.bag != null && BAG[F.bag] ? F.bag : bagRoll(F)]; if (ab.low && F.mhp && F.hp > 0 && F.hp / F.mhp < 0.1) return WEN_IMM; if (ab.modes) { const m = ab.modes[Math.min(F.mode, ab.modes.length - 1)]; return Object.assign({}, ab, m, { k: m.k || 'melee' }); } return ab; }
   // switching between a gun and a blade: with split cooldowns each keeps its own (the gun reloads while you stab)
   function swapMode(F, k) { if (k === F.mode) return; if (F.C.ab[0].split) { F.mcd = F.mcd || []; F.mcd[F.mode] = F.cd[0]; F.cd[0] = F.mcd[k] || 0; F.cdMax[0] = Math.max(F.cd[0], F.C.ab[0].modes[k].cd); } F.mode = k; }
   function actDur(ab) {
@@ -1229,6 +1252,8 @@
       case 'blink': return w + 0.5;
       case 'volley': return w + 0.45;
       case 'stomp': return w + (ab.an === 'bplant' ? 1.0 : 0.55);
+      case 'pour': return w + ab.max + 0.05;
+      case 'bag': return 0.5;
       default: return ab.b && ab.b.blk && !ab.b.free ? ab.b.dur : 0.8;
     }
   }
@@ -1367,6 +1392,8 @@
     xsever: [{ aR: [3.0, 0.1, 0.1], eR: [0.8], wr: [0.3], aL: [2.9, 0.2, -0.1], eL: [0.8], bd: [0.25, 0, 0], hd: [0.15], up: 0.05 }, { aR: [0.7, 0, -0.05], eR: [0.1], wr: [-0.5], aL: [0.75, 0, 0.1], eL: [0.15], bd: [-0.65, 0, 0], hd: [0.3], lL: [0.65], kL: [-0.85], lR: [-0.35], kR: [-0.3], up: -0.4 }], // (Sever: off the shoulder, up over the head, straight down)
     xchop: [{ aR: [2.6, 0.3, 0.9], eR: [0.9], wr: [0.2], aL: [2.0, 0.4, 0.4], eL: [1.0], bd: [0.15, -0.7, 0] }, { aR: [1.1, -0.3, -0.9], eR: [0.15], wr: [-0.6], aL: [1.0, -0.2, -0.5], eL: [0.25], bd: [-0.35, 0.8, 0], lL: [0.55], kL: [-0.5], lR: [-0.3] }], // (Chop: from the shoulder, down across)
     lob: [{ aL: [2.7, 0, -0.3], eL: [1.2], aR: [0.8, 0, 0.3], eR: [0.8], bd: [0.2, 0.5, 0] }, { aL: [1.3, 0, 0], eL: [0.1], aR: [0.6, 0, 0.3], bd: [-0.3, -0.4, 0], lR: [-0.3] }],
+    pour: [{ aL: [0.5, 0, -0.25], eL: [0.9], aR: [0.5, 0, 0.25], eR: [0.9], bd: [0.12, 0, 0], lR: [0.25], kR: [-0.3] }, { aL: [1.9, 0, -0.2], eL: [0.25], aR: [1.9, 0, 0.2], eR: [0.25], bd: [-0.22, 0, 0], lL: [0.35], kL: [-0.3] }],
+    herb: { aR: [1.7, 0, -0.55], eR: [2.0], aL: [0.45, 0, -0.25], eL: [0.6], hd: [0.2], bd: [0.12, 0, 0] },
     bloodrush: { aR: [0.6, 0, 1.3], eR: [0.4], aL: [0.6, 0, -1.3], eL: [0.4], hd: [0.7], bd: [0.4, 0, 0], up: -0.2 },
     sharpen: { aR: [1.0, 0, -0.3], eR: [1.4], wr: [-1.6], aL: [1.0, 0.3, 0.45], eL: [1.0], hd: [-0.4], bd: [-0.2, 0, 0] },
     parry: { aR: [1.5, 0.3, -0.5], eR: [1.2], wr: [-1.57], aL: [1.4, -0.3, 0.6], eL: [1.2], bd: [-0.1, 0, 0], up: -0.15 },
@@ -1390,6 +1417,9 @@
     if (a.dg && !a.dg.own) { if (!A || !A.an || !(AN[A.an] && (AN[A.an].wr || (Array.isArray(AN[A.an]) && (AN[A.an][0].wr || AN[A.an][1].wr))))) a.dg.hR.rotation.x *= Math.max(0, 1 - dt * 10); } // (the wrist back to its guard)
     if (A && A.an === 'gun' && a.dg && !a.duGun) { const g = new THREE.Group(); a.dg.hR.add(g); g.rotation.x = -Math.PI / 2; const wd = new THREE.MeshLambertMaterial({ color: '#5b3a1e', map: woodTex() }), ir = metalMat('#3f3f46'); const st = new THREE.Mesh(BOX, wd); st.scale.set(0.22, 0.3, 2.4); st.position.z = -0.4; g.add(st); const br = new THREE.Mesh(kCyl(), ir); br.scale.set(0.07, 2.6, 0.07); br.rotation.x = Math.PI / 2; br.position.set(0, 0.16, -1.6); g.add(br); g.userData.tip = new THREE.Object3D(); g.userData.tip.position.set(0, 0.16, -2.9); g.add(g.userData.tip); a.duGun = g; }
     if (a.duGun) a.duGun.visible = !!(A && A.an === 'gun');
+    const itm = A && A.ab.bag && a.dg && a.dg.hL ? (A.ab.k === 'pour' ? 'bucket' : A.ab.model) : null; // (👜 what came out of the bag, in the left hand — till it's thrown)
+    if (itm && !(a.duItems && a.duItems[itm])) { a.duItems = a.duItems || {}; const g = itm === 'bucket' ? bucketModel() : projModel(itm); g.scale.multiplyScalar(itm === 'bucket' ? 1 : 0.75); g.position.y = itm === 'bucket' ? -0.75 : -0.15; a.dg.hL.add(g); a.duItems[itm] = g; }
+    if (a.duItems) for (const q in a.duItems) a.duItems[q].visible = q === itm && (q === 'bucket' || A.t < (A.ab.wind || 0.05));
     if (!A) return;
     const ab = A.ab, t = A.t, w0 = Math.max(0.05, ab.wind || 0.05), dur = A.dur, P0 = AN[A.an]; if (!P0) { if (A.an === 'bcleave') A.trail = t > w0 - 0.14 && t < w0 + 0.14; return; } // (the boss's own: its pack poses it)
     if (a.dg && (A.an === 'gun' || ((A.an === 'throw' || A.an === 'hop') && t > w0 && A.thrown))) for (const o of a.dg.R) o.visible = false; // (the thrown weapon leaves the hand)
@@ -1404,6 +1434,7 @@
       const strike = A.strikeAt != null ? A.strikeAt : w0, sw = ease((t - strike + 0.04) / 0.12);
       target = t < strike ? P0[0] : mixP(P0[0], P0[1], sw); k = t < strike ? ease(t / Math.min(strike, 0.2)) : 1 - ease((t - (strike + 0.16)) / Math.max(0.1, dur - strike - 0.16));
       if (A.an === 'leap') { const air = clamp((t - w0) / 0.62, 0, 1); target = t < w0 ? P0[0] : air < 1 ? { aR: [3.0, 0, 0.2], eR: [0.4], aL: [2.6, 0, -0.3], eL: [0.4], kL: [-1.4], kR: [-0.8], lL: [1.0], bd: [0.1, 0, 0] } : P0[1]; k = t < w0 ? ease(t / w0) : 1 - ease((t - w0 - 0.7) / 0.25); }
+      if (A.an === 'pour' && t > w0) { target = mixP(P0[0], P0[1], 0.5 + 0.5 * Math.sin((t - w0) * Math.PI * 2 / (ab.rate * 3) - 1.2)); k = 1; } // (🪣 the bucket swung and tossed, again and again)
       if ((A.an === 'charge' || A.an === 'rush' || A.an === 'push') && t > w0 && t < w0 + ab.dd) { const s = Math.sin(t * 26); target = Object.assign({}, target, { lL: [0.7 * s], lR: [-0.7 * s], kL: [-0.4 - 0.4 * Math.max(0, -s)], kR: [-0.4 - 0.4 * Math.max(0, s)] }); }
     }
     setPose(F, target, clamp(k, 0, 1));
@@ -1494,6 +1525,7 @@
     if (T && (ab.k === 'volley' || ab.k === 'leap')) { A.tx = T.x; A.tz = T.z; }
     if (ab.k === 'buff' && ab.b && ab.b.blk && !ab.b.free) A.dur = ab.b.dur;
     if (ab.an === 'stab') A.strikeAt = ab.wind;
+    if (ab.bag) { A.bagI = F.bag; if (ab.k === 'pour') F.pour = 1; } // (👜 what the doctor pulled out)
     F.acN++; if (F.kind === 'me') DU.pubAct(F, A); if (F.kind === 'boss' && DU.M.coop) { DU.bac = [F.acN, i]; DU.pubDu(true); }
     if (ab.say) DU.say(F, ab.say);
     if (isBoss(F) && F.C.wenBoss) { if (F.tele) scene.remove(F.tele); F.tele = ab.k === 'melee' ? teleArc(F, (ab.rng || 6) + 1.2 + bigR(F), (ab.arc || 90) + 34) : ab.k === 'dash' ? teleArc(F, ab.dist + bigR(F), 34) : ab.k === 'leap' && T ? teleFill(telegraph(T.x, T.z, ab.rad)) : null;
@@ -1506,6 +1538,7 @@
     if (ab.an === 'gun') sfx3('count', F.x, F.z, 60, { vol: 0.5 });
     if (i === 0 && ab.k === 'proj' && F.C.ab[0].split && F.kind === 'me' && !vis) setTimeout(() => { if (DU.M && DU.M.me === F && F.cd[0] > 0.4) floatText(F, `🔄 Reloading… ${ab.cd} s`, 'tag'); }, (ab.wind + 0.15) * 1000);
     if (ab.k === 'combo') { DU.say(F, '🌸 COMBO'); }
+    if (ab.bag && !vis) { DU.say(F, `👜 ${ab.n.toUpperCase()}`); bagRoll(F); } // (and the next thing in the bag)
     return true;
   }
   function actTick(F, dt) {
@@ -1515,6 +1548,8 @@
       if (at(w)) { A.struck = 1; if (ab.an === 'stab' && !A.vis) { moveF(F, -Math.sin(F.yaw) * 2.5, -Math.cos(F.yaw) * 2.5); } meleeHit(F, ab, ab.dmg, ab.fx, A);
       if (ab.an === 'bcleave') bossCleaveFx(F, ab); else if (ab.an === 'gslash' && isBoss(F)) { ringAt(F.x - Math.sin(F.yaw) * 6, F.z - Math.cos(F.yaw) * 6, '#fde68a', 14, 0.45); camShake(me, 0.5); sfx3('crash', F.x, F.z, 90); }
       if (ab.scream) { for (let k = 0; k < 3; k++) setTimeout(() => ringAt(F.x, F.z, k ? '#94a3b8' : '#e2e8f0', (ab.rng || 12) * (0.6 + k * 0.3), 0.5), k * 110); sfx3('horn', F.x, F.z, 90, { vol: 0.7 }); camShake(me, 0.35); }
+      if (ab.burst) { for (const [sz, l, c] of [[8, 0.35, '#ecfccb'], [16, 0.55, ab.burst], [24, 0.8, '#3f6212']]) ringAt(F.x, F.z, c, sz, l); burstAt(F.x, F.y + 3, F.z, ab.burst, 10, 0.5); smokeAt(F.x, 1, F.z, 16, '#4d7c0f', 3.2); sfx3('horn', F.x, F.z, 90, { vol: 0.6 }); camShake(me, 0.4); }
+      if (ab.cloud) cloudAt(F, ab, F.x, F.z, A.vis);
       if (ab.an === 'behead') { slashLine(F.x + Math.cos(F.yaw) * 4, F.z - Math.sin(F.yaw) * 4, F.x - Math.cos(F.yaw) * 4, F.z + Math.sin(F.yaw) * 4, '#ef4444'); sfx3('zap', F.x, F.z, 70); } } }
     else if (ab.k === 'multi' || ab.k === 'combo') {
       for (let h = A.h; h < ab.hits.length && t >= w + h * ab.gap; h++) { A.h = h + 1; const ok = meleeHit(F, ab, ab.hits[h], h === ab.hits.length - 1 ? ab.fx : null, A, h);
@@ -1546,6 +1581,13 @@
         if (!A.vis && T && !T.dead && Math.hypot(T.x - F.x, T.z - F.z) < ab.rad + 1) dealHitAs(F, T, ab.dmg, ab.fx, ab, A); } }
     else if (ab.k === 'volley') { if (at(w) && A.tx != null) DU.volleys.push({ F, ab, x: A.tx, z: A.tz, t: 0, vis: A.vis, n: 0, ring: telegraph(A.tx, A.tz, ab.rad) }); }
     else if (ab.k === 'buff') { if (at(0.22) && !A.vis) buffOn(F, ab); }
+    else if (ab.k === 'pour') { // 🪣 the boiling water: tossed for as long as E is held (or the bot wants), till the bucket's empty
+      if (!A.vis) F.cd[A.i] = F.cdMax[A.i] = ab.cd; // (the bag's clock starts once the bucket's put down)
+      if (t > w && T && !T.dead) { const ya = angOf(T.x - F.x, T.z - F.z); if (Math.abs(wrapA(ya - A.yaw)) < 1.3 || F.kind !== 'me' || DU.lockOn) { A.yaw += wrapA(ya - A.yaw) * Math.min(1, dt * 10); F.yaw = A.yaw; } } // (it follows them, if you're turned their way)
+      const hold = A.vis ? (F.kind === 'rem' ? !!F.pourOn : t < w + 1.5) : F.kind === 'me' ? !!DU.eHeld : t < (A.botT || (A.botT = w + 1.4 + Math.random() * 2.6)) && T && !T.dead && Math.hypot(T.x - F.x, T.z - F.z) < ab.rng + 4;
+      A.pn = A.pn || 0; while (t >= w + A.pn * ab.rate && A.pn * ab.rate < ab.max) { A.pn++; spawnProj(F, ab.drop, (Math.random() - 0.5) * 0.22, A.vis); if (A.pn % 3 === 1 && F.a) sfx3('whoosh', F.x, F.z, 40, { vol: 0.3 }); }
+      if (F.a && Math.random() < dt * 12) kitSpark(F.a, F.a.g, (Math.random() - 0.5) * 1.5, 4 + Math.random(), -1.5 - Math.random(), '#f1f5f9', { v: [0, 2.5, -1], life: 0.9, s: 0.45, grow: 1.6, op: 0.5, j: 0.5 }); // (steam off it)
+      const empty = t >= w + ab.max; if (empty || (!hold && t > w + 0.35)) { if (empty && !A.vis) floatText(F, '🪣 EMPTY', 'tag'); F.act = null; F.pour = 0; return; } }
     else if (ab.k === 'stomp') { if (at(w)) stompAt(F, ab, A); }
     if (F.act === A && t >= A.dur) { F.act = null; F.lift = 0; }
   }
@@ -1562,6 +1604,16 @@
     DU.waves.push({ F, x: F.x, z: F.z, r: Math.max(1, nr * 0.5), min: nr, max: ab.rad, spd: ab.wspd || 24, dmg: ab.dmg, hit, g, bj: new Set() });
   }
   const GROUND = 0.5; // (feet on the sand: P.y)
+  // 🌫️ miasma: a cloud of plague-air on the sand for a few seconds; once a second, whoever's in it is hurt, poisoned and
+  // weakened (judged by whoever made it — the other player's own cloud is only for the look of it)
+  function cloudAt(F, ab, x, z, vis) { const c = ab.cloud, m = new THREE.Mesh(kg('duCloudD', () => { const q = new THREE.CircleGeometry(1, 48); q.rotateX(-Math.PI / 2); return q; }), new THREE.MeshBasicMaterial({ color: '#65a30d', transparent: true, opacity: 0.3, depthWrite: false })); m.position.set(x, 0.13, z); m.scale.setScalar(c.r); m.renderOrder = 2; scene.add(m);
+    DU.clouds.push({ F, ab, x, z, r: c.r, t: c.dur, tk: 0.25, vis, m, c }); smokeAt(x, 0.8, z, 14, '#84cc16', 3); ringAt(x, z, '#a3e635', c.r * 1.2, 0.5); sfx3('whoosh', x, z, 60, { vol: 0.6 }); }
+  function cloudsTick(dt) {
+    for (const k of DU.clouds) { k.t -= dt; k.tk -= dt; k.m.material.opacity = 0.3 * Math.min(1, k.t / 0.6);
+      if (Math.random() < dt * (FXQ.lite ? 3 : 9)) { const a = Math.random() * 6.283, r = Math.sqrt(Math.random()) * k.r; smokeAt(k.x + Math.cos(a) * r, 0.4, k.z + Math.sin(a) * r, 1, Math.random() < 0.5 ? '#84cc16' : '#4d7c0f', 2.8); }
+      if (k.tk <= 0) { k.tk = k.c.tick; if (!k.vis && live()) for (const T of targetsOf(k.F)) if (!T.dead && Math.hypot(T.x - k.x, T.z - k.z) < k.r + bigR(T)) dealHitAs(k.F, T, k.c.dmg, Object.assign({ src: 'miasma' }, k.c.fx), k.ab); } }
+    DU.clouds = DU.clouds.filter((k) => { if (k.t > 0) return true; scene.remove(k.m); return false; });
+  }
   function wavesTick(dt) {
     for (const w of DU.waves) { w.r += w.spd * dt; const k = w.r / w.max; w.g.scale.set(w.r, 1, w.r); w.g.children[0].material.opacity = 0.9 * (1 - k); w.g.children[1].material.opacity = 0.4 * (1 - k);
       if (Math.random() < 0.45) { const an = Math.random() * Math.PI * 2; smokeAt(w.x + Math.cos(an) * w.r, 0.3, w.z + Math.sin(an) * w.r, 1, '#d6b98c', 1.3); }
@@ -1626,7 +1678,7 @@
     if (b.foeSpd) { const T = foeOf(F); if (T && !T.dead) applyFx(T, { hs: [b.foeSpd, b.dur] }, F); } // (the Bloodrush: the blood in the air quickens them too)
     DU.say(F, ab.n.toUpperCase());
   }
-  function heal(F, n) { n = Math.round(Math.min(n, F.mhp - F.hp)); if (n <= 0 || F.kind === 'rem') return; F.hp += n; floatText(F, '+' + n, 'heal'); sparks(F, '#4ade80', 6, 3, { v: [0, 4, 0], g: 0 }); }
+  function heal(F, n) { if (F.S && F.S.dots && F.S.dots.some((d) => d.k === 'po')) n *= 0.5; /* (☠️ poisoned: half as much) */ n = Math.round(Math.min(n, F.mhp - F.hp)); if (n <= 0 || F.kind === 'rem') return; F.hp += n; floatText(F, '+' + n, 'heal'); sparks(F, '#4ade80', 6, 3, { v: [0, 4, 0], g: 0 }); }
   // does a blow land? within reach, in front (the arc), not far above or below
   function meleeHit(F, ab, dmg, fx, A, h, late) {
     let any = false; const hk = h != null && (ab.k === 'multi' || ab.k === 'combo') ? 'hitT' + h : 'hitT'; // (who this blow has already hit — each blow of a flurry its own: v131, the second and third blows of a flurry were being skipped)
@@ -1646,6 +1698,7 @@
     const ex0 = pv(F, 'exe'); if (ex0 && T.mhp && T.hp > 0 && T.hp / T.mhp < ex0[0]) dmg *= ex0[1]; // (and Ichigeki)
     const rg0 = pv(F, 'rage'); if (rg0 && F.hp / F.mhp < rg0[0]) dmg *= rg0[1]; // (the Cyclops' rage)
     const cu = F.S.cu > 0; if (cu) dmg *= 0.5; // (under a grudge: half the blow…)
+    if (F.S.weakT > 0) dmg *= F.S.weakM || 1; // (🥀 weakened)
     dmg = Math.round(dmg); const f2 = Object.assign({}, fx || {}); if (f2.bl && f2.blc != null && Math.random() > f2.blc) delete f2.bl; delete f2.blc;
     if (pv(F, 'brute') && !f2.cr && Math.random() < pv(F, 'brute')) f2.cr = 1; // (Brute Force)
     if (ab && ab.maul && Math.random() < ab.maul[0] && !(F.maulT > now())) { F.maulT = now() + 6; const d3 = ab.maul[1]; Object.assign(f2, { cr: 1, crT: d3, bl: [45, d3], bu: [45, d3], fog: d3 }); floatText(T, '☠️ MAULED — BURNING · BLEEDING', 'tag'); burstAt(T.x, T.y + 3.4, T.z, '#7f1d1d', 6, 0.45); } // (the Maul: 1 in 4 — Crushed, Burning, Bleeding and Blinded for 3 s; at most once in 6 s)
@@ -1653,6 +1706,9 @@
     if (pv(F, 'frost') && !f2.sl) f2.sl = pv(F, 'frost').slice(); // (the Jötunn: Rime)
     if (T.kind === 'rem' || T.kind === 'rboss') { DU.sendHit(T, dmg, f2, F); hitLook(T, dmg, false, ab); floatText(T, String(dmg), dmg >= 100 ? 'big' : ''); if (f2.cr && !T.S.crush) floatText(T, '💢 CRUSHED', 'tag'); }
     else takeHit(T, dmg, f2, F, { ab });
+    if (ab && ab.steal && !T.dead && T.hp > 1 && Math.random() < ab.steal[0]) { const n = Math.max(1, Math.round(T.hp * ab.steal[1])); // (🩸 Bloodletting: 5% of what they have left, and the doctor drinks it)
+      if (T.kind === 'rem' || T.kind === 'rboss') { DU.sendHit(T, n, { ub: 1, tru: 1 }, F); floatText(T, String(n), 'me'); } else takeHit(T, n, { ub: 1, tru: 1 }, F, { rf: 1 }); heal(F, n); floatText(F, `🩸 BLOODLET +${n}`, 'tag'); sparks(T, '#7f1d1d', 8, 3.2, { s: 0.25 }); }
+    if (f2.lc && T.kind !== 'boss') { F.S.buffs = F.S.buffs.filter((b) => b.an !== 'leech'); F.S.buffs.push({ an: 'leech', t: f2.lc[1], hps: f2.lc[0] / f2.lc[1] }); } // (🪱 what the leeches drink, the doctor gets)
     if (crit) { floatText(T, `✴️ CRIT ${dmg}`, 'big'); sparks(T, '#f43f5e', 10, 3.4, { s: 0.28 }); burstAt(T.x, T.y + 3.4, T.z, '#fb7185', 4.5, 0.3); }
     const ls = bval(F, 'ls') + (pv(F, 'lsP') || 0); if (ls) heal(F, dmg * ls); if (ab && ab.drain) heal(F, dmg * ab.drain); // (the Soul Drain)
     if (f2.pos && !isBoss(T) && !(T.C && T.S && bval(T, 'imm'))) { F.possT = T; F.possEnd = performance.now() + f2.pos * 1000; } // (the spirit goes into them)
@@ -1684,19 +1740,27 @@
     if (T.S.sp > 0) { floatText(T, '✨ PROTECTED', 'tag'); return; } // (just back from a death in the boss fight)
     if (bval(T, 'ph') || (T.possEnd && T.possEnd > performance.now())) { floatText(T, '🌫️ PHASED', 'tag'); return; } // (the spirit: out of the world, or inside someone)
     if (T.S.ifr > 0) { floatText(T, 'DODGED', 'tag'); sfx3('whoosh', T.x, T.z, 50); if (T.kind === 'me') DU.bump('dodges', 1); return; }
-    const imm = bval(T, 'imm'), ub = !!fx.ub, blkB = ub ? 0 : bval(T, 'blk'); let mult = defOf(T) * bval(T, 'def') * (T.S.vuln > 0 ? 1.5 : 1) * (T.S.crush ? 2 : 1), blocked = false;
+    const imm = bval(T, 'imm'), ub = !!fx.ub, blkB = ub ? 0 : bval(T, 'blk'); let mult = fx.tru ? 1 : defOf(T) * bval(T, 'def') * (T.S.vuln > 0 ? 1.5 : 1) * (T.S.crush ? 2 : 1) * (T.S.scald ? 1.75 : 1), blocked = false; // (♨️ scalded: ×1.75)
     if (blkB) { mult *= 1 - blkB; blocked = true;
       if (bval(T, 'parry') && from && !o.rf) { floatText(T, '⚔️ PARRIED!', 'big'); sfx3('crash', T.x, T.z, 70); burstAt(T.x, T.y + 4, T.z, '#e5e7eb', 7, 0.45); applyFx(from, { st: 2, vu: 2 }, T); } }
     else if (!ub && T.blk && from && Math.abs(wrapA(angOf(from.x - T.x, from.z - T.z) - T.yaw)) < 1.2) { mult = shOf(T) ? 0 : mult * 0.5; blocked = true; // (a shield stops it all; a blade or a staff only takes half of it) T.st -= 12 + dmg * 0.12; T.rest = 0;
       if (T.st <= 0) { T.st = 0; T.blk = false; T.S.stun = Math.max(T.S.stun, 1.2); floatText(T, 'GUARD BROKEN', 'big'); sfx3('crash', T.x, T.z, 60); } }
     dmg = mult <= 0 ? 0 : Math.max(1, Math.round(dmg * mult)); T.hp -= dmg; T.rTaken = (T.rTaken || 0) + dmg; if (dmg > 0) T.hurtT = 0; if (T.kind === 'me' && DU.M) DU.M.taken = (DU.M.taken | 0) + dmg;
-    floatText(T, blocked ? (dmg ? `🛡️ ${dmg}` : '🛡️ BLOCKED') : String(dmg), (T.kind === 'me' ? 'me ' : '') + (dmg >= 100 ? 'big' : '')); hitLook(T, dmg, blocked, o.ab);
+    floatText(T, blocked ? (dmg ? `🛡️ ${dmg}` : '🛡️ BLOCKED') : String(dmg), (T.kind === 'me' ? 'me ' : '') + (dmg >= 100 ? 'big' : '')); if (!fx.q || Math.random() < 0.3) hitLook(T, dmg, blocked, o.ab); // (the boiling water's splashes: not every one a thud)
+    if (dmg > 0 && T.S.buffs.some((b) => b.brk)) { T.S.buffs = T.S.buffs.filter((b) => !b.brk); floatText(T, '🌿 HEALING STOPPED', 'tag'); } // (the herbs: a hit and it's over)
     if (T.kind === 'me') { const h = $('#duHurt'); if (h) { h.style.opacity = blocked ? 0.25 : 0.8; clearTimeout(DU.hurtT); DU.hurtT = setTimeout(() => (h.style.opacity = 0), 200); } }
     if (!blocked) {
-      if (!imm) { if (fx.st) { T.S.stun = Math.max(T.S.stun, fx.st); T.act = null; T.blk = false; } if (fx.rt) T.S.root = Math.max(T.S.root, fx.rt); if (fx.sl) { T.S.slow = Math.max(T.S.slow, fx.sl[1]); T.S.slowM = fx.sl[0]; }
+      if (fx.cut) { const c = clamp(+fx.cut || 0, 0, 15); if (!(T.S.cut > 0)) { floatText(T, '🔪 CUT — EFFECTS ×2.5', 'big'); sparks(T, '#ef4444', 8, 3.4, { s: 0.25 }); } T.S.cut = Math.max(T.S.cut || 0, c); } // (🔪 Cut: everything bad on them ×2.5)
+      const cutK = T.S.cut > 0 ? 2.5 : 1, addDot = (k, v, src, tag) => { const a = Math.min(600, +v[0] || 0), b = clamp(+v[1] || 0, 0.2, 15); if (!(a > 0)) return; const ex = src && T.S.dots.find((d) => d.k === k && d.src === src); if (ex) { ex.t = Math.max(ex.t, b); ex.dps = Math.max(ex.dps, a / b); return; } T.S.dots.push({ k, dps: a / b, t: b, acc: 0, src }); floatText(T, tag, 'tag'); };
+      if (!imm) { if (fx.st) { T.S.stun = Math.max(T.S.stun, fx.st); T.act = null; T.blk = false; } if (fx.rt) T.S.root = Math.max(T.S.root, fx.rt); if (fx.sl) { T.S.slow = Math.max(T.S.slow, fx.sl[1]); T.S.slowM = cutK > 1 ? Math.max(0.2, 1 - (1 - fx.sl[0]) * cutK) : fx.sl[0]; }
         if (fx.kb && from) { const dx = T.x - from.x, dz = T.z - from.z, l = Math.hypot(dx, dz) || 1; T.push = { vx: dx / l * fx.kb / 0.3, vz: dz / l * fx.kb / 0.3, t: 0.3 }; } }
       if (fx.bl) { T.S.dots.push({ k: 'bl', dps: fx.bl[0] / fx.bl[1], t: fx.bl[1], acc: 0 }); floatText(T, '🩸 BLEEDING', 'tag'); }
-      if (fx.bu && !pv(T, 'fireImm')) { T.S.dots.push({ k: 'bu', dps: fx.bu[0] / fx.bu[1], t: fx.bu[1], acc: 0 }); floatText(T, '🔥 BURNING', 'tag'); }
+      if (fx.bu && !pv(T, 'fireImm')) addDot('bu', fx.bu, fx.src, '🔥 BURNING');
+      if (fx.po) addDot('po', fx.po, fx.src, '☠️ POISONED'); if (fx.lc) addDot('lc', fx.lc, 'leech', '🪱 LEECHES');
+      if (fx.wk && !imm) { const m = Math.max(0.5, 1 - (1 - (+fx.wk[0] || 1)) * cutK); T.S.weakM = Math.min(T.S.weakT > 0 ? T.S.weakM : 1, m); if (!(T.S.weakT > 0.3)) floatText(T, `🥀 WEAKENED −${Math.round((1 - T.S.weakM) * 100)}%`, 'tag'); T.S.weakT = Math.max(T.S.weakT || 0, clamp(+fx.wk[1] || 0, 0, 10)); }
+      if (fx.sc && !T.S.scald) { T.S.scald = 1; floatText(T, '♨️ SCALDED — ×1.75 DAMAGE', 'big'); sfx3('magic', T.x, T.z, 60); } // (♨️ for the rest of the round)
+      if (fx.hd && fx.sc && !isBoss(T)) { if (!T.S.scH) floatText(T, '♨️ IN THE EYES', 'tag'); T.S.scH = 1; T.S.blurT = 2.5; } // (in the face: their eyes blur)
+      if (fx.pbl && !(T.pbl > 0) && !isBoss(T)) { T.pbl = clamp(+fx.pbl || 0, 0, 5); floatText(T, '🩸 BLEEDING ALL MATCH', 'big'); } // (the scalpel: till the match ends)
       if (fx.pos && !isBoss(T)) { T.S.pos = Math.max(T.S.pos || 0, fx.pos); T.S.posBy = from || null; T.act = null; T.blk = false; floatText(T, '👻 POSSESSED', 'big'); sfx3('magic', T.x, T.z, 70); } // (possessed: it walks them where it looks)
       if (fx.fr && !isBoss(T)) { T.S.fear = Math.max(T.S.fear || 0, fx.fr); T.S.fearBy = from || null; T.act = null; T.blk = false; floatText(T, '😱 TERRIFIED', 'big'); sfx3('magic', T.x, T.z, 70); } // (the Horseman's laugh: they run from him)
       if (fx.pl && from && !isBoss(T)) { const dx = T.x - from.x, dz = T.z - from.z, l = Math.hypot(dx, dz) || 1, d = Math.max(0, l - 3.4 - bigR(T) - bigR(from)); if (d > 0) T.push = { vx: -dx / l * d / 0.3, vz: -dz / l * d / 0.3, t: 0.3 }; floatText(T, '⛓️ DRAGGED IN', 'tag'); } // (Krampus's chain: dragged in to him)
@@ -1733,6 +1797,8 @@
     if (F.mim && (F.mim.t -= dt) <= 0) mimicEnd(F, false); if (F.mimF) { F.mimF.t -= dt; F.cd[3] = Math.max(0.01, F.mimF.t); if (F.mimF.t <= 0) mimicEnd(F, true); } // (🎭 the time left on what it wears)
     if (S.crushT > 0 && (S.crushT -= dt) <= 0) { S.crushT = 0; S.crush = 0; } // (a Maul's Crush wears off)
     if (S.fog > 0) S.fog = Math.max(0, S.fog - dt); if (S.chill > 0) S.chill = Math.max(0, S.chill - dt);
+    if (F.pour && !(F.act && F.act.ab.k === 'pour')) F.pour = 0; // (a bucket knocked out of their hands)
+    if (S.weakT > 0 && (S.weakT -= dt) <= 0) { S.weakT = 0; S.weakM = 1; } if (S.cut > 0) S.cut = Math.max(0, S.cut - dt); if (S.blurT > 0) S.blurT = Math.max(0, S.blurT - dt); // (🥀 🔪 ♨️)
     F.hurtT = (F.hurtT == null ? 99 : F.hurtT) + dt; const rgn = pv(F, 'regen');
     if (rgn && !F.dead && F.kind !== 'rem' && F.kind !== 'rboss' && F.hurtT >= rgn[1] && F.hp < F.mhp && live()) { F.hp = Math.min(F.mhp, F.hp + F.mhp * rgn[0] * dt); F.rgT = (F.rgT || 0) + dt; if (F.rgT > 1) { F.rgT = 0; floatText(F, `♾️ +${Math.round(F.mhp * rgn[0])}`, 'heal'); } } // (♾️ Immortality: healing while nobody touches it)
     if (pv(F, 'stages')) { const st = stageOf(F); if (F.stage && st !== F.stage && !F.dead && st > F.stage) { floatText(F, `🩸 STAGE ${st} — +${(st - 1) * 25}% DAMAGE`, 'big'); sfx3('horn', F.x, F.z, 80, { vol: 0.6 }); burstAt(F.x, F.y + 4, F.z, '#7f1d1d', 6, 0.4); } F.stage = st; }
@@ -1742,13 +1808,23 @@
       r.visible = true; r.position.set(F.x, (F.y || 0) + 0.1, F.z); r.scale.setScalar(au[0] * (F.C.big || 1)); r.rotation.y += dt * 0.25; } else if (F.auraR) F.auraR.visible = false;
     if (F.kind === 'rem' || F.kind === 'rboss' || F.dead) return;
     const hps = bval(F, 'hps'); if (hps && live()) { F.hpAcc = (F.hpAcc || 0) + hps * dt; if (F.hpAcc >= 5) { heal(F, F.hpAcc); F.hpAcc = 0; } }
-    for (const d of S.dots) { if (!live()) break; d.t -= dt; d.acc += d.dps * dt; if (d.acc >= 6 || d.t <= 0) { const n = Math.round(d.acc); d.acc = 0; if (n > 0) { F.hp -= n; F.rTaken = (F.rTaken || 0) + n; floatText(F, String(n), d.k === 'bu' ? 'tag' : 'me'); if (F.hp <= 0) { F.hp = 0; DU.killed(F, foeOf(F)); return; } } } }
+    const cutK = S.cut > 0 ? 2.5 : 1; // (🔪 cut: every bleed, burn and poison ×2.5)
+    for (const d of S.dots) { if (!live()) break; d.t -= dt; d.acc += d.dps * dt * cutK; if (d.acc >= 6 || d.t <= 0) { const n = Math.round(d.acc); d.acc = 0; if (n > 0) { F.hp -= n; F.rTaken = (F.rTaken || 0) + n; floatText(F, String(n), d.k === 'bu' ? 'tag' : d.k === 'po' || d.k === 'lc' ? 'po' : 'me'); if (F.hp <= 0) { F.hp = 0; DU.killed(F, foeOf(F)); return; } } } }
+    if (F.pbl > 0 && live()) { F.pblT = (F.pblT || 0) + dt; if (F.pblT >= 1) { F.pblT -= 1; const n = Math.round(F.pbl * cutK * 10) / 10; F.hp -= n; F.rTaken = (F.rTaken || 0) + n; floatText(F, `🩸${n}`, 'me'); if (F.hp <= 0) { F.hp = 0; DU.killed(F, foeOf(F)); return; } } } // (the scalpel's bleed: every second, all match)
     S.dots = S.dots.filter((d) => d.t > 0);
     const sprint = F.kind === 'me' ? DU.sprinting : F.sprint;
     if (sprint) { F.st = Math.max(0, F.st - 15 * dt); F.rest = 0; } else if (F.blk) F.rest = 0; else { F.rest += dt; if (F.rest > 0.7) F.st = Math.min(100, F.st + 26 * dt); }
     if (F.push) { moveF(F, F.push.vx * dt, F.push.vz * dt); F.push.t -= dt; if (F.push.t <= 0) F.push = null; }
   }
   /* ---------------- things thrown and shot ---------------- */
+  // 🪣 the doctor's bucket: wooden staves, iron hoops, a rope handle — steaming
+  function bucketModel() { const g = new THREE.Group(), wd = new THREE.MeshLambertMaterial({ color: '#7c5a36', map: woodTex() }), ir = metalMat('#3f3f46', { shininess: 60 });
+    const b = new THREE.Mesh(kg('duBucketB', () => new THREE.CylinderGeometry(0.5, 0.38, 0.75, 18, 1, true)), Object.assign(wd.clone(), { side: THREE.DoubleSide })); g.add(b);
+    const bt = new THREE.Mesh(kCyl(), wd); bt.scale.set(0.38, 0.04, 0.38); bt.position.y = -0.36; g.add(bt);
+    for (const [y, r] of [[0.25, 0.48], [-0.22, 0.41]]) { const h = new THREE.Mesh(kTor(0.06), ir); h.rotation.x = Math.PI / 2; h.scale.setScalar(r / 0.94); h.position.y = y; g.add(h); }
+    const w = new THREE.Mesh(kCyl(), new THREE.MeshPhongMaterial({ color: '#bae6fd', emissive: '#0ea5e9', emissiveIntensity: 0.25, transparent: true, opacity: 0.85, shininess: 120 })); w.scale.set(0.46, 0.02, 0.46); w.position.y = 0.26; g.add(w);
+    const hd = new THREE.Mesh(kTor(0.03), ir); hd.scale.set(0.52, 0.52, 0.52); hd.position.y = 0.38; g.add(hd);
+    kitGlow(g, '#e0f2fe', 1.2, 0.35).position.y = 0.7; return g; }
   function projModel(kind) {
     const g = new THREE.Group();
     if (kind === 'javelin' || kind === 'pilum') { const p = dgPole(g, kind); p.position.z = 1.2; }
@@ -1784,16 +1860,29 @@
       const q = new THREE.Mesh(kCyl(), new THREE.MeshBasicMaterial({ color: '#fbbf24' })); q.scale.set(0.025, 0.85, 0.025); q.rotation.x = Math.PI / 2; g.add(q); kitGlow(g, '#34d399', 1.4, 0.55); } // (a quetzal's jade feather)
     else if (kind === 'redgaze') { kitGlow(g, '#dc2626', 3.2, 0.85); kitGlow(g, '#fee2e2', 1.1, 0.95); const e = new THREE.Mesh(kSph(), new THREE.MeshBasicMaterial({ color: '#fecaca' })); e.scale.set(0.38, 0.24, 0.2); g.add(e); const pu = new THREE.Mesh(kSph(), new THREE.MeshBasicMaterial({ color: '#450a0a' })); pu.scale.set(0.07, 0.22, 0.24); g.add(pu); } // (Dracula's gaze: a red eye of light)
     else if (kind === 'charm') { kitGlow(g, '#f472b6', 2.8, 0.85); kitGlow(g, '#fdf2f8', 1.0, 0.95); const m = new THREE.Mesh(ovShape('duHeart', Array.from({ length: 24 }, (_, k) => { const t = (k / 24) * Math.PI * 2; return [0.03 * 16 * Math.sin(t) ** 3, 0.03 * (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t))]; }), 0.1, 0.02), new THREE.MeshBasicMaterial({ color: '#f9a8d4' })); m.rotation.y = Math.PI / 2; m.scale.setScalar(0.6); g.add(m); } // (the Kitsune's charm: a heart of pink light)
+    else if (kind === 'flaskG' || kind === 'flaskR' || kind === 'miasma') { const s2 = new THREE.Group(); g.add(s2); const gl = new THREE.MeshPhongMaterial({ color: '#e2e8f0', transparent: true, opacity: 0.35, shininess: 160, specular: '#ffffff', depthWrite: false }), lc = kind === 'flaskR' ? '#dc2626' : kind === 'miasma' ? '#65a30d' : '#22c55e';
+      const bl = new THREE.Mesh(kSph(), gl); bl.scale.setScalar(0.34); s2.add(bl); const nk = new THREE.Mesh(kCyl(), gl); nk.scale.set(0.09, 0.32, 0.09); nk.position.y = 0.38; s2.add(nk);
+      const lq = new THREE.Mesh(kSph(), new THREE.MeshPhongMaterial({ color: lc, emissive: lc, emissiveIntensity: 0.45, shininess: 90 })); lq.scale.set(0.29, 0.22, 0.29); lq.position.y = -0.06; s2.add(lq);
+      const ck = new THREE.Mesh(kCyl(), new THREE.MeshLambertMaterial({ color: '#a16207' })); ck.scale.set(0.1, 0.08, 0.1); ck.position.y = 0.56; s2.add(ck); kitGlow(g, lc, 1.3, 0.55); if (kind === 'miasma') { const f = emSprite(g, fxTex('flame'), 0.9, { blending: THREE.AdditiveBlending, color: '#a3e635' }); f.position.z = 0.7; }
+      g.userData.spin = s2; g.userData.spinAx = 'x'; } // (a glass flask: the liquid's colour is what it does)
+    else if (kind === 'water') { const m = new THREE.Mesh(kSph(), new THREE.MeshPhongMaterial({ color: '#e0f2fe', emissive: '#38bdf8', emissiveIntensity: 0.3, transparent: true, opacity: 0.75, shininess: 140, depthWrite: false })); m.scale.set(0.26, 0.22, 0.42); g.add(m); kitGlow(g, '#f1f5f9', 1.0, 0.35); } // (a gout of boiling water)
+    else if (kind === 'hemlock') { const s2 = new THREE.Group(); g.add(s2); const p = new THREE.Mesh(kSph(), new THREE.MeshLambertMaterial({ color: '#d6c7a1' })); p.scale.set(0.26, 0.22, 0.26); s2.add(p); const t2 = new THREE.Mesh(kCone(), new THREE.MeshLambertMaterial({ color: '#d6c7a1' })); t2.scale.set(0.12, 0.16, 0.12); t2.position.y = 0.26; s2.add(t2);
+      for (let k = 0; k < 5; k++) { const f = new THREE.Mesh(kSph(), new THREE.MeshLambertMaterial({ color: k % 2 ? '#f8fafc' : '#65a30d' })); f.scale.setScalar(0.07); f.position.set(Math.cos(k * 1.26) * 0.12, 0.38, Math.sin(k * 1.26) * 0.12); s2.add(f); } kitGlow(g, '#d9f99d', 1.1, 0.45); g.userData.spin = s2; } // (a pouch of hemlock, its white flowers poking out)
+    else if (kind === 'scalpel') { const s2 = new THREE.Group(); g.add(s2); const bl = new THREE.Mesh(ovShape('duScalp', [[0, 0.55], [0.07, 0.3], [0.06, 0], [-0.03, 0], [-0.03, 0.42]], 0.015, 0.004), metalMat('#e5e7eb', { shininess: 160 })); bl.rotation.x = Math.PI / 2; s2.add(bl);
+      const hd = new THREE.Mesh(BOX, metalMat('#9ca3af', { shininess: 80 })); hd.scale.set(0.05, 0.035, 0.42); hd.position.z = 0.2; s2.add(hd); kitGlow(g, '#f8fafc', 0.9, 0.5); g.userData.spin = s2; g.userData.spinAx = 'y'; } // (a surgeon's scalpel, spinning)
+    else if (kind === 'leech') { const s2 = new THREE.Group(); g.add(s2); const jr = new THREE.Mesh(kCyl(), new THREE.MeshPhongMaterial({ color: '#d1fae5', transparent: true, opacity: 0.4, shininess: 150, depthWrite: false })); jr.scale.set(0.24, 0.36, 0.24); s2.add(jr);
+      for (let k = 0; k < 4; k++) { const l = new THREE.Mesh(kSph(), new THREE.MeshPhongMaterial({ color: '#3f2a14', shininess: 70 })); l.scale.set(0.06, 0.06, 0.15); l.position.set(Math.cos(k * 1.6) * 0.1, -0.1 + k * 0.07, Math.sin(k * 1.6) * 0.1); l.rotation.y = k; s2.add(l); }
+      const lid = new THREE.Mesh(kCyl(), new THREE.MeshLambertMaterial({ color: '#78350f' })); lid.scale.set(0.26, 0.04, 0.26); lid.position.y = 0.19; s2.add(lid); g.userData.spin = s2; g.userData.spinAx = 'x'; } // (a jar of leeches)
     else if (kind === 'bomb') { const w = new THREE.Group(); g.add(w); dgBomb(w); g.userData.spin = w; g.userData.spinAx = 'x'; const f = emSprite(g, fxTex('flame'), 0.8, { blending: THREE.AdditiveBlending }); f.position.set(0, 0.5, 0); }
     else { const b = new THREE.Mesh(kSph(), new THREE.MeshBasicMaterial({ color: '#fde68a' })); b.scale.setScalar(0.18); g.add(b); const tr = new THREE.Mesh(kCyl(), new THREE.MeshBasicMaterial({ color: '#fef3c7', transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending })); tr.scale.set(0.06, 5, 0.06); tr.rotation.x = Math.PI / 2; tr.position.z = 2.5; g.add(tr); }
     return g;
   }
   function spawnProj(F, ab, off, vis) {
     const yaw = F.yaw + off, dx = -Math.sin(yaw), dz = -Math.cos(yaw), T = foeOf(F), m = projModel(ab.model || 'arrow'), y0 = F.y + (F.lift || 0) + 4.2;
-    const x0 = F.x + dx * 1.6, z0 = F.z + dz * 1.6, ty = T ? T.y + 3 * (T.C.big || 1) : y0, d = T ? Math.hypot(T.x - x0, T.z - z0) : 30, lob = ab.model === 'bomb', tt = Math.max(0.2, Math.min(d, 60) / ab.spd), gr = lob ? 32 : 0;
-    const vy = lob ? (GROUND + 0.5 - y0) / tt + 0.5 * gr * tt : clamp((ty - y0) / tt, -20, 20); // (a grenade: thrown up so it comes down on them)
+    const arc = !!ab.arc, x0 = F.x + dx * 1.6, z0 = F.z + dz * 1.6, ty = T ? T.y + (arc ? (Math.random() < 0.5 ? 5.3 : 3.1) : 3) * (T.C.big || 1) : y0, d = T ? Math.hypot(T.x - x0, T.z - z0) : 30, lob = ab.model === 'bomb' || !!ab.lob, tt = Math.max(0.2, Math.min(d, arc ? ab.rng || 15 : 60) / ab.spd), gr = lob ? 32 : arc ? 14 : 0;
+    const vy = lob ? (GROUND + 0.5 - y0) / tt + 0.5 * gr * tt : arc ? (ty - y0) / tt + 0.5 * gr * tt : clamp((ty - y0) / tt, -20, 20); // (a grenade: thrown up so it comes down on them; the boiling water: tossed, falling on them — at the head or the body — or short of them, out of reach)
     m.position.set(x0, y0, z0); scene.add(m);
-    DU.proj.push({ m, F, ab, x: x0, y: y0, z: z0, vx: dx * ab.spd, vy, vz: dz * ab.spd, gr, life: lob ? tt + 0.6 : 70 / ab.spd + 0.4, vis, fx: ab.fx });
+    DU.proj.push({ m, F, ab, x: x0, y: y0, z: z0, vx: dx * ab.spd, vy, vz: dz * ab.spd, gr, lob, life: lob ? tt + 0.6 : 70 / ab.spd + 0.4, vis, fx: ab.fx });
     if (ab.model === 'ball') { burstAt(x0, y0, z0, '#fde68a', 4, 0.2); smokeAt(x0, y0, z0, 8, '#d1d5db', 1.6); sfx3('boom', F.x, F.z, 90, { vol: 0.8 }); camShake(F.a, 0.3); }
   }
   function projTick(dt) {
@@ -1806,12 +1895,13 @@
       const T = foeOf(p.F);
       const bg = T ? T.C.big || 1 : 1;
       const sx = p.x - ox, sz = p.z - oz, sl = sx * sx + sz * sz, st = sl > 1e-6 ? clamp(((T ? T.x : 0) - ox) * sx / sl + ((T ? T.z : 0) - oz) * sz / sl, 0, 1) : 1, cx = ox + sx * st, cz = oz + sz * st, cy = oy + (p.y - oy) * st; // (the nearest it came to them this frame)
-      if (T && !T.dead && Math.hypot(T.x - cx, T.z - cz) < (p.F.kind === 'me' ? 2.9 : 2.3) + bigR(T) && Math.abs(T.y + (T.lift || 0) + 3 * bg - cy) < 4.2 * bg) { p.life = 0; p.boom = 1; if (!p.vis) dealHitAs(p.F, T, p.ab.dmg, p.fx, p.ab); else burstAt(p.x, p.y, p.z, '#fff7ed', 2); }
+      if (T && !T.dead && Math.hypot(T.x - cx, T.z - cz) < (p.F.kind === 'me' ? 2.9 : 2.3) + bigR(T) && Math.abs(T.y + (T.lift || 0) + 3 * bg - cy) < 4.2 * bg) { p.life = 0; p.boom = 1; const hd = p.ab.arc && cy > T.y + (T.lift || 0) + 4.4 * bg; if (!p.vis) dealHitAs(p.F, T, p.ab.dmg, hd ? Object.assign({ hd: 1 }, p.fx) : p.fx, p.ab); else burstAt(p.x, p.y, p.z, '#fff7ed', 2); if (p.ab.arc) smokeAt(p.x, p.y, p.z, 1, '#f1f5f9', 1.2); } // (♨️ the water: in the face, or on the body)
       if (p.y < 0.2 || isFloor(p.x, p.z) > 1.15) { p.life = 0; smokeAt(p.x, 0.4, p.z, 3, '#c8a97e', 1.2);
-        if (p.gr && !p.boom) { p.boom = 1; if (!p.vis && T && !T.dead && Math.hypot(T.x - p.x, T.z - p.z) < 4.5 + bigR(T)) dealHitAs(p.F, T, p.ab.dmg, p.fx, p.ab); } } // (a grenade bursts where it lands)
-      if (p.life <= 0 && p.gr) { burstAt(p.x, Math.max(1, p.y), p.z, '#f97316', 7, 0.4); smokeAt(p.x, 0.6, p.z, 8, '#57534e', 2.4); sfx3('boom', p.x, p.z, 80, { vol: 0.7 }); ringAt(p.x, p.z, '#f97316', 5, 0.35); }
+        if (p.lob && !p.boom) { p.boom = 1; if (!p.vis && T && !T.dead && Math.hypot(T.x - p.x, T.z - p.z) < 4.5 + bigR(T)) dealHitAs(p.F, T, p.ab.dmg, p.fx, p.ab); } } // (a grenade bursts where it lands)
+      if (p.life <= 0 && p.ab.cloud && !p.cl) { p.cl = 1; cloudAt(p.F, p.ab, p.x, p.z, p.vis); } // (🌫️ the vial bursts: miasma)
+      else if (p.life <= 0 && p.lob && !p.ab.cloud) { burstAt(p.x, Math.max(1, p.y), p.z, '#f97316', 7, 0.4); smokeAt(p.x, 0.6, p.z, 8, '#57534e', 2.4); sfx3('boom', p.x, p.z, 80, { vol: 0.7 }); ringAt(p.x, p.z, '#f97316', 5, 0.35); }
     }
-    DU.proj = DU.proj.filter((p) => { if (p.life > 0) return true; scene.remove(p.m); return false; });
+    DU.proj = DU.proj.filter((p) => { if (p.life > 0) return true; scene.remove(p.m); if (p.ab.model && /^flask|hemlock|leech/.test(p.ab.model)) { burstAt(p.x, Math.max(0.8, p.y), p.z, p.ab.model === 'flaskR' ? '#ef4444' : p.ab.model === 'leech' ? '#78350f' : '#84cc16', 4, 0.3); smokeAt(p.x, Math.max(0.6, p.y), p.z, 3, p.ab.model === 'flaskR' ? '#fca5a5' : '#bef264', 1.4); sfx3('crash', p.x, p.z, 50, { vol: 0.35 }); } return false; }); // (glass breaking)
     for (const v of DU.volleys) { v.t += dt; if (v.F.kind === 'me' && !v.vis && v.t < v.ab.delay * 0.75) { const T = foeOf(v.F); if (T && !T.dead && !bval(T, 'inv')) { const k = Math.min(1, dt * 5); v.x += (T.x - v.x) * k; v.z += (T.z - v.z) * k; v.ring.position.x = v.x; v.ring.position.z = v.z; } } v.ring.material.opacity = 0.5 + 0.4 * Math.sin(v.t * 20); v.ring.scale.setScalar(v.ab.rad * (1 - 0.15 * Math.min(1, v.t / v.ab.delay)));
       while (v.n < v.ab.cnt && v.t >= v.ab.delay + v.n * 0.08) { const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * v.ab.rad, x = v.x + Math.cos(a) * r, z = v.z + Math.sin(a) * r, m = projModel(v.ab.model || 'arrow'); m.position.set(x + 3, 26, z + 3); scene.add(m);
         DU.drops.push({ m, x, z, y: 26, F: v.F, ab: v.ab, vis: v.vis, done: false }); v.n++; } }
@@ -1832,9 +1922,10 @@
   }
   function abilityGood(F, ab, d, T) {
     if (ab.k === 'mimic') return d < 30; if (ab.k === 'mimic2') return !F.mimF && (d < 20 || T.hp / T.mhp > F.hp / F.mhp + 0.2); if (ab.k === 'blink') return d > 5 && d < ab.rng; if (ab.selfP) return F.hp / F.mhp > 0.3 && d < 14;
-    if (ab.k === 'buff') { const b = ab.b; if (b.blk) return !!T.act && d < 12; if (b.heal || b.healP || b.hps) return F.hp / F.mhp < 0.65 || (b.def && d < 10); if (b.inv) return d < 18; return d < 14; }
+    if (ab.k === 'buff') { const b = ab.b; if (b.blk) return !!T.act && d < 12; if (b.brk) return d > 12 && F.hp / F.mhp < 0.85; if (b.heal || b.healP || b.hps || b.hpsP) return F.hp / F.mhp < 0.65 || (b.def && d < 10); if (b.inv) return d < 18; return d < 14; }
     if (ab.k === 'dash') return ab.back ? d < 8 : d > 4 && d < ab.dist + 2;
-    if (ab.k === 'leap') return d > 6 && d < ab.dist; if (ab.k === 'proj') return d < 45; if (ab.k === 'volley') return true;
+    if (ab.k === 'pour') return d < ab.rng - 2; if (ab.cloud && ab.k === 'melee') return d < (ab.rng || 6) + 1;
+    if (ab.k === 'leap') return d > 6 && d < ab.dist; if (ab.k === 'proj') return d < (ab.lob ? 30 : 45); if (ab.k === 'volley') return true;
     if (ab.k === 'stomp') return d < (ab.near || 0) + 2 + bigR(F) || d < ab.rad * 0.7;
     return d < (ab.rng || 6) + 0.6;
   }
@@ -1858,7 +1949,7 @@
     if (!T || F.dead || !live()) { F.blk = false; return; }
     const inv = bval(T, 'inv') > 0; if (!inv) { B.lx = T.x; B.lz = T.z; } // (lost in the smoke: where they were last)
     const dx = (inv ? B.lx : T.x) - F.x, dz = (inv ? B.lz : T.z) - F.z, d = Math.max(0.01, Math.hypot(dx, dz)), yawTo = angOf(dx, dz);
-    if (T.act && T.acN !== B.seen && !T.act.vis0) { B.seen = T.acN; B.react = D.react * (0.7 + Math.random() * 0.6) * (F.S.fog > 0 ? 2.2 : 1); B.rab = T.act.ab; } // (fogged by a Screech: slow to see it coming)
+    if (T.act && T.acN !== B.seen && !T.act.vis0) { B.seen = T.acN; B.react = D.react * (0.7 + Math.random() * 0.6) * (F.S.fog > 0 ? 2.2 : 1) * (F.S.scH ? 1.4 : 1); B.rab = T.act.ab; } // (fogged by a Screech: slow to see it coming)
     if (B.react != null && (B.react -= dt) <= 0) { B.react = null; const ab = B.rab, threat = ab.k !== 'buff' && (d < (ab.rng || 8) + 4 || ab.k === 'proj' || ab.k === 'dash' || ab.k === 'leap' || ab.k === 'volley');
       if (threat && !F.act && !stunned(F)) { const r = Math.random(); if (r < D.dodge) { const s = Math.random() < 0.5 ? 1 : -1; dodge(F, -dz / d * s - dx / d * 0.5, dx / d * s - dz / d * 0.5); } else if (r < D.dodge + D.guard && ab.k !== 'volley' && F.st > 30) { F.blk = true; B.blkT = 0.45 + Math.random() * 0.4; } } }
     if (B.blkT > 0 && ((B.blkT -= dt) <= 0 || F.st <= 0 || F.act)) { F.blk = false; B.blkT = 0; }
@@ -1915,21 +2006,22 @@
     $('#xhud').append(el); HUD.el = el; HUD.last = {};
     const ab = el.querySelector('#duAb');
     ab.addEventListener('pointerdown', (e) => { const b = e.target.closest('button'); if (!b) return; e.preventDefault(); e.stopPropagation();
-      if (b.dataset.ab) { DU.tryAb(+b.dataset.ab); if (b.dataset.ab === '0') { DU.lmb = true; DU.lmbPid = e.pointerId; } } else if (b.dataset.mode) DU.setMode(+b.dataset.mode); else if (b.dataset.k === 'dodge') DU.tryDodge(); else if (b.dataset.k === 'block') DU.blockHeld = true;
+      if (b.dataset.ab) { if (b.dataset.ab === '1') { DU.eHeld = true; DU.ePid = e.pointerId; } DU.tryAb(+b.dataset.ab); if (b.dataset.ab === '0') { DU.lmb = true; DU.lmbPid = e.pointerId; } } else if (b.dataset.mode) DU.setMode(+b.dataset.mode); else if (b.dataset.k === 'dodge') DU.tryDodge(); else if (b.dataset.k === 'block') DU.blockHeld = true;
       else if (b.dataset.k === 'run') DU.touchRun = !DU.touchRun; else if (b.dataset.k === 'lock') DU.toggleLock(); else if (b.dataset.k === 'hb') DU.toggleOpt('hb'); else if (b.dataset.k === 'leave') DU.leaveAsk(); });
     ab.addEventListener('pointerover', (e) => { const b = e.target.closest && e.target.closest('[data-ab]'), tip = $('#duAbTip'); if (!tip || !DU.M) return; if (!b || e.pointerType === 'touch') { tip.classList.remove('on'); return; } // (💬 an ability's tip on hover)
       const q = abOf(DU.M.me, +b.dataset.ab), dm = q.hits ? q.hits.join(' + ') : q.dmg ? `${q.dmg}${q.cnt > 1 ? ' ×' + q.cnt : ''}` : '';
       tip.innerHTML = `<b>${q.ic} ${esc(q.n)} <small>${KEYN[+b.dataset.ab]}</small></b><em>${dm ? `${dm} damage · ` : ''}${q.cd} s cooldown${q.wind >= 0.4 ? ` · ${q.wind} s wind-up` : ''}</em>${q.d ? `<span>${esc(q.d)}</span>` : ''}`;
       const r = b.getBoundingClientRect(), hr = HUD.el.getBoundingClientRect(); tip.style.left = `${Math.max(8, r.left - hr.left)}px`; tip.style.bottom = `${hr.bottom - r.top + 8}px`; tip.classList.add('on'); });
     ab.addEventListener('pointerout', (e) => { if (!e.relatedTarget || !e.relatedTarget.closest || !e.relatedTarget.closest('[data-ab]')) { const tip = $('#duAbTip'); if (tip) tip.classList.remove('on'); } });
-    for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) ab.addEventListener(ev, (e) => { const b = e.target.closest && e.target.closest('button'); if (b && b.dataset.k === 'block') DU.blockHeld = false; if (e.pointerId === DU.lmbPid) { DU.lmb = false; DU.lmbPid = null; } }); // (holding the M1 button swings again and again, as holding the mouse does)
+    for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) ab.addEventListener(ev, (e) => { const b = e.target.closest && e.target.closest('button'); if (b && b.dataset.k === 'block') DU.blockHeld = false; if (e.pointerId === DU.lmbPid) { DU.lmb = false; DU.lmbPid = null; } if (e.pointerId === DU.ePid) { DU.eHeld = false; DU.ePid = null; } }); // (holding the M1 button swings again and again, as holding the mouse does)
   }
   function hudCard(F, who, them) {
     const C = F.C, hp = Math.max(0, Math.ceil(F.hp)), st = Math.round(F.st), fx = [];
     if (F.S.stun > 0) fx.push('<span class="bad">💫 Stunned</span>'); if (F.S.root > 0) fx.push('<span class="bad">🕸️ Rooted</span>'); if (F.S.slow > 0) fx.push('<span class="bad">🐌 Slowed</span>');
     if (F.S.dots.some((d) => d.k === 'bl')) fx.push('<span class="bad">🩸 Bleed</span>'); if (F.S.dots.some((d) => d.k === 'bu')) fx.push('<span class="bad">🔥 Burn</span>'); if (F.S.vuln > 0) fx.push('<span class="bad">⚠️ +50% dmg</span>'); if (F.S.cu > 0) fx.push('<span class="bad">👺 Grudge</span>'); if (F.S.fear > 0) fx.push('<span class="bad">😱 Terrified</span>'); if (F.S.stone > 0) fx.push('<span class="bad">🗿 Stone</span>'); if (F.S.fog > 0) fx.push('<span class="bad">🌫️ Fogged</span>'); if (F.S.chill > 0) fx.push('<span class="bad">❄️ Chilled</span>');
+    if (F.S.dots.some((d) => d.k === 'po')) fx.push('<span class="bad">☠️ Poison</span>'); if (F.S.dots.some((d) => d.k === 'lc')) fx.push('<span class="bad">🪱 Leeches</span>'); if (F.pbl > 0) fx.push('<span class="bad">🩸 Bleeding all match</span>'); if (F.S.scald) fx.push('<span class="bad">♨️ Scalded ×1.75</span>'); if (F.S.cut > 0) fx.push('<span class="bad">🔪 Cut ×2.5</span>'); if (F.S.weakT > 0) fx.push(`<span class="bad">🥀 Weak −${Math.round((1 - (F.S.weakM || 1)) * 100)}%</span>`);
     if (F.mim) fx.push(`<span class="good">🎭 ${esc(F.mim.ab.n)} ${Math.ceil(F.mim.t)}s</span>`); if (F.mimF) fx.push(`<span class="good">🧬 ${{ h: 'Health', b: 'Block', p: 'Passives' }[F.mimF.k]} ${Math.ceil(F.mimF.t)}s</span>`); if (pv(F, 'stages')) fx.push(`<span class="${stageOf(F) > 1 ? 'bad' : 'good'}">🩸 Stage ${stageOf(F)}</span>`); if (F.S.crush) fx.push('<span class="bad">💢 Crushed ×2</span>'); if (F.S.sp > 0) fx.push('<span class="good">✨ Protected</span>');
-    if (F.C.wish && F.wishN) fx.push(`<span class="good">🪓 Wish +${Math.round(F.wishN * wishV(F) * 100)}%</span>`); if (F.S.buffs.some((b) => b.an === 'haste')) fx.push('<span class="good">🩸 ×1.2 speed</span>');
+    if (F.C.wish && F.wishN) fx.push(`<span class="good">🪓 Wish +${Math.round(F.wishN * wishV(F) * 100)}%</span>`); if (F.S.buffs.some((b) => b.an === 'haste')) fx.push('<span class="good">🩸 ×1.2 speed</span>'); if (F.S.buffs.some((b) => b.brk)) fx.push('<span class="good">🌿 Healing</span>'); if (F.S.buffs.some((b) => b.an === 'leech')) fx.push('<span class="good">🪱 Drinking</span>');
     for (const b of F.S.buffs) { const ab = C.ab.find((q) => q.an === b.an); if (ab) fx.push(`<span class="good">${ab.ic} ${esc(ab.n)}</span>`); } if (F.blk) fx.push('<span class="good">🛡️ Blocking</span>');
     return `<div class="tp"><span class="who">[${esc(who)}]</span><span class="ch">${C.ic} ${esc(C.n)}</span><span class="rr" style="background:${RAR[C.r].c}">${RAR[C.r].s} ${RAR[C.r].n.toUpperCase()}</span></div>
       <div class="hl"><span>Hp</span><div class="du-bar hp${hp / F.mhp < 0.25 ? ' low' : ''}"><u style="width:${(F.hpLag || hp) / F.mhp * 100}%"></u><i style="width:${hp / F.mhp * 100}%"></i><b>${hp}/${F.mhp}</b></div></div>
@@ -1941,15 +2033,16 @@
     if (FXQ.lite) { HUD.acc = (HUD.acc || 0) + dt; if (HUD.acc < 0.08) return; dt = HUD.acc; HUD.acc = 0; } // (🚀 the HUD rewritten ~12 times a second)
     const L = HUD.last, me = M.me, foe = M.foe;
     for (const F of [me, foe]) { F.hpLag = F.hpLag == null || F.hp > F.hpLag ? F.hp : F.hpLag - Math.max(F.mhp * 0.4 * dt, 0); if (F.hpLag < F.hp) F.hpLag = F.hp; }
-    const a = hudCard(me, 'You'), b = hudCard(foe, M.md === 'b' ? (M.wen ? '❄️ BOSS' : '👹 BOSS') : M.pvp ? nameOf(M.opp) : `🤖 ${DIFF[M.D].n}`, true);
+    const a = hudCard(me, 'You'), b = hudCard(foe, M.md === 'b' ? (M.wen ? '❄️ BOSS' : '👹 BOSS') : M.pvp ? nameOf(M.opp) : M.plg ? '⚕️ SECRET' : `🤖 ${DIFF[M.D].n}`, true);
     if (a !== L.a) { $('#duMe').innerHTML = L.a = a; } if (b !== L.b) { $('#duOp').innerHTML = L.b = b; }
     const left = Math.max(0, M.left), sc = M.md === 'b' ? `<span class="sc"><span class="a">❤️ ${M.lv}</span><small>${M.lv === 1 ? 'life' : 'lives'}</small>${M.coop ? `<span class="b">👥 ${1 + M.allies.filter((q) => !q.out && !q.gone).length}</span>` : ''}</span><span class="md">${M.wen ? '❄️' : '👹'} Boss · ${M.coop ? 'together vs' : 'you vs'} the ${M.wen ? 'Wendigo' : 'Laestrygonian'}</span>` : M.md === 'c' ? `<span class="sc"><span class="a">${M.sc[0]}</span><small>—</small><span class="b">${M.sc[1]}</span></span><span class="md">⚔️ Classic · first to ${TO} · round ${M.rd}</span>` : `<span class="sc"><span class="a">${M.kills}</span><small>kills</small><span class="b">${M.deaths}</span></span><span class="md">💀 Deathmatch · most kills</span>`;
     const mid = `<div class="tm${left < 20 && M.ph === 'fight' ? ' low' : ''}">${mmss(Math.ceil(left))}</div>${sc}`; if (mid !== L.m) $('#duMid').innerHTML = L.m = mid;
     hudExtras(M, me, foe); // (🧭 the arrow to them; ❤️ low health)
+    const bl = me.S.scH ? Math.round((0.9 + (me.S.blurT > 0 ? 1.8 * me.S.blurT / 2.5 : 0)) * 10) / 10 : 0; if (bl !== L.blur) { L.blur = bl; let f = $('#duBlur'); if (!f && bl) { f = document.createElement('div'); f.id = 'duBlur'; HUD.el.prepend(f); } if (f) { f.style.backdropFilter = f.style.webkitBackdropFilter = bl ? `blur(${bl}px)` : 'none'; f.classList.toggle('on', !!bl); } } // (♨️ boiling water in the eyes: a slight blur, for the round)
     HUD.cdw = HUD.cdw || [];
     for (let i = 0; i < me.C.ab.length; i++) { const bb = HUD.el.querySelector(`[data-ab="${i}"]`); if (bb && HUD.cdw[i] > 0.05 && !(me.cd[i] > 0)) { bb.classList.remove('rdy'); void bb.offsetWidth; bb.classList.add('rdy'); } HUD.cdw[i] = me.cd[i] || 0; } // (✨ a flash the moment it's ready)
     for (let i = 0; i < me.C.ab.length; i++) { const ab = abOf(me, i), b = HUD.el.querySelector(`[data-ab="${i}"]`), cd = me.cd[i], mi = i === 1 && me.mim, mf = i === 3 && me.mimF, nm = mi ? `${ab.n} (Mimic) ${Math.ceil(me.mim.t)}s left` : mf ? `${{ h: 'Health', b: 'Block', p: 'Passives' }[me.mimF.k]} ${Math.ceil(me.mimF.t)}s left` : ab.n, key = `${ab.ic}|${nm}|${cd > 0 ? Math.ceil(cd * (cd < 1 ? 10 : 1)) : 0}|${Math.round(cd / me.cdMax[i] * 40)}|${canAct(me)}`;
-      if (L['ab' + i] === key) continue; L['ab' + i] = key; b.querySelector('.e').textContent = ab.ic; b.querySelector('.n').textContent = nm; b.classList.toggle('mim', !!(mi || mf)); b.querySelector('.cd').style.setProperty('--p', (cd > 0 ? cd / me.cdMax[i] * 100 : 0) + '%'); b.querySelector('.s').textContent = cd > 0 ? (cd < 1 ? cd.toFixed(1) : Math.ceil(cd)) : ''; b.classList.toggle('ready', cd <= 0); }
+      if (L['ab' + i] === key) continue; L['ab' + i] = key; if (ab.svg) b.querySelector('.e').innerHTML = ab.svg; else b.querySelector('.e').textContent = ab.ic; b.classList.toggle('bag', !!ab.bagC); b.style.setProperty('--bag', ab.bagC || 'transparent'); b.querySelector('.n').textContent = nm; b.classList.toggle('mim', !!(mi || mf)); b.querySelector('.cd').style.setProperty('--p', (cd > 0 ? cd / me.cdMax[i] * 100 : 0) + '%'); b.querySelector('.s').textContent = cd > 0 ? (cd < 1 ? cd.toFixed(1) : Math.ceil(cd)) : ''; b.classList.toggle('ready', cd <= 0); }
     HUD.el.querySelectorAll('[data-mode]').forEach((b) => b.classList.toggle('on', +b.dataset.mode === me.mode));
     const lk = HUD.el.querySelector('[data-k="lock"]'); if (lk) lk.classList.toggle('on', !!DU.lockOn); const hb = HUD.el.querySelector('[data-k="hb"]'); if (hb) hb.classList.toggle('on', !!opt('hb')); const rn = HUD.el.querySelector('[data-k="run"]'); if (rn) rn.classList.toggle('on', !!DU.touchRun); const bk = HUD.el.querySelector('[data-k="block"]'); if (bk) bk.classList.toggle('on', !!me.blk);
   }
@@ -1975,7 +2068,7 @@
      from DPS, toughness (health × defense), speed and attack speed */
   function fStats(C) {
     const T = 30, dt = 0.05, m1s = C.ab[0].modes ? C.ab[0].modes.map((m) => Object.assign({}, C.ab[0], m, { modes: null })) : [C.ab[0]];
-    const hitsOf = (ab) => ab.k === 'multi' || ab.k === 'combo' ? ab.hits.slice() : ab.k === 'proj' || ab.k === 'volley' ? Array(ab.cnt || 1).fill(ab.dmg) : ab.k === 'dash' ? [ab.dmg || 0].concat(ab.then ? Array(ab.then.cnt || 1).fill(ab.then.dmg) : []).filter((x) => x > 0) : ab.k === 'stomp' ? [ab.crush || ab.dmg] : ab.k === 'buff' || ab.k === 'mimic2' ? [] : ab.k === 'mimic' ? [ab.est || 0] : [ab.dmg || 0];
+    const hitsOf = (ab) => ab.est != null && ab.k !== 'mimic' ? [ab.est] : ab.k === 'multi' || ab.k === 'combo' ? ab.hits.slice() : ab.k === 'proj' || ab.k === 'volley' ? Array(ab.cnt || 1).fill(ab.dmg) : ab.k === 'dash' ? [ab.dmg || 0].concat(ab.then ? Array(ab.then.cnt || 1).fill(ab.then.dmg) : []).filter((x) => x > 0) : ab.k === 'stomp' ? [ab.crush || ab.dmg] : ab.k === 'buff' || ab.k === 'mimic2' ? [] : ab.k === 'mimic' ? [ab.est || 0] : [ab.dmg || 0];
     const boosts = (ab) => ab.k === 'buff' && ab.b && ((ab.b.dmgM || 1) > 1 || ab.b.dmgA || (ab.b.cdM || 1) > 1 || ab.b.nx);
     let best = null;
     for (const m1 of C.ab[0].split ? [m1s[0]] : m1s) {
@@ -1990,17 +2083,17 @@
             if (ab.k === 'buff') { buffs.push(Object.assign({ end: t + (ab.b.dur || 0) }, ab.b)); if (ab.b.nx) nx = ab.b.nx; }
             else { for (const h of hitsOf(ab)) { let d = (h + add('dmgA')) * mult('dmgM') * (C.wish ? 1 + 0.1 * wish : 1) * (1 + crushed); if (nx) { d *= nx; nx = 0; } if (C.crit) d *= 1 + C.crit[0] * (C.crit[1] - 1); dmg += d; n++; if (C.wish) wish++; if (C.brute) crushed = 1 - Math.pow(1 - C.brute, n); }
               if (ab.k === 'stomp' && ab.crush) crushed = 1;
-              const fx = ab.fx || {}; if (fx.bl) dots.bl = { end: t + busy + fx.bl[1], rate: fx.bl[0] / fx.bl[1] * (fx.blc != null ? fx.blc : 1) }; if (fx.bu) dots.bu = { end: t + busy + fx.bu[1], rate: fx.bu[0] / fx.bu[1] }; } } }
+              const fx = ab.fx || {}; if (fx.bl) dots.bl = { end: t + busy + fx.bl[1], rate: fx.bl[0] / fx.bl[1] * (fx.blc != null ? fx.blc : 1) }; if (fx.bu) dots.bu = { end: t + busy + fx.bu[1], rate: fx.bu[0] / fx.bu[1] }; if (fx.po) dots.po = { end: t + busy + fx.po[1], rate: fx.po[0] / fx.po[1] }; } } }
         busy -= dt; t += dt;
       }
-      const dps = dmg / T * (C.exe ? 1 / (1 - C.exe[0] + C.exe[0] / C.exe[1]) : 1) * (C.stages ? 1.3 : 1) * C.ab.reduce((m, ab) => m * (ab.fx && ab.fx.vu ? 1 + 0.5 * Math.min(1, ab.fx.vu / ab.cd) : 1), 1), h = hitsOf(m1); // (and a foe made vulnerable takes ×1.5 for a while) // (stages: +25% a stage as it's hurt — about 1.3× over a fight)
+      const dps = dmg / T * (C.exe ? 1 / (1 - C.exe[0] + C.exe[0] / C.exe[1]) : 1) * (C.stages ? 1.3 : 1) * C.ab.reduce((m, ab) => m * (ab.fx && ab.fx.vu ? 1 + 0.5 * Math.min(1, ab.fx.vu / ab.cd) : 1), 1) * (C.dpsX || 1), h = hitsOf(m1); // (dpsX: what the count can't see — the Plague Doctor's Scalded and Cut) // (and a foe made vulnerable takes ×1.5 for a while) // (stages: +25% a stage as it's hurt — about 1.3× over a fight)
       if (!best || dps > best.dps) best = { dps, atk: h.reduce((a, b) => a + b, 0), aspd: h.length / Math.max(0.2, m1.cd), m1: m1.n, hits: n };
     }
     // how long they last: health, armour, and what their blows and buffs add — blocks and damage cut while they're up,
     // heals, lifesteal, the Wish's heal on every hit — and how much of the fight their stuns, roots and slows take away
     let red = 1, heal = 0, ctrl = 0;
-    for (const ab of C.ab.flatMap((q) => (q.modes ? q.modes.map((m) => Object.assign({}, q, m)) : [q]))) { const per = T / Math.max(0.3, ab.cd, actDur(ab)) / (ab.modes || C.ab[0] === ab ? 1 : 1), b = ab.b, fx = ab.fx || {};
-      if (ab.k === 'mimic2') red *= 1 - 0.25 * Math.min(1, (ab.dur || 0) / (ab.cd + (ab.dur || 0))); if (ab.selfP) heal -= ab.selfP * C.hp * per; if (ab.drain) heal += (ab.dmg || 0) * ab.drain * per; if (ab.maul) ctrl += (T / 6) * 0.5; // (Mimic Form: another's health or block for a while; Self Cannibal's cost; Endless Hunger's drain; the Maul's curses)
+    for (const ab of C.ab.flatMap((q) => (q.modes ? q.modes.map((m) => Object.assign({}, q, m)) : [q]))) { const per = T / Math.max(0.3, ab.cd, actDur(ab)) / (ab.modes || C.ab[0] === ab ? 1 : 1), b = ab.b, fx = ab.fx || (ab.cloud && ab.cloud.fx) || {};
+      if (ab.k === 'mimic2') red *= 1 - 0.25 * Math.min(1, (ab.dur || 0) / (ab.cd + (ab.dur || 0))); if (ab.selfP) heal -= ab.selfP * C.hp * per; if (ab.estH) heal += ab.estH * per; const wk = fx.wk || (ab.cloud && ab.cloud.fx.wk); if (wk) red *= 1 - (1 - wk[0]) * Math.min(1, (ab.cloud ? ab.cloud.dur * 0.6 : wk[1]) / ab.cd); /* (the bag's herbs and leeches; weakness: less of their damage while it lasts) */ if (ab.steal) heal += ab.steal[0] * ab.steal[1] * 400 * per; /* (Bloodletting: 5% of a foe's ~400 left) */ if (ab.drain) heal += (ab.dmg || 0) * ab.drain * per; if (ab.maul) ctrl += (T / 6) * 0.5; // (Mimic Form: another's health or block for a while; Self Cannibal's cost; Endless Hunger's drain; the Maul's curses)
       if (ab.k === 'buff' && b) { const up = Math.min(1, (b.dur || 0) / ab.cd); if (b.def) red *= 1 - (1 - b.def) * up; if (b.blk) red *= 1 - 0.85 * up; heal += ((b.heal || 0) + (b.healP || 0) * C.hp + (b.hps || 0) * (b.dur || 0) + (b.ls || 0) * best.dps * (b.dur || 0)) * per; }
       ctrl += ((fx.st || 0) + (fx.rt || 0) * 0.6 + (fx.sl ? fx.sl[1] * (1 - fx.sl[0]) : 0) + (fx.kb ? 0.4 : 0)) * per * (C.ab[0].modes && C.ab[0].modes.includes && false ? 0.5 : 1); }
     if (C.regen) heal += C.regen[0] * C.hp * T * 0.15; if (C.aura) ctrl += T * 0.5 * (1 - C.aura[1]); if (C.wish) heal += 0.1 * C.hp * best.hits; if (C.lsP) heal += C.lsP * best.dps * T; if (C.stunP) ctrl += best.hits * C.stunP[0] * C.stunP[1]; if (C.frost) ctrl += Math.min(T, best.hits * C.frost[1]) * (1 - C.frost[0]);
@@ -2039,10 +2132,10 @@
     desc: 'One on one in the Colosseum. Thirty-two fighters from Greece, Rome, medieval Europe, medieval Japan, the Ottoman Empire and the Mongols, ★ to ★★★★★ — win them from crates (Blox Coins or the duel’s own gold; each with a 1% legend) or the duel’s own achievements. Beat the giant Laestrygonian boss in co-op to make it yours, or take the Executioner’s Contract. Classic (first to 3), Deathmatch or the Boss, against friends or bots from Easy to Extreme. Master a fighter to wear it anywhere.',
     welcome: '⚔️ Pick a fighter (C), open crates, then stand on a pad to duel, team up on the 👹 boss pad — or 🤖 fight a bot. In a match: click to attack, E R G abilities, Q dodge, F block, Space jump.',
     welcomeTouch: '⚔️ Pick a fighter, open crates, then stand on a pad to duel — or 🤖 fight a bot.',
-    M: null, proj: [], volleys: [], drops: [], waves: [], save: null,
+    M: null, proj: [], volleys: [], drops: [], waves: [], clouds: [], save: null,
     build() { sky('#4f86c6', '#fde7c2'); SC.colB = undefined; SC.colS = null; buildColosseum(); const n0 = place.children.length; SC.lobG = buildLobby(); SC.lobX = place.children.slice(n0).filter((o) => o !== SC.lobG && o.visible); SC.win = null; },
     async enter() {
-      Object.assign(this, { M: null, proj: [], volleys: [], drops: [], waves: [], hitSeenM: new Map(), bac: null, passT: 0, padT: 0, padI: -1, done: new Set(), hitN: 0, hitSeen: 0, acN: 0, ac: null, dq: [], H: null, lastG: null, gSeen: null, blockHeld: false, rmb: false, touchRun: false, sprinting: false, tired: false, duAt: 0, duKey: '', warm: 0 });
+      Object.assign(this, { M: null, proj: [], volleys: [], drops: [], waves: [], clouds: [], hitSeenM: new Map(), bac: null, passT: 0, padT: 0, padI: -1, done: new Set(), hitN: 0, hitSeen: 0, acN: 0, ac: null, dq: [], H: null, lastG: null, gSeen: null, blockHeld: false, rmb: false, touchRun: false, sprinting: false, tired: false, duAt: 0, duKey: '', warm: 0 });
       const s = await kvGet('duel'), S = this.save = Object.assign(DEF_SAVE(), s && typeof s === 'object' ? s : {});
       S.own = [...new Set((Array.isArray(S.own) ? S.own : []).map((x) => x | 0).filter((x) => x >= 0 && x < CH.length))]; if (!S.own.includes(0)) S.own.unshift(0);
       if (!S.own.includes(S.eq | 0)) S.eq = 0; S.eq |= 0; for (const k of ['xp', 'st']) if (!S[k] || typeof S[k] !== 'object') S[k] = {}; if (!Array.isArray(S.ach)) S.ach = []; S.diff = clamp(S.diff | 0, 0, 3); if (S.md !== 'd' && S.md !== 'b') S.md = 'c';
@@ -2122,7 +2215,8 @@
         if (M.wen) { M.foe = newFighter(WEN, M.own ? 'boss' : 'rboss', { C: BOSS_W, hpM: 1 + 0.75 * (np - 1), name: '❄️ The Wendigo', peer: M.ps[0] || null }); M.foe.av = [5, 0, 0, 0, 17, 0, 0, 0, 0, 0, 23 + WEN, 15 + WEN]; this.winterOn(); }
         else { M.foe = newFighter(LAE, M.own ? 'boss' : 'rboss', { C: BOSS_C, hpM: 1 + 0.5 * (np - 1), name: '👹 Laestrygonian Colossus', peer: M.ps[0] || null }); M.foe.av = [5, 0, 0, 0, 17, 0, 0, 0, 0, 0, LAE_BOSS_BT, DUEL_AN + LAE]; } } // (in silver, bronze and gold; half as much health again for each of you after the first)
       else if (o.pvp) { M.foe = newFighter(0, 'rem', { peer: o.opp, name: nameOf(o.opp) }); M.foe.acSeen = -1; seen(o.opp); }
-      else { const D = DIFF[o.D], fc = rollFoe(o.D); M.foe = newFighter(fc, 'bot', { D: o.D, hpM: D.hpM, dmgM: D.dmgM, name: `🤖 ${CH[fc].n}` }); M.side = Math.random() < 0.5 ? 0 : 1; M.foe.av = [Math.floor(Math.random() * 5), 0, 0, 0, 17, 0, 0, 0, 0, 0, 23 + fc, 15 + fc]; }
+      else { const D = DIFF[o.D]; M.plg = o.plg != null ? !!o.plg : o.D === 3 && Math.random() < 0.1; const fc = M.plg ? PLG : rollFoe(o.D); // (⚕️ on Extreme, 1 bot in 10 is the Plague Doctor)
+        M.foe = newFighter(fc, 'bot', { D: o.D, hpM: D.hpM, dmgM: D.dmgM, name: M.plg ? '⚕️ The Plague Doctor' : `🤖 ${CH[fc].n}` }); M.side = Math.random() < 0.5 ? 0 : 1; M.foe.av = [Math.floor(Math.random() * 5), 0, 0, 0, 17, 0, 0, 0, 0, 0, 23 + fc, 15 + fc]; }
       this.respawnDelay = M.md === 'd' ? 450 : M.md === 'b' ? 2500 : 1e9;
       setAvOverride({ av: [AV.s, AV.sh, AV.p, 0, AV.f, 0, 0, 0, 0, 0, bodyOf(this.save, c), 15 + c] }); // (🎨 in its skin, if it's wearing one)
       cam.dist = Math.max(cam.dist, CH[c].big ? 19 : M.md === 'b' ? 18 : 15); // (room to see a giant)
@@ -2134,8 +2228,9 @@
     resetRound(first) {
       const M = this.M; for (const F of [M.me, M.foe]) { if (F && F.stoneM) stoneFx(F, false); endMimics(F); } this.pickDo(-1); M.ph = 'intro'; M.t = 0; M.toT = null; M.toWait = 0; M.left = M.md === 'd' ? DM_T : M.md === 'b' ? (M.wen ? WEN_T : BOSS_T) : ROUND_T; M.base = { l: M.l, fl: this.foeL() };
       if (first && M.wen) { setTimeout(() => { if (this.M === M) { big('❄️ THE WENDIGO', 'something was hunting in the winter forest…', '#bae6fd', 3.2); sfx('horn'); } }, 400); }
+      if (first && M.plg) { setTimeout(() => { if (this.M === M) { big('⚕️ THE PLAGUE DOCTOR', 'that was no bot — a beaked figure steps out of the miasma…', '#bef264', 3.4); sfx('horn'); feed('⚕️ <b>The Plague Doctor</b> has come for you. Beat it and it’s yours.'); } }, 400); }
       for (const F of [M.me, M.foe]) { this.revive(F); F.cd = F.C.ab.map(() => 0); }
-      for (const p of this.proj) scene.remove(p.m); for (const v of this.volleys) scene.remove(v.ring); for (const d of this.drops) scene.remove(d.m); for (const w of this.waves) scene.remove(w.g); this.proj = []; this.volleys = []; this.drops = []; this.waves = [];
+      for (const p of this.proj) scene.remove(p.m); for (const v of this.volleys) scene.remove(v.ring); for (const d of this.drops) scene.remove(d.m); for (const w of this.waves) scene.remove(w.g); for (const k of this.clouds) scene.remove(k.m); this.proj = []; this.volleys = []; this.drops = []; this.waves = []; this.clouds = [];
       const cy = cam.yaw; respawn(true); M.me.x = P.x; M.me.z = P.z; M.me.yaw = P.yaw; if (!first) cam.yaw = cy; // (the camera stays where you had it)
       if (M.foe.kind === 'bot') { const s = 1 - M.side; Object.assign(M.foe, { x: s ? 18 : -18, z: 0, yaw: s ? Math.PI / 2 : -Math.PI / 2 }); this.botAvatar(M.foe); }
       if (isBoss(M.foe)) { Object.assign(M.foe, { x: 16, z: 0, yaw: Math.PI / 2 }); this.botAvatar(M.foe); big('👹 THE LAESTRYGONIAN', `${M.coop ? 'beat it together' : 'beat it'} — ${BOSS_LIVES} lives each · jump its stomps, get behind its blade`, '#fca5a5', 2.6); this.pubDu(true); return; }
@@ -2163,7 +2258,7 @@
         trackVel(F, dt); trackVel(T, dt); statusTick(F, dt); actTick(F, dt); statusTick(T, dt); possTick(F, dt); possTick(T, dt); aimMark(F, T, M, dt); hbTick(M); for (const A of M.allies) possTick(A, dt);
         if (T.kind === 'bot') { if (!T.dead) { botTick(T, dt); actTick(T, dt); } } else if (T.kind === 'boss') { if (!T.dead) { (T.C.wenBoss ? wenBossTick : bossTick)(T, dt); actTick(T, dt); } } else actTick(T, dt);
         for (const A of M.allies) { statusTick(A, dt); actTick(A, dt); }
-        projTick(dt); wavesTick(dt);
+        projTick(dt); wavesTick(dt); cloudsTick(dt);
         if (M.md === 'b') this.bossFrame(dt);
         else if (M.md === 'd') {
           if (F.dead && !P.dead) { this.revive(F); F.x = P.x; F.z = P.z; burstAt(P.x, 3, P.z, '#fde68a', 6); }
@@ -2202,10 +2297,12 @@
       if (CH[du.c] && du.c !== F.c) { F.c = du.c | 0; F.C = CH[F.c]; }
       F.hp = clamp(+du.hp || 0, 0, 5000); F.mhp = Math.max(1, +du.mhp || F.C.hp); F.st = clamp(+du.st || 0, 0, 100); F.mode = du.mo | 0; const sx = String(du.sx || '');
       F.blk = sx.includes('b'); F.S.stun = sx.includes('s') ? 0.3 : 0; F.S.root = sx.includes('r') ? 0.3 : 0; F.S.slow = sx.includes('w') ? 0.3 : 0; F.S.crush = sx.includes('c') ? 1 : 0; F.S.sp = sx.includes('p') ? 0.3 : 0;
+      F.pourOn = sx.includes('o'); F.S.scald = sx.includes('S') ? 1 : 0; F.S.cut = sx.includes('K') ? 0.3 : 0; F.S.weakT = sx.includes('W') ? 0.3 : 0; F.pbl = sx.includes('B') ? 1 : 0; F.S.dots = [['P', 'po'], ['L', 'bl'], ['U', 'bu']].filter(([q]) => sx.includes(q)).map(([, k]) => ({ k, dps: 0, t: 0.3, acc: 0 })); // (what ails them, to show on their card)
       F.S.buffs = (Array.isArray(du.bf) ? du.bf : []).slice(0, 4).map((an) => ({ an: String(an), t: 0.3, inv: an === 'smoke' ? 1 : undefined }));
       if (Array.isArray(du.ac) && du.ac[0] !== F.acSeen) { const first = F.acSeen === -1; F.acSeen = du.ac[0];
-        if (!first) { if (du.ac[3]) { smokeAt(F.x, 0.6, F.z, 5, '#e7d3a8', 1.6); sfx3('whoosh', F.x, F.z, 50); } else if (du.ac[1] >= 0 && du.ac[1] < F.C.ab.length) { F.mode = du.ac[2] | 0; F.act = null; useAb(F, du.ac[1] | 0, true); if (F.act && F.act.ab.k === 'volley') { F.act.tx = +du.ac[4] || 0; F.act.tz = +du.ac[5] || 0; } } } }
+        if (!first) { if (du.ac[3]) { smokeAt(F.x, 0.6, F.z, 5, '#e7d3a8', 1.6); sfx3('whoosh', F.x, F.z, 50); } else if (du.ac[1] >= 0 && du.ac[1] < F.C.ab.length) { F.mode = du.ac[2] | 0; F.act = null; if (+du.ac[6] >= 0 && BAG[+du.ac[6]]) F.bag = +du.ac[6]; useAb(F, du.ac[1] | 0, true); if (F.act && F.act.ab.k === 'volley') { F.act.tx = +du.ac[4] || 0; F.act.tz = +du.ac[5] || 0; } } } }
       if (Array.isArray(du.mm)) { const key = du.mm.join(); if (!F.mim || F.mim.key !== key) { const q = mimicFromNet(du.mm); F.mim = q ? { ab: q, t: 10, key, mm: du.mm } : null; } if (F.mim) F.mim.t = 10; } else F.mim = null; // (🎭 what their Skinwalker wears, so its blows look right here)
+      if (+du.bg >= 0 && BAG[+du.bg] && !(F.act && F.act.ab.bag)) F.bag = +du.bg; // (👜 what's in their bag now)
       F.dead = !!du.dead; F.out = !!du.out;
     },
     mirror(F, dt) {
@@ -2252,12 +2349,12 @@
         this.hitSeenM.set(pid, seen); }
     },
     sendHit(T, dmg, fx, F) { this.hitN++; this.dq = this.dq.concat([[this.hitN, T.peer, dmg, fx || {}, this.M.mid, T.kind === 'rboss' ? 'b' : 0]]).slice(-16); send({ dq: this.dq }); },
-    pubAct(F, A, kind) { this.acN++; this.ac = [this.acN, A ? A.i : -1, F.mode, kind === 'dodge' ? 1 : 0, A && A.tx != null ? Math.round(A.tx) : 0, A && A.tz != null ? Math.round(A.tz) : 0]; this.pubDu(true); },
+    pubAct(F, A, kind) { this.acN++; this.ac = [this.acN, A ? A.i : -1, F.mode, kind === 'dodge' ? 1 : 0, A && A.tx != null ? Math.round(A.tx) : 0, A && A.tz != null ? Math.round(A.tz) : 0, A && A.bagI != null ? A.bagI : -1]; this.pubDu(true); },
     fStatsAll() { return fStatsAll(); },
     pubDu(force) {
       const M = this.M; if (!M || !(M.pvp || M.coop)) return; const F = M.me, B = M.foe;
       const du = { m: M.mid, c: F.c, hp: Math.max(0, Math.round(F.hp)), mhp: F.mhp, st: Math.round(F.st), l: M.l, d: M.d, dead: F.dead ? 1 : 0, ac: this.ac, mo: F.mode,
-        sx: (F.blk ? 'b' : '') + (F.S.stun > 0 ? 's' : '') + (F.S.root > 0 ? 'r' : '') + (F.S.slow > 0 ? 'w' : '') + (F.S.crush ? 'c' : '') + (F.S.sp > 0 ? 'p' : ''), bf: F.S.buffs.map((b) => b.an).slice(0, 4), mm: F.mim ? F.mim.mm : 0, mf: F.mimF ? F.mimF.k : 0 };
+        sx: (F.blk ? 'b' : '') + (F.S.stun > 0 ? 's' : '') + (F.S.root > 0 ? 'r' : '') + (F.S.slow > 0 ? 'w' : '') + (F.S.crush ? 'c' : '') + (F.S.sp > 0 ? 'p' : '') + (F.pour ? 'o' : '') + (F.S.dots.some((d) => d.k === 'po') ? 'P' : '') + (F.S.dots.some((d) => d.k === 'bl') ? 'L' : '') + (F.S.dots.some((d) => d.k === 'bu') ? 'U' : '') + (F.S.scald ? 'S' : '') + (F.S.cut > 0 ? 'K' : '') + (F.S.weakT > 0 ? 'W' : '') + (F.pbl > 0 ? 'B' : ''), bg: F.bag != null ? F.bag : -1, bf: F.S.buffs.map((b) => b.an).slice(0, 4), mm: F.mim ? F.mim.mm : 0, mf: F.mimF ? F.mimF.k : 0 };
       if (M.coop) { du.lv = M.lv; du.out = F.out ? 1 : 0; }
       if (M.coop && M.own) du.bs = { hp: Math.max(0, Math.round(B.hp)), mhp: B.mhp, x: +B.x.toFixed(2), z: +B.z.toFixed(2), yaw: +B.yaw.toFixed(2), ac: this.bac, tg: B.tgt ? (B.tgt.kind === 'me' ? myPeer() : B.tgt.peer) : '', res: M.res || 0,
         sx: (B.S.stun > 0 ? 's' : '') + (B.S.crush ? 'c' : '') + (B.S.vuln > 0 ? 'v' : ''), bf: B.S.buffs.map((b) => b.an).slice(0, 4) };
@@ -2288,14 +2385,16 @@
       if (boss && r > 0) { this.bump('boss', 1); this.qBump('k', 1); this.qBump('b', 1); const pc = M.wen ? WEN : LAE;
         if (M.wen) { this.bump('wen', 1); quest('bv.wendigo'); bonus = 1000; earn(1000, 'You defeated the Wendigo'); }
         if (S.own.includes(pc)) { const n = M.wen ? 1500 : 600; pm = Object.assign({ c: pc, n }, this.addXp(pc, n)); } else { this.unlock(pc, M.wen ? 'you defeated the Wendigo' : 'you beat the Laestrygonian'); prize = pc; } }
-      const pxp = typeof spOn === 'function' && spOn() ? (r > 0 ? (M.wen ? 300 : boss ? 120 : M.pvp ? 80 : [30, 45, 60, 80][M.D]) : r < 0 ? 15 : 25) : 0; if (pxp) spXp(pxp); // (Season Pass XP for every match)
+      if (M.plg && r > 0) { this.bump('plg', 1); quest('bv.plague'); bonus = 750; earn(750, 'You defeated the Plague Doctor'); // (⚕️ the secret: beat it and it's yours — or, if it already is, a great deal of its mastery)
+        if (S.own.includes(PLG)) pm = Object.assign({ c: PLG, n: 1200 }, this.addXp(PLG, 1200)); else { this.unlock(PLG, 'you defeated the Plague Doctor'); prize = PLG; } }
+      const pxp = typeof spOn === 'function' && spOn() ? (r > 0 ? (M.wen ? 300 : M.plg ? 200 : boss ? 120 : M.pvp ? 80 : [30, 45, 60, 80][M.D]) : r < 0 ? 15 : 25) : 0; if (pxp) spXp(pxp); // (Season Pass XP for every match)
       if (M.md === 'd') { this.bump('dmk', M.kills); if (r > 0 && M.kills >= 15) this.bump('dm15', 1); }
       earn(coins, `${r > 0 ? 'Victory' : r < 0 ? 'Defeat' : 'Draw'} in Colosseum Duels`); const mr = this.addXp(M.me.c, xp);
       this.checkAch(); sfx(r > 0 ? 'win' : 'lose'); CROWD.ex = 1; if (r > 0) petals(M.me.x, M.me.z, 110); this.result(r, coins + bonus, xp, mr, gold, prize, pm, pxp); this.pubDu(true);
     },
     result(r, coins, xp, mr, gold, prize, pm, pxp) {
       const M = this.M, C = M.me.C, el = document.createElement('div'); el.id = 'duRes'; el.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(2,6,23,.5);pointer-events:auto;z-index:20';
-      const sc = M.md === 'b' ? `${mmss(Math.ceil((M.wen ? WEN_T : BOSS_T) - Math.max(0, M.left)))} · ❤️ ${Math.max(0, M.lv)} left` : M.md === 'c' ? `${M.sc[0]} — ${M.sc[1]}` : `${M.kills} kills · ${M.deaths} deaths`, foe = M.md === 'b' ? (M.wen ? '❄️ the Wendigo' : '👹 the Laestrygonian') : M.pvp ? esc(nameOf(M.opp)) : `${DIFF[M.D].e} ${DIFF[M.D].n} bot`, lv = mr.after, nx = MAST[Math.min(10, lv + 1)], have = this.save.xp[C.i] | 0;
+      const sc = M.md === 'b' ? `${mmss(Math.ceil((M.wen ? WEN_T : BOSS_T) - Math.max(0, M.left)))} · ❤️ ${Math.max(0, M.lv)} left` : M.md === 'c' ? `${M.sc[0]} — ${M.sc[1]}` : `${M.kills} kills · ${M.deaths} deaths`, foe = M.md === 'b' ? (M.wen ? '❄️ the Wendigo' : '👹 the Laestrygonian') : M.pvp ? esc(nameOf(M.opp)) : M.plg ? '⚕️ the Plague Doctor' : `${DIFF[M.D].e} ${DIFF[M.D].n} bot`, lv = mr.after, nx = MAST[Math.min(10, lv + 1)], have = this.save.xp[C.i] | 0;
       el.innerHTML = `<div class="du-res" style="padding:22px 30px;border-radius:22px;background:linear-gradient(180deg,rgba(30,41,59,.96),rgba(15,23,42,.96));border:2px solid ${r > 0 ? '#fbbf24' : '#475569'};box-shadow:0 20px 60px rgba(0,0,0,.6);max-width:min(470px,92vw)">
         <div style="font:800 50px/1 var(--fh);color:${r > 0 ? '#fde68a' : r < 0 ? '#fca5a5' : '#e2e8f0'};-webkit-text-stroke:6px rgba(0,0,0,.4);paint-order:stroke fill">${r > 0 ? '🏆 VICTORY' : r < 0 ? '☠️ DEFEAT' : '🤝 DRAW'}</div>
         <div style="font:700 15px var(--fb);color:#cbd5e1">${C.ic} ${esc(C.n)} vs ${foe} · ${sc}</div>
@@ -2312,7 +2411,7 @@
     cleanMatch() {
       const M = this.M; if (!M) return; this.leaveAsk(false); this.buf = null; this.winterOff(); for (const F of [M.me, M.foe, ...(M.allies || [])]) if (F && F.auraR) { scene.remove(F.auraR); F.auraR = null; } if ((M.foe.kind === 'bot' || isBoss(M.foe)) && M.foe.a) { dropTrail(M.foe.a); dropAvatar(M.foe.a); } dropTrail(M.me.a); if (M.foe.kind === 'rem') dropTrail(M.foe.a); for (const A of M.allies) dropTrail(A.a);
       if (M.foe.tele) { scene.remove(M.foe.tele); M.foe.tele = null; }
-      for (const p of this.proj) scene.remove(p.m); for (const v of this.volleys) scene.remove(v.ring); for (const d of this.drops) scene.remove(d.m); for (const w of this.waves) scene.remove(w.g); this.proj = []; this.volleys = []; this.drops = []; this.waves = [];
+      for (const p of this.proj) scene.remove(p.m); for (const v of this.volleys) scene.remove(v.ring); for (const d of this.drops) scene.remove(d.m); for (const w of this.waves) scene.remove(w.g); for (const k of this.clouds) scene.remove(k.m); this.proj = []; this.volleys = []; this.drops = []; this.waves = []; this.clouds = [];
       if (HUD.el) HUD.el.remove(); HUD.el = null; document.body.classList.remove('duMatch'); for (const a of Net.avatars.values()) { a.g.visible = true; a.g.scale.setScalar(1); if (a.pet) a.pet.g.visible = true; }
       cam.dist = M.cam0 || 15;
       if (M.mid) this.done.add(M.mid);
@@ -2368,6 +2467,7 @@
     key(code, down) {
       if (!this.M) { if (down && code === 'KeyC') { this.fightersPanel(); return true; } return; }
       if (code === 'KeyF') { this.blockHeld = !!down; return true; }
+      if (code === 'KeyE') this.eHeld = !!down; // (🪣 held: the bucket keeps pouring)
       if (!down) return;
       if (this.leaveQ && code === 'KeyL') { this.leaveAsk(false); return true; }
       if (code === 'KeyL') { this.leaveAsk(); return true; } // (🚪 L: leave the fight)
@@ -2487,7 +2587,7 @@
       if (sel != null) { // the stats: everything about one fighter
         const C = CH[sel], own = S.own.includes(sel), xp = S.xp[sel] | 0, lv = mLvl(xp), nx = MAST[Math.min(10, lv + 1)];
         const abl = C.ab.map((ab, i) => ab.modes ? ab.modes.map((m, k) => `<div><i>${m.ic}</i><span><b>${KEYN[i]} · ${esc(m.n)}</b> (key ${k + 1}) — <em>${m.dmg}</em> damage, every <em>${m.cd} s</em>${m.wind >= 0.4 ? ` · ${m.wind} s wind-up` : ''}</span></div>`).join('')
-          : `<div><i>${ab.ic}</i><span><b>${KEYN[i]} · ${esc(ab.n)}</b> — ${ab.d ? esc(ab.d) : `<em>${ab.dmg}</em> damage${ab.k === 'proj' ? ' (ranged)' : ''}`} · cooldown <em>${ab.cd} s</em></span></div>`).join('');
+          : `<div><i>${ab.ic}</i><span><b>${KEYN[i]} · ${esc(ab.n)}</b> — ${ab.d ? esc(ab.d) : `<em>${ab.dmg}</em> damage${ab.k === 'proj' ? ' (ranged)' : ''}`} · cooldown <em>${ab.cd} s</em></span></div>${ab.k === 'bag' ? BAG.map((q) => `<div class="bagi"><i>${q.svg ? q.svg.replace(/36/g, '24') : q.ic}</i><span><b>${esc(q.n)}</b> — ${esc(q.d)}</span></div>`).join('') : ''}`).join('');
         const pas = (C.pas || []).map(([ic, n, d]) => `<div><i>${ic}</i><span><b>Passive · ${esc(n)}</b> — ${esc(d)}</span></div>`).join('');
         det = `<div class="du-det" style="--rc:${RAR[C.r].c}"><img src="${fighterPic(sel, 1, bodyOf(S, sel))}" alt=""><div><div class="sub">${EMP[C.e].e} ${esc(EMP[C.e].n)} · ${RAR[C.r].t} · ${C.wtI} ${C.wt} · ${esc(C.ro)}</div><h3>${C.ic} ${esc(C.n)} <button class="du-x" data-x="close" aria-label="Close">✕</button></h3>
           ${this.statBars(sel)}
@@ -2632,7 +2732,7 @@
           ${q && q.on ? `<small style="display:block;margin-top:4px;color:${tc}">${prog.map(([a, v, ic, nm]) => `${ic} ${a.toLocaleString()}/${v.toLocaleString()} ${nm}`).join(' · ')}</small><div class="du-mx" style="margin:4px 0 0"><i style="width:${prog.reduce((m, [a, v]) => m + a / v, 0) / prog.length * 100}%;background:linear-gradient(90deg,${bar})"></i></div>` : ''}</span>
           ${got ? '<span class="pr">✔ Done</span>' : q && q.on ? '<span class="pr">📜 Active</span>' : `<button class="du-btn" data-qk="${Q.key}">📜 Accept</button>`}</div></div>`; }).join('');
       const tabs = `<div class="du-tabs"><button data-tab="q" class="${tab === 'q' ? 'on' : ''}">📜 Quests <small>${done}/${QUESTS.length}</small></button><button data-tab="ach" class="${tab === 'ach' ? 'on' : ''}">🏆 Achievements <small>${S.ach.length}/${ACH.length}</small></button><button data-tab="ex" class="${tab === 'ex' ? 'on' : ''}" style="--tc:#22d3ee">🌑 Exotic <small>${CH.filter((C) => C.r === 5 && S.own.includes(C.i)).length}/${CH.filter((C) => C.r === 5 && (!C.secret || S.own.includes(C.i))).length}</small></button></div>`;
-      const ownW = S.own.includes(WEN), an = (t) => `${/^[aeiou]/i.test(t) ? 'an' : 'a'} ${t.toLowerCase()}`;
+      const ownW = S.own.includes(WEN), ownP = S.own.includes(PLG), an = (t) => `${/^[aeiou]/i.test(t) ? 'an' : 'a'} ${t.toLowerCase()}`;
       const exCard = (c, title, blurb, G) => { const gd = G.filter(([, , v, n]) => v >= n).length, own = S.own.includes(c), C = CH[c]; // (🌑 one exotic's quest: its picture, what it is, its goals and how far along you are)
         return `<div class="du-exq${own ? ' got' : ''}"><img src="${fighterPic(c, true)}" alt=""><div style="flex:1;min-width:0"><b>${title}</b><small>${EMP[C.e].e} ${esc(EMP[C.e].sn)} · Do all ${G.length} and the ${C.ic} <strong style="color:#e0f2fe">${esc(C.n)}</strong> is yours — <span style="color:#22d3ee">${RAR[C.r].t}</span>, ${esc(blurb)}</small>
           <div class="du-exg">${G.map(([ic, t, v, n]) => `<div class="${v >= n ? 'ok' : ''}"><i>${v >= n ? '✅' : ic}</i><span>${esc(t)}<em>${Math.min(v, n).toLocaleString()} / ${n.toLocaleString()}</em><u><s style="width:${(100 * Math.min(1, v / n)).toFixed(1)}%"></s></u></span></div>`).join('')}</div>
@@ -2640,7 +2740,8 @@
       const exo = `${tabs}<p style="font:600 13px var(--fb);color:#cbd5e1;margin:0 0 12px">🌑 <b style="color:#22d3ee">Exotic</b> is the rarest of all, above Mythic. No crate has them and no shop sells them: they are earned — one for every empire, each with a quest of its own.</p>
         ${exCard(SKW, '🎭 The Skinwalker’s Quest', 'an all-rounder that takes its foe’s own powers and turns them back on it: Mimic, Mimic Form, Screech, Behind You.', exoGoals(S))}
         ${EXQ.map((Q) => exCard(Q.c, `${Q.ic} ${esc(Q.n)}`, `${an(CH[Q.c].ro)} — ${Q.tail}.`, exqGoals(S, Q))).join('')}
-        <div class="du-exq sec${ownW ? ' got' : ''}">${ownW ? `<img src="${fighterPic(WEN, true)}" alt="">` : '<i>❓</i>'}<div style="flex:1"><b>${ownW ? '❄️ The Wendigo' : '❓ A secret'}</b><small>${ownW ? 'You met it in the winter forest — and lived. It’s yours.' : 'Something hunts in a winter forest… Not every boss fight is the one you expect.'}</small></div></div>`;
+        <div class="du-exq sec${ownW ? ' got' : ''}">${ownW ? `<img src="${fighterPic(WEN, true)}" alt="">` : '<i>❓</i>'}<div style="flex:1"><b>${ownW ? '❄️ The Wendigo' : '❓ A secret'}</b><small>${ownW ? 'You met it in the winter forest — and lived. It’s yours.' : 'Something hunts in a winter forest… Not every boss fight is the one you expect.'}</small></div></div>
+        <div class="du-exq sec${ownP ? ' got' : ''}">${ownP ? `<img src="${fighterPic(PLG, true)}" alt="">` : '<i>❓</i>'}<div style="flex:1"><b>${ownP ? '⚕️ The Plague Doctor' : '❓ Another secret'}</b><small>${ownP ? 'You beat it in an Extreme duel — the doctor, its bag and its poisons are yours.' : 'On Extreme, not every bot is a bot… something in a beaked mask walks the miasma, and only the bravest ever meet it.'}</small></div></div>`;
       const html = tab === 'ex' ? exo : tab === 'q' ? `${tabs}<p style="font:600 13px var(--fb);color:#cbd5e1;margin:0 0 12px">Every new fighter has a quest of its own — the mythics, the giants, the spirit and the rest. Accept one, play, and when both counts are full it’s yours.</p>${qb}` : `${tabs}<p style="font:600 13px var(--fb);color:#cbd5e1;margin:0 0 10px">The Colosseum’s own honours — each one wins you a fighter. (The 1% legends only come from crates; the Laestrygonian from the 👹 boss or Season Pass level 100.)</p><div class="du-ach">${ACH.map((A) => { const got = S.ach.includes(A.id), v = A.k === 'mast' ? S.st.mast | 0 : S.st[A.k] | 0, C = CH[A.c];
         return `<div class="${got ? 'got' : ''}"><i>${A.ic}</i><span><b>${esc(A.n)}</b><small>${esc(A.d)} → ${C.ic} ${esc(C.n)} <span style="color:${RAR[C.r].c}">(${RAR[C.r].t})</span></small></span><span class="pr">${got ? '✔ Done' : `${Math.min(v, A.n0).toLocaleString()} / ${A.n0.toLocaleString()}`}</span></div>`; }).join('')}</div>`;
       openPanel('🏆 Duel Achievements', html, (b) => { if (b.dataset.tab) { sfx('click'); this.achPanel(b.dataset.tab); return; } const Q = b.dataset.qk && QUESTS.find((x) => x.key === b.dataset.qk);
