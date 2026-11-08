@@ -626,7 +626,7 @@
     // a new one every 12 s), a cloud of miasma, a lancet, and the Black Death
     { e: 2, r: 5, hp: 550, spd: 1.25, def: 0.95, nc: 1, secret: 1, dpsX: 1.3, ro: 'All-rounder', how: '⚕️ A secret. On Extreme, not every bot is what it seems…', pas: [['⚕️', 'The Beaked Mask', 'Stuffed with herbs against the miasma: 5% less damage taken, and 25% faster than most.'], ['🩸', 'Bloodletting', 'Each blow of the cane has a 15% chance to bleed them of 5% of the health they have left — and the doctor drinks it.'], ['☠️', 'Physician of Poisons', 'Poisoned, they heal half as much. Weakened, they deal less damage. Scalded, they take ×1.75 damage for the rest of the round. Cut, every bleed, burn, poison, slow and weakness on them is ×2.5.']], ab: [
       { n: 'Cane', ic: '🦯', k: 'melee', dmg: 50, cd: 1.25, rng: 7, arc: 100, wind: 0.14, an: 'slash', steal: [0.15, 0.05] },
-      { n: 'Doctor’s Bag', ic: '👜', k: 'bag', cd: 12, est: 125, estH: 22, d: 'Every 12 s the doctor digs in the bag and pulls out one of five things — your button shows which: a flask (the liquid’s colour tells you: green poisons, red burns), a bucket of boiling water (hold E), herbs (healing herbs or hemlock), a scalpel, or a jar of leeches.' },
+      { n: 'Doctor’s Bag', ic: '👜', k: 'bag', cd: 12, est: 125, estH: 22, d: 'Every 12 s the doctor digs in the bag and pulls out one of five things at random — you only find out which as it comes out: a flask (its liquid’s colour tells you: green poisons, red burns), a bucket of boiling water (hold E), herbs (healing herbs or hemlock), a scalpel, or a jar of leeches.' },
       { n: 'Miasma', ic: '🌫️', k: 'proj', dmg: 30, cd: 11, spd: 42, wind: 0.3, an: 'lob', model: 'miasma', lob: 1, est: 130, cloud: { r: 7, dur: 5, tick: 1, dmg: 14, fx: { po: [30, 3], wk: [0.7, 2], sl: [0.75, 1.2] } }, d: 'A vial of plague-air, lobbed: 30 damage where it bursts, then a green cloud for 5 s — 14 damage a second inside, and while they stand in it they’re Poisoned, Weakened (−30% damage) and choking (slowed 25%).' },
       { n: 'Lancet', ic: '🗡️', k: 'dash', dmg: 85, dist: 16, dd: 0.22, cd: 8, wind: 0.12, an: 'charge', drain: 0.4, fx: { bl: [50, 4], sl: [0.7, 2] }, d: 'A lunge with the lancet: 85 damage, they bleed 50 more and are slowed 30% for 2 s, and the doctor heals 40% of the blow.' },
       { n: 'The Black Death', ic: '💀', k: 'melee', dmg: 160, cd: 24, rng: 11, arc: 360, wind: 0.45, an: 'roar', burst: '#84cc16', cloud: { r: 8, dur: 4, tick: 1, dmg: 8, fx: { po: [16, 2], wk: [0.7, 2] } }, fx: { cut: 6, st: 0.8, po: [110, 6], wk: [0.75, 5] }, d: 'The plague itself, let out all round: 160 damage, they double over (stunned 0.8 s), Cut for 6 s, Poisoned for 110 more and Weakened for 5 s — and a cloud of miasma left behind for 4 s.' }] },
@@ -1357,7 +1357,7 @@
   const MULT = new Set(['def', 'dmgM', 'spdM', 'cdM']), SUM = new Set(['dmgA', 'ls', 'rf', 'hps']);
   function bval(F, k) { let v = MULT.has(k) ? 1 : 0; for (const b of F.S.buffs) { const q = b[k]; if (q == null) continue; if (MULT.has(k)) v *= q; else if (SUM.has(k)) v += q; else v = Math.max(v, q); } return v; }
   const wishV = (F) => { const w = pv(F, 'wish'); return w === true || w >= 1 ? 0.1 : +w || 0; }; // (the Executioner's Wish: how much each hit adds)
-  function abOf(F, i) { if (i === 1 && F.mim && F.C.skin) return F.mim.ab; const ab = F.C.ab[i]; if (ab.k === 'bag') return BAG[F.bag != null && BAG[F.bag] ? F.bag : bagRoll(F)]; if (ab.low && F.mhp && F.hp > 0 && F.hp / F.mhp < 0.1) return WEN_IMM; if (ab.modes) { const m = ab.modes[Math.min(F.mode, ab.modes.length - 1)]; return Object.assign({}, ab, m, { k: m.k || 'melee' }); } return ab; }
+  function abOf(F, i) { if (i === 1 && F.mim && F.C.skin) return F.mim.ab; const ab = F.C.ab[i]; if (ab.low && F.mhp && F.hp > 0 && F.hp / F.mhp < 0.1) return WEN_IMM; if (ab.modes) { const m = ab.modes[Math.min(F.mode, ab.modes.length - 1)]; return Object.assign({}, ab, m, { k: m.k || 'melee' }); } return ab; }
   // switching between a gun and a blade: with split cooldowns each keeps its own (the gun reloads while you stab)
   function swapMode(F, k) { if (k === F.mode) return; if (F.C.ab[0].split) { F.mcd = F.mcd || []; F.mcd[F.mode] = F.cd[0]; F.cd[0] = F.mcd[k] || 0; F.cdMax[0] = Math.max(F.cd[0], F.C.ab[0].modes[k].cd); } F.mode = k; }
   function actDur(ab) {
@@ -1635,7 +1635,7 @@
   const endMimics = (F) => { if (F && (F.mim || F.mimF)) { mimicEnd(F, false); mimicEnd(F, true); } };
   function useAb(F, i, vis) {
     if (i >= F.C.ab.length || (!vis && (!canAct(F) || F.cd[i] > 0 || F.blk))) return false;
-    const ab = abOf(F, i), T = foeOf(F);
+    let ab = abOf(F, i); const T = foeOf(F); if (ab.k === 'bag') ab = BAG[vis && BAG[F.bag] ? F.bag : bagRoll(F)]; // (👜 the Doctor's Bag: whatever comes out, at random — the other player is told which)
     if (ab.k === 'mimic' || ab.k === 'mimic2') return vis ? false : mimicStart(F, i, ab, T); // (🎭 the Skinwalker picks first; the cooldown waits till it wears off)
     if (!vis) { F.cd[i] = F.cdMax[i] = ab.cd;
       if (T && !T.dead) { const dx = T.x - F.x, dz = T.z - F.z, d = Math.hypot(dx, dz), da = wrapA(angOf(dx, dz) - F.yaw), far = ab.k === 'proj' || ab.k === 'volley' || ab.k === 'leap' || ab.k === 'dash';
@@ -1661,7 +1661,7 @@
     if (ab.an === 'gun') sfx3('count', F.x, F.z, 60, { vol: 0.5 });
     if (i === 0 && ab.k === 'proj' && F.C.ab[0].split && F.kind === 'me' && !vis) setTimeout(() => { if (DU.M && DU.M.me === F && F.cd[0] > 0.4) floatText(F, `🔄 Reloading… ${ab.cd} s`, 'tag'); }, (ab.wind + 0.15) * 1000);
     if (ab.k === 'combo') { DU.say(F, '🌸 COMBO'); }
-    if (ab.bag && !vis) { if (!F.C.plgBoss) DU.say(F, `👜 ${ab.n.toUpperCase()}`); bagRoll(F); } // (and the next thing in the bag)
+    if (ab.bag && !vis && !F.C.plgBoss) DU.say(F, `👜 ${ab.n.toUpperCase()}`); // (what came out of the bag)
     return true;
   }
   function actTick(F, dt) {
@@ -2049,7 +2049,7 @@
     if (ab.k === 'mimic') return d < 30; if (ab.k === 'mimic2') return !F.mimF && (d < 20 || T.hp / T.mhp > F.hp / F.mhp + 0.2); if (ab.k === 'blink') return d > 5 && d < ab.rng; if (ab.selfP) return F.hp / F.mhp > 0.3 && d < 14;
     if (ab.k === 'buff') { const b = ab.b; if (b.blk) return !!T.act && d < 12; if (b.brk) return d > 12 && F.hp / F.mhp < 0.85; if (b.heal || b.healP || b.hps || b.hpsP) return F.hp / F.mhp < 0.65 || (b.def && d < 10); if (b.inv) return d < 18; return d < 14; }
     if (ab.k === 'dash') return ab.back ? d < 8 : d > 4 && d < ab.dist + 2;
-    if (ab.k === 'pour') return d < ab.rng - 2; if (ab.cloud && ab.k === 'melee') return d < (ab.rng || 6) + 1;
+    if (ab.k === 'bag') return d < 20; if (ab.k === 'pour') return d < ab.rng - 2; if (ab.cloud && ab.k === 'melee') return d < (ab.rng || 6) + 1;
     if (ab.k === 'leap') return d > 6 && d < ab.dist; if (ab.k === 'proj') return d < (ab.lob ? 30 : 45); if (ab.k === 'volley') return true;
     if (ab.k === 'stomp') return d < (ab.near || 0) + 2 + bigR(F) || d < ab.rad * 0.7;
     return d < (ab.rng || 6) + 0.6;
@@ -2459,7 +2459,6 @@
       if (Array.isArray(du.ac) && du.ac[0] !== F.acSeen) { const first = F.acSeen === -1; F.acSeen = du.ac[0];
         if (!first) { if (du.ac[3]) { smokeAt(F.x, 0.6, F.z, 5, '#e7d3a8', 1.6); sfx3('whoosh', F.x, F.z, 50); } else if (du.ac[1] >= 0 && du.ac[1] < F.C.ab.length) { F.mode = du.ac[2] | 0; F.act = null; if (+du.ac[6] >= 0 && BAG[+du.ac[6]]) F.bag = +du.ac[6]; useAb(F, du.ac[1] | 0, true); if (F.act && F.act.ab.k === 'volley') { F.act.tx = +du.ac[4] || 0; F.act.tz = +du.ac[5] || 0; } } } }
       if (Array.isArray(du.mm)) { const key = du.mm.join(); if (!F.mim || F.mim.key !== key) { const q = mimicFromNet(du.mm); F.mim = q ? { ab: q, t: 10, key, mm: du.mm } : null; } if (F.mim) F.mim.t = 10; } else F.mim = null; // (🎭 what their Skinwalker wears, so its blows look right here)
-      if (+du.bg >= 0 && BAG[+du.bg] && !(F.act && F.act.ab.bag)) F.bag = +du.bg; // (👜 what's in their bag now)
       F.dead = !!du.dead; F.out = !!du.out;
     },
     mirror(F, dt) {
@@ -2511,7 +2510,7 @@
     pubDu(force) {
       const M = this.M; if (!M || !(M.pvp || M.coop)) return; const F = M.me, B = M.foe;
       const du = { m: M.mid, c: F.c, hp: Math.max(0, Math.round(F.hp)), mhp: F.mhp, st: Math.round(F.st), l: M.l, d: M.d, dead: F.dead ? 1 : 0, ac: this.ac, mo: F.mode,
-        sx: (F.blk ? 'b' : '') + (F.S.stun > 0 ? 's' : '') + (F.S.root > 0 ? 'r' : '') + (F.S.slow > 0 ? 'w' : '') + (F.S.crush ? 'c' : '') + (F.S.sp > 0 ? 'p' : '') + (F.pour ? 'o' : '') + (F.S.dots.some((d) => d.k === 'po') ? 'P' : '') + (F.S.dots.some((d) => d.k === 'bl') ? 'L' : '') + (F.S.dots.some((d) => d.k === 'bu') ? 'U' : '') + (F.S.scald ? 'S' : '') + (F.S.cut > 0 ? 'K' : '') + (F.S.weakT > 0 ? 'W' : '') + (F.pbl > 0 ? 'B' : ''), bg: F.bag != null ? F.bag : -1, bf: F.S.buffs.map((b) => b.an).slice(0, 4), mm: F.mim ? F.mim.mm : 0, mf: F.mimF ? F.mimF.k : 0 };
+        sx: (F.blk ? 'b' : '') + (F.S.stun > 0 ? 's' : '') + (F.S.root > 0 ? 'r' : '') + (F.S.slow > 0 ? 'w' : '') + (F.S.crush ? 'c' : '') + (F.S.sp > 0 ? 'p' : '') + (F.pour ? 'o' : '') + (F.S.dots.some((d) => d.k === 'po') ? 'P' : '') + (F.S.dots.some((d) => d.k === 'bl') ? 'L' : '') + (F.S.dots.some((d) => d.k === 'bu') ? 'U' : '') + (F.S.scald ? 'S' : '') + (F.S.cut > 0 ? 'K' : '') + (F.S.weakT > 0 ? 'W' : '') + (F.pbl > 0 ? 'B' : ''), bf: F.S.buffs.map((b) => b.an).slice(0, 4), mm: F.mim ? F.mim.mm : 0, mf: F.mimF ? F.mimF.k : 0 };
       if (M.coop) { du.lv = M.lv; du.out = F.out ? 1 : 0; }
       if (M.coop && M.own) du.bs = { hp: Math.max(0, Math.round(B.hp)), mhp: B.mhp, x: +B.x.toFixed(2), z: +B.z.toFixed(2), yaw: +B.yaw.toFixed(2), ac: this.bac, tg: B.tgt ? (B.tgt.kind === 'me' ? myPeer() : B.tgt.peer) : '', res: M.res || 0,
         sx: (B.S.stun > 0 ? 's' : '') + (B.S.crush ? 'c' : '') + (B.S.vuln > 0 ? 'v' : ''), bf: B.S.buffs.map((b) => b.an).slice(0, 4) };
