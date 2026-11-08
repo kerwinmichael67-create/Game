@@ -66,7 +66,14 @@
     .du-mim button{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:104px;padding:9px 10px 7px;border-radius:12px;border:2px solid rgba(255,255,255,.18);background:linear-gradient(180deg,#1e293b,#0f172a);color:#fff;cursor:pointer;font:700 12px var(--fb)}
     .du-mim button:hover{border-color:#67e8f9;transform:translateY(-2px)}.du-mim button i{position:absolute;left:6px;top:4px;font:800 11px var(--fb);color:#fde68a;font-style:normal}.du-mim .ic{font-size:26px}.du-mim .nm{font:800 13px var(--fh)}.du-mim small{color:#94a3b8;font:600 10.5px var(--fb)}.du-mim .hint{display:block;margin-top:7px}
     #duFog{position:absolute;inset:0;pointer-events:none;z-index:1;opacity:0;transition:opacity .45s;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);background:radial-gradient(ellipse at 50% 55%,rgba(226,232,240,.12),rgba(203,213,225,.55) 70%,rgba(148,163,184,.75));animation:duFogD 6s ease-in-out infinite alternate}
-    #duFog.on{opacity:1}#duBlur{position:absolute;inset:0;pointer-events:none;z-index:1;display:none}#duBlur.on{display:block}
+    #duFog.on{opacity:1}
+    #duBossBar{position:absolute;left:50%;top:132px;transform:translateX(-50%);width:min(560px,60vw);display:none;pointer-events:none;text-align:center;z-index:3}
+    #duBossBar b{display:block;font:800 18px var(--fh);color:#d9f99d;text-shadow:0 2px 8px #000,0 0 14px rgba(132,204,22,.5);letter-spacing:.08em;margin-bottom:5px}#duBossBar small{font:800 12px var(--fb);color:#a3e635;margin-left:10px;letter-spacing:.02em}
+    #duBossBar .bar{position:relative;height:20px;border-radius:10px;background:rgba(2,6,23,.8);border:2px solid rgba(190,242,100,.6);overflow:hidden;box-shadow:0 0 20px rgba(132,204,22,.35),0 6px 16px rgba(0,0,0,.5)}
+    #duBossBar .bar i,#duBossBar .bar u{position:absolute;left:0;top:0;bottom:0;transition:width .12s}#duBossBar .bar u{background:#fde68a;opacity:.55}#duBossBar .bar i{background:linear-gradient(90deg,#365314,#65a30d 55%,#bef264)}
+    #duBossBar.p3 .bar{border-color:rgba(163,230,53,.9);animation:duBossP 1.2s ease-in-out infinite}@keyframes duBossP{50%{box-shadow:0 0 30px rgba(163,230,53,.65),0 6px 16px rgba(0,0,0,.5)}}
+    #duBossBar .bar s{position:absolute;top:0;bottom:0;width:2px;background:rgba(0,0,0,.65)}#duBossBar em{position:absolute;inset:0;font:800 12px/20px var(--fb);font-style:normal;color:#fff;text-shadow:0 1px 2px #000}
+    @media (max-width:640px){#duBossBar{top:172px;width:90vw}#duBossBar b{font-size:14px}}#duBlur{position:absolute;inset:0;pointer-events:none;z-index:1;display:none}#duBlur.on{display:block}
     .du-ab.bag{border-color:var(--bag);box-shadow:0 0 0 2px color-mix(in srgb,var(--bag) 35%,transparent),0 0 16px color-mix(in srgb,var(--bag) 40%,transparent),0 5px 14px rgba(0,0,0,.5)}.du-ab.bag .n{color:var(--bag)}.du-ab .e svg{display:block;margin:auto}
     .du-dmg.po{color:#a3e635}.du-abl div.bagi{margin-left:26px;background:rgba(132,204,22,.07)}@keyframes duFogD{from{background-position:0 0}to{background-position:30px -20px}}
     .du-ab.no{animation:duNo .3s}@keyframes duNo{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
@@ -684,6 +691,17 @@
     { n: 'Self Cannibal', ic: '🍖', k: 'buff', cd: 15, an: 'roar', selfP: 0.02, b: { dur: 5, spdM: 1.25, dmgM: 1.5, cdM: 1.5 } },
     { n: 'Antler Gore', ic: '🦌', k: 'dash', dmg: 140, dist: 24, dd: 0.45, cd: 20, wind: 0.85, an: 'charge', fx: { kb: 14, bl: [50, 3] } },
     { n: 'Endless Hunger', ic: '🌑', k: 'leap', dmg: 160, dist: 28, rad: 8, cd: 20, wind: 0.7, an: 'leap', drain: 0.5, fx: { sl: [0.5, 2] } }] });
+  // ⚕️ v133: the Plague Doctor as a boss, in his plague town at midnight (1 Extreme bot match in 10 turns into it): taller,
+  // 7,000 health, his whole kit slower to wind up so it can be seen coming, and a Rain of Flasks from the rooftops. Three
+  // phases (plgBossTick). RISE_AB: the miasma that rises from the cobbles in phases II and III
+  const PLG_T = 360, BOSS_P = Object.assign({}, CH[PLG], { hp: 7000, def: 1, spd: 0.92, big: 1.45, boss: 1, plgBoss: 1, secret: 0, dpsX: 1, ab: [
+      { n: 'Cane', ic: '🦯', k: 'melee', dmg: 60, cd: 1.8, rng: 8, arc: 120, wind: 0.38, an: 'slash', steal: [0.15, 0.05] },
+      Object.assign({}, CH[PLG].ab[1]),
+      Object.assign({}, CH[PLG].ab[2], { dmg: 35, cd: 10, wind: 0.65 }),
+      Object.assign({}, CH[PLG].ab[3], { dmg: 90, dist: 22, dd: 0.3, cd: 9, wind: 0.6 }),
+      Object.assign({}, CH[PLG].ab[4], { dmg: 130, rng: 12, cd: 20, wind: 1.15 }),
+      { n: 'Rain of Flasks', ic: '🧪', k: 'volley', dmg: 30, cnt: 10, rad: 9, delay: 1.1, cd: 14, wind: 0.45, an: 'sky', model: 'flaskG', fx: { po: [30, 3] } }] }),
+    RISE_AB = { n: 'Miasma', cloud: { r: 6, dur: 5, tick: 1, dmg: 12, fx: { po: [20, 3], wk: [0.75, 2] } } };
   /* 🌑 the Skinwalker's quest (🏆 Achievements → 🌑 Exotic): every character quest done, the Extreme bot beaten 10 times, 100,000
      damage, the boss beaten 15 times, 3 wins in a row on Hard or Extreme, and 20 kills in one deathmatch without dying */
   const exoGoals = (S) => { const st = S.st || {}; return [
@@ -1084,7 +1102,7 @@
   }
   // the scenery's moving parts, every frame
   function sceneryTick(t, dt) {
-    if (SC.win && SC.win.g.visible) { hemiL.intensity = 0.62; sunL.intensity = 0.36; const W2 = SC.win; if ((W2.chk = (W2.chk || 0) - dt) <= 0) { W2.chk = 0.5; for (const o of place.children) if (o !== W2.g && o.visible) { o.visible = false; (W2.hid || (W2.hid = [])).push(o); } } } // (the forest's own light, whatever the graphics setting does; and anything of the meadow made since, hidden too)
+    const BMv = SC.win && SC.win.g.visible ? SC.win : SC.plg && SC.plg.g.visible ? SC.plg : null; if (BMv && BMv === SC.plg) plagueTick(t, dt); if (BMv) { hemiL.intensity = BMv.hi || 0.62; sunL.intensity = BMv.si || 0.36; const W2 = BMv; if ((W2.chk = (W2.chk || 0) - dt) <= 0) { W2.chk = 0.5; for (const o of place.children) if (o !== W2.g && o.visible) { o.visible = false; (W2.hid || (W2.hid = [])).push(o); } } } // (the forest's own light, whatever the graphics setting does; and anything of the meadow made since, hidden too)
     DU.lobVis();
     if (SC.win && SC.win.g.visible && SC.win.snow.visible) { const W2 = SC.win, p = W2.snow.geometry.attributes.position, A = p.array, cx = camera.position.x, cz = camera.position.z; for (let k = 0, nn = W2.n != null ? W2.n : W2.N; k < nn; k++) { A[k * 3 + 1] -= dt * (3 + (k % 5)); A[k * 3] += Math.sin(t * 0.7 + k) * dt * 0.8; if (A[k * 3 + 1] < 0) A[k * 3 + 1] += 40; } p.needsUpdate = true; W2.snow.position.set(Math.round(cx / 60) * 60, 0, Math.round(cz / 60) * 60); } // (❄️ snow in the winter forest)
     for (const f of SC.fires) { f.fl.forEach((s, j) => { const k = 1 + 0.22 * Math.sin(t * (13 + j * 4) + f.ph + j); s.scale.set((f.torch ? 0.65 : 1.0) * k, (f.torch ? 1.3 : 2.1) * k, 1); }); f.gl.material.opacity = 0.42 + 0.12 * Math.sin(t * 11 + f.ph);
@@ -1152,6 +1170,107 @@
     const sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.BufferAttribute(pos, 3));
     const snow = new THREE.Points(sg, new THREE.PointsMaterial({ color: '#ffffff', size: 0.45, transparent: true, opacity: 0.9, depthWrite: false, map: glowTex(), alphaTest: 0.02 })); snow.frustumCulled = false; G.add(snow);
     G.visible = false; return { g: G, snow, N };
+  }
+  /* ⚕️ v133: the Plague Doctor's town — a market square at midnight in a year of plague: wet cobbles, timber-framed houses
+     leaning in all round (their upper floors jutting over the square, doors shut and marked with the red cross), the church
+     and its bell tower at one end with the churchyard beside it, a dead-cart, braziers burning herbs against the miasma,
+     lanterns, a well, barrels and crates, rats along the walls, crows on the roofs, a sickly moon — and a green fog lying low
+     over everything. The fight is on the same ground as the Colosseum's (its walls just aren't drawn) */
+  function buildPlague() {
+    const G = new THREE.Group(); place.add(G); const r = mulberry(1665), Lm = (o) => new THREE.MeshLambertMaterial(Object.assign({ color: '#ffffff' }, o || {}));
+    const add = (geo, m, x = 0, y = 0, z = 0, par = G) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); par.add(o); return o; };
+    const cobT = kCanvas('duCobT', 256, 256, (g, q) => { g.fillStyle = '#26241f'; g.fillRect(0, 0, 256, 256); for (let y = 0; y < 256; y += 16) for (let x = (y / 16) % 2 ? 8 : 0; x < 264; x += 16) { const v = (66 + q() * 46) | 0, w = 6.2 + q() * 2.2, h = 5.6 + q() * 1.8;
+        g.fillStyle = `rgb(${v + 6},${v + 2},${v - 6})`; g.beginPath(); g.ellipse(x + (q() - 0.5) * 2, y + 8 + (q() - 0.5) * 2, w, h, q() * 0.6, 0, 7); g.fill(); g.fillStyle = 'rgba(255,255,255,.09)'; g.beginPath(); g.ellipse(x - 2, y + 5.5, w * 0.5, h * 0.32, 0, 0, 7); g.fill(); }
+      g.fillStyle = 'rgba(16,22,14,.38)'; for (let k = 0; k < 16; k++) { g.beginPath(); g.ellipse(q() * 256, q() * 256, 12 + q() * 30, 7 + q() * 16, q() * 3, 0, 7); g.fill(); } }); cobT.repeat.set(70, 70); // (cobbles, mossy in the cracks)
+    const timT = kCanvas('duTimberT', 128, 128, (g, q) => { g.fillStyle = '#d3c5a5'; g.fillRect(0, 0, 128, 128); for (let k = 0; k < 520; k++) { g.fillStyle = `rgba(${(110 + q() * 60) | 0},${(100 + q() * 50) | 0},${(70 + q() * 40) | 0},.14)`; g.fillRect(q() * 128, q() * 128, 2 + q() * 5, 2 + q() * 5); }
+      g.fillStyle = '#35241a'; g.fillRect(0, 0, 128, 9); g.fillRect(0, 119, 128, 9); g.fillRect(0, 60, 128, 7); for (const x of [0, 40, 82, 120]) g.fillRect(x, 0, 8, 128);
+      g.strokeStyle = '#35241a'; g.lineWidth = 7; g.beginPath(); g.moveTo(8, 9); g.lineTo(40, 60); g.moveTo(120, 9); g.lineTo(90, 60); g.moveTo(48, 67); g.lineTo(82, 119); g.stroke(); }); timT.repeat.set(3, 1); // (wattle and daub between black oak beams)
+    const stT = kCanvas('duPlStoneT', 128, 128, (g, q) => { g.fillStyle = '#3e3a33'; g.fillRect(0, 0, 128, 128); for (let y = 0; y < 128; y += 16) for (let x = (y / 16) % 2 ? -12 : 0; x < 128; x += 24) { const v = (92 + q() * 40) | 0; g.fillStyle = `rgb(${v},${v - 4},${v - 13})`; g.fillRect(x + 1, y + 1, 22, 14); } }); stT.repeat.set(3, 1);
+    const tileT = kCanvas('duRoofT', 128, 128, (g, q) => { g.fillStyle = '#231b17'; g.fillRect(0, 0, 128, 128); for (let y = 0; y < 128; y += 10) for (let x = (y / 10) % 2 ? -8 : 0; x < 136; x += 16) { const v = (46 + q() * 28) | 0; g.fillStyle = `rgb(${v + 16},${v},${v - 6})`; g.fillRect(x + 1, y + 1, 14, 8); } }); tileT.repeat.set(4, 2);
+    const stone = Lm({ map: stT, color: '#a59d8c' }), cst = Lm({ map: stT, color: '#c4baa6' }), timber = Lm({ map: timT }), timber2 = Lm({ map: timT, color: '#c2b195' }), roof = Lm({ map: tileT }), wood = Lm({ color: '#4a3324', map: woodTex() }), dark = Lm({ color: '#0b0d10' });
+    const lit = new THREE.MeshBasicMaterial({ color: '#b8610f' }), litG = new THREE.MeshBasicMaterial({ color: '#d9f99d' }), redX = Lm({ color: '#8f1b1b', emissive: '#3b0a0a' }), iron = Lm({ color: '#26262b' }), cloth = Lm({ color: '#cbbfa2' }), bronze = metalMat('#a86f37', { shininess: 90 });
+    add(kg('duWinG', () => { const q = new THREE.CircleGeometry(1, 72); q.rotateX(-Math.PI / 2); return q; }), Lm({ map: cobT, color: '#b3ab9c' }), 0, 0.05, 0).scale.set(330, 1, 330); // (the cobbles)
+    for (let k = 0; k < 7; k++) { const a = r() * 6.28, e = r() * 0.8, p = add(kg('duPuddle', () => { const q = new THREE.CircleGeometry(1, 28); q.rotateX(-Math.PI / 2); return q; }), new THREE.MeshPhongMaterial({ color: '#141a1c', shininess: 160, specular: '#9fb4a0', transparent: true, opacity: 0.8 }), Math.cos(a) * A0 * e, 0.07, Math.sin(a) * B0 * e); p.scale.set(2 + r() * 3, 1, 1.2 + r() * 2); p.rotation.y = r() * 3; } // (puddles, catching the moon)
+    const dg = new THREE.Group(), houses = [], church = -Math.PI; // (the church stands at the square's west end)
+    const away = (a) => Math.abs(wrapA(a - church)) > 0.42;
+    // a house: a stone ground floor; a timbered upper floor jutting over the square; a steep roof, its gables, a chimney;
+    // windows (a few still lit) and a door — more than half of them shut and marked with the red cross
+    const house = (x, z, w, h, k, front) => { const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = Math.atan2(x, z); dg.add(g); const D = 9, h1 = h * 0.46, h2 = h * 0.54, Dt = D + 1.6, half = Dt / 2, top = h1 + h2;
+      add(BOX, stone, 0, h1 / 2, 0, g).scale.set(w, h1, D); add(BOX, k % 3 ? timber : timber2, 0, h1 + h2 / 2, -0.8, g).scale.set(w + 0.8, h2, Dt);
+      add(BOX, wood, 0, h1 + 0.15, -0.8 - Dt / 2 + 0.2, g).scale.set(w + 1, 0.35, 0.5); // (the beam the upper floor sits on)
+      for (const sg of [-1, 1]) { const rf = add(BOX, roof, 0, top + half / 2, -0.8 + sg * half / 2, g); rf.scale.set(w + 1.8, 0.35, half * Math.SQRT2 + 0.6); rf.rotation.x = sg * Math.PI / 4; }
+      for (const sg of [-1, 1]) { const gb = add(BOX, k % 3 ? timber : timber2, sg * (w / 2 + 0.25), top, -0.8, g); gb.scale.set(0.3, half * Math.SQRT2, half * Math.SQRT2); gb.rotation.x = Math.PI / 4; }
+      add(BOX, stone, w * 0.28, top + half * 0.75, 0.8, g).scale.set(1.1, half * 1.3, 1.1);
+      const fz = -0.8 - Dt / 2 - 0.06; for (const wx of [-w * 0.27, w * 0.27]) { add(BOX, r() < 0.22 ? lit : dark, wx, h1 + h2 * 0.5, fz, g).scale.set(1.3, 1.7, 0.1); add(BOX, wood, wx, h1 + h2 * 0.5 - 0.95, fz - 0.06, g).scale.set(1.7, 0.18, 0.22); add(BOX, iron, wx, h1 + h2 * 0.5, fz - 0.05, g).scale.set(0.12, 1.7, 0.05); add(BOX, iron, wx, h1 + h2 * 0.5 + 0.1, fz - 0.05, g).scale.set(1.3, 0.12, 0.05); } // (windows with their bars, a few still lit)
+      if (front) { const dx = -w * 0.22, gz = -D / 2 - 0.06; add(BOX, wood, dx, 1.65, gz, g).scale.set(1.9, 3.3, 0.14);
+        if (r() < 0.6) { add(BOX, redX, dx, 1.95, gz - 0.09, g).scale.set(0.3, 2.1, 0.05); add(BOX, redX, dx, 2.3, gz - 0.09, g).scale.set(1.35, 0.3, 0.05); }
+        add(BOX, r() < 0.3 ? lit : dark, w * 0.25, 2.0, gz, g).scale.set(1.4, 1.3, 0.1); add(BOX, iron, w * 0.25, 2.0, gz - 0.05, g).scale.set(0.12, 1.3, 0.05); add(BOX, iron, w * 0.25, 2.0, gz - 0.05, g).scale.set(1.4, 0.12, 0.05); }
+      houses.push({ x, z, top: top + half, ry: g.rotation.y }); };
+    for (let k = 0; k < 26; k++) { const a = (k / 26) * Math.PI * 2 + 0.06; if (!away(a)) continue; const e = 1.21 + r() * 0.05; house(Math.cos(a) * A0 * e, Math.sin(a) * B0 * e, 10 + r() * 3, 9 + r() * 4.5, k, true); }
+    for (let k = 0; k < 16; k++) { const a = (k / 16) * Math.PI * 2 + 0.2; if (Math.abs(wrapA(a - church)) < 0.6) continue; const e = 1.62 + r() * 0.08; house(Math.cos(a) * A0 * e, Math.sin(a) * B0 * e, 12 + r() * 3, 12 + r() * 5, k + 1, false); } // (a second row behind: the town's skyline)
+    // the church: the nave running back from the square, the bell tower in front with its bell and a stone spire, an arched door, a rose window glowing green
+    const ch = new THREE.Group(); ch.position.set(-A0 * 1.42, 0, 0); ch.rotation.y = -Math.PI / 2; dg.add(ch);
+    add(BOX, cst, 0, 8, 16, ch).scale.set(15, 16, 30); for (const sg of [-1, 1]) { const rf = add(BOX, roof, sg * 3.75, 19.75, 16, ch); rf.scale.set(7.5 * Math.SQRT2 + 0.8, 0.4, 31); rf.rotation.z = -sg * Math.PI / 4; }
+    const gbB = add(BOX, cst, 0, 16, 30.8, ch); gbB.scale.set(7.5 * Math.SQRT2, 7.5 * Math.SQRT2, 0.3); gbB.rotation.z = Math.PI / 4;
+    for (const sg of [-1, 1]) for (let k = 0; k < 4; k++) add(BOX, cst, sg * 7.9, 5, 6 + k * 7, ch).scale.set(1.4, 10, 1.6); // (buttresses)
+    for (const sg of [-1, 1]) for (let k = 0; k < 3; k++) add(BOX, litG, sg * 7.56, 9, 9.5 + k * 7, ch).scale.set(0.1, 4.5, 1.6); // (tall windows, a faint green light behind them)
+    add(BOX, cst, 0, 15, -2.5, ch).scale.set(9, 30, 9); add(BOX, cst, 0, 30.4, -2.5, ch).scale.set(10, 0.8, 10);
+    for (const [bx, bz, sx, sz] of [[0, -7.06, 3, 0.1], [4.56, -2.5, 0.1, 3], [-4.56, -2.5, 0.1, 3]]) add(BOX, dark, bx, 24, bz, ch).scale.set(sx, 4.6, sz); // (the belfry's openings…)
+    add(kLathe('duBellL', [[0, 1.2], [0.45, 1.15], [0.7, 0.6], [0.92, 0], [1.08, -0.12], [0, -0.12]], 18), bronze, 0, 22.9, -5.4, ch).scale.setScalar(1.15); // (…and the bell)
+    add(kg('duSpire', () => new THREE.CylinderGeometry(0, 6.8, 15, 4)), roof, 0, 38.3, -2.5, ch).rotation.y = Math.PI / 4; add(BOX, iron, 0, 47.3, -2.5, ch).scale.set(0.35, 3.4, 0.35); add(BOX, iron, 0, 47.9, -2.5, ch).scale.set(1.8, 0.35, 0.35);
+    add(BOX, wood, 0, 3, -7.06, ch).scale.set(3.4, 6, 0.16); const ar = add(kCyl(), wood, 0, 6, -7.06, ch); ar.scale.set(1.7, 0.16, 1.7); ar.rotation.x = Math.PI / 2;
+    const rose = add(kg('duRose', () => new THREE.CircleGeometry(2.1, 28)), litG, 0, 13, -7.08, ch); rose.rotation.y = Math.PI; for (let k = 0; k < 4; k++) { const tr = add(BOX, dark, 0, 13, -7.12, ch); tr.scale.set(4.2, 0.18, 0.05); tr.rotation.z = k * Math.PI / 4; }
+    // the churchyard: headstones and wooden crosses, leaning
+    const cst2 = Lm({ map: stT, color: '#8f897c' }); for (let k = 0; k < 26; k++) { const sg = k % 2 ? 1 : -1, gx = sg * (11 + r() * 8), gz = 3 + r() * 28, tl = (r() - 0.5) * 0.25;
+      if (r() < 0.7) { const hs = add(BOX, cst2, gx, 1.05, gz, ch); hs.scale.set(1.5, 2.1, 0.4); hs.rotation.set(tl, r() - 0.5, tl * 0.5); const tp = add(kCyl(), cst2, gx, 2.1, gz, ch); tp.scale.set(0.75, 0.4, 0.75); tp.rotation.set(Math.PI / 2 + tl, 0, 0); }
+      else { const cv = add(BOX, wood, gx, 1.3, gz, ch); cv.scale.set(0.25, 2.6, 0.25); cv.rotation.z = tl; const ch2 = add(BOX, wood, gx, 1.9, gz, ch); ch2.scale.set(1.3, 0.25, 0.25); ch2.rotation.z = tl; }
+      add(kSph(), Lm({ color: '#3a3226' }), gx, 0.05, gz + 1.6, ch).scale.set(0.9, 0.25, 1.7); } // (and the earth over them)
+    // the dead-cart, its bell on a pole; bundles under a sheet
+    const cart = new THREE.Group(); { const a = -0.62, e = 1.09; cart.position.set(Math.cos(a) * A0 * e, 0, Math.sin(a) * B0 * e); cart.rotation.y = a + 1.2; dg.add(cart); }
+    add(BOX, wood, 0, 1.7, 0, cart).scale.set(6, 0.35, 3); for (const sg of [-1, 1]) { add(BOX, wood, 0, 2.3, sg * 1.45, cart).scale.set(6, 1.0, 0.18); add(BOX, wood, sg * 2.95, 2.3, 0, cart).scale.set(0.18, 1.0, 3); }
+    for (const sg of [-1, 1]) { const wh = add(kTor(0.1), wood, 0.6, 1.4, sg * 1.75, cart); wh.scale.setScalar(1.35); for (let k = 0; k < 4; k++) { const sp = add(BOX, wood, 0.6, 1.4, sg * 1.75, cart); sp.scale.set(0.12, 2.6, 0.1); sp.rotation.z = k * Math.PI / 4; } }
+    for (const sg of [-1, 1]) { const sh = add(BOX, wood, -5.2, 1.3, sg * 0.9, cart); sh.scale.set(4.6, 0.2, 0.2); sh.rotation.z = -0.25; }
+    for (let k = 0; k < 4; k++) { const b = add(kSph(), cloth, -1.9 + k * 1.25, 2.3, (r() - 0.5) * 0.6, cart); b.scale.set(0.62, 0.42, 1.2); }
+    add(BOX, wood, 2.8, 3.6, -1.3, cart).scale.set(0.15, 3.2, 0.15); add(kLathe('duBellS', [[0, 0.5], [0.22, 0.48], [0.3, 0.2], [0.4, 0], [0, 0]], 12), bronze, 2.8, 4.9, -1.3, cart).scale.setScalar(0.9);
+    // the well; barrels and crates along the walls
+    { const a = 2.55, e = 1.12, wg = new THREE.Group(); wg.position.set(Math.cos(a) * A0 * e, 0, Math.sin(a) * B0 * e); dg.add(wg); add(kLathe('duWell', [[1.4, 0], [1.5, 0], [1.5, 1.3], [1.15, 1.3], [1.15, 0.1]], 20), cst2, 0, 0, 0, wg); for (const sg of [-1, 1]) add(BOX, wood, sg * 1.3, 2.4, 0, wg).scale.set(0.25, 2.6, 0.25); const rf = add(BOX, roof, 0, 3.9, 0, wg); rf.scale.set(3.4, 0.25, 2.6); const wl = add(kCyl(), wood, 0, 3.2, 0, wg); wl.scale.set(0.14, 2.6, 0.14); wl.rotation.z = Math.PI / 2; }
+    for (let k = 0; k < 18; k++) { let a; do { a = r() * 6.28; } while (!away(a)); const e = 1.05 + r() * 0.09, x = Math.cos(a) * A0 * e, z = Math.sin(a) * B0 * e;
+      if (k % 3) { const b = add(kCyl(), wood, x, 0.85, z, dg); b.scale.set(0.75, 1.7, 0.75); add(kCyl(), iron, x, 0.4, z, dg).scale.set(0.79, 0.12, 0.79); add(kCyl(), iron, x, 1.3, z, dg).scale.set(0.79, 0.12, 0.79); }
+      else { const c = add(BOX, wood, x, 0.7, z, dg); c.scale.set(1.4, 1.4, 1.4); c.rotation.y = r() * 3; } }
+    G.add(bake(dg));
+    // braziers burning herbs, ringing the square (their fires flicker with the Colosseum's)
+    const braz = []; for (const a of [0.35, 1.25, 2.15, 3.95, 4.85, 5.75]) { const e = 1.035, bz = new THREE.Group(); bz.position.set(Math.cos(a) * A0 * e, 0, Math.sin(a) * B0 * e); G.add(bz);
+      for (let q = 0; q < 3; q++) { const leg = add(kCyl(), iron, Math.cos(q * 2.1) * 0.45, 1.0, Math.sin(q * 2.1) * 0.45, bz); leg.scale.set(0.09, 2.1, 0.09); leg.rotation.set(Math.sin(q * 2.1) * 0.25, 0, -Math.cos(q * 2.1) * 0.25); }
+      add(kLathe('duBowl', [[0.1, 0], [0.8, 0.35], [1.05, 0.75], [1.12, 0.85], [0.95, 0.8], [0.1, 0.4]], 18), iron, 0, 1.95, 0, bz);
+      const fl = [0, 1, 2, 3].map((j) => { const f = emSprite(bz, fxTex('flame'), 1.4, { blending: THREE.AdditiveBlending }); f.position.set(Math.cos(j * 1.6) * 0.3, 3.1, Math.sin(j * 1.6) * 0.3); return f; }); const gl = kitGlow(bz, '#fb923c', 6, 0.5); gl.position.y = 3.0; SC.fires.push({ fl, gl, ph: a * 3, bz }); braz.push(bz.position); }
+    // lanterns on posts
+    for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2 + 0.55; if (!away(a)) continue; const e = 1.08, x = Math.cos(a) * A0 * e, z = Math.sin(a) * B0 * e; add(kCyl(), wood, x, 3, z).scale.set(0.14, 6, 0.14); add(BOX, iron, x, 6.3, z).scale.set(0.7, 0.9, 0.7); add(BOX, lit, x, 6.3, z).scale.set(0.5, 0.65, 0.5); kitGlow(G, '#fbbf24', 3.2, 0.55).position.set(x, 6.3, z); }
+    // a sickly moon over the roofs
+    const moon = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), color: '#c8e39a', transparent: true, depthWrite: false, fog: false, opacity: 0.7 })); moon.scale.setScalar(64); moon.position.set(150, 165, -230); G.add(moon);
+    const md = new THREE.Mesh(kg('duMoonD', () => new THREE.CircleGeometry(14, 40)), new THREE.MeshBasicMaterial({ color: '#eef3dc', fog: false })); md.position.copy(moon.position); md.lookAt(0, 0, 0); G.add(md);
+    // a green fog lying low, drifting round the square
+    const fog = []; for (let k = 0; k < 18; k++) { const f = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), color: k % 3 ? '#4d7c0f' : '#65a30d', transparent: true, opacity: 0.15, depthWrite: false })); const R = k < 6 ? 0.3 + r() * 0.65 : 1.05 + r() * 0.5, inside = R < 1;
+      f.userData = { a: r() * 6.28, R, sp: (0.008 + r() * 0.02) * (r() < 0.5 ? 1 : -1), op: inside ? 0.09 : 0.2, ph: r() * 6 }; f.scale.set(15 + r() * 12, 4.5 + r() * 3.5, 1); f.position.y = 1.4 + r() * 1.2; f.renderOrder = 3; G.add(f); fog.push(f); }
+    // rats along the walls; crows on the roofs
+    const ratM = Lm({ color: '#3b3029' }), rats = []; for (let k = 0; k < 8; k++) { const q = new THREE.Group(); add(kSph(), ratM, 0, 0.28, 0, q).scale.set(0.32, 0.26, 0.6); add(kSph(), ratM, 0, 0.3, 0.6, q).scale.set(0.2, 0.18, 0.28);
+      const tl = new THREE.Group(); tl.position.set(0, 0.25, -0.5); q.add(tl); const t2 = add(kCyl(), Lm({ color: '#a07a72' }), 0, 0, -0.5, tl); t2.scale.set(0.04, 1.0, 0.04); t2.rotation.x = Math.PI / 2 - 0.15;
+      let a; do { a = r() * 6.28; } while (!away(a)); q.userData = { a, e: 1.03 + r() * 0.05, sp: (0.06 + r() * 0.07) * (r() < 0.5 ? 1 : -1), wait: r() * 2, tl }; G.add(q); rats.push(q); }
+    const crowM = Lm({ color: '#111114' }), crows = []; houses.filter((_, k) => k % 3 === 0).slice(0, 10).forEach((h, k) => { const c = new THREE.Group(); c.position.set(h.x * 0.985, h.top + 0.1, h.z * 0.985); c.rotation.y = h.ry + (r() - 0.5); G.add(c);
+      add(kSph(), crowM, 0, 0.45, 0, c).scale.set(0.32, 0.36, 0.55); const hd = new THREE.Group(); hd.position.set(0, 0.85, -0.38); c.add(hd); add(kSph(), crowM, 0, 0, 0, hd).scale.setScalar(0.22); const bk = add(kCone(), Lm({ color: '#3f3f46' }), 0, -0.02, -0.28, hd); bk.scale.set(0.07, 0.24, 0.07); bk.rotation.x = -Math.PI / 2;
+      c.userData = { hd, ph: k * 1.7 }; crows.push(c); });
+    G.visible = false;
+    return { g: G, fog, rats, crows, braz, bell: { x: ch.position.x, z: ch.position.z }, hi: 0.66, si: 0.38, thick: 1, bellT: 3, lite(lv) { fog.forEach((f, k) => (f.visible = !lv || k % (lv > 1 ? 3 : 2) === 0)); rats.forEach((q, k) => (q.visible = lv < 2 || k < 3)); } };
+  }
+  // the town's moving parts: the fog drifting (thicker as he's hurt), the rats running and stopping, the crows' heads, the
+  // braziers' herb-smoke, and the church bell tolling
+  function plagueTick(t, dt) {
+    const W = SC.plg; if (!W) return;
+    for (const f of W.fog) { if (!f.visible) continue; const u = f.userData; u.a += u.sp * dt; f.position.x = Math.cos(u.a) * u.R * A0; f.position.z = Math.sin(u.a) * u.R * B0; f.material.opacity = u.op * (W.thick || 1) * (0.75 + 0.25 * Math.sin(t * 0.4 + u.ph)); }
+    for (const q of W.rats) { if (!q.visible) continue; const u = q.userData; u.tl.rotation.y = 0.4 * Math.sin(t * (u.wait > 0 ? 3 : 14) + u.a * 9); if (u.wait > 0) { u.wait -= dt; continue; } u.a += u.sp * dt; if (Math.random() < dt * 0.35) { u.wait = 0.4 + Math.random() * 2.2; if (Math.random() < 0.45) u.sp = -u.sp; }
+      q.position.set(Math.cos(u.a) * A0 * u.e, 0.05, Math.sin(u.a) * B0 * u.e); const sg = Math.sign(u.sp); q.rotation.y = Math.atan2(-Math.sin(u.a) * A0 * sg, Math.cos(u.a) * B0 * sg); }
+    for (const c of W.crows) c.userData.hd.rotation.x = 0.5 * Math.max(0, Math.sin(t * 1.7 + c.userData.ph) * 3 - 2);
+    if (!FXQ.lite) for (const b of W.braz) if (Math.random() < dt * 1.2) smokeAt(b.x, 3.8, b.z, 1, '#7d8a5f', 2.2);
+    if ((W.bellT -= dt) <= 0) { W.bellT = 16; sfx3('bell', W.bell.x, W.bell.z, 260, { vol: 0.5 }); }
   }
   function buildLobby() {
     const G = new THREE.Group(); place.add(G); const L = (c, o) => new THREE.MeshLambertMaterial(Object.assign({ color: c }, o || {})), add = (geo, m, x = 0, y = 0, z = 0, par = G) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); par.add(o); return o; };
@@ -1528,7 +1647,11 @@
     if (ab.bag) { A.bagI = F.bag; if (ab.k === 'pour') F.pour = 1; } // (👜 what the doctor pulled out)
     F.acN++; if (F.kind === 'me') DU.pubAct(F, A); if (F.kind === 'boss' && DU.M.coop) { DU.bac = [F.acN, i]; DU.pubDu(true); }
     if (ab.say) DU.say(F, ab.say);
-    if (isBoss(F) && F.C.wenBoss) { if (F.tele) scene.remove(F.tele); F.tele = ab.k === 'melee' ? teleArc(F, (ab.rng || 6) + 1.2 + bigR(F), (ab.arc || 90) + 34) : ab.k === 'dash' ? teleArc(F, ab.dist + bigR(F), 34) : ab.k === 'leap' && T ? teleFill(telegraph(T.x, T.z, ab.rad)) : null;
+    if (isBoss(F) && F.C.plgBoss) { if (F.tele) scene.remove(F.tele); const rr = (ab.rng || 6) + 1.2 + bigR(F); // (⚕️ the Plague Doctor's: every blow shown on the cobbles, the big ones called out)
+      F.tele = ab.k === 'melee' ? (ab.arc >= 360 ? teleFill(telegraph(F.x, F.z, rr)) : teleArc(F, rr, (ab.arc || 90) + 34)) : ab.k === 'dash' ? teleArc(F, ab.dist + bigR(F), 34) : ab.cloud && T ? teleFill(telegraph(T.x, T.z, ab.cloud.r)) : null;
+      const w = { 'The Black Death': '💀 THE BLACK DEATH — GET AWAY FROM HIM!', Miasma: '⚠️ MIASMA — STAY OUT OF THE CLOUD', Lancet: '⚠️ THE LANCET — SIDESTEP IT', 'Rain of Flasks': '⚠️ FLASKS FROM THE ROOFTOPS — MOVE!', 'Healing Herbs': '🌿 HE CHEWS HEALING HERBS — HIT HIM TO STOP IT!', 'Boiling Water': '♨️ BOILING WATER — DON’T GET SCALDED', Scalpel: '🔪 A SCALPEL — DODGE IT', Leeches: '🪱 LEECHES — DODGE THEM', Hemlock: '☠️ HEMLOCK — DODGE IT', 'Green Flask': '🧪 A GREEN FLASK — POISON', 'Red Flask': '🧪 A RED FLASK — FIRE' }[ab.n];
+      if (w && !vis) { DU.say(F, w); if (ab.n === 'The Black Death' || ab.n === 'Rain of Flasks' || ab.n === 'Healing Herbs') sfx3('horn', F.x, F.z, 90, { vol: 0.45 }); } }
+    else if (isBoss(F) && F.C.wenBoss) { if (F.tele) scene.remove(F.tele); F.tele = ab.k === 'melee' ? teleArc(F, (ab.rng || 6) + 1.2 + bigR(F), (ab.arc || 90) + 34) : ab.k === 'dash' ? teleArc(F, ab.dist + bigR(F), 34) : ab.k === 'leap' && T ? teleFill(telegraph(T.x, T.z, ab.rad)) : null;
       DU.say(F, { Claw: '⚠️ ITS CLAWS — GET OUT OF REACH', Maul: '⚠️ IT MAULS — CRUSH, FIRE, BLOOD AND BLINDNESS', 'Self Cannibal': '🍖 IT FEEDS ON ITSELF — STRONGER, FASTER', 'Antler Gore': '⚠️ ANTLERS DOWN — SIDESTEP THE CHARGE', 'Endless Hunger': '⚠️ IT LEAPS TO FEED — MOVE!' }[ab.n] || ab.n.toUpperCase()); sfx3('horn', F.x, F.z, 90, { vol: 0.45 }); } // (❄️ the Wendigo's own warnings)
     else if (isBoss(F)) { if (F.tele) scene.remove(F.tele); F.tele = ab.k === 'melee' ? teleArc(F, (ab.rng || 6) + 1.2 + bigR(F), (ab.arc || 90) + 34) : teleFill(telegraph(F.x, F.z, 9)); DU.say(F, ab.k === 'melee' ? '⚠️ THE GREAT SCIMITAR — GET BEHIND IT' : '⚠️ EARTHSHAKER — JUMP!'); if (ab.k === 'melee') sfx3('horn', F.x, F.z, 90, { vol: 0.5 }); }
     sfx3(ab.k === 'buff' ? 'magic' : ab.k === 'proj' || ab.k === 'volley' ? 'whoosh' : 'swing', F.x, F.z, 60, { vol: 0.6 });
@@ -1538,7 +1661,7 @@
     if (ab.an === 'gun') sfx3('count', F.x, F.z, 60, { vol: 0.5 });
     if (i === 0 && ab.k === 'proj' && F.C.ab[0].split && F.kind === 'me' && !vis) setTimeout(() => { if (DU.M && DU.M.me === F && F.cd[0] > 0.4) floatText(F, `🔄 Reloading… ${ab.cd} s`, 'tag'); }, (ab.wind + 0.15) * 1000);
     if (ab.k === 'combo') { DU.say(F, '🌸 COMBO'); }
-    if (ab.bag && !vis) { DU.say(F, `👜 ${ab.n.toUpperCase()}`); bagRoll(F); } // (and the next thing in the bag)
+    if (ab.bag && !vis) { if (!F.C.plgBoss) DU.say(F, `👜 ${ab.n.toUpperCase()}`); bagRoll(F); } // (and the next thing in the bag)
     return true;
   }
   function actTick(F, dt) {
@@ -1613,6 +1736,8 @@
       if (Math.random() < dt * (FXQ.lite ? 3 : 9)) { const a = Math.random() * 6.283, r = Math.sqrt(Math.random()) * k.r; smokeAt(k.x + Math.cos(a) * r, 0.4, k.z + Math.sin(a) * r, 1, Math.random() < 0.5 ? '#84cc16' : '#4d7c0f', 2.8); }
       if (k.tk <= 0) { k.tk = k.c.tick; if (!k.vis && live()) for (const T of targetsOf(k.F)) if (!T.dead && Math.hypot(T.x - k.x, T.z - k.z) < k.r + bigR(T)) dealHitAs(k.F, T, k.c.dmg, Object.assign({ src: 'miasma' }, k.c.fx), k.ab); } }
     DU.clouds = DU.clouds.filter((k) => { if (k.t > 0) return true; scene.remove(k.m); return false; });
+    for (const q of DU.rises) { q.t -= dt; const f = q.ring.userData.fill; if (f) f.scale.setScalar(Math.max(0.01, 1 - q.t / q.t0)); q.ring.material.opacity = 0.5 + 0.4 * Math.sin(q.t * 18); if (q.t <= 0) { scene.remove(q.ring); q.done = 1; if (q.F && !q.F.dead && live()) cloudAt(q.F, RISE_AB, q.x, q.z, false); } }
+    DU.rises = DU.rises.filter((q) => !q.done);
   }
   function wavesTick(dt) {
     for (const w of DU.waves) { w.r += w.spd * dt; const k = w.r / w.max; w.g.scale.set(w.r, 1, w.r); w.g.children[0].material.opacity = 0.9 * (1 - k); w.g.children[1].material.opacity = 0.4 * (1 - k);
@@ -1981,6 +2106,34 @@
     if (F.a && stageOf(F) >= 3 && Math.random() < dt * (stageOf(F) === 4 ? 9 : 4)) kitSpark(F.a, F.a.g, (Math.random() - 0.5) * 2, 3 + Math.random() * 4, (Math.random() - 0.5) * 1.2, '#7f1d1d', { v: [0, -3, 0], life: 0.7, s: 0.35, op: 0.85, j: 0.3, flat: true }); // (it bleeds)
     const sp = fSpeed(F); if (!F.act && d > 7 + bigR(F) && sp > 0) { F.mv = true; moveF(F, dx / d * sp * dt, dz / d * sp * dt); }
   }
+  // ⚕️ the Plague Doctor as a boss (v133): the nearest of you, each blow when it's ready. Three phases — I, the physician:
+  // his own kit, slower to wind up; II (two thirds of his health), the plague spreads: miasma rising from the cobbles where
+  // you stand (a ring, then a cloud), and flasks raining from the rooftops; III (a third), the Black Death: he hits harder,
+  // everything comes quicker, a choking cloud hangs round him, and the fog closes in
+  function plgBossTick(F, dt) {
+    const Ts = targetsOf(F); F.mv = false; if (!Ts.length || F.dead || !live()) return;
+    const B = F.bot || (F.bot = { cl: 5, ph: 1 }); if (!B.go) { B.go = 1; F.cd = [1.5, 5, 3, 7, 12, 8]; } // (no Black Death the moment it starts)
+    let T = Ts[0], bd = 1e9; for (const q of Ts) { const d = Math.hypot(q.x - F.x, q.z - F.z) + (q.S.sp > 0 ? 8 : 0); if (d < bd) { bd = d; T = q; } }
+    F.tgt = T; const dx = T.x - F.x, dz = T.z - F.z, d = Math.max(0.01, Math.hypot(dx, dz)), yawTo = angOf(dx, dz);
+    const ph = F.hp > F.mhp * 0.66 ? 1 : F.hp > F.mhp * 0.33 ? 2 : 3;
+    if (ph > B.ph) { B.ph = ph; DU.plagueThick(ph); F.dmgM = (F.dmgM || 1) * 1.15; camShake(me, 0.6); sfx3('horn', F.x, F.z, 120, { vol: 0.7 }); for (const [sz, l, c] of [[10, 0.4, '#ecfccb'], [22, 0.7, '#84cc16'], [34, 1, '#3f6212']]) ringAt(F.x, F.z, c, sz, l); smokeAt(F.x, 1, F.z, 22, '#4d7c0f', 3.6);
+      if (ph === 2) { big('☣️ THE PLAGUE SPREADS', 'miasma rises from the cobbles — flasks rain from the rooftops', '#bef264', 2.8); DU.say(F, '☣️ THE PLAGUE SPREADS'); F.cd[5] = 2; }
+      else { big('💀 THE BLACK DEATH', 'he is the plague now — keep your distance', '#a3e635', 3); DU.say(F, '💀 I AM THE BLACK DEATH'); F.C.aura = [7, 0.7]; F.C.auraC = ['#65a30d', '☠️ CHOKING — SLOWED']; F.cd[4] = Math.min(F.cd[4], 1.5); } }
+    if (B.ph === 3) for (let i = 0; i < F.cd.length; i++) if (F.cd[i] > 0) F.cd[i] = Math.max(0, F.cd[i] - dt * 0.35); // (phase III: everything quicker)
+    if (B.ph >= 2 && (B.cl -= dt) <= 0) { B.cl = B.ph === 3 ? 4.5 : 6.5; for (let q = 0; q < (B.ph === 3 ? 2 : 1); q++) { let x = T.x + (Math.random() - 0.5) * 9, z = T.z + (Math.random() - 0.5) * 9; const e = isFloor(x, z); if (e > 0.8) { const k = Math.sqrt(0.8 / e); x *= k; z *= k; }
+      DU.rises.push({ F, x, z, t: 1.4, t0: 1.4, ring: teleFill(telegraph(x, z, RISE_AB.cloud.r)) }); } if (T.kind === 'me') DU.say(F, '☣️ THE MIASMA RISES — GET OUT OF THE RING'); } // (☣️ where they stand)
+    const reach = 8 + bigR(F), facing = Math.abs(wrapA(yawTo - F.yaw)) < 0.6, ok = (i) => !(F.cd[i] > 0);
+    if (!F.act && !stunned(F)) F.yaw += clamp(wrapA(yawTo - F.yaw), -2.6 * dt, 2.6 * dt);
+    if (!F.act && !stunned(F)) {
+      if (B.ph >= 2 && ok(5)) useAb(F, 5);
+      else if (ok(4) && d < 12 + bigR(F)) useAb(F, 4);
+      else if (ok(2) && d > 7 && d < 30) useAb(F, 2);
+      else if (ok(1) && d < 24) useAb(F, 1);
+      else if (ok(3) && d > 7 && d < 20 + bigR(F) && facing) useAb(F, 3);
+      else if (ok(0) && d < reach && facing) useAb(F, 0); }
+    if (B.ph === 3 && F.a && Math.random() < dt * 8) kitSpark(F.a, F.a.g, (Math.random() - 0.5) * 3, 1 + Math.random() * 5, (Math.random() - 0.5) * 2, Math.random() < 0.5 ? '#65a30d' : '#bef264', { v: [0, 1.5, 0], life: 1.1, s: 0.6, grow: 1.6, op: 0.45, j: 0.5 }); // (the plague coming off him)
+    const sp = fSpeed(F); if (!F.act && d > 6.5 + bigR(F) && sp > 0) { F.mv = true; moveF(F, dx / d * sp * dt, dz / d * sp * dt); }
+  }
   function bossTick(F, dt) {
     const B = F.bot || (F.bot = { sw: 3.5, stp: 7 }), Ts = targetsOf(F); F.mv = false; if (!Ts.length || F.dead || !live()) return;
     let T = Ts[0], bd = 1e9; for (const q of Ts) { const d = Math.hypot(q.x - F.x, q.z - F.z) + (q.S.sp > 0 ? 8 : 0); if (d < bd) { bd = d; T = q; } }
@@ -1997,7 +2150,7 @@
   function hudBuild(M) {
     const el = document.createElement('div'); el.id = 'duHud'; const F = M.me, md = F.C.ab[0].modes;
     el.innerHTML = `<div id="duTop"><div class="du-card me" id="duMe"></div><div id="duMid"></div><div class="du-card op" id="duOp"></div></div>
-      <div id="duHurt"></div><div id="duBig"></div><div id="duKill"></div>
+      <div id="duBossBar"></div><div id="duHurt"></div><div id="duBig"></div><div id="duKill"></div>
       <div id="duAb">${md ? `<div class="du-side">${md.map((m, k) => `<button data-mode="${k}"><b>${k + 1}</b>${m.ic} ${m.n}</button>`).join('')}</div>` : ''}
         ${F.C.ab.map((_, i) => `<button class="du-ab${i === 0 ? ' m1' : i === F.C.ab.length - 1 ? ' ult' : ''}" data-ab="${i}"><span class="k">${KEYS[i]}</span><span class="e"></span><span class="n"></span><span class="cd"></span><span class="s"></span></button>`).join('')}
         <div class="du-side"><button data-k="dodge"><b>${touchy ? '' : 'Q'}</b>💨 Dodge</button><button data-k="block"><b>${touchy ? '' : 'F'}</b>🛡️ Block</button>${touchy ? '<button data-k="run">🏃 Sprint</button>' : ''}<button data-k="lock"><b>${touchy ? '' : 'T'}</b>🎯 Lock</button><button data-k="hb"><b>${touchy ? '' : 'H'}</b>🟥 Hitboxes</button><button data-k="leave" class="lv"><b>${touchy ? '' : 'L'}</b>🚪 Leave</button></div></div>
@@ -2033,10 +2186,13 @@
     if (FXQ.lite) { HUD.acc = (HUD.acc || 0) + dt; if (HUD.acc < 0.08) return; dt = HUD.acc; HUD.acc = 0; } // (🚀 the HUD rewritten ~12 times a second)
     const L = HUD.last, me = M.me, foe = M.foe;
     for (const F of [me, foe]) { F.hpLag = F.hpLag == null || F.hp > F.hpLag ? F.hp : F.hpLag - Math.max(F.mhp * 0.4 * dt, 0); if (F.hpLag < F.hp) F.hpLag = F.hp; }
-    const a = hudCard(me, 'You'), b = hudCard(foe, M.md === 'b' ? (M.wen ? '❄️ BOSS' : '👹 BOSS') : M.pvp ? nameOf(M.opp) : M.plg ? '⚕️ SECRET' : `🤖 ${DIFF[M.D].n}`, true);
+    const a = hudCard(me, 'You'), b = hudCard(foe, M.md === 'b' ? (M.wen ? '❄️ BOSS' : M.plg ? '⚕️ BOSS' : '👹 BOSS') : M.pvp ? nameOf(M.opp) : `🤖 ${DIFF[M.D].n}`, true);
     if (a !== L.a) { $('#duMe').innerHTML = L.a = a; } if (b !== L.b) { $('#duOp').innerHTML = L.b = b; }
-    const left = Math.max(0, M.left), sc = M.md === 'b' ? `<span class="sc"><span class="a">❤️ ${M.lv}</span><small>${M.lv === 1 ? 'life' : 'lives'}</small>${M.coop ? `<span class="b">👥 ${1 + M.allies.filter((q) => !q.out && !q.gone).length}</span>` : ''}</span><span class="md">${M.wen ? '❄️' : '👹'} Boss · ${M.coop ? 'together vs' : 'you vs'} the ${M.wen ? 'Wendigo' : 'Laestrygonian'}</span>` : M.md === 'c' ? `<span class="sc"><span class="a">${M.sc[0]}</span><small>—</small><span class="b">${M.sc[1]}</span></span><span class="md">⚔️ Classic · first to ${TO} · round ${M.rd}</span>` : `<span class="sc"><span class="a">${M.kills}</span><small>kills</small><span class="b">${M.deaths}</span></span><span class="md">💀 Deathmatch · most kills</span>`;
+    const left = Math.max(0, M.left), sc = M.md === 'b' ? `<span class="sc"><span class="a">❤️ ${M.lv}</span><small>${M.lv === 1 ? 'life' : 'lives'}</small>${M.coop ? `<span class="b">👥 ${1 + M.allies.filter((q) => !q.out && !q.gone).length}</span>` : ''}</span><span class="md">${M.wen ? '❄️' : M.plg ? '⚕️' : '👹'} Boss · ${M.coop ? 'together vs' : 'you vs'} the ${M.wen ? 'Wendigo' : M.plg ? 'Plague Doctor' : 'Laestrygonian'}</span>` : M.md === 'c' ? `<span class="sc"><span class="a">${M.sc[0]}</span><small>—</small><span class="b">${M.sc[1]}</span></span><span class="md">⚔️ Classic · first to ${TO} · round ${M.rd}</span>` : `<span class="sc"><span class="a">${M.kills}</span><small>kills</small><span class="b">${M.deaths}</span></span><span class="md">💀 Deathmatch · most kills</span>`;
     const mid = `<div class="tm${left < 20 && M.ph === 'fight' ? ' low' : ''}">${mmss(Math.ceil(left))}</div>${sc}`; if (mid !== L.m) $('#duMid').innerHTML = L.m = mid;
+    const bb = $('#duBossBar'); if (bb) { if (M.md === 'b' && M.plg && foe) { const p = Math.max(0, foe.hp / foe.mhp), ph = Math.max((foe.bot && foe.bot.ph) || 1, p > 0.66 ? 1 : p > 0.33 ? 2 : 3), key = `${Math.round(p * 500)}|${Math.round((foe.hpLag || foe.hp) / foe.mhp * 500)}|${ph}`; // (⚕️ his health across the top, the phases marked on it)
+        if (L.bb !== key) { L.bb = key; bb.style.display = 'block'; bb.className = 'p' + ph; bb.innerHTML = `<b>⚕️ THE PLAGUE DOCTOR<small>${['', 'I · The Physician', 'II · The Plague Spreads', 'III · The Black Death'][ph]}</small></b><div class="bar"><u style="width:${(foe.hpLag || foe.hp) / foe.mhp * 100}%"></u><i style="width:${p * 100}%"></i><s style="left:66%"></s><s style="left:33%"></s><em>${Math.max(0, Math.ceil(foe.hp)).toLocaleString()} / ${foe.mhp.toLocaleString()}</em></div>`; } }
+      else if (bb.style.display !== 'none') { bb.style.display = 'none'; L.bb = null; } }
     hudExtras(M, me, foe); // (🧭 the arrow to them; ❤️ low health)
     const bl = me.S.scH ? Math.round((0.9 + (me.S.blurT > 0 ? 1.8 * me.S.blurT / 2.5 : 0)) * 10) / 10 : 0; if (bl !== L.blur) { L.blur = bl; let f = $('#duBlur'); if (!f && bl) { f = document.createElement('div'); f.id = 'duBlur'; HUD.el.prepend(f); } if (f) { f.style.backdropFilter = f.style.webkitBackdropFilter = bl ? `blur(${bl}px)` : 'none'; f.classList.toggle('on', !!bl); } } // (♨️ boiling water in the eyes: a slight blur, for the round)
     HUD.cdw = HUD.cdw || [];
@@ -2132,10 +2288,10 @@
     desc: 'One on one in the Colosseum. Thirty-two fighters from Greece, Rome, medieval Europe, medieval Japan, the Ottoman Empire and the Mongols, ★ to ★★★★★ — win them from crates (Blox Coins or the duel’s own gold; each with a 1% legend) or the duel’s own achievements. Beat the giant Laestrygonian boss in co-op to make it yours, or take the Executioner’s Contract. Classic (first to 3), Deathmatch or the Boss, against friends or bots from Easy to Extreme. Master a fighter to wear it anywhere.',
     welcome: '⚔️ Pick a fighter (C), open crates, then stand on a pad to duel, team up on the 👹 boss pad — or 🤖 fight a bot. In a match: click to attack, E R G abilities, Q dodge, F block, Space jump.',
     welcomeTouch: '⚔️ Pick a fighter, open crates, then stand on a pad to duel — or 🤖 fight a bot.',
-    M: null, proj: [], volleys: [], drops: [], waves: [], clouds: [], save: null,
+    M: null, proj: [], volleys: [], drops: [], waves: [], clouds: [], rises: [], save: null,
     build() { sky('#4f86c6', '#fde7c2'); SC.colB = undefined; SC.colS = null; buildColosseum(); const n0 = place.children.length; SC.lobG = buildLobby(); SC.lobX = place.children.slice(n0).filter((o) => o !== SC.lobG && o.visible); SC.win = null; },
     async enter() {
-      Object.assign(this, { M: null, proj: [], volleys: [], drops: [], waves: [], clouds: [], hitSeenM: new Map(), bac: null, passT: 0, padT: 0, padI: -1, done: new Set(), hitN: 0, hitSeen: 0, acN: 0, ac: null, dq: [], H: null, lastG: null, gSeen: null, blockHeld: false, rmb: false, touchRun: false, sprinting: false, tired: false, duAt: 0, duKey: '', warm: 0 });
+      Object.assign(this, { M: null, proj: [], volleys: [], drops: [], waves: [], clouds: [], rises: [], hitSeenM: new Map(), bac: null, passT: 0, padT: 0, padI: -1, done: new Set(), hitN: 0, hitSeen: 0, acN: 0, ac: null, dq: [], H: null, lastG: null, gSeen: null, blockHeld: false, rmb: false, touchRun: false, sprinting: false, tired: false, duAt: 0, duKey: '', warm: 0 });
       const s = await kvGet('duel'), S = this.save = Object.assign(DEF_SAVE(), s && typeof s === 'object' ? s : {});
       S.own = [...new Set((Array.isArray(S.own) ? S.own : []).map((x) => x | 0).filter((x) => x >= 0 && x < CH.length))]; if (!S.own.includes(0)) S.own.unshift(0);
       if (!S.own.includes(S.eq | 0)) S.eq = 0; S.eq |= 0; for (const k of ['xp', 'st']) if (!S[k] || typeof S[k] !== 'object') S[k] = {}; if (!Array.isArray(S.ach)) S.ach = []; S.diff = clamp(S.diff | 0, 0, 3); if (S.md !== 'd' && S.md !== 'b') S.md = 'c';
@@ -2206,34 +2362,35 @@
 
     /* ---------------- a match ---------------- */
     startMatch(o) {
+      if (!o.pvp && o.md !== 'b' && o.D === 3 && (o.plg != null ? !!o.plg : Math.random() < 0.1)) o = { md: 'b', plg: true, coop: false, own: true, ps: [myPeer()], back: { md: o.md, D: o.D } }; // (⚕️ on Extreme, 1 bot match in 10 isn't one: the Plague Doctor's town)
       closePanel(); const S = this.save, c = S.eq, M = this.M = Object.assign({ ph: 'intro', t: 0, left: o.md === 'd' ? DM_T : o.md === 'b' ? BOSS_T : ROUND_T, rd: 1, sc: [0, 0], dr: 0, l: 0, fl: 0, d: 0, kills: 0, deaths: 0, dealt: 0, roundsWon: 0, side: 0, goneT: 0, started: false, allies: [], ps: [], lv: BOSS_LIVES, res: 0, cam0: cam.dist }, o);
       M.me = newFighter(c, 'me', { name: Net.name }); this.hitSeenM = new Map(); this.bac = null;
       const seen = (pid) => { const pr = Net.peers.find((x) => x.peer === pid), q = pr && pr.presence && Array.isArray(pr.presence.dq) ? pr.presence.dq : []; this.hitSeenM.set(pid, Math.max(0, ...q.map((h) => (Array.isArray(h) ? +h[0] || 0 : 0)))); };
       if (o.md === 'b') { // the boss: whoever's first runs it; its health grows with each of you
         M.allies = M.ps.filter((x) => x !== myPeer()).map((x) => Object.assign(newFighter(0, 'rem', { peer: x, name: nameOf(x) }), { acSeen: -1 })); M.ps.forEach(seen);
-        M.wen = o.wen != null ? !!o.wen : o.mid ? strHash(String(o.mid)) % 10 === 0 : Math.random() < 0.1; const np = Math.max(1, M.ps.length); // (❄️ 1 in 10: the Wendigo)
-        if (M.wen) { M.foe = newFighter(WEN, M.own ? 'boss' : 'rboss', { C: BOSS_W, hpM: 1 + 0.75 * (np - 1), name: '❄️ The Wendigo', peer: M.ps[0] || null }); M.foe.av = [5, 0, 0, 0, 17, 0, 0, 0, 0, 0, 23 + WEN, 15 + WEN]; this.winterOn(); }
+        M.wen = !M.plg && (o.wen != null ? !!o.wen : o.mid ? strHash(String(o.mid)) % 10 === 0 : Math.random() < 0.1); const np = Math.max(1, M.ps.length); // (❄️ 1 in 10: the Wendigo)
+        if (M.plg) { M.foe = newFighter(PLG, 'boss', { C: Object.assign({}, BOSS_P), name: '⚕️ The Plague Doctor' }); M.foe.av = [5, 0, 0, 0, 17, 0, 0, 0, 0, 0, 23 + PLG, 15 + PLG]; this.plagueOn(); } // (⚕️ his own town)
+        else if (M.wen) { M.foe = newFighter(WEN, M.own ? 'boss' : 'rboss', { C: BOSS_W, hpM: 1 + 0.75 * (np - 1), name: '❄️ The Wendigo', peer: M.ps[0] || null }); M.foe.av = [5, 0, 0, 0, 17, 0, 0, 0, 0, 0, 23 + WEN, 15 + WEN]; this.winterOn(); }
         else { M.foe = newFighter(LAE, M.own ? 'boss' : 'rboss', { C: BOSS_C, hpM: 1 + 0.5 * (np - 1), name: '👹 Laestrygonian Colossus', peer: M.ps[0] || null }); M.foe.av = [5, 0, 0, 0, 17, 0, 0, 0, 0, 0, LAE_BOSS_BT, DUEL_AN + LAE]; } } // (in silver, bronze and gold; half as much health again for each of you after the first)
       else if (o.pvp) { M.foe = newFighter(0, 'rem', { peer: o.opp, name: nameOf(o.opp) }); M.foe.acSeen = -1; seen(o.opp); }
-      else { const D = DIFF[o.D]; M.plg = o.plg != null ? !!o.plg : o.D === 3 && Math.random() < 0.1; const fc = M.plg ? PLG : rollFoe(o.D); // (⚕️ on Extreme, 1 bot in 10 is the Plague Doctor)
-        M.foe = newFighter(fc, 'bot', { D: o.D, hpM: D.hpM, dmgM: D.dmgM, name: M.plg ? '⚕️ The Plague Doctor' : `🤖 ${CH[fc].n}` }); M.side = Math.random() < 0.5 ? 0 : 1; M.foe.av = [Math.floor(Math.random() * 5), 0, 0, 0, 17, 0, 0, 0, 0, 0, 23 + fc, 15 + fc]; }
+      else { const D = DIFF[o.D], fc = rollFoe(o.D); M.foe = newFighter(fc, 'bot', { D: o.D, hpM: D.hpM, dmgM: D.dmgM, name: `🤖 ${CH[fc].n}` }); M.side = Math.random() < 0.5 ? 0 : 1; M.foe.av = [Math.floor(Math.random() * 5), 0, 0, 0, 17, 0, 0, 0, 0, 0, 23 + fc, 15 + fc]; }
       this.respawnDelay = M.md === 'd' ? 450 : M.md === 'b' ? 2500 : 1e9;
       setAvOverride({ av: [AV.s, AV.sh, AV.p, 0, AV.f, 0, 0, 0, 0, 0, bodyOf(this.save, c), 15 + c] }); // (🎨 in its skin, if it's wearing one)
       cam.dist = Math.max(cam.dist, CH[c].big ? 19 : M.md === 'b' ? 18 : 15); // (room to see a giant)
       document.body.classList.add('duMatch'); setBar(''); setBanner(''); hudBuild(M); this.resetRound(true);
       this.bump('played', 1); sfx('horn'); if (o.pvp || M.coop) this.pubDu(true);
     },
-    revive(F) { Object.assign(F, { hp: F.mhp, st: 100, dead: false, act: null, blk: false, push: null, lift: 0, nx: 0, rTaken: 0, wishN: 0, jT: 0 }); F.S = { stun: 0, root: 0, slow: 0, slowM: 1, vuln: 0, ifr: 0, sp: 0, crush: 0, dots: [], buffs: [] }; },
+    revive(F) { if (this.M && this.M.md === 'b') F.pbl = 0; Object.assign(F, { hp: F.mhp, st: 100, dead: false, act: null, blk: false, push: null, lift: 0, nx: 0, rTaken: 0, wishN: 0, jT: 0 }); F.S = { stun: 0, root: 0, slow: 0, slowM: 1, vuln: 0, ifr: 0, sp: 0, crush: 0, dots: [], buffs: [] }; },
     botAvatar(F) { if (F.a) { dropTrail(F.a); dropAvatar(F.a); } F.a = makeAvatar(F.av, F.name, false); F.a.dgMode = F.mode; scene.add(F.a.g); F.a.g.position.set(F.x, 0, F.z); F.a.g.rotation.y = F.yaw; },
     resetRound(first) {
-      const M = this.M; for (const F of [M.me, M.foe]) { if (F && F.stoneM) stoneFx(F, false); endMimics(F); } this.pickDo(-1); M.ph = 'intro'; M.t = 0; M.toT = null; M.toWait = 0; M.left = M.md === 'd' ? DM_T : M.md === 'b' ? (M.wen ? WEN_T : BOSS_T) : ROUND_T; M.base = { l: M.l, fl: this.foeL() };
+      const M = this.M; for (const F of [M.me, M.foe]) { if (F && F.stoneM) stoneFx(F, false); endMimics(F); } this.pickDo(-1); M.ph = 'intro'; M.t = 0; M.toT = null; M.toWait = 0; M.left = M.md === 'd' ? DM_T : M.md === 'b' ? (M.wen ? WEN_T : M.plg ? PLG_T : BOSS_T) : ROUND_T; M.base = { l: M.l, fl: this.foeL() };
       if (first && M.wen) { setTimeout(() => { if (this.M === M) { big('❄️ THE WENDIGO', 'something was hunting in the winter forest…', '#bae6fd', 3.2); sfx('horn'); } }, 400); }
-      if (first && M.plg) { setTimeout(() => { if (this.M === M) { big('⚕️ THE PLAGUE DOCTOR', 'that was no bot — a beaked figure steps out of the miasma…', '#bef264', 3.4); sfx('horn'); feed('⚕️ <b>The Plague Doctor</b> has come for you. Beat it and it’s yours.'); } }, 400); }
+      if (first && M.plg) { setTimeout(() => { if (this.M === M) { feed('⚕️ That was no bot — <b>the Plague Doctor</b> was waiting for you. Beat him and he’s yours.'); sfx('horn'); } }, 900); }
       for (const F of [M.me, M.foe]) { this.revive(F); F.cd = F.C.ab.map(() => 0); }
-      for (const p of this.proj) scene.remove(p.m); for (const v of this.volleys) scene.remove(v.ring); for (const d of this.drops) scene.remove(d.m); for (const w of this.waves) scene.remove(w.g); for (const k of this.clouds) scene.remove(k.m); this.proj = []; this.volleys = []; this.drops = []; this.waves = []; this.clouds = [];
+      for (const p of this.proj) scene.remove(p.m); for (const v of this.volleys) scene.remove(v.ring); for (const d of this.drops) scene.remove(d.m); for (const w of this.waves) scene.remove(w.g); for (const k of this.clouds) scene.remove(k.m); for (const q of this.rises) scene.remove(q.ring); this.proj = []; this.volleys = []; this.drops = []; this.waves = []; this.clouds = []; this.rises = [];
       const cy = cam.yaw; respawn(true); M.me.x = P.x; M.me.z = P.z; M.me.yaw = P.yaw; if (!first) cam.yaw = cy; // (the camera stays where you had it)
       if (M.foe.kind === 'bot') { const s = 1 - M.side; Object.assign(M.foe, { x: s ? 18 : -18, z: 0, yaw: s ? Math.PI / 2 : -Math.PI / 2 }); this.botAvatar(M.foe); }
-      if (isBoss(M.foe)) { Object.assign(M.foe, { x: 16, z: 0, yaw: Math.PI / 2 }); this.botAvatar(M.foe); big('👹 THE LAESTRYGONIAN', `${M.coop ? 'beat it together' : 'beat it'} — ${BOSS_LIVES} lives each · jump its stomps, get behind its blade`, '#fca5a5', 2.6); this.pubDu(true); return; }
+      if (isBoss(M.foe)) { Object.assign(M.foe, { x: 16, z: 0, yaw: Math.PI / 2 }); this.botAvatar(M.foe); if (M.plg) big('⚕️ THE PLAGUE DOCTOR', `his plague town, at midnight · ${BOSS_LIVES} lives · stay out of his clouds — and hit him when he heals`, '#bef264', 3.4); else big('👹 THE LAESTRYGONIAN', `${M.coop ? 'beat it together' : 'beat it'} — ${BOSS_LIVES} lives each · jump its stomps, get behind its blade`, '#fca5a5', 2.6); this.pubDu(true); return; }
       big(M.md === 'd' ? '💀 DEATHMATCH' : `ROUND ${M.rd}`, M.md === 'd' ? 'most kills in 5:00 — you come back at once' : M.sc[0] === TO - 1 && M.sc[1] === TO - 1 ? 'FINAL ROUND' : `first to ${TO}`, '#fde68a'); if (!first) sfx('horn');
       this.pubDu(true);
     },
@@ -2256,7 +2413,7 @@
       else if (M.ph === 'fight') {
         M.left -= dt; if (M.pvp || M.coop) this.recvHits();
         trackVel(F, dt); trackVel(T, dt); statusTick(F, dt); actTick(F, dt); statusTick(T, dt); possTick(F, dt); possTick(T, dt); aimMark(F, T, M, dt); hbTick(M); for (const A of M.allies) possTick(A, dt);
-        if (T.kind === 'bot') { if (!T.dead) { botTick(T, dt); actTick(T, dt); } } else if (T.kind === 'boss') { if (!T.dead) { (T.C.wenBoss ? wenBossTick : bossTick)(T, dt); actTick(T, dt); } } else actTick(T, dt);
+        if (T.kind === 'bot') { if (!T.dead) { botTick(T, dt); actTick(T, dt); } } else if (T.kind === 'boss') { if (!T.dead) { (T.C.wenBoss ? wenBossTick : T.C.plgBoss ? plgBossTick : bossTick)(T, dt); actTick(T, dt); } } else actTick(T, dt);
         for (const A of M.allies) { statusTick(A, dt); actTick(A, dt); }
         projTick(dt); wavesTick(dt); cloudsTick(dt);
         if (M.md === 'b') this.bossFrame(dt);
@@ -2365,7 +2522,7 @@
       if (T.kind === 'me') { M.l++; M.d++; M.deaths++; M.ks = 0; die(); feed(`💀 <b>${esc(M.foe.name)}</b> defeated you`);
         if (M.md === 'b') { M.lv--; if (M.lv <= 0) { T.out = true; this.respawnDelay = 1e9; big('☠️ OUT OF LIVES', M.coop ? 'your allies fight on' : '', '#fca5a5', 2.5); } else big('☠️ DOWN', `❤️ ${M.lv} ${M.lv === 1 ? 'life' : 'lives'} left`, '#fca5a5'); }
         else big('☠️ DEFEATED', '', '#fca5a5'); this.pubDu(true); }
-      else if (isBoss(T)) { M.kills++; if (T.a && !T.a.dead) scatter(T.a); if (M.wen) { feed('❄️ <b>The Wendigo</b> is down!'); big('❄️ THE WENDIGO FALLS', 'the winter forest is quiet', '#bae6fd', 3); } else { feed('👹 <b>The Laestrygonian Colossus</b> is down!'); big('👹 THE GIANT FALLS!', '', '#fde68a', 2.5); } camShake(me, 1); sfx('horn'); }
+      else if (isBoss(T)) { M.kills++; if (T.a && !T.a.dead) scatter(T.a); if (M.wen) { feed('❄️ <b>The Wendigo</b> is down!'); big('❄️ THE WENDIGO FALLS', 'the winter forest is quiet', '#bae6fd', 3); } else if (M.plg) { feed('⚕️ <b>The Plague Doctor</b> is down!'); big('⚕️ THE PLAGUE IS LIFTED', 'the bells fall silent over the town', '#bef264', 3); } else { feed('👹 <b>The Laestrygonian Colossus</b> is down!'); big('👹 THE GIANT FALLS!', '', '#fde68a', 2.5); } camShake(me, 1); sfx('horn'); }
       else { M.fl++; M.kills++; T.respT = 0.6; if (M.md === 'd') { M.ks = (M.ks | 0) + 1; const st = this.save.st; if (M.ks > (st.dms | 0)) st.dms = M.ks; } this.bump('ke' + CH[M.me.c].e, 1); this.bump('kills', 1); this.qBump('k', 1); quest('duel.kill'); if (T.a && !T.a.dead) scatter(T.a); feed(`⚔️ You defeated <b>${esc(T.name)}</b>`); big('⚔️ KO!', '', '#fde68a'); }
     },
     roundOver(r) {
@@ -2382,11 +2539,10 @@
       if (r > 0) { this.bump('we' + CH[M.me.c].e, 1); this.bump('wins', 1); this.qBump('w', 1); if (M.md === 'c') { this.bump('cwins', 1); this.qBump('c', 1); } if (!M.pvp && !boss) for (let k = 0; k <= M.D; k++) this.bump('b' + k, 1); quest('duel.win'); send({ dw: S.st.wins | 0 }); }
       if (!M.pvp && !boss && M.D >= 2) { const st = S.st; st.hs = r > 0 ? (st.hs | 0) + 1 : 0; if ((st.hs | 0) > (st.hsb | 0)) st.hsb = st.hs; } // (🔥 wins in a row on Hard or Extreme)
       let prize = false, pm = null, bonus = 0; // (prize: the fighter you won; pm: its mastery XP instead, when it's already yours)
-      if (boss && r > 0) { this.bump('boss', 1); this.qBump('k', 1); this.qBump('b', 1); const pc = M.wen ? WEN : LAE;
+      if (boss && r > 0) { this.bump('boss', 1); this.qBump('k', 1); this.qBump('b', 1); const pc = M.wen ? WEN : M.plg ? PLG : LAE;
         if (M.wen) { this.bump('wen', 1); quest('bv.wendigo'); bonus = 1000; earn(1000, 'You defeated the Wendigo'); }
-        if (S.own.includes(pc)) { const n = M.wen ? 1500 : 600; pm = Object.assign({ c: pc, n }, this.addXp(pc, n)); } else { this.unlock(pc, M.wen ? 'you defeated the Wendigo' : 'you beat the Laestrygonian'); prize = pc; } }
-      if (M.plg && r > 0) { this.bump('plg', 1); quest('bv.plague'); bonus = 750; earn(750, 'You defeated the Plague Doctor'); // (⚕️ the secret: beat it and it's yours — or, if it already is, a great deal of its mastery)
-        if (S.own.includes(PLG)) pm = Object.assign({ c: PLG, n: 1200 }, this.addXp(PLG, 1200)); else { this.unlock(PLG, 'you defeated the Plague Doctor'); prize = PLG; } }
+        if (M.plg) { this.bump('plg', 1); quest('bv.plague'); bonus = 750; earn(750, 'You defeated the Plague Doctor'); } // (⚕️ the secret: beat him and he's yours — or, if he already is, a great deal of his mastery)
+        if (S.own.includes(pc)) { const n = M.wen ? 1500 : M.plg ? 1200 : 600; pm = Object.assign({ c: pc, n }, this.addXp(pc, n)); } else { this.unlock(pc, M.wen ? 'you defeated the Wendigo' : M.plg ? 'you defeated the Plague Doctor' : 'you beat the Laestrygonian'); prize = pc; } }
       const pxp = typeof spOn === 'function' && spOn() ? (r > 0 ? (M.wen ? 300 : M.plg ? 200 : boss ? 120 : M.pvp ? 80 : [30, 45, 60, 80][M.D]) : r < 0 ? 15 : 25) : 0; if (pxp) spXp(pxp); // (Season Pass XP for every match)
       if (M.md === 'd') { this.bump('dmk', M.kills); if (r > 0 && M.kills >= 15) this.bump('dm15', 1); }
       earn(coins, `${r > 0 ? 'Victory' : r < 0 ? 'Defeat' : 'Draw'} in Colosseum Duels`); const mr = this.addXp(M.me.c, xp);
@@ -2394,7 +2550,7 @@
     },
     result(r, coins, xp, mr, gold, prize, pm, pxp) {
       const M = this.M, C = M.me.C, el = document.createElement('div'); el.id = 'duRes'; el.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(2,6,23,.5);pointer-events:auto;z-index:20';
-      const sc = M.md === 'b' ? `${mmss(Math.ceil((M.wen ? WEN_T : BOSS_T) - Math.max(0, M.left)))} · ❤️ ${Math.max(0, M.lv)} left` : M.md === 'c' ? `${M.sc[0]} — ${M.sc[1]}` : `${M.kills} kills · ${M.deaths} deaths`, foe = M.md === 'b' ? (M.wen ? '❄️ the Wendigo' : '👹 the Laestrygonian') : M.pvp ? esc(nameOf(M.opp)) : M.plg ? '⚕️ the Plague Doctor' : `${DIFF[M.D].e} ${DIFF[M.D].n} bot`, lv = mr.after, nx = MAST[Math.min(10, lv + 1)], have = this.save.xp[C.i] | 0;
+      const sc = M.md === 'b' ? `${mmss(Math.ceil((M.wen ? WEN_T : M.plg ? PLG_T : BOSS_T) - Math.max(0, M.left)))} · ❤️ ${Math.max(0, M.lv)} left` : M.md === 'c' ? `${M.sc[0]} — ${M.sc[1]}` : `${M.kills} kills · ${M.deaths} deaths`, foe = M.md === 'b' ? (M.wen ? '❄️ the Wendigo' : M.plg ? '⚕️ the Plague Doctor' : '👹 the Laestrygonian') : M.pvp ? esc(nameOf(M.opp)) : `${DIFF[M.D].e} ${DIFF[M.D].n} bot`, lv = mr.after, nx = MAST[Math.min(10, lv + 1)], have = this.save.xp[C.i] | 0;
       el.innerHTML = `<div class="du-res" style="padding:22px 30px;border-radius:22px;background:linear-gradient(180deg,rgba(30,41,59,.96),rgba(15,23,42,.96));border:2px solid ${r > 0 ? '#fbbf24' : '#475569'};box-shadow:0 20px 60px rgba(0,0,0,.6);max-width:min(470px,92vw)">
         <div style="font:800 50px/1 var(--fh);color:${r > 0 ? '#fde68a' : r < 0 ? '#fca5a5' : '#e2e8f0'};-webkit-text-stroke:6px rgba(0,0,0,.4);paint-order:stroke fill">${r > 0 ? '🏆 VICTORY' : r < 0 ? '☠️ DEFEAT' : '🤝 DRAW'}</div>
         <div style="font:700 15px var(--fb);color:#cbd5e1">${C.ic} ${esc(C.n)} vs ${foe} · ${sc}</div>
@@ -2406,12 +2562,12 @@
       HUD.el.append(el); if (document.exitPointerLock) document.exitPointerLock();
       const key = (e) => { if (!document.body.contains(el)) { window.removeEventListener('keydown', key, true); return; } const x = e.key === 'Enter' ? 'again' : e.key === 'Escape' ? (M.pvp || M.coop ? 'again' : 'lobby') : null; if (!x) return; const b = el.querySelector(`[data-x="${x}"]`); if (b) { e.preventDefault(); e.stopImmediatePropagation(); b.click(); } };
       window.addEventListener('keydown', key, true); // (⌨️ Enter: again; Esc: the courtyard)
-      el.addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.x === 'equip') { this.save.eq = prize; this.dirty(); sfx('select'); b.disabled = true; b.textContent = `✔ ${CH[prize].n} equipped`; return; } window.removeEventListener('keydown', key, true); const again = b.dataset.x === 'again' && !M.pvp && !M.coop, o = M.md === 'b' ? { md: 'b', coop: false, own: true, ps: [myPeer()] } : { md: M.md, pvp: false, D: M.D }; this.leaveMatch(); if (again) this.startMatch(o); });
+      el.addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.x === 'equip') { this.save.eq = prize; this.dirty(); sfx('select'); b.disabled = true; b.textContent = `✔ ${CH[prize].n} equipped`; return; } window.removeEventListener('keydown', key, true); const again = b.dataset.x === 'again' && !M.pvp && !M.coop, o = M.back ? { md: M.back.md, pvp: false, D: M.back.D } : M.md === 'b' ? { md: 'b', coop: false, own: true, ps: [myPeer()] } : { md: M.md, pvp: false, D: M.D }; this.leaveMatch(); if (again) this.startMatch(o); });
     },
     cleanMatch() {
       const M = this.M; if (!M) return; this.leaveAsk(false); this.buf = null; this.winterOff(); for (const F of [M.me, M.foe, ...(M.allies || [])]) if (F && F.auraR) { scene.remove(F.auraR); F.auraR = null; } if ((M.foe.kind === 'bot' || isBoss(M.foe)) && M.foe.a) { dropTrail(M.foe.a); dropAvatar(M.foe.a); } dropTrail(M.me.a); if (M.foe.kind === 'rem') dropTrail(M.foe.a); for (const A of M.allies) dropTrail(A.a);
       if (M.foe.tele) { scene.remove(M.foe.tele); M.foe.tele = null; }
-      for (const p of this.proj) scene.remove(p.m); for (const v of this.volleys) scene.remove(v.ring); for (const d of this.drops) scene.remove(d.m); for (const w of this.waves) scene.remove(w.g); for (const k of this.clouds) scene.remove(k.m); this.proj = []; this.volleys = []; this.drops = []; this.waves = []; this.clouds = [];
+      for (const p of this.proj) scene.remove(p.m); for (const v of this.volleys) scene.remove(v.ring); for (const d of this.drops) scene.remove(d.m); for (const w of this.waves) scene.remove(w.g); for (const k of this.clouds) scene.remove(k.m); for (const q of this.rises) scene.remove(q.ring); this.proj = []; this.volleys = []; this.drops = []; this.waves = []; this.clouds = []; this.rises = [];
       if (HUD.el) HUD.el.remove(); HUD.el = null; document.body.classList.remove('duMatch'); for (const a of Net.avatars.values()) { a.g.visible = true; a.g.scale.setScalar(1); if (a.pet) a.pet.g.visible = true; }
       cam.dist = M.cam0 || 15;
       if (M.mid) this.done.add(M.mid);
@@ -2433,13 +2589,16 @@
     pickDo(k) { const p = this.pick; this.pick = null; const el = $('#duMim'); if (el) el.remove(); if (p && k >= 0 && k < p.n && this.M && live() && !this.M.me.dead) { p.cb(k); sfx('unlock'); } },
     // 🌫️ the Screech's fog over your eyes: you can still see, just not well
     fogOn(d) { if (!HUD.el) return; let f = $('#duFog'); if (!f) { f = document.createElement('div'); f.id = 'duFog'; HUD.el.prepend(f); } f.classList.add('on'); clearTimeout(this.fogT); this.fogT = setTimeout(() => f.classList.remove('on'), d * 1000); },
-    winterOn() { if (!SC.win) SC.win = buildWinter(); const W2 = SC.win; if (W2.g.visible) return; W2.g.visible = true; if (SC.colG) SC.colG.visible = false; if (SC.lobG) SC.lobG.visible = false;
+    mapOn(key, build, look) { if (!SC[key]) SC[key] = build(); const W2 = SC[key]; if (W2.g.visible) return; W2.g.visible = true; if (SC.colG) SC.colG.visible = false; if (SC.lobG) SC.lobG.visible = false;
       W2.save = { fog: scene.fog, top: SKYC.top, bot: SKYC.bot, h: [hemiL.color.getHex(), hemiL.groundColor.getHex(), hemiL.intensity], s: [sunL.color.getHex(), sunL.intensity] };
       W2.theme = this.land.theme; this.land.theme = 'night'; W2.hid = place.children.filter((o) => o !== W2.g && o.visible); for (const o of W2.hid) o.visible = false; if (typeof scenery === 'function') scenery.hide = true; // (nothing of the meadow's hills or the courtyard showing through the fog)
-      sky('#0a1222', '#4d5b70'); scene.fog = new THREE.Fog('#5d6b80', 26, 135); hemiL.color.set('#a9bddf'); hemiL.groundColor.set('#3a4354'); hemiL.intensity = 0.62; sunL.color.set('#c4d6ff'); sunL.intensity = 0.36; this.perfApply(); }, // (night, and a freezing fog; the snow as performance mode allows)
-    winterOff() { const W2 = SC.win; if (!W2 || !W2.g.visible) return; W2.g.visible = false; if (SC.colG) SC.colG.visible = true; if (SC.lobG) SC.lobG.visible = true; const sv = W2.save;
-      sky(sv.top || '#4f86c6', sv.bot || '#fde7c2'); scene.fog = sv.fog; hemiL.color.setHex(sv.h[0]); hemiL.groundColor.setHex(sv.h[1]); hemiL.intensity = sv.h[2]; sunL.color.setHex(sv.s[0]); sunL.intensity = sv.s[1]; this.land.theme = W2.theme || 'meadow'; for (const o of W2.hid || []) o.visible = true; W2.hid = null; if (typeof scenery === 'function') scenery.hide = false; gfxApply(); },
-    themeId() { const M = this.M; return M && M.wen && M.ph !== 'end' ? 'wendigo' : null; }, // (🎵 the Wendigo's own song, only in its fight)
+      look(W2); this.perfApply(); },
+    winterOn() { this.mapOn('win', buildWinter, () => { sky('#0a1222', '#4d5b70'); scene.fog = new THREE.Fog('#5d6b80', 26, 135); hemiL.color.set('#a9bddf'); hemiL.groundColor.set('#3a4354'); hemiL.intensity = 0.62; sunL.color.set('#c4d6ff'); sunL.intensity = 0.36; }); }, // (night, and a freezing fog; the snow as performance mode allows)
+    plagueOn() { this.mapOn('plg', buildPlague, (W2) => { sky('#05070a', '#223018'); scene.fog = new THREE.Fog('#232c1c', 24, 130); hemiL.color.set('#b9c7a3'); hemiL.groundColor.set('#3b3326'); hemiL.intensity = W2.hi; sunL.color.set('#e9dcb5'); sunL.intensity = W2.si; W2.thick = 1; W2.bellT = 3; }); }, // (⚕️ midnight, a sickly green fog)
+    plagueThick(ph) { const W2 = SC.plg; if (!W2 || !W2.g.visible || !scene.fog) return; W2.thick = [1, 1, 1.5, 2.1][ph]; scene.fog.near = [24, 24, 18, 13][ph]; scene.fog.far = [130, 130, 108, 90][ph]; scene.fog.color.set(['#232c1c', '#232c1c', '#26331a', '#2b3b17'][ph]); }, // (the plague thickening as he's hurt)
+    winterOff() { for (const W2 of [SC.win, SC.plg]) { if (!W2 || !W2.g.visible) continue; W2.g.visible = false; if (SC.colG) SC.colG.visible = true; if (SC.lobG) SC.lobG.visible = true; const sv = W2.save;
+      sky(sv.top || '#4f86c6', sv.bot || '#fde7c2'); scene.fog = sv.fog; hemiL.color.setHex(sv.h[0]); hemiL.groundColor.setHex(sv.h[1]); hemiL.intensity = sv.h[2]; sunL.color.setHex(sv.s[0]); sunL.intensity = sv.s[1]; this.land.theme = W2.theme || 'meadow'; for (const o of W2.hid || []) o.visible = true; W2.hid = null; if (typeof scenery === 'function') scenery.hide = false; gfxApply(); } }, // (either boss's place, put away)
+    themeId() { const M = this.M; return M && M.ph !== 'end' ? (M.wen ? 'wendigo' : M.md === 'b' && M.plg ? 'plague' : null) : null; }, // (🎵 the Wendigo's own songs, and the Plague Doctor's — only in their fights)
     tryDodge() { const M = this.M; if (!M) return; const f = (keys.KeyW || keys.ArrowUp ? 1 : 0) - (keys.KeyS || keys.ArrowDown ? 1 : 0) - joy.y, r = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0) + joy.x, cy = cam.yaw;
       dodge(M.me, -Math.sin(cy) * f + Math.cos(cy) * r, -Math.cos(cy) * f - Math.sin(cy) * r); },
     setMode(k) { const M = this.M; if (!M) return; const md = M.me.C.ab[0].modes; if (!md || k >= md.length || M.me.act || k === M.me.mode) return; swapMode(M.me, k); sfx('select'); floatText(M.me, `${md[k].ic} ${md[k].n}`, 'tag'); this.pubDu(true); },
@@ -2452,7 +2611,7 @@
     leaveAsk(show = true) { const old = $('#duLeave'); if (old) old.remove(); this.leaveQ = false; if (this.leaveKey) { window.removeEventListener('keydown', this.leaveKey, true); this.leaveKey = null; } const M = this.M; if (!show || !M || !HUD.el) return;
       if (M.ph === 'end') { this.leaveMatch(); return; } // (it's over: straight out)
       const boss = M.md === 'b', el = document.createElement('div'); el.id = 'duLeave'; this.leaveQ = true; sfx('open'); if (document.exitPointerLock) document.exitPointerLock();
-      el.innerHTML = `<div class="box"><b>🚪 Leave ${boss ? (M.wen ? 'the Wendigo’s forest' : 'the boss fight') : 'this fight'}?</b><span>${boss ? (M.coop ? 'Your allies fight on without you. ' : '') + 'You won’t get its rewards.' : M.pvp ? 'It counts as a loss — your opponent wins.' : 'You won’t get any rewards, and it counts as a loss.'}</span>
+      el.innerHTML = `<div class="box"><b>🚪 Leave ${boss ? (M.wen ? 'the Wendigo’s forest' : M.plg ? 'the plague town' : 'the boss fight') : 'this fight'}?</b><span>${boss ? (M.coop ? 'Your allies fight on without you. ' : '') + 'You won’t get its rewards.' : M.pvp ? 'It counts as a loss — your opponent wins.' : 'You won’t get any rewards, and it counts as a loss.'}</span>
         <div class="bt"><button data-l="go">🚪 Leave <small>Enter</small></button><button data-l="no" class="alt">⚔️ Keep fighting <small>Esc</small></button></div></div>`;
       el.addEventListener('pointerdown', (e) => { const b = e.target.closest('button'); if (!b) return; e.preventDefault(); e.stopPropagation(); if (b.dataset.l === 'go') this.forfeit(); else this.leaveAsk(false); });
       this.leaveKey = (e) => { if (e.key !== 'Enter' && e.key !== 'Escape') return; e.preventDefault(); e.stopImmediatePropagation(); if (e.key === 'Enter') this.forfeit(); else this.leaveAsk(false); }; window.addEventListener('keydown', this.leaveKey, true); // (⌨️ Enter: leave; Esc: stay — before the chat takes Enter)
@@ -2503,10 +2662,11 @@
       if (lv && !SC.colB) colBake(); colMerged(!!lv); // (…the Colosseum's still parts merged into a few big ones…)
       for (const f of SC.fires) { f.fl.forEach((q, j) => (q.visible = !lv || j < (lv > 1 ? 1 : 2))); if (f.gl) f.gl.visible = lv < 2; } // (…the torches: two flames of four, at Max one and no glow…)
       if (SC.win) { const W2 = SC.win, n = lv > 1 ? 0 : lv ? Math.floor(W2.N / 3) : W2.N; W2.n = n; W2.snow.geometry.setDrawRange(0, n); W2.snow.visible = n > 0; } // (…a third of the snow, or none)
+      if (SC.plg) SC.plg.lite(lv); // (…in the plague town, less fog and fewer rats)
       this.lobVis(); },
     perfInfo() { return { merged: SC.colB ? SC.colB.children.length : 0, from: SC.colS ? SC.colS.length : 0, on: !!(SC.colB && SC.colB.visible), lob: !!(SC.lobG && SC.lobG.visible), why: SC.colWhy }; }, // (for checking)
     perfOff() { FXQ.lite = 0; GFX.lowForce = false; GFX.scale = 1; gfxApply(); },
-    lobVis() { const v = !(SC.win && SC.win.g.visible) && !(FXQ.lite && this.M); if (SC.lobG && SC.lobG.visible !== v) { SC.lobG.visible = v; for (const o of SC.lobX || []) o.visible = v; } else if (SC.lobX && SC.lobX[0] && SC.lobX[0].visible !== v) for (const o of SC.lobX) o.visible = v; }, // (the courtyard outside: not drawn in the winter forest, nor in a fight in performance mode — the Colosseum's walls hide it anyway)
+    lobVis() { const v = !(SC.win && SC.win.g.visible) && !(SC.plg && SC.plg.g.visible) && !(FXQ.lite && this.M); if (SC.lobG && SC.lobG.visible !== v) { SC.lobG.visible = v; for (const o of SC.lobX || []) o.visible = v; } else if (SC.lobX && SC.lobX[0] && SC.lobX[0].visible !== v) for (const o of SC.lobX) o.visible = v; }, // (the courtyard outside: not drawn in the winter forest, nor in a fight in performance mode — the Colosseum's walls hide it anyway)
     perfWatch() { // (lagging? offer performance mode — or Max, if On isn't enough — once a visit)
       const lv = opt('perf') | 0, now = performance.now(); if (lv >= 2 || !(Meter.fps > 0)) return; const lim = lv ? 22 : 28;
       if (Meter.fps >= lim) { this.lowAt = 0; return; } if (!this.lowAt) this.lowAt = now; if (now - this.lowAt < 7000 || (this.perfTipped | 0) > lv) return;
@@ -2741,7 +2901,7 @@
         ${exCard(SKW, '🎭 The Skinwalker’s Quest', 'an all-rounder that takes its foe’s own powers and turns them back on it: Mimic, Mimic Form, Screech, Behind You.', exoGoals(S))}
         ${EXQ.map((Q) => exCard(Q.c, `${Q.ic} ${esc(Q.n)}`, `${an(CH[Q.c].ro)} — ${Q.tail}.`, exqGoals(S, Q))).join('')}
         <div class="du-exq sec${ownW ? ' got' : ''}">${ownW ? `<img src="${fighterPic(WEN, true)}" alt="">` : '<i>❓</i>'}<div style="flex:1"><b>${ownW ? '❄️ The Wendigo' : '❓ A secret'}</b><small>${ownW ? 'You met it in the winter forest — and lived. It’s yours.' : 'Something hunts in a winter forest… Not every boss fight is the one you expect.'}</small></div></div>
-        <div class="du-exq sec${ownP ? ' got' : ''}">${ownP ? `<img src="${fighterPic(PLG, true)}" alt="">` : '<i>❓</i>'}<div style="flex:1"><b>${ownP ? '⚕️ The Plague Doctor' : '❓ Another secret'}</b><small>${ownP ? 'You beat it in an Extreme duel — the doctor, its bag and its poisons are yours.' : 'On Extreme, not every bot is a bot… something in a beaked mask walks the miasma, and only the bravest ever meet it.'}</small></div></div>`;
+        <div class="du-exq sec${ownP ? ' got' : ''}">${ownP ? `<img src="${fighterPic(PLG, true)}" alt="">` : '<i>❓</i>'}<div style="flex:1"><b>${ownP ? '⚕️ The Plague Doctor' : '❓ Another secret'}</b><small>${ownP ? 'You survived his plague town and beat him — the doctor, his bag and his poisons are yours.' : 'On Extreme, not every bot is a bot… something in a beaked mask walks a plague town at midnight, and only the bravest ever meet it.'}</small></div></div>`;
       const html = tab === 'ex' ? exo : tab === 'q' ? `${tabs}<p style="font:600 13px var(--fb);color:#cbd5e1;margin:0 0 12px">Every new fighter has a quest of its own — the mythics, the giants, the spirit and the rest. Accept one, play, and when both counts are full it’s yours.</p>${qb}` : `${tabs}<p style="font:600 13px var(--fb);color:#cbd5e1;margin:0 0 10px">The Colosseum’s own honours — each one wins you a fighter. (The 1% legends only come from crates; the Laestrygonian from the 👹 boss or Season Pass level 100.)</p><div class="du-ach">${ACH.map((A) => { const got = S.ach.includes(A.id), v = A.k === 'mast' ? S.st.mast | 0 : S.st[A.k] | 0, C = CH[A.c];
         return `<div class="${got ? 'got' : ''}"><i>${A.ic}</i><span><b>${esc(A.n)}</b><small>${esc(A.d)} → ${C.ic} ${esc(C.n)} <span style="color:${RAR[C.r].c}">(${RAR[C.r].t})</span></small></span><span class="pr">${got ? '✔ Done' : `${Math.min(v, A.n0).toLocaleString()} / ${A.n0.toLocaleString()}`}</span></div>`; }).join('')}</div>`;
       openPanel('🏆 Duel Achievements', html, (b) => { if (b.dataset.tab) { sfx('click'); this.achPanel(b.dataset.tab); return; } const Q = b.dataset.qk && QUESTS.find((x) => x.key === b.dataset.qk);
