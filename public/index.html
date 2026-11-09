@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Blox Tycoon</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0f1724">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2322c55e'/%3E%3Ctext x='32' y='44' font-size='34' font-family='Arial Black,sans-serif' font-weight='900' text-anchor='middle' fill='white'%3E$%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="/style.css">
+<script type="importmap">{ "imports": { "three": "/vendor/three.module.js" } }</script>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<!-- Join screen -->
+<div id="join" class="overlay">
+  <div class="card">
+    <div class="logo"><span class="logo-cash">$</span> BLOX TYCOON</div>
+    <p class="tagline">Claim a plot. Buy droppers. Collect cash. Rebirth. Out-earn everyone on the server.</p>
+    <label class="field">
+      <span>Your name</span>
+      <input id="name" maxlength="16" placeholder="Player" autocomplete="off" spellcheck="false">
+    </label>
+    <label class="field">
+      <span>Server code <small>(optional, to join friends)</small></span>
+      <input id="room" maxlength="8" placeholder="Auto" autocomplete="off" spellcheck="false" style="text-transform:uppercase">
+    </label>
+    <button id="play" class="btn primary">PLAY</button>
+    <div id="servers" class="servers"></div>
+    <div class="controls-help">
+      <b>Controls</b> WASD / arrows move · Space jump · drag mouse to look · scroll to zoom · Enter chat · H help
+    </div>
+    <div id="join-error" class="error"></div>
+  </div>
+</div>
+
+<!-- Disconnect overlay -->
+<div id="disconnected" class="overlay hidden">
+  <div class="card small">
+    <div class="logo">Reconnecting…</div>
+    <p id="disconnected-msg" class="tagline">Lost connection to the server.</p>
+  </div>
+</div>
+
+<!-- HUD -->
+<div id="hud" class="hidden">
+  <div class="hud-top-left">
+    <div class="cash-box">
+      <div class="cash-label">CASH</div>
+      <div id="cash" class="cash">$0</div>
+      <div id="income" class="income"></div>
+    </div>
+    <div id="status" class="status">Walk to a glowing pad to claim a tycoon</div>
+    <div class="meta">
+      <span id="room-code" title="Share this code so friends can join your server">Server —</span>
+      <span id="ping">— ms</span>
+      <span id="rebirths">Rebirths 0</span>
+    </div>
+  </div>
+  <div class="hud-top-right">
+    <div class="panel leaderboard">
+      <div class="panel-title">LEADERBOARD</div>
+      <ol id="leaderboard"></ol>
+    </div>
+  </div>
+  <div id="prompt" class="prompt hidden"></div>
+  <div id="toasts"></div>
+  <div class="hud-bottom-left">
+    <div id="chat" class="chat">
+      <div id="chat-log" class="chat-log"></div>
+      <input id="chat-input" class="chat-input hidden" maxlength="140" placeholder="Say something… (Enter to send, Esc to close)" autocomplete="off">
+      <div id="chat-hint" class="chat-hint">Press Enter to chat</div>
+    </div>
+  </div>
+  <div class="hud-bottom-right">
+    <button id="help-btn" class="icon-btn" title="Help (H)">?</button>
+    <button id="tp-btn" class="icon-btn hidden" title="Teleport to my tycoon (T)">⌂</button>
+  </div>
+  <div id="mobile" class="hidden">
+    <div id="joystick" class="joystick"><div class="stick"></div></div>
+    <button id="jump-btn" class="jump-btn">JUMP</button>
+  </div>
+</div>
+
+<div id="help" class="overlay hidden">
+  <div class="card">
+    <div class="logo">HOW TO PLAY</div>
+    <ul class="help-list">
+      <li><b>Claim</b> a tycoon by standing on an empty plot's glowing <b>CLAIM</b> pad.</li>
+      <li><b>Buy</b> items by stepping on pads once you can afford them. Green = can buy, red = too expensive.</li>
+      <li><b>Droppers</b> drop cubes onto the conveyor. <b>Upgraders</b> multiply cubes that pass through them.</li>
+      <li>Cubes end up in the <b>Collector</b>. Stand on the <b>COLLECT</b> pad to move the cash to your wallet.</li>
+      <li>Buy everything to unlock <b>REBIRTH</b>: your tycoon resets but all income gets +50% forever.</li>
+      <li>Your tycoon is kept for 2 minutes if you disconnect. Share the server code to play with friends.</li>
+    </ul>
+    <div class="controls-help">WASD / arrows move · Space jump · drag mouse to look · scroll zoom · Enter chat · T teleport home · H toggle help</div>
+    <button id="help-close" class="btn primary">GOT IT</button>
+  </div>
+</div>
+
+<script type="module" src="/js/main.js"></script>
+</body>
+</html>
