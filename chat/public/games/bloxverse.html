@@ -809,6 +809,41 @@
   #avZoom[hidden]{display:none}
   #avZoom button{width:38px;height:38px;border-radius:12px;border:1px solid rgba(255,255,255,.25);background:rgba(15,23,42,.8);color:#fff;font:700 20px var(--fh);cursor:pointer}
   @media (max-width:760px){.sls{grid-template-columns:1fr}.xshapes.sm{grid-template-columns:repeat(5,1fr)}}
+  .xshapes{grid-template-columns:repeat(auto-fill,minmax(58px,1fr))}.xshapes.sm{grid-template-columns:repeat(auto-fill,minmax(34px,1fr))}
+  #avView{position:absolute;z-index:3;left:10px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:5px}
+  #avView button{height:32px;padding:0 10px;border-radius:10px;border:1px solid rgba(255,255,255,.22);background:rgba(15,23,42,.78);color:#e2e8f0;font:600 12px var(--fh);cursor:pointer;text-align:left;white-space:nowrap}
+  #avView button:hover{background:rgba(30,41,59,.95)}#avView button.on{background:#fff;color:#0f172a;border-color:#fff}
+  .avedhead .xchip:disabled{opacity:.4;cursor:default}
+  .wearing{display:flex;align-items:center;gap:6px;overflow-x:auto;padding:0 0 9px;margin:0 0 10px;border-bottom:1px solid var(--line);scrollbar-width:thin}
+  .wearing>small{flex:none;color:var(--muted);font:700 10.5px var(--fb);text-transform:uppercase;letter-spacing:.07em}
+  .wearing .xchip{flex:none;padding:4px 10px}.wnone{color:var(--dim);font:700 12px var(--fb);white-space:nowrap}
+  .wchip{flex:none;display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(34,197,94,.45);background:rgba(34,197,94,.1);border-radius:999px;padding:3px 4px 3px 10px;color:#dcfce7;font:600 12px var(--fh);white-space:nowrap}
+  .wchip button{width:20px;height:20px;border-radius:50%;border:0;background:rgba(0,0,0,.35);color:#fecaca;font:700 11px var(--fb);cursor:pointer;padding:0;line-height:20px}
+  .wchip button:hover{background:#ef4444;color:#fff}
+  .avfind{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 10px}
+  .avfind .xsearch{flex:1 1 170px}.avfind .xsearch input{padding:7px 0}
+  .avfind select{background:var(--solid);color:#e2e8f0;border:1px solid var(--line);border-radius:999px;padding:7px 10px;font:600 12.5px var(--fh);cursor:pointer}
+  .avfind small{color:var(--muted);font:700 11.5px var(--fb)}
+  .pxtools{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin:0 0 8px}
+  .pxtools button{display:inline-flex;align-items:center;gap:4px;height:32px;padding:0 9px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:#e2e8f0;font:600 12px var(--fh);cursor:pointer}
+  .pxtools button:hover{background:rgba(255,255,255,.12)}.pxtools button.on{border-color:#22c55e;background:rgba(34,197,94,.2);color:#fff}
+  .pxtools button:disabled{opacity:.4;cursor:default}.pxtools .sep{width:1px;height:22px;background:var(--line);margin:0 3px}
+  #pxCan{width:min(300px,78vw)}
+  .skpick.off{opacity:.55;cursor:default}
+  .pxpals{margin-top:7px}.pxpals .xchip{padding:4px 10px}
+  .pxtpl{display:grid;grid-template-columns:repeat(auto-fill,minmax(66px,1fr));gap:6px}
+  .pxtpl button{display:flex;flex-direction:column;align-items:center;gap:3px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.05);color:#cbd5e1;font:600 10.5px/1.1 var(--fh);padding:6px 3px;cursor:pointer}
+  .pxtpl button:hover{background:rgba(255,255,255,.12);color:#fff}
+  .pxtpl img{width:44px;height:44px;image-rendering:pixelated;border-radius:6px;box-shadow:0 0 0 1px rgba(255,255,255,.15)}
+  .editban{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:rgba(59,130,246,.12);border:1px solid rgba(96,165,250,.45);border-radius:12px;padding:8px 10px;margin:0 0 10px;color:#dbeafe;font:600 13px var(--fh)}
+  .editban span{flex:1;min-width:150px}.editban .xp-btn{padding:7px 12px;font-size:13px}
+  .dpad{display:flex;flex-wrap:wrap;gap:4px}
+  .dpad button{min-width:38px;height:32px;padding:0 8px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.06);color:#e2e8f0;font:600 12px var(--fh);cursor:pointer}
+  .dpad button:hover{background:rgba(255,255,255,.14)}
+  .xpartc{display:inline-block;width:9px;height:9px;border-radius:3px;box-shadow:0 0 0 1px rgba(255,255,255,.35)}
+  .xmrow{display:flex;gap:4px}.xmrow .xmini{flex:1}
+  .xmini.red{color:#fca5a5}.xmini.red.on{background:#ef4444;border-color:#fca5a5;color:#fff}
+  @media (max-width:760px){#avView{top:auto;bottom:10px;transform:none;flex-direction:row;flex-wrap:wrap;max-width:calc(100% - 70px)}#avView button{height:28px;padding:0 7px;font-size:11px}.avedhint{display:none}}
   @media (max-width:760px){.aved{padding:10px 12px;gap:8px}.avedhead h2{font-size:20px}.avedhead .xchip{padding:5px 9px}.avedbody{grid-template-columns:1fr;grid-template-rows:minmax(200px,36vh) 1fr;gap:10px}#avOpts .shop{grid-template-columns:repeat(auto-fill,minmax(84px,1fr))}}
   @media (max-height:520px) and (min-width:600px){.avedbody{grid-template-columns:minmax(200px,.8fr) 1.4fr;grid-template-rows:none}.aved{padding:8px 12px}}
   /* phones (last, so these win) */
@@ -865,8 +900,8 @@
 </div>
 <div id="avEdit" class="screen" hidden>
   <div class="aved">
-    <div class="avedhead"><button class="back" id="avedBack">← Back</button><h2>✏️ Avatar Editor</h2><span class="edcoins" title="Blox Coins"><span class="coin sm"></span><span id="edCoins">0</span></span><span id="avPayW"></span><button class="xchip" id="avRand" title="A random outfit from what you own">🎲 Randomize</button><button class="xchip" id="avOwn" title="Only show what you own">✓ Owned only</button><button class="xp-btn" id="avDone">Done</button></div>
-    <div class="avedbody"><div class="avedstage" id="avedStage"><div id="avTry" hidden></div><div id="avZoom" hidden><button data-z="-1" title="Closer">＋</button><button data-z="1" title="Further">－</button></div><div class="avedhint">↔ Drag to turn</div></div><div class="avedside"><div id="avOpts"></div></div></div>
+    <div class="avedhead"><button class="back" id="avedBack">← Back</button><h2>✏️ Avatar Editor</h2><span class="edcoins" title="Blox Coins"><span class="coin sm"></span><span id="edCoins">0</span></span><span id="avPayW"></span><button class="xchip" id="avUndo" title="Undo (Ctrl+Z)" disabled>↶ Undo</button><button class="xchip" id="avRedo" title="Redo (Ctrl+Y)" disabled>↷ Redo</button><button class="xchip" id="avRand" title="A random outfit from what you own">🎲 Randomize</button><button class="xchip" id="avOwn" title="Only show what you own">✓ Owned only</button><button class="xp-btn" id="avDone">Done</button></div>
+    <div class="avedbody"><div class="avedstage" id="avedStage"><div id="avTry" hidden></div><div id="avZoom"><button data-z="-1" title="Closer">＋</button><button data-z="1" title="Further">－</button></div><div id="avView"><button data-vw="0" title="Look at the front">⬆ Front</button><button data-vw="1" title="Look at the side">➡ Side</button><button data-vw="2" title="Look at the back">⬇ Back</button><button data-vw="face" title="Close up on the face">🙂 Face</button><button data-vw="walk" title="Watch it walk">🚶 Walk</button></div><div class="avedhint">↔ Drag to turn</div></div><div class="avedside"><div id="avOpts"></div></div></div>
   </div>
 </div>
 <div id="social"></div>
@@ -1664,11 +1699,18 @@ const okAx = (a) => {
   return r;
 };
 const xName = (n) => String(n || '').replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 24) || 'My item';
+// a pixel item (shirt, face): px is a picture 12×12 or (v135) 24×24, one hex digit a pixel — an index into its colours,
+// 0 see-through. pal: its own 15 colours if you changed any (XPAL's otherwise)
+const PX_N = (px) => (px.length === 576 ? 24 : 12);
+const okPal = (p) => (Array.isArray(p) && p.length === 15 && p.every((c) => typeof c === 'string' && /^#[0-9a-f]{6}$/i.test(c)) ? p.map((c) => c.toLowerCase()) : null);
+const palOf = (L) => (L && L.pal ? [''].concat(L.pal) : XPAL);
 function okLook(k, l) {
   if (!l || typeof l !== 'object') return null;
   if (k === 'acc') return okAcc(l);
   if (k === 'h') return { s: clamp(l.s | 0, 0, XHATS.length - 1), c: clamp(l.c | 0, 1, 15), d: clamp(l.d | 0, 1, 15), e: clamp(l.e | 0, 0, XEMO.length - 1), gl: l.gl ? 1 : 0 };
-  return XKINDS[k] && typeof l.px === 'string' && /^[0-9a-f]{144}$/.test(l.px) ? { px: l.px } : null;
+  if (!XKINDS[k] || typeof l.px !== 'string' || !/^(?:[0-9a-f]{144}|[0-9a-f]{576})$/.test(l.px)) return null;
+  const pal = okPal(l.pal);
+  return pal && pal.join() !== XPAL.slice(1).join() ? { px: l.px, pal } : { px: l.px };
 }
 // the item with this id: Bloxverse's, one in the catalog, or one you made (null: not loaded yet)
 function xItem(id) {
@@ -1692,12 +1734,13 @@ function xLooks(ax) {
   return out;
 }
 const PIX_TEX = new Map();
-function pixTex(px, bg) {
-  const key = px + (bg || '');
+function pixTex(L, bg) { // (L: a pixel look, or just its px)
+  if (typeof L === 'string') L = { px: L };
+  const px = L.px, n = PX_N(px), z = 96 / n, P = palOf(L), key = px + (bg || '') + (L.pal ? L.pal.join('') : '');
   if (PIX_TEX.has(key)) return PIX_TEX.get(key);
   const c = document.createElement('canvas'); c.width = c.height = 96; const g = c.getContext('2d');
   if (bg) { g.fillStyle = bg; g.fillRect(0, 0, 96, 96); }
-  for (let i = 0; i < 144; i++) { const v = parseInt(px[i], 16); if (v) { g.fillStyle = XPAL[v]; g.fillRect((i % 12) * 8, Math.floor(i / 12) * 8, 8, 8); } }
+  for (let i = 0; i < n * n; i++) { const v = parseInt(px[i], 16); if (v) { g.fillStyle = P[v]; g.fillRect((i % n) * z, Math.floor(i / n) * z, z, z); } }
   const t = new THREE.CanvasTexture(c); t.magFilter = t.minFilter = THREE.NearestFilter;
   if (PIX_TEX.size > 400) PIX_TEX.delete(PIX_TEX.keys().next().value); // (the oldest; anything wearing it keeps its own)
   PIX_TEX.set(key, t); return t;
@@ -1934,30 +1977,44 @@ function xHat(L, head, lam, mesh, box, cyl) {
    An item's look is { at, o, r, s, p }: where on the body it goes (ACC_AT), how far it's moved (o), turned (r, in
    degrees) and scaled (s) there, and its parts (p, up to 24): [shape, x, y, z, width, height, depth, turn x, turn y,
    turn z, colour (XPAL), finish (ACC_FIN)]. You can wear ACC_WEAR of them at once. */
-const ACC_SHAPES = [['Block', '🧱'], ['Ball', '⚪'], ['Cylinder', '🥫'], ['Cone', '🔺'], ['Wedge', '📐'], ['Ring', '⭕'], ['Pyramid', '🔼'], ['Dome', '🌓'], ['Star', '⭐'], ['Heart', '❤️']];
-const ACC_SIZE = [[0.6, 0.6, 0.6], [0.6, 0.6, 0.6], [0.5, 0.7, 0.5], [0.5, 0.8, 0.5], [0.6, 0.6, 0.6], [0.7, 0.7, 1], [0.6, 0.7, 0.6], [0.7, 0.4, 0.7], [0.6, 0.6, 0.15], [0.6, 0.6, 0.15]];
+const ACC_SHAPES = [['Block', '🧱'], ['Ball', '⚪'], ['Cylinder', '🥫'], ['Cone', '🔺'], ['Wedge', '📐'], ['Ring', '⭕'], ['Pyramid', '🔼'], ['Dome', '🌓'], ['Star', '⭐'], ['Heart', '❤️'],
+  ['Capsule', '💊'], ['Gem', '💎'], ['Moon', '🌙'], ['Arch', '🌈'], ['Leaf', '🍃'], ['Hexagon', '⬢'], ['Tube', '🧻']]; // (v135: Capsule on)
+const ACC_SIZE = [[0.6, 0.6, 0.6], [0.6, 0.6, 0.6], [0.5, 0.7, 0.5], [0.5, 0.8, 0.5], [0.6, 0.6, 0.6], [0.7, 0.7, 1], [0.6, 0.7, 0.6], [0.7, 0.4, 0.7], [0.6, 0.6, 0.15], [0.6, 0.6, 0.15],
+  [0.4, 0.8, 0.4], [0.5, 0.7, 0.5], [0.6, 0.6, 0.15], [0.9, 0.5, 0.2], [0.35, 0.7, 0.08], [0.6, 0.3, 0.6], [0.6, 0.6, 0.6]];
+// a part's colour: one of XPAL's (1–15), or (v135) any colour, as 16 + 0xRRGGBB
+const accHex = (col) => (col >= 16 ? '#' + ((col - 16) & 0xffffff).toString(16).padStart(6, '0') : XPAL[col] || '#ef4444');
 const ACC_FIN = [['Plastic', '🧱'], ['Glow', '💡'], ['Neon', '✨'], ['Glass', '🫧'], ['Metal', '🔩']];
 const ACC_AT = { head: ['🎩', 'Head'], face: ['🙂', 'Face'], neck: ['📿', 'Neck'], front: ['👕', 'Front'], back: ['🎒', 'Back'], waist: ['🩳', 'Waist'], shL: ['💪', 'Left shoulder'], shR: ['💪', 'Right shoulder'] };
 const ACC_MAX = 24, ACC_WEAR = 6, D2R = Math.PI / 180;
 // the shapes, each fitting a 1×1×1 box (a ring is as deep as it is thick)
 const ACC_GEO = (() => {
-  const ext = (sh) => {
-    const g = new THREE.ExtrudeGeometry(sh, { depth: 1, bevelEnabled: false }); g.computeBoundingBox();
-    const b = g.boundingBox, sz = new THREE.Vector3(); b.getSize(sz);
+  const fit = (g) => { // (into a 1×1×1 box, centred)
+    g.computeBoundingBox(); const b = g.boundingBox, sz = new THREE.Vector3(); b.getSize(sz);
     g.translate(-(b.min.x + b.max.x) / 2, -(b.min.y + b.max.y) / 2, -(b.min.z + b.max.z) / 2); g.scale(1 / sz.x, 1 / sz.y, 1 / sz.z); return g;
   };
+  const ext = (sh, seg) => fit(new THREE.ExtrudeGeometry(sh, { depth: 1, bevelEnabled: false, curveSegments: seg || 12 }));
+  const facets = (g) => { const f = g.toNonIndexed(); f.computeVertexNormals(); return f; };
+  const V2 = (x, y) => new THREE.Vector2(x, y);
+  const capPts = []; for (let i = 0; i <= 8; i++) { const a = -Math.PI / 2 + i / 8 * Math.PI / 2; capPts.push(V2(Math.max(0.0001, Math.cos(a) * 0.5), Math.sin(a) * 0.5 - 0.5)); }
+  for (let i = 0; i <= 8; i++) { const a = i / 8 * Math.PI / 2; capPts.push(V2(Math.max(0.0001, Math.cos(a) * 0.5), Math.sin(a) * 0.5 + 0.5)); }
+  const moon = new THREE.Shape(); moon.absarc(0, 0, 1, 1.0157, 5.2675, false); moon.absarc(0.55, 0, 0.85, 4.6857, 1.5975, true);
+  const leaf = new THREE.Shape(); leaf.moveTo(0, -1); leaf.quadraticCurveTo(0.95, -0.1, 0, 1); leaf.quadraticCurveTo(-0.95, -0.1, 0, -1);
+  const tube = new THREE.Shape(); tube.absarc(0, 0, 1, 0, Math.PI * 2, false); const hole = new THREE.Path(); hole.absarc(0, 0, 0.68, 0, Math.PI * 2, true); tube.holes.push(hole);
+  const tubeG = ext(tube, 28); tubeG.rotateX(Math.PI / 2);
   const wedge = new THREE.Shape(); wedge.moveTo(0, 0); wedge.lineTo(1, 0); wedge.lineTo(0, 1); wedge.closePath();
   const star = new THREE.Shape(); for (let i = 0; i < 10; i++) { const a = Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? 0.42 : 1; star[i ? 'lineTo' : 'moveTo'](Math.cos(a) * r, Math.sin(a) * r); } star.closePath();
   const heart = new THREE.Shape(); heart.moveTo(0, -0.9); heart.bezierCurveTo(-1.45, 0.1, -0.7, 1.15, 0, 0.45); heart.bezierCurveTo(0.7, 1.15, 1.45, 0.1, 0, -0.9);
   const pyr = new THREE.ConeGeometry(Math.SQRT1_2, 1, 4); pyr.rotateY(Math.PI / 4);
   const dome = new THREE.SphereGeometry(0.5, 18, 10, 0, Math.PI * 2, 0, Math.PI / 2); dome.scale(1, 2, 1); dome.translate(0, -0.5, 0);
   return [new THREE.BoxGeometry(1, 1, 1), new THREE.SphereGeometry(0.5, 18, 14), new THREE.CylinderGeometry(0.5, 0.5, 1, 20), new THREE.ConeGeometry(0.5, 1, 20), ext(wedge),
-    new THREE.TorusGeometry(0.36, 0.14, 10, 28), pyr, dome, ext(star), ext(heart)];
+    new THREE.TorusGeometry(0.36, 0.14, 10, 28), pyr, dome, ext(star), ext(heart),
+    fit(new THREE.LatheGeometry(capPts, 20)), fit(facets(new THREE.LatheGeometry([V2(0.0001, -0.5), V2(0.5, 0.12), V2(0.32, 0.5), V2(0.0001, 0.5)], 8))), ext(moon, 24),
+    fit(new THREE.TorusGeometry(0.5, 0.16, 10, 24, Math.PI)), ext(leaf, 16), fit(facets(new THREE.CylinderGeometry(0.5, 0.5, 1, 6))), tubeG];
 })();
 function accMat(col, fin, cache) {
   const key = col + ':' + fin;
   if (!cache[key]) {
-    const c = XPAL[col] || '#ef4444';
+    const c = accHex(col);
     cache[key] = fin === 2 ? new THREE.MeshBasicMaterial({ color: c })
       : fin === 3 ? new THREE.MeshLambertMaterial({ color: c, transparent: true, opacity: 0.5 })
         : fin === 4 ? new THREE.MeshPhongMaterial({ color: c, shininess: 80, specular: new THREE.Color('#d1d5db') })
@@ -1990,11 +2047,12 @@ function xAttach(a, L) {
   piv.position.set(x + L.o[0], y + L.o[1], z + L.o[2]); piv.rotation.set(L.r[0] * D2R, L.r[1] * D2R, L.r[2] * D2R); piv.scale.setScalar(L.s);
   piv.add(accGroup(L)); par.add(piv); return piv;
 }
+const accCol = (v) => { const c = Math.floor(+v) || 0; return c >= 16 && c <= 16 + 0xffffff ? c : clamp(c, 1, 15); };
 function okAcc(l) {
   if (!l || typeof l !== 'object' || !Object.prototype.hasOwnProperty.call(ACC_AT, l.at) || !Array.isArray(l.p)) return null;
   const n = (v, a, b, d) => { v = +v; return Number.isFinite(v) ? Math.round(clamp(v, a, b) * 100) / 100 : d; };
   const p = l.p.filter(Array.isArray).slice(0, ACC_MAX).map((q) => [clamp(q[0] | 0, 0, ACC_SHAPES.length - 1), n(q[1], -3, 3, 0), n(q[2], -3, 3, 0), n(q[3], -3, 3, 0),
-    n(q[4], 0.05, 4, 0.5), n(q[5], 0.05, 4, 0.5), n(q[6], 0.05, 4, 0.5), n(q[7], -180, 180, 0), n(q[8], -180, 180, 0), n(q[9], -180, 180, 0), clamp(q[10] | 0, 1, 15), clamp(q[11] | 0, 0, ACC_FIN.length - 1)]);
+    n(q[4], 0.05, 4, 0.5), n(q[5], 0.05, 4, 0.5), n(q[6], 0.05, 4, 0.5), n(q[7], -180, 180, 0), n(q[8], -180, 180, 0), n(q[9], -180, 180, 0), accCol(q[10]), clamp(q[11] | 0, 0, ACC_FIN.length - 1)]);
   if (!p.length) return null;
   const v3 = (a, lo, hi) => [0, 1, 2].map((i) => n(Array.isArray(a) ? a[i] : 0, lo, hi, 0));
   return { at: l.at, o: v3(l.o, -2, 2), r: v3(l.r, -180, 180), s: n(l.s, 0.2, 3, 1), p };
@@ -7321,7 +7379,7 @@ function makeAvatar(av, name, mine, ax) {
   const box = (m, sx, sy, sz, x, y, z, parent) => { const o = new THREE.Mesh(BOX, m); o.scale.set(sx, sy, sz); o.position.set(x, y, z); (parent || body).add(o); return o; };
   const mesh = (geo, m, x, y, z, parent) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); (parent || body).add(o); return o; };
   const limb = (m, x, y) => { const piv = new THREE.Group(); piv.position.set(x, y, 0); body.add(piv); box(m, 0.98, 2, 0.98, 0, -1, 0, piv); return piv; };
-  const frontTex = X.pt || av[7] ? (X.pt ? pixTex(X.pt.px, shirtHex(av[1])) : patternTex(av[7], shirtHex(av[1]))) : null;
+  const frontTex = X.pt || av[7] ? (X.pt ? pixTex(X.pt, shirtHex(av[1])) : patternTex(av[7], shirtHex(av[1]))) : null;
   const mixed = av.length > 12 && [12, 13, 14, 15].some((j) => av[j] >= 2), bt = av[10] === 0 && mixed ? 1 : av[10]; // (parts of other bodies want joints: R15 under them)
   const r15 = bt >= 1; // (R15 and the body packs: jointed)
   let legL, legR, armL, armR, waist = null, upFrom = 0, kit = null;
@@ -7334,7 +7392,7 @@ function makeAvatar(av, name, mine, ax) {
     box(shirt, 1.02, 0.84, 1.02, 0, -0.4, 0, armL); box(shirt, 1.02, 0.84, 1.02, 0, -0.4, 0, armR); // a hair above the arm's top, or the two tops flicker
   } else {
     const grp = (par, x, y, joint) => { const o = new THREE.Group(); o.position.set(x, y, 0); par.add(o); if (joint) o.userData.limb = 1; return o; };
-    const KC = { body, box, mesh, lam, grp, mats, av, shirt, pants, skin, frontTex, faceTex: X.f ? pixTex(X.f.px, '') : FACE_TEX[av[4]], faceCanvas: (X.f ? pixTex(X.f.px, '') : FACE_TEX[av[4]]).image };
+    const KC = { body, box, mesh, lam, grp, mats, av, shirt, pants, skin, frontTex, faceTex: X.f ? pixTex(X.f, '') : FACE_TEX[av[4]], faceCanvas: (X.f ? pixTex(X.f, '') : FACE_TEX[av[4]]).image };
     kit = BODY_KITS[bt](KC); const kits = new Map([[bt, kit]]);
     const kitFor = (j) => { const b = av[j] | 0; if (b < 2 || !BODY_KITS[b]) return kit; if (!kits.has(b)) { try { kits.set(b, BODY_KITS[b](KC)); } catch (e) { kits.set(b, kit); } } return kits.get(b); };
     const part = (j, f) => { const k = kitFor(j); if (k !== kit) { const n = body.children.length; try { return f(k); } catch (e) { while (body.children.length > n) body.remove(body.children[body.children.length - 1]); } } return f(kit); }; // (a part that won't come: the body's own instead)
@@ -7350,7 +7408,7 @@ function makeAvatar(av, name, mine, ax) {
   const head = new THREE.Group(); head.position.set(0, 4.66, 0); body.add(head);
   if (!(kit && kit.head && kit.head(head))) {
     head.add(new THREE.Mesh(HEAD_GEO, skin));
-    head.add(new THREE.Mesh(FACE_GEO, new THREE.MeshBasicMaterial({ map: X.f ? pixTex(X.f.px, '') : FACE_TEX[av[4]], transparent: true })));
+    head.add(new THREE.Mesh(FACE_GEO, new THREE.MeshBasicMaterial({ map: X.f ? pixTex(X.f, '') : FACE_TEX[av[4]], transparent: true })));
   }
   // hats
   const cyl = (rt, rb, h, seg) => new THREE.CylinderGeometry(rt, rb, h, seg || 16), a_spin = [], a_xt = []; // (a_xt: things on you that move by themselves: a smouldering match)
@@ -11999,7 +12057,7 @@ let avTab = 'colors', avAsk = '';
 // something you don't own to try it on, tap again to buy it), 🛍️ Catalog (items players made, and limiteds) and
 // ✏️ Create (make your own item). ED.try / ED.tryX hold what you're only trying on (it comes off when you leave).
 const ED = { open: false, try: {}, tryX: {}, own: false, yaw: 0, drag: null, mode: 'wear', view: '', cat: 'all', pub: '', note: '',
-  draft: { k: 'acc', nm: '', h: { s: 0, c: 3, d: 5, e: 1, gl: 0 }, pt: '0'.repeat(144), f: null, col: 1 } };
+  draft: { k: 'acc', nm: '', h: { s: 0, c: 3, d: 5, e: 1, gl: 0 }, pt: '0'.repeat(144), f: null, col: 1, pal: { pt: null, f: null } }, editId: '' };
 const pvArr = () => AV_KEYS.map((k) => (ED.open && k in ED.try ? ED.try[k] : AV[k]) | 0);
 // what's worn on top in the preview: the item you're making, then anything you're trying on, then what you wear
 const pvAx = () => {
@@ -12022,7 +12080,8 @@ function drawAvatarOpts() {
   $('#edCoins').textContent = W.coins.toLocaleString('en-US'); $('#avPayW').innerHTML = pcSwitch('data-pay="1"');
   $('#avOwn').classList.toggle('on', ED.own);
   drawTry();
-  if (ED.mode === 'make') pxBind();
+  if (ED.mode === 'make') { pxBind(); draftSave(); }
+  avHistBtns();
 }
 function wearHtml() {
   const TI = { h: '🎩', f: '🙂', b: '🪽', a: '✨', pt: '👕', pet: '🐶', tr: '🌈' };
@@ -12051,7 +12110,8 @@ function wearHtml() {
     const pickRow = (title, list, key, what) => { const v = AV[key], own = v >= SKIN_C, hx = colHex(list, v); return row(title, list, key).replace('</div></div>', `<label class="skpick${own ? ' on' : ''}" title="Pick any ${what}"><input type="color" data-pick="${key}" value="${hx}"><span>🎨 ${own ? hx.toUpperCase() : 'Any colour'}</span></label></div></div>`); };
     body = bodies + parts + pickRow('Skin', SKINS, 's', 'skin tone') + pickRow('Shirt', SHIRTS, 'sh', 'shirt colour') + pickRow('Pants', PANTS, 'p', 'pants colour');
   } else if (avTab === 'em') {
-    body = `<p class="xp-note">🎭 Tap an emote to see it. In a game, press <b>.</b> or tap 🎭 Emotes for the emote wheel, or type <b>/e wave</b> in the chat. Moving stops one.</p><div class="shop">${EMOTES.map((E, i) => {
+    body = `<p class="xp-note">🎭 Tap an emote to see it. In a game, press <b>.</b> or tap 🎭 Emotes for the emote wheel, or type <b>/e wave</b> in the chat. Moving stops one.</p>${avFind('emotes', -1, false)}<div class="shop">${EMOTES.map((E, i) => {
+      if (avQ() && !E.nm.toLowerCase().includes(avQ())) return '';
       const own = emOwns(i), ask = avAsk === 'em' + i, on = pv.a && pv.a.em && pv.a.em.i === i;
       if ((ED.own && !own) || (E.hw && hwGone('em', i)) || spGone('em', i) || (E.price < 0 && !own)) return '';
       const SPI = E.price < 0 ? spItem('em', i) : null;
@@ -12064,24 +12124,90 @@ function wearHtml() {
       : `<div class="fit empty"><button class="wear" data-fitsave="${i}" title="Save what you're wearing"><b>＋</b>Save outfit ${i + 1}</button></div>`).join('')}</div>`;
   } else if (avTab === 'mine') body = mineHtml();
   else {
-    const C = COSMETICS[avTab];
-    body = `<div class="shop">${C.list.map((nm, i) => itemBtn(avTab, i)).join('')}</div>`;
+    const C = COSMETICS[avTab], q = avQ(), so = ED.sort || '', pr = (i) => (C.price[i] < 0 ? (so === 'hi' ? -1 : 1e9) : C.price[i]);
+    const idx = C.list.map((_, i) => i).filter((i) => !q || C.list[i].toLowerCase().includes(q));
+    if (so === 'lo' || so === 'hi') idx.sort((a, b) => (so === 'hi' ? -1 : 1) * (pr(a) - pr(b)));
+    else if (so === 'own') idx.sort((a, b) => owns(avTab, b) - owns(avTab, a));
+    else if (so === 'az') idx.sort((a, b) => C.list[a].localeCompare(C.list[b]));
+    const btns = idx.map((i) => itemBtn(avTab, i)).filter(Boolean);
+    body = avFind(C.title.toLowerCase(), btns.length, true) + (btns.length ? `<div class="shop">${btns.join('')}</div>` : `<div class="fempty">${q ? `Nothing called “${esc(ED.q.trim())}” here.` : 'Nothing here yet.'}</div>`);
     // (a reward you haven't got, tapped: how to get it)
     const ak = avAsk && avAsk.startsWith(avTab) ? +avAsk.slice(avTab.length) : -1, AA = ak >= 0 && C.price[ak] < 0 && !owns(avTab, ak) ? achFor(avTab, ak) : null;
     if (ak >= 0 && C.price[ak] < 0 && !owns(avTab, ak)) body += `<div class="avnote">${AA ? `🏆 <b>${esc(C.list[ak])}</b> comes with the “${esc(AA.nm)}” achievement${AA.e !== 'bv' && EXPS[AA.e] ? ` in ${esc(EXPS[AA.e].name)}` : ''}: ${esc(AA.d.charAt(0).toLowerCase() + AA.d.slice(1))}.` : spItem(avTab, ak) ? `🏛️ <b>${esc(C.list[ak])}</b> is a Season Pass reward: level ${spItem(avTab, ak).L}${spWhere(spItem(avTab, ak))}. Open the pass from the home screen.` : `🎖️ <b>${esc(C.list[ak])}</b> is a reward in Command an Army’s battle pass.`}</div>`;
     if (avTab === 'h') body = `<div class="avnote">🎩 You're wearing <b>${hatsOn().length}</b> of ${HAT_MAX} hats. Tap a hat to put it on or take it off; 🚫 None takes them all off. Made and limited hats count too (in 🎒 My items).</div>` + body;
     else if (XKINDS[avTab] && W.wear[avTab]) { const I = xItem(W.wear[avTab]); body = `<div class="avnote">You're wearing <b>${esc(I ? I.nm : 'an item')}</b> over these. Pick one to wear it instead, or take it off in 🎒 My items.</div>` + body; }
   }
-  return `<div class="avtabs">${tabs.map(([k, t]) => `<button data-tab="${k}" class="${avTab === k ? 'on' : ''}">${t}</button>`).join('')}</div>${body}`;
+  return wearingHtml() + `<div class="avtabs">${tabs.map(([k, t]) => `<button data-tab="${k}" class="${avTab === k ? 'on' : ''}">${t}</button>`).join('')}</div>${body}`;
 }
+// the search box (and sort) over a tab's items
+const avQ = () => (ED.q || '').trim().toLowerCase();
+const AV_SORTS = [['', 'Shop order'], ['own', 'Owned first'], ['lo', 'Cheapest first'], ['hi', 'Priciest first'], ['az', 'A–Z']];
+const avFind = (what, n, sortable) => `<div class="avfind"><label class="xsearch">🔎<input id="avQ" placeholder="Search ${what}" value="${esc(ED.q || '')}" autocomplete="off" spellcheck="false"></label>${sortable ? `<select id="avSort" title="Sort">${AV_SORTS.map(([v, l]) => `<option value="${v}"${(ED.sort || '') === v ? ' selected' : ''}>${l}</option>`).join('')}</select>` : ''}${n >= 0 ? `<small>${n} item${n === 1 ? '' : 's'}</small>` : ''}</div>`;
+// 👕 what you've got on, each with ✕ to take it off
+function wearingHtml() {
+  const out = [], chip = (ic, nm, off) => `<span class="wchip">${ic} ${esc(nm)}<button data-woff="${esc(off)}" title="Take it off">✕</button></span>`;
+  for (const r of hatsOn()) { if (isShopHat(r)) { const i = +r.slice(1); out.push(chip(COSMETICS.h.icon[i], HATS[i], 'hat:' + r)); } else { const I = xItem(r); out.push(chip('🎩', I ? I.nm : 'Hat', 'hat:' + r)); } }
+  for (const k of ['f', 'pt']) { if (W.wear[k]) { const I = xItem(W.wear[k]); out.push(chip(XKINDS[k][1], I ? I.nm : XKINDS[k][0], 'x:' + k)); } else if (AV[k]) out.push(chip(COSMETICS[k].icon[AV[k]], COSMETICS[k].list[AV[k]], 'c:' + k)); }
+  for (const k of ['b', 'a', 'pet', 'tr']) if (AV[k]) out.push(chip(COSMETICS[k].icon[AV[k]], COSMETICS[k].list[AV[k]], 'c:' + k));
+  for (const id of W.wear.acc || []) { const I = xItem(id); out.push(chip('🧩', I ? I.nm : '3D item', 'acc:' + id)); }
+  if (AV.bt >= 2) out.push(chip(COSMETICS.bt.icon[AV.bt], BODIES[AV.bt], 'c:bt'));
+  for (const [k, ic, n] of PARTS) if (AV[k]) out.push(chip(ic, `${BODIES[AV[k]]} ${n.toLowerCase()}`, 'c:' + k));
+  if (AV.an) out.push(chip(COSMETICS.an.icon[AV.an], ANIMS[AV.an], 'c:an'));
+  return `<div class="wearing"><small>Wearing</small>${out.join('') || '<span class="wnone">Just the basics — tap something below to put it on</span>'}${out.length ? '<button class="xchip" data-woff="all" title="Take off your hats, face, shirt, back item, aura, pet, trail and 3D items">🧹 Take all off</button>' : ''}</div>`;
+}
+function wearOff(v) {
+  const i = v.indexOf(':'), t = i < 0 ? v : v.slice(0, i), x = i < 0 ? '' : v.slice(i + 1);
+  if (t === 'all') { hatsOff(); W.wear.f = W.wear.pt = ''; W.wear.acc = []; for (const k of ['f', 'pt', 'b', 'a', 'pet', 'tr']) AV[k] = 0; }
+  else if (t === 'hat') toggleHat(x);
+  else if (t === 'x' && XSLOTS.includes(x)) W.wear[x] = '';
+  else if (t === 'acc') W.wear.acc = (W.wear.acc || []).filter((id) => id !== x);
+  else if (t === 'c' && ['f', 'pt', 'b', 'a', 'pet', 'tr', 'bt', 'an', 'bh', 'bu', 'ba', 'bl'].includes(x)) AV[x] = 0;
+  else return;
+  ED.note = ''; avAsk = ''; ED.try = {}; ED.tryX = {}; sfx('click'); drawAvatarOpts(); pvAvatar(); saveAv(); drawMe();
+}
+// ↶ Undo / ↷ Redo: what you wear (in 👕 Avatar), or what you're making (in ✏️ Create)
+const AVH = { u: [], r: [] };
+const avSnapS = () => JSON.stringify([AV, W.wear]);
+function avMark(before) { if (before !== avSnapS()) { AVH.u.push(before); if (AVH.u.length > 60) AVH.u.shift(); AVH.r = []; } avHistBtns(); }
+function avHist(dir) {
+  const from = dir > 0 ? AVH.r : AVH.u, to = dir > 0 ? AVH.u : AVH.r, u = from.pop(); if (!u) return;
+  to.push(avSnapS()); const [a, w] = JSON.parse(u);
+  // (only what you still have: a refund or a sale since takes it out)
+  AV_KEYS.forEach((k) => { const v = a[k] | 0; if (k === 's' || k === 'sh' || k === 'p' || (PART_KEYS.includes(k) ? !v || owns('bt', v) : owns(k, v))) AV[k] = v; });
+  const okX = (id) => !id || isShopHat(id) || ownsX(id);
+  Object.assign(W.wear, { h: okX(w.h) ? w.h : '', pt: okX(w.pt) ? w.pt : '', f: okX(w.f) ? w.f : '', acc: (w.acc || []).filter(okX), hx: (w.hx || []).filter((r) => okX(r) && (!isShopHat(r) || owns('h', +r.slice(1)))) });
+  ED.try = {}; ED.tryX = {}; avAsk = ''; ED.note = ''; sfx('click'); drawAvatarOpts(); pvAvatar(); saveAv(); drawMe();
+}
+function edUndo(dir) {
+  if (ED.mode !== 'make') { avHist(dir); return; }
+  const k = ED.draft.k;
+  if (k === 'acc' ? accUndo(dir) : (k === 'pt' || k === 'f') && pxUndo(dir)) { sfx('click'); drawAvatarOpts(); if (k === 'acc') pvAccUpdate(); else pvAvatar(); }
+}
+function avHistBtns() {
+  const u = $('#avUndo'), r = $('#avRedo'); if (!u) return;
+  let cu = AVH.u.length, cr = AVH.r.length;
+  if (ED.mode === 'make') { const k = ED.draft.k; if (k === 'acc') { cu = ED.acc.undo.length; cr = (ED.acc.redo || []).length; } else if (k === 'pt' || k === 'f') { cu = PX.undo[k].length; cr = PX.redo[k].length; } else cu = cr = 0; }
+  u.disabled = !cu; r.disabled = !cr;
+}
+$('#avUndo').onclick = () => edUndo(-1); $('#avRedo').onclick = () => edUndo(1);
+// the views: front, side, back, a close-up of the face, a walk
+function edFront() { ED.yawTo = Math.PI * 2 * Math.round(ED.yaw / (Math.PI * 2)); }
+function avViewBtns() { for (const b of $('#avView').children) b.classList.toggle('on', (b.dataset.vw === 'face' && !!ED.face) || (b.dataset.vw === 'walk' && !!ED.walk)); }
+$('#avView').onclick = (e) => {
+  const b = e.target.closest('button'); if (!b) return; const v = b.dataset.vw;
+  if (v === 'face') ED.face = !ED.face; else if (v === 'walk') ED.walk = !ED.walk;
+  else { const base = [0, -Math.PI / 2, Math.PI][+v]; ED.yawTo = base + Math.PI * 2 * Math.round((ED.yaw - base) / (Math.PI * 2)); }
+  sfx('click'); avViewBtns();
+};
 // every button in the editor's side
 $('#avOpts').onclick = (e) => {
   const b = e.target.closest('button'); if (!b || b.disabled) return;
   const d = b.dataset;
   if (d.pay) { PAY.p = !PAY.p; avAsk = ''; sfx('toggle'); drawAvatarOpts(); return; } // (💎 pay with Premium Blox Coins, or not)
-  if (d.mode) { ED.mode = d.mode; ED.view = ''; ED.pub = ''; ED.note = ''; sfx('click'); drawAvatarOpts(); pvAvatar(); return; }
+  if (d.mode) { ED.mode = d.mode; ED.view = ''; ED.pub = ''; ED.note = ''; if (d.mode === 'make' && ED.draft.k !== 'acc') edFront(); sfx('click'); drawAvatarOpts(); pvAvatar(); return; }
   if (marketClick(b)) return;
-  if (d.tab) { avTab = d.tab; avAsk = ''; ED.note = ''; drawAvatarOpts(); return; }
+  if (d.tab) { avTab = d.tab; avAsk = ''; ED.note = ''; ED.q = ''; drawAvatarOpts(); return; }
+  if (d.woff) { wearOff(d.woff); return; }
   if (d.em != null) { // an emote: it plays on you here; one you don't have: tap again to buy it
     const i = +d.em, E = EMOTES[i]; if (!E || (E.hw && hwGone('em', i))) return;
     if (pv.a) emStart(pv.a, i);
@@ -12115,7 +12241,15 @@ $('#avOpts').onclick = (e) => {
   } else return;
   drawAvatarOpts(); pvAvatar(); saveAv(); drawMe();
 };
-$('#avOpts').oninput = (e) => { const t = e.target; if (t.dataset && t.dataset.pick) { skinPick(t); return; } if (t.id === 'mkName') ED.draft.nm = t.value; else if (t.dataset && (t.dataset.ap || t.dataset.pl)) builderInput(t); else if (t.dataset && t.dataset.v) ED[t.dataset.v] = t.value; };
+{ const h = $('#avOpts').onclick; $('#avOpts').onclick = (e) => { const b0 = avSnapS(); h(e); avMark(b0); }; } // (what changed what you wear can be undone)
+$('#avOpts').oninput = (e) => {
+  const t = e.target, d = t.dataset || {};
+  if (t.id === 'avQ') { ED.q = t.value; drawAvatarOpts(); return; }
+  if (d.pick) { if (!skinPick.b0) skinPick.b0 = avSnapS(); skinPick(t); return; }
+  if (d.pxcol) { pxPalSet(t); return; }
+  if (d.acolpick) { accColPick(t); return; }
+  if (t.id === 'mkName') { ED.draft.nm = t.value; draftSave(); } else if (d.ap || d.pl) builderInput(t); else if (d.v) ED[d.v] = t.value;
+};
 // the skin colour picker: your avatar takes the colour as you drag; saved (and sent to the server) when you let go
 function skinPick(t, done) { // (the skin, shirt or pants picker: data-pick names which)
   const k = ['s', 'sh', 'p'].includes(t.dataset.pick) ? t.dataset.pick : 's', v = /^#[0-9a-f]{6}$/i.test(t.value) ? SKIN_C + parseInt(t.value.slice(1), 16) : AV[k]; if (v === AV[k] && !done) return;
@@ -12123,7 +12257,7 @@ function skinPick(t, done) { // (the skin, shirt or pants picker: data-pick name
   document.querySelectorAll(`#avOpts .sw button[data-k="${k}"]`).forEach((b) => b.classList.remove('on'));
   pvAvatar(); clearTimeout(skinPick.t); skinPick.t = setTimeout(() => { saveAv(); drawMe(); }, done ? 0 : 400);
 }
-$('#avOpts').addEventListener('change', (e) => { const d = e.target.dataset || {}; if (d.pick) { skinPick(e.target, true); return; } if (d.ap || d.pl) { ED.acc.dragging = false; drawAvatarOpts(); } else if (d.v === 'pubPrice' || d.v === 'pubStock') { ED.pubErr = ''; drawAvatarOpts(); } });
+$('#avOpts').addEventListener('change', (e) => { const d = e.target.dataset || {}; if (e.target.id === 'avSort') { ED.sort = e.target.value; drawAvatarOpts(); return; } if (d.pick) { skinPick(e.target, true); if (skinPick.b0) { avMark(skinPick.b0); skinPick.b0 = ''; } return; } if (d.pxcol) { PX.palEd = false; drawAvatarOpts(); pvAvatar(); return; } if (d.ap || d.pl || d.acolpick) { ED.acc.dragging = false; drawAvatarOpts(); } else if (d.v === 'pubPrice' || d.v === 'pubStock') { ED.pubErr = ''; drawAvatarOpts(); } });
 $('#avOpts').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.dataset && e.target.dataset.go) { e.preventDefault(); const b = $('#' + e.target.dataset.go); if (b && !b.disabled) b.click(); } });
 // over the avatar in the editor: what you're only trying on, and buying it all at once
 // what what you're trying on costs: all in Premium Blox Coins if the switch is on and they all can be, else Blox Coins
@@ -12146,10 +12280,12 @@ $('#avTry').onclick = (e) => {
   } else sfx('click');
   ED.try = {}; ED.tryX = {}; avAsk = ''; drawAvatarOpts(); pvAvatar(); saveAv(); drawMe();
 };
+{ const h = $('#avTry').onclick; $('#avTry').onclick = (e) => { const b0 = avSnapS(); h(e); avMark(b0); }; }
 // mode: open the editor on the catalog ('shop'); view: and on one item in it
 function openEditor(mode, view) {
   if (playing || ED.open) return;
   ED.open = true; ED.try = {}; ED.tryX = {}; ED.yaw = 0; avAsk = ''; ED.mode = typeof mode === 'string' ? mode : 'wear'; ED.view = view || ''; ED.pub = ''; ED.note = '';
+  draftLoad(); AVH.u = []; AVH.r = []; ED.yawTo = null; ED.face = false; ED.walk = false; ED.q = ''; avViewBtns();
   $('#avEdit').hidden = false; $('#avedStage').prepend($('#avPrev'));
   pvFit(); pvAvatar(); drawAvatarOpts(); sfx('whoosh');
 }
@@ -12169,12 +12305,29 @@ function randomAv() {
 }
 $('#avStage').onclick = () => openEditor();
 $('#avedBack').onclick = $('#avDone').onclick = closeEditor;
-$('#avRand').onclick = randomAv;
+$('#avRand').onclick = () => { const b0 = avSnapS(); randomAv(); avMark(b0); };
 $('#avOwn').onclick = () => { ED.own = !ED.own; drawAvatarOpts(); };
 addEventListener('keydown', (e) => { if (e.key === 'Escape' && ED.open) { e.stopPropagation(); closeEditor(); } }, true);
+addEventListener('keydown', (e) => {
+  if (!ED.open || (e.target && e.target.closest && e.target.closest('input,textarea,select'))) return;
+  const k = (e.key || '').toLowerCase(), mod = e.ctrlKey || e.metaKey;
+  if (mod && (k === 'z' || k === 'y')) { e.preventDefault(); edUndo(k === 'y' || e.shiftKey ? 1 : -1); return; }
+  if (mod || e.altKey) return;
+  if (accBuilding() && ED.acc.step === 'build') {
+    const ax = { arrowleft: [1, -1], arrowright: [1, 1], arrowup: [2, 1], arrowdown: [2, -1], pageup: [3, -1], pagedown: [3, 1] }[k];
+    if (ax) { e.preventDefault(); accNudge(ax[0], ax[1] * (e.shiftKey ? 0.25 : 0.05)); return; }
+    const q = { delete: 'adel', backspace: 'adel', d: 'adup' }[k], b = q && $(`#avOpts [data-${q}]`);
+    if (b && !b.disabled) { e.preventDefault(); b.click(); }
+    return;
+  }
+  if (ED.mode === 'make' && (ED.draft.k === 'pt' || ED.draft.k === 'f')) {
+    const t = { b: 'pen', p: 'pen', e: 'erase', g: 'fill', i: 'pick', l: 'line', r: 'rect' }[k];
+    if (t) { PX.tool = t; drawAvatarOpts(); } else if (k === 'm') { PX.mir = !PX.mir; drawAvatarOpts(); }
+  }
+});
 { // drag the avatar round
   const st = $('#avedStage');
-  st.addEventListener('pointerdown', (e) => { if (e.target.closest('#avTry,#avZoom')) return; ED.drag = { x: e.clientX, y: e.clientY, yaw: ED.yaw, moved: 0 }; try { st.setPointerCapture(e.pointerId); } catch (er) {} });
+  st.addEventListener('pointerdown', (e) => { if (e.target.closest('#avTry,#avZoom,#avView')) return; ED.drag = { x: e.clientX, y: e.clientY, yaw: ED.yaw, moved: 0 }; try { st.setPointerCapture(e.pointerId); } catch (er) {} });
   st.addEventListener('pointermove', (e) => { if (ED.drag) { ED.drag.moved = Math.max(ED.drag.moved, Math.hypot(e.clientX - ED.drag.x, e.clientY - ED.drag.y)); ED.yaw = ED.drag.yaw + (e.clientX - ED.drag.x) * 0.012; } });
   const ray = new THREE.Raycaster();
   st.addEventListener('pointerup', (e) => {
@@ -12187,8 +12340,8 @@ addEventListener('keydown', (e) => { if (e.key === 'Escape' && ED.open) { e.stop
     if (hit) { ED.acc.sel = hit.object.userData.pi; sfx('click'); drawAvatarOpts(); pvAccUpdate(); }
   });
   st.addEventListener('pointercancel', () => { ED.drag = null; });
-  st.addEventListener('wheel', (e) => { if (!accBuilding()) return; e.preventDefault(); ED.acc.zoom = clamp(ED.acc.zoom + e.deltaY * 0.006, 2.5, 14); }, { passive: false });
-  $('#avZoom').onclick = (e) => { const b = e.target.closest('button'); if (b) ED.acc.zoom = clamp(ED.acc.zoom + +b.dataset.z * 1.2, 2.5, 14); };
+  st.addEventListener('wheel', (e) => { e.preventDefault(); if (accBuilding()) ED.acc.zoom = clamp(ED.acc.zoom + e.deltaY * 0.006, 2.5, 14); else ED.zv = clamp((ED.zv || 1) + e.deltaY * 0.0012, 0.35, 1.4); }, { passive: false });
+  $('#avZoom').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; if (accBuilding()) ED.acc.zoom = clamp(ED.acc.zoom + +b.dataset.z * 1.2, 2.5, 14); else ED.zv = clamp((ED.zv || 1) + +b.dataset.z * 0.15, 0.35, 1.4); };
   addEventListener('resize', () => { if (ED.open) pvFit(); });
 }
 // the order experiences were added (the newest get a ✨ NEW badge; "Newest" sorts by it)
@@ -12900,7 +13053,6 @@ function pvAvatar() {
   if (ghost) pv.a.g.traverse((o) => { if (o.userData.fx) o.visible = false; else if (o.isMesh) o.material = GHOST_MAT; }); // (building: a see-through body to build against)
   if (pv.a.pet) { scene.remove(pv.a.pet.g); pv.a.pet.g.position.set(2.6, FLYING_PET[pv.a.pet.type] ? 3 : 0, 0.5); pv.a.pet.g.rotation.y = -0.5; pv.scene.add(pv.a.pet.g); }
   pvAccUpdate();
-  $('#avZoom').hidden = !accBuilding();
 }
 // a picture of a 3D model, for menus (unit portraits and the like); cached by key
 const snap = { r: null, scene: new THREE.Scene(), cam: new THREE.PerspectiveCamera(28, 1, 0.1, 400), cache: new Map() };
@@ -12973,6 +13125,12 @@ function pvCam() {
   PV_T.set(0.8, 3.3, 0);
   if (bld && ED.acc.step === 'build' && pv.accG) { pv.accG.getWorldPosition(PV_T); d = ED.acc.zoom * (pv.far || 1); }
   else if (bld) { PV_T.set(0.4, 4.1, 0); d = 13 * (pv.far || 1); }
+  else if (ED.open && pv.a && pv.a.head) {
+    const z = ED.zv || 1, mk = ED.mode === 'make' ? ED.draft.k : '';
+    if (ED.face || mk === 'f' || mk === 'h') { pv.a.head.getWorldPosition(PV_T); if (mk === 'h') PV_T.y += 0.6; d = (mk === 'h' ? 8 : 6.5) * (pv.far || 1) * z; }
+    else if (mk === 'pt') { PV_T.set(0, 3.2, 0); d = 9.5 * (pv.far || 1) * z; }
+    else d *= z;
+  }
   if (!pv.ct) pv.ct = { t: PV_T.clone(), d };
   pv.ct.t.lerp(PV_T, 0.18); pv.ct.d += (d - pv.ct.d) * 0.18;
   pv.cam.position.copy(pv.ct.t).addScaledVector(PV_DIR, pv.ct.d); pv.cam.lookAt(pv.ct.t);
@@ -12981,10 +13139,12 @@ function pvDraw(t) {
   try { if (!pv.r) { pv.r = new THREE.WebGLRenderer({ canvas: $('#avPrev'), antialias: true, alpha: true }); if (ED.open) pvFit(); } } catch (e) { return; }
   if (!pv.a) pvAvatar();
   const bld = accBuilding();
-  pv.a.g.rotation.y = ED.open ? ED.yaw + (ED.drag || bld ? 0 : Math.sin(t / 2400) * 0.12) : Math.sin(t / 1600) * 0.7;
+  if (ED.yawTo != null) { if (ED.drag && ED.drag.moved > 6) ED.yawTo = null; else { ED.yaw += (ED.yawTo - ED.yaw) * 0.2; if (Math.abs(ED.yawTo - ED.yaw) < 0.004) { ED.yaw = ED.yawTo; ED.yawTo = null; } } } // (turning to a view)
+  const still = bld || ED.drag || ED.face || ED.yawTo != null || (ED.mode === 'make' && ED.draft.k !== 'acc');
+  pv.a.g.rotation.y = ED.open ? ED.yaw + (still ? 0 : Math.sin(t / 2400) * 0.12) : Math.sin(t / 1600) * 0.7;
   const dt = clamp((t - (pv.t || t)) / 1000, 0, 0.1); pv.t = t;
   if (pv.a.em && pv.a.em.t > 6 && (!ED.open || avTab !== 'em' || ED.mode !== 'wear')) emStop(pv.a, true); // (a loop you tried stops once you've moved on)
-  const walking = (pv.walkUntil || 0) > t;
+  const walking = (pv.walkUntil || 0) > t || (ED.open && ED.walk && !bld);
   if (!bld && (pv.a.em || pv.a.emOut > 0 || pv.a.pack || walking)) animateAvatar(pv.a, dt, walking && !pv.a.em, false); // (an emote you're trying, an animation pack, a walk to show one off)
   else {
     pv.a.armR.rotation.x = bld ? 0 : Math.sin(t / 300) * 0.25 - 0.1; pv.a.armL.rotation.x = bld ? 0 : -Math.sin(t / 300) * 0.25 + 0.1; // (still while you build, so what's on a shoulder stays put)
@@ -13553,16 +13713,50 @@ const ACC_TPL = {
   wings: ['🪽 Wings', { at: 'back', p: [[0, -0.95, 0.45, 0.2, 1.5, 0.85, 0.08, 0, -25, 22, 2, 0], [0, 0.95, 0.45, 0.2, 1.5, 0.85, 0.08, 0, 25, -22, 2, 0], [0, -0.75, -0.2, 0.25, 1.05, 0.55, 0.08, 0, -25, -8, 2, 0], [0, 0.75, -0.2, 0.25, 1.05, 0.55, 0.08, 0, 25, 8, 2, 0]] }],
   sword: ['🗡️ Sword', { at: 'back', r: [0, 0, 35], p: [[0, 0, 0.35, 0.12, 0.2, 2.3, 0.06, 0, 0, 0, 12, 4], [4, 0, 1.6, 0.12, 0.2, 0.25, 0.06, 0, 0, 135, 12, 4], [0, 0, -0.85, 0.12, 0.85, 0.14, 0.22, 0, 0, 0, 5, 4], [2, 0, -1.25, 0.12, 0.16, 0.7, 0.16, 0, 0, 0, 11, 0], [1, 0, -1.65, 0.12, 0.22, 0.22, 0.22, 0, 0, 0, 5, 4]] }],
   horns: ['😈 Horns', { at: 'head', p: [[3, -0.42, 0.25, 0, 0.26, 0.75, 0.26, 0, 0, 25, 15, 0], [3, 0.42, 0.25, 0, 0.26, 0.75, 0.26, 0, 0, -25, 15, 0]] }],
+  // (v135)
+  catears: ['🐱 Cat ears', { at: 'head', p: [[6, -0.42, 0.2, 0, 0.42, 0.5, 0.2, 0, 0, 18, 1, 0], [6, 0.42, 0.2, 0, 0.42, 0.5, 0.2, 0, 0, -18, 1, 0], [6, -0.41, 0.16, -0.08, 0.24, 0.3, 0.08, 0, 0, 18, 13, 0], [6, 0.41, 0.16, -0.08, 0.24, 0.3, 0.08, 0, 0, -18, 13, 0]] }],
+  bunny: ['🐰 Bunny ears', { at: 'head', p: [[10, -0.24, 0.44, 0.05, 0.26, 1.0, 0.14, 0, 0, 10, 2, 0], [10, 0.24, 0.44, 0.05, 0.26, 1.0, 0.14, 0, 0, -10, 2, 0], [10, -0.24, 0.44, -0.03, 0.14, 0.72, 0.06, 0, 0, 10, 13, 0], [10, 0.24, 0.44, -0.03, 0.14, 0.72, 0.06, 0, 0, -10, 13, 0]] }],
+  phones: ['🎧 Headphones', { at: 'head', p: [[13, 0, -0.2, 0, 1.62, 0.95, 0.2, 0, 0, 0, 1, 4], [2, -0.74, -0.6, 0, 0.55, 0.2, 0.55, 0, 0, 90, 1, 0], [2, 0.74, -0.6, 0, 0.55, 0.2, 0.55, 0, 0, 90, 1, 0], [2, -0.86, -0.6, 0, 0.36, 0.05, 0.36, 0, 0, 90, 10, 2], [2, 0.86, -0.6, 0, 0.36, 0.05, 0.36, 0, 0, 90, 10, 2]] }],
+  glasses: ['👓 Glasses', { at: 'face', p: [[5, -0.27, 0.22, 0, 0.38, 0.38, 0.5, 0, 0, 0, 1, 4], [5, 0.27, 0.22, 0, 0.38, 0.38, 0.5, 0, 0, 0, 1, 4], [2, -0.27, 0.22, 0.01, 0.3, 0.03, 0.3, 90, 0, 0, 7, 3], [2, 0.27, 0.22, 0.01, 0.3, 0.03, 0.3, 90, 0, 0, 7, 3], [0, 0, 0.25, 0, 0.18, 0.04, 0.04, 0, 0, 0, 1, 4], [0, -0.57, 0.24, 0, 0.24, 0.05, 0.04, 0, 0, 0, 1, 4], [0, 0.57, 0.24, 0, 0.24, 0.05, 0.04, 0, 0, 0, 1, 4], [0, -0.68, 0.24, 0.36, 0.04, 0.05, 0.72, 0, 0, 0, 1, 4], [0, 0.68, 0.24, 0.36, 0.04, 0.05, 0.72, 0, 0, 0, 1, 4]] }],
+  cap: ['🧢 Cap', { at: 'head', p: [[7, 0, 0.1, 0, 1.4, 0.5, 1.4, 0, 0, 0, 8, 0], [0, 0, -0.08, -0.72, 1.0, 0.06, 0.62, -6, 0, 0, 8, 0], [1, 0, 0.36, 0, 0.14, 0.08, 0.14, 0, 0, 0, 2, 0]] }],
+  flowers: ['🌸 Flower crown', { at: 'head', p: [[5, 0, -0.02, 0, 1.45, 1.45, 0.6, 90, 0, 0, 14, 0]].concat(...[100, 130, 155, 180, 205, 230, 260].map((d, k) => {
+    const a = d * D2R, x = Math.round(Math.sin(a) * 72) / 100, z = Math.round(Math.cos(a) * 72) / 100;
+    return [[8, x, 0, z, 0.3, 0.3, 0.08, 0, d > 180 ? d - 360 : d, 0, k % 2 ? 9 : 10, 0], [1, Math.round(x * 104) / 100, 0, Math.round(z * 104) / 100, 0.11, 0.11, 0.11, 0, 0, 0, 5, 0]];
+  })) }],
+  backpack: ['🎒 Backpack', { at: 'back', p: [[0, 0, -0.1, 0.32, 1.3, 1.35, 0.55, 0, 0, 0, 3, 0], [7, 0, 0.58, 0.32, 1.3, 0.3, 0.55, 0, 0, 0, 3, 0], [0, 0, -0.35, 0.66, 0.9, 0.6, 0.2, 0, 0, 0, 15, 0], [0, 0, -0.06, 0.77, 0.7, 0.05, 0.03, 0, 0, 0, 5, 4], [0, -0.45, 0.2, -1.04, 0.2, 1.4, 0.06, 0, 0, 0, 1, 0], [0, 0.45, 0.2, -1.04, 0.2, 1.4, 0.06, 0, 0, 0, 1, 0]] }],
+  tail: ['🦊 Tail', { at: 'waist', p: [[10, 0, 0.2, 0.75, 0.3, 0.7, 0.3, 55, 0, 0, 4, 0], [10, 0, 0.6, 1.15, 0.38, 0.7, 0.38, 25, 0, 0, 4, 0], [1, 0, 1.0, 1.32, 0.36, 0.42, 0.36, 0, 0, 0, 2, 0]] }],
 };
 const ACC_SL = [[1, 'Move ←→', -2.5, 2.5, 0.05], [2, 'Move ↓↑', -2.5, 2.5, 0.05], [3, 'Move ⇡⇣', -2.5, 2.5, 0.05], [4, 'Width', 0.05, 3, 0.05], [5, 'Height', 0.05, 3, 0.05], [6, 'Depth', 0.05, 3, 0.05], [7, 'Turn ↕', -180, 180, 5], [8, 'Turn ↔', -180, 180, 5], [9, 'Tilt', -180, 180, 5]];
 const PLACE_SL = [['s', 'Size', 0.2, 3, 0.05], ['o0', 'Move ←→', -1.5, 1.5, 0.05], ['o1', 'Move ↓↑', -1.5, 1.5, 0.05], ['o2', 'Move ⇡⇣', -1.5, 1.5, 0.05], ['r0', 'Turn ↕', -180, 180, 5], ['r1', 'Turn ↔', -180, 180, 5], ['r2', 'Tilt', -180, 180, 5]];
-function accNew(tpl) { const T = ACC_TPL[tpl || 'tophat'][1]; return { step: 'build', sel: 0, at: T.at, o: (T.o || [0, 0, 0]).slice(), r: (T.r || [0, 0, 0]).slice(), s: T.s || 1, p: T.p.map((q) => q.slice()), undo: [], zoom: 6.5 }; }
+function accNew(tpl) { const T = ACC_TPL[tpl || 'tophat'][1]; return { step: 'build', sel: 0, at: T.at, o: (T.o || [0, 0, 0]).slice(), r: (T.r || [0, 0, 0]).slice(), s: T.s || 1, p: T.p.map((q) => q.slice()), undo: [], redo: [], zoom: 6.5 }; }
 ED.acc = accNew();
 const accBuilding = () => ED.open && ED.mode === 'make' && ED.draft.k === 'acc';
 // the item as it is: while building, at its spot on the body as made; on the body, placed
 const accLook = (placed) => { const A = ED.acc; return placed ? { at: A.at, o: A.o, r: A.r, s: A.s, p: A.p } : { at: A.at, o: [0, 0, 0], r: [0, 0, 0], s: 1, p: A.p }; };
-function accSave() { const A = ED.acc; A.undo.push(JSON.stringify({ at: A.at, o: A.o, r: A.r, s: A.s, p: A.p, sel: A.sel })); if (A.undo.length > 40) A.undo.shift(); }
-function accUndo() { const A = ED.acc, u = A.undo.pop(); if (!u) return; Object.assign(A, JSON.parse(u)); A.sel = clamp(A.sel, 0, A.p.length - 1); }
+const accSnap = () => { const A = ED.acc; return JSON.stringify({ at: A.at, o: A.o, r: A.r, s: A.s, p: A.p, sel: A.sel }); };
+function accSave() { const A = ED.acc; A.undo.push(accSnap()); if (A.undo.length > 60) A.undo.shift(); A.redo = []; }
+// back a step (dir -1) or forward again (1); true: there was one
+function accUndo(dir) {
+  const A = ED.acc; if (!A.redo) A.redo = [];
+  const from = dir > 0 ? A.redo : A.undo, to = dir > 0 ? A.undo : A.redo, u = from.pop(); if (!u) return false;
+  to.push(accSnap()); Object.assign(A, JSON.parse(u)); A.sel = clamp(A.sel, 0, A.p.length - 1); return true;
+}
+// the arrow keys: the part you picked a little (Shift: more) each way
+function accNudge(i, dv) {
+  const A = ED.acc, P = A.p[A.sel]; if (!P) return;
+  if (!A.nudging) { accSave(); A.nudging = true; }
+  clearTimeout(accNudge.t); accNudge.t = setTimeout(() => { A.nudging = false; drawAvatarOpts(); }, 600);
+  P[i] = Math.round(clamp(P[i] + dv, -2.5, 2.5) * 100) / 100;
+  const sl = document.querySelector(`#avOpts [data-ap="${i}"]`); if (sl) { sl.value = P[i]; if (sl.nextElementSibling) sl.nextElementSibling.textContent = P[i]; }
+  pvAccUpdate(); draftSave();
+}
+function accColPick(t) { // (🎨 any colour for the part: it changes as you drag)
+  const A = ED.acc, P = A.p[A.sel]; if (!P || !/^#[0-9a-f]{6}$/i.test(t.value)) return;
+  if (!A.dragging) { accSave(); A.dragging = true; }
+  P[10] = 16 + parseInt(t.value.slice(1), 16);
+  const sp = t.parentNode.querySelector('span'); if (sp) sp.textContent = '🎨 ' + t.value.toUpperCase();
+  if (!pvAccUpdate.raf) pvAccUpdate.raf = requestAnimationFrame(() => { pvAccUpdate.raf = 0; pvAccUpdate(); });
+}
 const slider = (attr, key, label, lo, hi, step, v) => `<label class="sl"><span>${label}</span><input type="range" min="${lo}" max="${hi}" step="${step}" value="${v}" data-${attr}="${key}"><b>${+(+v).toFixed(2)}</b></label>`;
 function builderHtml() {
   const A = ED.acc, P = A.p[A.sel];
@@ -13571,23 +13765,24 @@ function builderHtml() {
     h += `<p class="xp-note">Put shapes together, then move, stretch and turn them. The see-through body is there to build against (tap a part on it to pick it). Drag the avatar round to see every side.</p>
       <div class="opt"><small>Start from</small><div class="xchips">${Object.entries(ACC_TPL).map(([k, [n]]) => `<button class="xchip" data-atpl="${k}">${n}</button>`).join('')}</div></div>
       <div class="opt"><small>Add a part (${A.p.length}/${ACC_MAX})</small><div class="xshapes">${ACC_SHAPES.map(([n, ic], i) => `<button data-aadd="${i}" title="Add a ${n.toLowerCase()}" ${A.p.length >= ACC_MAX ? 'disabled' : ''}>${ic}<small>${n}</small></button>`).join('')}</div></div>
-      <div class="opt"><small>Parts</small><div class="xchips">${A.p.map((q, i) => `<button class="xchip${i === A.sel ? ' on' : ''}" data-asel="${i}">${ACC_SHAPES[q[0]][1]} ${i + 1}</button>`).join('')}</div></div>`;
+      <div class="opt"><small>Parts · tap one here or on the body</small><div class="xchips">${A.p.map((q, i) => `<button class="xchip${i === A.sel ? ' on' : ''}" data-asel="${i}"><span class="xpartc" style="background:${accHex(q[10])}"></span>${ACC_SHAPES[q[0]][1]} ${i + 1}</button>`).join('')}</div></div>
+      <div class="opt"><small>The whole item</small><div class="dpad"><button data-aall="0.9" title="Every part smaller">➖ Smaller</button><button data-aall="1.1" title="Every part bigger">➕ Bigger</button><button data-aflip="1" title="Flip it left to right">⇋ Flip</button><button data-acenter="1" title="Move it to the middle">◎ Centre</button></div></div>`;
     if (P) {
       h += `<div class="xpart"><div class="opt"><small>Part ${A.sel + 1} — its shape</small><div class="xshapes sm">${ACC_SHAPES.map(([n, ic], i) => `<button data-ashape="${i}" class="${P[0] === i ? 'on' : ''}" title="${n}">${ic}</button>`).join('')}</div></div>
         <div class="sls">${ACC_SL.map(([i, l, lo, hi, st]) => slider('ap', i, l, lo, hi, st, P[i])).join('')}</div>
+        <div class="opt"><small>Nudge it · or the arrow keys (Page Up/Down: in and out, Shift: further)</small><div class="dpad">${[['1,-0.05', '◀'], ['1,0.05', '▶'], ['2,0.05', '▲'], ['2,-0.05', '▼'], ['3,-0.05', '⤓ Front'], ['3,0.05', '⤒ Back']].map(([v, l]) => `<button data-anudge="${v}">${l}</button>`).join('')}</div></div>
         <div class="pbtns"><button class="xp-btn alt" data-ascale="0.9">➖ Smaller</button><button class="xp-btn alt" data-ascale="1.1">➕ Bigger</button></div>
-        <div class="opt"><small>Colour</small><div class="sw">${XPAL.map((c, i) => (i ? `<button data-acol="${i}" class="${P[10] === i ? 'on' : ''}" style="background:${c}"></button>` : '')).join('')}</div></div>
+        <div class="opt"><small>Colour</small><div class="sw">${XPAL.map((c, i) => (i ? `<button data-acol="${i}" class="${P[10] === i ? 'on' : ''}" style="background:${c}"></button>` : '')).join('')}${[...new Set(A.p.map((q) => q[10]).filter((c) => c >= 16))].slice(0, 8).map((c) => `<button data-acol="${c}" class="${P[10] === c ? 'on' : ''}" style="background:${accHex(c)}" title="${accHex(c).toUpperCase()} (used in this item)"></button>`).join('')}<label class="skpick${P[10] >= 16 ? ' on' : ''}" title="Pick any colour"><input type="color" data-acolpick="1" value="${accHex(P[10])}"><span>🎨 ${P[10] >= 16 ? accHex(P[10]).toUpperCase() : 'Any colour'}</span></label></div></div>
         <div class="opt"><small>Finish</small><div class="xchips">${ACC_FIN.map(([n, ic], i) => `<button class="xchip${P[11] === i ? ' on' : ''}" data-afin="${i}">${ic} ${n}</button>`).join('')}</div></div>
         <div class="pbtns"><button class="xp-btn blue" data-adup="1" ${A.p.length >= ACC_MAX ? 'disabled' : ''}>⧉ Copy</button><button class="xp-btn blue" data-amirror="1" ${A.p.length >= ACC_MAX ? 'disabled' : ''} title="A copy on the other side">⇋ Mirror copy</button><button class="xp-btn red" data-adel="1" ${A.p.length < 2 ? 'disabled' : ''}>🗑️ Delete</button></div></div>`;
     }
-    h += `<div class="pbtns xfoot"><button class="xp-btn alt" data-aundo="1" ${A.undo.length ? '' : 'disabled'}>↶ Undo</button><button class="xp-btn gold" data-astep="place">Next: put it on →</button></div>`;
+    h += `<div class="pbtns xfoot"><button class="xp-btn alt" data-aundo="1" ${A.undo.length ? '' : 'disabled'} title="Undo (Ctrl+Z)">↶ Undo</button><button class="xp-btn alt" data-aredo="1" ${A.redo && A.redo.length ? '' : 'disabled'} title="Redo (Ctrl+Y)">↷ Redo</button><button class="xp-btn gold" data-astep="place">Next: put it on →</button></div>`;
   } else {
     h += `<p class="xp-note">Pick where it goes on your body, then size it and move it until it sits right.</p>
       <div class="opt"><small>Where it goes</small><div class="xchips">${Object.entries(ACC_AT).map(([k, [ic, n]]) => `<button class="xchip${A.at === k ? ' on' : ''}" data-aat="${k}">${ic} ${n}</button>`).join('')}</div></div>
       <div class="sls">${PLACE_SL.map(([k, l, lo, hi, st]) => slider('pl', k, l, lo, hi, st, k === 's' ? A.s : A[k[0]][+k[1]])).join('')}</div>
       <div class="pbtns"><button class="xp-btn alt" data-areset="1">↺ Reset placement</button><button class="xp-btn alt" data-astep="build">← Back to building</button></div>
-      <div class="opt"><small>Name</small><label class="xsearch">🏷️<input id="mkName" maxlength="24" placeholder="My 3D item" value="${esc(ED.draft.nm)}" autocomplete="off" data-go="mkGo"></label></div>
-      <div class="pbtns"><button class="xp-btn gold" id="mkGo" data-mkgo="1" ${W.coins < MAKE_COST ? 'disabled' : ''}>✨ Create · ${MAKE_COST.toLocaleString('en-US')}</button></div>`;
+      <div class="opt"><small>Name</small><label class="xsearch">🏷️<input id="mkName" maxlength="24" placeholder="My 3D item" value="${esc(ED.draft.nm)}" autocomplete="off" data-go="mkGo"></label></div>${mkFoot('acc')}`;
   }
   return h;
 }
@@ -13605,11 +13800,15 @@ function builderClick(b) {
   else if (d.adup && P) { if (A.p.length >= ACC_MAX) return true; accSave(); const q = P.slice(); q[1] = Math.round(clamp(q[1] + 0.3, -3, 3) * 100) / 100; A.p.push(q); A.sel = A.p.length - 1; sfx('pop'); }
   else if (d.amirror && P) { if (A.p.length >= ACC_MAX) return true; accSave(); const q = P.slice(); q[1] = -q[1] || 0.3; q[8] = -q[8]; q[9] = -q[9]; A.p.push(q); A.sel = A.p.length - 1; sfx('pop'); }
   else if (d.adel && P) { if (A.p.length < 2) return true; accSave(); A.p.splice(A.sel, 1); A.sel = clamp(A.sel, 0, A.p.length - 1); sfx('click'); }
-  else if (d.aundo) { accUndo(); sfx('click'); }
+  else if (d.aundo || d.aredo) { if (!accUndo(d.aredo ? 1 : -1)) return true; sfx('click'); }
+  else if (d.anudge && P) { const [i, v] = d.anudge.split(',').map(Number); accSave(); P[i] = Math.round(clamp(P[i] + v, -2.5, 2.5) * 100) / 100; }
+  else if (d.aall) { accSave(); const f = +d.aall; for (const q of A.p) { for (const i of [1, 2, 3]) q[i] = Math.round(clamp(q[i] * f, -3, 3) * 100) / 100; for (const i of [4, 5, 6]) q[i] = Math.round(clamp(q[i] * f, 0.05, 4) * 100) / 100; } }
+  else if (d.aflip) { accSave(); for (const q of A.p) { q[1] = -q[1] || 0; q[8] = -q[8] || 0; q[9] = -q[9] || 0; } }
+  else if (d.acenter) { accSave(); const mid = (i) => (Math.min(...A.p.map((q) => q[i])) + Math.max(...A.p.map((q) => q[i]))) / 2, cx = mid(1), cz = mid(3); for (const q of A.p) { q[1] = Math.round((q[1] - cx) * 100) / 100 || 0; q[3] = Math.round((q[3] - cz) * 100) / 100 || 0; } }
   else if (d.aat) { accSave(); A.at = d.aat; A.o = [0, 0, 0]; A.r = [0, 0, 0]; }
   else if (d.areset) { accSave(); A.o = [0, 0, 0]; A.r = [0, 0, 0]; A.s = 1; }
   else return false;
-  drawAvatarOpts(); pvAccUpdate();
+  drawAvatarOpts(); pvAccUpdate(); draftSave();
   return true;
 }
 // a slider moved: change the part (or the placement) and the 3D view, but not the panel (it'd stop the drag)
@@ -13642,8 +13841,8 @@ function draftLook() {
   const D = ED.draft;
   if (D.k === 'acc') return accLook(true);
   if (D.k === 'h') return Object.assign({}, D.h);
-  if (D.k === 'f' && !D.f) D.f = DEFAULT_FACE;
-  return { px: D.k === 'f' ? D.f : D.pt };
+  const px = pxCur(), pal = okPal(D.pal[pxKey()]);
+  return pal ? { px, pal } : { px };
 }
 const DEFAULT_FACE = (() => { const a = Array(144).fill('0'); for (const [x, y] of [[3, 3], [3, 4], [8, 3], [8, 4], [2, 7], [9, 7], [3, 8], [8, 8], [4, 9], [5, 9], [6, 9], [7, 9]]) a[y * 12 + x] = '1'; return a.join(''); })();
 function createItem() {
@@ -13652,12 +13851,71 @@ function createItem() {
   if (W.coins < MAKE_COST) { say2(`Making an item costs ${MAKE_COST.toLocaleString('en-US')} Blox Coins — you need ${(MAKE_COST - W.coins).toLocaleString('en-US')} more.`); return; }
   if (Object.keys(W.made).length >= 60) { say2('You’ve made 60 items — that’s the most for now.'); return; }
   const id = 'u' + xid();
-  W.coins -= MAKE_COST; W.made[id] = { nm, k, look, at: Date.now(), pub: false }; delete ED.tryX[k];
+  W.coins -= MAKE_COST; W.made[id] = { nm, k, look, at: Date.now(), pub: false }; delete ED.tryX[k]; ED.editId = '';
   if (k !== 'acc') W.wear[k] = id; else if ((W.wear.acc || []).length < ACC_WEAR) (W.wear.acc = W.wear.acc || []).push(id);
   saveAv(); quest('bv.create'); sfx('unlock');
   if (Market.db) Market.db.doc('items/' + id).set({ nm, k, look, by: myId(), byNm: Net.name, price: 0, lim: 0, pub: false, at: Date.now() }).catch(() => {});
   ED.mode = 'wear'; avTab = 'mine'; pubOpen(id); ED.note = `✨ You made <b>${esc(nm)}</b> and you're wearing it! Publish it to sell it in the catalog.`;
   drawAvatarOpts(); pvAvatar(); drawMe();
+}
+// ✏️ Edit one you made (free, until it's published: then a buyer's copy would change) or ⧉ copy it to make a new one
+function loadDraft(id, edit) {
+  const M = W.made[id]; if (!M || (edit && M.pub)) return false;
+  const D = ED.draft, L = M.look;
+  if (M.k === 'acc') { const N = okAcc(L); if (!N) return false; Object.assign(ED.acc, { step: 'build', sel: 0, at: N.at, o: N.o.slice(), r: N.r.slice(), s: N.s, p: N.p.map((q) => q.slice()), undo: [], redo: [] }); }
+  else if (M.k === 'h') D.h = Object.assign({}, L);
+  else { D[M.k] = L.px; D.pal[M.k] = L.pal ? L.pal.slice() : null; PX.undo[M.k] = []; PX.redo[M.k] = []; }
+  D.k = M.k; D.nm = edit ? M.nm : xName('Copy of ' + M.nm);
+  ED.editId = edit ? id : ''; ED.mode = 'make'; ED.pub = ''; ED.view = '';
+  ED.note = edit ? `✏️ You're changing <b>${esc(M.nm)}</b> — 💾 Save changes is free.` : `⧉ A copy of <b>${esc(M.nm)}</b>: change it, then ✨ Create it as a new item.`;
+  if (M.k !== 'acc') edFront();
+  sfx('select'); pvAvatar(); return true;
+}
+function saveEdit() {
+  const id = ED.editId, M = W.made[id], D = ED.draft;
+  if (!M || M.pub || M.k !== D.k) { ED.editId = ''; drawAvatarOpts(); return; }
+  const look = okLook(M.k, draftLook()); if (!look) return;
+  M.look = look; M.nm = xName(D.nm || M.nm);
+  const I = Market.items.get(id); if (I) Object.assign(I, { nm: M.nm, look });
+  for (const key of [...snap.cache.keys()]) if (key.includes(id)) snap.cache.delete(key); // (its pictures: drawn again)
+  saveAv(); sfx('unlock');
+  if (Market.db) Market.db.doc('items/' + id).set({ nm: M.nm, k: M.k, look, by: myId(), byNm: Net.name, price: 0, lim: 0, pub: false, at: M.at || Date.now() }).catch(() => {});
+  ED.editId = ''; ED.mode = 'wear'; avTab = 'mine'; ED.note = `💾 Saved your changes to <b>${esc(M.nm)}</b>.`;
+  if (playing && me) setAvOverride(AVO);
+  drawAvatarOpts(); pvAvatar(); drawMe();
+}
+function delMade(id) {
+  const M = W.made[id]; if (!M || M.pub) return;
+  delete W.made[id];
+  for (const k of XSLOTS) if (W.wear[k] === id) W.wear[k] = '';
+  W.wear.acc = (W.wear.acc || []).filter((x) => x !== id); W.wear.hx = (W.wear.hx || []).filter((x) => x !== id);
+  if (ED.editId === id) ED.editId = '';
+  saveAv(); sfx('click'); ED.note = `🗑️ <b>${esc(M.nm)}</b> is gone.`;
+  if (Market.db) Market.db.doc('items/' + id).delete().catch(() => {});
+  pvAvatar(); drawMe();
+}
+// what you're making is kept on this device, so it's still there next time
+function draftSave() {
+  clearTimeout(draftSave.t);
+  draftSave.t = setTimeout(() => { try { const D = ED.draft, A = ED.acc; localStorage.setItem('bv.draft', JSON.stringify({ k: D.k, nm: D.nm, h: D.h, pt: D.pt, f: D.f, pal: D.pal, col: D.col, acc: { at: A.at, o: A.o, r: A.r, s: A.s, p: A.p }, ed: ED.editId })); } catch (e) {} }, 400);
+}
+function draftLoad() {
+  if (draftLoad.done) return; draftLoad.done = true;
+  let v = null; try { v = JSON.parse(localStorage.getItem('bv.draft')); } catch (e) {}
+  if (!v || typeof v !== 'object') return;
+  const D = ED.draft;
+  if (['acc', 'pt', 'f', 'h'].includes(v.k)) D.k = v.k;
+  if (typeof v.nm === 'string') D.nm = v.nm.slice(0, 24);
+  for (const k of ['pt', 'f']) { if (okLook(k, { px: v[k] })) D[k] = v[k]; D.pal[k] = v.pal ? okPal(v.pal[k]) : null; }
+  const H = okLook('h', v.h); if (H) D.h = H;
+  if (Number.isInteger(v.col) && v.col >= 0 && v.col < 16) D.col = v.col;
+  const N = okAcc(v.acc); if (N) Object.assign(ED.acc, { at: N.at, o: N.o, r: N.r, s: N.s, p: N.p, sel: 0 });
+  if (typeof v.ed === 'string' && W.made[v.ed] && !W.made[v.ed].pub) ED.editId = v.ed;
+}
+// the bottom of ✏️ Create: make it (and, changing one of yours, save it)
+function mkFoot(k) {
+  const E = ED.editId && W.made[ED.editId], ed = E && E.k === k && !E.pub;
+  return `${ed ? `<div class="pbtns"><button class="xp-btn blue" data-mksave="1">💾 Save changes · free</button></div>` : ''}<div class="pbtns"${ed ? ' style="margin-top:8px"' : ''}><button class="xp-btn gold" id="mkGo" data-mkgo="1" ${W.coins < MAKE_COST ? 'disabled' : ''}>✨ ${ed ? 'Save as a new item' : 'Create'} · ${MAKE_COST.toLocaleString('en-US')}</button></div>`;
 }
 function pubOpen(id) { const M = W.made[id]; Object.assign(ED, { pub: id, pubPrice: '100', pubLim: false, pubStock: '10', pubIc: (M && M.ic) || '⭐', pubErr: '', pubBusy: false, note: '' }); }
 async function publishItem(id) {
@@ -13725,7 +13983,8 @@ function mineHtml() {
   if (ED.pub && W.made[ED.pub] && !W.made[ED.pub].pub) h += publishHtml(ED.pub);
   h += `<button class="xp-btn teal" data-goinv="1" style="width:100%;margin-bottom:10px">🎒 Open your whole inventory</button>`;
   if (!made.length && !bought.length && !lims.length) return h + `<div class="fempty">Nothing here yet. Make your own item in <b>✏️ Create</b>, or get one in <b>🛍️ Catalog</b>.</div>`;
-  if (made.length) h += `<div class="fsub">✏️ Made by you</div><div class="xgrid">${made.map((I) => card(I, `${XKINDS[I.k][1]} ${I.pub ? 'Published' : 'Not published'}`, I.pub ? `<button class="xmini" data-xview2="${esc(I.id)}">🛍️ In the catalog</button>` : `<button class="xmini gold" data-xpub="${esc(I.id)}">📣 Publish · ${PUB_COST}</button>`)).join('')}</div>`;
+  const tools = (I) => `<div class="xmrow">${I.pub ? '' : `<button class="xmini" data-xedit="${esc(I.id)}" title="Change it (free)">✏️ Edit</button>`}<button class="xmini" data-xcopy="${esc(I.id)}" title="Make a new item from it">⧉ Copy</button>${I.pub ? '' : `<button class="xmini red${ED.delAsk === I.id ? ' on' : ''}" data-xdel="${esc(I.id)}" title="Delete it (no refund)">${ED.delAsk === I.id ? 'Sure?' : '🗑️'}</button>`}</div>`;
+  if (made.length) h += `<div class="fsub">✏️ Made by you</div><div class="xgrid">${made.map((I) => card(I, `${XKINDS[I.k][1]} ${I.pub ? 'Published' : 'Not published'}`, (I.pub ? `<button class="xmini" data-xview2="${esc(I.id)}">🛍️ In the catalog</button>` : `<button class="xmini gold" data-xpub="${esc(I.id)}">📣 Publish · ${PUB_COST}</button>`) + tools(I))).join('')}</div>`;
   if (lims.length) h += `<div class="fsub">⭐ Limiteds</div><div class="xgrid">${lims.map((I) => card(I, copiesOf(I.id).filter((c) => c.owner === myId()).map((c) => '#' + c.n).join(' '), `<button class="xmini" data-xview2="${esc(I.id)}">🏷️ Sell</button>`)).join('')}</div>`;
   if (bought.length) h += `<div class="fsub">🛍️ From the catalog</div><div class="xgrid">${bought.map((I) => card(I, `by ${esc(I.byNm)}`)).join('')}</div>`;
   return h;
@@ -13747,45 +14006,170 @@ function publishHtml(id) {
 }
 // ✏️ Create
 function makerHtml() {
-  const D = ED.draft, k = D.k;
+  const D = ED.draft, k = D.k, E = ED.editId && W.made[ED.editId];
   let h = `<p class="xp-note">Make your own avatar item for <b>${MAKE_COST.toLocaleString('en-US')}</b> Blox Coins — it's yours to wear, and you can publish it to the 🛍️ Catalog for ${PUB_COST} more. You see it on your avatar as you make it.</p>
     <div class="xchips" style="margin-bottom:10px">${['acc', 'pt', 'f'].map((x) => `<button class="xchip${k === x ? ' on' : ''}" data-mk="${x}">${XKINDS[x][1]} ${XKINDS[x][0]}</button>`).join('')}</div>`;
+  if (E) h += `<div class="editban"><span>✏️ Changing <b>${esc(E.nm)}</b>${E.k !== k ? ` — it's a ${XKINDS[E.k][0].toLowerCase()}: tap ${XKINDS[E.k][1]} to carry on` : ''}</span><button class="xp-btn alt" data-mkstop="1">✕ Stop</button></div>`;
   if (k === 'acc') return h + builderHtml();
-  const sw = (attr, cur, from) => `<div class="sw">${XPAL.map((c, i) => (i < from ? '' : `<button data-${attr}="${i}" class="${cur === i ? 'on' : ''}" style="background:${c || 'repeating-conic-gradient(#94a3b8 0 25%,#e2e8f0 0 50%) 0 0/10px 10px'}" title="${i ? 'Colour ' + i : 'See-through (rubber)'}"></button>`)).join('')}</div>`;
   if (k === 'h') { // (the old hat maker: made hats still work, but new items are 3D)
+    const sw = (attr, cur) => `<div class="sw">${XPAL.map((c, i) => (i ? `<button data-${attr}="${i}" class="${cur === i ? 'on' : ''}" style="background:${c}" title="Colour ${i}"></button>` : '')).join('')}</div>`;
     h += `<div class="opt"><small>Shape</small><div class="shop">${XHATS.map(([n, ic], i) => `<button data-mks="${i}" class="${D.h.s === i ? 'on' : ''}"><span class="i">${ic}</span>${n}</button>`).join('')}</div></div>
-      <div class="opt"><small>Colour</small>${sw('mkc', D.h.c, 1)}</div><div class="opt"><small>Second colour</small>${sw('mkd', D.h.d, 1)}</div>
+      <div class="opt"><small>Colour</small>${sw('mkc', D.h.c)}</div><div class="opt"><small>Second colour</small>${sw('mkd', D.h.d)}</div>
       <div class="opt"><small>Badge</small><div class="sw emo">${XEMO.map((e, i) => `<button data-mke="${i}" class="${D.h.e === i ? 'on' : ''}">${e || '🚫'}</button>`).join('')}</div></div>
       <div class="opt"><button class="xchip${D.h.gl ? ' on' : ''}" data-mkg="1">✨ Glow ${D.h.gl ? 'on' : 'off'}</button></div>`;
-  } else {
-    h += `<div class="pxwrap"><canvas id="pxCan" width="240" height="240"></canvas></div>
-      <div class="opt"><small>Paint with</small>${sw('mkp', D.col, 0)}</div>
-      <div class="pbtns"><button class="xp-btn alt" data-mkfill="1">🪣 Fill all</button><button class="xp-btn alt" data-mkclear="1">🧽 Clear</button>${k === 'f' ? '<button class="xp-btn alt" data-mkreset="1">🙂 Start face</button>' : ''}</div>`;
-  }
-  h += `<div class="opt"><small>Name</small><label class="xsearch">🏷️<input id="mkName" maxlength="24" placeholder="My ${XKINDS[k][0].toLowerCase()}" value="${esc(D.nm)}" autocomplete="off" data-go="mkGo"></label></div>
-    <div class="pbtns"><button class="xp-btn gold" id="mkGo" data-mkgo="1" ${W.coins < MAKE_COST ? 'disabled' : ''}>✨ Create · ${MAKE_COST.toLocaleString('en-US')}</button></div>`;
+  } else h += painterHtml();
+  h += `<div class="opt"><small>Name</small><label class="xsearch">🏷️<input id="mkName" maxlength="24" placeholder="My ${XKINDS[k][0].toLowerCase()}" value="${esc(D.nm)}" autocomplete="off" data-go="mkGo"></label></div>${mkFoot(k)}`;
   return h;
 }
+/* the pixel painter (v135): a pencil, an eraser, a fill bucket, a colour picker, lines and boxes; brush sizes; a mirror that
+   paints both sides at once; undo and redo; 12×12 or 24×24; your own colours (any of the 15 can be changed, or a whole set
+   swapped in); and pictures to start from */
+const CHECKER = 'repeating-conic-gradient(#94a3b8 0 25%,#e2e8f0 0 50%) 0 0/10px 10px';
+const PX = { tool: 'pen', size: 1, mir: false, grid: true, undo: { pt: [], f: [] }, redo: { pt: [], f: [] }, palEd: false };
+const PX_TOOLS = [['pen', '✏️', 'Pencil', 'B'], ['erase', '🧽', 'Eraser', 'E'], ['fill', '🪣', 'Fill', 'G'], ['pick', '💧', 'Pick', 'I'], ['line', '📏', 'Line', 'L'], ['rect', '🔲', 'Box', 'R']];
+const PX_PALS = [['🎨 Default', XPAL.slice(1)],
+  ['🍬 Pastel', ['#334155', '#ffffff', '#fca5a5', '#fdba74', '#fde68a', '#86efac', '#a5f3fc', '#93c5fd', '#c4b5fd', '#f9a8d4', '#d6b38a', '#cbd5e1', '#fbcfe8', '#bbf7d0', '#fecdd3']],
+  ['🌲 Earthy', ['#1c1917', '#f5f5f4', '#b91c1c', '#c2410c', '#ca8a04', '#4d7c0f', '#0f766e', '#1e3a8a', '#6b21a8', '#9d174d', '#78350f', '#a8a29e', '#d6a77a', '#365314', '#57534e']],
+  ['⚡ Neon', ['#000000', '#ffffff', '#ff1744', '#ff9100', '#ffea00', '#39ff14', '#00e5ff', '#2979ff', '#d500f9', '#ff4081', '#ff6d00', '#757575', '#ff80ab', '#00e676', '#c6ff00']],
+  ['🧑 Skin tones', ['#1f1309', '#ffffff', '#8d5524', '#c68642', '#e0ac69', '#f1c27d', '#ffdbac', '#ffe0bd', '#6b3e26', '#3b2219', '#f9a8d4', '#e11d48', '#94a3b8', '#fde68a', '#7f1d1d']],
+  ['⚫ Greys', Array.from({ length: 15 }, (_, i) => '#' + Math.round(i * 255 / 14).toString(16).padStart(2, '0').repeat(3))]];
+// pictures to start from: a function of where you are (0–1 across, 0–1 down), or 12 rows of 12 ('.' see-through)
+const PX_TPL = {
+  pt: [['Stripes', (u, v) => (Math.floor(v * 6) % 2 ? 2 : 8)], ['Rainbow', (u, v) => [3, 4, 5, 6, 8, 9][Math.min(5, Math.floor(v * 6))]],
+    ['Checkers', (u, v) => ((Math.floor(u * 6) + Math.floor(v * 6)) % 2 ? 1 : 2)], ['Polka dots', (u, v) => { const a = (u * 4) % 1 - 0.5, b = (v * 4) % 1 - 0.5; return a * a + b * b < 0.07 ? 2 : 10; }],
+    ['Hoodie', ['cccccccccccc', 'cccc2cc2cccc', 'cccc2cc2cccc', 'cccc2cc2cccc', 'cccccccccccc', 'cccccccccccc', 'cccccccccccc', 'cc11111111cc', 'cc1cccccc1cc', 'cc1cccccc1cc', 'cccccccccccc', 'cccccccccccc']],
+    ['Suit', ['111222222111', '111123321111', '111113311111', '111113311211', '111113311111', '111113311111', '111113311111', '111111111111', '11111cc11111', '111111111111', '11111cc11111', '111111111111']],
+    ['Overalls', ['.8........8.', '.8........8.', '.8........8.', '.8588888858.', '.8888888888.', '.8887777888.', '.8887777888.', '.8888888888.', '888888888888', '888888888888', '888888888888', '888888888888']],
+    ['Jersey', ['333322223333', '333332233333', '333333333333', '333332233333', '333322233333', '333332233333', '333332233333', '333332233333', '333332233333', '333322223333', '333333333333', '222222222222']],
+    ['Heart', ['............', '............', '..333..333..', '.3233333333.', '.3333333333.', '.3333333333.', '..33333333..', '...333333...', '....3333....', '.....33.....', '............', '............']],
+    ['Star', ['............', '.....55.....', '.....55.....', '....5555....', '555555555555', '.5555555555.', '..55555555..', '...555555...', '...555555...', '..555..555..', '..55....55..', '............']],
+    ['Lightning', ['............', '.......555..', '......555...', '.....555....', '....555.....', '...55555555.', '.......555..', '......555...', '.....555....', '....55......', '...5........', '............']]],
+  f: [['Smile', ['............', '............', '............', '...1....1...', '...1....1...', '............', '............', '..1......1..', '...1....1...', '....1111....', '............', '............']],
+    ['Grin', ['............', '............', '............', '...1....1...', '...1....1...', '............', '............', '..11111111..', '..12222221..', '...122221...', '....1111....', '............']],
+    ['Shades', ['............', '............', '............', '.1111111111.', '.1211..1211.', '.1111..1111.', '..11....11..', '............', '.........1..', '....11111...', '............', '............']],
+    ['Wink', ['............', '............', '............', '........1...', '..111...1...', '............', '............', '..1......1..', '...1....1...', '....1111....', '............', '............']],
+    ['Cat', ['............', '............', '............', '..66....66..', '..61....16..', '............', '11...aa...11', '.....11.....', '11.11..11.11', '............', '............', '............']],
+    ['Angry', ['............', '..1......1..', '...11..11...', '............', '...11..11...', '...11..11...', '............', '............', '....1111....', '...1....1...', '............', '............']],
+    ['Surprised', ['............', '..11....11..', '............', '...11..11...', '...11..11...', '............', '.....11.....', '....1..1....', '....1..1....', '.....11.....', '............', '............']],
+    ['Sleepy', ['........8888', '..........8.', '.........8..', '........8888', '..111..111..', '............', '............', '............', '.....11.....', '............', '............', '............']],
+    ['Heart eyes', ['............', '............', '..3.3..3.3..', '..333..333..', '...3....3...', '............', '............', '..1......1..', '...1....1...', '....1111....', '............', '............']],
+    ['Robot', ['............', '............', '.cccccccccc.', '.c77cccc77c.', '.c77cccc77c.', '.cccccccccc.', '............', '..11111111..', '..1c1cc1c1..', '..11111111..', '............', '............']],
+    ['Tongue out', ['............', '............', '............', '...1....1...', '...1....1...', '............', '............', '..1......1..', '...111111...', '....3aa3....', '.....aa.....', '............']],
+    ['Blush', ['............', '............', '............', '...1....1...', '...1....1...', '............', 'dd........dd', 'dd1......1dd', '...1....1...', '....1111....', '............', '............']]],
+};
+function pxTplPx(k, j, n) {
+  const T = PX_TPL[k][j][1]; let o = '';
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) o += typeof T === 'function' ? T((x + 0.5) / n, (y + 0.5) / n).toString(16) : T[Math.floor(y * 12 / n)][Math.floor(x * 12 / n)].replace('.', '0');
+  return o;
+}
+const pxKey = () => (ED.draft.k === 'f' ? 'f' : 'pt');
+const pxCur = () => { const D = ED.draft, k = pxKey(); if (k === 'f' && !D.f) D.f = DEFAULT_FACE; return D[k]; };
+const pxPal = () => palOf({ pal: ED.draft.pal[pxKey()] });
+const pxState = () => JSON.stringify([pxCur(), ED.draft.pal[pxKey()]]);
+function pxSave() { const k = pxKey(), u = PX.undo[k]; u.push(pxState()); if (u.length > 60) u.shift(); PX.redo[k] = []; }
+function pxUndo(dir) {
+  const k = pxKey(), from = dir > 0 ? PX.redo[k] : PX.undo[k], to = dir > 0 ? PX.undo[k] : PX.redo[k], u = from.pop(); if (!u) return false;
+  to.push(pxState()); const [px, pal] = JSON.parse(u); ED.draft[k] = px; ED.draft.pal[k] = pal; return true;
+}
+// 12×12 ⇄ 24×24: each pixel becomes 2×2; back again, each 2×2 becomes the colour most of it is
+function pxRes(n) {
+  const px = pxCur(), m = PX_N(px); if (n === m) return;
+  pxSave(); let o = '';
+  if (n === 24) for (let y = 0; y < 24; y++) for (let x = 0; x < 24; x++) o += px[(y >> 1) * 12 + (x >> 1)];
+  else for (let y = 0; y < 12; y++) for (let x = 0; x < 12; x++) {
+    const q = [px[2 * y * 24 + 2 * x], px[2 * y * 24 + 2 * x + 1], px[(2 * y + 1) * 24 + 2 * x], px[(2 * y + 1) * 24 + 2 * x + 1]], c = {};
+    for (const v of q) c[v] = (c[v] || 0) + (v === '0' ? 0.9 : 1);
+    o += Object.keys(c).sort((a, b) => c[b] - c[a])[0];
+  }
+  ED.draft[pxKey()] = o;
+}
+function pxShift(dx, dy) { const px = pxCur(), n = PX_N(px); let o = ''; for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) o += px[((y - dy + n) % n) * n + ((x - dx + n) % n)]; ED.draft[pxKey()] = o; }
+function pxFlip() { const px = pxCur(), n = PX_N(px); let o = ''; for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) o += px[y * n + (n - 1 - x)]; ED.draft[pxKey()] = o; }
+// 🎨 change the colour you picked (the picture changes as you drag)
+function pxPalSet(t) {
+  const D = ED.draft, k = pxKey(), i = D.col; if (!i || !/^#[0-9a-f]{6}$/i.test(t.value)) return;
+  if (!PX.palEd) { pxSave(); PX.palEd = true; }
+  const p = (D.pal[k] || XPAL.slice(1)).slice(); p[i - 1] = t.value.toLowerCase(); D.pal[k] = p;
+  const sb = document.querySelector(`#avOpts [data-mkp="${i}"]`); if (sb) sb.style.background = t.value;
+  const sp = t.parentNode.querySelector('span'); if (sp) sp.textContent = '🎨 ' + t.value.toUpperCase();
+  if (pxBind.draw) pxBind.draw();
+  clearTimeout(pxPalSet.t); pxPalSet.t = setTimeout(pvAvatar, 150);
+}
+const PX_THUMB = new Map();
+function pxThumb(k, j) {
+  const P = pxPal(), bg = k === 'f' ? skinHex(AV.s) : shirtHex(AV.sh), key = k + j + P.join('') + bg;
+  if (PX_THUMB.has(key)) return PX_THUMB.get(key);
+  const px = pxTplPx(k, j, 12), c = document.createElement('canvas'); c.width = c.height = 48; const g = c.getContext('2d');
+  g.fillStyle = bg; g.fillRect(0, 0, 48, 48);
+  for (let i = 0; i < 144; i++) { const v = parseInt(px[i], 16); if (v) { g.fillStyle = P[v]; g.fillRect((i % 12) * 4, Math.floor(i / 12) * 4, 4, 4); } }
+  const url = c.toDataURL(); if (PX_THUMB.size > 300) PX_THUMB.clear(); PX_THUMB.set(key, url); return url;
+}
+function painterHtml() {
+  const D = ED.draft, kk = pxKey(), P = pxPal(), n = PX_N(pxCur());
+  const b = (attr, v, on, label, title, dis) => `<button data-${attr}="${v}" class="${on ? 'on' : ''}"${title ? ` title="${title}"` : ''}${dis ? ' disabled' : ''}>${label}</button>`;
+  return `<div class="pxtools">${PX_TOOLS.map(([t, ic, nm, key]) => b('pxt', t, PX.tool === t, `${ic} ${nm}`, `${nm} (${key})`)).join('')}</div>
+    <div class="pxtools">${[1, 2, 3].map((z) => b('pxs', z, PX.size === z, `${z}×${z}`, 'Brush size')).join('')}<span class="sep"></span>${b('pxm', 1, PX.mir, '🪞 Mirror', 'Paint both sides at once (M)')}${b('pxg', 1, PX.grid, '▦ Grid', 'Show the grid')}<span class="sep"></span>${b('pxu', -1, false, '↶ Undo', 'Undo (Ctrl+Z)', !PX.undo[kk].length)}${b('pxu', 1, false, '↷ Redo', 'Redo (Ctrl+Y)', !PX.redo[kk].length)}</div>
+    <div class="pxwrap"><canvas id="pxCan" width="288" height="288"></canvas></div>
+    <div class="pxtools">${b('pxr', 12, n === 12, '12×12', 'Big pixels')}${b('pxr', 24, n === 24, '24×24', 'Small pixels: more detail')}<span class="sep"></span>${[['-1,0', '◀'], ['1,0', '▶'], ['0,-1', '▲'], ['0,1', '▼']].map(([v, l]) => b('pxsh', v, false, l, 'Move the picture')).join('')}${b('pxflip', 1, false, '⇋ Flip', 'Flip it left to right')}</div>
+    <div class="opt"><small>Paint with · 🎨 changes the colour you picked</small><div class="sw">${P.map((c, i) => `<button data-mkp="${i}" class="${D.col === i ? 'on' : ''}" style="background:${c || CHECKER}" title="${i ? c.toUpperCase() : 'See-through'}"></button>`).join('')}<label class="skpick${D.col ? '' : ' off'}" title="Change this colour"><input type="color" data-pxcol="1" value="${D.col ? P[D.col] : '#ffffff'}" ${D.col ? '' : 'disabled'}><span>🎨 ${D.col ? P[D.col].toUpperCase() : 'See-through'}</span></label></div>
+      <div class="xchips pxpals">${PX_PALS.map(([nm], j) => `<button class="xchip" data-pxpal="${j}" title="Use these colours">${nm}</button>`).join('')}</div></div>
+    <div class="opt"><small>Start from</small><div class="pxtpl">${PX_TPL[kk].map(([nm], j) => `<button data-pxtpl="${j}" title="Start from ${esc(nm)}"><img src="${pxThumb(kk, j)}" alt="">${esc(nm)}</button>`).join('')}</div></div>
+    <div class="pbtns"><button class="xp-btn alt" data-mkfill="1">🪣 Fill all</button><button class="xp-btn alt" data-mkclear="1">🧽 Clear</button></div>`;
+}
+function pxBtns() { const k = pxKey(); for (const b of document.querySelectorAll('#avOpts [data-pxu]')) b.disabled = !(+b.dataset.pxu > 0 ? PX.redo[k] : PX.undo[k]).length; avHistBtns(); }
 // the pixel canvas: drag to paint (the skin or shirt colour shows through what you leave see-through)
 function pxBind() {
-  const cv = $('#pxCan'); if (!cv) return;
-  const D = ED.draft, g = cv.getContext('2d');
-  const draw = () => {
-    const px = draftLook().px; g.clearRect(0, 0, 240, 240);
-    g.fillStyle = D.k === 'f' ? skinHex(AV.s) : shirtHex(AV.sh); g.fillRect(0, 0, 240, 240);
-    for (let i = 0; i < 144; i++) { const v = parseInt(px[i], 16); if (v) { g.fillStyle = XPAL[v]; g.fillRect((i % 12) * 20, Math.floor(i / 12) * 20, 20, 20); } }
-    g.strokeStyle = 'rgba(0,0,0,.12)'; for (let i = 1; i < 12; i++) { g.beginPath(); g.moveTo(i * 20, 0); g.lineTo(i * 20, 240); g.moveTo(0, i * 20); g.lineTo(240, i * 20); g.stroke(); }
+  const cv = $('#pxCan'); pxBind.draw = null; if (!cv) return;
+  const D = ED.draft, g = cv.getContext('2d'), S = cv.width;
+  const draw = (hov) => {
+    const px = pxCur(), n = PX_N(px), c = S / n, P = pxPal();
+    g.fillStyle = D.k === 'f' ? skinHex(AV.s) : shirtHex(AV.sh); g.fillRect(0, 0, S, S);
+    for (let i = 0; i < n * n; i++) { const v = parseInt(px[i], 16); if (v) { g.fillStyle = P[v]; g.fillRect((i % n) * c, Math.floor(i / n) * c, c, c); } }
+    if (PX.grid) { g.strokeStyle = 'rgba(0,0,0,.13)'; g.lineWidth = 1; g.beginPath(); for (let i = 1; i < n; i++) { g.moveTo(i * c + 0.5, 0); g.lineTo(i * c + 0.5, S); g.moveTo(0, i * c + 0.5); g.lineTo(S, i * c + 0.5); } g.stroke(); }
+    if (PX.mir) { g.strokeStyle = 'rgba(250,204,21,.85)'; g.lineWidth = 2; g.setLineDash([6, 5]); g.beginPath(); g.moveTo(S / 2, 0); g.lineTo(S / 2, S); g.stroke(); g.setLineDash([]); }
+    if (hov) {
+      const z = PX.tool === 'pen' || PX.tool === 'erase' ? PX.size : 1, o = Math.floor((z - 1) / 2);
+      g.strokeStyle = '#fff'; g.lineWidth = 2; g.strokeRect((hov[0] - o) * c + 1, (hov[1] - o) * c + 1, z * c - 2, z * c - 2);
+      if (PX.mir) g.strokeRect((n - 1 - hov[0] - (z - 1 - o)) * c + 1, (hov[1] - o) * c + 1, z * c - 2, z * c - 2);
+    }
   };
-  let down = false, t = 0;
-  const paint = (e) => {
-    const r = cv.getBoundingClientRect(), x = Math.floor((e.clientX - r.left) / r.width * 12), y = Math.floor((e.clientY - r.top) / r.height * 12);
-    if (x < 0 || y < 0 || x > 11 || y > 11) return;
-    const key = D.k === 'f' ? 'f' : 'pt', a = draftLook().px.split(''); a[y * 12 + x] = D.col.toString(16); D[key] = a.join('');
-    draw(); clearTimeout(t); t = setTimeout(pvAvatar, 120);
+  pxBind.draw = draw;
+  const at = (e) => { const r = cv.getBoundingClientRect(), n = PX_N(pxCur()); return [Math.floor((e.clientX - r.left) / r.width * n), Math.floor((e.clientY - r.top) / r.height * n)]; };
+  const put = (a, n, x, y, v) => { if (x >= 0 && y >= 0 && x < n && y < n) a[y * n + x] = v; };
+  const dab = (a, n, x, y, v) => { const z = PX.size, o = Math.floor((z - 1) / 2); for (let dy = 0; dy < z; dy++) for (let dx = 0; dx < z; dx++) { put(a, n, x - o + dx, y - o + dy, v); if (PX.mir) put(a, n, n - 1 - (x - o + dx), y - o + dy, v); } };
+  const line = (a, n, x0, y0, x1, y1, v) => { // (every pixel between, so a quick stroke has no gaps)
+    const dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1; let er = dx + dy;
+    for (let k = 0; k < 200; k++) { dab(a, n, x0, y0, v); if (x0 === x1 && y0 === y1) break; const e2 = 2 * er; if (e2 >= dy) { er += dy; x0 += sx; } if (e2 <= dx) { er += dx; y0 += sy; } }
   };
-  cv.onpointerdown = (e) => { down = true; try { cv.setPointerCapture(e.pointerId); } catch (er) {} paint(e); };
-  cv.onpointermove = (e) => { if (down) paint(e); };
-  cv.onpointerup = cv.onpointercancel = () => { down = false; pvAvatar(); };
+  const fill = (a, n, x, y, v) => { const from = a[y * n + x]; if (from === v) return; const st = [[x, y]]; while (st.length) { const [i, j] = st.pop(); if (i < 0 || j < 0 || i >= n || j >= n || a[j * n + i] !== from) continue; a[j * n + i] = v; st.push([i + 1, j], [i - 1, j], [i, j + 1], [i, j - 1]); } };
+  let down = null, t = 0;
+  const commit = (a) => { D[pxKey()] = a.join(''); draw(); clearTimeout(t); t = setTimeout(pvAvatar, 120); };
+  const val = () => (PX.tool === 'erase' ? '0' : D.col.toString(16));
+  const act = (e, first) => {
+    const n = PX_N(pxCur()), [x, y] = at(e); if (x < 0 || y < 0 || x >= n || y >= n) return;
+    if (PX.tool === 'pick') { if (first) { D.col = parseInt(pxCur()[y * n + x], 16); PX.tool = 'pen'; down = null; sfx('click'); drawAvatarOpts(); } return; }
+    if (PX.tool === 'fill') { if (first) { const a = pxCur().split(''); fill(a, n, x, y, val()); if (PX.mir) fill(a, n, n - 1 - x, y, val()); commit(a); } return; }
+    if (PX.tool === 'line' || PX.tool === 'rect') {
+      const a = down.base.slice(), [x0, y0] = down.p0, v = val();
+      if (PX.tool === 'line') line(a, n, x0, y0, x, y, v); else { line(a, n, x0, y0, x, y0, v); line(a, n, x, y0, x, y, v); line(a, n, x, y, x0, y, v); line(a, n, x0, y, x0, y0, v); }
+      commit(a); return;
+    }
+    const a = pxCur().split(''), [lx, ly] = down.last || [x, y]; line(a, n, lx, ly, x, y, val()); down.last = [x, y]; commit(a);
+  };
+  cv.onpointerdown = (e) => {
+    e.preventDefault(); const before = pxCur();
+    if (PX.tool !== 'pick') pxSave();
+    down = { base: before.split(''), before, p0: at(e), last: null, saved: PX.tool !== 'pick' };
+    try { cv.setPointerCapture(e.pointerId); } catch (er) {}
+    act(e, true);
+  };
+  cv.onpointermove = (e) => { if (down) { act(e, false); return; } const n = PX_N(pxCur()), h = at(e); draw(h[0] >= 0 && h[1] >= 0 && h[0] < n && h[1] < n ? h : null); };
+  cv.onpointerleave = () => { if (!down) draw(); };
+  cv.onpointerup = cv.onpointercancel = () => {
+    if (!down) return;
+    if (down.saved && pxCur() === down.before) PX.undo[pxKey()].pop(); // (nothing changed: nothing to undo)
+    down = null; clearTimeout(t); pvAvatar(); draftSave(); pxBtns();
+  };
   draw();
 }
 // the catalog's, My items' and Create's buttons (true: it was one of them)
@@ -13793,6 +14177,7 @@ function marketClick(b) {
   if (builderClick(b)) return true;
   const d = b.dataset, D = ED.draft;
   if (!d.xrefund) ED.refAsk = '';
+  if (!d.xdel) ED.delAsk = '';
   if (d.xcat) { ED.cat = d.xcat; }
   else if (d.xview !== undefined) { ED.view = d.xview; ED.note = ''; if (d.xview) sfx('open'); }
   else if (d.xview2) { ED.mode = 'shop'; ED.view = d.xview2; ED.note = ''; }
@@ -13811,14 +14196,28 @@ function marketClick(b) {
   else if (d.xpubx) { ED.pub = ''; }
   else if (d.xlim) { ED.pubLim = d.xlim === '1'; ED.pubErr = ''; }
   else if (d.xpubgo) { publishItem(d.xpubgo); return true; }
-  else if (d.mk) { D.k = d.mk; sfx('click'); pvAvatar(); }
+  else if (d.mk) { D.k = d.mk; sfx('click'); if (d.mk !== 'acc') edFront(); pvAvatar(); }
+  else if (d.xedit || d.xcopy) { if (!loadDraft(d.xedit || d.xcopy, !!d.xedit)) return true; }
+  else if (d.xdel) { if (ED.delAsk === d.xdel) { ED.delAsk = ''; delMade(d.xdel); } else { ED.delAsk = d.xdel; sfx('click'); } }
+  else if (d.mkstop) { ED.editId = ''; ED.note = ''; sfx('click'); }
+  else if (d.mksave) { saveEdit(); return true; }
+  else if (d.pxt) { PX.tool = d.pxt; sfx('click'); }
+  else if (d.pxs) { PX.size = clamp(+d.pxs, 1, 3); if (PX.tool !== 'pen' && PX.tool !== 'erase') PX.tool = 'pen'; }
+  else if (d.pxm) { PX.mir = !PX.mir; }
+  else if (d.pxg) { PX.grid = !PX.grid; }
+  else if (d.pxu) { if (!pxUndo(+d.pxu)) return true; sfx('click'); pvAvatar(); }
+  else if (d.pxr) { pxRes(+d.pxr); sfx('click'); pvAvatar(); }
+  else if (d.pxsh) { pxSave(); pxShift(...d.pxsh.split(',').map(Number)); pvAvatar(); }
+  else if (d.pxflip) { pxSave(); pxFlip(); sfx('click'); pvAvatar(); }
+  else if (d.pxpal) { pxSave(); const j = +d.pxpal; D.pal[pxKey()] = j && PX_PALS[j] ? PX_PALS[j][1].slice() : null; sfx('select'); pvAvatar(); }
+  else if (d.pxtpl) { const j = +d.pxtpl; if (!PX_TPL[pxKey()][j]) return true; pxSave(); D[pxKey()] = pxTplPx(pxKey(), j, PX_N(pxCur())); sfx('select'); pvAvatar(); }
   else if (d.mks) { D.h.s = +d.mks; pvAvatar(); }
   else if (d.mkc) { D.h.c = +d.mkc; pvAvatar(); }
   else if (d.mkd) { D.h.d = +d.mkd; pvAvatar(); }
   else if (d.mke) { D.h.e = +d.mke; pvAvatar(); }
   else if (d.mkg) { D.h.gl = D.h.gl ? 0 : 1; pvAvatar(); }
-  else if (d.mkp) { D.col = +d.mkp; }
-  else if (d.mkfill || d.mkclear || d.mkreset) { const v = d.mkfill ? D.col.toString(16).repeat(144) : '0'.repeat(144); if (D.k === 'f') D.f = d.mkreset ? DEFAULT_FACE : v; else D.pt = v; pvAvatar(); }
+  else if (d.mkp) { D.col = clamp(+d.mkp, 0, 15); if (PX.tool === 'erase' || PX.tool === 'pick') PX.tool = 'pen'; }
+  else if (d.mkfill || d.mkclear) { pxSave(); const n = PX_N(pxCur()); D[pxKey()] = (d.mkfill ? D.col.toString(16) : '0').repeat(n * n); sfx('click'); pvAvatar(); }
   else if (d.mkgo) { createItem(); return true; }
   else return false;
   drawAvatarOpts();
