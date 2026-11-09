@@ -111,7 +111,7 @@ const Net = {
   },
   clearRemotes() { for (const c of this.remoteCars.values()) { Game.world.remove(c.mesh); const i = Game.cars.indexOf(c); if (i >= 0) Game.cars.splice(i, 1); } this.remoteCars.clear(); },
   makeRemote(key, name, hex, slot) {
-    const car = new Car({ id: key, name, hex, remote: true, label: name });
+    const car = new Car({ id: key, name, hex, remote: true, label: name, night: !!Game.track.def.theme.night });
     const g = Game.track.gridPose(slot); car.place(g, g.idx);
     car.net = { pos: car.pos.clone(), vel: new THREE.Vector3(), yaw: car.yaw, t: performance.now(), lastSpeed: 0 };
     car.netUpdate = (dt) => {
@@ -160,7 +160,7 @@ const Net = {
     const diff = DIFFICULTY[1]; let i = 0;
     for (const [key, rc] of Array.from(this.remoteCars)) {
       if (!key.startsWith('bot:')) continue;
-      const bot = new Car({ id: 'bot' + i, name: rc.name, hex: rc.hex, levels: diff.levels, label: rc.name }); bot.ai = new AIDriver(bot, Game.track, diff, this.seed * 31 + i);
+      const bot = new Car({ id: 'bot' + i, name: rc.name, hex: rc.hex, levels: diff.levels, label: rc.name, night: !!Game.track.def.theme.night }); bot.ai = new AIDriver(bot, Game.track, diff, this.seed * 31 + i);
       bot.pos.copy(rc.pos); bot.yaw = rc.yaw; bot.trackIdx = rc.trackIdx; bot.lap = rc.lap; bot.progress = rc.progress; bot.totalProgress = rc.totalProgress; bot.finished = rc.finished; bot.finishTime = rc.finishTime; bot.syncMesh(0);
       Game.world.remove(rc.mesh); Game.cars.splice(Game.cars.indexOf(rc), 1); this.remoteCars.delete(key); Game.bots.push(bot); Game.cars.push(bot); Game.world.add(bot.mesh); i++;
     }

@@ -26,15 +26,15 @@ const Input = {
 };
 
 const HUD = {
-  init() { this.speedo = $('#speedo'); this.sctx = this.speedo.getContext('2d'); this.mini = $('#minimap'); this.mctx = this.mini.getContext('2d'); this.msgT = 0; this.toastT = 0; this.lastStand = ''; },
+  init() { this.speedo = $('#speedo'); this.sctx = this.speedo.getContext('2d'); this.mini = $('#minimap'); this.mctx = this.mini.getContext('2d'); this.msgT = 0; this.toastT = 0; this.lastStand = ''; this.lastPos = null; },
   show(on) { $('#hud').hidden = !on; },
   message(text, cls = '', hold = 0.9) { const m = $('#msg'); m.textContent = text; m.className = 'show ' + cls; this.msgT = hold; },
-  toast(text, hold = 2) { const m = $('#toast'); m.textContent = text; m.classList.add('show'); this.toastT = hold; },
+  toast(text, hold = 2, cls = '') { const m = $('#toast'); m.textContent = text; m.className = 'show ' + cls; this.toastT = hold; },
   update(game, dt) {
     if (this.msgT > 0) { this.msgT -= dt; if (this.msgT <= 0) $('#msg').classList.remove('show'); }
     if (this.toastT > 0) { this.toastT -= dt; if (this.toastT <= 0) $('#toast').classList.remove('show'); }
     const p = game.player; if (!p) return;
-    const pos = game.playerPos; $('#h-pos').textContent = pos; $('#h-pos-sup').textContent = ordinal(pos); $('#h-total').textContent = game.cars.filter(c => !c.ghost).length;
+    const pos = game.playerPos; if (this.lastPos != null && pos !== this.lastPos && game.state === 'racing') { const pill = $('#h-pos').closest('.pill'); pill.classList.remove('bump'); void pill.offsetWidth; pill.classList.add('bump', pos < this.lastPos ? 'up' : 'down'); } this.lastPos = pos; $('#h-pos').textContent = pos; $('#h-pos-sup').textContent = ordinal(pos); $('#h-total').textContent = game.cars.filter(c => !c.ghost).length;
     $('#h-lap').textContent = Math.min(p.lap + 1, game.laps); $('#h-laps').textContent = game.laps;
     const lapT = p.finished ? (p.lapTimes[p.lapTimes.length - 1] || 0) : (game.raceTime - p.lapStart) * 1000;
     $('#h-time').textContent = fmtTime(game.state === 'racing' || p.finished ? lapT : 0, '0:00.000');
@@ -54,6 +54,8 @@ const HUD = {
     const x = this.sctx, W = this.speedo.width, H = this.speedo.height; x.clearRect(0, 0, W, H);
     const cx = W / 2, cy = H * 0.8, r = W * 0.42, kmh = Math.abs(p.speed) * 3.6, max = Math.max(280, Math.ceil(p.stats.topSpeed * p.stats.nitroTop * 3.6 / 20) * 20);
     const a0 = Math.PI * 0.85, a1 = Math.PI * 2.15, f = clamp(kmh / max, 0, 1);
+    /* glass backing */
+    x.fillStyle = 'rgba(12,16,28,.62)'; x.beginPath(); x.arc(cx, cy, r + 26, 0, TAU); x.fill(); x.lineWidth = 1.5; x.strokeStyle = 'rgba(160,190,255,.16)'; x.stroke();
     x.lineWidth = 14; x.lineCap = 'round'; x.strokeStyle = 'rgba(255,255,255,.08)'; x.beginPath(); x.arc(cx, cy, r, a0, a1); x.stroke();
     const grad = x.createLinearGradient(0, 0, W, 0); grad.addColorStop(0, '#39d2ff'); grad.addColorStop(0.7, '#ff7a1a'); grad.addColorStop(1, '#ff3030');
     x.strokeStyle = p.boosting ? '#ffd166' : grad; x.beginPath(); x.arc(cx, cy, r, a0, a0 + (a1 - a0) * f); x.stroke();
@@ -79,7 +81,7 @@ const HUD = {
     for (const c of game.cars) { if (c.ghost) continue; const [u, v] = t.map.toUV(c.pos.x, c.pos.z); x.beginPath(); x.arc(u * W, v * W, c.isPlayer ? 8 : 6, 0, TAU); x.fillStyle = '#' + c.hex.toString(16).padStart(6, '0'); x.fill(); if (c.isPlayer) { x.lineWidth = 3; x.strokeStyle = '#fff'; x.stroke(); } }
   },
 };
-function gapText(leader, c, game) { const dp = leader.totalProgress - c.totalProgress; if (dp <= 0) return ''; const metres = dp * game.track.length; const v = Math.max(Math.abs(c.speed), 12); const s = metres / v; return s >= 1 ? '+' + s.toFixed(1) + 's' : '+' + metres.toFixed(0) + 'm'; }
+function gapText(leader, c, game) { const dp = leader.totalProgress - c.totalProgress; if (dp <= 0) return ''; const metres = dp * game.track.length; const v = Math.max(Math.abs(leader.speed), 20); const s = metres / v; return s >= 1 ? '+' + s.toFixed(1) + 's' : '+' + metres.toFixed(0) + 'm'; }
 
 const Game = {
   world: null, track: null, cars: [], player: null, bots: [], remotes: new Map(), ghost: null, ghostRec: [], ghostData: null,
@@ -92,7 +94,8 @@ const Game = {
     if (!this.track || this.track.id !== def.id || this.world.track !== this.track) { this.track = new Track(def); this.world.load(this.track, hashStr(def.id)); }
     this.clearCars();
     const prof = Profile.data; const R = rng(this.seed);
-    this.player = new Car({ id: 'me', name: (prof.name || '').trim().slice(0, 16) || 'You', hex: PAINTS.find(p => p.id === prof.paint)?.hex ?? PAINTS[0].hex, isPlayer: true, levels: prof.upgrades });
+    const night = !!this.track.def.theme.night;
+    this.player = new Car({ id: 'me', name: (prof.name || '').trim().slice(0, 16) || 'You', hex: PAINTS.find(p => p.id === prof.paint)?.hex ?? PAINTS[0].hex, isPlayer: true, levels: prof.upgrades, night, number: 1 });
     this.cars.push(this.player);
     const diff = DIFFICULTY[opts.difficulty ?? 1];
     const botCount = opts.mode === 'trial' ? 0 : (opts.botCount ?? 5);
@@ -101,17 +104,18 @@ const Game = {
       const palette = PAINTS.filter(p => !used.has(p.id)); const paint = palette[Math.floor(R() * palette.length)] || PAINTS[i % PAINTS.length]; used.add(paint.id);
       /* per-bot level jitter so the grid isn't uniform */
       const lv = {}; for (const k in diff.levels) lv[k] = clamp(diff.levels[k] + Math.floor(R() * 3) - 1, 0, MAX_LEVEL);
-      const bot = new Car({ id: 'bot' + i, name: names[i % names.length], hex: paint.hex, levels: lv, label: opts.mode === 'online' ? names[i % names.length] : null });
+      const bot = new Car({ id: 'bot' + i, name: names[i % names.length], hex: paint.hex, levels: lv, label: opts.mode === 'online' ? names[i % names.length] : null, night, number: 2 + i + Math.floor(R() * 60) });
       bot.ai = new AIDriver(bot, this.track, diff, this.seed * 31 + i); this.bots.push(bot); this.cars.push(bot);
     }
     /* grid order: player starts at the back in AI races (earn your way forward) */
     const order = opts.mode === 'online' ? opts.gridOrder(this.cars) : [...this.bots, this.player];
     order.forEach((c, k) => { if (!c) return; const g = this.track.gridPose(k); c.place(g, g.idx); this.world.add(c.mesh); });
+    this.world.attachHeadlights(this.player);
     /* ghost for time trial */
     this.ghost = null; this.ghostData = null; this.ghostRec = [];
     if (opts.mode === 'trial') { const gd = Profile.data.ghosts && Profile.data.ghosts[this.track.id]; if (gd && gd.length > 10) { this.ghostData = gd; this.ghost = new Car({ id: 'ghost', name: 'Ghost', hex: 0xffffff, ghost: true }); this.ghost.mesh.visible = false; this.world.add(this.ghost.mesh); } }
-    this.state = 'countdown'; this.countdown = 3.999; this.raceTime = 0; this.finishedAt = null; this.results = null; this.paused = false; this.acc = 0;
-    this.world.camMode = Profile.data.cam || 0; this.world.updateCamera(this.player, 0, this.world.camMode, true);
+    this.state = 'countdown'; this.countdown = 3.999; this.countdownTotal = 3.999; this.raceTime = 0; this.finishedAt = null; this.results = null; this.paused = false; this.acc = 0;
+    this.world.camMode = Profile.data.cam || 0; this.world.updateCamera(this.player, 0, this.world.camMode, true); this.world.introCamera(this.player, 0); this.world.setStartLights(0, false);
     this.updateStandings(); HUD.lastStand = ''; HUD.show(true); HUD.update(this, 0);
     document.body.classList.toggle('touch', Input.isTouch);
     Audio.resume(); Audio.stopAll();
@@ -120,7 +124,7 @@ const Game = {
   },
   clearCars() { for (const c of this.cars) this.world.remove(c.mesh); if (this.ghost) this.world.remove(this.ghost.mesh); this.cars = []; this.bots = []; this.remotes.clear(); this.player = null; this.ghost = null; },
 
-  startRacing() { this.state = 'racing'; this.raceTime = 0; for (const c of this.cars) c.lapStart = 0; HUD.message('GO!', 'green', 0.8); Audio.beep(1200, 0.5, 'square', 0.3); },
+  startRacing() { this.state = 'racing'; this.raceTime = 0; for (const c of this.cars) c.lapStart = 0; HUD.message('GO!', 'green', 0.8); Audio.beep(1200, 0.5, 'square', 0.3); this.world.setStartLights(5, true); setTimeout(() => this.world.setStartLights(0, false), 2500); },
 
   onLap(car) {
     if (car.finished) return;
@@ -133,8 +137,7 @@ const Game = {
         if (!prevBest || lapT < prevBest) { Profile.data.bestLaps[this.track.id] = lapT; if (this.ghostRec.length > 10) Profile.data.ghosts[this.track.id] = this.ghostRec; Profile.save(); HUD.toast('NEW RECORD  ' + fmtTime(lapT), 2.5); this.ghostData = Profile.data.ghosts[this.track.id]; if (!this.ghost && this.ghostData) { this.ghost = new Car({ id: 'ghost', name: 'Ghost', hex: 0xffffff, ghost: true }); this.world.add(this.ghost.mesh); } }
         else HUD.toast('LAP  ' + fmtTime(lapT), 2);
         this.ghostRec = [];
-      } else if (car.lap === this.laps - 1) HUD.message('FINAL LAP', '', 1.4);
-      else HUD.toast('LAP  ' + fmtTime(lapT), 1.6);
+      } else { const prev = car.lapTimes.length > 1 ? Math.min(...car.lapTimes.slice(0, -1)) : null; const d = prev == null ? '' : (lapT - prev >= 0 ? '  +' : '  −') + (Math.abs(lapT - prev) / 1000).toFixed(2); HUD.toast('LAP  ' + fmtTime(lapT) + d, 1.8, prev == null ? '' : lapT < prev ? 'good' : 'bad'); if (car.lap === this.laps - 1) setTimeout(() => HUD.message('FINAL LAP', '', 1.4), 900); }
     }
     if (car.lap >= this.laps) {
       car.finished = true; car.finishTime = Math.round(t * 1000);
@@ -154,7 +157,7 @@ const Game = {
     const w = this.world;
     if (this.state === 'countdown') {
       const prev = Math.ceil(this.countdown); this.countdown -= dt; const now = Math.ceil(this.countdown);
-      if (now !== prev && now > 0) { HUD.message(String(now)); Audio.beep(660, 0.15, 'square', 0.25); }
+      if (now !== prev && now > 0) { HUD.message(String(now)); Audio.beep(660, 0.15, 'square', 0.25); this.world.setStartLights(4 - now, false); }
       if (this.countdown <= 0) this.startRacing();
     }
     const racing = this.state === 'racing' || this.state === 'finished';
@@ -184,7 +187,7 @@ const Game = {
     }
     this.updateStandings();
     if (this.onTick) this.onTick(dt);
-    if (!this.headless) { w.effects(this.cars, dt); w.updateCamera(this.player, dt); w.render(); HUD.update(this, dt); }
+    if (!this.headless) { w.effects(this.cars, dt); if (this.state === 'countdown') w.introCamera(this.player, 1 - this.countdown / this.countdownTotal); else w.updateCamera(this.player, dt); w.render(); HUD.update(this, dt); }
     /* audio */
     if (this.headless) { this.checkEnd(); return; }
     const p = this.player; const rpm = clamp((Math.abs(p.speed) % 18) / 18 * 0.6 + Math.abs(p.speed) / p.stats.topSpeed * 0.5, 0, 1);
@@ -224,5 +227,5 @@ const Game = {
     if (Net.active && this.mode === 'online') Net.onLocalResults();
   },
 
-  stop() { this.state = 'idle'; this.clearCars(); HUD.show(false); Audio.stopAll(); document.body.classList.remove('touch'); },
+  stop() { this.state = 'idle'; this.clearCars(); HUD.show(false); HUD.lastPos = null; Audio.stopAll(); document.body.classList.remove('touch'); },
 };

@@ -5,7 +5,7 @@
    ======================================================================== */
 const Profile = {
   key: 'apex.profile.v1', data: null, db: null, userId: null, saveT: null, remoteVersion: 0,
-  fresh() { return { credits: 500, upgrades: { engine: 0, turbo: 0, tires: 0, nitro: 0 }, paint: 'ember', name: '', bestLaps: {}, ghosts: {}, races: 0, wins: 0, cam: 0, updatedAt: 0 }; },
+  fresh() { return { credits: 500, upgrades: { engine: 0, turbo: 0, tires: 0, nitro: 0 }, paint: 'ember', name: '', bestLaps: {}, ghosts: {}, races: 0, wins: 0, cam: 0, quality: null, updatedAt: 0 }; },
   load() {
     const d = Store.get(this.key, null); this.data = Object.assign(this.fresh(), d || {});
     this.data.upgrades = Object.assign({ engine: 0, turbo: 0, tires: 0, nitro: 0 }, this.data.upgrades); this.data.bestLaps = this.data.bestLaps || {}; this.data.ghosts = this.data.ghosts || {};
@@ -48,8 +48,9 @@ const Garage = {
     s.add(new THREE.HemisphereLight(0xcfe6ff, 0x1a1c28, 0.9));
     const key = new THREE.DirectionalLight(0xffffff, 1.6); key.position.set(4, 7, 5); key.castShadow = true; key.shadow.mapSize.set(1024, 1024); s.add(key);
     const rim = new THREE.DirectionalLight(0x39d2ff, 1.2); rim.position.set(-5, 3, -6); s.add(rim);
-    const floor = new THREE.Mesh(new THREE.CircleGeometry(5, 48), new THREE.MeshStandardMaterial({ color: 0x141824, roughness: 0.6, metalness: 0.4 })); floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; s.add(floor);
+    const floor = new THREE.Mesh(new THREE.CircleGeometry(5, 48), new THREE.MeshPhysicalMaterial({ color: 0x141824, roughness: 0.25, metalness: 0.6, clearcoat: 0.6, envMapIntensity: 0.8 })); floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; s.add(floor);
     const ring = new THREE.Mesh(new THREE.RingGeometry(4.6, 4.9, 64), new THREE.MeshBasicMaterial({ color: 0xff7a1a, side: THREE.DoubleSide })); ring.rotation.x = -Math.PI / 2; ring.position.y = 0.01; s.add(ring);
+    s.environment = makeEnvironment(r, { sky: [0x6f86b8, 0xdfe7f5, 0x2a2f3a], ground: 0x1a1d26, sun: [3, 6, 4], sunColor: 0xffffff }).texture; r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.0;
     this.camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
     const ro = new ResizeObserver(() => this.resize()); ro.observe(host); this.resize();
   },

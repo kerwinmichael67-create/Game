@@ -25,6 +25,7 @@ const UI = {
     $('#nick').value = Profile.data.name || '';
     $('#nick').addEventListener('change', () => { Profile.data.name = $('#nick').value.trim().slice(0, 16); Profile.save(); Net.updateLobbyPresence(); });
     $('#b-sound').onclick = () => { Audio.init(); Audio.setEnabled(!Audio.enabled); this.syncSound(); }; this.syncSound();
+    $('#b-quality').onclick = () => { const q = Profile.data.quality === 'high' ? 'low' : 'high'; Profile.data.quality = q; Profile.save(); Game.world.setQuality(q); this.syncQuality(); }; this.syncQuality();
     /* setup */
     this.trackSeg($('#sel-track'), (v) => { $('#track-desc').textContent = TRACKS.find(t => t.id === v).desc; });
     $('#track-desc').textContent = TRACKS[0].desc;
@@ -64,6 +65,7 @@ const UI = {
     const unlock = () => { Audio.init(); Audio.resume(); }; addEventListener('pointerdown', unlock, { passive: true }); addEventListener('keydown', unlock);
   },
   syncSound() { const b = $('#b-sound'); b.textContent = 'Sound: ' + (Audio.enabled ? 'On' : 'Off'); b.setAttribute('aria-pressed', String(Audio.enabled)); },
+  syncQuality() { const b = $('#b-quality'); const q = Profile.data.quality; b.textContent = 'Graphics: ' + (q === 'high' ? 'High' : 'Fast'); b.title = q === 'high' ? 'Bloom, soft shadows, full resolution' : 'No bloom, lighter shadows, lower resolution'; },
   openSetup(mode) {
     this.setupMode = mode; Audio.init();
     $('#setup-eyebrow').textContent = mode === 'trial' ? 'Time Trial' : 'Race the AI';
@@ -84,7 +86,7 @@ const UI = {
     $('#res-title').textContent = res.pos === 1 ? 'Victory' : `${res.pos}${ordinal(res.pos)} place`;
     $('#res-reward').textContent = '+' + res.credits.toLocaleString() + ' CR';
     const tb = $('#res-body'); tb.innerHTML = '';
-    for (const r of res.rows) tb.append(el('tr', { class: r.me ? 'me' : '' }, [el('td', { text: r.pos }), el('td', { text: r.name + (r.me && r.name !== 'You' ? ' (you)' : '') }), el('td', { text: fmtTime(r.best) }), el('td', { text: (r.projected ? '~' : '') + fmtTime(r.total) })]));
+    for (const r of res.rows) tb.append(el('tr', { class: r.me ? 'me' : '' }, [el('td', { class: r.pos <= 3 ? 'p' + r.pos : '', text: r.pos }), el('td', { text: r.name + (r.me && r.name !== 'You' ? ' (you)' : '') }), el('td', { text: fmtTime(r.best) }), el('td', { text: (r.projected ? '~' : '') + fmtTime(r.total) })]));
     $('#res-note').textContent = res.note;
     $('#b-res-again').textContent = Net.active ? (Net.isHost ? 'Race again' : 'Back to room') : 'Race again';
     $('#b-res-garage').hidden = !!Net.active; $('#b-res-menu').textContent = Net.active ? 'Room' : 'Main menu';
@@ -120,8 +122,11 @@ const UI = {
 
 /* ---------------- boot ---------------- */
 function start() {
-  Profile.load(); Input.init(); HUD.init(); UI.init();
-  const world = new World($('#gl')); Game.world = world;
+  Profile.load(); Input.init(); HUD.init();
+  Input.isTouch = matchMedia('(pointer: coarse)').matches && 'ontouchstart' in window;
+  if (!Profile.data.quality) Profile.data.quality = Input.isTouch ? 'low' : 'high';
+  const world = new World($('#gl'), Profile.data.quality); Game.world = world; world.setupPost();
+  UI.init();
   Game.track = new Track(TRACKS[0]); world.load(Game.track, hashStr('bay'));
   const centre = new THREE.Vector3(-10, 0, 20);
   /* a few bots lapping behind the menu for life */

@@ -30,4 +30,6 @@ Rebuild after editing anything in `src/`:
 node build.mjs
 ```
 
-Three.js r128 is loaded from cdnjs; there are no other dependencies and no build tooling to install.
+Three.js r128 is loaded from cdnjs and its post-processing passes (bloom) from jsDelivr; there are no other
+dependencies and no build tooling to install. The Graphics toggle on the main menu switches between High
+(bloom, soft shadows, full resolution) and Fast (for phones and integrated GPUs).

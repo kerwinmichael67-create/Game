@@ -6,13 +6,13 @@ const TRACKS = [
   {
     id: 'bay', name: 'Sunset Bay', desc: 'Fast coastal sweepers into a tight harbour hairpin. 2.4 km.',
     width: 16, bankMax: 0.22,
-    theme: { sky: [0x1b2a6b, 0xff7a3d, 0xffd6a0], sun: [320, 140, -520], sunColor: 0xffc08a, hemi: [0xffd1b0, 0x2b3a5c], fog: 0xf0a070, fogNear: 260, fogFar: 1100, ground: 0x3b4a3d, ground2: 0x2f3b30, trees: 'palm', treeCount: 240, rocks: 90, buildings: 0, lamps: true },
+    theme: { sky: [0x1b2a6b, 0xff7a3d, 0xffd6a0], sun: [320, 140, -520], sunColor: 0xffc08a, hemi: [0xffd1b0, 0x2b3a5c], fog: 0xf0a070, fogNear: 260, fogFar: 1100, ground: 0x3b4a3d, ground2: 0x2f3b30, trees: 'palm', treeCount: 260, rocks: 90, buildings: 0, lamps: true, cloud: 0xffc9a6, water: { x: 350, color: 0x08222e } },
     points: [[0, 0], [170, 0], [255, -35], [300, -120], [275, -205], [185, -245], [100, -205], [60, -125], [-45, -100], [-130, -160], [-230, -175], [-305, -110], [-325, -10], [-285, 90], [-205, 125], [-120, 95], [-60, 150], [-15, 230], [85, 255], [175, 215], [205, 125], [120, 75], [-35, 55], [-60, 10]],
   },
   {
     id: 'alpine', name: 'Alpine Pass', desc: 'Long back straight, banked bowl and a blind chicane through the pines. 2.8 km.',
     width: 15, bankMax: 0.3,
-    theme: { sky: [0x1d4f9e, 0x9ccfff, 0xe9f4ff], sun: [-400, 260, 300], sunColor: 0xfff4e0, hemi: [0xcfe6ff, 0x3d5a3a], fog: 0xb9d6f0, fogNear: 300, fogFar: 1400, ground: 0x3f6b39, ground2: 0x355c31, trees: 'pine', treeCount: 420, rocks: 140, buildings: 0, lamps: false, mountains: true },
+    theme: { sky: [0x1d4f9e, 0x9ccfff, 0xe9f4ff], sun: [-400, 260, 300], sunColor: 0xfff4e0, hemi: [0xcfe6ff, 0x3d5a3a], fog: 0xb9d6f0, fogNear: 300, fogFar: 1400, ground: 0x3f6b39, ground2: 0x355c31, trees: 'pine', treeCount: 460, rocks: 140, buildings: 0, lamps: false, mountains: true, cloud: 0xffffff },
     points: [[0, 0], [220, 0], [360, -10], [430, -80], [410, -170], [320, -200], [250, -150], [180, -190], [80, -245], [-40, -230], [-100, -150], [-80, -70], [-150, -20], [-250, -60], [-350, -40], [-400, 50], [-360, 140], [-260, 170], [-180, 120], [-110, 150], [-60, 230], [40, 260], [150, 220], [190, 130], [120, 80], [-20, 60], [-60, 10]],
   },
   {
