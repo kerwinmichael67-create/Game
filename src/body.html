@@ -1,0 +1,173 @@
+<div id="loading"><div class="spinner"></div><div>WARMING TYRES</div></div>
+<canvas id="gl"></canvas>
+<div id="vignette"></div>
+<div id="speedfx"></div>
+
+<!-- ===== HUD ===== -->
+<div id="hud" hidden>
+  <div class="hud-tl">
+    <div class="pill"><div class="pos"><span id="h-pos">1</span><sup id="h-pos-sup">st</sup><span style="font-size:14px;color:var(--muted)"> / <span id="h-total">4</span></span></div></div>
+    <div class="pill lap">LAP <b id="h-lap">1</b> / <span id="h-laps">3</span></div>
+    <div class="pill standings" id="h-standings"></div>
+  </div>
+  <div class="hud-tr">
+    <div class="pill time"><small>LAP TIME</small><span id="h-time">0:00.000</span></div>
+    <div class="pill time"><small>BEST</small><span id="h-best">--:--.---</span></div>
+  </div>
+  <button id="pausebtn" class="icon-btn" type="button" aria-label="Pause">II</button>
+  <div class="hud-br">
+    <canvas id="speedo" width="380" height="300"></canvas>
+    <div id="nitrobar"><i></i></div>
+    <div class="nitro-label">NITRO<span class="kbd-hint"> · SHIFT</span></div>
+  </div>
+  <div class="hud-bl"><canvas id="minimap" width="300" height="300"></canvas></div>
+  <div id="msg"></div>
+  <div id="toast"></div>
+  <div id="wrongway">WRONG WAY</div>
+</div>
+
+<div id="touch">
+  <button class="tbtn" id="t-left" type="button" aria-label="Steer left">◀</button>
+  <button class="tbtn" id="t-right" type="button" aria-label="Steer right">▶</button>
+  <button class="tbtn" id="t-nitro" type="button" aria-label="Nitro">NOS</button>
+  <button class="tbtn" id="t-brake" type="button" aria-label="Brake">BRAKE</button>
+  <button class="tbtn" id="t-gas" type="button" aria-label="Accelerate">GAS</button>
+</div>
+
+<!-- ===== MAIN MENU ===== -->
+<div class="screen" id="s-menu" hidden>
+  <div class="card">
+    <div class="brand">
+      <div><h1>APEX <span>CIRCUIT</span></h1><div class="sub">Arcade racing · upgrades · online grid</div></div>
+      <div class="credits"><span id="m-credits">0</span><small>CR</small></div>
+    </div>
+    <div class="menu-grid">
+      <button class="tile accent" id="b-quick" type="button"><span class="t-icon">🏁</span><span class="t-title">Race the AI</span><span class="t-desc">Grid up against bots on three circuits. Earn credits for podiums and clean laps.</span></button>
+      <button class="tile" id="b-online" type="button"><span class="t-icon">🌐</span><span class="t-title">Online Multiplayer</span><span class="t-desc">Join the lobby, open a room with a code, race friends in real time.</span><span class="status" id="m-online-status"><b></b><span>Connecting…</span></span></button>
+      <button class="tile" id="b-garage" type="button"><span class="t-icon">🔧</span><span class="t-title">Garage</span><span class="t-desc">Spend credits on engine, turbo, tyres and nitro. Pick your paint.</span></button>
+      <button class="tile" id="b-trial" type="button"><span class="t-icon">⏱</span><span class="t-title">Time Trial</span><span class="t-desc">Empty track, your best lap. Beat the ghost of your own record.</span></button>
+    </div>
+    <div class="divider"></div>
+    <div class="row" style="justify-content:space-between">
+      <div class="controls">
+        <div><span>Steer</span><span><span class="kbd">A</span><span class="kbd">D</span> / <span class="kbd">←</span><span class="kbd">→</span></span></div>
+        <div><span>Throttle / Brake</span><span><span class="kbd">W</span><span class="kbd">S</span> / <span class="kbd">↑</span><span class="kbd">↓</span></span></div>
+        <div><span>Nitro</span><span><span class="kbd">Shift</span></span></div>
+        <div><span>Handbrake</span><span><span class="kbd">Space</span></span></div>
+        <div><span>Camera</span><span><span class="kbd">C</span></span></div>
+        <div><span>Pause</span><span><span class="kbd">Esc</span></span></div>
+      </div>
+      <div class="field" style="min-width:200px"><label for="nick">Driver name</label><input type="text" id="nick" maxlength="16" autocomplete="off" placeholder="Racer"></div>
+    </div>
+    <div class="row" style="justify-content:space-between">
+      <button class="btn ghost sm" id="b-sound" type="button" aria-pressed="true">Sound: On</button>
+      <span class="muted" style="font-size:13px" id="m-save-status">Progress saved in this browser</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== QUICK RACE SETUP ===== -->
+<div class="screen" id="s-setup" hidden>
+  <div class="card">
+    <div><p class="eyebrow" id="setup-eyebrow">Race the AI</p><h2 id="setup-title">Set up your race</h2></div>
+    <div class="grid">
+      <div class="field"><label>Circuit</label><div class="seg" id="sel-track"></div><p class="muted" id="track-desc" style="font-size:14px;margin-top:6px"></p></div>
+      <div class="field" id="f-laps"><label>Laps</label><div class="seg" id="sel-laps"><button type="button" data-v="1">1</button><button type="button" data-v="3" aria-pressed="true">3</button><button type="button" data-v="5">5</button></div></div>
+      <div class="field" id="f-diff"><label>AI difficulty</label><div class="seg" id="sel-diff"><button type="button" data-v="0">Rookie</button><button type="button" data-v="1" aria-pressed="true">Pro</button><button type="button" data-v="2">Legend</button></div></div>
+      <div class="field" id="f-bots"><label>Opponents</label><div class="seg" id="sel-bots"><button type="button" data-v="3">3</button><button type="button" data-v="5" aria-pressed="true">5</button><button type="button" data-v="7">7</button></div></div>
+    </div>
+    <div class="row" style="justify-content:space-between">
+      <button class="btn ghost" id="b-setup-back" type="button">Back</button>
+      <button class="btn" id="b-setup-go" type="button">Start race</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== GARAGE ===== -->
+<div class="screen" id="s-garage" hidden>
+  <div class="card">
+    <div class="brand"><div><p class="eyebrow">Garage</p><h2>Tune your machine</h2></div><div class="credits"><span id="g-credits">0</span><small>CR</small></div></div>
+    <div class="garage">
+      <div style="display:flex;flex-direction:column;gap:14px;min-width:0">
+        <div class="preview" id="preview"></div>
+        <div class="field"><label>Paint</label><div class="swatches" id="swatches"></div></div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div class="stat-line"><span>Top speed</span><div class="bar"><i id="st-speed"></i></div><span class="val" id="sv-speed"></span></div>
+          <div class="stat-line"><span>Acceleration</span><div class="bar"><i id="st-accel"></i></div><span class="val" id="sv-accel"></span></div>
+          <div class="stat-line"><span>Grip</span><div class="bar"><i id="st-grip"></i></div><span class="val" id="sv-grip"></span></div>
+          <div class="stat-line"><span>Nitro</span><div class="bar"><i id="st-nitro"></i></div><span class="val" id="sv-nitro"></span></div>
+        </div>
+      </div>
+      <div class="upgrades" id="upgrades"></div>
+    </div>
+    <div class="row" style="justify-content:space-between">
+      <button class="btn ghost" id="b-garage-back" type="button">Back</button>
+      <span class="muted" id="g-hint" style="font-size:14px">Win races to earn credits.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ONLINE LOBBY ===== -->
+<div class="screen" id="s-online" hidden>
+  <div class="card">
+    <div class="brand"><div><p class="eyebrow">Online</p><h2>Multiplayer lobby</h2></div><div class="status" id="o-status"><b></b><span>Connecting…</span></div></div>
+    <div class="notice" id="o-notice" hidden></div>
+    <div class="online">
+      <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+        <p class="eyebrow" style="margin:0">Drivers online · <span id="o-count">0</span></p>
+        <div class="list" id="o-players"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;min-width:0">
+        <div class="field"><label>Open a room</label><div class="row"><button class="btn cyan" id="b-create" type="button">Create room</button><span class="muted" style="font-size:14px">You become host and pick the circuit.</span></div></div>
+        <div class="field"><label for="joincode">Join with a code</label><div class="row"><input type="text" id="joincode" maxlength="6" placeholder="ABC123" style="max-width:170px;text-transform:uppercase;letter-spacing:.2em;font-family:var(--display)"><button class="btn" id="b-join" type="button">Join</button></div></div>
+        <div class="field"><label>Open rooms</label><div class="list" id="o-rooms"><div class="muted" style="font-size:14px">No rooms yet. Open one and share the code.</div></div></div>
+      </div>
+    </div>
+    <div class="row"><button class="btn ghost" id="b-online-back" type="button">Back</button></div>
+  </div>
+</div>
+
+<!-- ===== RACE ROOM ===== -->
+<div class="screen" id="s-room" hidden>
+  <div class="card">
+    <div class="brand"><div><p class="eyebrow">Room code</p><div class="code" id="r-code">------</div></div><div class="status on" id="r-status"><b></b><span id="r-status-text">Waiting for drivers</span></div></div>
+    <div class="online">
+      <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+        <p class="eyebrow" style="margin:0">Grid · <span id="r-count">1</span>/8</p>
+        <div class="list" id="r-players"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;min-width:0">
+        <div class="field"><label>Circuit</label><div class="seg" id="r-track"></div></div>
+        <div class="field"><label>Laps</label><div class="seg" id="r-laps"><button type="button" data-v="1">1</button><button type="button" data-v="3" aria-pressed="true">3</button><button type="button" data-v="5">5</button></div></div>
+        <div class="field"><label>Fill grid with bots</label><div class="seg" id="r-bots"><button type="button" data-v="0">None</button><button type="button" data-v="2" aria-pressed="true">2</button><button type="button" data-v="4">4</button></div></div>
+        <p class="muted" id="r-hint" style="font-size:14px">Only the host can change settings and start the race.</p>
+      </div>
+    </div>
+    <div class="row" style="justify-content:space-between">
+      <button class="btn ghost" id="b-leave" type="button">Leave room</button>
+      <div class="row"><button class="btn cyan" id="b-ready" type="button" aria-pressed="false">Ready up</button><button class="btn" id="b-start" type="button">Start race</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== RESULTS ===== -->
+<div class="screen" id="s-results" hidden>
+  <div class="card">
+    <div class="brand"><div><p class="eyebrow">Race complete</p><h2 id="res-title">Results</h2></div><div class="reward" id="res-reward"></div></div>
+    <div class="tbl-wrap"><table class="results"><thead><tr><th>Pos</th><th>Driver</th><th>Best lap</th><th>Total</th></tr></thead><tbody id="res-body"></tbody></table></div>
+    <p class="muted" id="res-note" style="font-size:14px"></p>
+    <div class="row" style="justify-content:space-between">
+      <button class="btn ghost" id="b-res-menu" type="button">Main menu</button>
+      <div class="row"><button class="btn ghost" id="b-res-garage" type="button">Garage</button><button class="btn" id="b-res-again" type="button">Race again</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PAUSE ===== -->
+<div class="screen" id="s-pause" hidden>
+  <div class="card" style="width:min(420px,100%)">
+    <div><p class="eyebrow">Paused</p><h2>Race paused</h2></div>
+    <p class="muted" id="pause-note" style="font-size:14px">In online races the clock keeps running.</p>
+    <div class="row"><button class="btn" id="b-resume" type="button">Resume</button><button class="btn ghost" id="b-restart" type="button">Restart</button><button class="btn ghost" id="b-quit" type="button">Quit to menu</button></div>
+  </div>
+</div>
