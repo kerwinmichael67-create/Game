@@ -1,8 +1,8 @@
 /* ========================================================================
    Online multiplayer over the artifact `room` capability.
    Everything travels in presence (coalesced ~30/s, allowed for every viewer):
-     lobby presence:  { name, color, room }
-     race-room presence: { name, color, ready, phase, settings, seed, car, bots, fin, best }
+     lobby presence:  { name, color, model, room }
+     race-room presence: { name, color, model, ready, phase, settings, seed, car, bots, botMeta, fin, best }
    The host is the room peer with the lowest peer id; everyone computes it the same way.
    ======================================================================== */
 const Net = {
@@ -32,7 +32,7 @@ const Net = {
   },
   myName() { return (Profile.data.name || '').trim().slice(0, 16) || 'Racer'; },
   myColor() { return (PAINTS.find(p => p.id === Profile.data.paint) || PAINTS[0]).id; },
-  updateLobbyPresence() { if (!this.room) return; this.room.presence({ name: this.myName(), color: this.myColor(), room: this.code || null }).catch(() => {}); if (this.named) this.named.presence({ name: this.myName(), color: this.myColor() }).catch(() => {}); },
+  updateLobbyPresence() { if (!this.room) return; this.room.presence({ name: this.myName(), color: this.myColor(), model: Profile.data.car, room: this.code || null }).catch(() => {}); if (this.named) this.named.presence({ name: this.myName(), color: this.myColor(), model: Profile.data.car }).catch(() => {}); },
   colorHex(id) { return (PAINTS.find(p => p.id === id) || PAINTS[0]).hex; },
   peerName(p) { const n = p.presence && typeof p.presence.name === 'string' ? p.presence.name.trim().slice(0, 16) : ''; return n || 'Racer'; },
 
@@ -50,7 +50,7 @@ const Net = {
     try {
       const named = await this.room.join(code); this.named = named; this.code = code; this.ready = false; this.phase = 'lobby';
       named.onPeers((ch) => this.onRoomPeers(ch), (e) => { UI.toastMsg && UI.toastMsg('Lost the room connection.'); this.leave(true); });
-      await named.presence({ name: this.myName(), color: this.myColor(), ready: false, phase: 'lobby', joinedAt: Date.now() });
+      await named.presence({ name: this.myName(), color: this.myColor(), model: Profile.data.car, ready: false, phase: 'lobby', joinedAt: Date.now() });
       this.updateLobbyPresence(); UI.show('room'); UI.renderRoom(); return true;
     } catch (e) { UI.toastMsg && UI.toastMsg(e && e.code === 'limit_reached' ? 'Too many rooms open right now. Try again shortly.' : 'Could not join that room.'); return false; }
   },
@@ -95,8 +95,9 @@ const Net = {
   start() {
     if (!this.isHost || !this.named) return;
     this.seed = Math.floor(Math.random() * 1e9);
-    this.named.presence({ phase: 'countdown', seed: this.seed, startedAt: Date.now(), settings: Object.assign({}, this.settings), ready: false, fin: null, best: null }).catch(() => {});
+    this.named.presence({ phase: 'countdown', seed: this.seed, startedAt: Date.now(), settings: Object.assign({}, this.settings), ready: false, fin: null, best: null, bots: null, botMeta: null }).catch(() => {});
     this.beginRace(this.seed, true);
+    this.named.presence({ botMeta: Game.bots.map(b => [b.name, b.paintId, b.model]) }).catch(() => {});
   },
   playerSlots() { return this.roomPeers.slice().sort((a, b) => (a.peer < b.peer ? -1 : a.peer > b.peer ? 1 : 0)).map(p => p.peer); },
   beginRace(seed, asHost) {
@@ -110,8 +111,8 @@ const Net = {
     UI.show(null); this.syncRemotes();
   },
   clearRemotes() { for (const c of this.remoteCars.values()) { Game.world.remove(c.mesh); const i = Game.cars.indexOf(c); if (i >= 0) Game.cars.splice(i, 1); } this.remoteCars.clear(); },
-  makeRemote(key, name, hex, slot) {
-    const car = new Car({ id: key, name, hex, remote: true, label: name, night: !!Game.track.def.theme.night });
+  makeRemote(key, name, hex, slot, model) {
+    const car = new Car({ id: key, name, hex, remote: true, label: name, model, night: !!Game.track.def.theme.night });
     const g = Game.track.gridPose(slot); car.place(g, g.idx);
     car.net = { pos: car.pos.clone(), vel: new THREE.Vector3(), yaw: car.yaw, t: performance.now(), lastSpeed: 0 };
     car.netUpdate = (dt) => {
@@ -122,7 +123,7 @@ const Net = {
       car.vel.copy(n.vel); car.trackIdx = Game.track.nearest(car.pos.x, car.pos.z, car.trackIdx); car.lat = Game.track.lateral(car.pos.x, car.pos.z, car.trackIdx);
       car.pos.y = Game.track.heightAt(car.trackIdx, clamp(car.lat, -Game.track.halfWidth - 2, Game.track.halfWidth + 2));
       car.roll = damp(car.roll, -Game.track.bank[car.trackIdx], 8, dt); car.wheelSpin += car.speed * dt / 0.36; car.steerVis = damp(car.steerVis, car.net.steer || 0, 10, dt);
-      car.slip = clamp(Math.abs(car.net.steer || 0) * Math.abs(car.speed) / 40, 0, 1) * (Math.abs(car.speed) > 15 ? 1 : 0);
+      car.slip = car.drifting ? 0.9 : 0; car.steer = (car.net.steer || 0) * 2;
     };
     this.remoteCars.set(key, car); Game.cars.push(car); Game.world.add(car.mesh); return car;
   },
@@ -133,9 +134,10 @@ const Net = {
     /* snap when far off (respawn / first packet) */
     if (Math.hypot(nx - car.pos.x, nz - car.pos.z) > 25) { car.pos.set(nx, 0, nz); car.yaw = +s[2] || 0; }
     n.pos.set(nx, 0, nz); n.yaw = +s[2] || 0; n.t = now;
-    const sp = +s[3] || 0; car.lightsBrake = sp < n.lastSpeed - 0.5; n.lastSpeed = sp; car.speed = sp; n.steer = clamp(+s[4] || 0, -1, 1) * 0.5; car.boosting = s[5] === 1;
+    const sp = +s[3] || 0; car.lightsBrake = sp < n.lastSpeed - 0.5; n.lastSpeed = sp; car.speed = sp; car.spd = Math.abs(sp); n.steer = clamp(+s[4] || 0, -1, 1) * 0.5; car.boosting = s[5] === 1;
     car.lap = Math.max(0, Math.floor(+s[6] || 0)); car.progress = clamp(+s[7] || 0, 0, 1); car.totalProgress = car.lap + car.progress;
     const fin = +s[8] || 0; if (fin > 0 && !car.finished) { car.finished = true; car.finishTime = fin; } if (s[9] > 0) car.bestLap = +s[9];
+    const fl = +s[10] || 0; car.drifting = (fl & 1) === 1; car.driftTier = (fl >> 1) & 3; car.turboT = fl & 8 ? 0.2 : 0; car.turboTier = (fl >> 1) & 3 || 1;
   },
   syncRemotes() {
     if (!this.active || Game.state === 'idle') return;
@@ -143,14 +145,15 @@ const Net = {
     for (const p of this.roomPeers) {
       if (p.isMe && p.sameTab) continue; const pr = p.presence || {}; const key = 'peer:' + p.peer; seen.add(key);
       let car = this.remoteCars.get(key);
-      if (!car) car = this.makeRemote(key, this.peerName(p), this.colorHex(pr.color), Math.max(0, slots.indexOf(p.peer)));
+      if (!car) car = this.makeRemote(key, this.peerName(p), this.colorHex(pr.color), Math.max(0, slots.indexOf(p.peer)), typeof pr.model === 'string' ? pr.model : 'vanta');
       if (pr.car) this.applyState(car, pr.car);
       if (pr.phase === 'lobby' && Game.state !== 'idle' && !car.finished && car.totalProgress > 0.1) { car.finished = true; car.finishTime = car.finishTime || Game.raceTime + 9e5; car.projected = true; }
     }
     /* host's bots */
     if (!this.isHost && this.hostPeer && this.hostPeer.presence && Array.isArray(this.hostPeer.presence.bots)) {
-      const bots = this.hostPeer.presence.bots;
-      bots.forEach((b, i) => { if (!Array.isArray(b)) return; const key = 'bot:' + i; seen.add(key); let car = this.remoteCars.get(key); if (!car) car = this.makeRemote(key, BOT_NAMES[(this.seed + i) % BOT_NAMES.length], this.colorHex(PAINTS[(this.seed + i * 3) % PAINTS.length].id), nPlayers + i); this.applyState(car, b); });
+      const bots = this.hostPeer.presence.bots, meta = Array.isArray(this.hostPeer.presence.botMeta) ? this.hostPeer.presence.botMeta : [];
+      bots.forEach((b, i) => { if (!Array.isArray(b)) return; const key = 'bot:' + i; seen.add(key); let car = this.remoteCars.get(key); const m = Array.isArray(meta[i]) ? meta[i] : null;
+        if (!car) { if (!m) return; car = this.makeRemote(key, String(m[0] || 'Bot').slice(0, 16), this.colorHex(m[1]), nPlayers + i, typeof m[2] === 'string' ? m[2] : 'vanta'); } this.applyState(car, b); });
       this.lastHostBots = bots;
     }
     for (const [key, car] of this.remoteCars) if (!seen.has(key) && key.startsWith('peer:')) { Game.world.remove(car.mesh); const i = Game.cars.indexOf(car); if (i >= 0) Game.cars.splice(i, 1); this.remoteCars.delete(key); }
@@ -160,7 +163,7 @@ const Net = {
     const diff = DIFFICULTY[1]; let i = 0;
     for (const [key, rc] of Array.from(this.remoteCars)) {
       if (!key.startsWith('bot:')) continue;
-      const bot = new Car({ id: 'bot' + i, name: rc.name, hex: rc.hex, levels: diff.levels, label: rc.name, night: !!Game.track.def.theme.night }); bot.ai = new AIDriver(bot, Game.track, diff, this.seed * 31 + i);
+      const bot = new Car({ id: 'bot' + i, name: rc.name, hex: rc.hex, paintId: (PAINTS.find(p => p.hex === rc.hex) || PAINTS[0]).id, model: rc.model, levels: diff.levels, label: rc.name, night: !!Game.track.def.theme.night }); bot.ai = new AIDriver(bot, Game.track, diff, this.seed * 31 + i);
       bot.pos.copy(rc.pos); bot.yaw = rc.yaw; bot.trackIdx = rc.trackIdx; bot.lap = rc.lap; bot.progress = rc.progress; bot.totalProgress = rc.totalProgress; bot.finished = rc.finished; bot.finishTime = rc.finishTime; bot.syncMesh(0);
       Game.world.remove(rc.mesh); Game.cars.splice(Game.cars.indexOf(rc), 1); this.remoteCars.delete(key); Game.bots.push(bot); Game.cars.push(bot); Game.world.add(bot.mesh); i++;
     }
@@ -168,17 +171,18 @@ const Net = {
   tick(dt) {
     if (!this.active || !this.named) return; const now = performance.now(); if (now - this.lastSend < 50) return; this.lastSend = now;
     const p = Game.player; const r2 = (v) => Math.round(v * 100) / 100;
-    const patch = { car: [r2(p.pos.x), r2(p.pos.z), Math.round(p.yaw * 1000) / 1000, r2(p.speed), Math.round(p.input.steer * 100) / 100, p.boosting ? 1 : 0, p.lap, Math.round(p.progress * 10000) / 10000, p.finished ? Math.round(p.finishTime) : 0, p.bestLap ? Math.round(p.bestLap) : 0] };
+    const pack = (c) => [r2(c.pos.x), r2(c.pos.z), Math.round(c.yaw * 1000) / 1000, r2(c.speed), Math.round(c.steer * 100) / 100, c.boosting ? 1 : 0, c.lap, Math.round(c.progress * 10000) / 10000, c.finished ? Math.round(c.finishTime) : 0, c.bestLap ? Math.round(c.bestLap) : 0, (c.drifting ? 1 : 0) | ((c.drifting ? c.driftTier : c.turboTier) << 1) | (c.turboT > 0 || c.padT > 0 ? 8 : 0)];
+    const patch = { car: pack(p) };
     if (Game.state === 'racing' && this.phase !== 'racing') { this.phase = 'racing'; patch.phase = 'racing'; }
     if (p.finished && this.phase !== 'finished') { this.phase = 'finished'; patch.phase = 'finished'; patch.fin = Math.round(p.finishTime); patch.best = p.bestLap ? Math.round(p.bestLap) : null; }
-    if (this.isHost) patch.bots = Game.bots.map(b => [r2(b.pos.x), r2(b.pos.z), Math.round(b.yaw * 1000) / 1000, r2(b.speed), Math.round(b.input.steer * 100) / 100, b.boosting ? 1 : 0, b.lap, Math.round(b.progress * 10000) / 10000, b.finished ? Math.round(b.finishTime) : 0, b.bestLap ? Math.round(b.bestLap) : 0]);
+    if (this.isHost) patch.bots = Game.bots.map(pack);
     this.named.presence(patch).catch(() => {});
   },
   onLocalResults() { /* keep broadcasting final state; phase already 'finished' */ },
   backToRoom() {
     this.active = false; this.phase = 'lobby'; this.ready = false; this.clearRemotes(); Game.onTick = null;
     if (Game.state !== 'idle') Game.stop();
-    if (this.named) this.named.presence({ phase: 'lobby', ready: false, car: null, bots: null, fin: null, best: null }).catch(() => {});
+    if (this.named) this.named.presence({ phase: 'lobby', ready: false, car: null, bots: null, botMeta: null, fin: null, best: null }).catch(() => {});
     UI.show('room'); UI.renderRoom();
   },
 };

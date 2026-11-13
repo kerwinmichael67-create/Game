@@ -11,6 +11,8 @@ const damp = (a, b, k, dt) => lerp(a, b, 1 - Math.exp(-k * dt));
 const TAU = Math.PI * 2;
 const wrapAngle = (a) => { a = a % TAU; if (a > Math.PI) a -= TAU; if (a < -Math.PI) a += TAU; return a; };
 const sign = (v) => (v < 0 ? -1 : v > 0 ? 1 : 0);
+const hexCss = (h) => '#' + h.toString(16).padStart(6, '0');
+const fmtInt = (n) => Math.round(n).toLocaleString('en-US');
 
 function fmtTime(ms, blank = '--:--.---') {
   if (ms == null || !isFinite(ms) || ms < 0) return blank;

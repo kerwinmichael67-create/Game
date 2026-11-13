@@ -6,7 +6,7 @@ const TRACKS = [
   {
     id: 'bay', name: 'Sunset Bay', desc: 'Fast coastal sweepers into a tight harbour hairpin. 2.4 km.',
     width: 16, bankMax: 0.22,
-    theme: { sky: [0x1b2a6b, 0xff7a3d, 0xffd6a0], sun: [320, 140, -520], sunColor: 0xffc08a, hemi: [0xffd1b0, 0x2b3a5c], fog: 0xf0a070, fogNear: 260, fogFar: 1100, ground: 0x3b4a3d, ground2: 0x2f3b30, trees: 'palm', treeCount: 260, rocks: 90, buildings: 0, lamps: true, cloud: 0xffc9a6, water: { x: 350, color: 0x08222e } },
+    theme: { sky: [0x1b2a6b, 0xff7a3d, 0xffd6a0], sun: [320, 200, -520], sunColor: 0xffc08a, hemi: [0xffd9bd, 0x4a4f66], fog: 0xf0a070, fogNear: 260, fogFar: 1100, ground: 0x66744f, ground2: 0x556343, trees: 'palm', treeCount: 260, rocks: 90, buildings: 0, lamps: true, cloud: 0xffc9a6, water: { x: 350, color: 0x08222e } },
     points: [[0, 0], [170, 0], [255, -35], [300, -120], [275, -205], [185, -245], [100, -205], [60, -125], [-45, -100], [-130, -160], [-230, -175], [-305, -110], [-325, -10], [-285, 90], [-205, 125], [-120, 95], [-60, 150], [-15, 230], [85, 255], [175, 215], [205, 125], [120, 75], [-35, 55], [-60, 10]],
   },
   {
@@ -18,7 +18,7 @@ const TRACKS = [
   {
     id: 'neon', name: 'Neon Dock', desc: 'Night street circuit between container stacks. Short, technical, unforgiving. 2.0 km.',
     width: 14, bankMax: 0.1,
-    theme: { sky: [0x05060f, 0x1a1040, 0x3a1a60], sun: [-200, 300, -200], sunColor: 0x8fb4ff, hemi: [0x5a4a9a, 0x101020], fog: 0x120a28, fogNear: 180, fogFar: 760, ground: 0x15161c, ground2: 0x101117, trees: 'none', treeCount: 0, rocks: 0, buildings: 160, lamps: true, night: true },
+    theme: { sky: [0x05060f, 0x1a1040, 0x3a1a60], sun: [-200, 300, -200], sunColor: 0x8fb4ff, hemi: [0x7a6cc0, 0x23233a], fog: 0x120a28, fogNear: 180, fogFar: 760, ground: 0x262833, ground2: 0x1d1f29, trees: 'none', treeCount: 0, rocks: 0, buildings: 160, lamps: true, night: true },
     points: [[0, 0], [150, 0], [210, -50], [200, -130], [120, -165], [40, -120], [-40, -140], [-70, -215], [-160, -235], [-230, -170], [-210, -90], [-250, -20], [-230, 70], [-150, 110], [-80, 70], [-10, 110], [30, 190], [130, 200], [160, 120], [90, 70], [-20, 55], [-55, 10]],
   },
 ];
@@ -40,7 +40,7 @@ class Track {
       const u = i / this.n;
       const p = this.curve.getPointAt(u), t = this.curve.getTangentAt(u).normalize();
       this.center.push(p); this.tangent.push(t);
-      this.right.push(new THREE.Vector3(t.z, 0, -t.x)); /* right-hand side when travelling along t */
+      this.right.push(new THREE.Vector3(-t.z, 0, t.x)); /* true right-hand side when travelling along t (y is up) */
       if (i > 0) total += p.distanceTo(this.center[i - 1]);
       cum.push(total);
     }
@@ -58,7 +58,7 @@ class Track {
     this.curv = sm;
     const maxC = Math.max(...this.curv.map(Math.abs));
     for (let i = 0; i < this.n; i++) {
-      /* bank towards inside of the turn: left turn (curv>0) -> left edge lower. */
+      /* bank towards the inside of the turn: left turn (curv>0) -> right edge (lat>0) higher, left edge lower */
       let b = 0; for (let k = -10; k <= 10; k++) b += this.curv[(i + k + this.n) % this.n]; b /= 21;
       this.bank.push(clamp(b / (maxC || 1), -1, 1) * def.bankMax);
     }
@@ -71,7 +71,30 @@ class Track {
     const span = Math.max(maxX - minX, maxZ - minZ) * 1.12, cx = (minX + maxX) / 2, cz = (minZ + maxZ) / 2;
     this.map = { cx, cz, span, toUV: (x, z) => [(x - cx) / span + 0.5, (z - cz) / span + 0.5] };
     this.sectors = [Math.floor(this.n * 0.33), Math.floor(this.n * 0.66)];
+    this._placePads();
   }
+  /* boost pads sit on the straightest stretches; derived from geometry so every client agrees */
+  _placePads() {
+    const seg = this.length / this.n, win = Math.round(80 / seg), cand = [];
+    for (let i = 0; i < this.n; i++) { let m = 0; for (let k = 0; k <= win; k++) m = Math.max(m, Math.abs(this.curv[(i + k) % this.n])); cand.push([m, i]); }
+    cand.sort((a, b) => a[0] - b[0]);
+    const lats = [-0.32, 0.32, 0], picked = [];
+    for (const [m, i] of cand) {
+      if (picked.length >= 3 || m > 0.012) break;
+      const idx = (i + Math.round(win * 0.3)) % this.n;
+      if (idx < 16 || idx > this.n - 34) continue;                       /* keep clear of the grid */
+      if (picked.some(p => { const d = Math.abs(p - idx); return Math.min(d, this.n - d) < this.n * 0.13; })) continue;
+      picked.push(idx);
+    }
+    picked.sort((a, b) => a - b);
+    this.pads = picked.map((idx, k) => ({ idx, lat: lats[k % lats.length] * this.halfWidth, half: 2.5 }));
+  }
+  padAt(idx, lat) {
+    for (const p of this.pads) { const d = Math.abs(p.idx - idx); if (Math.min(d, this.n - d) <= 1 && Math.abs(lat - p.lat) < p.half) return p; }
+    return null;
+  }
+  /* metres along the lap from sample a forward to sample b */
+  ahead(a, b) { return ((b - a + this.n) % this.n) * (this.length / this.n); }
   _key(x, z) { return (Math.floor(x / this.cell) * 73856093) ^ (Math.floor(z / this.cell) * 19349663); }
   /* nearest sample index; hint speeds up the search for tracked cars */
   nearest(x, z, hint = -1) {

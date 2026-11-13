@@ -8,6 +8,7 @@
   <div class="hud-tl">
     <div class="pill"><div class="pos"><span id="h-pos">1</span><sup id="h-pos-sup">st</sup><span style="font-size:14px;color:var(--muted)"> / <span id="h-total">4</span></span></div></div>
     <div class="pill lap">LAP <b id="h-lap">1</b> / <span id="h-laps">3</span></div>
+    <div class="pill lap" id="h-drift" hidden>DRIFT <b id="h-drift-v">0</b></div>
     <div class="pill standings" id="h-standings"></div>
   </div>
   <div class="hud-tr">
@@ -15,12 +16,19 @@
     <div class="pill time"><small>BEST</small><span id="h-best">--:--.---</span></div>
   </div>
   <button id="pausebtn" class="icon-btn" type="button" aria-label="Pause">II</button>
+  <div id="tags"></div>
   <div class="hud-br">
     <canvas id="speedo" width="380" height="300"></canvas>
     <div id="nitrobar"><i></i></div>
     <div class="nitro-label">NITRO<span class="kbd-hint"> · SHIFT</span></div>
   </div>
   <div class="hud-bl"><canvas id="minimap" width="300" height="300"></canvas></div>
+  <div id="drift">
+    <div class="d-row"><span class="d-label">DRIFT</span><span id="d-mult"></span></div>
+    <div id="d-pts">0</div>
+    <div class="d-bar"><i id="d-fill"></i><b style="left:24%"></b><b style="left:56.5%"></b></div>
+    <div id="d-bank">+0</div>
+  </div>
   <div id="msg"></div>
   <div id="toast"></div>
   <div id="wrongway">WRONG WAY</div>
@@ -29,6 +37,7 @@
 <div id="touch">
   <button class="tbtn" id="t-left" type="button" aria-label="Steer left">◀</button>
   <button class="tbtn" id="t-right" type="button" aria-label="Steer right">▶</button>
+  <button class="tbtn" id="t-drift" type="button" aria-label="Drift">DRIFT</button>
   <button class="tbtn" id="t-nitro" type="button" aria-label="Nitro">NOS</button>
   <button class="tbtn" id="t-brake" type="button" aria-label="Brake">BRAKE</button>
   <button class="tbtn" id="t-gas" type="button" aria-label="Accelerate">GAS</button>
@@ -38,40 +47,44 @@
 <div class="screen" id="s-menu" hidden>
   <div class="card">
     <div class="brand">
-      <div><h1>APEX <span>CIRCUIT</span></h1><div class="sub">Arcade racing · upgrades · online grid</div></div>
+      <div><h1>APEX <span>CIRCUIT</span></h1><div class="sub">Arcade racing · drifting · upgrades · online grid</div></div>
       <div class="credits"><span id="m-credits">0</span><small>CR</small></div>
     </div>
     <div class="menu-grid">
-      <button class="tile accent" id="b-quick" type="button"><span class="t-icon">🏁</span><span class="t-title">Race the AI</span><span class="t-desc">Grid up against bots on three circuits. Earn credits for podiums and clean laps.</span></button>
-      <button class="tile" id="b-online" type="button"><span class="t-icon">🌐</span><span class="t-title">Online Multiplayer</span><span class="t-desc">Join the lobby, open a room with a code, race friends in real time.</span><span class="status" id="m-online-status"><b></b><span>Connecting…</span></span></button>
-      <button class="tile" id="b-garage" type="button"><span class="t-icon">🔧</span><span class="t-title">Garage</span><span class="t-desc">Spend credits on engine, turbo, tyres and nitro. Pick your paint.</span></button>
-      <button class="tile" id="b-trial" type="button"><span class="t-icon">⏱</span><span class="t-title">Time Trial</span><span class="t-desc">Empty track, your best lap. Beat the ghost of your own record.</span></button>
+      <button class="tile accent" id="b-quick" type="button"><span class="t-icon">🏁</span><span class="t-title">Race the AI</span><span class="t-desc">Single race against bots. Pick the circuit, laps and difficulty.</span></button>
+      <button class="tile" id="b-champ" type="button"><span class="t-icon">🏆</span><span class="t-title">Championship</span><span class="t-desc">Three circuits, points every round, a big purse for the title.</span></button>
+      <button class="tile" id="b-drift" type="button"><span class="t-icon">💨</span><span class="t-title">Drift Attack</span><span class="t-desc">Two laps, no rivals. Chain slides for score and chase the gold medal.</span></button>
+      <button class="tile" id="b-trial" type="button"><span class="t-icon">⏱</span><span class="t-title">Time Trial</span><span class="t-desc">Empty track, your best lap, and the ghost of your own record.</span></button>
+      <button class="tile" id="b-online" type="button"><span class="t-icon">🌐</span><span class="t-title">Online Multiplayer</span><span class="t-desc">Open a room with a code and race friends in real time.</span><span class="status" id="m-online-status"><b></b><span>Connecting…</span></span></button>
+      <button class="tile" id="b-garage" type="button"><span class="t-icon">🔧</span><span class="t-title">Garage</span><span class="t-desc">Four cars to own and tune: engine, turbo, tyres, nitro, paint.</span></button>
+      <button class="tile" id="b-board" type="button"><span class="t-icon">📊</span><span class="t-title">Leaderboard</span><span class="t-desc">Best laps and drift scores from everyone who plays here.</span></button>
     </div>
     <div class="divider"></div>
-    <div class="row" style="justify-content:space-between">
+    <div class="row" style="justify-content:space-between;align-items:flex-start">
       <div class="controls">
         <div><span>Steer</span><span><span class="kbd">A</span><span class="kbd">D</span> / <span class="kbd">←</span><span class="kbd">→</span></span></div>
         <div><span>Throttle / Brake</span><span><span class="kbd">W</span><span class="kbd">S</span> / <span class="kbd">↑</span><span class="kbd">↓</span></span></div>
+        <div><span>Drift</span><span>tap <span class="kbd">Space</span> while steering</span></div>
         <div><span>Nitro</span><span><span class="kbd">Shift</span></span></div>
-        <div><span>Handbrake</span><span><span class="kbd">Space</span></span></div>
-        <div><span>Camera</span><span><span class="kbd">C</span></span></div>
-        <div><span>Pause</span><span><span class="kbd">Esc</span></span></div>
+        <div><span>Reset car</span><span><span class="kbd">R</span></span></div>
+        <div><span>Camera / Pause</span><span><span class="kbd">C</span><span class="kbd">Esc</span></span></div>
       </div>
       <div class="field" style="min-width:200px"><label for="nick">Driver name</label><input type="text" id="nick" maxlength="16" autocomplete="off" placeholder="Racer"></div>
     </div>
+    <p class="tip"><b>How to drift.</b> Tap drift as you turn in and the tail steps out. Steer into the corner to hold the angle, ease off to straighten. A long, clean slide charges a turbo that fires when you straighten up: blue, then orange, then purple.</p>
     <div class="row" style="justify-content:space-between">
-      <div class="row"><button class="btn ghost sm" id="b-sound" type="button" aria-pressed="true">Sound: On</button><button class="btn ghost sm" id="b-quality" type="button">Graphics: High</button></div>
+      <div class="row"><button class="btn ghost sm" id="b-sound" type="button" aria-pressed="true">Sound: On</button><button class="btn ghost sm" id="b-music" type="button" aria-pressed="true">Music: On</button><button class="btn ghost sm" id="b-quality" type="button">Graphics: High</button></div>
       <span class="muted" style="font-size:13px" id="m-save-status">Progress saved in this browser</span>
     </div>
   </div>
 </div>
 
-<!-- ===== QUICK RACE SETUP ===== -->
+<!-- ===== RACE SETUP ===== -->
 <div class="screen" id="s-setup" hidden>
   <div class="card">
-    <div><p class="eyebrow" id="setup-eyebrow">Race the AI</p><h2 id="setup-title">Set up your race</h2></div>
+    <div><p class="eyebrow" id="setup-eyebrow">Race the AI</p><h2 id="setup-title">Set up your race</h2><p class="muted" id="setup-desc" style="font-size:15px;margin-top:8px"></p></div>
     <div class="grid">
-      <div class="field"><label>Circuit</label><div class="seg" id="sel-track"></div><p class="muted" id="track-desc" style="font-size:14px;margin-top:6px"></p></div>
+      <div class="field" id="f-track"><label>Circuit</label><div class="seg" id="sel-track"></div><p class="muted" id="track-desc" style="font-size:14px;margin-top:6px"></p></div>
       <div class="field" id="f-laps"><label>Laps</label><div class="seg" id="sel-laps"><button type="button" data-v="1">1</button><button type="button" data-v="3" aria-pressed="true">3</button><button type="button" data-v="5">5</button></div></div>
       <div class="field" id="f-diff"><label>AI difficulty</label><div class="seg" id="sel-diff"><button type="button" data-v="0">Rookie</button><button type="button" data-v="1" aria-pressed="true">Pro</button><button type="button" data-v="2">Legend</button></div></div>
       <div class="field" id="f-bots"><label>Opponents</label><div class="seg" id="sel-bots"><button type="button" data-v="3">3</button><button type="button" data-v="5" aria-pressed="true">5</button><button type="button" data-v="7">7</button></div></div>
@@ -86,15 +99,17 @@
 <!-- ===== GARAGE ===== -->
 <div class="screen" id="s-garage" hidden>
   <div class="card">
-    <div class="brand"><div><p class="eyebrow">Garage</p><h2>Tune your machine</h2></div><div class="credits"><span id="g-credits">0</span><small>CR</small></div></div>
+    <div class="brand"><div><p class="eyebrow">Garage</p><h2>Own it, tune it</h2></div><div class="credits"><span id="g-credits">0</span><small>CR</small></div></div>
+    <div class="car-row" id="g-cars"></div>
     <div class="garage">
       <div style="display:flex;flex-direction:column;gap:14px;min-width:0">
-        <div class="preview" id="preview"></div>
+        <div class="preview" id="preview"><div class="preview-info"><div class="pi-name" id="g-car-name"></div><div class="pi-tag" id="g-car-tag"></div></div><button class="btn preview-buy" id="b-buy-car" type="button" hidden>Buy</button></div>
+        <p class="muted" id="g-car-desc" style="font-size:14px"></p>
         <div class="field"><label>Paint</label><div class="swatches" id="swatches"></div></div>
         <div style="display:flex;flex-direction:column;gap:8px">
           <div class="stat-line"><span>Top speed</span><div class="bar"><i id="st-speed"></i></div><span class="val" id="sv-speed"></span></div>
-          <div class="stat-line"><span>Acceleration</span><div class="bar"><i id="st-accel"></i></div><span class="val" id="sv-accel"></span></div>
-          <div class="stat-line"><span>Grip</span><div class="bar"><i id="st-grip"></i></div><span class="val" id="sv-grip"></span></div>
+          <div class="stat-line"><span>0–100 km/h</span><div class="bar"><i id="st-accel"></i></div><span class="val" id="sv-accel"></span></div>
+          <div class="stat-line"><span>Cornering</span><div class="bar"><i id="st-grip"></i></div><span class="val" id="sv-grip"></span></div>
           <div class="stat-line"><span>Nitro</span><div class="bar"><i id="st-nitro"></i></div><span class="val" id="sv-nitro"></span></div>
         </div>
       </div>
@@ -104,6 +119,17 @@
       <button class="btn ghost" id="b-garage-back" type="button">Back</button>
       <span class="muted" id="g-hint" style="font-size:14px">Win races to earn credits.</span>
     </div>
+  </div>
+</div>
+
+<!-- ===== LEADERBOARD ===== -->
+<div class="screen" id="s-board" hidden>
+  <div class="card">
+    <div class="brand"><div><p class="eyebrow">Leaderboard</p><h2>Fastest drivers</h2></div><div class="status" id="lb-status"><b></b><span>Loading…</span></div></div>
+    <div class="row"><div class="seg" id="lb-track"></div><div class="seg" id="lb-kind"><button type="button" data-v="lap" aria-pressed="true">Best lap</button><button type="button" data-v="drift">Drift score</button></div></div>
+    <div class="tbl-wrap"><table class="results"><thead><tr><th>#</th><th>Driver</th><th id="lb-col">Best lap</th></tr></thead><tbody id="lb-body"></tbody></table></div>
+    <p class="muted" id="lb-note" style="font-size:14px"></p>
+    <div class="row" style="justify-content:space-between"><button class="btn ghost" id="b-board-back" type="button">Back</button><button class="btn ghost sm" id="b-board-refresh" type="button">Refresh</button></div>
   </div>
 </div>
 
@@ -152,9 +178,10 @@
 
 <!-- ===== RESULTS ===== -->
 <div class="screen" id="s-results" hidden>
+  <canvas id="confetti"></canvas>
   <div class="card">
-    <div class="brand"><div><p class="eyebrow">Race complete</p><h2 id="res-title">Results</h2></div><div class="reward" id="res-reward"></div></div>
-    <div class="tbl-wrap"><table class="results"><thead><tr><th>Pos</th><th>Driver</th><th>Best lap</th><th>Total</th></tr></thead><tbody id="res-body"></tbody></table></div>
+    <div class="brand"><div><p class="eyebrow" id="res-eyebrow">Race complete</p><h2 id="res-title">Results</h2></div><div class="reward" id="res-reward"></div></div>
+    <div class="tbl-wrap"><table class="results"><thead><tr id="res-head"></tr></thead><tbody id="res-body"></tbody></table></div>
     <p class="muted" id="res-note" style="font-size:14px"></p>
     <div class="row" style="justify-content:space-between">
       <button class="btn ghost" id="b-res-menu" type="button">Main menu</button>
@@ -165,9 +192,9 @@
 
 <!-- ===== PAUSE ===== -->
 <div class="screen" id="s-pause" hidden>
-  <div class="card" style="width:min(420px,100%)">
+  <div class="card" style="width:min(460px,100%)">
     <div><p class="eyebrow">Paused</p><h2>Race paused</h2></div>
     <p class="muted" id="pause-note" style="font-size:14px">In online races the clock keeps running.</p>
-    <div class="row"><button class="btn" id="b-resume" type="button">Resume</button><button class="btn ghost" id="b-restart" type="button">Restart</button><button class="btn ghost" id="b-quit" type="button">Quit to menu</button></div>
+    <div class="row"><button class="btn" id="b-resume" type="button">Resume</button><button class="btn ghost" id="b-reset" type="button">Reset car</button><button class="btn ghost" id="b-restart" type="button">Restart</button><button class="btn ghost" id="b-quit" type="button">Quit to menu</button></div>
   </div>
 </div>

@@ -1,19 +1,35 @@
 # Apex Circuit
 
-A 3D arcade racing game that runs in a single HTML page: three procedurally built circuits,
-AI opponents with three difficulty levels, a garage with credit-funded upgrades, time trial with
-a ghost car, and real-time online multiplayer when published as a Claude artifact.
+A 3D arcade racing game that runs in a single HTML page: three procedurally built circuits, four
+cars to buy and tune, a drift system with turbo tiers and scoring, AI opponents that race and slide,
+and real-time online multiplayer when published as a Claude artifact.
 
-## Play
+## Modes
 
-- **Claude artifact** – the published page uses the artifact runtime's `room` capability for
-  multiplayer (lobby, room codes, host-synced starts) and `db`/`user` to keep each player's
-  credits and upgrades with their account.
-- **Standalone** – open `index.html` in any browser. Everything works except online play,
-  which needs the artifact runtime.
+- **Race the AI** – single race, three difficulty levels, 3 to 7 opponents.
+- **Championship** – three rounds on all circuits against the same rivals, points per round, a purse for the title.
+- **Drift Attack** – two solo laps scored on slides, with bronze, silver and gold targets per circuit.
+- **Time Trial** – solo laps against the ghost of your best lap.
+- **Online** – lobby, room codes, host-synced starts, bots filling the grid.
 
-Controls: `W/S` or `↑/↓` throttle and brake, `A/D` or `←/→` steer, `Shift` nitro, `Space`
-handbrake, `C` camera, `Esc` pause. Touch controls appear automatically on phones; gamepads work too.
+## Driving
+
+`W/S` or `↑/↓` throttle and brake, `A/D` or `←/→` steer, tap `Space` while steering to drift,
+`Shift` nitro, `R` reset, `C` camera, `Esc` pause, `M` music. Touch controls appear on phones;
+gamepads work too.
+
+Tyres hold a fixed amount of lateral grip, so full steering at speed never spins the car. Tapping
+drift kicks the tail out: steering deeper into the slide tightens the line, easing off lets it run
+wide, and straightening up after a long clean slide fires a turbo (blue, orange, purple). Boost
+pads, slipstream and a well-timed launch add more speed.
+
+## Where it runs
+
+- **Claude artifact** – uses the artifact runtime's `room` capability for multiplayer and `db`/`user`
+  for per-player progress and the shared leaderboard (`records/<user id>`, each player writes only
+  their own row).
+- **Standalone** – open `index.html` in any browser. Everything works except online play and the
+  shared leaderboard, which need the artifact runtime.
 
 ## Layout
 
@@ -30,6 +46,7 @@ Rebuild after editing anything in `src/`:
 node build.mjs
 ```
 
-Three.js r128 is loaded from cdnjs and its post-processing passes (bloom) from jsDelivr; there are no other
-dependencies and no build tooling to install. The Graphics toggle on the main menu switches between High
-(bloom, soft shadows, full resolution) and Fast (for phones and integrated GPUs).
+Three.js r128 is loaded from cdnjs and its post-processing passes (bloom) from jsDelivr; there are no
+other dependencies and no build tooling to install. Conventions used throughout the code: y is up,
+`forward = (sin yaw, 0, cos yaw)`, `right = forward × up`, and positive steering or lateral offset
+means right.
