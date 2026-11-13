@@ -262,59 +262,60 @@
       { n: 'Javelin Jab', ic: '🔱', k: 'melee', dmg: 36, cd: 1.0, rng: 7, arc: 50, wind: 0.15, an: 'jab' },
       { n: 'Javelin Throw', ic: '🎯', k: 'proj', dmg: 55, cd: 8, spd: 82, wind: 0.3, an: 'throw', model: 'javelin', d: 'A fast javelin: 55 damage.' },
       { n: 'Skirmish', ic: '🐺', k: 'dash', back: true, dist: 11, dd: 0.3, cd: 28, wind: 0.08, an: 'hop', then: { k: 'proj', dmg: 40, cnt: 3, spread: 14, spd: 80, model: 'javelin' }, d: 'Leap back out of reach and throw three javelins as you land, 40 each.' }] },
-    { e: 0, r: 1, hp: 400, spd: 1.05, ab: [
-      { n: 'Trident Thrust', ic: '🔱', k: 'melee', dmg: 48, cd: 1.3, rng: 7.5, arc: 50, wind: 0.2, an: 'lunge' },
-      { n: 'Net Cast', ic: '🕸️', k: 'proj', dmg: 20, cd: 12, spd: 48, wind: 0.3, an: 'net', model: 'net', fx: { rt: 2 }, d: 'Throw the weighted net: 20 damage and they can’t move for 2 s.' },
-      { n: 'Trident Flurry', ic: '🌊', k: 'multi', hits: [30, 30, 30, 30], gap: 0.17, cd: 30, rng: 7.5, arc: 60, wind: 0.2, an: 'flurry', d: 'Four quick thrusts, 30 each.' }] },
-    { e: 0, r: 2, hp: 520, def: 0.9, ab: [
-      { n: 'Spatha Cut', ic: '⚔️', k: 'melee', dmg: 58, cd: 1.4, rng: 7, arc: 100, wind: 0.22, an: 'slash' },
-      { n: 'Testudo', ic: '🛡️', k: 'buff', cd: 14, an: 'testudo', b: { dur: 2.5, blk: 1 }, d: 'Shield up like a whole legion: blocks every blow, from every side, for 2.5 s.' },
-      { n: 'Imperial Charge', ic: '🦂', k: 'dash', dmg: 120, dist: 15, dd: 0.45, cd: 32, wind: 0.25, an: 'charge', fx: { st: 1, kb: 6 }, d: 'Charge behind the shield: 120 damage and they’re knocked down (1 s).' }] },
+    { e: 0, r: 1, hp: 430, spd: 1.05, ab: [
+      { n: 'Trident Thrust', ic: '🔱', k: 'melee', dmg: 51, cd: 1.25, rng: 7.5, arc: 50, wind: 0.2, an: 'lunge' },
+      { n: 'Net Cast', ic: '🕸️', k: 'proj', dmg: 30, cd: 9, spd: 48, wind: 0.3, an: 'net', model: 'net', fx: { rt: 2 }, d: 'Throw the weighted net: 30 damage and they can’t move for 2 s.' },
+      { n: 'Trident Flurry', ic: '🌊', k: 'multi', hits: [32, 32, 32, 32], gap: 0.17, cd: 20, rng: 7.5, arc: 60, wind: 0.2, an: 'flurry', d: 'Four quick thrusts, 32 each.' }] },
+    { e: 0, r: 2, hp: 545, def: 0.9, ab: [
+      { n: 'Spatha Cut', ic: '⚔️', k: 'melee', dmg: 62, cd: 1.35, rng: 7, arc: 100, wind: 0.22, an: 'slash' },
+      { n: 'Testudo', ic: '🛡️', k: 'buff', cd: 11, an: 'testudo', b: { dur: 3, blk: 1 }, d: 'Shield up like a whole legion: blocks every blow, from every side, for 3 s.' },
+      { n: 'Imperial Charge', ic: '🦂', k: 'dash', dmg: 130, dist: 15, dd: 0.45, cd: 24, wind: 0.25, an: 'charge', fx: { st: 1, kb: 6 }, d: 'Charge behind the shield: 130 damage and they’re knocked down (1 s).' }] },
     { e: 0, r: 3, hp: 500, spd: 1.1, def: 0.88, ro: 'Damage dealer', ab: [
       { n: 'Sica Slash', ic: '⚔️', k: 'melee', dmg: 72, cd: 1.1, rng: 7, arc: 120, wind: 0.18, an: 'sica', fx: { bl: [60, 4], blc: 0.4 }, d: '72 damage, and a 40% chance to make them bleed: 60 more over 4 s.' },
       { n: 'Shield Rush', ic: '🛡️', k: 'dash', dmg: 90, dist: 13, dd: 0.3, cd: 8, wind: 0.1, an: 'rush', fx: { st: 0.9 }, d: 'Rush in behind the shield: 90 damage and a 0.9 s stun.' },
       { n: 'Thraex Feint', ic: '🎭', k: 'multi', hits: [25, 70], gap: 0.3, cd: 10, rng: 7.5, arc: 110, wind: 0.12, an: 'flurry', fx: { vu: 2.5 }, d: 'A feint with the little shield, then the sica where they opened up: 25, then 70 — and they take ×1.5 damage for 2.5 s.' },
       { n: 'Berserk', ic: '🔥', k: 'buff', cd: 28, an: 'berserk', b: { dur: 6, cdM: 1.5, dmgA: 25, dmgM: 1.15, ls: 0.1 }, d: 'For 6 s: cooldowns a third shorter, +25 damage on every hit, +15% on top, and 10% lifesteal.' }] },
     // 🏛️ Greece
-    { e: 1, r: 0, hp: 450, ab: [
-      { n: 'Dory Thrust', ic: '🔱', k: 'melee', dmg: 40, cd: 1.3, rng: 8.5, arc: 40, wind: 0.2, an: 'overhand' },
+    { e: 1, r: 0, hp: 470, ab: [
+      { n: 'Dory Thrust', ic: '🔱', k: 'melee', dmg: 44, cd: 1.2, rng: 8.5, arc: 40, wind: 0.2, an: 'overhand' },
       { n: 'Aspis Wall', ic: '🛡️', k: 'buff', cd: 10, an: 'aspis', b: { dur: 2.5, blk: 1 }, d: 'Brace behind the aspis: blocks every blow for 2.5 s.' },
-      { n: 'Phalanx Push', ic: '🦉', k: 'dash', dmg: 80, dist: 9, dd: 0.35, cd: 28, wind: 0.2, an: 'push', fx: { kb: 12 }, d: 'Drive forward shield first: 80 damage and they’re thrown back.' }] },
+      { n: 'Phalanx Push', ic: '🦉', k: 'dash', dmg: 85, dist: 9, dd: 0.35, cd: 18, wind: 0.2, an: 'push', fx: { kb: 12 }, d: 'Drive forward shield first: 85 damage and they’re thrown back.' }] },
     { e: 1, r: 0, hp: 380, spd: 1.1, ab: [
       { n: 'Kopis Cut', ic: '🗡️', k: 'melee', dmg: 38, cd: 1.0, rng: 6, arc: 100, wind: 0.15, an: 'slash' },
       { n: 'Javelin', ic: '🎯', k: 'proj', dmg: 50, cd: 8, spd: 80, wind: 0.28, an: 'throw', model: 'javelin', d: 'A javelin: 50 damage.' },
       { n: 'Hit and Run', ic: '🌙', k: 'buff', cd: 25, an: 'hype', b: { dur: 6, spdM: 1.4, dmgM: 1.25 }, d: '+40% speed and +25% damage for 6 s.' }] },
-    { e: 1, r: 1, hp: 340, ab: [
-      { n: 'Bow Shot', ic: '🏹', k: 'proj', dmg: 45, cd: 1.4, spd: 100, wind: 0.25, an: 'bow', model: 'arrow' },
-      { n: 'Fire Arrow', ic: '🔥', k: 'proj', dmg: 60, cd: 10, spd: 95, wind: 0.4, an: 'bow', model: 'fire', fx: { bu: [30, 3] }, d: 'A burning arrow: 60 damage, and 30 more as it burns for 3 s.' },
-      { n: 'Arrow Storm', ic: '🌧️', k: 'volley', dmg: 35, cnt: 6, rad: 6, delay: 0.9, cd: 32, wind: 0.35, an: 'sky', d: 'Six arrows fall where they stand, 35 each.' }] },
-    { e: 1, r: 2, hp: 500, ab: [
-      { n: 'Xiphos Strike', ic: '🗡️', k: 'melee', dmg: 60, cd: 1.4, rng: 6.5, arc: 90, wind: 0.2, an: 'slash' },
-      { n: 'Leap of Achilles', ic: '🐜', k: 'leap', dmg: 70, dist: 18, rad: 6.5, cd: 12, wind: 0.15, an: 'leap', fx: { st: 0.5 }, d: 'Leap at them and come down hard: 70 damage all round.' },
-      { n: 'Wrath of Achilles', ic: '⚡', k: 'buff', cd: 34, an: 'wrath', b: { dur: 6, dmgM: 1.3, spdM: 1.2, ls: 0.25 }, d: '+30% damage, +20% speed and 25% lifesteal for 6 s.' }] },
-    { e: 1, r: 3, hp: 500, ab: [
+    { e: 1, r: 1, hp: 370, ab: [
+      { n: 'Bow Shot', ic: '🏹', k: 'proj', dmg: 49, cd: 1.3, spd: 100, wind: 0.25, an: 'bow', model: 'arrow' },
+      { n: 'Fire Arrow', ic: '🔥', k: 'proj', dmg: 66, cd: 9, spd: 95, wind: 0.4, an: 'bow', model: 'fire', fx: { bu: [40, 3] }, d: 'A burning arrow: 66 damage, and 40 more as it burns for 3 s.' },
+      { n: 'Arrow Storm', ic: '🌧️', k: 'volley', dmg: 38, cnt: 6, rad: 6, delay: 0.9, cd: 26, wind: 0.35, an: 'sky', d: 'Six arrows fall where they stand, 38 each.' }] },
+    { e: 1, r: 2, hp: 540, ab: [
+      { n: 'Xiphos Strike', ic: '🗡️', k: 'melee', dmg: 63, cd: 1.3, rng: 6.5, arc: 90, wind: 0.2, an: 'slash' },
+      { n: 'Leap of Achilles', ic: '🐜', k: 'leap', dmg: 80, dist: 18, rad: 6.5, cd: 11, wind: 0.15, an: 'leap', fx: { st: 0.5 }, d: 'Leap at them and come down hard: 80 damage all round and a 0.5 s stun.' },
+      { n: 'Wrath of Achilles', ic: '⚡', k: 'buff', cd: 30, an: 'wrath', b: { dur: 6, dmgM: 1.3, spdM: 1.2, ls: 0.25 }, d: '+30% damage, +20% speed and 25% lifesteal for 6 s.' }] },
+    { e: 1, r: 3, hp: 580, spd: 1.05, def: 0.85, crit: [0.15, 1.6], pas: [['🛡️', 'Agoge', 'Raised for war from the age of seven: he takes 15% less damage.'], ['⚡', 'Laconic', 'Few words, sharp blows: 15% of his hits are critical, for ×1.6.']], ab: [ // (v137: buffed — he was the weakest legendary by far)
       { n: 'Spear / Sword', ic: '🔱', k: 'melee', modes: [
-        { n: 'Spear', ic: '🔱', dmg: 75, cd: 3, rng: 9, arc: 40, wind: 0.3, an: 'spear' },
-        { n: 'Sword', ic: '🗡️', dmg: 50, cd: 1.7, rng: 6.5, arc: 100, wind: 0.18, an: 'slash' }] },
-      { n: 'Spartan Kick', ic: '🦶', k: 'melee', dmg: 45, cd: 9, rng: 5.5, arc: 70, wind: 0.2, an: 'kick', fx: { st: 1, kb: 14 }, d: 'THIS IS SPARTA: 45 damage, a 1 s stun and they fly back.' },
-      { n: 'Molon Labe', ic: '🛡️', k: 'buff', cd: 30, an: 'molon', b: { dur: 4, def: 0.3, rf: 0.4 }, d: '“Come and take them”: 70% less damage for 4 s, and 40% of it goes back at them.' }] },
+        { n: 'Spear', ic: '🔱', dmg: 82, cd: 1.9, rng: 9.5, arc: 40, wind: 0.28, an: 'spear' },
+        { n: 'Sword', ic: '🗡️', dmg: 58, cd: 1.15, rng: 6.5, arc: 100, wind: 0.16, an: 'slash' }] },
+      { n: 'Spartan Kick', ic: '🦶', k: 'melee', dmg: 75, cd: 7, rng: 6, arc: 80, wind: 0.2, an: 'kick', fx: { st: 1.2, kb: 14 }, d: 'THIS IS SPARTA: 75 damage, a 1.2 s stun and they fly back.' },
+      { n: 'Aspis Charge', ic: '🛡️', k: 'dash', dmg: 90, dist: 14, dd: 0.3, cd: 10, wind: 0.15, an: 'charge', fx: { st: 0.6, kb: 8 }, d: 'Bronze shield first, he slams into them: 90 damage, a 0.6 s stun and they’re knocked back.' },
+      { n: 'Molon Labe', ic: '🏛️', k: 'buff', cd: 26, an: 'molon', b: { dur: 5, def: 0.3, rf: 0.5 }, d: '“Come and take them”: 70% less damage for 5 s, and half of it goes back at them.' }] },
     // 🏰 Medieval Europe
     { e: 2, r: 0, hp: 460, ab: [
       { n: 'Arming Sword', ic: '🗡️', k: 'melee', dmg: 45, cd: 1.3, rng: 6.5, arc: 100, wind: 0.2, an: 'slash' },
       { n: 'Shield Block', ic: '🛡️', k: 'buff', cd: 10, an: 'shieldup', b: { dur: 2.5, blk: 1 }, d: 'Behind the heater shield: blocks every blow for 2.5 s.' },
       { n: 'Rally', ic: '📯', k: 'buff', cd: 28, an: 'rally', b: { dur: 6, heal: 120, dmgM: 1.2 }, d: 'Heal 120 and +20% damage for 6 s.' }] },
-    { e: 2, r: 0, hp: 340, ab: [
-      { n: 'Longbow', ic: '🏹', k: 'proj', dmg: 48, cd: 1.5, spd: 105, wind: 0.3, an: 'bow', model: 'arrow' },
-      { n: 'Piercing Shot', ic: '🎯', k: 'proj', dmg: 85, cd: 11, spd: 165, wind: 0.55, an: 'draw', model: 'arrow', d: 'A full draw: a fast arrow for 85.' },
-      { n: 'Volley', ic: '🌧️', k: 'volley', dmg: 35, cnt: 5, rad: 6, delay: 1.0, cd: 30, wind: 0.35, an: 'sky', d: 'Five arrows rain down where they stand, 35 each.' }] },
+    { e: 2, r: 0, hp: 360, ab: [
+      { n: 'Longbow', ic: '🏹', k: 'proj', dmg: 52, cd: 1.4, spd: 105, wind: 0.3, an: 'bow', model: 'arrow' },
+      { n: 'Piercing Shot', ic: '🎯', k: 'proj', dmg: 95, cd: 9, spd: 165, wind: 0.55, an: 'draw', model: 'arrow', d: 'A full draw: a fast arrow for 95.' },
+      { n: 'Volley', ic: '🌧️', k: 'volley', dmg: 35, cnt: 5, rad: 6, delay: 1.0, cd: 24, wind: 0.35, an: 'sky', d: 'Five arrows rain down where they stand, 35 each.' }] },
     { e: 2, r: 1, hp: 470, ab: [
       { n: 'Dane Axe', ic: '🪓', k: 'melee', dmg: 55, cd: 1.5, rng: 6.5, arc: 110, wind: 0.25, an: 'chop' },
       { n: 'Axe Throw', ic: '🪓', k: 'proj', dmg: 60, cd: 10, spd: 70, wind: 0.3, an: 'throw', model: 'axe', fx: { sl: [0.6, 2] }, d: 'A spinning throwing axe: 60 damage and a 2 s slow.' },
       { n: 'Berserkergang', ic: '🐻', k: 'buff', cd: 32, an: 'roar', b: { dur: 6, dmgM: 1.4, ls: 0.3 }, d: 'The bear-shirt rage: +40% damage and 30% lifesteal for 6 s.' }] },
-    { e: 2, r: 2, hp: 500, def: 0.9, ab: [
-      { n: 'Longsword', ic: '⚔️', k: 'melee', dmg: 56, cd: 1.6, rng: 7, arc: 100, wind: 0.25, an: 'slash2' },
-      { n: 'Holy Smite', ic: '✝️', k: 'melee', dmg: 85, cd: 14, rng: 7, arc: 60, wind: 0.55, an: 'smite', fx: { st: 0.8 }, d: 'A great overhead blow wreathed in light: 85 damage and a 0.8 s stun.' },
-      { n: 'Deus Vult', ic: '🙏', k: 'buff', cd: 38, an: 'pray', b: { dur: 5, healP: 0.2, dmgM: 1.15 }, d: 'Heal 20% of your health and +15% damage for 5 s.' }] },
+    { e: 2, r: 2, hp: 540, def: 0.9, ab: [
+      { n: 'Longsword', ic: '⚔️', k: 'melee', dmg: 60, cd: 1.45, rng: 7, arc: 100, wind: 0.25, an: 'slash2' },
+      { n: 'Holy Smite', ic: '✝️', k: 'melee', dmg: 100, cd: 12, rng: 7, arc: 60, wind: 0.55, an: 'smite', fx: { st: 1 }, d: 'A great overhead blow wreathed in light: 100 damage and a 1 s stun.' },
+      { n: 'Deus Vult', ic: '🙏', k: 'buff', cd: 32, an: 'pray', b: { dur: 5, healP: 0.25, dmgM: 1.2 }, d: 'Heal 25% of your health and +20% damage for 5 s.' }] },
     { e: 2, r: 3, hp: 700, def: 0.72, spd: 0.78, ab: [
       { n: 'Sword Modes', ic: '⚔️', k: 'melee', modes: [
         { n: 'Overhead', ic: '⬇️', dmg: 115, cd: 2.4, rng: 8, arc: 60, wind: 0.5, an: 'overhead' },
@@ -362,10 +363,10 @@
       { n: 'Parry', ic: '⚔️', k: 'buff', cd: 12, an: 'parry', b: { dur: 3, blk: 1, parry: 1 }, d: 'The axe haft up for 3 s: every blow is blocked — and whoever lands one is stunned for 2 s and takes 1.5× damage.' },
       { n: 'Chain Drag', ic: '⛓️', k: 'proj', dmg: 40, cd: 15, spd: 75, wind: 0.3, an: 'throw', model: 'chain', fx: { pl: 1, st: 0.5 }, d: 'A hooked chain thrown, and they’re hauled to the block: 40 damage, dragged to him and stunned for 0.5 s — right where Behead lands.' }] },
     // 🌙 the Ottoman Empire (no cavalry)
-    { e: 4, r: 0, hp: 430, ro: 'Skirmisher', ab: [
-      { n: 'Javelin Jab', ic: '🔱', k: 'melee', dmg: 40, cd: 1.2, rng: 7.5, arc: 50, wind: 0.16, an: 'jab' },
-      { n: 'Javelin Throw', ic: '🎯', k: 'proj', dmg: 58, cd: 8, spd: 80, wind: 0.3, an: 'throw', model: 'javelin', d: 'Throw the javelin: 58 damage.' },
-      { n: 'Kalkan Wall', ic: '🛡️', k: 'buff', cd: 26, an: 'shieldup', b: { dur: 2.5, blk: 1, dmgM: 1.3 }, d: 'Brace behind the round kalkan: blocks every blow for 2.5 s, then +30% damage while it lasts.' }] },
+    { e: 4, r: 0, hp: 450, ro: 'Skirmisher', ab: [
+      { n: 'Javelin Jab', ic: '🔱', k: 'melee', dmg: 46, cd: 1.1, rng: 7.5, arc: 50, wind: 0.16, an: 'jab' },
+      { n: 'Javelin Throw', ic: '🎯', k: 'proj', dmg: 66, cd: 7, spd: 80, wind: 0.3, an: 'throw', model: 'javelin', d: 'Throw the javelin: 66 damage.' },
+      { n: 'Kalkan Wall', ic: '🛡️', k: 'buff', cd: 16, an: 'shieldup', b: { dur: 2.5, blk: 1, dmgM: 1.3 }, d: 'Brace behind the round kalkan: blocks every blow for 2.5 s, then +30% damage while it lasts.' }] },
     { e: 4, r: 0, hp: 340, spd: 1.05, ro: 'Ranger', ab: [
       { n: 'Recurve Shot', ic: '🏹', k: 'proj', dmg: 44, cd: 1.25, spd: 110, wind: 0.25, an: 'bow', model: 'arrow' },
       { n: 'Thumb-Ring Draw', ic: '💍', k: 'proj', dmg: 30, cnt: 3, gap: 0.16, cd: 9, spd: 125, wind: 0.2, an: 'bow', model: 'arrow', d: 'Three arrows loosed fast with the thumb ring, 30 each.' },
@@ -378,15 +379,15 @@
       { n: 'Teber Sweep', ic: '🌙', k: 'melee', dmg: 58, cd: 1.5, rng: 8.5, arc: 130, wind: 0.25, an: 'naginata' },
       { n: 'Crescent Hook', ic: '🪝', k: 'melee', dmg: 45, cd: 10, rng: 8.5, arc: 60, wind: 0.22, an: 'spear2', fx: { sl: [0.5, 2.5], st: 0.4 }, d: 'Hook their legs with the crescent: 45 damage, a stagger and a 2.5 s slow.' },
       { n: 'Sultan’s Guard', ic: '👳', k: 'buff', cd: 32, an: 'fortress', b: { dur: 5, def: 0.55, rf: 0.3, imm: 1 }, d: 'Stand as the Sultan’s own guard: 45% less damage for 5 s, 30% of it back at them, and nothing stops you.' }] },
-    { e: 4, r: 3, hp: 560, ro: 'Damage dealer', ab: [
-      { n: 'Yatagan Cut', ic: '🗡️', k: 'melee', dmg: 66, cd: 1.3, rng: 7, arc: 100, wind: 0.18, an: 'slash' },
-      { n: 'Tüfek', ic: '🔫', k: 'proj', dmg: 125, cd: 12, spd: 230, wind: 0.9, an: 'gun', model: 'ball', d: 'Shoulder the matchlock for 0.9 s, then fire: 125 damage.' },
-      { n: 'Mehter March', ic: '🥁', k: 'buff', cd: 32, an: 'rally', b: { dur: 7, dmgM: 1.35, spdM: 1.2, hps: 15 }, d: 'The war band strikes up: +35% damage, +20% speed and heal 15 a second for 7 s.' }] },
+    { e: 4, r: 3, hp: 600, ro: 'Damage dealer', ab: [
+      { n: 'Yatagan Cut', ic: '🗡️', k: 'melee', dmg: 74, cd: 1.2, rng: 7, arc: 100, wind: 0.18, an: 'slash' },
+      { n: 'Tüfek', ic: '🔫', k: 'proj', dmg: 150, cd: 10, spd: 230, wind: 0.75, an: 'gun', model: 'ball', d: 'Shoulder the matchlock for 0.75 s, then fire: 150 damage.' },
+      { n: 'Mehter March', ic: '🥁', k: 'buff', cd: 26, an: 'rally', b: { dur: 7, dmgM: 1.35, spdM: 1.2, hps: 15 }, d: 'The war band strikes up: +35% damage, +20% speed and heal 15 a second for 7 s.' }] },
     // 🏹 the Mongols (no cavalry)
-    { e: 5, r: 0, hp: 420, ro: 'Bruiser', ab: [
-      { n: 'Spear Thrust', ic: '🔱', k: 'melee', dmg: 42, cd: 1.25, rng: 9, arc: 35, wind: 0.2, an: 'spear2' },
-      { n: 'Lunge', ic: '💨', k: 'dash', dmg: 60, dist: 10, dd: 0.25, cd: 9, wind: 0.15, an: 'charge', d: 'Lunge forward spear-first: 60 damage.' },
-      { n: 'Arban Discipline', ic: '🎖️', k: 'buff', cd: 28, an: 'rally', b: { dur: 6, dmgM: 1.25, def: 0.8 }, d: 'Ten men, one will: +25% damage and 20% less damage taken for 6 s.' }] },
+    { e: 5, r: 0, hp: 440, ro: 'Bruiser', ab: [
+      { n: 'Spear Thrust', ic: '🔱', k: 'melee', dmg: 47, cd: 1.15, rng: 9, arc: 35, wind: 0.2, an: 'spear2' },
+      { n: 'Lunge', ic: '💨', k: 'dash', dmg: 66, dist: 10, dd: 0.25, cd: 8, wind: 0.15, an: 'charge', d: 'Lunge forward spear-first: 66 damage.' },
+      { n: 'Arban Discipline', ic: '🎖️', k: 'buff', cd: 20, an: 'rally', b: { dur: 6, dmgM: 1.25, def: 0.8 }, d: 'Ten men, one will: +25% damage and 20% less damage taken for 6 s.' }] },
     { e: 5, r: 0, hp: 340, spd: 1.12, ro: 'Ranger', ab: [
       { n: 'Composite Shot', ic: '🏹', k: 'proj', dmg: 42, cd: 1.1, spd: 115, wind: 0.24, an: 'bow', model: 'arrow' },
       { n: 'Parthian Shot', ic: '↩️', k: 'dash', back: true, dist: 10, dd: 0.28, cd: 10, wind: 0.08, an: 'hop', then: { k: 'proj', dmg: 50, cnt: 2, spread: 10, spd: 115, model: 'arrow' }, d: 'Spring back out of reach and loose two arrows as you land, 50 each.' },
@@ -497,12 +498,12 @@
       { n: 'Rally the Line', ic: '🎖️', k: 'buff', cd: 22, an: 'rally', b: { dur: 6, dmgM: 1.25, def: 0.8, heal: 80 }, d: '“Steady, boys!”: heal 80, +25% damage and 20% less damage taken for 6 s.' },
       { n: 'Artillery!', ic: '💣', k: 'volley', dmg: 60, cnt: 4, rad: 7, delay: 1.2, cd: 26, wind: 0.4, an: 'sky', model: 'cannon', d: 'His sword points and the guns answer: four cannonballs fall where they stand, 60 each.' }] },
     // 🔔 America's myth: the Headless Horseman of Sleepy Hollow — a Hessian trooper's ghost (1790), a Spirit with a quest
-    { e: 6, r: 4, hp: 480, spd: 1.3, def: 0.92, nc: 1, ro: 'Spirit', how: 'Accept The Legend of Sleepy Hollow (🏆 Achievements → 📜 Quests), then win 18 duels and deal 20,000 damage', pas: [['🎃', 'Headless', 'Only half of him is here — the half without a head: quick on his feet, and he takes 8% less damage.'], ['😱', 'Terror', 'His laugh sends them running: for 2.5 s they flee from him and can’t fight back.']], ab: [
+    { e: 6, r: 4, hp: 530, spd: 1.3, def: 0.92, nc: 1, ro: 'Spirit', how: 'Accept The Legend of Sleepy Hollow (🏆 Achievements → 📜 Quests), then win 18 duels and deal 20,000 damage', pas: [['🎃', 'Headless', 'Only half of him is here — the half without a head: quick on his feet, and he takes 8% less damage.'], ['😱', 'Terror', 'His laugh sends them running: for 2.5 s they flee from him and can’t fight back.']], ab: [
       { n: 'Hessian Sabre', ic: '🗡️', k: 'melee', dmg: 66, cd: 0.8, rng: 7, arc: 110, wind: 0.12, an: 'slash' },
-      { n: 'Jack-o’-Lantern', ic: '🎃', k: 'proj', dmg: 85, cd: 7, spd: 55, wind: 0.3, an: 'lob', model: 'pumpkin', fx: { bu: [40, 4] }, d: 'He hurls the flaming pumpkin he carries for a head: 85 damage, and it burns for 40 more.' },
+      { n: 'Jack-o’-Lantern', ic: '🎃', k: 'proj', dmg: 100, cd: 6, spd: 55, wind: 0.3, an: 'lob', model: 'pumpkin', fx: { bu: [40, 4] }, d: 'He hurls the flaming pumpkin he carries for a head: 100 damage, and it burns for 40 more.' },
       { n: 'Phantom Gallop', ic: '🐎', k: 'dash', dmg: 70, dist: 20, dd: 0.35, cd: 14, wind: 0.2, an: 'charge', fx: { kb: 12, st: 0.6 }, d: 'The ghost of his horse carries him through them: 70 damage, a 0.6 s stun, and they’re thrown back.' },
       { n: 'Hollow Laugh', ic: '😱', k: 'proj', dmg: 30, cd: 22, spd: 70, wind: 0.25, an: 'roar', model: 'laugh', fx: { fr: 2.5 }, d: 'His laugh rings across the sand: 30 damage and Terror for 2.5 s — they flee from him and can’t fight back.' },
-      { n: 'Night Ride', ic: '🌑', k: 'buff', cd: 24, an: 'rally', b: { dur: 5, spdM: 1.5, dmgM: 1.3, imm: 1 }, d: 'The headless rider of the night: for 5 s he’s 50% faster and hits 30% harder, and nothing slows, roots or stuns him.' }] },
+      { n: 'Night Ride', ic: '🌑', k: 'buff', cd: 20, an: 'rally', b: { dur: 5, spdM: 1.5, dmgM: 1.3, imm: 1 }, d: 'The headless rider of the night: for 5 s he’s 50% faster and hits 30% harder, and nothing slows, roots or stuns him.' }] },
     // 🐍 the Aztec Empire: a crate of five, from the macehualli of the city's levy to the eagle warrior
     { e: 7, r: 0, hp: 400, ro: 'Bruiser', ab: [
       { n: 'Macuahuitl', ic: '🗡️', k: 'melee', dmg: 38, cd: 1.0, rng: 6.5, arc: 110, wind: 0.18, an: 'slash', fx: { bl: [24, 3], blc: 0.3 } },
@@ -530,8 +531,8 @@
       { n: 'Rattling Chain', ic: '⛓️', k: 'proj', dmg: 55, cd: 9, spd: 85, wind: 0.3, an: 'throw', model: 'chain', fx: { pl: 1, st: 0.5 }, d: 'He flings his chain and hooks them: 55 damage, and they’re dragged in to him and stunned for 0.5 s.' },
       { n: 'Into the Basket', ic: '🧺', k: 'melee', dmg: 95, cd: 15, rng: 6.5, arc: 90, wind: 0.3, an: 'overhead', fx: { st: 1.5, bl: [40, 3] }, d: 'He stuffs them into the basket on his back: 95 damage, a 1.5 s stun, and 40 more as the switches cut.' },
       { n: 'Krampusnacht', ic: '🔔', k: 'buff', cd: 28, an: 'roar', b: { dur: 8, dmgM: 1.35, spdM: 1.25, ls: 0.2 }, d: 'Krampus Night — every bell rings: +35% damage, 25% faster and 20% lifesteal for 8 s.' }] },
-    { e: 1, r: 4, hp: 560, spd: 1.12, def: 0.9, nc: 1, lim: [6000], ro: 'Ranger', pas: [['🐍', 'Serpent Born', 'Her arrows are dipped in her own venom: every one of them poisons.'], ['🗿', 'The Gorgon’s Gaze', 'Meet her eyes and you turn to stone — frozen where you stand, unable to move, fight or block.']], ab: [
-      { n: 'Venom Arrow', ic: '🏹', k: 'proj', dmg: 62, cd: 1.05, spd: 115, wind: 0.25, an: 'bow', model: 'arrow', fx: { bl: [28, 3] } },
+    { e: 1, r: 4, hp: 600, spd: 1.12, def: 0.9, nc: 1, lim: [6000], ro: 'Ranger', pas: [['🐍', 'Serpent Born', 'Her arrows are dipped in her own venom: every one of them poisons.'], ['🗿', 'The Gorgon’s Gaze', 'Meet her eyes and you turn to stone — frozen where you stand, unable to move, fight or block.']], ab: [
+      { n: 'Venom Arrow', ic: '🏹', k: 'proj', dmg: 70, cd: 1.0, spd: 115, wind: 0.25, an: 'bow', model: 'arrow', fx: { bl: [28, 3] } },
       { n: 'Serpent Volley', ic: '🐍', k: 'proj', dmg: 38, cnt: 3, spread: 12, cd: 8, spd: 105, wind: 0.3, an: 'bow', model: 'arrow', fx: { bl: [30, 3] }, d: 'Three venomed arrows at once, 38 each, and they poison for 30 more.' },
       { n: 'Coils', ic: '🌀', k: 'dash', dmg: 75, dist: 14, dd: 0.3, cd: 12, wind: 0.15, an: 'charge', fx: { rt: 1.4 }, d: 'She slithers through them and her coils close round them: 75 damage, and they’re held fast for 1.4 s.' },
       { n: 'Petrifying Gaze', ic: '🗿', k: 'proj', dmg: 50, cd: 18, spd: 90, wind: 0.45, an: 'roar', model: 'gaze', fx: { pt: 2.5 }, d: 'She lifts her eyes to theirs: 50 damage, and they turn to stone for 2.5 s — they can’t move, act or block.' },
@@ -549,8 +550,8 @@
       { n: 'Vitis', ic: '🌿', k: 'melee', dmg: 40, cd: 8, rng: 6, arc: 90, wind: 0.15, an: 'bash', fx: { st: 1.0 }, d: 'A crack of the vine stick that keeps the line in order: 40 damage and a 1 s stun.' },
       { n: 'Hold the Line!', ic: '🦅', k: 'buff', cd: 22, an: 'rally', b: { dur: 7, dmgM: 1.2, def: 0.7, heal: 60 }, d: '“Hold the line!”: heal 60, +20% damage and 30% less damage taken for 7 s.' }] },
     // 🌑 ★★★★★★ the Exotics (v129), above Mythic: creatures of American legend
-    { e: 6, r: 5, hp: 680, spd: 1.1, def: 0.86, nc: 1, skin: 1, ro: 'All-rounder', how: 'Complete the Skinwalker’s quest (🏆 Achievements → 🌑 Exotic)', pas: [['🎭', 'Shapeshifter', 'It wears whatever it steals: a mimicked ability does ×1.5 its damage and heals, and cools down twice as fast.'], ['🌑', 'Skin-walker', 'An all-rounder that fights however its enemy fights — up close, at range, behind them.']], ab: [
-      { n: 'Rend', ic: '🐾', k: 'melee', dmg: 100, cd: 1.2, rng: 7, arc: 115, wind: 0.16, an: 'slash' },
+    { e: 6, r: 5, hp: 740, spd: 1.1, def: 0.86, nc: 1, skin: 1, ro: 'All-rounder', how: 'Complete the Skinwalker’s quest (🏆 Achievements → 🌑 Exotic)', pas: [['🎭', 'Shapeshifter', 'It wears whatever it steals: a mimicked ability does ×1.5 its damage and heals, and cools down twice as fast.'], ['🌑', 'Skin-walker', 'An all-rounder that fights however its enemy fights — up close, at range, behind them.']], ab: [
+      { n: 'Rend', ic: '🐾', k: 'melee', dmg: 118, cd: 1.1, rng: 7, arc: 115, wind: 0.16, an: 'slash' },
       { n: 'Mimic', ic: '🎭', k: 'mimic', cd: 20, dur: 10, est: 950, d: 'Pick one of your enemy’s abilities (1–4) and use it as your own for 10 s — ×1.5 its damage and heals, half its cooldown. When the 10 s are up, Mimic’s cooldown starts.' },
       { n: 'Screech', ic: '😱', k: 'melee', dmg: 50, cd: 30, rng: 15, arc: 360, wind: 0.3, an: 'roar', scream: 1, fx: { sl: [0.55, 4], fog: 4, vu: 4 }, d: 'An unearthly scream all round it: 40 damage, and for 4 s they’re slowed 45%, their sight fogs over and they take ×1.5 damage.' },
       { n: 'Mimic Form', ic: '🧬', k: 'mimic2', cd: 35, dur: 30, d: 'Copy your enemy’s health, block or passives for 30 s (pick 1–3). Health: their max health, at the share of it they have left. Block: their shield and armour. Passives: their speed and every passive they have. Then the cooldown starts.' },
