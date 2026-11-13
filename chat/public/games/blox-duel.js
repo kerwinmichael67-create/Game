@@ -1532,6 +1532,71 @@
     if (P0.up) a.body.position.y += (P0.up - a.body.position.y) * k;
   }
   const mixP = (A, B, k) => { const o = {}; for (const n of new Set(Object.keys(A).concat(Object.keys(B)))) { const x = A[n], y = B[n]; if (n === 'up') { o.up = lerp(x || 0, y || 0, k); continue; } const p = x || [0, 0, 0], q = y || x; o[n] = [lerp(p[0], q[0], k), lerp(p[1] || 0, q[1] || 0, k), lerp(p[2] || 0, q[2] || 0, k)]; if (!x) o[n] = q; } return o; };
+  /* wind-ups (v136): a blow's wind-up isn't a pose it snaps to and holds any more. It's drawn into over most of the
+     wind-up, then coils further back — past the wind-up pose, away from where the blow will go — and a heavy one (a
+     longer wind-up) sinks into its knees and trembles with the effort as it holds; then it lets go fast, a touch past
+     the blow, and settles */
+  const backOut = (x) => 1 + 2.4 * (x - 1) ** 3 + 1.4 * (x - 1) ** 2;
+  function coilP(W, S, strike, ramp, t) {
+    const c = ease(clamp((t - ramp * 0.8) / Math.max(0.03, strike - ramp * 0.8), 0, 1)), hv = clamp((strike - 0.2) / 0.5, 0, 1), d = c * (0.1 + 0.12 * hv), h = c * hv, o = {};
+    for (const n in W) { const x = W[n]; if (n === 'up') { o.up = x; continue; } if (!Array.isArray(x)) { o[n] = x; continue; } const y = S[n] || x; o[n] = x.map((v, i) => v + (v - (y[i] == null ? v : y[i])) * d); }
+    if (h > 0.01) { o.up = (o.up || 0) - 0.1 * h; for (const kn of ['kL', 'kR']) o[kn] = [(o[kn] ? o[kn][0] : 0) - 0.3 * h]; const q = Math.sin(t * 57) * 0.03 * h; for (const an of ['aR', 'aL']) if (o[an]) o[an][0] += q; }
+    for (const an of ['aR', 'aL']) if (o[an]) o[an][0] = Math.min(3.45, o[an][0]);
+    return o;
+  }
+  /* and you can see them coming: a glow gathers on the weapon (bigger, in the fighter's colour, for a heavy blow, with
+     sparks drawn into it and dust as they plant their feet), a glint flashes off it just before it lands, and over an
+     opponent winding up a big hit, a red ❗. The swish of the blow comes as it lands now; the wind-up has its own */
+  const WIND_TEX = {};
+  function windTex(k) {
+    if (WIND_TEX[k]) return WIND_TEX[k];
+    const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d');
+    if (k === 'star') { const r = g.createRadialGradient(64, 64, 0, 64, 64, 20); r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = r; g.fillRect(0, 0, 128, 128);
+      for (const [rx, ry] of [[62, 4.5], [4.5, 62], [26, 2.5], [2.5, 26]]) { g.save(); g.translate(64, 64); if (rx === 26 || ry === 26) g.rotate(Math.PI / 4); const q = g.createRadialGradient(0, 0, 0, 0, 0, Math.max(rx, ry)); q.addColorStop(0, 'rgba(255,255,255,1)'); q.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = q; g.beginPath(); g.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2); g.fill(); g.restore(); } }
+    else { const r = g.createRadialGradient(64, 64, 8, 64, 64, 62); r.addColorStop(0, 'rgba(248,113,113,1)'); r.addColorStop(0.55, 'rgba(220,38,38,0.85)'); r.addColorStop(1, 'rgba(220,38,38,0)'); g.fillStyle = r; g.fillRect(0, 0, 128, 128);
+      g.fillStyle = '#fff'; g.font = '900 86px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('!', 64, 70); }
+    return (WIND_TEX[k] = new THREE.CanvasTexture(c));
+  }
+  const WIND_SWING = (ab) => (ab.k === 'melee' || ab.k === 'multi' || ab.k === 'combo' || ab.k === 'stomp' || ab.k === 'leap' || (ab.k === 'dash' && !ab.back)) && (ab.wind || 0) >= 0.18;
+  const WIND_NOGLOW = new Set(['kick', 'bash', 'stomp', 'bplant', 'net', 'lob', 'push', 'charge', 'rush', 'hop', 'leap', 'pour', 'herb', 'fan', 'sky']);
+  const _wt = new THREE.Vector3(), _wd = new THREE.Vector3(), _wg = new THREE.Vector3();
+  function windTip(F, A) { // (where the glow goes: the weapon's tip, the gun's muzzle, or the hand)
+    const a = F.a, d = a.dg; if (A.an === 'gun' && a.duGun && a.duGun.userData.tip) return a.duGun.userData.tip.getWorldPosition(_wt);
+    if (!d) return null; const w = d.R && d.R[Math.min(F.mode || 0, d.R.length - 1)], o = w && w.visible && w.userData.tip ? w.userData.tip : d.hR;
+    return o ? o.getWorldPosition(_wt) : null;
+  }
+  function windSprite(a, key, tex, add) { let m = a[key]; if (!m) { m = a[key] = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, color: '#fff', transparent: true, depthWrite: false, depthTest: !add, blending: add ? THREE.AdditiveBlending : THREE.NormalBlending, opacity: 0 })); m.renderOrder = 6; a.g.add(m); } return m; }
+  function windFx(F, dt) {
+    const a = F.a; if (!a || a.dead) return; const A = F.act, ab = A && A.ab, M = DU.M;
+    const strike = A ? (A.strikeAt != null ? A.strikeAt : ab.wind || 0) : 0, winding = !!A && ab.k !== 'buff' && ab.k !== 'pour' && A.t < strike, sc = a.g.scale.x || 1;
+    const p = winding ? clamp(A.t / strike, 0, 1) : 0, hv = clamp((strike - 0.2) / 0.6, 0, 1), tip = A && (winding || a.duGl) ? windTip(F, A) : null;
+    // the sounds: the wind-up's own, the swish as it lands
+    if (A && !A.wS) { A.wS = 1; if (WIND_SWING(ab)) { sfx3('whoosh', F.x, F.z, 55, { vol: 0.28, pitch: 0.55 }); if (strike >= 0.45) sfx3('shield', F.x, F.z, 60, { vol: 0.3, pitch: 0.7 }); } }
+    if (A && !A.wR && A.t >= strike && WIND_SWING(ab)) { A.wR = 1; sfx3('swing', F.x, F.z, 60, { vol: 0.6 }); }
+    // the glow gathering on the weapon
+    const glow = winding && strike >= 0.25 && !WIND_NOGLOW.has(A.an) && FXQ.lite < 2 && tip;
+    if (glow) { const G = windSprite(a, 'duWG', glowTex(), true), q = p * p, hR = A.an !== 'gun' && a.dg && a.dg.hR;
+      if (hR) hR.getWorldPosition(_wg).lerp(tip, 0.4); else _wg.copy(tip); // (on the weapon, near the hands: a blade held back over the shoulder hangs low)
+      a.g.worldToLocal(G.position.copy(_wg)); G.visible = true;
+      G.material.color.set(A.an === 'gun' ? '#fb923c' : hv > 0.25 ? COL[F.c] : '#ffffff'); G.material.opacity = Math.min(1, (0.45 + 0.6 * hv) * q) * (0.85 + 0.15 * Math.sin(A.t * 40));
+      G.scale.setScalar((1.1 + 2.4 * hv) * (0.35 + 0.65 * q) / sc);
+      if (strike >= 0.4 && !FXQ.lite && Math.random() < dt * 34 * hv * (0.3 + p)) { // (sparks drawn into it)
+        _wd.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize(); const L = 1.4 + 0.8 * hv, life = 0.4;
+        kitSpark(a, scene, tip.x + _wd.x * L, tip.y + _wd.y * L, tip.z + _wd.z * L, hv > 0.25 ? COL[F.c] : '#ffffff', { v: [-_wd.x * L / life, -_wd.y * L / life, -_wd.z * L / life], life, s: 0.24, j: 0 }); }
+    } else if (a.duWG) a.duWG.visible = false;
+    // planting the feet for a heavy one
+    if (winding && strike >= 0.4 && !A.wDust && A.t > 0.06) { A.wDust = 1; if (!FXQ.lite) smokeAt(F.x, (F.y || 0) + 0.3, F.z, 6, '#c8a97e', 1.2 * sc); }
+    // the glint, just before it lands
+    if (winding && strike >= 0.3 && !A.wG && A.t >= strike - 0.13 && FXQ.lite < 2 && tip && !WIND_NOGLOW.has(A.an)) { A.wG = 1; const S = windSprite(a, 'duGl', windTex('star'), false); S.userData.t0 = now(); S.visible = true; sfx3('block', F.x, F.z, 55, { vol: 0.22, pitch: 1.7 }); }
+    if (a.duGl && a.duGl.visible) { const age = now() - a.duGl.userData.t0;
+      if (age > 0.24 || !tip) a.duGl.visible = false;
+      else { a.g.worldToLocal(a.duGl.position.copy(tip)); const k = Math.sin(age / 0.24 * Math.PI); a.duGl.scale.setScalar((1.6 + 1.8 * hv) * k / sc); a.duGl.material.opacity = Math.min(1, k * 1.4); a.duGl.material.rotation = age * 5; } }
+    // ❗ over an opponent winding up a big one
+    const bang = winding && strike >= 0.45 && M && F !== M.me && F === foeOf(M.me) && !isBoss(F);
+    if (bang) { const B = windSprite(a, 'duBang', windTex('bang'), false), pul = 1 + 0.12 * Math.sin(A.t * 22);
+      B.visible = true; B.position.set(0, 7.9, 0); B.scale.setScalar(1.9 * pul * (0.6 + 0.4 * ease(p * 3))); B.material.opacity = Math.min(1, p * 4); }
+    else if (a.duBang) a.duBang.visible = false;
+  }
   function poseAct(F, dt) {
     const A = F.act, a = F.a; if (!a || a.dead) return; a.duActing = !!(A && A.an); a.duAn = A ? A.an : null; a.duT = A ? A.t : 0; a.duW = A ? A.ab.wind || 0 : 0; // (a pack that holds its weapon itself — the giant's — hands it to the blow)
     if (a.dg && !a.dg.own) { if (!A || !A.an || !(AN[A.an] && (AN[A.an].wr || (Array.isArray(AN[A.an]) && (AN[A.an][0].wr || AN[A.an][1].wr))))) a.dg.hR.rotation.x *= Math.max(0, 1 - dt * 10); } // (the wrist back to its guard)
@@ -1548,12 +1613,13 @@
     if (!Array.isArray(P0)) { target = P0; k = A.ab.k === 'buff' ? ease(t / 0.25) * (1 - ease((t - (dur - 0.25)) / 0.25)) : 1; } // (a buff's gesture, held)
     else if (Array.isArray(P0[0])) { // several blows: a pair for each
       const n = ab.hits.length, h = Math.min(n - 1, Math.max(0, Math.floor((t - w0 + 0.12) / ab.gap))), th = w0 + h * ab.gap, pr = P0[h % P0.length];
-      const sw = ease((t - th + 0.04) / 0.1); target = t < w0 ? pr[0] : mixP(pr[0], pr[1], sw); if (t > th + 0.1 && h < n - 1) target = mixP(pr[1], P0[(h + 1) % P0.length][0], ease((t - th - 0.1) / Math.max(0.05, ab.gap - 0.12)));
+      const sw = ease((t - th + 0.04) / 0.1); target = t < w0 ? coilP(pr[0], pr[1], w0, w0 * 0.6, t) : mixP(h ? pr[0] : coilP(pr[0], pr[1], w0, w0 * 0.6, w0), pr[1], sw); if (t > th + 0.1 && h < n - 1) target = mixP(pr[1], P0[(h + 1) % P0.length][0], ease((t - th - 0.1) / Math.max(0.05, ab.gap - 0.12)));
       k = t < w0 ? ease(t / w0) : 1 - ease((t - (w0 + (n - 1) * ab.gap + 0.14)) / 0.2);
     } else {
-      const strike = A.strikeAt != null ? A.strikeAt : w0, sw = ease((t - strike + 0.04) / 0.12);
-      target = t < strike ? P0[0] : mixP(P0[0], P0[1], sw); k = t < strike ? ease(t / Math.min(strike, 0.2)) : 1 - ease((t - (strike + 0.16)) / Math.max(0.1, dur - strike - 0.16));
-      if (A.an === 'leap') { const air = clamp((t - w0) / 0.62, 0, 1); target = t < w0 ? P0[0] : air < 1 ? { aR: [3.0, 0, 0.2], eR: [0.4], aL: [2.6, 0, -0.3], eL: [0.4], kL: [-1.4], kR: [-0.8], lL: [1.0], bd: [0.1, 0, 0] } : P0[1]; k = t < w0 ? ease(t / w0) : 1 - ease((t - w0 - 0.7) / 0.25); }
+      const strike = A.strikeAt != null ? A.strikeAt : w0, ramp = clamp(strike * 0.62, 0.07, 0.42);
+      if (t < strike) { target = coilP(P0[0], P0[1], strike, ramp, t); k = ease(t / ramp); } // (drawn back, further and further, until it goes)
+      else { target = mixP(coilP(P0[0], P0[1], strike, ramp, strike), P0[1], backOut(clamp((t - strike + 0.04) / 0.13, 0, 1))); k = 1 - ease((t - (strike + 0.16)) / Math.max(0.1, dur - strike - 0.16)); } // (and through it, a touch past)
+      if (A.an === 'leap') { const air = clamp((t - w0) / 0.62, 0, 1); target = t < w0 ? target : air < 1 ? { aR: [3.0, 0, 0.2], eR: [0.4], aL: [2.6, 0, -0.3], eL: [0.4], kL: [-1.4], kR: [-0.8], lL: [1.0], bd: [0.1, 0, 0] } : P0[1]; k = t < w0 ? ease(t / w0) : 1 - ease((t - w0 - 0.7) / 0.25); }
       if (A.an === 'pour' && t > w0) { target = mixP(P0[0], P0[1], 0.5 + 0.5 * Math.sin((t - w0) * Math.PI * 2 / (ab.rate * 3) - 1.2)); k = 1; } // (🪣 the bucket swung and tossed, again and again)
       if ((A.an === 'charge' || A.an === 'rush' || A.an === 'push') && t > w0 && t < w0 + ab.dd) { const s = Math.sin(t * 26); target = Object.assign({}, target, { lL: [0.7 * s], lR: [-0.7 * s], kL: [-0.4 - 0.4 * Math.max(0, -s)], kR: [-0.4 - 0.4 * Math.max(0, s)] }); }
     }
@@ -1655,7 +1721,7 @@
     else if (isBoss(F) && F.C.wenBoss) { if (F.tele) scene.remove(F.tele); F.tele = ab.k === 'melee' ? teleArc(F, (ab.rng || 6) + 1.2 + bigR(F), (ab.arc || 90) + 34) : ab.k === 'dash' ? teleArc(F, ab.dist + bigR(F), 34) : ab.k === 'leap' && T ? teleFill(telegraph(T.x, T.z, ab.rad)) : null;
       DU.say(F, { Claw: '⚠️ ITS CLAWS — GET OUT OF REACH', Maul: '⚠️ IT MAULS — CRUSH, FIRE, BLOOD AND BLINDNESS', 'Self Cannibal': '🍖 IT FEEDS ON ITSELF — STRONGER, FASTER', 'Antler Gore': '⚠️ ANTLERS DOWN — SIDESTEP THE CHARGE', 'Endless Hunger': '⚠️ IT LEAPS TO FEED — MOVE!' }[ab.n] || ab.n.toUpperCase()); sfx3('horn', F.x, F.z, 90, { vol: 0.45 }); } // (❄️ the Wendigo's own warnings)
     else if (isBoss(F)) { if (F.tele) scene.remove(F.tele); F.tele = ab.k === 'melee' ? teleArc(F, (ab.rng || 6) + 1.2 + bigR(F), (ab.arc || 90) + 34) : teleFill(telegraph(F.x, F.z, 9)); DU.say(F, ab.k === 'melee' ? '⚠️ THE GREAT SCIMITAR — GET BEHIND IT' : '⚠️ EARTHSHAKER — JUMP!'); if (ab.k === 'melee') sfx3('horn', F.x, F.z, 90, { vol: 0.5 }); }
-    sfx3(ab.k === 'buff' ? 'magic' : ab.k === 'proj' || ab.k === 'volley' ? 'whoosh' : 'swing', F.x, F.z, 60, { vol: 0.6 });
+    if (!WIND_SWING(ab)) sfx3(ab.k === 'buff' ? 'magic' : ab.k === 'proj' || ab.k === 'volley' ? 'whoosh' : 'swing', F.x, F.z, 60, { vol: 0.6 }); // (one with a real wind-up: see windFx)
     if (ab.k === 'buff' && ab.b) { burstAt(F.x, F.y + 3.5, F.z, BUFFLOOK[ab.an] ? BUFFLOOK[ab.an][0] : COL[F.c], 7, 0.5); ringAt(F.x, F.z, BUFFLOOK[ab.an] ? BUFFLOOK[ab.an][0] : COL[F.c], 8); if (ab.an === 'smoke') smokeAt(F.x, F.y + 1, F.z, 16, '#6b7280', 3); if (ab.an === 'pray') beamAt(F.x, F.z, '#fef3c7', 40, 1.2, 2.2); }
     if (ab.an === 'smite') beamAt(F.x, F.z, '#fde68a', 14, 0.6, 0.8);
     if (ab.an === 'aquila') { beamAt(F.x, F.z, '#fde68a', 34, 1.1, 2.2); ringAt(F.x, F.z, '#fbbf24', 12, 0.6); }
@@ -2654,7 +2720,7 @@
       for (const F of [M.me, M.foe, ...M.allies]) { const a = F.a; if (!a || a.dead) continue;
         const sc = F.C.big || 1; if (Math.abs(a.g.scale.x - sc) > 1e-3) a.g.scale.setScalar(sc); // (the giants, their size)
         if (F.kind === 'me' && !P.dead) { const r = 1.6 * sc, q = (P.x / (A0 - r)) ** 2 + (P.z / (B0 - r)) ** 2; if (q > 1) { const k = 1 / Math.sqrt(q); P.x *= k; P.z *= k; a.g.position.x = P.x; a.g.position.z = P.z; } } // (inside the arena, after the move too)
-        poseAct(F, dt); trailTick(F, !!(F.act && F.act.trail)); buffLook(F); statusLook(F, dt);
+        poseAct(F, dt); windFx(F, dt); trailTick(F, !!(F.act && F.act.trail)); buffLook(F); statusLook(F, dt);
         if (F.lift) a.g.position.y += F.lift;
         if (F.blk && !F.act) setPose(F, F.C.ab[1].an === 'bash' || [0, 3, 4, 5, 8, 9, 10, 12, 13, 22, 30].includes(F.c) ? AN.shieldup : { aR: [1.3, 0.3, -0.5], eR: [1.3], aL: [1.2, -0.3, 0.6], eL: [1.3], bd: [-0.1, 0, 0] }, Math.min(1, dt * 14)); // (a block: the shield up, or the blade across)
         if (F.kind === 'me') { const inv = bval(F, 'inv') > 0; if (inv !== !!a.duInv) { a.duInv = inv; a.g.traverse((o) => { const m = o.material; if (!m || o.isSprite || Array.isArray(m)) return; if (!m.userData.op0) m.userData.op0 = [m.transparent, m.opacity]; m.transparent = inv || m.userData.op0[0]; m.opacity = inv ? 0.28 : m.userData.op0[1]; }); } } // (in the smoke: half there)
