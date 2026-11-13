@@ -15,6 +15,17 @@ Claim a plot, buy droppers that spawn cash cubes onto a conveyor, run them throu
 - **Touch controls** (virtual joystick + jump button) for phones and tablets.
 - Zero build step. Plain ES modules; Three.js is vendored.
 
+## Claude artifact edition
+
+`artifact/blox-tycoon.html` is a second, bigger version of the game built as a single page for publishing as a Claude artifact (no server needed). It uses the artifact runtime's live `room` capability for multiplayer, keeps each player's tycoon in their browser, and stores an all-time hall of fame in the artifact's shared database. Compared with the Node version it has:
+
+- 80-stud plots with a two-storey factory, an L-shaped ground conveyor and a sky conveyor whose cubes drop through all upgraders
+- 26 build steps: 7 ground droppers, 4 sky droppers, 4 upgraders, walls, tiles, roof, neon lights, sign, statue, turbo boosts, auto collector and rebirth
+- Roblox-style progression: only the next three buy pads are shown at any time
+- A sky dome, trees, a fountain hub, animated machines and interior lighting
+
+Multiplayer in that edition works for signed-in people the artifact is shared with; anyone opening it through a public link plays solo.
+
 ## Run it locally
 
 Requires Node.js 18 or newer.

@@ -1,0 +1,1662 @@
+<title>Blox Tycoon</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;700;800&display=swap">
+<style>
+/* Layout: a single full-height 3D stage with a HUD overlaid on top. One deliberate look (bright day scene, dark glass HUD). */
+:root {
+  --bg: #0b1220;
+  --glass: rgba(10, 16, 30, 0.74);
+  --glass-2: rgba(18, 26, 44, 0.86);
+  --line: rgba(255, 255, 255, 0.12);
+  --fg: #f4f7fb;
+  --muted: #9fb0c8;
+  --cash: #3ddc84;
+  --cash-deep: #15803d;
+  --gold: #ffcc33;
+  --danger: #ff5c5c;
+  --sky: #8ecbff;
+  --display: "Fredoka", "Trebuchet MS", "Segoe UI", sans-serif;
+  --body: "Nunito", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--body); overflow: hidden; -webkit-font-smoothing: antialiased; }
+#app { position: relative; height: 100%; width: 100%; overflow: hidden; }
+#stage { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; outline: none; }
+button { font: inherit; cursor: pointer; color: inherit; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.hidden { display: none !important; }
+
+/* ---------- overlays ---------- */
+.overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: max(16px, env(safe-area-inset-left, 0px)); padding-block: 16px; background: radial-gradient(120% 90% at 50% 0%, rgba(61,220,132,0.22), rgba(11,18,32,0.9) 60%); backdrop-filter: blur(8px); z-index: 20; }
+.card { width: min(460px, 100%); max-height: 100%; overflow: auto; background: var(--glass-2); border: 1px solid var(--line); border-radius: 22px; padding: 26px; box-shadow: 0 30px 80px rgba(0,0,0,0.55); }
+.logo { display: flex; align-items: center; gap: 12px; font-family: var(--display); font-weight: 700; font-size: 32px; letter-spacing: 0.5px; line-height: 1; text-wrap: balance; }
+.logo .coin { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(180deg, #ffe066, #f5a623); color: #3b2a00; font-size: 26px; box-shadow: inset 0 -4px 0 rgba(0,0,0,0.18); }
+.tagline { color: var(--muted); margin: 10px 0 20px; line-height: 1.45; }
+.field { display: block; margin-bottom: 12px; }
+.field span { display: block; font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.field input { width: 100%; box-sizing: border-box; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: rgba(255,255,255,0.06); color: var(--fg); font-size: 16px; font-family: var(--body); }
+.row { display: flex; gap: 10px; }
+.row .field { flex: 1; min-width: 0; }
+.swatches { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 16px; }
+.swatch { width: 30px; height: 30px; border-radius: 9px; border: 3px solid transparent; padding: 0; }
+.swatch[aria-pressed="true"] { border-color: #fff; transform: scale(1.1); }
+.btn { width: 100%; padding: 14px; border: 0; border-radius: 14px; font-family: var(--display); font-weight: 700; letter-spacing: 1.5px; font-size: 18px; color: #fff; background: rgba(255,255,255,0.08); }
+.btn.primary { background: linear-gradient(180deg, #4ee68f, var(--cash-deep)); box-shadow: 0 6px 0 #0d5a2d, 0 12px 28px rgba(61,220,132,0.35); transition: transform 0.08s, box-shadow 0.08s; }
+.btn.primary:active { transform: translateY(4px); box-shadow: 0 2px 0 #0d5a2d; }
+.btn.primary:disabled { opacity: 0.6; cursor: default; }
+.note { margin-top: 14px; font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+.note b { color: var(--fg); }
+.mp-status { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 13px; color: var(--muted); }
+.mp-status .dot { width: 9px; height: 9px; border-radius: 50%; background: #6b7280; }
+.mp-status.on .dot { background: var(--cash); box-shadow: 0 0 10px var(--cash); }
+.help-list { margin: 14px 0 0; padding-left: 20px; line-height: 1.55; }
+.help-list li { margin-bottom: 6px; }
+#help .btn { margin-top: 16px; }
+
+/* ---------- HUD ---------- */
+#hud { position: absolute; inset: 0; pointer-events: none; z-index: 10; font-size: 14px; }
+#hud > * { pointer-events: none; }
+.panel { background: var(--glass); border: 1px solid var(--line); border-radius: 16px; backdrop-filter: blur(6px); }
+.top-left { position: absolute; top: calc(14px + env(safe-area-inset-top, 0px)); left: max(14px, env(safe-area-inset-left, 0px)); display: flex; flex-direction: column; gap: 8px; max-width: min(340px, 60vw); }
+.cash-box { padding: 10px 16px 12px; min-width: 210px; }
+.cash-label { font-size: 11px; font-weight: 800; letter-spacing: 1.4px; color: var(--muted); display: flex; justify-content: space-between; }
+.cash { font-family: var(--display); font-weight: 700; font-size: 34px; line-height: 1.1; color: var(--cash); text-shadow: 0 0 22px rgba(61,220,132,0.45); font-variant-numeric: tabular-nums; }
+.cash.bump { animation: bump 0.25s ease-out; }
+@keyframes bump { 0% { transform: scale(1.1); } 100% { transform: scale(1); } }
+.income { font-size: 12.5px; color: var(--muted); min-height: 1.2em; font-variant-numeric: tabular-nums; }
+.status { padding: 8px 12px; font-size: 13px; }
+.meta { display: flex; gap: 8px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+.meta span { background: rgba(0,0,0,0.4); border-radius: 8px; padding: 3px 9px; }
+.meta .code { font-family: var(--display); letter-spacing: 1.5px; color: var(--gold); }
+.meta .online { color: var(--cash); }
+.top-right { position: absolute; top: calc(14px + env(safe-area-inset-top, 0px)); right: max(14px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
+.board { padding: 10px 14px; min-width: 230px; }
+.board-title { font-size: 11px; font-weight: 800; letter-spacing: 1.4px; color: var(--muted); margin-bottom: 6px; display: flex; justify-content: space-between; gap: 10px; }
+.board ol { margin: 0; padding: 0; list-style: none; }
+.board li { display: grid; grid-template-columns: 20px 1fr auto; gap: 8px; align-items: center; padding: 3px 0; }
+.board li .rank { color: var(--muted); font-weight: 800; }
+.board li .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center; gap: 6px; min-width: 0; }
+.board li .dot { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+.board li .val { font-family: var(--display); font-weight: 600; color: var(--cash); font-variant-numeric: tabular-nums; }
+.board li .rb { color: var(--gold); font-size: 11px; margin-left: 4px; }
+.board li.me { background: rgba(61,220,132,0.14); border-radius: 8px; margin: 0 -6px; padding: 3px 6px; }
+.board .empty { color: var(--muted); font-size: 12.5px; }
+.prompt { position: absolute; left: 50%; bottom: calc(128px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); padding: 10px 20px; font-size: 15px; font-weight: 800; text-align: center; max-width: min(90vw, 460px); }
+.prompt small { display: block; font-weight: 600; color: var(--muted); font-size: 12px; margin-top: 3px; }
+.prompt.ok { border-color: rgba(61,220,132,0.7); }
+.prompt.bad { border-color: rgba(255,92,92,0.7); }
+#toasts { position: absolute; top: calc(14px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 6px; align-items: center; width: min(86vw, 460px); }
+.toast { padding: 8px 16px; font-size: 14px; font-weight: 700; animation: toast-in 0.25s ease-out; }
+.toast.good { border-color: rgba(61,220,132,0.7); }
+.toast.bad { border-color: rgba(255,92,92,0.7); }
+.toast.gold { border-color: rgba(255,204,51,0.8); color: var(--gold); font-family: var(--display); font-size: 16px; }
+.toast.out { opacity: 0; transition: opacity 0.4s; }
+@keyframes toast-in { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+.bottom-left { position: absolute; left: max(14px, env(safe-area-inset-left, 0px)); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); width: min(380px, 68vw); display: flex; flex-direction: column; gap: 6px; }
+.chat-log { max-height: 150px; overflow-y: auto; display: flex; flex-direction: column; gap: 3px; font-size: 13px; mask-image: linear-gradient(to bottom, transparent, black 25%); }
+.chat-line { background: rgba(0,0,0,0.5); border-radius: 8px; padding: 4px 9px; width: fit-content; max-width: 100%; overflow-wrap: anywhere; }
+.chat-line .who { font-weight: 800; }
+.chat-line.sys { color: var(--muted); font-style: italic; }
+.chat-input { pointer-events: auto !important; width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--cash); background: rgba(10,16,30,0.92); color: var(--fg); font-size: 14px; font-family: var(--body); }
+.chat-hint { font-size: 11px; color: var(--muted); padding-left: 4px; }
+.bottom-right { position: absolute; right: max(14px, env(safe-area-inset-right, 0px)); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); display: flex; gap: 8px; }
+.icon-btn { pointer-events: auto !important; width: 44px; height: 44px; border-radius: 14px; border: 1px solid var(--line); background: var(--glass); color: var(--fg); font-family: var(--display); font-size: 20px; font-weight: 700; }
+.icon-btn[aria-pressed="true"] { border-color: var(--gold); color: var(--gold); }
+
+/* ---------- touch ---------- */
+#mobile { position: absolute; inset: 0; }
+.joystick { pointer-events: auto !important; position: absolute; left: max(20px, env(safe-area-inset-left, 0px)); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); width: 118px; height: 118px; border-radius: 50%; background: rgba(255,255,255,0.08); border: 2px solid rgba(255,255,255,0.2); touch-action: none; }
+.joystick .stick { position: absolute; left: 50%; top: 50%; width: 52px; height: 52px; margin: -26px 0 0 -26px; border-radius: 50%; background: rgba(255,255,255,0.4); }
+.jump-btn { pointer-events: auto !important; position: absolute; right: max(20px, env(safe-area-inset-right, 0px)); bottom: calc(28px + env(safe-area-inset-bottom, 0px)); width: 80px; height: 80px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); background: rgba(61,220,132,0.55); color: #fff; font-family: var(--display); font-weight: 700; letter-spacing: 1px; touch-action: none; }
+.touch .bottom-left { bottom: calc(150px + env(safe-area-inset-bottom, 0px)); width: min(300px, 55vw); }
+.touch .chat-log { max-height: 84px; }
+.touch .chat-hint { display: none; }
+.touch .bottom-right { bottom: calc(124px + env(safe-area-inset-bottom, 0px)); }
+.touch .prompt { bottom: calc(150px + env(safe-area-inset-bottom, 0px)); }
+@media (max-height: 520px) {
+  .touch .cash-box { padding: 6px 12px; min-width: 150px; }
+  .touch .cash { font-size: 24px; }
+  .touch .meta, .touch .status { display: none; }
+  .touch .chat-log { max-height: 52px; }
+  .touch .board li:nth-child(n+4) { display: none; }
+}
+@media (max-width: 640px) {
+  .cash { font-size: 26px; }
+  .board { min-width: 170px; }
+  .board li { font-size: 12px; }
+  .status { font-size: 12px; }
+  .prompt { font-size: 13px; }
+}
+@media (prefers-reduced-motion: reduce) { .toast, .cash.bump { animation: none; } }
+</style>
+
+<div id="app">
+  <canvas id="stage" tabindex="0" aria-label="Blox Tycoon 3D world"></canvas>
+
+  <div id="join" class="overlay">
+    <div class="card">
+      <div class="logo"><span class="coin">$</span> BLOX TYCOON</div>
+      <p class="tagline">Claim a factory. Buy droppers, upgraders and a second floor. Collect the cash, rebirth, and top the board.</p>
+      <div class="row">
+        <label class="field"><span>Your name</span><input id="nick" maxlength="16" placeholder="Player" autocomplete="off" spellcheck="false"></label>
+        <label class="field"><span>Server code</span><input id="code" maxlength="12" placeholder="Lobby" autocomplete="off" spellcheck="false" style="text-transform:uppercase"></label>
+      </div>
+      <div class="field"><span>Shirt color</span></div>
+      <div id="swatches" class="swatches" role="group" aria-label="Shirt color"></div>
+      <button id="play" class="btn primary">PLAY</button>
+      <div id="mp-status" class="mp-status"><span class="dot"></span><span id="mp-text">Checking for other players…</span></div>
+      <div class="note"><b>Controls</b> WASD / arrows move · Space jump · drag to look · scroll to zoom · Enter chat · T home · H help<br><b>Only three buy pads show at a time.</b> Buy one and the next appears.</div>
+    </div>
+  </div>
+
+  <div id="help" class="overlay hidden">
+    <div class="card">
+      <div class="logo">HOW TO PLAY</div>
+      <ul class="help-list">
+        <li>Stand on an empty plot's gold <b>CLAIM</b> pad to make it yours.</li>
+        <li>Three buy pads are available at a time. Green means you can afford it, red shows what you still need.</li>
+        <li><b>Droppers</b> drop cash cubes on the conveyor. <b>Upgraders</b> multiply every cube that passes through.</li>
+        <li>Cubes end in the <b>Collector</b>. Stand on the blue pad to bank them, or buy the Auto Collector.</li>
+        <li>The <b>Second Floor</b> adds a sky conveyor whose cubes drop down through all your upgraders.</li>
+        <li>Build everything to unlock <b>REBIRTH</b>: start over with +50% income forever, stacking each time.</li>
+        <li>Your tycoon saves in this browser. Share the page and a server code to play with friends.</li>
+      </ul>
+      <button id="help-close" class="btn primary">GOT IT</button>
+    </div>
+  </div>
+
+  <div id="hud" class="hidden">
+    <div class="top-left">
+      <div class="panel cash-box">
+        <div class="cash-label"><span>CASH</span><span id="rebirths">★ 0</span></div>
+        <div id="cash" class="cash">$0</div>
+        <div id="income" class="income"></div>
+      </div>
+      <div id="status" class="panel status">Find an empty plot and step on the gold CLAIM pad.</div>
+      <div class="meta"><span id="server" class="code">SOLO</span><span id="online" class="online">1 online</span></div>
+    </div>
+    <div class="top-right">
+      <div class="panel board">
+        <div class="board-title"><span id="board-label">ON THIS SERVER</span></div>
+        <ol id="board"></ol>
+        <div id="board-empty" class="empty hidden"></div>
+      </div>
+    </div>
+    <div id="prompt" class="panel prompt hidden"></div>
+    <div id="toasts"></div>
+    <div class="bottom-left">
+      <div id="chat-log" class="chat-log"></div>
+      <input id="chat-input" class="chat-input hidden" maxlength="140" placeholder="Say something… (Enter to send, Esc to close)" autocomplete="off">
+      <div id="chat-hint" class="chat-hint">Press Enter to chat</div>
+    </div>
+    <div class="bottom-right">
+      <button id="fame-btn" class="icon-btn" title="Toggle hall of fame (L)" aria-pressed="false">★</button>
+      <button id="help-btn" class="icon-btn" title="Help (H)">?</button>
+      <button id="home-btn" class="icon-btn hidden" title="Teleport to my tycoon (T)">⌂</button>
+    </div>
+    <div id="mobile" class="hidden">
+      <div id="joystick" class="joystick"><div class="stick"></div></div>
+      <button id="jump-btn" class="jump-btn">JUMP</button>
+    </div>
+  </div>
+
+  <div id="fatal" class="overlay hidden">
+    <div class="card"><div class="logo">Couldn't load the 3D engine</div><p class="tagline" id="fatal-msg">The Three.js library didn't load from the CDN. Check your connection and reload.</p></div>
+  </div>
+</div>
+
+<script type="module">
+// ============================================================================
+// Blox Tycoon — single-file 3D tycoon with live multiplayer through the
+// artifact `room` capability. Everything below is plain ES2022.
+// ============================================================================
+
+const $ = (id) => document.getElementById(id);
+
+// ---------- 3D engine (pinned Three.js from the allowed CDNs, first that answers) ----------
+const THREE_URLS = [
+  'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.170.0/three.module.min.js',
+  'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js',
+  'https://unpkg.com/three@0.170.0/build/three.module.min.js',
+];
+let THREE = null;
+for (const url of THREE_URLS) {
+  try { THREE = await import(url); if (THREE && THREE.Scene) break; THREE = null; } catch (e) { console.warn('Three.js failed from', url, e); }
+}
+if (!THREE) {
+  $('join').classList.add('hidden');
+  $('fatal').classList.remove('hidden');
+  throw new Error('Three.js unavailable');
+}
+
+// ---------- configuration ----------
+const C = {
+  PLOT_SIZE: 80,
+  WORLD_X: 185, WORLD_Z: 150,
+  PLAYER_SPEED: 11, JUMP_SPEED: 17, GRAVITY: 40,
+  PAD_RADIUS: 2.6, CLAIM_RADIUS: 3.4, COLLECT_RADIUS: 3,
+  CONVEYOR_SPEED: 11,
+  DROP_HEIGHT: 7,          // nozzle height above the belt top
+  FALL_TIME: 0.6,
+  REBIRTH_BONUS: 0.5,
+  VISIBLE_PADS: 3,
+  MAX_PLAYERS: 6,
+  SEND_HZ: 10,
+  AWAY_CAP_S: 600,         // offline earnings cap
+};
+const PLOTS = [
+  { x: -100, z: -72, rot: 0 }, { x: 0, z: -72, rot: 0 }, { x: 100, z: -72, rot: 0 },
+  { x: -100, z: 72, rot: Math.PI }, { x: 0, z: 72, rot: Math.PI }, { x: 100, z: 72, rot: Math.PI },
+];
+const HUB = { x: 0, z: 0, r: 17 };
+const COLORS = [0xff5e5b, 0x3dd6f5, 0xffd23f, 0x7bed9f, 0xb388ff, 0xff9f43, 0xf78fb3, 0x70a1ff];
+
+// Conveyor paths are polylines in plot-local space (front of a plot is +z).
+// Cubes ride `g` (ground) into the collector; `f2` (second floor) ends with a drop onto `g`.
+const PATHS = {
+  g: { pts: [[-34, 1, -26], [26, 1, -26], [26, 1, 4]], beltTop: 1 },
+  f2: { pts: [[-34, 15, -34], [20, 15, -34], [20, 15, -26]], beltTop: 15, dropTo: { path: 'g', d: 54 } },
+};
+for (const p of Object.values(PATHS)) {
+  p.segs = []; let d = 0;
+  for (let i = 0; i < p.pts.length - 1; i++) {
+    const a = new THREE.Vector3(...p.pts[i]), b = new THREE.Vector3(...p.pts[i + 1]);
+    const len = a.distanceTo(b);
+    p.segs.push({ a, b, d0: d, len, dir: b.clone().sub(a).normalize() });
+    d += len;
+  }
+  p.length = d;
+}
+function pathPoint(path, d, out) {
+  const p = PATHS[path];
+  d = Math.max(0, Math.min(p.length, d));
+  for (const s of p.segs) {
+    if (d <= s.d0 + s.len + 1e-6) return out.copy(s.a).addScaledVector(s.dir, d - s.d0);
+  }
+  return out.copy(p.segs[p.segs.length - 1].b);
+}
+
+// The build order. Only the first VISIBLE_PADS unowned items show a buy pad; REBIRTH needs everything else.
+// Positions are plot-local. `pad` = [x, z] (+ optional y for pads on the second floor).
+const ITEMS = [
+  { id: 'd1', name: 'Dropper', price: 0, type: 'dropper', path: 'g', x: 4, value: 3, pad: [4, -19], desc: 'Drops $3 cubes on the conveyor.' },
+  { id: 'd2', name: 'Dropper II', price: 75, type: 'dropper', path: 'g', x: -2, value: 6, pad: [-2, -19], desc: 'Drops $6 cubes.' },
+  { id: 'walls', name: 'Factory Walls', price: 250, type: 'build', pad: [0, 20], desc: 'Walls with windows around your factory.' },
+  { id: 'u1', name: 'Upgrader ×1.5', price: 400, type: 'upgrader', z: -19, mult: 1.5, pad: [19, -19], desc: 'Cubes passing through are worth 1.5×.' },
+  { id: 'd3', name: 'Dropper III', price: 800, type: 'dropper', path: 'g', x: -8, value: 15, pad: [-8, -19], desc: 'Drops $15 cubes.' },
+  { id: 'tiles', name: 'Floor Tiles', price: 1000, type: 'build', pad: [-10, 20], desc: 'A checkered factory floor.' },
+  { id: 'd4', name: 'Dropper IV', price: 1800, type: 'dropper', path: 'g', x: -14, value: 30, pad: [-14, -19], desc: 'Drops $30 cubes.' },
+  { id: 'u2', name: 'Upgrader ×2', price: 3000, type: 'upgrader', z: -13, mult: 2, pad: [19, -13], desc: 'Cubes passing through are worth 2×.' },
+  { id: 'turbo1', name: 'Turbo Droppers', price: 4500, type: 'boost', pad: [10, 20], desc: 'All droppers fire 33% faster.' },
+  { id: 'd5', name: 'Dropper V', price: 7000, type: 'dropper', path: 'g', x: -20, value: 60, pad: [-20, -19], desc: 'Drops $60 cubes.' },
+  { id: 'roof', name: 'Roof', price: 9000, type: 'build', pad: [20, 20], desc: 'A roof with a skylight.' },
+  { id: 'auto', name: 'Auto Collector', price: 12000, type: 'boost', pad: [33, 12], desc: 'Cash goes straight to your wallet.' },
+  { id: 'd6', name: 'Dropper VI', price: 16000, type: 'dropper', path: 'g', x: -26, value: 120, pad: [-26, -19], desc: 'Drops $120 cubes.' },
+  { id: 'u3', name: 'Upgrader ×2', price: 22000, type: 'upgrader', z: -7, mult: 2, pad: [19, -7], desc: 'Cubes passing through are worth 2×.' },
+  { id: 'lights', name: 'Neon Lights', price: 25000, type: 'build', pad: [-20, 20], desc: 'Light up the factory.' },
+  { id: 'd7', name: 'Dropper VII', price: 35000, type: 'dropper', path: 'g', x: -32, value: 250, pad: [-32, -19], desc: 'Drops $250 cubes.' },
+  { id: 'floor2', name: 'Second Floor', price: 50000, type: 'build', pad: [-30, 6], desc: 'Stairs, a platform and a sky conveyor.' },
+  { id: 's1', name: 'Sky Dropper', price: 65000, type: 'dropper', path: 'f2', x: -30, value: 500, pad: [-30, -27, 14], desc: 'Drops $500 cubes from the sky conveyor.' },
+  { id: 'u4', name: 'Upgrader ×2', price: 90000, type: 'upgrader', z: -1, mult: 2, pad: [19, -1], desc: 'Cubes passing through are worth 2×.' },
+  { id: 's2', name: 'Sky Dropper II', price: 120000, type: 'dropper', path: 'f2', x: -20, value: 1000, pad: [-20, -27, 14], desc: 'Drops $1,000 cubes.' },
+  { id: 'sign', name: 'Tycoon Sign', price: 150000, type: 'build', pad: [-30, 20], desc: 'A giant sign with your name.' },
+  { id: 's3', name: 'Sky Dropper III', price: 200000, type: 'dropper', path: 'f2', x: -10, value: 2000, pad: [-10, -27, 14], desc: 'Drops $2,000 cubes.' },
+  { id: 'turbo2', name: 'Turbo Droppers II', price: 260000, type: 'boost', pad: [30, 20], desc: 'All droppers fire another 33% faster.' },
+  { id: 'golden', name: 'Golden Dropper', price: 350000, type: 'dropper', path: 'f2', x: 0, value: 5000, pad: [0, -27, 14], desc: 'Drops $5,000 golden cubes.' },
+  { id: 'statue', name: 'Golden Statue', price: 400000, type: 'build', pad: [0, 28], desc: 'A golden statue of you.' },
+  { id: 'rebirth', name: 'REBIRTH', price: 2500000, type: 'rebirth', pad: [0, 34], desc: 'Reset for +50% income, forever.' },
+];
+ITEMS.forEach((it, i) => { it.idx = i; });
+const ITEM = Object.fromEntries(ITEMS.map((it) => [it.id, it]));
+const SPECIAL = { claim: [0, 33], collect: [26, 14] };
+const DROP_INTERVAL = 1.5;
+
+function visibleItems(owned) {
+  const out = [];
+  for (const it of ITEMS) {
+    if (owned.has(it.id)) continue;
+    if (it.type === 'rebirth') { if (ITEMS.every((o) => o.type === 'rebirth' || owned.has(o.id))) out.push(it); continue; }
+    if (out.length < C.VISIBLE_PADS) out.push(it);
+  }
+  return out;
+}
+function dropperInterval(owned) {
+  let t = DROP_INTERVAL;
+  if (owned.has('turbo1')) t /= 1.333;
+  if (owned.has('turbo2')) t /= 1.333;
+  return t;
+}
+function upgraderMult(owned, beforeD = Infinity) {
+  let m = 1;
+  for (const it of ITEMS) if (it.type === 'upgrader' && owned.has(it.id)) m *= it.mult;
+  return m;
+}
+function incomePerSecond(owned, rebirths) {
+  let v = 0;
+  for (const it of ITEMS) if (it.type === 'dropper' && owned.has(it.id)) v += it.value;
+  return (v / dropperInterval(owned)) * upgraderMult(owned) * (1 + rebirths * C.REBIRTH_BONUS);
+}
+function fmt(n) {
+  n = Math.floor(n);
+  const t = (v, s) => '$' + v.toFixed(v < 10 ? 2 : 1).replace(/\.?0+$/, '') + s;
+  if (n >= 1e12) return t(n / 1e12, 'T');
+  if (n >= 1e9) return t(n / 1e9, 'B');
+  if (n >= 1e6) return t(n / 1e6, 'M');
+  if (n >= 1e4) return t(n / 1e3, 'K');
+  return '$' + n.toLocaleString('en-US');
+}
+function plotToWorld(idx, lx, lz) {
+  const p = PLOTS[idx], c = Math.cos(p.rot), s = Math.sin(p.rot);
+  return { x: p.x + lx * c + lz * s, z: p.z - lx * s + lz * c };
+}
+function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+function hex(c) { return '#' + c.toString(16).padStart(6, '0'); }
+function sanitizeNick(s) { s = String(s ?? '').replace(/[^\w \-]/g, '').trim().slice(0, 16); return s.length >= 2 ? s : 'Player' + Math.floor(100 + Math.random() * 900); }
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+// ---------- canvas text ----------
+const FONT_DISPLAY = '"Fredoka", "Trebuchet MS", "Segoe UI", sans-serif';
+class Label {
+  constructor(opts = {}) {
+    this.o = Object.assign({ text: '', px: 44, weight: 700, color: '#ffffff', bg: 'rgba(8,12,24,0.72)', pad: 18, radius: 16, size: 1.4, lh: 1.2, stroke: null }, opts);
+    this.canvas = document.createElement('canvas');
+    this.ctx = this.canvas.getContext('2d');
+    this.material = new THREE.SpriteMaterial({ transparent: true, depthWrite: false });
+    this.sprite = new THREE.Sprite(this.material);
+    this.sprite.renderOrder = 10;
+    this._newTexture();
+    this.set(this.o.text);
+  }
+  _newTexture() {
+    if (this.texture) this.texture.dispose();
+    this.texture = new THREE.CanvasTexture(this.canvas);
+    this.texture.colorSpace = THREE.SRGBColorSpace;
+    this.texture.minFilter = THREE.LinearFilter;
+    this.texture.generateMipmaps = false;
+    this.material.map = this.texture;
+    this.material.needsUpdate = true;
+  }
+  set(text, patch) {
+    if (patch) Object.assign(this.o, patch);
+    if (text === this._text && !patch) return;
+    this._text = text;
+    const o = this.o, ctx = this.ctx, lines = String(text).split('\n');
+    ctx.font = `${o.weight} ${o.px}px ${FONT_DISPLAY}`;
+    let w = 0; for (const l of lines) w = Math.max(w, ctx.measureText(l).width);
+    const lh = o.px * o.lh, tw = Math.ceil(w + o.pad * 2), th = Math.ceil(lh * lines.length + o.pad * 2);
+    const W = Math.max(64, Math.ceil(tw / 64) * 64), H = Math.max(32, Math.ceil(th / 32) * 32);
+    if (this.canvas.width !== W || this.canvas.height !== H) { this.canvas.width = W; this.canvas.height = H; this._newTexture(); }
+    ctx.clearRect(0, 0, W, H);
+    const x0 = (W - tw) / 2, y0 = (H - th) / 2;
+    if (o.bg) { ctx.fillStyle = o.bg; roundRect(ctx, x0, y0, tw, th, o.radius); ctx.fill(); }
+    ctx.font = `${o.weight} ${o.px}px ${FONT_DISPLAY}`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    lines.forEach((l, i) => {
+      const y = y0 + o.pad + lh * (i + 0.5);
+      if (o.stroke) { ctx.lineWidth = 7; ctx.strokeStyle = o.stroke; ctx.lineJoin = 'round'; ctx.strokeText(l, W / 2, y); }
+      ctx.fillStyle = Array.isArray(o.color) ? (o.color[i] ?? o.color[o.color.length - 1]) : o.color;
+      ctx.fillText(l, W / 2, y);
+    });
+    this.texture.needsUpdate = true;
+    this.sprite.scale.set(o.size * (W / H), o.size, 1);
+  }
+  dispose() { this.texture.dispose(); this.material.dispose(); }
+}
+class Board {
+  constructor({ width = 10, height = 5, cw = 1024, ch = 512 } = {}) {
+    this.canvas = document.createElement('canvas'); this.canvas.width = cw; this.canvas.height = ch;
+    this.ctx = this.canvas.getContext('2d');
+    this.texture = new THREE.CanvasTexture(this.canvas);
+    this.texture.colorSpace = THREE.SRGBColorSpace; this.texture.anisotropy = 4;
+    this.material = new THREE.MeshBasicMaterial({ map: this.texture });
+    this.mesh = new THREE.Mesh(new THREE.PlaneGeometry(width, height), this.material);
+  }
+  draw(fn) { this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); fn(this.ctx, this.canvas.width, this.canvas.height); this.texture.needsUpdate = true; }
+}
+function roundRect(ctx, x, y, w, h, r) {
+  r = Math.min(r, w / 2, h / 2);
+  ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+
+// ---------- procedural sound ----------
+const sfx = (() => {
+  let ctx = null, on = true;
+  const ac = () => { if (!ctx) { const A = window.AudioContext || window.webkitAudioContext; if (!A) return null; ctx = new A(); } if (ctx.state === 'suspended') ctx.resume().catch(() => {}); return ctx; };
+  const tone = ({ f = 440, to = null, d = 0.12, type = 'square', g = 0.07, delay = 0 }) => {
+    const c = ac(); if (!c || !on) return;
+    const t0 = c.currentTime + delay, o = c.createOscillator(), gn = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, t0); if (to) o.frequency.exponentialRampToValueAtTime(to, t0 + d);
+    gn.gain.setValueAtTime(0.0001, t0); gn.gain.exponentialRampToValueAtTime(g, t0 + 0.01); gn.gain.exponentialRampToValueAtTime(0.0001, t0 + d);
+    o.connect(gn).connect(c.destination); o.start(t0); o.stop(t0 + d + 0.02);
+  };
+  return {
+    unlock: () => ac(),
+    buy: () => { tone({ f: 520, to: 880, d: 0.14, g: 0.06 }); tone({ f: 1040, d: 0.12, type: 'triangle', g: 0.05, delay: 0.1 }); },
+    collect: () => tone({ f: 880, to: 1320, d: 0.1, type: 'triangle', g: 0.05 }),
+    deny: () => tone({ f: 220, to: 160, d: 0.18, type: 'sawtooth', g: 0.04 }),
+    claim: () => [523, 659, 784, 1047].forEach((f, i) => tone({ f, d: 0.16, type: 'triangle', g: 0.06, delay: i * 0.09 })),
+    rebirth: () => [392, 523, 659, 784, 1047, 1319].forEach((f, i) => tone({ f, d: 0.25, type: 'triangle', g: 0.07, delay: i * 0.08 })),
+    chat: () => tone({ f: 1200, d: 0.05, type: 'sine', g: 0.03 }),
+    jump: () => tone({ f: 300, to: 520, d: 0.1, type: 'sine', g: 0.03 }),
+    drop: () => tone({ f: 180, to: 140, d: 0.05, type: 'triangle', g: 0.015 }),
+  };
+})();
+
+// ============================================================================
+// Materials, textures and small mesh helpers
+// ============================================================================
+const std = (color, roughness = 0.85, metalness = 0.05, extra = {}) => new THREE.MeshStandardMaterial({ color, roughness, metalness, ...extra });
+const basic = (color, extra = {}) => new THREE.MeshBasicMaterial({ color, ...extra });
+function canvasTex(w, h, draw, { repeat = [1, 1], nearest = false } = {}) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  draw(c.getContext('2d'), w, h);
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(...repeat); t.colorSpace = THREE.SRGBColorSpace;
+  if (nearest) t.magFilter = THREE.NearestFilter; t.anisotropy = 4;
+  return t;
+}
+const TEX = {
+  grass: canvasTex(256, 256, (g) => {
+    g.fillStyle = '#62b556'; g.fillRect(0, 0, 256, 256);
+    for (let i = 0; i < 900; i++) { g.fillStyle = `hsl(${105 + Math.random() * 20}, ${45 + Math.random() * 20}%, ${36 + Math.random() * 14}%)`; const x = Math.random() * 256, y = Math.random() * 256; g.fillRect(x, y, 4 + Math.random() * 10, 3 + Math.random() * 6); }
+  }, { repeat: [70, 56] }),
+  concrete: canvasTex(128, 128, (g) => {
+    g.fillStyle = '#d7dce3'; g.fillRect(0, 0, 128, 128);
+    for (let i = 0; i < 300; i++) { g.fillStyle = `rgba(0,0,0,${Math.random() * 0.06})`; g.fillRect(Math.random() * 128, Math.random() * 128, 3, 3); }
+    g.strokeStyle = 'rgba(0,0,0,0.12)'; g.lineWidth = 2; g.strokeRect(1, 1, 126, 126);
+  }, { repeat: [10, 10] }),
+  tiles: canvasTex(128, 128, (g) => {
+    g.fillStyle = '#f1f5f9'; g.fillRect(0, 0, 128, 128);
+    g.fillStyle = '#334155'; g.fillRect(0, 0, 64, 64); g.fillRect(64, 64, 64, 64);
+    g.strokeStyle = 'rgba(0,0,0,0.25)'; g.lineWidth = 3; g.strokeRect(0, 0, 128, 128);
+  }, { repeat: [20, 20], nearest: true }),
+  belt: canvasTex(64, 64, (g) => {
+    g.fillStyle = '#1f2430'; g.fillRect(0, 0, 64, 64);
+    g.fillStyle = '#3a4150'; g.fillRect(0, 0, 8, 64);
+    g.fillStyle = '#f5b301'; g.beginPath(); g.moveTo(24, 6); g.lineTo(40, 32); g.lineTo(24, 58); g.lineTo(30, 58); g.lineTo(46, 32); g.lineTo(30, 6); g.closePath(); g.fill();
+  }, { nearest: true }),
+  asphalt: canvasTex(128, 128, (g) => {
+    g.fillStyle = '#4a5260'; g.fillRect(0, 0, 128, 128);
+    for (let i = 0; i < 500; i++) { g.fillStyle = `rgba(255,255,255,${Math.random() * 0.05})`; g.fillRect(Math.random() * 128, Math.random() * 128, 2, 2); }
+  }, { repeat: [40, 8] }),
+};
+const M = {
+  concrete: std(0xffffff, 0.95, 0, { map: TEX.concrete }),
+  tiles: std(0xffffff, 0.8, 0, { map: TEX.tiles }),
+  curb: std(0x8d97a5, 0.9),
+  grass: std(0xffffff, 1, 0, { map: TEX.grass }),
+  asphalt: std(0xffffff, 1, 0, { map: TEX.asphalt }),
+  sidewalk: std(0xcdd3db, 0.95),
+  dash: basic(0xfacc15),
+  rail: std(0x2f3542, 0.5, 0.6),
+  post: std(0x4b5563, 0.6, 0.4),
+  steel: std(0x9aa5b1, 0.4, 0.7),
+  dark: std(0x1f2937, 0.7, 0.3),
+  wall: std(0xf3f4f6, 0.9),
+  trim: std(0x1f2937, 0.7),
+  window: new THREE.MeshStandardMaterial({ color: 0x7dd3fc, emissive: 0x1e5f8a, emissiveIntensity: 0.7, roughness: 0.2, metalness: 0.1 }),
+  roof: std(0xc0392b, 0.8, 0.05, { emissive: 0x3a0a0a }),
+  roofTrim: std(0x7b241c, 0.8),
+  skylight: new THREE.MeshStandardMaterial({ color: 0xbae6fd, emissive: 0x7dd3fc, emissiveIntensity: 0.5, roughness: 0.3 }),
+  collector: std(0x2563eb, 0.55, 0.3),
+  collectorDark: std(0x1e3a8a, 0.6, 0.3),
+  glass: new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.1, metalness: 0.6, transparent: true, opacity: 0.85 }),
+  gold: new THREE.MeshStandardMaterial({ color: 0xfbbf24, roughness: 0.3, metalness: 0.8, emissive: 0x7c4a03, emissiveIntensity: 0.25 }),
+  padOk: new THREE.MeshStandardMaterial({ color: 0x22c55e, emissive: 0x15803d, emissiveIntensity: 0.8, roughness: 0.6 }),
+  padPoor: new THREE.MeshStandardMaterial({ color: 0xef4444, emissive: 0x7f1d1d, emissiveIntensity: 0.6, roughness: 0.6 }),
+  padOther: new THREE.MeshStandardMaterial({ color: 0x9ca3af, emissive: 0x374151, emissiveIntensity: 0.3, roughness: 0.7 }),
+  padClaim: new THREE.MeshStandardMaterial({ color: 0xfbbf24, emissive: 0xb45309, emissiveIntensity: 0.8, roughness: 0.5 }),
+  padCollect: new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0369a1, emissiveIntensity: 0.7, roughness: 0.5 }),
+  padRebirth: new THREE.MeshStandardMaterial({ color: 0xa855f7, emissive: 0x6b21a8, emissiveIntensity: 0.9, roughness: 0.5 }),
+  ring: basic(0xffffff, { transparent: true, opacity: 0.7 }),
+  beam: basic(0xfff3a0, { transparent: true, opacity: 0.16, depthWrite: false, side: THREE.DoubleSide }),
+  neon: basic(0xf0abfc),
+  neon2: basic(0x67e8f9),
+  water: basic(0x5ec8f5, { transparent: true, opacity: 0.85 }),
+  trunk: std(0x6b4b2a, 0.95),
+  leaf: [std(0x3f9d4a, 0.9), std(0x4fb05a, 0.9), std(0x2f8a3f, 0.9)],
+  cloud: basic(0xffffff, { transparent: true, opacity: 0.9 }),
+  lamp: basic(0xfff3c4),
+  fence: std(0x8b5e3c, 0.9),
+};
+const DROPPER_COLORS = { d1: 0x94a3b8, d2: 0x4ade80, d3: 0x60a5fa, d4: 0xa78bfa, d5: 0xf87171, d6: 0xfb923c, d7: 0x22d3ee, s1: 0x38bdf8, s2: 0x818cf8, s3: 0xf472b6, golden: 0xfbbf24 };
+const UPGRADER_COLORS = { u1: 0x22d3ee, u2: 0xa855f7, u3: 0xf43f5e, u4: 0xfbbf24 };
+const GEO = { cube: new THREE.BoxGeometry(1.1, 1.1, 1.1), pad: new THREE.CylinderGeometry(C.PAD_RADIUS, C.PAD_RADIUS, 0.35, 32), padRing: new THREE.RingGeometry(C.PAD_RADIUS + 0.2, C.PAD_RADIUS + 0.55, 40), beam: new THREE.CylinderGeometry(0.9, 0.9, 30, 12, 1, true), sphere: new THREE.SphereGeometry(0.5, 10, 10) };
+
+function box(w, h, d, mat, x, y, z, parent, { shadow = true } = {}) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+  m.position.set(x, y, z); m.castShadow = shadow; m.receiveShadow = true;
+  if (parent) parent.add(m);
+  return m;
+}
+function cyl(rt, rb, h, mat, x, y, z, parent, seg = 16) {
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, seg), mat);
+  m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true;
+  if (parent) parent.add(m);
+  return m;
+}
+function aabb(cx, cy, cz, sx, sy, sz) { return [cx, cy, cz, sx, sy, sz]; }
+
+// ============================================================================
+// Environment: sky, light, ground, street, hub, trees
+// ============================================================================
+function buildEnvironment(scene) {
+  // Sky dome with a vertical gradient.
+  const skyMat = new THREE.ShaderMaterial({
+    side: THREE.BackSide, depthWrite: false, fog: false,
+    uniforms: { top: { value: new THREE.Color(0x3b82f6) }, mid: { value: new THREE.Color(0x8ecbff) }, bottom: { value: new THREE.Color(0xe8f6ff) } },
+    vertexShader: 'varying vec3 vP; void main(){ vP = (modelMatrix * vec4(position,1.0)).xyz; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
+    fragmentShader: 'uniform vec3 top; uniform vec3 mid; uniform vec3 bottom; varying vec3 vP; void main(){ float h = normalize(vP).y; vec3 c = h > 0.0 ? mix(mid, top, pow(h, 0.6)) : mix(mid, bottom, clamp(-h * 4.0, 0.0, 1.0)); gl_FragColor = vec4(c, 1.0); }',
+  });
+  const sky = new THREE.Mesh(new THREE.SphereGeometry(520, 32, 16), skyMat);
+  scene.add(sky);
+  scene.fog = new THREE.Fog(0xb9e0ff, 220, 520);
+
+  scene.add(new THREE.HemisphereLight(0xe9f4ff, 0x6a8f4a, 0.8));
+  const sun = new THREE.DirectionalLight(0xfff4e0, 2.0);
+  sun.position.set(70, 130, 50);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.camera.near = 10; sun.shadow.camera.far = 420;
+  const S = 95; sun.shadow.camera.left = -S; sun.shadow.camera.right = S; sun.shadow.camera.top = S; sun.shadow.camera.bottom = -S;
+  sun.shadow.bias = -0.0006; sun.shadow.normalBias = 0.03;
+  scene.add(sun); scene.add(sun.target);
+
+  // Sun disc.
+  const sunTex = canvasTex(128, 128, (g) => { const r = g.createRadialGradient(64, 64, 10, 64, 64, 64); r.addColorStop(0, 'rgba(255,255,240,1)'); r.addColorStop(0.3, 'rgba(255,245,200,0.9)'); r.addColorStop(1, 'rgba(255,240,180,0)'); g.fillStyle = r; g.fillRect(0, 0, 128, 128); });
+  const sunSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: sunTex, transparent: true, depthWrite: false, fog: false }));
+  sunSprite.position.set(260, 380, 180); sunSprite.scale.set(120, 120, 1);
+  scene.add(sunSprite);
+
+  // Clouds.
+  const clouds = [];
+  for (let i = 0; i < 16; i++) {
+    const g = new THREE.Group();
+    const n = 3 + Math.floor(Math.random() * 3);
+    for (let k = 0; k < n; k++) {
+      const s = new THREE.Mesh(new THREE.SphereGeometry(5 + Math.random() * 7, 10, 8), M.cloud);
+      s.position.set((k - n / 2) * 7 + Math.random() * 4, Math.random() * 3, Math.random() * 6 - 3);
+      s.scale.y = 0.55; g.add(s);
+    }
+    g.position.set(-260 + Math.random() * 520, 75 + Math.random() * 40, -240 + Math.random() * 480);
+    g.userData.speed = 1 + Math.random() * 1.5;
+    scene.add(g); clouds.push(g);
+  }
+
+  // Ground, street, sidewalks.
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(440, 360), M.grass);
+  ground.rotation.x = -Math.PI / 2; ground.position.y = -0.02; ground.receiveShadow = true; scene.add(ground);
+  const street = new THREE.Mesh(new THREE.PlaneGeometry(380, 56), M.asphalt);
+  street.rotation.x = -Math.PI / 2; street.position.y = 0.005; street.receiveShadow = true; scene.add(street);
+  for (const z of [-31, 31]) { const sw = box(380, 0.5, 6, M.sidewalk, 0, 0.25, z, scene, { shadow: false }); sw.receiveShadow = true; }
+  for (let x = -180; x <= 180; x += 14) { const d = new THREE.Mesh(new THREE.PlaneGeometry(7, 0.9), M.dash); d.rotation.x = -Math.PI / 2; d.position.set(x, 0.02, 0); scene.add(d); }
+
+  // Hub plaza with a fountain.
+  const plaza = cyl(HUB.r, HUB.r + 1.5, 0.6, M.sidewalk, HUB.x, 0.1, HUB.z, scene, 48);
+  plaza.castShadow = false;
+  const ringMesh = new THREE.Mesh(new THREE.RingGeometry(HUB.r - 1.4, HUB.r - 0.5, 64), basic(0x22c55e));
+  ringMesh.rotation.x = -Math.PI / 2; ringMesh.position.set(HUB.x, 0.42, HUB.z); scene.add(ringMesh);
+  cyl(5.2, 5.6, 1.4, M.steel, HUB.x, 1.1, HUB.z, scene, 32);
+  const water = cyl(4.7, 4.7, 0.3, M.water, HUB.x, 1.75, HUB.z, scene, 32); water.castShadow = false;
+  cyl(0.9, 1.1, 4.5, M.steel, HUB.x, 3.6, HUB.z, scene);
+  cyl(2.4, 2.4, 0.5, M.steel, HUB.x, 5.9, HUB.z, scene, 24);
+  const sprayTex = canvasTex(32, 32, (g) => { const r = g.createRadialGradient(16, 16, 2, 16, 16, 16); r.addColorStop(0, 'rgba(255,255,255,0.95)'); r.addColorStop(1, 'rgba(180,230,255,0)'); g.fillStyle = r; g.fillRect(0, 0, 32, 32); });
+  const sprayMat = new THREE.SpriteMaterial({ map: sprayTex, transparent: true, depthWrite: false });
+  const spray = [];
+  for (let i = 0; i < 18; i++) { const s = new THREE.Sprite(sprayMat); s.scale.set(1.2, 1.2, 1); s.userData = { t: Math.random(), a: Math.random() * Math.PI * 2 }; scene.add(s); spray.push(s); }
+
+  // Leaderboard totems north and south of the hub.
+  const boards = [], solids = [];
+  for (const side of [-1, 1]) {
+    const tz = HUB.z + side * (HUB.r + 5);
+    box(1.4, 15, 1.4, M.post, HUB.x, 7.5, tz, scene);
+    box(14.6, 8.6, 0.7, M.trim, HUB.x, 11.5, tz, scene);
+    for (const face of [1, -1]) {
+      const b = new Board({ width: 14, height: 8, cw: 1024, ch: 585 });
+      b.mesh.position.set(HUB.x, 11.5, tz + face * 0.4); if (face < 0) b.mesh.rotation.y = Math.PI;
+      scene.add(b.mesh); boards.push(b);
+    }
+    solids.push(new THREE.Box3(new THREE.Vector3(HUB.x - 0.7, 0, tz - 0.7), new THREE.Vector3(HUB.x + 0.7, 15, tz + 0.7)));
+    solids.push(new THREE.Box3(new THREE.Vector3(HUB.x - 7.3, 7.2, tz - 0.6), new THREE.Vector3(HUB.x + 7.3, 15.8, tz + 0.6)));
+  }
+  solids.push(new THREE.Box3(new THREE.Vector3(HUB.x - 5.4, 0, HUB.z - 5.4), new THREE.Vector3(HUB.x + 5.4, 1.8, HUB.z + 5.4)));
+
+  // Lamp posts along the street.
+  for (const x of [-150, -50, 50, 150]) for (const z of [-27, 27]) {
+    box(0.5, 10, 0.5, M.post, x, 5, z, scene);
+    box(3, 0.4, 0.4, M.post, x + (z < 0 ? 1.3 : -1.3), 10, z, scene);
+    const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.9, 12, 12), M.lamp); lamp.position.set(x + (z < 0 ? 2.6 : -2.6), 9.6, z); scene.add(lamp);
+  }
+
+  // Trees between the plots and along the edges (deterministic layout).
+  const treeSpots = [];
+  for (const x of [-52, 52, -148, 148]) for (let z = 40; z <= 112; z += 18) { treeSpots.push([x, z]); treeSpots.push([x, -z]); }
+  for (let x = -170; x <= 170; x += 24) { treeSpots.push([x, 126]); treeSpots.push([x, -126]); }
+  for (const x of [-168, 168]) for (let z = -100; z <= 100; z += 25) treeSpots.push([x, z]);
+  let seed = 7; const rnd = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+  const trunkGeo = new THREE.CylinderGeometry(0.5, 0.7, 4, 7);
+  const leafGeos = [new THREE.ConeGeometry(3.2, 7, 8), new THREE.SphereGeometry(3.2, 9, 8), new THREE.ConeGeometry(2.6, 6, 7)];
+  for (const [x, z] of treeSpots) {
+    const t = new THREE.Group();
+    const jx = (rnd() - 0.5) * 6, jz = (rnd() - 0.5) * 6;
+    const trunk = new THREE.Mesh(trunkGeo, M.trunk); trunk.position.y = 2; trunk.castShadow = true; t.add(trunk);
+    const kind = Math.floor(rnd() * leafGeos.length);
+    const leaf = new THREE.Mesh(leafGeos[kind], M.leaf[Math.floor(rnd() * 3)]); leaf.position.y = kind === 1 ? 6 : 6.5; leaf.castShadow = true; t.add(leaf);
+    if (kind === 0) { const l2 = new THREE.Mesh(new THREE.ConeGeometry(2.4, 5, 8), M.leaf[1]); l2.position.y = 9.5; l2.castShadow = true; t.add(l2); }
+    const s = 0.8 + rnd() * 0.6; t.scale.set(s, s, s); t.position.set(x + jx, 0, z + jz);
+    scene.add(t);
+  }
+
+  // Border fence.
+  for (const z of [-C.WORLD_Z, C.WORLD_Z]) box(C.WORLD_X * 2, 2.5, 0.5, M.fence, 0, 1.25, z, scene);
+  for (const x of [-C.WORLD_X, C.WORLD_X]) box(0.5, 2.5, C.WORLD_Z * 2, M.fence, x, 1.25, 0, scene);
+
+  return {
+    sun, boards, solids,
+    update(dt, t) {
+      for (const c of clouds) { c.position.x += c.userData.speed * dt; if (c.position.x > 280) c.position.x = -280; }
+      for (const s of spray) {
+        const u = s.userData; u.t += dt * 0.8; if (u.t > 1) { u.t = 0; u.a = Math.random() * Math.PI * 2; }
+        const h = 4 * u.t * (1 - u.t) * 4, r = 1 + u.t * 3.5;
+        s.position.set(HUB.x + Math.cos(u.a) * r, 6.2 + h - u.t * 4.5, HUB.z + Math.sin(u.a) * r);
+        s.material.opacity = 0.9 * (1 - u.t);
+      }
+    },
+  };
+}
+
+function drawLeaderboardBoard(board, rows, myKey) {
+  board.draw((ctx, W, H) => {
+    ctx.fillStyle = '#0b1220'; roundRect(ctx, 0, 0, W, H, 28); ctx.fill();
+    const g = ctx.createLinearGradient(0, 0, W, 0); g.addColorStop(0, '#22c55e'); g.addColorStop(1, '#16a34a');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, 92);
+    ctx.fillStyle = '#fff'; ctx.font = `700 54px ${FONT_DISPLAY}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('TOP TYCOONS', W / 2, 46);
+    ctx.font = `600 40px ${FONT_DISPLAY}`;
+    const top = rows.slice(0, 7);
+    if (!top.length) { ctx.fillStyle = '#94a3b8'; ctx.fillText('Claim a plot to get on the board', W / 2, H / 2 + 30); return; }
+    top.forEach((r, i) => {
+      const y = 134 + i * 60;
+      ctx.textAlign = 'left'; ctx.fillStyle = r.key === myKey ? '#86efac' : '#e5e7eb';
+      ctx.fillText(`${i + 1}.`, 40, y); ctx.fillText(String(r.nick).slice(0, 16), 110, y);
+      ctx.textAlign = 'right'; ctx.fillStyle = '#4ade80';
+      ctx.fillText(fmt(r.cash) + (r.rb ? `  ★${r.rb}` : ''), W - 40, y);
+    });
+  });
+}
+
+// ============================================================================
+// A tycoon plot: base, conveyors, collector, pads and every buildable item
+// ============================================================================
+class Plot {
+  constructor(idx, scene) {
+    this.idx = idx; this.def = PLOTS[idx]; this.scene = scene;
+    this.group = new THREE.Group();
+    this.group.position.set(this.def.x, 0, this.def.z); this.group.rotation.y = this.def.rot;
+    scene.add(this.group);
+    this.owner = null; this.ownerName = null; this.ownerColor = 0xffffff; this.isMine = false;
+    this.owned = new Set(); this.pool = 0; this.cubes = []; this.timers = new Map();
+    this.built = {}; this.pads = {}; this.solids = []; this.solidsDirty = true; this.time = Math.random() * 10;
+    this.rebirths = 0; this.onIncome = null; this.visiblePads = [];
+    this._v = new THREE.Vector3();
+    this._buildBase();
+    this._buildSpecial();
+    this.convG = this._buildConveyor('g'); this.group.add(this.convG);
+    this.convF2 = this._buildConveyor('f2'); this.group.add(this.convF2);
+    this._buildPads();
+    this.refresh();
+  }
+
+  // ----- construction -----
+  _buildBase() {
+    const S = C.PLOT_SIZE, h = S / 2;
+    this.base = box(S, 1, S, M.concrete, 0, -0.5, 0, this.group, { shadow: false });
+    const t = 1.2;
+    for (const [w, d, x, z] of [[S + 2 * t, t, 0, -h - t / 2], [S + 2 * t, t, 0, h + t / 2], [t, S, -h - t / 2, 0], [t, S, h + t / 2, 0]]) box(w, 0.8, d, M.curb, x, -0.2, z, this.group, { shadow: false });
+    // Entrance flags.
+    this.flags = [];
+    for (const x of [-10, 10]) {
+      box(0.4, 11, 0.4, M.steel, x, 5.5, h - 1, this.group);
+      const f = box(3.2, 1.8, 0.15, std(0xffffff, 0.8), x + 1.7, 10, h - 1, this.group); this.flags.push(f);
+    }
+    this.ownerLabel = new Label({ text: 'Unclaimed Tycoon', size: 3, px: 52, color: '#ffffff', stroke: 'rgba(0,0,0,0.5)', bg: 'rgba(8,12,24,0.6)' });
+    this.ownerLabel.sprite.position.set(0, 13.5, h - 3);
+    this.group.add(this.ownerLabel.sprite);
+  }
+  _buildSpecial() {
+    // Claim pad with beacon.
+    this.claimPad = new THREE.Group();
+    const cp = cyl(C.CLAIM_RADIUS, C.CLAIM_RADIUS, 0.35, M.padClaim, 0, 0.17, 0, this.claimPad, 36);
+    const beam = new THREE.Mesh(GEO.beam, M.beam); beam.position.y = 15; beam.castShadow = false; this.claimPad.add(beam);
+    this.claimLabel = new Label({ text: 'CLAIM TYCOON', size: 2, px: 50, color: '#fde68a', stroke: 'rgba(0,0,0,0.5)' });
+    this.claimLabel.sprite.position.y = 4; this.claimPad.add(this.claimLabel.sprite);
+    this.claimPad.position.set(SPECIAL.claim[0], 0, SPECIAL.claim[1]);
+    this.group.add(this.claimPad);
+
+    // Collector vault.
+    const g = new THREE.Group(); this.collectorGroup = g;
+    const cx = 26, cz = 8;
+    box(6.4, 6, 6, M.collector, cx, 3, cz, g);
+    box(7, 0.8, 6.6, M.collectorDark, cx, 6.4, cz, g);
+    box(4.4, 3, 0.3, M.glass, cx, 3.2, cz + 3.1, g);
+    box(4, 3, 1.4, M.collectorDark, cx, 2.4, cz - 3.5, g);          // funnel mouth facing the belt
+    box(5, 0.6, 1.6, M.collectorDark, cx, 4.3, cz - 3.5, g);
+    cyl(0.6, 0.8, 4, M.dark, cx + 2.4, 8.5, cz + 1.5, g, 10);           // chimney
+    this.smokeMat = new THREE.SpriteMaterial({ map: canvasTex(32, 32, (c) => { const r = c.createRadialGradient(16, 16, 2, 16, 16, 16); r.addColorStop(0, 'rgba(255,255,255,0.8)'); r.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = r; c.fillRect(0, 0, 32, 32); }), transparent: true, depthWrite: false, opacity: 0.6 });
+    this.smoke = [];
+    for (let i = 0; i < 5; i++) { const s = new THREE.Sprite(this.smokeMat); s.userData.t = i / 5; s.position.set(cx + 2.4, 10.5, cz + 1.5); g.add(s); this.smoke.push(s); }
+    this.poolLabel = new Label({ text: '$0', size: 1.9, px: 56, color: '#86efac', stroke: 'rgba(0,0,0,0.45)' });
+    this.poolLabel.sprite.position.set(cx, 8.6, cz); g.add(this.poolLabel.sprite);
+    const sp = SPECIAL.collect;
+    cyl(C.COLLECT_RADIUS, C.COLLECT_RADIUS, 0.35, M.padCollect, sp[0], 0.17, sp[1], g, 32);
+    const cl = new Label({ text: 'COLLECT', size: 1.3, px: 44, color: '#bae6fd' }); cl.sprite.position.set(sp[0], 3, sp[1]); g.add(cl.sprite);
+    this.group.add(g);
+  }
+  _buildConveyor(pathId) {
+    const p = PATHS[pathId], g = new THREE.Group();
+    const beltMat = new THREE.MeshStandardMaterial({ map: TEX.belt.clone(), roughness: 0.9 });
+    beltMat.map.needsUpdate = true; g.userData.beltMat = beltMat;
+    for (const s of p.segs) {
+      const mid = s.a.clone().add(s.b).multiplyScalar(0.5);
+      const belt = new THREE.Mesh(new THREE.BoxGeometry(s.len + 1.6, 1, 3.4), beltMat);
+      belt.position.copy(mid); belt.position.y = p.beltTop - 0.5;
+      belt.rotation.y = -Math.atan2(s.dir.z, s.dir.x);
+      belt.castShadow = true; belt.receiveShadow = true;
+      beltMat.map.repeat.set(s.len / 3, 1);
+      g.add(belt);
+      for (const side of [-1, 1]) {
+        const rail = new THREE.Mesh(new THREE.BoxGeometry(s.len + 1.6, 1.4, 0.35), M.rail);
+        rail.position.copy(mid).add(new THREE.Vector3(-s.dir.z, 0, s.dir.x).multiplyScalar(side * 1.85)); rail.position.y = p.beltTop - 0.3;
+        rail.rotation.y = belt.rotation.y; rail.castShadow = true; g.add(rail);
+      }
+      if (p.beltTop > 2) for (let d = 3; d < s.len; d += 7) { const pt = s.a.clone().addScaledVector(s.dir, d); if (pt.x > 10 || pt.z < -38) box(0.8, p.beltTop - 1, 0.8, M.post, pt.x, (p.beltTop - 1) / 2, pt.z, g); }
+    }
+    for (let i = 1; i < p.pts.length - 1; i++) { const c = p.pts[i]; cyl(1.9, 1.9, 1, M.dark, c[0], p.beltTop - 0.5, c[2], g, 20); }
+    if (p.dropTo) { const e = p.pts[p.pts.length - 1]; const chute = cyl(2.2, 1.4, 2.4, M.rail, e[0], p.beltTop - 0.4, e[2] + 1.2, g, 16); chute.rotation.x = 0; }
+    return g;
+  }
+  _buildPads() {
+    for (const it of ITEMS) {
+      const g = new THREE.Group(); g.visible = false;
+      g.position.set(it.pad[0], it.pad[2] ?? 0, it.pad[1]);
+      const mesh = new THREE.Mesh(GEO.pad, it.type === 'rebirth' ? M.padRebirth : M.padOk); mesh.position.y = 0.17; mesh.receiveShadow = true; g.add(mesh);
+      const ring = new THREE.Mesh(GEO.padRing, M.ring); ring.rotation.x = -Math.PI / 2; ring.position.y = 0.4; g.add(ring);
+      const beam = new THREE.Mesh(GEO.beam, M.beam); beam.position.y = 15; beam.visible = false; g.add(beam);
+      const label = new Label({ text: `${it.name}\n${it.price ? fmt(it.price) : 'FREE'}`, size: 1.9, px: 44, color: ['#ffffff', '#86efac'], stroke: 'rgba(0,0,0,0.4)' });
+      label.sprite.position.y = 3.4; g.add(label.sprite);
+      this.group.add(g);
+      this.pads[it.id] = { g, mesh, ring, beam, label, it, state: 'hidden' };
+    }
+  }
+
+  // Lazily build the mesh of one item the first time it is owned.
+  _buildItem(it) {
+    const g = new THREE.Group(); g.userData.solids = [];
+    const S = C.PLOT_SIZE, h = S / 2;
+    if (it.type === 'dropper') {
+      const p = PATHS[it.path], y0 = p.beltTop - 1, bz = p.pts[0][2], zb = bz - 4.2;
+      const color = DROPPER_COLORS[it.id] ?? 0x94a3b8;
+      const body = it.id === 'golden' ? M.gold : std(color, 0.55, 0.25);
+      const dark = std(new THREE.Color(color).multiplyScalar(0.55).getHex(), 0.6, 0.3);
+      const H = C.DROP_HEIGHT + 2.2;
+      box(3.4, 1, 3.4, M.dark, it.x, y0 + 0.5, zb, g);
+      box(1.7, H, 1.7, M.post, it.x, y0 + 1 + H / 2, zb, g);
+      box(1.3, 1, 5.2, dark, it.x, y0 + 1 + H - 0.5, zb + 2.3, g);
+      box(2.6, 1.8, 2.6, body, it.x, y0 + C.DROP_HEIGHT + 1.4, bz, g);
+      const hop = cyl(1.9, 1.1, 1.6, dark, it.x, y0 + C.DROP_HEIGHT + 3.1, bz, g, 12);
+      const spout = cyl(0.55, 0.75, 0.9, M.dark, it.x, y0 + C.DROP_HEIGHT + 0.1, bz, g, 10);
+      const led = new THREE.Mesh(GEO.sphere, basic(color)); led.position.set(it.x, y0 + 3, zb - 0.9); led.scale.setScalar(0.6); g.add(led);
+      const pipe = cyl(0.3, 0.3, H - 1, M.steel, it.x + 1.1, y0 + 1 + H / 2, zb - 0.6, g, 8);
+      if (it.path === 'f2') { for (const s of [-1, 1]) box(0.3, 2.2, 2, dark, it.x + s * 1.5, y0 + C.DROP_HEIGHT + 1.6, bz, g); }
+      if (it.id === 'golden') { const crown = box(3.2, 0.5, 3.2, M.gold, it.x, y0 + C.DROP_HEIGHT + 4.1, bz, g); crown.castShadow = false; }
+      g.userData.solids.push(aabb(it.x, y0 + 1 + H / 2, zb, 1.7, H, 1.7), aabb(it.x, y0 + 0.5, zb, 3.4, 1, 3.4));
+      g.userData.spout = spout; g.userData.hop = hop;
+    } else if (it.type === 'upgrader') {
+      const color = UPGRADER_COLORS[it.id], x = 26, z = it.z;
+      const glow = basic(color), body = std(0x1f2937, 0.6, 0.4);
+      for (const s of [-1, 1]) { box(1, 6, 1, body, x + s * 2.6, 3, z, g); box(0.5, 1.2, 0.5, glow, x + s * 2.6, 5.4, z, g); }
+      box(6.2, 0.9, 1.2, body, x, 6.4, z, g);
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(2, 0.2, 10, 36), glow); ring.position.set(x, 3.2, z); g.add(ring);
+      const laser = new THREE.Mesh(new THREE.PlaneGeometry(3.8, 3.8), basic(color, { transparent: true, opacity: 0.28, side: THREE.DoubleSide, depthWrite: false })); laser.position.set(x, 3.2, z); g.add(laser);
+      const lbl = new Label({ text: `×${it.mult}`, size: 1.3, px: 48, color: hex(color), stroke: 'rgba(0,0,0,0.5)', bg: null }); lbl.sprite.position.set(x, 7.6, z); g.add(lbl.sprite);
+      g.userData.ring = ring; g.userData.laser = laser;
+      g.userData.solids.push(aabb(x - 2.6, 3, z, 1, 6, 1), aabb(x + 2.6, 3, z, 1, 6, 1));
+    } else if (it.type === 'build') {
+      const wallH = 24, t = 1.2, half = h - t / 2;
+      if (it.id === 'walls') {
+        const gap = 16, side = (S - gap) / 2;
+        box(S, wallH, t, M.wall, 0, wallH / 2, -half, g);
+        box(t, wallH, S, M.wall, -half, wallH / 2, 0, g);
+        box(t, wallH, S, M.wall, half, wallH / 2, 0, g);
+        box(side, wallH, t, M.wall, -(gap / 2 + side / 2), wallH / 2, half, g);
+        box(side, wallH, t, M.wall, gap / 2 + side / 2, wallH / 2, half, g);
+        box(gap + 3, 2.2, t + 0.6, M.trim, 0, wallH - 1.1, half, g);
+        for (const wy of [9, 19]) {
+          for (const x of [-30, -15, 0, 15, 30]) box(5, 3.4, 0.4, M.window, x, wy, -half - 0.5, g);
+          for (const z of [-30, -15, 0, 15, 30]) for (const sx of [-1, 1]) box(0.4, 3.4, 5, M.window, sx * (half + 0.5), wy, z, g);
+          for (const x of [-26, 26]) box(5, 3.4, 0.4, M.window, x, wy, half + 0.5, g);
+        }
+        box(S + 0.6, 1, t + 0.6, M.trim, 0, wallH + 0.3, -half, g);
+        box(t + 0.6, 1, S + 0.6, M.trim, -half, wallH + 0.3, 0, g);
+        box(t + 0.6, 1, S + 0.6, M.trim, half, wallH + 0.3, 0, g);
+        g.userData.solids.push(aabb(0, wallH / 2, -half, S, wallH, t), aabb(-half, wallH / 2, 0, t, wallH, S), aabb(half, wallH / 2, 0, t, wallH, S),
+          aabb(-(gap / 2 + side / 2), wallH / 2, half, side, wallH, t), aabb(gap / 2 + side / 2, wallH / 2, half, side, wallH, t));
+      } else if (it.id === 'roof') {
+        const y = wallH + 0.8;
+        const slab = box(S + 2, 1, S + 2, M.roof, 0, y, 0, g); slab.receiveShadow = true;
+        for (const x of [-24, 0, 24]) box(10, 0.5, S - 10, M.skylight, x, y + 0.75, 0, g, { shadow: false });
+        box(S + 3, 0.8, 1, M.roofTrim, 0, y + 0.4, half + 1, g); box(S + 3, 0.8, 1, M.roofTrim, 0, y + 0.4, -half - 1, g);
+        g.userData.solids.push(aabb(0, y, 0, S + 2, 1, S + 2));
+      } else if (it.id === 'lights') {
+        const y = wallH - 2;
+        for (const [mat, zz] of [[M.neon, -half + 0.8], [M.neon2, -half + 0.8]]) box(S - 6, 0.3, 0.3, mat, 0, mat === M.neon ? y : y - 0.8, zz, g, { shadow: false });
+        box(0.3, 0.3, S - 6, M.neon2, -half + 0.8, y, 0, g, { shadow: false }); box(0.3, 0.3, S - 6, M.neon2, half - 0.8, y, 0, g, { shadow: false });
+        for (const x of [-24, 0, 24]) for (const z of [-24, 0, 24]) { box(2.4, 0.4, 2.4, M.dark, x, wallH - 0.4, z, g, { shadow: false }); const b = new THREE.Mesh(new THREE.SphereGeometry(0.7, 10, 10), M.lamp); b.position.set(x, wallH - 1, z); g.add(b); }
+        const pl = new THREE.PointLight(0xfff1c8, 650, 90, 1.6); pl.position.set(0, wallH - 3, -8); g.add(pl);
+      } else if (it.id === 'tiles') {
+        // handled by swapping the base material in refresh()
+      } else if (it.id === 'floor2') {
+        const y = 14, px = -15, pz = -27, pw = 50, pd = 26;
+        const slab = box(pw, 0.6, pd, M.steel, px, y - 0.3, pz, g); slab.receiveShadow = true;
+        for (const [x, z] of [[-38, -38], [8, -38], [-38, -16], [8, -16]]) box(1.4, y - 0.6, 1.4, M.post, x, (y - 0.6) / 2, z, g);
+        box(1.4, y - 0.6, 1.4, M.post, -15, (y - 0.6) / 2, -38, g);
+        // Railings along the open edges (gap where the stairs arrive).
+        box(42, 1.1, 0.3, M.rail, -11, y + 0.55, pz + pd / 2, g); box(0.3, 1.1, pd, M.rail, px + pw / 2, y + 0.55, pz, g);
+        // Stairs up the left wall: 14 one-stud steps.
+        for (let i = 0; i < 14; i++) {
+          const z = 8 - (i + 0.5) * 1.6;
+          box(4.4, 1, 1.6, i % 2 ? M.steel : M.post, -36, i + 0.5, z, g);
+          g.userData.solids.push(aabb(-36, i + 0.5, z, 4.4, 1, 1.6));
+        }
+        box(0.3, 1.1, 22.4, M.rail, -33.6, 8.2, -3.2, g).rotation.x = Math.atan2(14, 22.4);
+        g.userData.solids.push(aabb(px, y - 0.3, pz, pw, 0.6, pd), aabb(-11, y + 0.55, pz + pd / 2, 42, 1.1, 0.3), aabb(px + pw / 2, y + 0.55, pz, 0.3, 1.1, pd));
+        for (const [x, z] of [[-38, -38], [8, -38], [-38, -16], [8, -16], [-15, -38]]) g.userData.solids.push(aabb(x, (y - 0.6) / 2, z, 1.4, y - 0.6, 1.4));
+      } else if (it.id === 'sign') {
+        this.signBoard = new Board({ width: 30, height: 8, cw: 1024, ch: 273 });
+        this.signBoard.mesh.position.set(0, 31.5, -half - 1.2); g.add(this.signBoard.mesh);
+        box(31, 9, 0.8, M.trim, 0, 31.5, -half - 1.8, g);
+        for (const x of [-12, 12]) box(0.9, 27.5, 0.9, M.post, x, 13.75, -half - 1.8, g);
+        this._drawSign();
+      } else if (it.id === 'statue') {
+        box(5, 2, 5, M.steel, 12, 1, 30, g); box(6, 0.5, 6, M.dark, 12, 0.25, 30, g);
+        const st = buildFigure(M.gold, M.gold, M.gold, null); st.position.set(12, 2, 30); st.scale.setScalar(1.15); st.rotation.y = Math.PI; g.add(st);
+        g.userData.solids.push(aabb(12, 1, 30, 5, 2, 5));
+      }
+    }
+    return g;
+  }
+  _drawSign() {
+    if (!this.signBoard) return;
+    const name = this.ownerName ?? 'Tycoon';
+    this.signBoard.draw((ctx, W, H) => {
+      const grad = ctx.createLinearGradient(0, 0, W, 0); grad.addColorStop(0, '#f59e0b'); grad.addColorStop(1, '#ef4444');
+      ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(0, H - 34, W, 34);
+      ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      let px = 150; const text = `${String(name).toUpperCase()}'S TYCOON`;
+      do { ctx.font = `700 ${px}px ${FONT_DISPLAY}`; px -= 8; } while (ctx.measureText(text).width > W - 60 && px > 30);
+      ctx.fillText(text, W / 2, H / 2 - 8);
+    });
+  }
+
+  // ----- state -----
+  setOwner(key, name, color) {
+    this.owner = key; this.ownerName = name ?? null; this.ownerColor = color ?? 0xffffff;
+    this.ownerLabel.set(name ? `${name}'s Tycoon` : 'Unclaimed Tycoon', { color: name ? '#fde68a' : '#ffffff' });
+    for (const f of this.flags) f.material.color.setHex(name ? this.ownerColor : 0xffffff);
+    this._drawSign();
+    this.refresh();
+  }
+  setOwned(ids) { this.owned = new Set(ids); this.refresh(); }
+  addOwned(id) { this.owned.add(id); this.refresh(); }
+  resetOwned() {
+    this.owned.clear(); this.pool = 0; this.timers.clear();
+    for (const c of this.cubes) { this.group.remove(c.mesh); c.mesh.material.dispose(); }
+    this.cubes.length = 0;
+    this.refresh();
+  }
+  refresh() {
+    const claimed = this.owner !== null;
+    this.claimPad.visible = !claimed;
+    this.collectorGroup.visible = claimed;
+    this.convG.visible = claimed;
+    this.convF2.visible = claimed && this.owned.has('floor2');
+    for (const it of ITEMS) {
+      const own = claimed && this.owned.has(it.id);
+      if (own && !this.built[it.id] && it.type !== 'boost' && it.type !== 'rebirth') { this.built[it.id] = this._buildItem(it); this.group.add(this.built[it.id]); }
+      if (this.built[it.id]) this.built[it.id].visible = own;
+    }
+    this.base.material = claimed && this.owned.has('tiles') ? M.tiles : M.concrete;
+    this.visiblePads = claimed ? visibleItems(this.owned) : [];
+    const vis = new Set(this.visiblePads.map((it) => it.id));
+    for (const it of ITEMS) { const pad = this.pads[it.id]; pad.g.visible = vis.has(it.id); pad.beam.visible = this.isMine && this.visiblePads[0]?.id === it.id; if (!vis.has(it.id)) pad.state = 'hidden'; }
+    this.solidsDirty = true;
+  }
+  // Pad color/labels depend on who is looking.
+  updatePads(localCash) {
+    for (const it of this.visiblePads) {
+      const pad = this.pads[it.id];
+      const state = !this.isMine ? 'other' : (localCash >= it.price ? 'ok' : 'poor');
+      if (state === pad.state) continue;
+      pad.state = state;
+      pad.mesh.material = it.type === 'rebirth' ? M.padRebirth : state === 'ok' ? M.padOk : state === 'poor' ? M.padPoor : M.padOther;
+      pad.label.set(`${it.name}\n${it.price ? fmt(it.price) : 'FREE'}`, { color: ['#ffffff', state === 'poor' ? '#fca5a5' : state === 'other' ? '#cbd5e1' : '#86efac'] });
+    }
+  }
+
+  // ----- cubes & economy -----
+  spawnCube(it, value) {
+    if (this.cubes.length > 90) { const c = this.cubes.shift(); this.group.remove(c.mesh); c.mesh.material.dispose(); }
+    const p = PATHS[it.path];
+    const color = new THREE.Color(DROPPER_COLORS[it.id] ?? 0x94a3b8);
+    const mat = new THREE.MeshStandardMaterial({ color, emissive: color.clone().multiplyScalar(0.2), roughness: 0.5, metalness: it.id === 'golden' ? 0.7 : 0.1 });
+    const mesh = new THREE.Mesh(GEO.cube, mat); mesh.castShadow = true;
+    const d = it.x - p.pts[0][0];
+    const top = p.beltTop + C.DROP_HEIGHT - 1.2;
+    mesh.position.set(it.x, top, p.pts[0][2]);
+    this.group.add(mesh);
+    this.cubes.push({ mesh, path: it.path, d, state: 'fall', t: 0, y0: top, y1: p.beltTop + 0.55, value, passed: new Set(), spin: (Math.random() - 0.5) * 3 });
+    const b = this.built[it.id]; if (b?.userData.spout) b.userData.pump = 1;
+  }
+  _updateCubes(dt) {
+    const v = this._v;
+    for (let i = this.cubes.length - 1; i >= 0; i--) {
+      const c = this.cubes[i], p = PATHS[c.path];
+      if (c.state === 'fall' || c.state === 'drop') {
+        c.t += dt;
+        const T = c.state === 'fall' ? C.FALL_TIME : 0.75, k = Math.min(1, c.t / T);
+        pathPoint(c.path, c.d, v);
+        c.mesh.position.set(v.x, c.y0 + (c.y1 - c.y0) * k * k, v.z);
+        c.mesh.rotation.y += dt * c.spin;
+        if (k >= 1) { c.state = 'belt'; c.mesh.rotation.y = 0; }
+        continue;
+      }
+      const before = c.d; c.d += C.CONVEYOR_SPEED * dt;
+      if (c.path === 'g') {
+        for (const it of ITEMS) {
+          if (it.type !== 'upgrader' || !this.owned.has(it.id) || c.passed.has(it.id)) continue;
+          const ud = 60 + (it.z + 26);
+          if (before < ud && c.d >= ud) {
+            c.passed.add(it.id); c.value *= it.mult;
+            const col = new THREE.Color(UPGRADER_COLORS[it.id]); c.mesh.material.color.lerp(col, 0.55); c.mesh.material.emissive.copy(c.mesh.material.color).multiplyScalar(0.6); c.mesh.scale.multiplyScalar(1.1);
+            const b = this.built[it.id]; if (b) b.userData.flash = 1;
+          }
+        }
+      }
+      if (c.d >= p.length) {
+        if (p.dropTo) { c.path = p.dropTo.path; c.d = p.dropTo.d; c.state = 'drop'; c.t = 0; c.y0 = p.beltTop + 0.55; c.y1 = PATHS[c.path].beltTop + 0.55; continue; }
+        if (this.isMine && this.onIncome) this.onIncome(c.value);
+        this.group.remove(c.mesh); c.mesh.material.dispose(); this.cubes.splice(i, 1);
+        continue;
+      }
+      pathPoint(c.path, c.d, v);
+      c.mesh.position.set(v.x, p.beltTop + 0.55 + Math.sin(this.time * 6 + i) * 0.03, v.z);
+    }
+  }
+  update(dt, rebirthMult) {
+    this.time += dt;
+    if (this.owner === null) { if (this.claimPad.visible) this.claimLabel.sprite.position.y = 4 + Math.sin(this.time * 2) * 0.3; return; }
+    const interval = dropperInterval(this.owned);
+    for (const it of ITEMS) {
+      if (it.type !== 'dropper' || !this.owned.has(it.id)) continue;
+      let t = (this.timers.get(it.id) ?? Math.random() * interval) + dt;
+      while (t >= interval) { t -= interval; this.spawnCube(it, it.value * rebirthMult); }
+      this.timers.set(it.id, t);
+    }
+    this._updateCubes(dt);
+    for (const g of [this.convG, this.convF2]) if (g.visible) g.userData.beltMat.map.offset.x -= dt * C.CONVEYOR_SPEED / 3;
+    this.poolLabel.set(this.owned.has('auto') ? 'AUTO' : fmt(this.pool));
+    for (const s of this.smoke) { const u = s.userData; u.t += dt * 0.35; if (u.t > 1) u.t = 0; s.position.y = 10.5 + u.t * 5; s.position.x = 28.4 + Math.sin(u.t * 6) * 0.4; s.scale.setScalar(1 + u.t * 2.5); s.material.opacity = 0.5 * (1 - u.t); }
+    for (const id in this.built) {
+      const b = this.built[id]; if (!b.visible) continue;
+      const u = b.userData;
+      if (u.ring) { u.ring.rotation.z += dt * 2; if (u.flash > 0) { u.flash -= dt * 4; u.laser.material.opacity = 0.28 + u.flash * 0.5; } }
+      if (u.spout) { if (u.pump > 0) { u.pump -= dt * 5; u.spout.scale.y = 1 + u.pump * 0.6; u.hop.rotation.y += dt * 8; } }
+    }
+    for (const it of this.visiblePads) { const pad = this.pads[it.id]; pad.label.sprite.position.y = 3.4 + Math.sin(this.time * 2.2 + it.idx) * 0.25; pad.ring.material.opacity = 0.5 + Math.sin(this.time * 3) * 0.25; }
+  }
+
+  // ----- collision -----
+  getSolids() {
+    if (!this.solidsDirty) return this.solids;
+    this.solidsDirty = false;
+    const out = [];
+    const push = (cx, cy, cz, sx, sy, sz) => {
+      const w = plotToWorld(this.idx, cx, cz);
+      const hx = sx / 2, hz = sz / 2; // rotations here are 0 or π, so extents stay axis-aligned
+      const b = new THREE.Box3(new THREE.Vector3(w.x - hx, cy - sy / 2, w.z - hz), new THREE.Vector3(w.x + hx, cy + sy / 2, w.z + hz));
+      out.push(b); return b;
+    };
+    if (this.owner !== null) {
+      for (const s of PATHS.g.segs) {
+        const mid = s.a.clone().add(s.b).multiplyScalar(0.5);
+        const b = push(mid.x, 0.5, mid.z, Math.abs(s.dir.x) ? s.len + 1.6 : 4, 1, Math.abs(s.dir.z) ? s.len + 1.6 : 4);
+        b.conveyor = { x: s.dir.x * Math.cos(this.def.rot), z: s.dir.z * Math.cos(this.def.rot) };
+      }
+      push(26, 3, 8, 6.4, 6.4, 6);
+      for (const id of this.owned) { const b = this.built[id]; if (b?.userData.solids) for (const s of b.userData.solids) push(...s); }
+      if (this.owned.has('floor2')) for (const s of PATHS.f2.segs) { const mid = s.a.clone().add(s.b).multiplyScalar(0.5); push(mid.x, 14.5, mid.z, Math.abs(s.dir.x) ? s.len + 1.6 : 4, 1, Math.abs(s.dir.z) ? s.len + 1.6 : 4); }
+    }
+    this.solids = out;
+    return out;
+  }
+}
+
+// Which pad (if any) is at world position (x, y, z) on this plot?
+function padAt(plot, x, y, z) {
+  const near = (lx, lz, r, ly = 0) => { const w = plotToWorld(plot.idx, lx, lz); const dx = x - w.x, dz = z - w.z; return dx * dx + dz * dz <= r * r && Math.abs(y - ly) < 2.5; };
+  if (plot.owner === null) return near(SPECIAL.claim[0], SPECIAL.claim[1], C.CLAIM_RADIUS) ? { kind: 'claim' } : null;
+  if (near(SPECIAL.collect[0], SPECIAL.collect[1], C.COLLECT_RADIUS)) return { kind: 'collect' };
+  for (const it of plot.visiblePads) if (near(it.pad[0], it.pad[1], C.PAD_RADIUS, it.pad[2] ?? 0)) return { kind: 'item', it };
+  return null;
+}
+
+// ============================================================================
+// Avatars
+// ============================================================================
+const SKIN = 0xf5d26b;
+let faceTex = null;
+function getFaceTex() {
+  if (faceTex) return faceTex;
+  faceTex = canvasTex(128, 128, (g) => {
+    g.fillStyle = hex(SKIN); g.fillRect(0, 0, 128, 128);
+    g.fillStyle = '#111'; g.beginPath(); g.ellipse(44, 52, 7, 10, 0, 0, Math.PI * 2); g.fill(); g.beginPath(); g.ellipse(84, 52, 7, 10, 0, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = '#111'; g.lineWidth = 6; g.lineCap = 'round'; g.beginPath(); g.arc(64, 72, 20, 0.15 * Math.PI, 0.85 * Math.PI); g.stroke();
+  });
+  faceTex.wrapS = faceTex.wrapT = THREE.ClampToEdgeWrapping;
+  return faceTex;
+}
+const FIG = { head: new THREE.BoxGeometry(1.3, 1.3, 1.3), torso: new THREE.BoxGeometry(2, 2, 1), limb: new THREE.BoxGeometry(0.95, 2, 0.95) };
+// A blocky figure. Position = feet, height 5. Returns a group with named limb pivots.
+function buildFigure(skin, shirt, pants, face) {
+  const body = new THREE.Group();
+  const head = new THREE.Mesh(FIG.head, face ? [skin, skin, skin, skin, face, skin] : skin); head.position.y = 4.75; body.add(head);
+  const torso = new THREE.Mesh(FIG.torso, shirt); torso.position.y = 3; body.add(torso);
+  const limb = (mat, x, y) => { const p = new THREE.Group(); p.position.set(x, y, 0); const m = new THREE.Mesh(FIG.limb, mat); m.position.y = -1; p.add(m); body.add(p); return p; };
+  body.userData = { armL: limb(skin, -1.5, 4), armR: limb(skin, 1.5, 4), legL: limb(pants, -0.5, 2), legR: limb(pants, 0.5, 2), head };
+  body.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+  return body;
+}
+class Avatar {
+  constructor({ name, color }) {
+    this.group = new THREE.Group(); this.name = name; this.color = color; this.anim = 0; this.walkPhase = 0; this.targetYaw = 0;
+    const skin = std(SKIN, 0.8), shirt = std(color, 0.75), pants = std(new THREE.Color(color).multiplyScalar(0.45).getHex(), 0.8), face = std(0xffffff, 0.8, 0, { map: getFaceTex() });
+    this.body = buildFigure(skin, shirt, pants, face); this.group.add(this.body);
+    this.label = new Label({ text: name, size: 1.25, px: 40, pad: 14, stroke: 'rgba(0,0,0,0.4)' }); this.label.sprite.position.y = 6.5; this.group.add(this.label.sprite);
+  }
+  setName(name) { this.name = name; this.label.set(name); }
+  update(dt) {
+    const u = this.body.userData;
+    let d = this.targetYaw - this.body.rotation.y; d = Math.atan2(Math.sin(d), Math.cos(d));
+    this.body.rotation.y += d * Math.min(1, dt * 14);
+    if (this.anim === 1) this.walkPhase += dt * 11; else this.walkPhase *= Math.max(0, 1 - dt * 10);
+    const swing = this.anim === 1 ? Math.sin(this.walkPhase) * 0.9 : 0, k = Math.min(1, dt * 12);
+    const target = this.anim === 2 ? [-2.6, -2.6, 0.5, -0.3] : [swing, -swing, -swing, swing];
+    [u.armL, u.armR, u.legL, u.legR].forEach((l, i) => { l.rotation.x += (target[i] - l.rotation.x) * k; });
+  }
+  dispose() { this.label.dispose(); }
+}
+
+// ============================================================================
+// Local player: movement, collision, third-person camera with occlusion
+// ============================================================================
+const HALF = 0.8, HEIGHT = 5, STEP_UP = 1.3;
+class LocalPlayer {
+  constructor(avatar, camera) {
+    this.avatar = avatar; this.camera = camera;
+    this.pos = new THREE.Vector3(); this.vy = 0; this.onGround = true; this.standingOn = null;
+    this.yaw = 0; this.pitch = 0.42; this.dist = 20; this.anim = 0; this.camSnap = true;
+    this.box = new THREE.Box3(); this._camPos = new THREE.Vector3(); this._camTarget = new THREE.Vector3(); this._ray = new THREE.Ray(); this._hit = new THREE.Vector3();
+  }
+  teleport(x, y, z) { this.pos.set(x, y, z); this.vy = 0; this.camSnap = true; }
+  _updateBox() { this.box.min.set(this.pos.x - HALF, this.pos.y, this.pos.z - HALF); this.box.max.set(this.pos.x + HALF, this.pos.y + HEIGHT, this.pos.z + HALF); }
+  _moveAxis(axis, delta, solids) {
+    if (delta === 0) return;
+    this.pos[axis] += delta; this._updateBox();
+    for (const b of solids) {
+      if (!this.box.intersectsBox(b)) continue;
+      if (axis === 'y') {
+        if (delta < 0) { this.pos.y = b.max.y; this.vy = 0; this.onGround = true; this.standingOn = b; }
+        else { this.pos.y = b.min.y - HEIGHT - 0.001; this.vy = 0; }
+      } else {
+        if (b.max.y <= this.pos.y + 0.02 || b.min.y >= this.pos.y + HEIGHT - 0.02) continue;
+        const stepH = b.max.y - this.pos.y;
+        if (stepH > 0 && stepH <= STEP_UP && this.onGround) {
+          const save = this.pos.y; this.pos.y = b.max.y + 0.001; this._updateBox();
+          let blocked = false; for (const o of solids) if (this.box.intersectsBox(o)) { blocked = true; break; }
+          if (!blocked) continue;
+          this.pos.y = save;
+        }
+        if (delta > 0) this.pos[axis] = b.min[axis] - HALF - 0.001; else this.pos[axis] = b.max[axis] + HALF + 0.001;
+      }
+      this._updateBox();
+    }
+  }
+  update(dt, input, solids) {
+    this.yaw -= input.lookDX * 0.0045;
+    this.pitch = clamp(this.pitch + input.lookDY * 0.004, -0.2, 1.35);
+    this.dist = clamp(this.dist + input.zoom * 2, 6, 50);
+    const sin = Math.sin(this.yaw), cos = Math.cos(this.yaw);
+    let dx = -sin * input.moveZ + cos * input.moveX, dz = -cos * input.moveZ - sin * input.moveX;
+    const moving = Math.hypot(dx, dz) > 0.01;
+    if (input.jump && this.onGround) { this.vy = C.JUMP_SPEED; this.onGround = false; sfx.jump(); }
+    this.vy = Math.max(this.vy - C.GRAVITY * dt, -60);
+    const near = [];
+    for (const b of solids) if (Math.abs((b.min.x + b.max.x) / 2 - this.pos.x) < 55 + (b.max.x - b.min.x) / 2 && Math.abs((b.min.z + b.max.z) / 2 - this.pos.z) < 55 + (b.max.z - b.min.z) / 2) near.push(b);
+    if (this.onGround && this.standingOn?.conveyor) { dx += this.standingOn.conveyor.x * C.CONVEYOR_SPEED / C.PLAYER_SPEED; dz += this.standingOn.conveyor.z * C.CONVEYOR_SPEED / C.PLAYER_SPEED; }
+    this._moveAxis('x', dx * C.PLAYER_SPEED * dt, near);
+    this._moveAxis('z', dz * C.PLAYER_SPEED * dt, near);
+    this.onGround = false; this.standingOn = null;
+    this._moveAxis('y', this.vy * dt, near);
+    if (this.pos.y <= 0) { this.pos.y = 0; this.vy = 0; this.onGround = true; }
+    this.pos.x = clamp(this.pos.x, -C.WORLD_X + 1, C.WORLD_X - 1); this.pos.z = clamp(this.pos.z, -C.WORLD_Z + 1, C.WORLD_Z - 1);
+    this.anim = !this.onGround ? 2 : moving ? 1 : 0;
+    if (moving) this.avatar.targetYaw = Math.atan2(dx, dz);
+    this.avatar.anim = this.anim; this.avatar.group.position.copy(this.pos);
+    // Camera orbit, pulled in when something solid sits between it and the player.
+    const cp = Math.cos(this.pitch), sp = Math.sin(this.pitch);
+    this._camTarget.set(this.pos.x, this.pos.y + 4.2, this.pos.z);
+    this._camPos.set(this._camTarget.x + sin * cp * this.dist, this._camTarget.y + sp * this.dist, this._camTarget.z + cos * cp * this.dist);
+    this._ray.origin.copy(this._camTarget); this._ray.direction.copy(this._camPos).sub(this._camTarget).normalize();
+    let camDist = this.dist;
+    for (const b of near) { if (b.containsPoint(this._camTarget)) continue; if (this._ray.intersectBox(b, this._hit)) { const d = this._hit.distanceTo(this._camTarget) - 0.7; if (d < camDist) camDist = d; } }
+    this._camPos.copy(this._camTarget).addScaledVector(this._ray.direction, Math.max(2.5, camDist));
+    if (this._camPos.y < 0.8) this._camPos.y = 0.8;
+    if (this.camSnap) { this.camera.position.copy(this._camPos); this.camSnap = false; } else this.camera.position.lerp(this._camPos, Math.min(1, dt * 14));
+    this.camera.lookAt(this._camTarget);
+  }
+  get facing() { return this.avatar.body.rotation.y; }
+}
+
+// ============================================================================
+// Input
+// ============================================================================
+class Controls {
+  constructor(canvas) {
+    this.canvas = canvas; this.keys = new Set(); this.jump = false; this.lookDX = 0; this.lookDY = 0; this.zoomDelta = 0; this.touchX = 0; this.touchZ = 0; this.onKey = null;
+    this.touch = 'ontouchstart' in window && navigator.maxTouchPoints > 0;
+    window.addEventListener('keydown', (e) => {
+      if (this.typing()) return;
+      if (this.onKey && this.onKey(e.code, e)) return;
+      this.keys.add(e.code);
+      if (e.code === 'Space') { this.jump = true; e.preventDefault(); }
+      if (e.code.startsWith('Arrow')) e.preventDefault();
+    });
+    window.addEventListener('keyup', (e) => this.keys.delete(e.code));
+    window.addEventListener('blur', () => this.keys.clear());
+    let dragging = false, lx = 0, ly = 0;
+    canvas.addEventListener('mousedown', (e) => { dragging = true; lx = e.clientX; ly = e.clientY; canvas.style.cursor = 'grabbing'; canvas.focus(); });
+    window.addEventListener('mouseup', () => { dragging = false; canvas.style.cursor = ''; });
+    window.addEventListener('mousemove', (e) => { if (!dragging) return; this.lookDX += e.clientX - lx; this.lookDY += e.clientY - ly; lx = e.clientX; ly = e.clientY; });
+    canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+    canvas.addEventListener('wheel', (e) => { this.zoomDelta += Math.sign(e.deltaY); e.preventDefault(); }, { passive: false });
+    if (this.touch) this._touch();
+  }
+  typing() { const el = document.activeElement; return el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA'); }
+  _touch() {
+    document.body.classList.add('touch'); $('mobile').classList.remove('hidden');
+    const joy = $('joystick'), stick = joy.querySelector('.stick'); let id = null, cx = 0, cy = 0; const R = 44;
+    joy.addEventListener('touchstart', (e) => { const t = e.changedTouches[0]; id = t.identifier; const r = joy.getBoundingClientRect(); cx = r.left + r.width / 2; cy = r.top + r.height / 2; e.preventDefault(); }, { passive: false });
+    joy.addEventListener('touchmove', (e) => { for (const t of e.changedTouches) { if (t.identifier !== id) continue; let dx = t.clientX - cx, dy = t.clientY - cy; const len = Math.hypot(dx, dy) || 1, k = Math.min(1, len / R); dx = dx / len * k * R; dy = dy / len * k * R; stick.style.transform = `translate(${dx}px, ${dy}px)`; this.touchX = dx / R; this.touchZ = -dy / R; } e.preventDefault(); }, { passive: false });
+    const end = (e) => { for (const t of e.changedTouches) if (t.identifier === id) { id = null; stick.style.transform = ''; this.touchX = this.touchZ = 0; } };
+    joy.addEventListener('touchend', end); joy.addEventListener('touchcancel', end);
+    $('jump-btn').addEventListener('touchstart', (e) => { this.jump = true; e.preventDefault(); }, { passive: false });
+    let look = null, lx = 0, ly = 0;
+    this.canvas.addEventListener('touchstart', (e) => { for (const t of e.changedTouches) if (look === null) { look = t.identifier; lx = t.clientX; ly = t.clientY; } e.preventDefault(); }, { passive: false });
+    this.canvas.addEventListener('touchmove', (e) => { for (const t of e.changedTouches) { if (t.identifier !== look) continue; this.lookDX += (t.clientX - lx) * 1.6; this.lookDY += (t.clientY - ly) * 1.6; lx = t.clientX; ly = t.clientY; } e.preventDefault(); }, { passive: false });
+    const lend = (e) => { for (const t of e.changedTouches) if (t.identifier === look) look = null; };
+    this.canvas.addEventListener('touchend', lend); this.canvas.addEventListener('touchcancel', lend);
+  }
+  poll() {
+    const k = this.keys; let x = 0, z = 0;
+    if (k.has('KeyW') || k.has('ArrowUp')) z += 1; if (k.has('KeyS') || k.has('ArrowDown')) z -= 1;
+    if (k.has('KeyA') || k.has('ArrowLeft')) x -= 1; if (k.has('KeyD') || k.has('ArrowRight')) x += 1;
+    if (this.touchX || this.touchZ) { x = this.touchX; z = this.touchZ; }
+    const len = Math.hypot(x, z); if (len > 1) { x /= len; z /= len; }
+    const out = { moveX: x, moveZ: z, jump: this.jump, lookDX: this.lookDX, lookDY: this.lookDY, zoom: this.zoomDelta };
+    this.jump = false; this.lookDX = this.lookDY = this.zoomDelta = 0;
+    return out;
+  }
+}
+
+// ============================================================================
+// HUD
+// ============================================================================
+const ui = {
+  els: {}, _lastCash: null, _prompt: null, _board: '', fame: false,
+  init() {
+    for (const id of ['join', 'nick', 'code', 'play', 'swatches', 'mp-status', 'mp-text', 'help', 'help-close', 'hud', 'cash', 'rebirths', 'income', 'status', 'server', 'online', 'board', 'board-label', 'board-empty', 'prompt', 'toasts', 'chat-log', 'chat-input', 'chat-hint', 'fame-btn', 'help-btn', 'home-btn']) this.els[id] = $(id);
+    $('help-btn').addEventListener('click', () => this.toggleHelp());
+    $('help-close').addEventListener('click', () => this.toggleHelp(false));
+    $('help').addEventListener('click', (e) => { if (e.target === $('help')) this.toggleHelp(false); });
+    $('fame-btn').addEventListener('click', () => this.toggleFame());
+  },
+  toggleHelp(force) { const show = force ?? $('help').classList.contains('hidden'); $('help').classList.toggle('hidden', !show); },
+  toggleFame(force) { this.fame = force ?? !this.fame; $('fame-btn').setAttribute('aria-pressed', String(this.fame)); this._board = ''; },
+  enterGame() { $('join').classList.add('hidden'); $('hud').classList.remove('hidden'); },
+  setCash(c) {
+    if (c === this._lastCash) return;
+    const grew = this._lastCash !== null && c > this._lastCash; this._lastCash = c;
+    const el = $('cash'); el.textContent = fmt(c);
+    if (grew) { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
+  },
+  setText(id, t) { const el = this.els[id]; if (el.textContent !== t) el.textContent = t; },
+  setPrompt(text, kind) {
+    const key = text ? text + kind : null; if (key === this._prompt) return; this._prompt = key;
+    const el = $('prompt'); if (!text) { el.classList.add('hidden'); return; }
+    el.classList.remove('hidden'); el.className = 'panel prompt ' + (kind || ''); el.innerHTML = text;
+  },
+  board(rows, myKey, label, emptyText) {
+    const html = rows.slice(0, 8).map((r, i) => `<li class="${r.key === myKey ? 'me' : ''}"><span class="rank">${i + 1}</span><span class="name"><span class="dot" style="background:${hex(r.color ?? 0x94a3b8)}"></span>${escapeHtml(r.nick)}${r.rb ? `<span class="rb">★${r.rb}</span>` : ''}</span><span class="val">${fmt(r.cash)}</span></li>`).join('');
+    const key = label + '|' + html + '|' + (rows.length ? '' : emptyText);
+    if (key === this._board) return; this._board = key;
+    $('board').innerHTML = html; this.setText('board-label', label);
+    $('board-empty').classList.toggle('hidden', rows.length > 0); $('board-empty').textContent = emptyText;
+  },
+  toast(text, kind = '', ms = 3200) {
+    const el = document.createElement('div'); el.className = 'panel toast ' + kind; el.textContent = text; $('toasts').appendChild(el);
+    while ($('toasts').children.length > 5) $('toasts').firstChild.remove();
+    setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 400); }, ms);
+  },
+  chat(name, text, color) {
+    const el = document.createElement('div'); el.className = 'chat-line';
+    if (name === null) { el.classList.add('sys'); el.textContent = text; }
+    else { const who = document.createElement('span'); who.className = 'who'; who.style.color = hex(color ?? 0xffffff); who.textContent = name + ':'; el.appendChild(who); el.appendChild(document.createTextNode(' ' + text)); }
+    const log = $('chat-log'); log.appendChild(el); while (log.children.length > 60) log.firstChild.remove(); log.scrollTop = log.scrollHeight;
+  },
+  openChat() { $('chat-input').classList.remove('hidden'); $('chat-hint').classList.add('hidden'); $('chat-input').focus(); },
+  closeChat() { $('chat-input').value = ''; $('chat-input').classList.add('hidden'); $('chat-hint').classList.remove('hidden'); $('chat-input').blur(); $('stage').focus(); },
+  get chatOpen() { return !$('chat-input').classList.contains('hidden'); },
+};
+
+// ============================================================================
+// Save (per browser) and hot-update snapshots
+// ============================================================================
+const SAVE_KEY = 'bloxTycoon.v2';
+function loadSave() { try { const s = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); return s && typeof s === 'object' ? s : null; } catch { return null; } }
+function storeSave(s) { try { localStorage.setItem(SAVE_KEY, JSON.stringify(s)); } catch {} }
+
+// ============================================================================
+// Game state and main
+// ============================================================================
+const G = {
+  scene: null, camera: null, renderer: null, env: null, plots: [], controls: null, local: null, me: null,
+  started: false, mp: null, room: null, target: null, user: null, db: null, uid: null, canWriteDb: true,
+  remotes: new Map(),       // peer key -> { avatar, target, presence, lastSay }
+  padCooldown: new Map(), lastSendAt: 0, lastPresenceSig: '', saySeq: 0, say: null, hallRows: [], hallState: 'none',
+  lastSaveAt: 0, lastFameAt: 0, fameDirty: false, code: '', solo: true,
+};
+
+function newMe(save) {
+  return {
+    nick: sanitizeNick(save?.nick), color: COLORS.includes(save?.color) ? save.color : COLORS[Math.floor(Math.random() * COLORS.length)],
+    cash: Math.max(0, +save?.cash || 0), rb: Math.max(0, save?.rb | 0), own: Array.isArray(save?.own) ? save.own.filter((id) => ITEM[id]) : [],
+    plot: null, at: 0, earned: Math.max(0, +save?.earned || 0), savedPlot: Number.isInteger(save?.plot) ? save.plot : null, lastTick: +save?.lastTick || 0,
+  };
+}
+function saveState() {
+  const m = G.me; if (!m) return null;
+  const s = { v: 2, nick: m.nick, color: m.color, cash: Math.floor(m.cash), rb: m.rb, own: m.plot !== null ? [...G.plots[m.plot].owned] : m.own, plot: m.plot ?? m.savedPlot, earned: Math.floor(m.earned), lastTick: Date.now(), pool: m.plot !== null ? Math.floor(G.plots[m.plot].pool) : 0 };
+  storeSave(s); return s;
+}
+const myPlot = () => (G.me && G.me.plot !== null ? G.plots[G.me.plot] : null);
+const rebirthMult = () => 1 + (G.me?.rb ?? 0) * C.REBIRTH_BONUS;
+
+function init() {
+  const canvas = $('stage');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+  G.renderer = renderer;
+  G.scene = new THREE.Scene();
+  G.camera = new THREE.PerspectiveCamera(60, 1, 0.1, 900);
+  const resize = () => { const w = canvas.clientWidth || window.innerWidth, h = canvas.clientHeight || window.innerHeight; renderer.setSize(w, h, false); G.camera.aspect = w / h; G.camera.updateProjectionMatrix(); };
+  window.addEventListener('resize', resize); resize();
+  G.env = buildEnvironment(G.scene);
+  G.plots = PLOTS.map((_, i) => new Plot(i, G.scene));
+  G.controls = new Controls(canvas);
+  if (G.controls.touch) { renderer.shadowMap.enabled = false; renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); }
+  ui.init();
+}
+
+// ----- multiplayer (artifact room capability) -----
+async function initMultiplayer() {
+  const use = window.claude?.use;
+  if (typeof use !== 'function') { $('mp-text').textContent = 'Solo mode: multiplayer needs the claude.ai viewer.'; return; }
+  try {
+    const [room, user, db] = await Promise.all([window.claude.use('room'), window.claude.use('user'), window.claude.use('db')]);
+    G.room = room; G.user = user; G.db = db;
+    if (user) { try { G.uid = await user.id(); } catch {} }
+    if (room) { $('mp-status').classList.add('on'); $('mp-text').textContent = 'Online: other people who open this page will appear in your world.'; }
+    else $('mp-text').textContent = 'Solo mode here (sign in to this page in claude.ai to see other players).';
+  } catch (e) { console.warn('capabilities', e); $('mp-text').textContent = 'Solo mode.'; }
+}
+async function joinRoom(code) {
+  if (!G.room) return;
+  let target = G.room;
+  if (code) { try { target = await G.room.join(code); } catch (e) { console.warn('join failed', e); ui.toast(`Couldn't join server ${code.toUpperCase()}, using the lobby.`, 'bad'); code = ''; } }
+  G.target = target; G.code = code; G.solo = false;
+  target.onPeers((change) => onPeers(change), (e) => { console.warn('room', e); G.solo = true; ui.setText('online', 'offline'); });
+  target.onConnection((on) => { ui.setText('online', on ? `${countPeers()} online` : 'reconnecting…'); });
+}
+function countPeers() { return 1 + G.remotes.size; }
+function peerKey(p) { return p.peer; }
+function onPeers(change) {
+  const seen = new Set();
+  for (const p of change.peers) {
+    if (p.isMe && p.sameTab) continue;
+    const pr = p.presence || {};
+    if (!pr.n) continue; // not in the game yet
+    const key = peerKey(p); seen.add(key);
+    let r = G.remotes.get(key);
+    if (!r) {
+      const avatar = new Avatar({ name: sanitizeNick(pr.n), color: COLORS.includes(pr.c) ? pr.c : COLORS[0] });
+      G.scene.add(avatar.group);
+      r = { key, avatar, target: { x: 0, y: 0, z: 0 }, presence: null, lastSay: 0 };
+      G.remotes.set(key, r);
+      if (Array.isArray(pr.p)) { avatar.group.position.set(+pr.p[0] || 0, +pr.p[1] || 0, +pr.p[2] || 0); r.target = { x: avatar.group.position.x, y: avatar.group.position.y, z: avatar.group.position.z }; }
+      ui.chat(null, `${sanitizeNick(pr.n)} joined.`);
+    }
+    if (r.presence !== pr) applyPresence(r, pr);
+  }
+  for (const [key, r] of [...G.remotes]) {
+    if (seen.has(key)) continue;
+    G.scene.remove(r.avatar.group); r.avatar.dispose(); G.remotes.delete(key);
+    ui.chat(null, `${r.avatar.name} left.`);
+  }
+  resolvePlots();
+  ui.setText('online', `${countPeers()} online`);
+}
+function applyPresence(r, pr) {
+  r.presence = pr;
+  const nick = sanitizeNick(pr.n); if (nick !== r.avatar.name) r.avatar.setName(nick);
+  if (Array.isArray(pr.p) && pr.p.length === 3) { r.target.x = clamp(+pr.p[0] || 0, -C.WORLD_X, C.WORLD_X); r.target.y = clamp(+pr.p[1] || 0, 0, 100); r.target.z = clamp(+pr.p[2] || 0, -C.WORLD_Z, C.WORLD_Z); }
+  r.avatar.targetYaw = +pr.r || 0; r.avatar.anim = [0, 1, 2].includes(pr.a) ? pr.a : 0;
+  if (pr.say && typeof pr.say.i === 'number' && pr.say.i > r.lastSay) {
+    if (r.lastSay > 0 || pr.say.i === 1 || Date.now() - (+pr.say.at || 0) < 15000) { ui.chat(nick, String(pr.say.t ?? '').slice(0, 140), r.avatar.color); sfx.chat(); }
+    r.lastSay = pr.say.i;
+  }
+}
+// Decide who owns each plot. Earliest claim wins; a tie goes to the lower peer key. We release ours if we lost.
+function resolvePlots() {
+  const claims = new Map(); // plotIdx -> [{key, at, r}]
+  if (G.me && G.me.plot !== null) claims.set(G.me.plot, [{ key: '~me', at: G.me.at, me: true }]);
+  for (const r of G.remotes.values()) {
+    const pr = r.presence; if (!pr || !Number.isInteger(pr.pl) || !G.plots[pr.pl]) continue;
+    if (!claims.has(pr.pl)) claims.set(pr.pl, []);
+    claims.get(pr.pl).push({ key: r.key, at: +pr.at || 0, r });
+  }
+  for (const plot of G.plots) {
+    const list = (claims.get(plot.idx) || []).sort((a, b) => (a.at - b.at) || (a.key < b.key ? -1 : 1));
+    const win = list[0];
+    if (!win) { if (plot.owner !== null) { plot.resetOwned(); plot.setOwner(null); plot.isMine = false; } continue; }
+    if (win.me) { if (!plot.isMine) { plot.isMine = true; plot.setOwner('~me', G.me.nick, G.me.color); } continue; }
+    if (G.me && G.me.plot === plot.idx) {
+      // We lost this plot to an earlier claim.
+      G.me.plot = null; plot.isMine = false; plot.onIncome = null;
+      ui.toast(`${win.r.avatar.name} already owns that tycoon. Pick another plot.`, 'bad', 4000);
+    }
+    const pr = win.r.presence;
+    if (plot.owner !== win.key) { plot.resetOwned(); plot.setOwner(win.key, win.r.avatar.name, win.r.avatar.color); plot.isMine = false; }
+    const own = typeof pr.own === 'string' ? pr.own.split('.').map((i) => ITEMS[+i]?.id).filter(Boolean) : [];
+    if (own.length !== plot.owned.size || own.some((id) => !plot.owned.has(id))) plot.setOwned(own);
+    plot.pool = Math.max(0, +pr.pool || 0); plot.rebirths = pr.rb | 0;
+  }
+}
+function sendPresence(force = false) {
+  if (!G.target || !G.me || !G.local) return;
+  const p = G.local.pos, plot = myPlot();
+  const obj = {
+    n: G.me.nick, c: G.me.color, p: [+p.x.toFixed(1), +p.y.toFixed(1), +p.z.toFixed(1)], r: +G.local.facing.toFixed(2), a: G.local.anim,
+    pl: G.me.plot, at: G.me.at, cash: Math.floor(G.me.cash), rb: G.me.rb,
+    own: plot ? [...plot.owned].map((id) => ITEM[id].idx).join('.') : '', pool: plot ? Math.floor(plot.pool) : 0, say: G.say,
+  };
+  const sig = JSON.stringify(obj);
+  if (!force && sig === G.lastPresenceSig) return;
+  G.lastPresenceSig = sig;
+  G.target.presence(obj).catch(() => {});
+}
+
+// ----- hall of fame (persistent, shared across sessions) -----
+function initHall() {
+  if (!G.db) { G.hallState = 'none'; return; }
+  try {
+    G.hallState = 'loading';
+    const timer = setTimeout(() => { if (G.hallState === 'loading') G.hallState = 'slow'; }, 10000);
+    G.db.collection('leaderboard').orderBy('score', 'desc').limit(10).onSnapshot((snap) => {
+      G.hallRows = snap.docs.map((d) => { const x = d.data() || {}; return { key: d.id, nick: sanitizeNick(x.nick), cash: Math.max(0, +x.cash || 0), rb: Math.max(0, x.rb | 0), color: COLORS.includes(x.color) ? x.color : 0x94a3b8 }; });
+      if (!snap.metadata.fromCache) { G.hallState = 'ok'; clearTimeout(timer); }
+    }, (e) => { console.warn('hall', e); G.hallState = 'error'; clearTimeout(timer); });
+  } catch (e) { console.warn('hall', e); G.hallState = 'error'; }
+}
+let fameWriting = false;
+async function writeFame() {
+  if (!G.db || !G.uid || !G.canWriteDb || fameWriting || !G.me) return;
+  const m = G.me; const score = m.rb * 1e12 + Math.floor(m.earned);
+  if (!(score > 0)) return;
+  fameWriting = true;
+  try { await G.db.doc('leaderboard/' + G.uid).set({ nick: m.nick, color: m.color, cash: Math.floor(m.cash), rb: m.rb, earned: Math.floor(m.earned), score, at: Date.now() }); G.fameDirty = false; }
+  catch (e) { if (e?.code === 'invalid_argument') G.canWriteDb = false; else console.warn('fame write', e); }
+  finally { fameWriting = false; }
+}
+
+// ----- joining the game -----
+function setupJoinScreen(save) {
+  const me = newMe(save);
+  $('nick').value = save?.nick ?? '';
+  const hashCode = (location.hash || '').slice(1).toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 12);
+  if (hashCode) $('code').value = hashCode.toUpperCase();
+  let color = me.color;
+  const sw = $('swatches');
+  for (const c of COLORS) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'swatch'; b.style.background = hex(c); b.setAttribute('aria-label', 'Shirt color'); b.setAttribute('aria-pressed', String(c === color));
+    b.addEventListener('click', () => { color = c; for (const o of sw.children) o.setAttribute('aria-pressed', 'false'); b.setAttribute('aria-pressed', 'true'); });
+    sw.appendChild(b);
+  }
+  const go = async () => {
+    $('play').disabled = true; sfx.unlock();
+    me.nick = sanitizeNick($('nick').value); me.color = color;
+    const code = $('code').value.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 12);
+    await startGame(me, code);
+  };
+  $('play').addEventListener('click', go);
+  $('nick').addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
+  $('code').addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
+}
+async function startGame(me, code) {
+  G.me = me;
+  const avatar = new Avatar({ name: me.nick, color: me.color });
+  G.scene.add(avatar.group);
+  G.local = new LocalPlayer(avatar, G.camera);
+  const sx = (Math.random() < 0.5 ? -1 : 1) * (6 + Math.random() * 4), sz = (Math.random() - 0.5) * 10;
+  G.local.teleport(sx, 0, sz); G.local.yaw = Math.atan2(sx, sz); avatar.targetYaw = Math.atan2(-sx, -sz); avatar.body.rotation.y = avatar.targetYaw;
+  await joinRoom(code);
+  if (code) { try { history.replaceState(null, '', '#' + code); } catch {} }
+  ui.enterGame(); ui.setText('server', G.target ? (code ? code.toUpperCase() : 'LOBBY') : 'SOLO');
+  ui.setText('online', G.target ? `${countPeers()} online` : 'solo');
+  G.started = true;
+  ui.chat(null, `Welcome, ${me.nick}! ${G.target ? (code ? `You're on server ${code.toUpperCase()}.` : "You're in the lobby.") : 'Playing solo.'}`);
+  // Give the room a moment to list who is here, then try to take back a saved plot.
+  setTimeout(() => {
+    if (me.savedPlot !== null && me.own.length) {
+      const plot = G.plots[me.savedPlot];
+      if (plot && plot.owner === null) { claimPlot(plot, true); ui.toast('Welcome back! Your tycoon was restored.', 'good', 4000); return; }
+      ui.toast('Your old plot is taken. Claim another one to restore your tycoon.', '', 5000);
+    } else if (me.plot === null) ui.chat(null, 'Walk to an empty plot and step on the gold CLAIM pad to start.');
+  }, G.target ? 2500 : 200);
+  initHall();
+  sendPresence(true);
+}
+function claimPlot(plot, restoring = false) {
+  const me = G.me;
+  me.plot = plot.idx; me.at = Date.now();
+  plot.isMine = true; plot.setOwner('~me', me.nick, me.color);
+  plot.onIncome = (v) => { me.earned += v; if (plot.owned.has('auto')) me.cash += v; else plot.pool += v; G.fameDirty = true; };
+  if (restoring) {
+    plot.setOwned(me.own); plot.pool = Math.max(0, +(loadSave()?.pool) || 0);
+    // Offline earnings while the page was closed, capped.
+    const elapsed = me.lastTick ? clamp((Date.now() - me.lastTick) / 1000, 0, C.AWAY_CAP_S) : 0;
+    const gain = incomePerSecond(plot.owned, me.rb) * elapsed;
+    if (gain > 1) { plot.onIncome(gain); ui.toast(`While you were away: +${fmt(gain)}`, 'gold', 5000); }
+    me.own = [];
+    sfx.claim();
+  } else { plot.resetOwned(); sfx.claim(); ui.toast('Tycoon claimed! Step on the FREE Dropper pad to start earning.', 'good', 5000); }
+  me.savedPlot = plot.idx;
+  saveState(); sendPresence(true);
+}
+
+// ----- pads -----
+function checkPads(now) {
+  const me = G.me, pos = G.local.pos; let text = null, kind = '';
+  for (const plot of G.plots) {
+    if (Math.abs(pos.x - plot.def.x) > C.PLOT_SIZE / 2 + 4 || Math.abs(pos.z - plot.def.z) > C.PLOT_SIZE / 2 + 4) continue;
+    const pad = padAt(plot, pos.x, pos.y, pos.z); if (!pad) continue;
+    const key = plot.idx + ':' + (pad.it?.id ?? pad.kind), ready = now - (G.padCooldown.get(key) ?? 0) > 450;
+    const act = () => G.padCooldown.set(key, now);
+    if (pad.kind === 'claim') {
+      if (me.plot !== null) { text = 'You already own a tycoon'; kind = 'bad'; }
+      else if (ready) { act(); claimPlot(plot); resolvePlots(); }
+    } else if (pad.kind === 'collect') {
+      if (!plot.isMine) text = `${plot.ownerName}'s collector`;
+      else if (plot.owned.has('auto')) { text = 'Auto Collector is on<small>cash goes straight to your wallet</small>'; kind = 'ok'; }
+      else if (plot.pool >= 1) { if (ready) { act(); const amt = Math.floor(plot.pool); plot.pool -= amt; me.cash += amt; sfx.collect(); ui.toast(`+${fmt(amt)}`, 'good', 1100); saveState(); } text = 'Collecting…'; kind = 'ok'; }
+      else text = 'Collector is empty';
+    } else {
+      const it = pad.it;
+      if (!plot.isMine) text = `${plot.ownerName}'s tycoon`;
+      else if (me.cash >= it.price) { if (ready) { act(); buyItem(plot, it); } text = `Buying ${it.name}…<small>${it.desc}</small>`; kind = 'ok'; }
+      else { text = `${it.name} — ${fmt(it.price)}<small>Need ${fmt(it.price - me.cash)} more · ${it.desc}</small>`; kind = 'bad'; }
+    }
+  }
+  ui.setPrompt(text, kind);
+}
+function buyItem(plot, it) {
+  const me = G.me;
+  me.cash -= it.price;
+  if (it.type === 'rebirth') {
+    me.rb += 1; me.cash = 0; plot.resetOwned();
+    ui.toast(`REBIRTH ${me.rb}! All income +${Math.round(me.rb * C.REBIRTH_BONUS * 100)}%`, 'gold', 6000); sfx.rebirth();
+    ui.chat(null, `★ You rebirthed (${me.rb}).`);
+  } else {
+    plot.addOwned(it.id);
+    if (it.id === 'auto') { me.cash += Math.floor(plot.pool); plot.pool = 0; }
+    ui.toast(`Bought ${it.name}!`, 'good', 1800); sfx.buy();
+    if (it.id === 'floor2') ui.chat(null, 'Second floor built. Take the stairs on the left to reach the sky conveyor.');
+  }
+  G.fameDirty = true; saveState(); sendPresence(true);
+}
+
+// ----- hotkeys, chat, home -----
+function teleportHome() {
+  const plot = myPlot(); if (!plot) return;
+  const w = plotToWorld(plot.idx, 0, C.PLOT_SIZE / 2 + 4);
+  G.local.teleport(w.x, 0, w.z); G.local.yaw = plot.def.rot + Math.PI;
+}
+function wireHotkeys() {
+  G.controls.onKey = (code, e) => {
+    if (!G.started) return false;
+    if (code === 'Enter') { if (!ui.chatOpen) { ui.openChat(); e.preventDefault(); } return true; }
+    if (code === 'KeyH') { ui.toggleHelp(); return true; }
+    if (code === 'KeyT') { teleportHome(); return true; }
+    if (code === 'KeyL') { ui.toggleFame(); return true; }
+    if (code === 'Escape') { ui.toggleHelp(false); return true; }
+    return false;
+  };
+  $('chat-input').addEventListener('keydown', (e) => {
+    e.stopPropagation();
+    if (e.key === 'Enter') {
+      const text = $('chat-input').value.replace(/[\u0000-\u001f]/g, '').trim().slice(0, 140);
+      if (text) { ui.chat(G.me.nick, text, G.me.color); G.say = { i: ++G.saySeq, t: text, at: Date.now() }; sendPresence(true); }
+      ui.closeChat();
+    } else if (e.key === 'Escape') ui.closeChat();
+  });
+  $('home-btn').addEventListener('click', teleportHome);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible' || !G.started) { if (G.started) saveState(); return; }
+    const plot = myPlot(), s = loadSave();
+    if (!plot || !s?.lastTick) return;
+    const elapsed = clamp((Date.now() - s.lastTick) / 1000, 0, C.AWAY_CAP_S);
+    const gain = incomePerSecond(plot.owned, G.me.rb) * elapsed;
+    if (gain > 1 && elapsed > 5) { plot.onIncome(gain); ui.toast(`While you were away: +${fmt(gain)}`, 'gold', 4000); }
+    saveState();
+  });
+}
+
+// ----- main loop -----
+const PHYS = 1 / 60;
+let last = performance.now(), acc = 0, hudTimer = 0, boardTimer = 0, boardTick = 0, envTime = 0;
+const sunOffset = new THREE.Vector3(70, 130, 50);
+function frame(now) {
+  requestAnimationFrame(frame);
+  const dt = Math.min(0.1, (now - last) / 1000); last = now; envTime += dt;
+  G.env.update(dt, envTime);
+  if (G.started && G.local) {
+    const input = G.controls.poll();
+    if (ui.chatOpen || !$('help').classList.contains('hidden')) { input.moveX = input.moveZ = 0; input.jump = false; }
+    const solids = G.env.solids.concat(...G.plots.map((p) => p.getSolids()));
+    acc += dt; let steps = 0;
+    while (acc >= PHYS && steps < 8) { G.local.update(PHYS, input, solids); input.jump = false; input.lookDX = input.lookDY = input.zoom = 0; acc -= PHYS; steps++; }
+    if (steps === 8) acc = 0;
+    G.local.avatar.update(dt);
+    checkPads(now);
+    if (now - G.lastSendAt > 1000 / C.SEND_HZ) { G.lastSendAt = now; sendPresence(); }
+    if (now - G.lastSaveAt > 5000) { G.lastSaveAt = now; saveState(); if (G.fameDirty && now - G.lastFameAt > 20000) { G.lastFameAt = now; writeFame(); } }
+    const p = G.local.pos; G.env.sun.position.copy(p).add(sunOffset); G.env.sun.target.position.copy(p); G.env.sun.target.updateMatrixWorld();
+    // HUD
+    hudTimer += dt;
+    if (hudTimer > 0.15) {
+      hudTimer = 0;
+      const me = G.me, plot = myPlot();
+      ui.setCash(me.cash); ui.setText('rebirths', `★ ${me.rb}`);
+      $('home-btn').classList.toggle('hidden', !plot);
+      if (!plot) { ui.setText('status', 'Find an empty plot and step on the gold CLAIM pad.'); ui.setText('income', ''); }
+      else {
+        const ips = incomePerSecond(plot.owned, me.rb), n = plot.owned.size, total = ITEMS.length - 1;
+        ui.setText('status', n === 0 ? 'Step on the FREE Dropper pad to start earning.' : n >= total ? 'Everything built! Step on the purple REBIRTH pad.' : `Built ${n}/${total} · Collector ${plot.owned.has('auto') ? 'auto' : fmt(plot.pool)}`);
+        ui.setText('income', ips > 0 ? `${ips < 100 ? '$' + ips.toFixed(1) : fmt(ips)} / sec` : '');
+      }
+    }
+  }
+  for (const r of G.remotes.values()) {
+    const g = r.avatar.group.position, k = Math.min(1, dt * 12);
+    g.x += (r.target.x - g.x) * k; g.y += (r.target.y - g.y) * k; g.z += (r.target.z - g.z) * k;
+    r.avatar.update(dt);
+  }
+  const rm = rebirthMult();
+  for (const plot of G.plots) { plot.update(dt, plot.isMine ? rm : 1); if (G.me) plot.updatePads(G.me.cash); }
+  boardTimer += dt;
+  if (boardTimer > 0.5 && G.me) {
+    boardTimer = 0;
+    const rows = [{ key: '~me', nick: G.me.nick, cash: G.me.cash, rb: G.me.rb, color: G.me.color }];
+    for (const r of G.remotes.values()) { const pr = r.presence || {}; rows.push({ key: r.key, nick: r.avatar.name, cash: Math.max(0, +pr.cash || 0), rb: pr.rb | 0, color: r.avatar.color }); }
+    rows.sort((a, b) => (b.rb - a.rb) || (b.cash - a.cash));
+    if (ui.fame) {
+      const empty = G.hallState === 'none' ? 'Hall of fame needs this page open in claude.ai.' : G.hallState === 'loading' ? 'Loading…' : G.hallState === 'slow' ? 'Still loading… the store may be unreachable.' : G.hallState === 'error' ? 'Hall of fame unavailable right now.' : 'Nobody has made it in yet. Earn cash to be first!';
+      ui.board(G.hallRows.map((r) => ({ ...r, key: r.key === G.uid ? '~me' : r.key })), '~me', 'HALL OF FAME (ALL TIME)', empty);
+    } else ui.board(rows, '~me', G.target ? 'ON THIS SERVER' : 'SOLO', '');
+    boardTick = (boardTick + 1) % 2;
+    if (boardTick === 0) for (const b of G.env.boards) drawLeaderboardBoard(b, rows, '~me');
+  }
+  if (!G.started) { const t = now / 1000; G.camera.position.set(Math.sin(t * 0.06) * 150, 42, Math.cos(t * 0.06) * 150); G.camera.lookAt(0, 8, 0); }
+  G.renderer.render(G.scene, G.camera);
+}
+
+// ----- boot -----
+async function boot(hotData) {
+  try { await Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 1500))]); } catch {}
+  init();
+  wireHotkeys();
+  const save = hotData && hotData.save ? hotData.save : loadSave();
+  setupJoinScreen(save);
+  requestAnimationFrame(frame);
+  await initMultiplayer();
+  const hot = window.claude?.hot;
+  if (hot && typeof hot.snapshot === 'function') { try { hot.snapshot(() => ({ save: saveState() })); } catch {} }
+}
+const hot = window.claude?.hot;
+if (hot && typeof hot.ready === 'function') hot.ready((data) => boot(data)); else boot(hot?.data ?? null);
+
+// Debug hook for tests: teleport to plot-local coordinates and grant cash.
+window.__bt = { G, ITEMS, goto(i, lx, lz, y = 0) { const w = plotToWorld(i, lx, lz); G.local?.teleport(w.x, y, w.z); }, cheat(n) { if (G.me) G.me.cash += n; }, fmt };
+</script>
