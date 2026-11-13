@@ -2104,6 +2104,7 @@ const Profile = {
   blankUp() { return { engine: 0, turbo: 0, tires: 0, nitro: 0 }; },
   fresh() { return { credits: 500, cars: { vanta: { up: this.blankUp() } }, car: 'vanta', paint: 'ember', name: '', bestLaps: {}, bestDrift: {}, ghosts: {}, races: 0, wins: 0, trophies: 0, cam: 0, quality: null, updatedAt: 0 }; },
   normalize(d) {
+    d = d ? JSON.parse(JSON.stringify(d)) : null;      /* db snapshots are frozen: always work on a copy */
     const out = Object.assign(this.fresh(), d || {});
     /* v1 saves kept one set of upgrades at the top level: they belong to the starter car */
     if (!d || !d.cars) out.cars = { vanta: { up: Object.assign(this.blankUp(), (d && d.upgrades) || {}) } };
@@ -2132,11 +2133,21 @@ const Profile = {
         else if ((this.data.updatedAt || 0) > (remote.updatedAt || 0)) this.pushRemote();
       } else this.pushRemote();
       $('#m-save-status').textContent = 'Progress synced to your account';
+      this.syncRecord();
     } catch (e) { /* db unavailable for this viewer: local only */ }
   },
   async pushRemote() {
     if (!this.db || !this.userId) return;
     try { const d = Object.assign({}, this.data); delete d.ghosts; await this.db.doc('data/users/' + this.userId + '/profile').set(d); } catch (e) { this.db = null; }
+  },
+  /* publish existing personal bests once, but only when the shared row is missing or out of date */
+  async syncRecord() {
+    try {
+      const d = this.data; if (!Object.keys(d.bestLaps).length && !Object.keys(d.bestDrift).length) return;
+      const snap = await this.db.doc('records/' + this.userId).get(), v = snap.exists ? snap.data() : null;
+      const same = v && JSON.stringify(v.laps || {}) === JSON.stringify(d.bestLaps) && JSON.stringify(v.drift || {}) === JSON.stringify(d.bestDrift) && (v.name || '') === (d.name || '').trim().slice(0, 16);
+      if (!same) this.pushRecord();
+    } catch (e) { /* board unavailable */ }
   },
   /* personal bests go to the shared board (each viewer may only write their own row) */
   pushRecord() {
