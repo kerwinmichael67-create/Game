@@ -1,0 +1,76 @@
+.kbd {
+  display: inline-block;
+  border: 1px solid var(--edge);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  padding: 1px 7px;
+  font-family: var(--display);
+  font-size: 11px;
+  background: rgba(255, 255, 255, 0.05);
+  margin: 0 2px;
+}
+.controls {
+  display: grid;
+  gap: 8px 24px;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  font-size: 14px;
+  color: var(--muted);
+  flex: 1;
+  min-width: min(100%, 260px);
+}
+.controls div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+#loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background: var(--bg);
+  z-index: 20;
+  font-family: var(--display);
+  letter-spacing: 0.2em;
+  font-size: 13px;
+  color: var(--muted);
+}
+#loading[hidden] {
+  display: none !important;
+}
+.spinner {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.08);
+  border-top-color: var(--accent);
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tile,
+  .btn {
+    transition: none;
+  }
+  #wrongway.show {
+    animation: none;
+  }
+  #drift.banked #d-bank {
+    animation: none;
+  }
+}
+@media (max-width: 520px) {
+  .pos {
+    font-size: 30px;
+  }
+  .standings {
+    display: none;
+  }
+}

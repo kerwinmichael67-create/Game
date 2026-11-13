@@ -1,0 +1,59 @@
+/* Layout: a single full-bleed 3D viewport with glass HUD panels pinned to the edges; menus are centered cards over a live, slowly orbiting track. */
+:root {
+  --bg: #07090f; /* pit-lane night */
+  --panel: rgba(12, 16, 28, 0.78);
+  --panel-2: rgba(18, 24, 40, 0.9);
+  --edge: rgba(160, 190, 255, 0.14);
+  --fg: #eef3ff;
+  --muted: #8c98b8;
+  --accent: #ff7a1a; /* sodium-lamp orange */
+  --accent-2: #39d2ff; /* telemetry cyan */
+  --good: #4ade80;
+  --warn: #facc15;
+  --bad: #f87171;
+  --display: 'Orbitron', 'Rajdhani', system-ui, sans-serif;
+  --body: 'Rajdhani', 'Segoe UI', system-ui, sans-serif;
+  color-scheme: dark;
+}
+html,
+body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.3;
+  -webkit-font-smoothing: antialiased;
+  position: relative;
+  padding-left: max(0px, env(safe-area-inset-left, 0px));
+  padding-right: max(0px, env(safe-area-inset-right, 0px));
+}
+* {
+  box-sizing: border-box;
+}
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 2px;
+}
+#gl {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+}
+canvas {
+  display: block;
+}

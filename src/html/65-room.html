@@ -1,0 +1,22 @@
+<!-- ===== RACE ROOM ===== -->
+<div class="screen" id="s-room" hidden>
+  <div class="card">
+    <div class="brand"><div><p class="eyebrow">Room code</p><div class="code" id="r-code">------</div></div><div class="status on" id="r-status"><b></b><span id="r-status-text">Waiting for drivers</span></div></div>
+    <div class="online">
+      <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+        <p class="eyebrow" style="margin:0">Grid · <span id="r-count">1</span>/8</p>
+        <div class="list" id="r-players"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;min-width:0">
+        <div class="field"><label>Circuit</label><div class="seg" id="r-track"></div></div>
+        <div class="field"><label>Laps</label><div class="seg" id="r-laps"><button type="button" data-v="1">1</button><button type="button" data-v="3" aria-pressed="true">3</button><button type="button" data-v="5">5</button></div></div>
+        <div class="field"><label>Fill grid with bots</label><div class="seg" id="r-bots"><button type="button" data-v="0">None</button><button type="button" data-v="2" aria-pressed="true">2</button><button type="button" data-v="4">4</button></div></div>
+        <p class="muted" id="r-hint" style="font-size:14px">Only the host can change settings and start the race.</p>
+      </div>
+    </div>
+    <div class="row" style="justify-content:space-between">
+      <button class="btn ghost" id="b-leave" type="button">Leave room</button>
+      <div class="row"><button class="btn cyan" id="b-ready" type="button" aria-pressed="false">Ready up</button><button class="btn" id="b-start" type="button">Start race</button></div>
+    </div>
+  </div>
+</div>

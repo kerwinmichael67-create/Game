@@ -1,0 +1,25 @@
+<!-- ===== GARAGE ===== -->
+<div class="screen" id="s-garage" hidden>
+  <div class="card">
+    <div class="brand"><div><p class="eyebrow">Garage</p><h2>Own it, tune it</h2></div><div class="credits"><span id="g-credits">0</span><small>CR</small></div></div>
+    <div class="car-row" id="g-cars"></div>
+    <div class="garage">
+      <div style="display:flex;flex-direction:column;gap:14px;min-width:0">
+        <div class="preview" id="preview"><div class="preview-info"><div class="pi-name" id="g-car-name"></div><div class="pi-tag" id="g-car-tag"></div></div><button class="btn preview-buy" id="b-buy-car" type="button" hidden>Buy</button></div>
+        <p class="muted" id="g-car-desc" style="font-size:14px"></p>
+        <div class="field"><label>Paint</label><div class="swatches" id="swatches"></div></div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div class="stat-line"><span>Top speed</span><div class="bar"><i id="st-speed"></i></div><span class="val" id="sv-speed"></span></div>
+          <div class="stat-line"><span>0–100 km/h</span><div class="bar"><i id="st-accel"></i></div><span class="val" id="sv-accel"></span></div>
+          <div class="stat-line"><span>Cornering</span><div class="bar"><i id="st-grip"></i></div><span class="val" id="sv-grip"></span></div>
+          <div class="stat-line"><span>Nitro</span><div class="bar"><i id="st-nitro"></i></div><span class="val" id="sv-nitro"></span></div>
+        </div>
+      </div>
+      <div class="upgrades" id="upgrades"></div>
+    </div>
+    <div class="row" style="justify-content:space-between">
+      <button class="btn ghost" id="b-garage-back" type="button">Back</button>
+      <span class="muted" id="g-hint" style="font-size:14px">Win races to earn credits.</span>
+    </div>
+  </div>
+</div>

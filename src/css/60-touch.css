@@ -1,0 +1,112 @@
+/* Touch controls */
+#touch {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 36%;
+  display: none;
+  z-index: 4;
+  pointer-events: none;
+}
+#touch[hidden] {
+  display: none !important;
+}
+body.touch #touch {
+  display: block;
+}
+.tbtn {
+  position: absolute;
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(12, 16, 28, 0.55);
+  border: 2px solid rgba(160, 190, 255, 0.3);
+  color: var(--fg);
+  font-family: var(--display);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  pointer-events: auto;
+  backdrop-filter: blur(6px);
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+.tbtn:active,
+.tbtn.on {
+  background: rgba(57, 210, 255, 0.35);
+  border-color: var(--accent-2);
+}
+#t-left {
+  left: max(18px, env(safe-area-inset-left, 0px));
+}
+#t-right {
+  left: calc(max(18px, env(safe-area-inset-left, 0px)) + 88px);
+}
+#t-gas {
+  right: max(18px, env(safe-area-inset-right, 0px));
+  width: 84px;
+  height: 84px;
+  background: rgba(74, 222, 128, 0.25);
+  border-color: rgba(74, 222, 128, 0.5);
+}
+#t-brake {
+  right: calc(max(18px, env(safe-area-inset-right, 0px)) + 100px);
+  background: rgba(248, 113, 113, 0.2);
+  border-color: rgba(248, 113, 113, 0.5);
+}
+#t-nitro {
+  right: calc(max(18px, env(safe-area-inset-right, 0px)) + 6px);
+  bottom: calc(116px + env(safe-area-inset-bottom, 0px));
+  width: 64px;
+  height: 64px;
+  background: rgba(255, 122, 26, 0.25);
+  border-color: rgba(255, 122, 26, 0.6);
+}
+#t-drift {
+  right: calc(max(18px, env(safe-area-inset-right, 0px)) + 84px);
+  bottom: calc(104px + env(safe-area-inset-bottom, 0px));
+  width: 68px;
+  height: 68px;
+  background: rgba(57, 210, 255, 0.22);
+  border-color: rgba(57, 210, 255, 0.6);
+}
+body.touch .hud-bl {
+  bottom: calc(36% + 10px);
+}
+body.touch #msg {
+  top: 19%;
+}
+body.touch #toast {
+  top: 27%;
+}
+body.touch #drift {
+  bottom: auto;
+  top: 35%;
+  min-width: 150px;
+}
+body.touch #d-pts {
+  font-size: 28px;
+}
+body.touch .d-bar {
+  width: 150px;
+}
+body.touch .hud-br {
+  bottom: calc(36% + 10px);
+}
+body.touch #minimap {
+  width: 110px;
+  height: 110px;
+}
+body.touch #speedo {
+  width: 150px;
+  height: 118px;
+}
+body.touch #nitrobar {
+  width: 150px;
+}
+body.touch .kbd-hint {
+  display: none;
+}
+.nitro-label {
+  white-space: nowrap;
+}

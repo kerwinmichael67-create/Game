@@ -1,0 +1,19 @@
+<!-- ===== ONLINE LOBBY ===== -->
+<div class="screen" id="s-online" hidden>
+  <div class="card">
+    <div class="brand"><div><p class="eyebrow">Online</p><h2>Multiplayer lobby</h2></div><div class="status" id="o-status"><b></b><span>Connecting…</span></div></div>
+    <div class="notice" id="o-notice" hidden></div>
+    <div class="online">
+      <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+        <p class="eyebrow" style="margin:0">Drivers online · <span id="o-count">0</span></p>
+        <div class="list" id="o-players"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;min-width:0">
+        <div class="field"><label>Open a room</label><div class="row"><button class="btn cyan" id="b-create" type="button">Create room</button><span class="muted" style="font-size:14px">You become host and pick the circuit.</span></div></div>
+        <div class="field"><label for="joincode">Join with a code</label><div class="row"><input type="text" id="joincode" maxlength="6" placeholder="ABC123" style="max-width:170px;text-transform:uppercase;letter-spacing:.2em;font-family:var(--display)"><button class="btn" id="b-join" type="button">Join</button></div></div>
+        <div class="field"><label>Open rooms</label><div class="list" id="o-rooms"><div class="muted" style="font-size:14px">No rooms yet. Open one and share the code.</div></div></div>
+      </div>
+    </div>
+    <div class="row"><button class="btn ghost" id="b-online-back" type="button">Back</button></div>
+  </div>
+</div>

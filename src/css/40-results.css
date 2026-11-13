@@ -1,0 +1,33 @@
+/* Results */
+table.results {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+table.results th,
+table.results td {
+  padding: 10px 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--edge);
+  font-size: 15px;
+}
+table.results th {
+  font-family: var(--display);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+table.results tr.me td {
+  color: var(--accent-2);
+  font-weight: 700;
+}
+.reward {
+  font-family: var(--display);
+  font-size: 22px;
+  color: var(--warn);
+}
+.tbl-wrap {
+  overflow-x: auto;
+  min-width: 0;
+}

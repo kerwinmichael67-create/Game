@@ -1,0 +1,30 @@
+<!-- ===== HUD ===== -->
+<div id="hud" hidden>
+  <div class="hud-tl">
+    <div class="pill"><div class="pos"><span id="h-pos">1</span><sup id="h-pos-sup">st</sup><span style="font-size:14px;color:var(--muted)"> / <span id="h-total">4</span></span></div></div>
+    <div class="pill lap">LAP <b id="h-lap">1</b> / <span id="h-laps">3</span></div>
+    <div class="pill lap" id="h-drift" hidden>DRIFT <b id="h-drift-v">0</b></div>
+    <div class="pill standings" id="h-standings"></div>
+  </div>
+  <div class="hud-tr">
+    <div class="pill time"><small>LAP TIME</small><span id="h-time">0:00.000</span></div>
+    <div class="pill time"><small>BEST</small><span id="h-best">--:--.---</span></div>
+  </div>
+  <button id="pausebtn" class="icon-btn" type="button" aria-label="Pause">II</button>
+  <div id="tags"></div>
+  <div class="hud-br">
+    <canvas id="speedo" width="380" height="300"></canvas>
+    <div id="nitrobar"><i></i></div>
+    <div class="nitro-label">NITRO<span class="kbd-hint"> · SHIFT</span></div>
+  </div>
+  <div class="hud-bl"><canvas id="minimap" width="300" height="300"></canvas></div>
+  <div id="drift">
+    <div class="d-row"><span class="d-label">DRIFT</span><span id="d-mult"></span></div>
+    <div id="d-pts">0</div>
+    <div class="d-bar"><i id="d-fill"></i><b style="left:24%"></b><b style="left:56.5%"></b></div>
+    <div id="d-bank">+0</div>
+  </div>
+  <div id="msg"></div>
+  <div id="toast"></div>
+  <div id="wrongway">WRONG WAY</div>
+</div>

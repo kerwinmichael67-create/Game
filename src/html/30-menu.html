@@ -1,0 +1,35 @@
+<!-- ===== MAIN MENU ===== -->
+<div class="screen" id="s-menu" hidden>
+  <div class="card">
+    <div class="brand">
+      <div><h1>APEX <span>CIRCUIT</span></h1><div class="sub">Arcade racing · drifting · upgrades · online grid</div></div>
+      <div class="credits"><span id="m-credits">0</span><small>CR</small></div>
+    </div>
+    <div class="menu-grid">
+      <button class="tile accent" id="b-quick" type="button"><span class="t-icon">🏁</span><span class="t-title">Race the AI</span><span class="t-desc">Single race against bots. Pick the circuit, laps and difficulty.</span></button>
+      <button class="tile" id="b-champ" type="button"><span class="t-icon">🏆</span><span class="t-title">Championship</span><span class="t-desc">Three circuits, points every round, a big purse for the title.</span></button>
+      <button class="tile" id="b-drift" type="button"><span class="t-icon">💨</span><span class="t-title">Drift Attack</span><span class="t-desc">Two laps, no rivals. Chain slides for score and chase the gold medal.</span></button>
+      <button class="tile" id="b-trial" type="button"><span class="t-icon">⏱</span><span class="t-title">Time Trial</span><span class="t-desc">Empty track, your best lap, and the ghost of your own record.</span></button>
+      <button class="tile" id="b-online" type="button"><span class="t-icon">🌐</span><span class="t-title">Online Multiplayer</span><span class="t-desc">Open a room with a code and race friends in real time.</span><span class="status" id="m-online-status"><b></b><span>Connecting…</span></span></button>
+      <button class="tile" id="b-garage" type="button"><span class="t-icon">🔧</span><span class="t-title">Garage</span><span class="t-desc">Four cars to own and tune: engine, turbo, tyres, nitro, paint.</span></button>
+      <button class="tile" id="b-board" type="button"><span class="t-icon">📊</span><span class="t-title">Leaderboard</span><span class="t-desc">Best laps and drift scores from everyone who plays here.</span></button>
+    </div>
+    <div class="divider"></div>
+    <div class="row" style="justify-content:space-between;align-items:flex-start">
+      <div class="controls">
+        <div><span>Steer</span><span><span class="kbd">A</span><span class="kbd">D</span> / <span class="kbd">←</span><span class="kbd">→</span></span></div>
+        <div><span>Throttle / Brake</span><span><span class="kbd">W</span><span class="kbd">S</span> / <span class="kbd">↑</span><span class="kbd">↓</span></span></div>
+        <div><span>Drift</span><span>tap <span class="kbd">Space</span> while steering</span></div>
+        <div><span>Nitro</span><span><span class="kbd">Shift</span></span></div>
+        <div><span>Reset car</span><span><span class="kbd">R</span></span></div>
+        <div><span>Camera / Pause</span><span><span class="kbd">C</span><span class="kbd">Esc</span></span></div>
+      </div>
+      <div class="field" style="min-width:200px"><label for="nick">Driver name</label><input type="text" id="nick" maxlength="16" autocomplete="off" placeholder="Racer"></div>
+    </div>
+    <p class="tip"><b>How to drift.</b> Tap drift as you turn in and the tail steps out. Steer into the corner to hold the angle, ease off to straighten. A long, clean slide charges a turbo that fires when you straighten up: blue, then orange, then purple.</p>
+    <div class="row" style="justify-content:space-between">
+      <div class="row"><button class="btn ghost sm" id="b-sound" type="button" aria-pressed="true">Sound: On</button><button class="btn ghost sm" id="b-music" type="button" aria-pressed="true">Music: On</button><button class="btn ghost sm" id="b-quality" type="button">Graphics: High</button></div>
+      <span class="muted" style="font-size:13px" id="m-save-status">Progress saved in this browser</span>
+    </div>
+  </div>
+</div>
