@@ -145,7 +145,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--gold); outl
       <div id="swatches" class="swatches" role="group" aria-label="Shirt color"></div>
       <button id="play" class="btn primary">PLAY</button>
       <div id="mp-status" class="mp-status"><span class="dot"></span><span id="mp-text">Checking for other players…</span></div>
-      <div class="note"><b>Controls</b> WASD / arrows move · Space jump · drag to look · scroll to zoom · Enter chat · T home · H help<br><b>Only three buy pads show at a time.</b> Buy one and the next appears.</div>
+      <div class="note"><b>Controls</b> WASD / arrows move · Space jump · drag to look · scroll to zoom · Enter chat · T home · G graphics · H help<br><b>Only three buy pads show at a time.</b> Buy one and the next appears.</div>
     </div>
   </div>
 
@@ -190,6 +190,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--gold); outl
       <div id="chat-hint" class="chat-hint">Press Enter to chat</div>
     </div>
     <div class="bottom-right">
+      <button id="quality-btn" class="icon-btn" title="Graphics quality (G)" aria-pressed="false" style="font-size:13px">HD</button>
       <button id="fame-btn" class="icon-btn" title="Toggle hall of fame (L)" aria-pressed="false">★</button>
       <button id="help-btn" class="icon-btn" title="Help (H)">?</button>
       <button id="home-btn" class="icon-btn hidden" title="Teleport to my tycoon (T)">⌂</button>
@@ -233,11 +234,11 @@ if (!THREE) {
 const C = {
   PLOT_SIZE: 80,
   WORLD_X: 185, WORLD_Z: 150,
-  PLAYER_SPEED: 11, JUMP_SPEED: 17, GRAVITY: 40,
+  PLAYER_SPEED: 16, JUMP_SPEED: 19, GRAVITY: 50,
   PAD_RADIUS: 2.6, CLAIM_RADIUS: 3.4, COLLECT_RADIUS: 3,
-  CONVEYOR_SPEED: 11,
+  CONVEYOR_SPEED: 14,
   DROP_HEIGHT: 7,          // nozzle height above the belt top
-  FALL_TIME: 0.6,
+  FALL_TIME: 0.45,
   REBIRTH_BONUS: 0.5,
   VISIBLE_PADS: 3,
   MAX_PLAYERS: 6,
@@ -309,7 +310,7 @@ const ITEMS = [
 ITEMS.forEach((it, i) => { it.idx = i; });
 const ITEM = Object.fromEntries(ITEMS.map((it) => [it.id, it]));
 const SPECIAL = { claim: [0, 33], collect: [26, 14] };
-const DROP_INTERVAL = 1.5;
+const DROP_INTERVAL = 1.25;
 
 function visibleItems(owned) {
   const out = [];
@@ -556,7 +557,7 @@ function buildEnvironment(scene) {
   const sun = new THREE.DirectionalLight(0xfff4e0, 2.0);
   sun.position.set(70, 130, 50);
   sun.castShadow = true;
-  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.mapSize.set(1536, 1536);
   sun.shadow.camera.near = 10; sun.shadow.camera.far = 420;
   const S = 95; sun.shadow.camera.left = -S; sun.shadow.camera.right = S; sun.shadow.camera.top = S; sun.shadow.camera.bottom = -S;
   sun.shadow.bias = -0.0006; sun.shadow.normalBias = 0.03;
@@ -568,20 +569,22 @@ function buildEnvironment(scene) {
   sunSprite.position.set(260, 380, 180); sunSprite.scale.set(120, 120, 1);
   scene.add(sunSprite);
 
-  // Clouds.
-  const clouds = [];
-  for (let i = 0; i < 16; i++) {
-    const g = new THREE.Group();
-    const n = 3 + Math.floor(Math.random() * 3);
-    for (let k = 0; k < n; k++) {
-      const s = new THREE.Mesh(new THREE.SphereGeometry(5 + Math.random() * 7, 10, 8), M.cloud);
-      s.position.set((k - n / 2) * 7 + Math.random() * 4, Math.random() * 3, Math.random() * 6 - 3);
-      s.scale.y = 0.55; g.add(s);
-    }
-    g.position.set(-260 + Math.random() * 520, 75 + Math.random() * 40, -240 + Math.random() * 480);
-    g.userData.speed = 1 + Math.random() * 1.5;
-    scene.add(g); clouds.push(g);
+  // Clouds: one instanced mesh of puffs, drifting slowly.
+  const puffs = [];
+  for (let i = 0; i < 14; i++) {
+    const cx = -260 + Math.random() * 520, cy = 75 + Math.random() * 40, cz = -240 + Math.random() * 480, speed = 1.5 + Math.random() * 2, n = 3 + Math.floor(Math.random() * 3);
+    for (let k = 0; k < n; k++) puffs.push({ ox: (k - n / 2) * 7 + Math.random() * 4, oy: cy + Math.random() * 3, oz: cz + Math.random() * 6 - 3, r: 5 + Math.random() * 7, cx, speed, cloud: i });
   }
+  const cloudMesh = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 8, 6), M.cloud, puffs.length);
+  cloudMesh.castShadow = false; cloudMesh.receiveShadow = false; scene.add(cloudMesh);
+  const cloudX = Array.from({ length: 14 }, (_, i) => puffs.find((p) => p.cloud === i)?.cx ?? 0);
+  const cloudSpeed = Array.from({ length: 14 }, (_, i) => puffs.find((p) => p.cloud === i)?.speed ?? 1);
+  const m4 = new THREE.Matrix4(), q0 = new THREE.Quaternion(), v3 = new THREE.Vector3(), sc = new THREE.Vector3();
+  const layoutClouds = () => {
+    puffs.forEach((p, i) => { v3.set(cloudX[p.cloud] + p.ox, p.oy, p.oz); sc.set(p.r, p.r * 0.55, p.r); m4.compose(v3, q0, sc); cloudMesh.setMatrixAt(i, m4); });
+    cloudMesh.instanceMatrix.needsUpdate = true;
+  };
+  layoutClouds();
 
   // Ground, street, sidewalks.
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(440, 360), M.grass);
@@ -612,7 +615,7 @@ function buildEnvironment(scene) {
     box(1.4, 15, 1.4, M.post, HUB.x, 7.5, tz, scene);
     box(14.6, 8.6, 0.7, M.trim, HUB.x, 11.5, tz, scene);
     for (const face of [1, -1]) {
-      const b = new Board({ width: 14, height: 8, cw: 1024, ch: 585 });
+      const b = new Board({ width: 14, height: 8, cw: 768, ch: 439 });
       b.mesh.position.set(HUB.x, 11.5, tz + face * 0.4); if (face < 0) b.mesh.rotation.y = Math.PI;
       scene.add(b.mesh); boards.push(b);
     }
@@ -634,27 +637,32 @@ function buildEnvironment(scene) {
   for (let x = -170; x <= 170; x += 24) { treeSpots.push([x, 126]); treeSpots.push([x, -126]); }
   for (const x of [-168, 168]) for (let z = -100; z <= 100; z += 25) treeSpots.push([x, z]);
   let seed = 7; const rnd = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
-  const trunkGeo = new THREE.CylinderGeometry(0.5, 0.7, 4, 7);
-  const leafGeos = [new THREE.ConeGeometry(3.2, 7, 8), new THREE.SphereGeometry(3.2, 9, 8), new THREE.ConeGeometry(2.6, 6, 7)];
-  for (const [x, z] of treeSpots) {
-    const t = new THREE.Group();
-    const jx = (rnd() - 0.5) * 6, jz = (rnd() - 0.5) * 6;
-    const trunk = new THREE.Mesh(trunkGeo, M.trunk); trunk.position.y = 2; trunk.castShadow = true; t.add(trunk);
-    const kind = Math.floor(rnd() * leafGeos.length);
-    const leaf = new THREE.Mesh(leafGeos[kind], M.leaf[Math.floor(rnd() * 3)]); leaf.position.y = kind === 1 ? 6 : 6.5; leaf.castShadow = true; t.add(leaf);
-    if (kind === 0) { const l2 = new THREE.Mesh(new THREE.ConeGeometry(2.4, 5, 8), M.leaf[1]); l2.position.y = 9.5; l2.castShadow = true; t.add(l2); }
-    const s = 0.8 + rnd() * 0.6; t.scale.set(s, s, s); t.position.set(x + jx, 0, z + jz);
-    scene.add(t);
-  }
+  const trees = [];
+  for (const [x, z] of treeSpots) trees.push({ x: x + (rnd() - 0.5) * 6, z: z + (rnd() - 0.5) * 6, kind: Math.floor(rnd() * 3), leaf: Math.floor(rnd() * 3), s: 0.8 + rnd() * 0.6 });
+  const instanced = (geo, mat, items) => {
+    const im = new THREE.InstancedMesh(geo, mat, items.length); const m4 = new THREE.Matrix4(), col = new THREE.Color();
+    items.forEach((it, i) => { m4.compose(new THREE.Vector3(it.x, it.y, it.z), new THREE.Quaternion(), new THREE.Vector3(it.s, it.s, it.s)); im.setMatrixAt(i, m4); if (it.color !== undefined) { col.setHex(it.color); im.setColorAt(i, col); } });
+    im.instanceMatrix.needsUpdate = true; if (im.instanceColor) im.instanceColor.needsUpdate = true;
+    im.castShadow = true; im.receiveShadow = false; scene.add(im); return im;
+  };
+  const leafColors = [0x3f9d4a, 0x4fb05a, 0x2f8a3f];
+  instanced(new THREE.CylinderGeometry(0.5, 0.7, 4, 7), M.trunk, trees.map((t) => ({ x: t.x, y: 2 * t.s, z: t.z, s: t.s })));
+  const leafMat = std(0xffffff, 0.9);
+  instanced(new THREE.ConeGeometry(3.2, 7, 8), leafMat, trees.filter((t) => t.kind === 0).map((t) => ({ x: t.x, y: 6.5 * t.s, z: t.z, s: t.s, color: leafColors[t.leaf] })));
+  instanced(new THREE.ConeGeometry(2.4, 5, 8), leafMat, trees.filter((t) => t.kind === 0).map((t) => ({ x: t.x, y: 9.5 * t.s, z: t.z, s: t.s, color: leafColors[(t.leaf + 1) % 3] })));
+  instanced(new THREE.SphereGeometry(3.2, 9, 8), leafMat, trees.filter((t) => t.kind === 1).map((t) => ({ x: t.x, y: 6 * t.s, z: t.z, s: t.s, color: leafColors[t.leaf] })));
+  instanced(new THREE.ConeGeometry(2.6, 6, 7), leafMat, trees.filter((t) => t.kind === 2).map((t) => ({ x: t.x, y: 6.5 * t.s, z: t.z, s: t.s, color: leafColors[t.leaf] })));
 
   // Border fence.
   for (const z of [-C.WORLD_Z, C.WORLD_Z]) box(C.WORLD_X * 2, 2.5, 0.5, M.fence, 0, 1.25, z, scene);
   for (const x of [-C.WORLD_X, C.WORLD_X]) box(0.5, 2.5, C.WORLD_Z * 2, M.fence, x, 1.25, 0, scene);
 
+  const interior = new THREE.PointLight(0xfff1c8, 0, 95, 1.6); scene.add(interior);
   return {
-    sun, boards, solids,
+    sun, boards, solids, interior,
     update(dt, t) {
-      for (const c of clouds) { c.position.x += c.userData.speed * dt; if (c.position.x > 280) c.position.x = -280; }
+      for (let i = 0; i < cloudX.length; i++) { cloudX[i] += cloudSpeed[i] * dt; if (cloudX[i] > 280) cloudX[i] = -280; }
+      layoutClouds();
       for (const s of spray) {
         const u = s.userData; u.t += dt * 0.8; if (u.t > 1) { u.t = 0; u.a = Math.random() * Math.PI * 2; }
         const h = 4 * u.t * (1 - u.t) * 4, r = 1 + u.t * 3.5;
@@ -726,7 +734,7 @@ class Plot {
   _buildSpecial() {
     // Claim pad with beacon.
     this.claimPad = new THREE.Group();
-    const cp = cyl(C.CLAIM_RADIUS, C.CLAIM_RADIUS, 0.35, M.padClaim, 0, 0.17, 0, this.claimPad, 36);
+    const cp = cyl(C.CLAIM_RADIUS, C.CLAIM_RADIUS, 0.35, M.padClaim, 0, 0.17, 0, this.claimPad, 36); cp.castShadow = false;
     const beam = new THREE.Mesh(GEO.beam, M.beam); beam.position.y = 15; beam.castShadow = false; this.claimPad.add(beam);
     this.claimLabel = new Label({ text: 'CLAIM TYCOON', size: 2, px: 50, color: '#fde68a', stroke: 'rgba(0,0,0,0.5)' });
     this.claimLabel.sprite.position.y = 4; this.claimPad.add(this.claimLabel.sprite);
@@ -748,7 +756,7 @@ class Plot {
     this.poolLabel = new Label({ text: '$0', size: 1.9, px: 56, color: '#86efac', stroke: 'rgba(0,0,0,0.45)' });
     this.poolLabel.sprite.position.set(cx, 8.6, cz); g.add(this.poolLabel.sprite);
     const sp = SPECIAL.collect;
-    cyl(C.COLLECT_RADIUS, C.COLLECT_RADIUS, 0.35, M.padCollect, sp[0], 0.17, sp[1], g, 32);
+    cyl(C.COLLECT_RADIUS, C.COLLECT_RADIUS, 0.35, M.padCollect, sp[0], 0.17, sp[1], g, 32).castShadow = false;
     const cl = new Label({ text: 'COLLECT', size: 1.3, px: 44, color: '#bae6fd' }); cl.sprite.position.set(sp[0], 3, sp[1]); g.add(cl.sprite);
     this.group.add(g);
   }
@@ -779,7 +787,7 @@ class Plot {
     for (const it of ITEMS) {
       const g = new THREE.Group(); g.visible = false;
       g.position.set(it.pad[0], it.pad[2] ?? 0, it.pad[1]);
-      const mesh = new THREE.Mesh(GEO.pad, it.type === 'rebirth' ? M.padRebirth : M.padOk); mesh.position.y = 0.17; mesh.receiveShadow = true; g.add(mesh);
+      const mesh = new THREE.Mesh(GEO.pad, it.type === 'rebirth' ? M.padRebirth : M.padOk); mesh.position.y = 0.17; mesh.receiveShadow = true; mesh.castShadow = false; g.add(mesh);
       const ring = new THREE.Mesh(GEO.padRing, M.ring); ring.rotation.x = -Math.PI / 2; ring.position.y = 0.4; g.add(ring);
       const beam = new THREE.Mesh(GEO.beam, M.beam); beam.position.y = 15; beam.visible = false; g.add(beam);
       const label = new Label({ text: `${it.name}\n${it.price ? fmt(it.price) : 'FREE'}`, size: 1.9, px: 44, color: ['#ffffff', '#86efac'], stroke: 'rgba(0,0,0,0.4)' });
@@ -852,7 +860,6 @@ class Plot {
         for (const [mat, zz] of [[M.neon, -half + 0.8], [M.neon2, -half + 0.8]]) box(S - 6, 0.3, 0.3, mat, 0, mat === M.neon ? y : y - 0.8, zz, g, { shadow: false });
         box(0.3, 0.3, S - 6, M.neon2, -half + 0.8, y, 0, g, { shadow: false }); box(0.3, 0.3, S - 6, M.neon2, half - 0.8, y, 0, g, { shadow: false });
         for (const x of [-24, 0, 24]) for (const z of [-24, 0, 24]) { box(2.4, 0.4, 2.4, M.dark, x, wallH - 0.4, z, g, { shadow: false }); const b = new THREE.Mesh(new THREE.SphereGeometry(0.7, 10, 10), M.lamp); b.position.set(x, wallH - 1, z); g.add(b); }
-        const pl = new THREE.PointLight(0xfff1c8, 650, 90, 1.6); pl.position.set(0, wallH - 3, -8); g.add(pl);
       } else if (it.id === 'tiles') {
         // handled by swapping the base material in refresh()
       } else if (it.id === 'floor2') {
@@ -964,7 +971,7 @@ class Plot {
       const c = this.cubes[i], p = PATHS[c.path];
       if (c.state === 'fall' || c.state === 'drop') {
         c.t += dt;
-        const T = c.state === 'fall' ? C.FALL_TIME : 0.75, k = Math.min(1, c.t / T);
+        const T = c.state === 'fall' ? C.FALL_TIME : 0.55, k = Math.min(1, c.t / T);
         pathPoint(c.path, c.d, v);
         c.mesh.position.set(v.x, c.y0 + (c.y1 - c.y0) * k * k, v.z);
         c.mesh.rotation.y += dt * c.spin;
@@ -1089,7 +1096,7 @@ class Avatar {
     const u = this.body.userData;
     let d = this.targetYaw - this.body.rotation.y; d = Math.atan2(Math.sin(d), Math.cos(d));
     this.body.rotation.y += d * Math.min(1, dt * 14);
-    if (this.anim === 1) this.walkPhase += dt * 11; else this.walkPhase *= Math.max(0, 1 - dt * 10);
+    if (this.anim === 1) this.walkPhase += dt * 15; else this.walkPhase *= Math.max(0, 1 - dt * 10);
     const swing = this.anim === 1 ? Math.sin(this.walkPhase) * 0.9 : 0, k = Math.min(1, dt * 12);
     const target = this.anim === 2 ? [-2.6, -2.6, 0.5, -0.3] : [swing, -swing, -swing, swing];
     [u.armL, u.armR, u.legL, u.legR].forEach((l, i) => { l.rotation.x += (target[i] - l.rotation.x) * k; });
@@ -1105,7 +1112,7 @@ class LocalPlayer {
   constructor(avatar, camera) {
     this.avatar = avatar; this.camera = camera;
     this.pos = new THREE.Vector3(); this.vy = 0; this.onGround = true; this.standingOn = null;
-    this.yaw = 0; this.pitch = 0.42; this.dist = 20; this.anim = 0; this.camSnap = true;
+    this.yaw = 0; this.pitch = 0.4; this.dist = 18; this.anim = 0; this.camSnap = true;
     this.box = new THREE.Box3(); this._camPos = new THREE.Vector3(); this._camTarget = new THREE.Vector3(); this._ray = new THREE.Ray(); this._hit = new THREE.Vector3();
   }
   teleport(x, y, z) { this.pos.set(x, y, z); this.vy = 0; this.camSnap = true; }
@@ -1133,7 +1140,7 @@ class LocalPlayer {
     }
   }
   update(dt, input, solids) {
-    this.yaw -= input.lookDX * 0.0045;
+    this.yaw -= input.lookDX * 0.005;
     this.pitch = clamp(this.pitch + input.lookDY * 0.004, -0.2, 1.35);
     this.dist = clamp(this.dist + input.zoom * 2, 6, 50);
     const sin = Math.sin(this.yaw), cos = Math.cos(this.yaw);
@@ -1162,7 +1169,7 @@ class LocalPlayer {
     for (const b of near) { if (b.containsPoint(this._camTarget)) continue; if (this._ray.intersectBox(b, this._hit)) { const d = this._hit.distanceTo(this._camTarget) - 0.7; if (d < camDist) camDist = d; } }
     this._camPos.copy(this._camTarget).addScaledVector(this._ray.direction, Math.max(2.5, camDist));
     if (this._camPos.y < 0.8) this._camPos.y = 0.8;
-    if (this.camSnap) { this.camera.position.copy(this._camPos); this.camSnap = false; } else this.camera.position.lerp(this._camPos, Math.min(1, dt * 14));
+    if (this.camSnap) { this.camera.position.copy(this._camPos); this.camSnap = false; } else this.camera.position.lerp(this._camPos, Math.min(1, dt * 24));
     this.camera.lookAt(this._camTarget);
   }
   get facing() { return this.avatar.body.rotation.y; }
@@ -1305,18 +1312,18 @@ const rebirthMult = () => 1 + (G.me?.rb ?? 0) * C.REBIRTH_BONUS;
 function init() {
   const canvas = $('stage');
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap;
   renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
   G.renderer = renderer;
   G.scene = new THREE.Scene();
-  G.camera = new THREE.PerspectiveCamera(60, 1, 0.1, 900);
+  G.camera = new THREE.PerspectiveCamera(68, 1, 0.1, 900);
   const resize = () => { const w = canvas.clientWidth || window.innerWidth, h = canvas.clientHeight || window.innerHeight; renderer.setSize(w, h, false); G.camera.aspect = w / h; G.camera.updateProjectionMatrix(); };
   window.addEventListener('resize', resize); resize();
   G.env = buildEnvironment(G.scene);
   G.plots = PLOTS.map((_, i) => new Plot(i, G.scene));
   G.controls = new Controls(canvas);
-  if (G.controls.touch) { renderer.shadowMap.enabled = false; renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); }
+  if (G.controls.touch) { quality = 'low'; autoQuality = false; renderer.setPixelRatio(1); G.env.sun.castShadow = false; }
   ui.init();
 }
 
@@ -1547,6 +1554,15 @@ function buyItem(plot, it) {
   G.fameDirty = true; saveState(); sendPresence(true);
 }
 
+function setQuality(q) {
+  quality = q;
+  const r = G.renderer, low = q === 'low';
+  r.setPixelRatio(low ? 1 : Math.min(window.devicePixelRatio, 1.5));
+  G.env.sun.castShadow = !low;
+  $('quality-btn').textContent = low ? 'SD' : 'HD'; $('quality-btn').setAttribute('aria-pressed', String(low));
+  try { localStorage.setItem('bloxTycoon.quality', q); } catch {}
+}
+
 // ----- hotkeys, chat, home -----
 function teleportHome() {
   const plot = myPlot(); if (!plot) return;
@@ -1560,6 +1576,7 @@ function wireHotkeys() {
     if (code === 'KeyH') { ui.toggleHelp(); return true; }
     if (code === 'KeyT') { teleportHome(); return true; }
     if (code === 'KeyL') { ui.toggleFame(); return true; }
+    if (code === 'KeyG') { autoQuality = false; setQuality(quality === 'low' ? 'high' : 'low'); return true; }
     if (code === 'Escape') { ui.toggleHelp(false); return true; }
     return false;
   };
@@ -1572,6 +1589,8 @@ function wireHotkeys() {
     } else if (e.key === 'Escape') ui.closeChat();
   });
   $('home-btn').addEventListener('click', teleportHome);
+  $('quality-btn').addEventListener('click', () => { autoQuality = false; setQuality(quality === 'low' ? 'high' : 'low'); });
+  try { if (localStorage.getItem('bloxTycoon.quality') === 'low') { autoQuality = false; setQuality('low'); } } catch {}
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState !== 'visible' || !G.started) { if (G.started) saveState(); return; }
     const plot = myPlot(), s = loadSave();
@@ -1585,24 +1604,32 @@ function wireHotkeys() {
 
 // ----- main loop -----
 const PHYS = 1 / 60;
-let last = performance.now(), acc = 0, hudTimer = 0, boardTimer = 0, boardTick = 0, envTime = 0;
+let last = performance.now(), acc = 0, hudTimer = 0, boardTimer = 0, boardTick = 0, envTime = 0, lastBoardSig = '';
+let fpsFrames = 0, fpsTime = 0, fpsArmed = false, quality = 'high', autoQuality = true;
 const sunOffset = new THREE.Vector3(70, 130, 50);
 function frame(now) {
   requestAnimationFrame(frame);
-  const dt = Math.min(0.1, (now - last) / 1000); last = now; envTime += dt;
+  const dt = Math.min(0.25, (now - last) / 1000); last = now; envTime += dt;
   G.env.update(dt, envTime);
   if (G.started && G.local) {
     const input = G.controls.poll();
     if (ui.chatOpen || !$('help').classList.contains('hidden')) { input.moveX = input.moveZ = 0; input.jump = false; }
     const solids = G.env.solids.concat(...G.plots.map((p) => p.getSolids()));
     acc += dt; let steps = 0;
-    while (acc >= PHYS && steps < 8) { G.local.update(PHYS, input, solids); input.jump = false; input.lookDX = input.lookDY = input.zoom = 0; acc -= PHYS; steps++; }
-    if (steps === 8) acc = 0;
+    while (acc >= PHYS && steps < 16) { G.local.update(PHYS, input, solids); input.jump = false; input.lookDX = input.lookDY = input.zoom = 0; acc -= PHYS; steps++; }
+    if (steps === 16) acc = 0;
     G.local.avatar.update(dt);
     checkPads(now);
     if (now - G.lastSendAt > 1000 / C.SEND_HZ) { G.lastSendAt = now; sendPresence(); }
     if (now - G.lastSaveAt > 5000) { G.lastSaveAt = now; saveState(); if (G.fameDirty && now - G.lastFameAt > 20000) { G.lastFameAt = now; writeFame(); } }
     const p = G.local.pos; G.env.sun.position.copy(p).add(sunOffset); G.env.sun.target.position.copy(p); G.env.sun.target.updateMatrixWorld();
+    // One interior light, parked in whichever lit factory the player is standing in.
+    const here = G.plots.find((pl) => pl.owner !== null && pl.owned.has('lights') && Math.abs(p.x - pl.def.x) < 42 && Math.abs(p.z - pl.def.z) < 42);
+    if (here) { const w = plotToWorld(here.idx, 0, -8); G.env.interior.position.set(w.x, 20, w.z); G.env.interior.intensity = 650; } else G.env.interior.intensity = 0;
+    // Automatic graphics fallback: if the first seconds of play run slowly, drop to the light preset.
+    fpsFrames++; fpsTime += dt;
+    if (autoQuality && !fpsArmed && fpsTime > 2) { fpsArmed = true; fpsFrames = 0; fpsTime = 0; } // skip the first seconds while shaders compile
+    if (autoQuality && fpsArmed && fpsTime > 6) { autoQuality = false; if (fpsFrames / fpsTime < 30 && quality === 'high') { setQuality('low'); ui.toast('Switched to light graphics for smoother play (press G to change).', '', 4500); } }
     // HUD
     hudTimer += dt;
     if (hudTimer > 0.15) {
@@ -1635,8 +1662,8 @@ function frame(now) {
       const empty = G.hallState === 'none' ? 'Hall of fame needs this page open in claude.ai.' : G.hallState === 'loading' ? 'Loading…' : G.hallState === 'slow' ? 'Still loading… the store may be unreachable.' : G.hallState === 'error' ? 'Hall of fame unavailable right now.' : 'Nobody has made it in yet. Earn cash to be first!';
       ui.board(G.hallRows.map((r) => ({ ...r, key: r.key === G.uid ? '~me' : r.key })), '~me', 'HALL OF FAME (ALL TIME)', empty);
     } else ui.board(rows, '~me', G.target ? 'ON THIS SERVER' : 'SOLO', '');
-    boardTick = (boardTick + 1) % 2;
-    if (boardTick === 0) for (const b of G.env.boards) drawLeaderboardBoard(b, rows, '~me');
+    boardTick = (boardTick + 1) % 4;
+    if (boardTick === 0) { const sig = rows.slice(0, 7).map((r) => r.nick + fmt(r.cash) + r.rb).join('|'); if (sig !== lastBoardSig) { lastBoardSig = sig; for (const b of G.env.boards) drawLeaderboardBoard(b, rows, '~me'); } }
   }
   if (!G.started) { const t = now / 1000; G.camera.position.set(Math.sin(t * 0.06) * 150, 42, Math.cos(t * 0.06) * 150); G.camera.lookAt(0, 8, 0); }
   G.renderer.render(G.scene, G.camera);
