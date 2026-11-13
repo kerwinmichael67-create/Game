@@ -46,6 +46,21 @@ Rebuild after editing anything in `src/`:
 node build.mjs
 ```
 
+## Tests
+
+A headless regression suite drives the real page in Chromium (Playwright), with Three.js served from a
+local copy and the artifact runtime replaced by `tests/mockroom.js`:
+
+```bash
+node tests/run.mjs
+```
+
+```bash
+node tests/run.mjs physics net
+```
+
+`node tests/shots.mjs` writes a gallery of screenshots to `tests/out/` for visual review.
+
 Three.js r128 is loaded from cdnjs and its post-processing passes (bloom) from jsDelivr; there are no
 other dependencies and no build tooling to install. Conventions used throughout the code: y is up,
 `forward = (sin yaw, 0, cos yaw)`, `right = forward × up`, and positive steering or lateral offset
