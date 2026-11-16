@@ -24,6 +24,8 @@ class Car {
     this.yaw = 0;
     this.roll = 0;
     this.pitch = 0;
+    this.slopeF = 0; /* rise per metre ahead of the car and to its right, from the road under it */
+    this.slopeR = 0;
     this.input = { throttle: 0, brake: 0, steer: 0, nitro: false, handbrake: false };
     this.digital = false; /* true while a keyboard/touch player is steering: inputs get eased */
     this.ai = null;
@@ -136,6 +138,22 @@ class Car {
     this.driftTier = 0;
   }
 
+  /* Put the car on the road surface under it and turn the body to match the slope there. slopeF and slopeR are
+     the rise per metre ahead of the car and to its right; lean and squat are added on top (radians). */
+  ground(track, dt, lean = 0, squat = 0) {
+    const i = this.trackIdx,
+      f = this.forward(),
+      r = this.rightVec();
+    this.pos.y = track.surface(this.pos.x, this.pos.z, i, track.halfWidth + 2);
+    this.slopeF = track.slope(this.pos.x, this.pos.z, i, f.x, f.z);
+    this.slopeR = track.slope(this.pos.x, this.pos.z, i, r.x, r.z);
+    /* roll > 0 lifts the left side, so ground that rises to the right needs a negative roll; pitch > 0 is nose down */
+    const kR = dt > 0 ? 1 - Math.exp(-10 * dt) : 1,
+      kP = dt > 0 ? 1 - Math.exp(-12 * dt) : 1;
+    this.roll += (-Math.atan(this.slopeR) + lean - this.roll) * kR;
+    this.pitch += (-Math.atan(this.slopeF) + squat - this.pitch) * kP;
+  }
+
   /* ---- fixed-step physics ---- */
   step(dt, track, world) {
     const s = this.stats,
@@ -190,6 +208,8 @@ class Car {
       vf * 0.0012 * absV +
       sign(vf) *
         (1.2 + (this.offTrack ? Math.min(3, absV * 0.15) : 0)); /* drag + rolling resistance; grass drags harder the faster you go */
+    /* hills: gravity pulls along the slope under the car (slopeF is the rise per metre straight ahead) */
+    if (absV > 0.8 || inp.throttle > 0 || inp.brake > 0) acc -= SLOPE_G * this.slopeF;
 
     /* ---- enter a drift: handbrake while steering, or the tail has already stepped out ---- */
     if (!this.drifting && vf > 11) {
@@ -318,12 +338,8 @@ class Car {
       this.padCool = 1.2;
       world && world.onPad(this);
     }
-    /* height & attitude: follow the banking, lean out of corners, squat and dive */
-    const bank = track.bank[this.trackIdx];
-    this.pos.y = track.heightAt(this.trackIdx, clamp(this.lat, -track.halfWidth - 2, track.halfWidth + 2));
-    const lean = -this.steer * 0.035 * Math.min(1, absV / 20) - this.driftAngle * 0.09;
-    this.roll = damp(this.roll, -bank * Math.cos(wrapAngle(this.yaw - track.yawAt(this.trackIdx))) + lean, 10, dt);
-    this.pitch = damp(this.pitch, clamp(-acc * 0.004, -0.06, 0.06), 8, dt);
+    /* height & attitude: sit on the road surface (banking and gradient), lean out of corners, squat and dive */
+    this.ground(track, dt, -this.steer * 0.035 * Math.min(1, absV / 20) - this.driftAngle * 0.09, clamp(-acc * 0.004, -0.06, 0.06));
 
     /* ---- progress + laps ---- */
     const prevP = this.progress;

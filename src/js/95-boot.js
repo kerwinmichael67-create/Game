@@ -76,8 +76,9 @@ function start() {
           .addScaledVector(lead.forward(), -22)
           .add(new THREE.Vector3(Math.sin(t * 0.3) * 10, 9, Math.cos(t * 0.3) * 10));
         world.camPos.lerp(camT, 1 - Math.exp(-2 * dt));
+        world.camPos.y = Math.max(world.camPos.y, world.floorY(world.camPos.x, world.camPos.z) + 3);
         world.camera.position.copy(world.camPos);
-        world.camera.lookAt(look.x, 1, look.z);
+        world.camera.lookAt(look.x, look.y + 1, look.z);
         world.camera.fov = 50;
         world.camera.updateProjectionMatrix();
         world._followSun(look);

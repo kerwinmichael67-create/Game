@@ -145,6 +145,7 @@ class World {
   load(track, seed = 1) {
     this.dispose();
     this.track = track;
+    this.builtQuality = this.quality; /* land and scenery detail depend on it: Game reloads when it changes */
     const def = track.def,
       th = def.theme,
       R = rng(seed);
@@ -243,8 +244,8 @@ class World {
     sc.right = sc.top = 110;
     const sm = this.quality === 'high' ? 2048 : 1024;
     this.sun.shadow.mapSize.set(sm, sm);
-    this.sun.shadow.bias = -0.0006;
-    this.sun.shadow.normalBias = 0.5;
+    this.sun.shadow.bias = -0.0006 * (2048 / sm);
+    this.sun.shadow.normalBias = 0.5 * (2048 / sm);
     this.sun.target = new THREE.Object3D();
     scene.add(this.sun.target);
     scene.add(this.sun);
@@ -266,16 +267,22 @@ class World {
       idx = [];
     const segLen = track.length / n,
       vRepeat = segLen / 14;
+    /* four strips across the width: where banking changes along the lap the surface twists, and narrow strips
+       keep the triangles within a centimetre or two of the smooth surface the cars ride on */
+    const COLS = 4;
     for (let i = 0; i <= n; i++) {
-      const ii = i % n,
-        l = track.point(ii, -hw),
-        r = track.point(ii, hw);
-      pos.push(l.x, l.y + 0.03, l.z, r.x, r.y + 0.03, r.z);
-      uv.push(0, i * vRepeat, 1, i * vRepeat);
-      if (i < n) {
-        const a = i * 2;
-        idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
-      } /* (left, right, next left): faces up */
+      const ii = i % n;
+      for (let c = 0; c <= COLS; c++) {
+        const p = track.point(ii, -hw + (2 * hw * c) / COLS);
+        pos.push(p.x, p.y + 0.03, p.z);
+        uv.push(c / COLS, i * vRepeat);
+      }
+      if (i < n)
+        for (let c = 0; c < COLS; c++) {
+          const a = i * (COLS + 1) + c,
+            b = a + COLS + 1;
+          idx.push(a, a + 1, b, a + 1, b + 1, b); /* (left, right, next left): faces up */
+        }
     }
     const roadGeo = new THREE.BufferGeometry();
     roadGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
@@ -342,16 +349,19 @@ class World {
         }
       const tex = new THREE.CanvasTexture(c);
       tex.encoding = THREE.sRGBEncoding;
-      const line = new THREE.Mesh(
-        new THREE.PlaneGeometry(hw * 2, 2.4),
+      const half = 1.2 / track.seg; /* the line is 2.4 m long, laid on the surface either side of sample 0 */
+      const line = this._patch(
+        track,
+        -half,
+        half,
+        -hw,
+        hw,
+        0.05,
         new THREE.MeshStandardMaterial({ map: tex, roughness: 0.8, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 })
       );
       const p0 = track.center[0],
         t0 = track.tangent[0];
       const y0 = track.heightAt(0, 0);
-      line.position.set(p0.x, y0 + 0.05, p0.z);
-      line.rotation.x = -Math.PI / 2;
-      line.rotation.z = -Math.atan2(t0.x, t0.z);
       g.add(line);
       const gant = new THREE.Group();
       const post = new THREE.BoxGeometry(0.6, 7.4, 0.6),
@@ -361,6 +371,9 @@ class World {
         m.position.set(s * (hw + 1.8), 3.7, 0);
         m.castShadow = true;
         gant.add(m);
+        const foot = new THREE.Mesh(new THREE.BoxGeometry(0.9, 3, 0.9), pm2); /* banked or sloping ground: no floating post */
+        foot.position.set(s * (hw + 1.8), -1.4, 0);
+        gant.add(foot);
       }
       const beam = new THREE.Mesh(
         new THREE.BoxGeometry(hw * 2 + 4.4, 1.5, 1.3),
@@ -413,16 +426,19 @@ class World {
         polygonOffsetFactor: -6,
         polygonOffsetUnits: -6,
       });
-      const m = new THREE.Mesh(new THREE.PlaneGeometry(pad.half * 2, 9), mat);
-      const p = track.point(pad.idx, pad.lat);
-      m.rotation.order = 'YXZ';
-      m.rotation.set(-Math.PI / 2, track.yawAt(pad.idx), 0);
-      m.position.set(p.x, p.y + 0.06, p.z);
+      /* strips laid on the road surface, so pads follow banking and gradients */
+      const len = 4.5 / track.seg;
+      const m = this._patch(track, pad.idx - len, pad.idx + len, pad.lat - pad.half, pad.lat + pad.half, 0.06, mat);
       m.renderOrder = 2;
       g.add(m);
       this.padMats.push(mat);
-      const base = new THREE.Mesh(
-        new THREE.PlaneGeometry(pad.half * 2 + 0.5, 9.5),
+      const base = this._patch(
+        track,
+        pad.idx - len - 0.25 / track.seg,
+        pad.idx + len + 0.25 / track.seg,
+        pad.lat - pad.half - 0.25,
+        pad.lat + pad.half + 0.25,
+        0.05,
         new THREE.MeshBasicMaterial({
           color: 0x061a26,
           transparent: true,
@@ -433,9 +449,6 @@ class World {
           polygonOffsetUnits: -5,
         })
       );
-      base.rotation.order = 'YXZ';
-      base.rotation.copy(m.rotation);
-      base.position.set(p.x, p.y + 0.05, p.z);
       base.renderOrder = 1;
       g.add(base);
     }
@@ -476,6 +489,31 @@ class World {
     const t = new THREE.CanvasTexture(c);
     t.encoding = THREE.sRGBEncoding;
     return t;
+  }
+  /* a strip painted on the road from fractional sample s0 to s1, between lateral offsets a and b, lifted y above
+     the surface. u runs across from b to a, v from 1 at s0 down to 0 at s1 (as the flat planes it replaces did). */
+  _patch(track, s0, s1, a, b, y, mat) {
+    const steps = Math.max(1, Math.ceil(s1 - s0)),
+      pos = [],
+      uv = [],
+      idx = [];
+    for (let k = 0; k <= steps; k++) {
+      const s = s0 + ((s1 - s0) * k) / steps,
+        l = track.pointF(s, a),
+        r = track.pointF(s, b);
+      pos.push(l.x, l.y + y, l.z, r.x, r.y + y, r.z);
+      uv.push(1, 1 - k / steps, 0, 1 - k / steps);
+      if (k < steps) {
+        const q = k * 2;
+        idx.push(q, q + 1, q + 2, q + 1, q + 3, q + 2);
+      }
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+    geo.setIndex(idx);
+    geo.computeVertexNormals();
+    return new THREE.Mesh(geo, mat);
   }
   _ribbon(track, a, b, y, mat, colorFn) {
     const n = track.n,
@@ -546,6 +584,17 @@ class World {
     const te = this.terrain,
       farScale = this.quality === 'high' ? 1 : 0.45;
     const dry = (x, z) => x < te.waterStart || te.heightAt(x, z) > te.waterLevel + 0.7;
+    /* the grandstand's plot beside the start line: nothing else is planted there */
+    const stand = { i: 12, side: 1, d: track.halfWidth + track.wallOffset + 7 };
+    stand.x = track.center[stand.i].x + track.right[stand.i].x * stand.side * stand.d;
+    stand.z = track.center[stand.i].z + track.right[stand.i].z * stand.side * stand.d;
+    const free = (x, z, reach) => {
+      const tg = track.tangent[stand.i],
+        r = track.right[stand.i],
+        u = (x - stand.x) * tg.x + (z - stand.z) * tg.z,
+        v = ((x - stand.x) * r.x + (z - stand.z) * r.z) * stand.side;
+      return Math.abs(u) > 25 + reach || v < -6 - reach || v > 10.5 + reach;
+    };
     /* scatter along the circuit, minD..maxD metres beyond the barriers. `reach` is how far a prop spreads from
        its centre: nothing may lean over the barriers, and nothing stands in the sea. A callback that returns
        false turns the spot down (used by props whose size is only known once they are rolled). */
@@ -562,7 +611,7 @@ class World {
           x = c.x + r.x * side * d,
           z = c.z + r.z * side * d;
         if (x > waterX - 12) continue;
-        if (!track.clear(x, z, reach) || !dry(x, z)) continue;
+        if (!track.clear(x, z, reach) || !dry(x, z) || !free(x, z, reach)) continue;
         if (fn(x, z, i, made) === false) continue;
         made++;
       }
@@ -582,7 +631,7 @@ class World {
         if (!track.clear(x, z, 62)) continue;
         if (fbm(x / 85, z / 85, te.seed + 211, 2) < 0.02 + R() * 0.25) continue; /* woods and clearings */
         const y = te.heightAt(x, z);
-        if (!dry(x, z)) continue;
+        if (!dry(x, z) || !free(x, z, 4)) continue;
         if (te.pal && te.pal.snow && y > te.pal.snowLine - 4) continue;
         fn(x, y, z, made);
         made++;
@@ -771,7 +820,14 @@ class World {
           d = 6 + R() * 9,
           rot = track.yawAt(i) + (R() < 0.5 ? 0 : Math.PI / 2);
         if (!track.clear(x, z, Math.hypot(w, d) / 2 + 1.5)) return false; /* no corner may reach the barriers */
-        const gy = this.groundY(x, z) - 0.8; /* foundations go into the ground so no corner floats */
+        /* foundations go into the ground far enough that no corner floats on a slope */
+        let gy = Infinity;
+        for (const [ax, az] of [[0, 0], [1, 1], [1, -1], [-1, 1], [-1, -1]]) {
+          const lx = (ax * w) / 2,
+            lz = (az * d) / 2;
+          gy = Math.min(gy, this.groundY(x + lx * Math.cos(rot) + lz * Math.sin(rot), z - lx * Math.sin(rot) + lz * Math.cos(rot)));
+        }
+        gy -= 0.5;
         dummy.position.set(x, gy + h / 2, z);
         dummy.scale.set(w, h, d);
         dummy.rotation.set(0, rot, 0);
@@ -846,6 +902,7 @@ class World {
         count
       );
       poles.castShadow = true;
+      poles.name = 'lampPoles';
       const heads = new THREE.InstancedMesh(
         new THREE.BoxGeometry(1.5, 0.28, 0.5),
         new THREE.MeshStandardMaterial({
@@ -864,15 +921,19 @@ class World {
           r = track.right[i],
           d = track.halfWidth + track.wallOffset + 1.3;
         if (c.x + r.x * side * d > waterX - 12) continue;
+        if (!free(c.x + r.x * side * d, c.z + r.z * side * d, 0.5)) continue; /* not in front of the grandstand */
         const px = c.x + r.x * side * d,
           pz = c.z + r.z * side * d,
-          gy = track.heightAt(i, side * d) - 0.5; /* base just under the shoulder level, head 8 m above the road edge */
-        dummy.position.set(px, gy + 4, pz);
+          gy = track.heightAt(i, side * d) - 0.5, /* head 8 m above the road edge */
+          foot = Math.min(gy, this.groundY(px, pz) - 0.4), /* the pole runs down into the land, wherever that is */
+          len = gy + 8 - foot;
+        dummy.position.set(px, foot + len / 2, pz);
         dummy.rotation.set(0, track.yawAt(i), 0);
-        dummy.scale.set(1, 1, 1);
+        dummy.scale.set(1, len / 8, 1);
         dummy.updateMatrix();
         poles.setMatrixAt(lit, dummy.matrix);
         dummy.position.y = gy + 8;
+        dummy.scale.set(1, 1, 1);
         dummy.position.x -= r.x * side * 0.75;
         dummy.position.z -= r.z * side * 0.75;
         dummy.updateMatrix();
@@ -916,8 +977,8 @@ class World {
         m.position.set(Math.cos(a) * dist, h / 2 - 40, Math.sin(a) * dist);
         m.rotation.y = R() * TAU;
         ring.add(m);
-        const cap = new THREE.Mesh(new THREE.ConeGeometry(w * 0.33, h * 0.33, 5), snow);
-        cap.position.set(m.position.x, h - 40 - h * 0.165, m.position.z);
+        const cap = new THREE.Mesh(new THREE.ConeGeometry(w * 0.33 * 1.04, h * 0.33 * 1.04, m.geometry.parameters.radialSegments), snow);
+        cap.position.set(m.position.x, h - 40 - h * 0.165 * 1.04 + h * 0.012, m.position.z);
         cap.rotation.y = m.rotation.y;
         ring.add(cap);
       }
@@ -954,15 +1015,15 @@ class World {
     }
     /* grandstand near the start line */
     {
-      const i = 12,
+      const i = stand.i,
         c = track.center[i],
         r = track.right[i],
-        side = 1,
-        d = track.halfWidth + track.wallOffset + 7;
-      const stand = new THREE.Group();
-      const base = new THREE.Mesh(new THREE.BoxGeometry(46, 1, 10), new THREE.MeshStandardMaterial({ color: 0x2b2f3a }));
-      base.position.y = 0.5;
-      stand.add(base);
+        side = stand.side,
+        d = stand.d;
+      const standG = new THREE.Group();
+      const base = new THREE.Mesh(new THREE.BoxGeometry(46, 5, 13), new THREE.MeshStandardMaterial({ color: 0x2b2f3a }));
+      base.position.set(0, -1.5, 1.5); /* a deep plinth: the land may fall away behind the stand */
+      standG.add(base);
       for (let s = 0; s < 6; s++) {
         const step = new THREE.Mesh(
           new THREE.BoxGeometry(46, 1, 1.6),
@@ -970,7 +1031,7 @@ class World {
         );
         step.position.set(0, 1 + s * 0.9, -2 + s * 1.5);
         step.castShadow = true;
-        stand.add(step);
+        standG.add(step);
       }
       const cp = [],
         cc = [];
@@ -983,7 +1044,7 @@ class World {
       const cg = new THREE.BufferGeometry();
       cg.setAttribute('position', new THREE.Float32BufferAttribute(cp, 3));
       cg.setAttribute('color', new THREE.Float32BufferAttribute(cc, 3));
-      stand.add(
+      standG.add(
         new THREE.Points(
           cg,
           new THREE.PointsMaterial({ size: 0.8, vertexColors: true, map: this.partTex, transparent: true, depthWrite: false })
@@ -995,11 +1056,11 @@ class World {
       );
       roof.position.set(0, 9.5, 2.5);
       roof.castShadow = true;
-      stand.add(roof);
+      standG.add(roof);
       for (const sx of [-22, 22]) {
         const p = new THREE.Mesh(new THREE.BoxGeometry(0.6, 9, 0.6), new THREE.MeshStandardMaterial({ color: 0x8a94a8, metalness: 0.7 }));
         p.position.set(sx, 5, 7.5);
-        stand.add(p);
+        standG.add(p);
       }
       const banner = new THREE.Mesh(
         new THREE.PlaneGeometry(40, 1.5),
@@ -1007,34 +1068,26 @@ class World {
       );
       banner.position.set(0, 8.5, -3.62);
       banner.rotation.y = Math.PI;
-      stand.add(banner);
+      standG.add(banner);
       const fascia = new THREE.Mesh(
         new THREE.BoxGeometry(48, 1.9, 0.2),
         new THREE.MeshStandardMaterial({ color: 0x12141c, roughness: 0.6 })
       );
       fascia.position.set(0, 8.5, -3.45);
-      stand.add(fascia);
+      standG.add(fascia);
       /* the low front row (local -z) faces the track */
       const sx0 = c.x + r.x * side * d,
         sz0 = c.z + r.z * side * d;
-      stand.position.set(sx0, this.groundY(sx0, sz0) - 0.25, sz0);
-      stand.rotation.y = Math.atan2(side * r.x, side * r.z);
-      g.add(stand);
+      standG.position.set(sx0, this.groundY(sx0, sz0) - 0.25, sz0);
+      standG.rotation.y = Math.atan2(side * r.x, side * r.z);
+      g.add(standG);
     }
   }
 
   dispose() {
     if (!this.trackGroup) return;
-    this.scene.traverse((o) => {
-      if (o.geometry) o.geometry.dispose();
-      if (o.material) {
-        const ms = [].concat(o.material);
-        for (const m of ms) {
-          for (const k in m) if (m[k] && m[k].isTexture) m[k].dispose();
-          m.dispose();
-        }
-      }
-    });
+    disposeTree(this.scene);
+    if (this.sun && this.sun.shadow) this.sun.shadow.dispose(); /* the shadow map is a render target of its own */
     while (this.scene.children.length) this.scene.remove(this.scene.children[0]);
     if (this.envRT) {
       this.envRT.dispose();
@@ -1051,6 +1104,15 @@ class World {
   /* height of the land at (x, z): what scenery stands on */
   groundY(x, z) {
     return this.terrain ? this.terrain.heightAt(x, z) : 0;
+  }
+  /* the highest solid surface under a point: road corridor or land. `hint` is a nearby track sample, if known. */
+  floorY(x, z, hint = -1) {
+    const t = this.track;
+    if (!t) return 0;
+    const C = t.halfWidth + t.wallOffset,
+      i = t.nearest(x, z, hint);
+    const onRoad = Math.abs(t.lateral(x, z, i)) <= C && Math.abs(t.along(x, z, i)) <= t.seg * 2;
+    return Math.max(onRoad ? t.surface(x, z, i, C) : -Infinity, this.groundY(x, z));
   }
   add(obj) {
     this.scene.add(obj);
@@ -1196,10 +1258,11 @@ class World {
     const sp = Math.max(car.spd || 0, Math.abs(car.speed));
     let target, look;
     if (mode === 1) {
+      const rise = car.slopeF || 0; /* look up the hill the car is climbing, not into it */
       target = car.pos.clone().addScaledVector(fwd, 0.9);
-      target.y += 1.15;
+      target.y += 1.15 + rise * 0.9;
       look = car.pos.clone().addScaledVector(fwd, 30);
-      look.y += 0.8;
+      look.y += 0.8 + rise * 30;
       this.camPos.copy(target);
       this.camLook.copy(look);
     } else {
@@ -1216,7 +1279,7 @@ class World {
       target = car.pos.clone().addScaledVector(velDir, -dist);
       target.y = car.pos.y + height;
       look = car.pos.clone().addScaledVector(fwd, 7);
-      look.y = car.pos.y + 0.9;
+      look.y = car.pos.y + 0.9 + (car.slopeF || 0) * 4;
       if (instant) {
         this.camPos.copy(target);
         this.camLook.copy(look);
@@ -1231,6 +1294,8 @@ class World {
     const sh = this.shake * 0.35 + (car.boosting || car.turboT > 0 || car.padT > 0 ? 0.04 : 0) + (car.offTrack && sp > 8 ? 0.05 : 0);
     const cp = this.camPos.clone();
     if (sh > 0) cp.add(new THREE.Vector3((Math.random() - 0.5) * sh, (Math.random() - 0.5) * sh, (Math.random() - 0.5) * sh));
+    /* never let a crest or a bank swallow the camera */
+    if (mode !== 1) cp.y = Math.max(cp.y, this.floorY(cp.x, cp.z, car.trackIdx) + 1.1);
     this.camera.position.copy(cp);
     this.camera.lookAt(this.camLook);
     /* camera.rotateZ(+) drops the left side; car.roll(+) lifts the car's left side, hence the minus */
@@ -1240,14 +1305,18 @@ class World {
     const fov = 60 + clamp(sp / 70, 0, 1) * 13 + (hot ? 6 : 0);
     this.updateStreaks(sp, hot ? 1 : car.draft > 0.5 ? 0.4 : 0, dt);
     this.camera.fov = damp(this.camera.fov, fov, 5, dt);
+    this.camera.near = mode === 1 ? 0.2 : 0.5; /* the bonnet view looks over bodywork a hand's width away */
     this.camera.updateProjectionMatrix();
     this._followSun(car.pos);
   }
   orbitCamera(t, center) {
     const a = t * 0.08,
       r = 70;
-    this.camera.position.set(center.x + Math.cos(a) * r, 22 + Math.sin(t * 0.3) * 3, center.z + Math.sin(a) * r);
-    this.camera.lookAt(center.x, 0, center.z);
+    const cy = this.floorY(center.x, center.z),
+      px = center.x + Math.cos(a) * r,
+      pz = center.z + Math.sin(a) * r;
+    this.camera.position.set(px, Math.max(cy + 22 + Math.sin(t * 0.3) * 3, this.floorY(px, pz) + 6), pz);
+    this.camera.lookAt(center.x, cy, center.z);
     this.camera.fov = 55;
     this.camera.updateProjectionMatrix();
     this._followSun(center);

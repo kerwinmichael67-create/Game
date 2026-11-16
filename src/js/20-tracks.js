@@ -27,8 +27,10 @@ const TRACKS = [
       cloud: 0xffc9a6,
       water: { x: 350, color: 0x08222e, level: -1.1 },
       /* low dunes that fall away into the sea east of the circuit */
-      terrain: { amp: 3.0, scale: 95, calm: [10, 85], coast: { x: 350, width: 85, drop: 5.5 }, palette: { patch: 0x7d7a4c, verge: 0x75874f, sand: 0xa08a5c, rock: 0x6b6354 } },
+      terrain: { amp: 4.5, scale: 95, calm: [5, 55], coast: { x: 350, width: 85, drop: 5.5, wobble: 30 }, palette: { patch: 0x7d7a4c, verge: 0x75874f, sand: 0xa08a5c, rock: 0x6b6354 } },
     },
+    /* flat along the shore, up over a headland on the far side, two smaller crests on the way back */
+    elev: [[0, 0], [0.09, 0], [0.21, 0.5], [0.3, 4.5], [0.38, 9], [0.46, 13], [0.53, 10.5], [0.6, 4.5], [0.67, 8], [0.74, 2], [0.8, 1.2], [0.87, 4.5], [0.94, 0.8]],
     points: [
       [0, 0],
       [170, 0],
@@ -82,6 +84,8 @@ const TRACKS = [
       /* rolling foothills that climb toward the peaks */
       terrain: { amp: 13, scale: 170, calm: [14, 120], margin: 200, rim: { r0: 360, r1: 900, amp: 55 }, palette: { patch: 0x55783a, verge: 0x4d8040, rock: 0x5c5e5c, snow: 0xd9e0e6, snowLine: 34 } },
     },
+    /* a real pass: climb through the bowl to the summit, plunge into the valley, rise again to the line */
+    elev: [[0, 0], [0.085, 0], [0.125, 1.2], [0.167, 5], [0.208, 10], [0.25, 13.5], [0.292, 17.5], [0.333, 23], [0.375, 27], [0.417, 24], [0.458, 16], [0.5, 10], [0.542, 6], [0.583, 2], [0.625, -2], [0.667, -4], [0.708, -1], [0.75, 3], [0.792, 5], [0.833, 4], [0.875, 2], [0.917, 0.5], [0.958, 0]],
     points: [
       [0, 0],
       [220, 0],
@@ -135,8 +139,10 @@ const TRACKS = [
       lamps: true,
       night: true,
       /* flat dockside concrete */
-      terrain: { amp: 0 },
+      terrain: { amp: 0, grain: 0.3 },
     },
+    /* dockside flat, with two long ramps up to the elevated top loop */
+    elev: [[0, 0], [0.07, 0], [0.14, 2.2], [0.21, 6], [0.27, 6.5], [0.31, 4.5], [0.36, 7.5], [0.42, 8.5], [0.47, 5], [0.53, 1.5], [0.6, 0.3], [0.67, 0.4], [0.75, 2.6], [0.82, 1.4], [0.9, 0.2]],
     points: [
       [0, 0],
       [150, 0],

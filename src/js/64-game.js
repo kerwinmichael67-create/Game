@@ -54,7 +54,7 @@ const Game = {
     this.seed = opts.seed || 1;
     const def = TRACKS.find((t) => t.id === opts.trackId) || TRACKS[0];
     this.clearCars();
-    if (!this.track || this.track.id !== def.id || this.world.track !== this.track) {
+    if (!this.track || this.track.id !== def.id || this.world.track !== this.track || this.world.builtQuality !== this.world.quality) {
       this.track = new Track(def);
       this.world.load(this.track, hashStr(def.id));
     }
@@ -158,8 +158,11 @@ const Game = {
     HUD.message('3');
   },
   clearCars() {
-    for (const c of this.cars) this.world.remove(c.mesh);
-    if (this.ghost) this.world.remove(this.ghost.mesh);
+    /* these meshes are never used again: free them, or every race leaks a set of car geometries */
+    for (const c of this.cars.concat(this.ghost || [])) {
+      this.world.remove(c.mesh);
+      disposeTree(c.mesh);
+    }
     this.cars = [];
     this.bots = [];
     this.player = null;
@@ -392,8 +395,13 @@ const Game = {
           gz = lerp(a[1], b[1], f),
           gyaw = a[2] + wrapAngle(b[2] - a[2]) * f,
           gi = this.track.nearest(gx, gz);
-        this.ghost.mesh.position.set(gx, this.track.heightAt(gi, this.track.lateral(gx, gz, gi)) + 0.02, gz);
-        this.ghost.mesh.rotation.set(0, gyaw, -this.track.bank[gi] * Math.cos(wrapAngle(gyaw - this.track.yawAt(gi))), 'YXZ');
+        const gh = this.ghost;
+        gh.pos.set(gx, 0, gz);
+        gh.yaw = gyaw;
+        gh.trackIdx = gi;
+        gh.ground(this.track, 0);
+        gh.mesh.position.set(gx, gh.pos.y + 0.02, gz);
+        gh.mesh.rotation.set(gh.pitch, gyaw, gh.roll, 'YXZ');
       }
     }
     this.updateStandings();

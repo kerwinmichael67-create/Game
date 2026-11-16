@@ -141,3 +141,16 @@ function mergeGeometries(list) {
   out.setIndex(idx);
   return out;
 }
+/* frees the GPU side of an object and everything under it: geometries, materials and their textures */
+function disposeTree(root) {
+  root.traverse((o) => {
+    if (o.geometry) o.geometry.dispose();
+    if (o.isInstancedMesh && o.dispose) o.dispose();
+    if (o.material) {
+      for (const m of [].concat(o.material)) {
+        for (const k in m) if (m[k] && m[k].isTexture) m[k].dispose();
+        m.dispose();
+      }
+    }
+  });
+}

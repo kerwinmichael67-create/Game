@@ -180,6 +180,56 @@ for (const quality of ['high', 'low']) {
         out.atOrigin = atOrigin;
         out.inSea = inSea;
 
+        /* 6b. the mesh is watertight: every edge is shared by two triangles, except the outer rim. A vertex left
+               hanging on a longer edge (where fine cells meet coarse ones) would show up as extra open edges. */
+        {
+          const ix = te.mesh.geometry.index.array,
+            edges = new Map();
+          for (let k = 0; k < ix.length; k += 3)
+            for (let e = 0; e < 3; e++) {
+              const a = ix[k + e],
+                b = ix[k + ((e + 1) % 3)],
+                key = a < b ? a * 1e6 + b : b * 1e6 + a;
+              edges.set(key, (edges.get(key) || 0) + 1);
+            }
+          let open = 0,
+            over = 0;
+          for (const c of edges.values()) {
+            if (c === 1) open++;
+            else if (c > 2) over++;
+          }
+          out.openEdges = open;
+          out.overEdges = over;
+          out.rimEdges = 2 * (te.nx + te.nz);
+        }
+        /* 6c. nothing is planted in the grandstand's plot, and lamp posts reach the land */
+        {
+          const si = 12,
+            tg = t.tangent[si],
+            rr = t.right[si],
+            sx = t.center[si].x + rr.x * (C + 7),
+            sz = t.center[si].z + rr.z * (C + 7);
+          let inPlot = 0,
+            hanging = 0,
+            poles = 0;
+          w.trackGroup.traverse((o) => {
+            if (!o.isInstancedMesh) return;
+            for (let k = 0; k < o.count; k++) {
+              o.getMatrixAt(k, m4);
+              m4.decompose(v, q4, sc);
+              const u = (v.x - sx) * tg.x + (v.z - sz) * tg.z,
+                d = (v.x - sx) * rr.x + (v.z - sz) * rr.z;
+              if (Math.abs(u) < 25 && d > -6 && d < 10.5) inPlot++;
+              if (o.name === 'lampPoles') {
+                poles++;
+                if (v.y - 4 * sc.y > te.heightAt(v.x, v.z) - 0.05) hanging++;
+              }
+            }
+          });
+          out.inPlot = inPlot;
+          out.hanging = hanging;
+          out.poles = poles;
+        }
         /* 7. the sea never laps over the circuit, and its inland edge is hidden under dry land */
         out.waterLevel = te.waterLevel;
         out.hasWater = named('water').length;
@@ -192,6 +242,21 @@ for (const quality of ['high', 'low']) {
         }
         out.lowRoad = lowRoad;
         out.lowShore = lowShore;
+        /* the shoreline wanders: no 150 m stretch of it runs dead straight along the sheet's axis */
+        if (out.hasWater) {
+          const shore = [];
+          for (let z = te.z0 + 20; z < te.z0 + te.nz * te.CS - 20; z += 10) {
+            let x = te.waterStart;
+            while (x < te.waterStart + 400 && te.heightAt(x, z) > te.waterLevel) x += 1;
+            shore.push(x);
+          }
+          let flattest = Infinity;
+          for (let k = 0; k + 15 < shore.length; k++) {
+            const win = shore.slice(k, k + 16);
+            flattest = Math.min(flattest, Math.max(...win) - Math.min(...win));
+          }
+          out.flattestShore = flattest;
+        }
 
         /* 8. depth precision of whatever the scene is rendered into */
         const gl = w.renderer.getContext();
@@ -221,7 +286,11 @@ for (const quality of ['high', 'low']) {
     check(`${tag}: no cracks between coarse and fine cells`, r.cracks === 0, r.cracks);
     check(`${tag}: scenery stands clear of the track`, r.props > 50 && r.onTrack === 0 && r.atOrigin === 0, `${r.props} props, ${r.onTrack} reach the barriers${r.firstProp ? ' (' + r.firstProp + ')' : ''}, ${r.atOrigin} at the origin`);
     check(`${tag}: no scenery stands in the sea`, r.inSea === 0, r.inSea);
+    check(`${tag}: terrain mesh is watertight`, r.openEdges === r.rimEdges && r.overEdges === 0, `${r.openEdges} open edges (rim has ${r.rimEdges}), ${r.overEdges} over-shared`);
+    check(`${tag}: nothing planted in the grandstand`, r.inPlot === 0, r.inPlot);
+    check(`${tag}: lamp posts reach the land`, r.hanging === 0, `${r.hanging} of ${r.poles} hang in the air`);
     if (r.hasWater) {
+      check(`${tag}: the shoreline is not ruler-straight`, r.flattestShore > 2.5, `flattest 150 m stretch varies by ${r.flattestShore.toFixed(1)} m`);
       check(`${tag}: the sea stays below the road corridor`, r.waterLevel < r.lowRoad - 0.6, `water ${r.waterLevel.toFixed(2)}, lowest road edge near the sea ${r.lowRoad.toFixed(2)}`);
       check(`${tag}: the inland edge of the sea is under dry land`, r.lowShore > r.waterLevel + 0.2, `lowest land on the edge ${r.lowShore.toFixed(2)}, water ${r.waterLevel.toFixed(2)}`);
     }
@@ -270,6 +339,58 @@ if (ghost.has) {
   check('ghost sits on the banked surface', Math.abs(ghost.y - ghost.want) < 0.15 && Math.abs(ghost.want) > 0.5, `y ${ghost.y?.toFixed(2)} want ${ghost.want?.toFixed(2)} (${ghost.state})`);
   check('ghost leans with the banking', Math.abs(ghost.roll + ghost.bank) < 0.03, `roll ${ghost.roll?.toFixed(3)} bank ${ghost.bank?.toFixed(3)}`);
 } else check('ghost car exists in time trial', false, 'Game.ghost missing');
+
+/* housekeeping found in review: no GPU objects left behind by a track change, the bonnet camera does not clip
+   the car's own bodywork, and changing the graphics setting rebuilds the land */
+const house = await page.evaluate(() => {
+  const w = Game.world,
+    gl = w.renderer.getContext(),
+    live = { fb: 0 };
+  const cf = gl.createFramebuffer,
+    df = gl.deleteFramebuffer;
+  gl.createFramebuffer = function () {
+    live.fb++;
+    return cf.apply(gl, arguments);
+  };
+  gl.deleteFramebuffer = function (o) {
+    if (o) live.fb--;
+    return df.apply(gl, arguments);
+  };
+  const tour = () => {
+    for (const d of TRACKS) {
+      T.start({ mode: 'ai', trackId: d.id, laps: 1, botCount: 3 });
+      Game.headless = false;
+      for (let k = 0; k < 2; k++) Game.frame(1 / 60);
+      Game.headless = true;
+    }
+    return { g: w.renderer.info.memory.geometries, t: w.renderer.info.memory.textures, fb: live.fb };
+  };
+  w.setQuality('high');
+  tour();
+  const a = tour(),
+    b = tour(),
+    c = tour();
+  /* cameras */
+  T.start({ mode: 'trial', trackId: 'bay', laps: 1 });
+  T.run(300, { ArrowUp: true });
+  w.updateCamera(Game.player, 1 / 60, 1, true);
+  const nearBonnet = w.camera.near;
+  w.updateCamera(Game.player, 1 / 60, 0, true);
+  const nearChase = w.camera.near;
+  /* quality */
+  const cs0 = w.terrain.CS;
+  w.setQuality('low');
+  T.start({ mode: 'trial', trackId: 'bay', laps: 1 });
+  const cs1 = w.terrain.CS;
+  w.setQuality('high');
+  T.start({ mode: 'trial', trackId: 'bay', laps: 1 });
+  return { a, b, c, nearBonnet, nearChase, cs0, cs1, cs2: w.terrain.CS };
+});
+check('track changes leave no geometries behind', house.c.g <= house.a.g, `${house.a.g}, ${house.b.g}, ${house.c.g} after successive tours`);
+check('track changes leave no textures behind', house.c.t <= house.a.t + 1, `${house.a.t}, ${house.b.t}, ${house.c.t}`);
+check('track changes leave no render targets behind', house.c.fb <= house.a.fb, `${house.a.fb}, ${house.b.fb}, ${house.c.fb} live framebuffers`);
+check('bonnet camera keeps the bodywork in view', house.nearBonnet <= 0.25 && house.nearChase >= 0.5, `near ${house.nearBonnet} bonnet, ${house.nearChase} chase`);
+check('changing graphics quality rebuilds the land', house.cs0 === 16 && house.cs1 === 20 && house.cs2 === 16, `${house.cs0}, ${house.cs1}, ${house.cs2}`);
 
 check('no page errors', errors.length === 0, errors.join(' | ').slice(0, 300));
 await close();

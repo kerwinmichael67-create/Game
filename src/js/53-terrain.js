@@ -64,6 +64,7 @@ class Terrain {
     this.FLAT = this.C + 2.0; /* the cross-section plane is held flat beyond this lateral offset */
     this.B0 = this.C + 2.5; /* blend to natural terrain starts here ... */
     this.B1 = this.B0 + (this.cfg.blend || 30); /* ... and ends here */
+    this.RUN = track.seg * 3; /* how far along the lap a sample's gradient is trusted when blending */
     this.K = 4;
     this.CS = quality === 'high' ? 16 : 20;
     this.FS = this.CS / this.K;
@@ -73,14 +74,15 @@ class Terrain {
     this.waterStart = Infinity;
     if (theme.water) {
       const coast = this.cfg.coast;
-      this.waterStart = coast ? coast.x - coast.width : theme.water.x - 110;
+      /* the shore wanders (coastX), so the sheet starts inland of its furthest reach */
+      this.waterStart = coast ? coast.x - coast.width - (coast.wobble ?? 30) : theme.water.x - 110;
       this.waterLevel = theme.water.level ?? -1.1;
       for (let i = 0; i < track.n; i++)
         if (track.center[i].x + this.C + 12 > this.waterStart)
           this.waterLevel = Math.min(this.waterLevel, Math.min(track.heightAt(i, -this.C), track.heightAt(i, this.C)) - this.DROP - 0.35);
     }
     /* regional elevation follows the circuit's own height profile so hills in the track become hills in the land */
-    this.elevated = track.elev ? track.elev.some((e) => Math.abs(e) > 0.01) : false;
+    this.elevated = !!track.hilly;
     this._d = 0;
     this._buildGrid();
   }
@@ -103,9 +105,15 @@ class Terrain {
       /* inland hollows stop short of sea level (no ponds with a ruler-straight edge), then the shore falls away */
       const floor = this.waterLevel + 0.9;
       if (h < floor) h = floor + (h - floor) * 0.15;
-      h -= c.coast.drop * smoothstep(c.coast.x - c.coast.width, c.coast.x + 12, x);
+      const cx = this.coastX(z);
+      h -= c.coast.drop * smoothstep(cx - c.coast.width, cx + 12, x);
     }
     return h;
+  }
+  /* where the coast runs at this z: the theme's line, bent into bays and points so no stretch is ruler-straight */
+  coastX(z) {
+    const c = this.cfg.coast;
+    return c.x + fbm(z / 170, 3.7, this.seed + 71, 2) * (c.wobble ?? 30);
   }
   /* smooth field through the track's elevation: every 6th sample, inverse-distance weighted with a wide kernel */
   regional(x, z) {
@@ -152,10 +160,12 @@ class Terrain {
             d2 = ox * ox + oz * oz;
           if (d2 > R2) continue;
           const r = t.right[i],
-            lat = clamp(ox * r.x + oz * r.z, -this.FLAT, this.FLAT);
+            tg = t.tangent[i],
+            lat = clamp(ox * r.x + oz * r.z, -this.FLAT, this.FLAT),
+            run = clamp(ox * tg.x + oz * tg.z, -this.RUN, this.RUN); /* the plane also climbs with the road's gradient */
           const s = 1 / (d2 * d2 * d2 + 1e-4);
           S += s;
-          T += s * (t.heightAt(i, lat) - this.DROP);
+          T += s * (t.heightAt(i, lat) + t.grade[i] * run - this.DROP);
           W += s * (1 - smoothstep(this.B0, this.B1, Math.sqrt(d2)));
         }
       }
@@ -330,6 +340,7 @@ class Terrain {
       dd.push(dist[k]);
       return (vi[k] = pos.length / 3 - 1);
     };
+    const isFine = (cx, cz) => cx >= 0 && cz >= 0 && cx < nx && cz < nz && fine[cz * nx + cx] === 1;
     const quad = (fx, fz, s) => {
       const a = vert(fx, fz),
         b = vert(fx, fz + s),
@@ -341,7 +352,35 @@ class Terrain {
       for (let cx = 0; cx < nx; cx++) {
         if (fine[cz * nx + cx]) {
           for (let j = 0; j < K; j++) for (let i = 0; i < K; i++) quad(cx * K + i, cz * K + j, 1);
-        } else quad(cx * K, cz * K, K);
+          continue;
+        }
+        const W = isFine(cx - 1, cz),
+          E = isFine(cx + 1, cz),
+          S = isFine(cx, cz - 1),
+          N = isFine(cx, cz + 1);
+        if (!(W || E || S || N)) {
+          quad(cx * K, cz * K, K);
+          continue;
+        }
+        /* a coarse cell beside fine ones: a fan from its centre takes in the extra vertices along the shared
+           edges, so no vertex is left hanging on a longer edge (those leak single pixels). The centre sits on
+           the cell's diagonal, which keeps the fan in the same two planes heightAt() uses. */
+        const bx = cx * K,
+          bz = cz * K,
+          rim = [];
+        for (let j = 0; j < K; j++) if (j === 0 || W) rim.push(vert(bx, bz + j));
+        for (let i = 0; i < K; i++) if (i === 0 || N) rim.push(vert(bx + i, bz + K));
+        for (let j = K; j > 0; j--) if (j === K || E) rim.push(vert(bx + K, bz + j));
+        for (let i = K; i > 0; i--) if (i === K || S) rim.push(vert(bx + i, bz));
+        const kA = bz * LX + bx + K,
+          kB = (bz + K) * LX + bx,
+          mxc = x0 + (bx + K / 2) * FS,
+          mzc = z0 + (bz + K / 2) * FS;
+        pos.push(mxc, (hf[kA] + hf[kB]) / 2, mzc);
+        uv.push(mxc / 26, mzc / 26);
+        dd.push((dist[kA] + dist[kB]) / 2);
+        const ctr = pos.length / 3 - 1;
+        for (let k = 0; k < rim.length; k++) idx.push(ctr, rim[k], rim[(k + 1) % rim.length]);
       }
     /* frame out to the horizon: the grid's perimeter pushed outward in three rings */
     const per = [];
@@ -394,10 +433,11 @@ class Terrain {
         `#ifdef USE_MAP
           vec4 grainA = mapTexelToLinear( texture2D( map, vUv ) );
           vec4 grainB = mapTexelToLinear( texture2D( map, vec2( vUv.x * 0.113 + vUv.y * 0.047, vUv.y * 0.113 - vUv.x * 0.047 ) ) );
-          diffuseColor.rgb *= grainA.rgb * grainB.rgb * 1.32;
+          diffuseColor.rgb *= mix( vec3( 1.0 ), grainA.rgb * grainB.rgb * 1.32, ${(this.cfg.grain ?? 1).toFixed(3)} );
         #endif`
       );
     };
+    mat.customProgramCacheKey = () => 'terrain-grain-' + (this.cfg.grain ?? 1);
     const mesh = new THREE.Mesh(geo, mat);
     mesh.name = 'terrain';
     mesh.receiveShadow = true;
@@ -418,7 +458,7 @@ class Terrain {
     if (P.rock && ny < 0.93) out.lerp(P.rock, smoothstep(0.93, 0.8, ny));
     if (P.sand) {
       if (c.coast) {
-        const edge = c.coast.x - c.coast.width + fbm(x / 45, z / 45, this.seed + 61, 2) * 22;
+        const edge = this.coastX(z) - c.coast.width + fbm(x / 45, z / 45, this.seed + 61, 2) * 22;
         out.lerp(P.sand, smoothstep(edge - 34, edge + 6, x));
       } else out.lerp(P.sand, 1 - smoothstep(this.waterLevel + 0.5, this.waterLevel + 2.2, h));
     }

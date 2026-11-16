@@ -110,7 +110,7 @@ import { open, check, finish, installHelpers } from './harness.mjs';
     return Game.raceTime === t;
   });
   check('race clock stops while paused', frozen);
-  await page.click('#b-resume');
+  await page.click('#b-resume', { noWaitAfter: true }); /* the paused game keeps rendering, which can starve the post-click wait under software GL */
   check('Resume continues', await page.evaluate(() => !Game.paused && $('#s-pause').hidden));
   const cam0 = await page.evaluate(() => Game.world.camMode);
   await page.keyboard.press('KeyC');

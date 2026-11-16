@@ -58,6 +58,8 @@ class Track {
       b /= 21;
       this.bank.push(clamp(b / (maxC || 1), -1, 1) * def.bankMax);
     }
+    this.seg = this.length / this.n; /* metres between samples (they are evenly spaced along the lap) */
+    this._elevation(def.elev);
     /* spatial hash for nearest-sample lookup */
     this.cell = 24;
     this.hash = new Map();
@@ -83,6 +85,45 @@ class Track {
     this.map = { cx, cz, span, toUV: (x, z) => [(x - cx) / span + 0.5, (z - cz) / span + 0.5] };
     this.sectors = [Math.floor(this.n * 0.33), Math.floor(this.n * 0.66)];
     this._placePads();
+  }
+  /* Hills. `keys` are [lap fraction, metres] pairs in lap order starting at fraction 0; they are joined by a
+     smooth periodic curve and rounded off, so crests and dips have no kinks. elev[i] is the height of the centre
+     line at sample i, grade[i] its slope along the lap (rise per metre, + = uphill in the driving direction). */
+  _elevation(keys) {
+    const n = this.n;
+    this.elev = new Array(n).fill(0);
+    this.grade = new Array(n).fill(0);
+    this.hilly = false;
+    if (!keys || keys.length < 2) return;
+    const K = keys.length,
+      X = (k) => keys[((k % K) + K) % K][0] + Math.floor(k / K),
+      Y = (k) => keys[((k % K) + K) % K][1];
+    let raw = [];
+    for (let i = 0, k = 0; i < n; i++) {
+      const u = i / n;
+      while (k < K - 1 && X(k + 1) <= u) k++;
+      const x0 = X(k),
+        x1 = X(k + 1),
+        h = x1 - x0,
+        t = (u - x0) / h,
+        m0 = (Y(k + 1) - Y(k - 1)) / (X(k + 1) - X(k - 1)),
+        m1 = (Y(k + 2) - Y(k)) / (X(k + 2) - X(k)),
+        t2 = t * t,
+        t3 = t2 * t;
+      raw.push((2 * t3 - 3 * t2 + 1) * Y(k) + (t3 - 2 * t2 + t) * h * m0 + (-2 * t3 + 3 * t2) * Y(k + 1) + (t3 - t2) * h * m1);
+    }
+    for (let pass = 0; pass < 2; pass++) {
+      const sm = [];
+      for (let i = 0; i < n; i++) {
+        let a = 0;
+        for (let k = -7; k <= 7; k++) a += raw[(i + k + n) % n];
+        sm.push(a / 15);
+      }
+      raw = sm;
+    }
+    this.elev = raw;
+    for (let i = 0; i < n; i++) this.grade[i] = (raw[(i + 1) % n] - raw[(i - 1 + n) % n]) / (2 * this.seg);
+    this.hilly = raw.some((e) => Math.abs(e) > 0.01);
   }
   /* boost pads sit on the straightest stretches; derived from geometry so every client agrees */
   _placePads() {
@@ -194,8 +235,52 @@ class Track {
       t = this.tangent[i];
     return (x - c.x) * t.x + (z - c.z) * t.z;
   }
+  /* height of the road's cross-section at sample i, lat metres right of the centre line (banking tilts it) */
   heightAt(i, lat) {
-    return Math.sin(this.bank[i]) * lat;
+    return this.elev[i] + Math.sin(this.bank[i]) * lat;
+  }
+  /* Where a point sits in the strip of road between sample i and its neighbour: returns [j, f, lat] with j the
+     neighbour on the point's side, f in 0..1 the fraction of the way from cross-section i to cross-section j,
+     and lat the offset right of the centre line there. Matches the rendered ribbon, corners included (the two
+     cross-sections are not parallel in a bend, so a plain projection onto sample i's axes would drift). */
+  _locate(x, z, i, maxLat = Infinity) {
+    const n = this.n,
+      ci = this.center[i],
+      j = this.along(x, z, i) >= 0 ? (i + 1) % n : (i - 1 + n) % n,
+      cj = this.center[j],
+      ri = this.right[i],
+      rj = this.right[j];
+    /* first guess along the chord of the centre line, then once more along the line at the point's own offset */
+    let ex = cj.x - ci.x,
+      ez = cj.z - ci.z,
+      f = clamp(((x - ci.x) * ex + (z - ci.z) * ez) / (ex * ex + ez * ez), 0, 1),
+      lat = 0;
+    for (let pass = 0; pass < 2; pass++) {
+      const rx = ri.x + (rj.x - ri.x) * f,
+        rz = ri.z + (rj.z - ri.z) * f;
+      lat = ((x - ci.x - (cj.x - ci.x) * f) * rx + (z - ci.z - (cj.z - ci.z) * f) * rz) / Math.hypot(rx, rz);
+      if (pass) break;
+      const ax = ci.x + ri.x * lat,
+        az = ci.z + ri.z * lat;
+      ex = cj.x + rj.x * lat - ax;
+      ez = cj.z + rj.z * lat - az;
+      const d2 = ex * ex + ez * ez;
+      f = d2 > 1e-6 ? clamp(((x - ax) * ex + (z - az) * ez) / d2, 0, 1) : f;
+    }
+    return [j, f, clamp(lat, -maxLat, maxLat)];
+  }
+  /* height of the road surface under a point near sample i: blended between the two cross-sections it lies
+     between, so a car climbs a hill smoothly instead of in steps. maxLat limits how far out the banking is followed. */
+  surface(x, z, i, maxLat = Infinity) {
+    const [j, f, lat] = this._locate(x, z, i, maxLat);
+    return lerp(this.heightAt(i, lat), this.heightAt(j, lat), f);
+  }
+  /* slope of the road surface at a point near sample i, in the direction (dx, dz) (unit length): rise per metre */
+  slope(x, z, i, dx, dz) {
+    const [j, f] = this._locate(x, z, i),
+      t = this.tangent[i],
+      r = this.right[i];
+    return lerp(this.grade[i], this.grade[j], f) * (dx * t.x + dz * t.z) + lerp(Math.sin(this.bank[i]), Math.sin(this.bank[j]), f) * (dx * r.x + dz * r.z);
   }
   /* fractional progress 0..1 around the lap */
   progress(x, z, i) {
@@ -206,6 +291,16 @@ class Track {
     const c = this.center[i],
       r = this.right[i];
     return new THREE.Vector3(c.x + r.x * lat, this.heightAt(i, lat), c.z + r.z * lat);
+  }
+  /* like point(), for a fractional sample position s (pads and painted lines that start between samples) */
+  pointF(s, lat = 0) {
+    const n = this.n,
+      i0 = ((Math.floor(s) % n) + n) % n,
+      i1 = (i0 + 1) % n,
+      f = s - Math.floor(s),
+      a = this.point(i0, lat),
+      b = this.point(i1, lat);
+    return a.lerp(b, f);
   }
   yawAt(i) {
     const t = this.tangent[i];

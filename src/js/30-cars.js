@@ -108,6 +108,7 @@ const UPGRADES = [
   { id: 'nitro', name: 'Nitro', icon: '🔥', desc: 'Bigger tank, harder boost, faster recharge.', costs: [450, 900, 1500, 2300, 3300] },
 ];
 const MAX_LEVEL = 5;
+const SLOPE_G = 6.4; /* m/s² per unit of slope: a little under real gravity, so hills are felt but never stall a car */
 const DRIFT_TIERS = [0.55, 1.3, 2.3]; /* seconds of quality sliding for each mini-turbo tier */
 const TIER_HEX = [0xffffff, 0x4fc3ff, 0xffa13a, 0xd27bff];
 

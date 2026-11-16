@@ -330,8 +330,7 @@ const Net = {
       car.vel.copy(n.vel);
       car.trackIdx = Game.track.nearest(car.pos.x, car.pos.z, car.trackIdx);
       car.lat = Game.track.lateral(car.pos.x, car.pos.z, car.trackIdx);
-      car.pos.y = Game.track.heightAt(car.trackIdx, clamp(car.lat, -Game.track.halfWidth - 2, Game.track.halfWidth + 2));
-      car.roll = damp(car.roll, -Game.track.bank[car.trackIdx], 8, dt);
+      car.ground(Game.track, dt);
       car.wheelSpin += (car.speed * dt) / 0.36;
       car.steerVis = damp(car.steerVis, car.net.steer || 0, 10, dt);
       car.slip = car.drifting ? 0.9 : 0;
