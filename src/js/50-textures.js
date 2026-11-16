@@ -55,37 +55,35 @@ function makeAsphalt(def) {
   t.encoding = THREE.sRGBEncoding;
   return t;
 }
-function makeGroundTex(def) {
+/* tiling grey grain multiplied over the terrain's vertex colours: fine noise plus soft darker blotches */
+function makeDetailTex() {
   const c = document.createElement('canvas');
-  c.width = c.height = 512;
+  c.width = c.height = 256;
   const x = c.getContext('2d');
-  const a = new THREE.Color(def.theme.ground),
-    b = new THREE.Color(def.theme.ground2);
-  const img = x.createImageData(512, 512),
+  const img = x.createImageData(256, 256),
     d = img.data;
-  for (let i = 0; i < 512 * 512; i++) {
-    const n = Math.random();
-    const r = a.r * (1 - n) + b.r * n,
-      g = a.g * (1 - n) + b.g * n,
-      bl = a.b * (1 - n) + b.b * n;
-    d[i * 4] = r * 255;
-    d[i * 4 + 1] = g * 255;
-    d[i * 4 + 2] = bl * 255;
+  for (let i = 0; i < 256 * 256; i++) {
+    const v = 205 + Math.random() * 50;
+    d[i * 4] = d[i * 4 + 1] = d[i * 4 + 2] = v;
     d[i * 4 + 3] = 255;
   }
   x.putImageData(img, 0, 0);
-  /* soft darker patches for variation */
-  for (let i = 0; i < 40; i++) {
-    const r = 30 + Math.random() * 90;
-    const gr = x.createRadialGradient(Math.random() * 512, Math.random() * 512, 0, Math.random() * 512, Math.random() * 512, r);
-    gr.addColorStop(0, 'rgba(0,0,0,.22)');
-    gr.addColorStop(1, 'rgba(0,0,0,0)');
-    x.fillStyle = gr;
-    x.fillRect(0, 0, 512, 512);
+  for (let i = 0; i < 26; i++) {
+    const px = Math.random() * 256,
+      py = Math.random() * 256,
+      r = 14 + Math.random() * 40;
+    /* drawn at the four wrap positions so the blotches tile without seams */
+    for (const ox of [0, -256, 256])
+      for (const oy of [0, -256, 256]) {
+        const gr = x.createRadialGradient(px + ox, py + oy, 0, px + ox, py + oy, r);
+        gr.addColorStop(0, 'rgba(0,0,0,.16)');
+        gr.addColorStop(1, 'rgba(0,0,0,0)');
+        x.fillStyle = gr;
+        x.fillRect(px + ox - r, py + oy - r, r * 2, r * 2);
+      }
   }
   const t = new THREE.CanvasTexture(c);
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
-  t.repeat.set(90, 90);
   t.anisotropy = 4;
   t.encoding = THREE.sRGBEncoding;
   return t;

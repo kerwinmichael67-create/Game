@@ -11,7 +11,7 @@ class World {
     this.renderer.outputEncoding = THREE.sRGBEncoding;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 0.86;
-    this.camera = new THREE.PerspectiveCamera(62, 1, 0.3, 2600);
+    this.camera = new THREE.PerspectiveCamera(62, 1, 0.5, 2600);
     this.scene = new THREE.Scene();
     this.camMode = 0;
     this.camPos = new THREE.Vector3();
@@ -124,7 +124,9 @@ class World {
         this.renderer.capabilities.isWebGL2 && THREE.WebGLMultisampleRenderTarget
           ? THREE.WebGLMultisampleRenderTarget
           : THREE.WebGLRenderTarget;
-      const rt = new RT(size.x, size.y, { format: THREE.RGBAFormat, encoding: THREE.sRGBEncoding });
+      /* stencilBuffer makes three allocate DEPTH24_STENCIL8; without it a render target only gets 16 depth bits,
+         and ground, kerbs and road shimmer through each other in the distance */
+      const rt = new RT(size.x, size.y, { format: THREE.RGBAFormat, encoding: THREE.sRGBEncoding, stencilBuffer: true });
       if ('samples' in rt) rt.samples = 4;
       const composer = new THREE.EffectComposer(this.renderer, rt);
       composer.setPixelRatio(this.pixelRatio());
@@ -252,15 +254,9 @@ class World {
     const g = new THREE.Group();
     this.trackGroup = g;
     scene.add(g);
-    /* ground */
-    const ground = new THREE.Mesh(
-      new THREE.PlaneGeometry(5000, 5000),
-      new THREE.MeshStandardMaterial({ map: makeGroundTex(def), roughness: 1, metalness: 0, envMapIntensity: 0.15 })
-    );
-    ground.rotation.x = -Math.PI / 2;
-    ground.position.y = -0.08;
-    ground.receiveShadow = true;
-    g.add(ground);
+    /* land: a heightfield cut to sit just below the road everywhere, banked corners included (53-terrain.js) */
+    this.terrain = new Terrain(track, th, this.quality, seed);
+    g.add(this.terrain.build(makeDetailTex()));
 
     /* road ribbon */
     const n = track.n,
@@ -274,7 +270,7 @@ class World {
       const ii = i % n,
         l = track.point(ii, -hw),
         r = track.point(ii, hw);
-      pos.push(l.x, l.y + 0.02, l.z, r.x, r.y + 0.02, r.z);
+      pos.push(l.x, l.y + 0.03, l.z, r.x, r.y + 0.03, r.z);
       uv.push(0, i * vRepeat, 1, i * vRepeat);
       if (i < n) {
         const a = i * 2;
@@ -291,33 +287,43 @@ class World {
       new THREE.MeshStandardMaterial({ map: makeAsphalt(def), roughness: 0.78, metalness: 0.1, envMapIntensity: 0.35 })
     );
     road.receiveShadow = true;
+    road.name = 'road';
     g.add(road);
 
     /* shoulders + kerbs */
     const shoulderCol = new THREE.Color(th.night ? 0x25262d : 0x7a7463).lerp(new THREE.Color(th.ground), 0.3);
-    const shoulder = this._ribbon(track, hw, hw + track.wallOffset, 0.0, null, () => shoulderCol);
-    shoulder.material.roughness = 1;
-    g.add(shoulder);
-    const shoulderL = this._ribbon(track, -hw - track.wallOffset, -hw, 0.0, null, () => shoulderCol);
-    shoulderL.material.roughness = 1;
-    g.add(shoulderL);
     const kerbCol = (i) => new THREE.Color(Math.floor(i / 4) % 2 ? 0xc42328 : 0xd9d9d4);
-    g.add(this._ribbon(track, -hw - 1.0, -hw, 0.045, null, kerbCol));
-    g.add(this._ribbon(track, hw, hw + 1.0, 0.045, null, kerbCol));
+    /* kerbs sit beside the road and shoulders beside the kerbs, out to just under the barrier: no surface lies
+       on top of another, so there is nothing to z-fight */
+    const C = hw + track.wallOffset;
+    for (const side of [-1, 1]) {
+      const kerb = side > 0 ? this._ribbon(track, hw, hw + 1.0, 0.03, null, kerbCol) : this._ribbon(track, -hw - 1.0, -hw, 0.03, null, kerbCol);
+      kerb.name = 'kerb';
+      g.add(kerb);
+      const sh =
+        side > 0
+          ? this._ribbon(track, hw + 0.95, C + 0.3, 0.0, null, () => shoulderCol)
+          : this._ribbon(track, -C - 0.3, -hw - 0.95, 0.0, null, () => shoulderCol);
+      sh.material.roughness = 1;
+      sh.name = 'shoulder';
+      g.add(sh);
+    }
     /* barriers with a metal top rail */
     const railMat = new THREE.MeshStandardMaterial({ color: 0xb9c0cf, metalness: 0.9, roughness: 0.35 });
     for (const side of [-1, 1]) {
       const off = side * (hw + track.wallOffset);
+      /* the barrier reaches well below the road so the land outside always meets it */
       const wall = this._wall(
         track,
         off,
-        -0.1,
+        -1.8,
         1.0,
         0.5,
         (i) => new THREE.Color(Math.floor(i / 6) % 2 ? (th.night ? 0x2a7cff : 0xa4a8b2) : th.night ? 0x14141c : 0xa82e25)
       );
       wall.castShadow = true;
       wall.receiveShadow = true;
+      wall.name = 'wall';
       g.add(wall);
       const rail = this._wall(track, off - side * 0.05, 1.0, 1.12, 0.6, () => new THREE.Color(0xffffff), railMat);
       rail.castShadow = true;
@@ -336,10 +342,14 @@ class World {
         }
       const tex = new THREE.CanvasTexture(c);
       tex.encoding = THREE.sRGBEncoding;
-      const line = new THREE.Mesh(new THREE.PlaneGeometry(hw * 2, 2.4), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.8 }));
+      const line = new THREE.Mesh(
+        new THREE.PlaneGeometry(hw * 2, 2.4),
+        new THREE.MeshStandardMaterial({ map: tex, roughness: 0.8, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 })
+      );
       const p0 = track.center[0],
         t0 = track.tangent[0];
-      line.position.set(p0.x, 0.05, p0.z);
+      const y0 = track.heightAt(0, 0);
+      line.position.set(p0.x, y0 + 0.05, p0.z);
       line.rotation.x = -Math.PI / 2;
       line.rotation.z = -Math.atan2(t0.x, t0.z);
       g.add(line);
@@ -383,7 +393,7 @@ class World {
       box.position.set(0, 6.4, -0.6);
       lights.add(box);
       gant.add(lights);
-      gant.position.set(p0.x, 0, p0.z);
+      gant.position.set(p0.x, y0, p0.z);
       gant.rotation.y = Math.atan2(t0.x, t0.z);
       g.add(gant);
     }
@@ -533,7 +543,13 @@ class World {
       g = this.trackGroup,
       n = track.n;
     const waterX = th.water ? th.water.x : Infinity;
-    const place = (count, minD, maxD, fn) => {
+    const te = this.terrain,
+      farScale = this.quality === 'high' ? 1 : 0.45;
+    const dry = (x, z) => x < te.waterStart || te.heightAt(x, z) > te.waterLevel + 0.7;
+    /* scatter along the circuit, minD..maxD metres beyond the barriers. `reach` is how far a prop spreads from
+       its centre: nothing may lean over the barriers, and nothing stands in the sea. A callback that returns
+       false turns the spot down (used by props whose size is only known once they are rolled). */
+    const place = (count, minD, maxD, reach, fn) => {
       let tries = 0,
         made = 0;
       while (made < count && tries < count * 14) {
@@ -546,10 +562,32 @@ class World {
           x = c.x + r.x * side * d,
           z = c.z + r.z * side * d;
         if (x > waterX - 12) continue;
-        if (!track.clear(x, z, minD * 0.6)) continue;
-        fn(x, z, i, made);
+        if (!track.clear(x, z, reach) || !dry(x, z)) continue;
+        if (fn(x, z, i, made) === false) continue;
         made++;
       }
+      return made;
+    };
+    /* far scatter: clumps of trees out on the land, well away from the circuit */
+    const scatter = (count, fn) => {
+      let tries = 0,
+        made = 0;
+      const w = te.nx * te.CS,
+        d = te.nz * te.CS;
+      while (made < count && tries < count * 30) {
+        tries++;
+        const x = te.x0 + R() * w,
+          z = te.z0 + R() * d;
+        if (x > waterX - 30) continue;
+        if (!track.clear(x, z, 62)) continue;
+        if (fbm(x / 85, z / 85, te.seed + 211, 2) < 0.02 + R() * 0.25) continue; /* woods and clearings */
+        const y = te.heightAt(x, z);
+        if (!dry(x, z)) continue;
+        if (te.pal && te.pal.snow && y > te.pal.snowLine - 4) continue;
+        fn(x, y, z, made);
+        made++;
+      }
+      return made;
     };
     const dummy = new THREE.Object3D();
     const col = new THREE.Color();
@@ -575,38 +613,70 @@ class World {
       }));
       tiers.forEach((t) => {
         t.mesh.castShadow = t.mesh.receiveShadow = true;
+        t.mesh.name = 'canopy';
       });
-      place(count, 4, 70, (x, z, i, k) => {
+      const made = place(count, 4, 70, 4.2, (x, z, i, k) => {
         const s = 0.7 + R() * 0.9;
         const rot = R() * TAU;
         col.setHSL(0.36 + R() * 0.04, 0.5, 0.2 + R() * 0.12);
-        dummy.position.set(x, 1.3 * s, z);
+        const gy = this.groundY(x, z) - 0.15;
+        dummy.position.set(x, gy + 1.3 * s, z);
         dummy.scale.set(s, s, s);
         dummy.rotation.set(0, rot, 0);
         dummy.updateMatrix();
         trunks.setMatrixAt(k, dummy.matrix);
         for (const t of tiers) {
-          dummy.position.y = t.y * s;
+          dummy.position.y = gy + t.y * s;
           dummy.updateMatrix();
           t.mesh.setMatrixAt(k, dummy.matrix);
           t.mesh.setColorAt(k, col);
         }
       });
+      trunks.count = made;
       trunks.instanceMatrix.needsUpdate = true;
       g.add(trunks);
       for (const t of tiers) {
+        t.mesh.count = made;
         t.mesh.instanceMatrix.needsUpdate = true;
         if (t.mesh.instanceColor) t.mesh.instanceColor.needsUpdate = true;
         g.add(t.mesh);
       }
+      /* distant woods: one light mesh per tree, no shadows */
+      const farCount = Math.round((th.farTrees ?? count * 0.9) * farScale);
+      if (farCount > 0) {
+        const far = new THREE.InstancedMesh(
+          mergeGeometries([
+            new THREE.ConeGeometry(2.5, 4.4, 6).translate(0, 3.6, 0),
+            new THREE.ConeGeometry(1.6, 3.6, 6).translate(0, 6.3, 0),
+            new THREE.CylinderGeometry(0.3, 0.4, 1.6, 5).translate(0, 0.8, 0),
+          ]),
+          new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95 }),
+          farCount
+        );
+        far.count = scatter(farCount, (x, y, z, k) => {
+          const s = 0.9 + R() * 1.3;
+          dummy.position.set(x, y - 0.3, z);
+          dummy.scale.set(s, s * (0.9 + R() * 0.3), s);
+          dummy.rotation.set(0, R() * TAU, 0);
+          dummy.updateMatrix();
+          far.setMatrixAt(k, dummy.matrix);
+          col.setHSL(0.36 + R() * 0.04, 0.45, 0.17 + R() * 0.1);
+          far.setColorAt(k, col);
+        });
+        far.instanceMatrix.needsUpdate = true;
+        if (far.instanceColor) far.instanceColor.needsUpdate = true;
+        far.name = 'woods';
+        g.add(far);
+      }
     }
     if (th.trees === 'palm') {
       const count = th.treeCount,
-        fronds = 7;
+        fronds = 7,
+        total = count + Math.round((th.farTrees ?? count * 0.45) * farScale);
       const trunks = new THREE.InstancedMesh(
         new THREE.CylinderGeometry(0.16, 0.3, 7, 7),
         new THREE.MeshStandardMaterial({ color: 0x8a6a48, roughness: 1 }),
-        count
+        total
       );
       trunks.castShadow = true;
       const frondGeo = new THREE.PlaneGeometry(1.2, 3.8, 1, 4);
@@ -621,22 +691,23 @@ class World {
       const frondMesh = new THREE.InstancedMesh(
         frondGeo,
         new THREE.MeshStandardMaterial({ map: makeFrondTex(), alphaTest: 0.5, side: THREE.DoubleSide, roughness: 0.9, color: 0xffffff }),
-        count * fronds
+        total * fronds
       );
       const top = new THREE.Vector3();
       const tilt = new THREE.Vector3();
-      place(count, 4, 70, (x, z, i, k) => {
+      const farCount = Math.round((th.farTrees ?? count * 0.45) * farScale);
+      const palm = (x, gy, z, k) => {
         const s = 0.75 + R() * 0.7,
           lean = (R() - 0.5) * 0.3,
           leanDir = R() * TAU;
-        dummy.position.set(x, 3.5 * s, z);
+        dummy.position.set(x, gy + 3.5 * s, z);
         dummy.scale.set(s, s, s);
         dummy.rotation.set(Math.cos(leanDir) * lean, 0, Math.sin(leanDir) * lean);
         dummy.updateMatrix();
         trunks.setMatrixAt(k, dummy.matrix);
         /* top of the leaning trunk */
         tilt.set(0, 3.5 * s, 0).applyEuler(dummy.rotation);
-        top.set(x, 3.5 * s, z).add(tilt);
+        top.set(x, gy + 3.5 * s, z).add(tilt);
         col.setHSL(0.3 + R() * 0.06, 0.55, 0.28 + R() * 0.12);
         for (let f = 0; f < fronds; f++) {
           const d2 = new THREE.Object3D();
@@ -648,7 +719,11 @@ class World {
           frondMesh.setMatrixAt(k * fronds + f, d2.matrix);
           frondMesh.setColorAt(k * fronds + f, col);
         }
-      });
+      };
+      let made = place(count, 4, 70, 2.4, (x, z, i, k) => palm(x, this.groundY(x, z) - 0.2, z, k));
+      made += scatter(farCount, (x, y, z, k) => palm(x, y - 0.2, z, made + k));
+      trunks.count = made;
+      frondMesh.count = made * fronds;
       trunks.instanceMatrix.needsUpdate = true;
       frondMesh.instanceMatrix.needsUpdate = true;
       if (frondMesh.instanceColor) frondMesh.instanceColor.needsUpdate = true;
@@ -660,9 +735,11 @@ class World {
         mat = new THREE.MeshStandardMaterial({ color: 0x6f6f78, roughness: 1 });
       const rocks = new THREE.InstancedMesh(geo, mat, th.rocks);
       rocks.castShadow = rocks.receiveShadow = true;
-      place(th.rocks, 2, 45, (x, z, i, k) => {
+      rocks.name = 'rocks';
+      rocks.count = place(th.rocks, 2, 45, 1.2, (x, z, i, k) => {
         const s = 0.5 + R() * 1.6;
-        dummy.position.set(x, s * 0.45, z);
+        if (!track.clear(x, z, 1.5 * s + 0.3)) return false; /* big rocks keep their whole bulk outside the barrier */
+        dummy.position.set(x, this.groundY(x, z) + s * 0.3, z);
         dummy.scale.set(s, s * (0.6 + R() * 0.5), s);
         dummy.rotation.set(R(), R() * TAU, R());
         dummy.updateMatrix();
@@ -679,6 +756,7 @@ class World {
         mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.55, metalness: 0.35, envMapIntensity: 0.6 });
       const bl = new THREE.InstancedMesh(geo, mat, th.buildings);
       bl.castShadow = bl.receiveShadow = true;
+      bl.name = 'buildings';
       const palette = [0x2e3a55, 0x4a2f3f, 0x27484a, 0x4f4428, 0x363c4c, 0x1f2a3a];
       const neon = new THREE.InstancedMesh(
         new THREE.BoxGeometry(0.14, 1, 0.14),
@@ -687,12 +765,14 @@ class World {
       );
       const neonCols = [0x39d2ff, 0xff3cac, 0xffd166, 0x7cff6b, 0xff7a1a];
       const mats = [];
-      place(th.buildings, 13, 85, (x, z, i, k) => {
+      const made = place(th.buildings, 13, 85, 7.8, (x, z, i, k) => {
         const w = 6 + R() * 9,
           h = 3 + R() * (R() < 0.3 ? 22 : 7),
           d = 6 + R() * 9,
           rot = track.yawAt(i) + (R() < 0.5 ? 0 : Math.PI / 2);
-        dummy.position.set(x, h / 2, z);
+        if (!track.clear(x, z, Math.hypot(w, d) / 2 + 1.5)) return false; /* no corner may reach the barriers */
+        const gy = this.groundY(x, z) - 0.8; /* foundations go into the ground so no corner floats */
+        dummy.position.set(x, gy + h / 2, z);
         dummy.scale.set(w, h, d);
         dummy.rotation.set(0, rot, 0);
         dummy.updateMatrix();
@@ -704,7 +784,7 @@ class World {
         for (let c2 = 0; c2 < 2; c2++) {
           const sx = c2 ? 1 : -1;
           const local = new THREE.Vector3(sx * (w / 2 + 0.05), h / 2, d / 2 + 0.05).applyAxisAngle(new THREE.Vector3(0, 1, 0), rot);
-          dummy.position.set(x + local.x, local.y, z + local.z);
+          dummy.position.set(x + local.x, gy + local.y, z + local.z);
           dummy.scale.set(1, h, 1);
           dummy.rotation.set(0, rot, 0);
           dummy.updateMatrix();
@@ -713,6 +793,8 @@ class World {
           neon.setColorAt(k * 2 + c2, col);
         }
       });
+      bl.count = made;
+      neon.count = made * 2;
       bl.instanceMatrix.needsUpdate = true;
       if (bl.instanceColor) bl.instanceColor.needsUpdate = true;
       g.add(bl);
@@ -734,7 +816,7 @@ class World {
           ? new THREE.Vector3(side * 0.51, (Math.floor(((R() - 0.5) * s.y) / 1.4) * 1.4) / s.y, R() - 0.5)
           : new THREE.Vector3(R() - 0.5, (Math.floor(((R() - 0.5) * s.y) / 1.4) * 1.4) / s.y, side * 0.51);
         local.multiply(s).applyQuaternion(q).add(p);
-        if (local.y < 1.2) continue;
+        if (local.y < p.y - s.y / 2 + 2) continue;
         pts.push(local.x, local.y, local.z);
         const c = new THREE.Color().setHSL(R() < 0.7 ? 0.12 : 0.55, 0.9, 0.62);
         pc.push(c.r, c.g, c.b);
@@ -774,6 +856,7 @@ class World {
         count
       );
       const gp = [];
+      let lit = 0;
       for (let k = 0; k < count; k++) {
         const i = Math.floor((k * n) / count),
           side = k % 2 ? 1 : -1,
@@ -781,18 +864,22 @@ class World {
           r = track.right[i],
           d = track.halfWidth + track.wallOffset + 1.3;
         if (c.x + r.x * side * d > waterX - 12) continue;
-        dummy.position.set(c.x + r.x * side * d, 4, c.z + r.z * side * d);
+        const px = c.x + r.x * side * d,
+          pz = c.z + r.z * side * d,
+          gy = track.heightAt(i, side * d) - 0.5; /* base just under the shoulder level, head 8 m above the road edge */
+        dummy.position.set(px, gy + 4, pz);
         dummy.rotation.set(0, track.yawAt(i), 0);
         dummy.scale.set(1, 1, 1);
         dummy.updateMatrix();
-        poles.setMatrixAt(k, dummy.matrix);
-        dummy.position.y = 8;
+        poles.setMatrixAt(lit, dummy.matrix);
+        dummy.position.y = gy + 8;
         dummy.position.x -= r.x * side * 0.75;
         dummy.position.z -= r.z * side * 0.75;
         dummy.updateMatrix();
-        heads.setMatrixAt(k, dummy.matrix);
-        gp.push(dummy.position.x, 7.9, dummy.position.z);
+        heads.setMatrixAt(lit++, dummy.matrix);
+        gp.push(dummy.position.x, gy + 7.9, dummy.position.z);
       }
+      poles.count = heads.count = lit; /* lamps skipped at the waterline must not be left standing at the origin */
       poles.instanceMatrix.needsUpdate = true;
       heads.instanceMatrix.needsUpdate = true;
       g.add(poles);
@@ -837,8 +924,9 @@ class World {
       g.add(ring);
     }
     if (th.water) {
+      const level = this.terrain.waterLevel;
       const water = new THREE.Mesh(
-        new THREE.PlaneGeometry(1800, 3200),
+        new THREE.PlaneGeometry(2500, 5600),
         new THREE.MeshPhysicalMaterial({
           color: th.water.color || 0x0b2f3f,
           roughness: 0.15,
@@ -849,17 +937,14 @@ class World {
         })
       );
       water.rotation.x = -Math.PI / 2;
-      water.position.set(th.water.x + 900, -0.04, 0);
+      /* the sheet starts well inland; the shoreline is wherever the land dips below it (sand is painted by the terrain) */
+      water.position.set(this.terrain.waterStart + 1250, level, 0);
+      water.name = 'water';
       g.add(water);
-      const sand = new THREE.Mesh(new THREE.PlaneGeometry(60, 3200), new THREE.MeshStandardMaterial({ color: 0xcdb98a, roughness: 1 }));
-      sand.rotation.x = -Math.PI / 2;
-      sand.position.set(th.water.x - 20, -0.06, 0);
-      sand.receiveShadow = true;
-      g.add(sand);
       /* a few boats far out */
       for (let k = 0; k < 6; k++) {
         const hull = new THREE.Mesh(new THREE.BoxGeometry(14, 3, 5), new THREE.MeshStandardMaterial({ color: 0xf4f6fb, roughness: 0.5 }));
-        hull.position.set(th.water.x + 140 + R() * 500, 1.2, (R() - 0.5) * 1400);
+        hull.position.set(th.water.x + 140 + R() * 500, level + 1.2, (R() - 0.5) * 1400);
         hull.rotation.y = R() * TAU;
         const mast = new THREE.Mesh(new THREE.BoxGeometry(0.4, 18, 0.4), new THREE.MeshStandardMaterial({ color: 0xdddddd }));
         mast.position.y = 9;
@@ -930,7 +1015,9 @@ class World {
       fascia.position.set(0, 8.5, -3.45);
       stand.add(fascia);
       /* the low front row (local -z) faces the track */
-      stand.position.set(c.x + r.x * side * d, 0, c.z + r.z * side * d);
+      const sx0 = c.x + r.x * side * d,
+        sz0 = c.z + r.z * side * d;
+      stand.position.set(sx0, this.groundY(sx0, sz0) - 0.25, sz0);
       stand.rotation.y = Math.atan2(side * r.x, side * r.z);
       g.add(stand);
     }
@@ -955,10 +1042,15 @@ class World {
     }
     this.scene.environment = null;
     this.trackGroup = null;
+    this.terrain = null;
     this.smoke = this.sparks = this.dust = null;
     this.startLights = null;
     this.skids = null;
     this.padMats = [];
+  }
+  /* height of the land at (x, z): what scenery stands on */
+  groundY(x, z) {
+    return this.terrain ? this.terrain.heightAt(x, z) : 0;
   }
   add(obj) {
     this.scene.add(obj);
@@ -1046,7 +1138,7 @@ class World {
         const w = c.mesh.userData.wheels[2 + Math.floor(Math.random() * 2)];
         const p = new THREE.Vector3();
         w.hub.getWorldPosition(p);
-        p.y = 0.2;
+        p.y = c.pos.y + 0.2;
         this.dust.emit(
           p,
           new THREE.Vector3((Math.random() - 0.5) * 3 - c.vel.x * 0.1, 1.5 + Math.random(), (Math.random() - 0.5) * 3 - c.vel.z * 0.1),

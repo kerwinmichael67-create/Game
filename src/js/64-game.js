@@ -387,8 +387,13 @@ const Game = {
           b = gd[Math.min(i + 1, gd.length - 1)];
         const f = b[3] > a[3] ? clamp((lapT - a[3]) / (b[3] - a[3]), 0, 1) : 0;
         this.ghost.mesh.visible = lapT < gd[gd.length - 1][3] + 0.3;
-        this.ghost.mesh.position.set(lerp(a[0], b[0], f), 0.02, lerp(a[1], b[1], f));
-        this.ghost.mesh.rotation.set(0, a[2] + wrapAngle(b[2] - a[2]) * f, 0);
+        /* the recording stores x, z and yaw only: height and lean come from the track surface */
+        const gx = lerp(a[0], b[0], f),
+          gz = lerp(a[1], b[1], f),
+          gyaw = a[2] + wrapAngle(b[2] - a[2]) * f,
+          gi = this.track.nearest(gx, gz);
+        this.ghost.mesh.position.set(gx, this.track.heightAt(gi, this.track.lateral(gx, gz, gi)) + 0.02, gz);
+        this.ghost.mesh.rotation.set(0, gyaw, -this.track.bank[gi] * Math.cos(wrapAngle(gyaw - this.track.yawAt(gi))), 'YXZ');
       }
     }
     this.updateStandings();

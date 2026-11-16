@@ -25,7 +25,9 @@ const TRACKS = [
       buildings: 0,
       lamps: true,
       cloud: 0xffc9a6,
-      water: { x: 350, color: 0x08222e },
+      water: { x: 350, color: 0x08222e, level: -1.1 },
+      /* low dunes that fall away into the sea east of the circuit */
+      terrain: { amp: 3.0, scale: 95, calm: [10, 85], coast: { x: 350, width: 85, drop: 5.5 }, palette: { patch: 0x7d7a4c, verge: 0x75874f, sand: 0xa08a5c, rock: 0x6b6354 } },
     },
     points: [
       [0, 0],
@@ -77,6 +79,8 @@ const TRACKS = [
       lamps: false,
       mountains: true,
       cloud: 0xffffff,
+      /* rolling foothills that climb toward the peaks */
+      terrain: { amp: 13, scale: 170, calm: [14, 120], margin: 200, rim: { r0: 360, r1: 900, amp: 55 }, palette: { patch: 0x55783a, verge: 0x4d8040, rock: 0x5c5e5c, snow: 0xd9e0e6, snowLine: 34 } },
     },
     points: [
       [0, 0],
@@ -130,6 +134,8 @@ const TRACKS = [
       buildings: 160,
       lamps: true,
       night: true,
+      /* flat dockside concrete */
+      terrain: { amp: 0 },
     },
     points: [
       [0, 0],

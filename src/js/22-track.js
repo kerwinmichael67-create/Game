@@ -124,17 +124,22 @@ class Track {
   ahead(a, b) {
     return ((b - a + this.n) % this.n) * (this.length / this.n);
   }
+  /* one key per grid cell (no collisions: a shared key would let a far-off sample pose as a near one) */
+  cellKey(cx, cz) {
+    return (cx + 4096) * 8192 + (cz + 4096);
+  }
   _key(x, z) {
-    return (Math.floor(x / this.cell) * 73856093) ^ (Math.floor(z / this.cell) * 19349663);
+    return this.cellKey(Math.floor(x / this.cell), Math.floor(z / this.cell));
   }
   /* nearest sample index; hint speeds up the search for tracked cars */
   nearest(x, z, hint = -1) {
     let best = -1,
       bd = Infinity;
+    const C = this.center;
     if (hint >= 0) {
       for (let k = -14; k <= 14; k++) {
         const i = (hint + k + this.n) % this.n;
-        const p = this.center[i];
+        const p = C[i];
         const d = (p.x - x) ** 2 + (p.z - z) ** 2;
         if (d < bd) {
           bd = d;
@@ -143,15 +148,20 @@ class Track {
       }
       if (bd < 30 * 30) return best;
     }
-    const cx = Math.floor(x / this.cell),
-      cz = Math.floor(z / this.cell);
-    for (let r = 0; r <= 3 && best < 0; r++) {
-      for (let dx = -r; dx <= r; dx++)
-        for (let dz = -r; dz <= r; dz++) {
-          const arr = this.hash.get(((cx + dx) * 73856093) ^ ((cz + dz) * 19349663));
+    /* search the grid ring by ring. Every sample in ring r is at least r - 1 cells away,
+       so the search may stop as soon as that is further than the best found so far. */
+    const cell = this.cell,
+      cx = Math.floor(x / cell),
+      cz = Math.floor(z / cell);
+    for (let r = 0; r <= 5; r++) {
+      if (best >= 0 && (r - 1) * cell > Math.sqrt(bd)) return best;
+      for (let dx = -r; dx <= r; dx++) {
+        const edge = dx === -r || dx === r;
+        for (let dz = -r; dz <= r; dz += edge ? 1 : 2 * r) {
+          const arr = this.hash.get(this.cellKey(cx + dx, cz + dz));
           if (!arr) continue;
           for (const i of arr) {
-            const p = this.center[i];
+            const p = C[i];
             const d = (p.x - x) ** 2 + (p.z - z) ** 2;
             if (d < bd) {
               bd = d;
@@ -159,16 +169,16 @@ class Track {
             }
           }
         }
-      if (best >= 0 && r >= 1) break;
+      }
     }
-    if (best < 0) {
-      for (let i = 0; i < this.n; i += 3) {
-        const p = this.center[i];
-        const d = (p.x - x) ** 2 + (p.z - z) ** 2;
-        if (d < bd) {
-          bd = d;
-          best = i;
-        }
+    if (best >= 0 && 5 * cell > Math.sqrt(bd)) return best;
+    /* far from the circuit: scan everything */
+    for (let i = 0; i < this.n; i++) {
+      const p = C[i];
+      const d = (p.x - x) ** 2 + (p.z - z) ** 2;
+      if (d < bd) {
+        bd = d;
+        best = i;
       }
     }
     return best;

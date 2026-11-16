@@ -1633,6 +1633,34 @@ const PAINTS = [
   { id: 'carbon', name: 'Carbon', hex: 0x2a2f3a },
 ];
 const BOT_NAMES = ['Vega', 'Kessler', 'Okafor', 'Lindqvist', 'Moreau', 'Tanaka', 'Ibarra', 'Novak', 'Reyes', 'Haddad', 'Petrov', 'Nkemelu'];
+/* joins geometries into one (positions, normals, uvs), so a whole prop can be a single instanced mesh */
+function mergeGeometries(list) {
+  const pos = [],
+    nrm = [],
+    uv = [],
+    idx = [];
+  let base = 0;
+  for (const g of list) {
+    const p = g.attributes.position,
+      n = g.attributes.normal,
+      u = g.attributes.uv;
+    for (let i = 0; i < p.count; i++) {
+      pos.push(p.getX(i), p.getY(i), p.getZ(i));
+      nrm.push(n.getX(i), n.getY(i), n.getZ(i));
+      uv.push(u ? u.getX(i) : 0, u ? u.getY(i) : 0);
+    }
+    if (g.index) for (let i = 0; i < g.index.count; i++) idx.push(base + g.index.getX(i));
+    else for (let i = 0; i < p.count; i++) idx.push(base + i);
+    base += p.count;
+    g.dispose();
+  }
+  const out = new THREE.BufferGeometry();
+  out.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  out.setAttribute('normal', new THREE.Float32BufferAttribute(nrm, 3));
+  out.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  out.setIndex(idx);
+  return out;
+}
 
 /* ========================================================================
    Audio — fully synthesized (no external files allowed in the artifact)
@@ -2002,7 +2030,9 @@ const TRACKS = [
       buildings: 0,
       lamps: true,
       cloud: 0xffc9a6,
-      water: { x: 350, color: 0x08222e },
+      water: { x: 350, color: 0x08222e, level: -1.1 },
+      /* low dunes that fall away into the sea east of the circuit */
+      terrain: { amp: 3.0, scale: 95, calm: [10, 85], coast: { x: 350, width: 85, drop: 5.5 }, palette: { patch: 0x7d7a4c, verge: 0x75874f, sand: 0xa08a5c, rock: 0x6b6354 } },
     },
     points: [
       [0, 0],
@@ -2054,6 +2084,8 @@ const TRACKS = [
       lamps: false,
       mountains: true,
       cloud: 0xffffff,
+      /* rolling foothills that climb toward the peaks */
+      terrain: { amp: 13, scale: 170, calm: [14, 120], margin: 200, rim: { r0: 360, r1: 900, amp: 55 }, palette: { patch: 0x55783a, verge: 0x4d8040, rock: 0x5c5e5c, snow: 0xd9e0e6, snowLine: 34 } },
     },
     points: [
       [0, 0],
@@ -2107,6 +2139,8 @@ const TRACKS = [
       buildings: 160,
       lamps: true,
       night: true,
+      /* flat dockside concrete */
+      terrain: { amp: 0 },
     },
     points: [
       [0, 0],
@@ -2261,17 +2295,22 @@ class Track {
   ahead(a, b) {
     return ((b - a + this.n) % this.n) * (this.length / this.n);
   }
+  /* one key per grid cell (no collisions: a shared key would let a far-off sample pose as a near one) */
+  cellKey(cx, cz) {
+    return (cx + 4096) * 8192 + (cz + 4096);
+  }
   _key(x, z) {
-    return (Math.floor(x / this.cell) * 73856093) ^ (Math.floor(z / this.cell) * 19349663);
+    return this.cellKey(Math.floor(x / this.cell), Math.floor(z / this.cell));
   }
   /* nearest sample index; hint speeds up the search for tracked cars */
   nearest(x, z, hint = -1) {
     let best = -1,
       bd = Infinity;
+    const C = this.center;
     if (hint >= 0) {
       for (let k = -14; k <= 14; k++) {
         const i = (hint + k + this.n) % this.n;
-        const p = this.center[i];
+        const p = C[i];
         const d = (p.x - x) ** 2 + (p.z - z) ** 2;
         if (d < bd) {
           bd = d;
@@ -2280,15 +2319,20 @@ class Track {
       }
       if (bd < 30 * 30) return best;
     }
-    const cx = Math.floor(x / this.cell),
-      cz = Math.floor(z / this.cell);
-    for (let r = 0; r <= 3 && best < 0; r++) {
-      for (let dx = -r; dx <= r; dx++)
-        for (let dz = -r; dz <= r; dz++) {
-          const arr = this.hash.get(((cx + dx) * 73856093) ^ ((cz + dz) * 19349663));
+    /* search the grid ring by ring. Every sample in ring r is at least r - 1 cells away,
+       so the search may stop as soon as that is further than the best found so far. */
+    const cell = this.cell,
+      cx = Math.floor(x / cell),
+      cz = Math.floor(z / cell);
+    for (let r = 0; r <= 5; r++) {
+      if (best >= 0 && (r - 1) * cell > Math.sqrt(bd)) return best;
+      for (let dx = -r; dx <= r; dx++) {
+        const edge = dx === -r || dx === r;
+        for (let dz = -r; dz <= r; dz += edge ? 1 : 2 * r) {
+          const arr = this.hash.get(this.cellKey(cx + dx, cz + dz));
           if (!arr) continue;
           for (const i of arr) {
-            const p = this.center[i];
+            const p = C[i];
             const d = (p.x - x) ** 2 + (p.z - z) ** 2;
             if (d < bd) {
               bd = d;
@@ -2296,16 +2340,16 @@ class Track {
             }
           }
         }
-      if (best >= 0 && r >= 1) break;
+      }
     }
-    if (best < 0) {
-      for (let i = 0; i < this.n; i += 3) {
-        const p = this.center[i];
-        const d = (p.x - x) ** 2 + (p.z - z) ** 2;
-        if (d < bd) {
-          bd = d;
-          best = i;
-        }
+    if (best >= 0 && 5 * cell > Math.sqrt(bd)) return best;
+    /* far from the circuit: scan everything */
+    for (let i = 0; i < this.n; i++) {
+      const p = C[i];
+      const d = (p.x - x) ** 2 + (p.z - z) ** 2;
+      if (d < bd) {
+        bd = d;
+        best = i;
       }
     }
     return best;
@@ -3511,37 +3555,35 @@ function makeAsphalt(def) {
   t.encoding = THREE.sRGBEncoding;
   return t;
 }
-function makeGroundTex(def) {
+/* tiling grey grain multiplied over the terrain's vertex colours: fine noise plus soft darker blotches */
+function makeDetailTex() {
   const c = document.createElement('canvas');
-  c.width = c.height = 512;
+  c.width = c.height = 256;
   const x = c.getContext('2d');
-  const a = new THREE.Color(def.theme.ground),
-    b = new THREE.Color(def.theme.ground2);
-  const img = x.createImageData(512, 512),
+  const img = x.createImageData(256, 256),
     d = img.data;
-  for (let i = 0; i < 512 * 512; i++) {
-    const n = Math.random();
-    const r = a.r * (1 - n) + b.r * n,
-      g = a.g * (1 - n) + b.g * n,
-      bl = a.b * (1 - n) + b.b * n;
-    d[i * 4] = r * 255;
-    d[i * 4 + 1] = g * 255;
-    d[i * 4 + 2] = bl * 255;
+  for (let i = 0; i < 256 * 256; i++) {
+    const v = 205 + Math.random() * 50;
+    d[i * 4] = d[i * 4 + 1] = d[i * 4 + 2] = v;
     d[i * 4 + 3] = 255;
   }
   x.putImageData(img, 0, 0);
-  /* soft darker patches for variation */
-  for (let i = 0; i < 40; i++) {
-    const r = 30 + Math.random() * 90;
-    const gr = x.createRadialGradient(Math.random() * 512, Math.random() * 512, 0, Math.random() * 512, Math.random() * 512, r);
-    gr.addColorStop(0, 'rgba(0,0,0,.22)');
-    gr.addColorStop(1, 'rgba(0,0,0,0)');
-    x.fillStyle = gr;
-    x.fillRect(0, 0, 512, 512);
+  for (let i = 0; i < 26; i++) {
+    const px = Math.random() * 256,
+      py = Math.random() * 256,
+      r = 14 + Math.random() * 40;
+    /* drawn at the four wrap positions so the blotches tile without seams */
+    for (const ox of [0, -256, 256])
+      for (const oy of [0, -256, 256]) {
+        const gr = x.createRadialGradient(px + ox, py + oy, 0, px + ox, py + oy, r);
+        gr.addColorStop(0, 'rgba(0,0,0,.16)');
+        gr.addColorStop(1, 'rgba(0,0,0,0)');
+        x.fillStyle = gr;
+        x.fillRect(px + ox - r, py + oy - r, r * 2, r * 2);
+      }
   }
   const t = new THREE.CanvasTexture(c);
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
-  t.repeat.set(90, 90);
   t.anisotropy = 4;
   t.encoding = THREE.sRGBEncoding;
   return t;
@@ -3839,6 +3881,452 @@ class SkidMarks {
 }
 
 /* ========================================================================
+   Terrain: the land around a circuit as a heightfield.
+
+   The road, kerbs and shoulders are ribbons built from the track samples. The land must never cover
+   them, so the heightfield is defined relative to the road:
+     - inside the corridor (road + shoulder, out to the barriers) it follows the road's cross-section,
+       banking included, a fixed DROP below it;
+     - from the barriers outward it blends over BLEND metres into the natural terrain (rolling noise,
+       a coast, a mountain rim, depending on the theme).
+   The mesh is a two-level grid: fine cells near the track so the banked corridor is resolved, coarse
+   cells elsewhere, with the shared edges constrained so there are no cracks. A coarse frame carries the
+   land out to the horizon.
+
+   Terrain.heightAt(x, z) returns the height of the rendered surface (same triangles as the mesh), which
+   is what scenery stands on and what tests/t-terrain.mjs checks against the road.
+   ======================================================================== */
+function hash2(ix, iz, seed) {
+  let h = (Math.imul(ix, 374761393) + Math.imul(iz, 668265263) + Math.imul(seed, 1442695041)) | 0;
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  h ^= h >>> 16;
+  return (h >>> 0) / 4294967296;
+}
+/* smooth value noise in [-1, 1] */
+function vnoise(x, z, seed) {
+  const ix = Math.floor(x),
+    iz = Math.floor(z),
+    fx = x - ix,
+    fz = z - iz;
+  const sx = fx * fx * (3 - 2 * fx),
+    sz = fz * fz * (3 - 2 * fz);
+  const a = hash2(ix, iz, seed),
+    b = hash2(ix + 1, iz, seed),
+    c = hash2(ix, iz + 1, seed),
+    d = hash2(ix + 1, iz + 1, seed);
+  return (a + (b - a) * sx + (c - a + (a - b - c + d) * sx) * sz) * 2 - 1;
+}
+function fbm(x, z, seed, octaves = 3) {
+  let s = 0,
+    a = 1,
+    f = 1,
+    n = 0;
+  for (let o = 0; o < octaves; o++) {
+    s += a * vnoise(x * f, z * f, seed + o * 17);
+    n += a;
+    a *= 0.5;
+    f *= 2.03;
+  }
+  return s / n;
+}
+const smoothstep = (a, b, x) => {
+  const t = clamp((x - a) / (b - a), 0, 1);
+  return t * t * (3 - 2 * t);
+};
+
+class Terrain {
+  /* quality 'high' → 4 m cells near the track, anything else → 5 m */
+  constructor(track, theme, quality, seed) {
+    this.track = track;
+    this.theme = theme;
+    this.cfg = Object.assign({ amp: 0, scale: 100, calm: [14, 100], margin: 170 }, theme.terrain || {});
+    this.seed = seed | 0;
+    this.C = track.halfWidth + track.wallOffset; /* corridor half width: road + shoulder up to the barrier face */
+    this.DROP = 0.45; /* how far the land sits below the road surface inside the corridor */
+    this.FLAT = this.C + 2.0; /* the cross-section plane is held flat beyond this lateral offset */
+    this.B0 = this.C + 2.5; /* blend to natural terrain starts here ... */
+    this.B1 = this.B0 + (this.cfg.blend || 30); /* ... and ends here */
+    this.K = 4;
+    this.CS = quality === 'high' ? 16 : 20;
+    this.FS = this.CS / this.K;
+    /* the sea: a sheet that starts where the land begins to fall away. It may never lap over the circuit, so
+       its level drops below the lowest stretch of road corridor that lies within the sheet. */
+    this.waterLevel = -Infinity;
+    this.waterStart = Infinity;
+    if (theme.water) {
+      const coast = this.cfg.coast;
+      this.waterStart = coast ? coast.x - coast.width : theme.water.x - 110;
+      this.waterLevel = theme.water.level ?? -1.1;
+      for (let i = 0; i < track.n; i++)
+        if (track.center[i].x + this.C + 12 > this.waterStart)
+          this.waterLevel = Math.min(this.waterLevel, Math.min(track.heightAt(i, -this.C), track.heightAt(i, this.C)) - this.DROP - 0.35);
+    }
+    /* regional elevation follows the circuit's own height profile so hills in the track become hills in the land */
+    this.elevated = track.elev ? track.elev.some((e) => Math.abs(e) > 0.01) : false;
+    this._d = 0;
+    this._buildGrid();
+  }
+
+  /* natural terrain with no knowledge of the road; dTrack = distance to the nearest centreline sample */
+  base(x, z, dTrack) {
+    const c = this.cfg,
+      t = this.track;
+    let h = 0;
+    if (this.elevated) h += this.regional(x, z);
+    if (c.amp) {
+      const calm = smoothstep(this.C + c.calm[0], this.C + c.calm[1], dTrack);
+      h += c.amp * fbm(x / c.scale, z / c.scale, this.seed + 7, 3) * (0.12 + 0.88 * calm);
+    }
+    if (c.rim) {
+      const r = Math.hypot(x - t.map.cx, z - t.map.cz);
+      h += c.rim.amp * smoothstep(c.rim.r0, c.rim.r1, r);
+    }
+    if (c.coast) {
+      /* inland hollows stop short of sea level (no ponds with a ruler-straight edge), then the shore falls away */
+      const floor = this.waterLevel + 0.9;
+      if (h < floor) h = floor + (h - floor) * 0.15;
+      h -= c.coast.drop * smoothstep(c.coast.x - c.coast.width, c.coast.x + 12, x);
+    }
+    return h;
+  }
+  /* smooth field through the track's elevation: every 6th sample, inverse-distance weighted with a wide kernel */
+  regional(x, z) {
+    const t = this.track;
+    let s = 0,
+      w = 0;
+    for (let i = 0; i < t.n; i += 6) {
+      const c = t.center[i],
+        d2 = (c.x - x) * (c.x - x) + (c.z - z) * (c.z - z);
+      const k = 1 / (d2 * d2 + 4e6); /* ~45 m core */
+      s += k * t.elev[i];
+      w += k;
+    }
+    return s / w;
+  }
+
+  /* height of the land at (x, z); also leaves the distance to the centreline in this._d */
+  sample(x, z) {
+    const t = this.track,
+      iN = t.nearest(x, z),
+      cN = t.center[iN];
+    const dN = Math.hypot(cN.x - x, cN.z - z);
+    this._d = dN;
+    const base = this.base(x, z, dN);
+    if (dN >= this.B1) return base;
+    /* proximity-weighted blend of the cross-sections of all nearby samples: continuous where two legs of the
+       circuit pass each other, and equal to the nearest cross-section on the road itself */
+    const cell = t.cell,
+      gx = Math.floor(x / cell),
+      gz = Math.floor(z / cell),
+      R2 = this.B1 * this.B1;
+    let S = 0,
+      T = 0,
+      W = 0;
+    for (let dx = -2; dx <= 2; dx++)
+      for (let dz = -2; dz <= 2; dz++) {
+        const arr = t.hash.get(t.cellKey(gx + dx, gz + dz));
+        if (!arr) continue;
+        for (let k = 0; k < arr.length; k++) {
+          const i = arr[k],
+            c = t.center[i],
+            ox = x - c.x,
+            oz = z - c.z,
+            d2 = ox * ox + oz * oz;
+          if (d2 > R2) continue;
+          const r = t.right[i],
+            lat = clamp(ox * r.x + oz * r.z, -this.FLAT, this.FLAT);
+          const s = 1 / (d2 * d2 * d2 + 1e-4);
+          S += s;
+          T += s * (t.heightAt(i, lat) - this.DROP);
+          W += s * (1 - smoothstep(this.B0, this.B1, Math.sqrt(d2)));
+        }
+      }
+    if (S === 0) return base;
+    return base + (T / S - base) * (W / S);
+  }
+
+  _buildGrid() {
+    const t = this.track,
+      K = this.K,
+      CS = this.CS,
+      FS = this.FS,
+      M = this.cfg.margin;
+    let minX = 1e9,
+      maxX = -1e9,
+      minZ = 1e9,
+      maxZ = -1e9;
+    for (const p of t.center) {
+      minX = Math.min(minX, p.x);
+      maxX = Math.max(maxX, p.x);
+      minZ = Math.min(minZ, p.z);
+      maxZ = Math.max(maxZ, p.z);
+    }
+    const x0 = (this.x0 = Math.floor((minX - M) / CS) * CS),
+      z0 = (this.z0 = Math.floor((minZ - M) / CS) * CS);
+    const nx = (this.nx = Math.ceil((maxX + M - x0) / CS)),
+      nz = (this.nz = Math.ceil((maxZ + M - z0) / CS));
+    const LX = (this.LX = nx * K + 1),
+      LZ = (this.LZ = nz * K + 1);
+    const hf = (this.hf = new Float32Array(LX * LZ).fill(NaN)); /* heights on the fine lattice, where used */
+    const dist = (this.dist = new Float32Array(LX * LZ)); /* distance to the centreline, for colouring */
+    const fine = (this.fine = new Uint8Array(nx * nz));
+    /* which coarse cells need fine resolution */
+    const Rf = this.B1 + 2 + CS * 0.7072;
+    for (let cz = 0; cz < nz; cz++)
+      for (let cx = 0; cx < nx; cx++) {
+        const x = x0 + (cx + 0.5) * CS,
+          z = z0 + (cz + 0.5) * CS,
+          c = t.center[t.nearest(x, z)];
+        fine[cz * nx + cx] = Math.hypot(c.x - x, c.z - z) < Rf ? 1 : 0;
+      }
+    const put = (fx, fz) => {
+      const k = fz * LX + fx;
+      if (isNaN(hf[k])) {
+        hf[k] = this.sample(x0 + fx * FS, z0 + fz * FS);
+        dist[k] = this._d;
+      }
+    };
+    /* coarse lattice */
+    for (let cz = 0; cz <= nz; cz++) for (let cx = 0; cx <= nx; cx++) put(cx * K, cz * K);
+    /* fine lattice inside fine cells; edges shared with a coarse cell follow that cell's straight edge */
+    const isFine = (cx, cz) => cx >= 0 && cz >= 0 && cx < nx && cz < nz && fine[cz * nx + cx] === 1;
+    const along = (fxa, fza, fxb, fzb, f, k) => {
+      const a = fza * LX + fxa,
+        b = fzb * LX + fxb;
+      hf[k] = hf[a] + (hf[b] - hf[a]) * f;
+      dist[k] = dist[a] + (dist[b] - dist[a]) * f;
+    };
+    for (let cz = 0; cz < nz; cz++)
+      for (let cx = 0; cx < nx; cx++) {
+        if (!fine[cz * nx + cx]) continue;
+        const bx = cx * K,
+          bz = cz * K;
+        for (let j = 0; j <= K; j++)
+          for (let i = 0; i <= K; i++) {
+            const onW = i === 0,
+              onE = i === K,
+              onS = j === 0,
+              onN = j === K;
+            if ((onW || onE) && (onS || onN)) continue; /* corner: already on the coarse lattice */
+            const k = (bz + j) * LX + bx + i;
+            if (onW && !isFine(cx - 1, cz)) along(bx, bz, bx, bz + K, j / K, k);
+            else if (onE && !isFine(cx + 1, cz)) along(bx + K, bz, bx + K, bz + K, j / K, k);
+            else if (onS && !isFine(cx, cz - 1)) along(bx, bz, bx + K, bz, i / K, k);
+            else if (onN && !isFine(cx, cz + 1)) along(bx, bz + K, bx + K, bz + K, i / K, k);
+            else put(bx + i, bz + j);
+          }
+      }
+    this._carve();
+  }
+
+  /* A hard guarantee on top of the smooth cut: no triangle of the land may rise above the road, the kerbs
+     or the shoulders. Walks the corridor densely and presses the corners of every cell it crosses below
+     the surface at that spot. The blend already sits DROP below almost everywhere, so this only bites on
+     the inside of tight banked corners, where neighbouring cross-sections fold over each other. */
+  _carve() {
+    const t = this.track,
+      FS = this.FS,
+      LX = this.LX,
+      LZ = this.LZ,
+      hf = this.hf;
+    const steps = Math.max(1, Math.ceil(t.length / t.n / 1.5)),
+      W = this.C + 1,
+      lats = Math.ceil(W),
+      CLEAR = 0.3;
+    for (let i = 0; i < t.n; i++) {
+      const j = (i + 1) % t.n,
+        c0 = t.center[i],
+        c1 = t.center[j],
+        r0 = t.right[i],
+        r1 = t.right[j];
+      for (let s = 0; s < steps; s++) {
+        const f = s / steps,
+          cx = lerp(c0.x, c1.x, f),
+          cz = lerp(c0.z, c1.z, f),
+          rx = lerp(r0.x, r1.x, f),
+          rz = lerp(r0.z, r1.z, f);
+        for (let q = -lats; q <= lats; q++) {
+          const lat = (q / lats) * W,
+            y = lerp(t.heightAt(i, lat), t.heightAt(j, lat), f) - CLEAR,
+            fx = Math.floor((cx + rx * lat - this.x0) / FS),
+            fz = Math.floor((cz + rz * lat - this.z0) / FS);
+          if (fx < 0 || fz < 0 || fx > LX - 2 || fz > LZ - 2) continue;
+          const k = fz * LX + fx;
+          if (hf[k] > y) hf[k] = y;
+          if (hf[k + 1] > y) hf[k + 1] = y;
+          if (hf[k + LX] > y) hf[k + LX] = y;
+          if (hf[k + LX + 1] > y) hf[k + LX + 1] = y;
+        }
+      }
+    }
+  }
+
+  /* height of the rendered surface: same triangles as the mesh */
+  heightAt(x, z) {
+    const gx = (x - this.x0) / this.CS,
+      gz = (z - this.z0) / this.CS;
+    if (!(gx >= 0 && gz >= 0 && gx < this.nx && gz < this.nz)) return this.base(x, z, 1e6);
+    const cx = Math.floor(gx),
+      cz = Math.floor(gz),
+      LX = this.LX,
+      K = this.K;
+    let fx, fz, step, u, v;
+    if (this.fine[cz * this.nx + cx]) {
+      const lx = (x - this.x0) / this.FS,
+        lz = (z - this.z0) / this.FS;
+      fx = Math.min(Math.floor(lx), LX - 2);
+      fz = Math.min(Math.floor(lz), this.LZ - 2);
+      u = lx - fx;
+      v = lz - fz;
+      step = 1;
+    } else {
+      fx = cx * K;
+      fz = cz * K;
+      u = gx - cx;
+      v = gz - cz;
+      step = K;
+    }
+    const hf = this.hf,
+      h00 = hf[fz * LX + fx],
+      h10 = hf[fz * LX + fx + step],
+      h01 = hf[(fz + step) * LX + fx],
+      h11 = hf[(fz + step) * LX + fx + step];
+    return u + v <= 1 ? h00 + u * (h10 - h00) + v * (h01 - h00) : h11 + (1 - u) * (h01 - h11) + (1 - v) * (h10 - h11);
+  }
+
+  /* builds the mesh; `detail` is a tiling grey texture multiplied over the vertex colours */
+  build(detail) {
+    const { nx, nz, K, FS, LX, LZ, x0, z0, hf, dist, fine } = this;
+    const pos = [],
+      uv = [],
+      dd = [],
+      idx = [];
+    const vi = new Int32Array(LX * LZ).fill(-1);
+    const vert = (fx, fz) => {
+      const k = fz * LX + fx;
+      if (vi[k] >= 0) return vi[k];
+      const x = x0 + fx * FS,
+        z = z0 + fz * FS;
+      pos.push(x, hf[k], z);
+      uv.push(x / 26, z / 26);
+      dd.push(dist[k]);
+      return (vi[k] = pos.length / 3 - 1);
+    };
+    const quad = (fx, fz, s) => {
+      const a = vert(fx, fz),
+        b = vert(fx, fz + s),
+        c = vert(fx + s, fz),
+        d = vert(fx + s, fz + s);
+      idx.push(a, b, c, c, b, d);
+    };
+    for (let cz = 0; cz < nz; cz++)
+      for (let cx = 0; cx < nx; cx++) {
+        if (fine[cz * nx + cx]) {
+          for (let j = 0; j < K; j++) for (let i = 0; i < K; i++) quad(cx * K + i, cz * K + j, 1);
+        } else quad(cx * K, cz * K, K);
+      }
+    /* frame out to the horizon: the grid's perimeter pushed outward in three rings */
+    const per = [];
+    for (let cx = 0; cx < nx; cx++) per.push([cx * K, 0]);
+    for (let cz = 0; cz < nz; cz++) per.push([nx * K, cz * K]);
+    for (let cx = nx; cx > 0; cx--) per.push([cx * K, nz * K]);
+    for (let cz = nz; cz > 0; cz--) per.push([0, cz * K]);
+    const mx = x0 + (nx * this.CS) / 2,
+      mz = z0 + (nz * this.CS) / 2;
+    let ring = per.map(([fx, fz]) => vert(fx, fz));
+    for (const f of [1.45, 2.4, 5.5]) {
+      const next = per.map(([fx, fz]) => {
+        const x = mx + (x0 + fx * FS - mx) * f,
+          z = mz + (z0 + fz * FS - mz) * f;
+        pos.push(x, this.base(x, z, 1e6), z);
+        uv.push(x / 26, z / 26);
+        dd.push(1e6);
+        return pos.length / 3 - 1;
+      });
+      /* the perimeter runs +x, then +z, then back; (inner, next inner, outer) is the winding that faces up */
+      for (let i = 0; i < per.length; i++) {
+        const j = (i + 1) % per.length;
+        idx.push(ring[i], ring[j], next[i], ring[j], next[j], next[i]);
+      }
+      ring = next;
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+    geo.setIndex(idx);
+    geo.computeVertexNormals();
+    /* colours need the slope, so they come after the normals */
+    const nrm = geo.attributes.normal,
+      col = new Float32Array(pos.length),
+      c = new THREE.Color();
+    for (let i = 0; i < pos.length / 3; i++) {
+      this.tint(c, pos[i * 3], pos[i * 3 + 1], pos[i * 3 + 2], nrm.getY(i), dd[i]);
+      col[i * 3] = c.r;
+      col[i * 3 + 1] = c.g;
+      col[i * 3 + 2] = c.b;
+    }
+    geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    this.vertices = pos.length / 3;
+    this.triangles = idx.length / 3;
+    const mat = new THREE.MeshStandardMaterial({ vertexColors: true, map: detail, roughness: 1, metalness: 0, envMapIntensity: 0.15 });
+    /* the grain is sampled twice, close up and again much larger and turned, so it never reads as a repeating pattern */
+    mat.onBeforeCompile = (shader) => {
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <map_fragment>',
+        `#ifdef USE_MAP
+          vec4 grainA = mapTexelToLinear( texture2D( map, vUv ) );
+          vec4 grainB = mapTexelToLinear( texture2D( map, vec2( vUv.x * 0.113 + vUv.y * 0.047, vUv.y * 0.113 - vUv.x * 0.047 ) ) );
+          diffuseColor.rgb *= grainA.rgb * grainB.rgb * 1.32;
+        #endif`
+      );
+    };
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.name = 'terrain';
+    mesh.receiveShadow = true;
+    this.mesh = mesh;
+    return mesh;
+  }
+
+  /* ground colour: two tones mixed by slow noise, patches of a third, a mown verge beside the barriers,
+     a beach along the coast, rock on steep ground and snow up high, as the theme's palette asks */
+  tint(out, x, h, z, ny, dTrack) {
+    const P = this.pal || (this.pal = this._palette()),
+      c = this.cfg;
+    const m = fbm(x / 60, z / 60, this.seed + 91, 2) * 0.5 + 0.5;
+    out.copy(P.a).lerp(P.b, m);
+    if (P.patch) out.lerp(P.patch, smoothstep(0.12, 0.42, fbm(x / 27, z / 27, this.seed + 33, 3)) * 0.85);
+    const beyond = dTrack - this.C;
+    if (P.verge && beyond < 11) out.lerp(P.verge, 1 - smoothstep(5, 11, beyond));
+    if (P.rock && ny < 0.93) out.lerp(P.rock, smoothstep(0.93, 0.8, ny));
+    if (P.sand) {
+      if (c.coast) {
+        const edge = c.coast.x - c.coast.width + fbm(x / 45, z / 45, this.seed + 61, 2) * 22;
+        out.lerp(P.sand, smoothstep(edge - 34, edge + 6, x));
+      } else out.lerp(P.sand, 1 - smoothstep(this.waterLevel + 0.5, this.waterLevel + 2.2, h));
+    }
+    if (P.snow) out.lerp(P.snow, smoothstep(P.snowLine, P.snowLine + 14, h + fbm(x / 40, z / 40, this.seed + 5, 2) * 5));
+    const j = 0.94 + hash2(Math.round(x * 3), Math.round(z * 3), this.seed) * 0.12;
+    out.multiplyScalar(j);
+    return out;
+  }
+  _palette() {
+    const th = this.theme,
+      p = (th.terrain && th.terrain.palette) || {},
+      C = (hex) => (hex == null ? null : new THREE.Color(hex));
+    return {
+      a: C(p.a ?? th.ground),
+      b: C(p.b ?? th.ground2),
+      patch: C(p.patch),
+      verge: C(p.verge),
+      rock: C(p.rock),
+      sand: C(p.sand),
+      snow: C(p.snow),
+      snowLine: p.snowLine ?? 30,
+    };
+  }
+}
+
+/* ========================================================================
    World: renderer + post-processing, scene assembly for a track, cameras
    ======================================================================== */
 class World {
@@ -3851,7 +4339,7 @@ class World {
     this.renderer.outputEncoding = THREE.sRGBEncoding;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 0.86;
-    this.camera = new THREE.PerspectiveCamera(62, 1, 0.3, 2600);
+    this.camera = new THREE.PerspectiveCamera(62, 1, 0.5, 2600);
     this.scene = new THREE.Scene();
     this.camMode = 0;
     this.camPos = new THREE.Vector3();
@@ -3964,7 +4452,9 @@ class World {
         this.renderer.capabilities.isWebGL2 && THREE.WebGLMultisampleRenderTarget
           ? THREE.WebGLMultisampleRenderTarget
           : THREE.WebGLRenderTarget;
-      const rt = new RT(size.x, size.y, { format: THREE.RGBAFormat, encoding: THREE.sRGBEncoding });
+      /* stencilBuffer makes three allocate DEPTH24_STENCIL8; without it a render target only gets 16 depth bits,
+         and ground, kerbs and road shimmer through each other in the distance */
+      const rt = new RT(size.x, size.y, { format: THREE.RGBAFormat, encoding: THREE.sRGBEncoding, stencilBuffer: true });
       if ('samples' in rt) rt.samples = 4;
       const composer = new THREE.EffectComposer(this.renderer, rt);
       composer.setPixelRatio(this.pixelRatio());
@@ -4092,15 +4582,9 @@ class World {
     const g = new THREE.Group();
     this.trackGroup = g;
     scene.add(g);
-    /* ground */
-    const ground = new THREE.Mesh(
-      new THREE.PlaneGeometry(5000, 5000),
-      new THREE.MeshStandardMaterial({ map: makeGroundTex(def), roughness: 1, metalness: 0, envMapIntensity: 0.15 })
-    );
-    ground.rotation.x = -Math.PI / 2;
-    ground.position.y = -0.08;
-    ground.receiveShadow = true;
-    g.add(ground);
+    /* land: a heightfield cut to sit just below the road everywhere, banked corners included (53-terrain.js) */
+    this.terrain = new Terrain(track, th, this.quality, seed);
+    g.add(this.terrain.build(makeDetailTex()));
 
     /* road ribbon */
     const n = track.n,
@@ -4114,7 +4598,7 @@ class World {
       const ii = i % n,
         l = track.point(ii, -hw),
         r = track.point(ii, hw);
-      pos.push(l.x, l.y + 0.02, l.z, r.x, r.y + 0.02, r.z);
+      pos.push(l.x, l.y + 0.03, l.z, r.x, r.y + 0.03, r.z);
       uv.push(0, i * vRepeat, 1, i * vRepeat);
       if (i < n) {
         const a = i * 2;
@@ -4131,33 +4615,43 @@ class World {
       new THREE.MeshStandardMaterial({ map: makeAsphalt(def), roughness: 0.78, metalness: 0.1, envMapIntensity: 0.35 })
     );
     road.receiveShadow = true;
+    road.name = 'road';
     g.add(road);
 
     /* shoulders + kerbs */
     const shoulderCol = new THREE.Color(th.night ? 0x25262d : 0x7a7463).lerp(new THREE.Color(th.ground), 0.3);
-    const shoulder = this._ribbon(track, hw, hw + track.wallOffset, 0.0, null, () => shoulderCol);
-    shoulder.material.roughness = 1;
-    g.add(shoulder);
-    const shoulderL = this._ribbon(track, -hw - track.wallOffset, -hw, 0.0, null, () => shoulderCol);
-    shoulderL.material.roughness = 1;
-    g.add(shoulderL);
     const kerbCol = (i) => new THREE.Color(Math.floor(i / 4) % 2 ? 0xc42328 : 0xd9d9d4);
-    g.add(this._ribbon(track, -hw - 1.0, -hw, 0.045, null, kerbCol));
-    g.add(this._ribbon(track, hw, hw + 1.0, 0.045, null, kerbCol));
+    /* kerbs sit beside the road and shoulders beside the kerbs, out to just under the barrier: no surface lies
+       on top of another, so there is nothing to z-fight */
+    const C = hw + track.wallOffset;
+    for (const side of [-1, 1]) {
+      const kerb = side > 0 ? this._ribbon(track, hw, hw + 1.0, 0.03, null, kerbCol) : this._ribbon(track, -hw - 1.0, -hw, 0.03, null, kerbCol);
+      kerb.name = 'kerb';
+      g.add(kerb);
+      const sh =
+        side > 0
+          ? this._ribbon(track, hw + 0.95, C + 0.3, 0.0, null, () => shoulderCol)
+          : this._ribbon(track, -C - 0.3, -hw - 0.95, 0.0, null, () => shoulderCol);
+      sh.material.roughness = 1;
+      sh.name = 'shoulder';
+      g.add(sh);
+    }
     /* barriers with a metal top rail */
     const railMat = new THREE.MeshStandardMaterial({ color: 0xb9c0cf, metalness: 0.9, roughness: 0.35 });
     for (const side of [-1, 1]) {
       const off = side * (hw + track.wallOffset);
+      /* the barrier reaches well below the road so the land outside always meets it */
       const wall = this._wall(
         track,
         off,
-        -0.1,
+        -1.8,
         1.0,
         0.5,
         (i) => new THREE.Color(Math.floor(i / 6) % 2 ? (th.night ? 0x2a7cff : 0xa4a8b2) : th.night ? 0x14141c : 0xa82e25)
       );
       wall.castShadow = true;
       wall.receiveShadow = true;
+      wall.name = 'wall';
       g.add(wall);
       const rail = this._wall(track, off - side * 0.05, 1.0, 1.12, 0.6, () => new THREE.Color(0xffffff), railMat);
       rail.castShadow = true;
@@ -4176,10 +4670,14 @@ class World {
         }
       const tex = new THREE.CanvasTexture(c);
       tex.encoding = THREE.sRGBEncoding;
-      const line = new THREE.Mesh(new THREE.PlaneGeometry(hw * 2, 2.4), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.8 }));
+      const line = new THREE.Mesh(
+        new THREE.PlaneGeometry(hw * 2, 2.4),
+        new THREE.MeshStandardMaterial({ map: tex, roughness: 0.8, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 })
+      );
       const p0 = track.center[0],
         t0 = track.tangent[0];
-      line.position.set(p0.x, 0.05, p0.z);
+      const y0 = track.heightAt(0, 0);
+      line.position.set(p0.x, y0 + 0.05, p0.z);
       line.rotation.x = -Math.PI / 2;
       line.rotation.z = -Math.atan2(t0.x, t0.z);
       g.add(line);
@@ -4223,7 +4721,7 @@ class World {
       box.position.set(0, 6.4, -0.6);
       lights.add(box);
       gant.add(lights);
-      gant.position.set(p0.x, 0, p0.z);
+      gant.position.set(p0.x, y0, p0.z);
       gant.rotation.y = Math.atan2(t0.x, t0.z);
       g.add(gant);
     }
@@ -4373,7 +4871,13 @@ class World {
       g = this.trackGroup,
       n = track.n;
     const waterX = th.water ? th.water.x : Infinity;
-    const place = (count, minD, maxD, fn) => {
+    const te = this.terrain,
+      farScale = this.quality === 'high' ? 1 : 0.45;
+    const dry = (x, z) => x < te.waterStart || te.heightAt(x, z) > te.waterLevel + 0.7;
+    /* scatter along the circuit, minD..maxD metres beyond the barriers. `reach` is how far a prop spreads from
+       its centre: nothing may lean over the barriers, and nothing stands in the sea. A callback that returns
+       false turns the spot down (used by props whose size is only known once they are rolled). */
+    const place = (count, minD, maxD, reach, fn) => {
       let tries = 0,
         made = 0;
       while (made < count && tries < count * 14) {
@@ -4386,10 +4890,32 @@ class World {
           x = c.x + r.x * side * d,
           z = c.z + r.z * side * d;
         if (x > waterX - 12) continue;
-        if (!track.clear(x, z, minD * 0.6)) continue;
-        fn(x, z, i, made);
+        if (!track.clear(x, z, reach) || !dry(x, z)) continue;
+        if (fn(x, z, i, made) === false) continue;
         made++;
       }
+      return made;
+    };
+    /* far scatter: clumps of trees out on the land, well away from the circuit */
+    const scatter = (count, fn) => {
+      let tries = 0,
+        made = 0;
+      const w = te.nx * te.CS,
+        d = te.nz * te.CS;
+      while (made < count && tries < count * 30) {
+        tries++;
+        const x = te.x0 + R() * w,
+          z = te.z0 + R() * d;
+        if (x > waterX - 30) continue;
+        if (!track.clear(x, z, 62)) continue;
+        if (fbm(x / 85, z / 85, te.seed + 211, 2) < 0.02 + R() * 0.25) continue; /* woods and clearings */
+        const y = te.heightAt(x, z);
+        if (!dry(x, z)) continue;
+        if (te.pal && te.pal.snow && y > te.pal.snowLine - 4) continue;
+        fn(x, y, z, made);
+        made++;
+      }
+      return made;
     };
     const dummy = new THREE.Object3D();
     const col = new THREE.Color();
@@ -4415,38 +4941,70 @@ class World {
       }));
       tiers.forEach((t) => {
         t.mesh.castShadow = t.mesh.receiveShadow = true;
+        t.mesh.name = 'canopy';
       });
-      place(count, 4, 70, (x, z, i, k) => {
+      const made = place(count, 4, 70, 4.2, (x, z, i, k) => {
         const s = 0.7 + R() * 0.9;
         const rot = R() * TAU;
         col.setHSL(0.36 + R() * 0.04, 0.5, 0.2 + R() * 0.12);
-        dummy.position.set(x, 1.3 * s, z);
+        const gy = this.groundY(x, z) - 0.15;
+        dummy.position.set(x, gy + 1.3 * s, z);
         dummy.scale.set(s, s, s);
         dummy.rotation.set(0, rot, 0);
         dummy.updateMatrix();
         trunks.setMatrixAt(k, dummy.matrix);
         for (const t of tiers) {
-          dummy.position.y = t.y * s;
+          dummy.position.y = gy + t.y * s;
           dummy.updateMatrix();
           t.mesh.setMatrixAt(k, dummy.matrix);
           t.mesh.setColorAt(k, col);
         }
       });
+      trunks.count = made;
       trunks.instanceMatrix.needsUpdate = true;
       g.add(trunks);
       for (const t of tiers) {
+        t.mesh.count = made;
         t.mesh.instanceMatrix.needsUpdate = true;
         if (t.mesh.instanceColor) t.mesh.instanceColor.needsUpdate = true;
         g.add(t.mesh);
       }
+      /* distant woods: one light mesh per tree, no shadows */
+      const farCount = Math.round((th.farTrees ?? count * 0.9) * farScale);
+      if (farCount > 0) {
+        const far = new THREE.InstancedMesh(
+          mergeGeometries([
+            new THREE.ConeGeometry(2.5, 4.4, 6).translate(0, 3.6, 0),
+            new THREE.ConeGeometry(1.6, 3.6, 6).translate(0, 6.3, 0),
+            new THREE.CylinderGeometry(0.3, 0.4, 1.6, 5).translate(0, 0.8, 0),
+          ]),
+          new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95 }),
+          farCount
+        );
+        far.count = scatter(farCount, (x, y, z, k) => {
+          const s = 0.9 + R() * 1.3;
+          dummy.position.set(x, y - 0.3, z);
+          dummy.scale.set(s, s * (0.9 + R() * 0.3), s);
+          dummy.rotation.set(0, R() * TAU, 0);
+          dummy.updateMatrix();
+          far.setMatrixAt(k, dummy.matrix);
+          col.setHSL(0.36 + R() * 0.04, 0.45, 0.17 + R() * 0.1);
+          far.setColorAt(k, col);
+        });
+        far.instanceMatrix.needsUpdate = true;
+        if (far.instanceColor) far.instanceColor.needsUpdate = true;
+        far.name = 'woods';
+        g.add(far);
+      }
     }
     if (th.trees === 'palm') {
       const count = th.treeCount,
-        fronds = 7;
+        fronds = 7,
+        total = count + Math.round((th.farTrees ?? count * 0.45) * farScale);
       const trunks = new THREE.InstancedMesh(
         new THREE.CylinderGeometry(0.16, 0.3, 7, 7),
         new THREE.MeshStandardMaterial({ color: 0x8a6a48, roughness: 1 }),
-        count
+        total
       );
       trunks.castShadow = true;
       const frondGeo = new THREE.PlaneGeometry(1.2, 3.8, 1, 4);
@@ -4461,22 +5019,23 @@ class World {
       const frondMesh = new THREE.InstancedMesh(
         frondGeo,
         new THREE.MeshStandardMaterial({ map: makeFrondTex(), alphaTest: 0.5, side: THREE.DoubleSide, roughness: 0.9, color: 0xffffff }),
-        count * fronds
+        total * fronds
       );
       const top = new THREE.Vector3();
       const tilt = new THREE.Vector3();
-      place(count, 4, 70, (x, z, i, k) => {
+      const farCount = Math.round((th.farTrees ?? count * 0.45) * farScale);
+      const palm = (x, gy, z, k) => {
         const s = 0.75 + R() * 0.7,
           lean = (R() - 0.5) * 0.3,
           leanDir = R() * TAU;
-        dummy.position.set(x, 3.5 * s, z);
+        dummy.position.set(x, gy + 3.5 * s, z);
         dummy.scale.set(s, s, s);
         dummy.rotation.set(Math.cos(leanDir) * lean, 0, Math.sin(leanDir) * lean);
         dummy.updateMatrix();
         trunks.setMatrixAt(k, dummy.matrix);
         /* top of the leaning trunk */
         tilt.set(0, 3.5 * s, 0).applyEuler(dummy.rotation);
-        top.set(x, 3.5 * s, z).add(tilt);
+        top.set(x, gy + 3.5 * s, z).add(tilt);
         col.setHSL(0.3 + R() * 0.06, 0.55, 0.28 + R() * 0.12);
         for (let f = 0; f < fronds; f++) {
           const d2 = new THREE.Object3D();
@@ -4488,7 +5047,11 @@ class World {
           frondMesh.setMatrixAt(k * fronds + f, d2.matrix);
           frondMesh.setColorAt(k * fronds + f, col);
         }
-      });
+      };
+      let made = place(count, 4, 70, 2.4, (x, z, i, k) => palm(x, this.groundY(x, z) - 0.2, z, k));
+      made += scatter(farCount, (x, y, z, k) => palm(x, y - 0.2, z, made + k));
+      trunks.count = made;
+      frondMesh.count = made * fronds;
       trunks.instanceMatrix.needsUpdate = true;
       frondMesh.instanceMatrix.needsUpdate = true;
       if (frondMesh.instanceColor) frondMesh.instanceColor.needsUpdate = true;
@@ -4500,9 +5063,11 @@ class World {
         mat = new THREE.MeshStandardMaterial({ color: 0x6f6f78, roughness: 1 });
       const rocks = new THREE.InstancedMesh(geo, mat, th.rocks);
       rocks.castShadow = rocks.receiveShadow = true;
-      place(th.rocks, 2, 45, (x, z, i, k) => {
+      rocks.name = 'rocks';
+      rocks.count = place(th.rocks, 2, 45, 1.2, (x, z, i, k) => {
         const s = 0.5 + R() * 1.6;
-        dummy.position.set(x, s * 0.45, z);
+        if (!track.clear(x, z, 1.5 * s + 0.3)) return false; /* big rocks keep their whole bulk outside the barrier */
+        dummy.position.set(x, this.groundY(x, z) + s * 0.3, z);
         dummy.scale.set(s, s * (0.6 + R() * 0.5), s);
         dummy.rotation.set(R(), R() * TAU, R());
         dummy.updateMatrix();
@@ -4519,6 +5084,7 @@ class World {
         mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.55, metalness: 0.35, envMapIntensity: 0.6 });
       const bl = new THREE.InstancedMesh(geo, mat, th.buildings);
       bl.castShadow = bl.receiveShadow = true;
+      bl.name = 'buildings';
       const palette = [0x2e3a55, 0x4a2f3f, 0x27484a, 0x4f4428, 0x363c4c, 0x1f2a3a];
       const neon = new THREE.InstancedMesh(
         new THREE.BoxGeometry(0.14, 1, 0.14),
@@ -4527,12 +5093,14 @@ class World {
       );
       const neonCols = [0x39d2ff, 0xff3cac, 0xffd166, 0x7cff6b, 0xff7a1a];
       const mats = [];
-      place(th.buildings, 13, 85, (x, z, i, k) => {
+      const made = place(th.buildings, 13, 85, 7.8, (x, z, i, k) => {
         const w = 6 + R() * 9,
           h = 3 + R() * (R() < 0.3 ? 22 : 7),
           d = 6 + R() * 9,
           rot = track.yawAt(i) + (R() < 0.5 ? 0 : Math.PI / 2);
-        dummy.position.set(x, h / 2, z);
+        if (!track.clear(x, z, Math.hypot(w, d) / 2 + 1.5)) return false; /* no corner may reach the barriers */
+        const gy = this.groundY(x, z) - 0.8; /* foundations go into the ground so no corner floats */
+        dummy.position.set(x, gy + h / 2, z);
         dummy.scale.set(w, h, d);
         dummy.rotation.set(0, rot, 0);
         dummy.updateMatrix();
@@ -4544,7 +5112,7 @@ class World {
         for (let c2 = 0; c2 < 2; c2++) {
           const sx = c2 ? 1 : -1;
           const local = new THREE.Vector3(sx * (w / 2 + 0.05), h / 2, d / 2 + 0.05).applyAxisAngle(new THREE.Vector3(0, 1, 0), rot);
-          dummy.position.set(x + local.x, local.y, z + local.z);
+          dummy.position.set(x + local.x, gy + local.y, z + local.z);
           dummy.scale.set(1, h, 1);
           dummy.rotation.set(0, rot, 0);
           dummy.updateMatrix();
@@ -4553,6 +5121,8 @@ class World {
           neon.setColorAt(k * 2 + c2, col);
         }
       });
+      bl.count = made;
+      neon.count = made * 2;
       bl.instanceMatrix.needsUpdate = true;
       if (bl.instanceColor) bl.instanceColor.needsUpdate = true;
       g.add(bl);
@@ -4574,7 +5144,7 @@ class World {
           ? new THREE.Vector3(side * 0.51, (Math.floor(((R() - 0.5) * s.y) / 1.4) * 1.4) / s.y, R() - 0.5)
           : new THREE.Vector3(R() - 0.5, (Math.floor(((R() - 0.5) * s.y) / 1.4) * 1.4) / s.y, side * 0.51);
         local.multiply(s).applyQuaternion(q).add(p);
-        if (local.y < 1.2) continue;
+        if (local.y < p.y - s.y / 2 + 2) continue;
         pts.push(local.x, local.y, local.z);
         const c = new THREE.Color().setHSL(R() < 0.7 ? 0.12 : 0.55, 0.9, 0.62);
         pc.push(c.r, c.g, c.b);
@@ -4614,6 +5184,7 @@ class World {
         count
       );
       const gp = [];
+      let lit = 0;
       for (let k = 0; k < count; k++) {
         const i = Math.floor((k * n) / count),
           side = k % 2 ? 1 : -1,
@@ -4621,18 +5192,22 @@ class World {
           r = track.right[i],
           d = track.halfWidth + track.wallOffset + 1.3;
         if (c.x + r.x * side * d > waterX - 12) continue;
-        dummy.position.set(c.x + r.x * side * d, 4, c.z + r.z * side * d);
+        const px = c.x + r.x * side * d,
+          pz = c.z + r.z * side * d,
+          gy = track.heightAt(i, side * d) - 0.5; /* base just under the shoulder level, head 8 m above the road edge */
+        dummy.position.set(px, gy + 4, pz);
         dummy.rotation.set(0, track.yawAt(i), 0);
         dummy.scale.set(1, 1, 1);
         dummy.updateMatrix();
-        poles.setMatrixAt(k, dummy.matrix);
-        dummy.position.y = 8;
+        poles.setMatrixAt(lit, dummy.matrix);
+        dummy.position.y = gy + 8;
         dummy.position.x -= r.x * side * 0.75;
         dummy.position.z -= r.z * side * 0.75;
         dummy.updateMatrix();
-        heads.setMatrixAt(k, dummy.matrix);
-        gp.push(dummy.position.x, 7.9, dummy.position.z);
+        heads.setMatrixAt(lit++, dummy.matrix);
+        gp.push(dummy.position.x, gy + 7.9, dummy.position.z);
       }
+      poles.count = heads.count = lit; /* lamps skipped at the waterline must not be left standing at the origin */
       poles.instanceMatrix.needsUpdate = true;
       heads.instanceMatrix.needsUpdate = true;
       g.add(poles);
@@ -4677,8 +5252,9 @@ class World {
       g.add(ring);
     }
     if (th.water) {
+      const level = this.terrain.waterLevel;
       const water = new THREE.Mesh(
-        new THREE.PlaneGeometry(1800, 3200),
+        new THREE.PlaneGeometry(2500, 5600),
         new THREE.MeshPhysicalMaterial({
           color: th.water.color || 0x0b2f3f,
           roughness: 0.15,
@@ -4689,17 +5265,14 @@ class World {
         })
       );
       water.rotation.x = -Math.PI / 2;
-      water.position.set(th.water.x + 900, -0.04, 0);
+      /* the sheet starts well inland; the shoreline is wherever the land dips below it (sand is painted by the terrain) */
+      water.position.set(this.terrain.waterStart + 1250, level, 0);
+      water.name = 'water';
       g.add(water);
-      const sand = new THREE.Mesh(new THREE.PlaneGeometry(60, 3200), new THREE.MeshStandardMaterial({ color: 0xcdb98a, roughness: 1 }));
-      sand.rotation.x = -Math.PI / 2;
-      sand.position.set(th.water.x - 20, -0.06, 0);
-      sand.receiveShadow = true;
-      g.add(sand);
       /* a few boats far out */
       for (let k = 0; k < 6; k++) {
         const hull = new THREE.Mesh(new THREE.BoxGeometry(14, 3, 5), new THREE.MeshStandardMaterial({ color: 0xf4f6fb, roughness: 0.5 }));
-        hull.position.set(th.water.x + 140 + R() * 500, 1.2, (R() - 0.5) * 1400);
+        hull.position.set(th.water.x + 140 + R() * 500, level + 1.2, (R() - 0.5) * 1400);
         hull.rotation.y = R() * TAU;
         const mast = new THREE.Mesh(new THREE.BoxGeometry(0.4, 18, 0.4), new THREE.MeshStandardMaterial({ color: 0xdddddd }));
         mast.position.y = 9;
@@ -4770,7 +5343,9 @@ class World {
       fascia.position.set(0, 8.5, -3.45);
       stand.add(fascia);
       /* the low front row (local -z) faces the track */
-      stand.position.set(c.x + r.x * side * d, 0, c.z + r.z * side * d);
+      const sx0 = c.x + r.x * side * d,
+        sz0 = c.z + r.z * side * d;
+      stand.position.set(sx0, this.groundY(sx0, sz0) - 0.25, sz0);
       stand.rotation.y = Math.atan2(side * r.x, side * r.z);
       g.add(stand);
     }
@@ -4795,10 +5370,15 @@ class World {
     }
     this.scene.environment = null;
     this.trackGroup = null;
+    this.terrain = null;
     this.smoke = this.sparks = this.dust = null;
     this.startLights = null;
     this.skids = null;
     this.padMats = [];
+  }
+  /* height of the land at (x, z): what scenery stands on */
+  groundY(x, z) {
+    return this.terrain ? this.terrain.heightAt(x, z) : 0;
   }
   add(obj) {
     this.scene.add(obj);
@@ -4886,7 +5466,7 @@ class World {
         const w = c.mesh.userData.wheels[2 + Math.floor(Math.random() * 2)];
         const p = new THREE.Vector3();
         w.hub.getWorldPosition(p);
-        p.y = 0.2;
+        p.y = c.pos.y + 0.2;
         this.dust.emit(
           p,
           new THREE.Vector3((Math.random() - 0.5) * 3 - c.vel.x * 0.1, 1.5 + Math.random(), (Math.random() - 0.5) * 3 - c.vel.z * 0.1),
@@ -5725,8 +6305,13 @@ const Game = {
           b = gd[Math.min(i + 1, gd.length - 1)];
         const f = b[3] > a[3] ? clamp((lapT - a[3]) / (b[3] - a[3]), 0, 1) : 0;
         this.ghost.mesh.visible = lapT < gd[gd.length - 1][3] + 0.3;
-        this.ghost.mesh.position.set(lerp(a[0], b[0], f), 0.02, lerp(a[1], b[1], f));
-        this.ghost.mesh.rotation.set(0, a[2] + wrapAngle(b[2] - a[2]) * f, 0);
+        /* the recording stores x, z and yaw only: height and lean come from the track surface */
+        const gx = lerp(a[0], b[0], f),
+          gz = lerp(a[1], b[1], f),
+          gyaw = a[2] + wrapAngle(b[2] - a[2]) * f,
+          gi = this.track.nearest(gx, gz);
+        this.ghost.mesh.position.set(gx, this.track.heightAt(gi, this.track.lateral(gx, gz, gi)) + 0.02, gz);
+        this.ghost.mesh.rotation.set(0, gyaw, -this.track.bank[gi] * Math.cos(wrapAngle(gyaw - this.track.yawAt(gi))), 'YXZ');
       }
     }
     this.updateStandings();

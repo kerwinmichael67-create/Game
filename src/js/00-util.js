@@ -113,3 +113,31 @@ const PAINTS = [
   { id: 'carbon', name: 'Carbon', hex: 0x2a2f3a },
 ];
 const BOT_NAMES = ['Vega', 'Kessler', 'Okafor', 'Lindqvist', 'Moreau', 'Tanaka', 'Ibarra', 'Novak', 'Reyes', 'Haddad', 'Petrov', 'Nkemelu'];
+/* joins geometries into one (positions, normals, uvs), so a whole prop can be a single instanced mesh */
+function mergeGeometries(list) {
+  const pos = [],
+    nrm = [],
+    uv = [],
+    idx = [];
+  let base = 0;
+  for (const g of list) {
+    const p = g.attributes.position,
+      n = g.attributes.normal,
+      u = g.attributes.uv;
+    for (let i = 0; i < p.count; i++) {
+      pos.push(p.getX(i), p.getY(i), p.getZ(i));
+      nrm.push(n.getX(i), n.getY(i), n.getZ(i));
+      uv.push(u ? u.getX(i) : 0, u ? u.getY(i) : 0);
+    }
+    if (g.index) for (let i = 0; i < g.index.count; i++) idx.push(base + g.index.getX(i));
+    else for (let i = 0; i < p.count; i++) idx.push(base + i);
+    base += p.count;
+    g.dispose();
+  }
+  const out = new THREE.BufferGeometry();
+  out.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  out.setAttribute('normal', new THREE.Float32BufferAttribute(nrm, 3));
+  out.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  out.setIndex(idx);
+  return out;
+}
