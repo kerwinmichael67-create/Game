@@ -437,3 +437,139 @@ table.results td.p3 {
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
+
+/* ---- style moves, combo, coins, knockout ---- */
+#msg.red {
+  color: #ff5a4d;
+  text-shadow: 0 0 34px rgba(255, 70, 50, 0.7);
+}
+#style {
+  position: absolute;
+  right: 18px;
+  top: 168px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  pointer-events: none;
+}
+#style-feed {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+.style-line {
+  font-family: var(--display);
+  font-size: 15px;
+  letter-spacing: 0.14em;
+  color: #fff;
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+  animation: styleIn 0.22s ease-out;
+  transition: opacity 0.35s, transform 0.35s;
+}
+.style-line.out {
+  opacity: 0;
+  transform: translateY(-12px);
+}
+.style-line b {
+  color: #ffd166;
+  font-size: 18px;
+}
+.style-line i {
+  font-style: normal;
+  color: var(--accent-2);
+  font-size: 13px;
+}
+.style-line.bad {
+  color: #ff8a7a;
+}
+/* the entrance only moves the line: it is readable from its first frame even if animations are throttled */
+@keyframes styleIn {
+  from {
+    transform: translateX(26px) scale(1.15);
+  }
+  to {
+    transform: none;
+  }
+}
+#style-combo {
+  font-family: var(--display);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+  background: var(--panel);
+  border: 1px solid rgba(57, 210, 255, 0.5);
+  border-radius: 999px;
+  padding: 5px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#style-combo b {
+  color: var(--accent-2);
+  font-size: 15px;
+  letter-spacing: 0.04em;
+}
+#style-combo .c-bar {
+  width: 54px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.14);
+  overflow: hidden;
+}
+#style-combo .c-bar i {
+  display: block;
+  height: 100%;
+  background: var(--accent-2);
+  transform-origin: left;
+}
+.coin {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff2b0, #ffb300 60%, #b26a00);
+  margin-right: 5px;
+  vertical-align: -1px;
+}
+.pill.ko b {
+  color: #ffd166;
+}
+.pill.ko.danger {
+  border-color: rgba(255, 80, 60, 0.9);
+  color: #ff8a7a;
+  animation: koPulse 0.7s ease-in-out infinite alternate;
+}
+.pill.ko.danger b {
+  color: #ff5a4d;
+}
+@keyframes koPulse {
+  from {
+    box-shadow: 0 0 0 rgba(255, 70, 50, 0);
+  }
+  to {
+    box-shadow: 0 0 18px rgba(255, 70, 50, 0.55);
+  }
+}
+@media (max-width: 700px) {
+  #style {
+    top: 118px;
+    right: 10px;
+  }
+  .style-line {
+    font-size: 12px;
+  }
+  .style-line b {
+    font-size: 14px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .style-line,
+  .pill.ko.danger {
+    animation: none;
+  }
+}

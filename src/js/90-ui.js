@@ -3,7 +3,7 @@
    ======================================================================== */
 const CH_POINTS = [10, 8, 6, 5, 4, 3, 2, 1];
 const MODE_TEXT = {
-  ai: ['Race the AI', 'Set up your race', 'You start at the back of the grid. Podiums, fastest laps and banked drifts all pay credits.'],
+  ai: ['Race the AI', 'Set up your race', 'You start at the back of the grid. Overtakes, close passes and clean laps build a style combo that refills your nitro, coins on the road pay credits, and blue canisters top up the tank.'],
   champ: [
     'Championship',
     'Three rounds for the title',
@@ -13,6 +13,11 @@ const MODE_TEXT = {
     'Drift Attack',
     'Slide for score',
     'Two laps alone on the circuit. Every clean slide banks points; chain them within 2.5 seconds for a multiplier. Touch a wall and the slide is lost.',
+  ],
+  knockout: [
+    'Knockout',
+    'Last car standing',
+    'No lap count. After 30 seconds the car in last place is eliminated, then another every 20 seconds. Stay off the bottom and outlast the field.',
   ],
   trial: ['Time Trial', 'Chase your best lap', 'No traffic. Set a lap and a ghost of your record runs with you on every lap after it.'],
 };
@@ -31,7 +36,10 @@ const UI = {
     if (name !== 'garage') Garage.close();
     if (name === 'garage') Garage.open();
     if (name !== 'results') this.stopConfetti();
-    if (name === 'menu') this.refreshCredits();
+    if (name === 'menu') {
+      this.refreshCredits();
+      Goals.render($('#m-goals'));
+    }
   },
   refreshCredits() {
     $('#m-credits').textContent = fmtInt(Profile.data.credits);
@@ -64,6 +72,7 @@ const UI = {
     $('#b-quick').onclick = () => this.openSetup('ai');
     $('#b-champ').onclick = () => this.openSetup('champ');
     $('#b-drift').onclick = () => this.openSetup('drift');
+    $('#b-knockout').onclick = () => this.openSetup('knockout');
     $('#b-trial').onclick = () => this.openSetup('trial');
     $('#b-garage').onclick = () => {
       this.unlockAudio();
@@ -250,11 +259,11 @@ const UI = {
     $('#setup-title').textContent = tx[1];
     $('#setup-desc').textContent = tx[2];
     $('#f-track').hidden = mode === 'champ';
-    $('#f-laps').hidden = mode === 'champ' || mode === 'drift';
+    $('#f-laps').hidden = mode === 'champ' || mode === 'drift' || mode === 'knockout';
     $('#f-diff').hidden = mode === 'trial' || mode === 'drift';
-    $('#f-bots').hidden = mode !== 'ai';
+    $('#f-bots').hidden = mode !== 'ai' && mode !== 'knockout';
     $('#b-setup-go').textContent =
-      mode === 'champ' ? 'Start championship' : mode === 'drift' ? 'Start run' : mode === 'trial' ? 'Start session' : 'Start race';
+      mode === 'champ' ? 'Start championship' : mode === 'drift' ? 'Start run' : mode === 'trial' ? 'Start session' : mode === 'knockout' ? 'Start knockout' : 'Start race';
     this.show('setup');
   },
   champOpts() {
@@ -283,7 +292,7 @@ const UI = {
 
   showResults(res) {
     let eyebrow =
-      { drift: 'Drift attack', trial: 'Session complete', champ: 'Championship', online: 'Online race' }[res.mode] || 'Race complete';
+      { drift: 'Drift attack', trial: 'Session complete', champ: 'Championship', online: 'Online race', knockout: 'Knockout' }[res.mode] || 'Race complete';
     let head = res.head,
       rows = res.rows,
       title = res.title,
@@ -344,6 +353,16 @@ const UI = {
         )
       );
     $('#res-note').textContent = note;
+    /* challenges finished by this race */
+    const gb = $('#res-goals'),
+      goals = res.goals || [];
+    gb.hidden = !goals.length;
+    gb.innerHTML = '';
+    for (const g of goals) {
+      credits += g.reward;
+      gb.append(el('div', { class: 'goal-done' }, [el('span', { text: 'Challenge complete' }), el('b', { text: g.text }), el('i', { text: '+' + g.reward + ' CR' })]));
+    }
+    $('#res-reward').textContent = '+' + fmtInt(credits) + ' CR';
     const ab = $('#b-res-again');
     ab.hidden = !showAgain && !Net.active;
     ab.textContent = Net.active ? (Net.isHost ? 'Race again' : 'Back to room') : again;

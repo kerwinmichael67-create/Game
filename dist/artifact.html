@@ -171,9 +171,6 @@ p {
   .menu-grid {
     grid-template-columns: repeat(4, 1fr);
   }
-  .menu-grid .tile.accent {
-    grid-column: span 2;
-  }
 }
 .tip {
   font-size: 14px;
@@ -395,6 +392,77 @@ select {
   color: var(--muted);
   letter-spacing: 0.18em;
   margin-left: 6px;
+}
+
+/* ---- challenges ---- */
+.goals-wrap .eyebrow {
+  margin-bottom: 8px;
+}
+.goals {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+.goal {
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid var(--edge);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+.goal .g-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: baseline;
+  font-size: 14px;
+}
+.goal .g-reward {
+  color: #ffd166;
+  font-family: var(--display);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.goal .g-bar {
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  margin: 8px 0 5px;
+}
+.goal .g-bar i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), #ffd166);
+  transform-origin: left;
+}
+.goal .g-num {
+  font-size: 12px;
+  color: var(--muted);
+}
+.goal-done {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  background: rgba(255, 209, 102, 0.08);
+  border: 1px solid rgba(255, 209, 102, 0.4);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 14px;
+  margin-top: 6px;
+}
+.goal-done span {
+  font-family: var(--display);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #ffd166;
+}
+.goal-done i {
+  font-style: normal;
+  margin-left: auto;
+  color: #ffd166;
+  font-family: var(--display);
 }
 
 /* Garage */
@@ -1118,6 +1186,142 @@ table.results td.p3 {
   text-transform: uppercase;
 }
 
+/* ---- style moves, combo, coins, knockout ---- */
+#msg.red {
+  color: #ff5a4d;
+  text-shadow: 0 0 34px rgba(255, 70, 50, 0.7);
+}
+#style {
+  position: absolute;
+  right: 18px;
+  top: 168px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  pointer-events: none;
+}
+#style-feed {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+.style-line {
+  font-family: var(--display);
+  font-size: 15px;
+  letter-spacing: 0.14em;
+  color: #fff;
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+  animation: styleIn 0.22s ease-out;
+  transition: opacity 0.35s, transform 0.35s;
+}
+.style-line.out {
+  opacity: 0;
+  transform: translateY(-12px);
+}
+.style-line b {
+  color: #ffd166;
+  font-size: 18px;
+}
+.style-line i {
+  font-style: normal;
+  color: var(--accent-2);
+  font-size: 13px;
+}
+.style-line.bad {
+  color: #ff8a7a;
+}
+/* the entrance only moves the line: it is readable from its first frame even if animations are throttled */
+@keyframes styleIn {
+  from {
+    transform: translateX(26px) scale(1.15);
+  }
+  to {
+    transform: none;
+  }
+}
+#style-combo {
+  font-family: var(--display);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+  background: var(--panel);
+  border: 1px solid rgba(57, 210, 255, 0.5);
+  border-radius: 999px;
+  padding: 5px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#style-combo b {
+  color: var(--accent-2);
+  font-size: 15px;
+  letter-spacing: 0.04em;
+}
+#style-combo .c-bar {
+  width: 54px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.14);
+  overflow: hidden;
+}
+#style-combo .c-bar i {
+  display: block;
+  height: 100%;
+  background: var(--accent-2);
+  transform-origin: left;
+}
+.coin {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff2b0, #ffb300 60%, #b26a00);
+  margin-right: 5px;
+  vertical-align: -1px;
+}
+.pill.ko b {
+  color: #ffd166;
+}
+.pill.ko.danger {
+  border-color: rgba(255, 80, 60, 0.9);
+  color: #ff8a7a;
+  animation: koPulse 0.7s ease-in-out infinite alternate;
+}
+.pill.ko.danger b {
+  color: #ff5a4d;
+}
+@keyframes koPulse {
+  from {
+    box-shadow: 0 0 0 rgba(255, 70, 50, 0);
+  }
+  to {
+    box-shadow: 0 0 18px rgba(255, 70, 50, 0.55);
+  }
+}
+@media (max-width: 700px) {
+  #style {
+    top: 118px;
+    right: 10px;
+  }
+  .style-line {
+    font-size: 12px;
+  }
+  .style-line b {
+    font-size: 14px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .style-line,
+  .pill.ko.danger {
+    animation: none;
+  }
+}
+
 /* Touch controls */
 #touch {
   position: absolute;
@@ -1318,7 +1522,9 @@ body.touch .kbd-hint {
   <div class="hud-tl">
     <div class="pill"><div class="pos"><span id="h-pos">1</span><sup id="h-pos-sup">st</sup><span style="font-size:14px;color:var(--muted)"> / <span id="h-total">4</span></span></div></div>
     <div class="pill lap">LAP <b id="h-lap">1</b> / <span id="h-laps">3</span></div>
+    <div class="pill lap ko" id="h-ko" hidden>NEXT OUT <b id="h-ko-t">0:20</b></div>
     <div class="pill lap" id="h-drift" hidden>DRIFT <b id="h-drift-v">0</b></div>
+    <div class="pill lap" id="h-style" hidden>STYLE <b id="h-style-v">0</b><span id="h-coins" hidden> · <i class="coin"></i><b id="h-coins-v">0</b></span></div>
     <div class="pill standings" id="h-standings"></div>
   </div>
   <div class="hud-tr">
@@ -1339,6 +1545,7 @@ body.touch .kbd-hint {
     <div class="d-bar"><i id="d-fill"></i><b style="left:24%"></b><b style="left:56.5%"></b></div>
     <div id="d-bank">+0</div>
   </div>
+  <div id="style"><div id="style-feed"></div><div id="style-combo" hidden>COMBO <b id="style-mult">×1.5</b><span class="c-bar"><i id="style-fill"></i></span></div></div>
   <div id="msg"></div>
   <div id="toast"></div>
   <div id="wrongway">WRONG WAY</div>
@@ -1363,12 +1570,14 @@ body.touch .kbd-hint {
     <div class="menu-grid">
       <button class="tile accent" id="b-quick" type="button"><span class="t-icon">🏁</span><span class="t-title">Race the AI</span><span class="t-desc">Single race against bots. Pick the circuit, laps and difficulty.</span></button>
       <button class="tile" id="b-champ" type="button"><span class="t-icon">🏆</span><span class="t-title">Championship</span><span class="t-desc">Three circuits, points every round, a big purse for the title.</span></button>
+      <button class="tile" id="b-knockout" type="button"><span class="t-icon">💥</span><span class="t-title">Knockout</span><span class="t-desc">Last place is eliminated every time the clock runs out. Be the last car standing.</span></button>
       <button class="tile" id="b-drift" type="button"><span class="t-icon">💨</span><span class="t-title">Drift Attack</span><span class="t-desc">Two laps, no rivals. Chain slides for score and chase the gold medal.</span></button>
       <button class="tile" id="b-trial" type="button"><span class="t-icon">⏱</span><span class="t-title">Time Trial</span><span class="t-desc">Empty track, your best lap, and the ghost of your own record.</span></button>
       <button class="tile" id="b-online" type="button"><span class="t-icon">🌐</span><span class="t-title">Online Multiplayer</span><span class="t-desc">Open a room with a code and race friends in real time.</span><span class="status" id="m-online-status"><b></b><span>Connecting…</span></span></button>
       <button class="tile" id="b-garage" type="button"><span class="t-icon">🔧</span><span class="t-title">Garage</span><span class="t-desc">Four cars to own and tune: engine, turbo, tyres, nitro, paint.</span></button>
       <button class="tile" id="b-board" type="button"><span class="t-icon">📊</span><span class="t-title">Leaderboard</span><span class="t-desc">Best laps and drift scores from everyone who plays here.</span></button>
     </div>
+    <div class="goals-wrap"><p class="eyebrow">Challenges</p><div class="goals" id="m-goals"></div></div>
     <div class="divider"></div>
     <div class="row" style="justify-content:space-between;align-items:flex-start">
       <div class="controls">
@@ -1493,6 +1702,7 @@ body.touch .kbd-hint {
     <div class="brand"><div><p class="eyebrow" id="res-eyebrow">Race complete</p><h2 id="res-title">Results</h2></div><div class="reward" id="res-reward"></div></div>
     <div class="tbl-wrap"><table class="results"><thead><tr id="res-head"></tr></thead><tbody id="res-body"></tbody></table></div>
     <p class="muted" id="res-note" style="font-size:14px"></p>
+    <div id="res-goals" hidden></div>
     <div class="row" style="justify-content:space-between">
       <button class="btn ghost" id="b-res-menu" type="button">Main menu</button>
       <div class="row"><button class="btn ghost" id="b-res-garage" type="button">Garage</button><button class="btn" id="b-res-again" type="button">Race again</button></div>
@@ -3102,6 +3312,9 @@ class Car {
     this.offT = 0;
     this.wrongWay = 0;
     this.lastCollide = 0;
+    this.crossed = false; /* has taken the start: until then a car on the grid is behind the line, not a lap ahead */
+    this.hitT = 0; /* seconds since-contact timer: > 0 right after touching a wall or another car */
+    this.dirty = false; /* a hard hit or an excursion this lap: no clean-lap bonus */
     this.totalProgress = 0;
     this.stuck = 0;
     this.lightsBrake = false;
@@ -3347,6 +3560,8 @@ class Car {
     this.lat = track.lateral(this.pos.x, this.pos.z, this.trackIdx);
     this.offTrack = Math.abs(this.lat) > track.halfWidth + 0.3;
     this.offT = this.offTrack ? this.offT + dt : 0;
+    if (this.offT > 1.2) this.dirty = true;
+    this.hitT = Math.max(0, this.hitT - dt);
     const wall = track.halfWidth + track.wallOffset - CAR.wid * 0.45;
     if (Math.abs(this.lat) > wall) {
       /* barrier hit: clamp to the wall, reflect the velocity into it, scrub speed */
@@ -3356,6 +3571,8 @@ class Car {
       const vn = this.vel.dot(n);
       if (vn < 0) {
         const impact = -vn;
+        if (impact > 1.5) this.hitT = 0.8;
+        if (impact > 2.5) this.dirty = true;
         this.vel.addScaledVector(n, -vn * 1.5);
         this.vel.multiplyScalar(1 - Math.min(0.45, impact * 0.03)); /* hard hits scrub speed; a light scrape barely does */
         const nowT = performance.now();
@@ -3396,6 +3613,7 @@ class Car {
     if (this.trackIdx >= track.sectors[0] && this.trackIdx < track.sectors[0] + 40) this.sectorsHit[0] = true;
     if (this.trackIdx >= track.sectors[1] && this.trackIdx < track.sectors[1] + 40 && this.sectorsHit[0]) this.sectorsHit[1] = true;
     if (dp < -0.5 && fwdOnTrack > 0) {
+      this.crossed = true;
       if (this.sectorsHit[0] && this.sectorsHit[1]) {
         this.lap++;
         world && world.onLap(this);
@@ -3407,7 +3625,7 @@ class Car {
         this.sectorsHit = [true, true];
       }
     }
-    this.totalProgress = this.lap + this.progress;
+    this.totalProgress = this.lap + this.progress - (!this.crossed && this.lap === 0 && this.progress > 0.5 ? 1 : 0);
     this.stuck = Math.abs(this.speed) < 1.5 && inp.throttle > 0.5 ? this.stuck + dt : 0;
 
     /* visuals */
@@ -3460,6 +3678,8 @@ class Car {
       rvz = this.vel.z - other.vel.z;
     const rel = rvx * nx + rvz * nz;
     if (rel > 0) {
+      if (rel > 1) this.hitT = other.hitT = 0.8;
+      if (rel > 3) this.dirty = other.dirty = true;
       const j = rel * 0.8;
       this.vel.x -= nx * j * (other.remote ? 1 : 0.5);
       this.vel.z -= nz * j * (other.remote ? 1 : 0.5);
@@ -5938,6 +6158,19 @@ const HUD = {
     m.className = 'show ' + cls;
     this.toastT = hold;
   },
+  /* a style move pops up on the right and drifts away */
+  style(label, pts, mult, cls = '') {
+    const feed = $('#style-feed');
+    while (feed.children.length > 3) feed.firstElementChild.remove();
+    const line = el('div', { class: 'style-line ' + cls }, [
+      el('span', { text: label }),
+      pts ? el('b', { text: '+' + fmtInt(pts) }) : null,
+      mult > 1 ? el('i', { text: '×' + mult.toFixed(1) }) : null,
+    ]);
+    feed.append(line);
+    setTimeout(() => line.classList.add('out'), 1600);
+    setTimeout(() => line.remove(), 2000);
+  },
   banked(pts, tier) {
     const b = $('#d-bank');
     b.textContent = '+' + fmtInt(pts);
@@ -5967,7 +6200,32 @@ const HUD = {
     $('#h-pos-sup').textContent = ordinal(pos);
     $('#h-total').textContent = game.cars.filter((c) => !c.ghost).length;
     $('#h-lap').textContent = Math.min(p.lap + 1, game.laps);
-    $('#h-laps').textContent = game.laps;
+    $('#h-laps').textContent = game.ko ? '∞' : game.laps;
+    /* knockout clock: who goes next, and whether it is us */
+    const kp = $('#h-ko');
+    kp.hidden = !game.ko || p.finished;
+    if (game.ko) {
+      const s = Math.max(0, Math.ceil(game.ko.next));
+      $('#h-ko-t').textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+      kp.classList.toggle('danger', !!game.ko.danger);
+      kp.firstChild.textContent = game.ko.danger ? 'YOU ARE LAST ' : 'NEXT OUT ';
+    }
+    /* style score, coins and the combo that is running */
+    const sp = $('#h-style'),
+      on = !!game.styleOn && (Style.score > 0 || Style.stats.coins > 0);
+    sp.hidden = !on;
+    if (on) {
+      $('#h-style-v').textContent = fmtInt(Style.score);
+      $('#h-coins').hidden = Style.stats.coins === 0;
+      $('#h-coins-v').textContent = Style.stats.coins;
+    }
+    const cb = $('#style-combo'),
+      live = !!game.styleOn && Style.combo > 0 && Style.comboT > 0 && game.state === 'racing';
+    cb.hidden = !live;
+    if (live) {
+      $('#style-mult').textContent = '×' + Style.mult().toFixed(1);
+      $('#style-fill').style.transform = `scaleX(${clamp(Style.comboT / COMBO_WINDOW, 0, 1)})`;
+    }
     const lapT = p.finished ? p.lapTimes[p.lapTimes.length - 1] || 0 : (game.raceTime - p.lapStart) * 1000;
     $('#h-time').textContent = fmtTime(game.state === 'racing' || p.finished ? lapT : 0, '0:00.000');
     $('#h-best').textContent = fmtTime(p.bestLap);
@@ -6167,6 +6425,8 @@ function driftMedals(track, laps) {
     gold: Math.round((km * 4800) / 100) * 100,
   };
 }
+const KO_FIRST = 30, /* knockout: seconds until the first elimination, then between eliminations */
+  KO_EVERY = 20;
 const BOT_GARAGE = [
   ['vanta', 'vanta', 'kite'],
   ['vanta', 'kite', 'brute', 'vanta'],
@@ -6207,10 +6467,11 @@ const Game = {
   setup(opts) {
     this.opts = opts;
     this.mode = opts.mode;
-    this.laps = opts.mode === 'drift' ? 2 : opts.laps || 3;
+    this.laps = opts.mode === 'drift' ? 2 : opts.mode === 'knockout' ? 999 : opts.laps || 3;
     this.seed = opts.seed || 1;
     const def = TRACKS.find((t) => t.id === opts.trackId) || TRACKS[0];
     this.clearCars();
+    Pickups.clear(this.world);
     if (!this.track || this.track.id !== def.id || this.world.track !== this.track || this.world.builtQuality !== this.world.quality) {
       this.track = new Track(def);
       this.world.load(this.track, hashStr(def.id));
@@ -6233,7 +6494,7 @@ const Game = {
     this.cars.push(this.player);
     const di = opts.difficulty ?? 1,
       diff = DIFFICULTY[di];
-    const botCount = opts.mode === 'trial' || opts.mode === 'drift' ? 0 : (opts.botCount ?? 5);
+    const botCount = opts.mode === 'trial' || opts.mode === 'drift' ? 0 : (opts.botCount ?? (opts.mode === 'knockout' ? 7 : 5));
     const names = BOT_NAMES.slice().sort(() => R() - 0.5),
       used = new Set([paint.id]);
     for (let i = 0; i < botCount; i++) {
@@ -6268,6 +6529,12 @@ const Game = {
       this.world.add(c.mesh);
     });
     this.world.attachHeadlights(this.player);
+    /* style rewards and pickups belong to the race modes; time trial and drift attack stay pure */
+    this.styleOn = Pickups.enabled(opts.mode);
+    Style.reset();
+    Pickups.setup(this);
+    /* knockout: the car in last place is eliminated each time the clock runs out */
+    this.ko = opts.mode === 'knockout' ? { next: KO_FIRST, every: KO_EVERY, out: [], total: this.cars.length } : null;
     /* ghost for time trial */
     this.ghost = null;
     this.ghostData = null;
@@ -6340,12 +6607,14 @@ const Game = {
       p.turboT = 1.4;
       p.turboPow = 0.9;
       p.turboTier = 2;
+      if (this.styleOn) Style.score += STYLE.start.pts;
       HUD.toast('PERFECT START', 1.6, 'good');
       Audio.whoosh(1);
     } else if (this.mode === 'drift') HUD.toast('TAP DRIFT AS YOU TURN IN · STRAIGHTEN UP FOR A BOOST', 4);
   },
 
   onDrift(car, evt, d) {
+    if (car.isPlayer && evt === 'end' && this.styleOn) Style.drift(d.banked);
     if (!car.isPlayer || this.headless) return;
     if (evt === 'tier') Audio.tier(d.tier);
     else if (evt === 'end') {
@@ -6375,6 +6644,10 @@ const Game = {
     car.lapTimes.push(lapT);
     car.lapStart = t;
     if (car.bestLap == null || lapT < car.bestLap) car.bestLap = lapT;
+    if (car.isPlayer && this.styleOn) {
+      Style.lap(this, car);
+      Pickups.lap();
+    }
     if (car.isPlayer) {
       Audio.lap();
       const prof = Profile.data,
@@ -6429,6 +6702,7 @@ const Game = {
   updateStandings() {
     const live = this.cars.filter((c) => !c.ghost);
     live.sort((a, b) => {
+      if (a.out !== b.out) return a.out ? 1 : -1; /* knocked out: behind everyone still running */
       if (a.finished && b.finished) return a.finishTime - b.finishTime;
       if (a.finished) return -1;
       if (b.finished) return 1;
@@ -6561,7 +6835,12 @@ const Game = {
         gh.mesh.rotation.set(gh.pitch, gyaw, gh.roll, 'YXZ');
       }
     }
+    if (this.styleOn && racing) {
+      Style.update(this, dt);
+      Pickups.update(this, dt);
+    }
     this.updateStandings();
+    if (this.ko && this.state === 'racing' && !p.finished) this.tickKnockout(dt);
     if (this.onTick) this.onTick(dt);
     if (this.headless) {
       this.checkEnd();
@@ -6594,15 +6873,78 @@ const Game = {
     if (this.state === 'finished' && !this.results) {
       const others = this.cars.filter((c) => !c.ghost && !c.isPlayer);
       const waited = this.raceTime - this.finishedAt,
-        solo = this.mode === 'trial' || this.mode === 'drift';
-      if (solo ? waited > 1.2 : others.every((c) => c.finished) || waited > (this.mode === 'online' ? 30 : 12)) this.finishRace();
+        solo = this.mode === 'trial' || this.mode === 'drift' || this.mode === 'knockout';
+      if (solo ? waited > (this.ko ? 1.8 : 1.2) : others.every((c) => c.finished) || waited > (this.mode === 'online' ? 30 : 12)) this.finishRace();
     }
+  },
+
+  /* ---- knockout ---- */
+  tickKnockout(dt) {
+    const ko = this.ko,
+      p = this.player,
+      before = Math.ceil(ko.next);
+    ko.next -= dt;
+    const last = this.standings[this.standings.length - 1];
+    ko.danger = last === p;
+    if (!this.headless && Math.ceil(ko.next) !== before && ko.next > 0 && ko.next <= 5) Audio.beep(ko.danger ? 990 : 520, 0.09, 'square', ko.danger ? 0.22 : 0.1);
+    if (ko.next > 0) return;
+    ko.next = ko.every;
+    this.eliminate(last);
+  },
+  eliminate(car) {
+    const ko = this.ko,
+      p = this.player,
+      t = this.raceTime;
+    ko.out.push(car);
+    car.out = true;
+    car.outAt = t;
+    if (car === p) {
+      p.finished = true;
+      p.finishTime = Math.round(t * 1000);
+      this.finishedAt = t;
+      if (p.drifting) p.endDrift(this.world, false);
+      p.ai = new AIDriver(p, this.track, DIFFICULTY[1], 7);
+      p.ai.d = Object.assign({}, DIFFICULTY[1], { speed: 0.45, nitro: 0 });
+      if (!this.headless) {
+        HUD.message('KNOCKED OUT', 'red', 2.2);
+        Audio.fail();
+        this.world.shake = 0.6;
+      }
+      return;
+    }
+    /* a rival goes: off the road in a shower of sparks */
+    if (!this.headless) {
+      const w = this.world,
+        at = car.pos.clone().setY(car.pos.y + 0.8);
+      if (w.sparks) for (let k = 0; k < 40; k++) w.sparks.emit(at, new THREE.Vector3((Math.random() - 0.5) * 16, 3 + Math.random() * 9, (Math.random() - 0.5) * 16), new THREE.Color(k % 2 ? 0xffb050 : 0xff5a3c), 0.5 + Math.random() * 0.5);
+      HUD.toast(car.name.toUpperCase() + ' IS OUT', 1.8, 'bad');
+      Audio.thud(0.9);
+      Audio.stopEngine(car.id);
+    }
+    this.world.remove(car.mesh);
+    disposeTree(car.mesh);
+    this.cars.splice(this.cars.indexOf(car), 1);
+    this.bots.splice(this.bots.indexOf(car), 1);
+    this.updateStandings();
+    if (this.cars.length === 1) {
+      /* nobody left to beat */
+      p.finished = true;
+      p.finishTime = Math.round(t * 1000);
+      this.finishedAt = t;
+      if (p.drifting) p.endDrift(this.world, true);
+      p.ai = new AIDriver(p, this.track, DIFFICULTY[1], 7);
+      p.ai.d = Object.assign({}, DIFFICULTY[1], { speed: 0.6, nitro: 0 });
+      if (!this.headless) {
+        HUD.message('LAST CAR STANDING', 'green', 2.2);
+        Audio.fanfare();
+      }
+    } else if (this.styleOn) Style.award(this, 'survive');
   },
 
   finishRace() {
     /* project unfinished cars' times from their remaining distance */
     for (const c of this.cars)
-      if (!c.ghost && !c.finished) {
+      if (!c.ghost && !c.finished && !this.ko) {
         const rem = Math.max(0, this.laps - c.totalProgress) * this.track.length;
         c.finishTime = Math.round((this.raceTime + rem / Math.max(20, c.stats.topSpeed * 0.75)) * 1000);
         c.projected = true;
@@ -6647,6 +6989,27 @@ const Game = {
       res.note =
         (score > best ? 'New personal best on this circuit. ' : 'Personal best ' + fmtInt(best) + '. ') +
         'Chain slides within 2.5 seconds to build the multiplier.';
+    } else if (this.mode === 'knockout') {
+      /* finishing order: whoever is still running, then the eliminated, last out first */
+      const ko = this.ko,
+        order = this.cars.filter((c) => !c.out).sort((a, b) => b.totalProgress - a.totalProgress).concat(ko.out.slice().reverse()),
+        place = order.indexOf(p) + 1,
+        diffMul = [0.8, 1, 1.35][this.opts.difficulty ?? 1] || 1;
+      res.pos = place;
+      res.n = order.length;
+      res.credits = Math.round(([650, 400, 280, 200, 150, 110, 80, 60][place - 1] || 50) * diffMul * (0.4 + order.length / 13.3));
+      res.title = place === 1 ? 'Last car standing' : `Knocked out: ${place}${ordinal(place)}`;
+      res.win = place === 1;
+      res.head = ['Pos', 'Driver', 'Lasted', 'Laps'];
+      res.rows = order.map((c, i) => ({
+        id: c.id,
+        cells: [i + 1, c.name + (c.isPlayer && c.name !== 'You' ? ' (you)' : ''), c.out ? Math.floor(Math.round(c.outAt) / 60) + ':' + String(Math.round(c.outAt) % 60).padStart(2, '0') : 'Survived', (c.totalProgress < 0 ? 0 : c.totalProgress).toFixed(1)],
+        me: c.isPlayer,
+        posCls: i < 3 ? 'p' + (i + 1) : '',
+      }));
+      res.note = place === 1 ? 'You outlasted the whole field. ' : place <= 3 ? 'So close. Stay off last place when the clock runs out. ' : 'Last place goes out every time the clock hits zero. ';
+      prof.races = (prof.races || 0) + 1;
+      if (place === 1) prof.wins = (prof.wins || 0) + 1;
     } else if (this.mode === 'trial') {
       res.credits = 60 * p.lapTimes.length;
       res.title = 'Time trial';
@@ -6689,6 +7052,38 @@ const Game = {
         posCls: i < 3 ? 'p' + (i + 1) : '',
       }));
     }
+    /* style, coins and challenges */
+    if (this.styleOn) {
+      const coinCr = Style.stats.coins * COIN_VALUE,
+        styleCr = Math.min(600, Math.floor(Style.score / 10));
+      if (styleCr > 0) {
+        res.credits += styleCr;
+        res.note += ` Style ${fmtInt(Style.score)} pts +${styleCr} CR.`;
+      }
+      if (coinCr > 0) {
+        res.credits += coinCr;
+        res.note += ` Coins +${coinCr} CR.`;
+      }
+    }
+    res.style = this.styleOn ? Style.score : 0;
+    res.goals = [];
+    if (!this.autopilot) {
+      const racePlace = res.pos,
+        field = res.n,
+        versus = this.mode !== 'trial' && this.mode !== 'drift' && field > 1;
+      res.goals = Goals.apply({
+        overtakes: Style.stats.overtakes,
+        nearMisses: Style.stats.nearMisses,
+        slingshots: Style.stats.slingshots,
+        coins: Style.stats.coins,
+        cleanLaps: Style.stats.cleanLaps,
+        drift: p.driftScore,
+        podiums: versus && field >= 4 && racePlace <= 3 ? 1 : 0,
+        wins: versus && racePlace === 1 ? 1 : 0,
+        koFinal: this.mode === 'knockout' ? racePlace : 0,
+        style: this.styleOn ? Style.score : 0,
+      });
+    }
     prof.credits += res.credits;
     Profile.save();
     if (res.record) Profile.pushRecord();
@@ -6702,11 +7097,355 @@ const Game = {
   stop() {
     this.state = 'idle';
     this.clearCars();
+    Pickups.clear(this.world);
+    this.ko = null;
     HUD.show(false);
     HUD.lastPos = null;
     Audio.stopAll();
     Music.setMode('menu');
     document.body.classList.remove('touch');
+  },
+};
+
+/* ========================================================================
+   Style: rewards for driving with flair. Overtakes, close passes, slingshots
+   out of a slipstream and clean laps pay points and a shot of nitro; events
+   in quick succession build a combo multiplier, and a hit breaks it.
+   ======================================================================== */
+const STYLE = {
+  overtake: { label: 'OVERTAKE', pts: 100, nitro: 8 },
+  close: { label: 'CLOSE PASS', pts: 160, nitro: 12 },
+  slingshot: { label: 'SLINGSHOT', pts: 200, nitro: 14 },
+  clean: { label: 'CLEAN LAP', pts: 250, nitro: 20 },
+  start: { label: 'PERFECT START', pts: 150, nitro: 0 },
+  canister: { label: 'NITRO', pts: 30, nitro: 35 },
+  survive: { label: 'SURVIVED', pts: 120, nitro: 10 },
+};
+const COMBO_WINDOW = 5; /* seconds to land the next move and keep the multiplier */
+
+const Style = {
+  score: 0,
+  combo: 0,
+  comboT: 0,
+  stats: {},
+  reset() {
+    this.score = 0;
+    this.combo = 0;
+    this.comboT = 0;
+    this.stats = { overtakes: 0, nearMisses: 0, slingshots: 0, cleanLaps: 0, coins: 0, canisters: 0 };
+    this.prev = new Map(); /* per rival: how far ahead of us it was last frame, and when it last paid out */
+    this.draftT = 0;
+    this.draftAt = -99;
+    this.at = null;
+  },
+  mult() {
+    return 1 + this.combo * 0.5;
+  },
+  /* pay out one move; returns the points banked */
+  award(game, kind) {
+    const s = STYLE[kind],
+      p = game.player;
+    this.combo = this.comboT > 0 ? Math.min(this.combo + 1, 4) : 0;
+    this.comboT = COMBO_WINDOW;
+    const got = Math.round(s.pts * this.mult());
+    this.score += got;
+    if (p && s.nitro) p.nitro = Math.min(p.stats.nitroCap, p.nitro + s.nitro);
+    if (!game.headless) {
+      HUD.style(s.label, got, this.mult());
+      Audio.beep(880 * Math.pow(1.122, this.combo), 0.07, 'triangle', 0.16);
+      setTimeout(() => Audio.beep(1320 * Math.pow(1.122, this.combo), 0.1, 'triangle', 0.14), 60);
+    }
+    return got;
+  },
+  /* a banked drift keeps the combo alive and adds a share of its points, without a second popup */
+  drift(banked) {
+    if (banked <= 0) return;
+    this.combo = this.comboT > 0 ? Math.min(this.combo + 1, 4) : this.combo;
+    this.comboT = COMBO_WINDOW;
+    this.score += Math.round(banked * 0.1 * this.mult());
+  },
+  lap(game, car) {
+    if (!car.dirty) {
+      this.stats.cleanLaps++;
+      this.award(game, 'clean');
+    }
+    car.dirty = false;
+  },
+  update(game, dt) {
+    const p = game.player;
+    if (!p || p.finished || game.state !== 'racing') return;
+    if (this.comboT > 0) {
+      this.comboT -= dt;
+      if (this.comboT <= 0) this.combo = 0;
+    }
+    /* contact breaks the combo */
+    if (p.hitT > 0.7 && (this.combo > 0 || this.comboT > 0)) {
+      this.combo = 0;
+      this.comboT = 0;
+      if (!game.headless) HUD.style('COMBO LOST', 0, 1, 'bad');
+    }
+    /* time spent tucked in a slipstream: leaving it by passing the car ahead is a slingshot */
+    if (p.draft > 0.5) {
+      this.draftT += dt;
+      if (this.draftT > 0.9) this.draftAt = game.raceTime;
+    } else this.draftT = 0;
+    /* a reset or any other jump is not a pass: forget where everyone was */
+    if (this.at && (p.pos.x - this.at.x) ** 2 + (p.pos.z - this.at.z) ** 2 > 16) this.prev.clear();
+    this.at = { x: p.pos.x, z: p.pos.z };
+    const f = p.forward(),
+      r = p.rightVec(),
+      seen = this.prev;
+    for (const o of game.cars) {
+      if (o === p || o.ghost) continue;
+      const ox = o.pos.x - p.pos.x,
+        oz = o.pos.z - p.pos.z,
+        ahead = ox * f.x + oz * f.z,
+        side = Math.abs(ox * r.x + oz * r.z);
+      const was = seen.get(o.id);
+      if (was && was.ahead > 0 && ahead <= 0 && was.ahead < 4 && side < 7 && p.speed > 12 && p.speed > o.speed + 0.5 && game.raceTime - was.paid > 6) {
+        /* we just drove past this car */
+        was.paid = game.raceTime;
+        this.stats.overtakes++;
+        if (p.hitT > 0 || o.hitT > 0) {
+          /* shoved through: it counts as a pass, but there is nothing stylish about it */
+        } else if (game.raceTime - this.draftAt < 2.5) {
+          this.stats.slingshots++;
+          this.award(game, 'slingshot');
+        } else if (side < 3.4) {
+          this.stats.nearMisses++;
+          this.award(game, 'close');
+        } else this.award(game, 'overtake');
+      }
+      if (was) was.ahead = ahead;
+      else seen.set(o.id, { ahead, paid: -99 });
+    }
+  },
+};
+
+/* ========================================================================
+   Pickups: coins and nitro canisters laid out on the road.
+   Coins come in rows that weave across the lanes and pay credits at the flag;
+   they all return when you start a new lap. A canister tops up the nitro of
+   whoever drives through it (rivals take them too) and returns after a while.
+   Everything is derived from the race seed, so a restart lays the same course.
+   ======================================================================== */
+const COIN_VALUE = 10;
+const Pickups = {
+  items: [],
+  coins: null,
+  cans: null,
+  group: null,
+  t: 0,
+  enabled(mode) {
+    return mode === 'ai' || mode === 'champ' || mode === 'knockout' || mode === 'online';
+  },
+  clear(world) {
+    if (this.group && world) {
+      world.remove(this.group);
+      disposeTree(this.group);
+    }
+    this.group = this.coins = this.cans = null;
+    this.items = [];
+  },
+  setup(game) {
+    this.clear(game.world);
+    if (!this.enabled(game.mode)) return;
+    const t = game.track,
+      R = rng(hashStr(t.id) ^ 0x51ed),
+      items = [];
+    const perSample = 1 / t.seg,
+      rowEvery = 210,
+      rows = Math.max(4, Math.floor(t.length / rowEvery));
+    const nearPad = (s) => t.pads.some((p) => Math.min(Math.abs(p.idx - s), t.n - Math.abs(p.idx - s)) * t.seg < 26);
+    for (let k = 0; k < rows; k++) {
+      /* keep the grid and the first metres after the lights clear */
+      const s0 = (70 + k * rowEvery + R() * 60) * perSample;
+      if (s0 > t.n - 80 * perSample || nearPad(s0)) continue;
+      const lane = (R() - 0.5) * 1.3 * t.halfWidth,
+        drift = (R() - 0.5) * 0.9; /* the row slants across the road */
+      for (let j = 0; j < 6; j++) {
+        const s = s0 + j * 6.5 * perSample,
+          lat = clamp(lane + drift * j * 1.1, -t.halfWidth * 0.82, t.halfWidth * 0.82);
+        items.push(this._item('coin', t, s, lat, R));
+      }
+      /* a canister between some of the rows, on the other side of the road */
+      if (k % 3 === 1) items.push(this._item('can', t, s0 + 95 * perSample, clamp(-lane, -t.halfWidth * 0.7, t.halfWidth * 0.7), R));
+    }
+    this.items = items;
+    const nCoin = items.filter((i) => i.kind === 'coin').length,
+      nCan = items.length - nCoin;
+    const disc = new THREE.CylinderGeometry(0.7, 0.7, 0.16, 18).rotateX(Math.PI / 2);
+    this.coins = new THREE.InstancedMesh(
+      disc,
+      new THREE.MeshStandardMaterial({ color: 0xffa200, metalness: 0.3, roughness: 0.45, emissive: 0x9a4a00, emissiveIntensity: 0.7, envMapIntensity: 0.3 }),
+      Math.max(1, nCoin)
+    );
+    this.cans = new THREE.InstancedMesh(
+      mergeGeometries([new THREE.CylinderGeometry(0.34, 0.34, 1.0, 12), new THREE.SphereGeometry(0.34, 12, 8).translate(0, 0.5, 0), new THREE.CylinderGeometry(0.12, 0.16, 0.3, 8).translate(0, 0.95, 0)]),
+      new THREE.MeshStandardMaterial({ color: 0x1c8fff, metalness: 0.6, roughness: 0.3, emissive: 0x1aa8ff, emissiveIntensity: 1.6 }),
+      Math.max(1, nCan)
+    );
+    this.coins.count = nCoin;
+    this.cans.count = nCan;
+    this.coins.name = 'coins';
+    this.cans.name = 'canisters';
+    let a = 0,
+      b = 0;
+    for (const it of items) it.slot = it.kind === 'coin' ? a++ : b++;
+    this.group = new THREE.Group();
+    this.group.add(this.coins, this.cans);
+    game.world.add(this.group);
+    this.t = 0;
+    this.draw(0);
+  },
+  _item(kind, t, s, lat, R) {
+    const p = t.pointF(s, lat);
+    return { kind, idx: ((Math.round(s) % t.n) + t.n) % t.n, x: p.x, y: p.y + (kind === 'coin' ? 0.95 : 0.75), z: p.z, alive: true, back: 0, phase: R() * 6.283, slot: 0 };
+  },
+  /* all coins return when the player starts a new lap */
+  lap() {
+    for (const it of this.items) if (it.kind === 'coin') it.alive = true;
+  },
+  update(game, dt) {
+    if (!this.items.length) return;
+    this.t += dt;
+    const t = game.track,
+      p = game.player;
+    for (const it of this.items) {
+      if (!it.alive) {
+        if (it.kind === 'can' && this.t >= it.back) it.alive = true;
+        continue;
+      }
+      for (const c of game.cars) {
+        if (c.ghost || (it.kind === 'coin' && c !== p)) continue;
+        const di = Math.abs(c.trackIdx - it.idx);
+        if (Math.min(di, t.n - di) > 5) continue;
+        const dx = c.pos.x - it.x,
+          dz = c.pos.z - it.z;
+        if (dx * dx + dz * dz > 2.5 * 2.5) continue;
+        it.alive = false;
+        if (it.kind === 'coin') {
+          Style.stats.coins++;
+          Style.score += COIN_VALUE;
+          if (!game.headless) {
+            Audio.beep(1568 * Math.pow(1.06, Style.stats.coins % 6), 0.06, 'sine', 0.14);
+            this._sparkle(game, it, 0xffd24a);
+          }
+        } else {
+          it.back = this.t + 12;
+          if (c === p && !p.finished) {
+            Style.stats.canisters++;
+            Style.award(game, 'canister');
+            if (!game.headless) {
+              Audio.whoosh(0.5);
+              this._sparkle(game, it, 0x5cc8ff);
+            }
+          } else c.nitro = Math.min(c.stats.nitroCap, c.nitro + 35);
+        }
+        break;
+      }
+    }
+    if (!game.headless) this.draw(dt);
+  },
+  _sparkle(game, it, hex) {
+    const w = game.world;
+    if (!w.sparks) return;
+    const col = new THREE.Color(hex),
+      at = new THREE.Vector3(it.x, it.y, it.z);
+    for (let k = 0; k < 8; k++) w.sparks.emit(at, new THREE.Vector3((Math.random() - 0.5) * 7, 2 + Math.random() * 5, (Math.random() - 0.5) * 7), col, 0.35 + Math.random() * 0.3);
+  },
+  draw() {
+    if (!this.coins) return;
+    const d = this._dummy || (this._dummy = new THREE.Object3D());
+    for (const it of this.items) {
+      const mesh = it.kind === 'coin' ? this.coins : this.cans;
+      if (it.alive) {
+        d.position.set(it.x, it.y + Math.sin(this.t * 2.2 + it.phase) * 0.12, it.z);
+        d.rotation.set(0, this.t * (it.kind === 'coin' ? 3.2 : 1.6) + it.phase, it.kind === 'coin' ? 0 : 0.25);
+        d.scale.setScalar(1);
+      } else d.scale.setScalar(0.0001);
+      d.updateMatrix();
+      mesh.setMatrixAt(it.slot, d.matrix);
+    }
+    this.coins.instanceMatrix.needsUpdate = true;
+    this.cans.instanceMatrix.needsUpdate = true;
+  },
+};
+
+/* ========================================================================
+   Challenges: three running goals with a credit reward each. Progress is
+   added up at the end of every race; a finished goal pays out and a new one
+   takes its place, so there is always something to aim for.
+   ======================================================================== */
+const GOALS = [
+  { id: 'overtake', stat: 'overtakes', n: [8, 12, 16], reward: 300, text: (n) => `Overtake ${n} cars` },
+  { id: 'near', stat: 'nearMisses', n: [4, 6, 8], reward: 350, text: (n) => `Make ${n} close passes` },
+  { id: 'sling', stat: 'slingshots', n: [3, 5], reward: 350, text: (n) => `Pull off ${n} slingshots out of a slipstream` },
+  { id: 'coins', stat: 'coins', n: [60, 90, 120], reward: 300, text: (n) => `Collect ${n} coins` },
+  { id: 'drift', stat: 'drift', n: [3000, 6000, 10000], reward: 350, text: (n) => `Bank ${fmtInt(n)} drift points` },
+  { id: 'clean', stat: 'cleanLaps', n: [2, 3, 4], reward: 300, text: (n) => `Drive ${n} clean laps` },
+  { id: 'podium', stat: 'podiums', n: [2, 3], reward: 400, text: (n) => `Finish on the podium ${n} times` },
+  { id: 'win', stat: 'wins', n: [1, 2], reward: 500, text: (n) => (n === 1 ? 'Win a race' : `Win ${n} races`) },
+  { id: 'ko', stat: 'koFinal', n: [3, 2], reward: 450, best: true, text: (n) => `Reach the final ${n} in Knockout` },
+  { id: 'style', stat: 'style', n: [1500, 2500, 4000], reward: 400, best: true, text: (n) => `Score ${fmtInt(n)} style points in one race` },
+];
+const Goals = {
+  def(g) {
+    return GOALS.find((d) => d.id === g.id);
+  },
+  text(g) {
+    const d = this.def(g);
+    return d ? d.text(g.n) : '';
+  },
+  /* keep three distinct goals on the board */
+  ensure(prof = Profile.data) {
+    if (!prof.goals || !Array.isArray(prof.goals.list)) prof.goals = { seq: 0, list: [] };
+    const G = prof.goals;
+    G.list = G.list.filter((g) => this.def(g) && g.n > 0);
+    let guard = 0;
+    while (G.list.length < 3 && guard++ < 50) {
+      const R = rng(1009 + G.seq++ * 7919),
+        d = GOALS[Math.floor(R() * GOALS.length)];
+      if (G.list.some((g) => g.id === d.id) || d.id === G.last) continue;
+      G.list.push({ id: d.id, n: d.n[Math.floor(R() * d.n.length)], p: 0 });
+    }
+    return G.list;
+  },
+  /* add one race's numbers; returns the goals it completed, already paid */
+  apply(stats, prof = Profile.data) {
+    const done = [];
+    for (const g of this.ensure(prof).slice()) {
+      const d = this.def(g),
+        v = stats[d.stat] || 0;
+      /* koFinal is the finishing place: the goal is met by placing at or above its number */
+      if (d.id === 'ko') g.p = v > 0 && v <= g.n ? g.n : g.p;
+      else g.p = d.best ? Math.max(g.p, v) : g.p + v;
+      if (g.p >= g.n) {
+        done.push({ text: this.text(g), reward: d.reward });
+        prof.credits += d.reward;
+        prof.goals.last = g.id;
+        prof.goals.list.splice(prof.goals.list.indexOf(g), 1);
+        prof.goalsDone = (prof.goalsDone || 0) + 1;
+      }
+    }
+    this.ensure(prof);
+    return done;
+  },
+  /* the menu panel */
+  render(box) {
+    if (!box) return;
+    box.innerHTML = '';
+    for (const g of this.ensure()) {
+      const d = this.def(g),
+        f = clamp(g.p / g.n, 0, 1);
+      box.append(
+        el('div', { class: 'goal' }, [
+          el('div', { class: 'g-top' }, [el('span', { class: 'g-text', text: this.text(g) }), el('span', { class: 'g-reward', text: '+' + d.reward + ' CR' })]),
+          el('div', { class: 'g-bar' }, [el('i', { style: `transform:scaleX(${f})` })]),
+          el('div', { class: 'g-num', text: d.id === 'ko' ? 'Not yet' : `${fmtInt(Math.min(g.p, g.n))} / ${fmtInt(g.n)}` }),
+        ])
+      );
+    }
   },
 };
 
@@ -7538,7 +8277,8 @@ const Net = {
     car.boosting = s[5] === 1;
     car.lap = Math.max(0, Math.floor(+s[6] || 0));
     car.progress = clamp(+s[7] || 0, 0, 1);
-    car.totalProgress = car.lap + car.progress;
+    if (car.progress < 0.5) car.crossed = true;
+    car.totalProgress = car.lap + car.progress - (!car.crossed && car.lap === 0 && car.progress > 0.5 ? 1 : 0);
     const fin = +s[8] || 0;
     if (fin > 0 && !car.finished) {
       car.finished = true;
@@ -7700,7 +8440,7 @@ const Net = {
    ======================================================================== */
 const CH_POINTS = [10, 8, 6, 5, 4, 3, 2, 1];
 const MODE_TEXT = {
-  ai: ['Race the AI', 'Set up your race', 'You start at the back of the grid. Podiums, fastest laps and banked drifts all pay credits.'],
+  ai: ['Race the AI', 'Set up your race', 'You start at the back of the grid. Overtakes, close passes and clean laps build a style combo that refills your nitro, coins on the road pay credits, and blue canisters top up the tank.'],
   champ: [
     'Championship',
     'Three rounds for the title',
@@ -7710,6 +8450,11 @@ const MODE_TEXT = {
     'Drift Attack',
     'Slide for score',
     'Two laps alone on the circuit. Every clean slide banks points; chain them within 2.5 seconds for a multiplier. Touch a wall and the slide is lost.',
+  ],
+  knockout: [
+    'Knockout',
+    'Last car standing',
+    'No lap count. After 30 seconds the car in last place is eliminated, then another every 20 seconds. Stay off the bottom and outlast the field.',
   ],
   trial: ['Time Trial', 'Chase your best lap', 'No traffic. Set a lap and a ghost of your record runs with you on every lap after it.'],
 };
@@ -7728,7 +8473,10 @@ const UI = {
     if (name !== 'garage') Garage.close();
     if (name === 'garage') Garage.open();
     if (name !== 'results') this.stopConfetti();
-    if (name === 'menu') this.refreshCredits();
+    if (name === 'menu') {
+      this.refreshCredits();
+      Goals.render($('#m-goals'));
+    }
   },
   refreshCredits() {
     $('#m-credits').textContent = fmtInt(Profile.data.credits);
@@ -7761,6 +8509,7 @@ const UI = {
     $('#b-quick').onclick = () => this.openSetup('ai');
     $('#b-champ').onclick = () => this.openSetup('champ');
     $('#b-drift').onclick = () => this.openSetup('drift');
+    $('#b-knockout').onclick = () => this.openSetup('knockout');
     $('#b-trial').onclick = () => this.openSetup('trial');
     $('#b-garage').onclick = () => {
       this.unlockAudio();
@@ -7947,11 +8696,11 @@ const UI = {
     $('#setup-title').textContent = tx[1];
     $('#setup-desc').textContent = tx[2];
     $('#f-track').hidden = mode === 'champ';
-    $('#f-laps').hidden = mode === 'champ' || mode === 'drift';
+    $('#f-laps').hidden = mode === 'champ' || mode === 'drift' || mode === 'knockout';
     $('#f-diff').hidden = mode === 'trial' || mode === 'drift';
-    $('#f-bots').hidden = mode !== 'ai';
+    $('#f-bots').hidden = mode !== 'ai' && mode !== 'knockout';
     $('#b-setup-go').textContent =
-      mode === 'champ' ? 'Start championship' : mode === 'drift' ? 'Start run' : mode === 'trial' ? 'Start session' : 'Start race';
+      mode === 'champ' ? 'Start championship' : mode === 'drift' ? 'Start run' : mode === 'trial' ? 'Start session' : mode === 'knockout' ? 'Start knockout' : 'Start race';
     this.show('setup');
   },
   champOpts() {
@@ -7980,7 +8729,7 @@ const UI = {
 
   showResults(res) {
     let eyebrow =
-      { drift: 'Drift attack', trial: 'Session complete', champ: 'Championship', online: 'Online race' }[res.mode] || 'Race complete';
+      { drift: 'Drift attack', trial: 'Session complete', champ: 'Championship', online: 'Online race', knockout: 'Knockout' }[res.mode] || 'Race complete';
     let head = res.head,
       rows = res.rows,
       title = res.title,
@@ -8041,6 +8790,16 @@ const UI = {
         )
       );
     $('#res-note').textContent = note;
+    /* challenges finished by this race */
+    const gb = $('#res-goals'),
+      goals = res.goals || [];
+    gb.hidden = !goals.length;
+    gb.innerHTML = '';
+    for (const g of goals) {
+      credits += g.reward;
+      gb.append(el('div', { class: 'goal-done' }, [el('span', { text: 'Challenge complete' }), el('b', { text: g.text }), el('i', { text: '+' + g.reward + ' CR' })]));
+    }
+    $('#res-reward').textContent = '+' + fmtInt(credits) + ' CR';
     const ab = $('#b-res-again');
     ab.hidden = !showAgain && !Net.active;
     ab.textContent = Net.active ? (Net.isHost ? 'Race again' : 'Back to room') : again;

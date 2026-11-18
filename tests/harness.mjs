@@ -16,6 +16,7 @@ function load(name, fallback) {
   }
 }
 const { chromium, devices } = load('playwright', '/opt/node-tools/node_modules/playwright');
+export { chromium }; /* for tests that need a page of their own (t-paste) */
 
 export const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const ROOT = path.resolve(HERE, '..');

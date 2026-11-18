@@ -29,6 +29,19 @@ const HUD = {
     m.className = 'show ' + cls;
     this.toastT = hold;
   },
+  /* a style move pops up on the right and drifts away */
+  style(label, pts, mult, cls = '') {
+    const feed = $('#style-feed');
+    while (feed.children.length > 3) feed.firstElementChild.remove();
+    const line = el('div', { class: 'style-line ' + cls }, [
+      el('span', { text: label }),
+      pts ? el('b', { text: '+' + fmtInt(pts) }) : null,
+      mult > 1 ? el('i', { text: '×' + mult.toFixed(1) }) : null,
+    ]);
+    feed.append(line);
+    setTimeout(() => line.classList.add('out'), 1600);
+    setTimeout(() => line.remove(), 2000);
+  },
   banked(pts, tier) {
     const b = $('#d-bank');
     b.textContent = '+' + fmtInt(pts);
@@ -58,7 +71,32 @@ const HUD = {
     $('#h-pos-sup').textContent = ordinal(pos);
     $('#h-total').textContent = game.cars.filter((c) => !c.ghost).length;
     $('#h-lap').textContent = Math.min(p.lap + 1, game.laps);
-    $('#h-laps').textContent = game.laps;
+    $('#h-laps').textContent = game.ko ? '∞' : game.laps;
+    /* knockout clock: who goes next, and whether it is us */
+    const kp = $('#h-ko');
+    kp.hidden = !game.ko || p.finished;
+    if (game.ko) {
+      const s = Math.max(0, Math.ceil(game.ko.next));
+      $('#h-ko-t').textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+      kp.classList.toggle('danger', !!game.ko.danger);
+      kp.firstChild.textContent = game.ko.danger ? 'YOU ARE LAST ' : 'NEXT OUT ';
+    }
+    /* style score, coins and the combo that is running */
+    const sp = $('#h-style'),
+      on = !!game.styleOn && (Style.score > 0 || Style.stats.coins > 0);
+    sp.hidden = !on;
+    if (on) {
+      $('#h-style-v').textContent = fmtInt(Style.score);
+      $('#h-coins').hidden = Style.stats.coins === 0;
+      $('#h-coins-v').textContent = Style.stats.coins;
+    }
+    const cb = $('#style-combo'),
+      live = !!game.styleOn && Style.combo > 0 && Style.comboT > 0 && game.state === 'racing';
+    cb.hidden = !live;
+    if (live) {
+      $('#style-mult').textContent = '×' + Style.mult().toFixed(1);
+      $('#style-fill').style.transform = `scaleX(${clamp(Style.comboT / COMBO_WINDOW, 0, 1)})`;
+    }
     const lapT = p.finished ? p.lapTimes[p.lapTimes.length - 1] || 0 : (game.raceTime - p.lapStart) * 1000;
     $('#h-time').textContent = fmtTime(game.state === 'racing' || p.finished ? lapT : 0, '0:00.000');
     $('#h-best').textContent = fmtTime(p.bestLap);

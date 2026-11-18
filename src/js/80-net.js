@@ -369,7 +369,8 @@ const Net = {
     car.boosting = s[5] === 1;
     car.lap = Math.max(0, Math.floor(+s[6] || 0));
     car.progress = clamp(+s[7] || 0, 0, 1);
-    car.totalProgress = car.lap + car.progress;
+    if (car.progress < 0.5) car.crossed = true;
+    car.totalProgress = car.lap + car.progress - (!car.crossed && car.lap === 0 && car.progress > 0.5 ? 1 : 0);
     const fin = +s[8] || 0;
     if (fin > 0 && !car.finished) {
       car.finished = true;

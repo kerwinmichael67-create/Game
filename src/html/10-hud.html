@@ -3,7 +3,9 @@
   <div class="hud-tl">
     <div class="pill"><div class="pos"><span id="h-pos">1</span><sup id="h-pos-sup">st</sup><span style="font-size:14px;color:var(--muted)"> / <span id="h-total">4</span></span></div></div>
     <div class="pill lap">LAP <b id="h-lap">1</b> / <span id="h-laps">3</span></div>
+    <div class="pill lap ko" id="h-ko" hidden>NEXT OUT <b id="h-ko-t">0:20</b></div>
     <div class="pill lap" id="h-drift" hidden>DRIFT <b id="h-drift-v">0</b></div>
+    <div class="pill lap" id="h-style" hidden>STYLE <b id="h-style-v">0</b><span id="h-coins" hidden> · <i class="coin"></i><b id="h-coins-v">0</b></span></div>
     <div class="pill standings" id="h-standings"></div>
   </div>
   <div class="hud-tr">
@@ -24,6 +26,7 @@
     <div class="d-bar"><i id="d-fill"></i><b style="left:24%"></b><b style="left:56.5%"></b></div>
     <div id="d-bank">+0</div>
   </div>
+  <div id="style"><div id="style-feed"></div><div id="style-combo" hidden>COMBO <b id="style-mult">×1.5</b><span class="c-bar"><i id="style-fill"></i></span></div></div>
   <div id="msg"></div>
   <div id="toast"></div>
   <div id="wrongway">WRONG WAY</div>

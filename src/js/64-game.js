@@ -10,6 +10,8 @@ function driftMedals(track, laps) {
     gold: Math.round((km * 4800) / 100) * 100,
   };
 }
+const KO_FIRST = 30, /* knockout: seconds until the first elimination, then between eliminations */
+  KO_EVERY = 20;
 const BOT_GARAGE = [
   ['vanta', 'vanta', 'kite'],
   ['vanta', 'kite', 'brute', 'vanta'],
@@ -50,10 +52,11 @@ const Game = {
   setup(opts) {
     this.opts = opts;
     this.mode = opts.mode;
-    this.laps = opts.mode === 'drift' ? 2 : opts.laps || 3;
+    this.laps = opts.mode === 'drift' ? 2 : opts.mode === 'knockout' ? 999 : opts.laps || 3;
     this.seed = opts.seed || 1;
     const def = TRACKS.find((t) => t.id === opts.trackId) || TRACKS[0];
     this.clearCars();
+    Pickups.clear(this.world);
     if (!this.track || this.track.id !== def.id || this.world.track !== this.track || this.world.builtQuality !== this.world.quality) {
       this.track = new Track(def);
       this.world.load(this.track, hashStr(def.id));
@@ -76,7 +79,7 @@ const Game = {
     this.cars.push(this.player);
     const di = opts.difficulty ?? 1,
       diff = DIFFICULTY[di];
-    const botCount = opts.mode === 'trial' || opts.mode === 'drift' ? 0 : (opts.botCount ?? 5);
+    const botCount = opts.mode === 'trial' || opts.mode === 'drift' ? 0 : (opts.botCount ?? (opts.mode === 'knockout' ? 7 : 5));
     const names = BOT_NAMES.slice().sort(() => R() - 0.5),
       used = new Set([paint.id]);
     for (let i = 0; i < botCount; i++) {
@@ -111,6 +114,12 @@ const Game = {
       this.world.add(c.mesh);
     });
     this.world.attachHeadlights(this.player);
+    /* style rewards and pickups belong to the race modes; time trial and drift attack stay pure */
+    this.styleOn = Pickups.enabled(opts.mode);
+    Style.reset();
+    Pickups.setup(this);
+    /* knockout: the car in last place is eliminated each time the clock runs out */
+    this.ko = opts.mode === 'knockout' ? { next: KO_FIRST, every: KO_EVERY, out: [], total: this.cars.length } : null;
     /* ghost for time trial */
     this.ghost = null;
     this.ghostData = null;
@@ -183,12 +192,14 @@ const Game = {
       p.turboT = 1.4;
       p.turboPow = 0.9;
       p.turboTier = 2;
+      if (this.styleOn) Style.score += STYLE.start.pts;
       HUD.toast('PERFECT START', 1.6, 'good');
       Audio.whoosh(1);
     } else if (this.mode === 'drift') HUD.toast('TAP DRIFT AS YOU TURN IN · STRAIGHTEN UP FOR A BOOST', 4);
   },
 
   onDrift(car, evt, d) {
+    if (car.isPlayer && evt === 'end' && this.styleOn) Style.drift(d.banked);
     if (!car.isPlayer || this.headless) return;
     if (evt === 'tier') Audio.tier(d.tier);
     else if (evt === 'end') {
@@ -218,6 +229,10 @@ const Game = {
     car.lapTimes.push(lapT);
     car.lapStart = t;
     if (car.bestLap == null || lapT < car.bestLap) car.bestLap = lapT;
+    if (car.isPlayer && this.styleOn) {
+      Style.lap(this, car);
+      Pickups.lap();
+    }
     if (car.isPlayer) {
       Audio.lap();
       const prof = Profile.data,
@@ -272,6 +287,7 @@ const Game = {
   updateStandings() {
     const live = this.cars.filter((c) => !c.ghost);
     live.sort((a, b) => {
+      if (a.out !== b.out) return a.out ? 1 : -1; /* knocked out: behind everyone still running */
       if (a.finished && b.finished) return a.finishTime - b.finishTime;
       if (a.finished) return -1;
       if (b.finished) return 1;
@@ -404,7 +420,12 @@ const Game = {
         gh.mesh.rotation.set(gh.pitch, gyaw, gh.roll, 'YXZ');
       }
     }
+    if (this.styleOn && racing) {
+      Style.update(this, dt);
+      Pickups.update(this, dt);
+    }
     this.updateStandings();
+    if (this.ko && this.state === 'racing' && !p.finished) this.tickKnockout(dt);
     if (this.onTick) this.onTick(dt);
     if (this.headless) {
       this.checkEnd();
@@ -437,15 +458,78 @@ const Game = {
     if (this.state === 'finished' && !this.results) {
       const others = this.cars.filter((c) => !c.ghost && !c.isPlayer);
       const waited = this.raceTime - this.finishedAt,
-        solo = this.mode === 'trial' || this.mode === 'drift';
-      if (solo ? waited > 1.2 : others.every((c) => c.finished) || waited > (this.mode === 'online' ? 30 : 12)) this.finishRace();
+        solo = this.mode === 'trial' || this.mode === 'drift' || this.mode === 'knockout';
+      if (solo ? waited > (this.ko ? 1.8 : 1.2) : others.every((c) => c.finished) || waited > (this.mode === 'online' ? 30 : 12)) this.finishRace();
     }
+  },
+
+  /* ---- knockout ---- */
+  tickKnockout(dt) {
+    const ko = this.ko,
+      p = this.player,
+      before = Math.ceil(ko.next);
+    ko.next -= dt;
+    const last = this.standings[this.standings.length - 1];
+    ko.danger = last === p;
+    if (!this.headless && Math.ceil(ko.next) !== before && ko.next > 0 && ko.next <= 5) Audio.beep(ko.danger ? 990 : 520, 0.09, 'square', ko.danger ? 0.22 : 0.1);
+    if (ko.next > 0) return;
+    ko.next = ko.every;
+    this.eliminate(last);
+  },
+  eliminate(car) {
+    const ko = this.ko,
+      p = this.player,
+      t = this.raceTime;
+    ko.out.push(car);
+    car.out = true;
+    car.outAt = t;
+    if (car === p) {
+      p.finished = true;
+      p.finishTime = Math.round(t * 1000);
+      this.finishedAt = t;
+      if (p.drifting) p.endDrift(this.world, false);
+      p.ai = new AIDriver(p, this.track, DIFFICULTY[1], 7);
+      p.ai.d = Object.assign({}, DIFFICULTY[1], { speed: 0.45, nitro: 0 });
+      if (!this.headless) {
+        HUD.message('KNOCKED OUT', 'red', 2.2);
+        Audio.fail();
+        this.world.shake = 0.6;
+      }
+      return;
+    }
+    /* a rival goes: off the road in a shower of sparks */
+    if (!this.headless) {
+      const w = this.world,
+        at = car.pos.clone().setY(car.pos.y + 0.8);
+      if (w.sparks) for (let k = 0; k < 40; k++) w.sparks.emit(at, new THREE.Vector3((Math.random() - 0.5) * 16, 3 + Math.random() * 9, (Math.random() - 0.5) * 16), new THREE.Color(k % 2 ? 0xffb050 : 0xff5a3c), 0.5 + Math.random() * 0.5);
+      HUD.toast(car.name.toUpperCase() + ' IS OUT', 1.8, 'bad');
+      Audio.thud(0.9);
+      Audio.stopEngine(car.id);
+    }
+    this.world.remove(car.mesh);
+    disposeTree(car.mesh);
+    this.cars.splice(this.cars.indexOf(car), 1);
+    this.bots.splice(this.bots.indexOf(car), 1);
+    this.updateStandings();
+    if (this.cars.length === 1) {
+      /* nobody left to beat */
+      p.finished = true;
+      p.finishTime = Math.round(t * 1000);
+      this.finishedAt = t;
+      if (p.drifting) p.endDrift(this.world, true);
+      p.ai = new AIDriver(p, this.track, DIFFICULTY[1], 7);
+      p.ai.d = Object.assign({}, DIFFICULTY[1], { speed: 0.6, nitro: 0 });
+      if (!this.headless) {
+        HUD.message('LAST CAR STANDING', 'green', 2.2);
+        Audio.fanfare();
+      }
+    } else if (this.styleOn) Style.award(this, 'survive');
   },
 
   finishRace() {
     /* project unfinished cars' times from their remaining distance */
     for (const c of this.cars)
-      if (!c.ghost && !c.finished) {
+      if (!c.ghost && !c.finished && !this.ko) {
         const rem = Math.max(0, this.laps - c.totalProgress) * this.track.length;
         c.finishTime = Math.round((this.raceTime + rem / Math.max(20, c.stats.topSpeed * 0.75)) * 1000);
         c.projected = true;
@@ -490,6 +574,27 @@ const Game = {
       res.note =
         (score > best ? 'New personal best on this circuit. ' : 'Personal best ' + fmtInt(best) + '. ') +
         'Chain slides within 2.5 seconds to build the multiplier.';
+    } else if (this.mode === 'knockout') {
+      /* finishing order: whoever is still running, then the eliminated, last out first */
+      const ko = this.ko,
+        order = this.cars.filter((c) => !c.out).sort((a, b) => b.totalProgress - a.totalProgress).concat(ko.out.slice().reverse()),
+        place = order.indexOf(p) + 1,
+        diffMul = [0.8, 1, 1.35][this.opts.difficulty ?? 1] || 1;
+      res.pos = place;
+      res.n = order.length;
+      res.credits = Math.round(([650, 400, 280, 200, 150, 110, 80, 60][place - 1] || 50) * diffMul * (0.4 + order.length / 13.3));
+      res.title = place === 1 ? 'Last car standing' : `Knocked out: ${place}${ordinal(place)}`;
+      res.win = place === 1;
+      res.head = ['Pos', 'Driver', 'Lasted', 'Laps'];
+      res.rows = order.map((c, i) => ({
+        id: c.id,
+        cells: [i + 1, c.name + (c.isPlayer && c.name !== 'You' ? ' (you)' : ''), c.out ? Math.floor(Math.round(c.outAt) / 60) + ':' + String(Math.round(c.outAt) % 60).padStart(2, '0') : 'Survived', (c.totalProgress < 0 ? 0 : c.totalProgress).toFixed(1)],
+        me: c.isPlayer,
+        posCls: i < 3 ? 'p' + (i + 1) : '',
+      }));
+      res.note = place === 1 ? 'You outlasted the whole field. ' : place <= 3 ? 'So close. Stay off last place when the clock runs out. ' : 'Last place goes out every time the clock hits zero. ';
+      prof.races = (prof.races || 0) + 1;
+      if (place === 1) prof.wins = (prof.wins || 0) + 1;
     } else if (this.mode === 'trial') {
       res.credits = 60 * p.lapTimes.length;
       res.title = 'Time trial';
@@ -532,6 +637,38 @@ const Game = {
         posCls: i < 3 ? 'p' + (i + 1) : '',
       }));
     }
+    /* style, coins and challenges */
+    if (this.styleOn) {
+      const coinCr = Style.stats.coins * COIN_VALUE,
+        styleCr = Math.min(600, Math.floor(Style.score / 10));
+      if (styleCr > 0) {
+        res.credits += styleCr;
+        res.note += ` Style ${fmtInt(Style.score)} pts +${styleCr} CR.`;
+      }
+      if (coinCr > 0) {
+        res.credits += coinCr;
+        res.note += ` Coins +${coinCr} CR.`;
+      }
+    }
+    res.style = this.styleOn ? Style.score : 0;
+    res.goals = [];
+    if (!this.autopilot) {
+      const racePlace = res.pos,
+        field = res.n,
+        versus = this.mode !== 'trial' && this.mode !== 'drift' && field > 1;
+      res.goals = Goals.apply({
+        overtakes: Style.stats.overtakes,
+        nearMisses: Style.stats.nearMisses,
+        slingshots: Style.stats.slingshots,
+        coins: Style.stats.coins,
+        cleanLaps: Style.stats.cleanLaps,
+        drift: p.driftScore,
+        podiums: versus && field >= 4 && racePlace <= 3 ? 1 : 0,
+        wins: versus && racePlace === 1 ? 1 : 0,
+        koFinal: this.mode === 'knockout' ? racePlace : 0,
+        style: this.styleOn ? Style.score : 0,
+      });
+    }
     prof.credits += res.credits;
     Profile.save();
     if (res.record) Profile.pushRecord();
@@ -545,6 +682,8 @@ const Game = {
   stop() {
     this.state = 'idle';
     this.clearCars();
+    Pickups.clear(this.world);
+    this.ko = null;
     HUD.show(false);
     HUD.lastPos = null;
     Audio.stopAll();

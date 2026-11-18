@@ -56,6 +56,9 @@ class Car {
     this.offT = 0;
     this.wrongWay = 0;
     this.lastCollide = 0;
+    this.crossed = false; /* has taken the start: until then a car on the grid is behind the line, not a lap ahead */
+    this.hitT = 0; /* seconds since-contact timer: > 0 right after touching a wall or another car */
+    this.dirty = false; /* a hard hit or an excursion this lap: no clean-lap bonus */
     this.totalProgress = 0;
     this.stuck = 0;
     this.lightsBrake = false;
@@ -301,6 +304,8 @@ class Car {
     this.lat = track.lateral(this.pos.x, this.pos.z, this.trackIdx);
     this.offTrack = Math.abs(this.lat) > track.halfWidth + 0.3;
     this.offT = this.offTrack ? this.offT + dt : 0;
+    if (this.offT > 1.2) this.dirty = true;
+    this.hitT = Math.max(0, this.hitT - dt);
     const wall = track.halfWidth + track.wallOffset - CAR.wid * 0.45;
     if (Math.abs(this.lat) > wall) {
       /* barrier hit: clamp to the wall, reflect the velocity into it, scrub speed */
@@ -310,6 +315,8 @@ class Car {
       const vn = this.vel.dot(n);
       if (vn < 0) {
         const impact = -vn;
+        if (impact > 1.5) this.hitT = 0.8;
+        if (impact > 2.5) this.dirty = true;
         this.vel.addScaledVector(n, -vn * 1.5);
         this.vel.multiplyScalar(1 - Math.min(0.45, impact * 0.03)); /* hard hits scrub speed; a light scrape barely does */
         const nowT = performance.now();
@@ -350,6 +357,7 @@ class Car {
     if (this.trackIdx >= track.sectors[0] && this.trackIdx < track.sectors[0] + 40) this.sectorsHit[0] = true;
     if (this.trackIdx >= track.sectors[1] && this.trackIdx < track.sectors[1] + 40 && this.sectorsHit[0]) this.sectorsHit[1] = true;
     if (dp < -0.5 && fwdOnTrack > 0) {
+      this.crossed = true;
       if (this.sectorsHit[0] && this.sectorsHit[1]) {
         this.lap++;
         world && world.onLap(this);
@@ -361,7 +369,7 @@ class Car {
         this.sectorsHit = [true, true];
       }
     }
-    this.totalProgress = this.lap + this.progress;
+    this.totalProgress = this.lap + this.progress - (!this.crossed && this.lap === 0 && this.progress > 0.5 ? 1 : 0);
     this.stuck = Math.abs(this.speed) < 1.5 && inp.throttle > 0.5 ? this.stuck + dt : 0;
 
     /* visuals */
@@ -414,6 +422,8 @@ class Car {
       rvz = this.vel.z - other.vel.z;
     const rel = rvx * nx + rvz * nz;
     if (rel > 0) {
+      if (rel > 1) this.hitT = other.hitT = 0.8;
+      if (rel > 3) this.dirty = other.dirty = true;
       const j = rel * 0.8;
       this.vel.x -= nx * j * (other.remote ? 1 : 0.5);
       this.vel.z -= nz * j * (other.remote ? 1 : 0.5);
